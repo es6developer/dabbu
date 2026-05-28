@@ -1,0 +1,10 @@
+{
+  "expo": {
+    "name": "dabbu-monorepo",
+    "slug": "dabbu-monorepo",
+    "version": "1.0.0",
+    "description": "Dabbu - Personal Finance Manager Monorepo",
+    "sdkVersion": "50.0.0",
+    "platforms": ["ios", "android", "web"]
+  }
+}

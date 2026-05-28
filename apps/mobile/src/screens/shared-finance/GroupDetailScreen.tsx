@@ -8,12 +8,15 @@ import {
   StyleSheet,
   ActivityIndicator,
   Dimensions,
+  Share,
+  Alert,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
+import { createInviteLink } from '../../services/external-sharing';
 import { useAuth } from '../../store/AuthContext';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
@@ -127,6 +130,7 @@ export function GroupDetailScreen() {
   const [error, setError] = useState<string | null>(null);
   const [activeSegment, setActiveSegment] = useState<Segments>('expenses');
   const [showRevokedModal, setShowRevokedModal] = useState(false);
+  const [invitingExternal, setInvitingExternal] = useState(false);
 
   const { status, restrictions, accessRevoked, revocationReason, isReadOnly, hasRestriction } =
     useGroupLifecycle({
@@ -209,6 +213,22 @@ export function GroupDetailScreen() {
       fetchGroup();
     }, [fetchGroup]),
   );
+
+  const handleInviteExternal = async () => {
+    setInvitingExternal(true);
+    try {
+      const res = await createInviteLink(groupId);
+      const token = res.token;
+      const link = `https://external-web-es6developers-projects.vercel.app/invite/${token}`;
+      await Share.share({
+        message: `Join my group "${group?.name}" on Dabbu! ${link}`,
+      });
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to create invite link');
+    } finally {
+      setInvitingExternal(false);
+    }
+  };
 
   const config = group
     ? GROUP_TYPE_CONFIG[group.type] || GROUP_TYPE_CONFIG.friends
@@ -393,50 +413,36 @@ export function GroupDetailScreen() {
           );
         }
         return (
-          <FlatList
-            data={group.expenses}
-            keyExtractor={(item) => item.id}
-            renderItem={renderExpenseItem}
-            contentContainerStyle={styles.segmentList}
-            showsVerticalScrollIndicator={false}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={() => fetchGroup(true)}
-                tintColor={colors.accent.primary}
-                colors={[colors.accent.primary]}
-              />
-            }
-          />
+          <View style={styles.segmentList}>
+            {group.expenses.map((item) => (
+              <View key={item.id}>{renderExpenseItem({ item })}</View>
+            ))}
+          </View>
         );
       case 'members':
         return (
-          <FlatList
-            data={group.members}
-            keyExtractor={(item) => item.id}
-            renderItem={renderMemberItem}
-            ListHeaderComponent={
-              <TouchableOpacity
-                style={[
-                  styles.inviteButton,
-                  {
-                    backgroundColor: colors.accent.primary + '15',
-                    borderColor: colors.accent.primary + '30',
-                  },
-                ]}
-                onPress={() => navigation.navigate('InviteMembers', { groupId })}
+          <View style={styles.segmentList}>
+            <TouchableOpacity
+              style={[
+                styles.inviteButton,
+                {
+                  backgroundColor: colors.accent.primary + '15',
+                  borderColor: colors.accent.primary + '30',
+                },
+              ]}
+              onPress={() => navigation.navigate('InviteMembers', { groupId })}
+            >
+              <Ionicons name="person-add-outline" size={20} color={colors.accent.primary} />
+              <Text
+                style={[typography.buttonSmall, { color: colors.accent.primary, marginLeft: 8 }]}
               >
-                <Ionicons name="person-add-outline" size={20} color={colors.accent.primary} />
-                <Text
-                  style={[typography.buttonSmall, { color: colors.accent.primary, marginLeft: 8 }]}
-                >
-                  Invite Members
-                </Text>
-              </TouchableOpacity>
-            }
-            contentContainerStyle={styles.segmentList}
-            showsVerticalScrollIndicator={false}
-          />
+                Invite Members
+              </Text>
+            </TouchableOpacity>
+            {group.members.map((item) => (
+              <View key={item.id}>{renderMemberItem({ item })}</View>
+            ))}
+          </View>
         );
       case 'settlements':
         if (!group.settlements?.length) {
@@ -452,13 +458,11 @@ export function GroupDetailScreen() {
           );
         }
         return (
-          <FlatList
-            data={group.settlements}
-            keyExtractor={(item) => item.id}
-            renderItem={renderSettlementItem}
-            contentContainerStyle={styles.segmentList}
-            showsVerticalScrollIndicator={false}
-          />
+          <View style={styles.segmentList}>
+            {group.settlements.map((item) => (
+              <View key={item.id}>{renderSettlementItem({ item })}</View>
+            ))}
+          </View>
         );
     }
   };
@@ -552,33 +556,31 @@ export function GroupDetailScreen() {
               </TouchableOpacity>
             </View>
 
-            {group?.inviteCode && (
-              <TouchableOpacity
-                style={[
-                  styles.inviteBanner,
-                  {
-                    backgroundColor: colors.accent.primary + '12',
-                    borderColor: colors.accent.primary + '30',
-                  },
-                ]}
-                onPress={() =>
-                  navigation.navigate('InviteMembers', {
-                    groupId,
-                    groupName: group.name,
-                    inviteCode: group.inviteCode,
-                  })
-                }
-                activeOpacity={0.7}
-              >
-                <Ionicons name="link-outline" size={16} color={colors.accent.primary} />
-                <Text style={[styles.inviteBannerText, { color: colors.accent.primary }]}>
-                  Invite code:{' '}
-                  <Text style={{ fontWeight: '700', fontFamily: 'monospace' }}>
-                    {group.inviteCode}
+            {group?.id && (
+              <View style={styles.inviteSection}>
+                <TouchableOpacity
+                  style={[
+                    styles.inviteBanner,
+                    {
+                      backgroundColor: colors.accent.primary + '12',
+                      borderColor: colors.accent.primary + '30',
+                    },
+                  ]}
+                  onPress={handleInviteExternal}
+                  activeOpacity={0.7}
+                  disabled={invitingExternal}
+                >
+                  {invitingExternal ? (
+                    <ActivityIndicator size="small" color={colors.accent.primary} />
+                  ) : (
+                    <Ionicons name="share-outline" size={16} color={colors.accent.primary} />
+                  )}
+                  <Text style={[styles.inviteBannerText, { color: colors.accent.primary }]}>
+                    {invitingExternal ? 'Creating link...' : 'Share Invite Link'}
                   </Text>
-                </Text>
-                <Ionicons name="chevron-forward" size={14} color={colors.accent.primary} />
-              </TouchableOpacity>
+                  <Ionicons name="chevron-forward" size={14} color={colors.accent.primary} />
+                </TouchableOpacity>
+              </View>
             )}
 
             <View style={styles.balanceSummary}>
@@ -667,7 +669,7 @@ export function GroupDetailScreen() {
           </>
         }
         ListFooterComponent={
-          <View style={{ paddingBottom: insets.bottom + 120 }}>{renderSegmentContent()}</View>
+          <View style={{ paddingBottom: insets.bottom + 160 }}>{renderSegmentContent()}</View>
         }
         showsVerticalScrollIndicator={false}
       />
@@ -678,7 +680,7 @@ export function GroupDetailScreen() {
           {
             backgroundColor: colors.bg.secondary,
             borderTopColor: colors.border.subtle,
-            paddingBottom: insets.bottom + 20,
+            paddingBottom: insets.bottom + 40,
           },
         ]}
       >
@@ -968,6 +970,14 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     marginBottom: 14,
   },
+  inviteBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -986,6 +996,10 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderTopWidth: 1,
     gap: 6,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
   },
   bottomAction: {
     flexDirection: 'row',
@@ -1002,5 +1016,15 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  inviteSection: {
+    paddingHorizontal: 20,
+    marginTop: 12,
+  },
+  inviteBannerText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 8,
   },
 });

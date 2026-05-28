@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.dabbu.app";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.dabbu.app';
 
 interface ApiResponse<T> {
   data?: T;
@@ -7,52 +7,56 @@ interface ApiResponse<T> {
 }
 
 function getTempToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("dabbu_temp_token");
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  return localStorage.getItem('dabbu_temp_token');
 }
 
 function setTempToken(token: string): void {
-  if (typeof window !== "undefined") {
-    localStorage.setItem("dabbu_temp_token", token);
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('dabbu_temp_token', token);
   }
 }
 
 function clearTempToken(): void {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("dabbu_temp_token");
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('dabbu_temp_token');
   }
 }
 
 function getTempSession(): Record<string, unknown> | null {
-  if (typeof window === "undefined") return null;
-  const session = localStorage.getItem("dabbu_temp_session");
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  const session = localStorage.getItem('dabbu_temp_session');
   return session ? JSON.parse(session) : null;
 }
 
 function setTempSession(data: Record<string, unknown>): void {
-  if (typeof window !== "undefined") {
-    localStorage.setItem("dabbu_temp_session", JSON.stringify(data));
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('dabbu_temp_session', JSON.stringify(data));
   }
 }
 
 function clearTempSession(): void {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("dabbu_temp_session");
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('dabbu_temp_session');
   }
 }
 
 async function request<T>(
   method: string,
   path: string,
-  body?: Record<string, unknown>
+  body?: Record<string, unknown>,
 ): Promise<ApiResponse<T>> {
   const token = getTempToken();
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   };
 
   if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+    headers['Authorization'] = `Bearer ${token}`;
   }
 
   try {
@@ -65,22 +69,21 @@ async function request<T>(
     const data = await res.json();
 
     if (!res.ok) {
-      return { error: data.message || data.error || "Request failed", status: res.status };
+      return { error: data.message || data.error || 'Request failed', status: res.status };
     }
 
     return { data: data as T, status: res.status };
   } catch (err) {
-    return { error: err instanceof Error ? err.message : "Network error", status: 0 };
+    return { error: err instanceof Error ? err.message : 'Network error', status: 0 };
   }
 }
 
-const get = <T>(path: string) => request<T>("GET", path);
-const post = <T>(path: string, body?: Record<string, unknown>) => request<T>("POST", path, body);
-const patch = <T>(path: string, body?: Record<string, unknown>) => request<T>("PATCH", path, body);
-const del = <T>(path: string) => request<T>("DELETE", path);
+const get = <T>(path: string) => request<T>('GET', path);
+const post = <T>(path: string, body?: Record<string, unknown>) => request<T>('POST', path, body);
+const patch = <T>(path: string, body?: Record<string, unknown>) => request<T>('PATCH', path, body);
+const del = <T>(path: string) => request<T>('DELETE', path);
 
 export const api = {
-
   getTempToken,
   setTempToken,
   clearTempToken,
@@ -90,50 +93,63 @@ export const api = {
 
   auth: {
     sendOtp: (email: string) =>
-      post<{ success: boolean }>("/api/auth/send-otp", { email }),
+      post<{ success: boolean }>('/external-sharing/auth/email-otp', { email }),
     verifyOtp: (email: string, otp: string) =>
-      post<{ token: string; user: Record<string, unknown> }>("/api/auth/verify-otp", { email, otp }),
+      post<{ token: string; user: Record<string, unknown> }>(
+        '/external-sharing/auth/email-verify',
+        { email, otp },
+      ),
     phoneSendOtp: (phone: string) =>
-      post<{ success: boolean }>("/api/auth/phone/send-otp", { phone }),
+      post<{ success: boolean }>('/external-sharing/auth/phone-otp', { phone }),
     phoneVerifyOtp: (phone: string, otp: string) =>
-      post<{ token: string; user: Record<string, unknown> }>("/api/auth/phone/verify-otp", { phone, otp }),
+      post<{ token: string; user: Record<string, unknown> }>(
+        '/external-sharing/auth/phone-verify',
+        { phone, otp },
+      ),
     anonymous: (name: string) =>
-      post<{ token: string; user: Record<string, unknown> }>("/api/auth/anonymous", { name }),
+      post<{ token: string; user: Record<string, unknown> }>('/external-sharing/auth/anonymous', {
+        name,
+      }),
     google: () => {
-      window.location.href = `${API_BASE_URL}/api/auth/google`;
+      window.location.href = `${API_BASE_URL}/external-sharing/auth/google`;
     },
   },
 
   groups: {
-    get: (id: string) => get<Group>(`/api/groups/${id}`),
+    get: (id: string) => get<Group>(`/shared-finance/groups/${id}`),
     join: (token: string) =>
-      post<{ group: Group; membership: Record<string, unknown> }>(`/api/invites/${token}/join`, {}),
+      post<{ group: Group; membership: Record<string, unknown> }>(
+        `/external-sharing/invites/${token}/join`,
+        {},
+      ),
     getInvite: (token: string) =>
-      get<{ group: Group; inviter: Record<string, unknown>; permissions: string[] }>(`/api/invites/${token}`),
+      get<{ group: Group; inviter: Record<string, unknown>; permissions: string[] }>(
+        `/external-sharing/invites/${token}`,
+      ),
   },
 
   expenses: {
-    list: (groupId: string) => get<Expense[]>(`/api/groups/${groupId}/expenses`),
+    list: (groupId: string) => get<Expense[]>(`/shared-finance/groups/${groupId}/expenses`),
     create: (groupId: string, data: Record<string, unknown>) =>
-      post<Expense>(`/api/groups/${groupId}/expenses`, data),
+      post<Expense>(`/shared-finance/groups/${groupId}/expenses`, data),
     get: (groupId: string, expenseId: string) =>
-      get<Expense>(`/api/groups/${groupId}/expenses/${expenseId}`),
+      get<Expense>(`/shared-finance/groups/${groupId}/expenses/${expenseId}`),
     settle: (groupId: string, expenseId: string) =>
-      post<Expense>(`/api/groups/${groupId}/expenses/${expenseId}/settle`, {}),
+      post<Expense>(`/shared-finance/groups/${groupId}/expenses/${expenseId}/settle`, {}),
   },
 
   settlements: {
-    list: (groupId: string) => get<Settlement[]>(`/api/groups/${groupId}/settlements`),
+    list: (groupId: string) => get<Settlement[]>(`/shared-finance/groups/${groupId}/settlements`),
     create: (groupId: string, data: Record<string, unknown>) =>
-      post<Settlement>(`/api/groups/${groupId}/settlements`, data),
+      post<Settlement>(`/shared-finance/groups/${groupId}/settlements`, data),
     markPaid: (groupId: string, settlementId: string) =>
-      post<Settlement>(`/api/groups/${groupId}/settlements/${settlementId}/paid`, {}),
+      post<Settlement>(`/shared-finance/groups/${groupId}/settlements/${settlementId}/paid`, {}),
   },
 
   chat: {
-    list: (groupId: string) => get<ChatMessage[]>(`/api/groups/${groupId}/chat`),
+    list: (groupId: string) => get<ChatMessage[]>(`/shared-finance/groups/${groupId}/chat`),
     send: (groupId: string, content: string) =>
-      post<ChatMessage>(`/api/groups/${groupId}/chat`, { content }),
+      post<ChatMessage>(`/shared-finance/groups/${groupId}/chat`, { content }),
   },
 };
 
@@ -141,7 +157,7 @@ export interface Group {
   id: string;
   name: string;
   description?: string;
-  type: "trip" | "shared" | "house" | "event" | "other";
+  type: 'trip' | 'shared' | 'house' | 'event' | 'other';
   memberCount: number;
   totalBalance: number;
   members: Member[];
@@ -156,7 +172,7 @@ export interface Member {
   avatar?: string;
   balance: number;
   isOnline: boolean;
-  role: "admin" | "member" | "guest";
+  role: 'admin' | 'member' | 'guest';
 }
 
 export interface Expense {
@@ -165,7 +181,7 @@ export interface Expense {
   amount: number;
   category: string;
   paidBy: Member;
-  splitType: "equal" | "percentage" | "exact";
+  splitType: 'equal' | 'percentage' | 'exact';
   shares: ExpenseShare[];
   date: string;
   settled: boolean;
@@ -188,7 +204,7 @@ export interface Settlement {
   amount: number;
   method: string;
   note?: string;
-  status: "pending" | "completed";
+  status: 'pending' | 'completed';
   date: string;
   groupId: string;
   createdAt: string;
@@ -198,7 +214,7 @@ export interface ChatMessage {
   id: string;
   sender: Member;
   content: string;
-  type: "text" | "expense" | "settlement" | "system";
+  type: 'text' | 'expense' | 'settlement' | 'system';
   referenceId?: string;
   createdAt: string;
   readBy: string[];
