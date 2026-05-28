@@ -5,7 +5,7 @@ import { api } from '../services/api';
 import { refreshTempSession } from '../services/external-sharing';
 
 const SESSION_CHECK_INTERVAL = 5 * 60 * 1000;
-const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL || 'http://localhost:4000';
+const SOCKET_URL = 'wss://backend-es6developers-projects.vercel.app';
 
 interface SessionValidityState {
   isValid: boolean;
@@ -20,7 +20,11 @@ interface UseSessionValidityOptions {
   onSessionExpired?: () => void;
 }
 
-export function useSessionValidity({ isTempUser, enabled = true, onSessionExpired }: UseSessionValidityOptions) {
+export function useSessionValidity({
+  isTempUser,
+  enabled = true,
+  onSessionExpired,
+}: UseSessionValidityOptions) {
   const navigation = useNavigation<any>();
   const [state, setState] = useState<SessionValidityState>({
     isValid: true,
@@ -34,47 +38,58 @@ export function useSessionValidity({ isTempUser, enabled = true, onSessionExpire
 
   useEffect(() => {
     mountedRef.current = true;
-    return () => { mountedRef.current = false; };
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
   const validateSession = useCallback(async () => {
-    if (!enabled) return;
+    if (!enabled) {
+      return;
+    }
     try {
-      setState(prev => ({ ...prev, isLoading: true }));
+      setState((prev) => ({ ...prev, isLoading: true }));
       await api.get('/external-sharing/auth/me');
       if (mountedRef.current) {
-        setState(prev => ({ ...prev, isValid: true, isExpired: false, isLoading: false }));
+        setState((prev) => ({ ...prev, isValid: true, isExpired: false, isLoading: false }));
       }
     } catch (err: any) {
-      if (!mountedRef.current) return;
-      const isExpired = err?.message?.includes('401') || err?.message?.includes('expired') || err?.message?.includes('unauthorized');
+      if (!mountedRef.current) {
+        return;
+      }
+      const isExpired =
+        err?.message?.includes('401') ||
+        err?.message?.includes('expired') ||
+        err?.message?.includes('unauthorized');
       if (isExpired) {
         if (isTempUser) {
           try {
             await refreshTempSession();
             if (mountedRef.current) {
-              setState(prev => ({ ...prev, isValid: true, isExpired: false, isLoading: false }));
+              setState((prev) => ({ ...prev, isValid: true, isExpired: false, isLoading: false }));
             }
             return;
           } catch {
             if (mountedRef.current) {
-              setState(prev => ({ ...prev, isValid: false, isExpired: true, isLoading: false }));
+              setState((prev) => ({ ...prev, isValid: false, isExpired: true, isLoading: false }));
             }
             onSessionExpired?.();
           }
         } else {
-          setState(prev => ({ ...prev, isValid: false, isExpired: true, isLoading: false }));
+          setState((prev) => ({ ...prev, isValid: false, isExpired: true, isLoading: false }));
           onSessionExpired?.();
         }
       } else {
-        setState(prev => ({ ...prev, isValid: true, isExpired: false, isLoading: false }));
+        setState((prev) => ({ ...prev, isValid: true, isExpired: false, isLoading: false }));
       }
     }
   }, [enabled, isTempUser, onSessionExpired]);
 
   const handleExpiredSession = useCallback(() => {
-    if (!mountedRef.current) return;
-    setState(prev => ({ ...prev, isValid: false, isExpired: true }));
+    if (!mountedRef.current) {
+      return;
+    }
+    setState((prev) => ({ ...prev, isValid: false, isExpired: true }));
     cleanup();
     onSessionExpired?.();
     navigation.navigate('SharedFinanceHome');
@@ -92,7 +107,9 @@ export function useSessionValidity({ isTempUser, enabled = true, onSessionExpire
   }, []);
 
   const setupSocket = useCallback(() => {
-    if (socketRef.current?.connected) return;
+    if (socketRef.current?.connected) {
+      return;
+    }
     try {
       const socket = io(SOCKET_URL, {
         transports: ['websocket'],
@@ -113,7 +130,9 @@ export function useSessionValidity({ isTempUser, enabled = true, onSessionExpire
   }, [handleExpiredSession]);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {
+      return;
+    }
     validateSession();
     setupSocket();
 

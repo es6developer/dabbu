@@ -1,10 +1,16 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { io, Socket } from 'socket.io-client';
-import { checkGroupAccessStatus, getGroupLifecycleEvents, GroupLifecycleStatus, GroupLifecycleEvent, GroupRestriction } from '../services/access-control';
+import {
+  checkGroupAccessStatus,
+  getGroupLifecycleEvents,
+  GroupLifecycleStatus,
+  GroupLifecycleEvent,
+  GroupRestriction,
+} from '../services/access-control';
 
 const POLL_INTERVAL = 30 * 1000;
-const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL || 'http://localhost:4000';
+const SOCKET_URL = 'wss://backend-es6developers-projects.vercel.app';
 
 interface GroupLifecycleState {
   status: GroupLifecycleStatus;
@@ -22,7 +28,12 @@ interface UseGroupLifecycleOptions {
   onStatusChanged?: (status: GroupLifecycleStatus) => void;
 }
 
-export function useGroupLifecycle({ groupId, isTempUser = false, onAccessRevoked, onStatusChanged }: UseGroupLifecycleOptions) {
+export function useGroupLifecycle({
+  groupId,
+  isTempUser = false,
+  onAccessRevoked,
+  onStatusChanged,
+}: UseGroupLifecycleOptions) {
   const navigation = useNavigation<any>();
   const [state, setState] = useState<GroupLifecycleState>({
     status: 'active',
@@ -39,16 +50,22 @@ export function useGroupLifecycle({ groupId, isTempUser = false, onAccessRevoked
 
   useEffect(() => {
     mountedRef.current = true;
-    return () => { mountedRef.current = false; };
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
   const fetchStatus = useCallback(async () => {
-    if (!groupId) return;
+    if (!groupId) {
+      return;
+    }
     try {
       const statusData = await checkGroupAccessStatus(groupId);
-      if (!mountedRef.current) return;
+      if (!mountedRef.current) {
+        return;
+      }
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         status: statusData.status,
         restrictions: statusData.restrictions || prev.restrictions,
@@ -64,7 +81,11 @@ export function useGroupLifecycle({ groupId, isTempUser = false, onAccessRevoked
 
       if (!statusData.hasAccess && statusData.revocationReason) {
         if (mountedRef.current) {
-          setState(prev => ({ ...prev, accessRevoked: true, revocationReason: statusData.revocationReason }));
+          setState((prev) => ({
+            ...prev,
+            accessRevoked: true,
+            revocationReason: statusData.revocationReason,
+          }));
         }
         onAccessRevoked?.(statusData.revocationReason);
         cleanup();
@@ -72,17 +93,19 @@ export function useGroupLifecycle({ groupId, isTempUser = false, onAccessRevoked
       }
     } catch {
       if (mountedRef.current) {
-        setState(prev => ({ ...prev, isLoading: false }));
+        setState((prev) => ({ ...prev, isLoading: false }));
       }
     }
   }, [groupId, onAccessRevoked, onStatusChanged, navigation]);
 
   const fetchEvents = useCallback(async () => {
-    if (!groupId) return;
+    if (!groupId) {
+      return;
+    }
     try {
       const events = await getGroupLifecycleEvents(groupId);
       if (mountedRef.current) {
-        setState(prev => ({ ...prev, events }));
+        setState((prev) => ({ ...prev, events }));
       }
     } catch {
       // silent
@@ -101,7 +124,9 @@ export function useGroupLifecycle({ groupId, isTempUser = false, onAccessRevoked
   }, []);
 
   const setupSocket = useCallback(() => {
-    if (socketRef.current?.connected) return;
+    if (socketRef.current?.connected) {
+      return;
+    }
 
     try {
       const socket = io(SOCKET_URL, {
@@ -114,23 +139,29 @@ export function useGroupLifecycle({ groupId, isTempUser = false, onAccessRevoked
       });
 
       socket.on('access_revoked', (data: { reason: string }) => {
-        if (!mountedRef.current) return;
-        setState(prev => ({ ...prev, accessRevoked: true, revocationReason: data.reason }));
+        if (!mountedRef.current) {
+          return;
+        }
+        setState((prev) => ({ ...prev, accessRevoked: true, revocationReason: data.reason }));
         cleanup();
         onAccessRevoked?.(data.reason);
         navigation.navigate('SharedFinanceHome');
       });
 
       socket.on('status_changed', (data: { status: GroupLifecycleStatus }) => {
-        if (!mountedRef.current) return;
-        setState(prev => ({ ...prev, status: data.status }));
+        if (!mountedRef.current) {
+          return;
+        }
+        setState((prev) => ({ ...prev, status: data.status }));
         onStatusChanged?.(data.status);
         fetchEvents();
       });
 
       socket.on('restrictions_updated', (data: { restrictions: GroupRestriction[] }) => {
-        if (!mountedRef.current) return;
-        setState(prev => ({ ...prev, restrictions: data.restrictions }));
+        if (!mountedRef.current) {
+          return;
+        }
+        setState((prev) => ({ ...prev, restrictions: data.restrictions }));
       });
 
       socket.on('disconnect', () => {
@@ -144,7 +175,9 @@ export function useGroupLifecycle({ groupId, isTempUser = false, onAccessRevoked
   }, [groupId, cleanup, onAccessRevoked, onStatusChanged, fetchEvents, navigation]);
 
   useEffect(() => {
-    if (!groupId) return;
+    if (!groupId) {
+      return;
+    }
 
     fetchStatus();
     fetchEvents();
@@ -162,9 +195,12 @@ export function useGroupLifecycle({ groupId, isTempUser = false, onAccessRevoked
     fetchEvents();
   }, [fetchStatus, fetchEvents]);
 
-  const hasRestriction = useCallback((type: GroupRestriction['type']): boolean => {
-    return state.restrictions.some(r => r.type === type);
-  }, [state.restrictions]);
+  const hasRestriction = useCallback(
+    (type: GroupRestriction['type']): boolean => {
+      return state.restrictions.some((r) => r.type === type);
+    },
+    [state.restrictions],
+  );
 
   const isReadOnly = state.status !== 'active' || state.accessRevoked;
 

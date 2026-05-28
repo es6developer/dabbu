@@ -1,7 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
-  View, Text, TextInput, ScrollView, TouchableOpacity,
-  StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform,
+  View,
+  Text,
+  TextInput,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -41,7 +49,7 @@ export function CreateGroupScreen() {
   const [name, setName] = useState('');
   const [type, setType] = useState('friends');
   const [description, setDescription] = useState('');
-  const [currency, setCurrency] = useState<typeof CURRENCIES[number]>('INR');
+  const [currency, setCurrency] = useState<(typeof CURRENCIES)[number]>('INR');
   const [maxMembers, setMaxMembers] = useState(10);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +68,9 @@ export function CreateGroupScreen() {
         currency,
         maxMembers,
       };
-      if (description.trim()) payload.description = description.trim();
+      if (description.trim()) {
+        payload.description = description.trim();
+      }
 
       const res = await api.post<CreateGroupResponse>('/shared-finance/groups', payload);
       navigation.replace('GroupDetail', { groupId: res.id });
@@ -71,8 +81,50 @@ export function CreateGroupScreen() {
     }
   };
 
+  const progress = useRef(new Animated.Value(0)).current;
+  const [progressText, setProgressText] = useState('');
+
+  useEffect(() => {
+    if (loading) {
+      setProgressText('Creating group...');
+      Animated.timing(progress, {
+        toValue: 0.9,
+        duration: 8000,
+        useNativeDriver: false,
+      }).start();
+    } else {
+      progress.setValue(0);
+      setProgressText('');
+    }
+  }, [loading]);
+
+  const progressWidth = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0%', '100%'],
+  });
+
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg.primary }]}>
+      {loading && (
+        <View style={StyleSheet.absoluteFill}>
+          <View style={[styles.loadingOverlay, { backgroundColor: colors.bg.primary + 'F2' }]}>
+            <View style={styles.loadingContent}>
+              <ActivityIndicator size="large" color={colors.accent.primary} />
+              <Text style={[styles.loadingText, { color: colors.text.primary }]}>
+                {progressText || 'Creating group...'}
+              </Text>
+              <View style={[styles.progressTrack, { backgroundColor: colors.border.subtle }]}>
+                <Animated.View
+                  style={[
+                    styles.progressBar,
+                    { backgroundColor: colors.accent.primary, width: progressWidth },
+                  ]}
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
@@ -83,13 +135,20 @@ export function CreateGroupScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <Text style={[typography.h2, { color: colors.text.primary }]}>Create Group</Text>
-          <Text style={[typography.callout, { color: colors.text.tertiary, marginTop: spacing.xs }]}>
+          <Text
+            style={[typography.callout, { color: colors.text.tertiary, marginTop: spacing.xs }]}
+          >
             Set up a shared finance group for any occasion
           </Text>
 
           <View style={styles.section}>
             <Text style={[styles.label, { color: colors.text.secondary }]}>Group Name</Text>
-            <View style={[styles.inputContainer, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle }]}>
+            <View
+              style={[
+                styles.inputContainer,
+                { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+              ]}
+            >
               <Ionicons name="people-outline" size={18} color={colors.text.tertiary} />
               <TextInput
                 style={[styles.input, { color: colors.text.primary }]}
@@ -124,13 +183,25 @@ export function CreateGroupScreen() {
                     onPress={() => setType(item.key)}
                     activeOpacity={0.7}
                   >
-                    <View style={[styles.typeIconContainer, { backgroundColor: selected ? item.color + '30' : colors.border.subtle }]}>
-                      <Ionicons name={item.icon} size={22} color={selected ? item.color : colors.text.tertiary} />
+                    <View
+                      style={[
+                        styles.typeIconContainer,
+                        { backgroundColor: selected ? item.color + '30' : colors.border.subtle },
+                      ]}
+                    >
+                      <Ionicons
+                        name={item.icon}
+                        size={22}
+                        color={selected ? item.color : colors.text.tertiary}
+                      />
                     </View>
                     <Text
                       style={[
                         typography.subheadBold,
-                        { color: selected ? item.color : colors.text.secondary, marginTop: spacing.sm },
+                        {
+                          color: selected ? item.color : colors.text.secondary,
+                          marginTop: spacing.sm,
+                        },
                       ]}
                     >
                       {item.label}
@@ -142,8 +213,15 @@ export function CreateGroupScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={[styles.label, { color: colors.text.secondary }]}>Description (optional)</Text>
-            <View style={[styles.textAreaContainer, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle }]}>
+            <Text style={[styles.label, { color: colors.text.secondary }]}>
+              Description (optional)
+            </Text>
+            <View
+              style={[
+                styles.textAreaContainer,
+                { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+              ]}
+            >
               <TextInput
                 style={[styles.textArea, { color: colors.text.primary }]}
                 placeholder="What's this group about?"
@@ -173,8 +251,12 @@ export function CreateGroupScreen() {
                       style={[
                         styles.currencyOption,
                         {
-                          backgroundColor: selected ? colors.accent.primary + '20' : colors.bg.tertiary,
-                          borderColor: selected ? colors.accent.primary + '40' : colors.border.subtle,
+                          backgroundColor: selected
+                            ? colors.accent.primary + '20'
+                            : colors.bg.tertiary,
+                          borderColor: selected
+                            ? colors.accent.primary + '40'
+                            : colors.border.subtle,
                         },
                       ]}
                       onPress={() => setCurrency(cur)}
@@ -205,8 +287,10 @@ export function CreateGroupScreen() {
                   style={[
                     styles.memberOption,
                     {
-                      backgroundColor: maxMembers === n ? colors.accent.primary + '20' : colors.bg.tertiary,
-                      borderColor: maxMembers === n ? colors.accent.primary + '40' : colors.border.subtle,
+                      backgroundColor:
+                        maxMembers === n ? colors.accent.primary + '20' : colors.bg.tertiary,
+                      borderColor:
+                        maxMembers === n ? colors.accent.primary + '40' : colors.border.subtle,
                     },
                   ]}
                   onPress={() => setMaxMembers(n)}
@@ -225,10 +309,19 @@ export function CreateGroupScreen() {
           </View>
 
           {error && (
-            <Card variant="outlined" padding="md" style={[styles.errorCard, { borderColor: colors.status.error + '40' }]}>
+            <Card
+              variant="outlined"
+              padding="md"
+              style={[styles.errorCard, { borderColor: colors.status.error + '40' }]}
+            >
               <View style={styles.errorRow}>
                 <Ionicons name="alert-circle" size={18} color={colors.status.error} />
-                <Text style={[typography.callout, { color: colors.status.error, marginLeft: spacing.sm }]}>
+                <Text
+                  style={[
+                    typography.callout,
+                    { color: colors.status.error, marginLeft: spacing.sm },
+                  ]}
+                >
                   {error}
                 </Text>
               </View>
@@ -355,5 +448,29 @@ const styles = StyleSheet.create({
   createButton: {
     marginTop: 32,
     borderRadius: 16,
+  },
+  loadingOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 100,
+  },
+  loadingContent: {
+    alignItems: 'center',
+    gap: 20,
+  },
+  loadingText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  progressTrack: {
+    width: 200,
+    height: 4,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: '100%',
+    borderRadius: 2,
   },
 });

@@ -1,7 +1,13 @@
 import React, { useState, useCallback } from 'react';
 import {
-  View, Text, FlatList, TouchableOpacity, RefreshControl,
-  StyleSheet, ActivityIndicator, Dimensions,
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  RefreshControl,
+  StyleSheet,
+  ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -10,6 +16,7 @@ import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Card } from '../../components/ui/Card';
+import { Button } from '../../components/ui/Button';
 import { useGroupLifecycle } from '../../hooks/useGroupLifecycle';
 import { GroupStatusBanner } from '../../components/shared-finance/GroupStatusBanner';
 import { AccessRevokedModal } from '../../components/shared-finance/AccessRevokedModal';
@@ -53,12 +60,16 @@ interface GroupDetail {
   totalSpent: number;
   balance: number;
   currency: string;
+  inviteCode?: string;
   members: GroupMember[];
   expenses: Expense[];
   settlements: Settlement[];
 }
 
-const GROUP_TYPE_CONFIG: Record<string, { icon: keyof typeof Ionicons.glyphMap; label: string; color: string }> = {
+const GROUP_TYPE_CONFIG: Record<
+  string,
+  { icon: keyof typeof Ionicons.glyphMap; label: string; color: string }
+> = {
   friends: { icon: 'people', label: 'Friends', color: '#74B9FF' },
   trip: { icon: 'airplane', label: 'Trip', color: '#00B894' },
   family: { icon: 'home', label: 'Family', color: '#FDCB6E' },
@@ -89,9 +100,15 @@ const formatDate = (dateStr: string) => {
   const diff = now.getTime() - date.getTime();
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-  if (days === 0) return 'Today';
-  if (days === 1) return 'Yesterday';
-  if (days < 7) return `${days}d ago`;
+  if (days === 0) {
+    return 'Today';
+  }
+  if (days === 1) {
+    return 'Yesterday';
+  }
+  if (days < 7) {
+    return `${days}d ago`;
+  }
   return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 };
 
@@ -100,8 +117,9 @@ export function GroupDetailScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const navigation = useNavigation<any>();
-  const route = useRoute<RouteProp<{ params: { groupId: string } }, 'params'>>();
-  const { groupId } = route.params;
+  const route =
+    useRoute<RouteProp<{ params: { groupId: string; inviteCode?: string } }, 'params'>>();
+  const { groupId, inviteCode: paramInviteCode } = route.params;
 
   const [group, setGroup] = useState<GroupDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -110,82 +128,91 @@ export function GroupDetailScreen() {
   const [activeSegment, setActiveSegment] = useState<Segments>('expenses');
   const [showRevokedModal, setShowRevokedModal] = useState(false);
 
-  const {
-    status,
-    restrictions,
-    accessRevoked,
-    revocationReason,
-    isReadOnly,
-    hasRestriction,
-  } = useGroupLifecycle({
-    groupId,
-    onAccessRevoked: () => setShowRevokedModal(true),
-  });
+  const { status, restrictions, accessRevoked, revocationReason, isReadOnly, hasRestriction } =
+    useGroupLifecycle({
+      groupId,
+      onAccessRevoked: () => setShowRevokedModal(true),
+    });
 
-  const fetchGroup = useCallback(async (isRefresh = false) => {
-    try {
-      if (isRefresh) setRefreshing(true);
-      else setLoading(true);
-      setError(null);
-      const [data, expensesRes, settlementsRes] = await Promise.all([
-        api.get<any>(`/shared-finance/groups/${groupId}`),
-        api.get<any[]>(`/shared-finance/groups/${groupId}/expenses`).catch(() => []),
-        api.get<any[]>(`/shared-finance/groups/${groupId}/settlements`).catch(() => []),
-      ]);
-      const currentUserId = user?.id || data.ownerId;
-      const myBalance = data.balances?.find((b: any) => b.userId === currentUserId);
-      const totalSpent = data.balances?.reduce((s: number, b: any) => s + b.totalPaid, 0) || 0;
+  const fetchGroup = useCallback(
+    async (isRefresh = false) => {
+      try {
+        if (isRefresh) {
+          setRefreshing(true);
+        } else {
+          setLoading(true);
+        }
+        setError(null);
+        const [data, expensesRes, settlementsRes] = await Promise.all([
+          api.get<any>(`/shared-finance/groups/${groupId}`),
+          api.get<any[]>(`/shared-finance/groups/${groupId}/expenses`).catch(() => []),
+          api.get<any[]>(`/shared-finance/groups/${groupId}/settlements`).catch(() => []),
+        ]);
+        const currentUserId = user?.id || data.ownerId;
+        const myBalance = data.balances?.find((b: any) => b.userId === currentUserId);
+        const totalSpent = data.balances?.reduce((s: number, b: any) => s + b.totalPaid, 0) || 0;
 
-      const transformed: GroupDetail = {
-        id: data.id,
-        name: data.name,
-        type: data.type,
-        description: data.description,
-        memberCount: data._count?.members || data.members?.length || 0,
-        totalSpent,
-        balance: myBalance?.netBalance || 0,
-        currency: data.currency,
-        members: (data.members || []).map((m: any) => ({
-          id: m.id,
-          name: m.user ? `${m.user.firstName} ${m.user.lastName}`.trim() : m.name || 'Unknown',
-          email: m.user?.email || '',
-          role: m.role,
-          balance: data.balances?.find((b: any) => b.memberId === m.id)?.netBalance || 0,
-        })),
-        expenses: (expensesRes || []).map((e: any) => ({
-          id: e.id,
-          description: e.description,
-          amount: Number(e.amount),
-          paidBy: { id: e.paidBy?.id || e.paidByMemberId, name: e.paidBy?.name || e.paidByName || 'Unknown' },
-          date: e.date || e.createdAt,
-          splitType: e.splitType || 'equal',
-          category: e.category,
-        })),
-        settlements: (settlementsRes || []).map((s: any) => ({
-          id: s.id,
-          from: { id: s.from?.id || s.fromMemberId, name: s.from?.name || s.fromName || 'Unknown' },
-          to: { id: s.to?.id || s.toMemberId, name: s.to?.name || s.toName || 'Unknown' },
-          amount: Number(s.amount),
-          status: s.status || 'pending',
-          date: s.date || s.createdAt,
-        })),
-      };
-      setGroup(transformed);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load group');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [groupId]);
+        const transformed: GroupDetail = {
+          id: data.id,
+          name: data.name,
+          type: data.type,
+          description: data.description,
+          memberCount: data._count?.members || data.members?.length || 0,
+          inviteCode: data.inviteCode || paramInviteCode,
+          totalSpent,
+          balance: myBalance?.netBalance || 0,
+          currency: data.currency,
+          members: (data.members || []).map((m: any) => ({
+            id: m.id,
+            name: m.user ? `${m.user.firstName} ${m.user.lastName}`.trim() : m.name || 'Unknown',
+            email: m.user?.email || '',
+            role: m.role,
+            balance: data.balances?.find((b: any) => b.memberId === m.id)?.netBalance || 0,
+          })),
+          expenses: (expensesRes || []).map((e: any) => ({
+            id: e.id,
+            description: e.description,
+            amount: Number(e.amount),
+            paidBy: {
+              id: e.paidBy?.id || e.paidByMemberId,
+              name: e.paidBy?.name || e.paidByName || 'Unknown',
+            },
+            date: e.date || e.createdAt,
+            splitType: e.splitType || 'equal',
+            category: e.category,
+          })),
+          settlements: (settlementsRes || []).map((s: any) => ({
+            id: s.id,
+            from: {
+              id: s.from?.id || s.fromMemberId,
+              name: s.from?.name || s.fromName || 'Unknown',
+            },
+            to: { id: s.to?.id || s.toMemberId, name: s.to?.name || s.toName || 'Unknown' },
+            amount: Number(s.amount),
+            status: s.status || 'pending',
+            date: s.date || s.createdAt,
+          })),
+        };
+        setGroup(transformed);
+      } catch (err: any) {
+        setError(err.message || 'Failed to load group');
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [groupId],
+  );
 
   useFocusEffect(
     useCallback(() => {
       fetchGroup();
-    }, [fetchGroup])
+    }, [fetchGroup]),
   );
 
-  const config = group ? GROUP_TYPE_CONFIG[group.type] || GROUP_TYPE_CONFIG.friends : GROUP_TYPE_CONFIG.friends;
+  const config = group
+    ? GROUP_TYPE_CONFIG[group.type] || GROUP_TYPE_CONFIG.friends
+    : GROUP_TYPE_CONFIG.friends;
   const isOwed = group ? group.balance >= 0 : true;
 
   const SEGMENTS: { key: Segments; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
@@ -203,7 +230,11 @@ export function GroupDetailScreen() {
     >
       <View style={styles.expenseRow}>
         <View style={[styles.expenseIconContainer, { backgroundColor: colors.bg.tertiary }]}>
-          <Ionicons name={SPLIT_TYPE_ICONS[item.splitType] || 'receipt-outline'} size={20} color={colors.accent.primary} />
+          <Ionicons
+            name={SPLIT_TYPE_ICONS[item.splitType] || 'receipt-outline'}
+            size={20}
+            color={colors.accent.primary}
+          />
         </View>
         <View style={styles.expenseInfo}>
           <Text style={[typography.bodyBold, { color: colors.text.primary }]} numberOfLines={1}>
@@ -256,7 +287,8 @@ export function GroupDetailScreen() {
               { color: memberOwed ? colors.status.success : colors.status.error },
             ]}
           >
-            {memberOwed ? '+' : '-'}{formatAmount(item.balance, group?.currency)}
+            {memberOwed ? '+' : '-'}
+            {formatAmount(item.balance, group?.currency)}
           </Text>
         </View>
       </Card>
@@ -270,13 +302,28 @@ export function GroupDetailScreen() {
     return (
       <Card variant="elevated" padding="lg" style={styles.settlementCard}>
         <View style={styles.settlementRow}>
-          <View style={[styles.settlementIcon, {
-            backgroundColor: isCompleted ? colors.status.successLight : isPending ? colors.status.warningLight : colors.status.errorLight,
-          }]}>
+          <View
+            style={[
+              styles.settlementIcon,
+              {
+                backgroundColor: isCompleted
+                  ? colors.status.successLight
+                  : isPending
+                    ? colors.status.warningLight
+                    : colors.status.errorLight,
+              },
+            ]}
+          >
             <Ionicons
               name={isCompleted ? 'checkmark-circle' : isPending ? 'time-outline' : 'close-circle'}
               size={22}
-              color={isCompleted ? colors.status.success : isPending ? colors.status.warning : colors.status.error}
+              color={
+                isCompleted
+                  ? colors.status.success
+                  : isPending
+                    ? colors.status.warning
+                    : colors.status.error
+              }
             />
           </View>
           <View style={styles.settlementInfo}>
@@ -288,15 +335,35 @@ export function GroupDetailScreen() {
             </Text>
           </View>
           <View style={styles.settlementRight}>
-            <Text style={[typography.amountSmall, { color: colors.text.primary, textAlign: 'right' }]}>
+            <Text
+              style={[typography.amountSmall, { color: colors.text.primary, textAlign: 'right' }]}
+            >
               {formatAmount(item.amount, group?.currency)}
             </Text>
-            <View style={[styles.statusBadge, {
-              backgroundColor: isCompleted ? colors.status.successLight : isPending ? colors.status.warningLight : colors.status.errorLight,
-            }]}>
-              <Text style={[styles.statusText, {
-                color: isCompleted ? colors.status.success : isPending ? colors.status.warning : colors.status.error,
-              }]}>
+            <View
+              style={[
+                styles.statusBadge,
+                {
+                  backgroundColor: isCompleted
+                    ? colors.status.successLight
+                    : isPending
+                      ? colors.status.warningLight
+                      : colors.status.errorLight,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.statusText,
+                  {
+                    color: isCompleted
+                      ? colors.status.success
+                      : isPending
+                        ? colors.status.warning
+                        : colors.status.error,
+                  },
+                ]}
+              >
                 {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
               </Text>
             </View>
@@ -307,7 +374,9 @@ export function GroupDetailScreen() {
   };
 
   const renderSegmentContent = () => {
-    if (!group) return null;
+    if (!group) {
+      return null;
+    }
 
     switch (activeSegment) {
       case 'expenses':
@@ -315,7 +384,9 @@ export function GroupDetailScreen() {
           return (
             <View style={styles.emptySegment}>
               <Ionicons name="receipt-outline" size={40} color={colors.text.tertiary} />
-              <Text style={[typography.callout, { color: colors.text.tertiary, marginTop: spacing.md }]}>
+              <Text
+                style={[typography.callout, { color: colors.text.tertiary, marginTop: spacing.md }]}
+              >
                 No expenses yet
               </Text>
             </View>
@@ -346,11 +417,19 @@ export function GroupDetailScreen() {
             renderItem={renderMemberItem}
             ListHeaderComponent={
               <TouchableOpacity
-                style={[styles.inviteButton, { backgroundColor: colors.accent.primary + '15', borderColor: colors.accent.primary + '30' }]}
+                style={[
+                  styles.inviteButton,
+                  {
+                    backgroundColor: colors.accent.primary + '15',
+                    borderColor: colors.accent.primary + '30',
+                  },
+                ]}
                 onPress={() => navigation.navigate('InviteMembers', { groupId })}
               >
                 <Ionicons name="person-add-outline" size={20} color={colors.accent.primary} />
-                <Text style={[typography.buttonSmall, { color: colors.accent.primary, marginLeft: 8 }]}>
+                <Text
+                  style={[typography.buttonSmall, { color: colors.accent.primary, marginLeft: 8 }]}
+                >
                   Invite Members
                 </Text>
               </TouchableOpacity>
@@ -364,7 +443,9 @@ export function GroupDetailScreen() {
           return (
             <View style={styles.emptySegment}>
               <Ionicons name="swap-horizontal-outline" size={40} color={colors.text.tertiary} />
-              <Text style={[typography.callout, { color: colors.text.tertiary, marginTop: spacing.md }]}>
+              <Text
+                style={[typography.callout, { color: colors.text.tertiary, marginTop: spacing.md }]}
+              >
                 No settlements yet
               </Text>
             </View>
@@ -397,7 +478,9 @@ export function GroupDetailScreen() {
       <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg.primary }]}>
         <View style={styles.loadingContainer}>
           <Ionicons name="cloud-offline-outline" size={48} color={colors.status.error} />
-          <Text style={[typography.callout, { color: colors.text.secondary, marginTop: spacing.md }]}>
+          <Text
+            style={[typography.callout, { color: colors.text.secondary, marginTop: spacing.md }]}
+          >
             {error}
           </Text>
           <TouchableOpacity
@@ -422,7 +505,7 @@ export function GroupDetailScreen() {
             <GroupStatusBanner
               status={status}
               groupName={group?.name || ''}
-              isAdmin={group?.members?.some(m => m.role === 'owner' || m.role === 'admin')}
+              isAdmin={group?.members?.some((m) => m.role === 'owner' || m.role === 'admin')}
               onReactivate={() => {}}
               onArchive={() => {}}
               onViewSummary={() => navigation.navigate('GroupDashboard', { groupId })}
@@ -434,7 +517,7 @@ export function GroupDetailScreen() {
                 setShowRevokedModal(false);
                 navigation.navigate('SharedFinanceHome');
               }}
-              reason={revocationReason as any || 'member_removed'}
+              reason={(revocationReason as any) || 'member_removed'}
               groupName={group?.name || ''}
             />
 
@@ -444,13 +527,13 @@ export function GroupDetailScreen() {
                   <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
                 </TouchableOpacity>
                 <View style={styles.headerInfo}>
-                  <Text style={[typography.h2, { color: colors.text.primary }]}>
-                    {group?.name}
-                  </Text>
+                  <Text style={[typography.h2, { color: colors.text.primary }]}>{group?.name}</Text>
                   <View style={styles.headerBadges}>
                     <View style={[styles.badge, { backgroundColor: config.color + '20' }]}>
                       <Ionicons name={config.icon} size={12} color={config.color} />
-                      <Text style={[styles.badgeText, { color: config.color }]}>{config.label}</Text>
+                      <Text style={[styles.badgeText, { color: config.color }]}>
+                        {config.label}
+                      </Text>
                     </View>
                     <View style={[styles.badge, { backgroundColor: colors.bg.tertiary }]}>
                       <Ionicons name="people-outline" size={12} color={colors.text.secondary} />
@@ -469,25 +552,74 @@ export function GroupDetailScreen() {
               </TouchableOpacity>
             </View>
 
+            {group?.inviteCode && (
+              <TouchableOpacity
+                style={[
+                  styles.inviteBanner,
+                  {
+                    backgroundColor: colors.accent.primary + '12',
+                    borderColor: colors.accent.primary + '30',
+                  },
+                ]}
+                onPress={() =>
+                  navigation.navigate('InviteMembers', {
+                    groupId,
+                    groupName: group.name,
+                    inviteCode: group.inviteCode,
+                  })
+                }
+                activeOpacity={0.7}
+              >
+                <Ionicons name="link-outline" size={16} color={colors.accent.primary} />
+                <Text style={[styles.inviteBannerText, { color: colors.accent.primary }]}>
+                  Invite code:{' '}
+                  <Text style={{ fontWeight: '700', fontFamily: 'monospace' }}>
+                    {group.inviteCode}
+                  </Text>
+                </Text>
+                <Ionicons name="chevron-forward" size={14} color={colors.accent.primary} />
+              </TouchableOpacity>
+            )}
+
             <View style={styles.balanceSummary}>
               <Card variant="premium" padding="lg" style={styles.balanceCard}>
-                <Text style={[typography.callout, { color: colors.text.secondary }]}>Total Spent</Text>
-                <Text style={[typography.amountSmall, { color: colors.text.primary, marginTop: spacing.xs }]}>
+                <Text style={[typography.callout, { color: colors.text.secondary }]}>
+                  Total Spent
+                </Text>
+                <Text
+                  style={[
+                    typography.amountSmall,
+                    { color: colors.text.primary, marginTop: spacing.xs },
+                  ]}
+                >
                   {formatAmount(group?.totalSpent ?? 0, group?.currency)}
                 </Text>
-                <View style={[styles.divider, { backgroundColor: colors.border.subtle, marginVertical: spacing.md }]} />
+                <View
+                  style={[
+                    styles.divider,
+                    { backgroundColor: colors.border.subtle, marginVertical: spacing.md },
+                  ]}
+                />
                 <View style={styles.balanceRow}>
-                  <Text style={[typography.callout, { color: colors.text.secondary }]}>Your Balance</Text>
+                  <Text style={[typography.callout, { color: colors.text.secondary }]}>
+                    Your Balance
+                  </Text>
                   <Text
                     style={[
                       styles.balanceAmount,
                       { color: isOwed ? colors.status.success : colors.status.error },
                     ]}
                   >
-                    {isOwed ? '+' : '-'}{formatAmount(group?.balance ?? 0, group?.currency)}
+                    {isOwed ? '+' : '-'}
+                    {formatAmount(group?.balance ?? 0, group?.currency)}
                   </Text>
                 </View>
-                <Text style={[typography.footnote, { color: colors.text.tertiary, marginTop: spacing.xs }]}>
+                <Text
+                  style={[
+                    typography.footnote,
+                    { color: colors.text.tertiary, marginTop: spacing.xs },
+                  ]}
+                >
                   {isOwed ? 'You are owed' : 'You owe'}
                 </Text>
               </Card>
@@ -501,7 +633,14 @@ export function GroupDetailScreen() {
                     key={seg.key}
                     style={[
                       styles.segmentOption,
-                      isActive && { backgroundColor: colors.bg.elevated, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4, elevation: 3 },
+                      isActive && {
+                        backgroundColor: colors.bg.elevated,
+                        shadowColor: '#000',
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.15,
+                        shadowRadius: 4,
+                        elevation: 3,
+                      },
                     ]}
                     onPress={() => setActiveSegment(seg.key)}
                   >
@@ -513,7 +652,10 @@ export function GroupDetailScreen() {
                     <Text
                       style={[
                         typography.subheadBold,
-                        { color: isActive ? colors.accent.primary : colors.text.tertiary, marginLeft: 6 },
+                        {
+                          color: isActive ? colors.accent.primary : colors.text.tertiary,
+                          marginLeft: 6,
+                        },
                       ]}
                     >
                       {seg.label}
@@ -525,21 +667,30 @@ export function GroupDetailScreen() {
           </>
         }
         ListFooterComponent={
-          <View style={{ paddingBottom: insets.bottom + 120 }}>
-            {renderSegmentContent()}
-          </View>
+          <View style={{ paddingBottom: insets.bottom + 120 }}>{renderSegmentContent()}</View>
         }
         showsVerticalScrollIndicator={false}
       />
 
-      <View style={[styles.bottomBar, { backgroundColor: colors.bg.secondary, borderTopColor: colors.border.subtle, paddingBottom: insets.bottom + 20 }]}>
+      <View
+        style={[
+          styles.bottomBar,
+          {
+            backgroundColor: colors.bg.secondary,
+            borderTopColor: colors.border.subtle,
+            paddingBottom: insets.bottom + 20,
+          },
+        ]}
+      >
         {status === 'completed' ? (
           <TouchableOpacity
             style={[styles.bottomAction, { backgroundColor: colors.accent.primary }]}
             onPress={() => navigation.navigate('GroupDashboard', { groupId })}
           >
             <Ionicons name="stats-chart-outline" size={20} color="#FFFFFF" />
-            <Text style={[typography.buttonSmall, { color: '#FFFFFF', marginLeft: 6 }]}>View Summary</Text>
+            <Text style={[typography.buttonSmall, { color: '#FFFFFF', marginLeft: 6 }]}>
+              View Summary
+            </Text>
           </TouchableOpacity>
         ) : (
           <>
@@ -552,12 +703,23 @@ export function GroupDetailScreen() {
                 },
               ]}
               onPress={() => {
-                if (!isReadOnly) navigation.navigate('CreateGroupExpense', { groupId });
+                if (!isReadOnly) {
+                  navigation.navigate('CreateGroupExpense', { groupId });
+                }
               }}
               disabled={isReadOnly}
             >
-              <Ionicons name="add-circle-outline" size={20} color={isReadOnly ? colors.text.tertiary : '#FFFFFF'} />
-              <Text style={[typography.buttonSmall, { color: isReadOnly ? colors.text.tertiary : '#FFFFFF', marginLeft: 6 }]}>
+              <Ionicons
+                name="add-circle-outline"
+                size={20}
+                color={isReadOnly ? colors.text.tertiary : '#FFFFFF'}
+              />
+              <Text
+                style={[
+                  typography.buttonSmall,
+                  { color: isReadOnly ? colors.text.tertiary : '#FFFFFF', marginLeft: 6 },
+                ]}
+              >
                 {isReadOnly ? 'View Only' : 'Add Expense'}
               </Text>
             </TouchableOpacity>
@@ -570,12 +732,23 @@ export function GroupDetailScreen() {
                 },
               ]}
               onPress={() => {
-                if (!isReadOnly) navigation.navigate('CreateSettlement', { groupId });
+                if (!isReadOnly) {
+                  navigation.navigate('CreateSettlement', { groupId });
+                }
               }}
               disabled={isReadOnly}
             >
-              <Ionicons name="swap-horizontal" size={20} color={isReadOnly ? colors.text.tertiary : colors.text.primary} />
-              <Text style={[typography.buttonSmall, { color: isReadOnly ? colors.text.tertiary : colors.text.primary, marginLeft: 6 }]}>
+              <Ionicons
+                name="swap-horizontal"
+                size={20}
+                color={isReadOnly ? colors.text.tertiary : colors.text.primary}
+              />
+              <Text
+                style={[
+                  typography.buttonSmall,
+                  { color: isReadOnly ? colors.text.tertiary : colors.text.primary, marginLeft: 6 },
+                ]}
+              >
                 Settle Up
               </Text>
             </TouchableOpacity>

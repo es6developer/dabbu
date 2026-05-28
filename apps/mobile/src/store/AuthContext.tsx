@@ -33,7 +33,7 @@ interface AuthContextType extends AuthState {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+const API_URL = 'https://backend-es6developers-projects.vercel.app/api/v1';
 
 interface StorageInterface {
   getItem: (key: string) => Promise<string | null>;
@@ -182,7 +182,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await SecureStore.deleteItemAsync('appPin');
       await SecureStore.deleteItemAsync('appLockEnabled');
       await SecureStore.deleteItemAsync('biometricEnabled');
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     setState({ isAuthenticated: false, isLoading: false, user: null, accessToken: null });
   }
 
@@ -190,7 +192,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const storage = getStorage();
       const refresh = await storage.getItem('refreshToken');
-      if (!refresh) return false;
+      if (!refresh) {
+        return false;
+      }
 
       const res = await fetch(`${API_URL}/auth/refresh`, {
         method: 'POST',
@@ -198,7 +202,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ refreshToken: refresh }),
       });
 
-      if (!res.ok) return false;
+      if (!res.ok) {
+        return false;
+      }
 
       const json = await res.json();
       const tokens = json.data;
@@ -222,6 +228,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth(): AuthContextType {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  if (!ctx) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
   return ctx;
 }

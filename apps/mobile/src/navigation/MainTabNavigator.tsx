@@ -31,7 +31,10 @@ const SettingsStack = createNativeStackNavigator();
 const RemindersStack = createNativeStackNavigator();
 const SmsStack = createNativeStackNavigator();
 
-const TAB_ICONS: Record<string, { focused: keyof typeof Ionicons.glyphMap; unfocused: keyof typeof Ionicons.glyphMap }> = {
+const TAB_ICONS: Record<
+  string,
+  { focused: keyof typeof Ionicons.glyphMap; unfocused: keyof typeof Ionicons.glyphMap }
+> = {
   Dashboard: { focused: 'grid', unfocused: 'grid-outline' },
   Accounts: { focused: 'wallet', unfocused: 'wallet-outline' },
   Shared: { focused: 'people', unfocused: 'people-outline' },
@@ -42,23 +45,65 @@ const TAB_ICONS: Record<string, { focused: keyof typeof Ionicons.glyphMap; unfoc
 function SettingsNavigator() {
   const { colors } = useTheme();
   return (
-    <SettingsStack.Navigator screenOptions={{
-      headerStyle: { backgroundColor: colors.bg.primary },
-      headerTintColor: colors.text.primary,
-      headerTitleStyle: { fontWeight: '600' },
-      contentStyle: { backgroundColor: colors.bg.primary },
-    }}>
-      <SettingsStack.Screen name="SettingsMain" component={SettingsScreen} options={{ headerShown: false }} />
-      <SettingsStack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile' }} />
-      <SettingsStack.Screen name="Subscription" component={SubscriptionScreen} options={{ title: 'Subscription' }} />
-      <SettingsStack.Screen name="BillingHistory" component={BillingHistoryScreen} options={{ title: 'Billing History' }} />
-      <SettingsStack.Screen name="Security" component={SecurityScreen} options={{ title: 'Security' }} />
+    <SettingsStack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.bg.primary },
+        headerTintColor: colors.text.primary,
+        headerTitleStyle: { fontWeight: '600' },
+        contentStyle: { backgroundColor: colors.bg.primary },
+      }}
+    >
+      <SettingsStack.Screen
+        name="SettingsMain"
+        component={SettingsScreen}
+        options={{ headerShown: false }}
+      />
+      <SettingsStack.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{ title: 'Profile' }}
+      />
+      <SettingsStack.Screen
+        name="Subscription"
+        component={SubscriptionScreen}
+        options={{ title: 'Subscription' }}
+      />
+      <SettingsStack.Screen
+        name="BillingHistory"
+        component={BillingHistoryScreen}
+        options={{ title: 'Billing History' }}
+      />
+      <SettingsStack.Screen
+        name="Security"
+        component={SecurityScreen}
+        options={{ title: 'Security' }}
+      />
       <SettingsStack.Screen name="Theme" component={ThemeScreen} options={{ title: 'Theme' }} />
-      <SettingsStack.Screen name="Currency" component={CurrencyScreen} options={{ title: 'Currency' }} />
-      <SettingsStack.Screen name="Help" component={HelpCenterScreen} options={{ title: 'Help Center' }} />
-      <SettingsStack.Screen name="Contact" component={ContactUsScreen} options={{ title: 'Contact Us' }} />
-      <SettingsStack.Screen name="Privacy" component={PrivacyPolicyScreen} options={{ title: 'Privacy Policy' }} />
-      <SettingsStack.Screen name="Analytics" component={AnalyticsScreen} options={{ title: 'Reports' }} />
+      <SettingsStack.Screen
+        name="Currency"
+        component={CurrencyScreen}
+        options={{ title: 'Currency' }}
+      />
+      <SettingsStack.Screen
+        name="Help"
+        component={HelpCenterScreen}
+        options={{ title: 'Help Center' }}
+      />
+      <SettingsStack.Screen
+        name="Contact"
+        component={ContactUsScreen}
+        options={{ title: 'Contact Us' }}
+      />
+      <SettingsStack.Screen
+        name="Privacy"
+        component={PrivacyPolicyScreen}
+        options={{ title: 'Privacy Policy' }}
+      />
+      <SettingsStack.Screen
+        name="Analytics"
+        component={AnalyticsScreen}
+        options={{ title: 'Reports' }}
+      />
     </SettingsStack.Navigator>
   );
 }
@@ -66,14 +111,24 @@ function SettingsNavigator() {
 function RemindersNavigator() {
   const { colors } = useTheme();
   return (
-    <RemindersStack.Navigator screenOptions={{
-      headerStyle: { backgroundColor: colors.bg.primary },
-      headerTintColor: colors.text.primary,
-      headerTitleStyle: { fontWeight: '600' },
-      contentStyle: { backgroundColor: colors.bg.primary },
-    }}>
-      <RemindersStack.Screen name="RemindersList" component={RemindersScreen} options={{ headerShown: false }} />
-      <RemindersStack.Screen name="CreateReminder" component={CreateReminderScreen} options={{ title: 'New Reminder' }} />
+    <RemindersStack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.bg.primary },
+        headerTintColor: colors.text.primary,
+        headerTitleStyle: { fontWeight: '600' },
+        contentStyle: { backgroundColor: colors.bg.primary },
+      }}
+    >
+      <RemindersStack.Screen
+        name="RemindersList"
+        component={RemindersScreen}
+        options={{ headerShown: false }}
+      />
+      <RemindersStack.Screen
+        name="CreateReminder"
+        component={CreateReminderScreen}
+        options={{ title: 'New Reminder' }}
+      />
     </RemindersStack.Navigator>
   );
 }
@@ -81,14 +136,24 @@ function RemindersNavigator() {
 function SmsNavigator() {
   const { colors } = useTheme();
   return (
-    <SmsStack.Navigator screenOptions={{
-      headerStyle: { backgroundColor: colors.bg.primary },
-      headerTintColor: colors.text.primary,
-      headerTitleStyle: { fontWeight: '600' },
-      contentStyle: { backgroundColor: colors.bg.primary },
-    }}>
-      <SmsStack.Screen name="SmsDashboard" component={SmsDashboardScreen} options={{ headerShown: false }} />
-      <SmsStack.Screen name="SmsPermission" component={SmsPermissionScreen} options={{ title: 'SMS Settings' }} />
+    <SmsStack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.bg.primary },
+        headerTintColor: colors.text.primary,
+        headerTitleStyle: { fontWeight: '600' },
+        contentStyle: { backgroundColor: colors.bg.primary },
+      }}
+    >
+      <SmsStack.Screen
+        name="SmsDashboard"
+        component={SmsDashboardScreen}
+        options={{ headerShown: false }}
+      />
+      <SmsStack.Screen
+        name="SmsPermission"
+        component={SmsPermissionScreen}
+        options={{ title: 'SMS Settings' }}
+      />
     </SmsStack.Navigator>
   );
 }
@@ -109,7 +174,7 @@ const ALL_TABS: TabConfig[] = [
   { name: 'Settings', component: SettingsNavigator, title: 'Settings' },
 ];
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+const API_URL = 'https://backend-es6developers-projects.vercel.app/api/v1';
 
 export function MainTabNavigator() {
   const { colors, isDark } = useTheme();
@@ -117,7 +182,9 @@ export function MainTabNavigator() {
   const [subscription, setSubscription] = useState<any>(null);
 
   useEffect(() => {
-    if (!accessToken) return;
+    if (!accessToken) {
+      return;
+    }
     loadFeatures();
     fetch(`${API_URL}/subscription/current`, {
       headers: { Authorization: `Bearer ${accessToken}` },
@@ -132,10 +199,16 @@ export function MainTabNavigator() {
 
   const visibleTabs = ALL_TABS.filter((tab) => {
     if (tab.featureKey) {
-      if (isPremiumFeature(tab.featureKey as any) && !isPremium) return false;
-      if (!isFeatureEnabled(tab.featureKey as any)) return false;
+      if (isPremiumFeature(tab.featureKey as any) && !isPremium) {
+        return false;
+      }
+      if (!isFeatureEnabled(tab.featureKey as any)) {
+        return false;
+      }
     }
-    if (tab.premium && !isPremium) return false;
+    if (tab.premium && !isPremium) {
+      return false;
+    }
     return true;
   });
 
@@ -175,7 +248,7 @@ export function MainTabNavigator() {
         headerTitleStyle: { fontWeight: '600' },
       })}
     >
-              {visibleTabs.map((tab) => (
+      {visibleTabs.map((tab) => (
         <Tab.Screen
           key={tab.name}
           name={tab.name}
