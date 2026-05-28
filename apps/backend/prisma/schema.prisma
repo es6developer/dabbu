@@ -1079,7 +1079,6 @@ model ScannedBill {
   items        Json?    @db.Json
   notes        String?  @db.Text
   imageUrl     String?  @db.Text
-  rawText      String?  @db.Text
   confidence   Float?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -1174,7 +1173,6 @@ model GroupExpense {
   isReimbursement Boolean   @default(false)
   notes           String?   @db.Text
   receiptUrl      String?   @db.VarChar(500)
-  receiptData     Json?     @db.Json      // OCR extracted data
   tripDayId       String?   @db.VarChar(36)
   isRecurring     Boolean   @default(false)
   recurringFrequency String? @db.VarChar(20)

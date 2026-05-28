@@ -1,4 +1,4 @@
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+const API_URL = 'https://backend-es6developers-projects.vercel.app/api/v1';
 
 let accessToken: string | null = null;
 
@@ -10,10 +10,7 @@ export function getAccessToken(): string | null {
   return accessToken;
 }
 
-async function request<T>(
-  path: string,
-  options: RequestInit = {},
-): Promise<T> {
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),

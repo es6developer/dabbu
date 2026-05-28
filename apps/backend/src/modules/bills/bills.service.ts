@@ -12,9 +12,8 @@ export class BillsService {
         merchantName: data.merchant || data.merchantName,
         category: data.category,
         totalAmount: data.amount ?? data.totalAmount,
-        billDate: (data.date || data.billDate) ? new Date(data.date || data.billDate) : undefined,
+        billDate: data.date || data.billDate ? new Date(data.date || data.billDate) : undefined,
         items: data.items || [],
-        rawText: data.rawText,
         confidence: data.confidence,
       },
     });
@@ -68,10 +67,15 @@ export class BillsService {
       orderBy: { billDate: 'desc' },
     });
 
-    const grouped: Record<string, { year: number; month: number; totalAmount: number; count: number; bills: any[] }> = {};
+    const grouped: Record<
+      string,
+      { year: number; month: number; totalAmount: number; count: number; bills: any[] }
+    > = {};
 
     for (const bill of bills) {
-      if (!bill.billDate) continue;
+      if (!bill.billDate) {
+        continue;
+      }
       const year = bill.billDate.getFullYear();
       const month = bill.billDate.getMonth() + 1;
       const key = `${year}-${month}`;
@@ -123,7 +127,7 @@ export class BillsService {
       for (const bill of bills) {
         if (bill.items && Array.isArray(bill.items)) {
           for (const item of bill.items as any[]) {
-            if (item.name && item.price != null) {
+            if (item.name && item.price !== null) {
               items.push({ name: item.name, price: Number(item.price) });
             }
           }
@@ -138,7 +142,9 @@ export class BillsService {
     const getItemMap = (items: { name: string; price: number }[]) => {
       const map: Record<string, number[]> = {};
       for (const item of items) {
-        if (!map[item.name]) map[item.name] = [];
+        if (!map[item.name]) {
+          map[item.name] = [];
+        }
         map[item.name].push(item.price);
       }
       return map;
@@ -152,7 +158,13 @@ export class BillsService {
 
     const onlyInMonth1: { name: string; price: number }[] = [];
     const onlyInMonth2: { name: string; price: number }[] = [];
-    const priceChanges: { name: string; month1Price: number; month2Price: number; diff: number; diffPercent: number }[] = [];
+    const priceChanges: {
+      name: string;
+      month1Price: number;
+      month2Price: number;
+      diff: number;
+      diffPercent: number;
+    }[] = [];
 
     for (const name of names1) {
       if (!names2.has(name)) {
@@ -184,12 +196,28 @@ export class BillsService {
       }
     }
 
-    const monthLabel1 = new Date(y1, m1 - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
-    const monthLabel2 = new Date(y2, m2 - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
+    const monthLabel1 = new Date(y1, m1 - 1).toLocaleString('default', {
+      month: 'long',
+      year: 'numeric',
+    });
+    const monthLabel2 = new Date(y2, m2 - 1).toLocaleString('default', {
+      month: 'long',
+      year: 'numeric',
+    });
 
     return {
-      month1: { label: monthLabel1, totalAmount: month1Total, billCount: billsMonth1.length, items: month1Items },
-      month2: { label: monthLabel2, totalAmount: month2Total, billCount: billsMonth2.length, items: month2Items },
+      month1: {
+        label: monthLabel1,
+        totalAmount: month1Total,
+        billCount: billsMonth1.length,
+        items: month1Items,
+      },
+      month2: {
+        label: monthLabel2,
+        totalAmount: month2Total,
+        billCount: billsMonth2.length,
+        items: month2Items,
+      },
       differences: { onlyInMonth1, onlyInMonth2, priceChanges },
     };
   }
@@ -198,14 +226,22 @@ export class BillsService {
     const bill = await this.prisma.scannedBill.findFirst({
       where: { id, userId },
     });
-    if (!bill) throw new NotFoundException('Scanned bill not found');
+    if (!bill) {
+      throw new NotFoundException('Scanned bill not found');
+    }
     return bill;
   }
 
   async update(
     userId: string,
     id: string,
-    data: { merchantName?: string; category?: string; billDate?: string; items?: any; notes?: string },
+    data: {
+      merchantName?: string;
+      category?: string;
+      billDate?: string;
+      items?: any;
+      notes?: string;
+    },
   ) {
     await this.findOne(userId, id);
     return this.prisma.scannedBill.update({

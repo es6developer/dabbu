@@ -1,11 +1,12 @@
 import {
-  Injectable, NotFoundException, BadRequestException,
-  ForbiddenException, Logger,
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
-import {
-  CreateExpenseDto, UpdateExpenseDto, SplitType,
-} from './dto/expenses.dto';
+import { CreateExpenseDto, UpdateExpenseDto, SplitType } from './dto/expenses.dto';
 
 @Injectable()
 export class ExpensesService {
@@ -20,10 +21,20 @@ export class ExpensesService {
     let splits = dto.splits;
 
     if (!splits || splits.length === 0) {
-      splits = activeMembers.map((m) => ({ memberId: m.groupMemberId, amount: undefined, percentage: undefined, weight: undefined }));
+      splits = activeMembers.map((m) => ({
+        memberId: m.groupMemberId,
+        amount: undefined,
+        percentage: undefined,
+        weight: undefined,
+      }));
     }
 
-    this.validateSplits(dto.amount, dto.splitType, splits, activeMembers.map((m) => m.groupMemberId));
+    this.validateSplits(
+      dto.amount,
+      dto.splitType,
+      splits,
+      activeMembers.map((m) => m.groupMemberId),
+    );
     const calculatedSplits = this.calculateSplits(dto.amount, dto.splitType, splits);
 
     const expense = await this.prisma.groupExpense.create({
@@ -36,7 +47,6 @@ export class ExpensesService {
         splitType: dto.splitType,
         date: new Date(dto.date),
         notes: dto.notes,
-        receiptData: dto.receiptData ? JSON.parse(JSON.stringify(dto.receiptData)) : undefined,
         tripDayId: dto.tripDayId,
         isRecurring: dto.isRecurring || false,
         recurringFrequency: dto.recurringFrequency,
@@ -77,17 +87,31 @@ export class ExpensesService {
     return expense;
   }
 
-  async findAll(groupId: string, userId: string, query?: {
-    category?: string; fromDate?: string; toDate?: string; limit?: number; offset?: number;
-  }) {
+  async findAll(
+    groupId: string,
+    userId: string,
+    query?: {
+      category?: string;
+      fromDate?: string;
+      toDate?: string;
+      limit?: number;
+      offset?: number;
+    },
+  ) {
     await this.validateGroupMember(groupId, userId);
 
     const where: any = { groupId, deletedAt: null };
-    if (query?.category) where.category = query.category;
+    if (query?.category) {
+      where.category = query.category;
+    }
     if (query?.fromDate || query?.toDate) {
       where.date = {};
-      if (query.fromDate) where.date.gte = new Date(query.fromDate);
-      if (query.toDate) where.date.lte = new Date(query.toDate);
+      if (query.fromDate) {
+        where.date.gte = new Date(query.fromDate);
+      }
+      if (query.toDate) {
+        where.date.lte = new Date(query.toDate);
+      }
     }
 
     const [expenses, total] = await Promise.all([
@@ -148,7 +172,9 @@ export class ExpensesService {
         },
         comments: {
           orderBy: { createdAt: 'desc' },
-          include: { user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } } },
+          include: {
+            user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+          },
         },
         attachments: {
           orderBy: { createdAt: 'desc' },
@@ -176,11 +202,16 @@ export class ExpensesService {
     }
 
     const amount = dto.amount ?? Number(existing.amount);
-    const splitType = dto.splitType ?? existing.splitType as SplitType;
+    const splitType = dto.splitType ?? (existing.splitType as SplitType);
 
     if (dto.splits && dto.splits.length > 0) {
       const activeMembers = await this.getActiveMemberIds(groupId);
-      this.validateSplits(amount, splitType, dto.splits, activeMembers.map((m) => m.groupMemberId));
+      this.validateSplits(
+        amount,
+        splitType,
+        dto.splits,
+        activeMembers.map((m) => m.groupMemberId),
+      );
     }
 
     await this.prisma.$transaction(async (tx) => {
@@ -188,8 +219,15 @@ export class ExpensesService {
         await tx.expenseSplit.deleteMany({ where: { expenseId } });
 
         const activeMembers = await this.getActiveMemberIds(groupId);
-        const splitsToUse = dto.splits.length > 0 ? dto.splits
-          : activeMembers.map((m) => ({ memberId: m.groupMemberId, amount: undefined, percentage: undefined, weight: undefined }));
+        const splitsToUse =
+          dto.splits.length > 0
+            ? dto.splits
+            : activeMembers.map((m) => ({
+                memberId: m.groupMemberId,
+                amount: undefined,
+                percentage: undefined,
+                weight: undefined,
+              }));
 
         const calculatedSplits = this.calculateSplits(amount, splitType, splitsToUse);
 
@@ -213,7 +251,6 @@ export class ExpensesService {
           splitType: dto.splitType,
           date: dto.date ? new Date(dto.date) : undefined,
           notes: dto.notes,
-          receiptData: dto.receiptData ? JSON.parse(JSON.stringify(dto.receiptData)) : undefined,
           tripDayId: dto.tripDayId,
           isRecurring: dto.isRecurring,
           recurringFrequency: dto.recurringFrequency,
@@ -265,7 +302,13 @@ export class ExpensesService {
     });
   }
 
-  async addAttachment(groupId: string, expenseId: string, userId: string, type: string, url: string) {
+  async addAttachment(
+    groupId: string,
+    expenseId: string,
+    userId: string,
+    type: string,
+    url: string,
+  ) {
     await this.validateGroupMember(groupId, userId);
 
     const expense = await this.prisma.groupExpense.findUnique({
@@ -287,8 +330,12 @@ export class ExpensesService {
     const where: any = { groupId, deletedAt: null };
     if (fromDate || toDate) {
       where.date = {};
-      if (fromDate) where.date.gte = new Date(fromDate);
-      if (toDate) where.date.lte = new Date(toDate);
+      if (fromDate) {
+        where.date.gte = new Date(fromDate);
+      }
+      if (toDate) {
+        where.date.lte = new Date(toDate);
+      }
     }
 
     const expenses = await this.prisma.groupExpense.findMany({
@@ -307,12 +354,14 @@ export class ExpensesService {
     const totalAmount = Array.from(categoryMap.values()).reduce((s, c) => s + c.total, 0);
 
     return {
-      categories: Array.from(categoryMap.entries()).map(([category, data]) => ({
-        category,
-        total: data.total,
-        count: data.count,
-        percentage: totalAmount > 0 ? Math.round((data.total / totalAmount) * 10000) / 100 : 0,
-      })).sort((a, b) => b.total - a.total),
+      categories: Array.from(categoryMap.entries())
+        .map(([category, data]) => ({
+          category,
+          total: data.total,
+          count: data.count,
+          percentage: totalAmount > 0 ? Math.round((data.total / totalAmount) * 10000) / 100 : 0,
+        }))
+        .sort((a, b) => b.total - a.total),
       totalAmount,
       totalExpenses: expenses.length,
     };
@@ -321,7 +370,8 @@ export class ExpensesService {
   // ─── Split Engine ───────────────────────────────────
 
   private validateSplits(
-    totalAmount: number, splitType: SplitType,
+    totalAmount: number,
+    splitType: SplitType,
     splits: { memberId: string; amount?: number; percentage?: number; weight?: number }[],
     activeMemberIds: string[],
   ) {
@@ -348,7 +398,9 @@ export class ExpensesService {
       case SplitType.EXACT: {
         const totalExact = splits.reduce((sum, s) => sum + (s.amount || 0), 0);
         if (Math.abs(totalExact - totalAmount) > 0.01) {
-          throw new BadRequestException(`Exact amounts must sum to ${totalAmount} (got ${totalExact})`);
+          throw new BadRequestException(
+            `Exact amounts must sum to ${totalAmount} (got ${totalExact})`,
+          );
         }
         break;
       }
@@ -367,7 +419,8 @@ export class ExpensesService {
   }
 
   private calculateSplits(
-    totalAmount: number, splitType: SplitType,
+    totalAmount: number,
+    splitType: SplitType,
     splits: { memberId: string; amount?: number; percentage?: number; weight?: number }[],
   ) {
     const count = splits.length;
@@ -385,7 +438,7 @@ export class ExpensesService {
       case SplitType.PERCENTAGE: {
         return splits.map((s) => ({
           memberId: s.memberId,
-          amount: Math.round((totalAmount * (s.percentage || 0) / 100) * 100) / 100,
+          amount: Math.round(((totalAmount * (s.percentage || 0)) / 100) * 100) / 100,
           percentage: s.percentage,
         }));
       }
@@ -399,7 +452,7 @@ export class ExpensesService {
         const totalWeight = splits.reduce((sum, s) => sum + (s.weight || 0), 0);
         return splits.map((s) => ({
           memberId: s.memberId,
-          amount: Math.round((totalAmount * (s.weight || 0) / totalWeight) * 100) / 100,
+          amount: Math.round(((totalAmount * (s.weight || 0)) / totalWeight) * 100) / 100,
           weight: s.weight,
         }));
       }
@@ -435,7 +488,10 @@ export class ExpensesService {
           where: { id: split.memberId },
         });
         if (splitMember) {
-          balanceMap.set(splitMember.userId, (balanceMap.get(splitMember.userId) || 0) - Number(split.amount));
+          balanceMap.set(
+            splitMember.userId,
+            (balanceMap.get(splitMember.userId) || 0) - Number(split.amount),
+          );
         }
       }
     }
@@ -478,7 +534,9 @@ export class ExpensesService {
     return member;
   }
 
-  private async getActiveMemberIds(groupId: string): Promise<{ userId: string; groupMemberId: string }[]> {
+  private async getActiveMemberIds(
+    groupId: string,
+  ): Promise<{ userId: string; groupMemberId: string }[]> {
     const members = await this.prisma.groupMember.findMany({
       where: { groupId, isActive: true, deletedAt: null },
       select: { id: true, userId: true },
