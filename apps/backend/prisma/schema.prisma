@@ -94,6 +94,7 @@ model User {
   createdReminders   SharedReminder[]
   groupMembers       GroupMember[]
   groupChatMessages  GroupChatMessage[]
+  salaryProfiles     SalaryProfile[]
   premiumTrials              PremiumTrial[]
   referrerLinks              ReferralLink[]
   referralHistoryAsReferrer  ReferralHistory[] @relation("ReferrerHistory")
