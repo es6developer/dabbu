@@ -58,3 +58,4 @@ apps/admin/.next/
 
 # Sentry
 .sentryclirc
+.github/workflows/
