@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "Dabbu",
+    "slug": "dabbu",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./src/assets/icon.png",
+    "scheme": "dabbu",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./src/assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0A0A0F"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.dabbu.mobile",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Use Face ID to unlock Dabbu and authenticate payments",
+        "NSCameraUsageDescription": "Scan receipts and documents"
+      },
+      "associatedDomains": ["applinks:dabbu.app"]
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./src/assets/adaptive-icon.png",
+        "backgroundColor": "#0A0A0F"
+      },
+      "package": "app.dabbu.mobile",
+      "permissions": ["USE_BIOMETRIC", "CAMERA", "RECEIVE_SMS", "READ_SMS"]
+    },
+    "web": {
+      "favicon": "./src/assets/favicon.png"
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-local-authentication",
+      "expo-notifications",
+      "expo-font"
+    ],
+    "extra": {
+      "apiUrl": "http://localhost:4000/api/v1",
+      "environment": "development"
+    }
+  }
+}

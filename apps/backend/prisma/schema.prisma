@@ -1,0 +1,2183 @@
+// ───────────────────────────────────────────────────────────
+// DABBU - Complete Database Schema
+// MySQL + Prisma ORM
+// ───────────────────────────────────────────────────────────
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "extendedWhereUnique"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── USERS ─────────────────────────────────────────────────
+// Core user accounts with full profile and preferences
+model User {
+  id              String    @id @default(uuid()) @db.VarChar(36)
+  email           String    @unique @db.VarChar(255)
+  password        String    @db.VarChar(255)
+  firstName       String    @db.VarChar(100)
+  lastName        String    @db.VarChar(100)
+  avatarUrl       String?   @db.VarChar(500)
+  phone           String?   @db.VarChar(20)
+  currency        String    @default("USD") @db.VarChar(10)
+  timezone        String    @default("UTC") @db.VarChar(50)
+  locale          String    @default("en") @db.VarChar(10)
+  isActive        Boolean   @default(true)
+  isEmailVerified Boolean   @default(false)
+  isPhoneVerified Boolean   @default(false)
+  role            String    @default("user") @db.VarChar(20)      // user, premium, admin, super_admin
+
+  // OTP & 2FA
+  otpCode        String?   @db.VarChar(6)
+  otpExpiresAt   DateTime?
+  otpPurpose     String?   @db.VarChar(20)                        // email_verification, password_reset, login
+  otpAttempts    Int       @default(0)
+  twoFactorEnabled Boolean  @default(false)
+  twoFactorSecret String?  @db.VarChar(255)
+
+  // Brute force protection
+  loginAttempts  Int       @default(0)
+  lockoutUntil   DateTime?
+  isLocked       Boolean   @default(false)
+  lastLoginAt    DateTime?
+  lastFailedLoginAt DateTime?
+  passwordChangedAt DateTime?
+
+  // App lock / PIN
+  appPin         String?   @db.VarChar(255)                       // hashed PIN for app lock
+  biometricEnabled Boolean  @default(false)
+
+  // Payment gateway IDs
+  stripeCustomerId   String?  @db.VarChar(255)
+  razorpayCustomerId String?  @db.VarChar(255)
+
+  // Password history (prevent reuse)
+  passwordHistory Json?    @db.Json                               // Array of previous password hashes
+
+  deletedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  sessions           Session[]
+  devices            Device[]
+  reminders          Reminder[]
+  recurringReminders RecurringReminder[]
+  subscription       Subscription?
+  payments           Payment[]
+  invoices           Invoice[]
+  familyMemberships  FamilyMember[]
+  chatParticipants   ChatParticipant[]
+  sentMessages       ChatMessage[]        @relation("MessageSender")
+  transactions       Transaction[]
+  transactionCategories TransactionCategory[]
+  analytics          Analytics[]
+  notifications      Notification[]
+  notificationLogs   NotificationLog[]
+  smsDetections      SmsDetection[]
+  settings           Settings?
+  quotaTracking      QuotaTracking[]
+  auditLogs          AuditLog[]
+  accounts           Account[]
+  budgets            Budget[]
+  bills              Bill[]
+  scannedBills       ScannedBill[]
+  goals              Goal[]
+  investments        Investment[]
+  paymentMethods     PaymentMethod[]
+  createdTasks       SharedTask[]         @relation("TaskCreator")
+  assignedTasks      SharedTask[]         @relation("TaskAssignee")
+  createdReminders   SharedReminder[]
+  groupMembers       GroupMember[]
+  groupChatMessages  GroupChatMessage[]
+  premiumTrials              PremiumTrial[]
+  referrerLinks              ReferralLink[]
+  referralHistoryAsReferrer  ReferralHistory[] @relation("ReferrerHistory")
+  referralHistoryAsReferred  ReferralHistory[] @relation("ReferredUser")
+  createdInviteLinks         InviteLink[]
+
+  @@index([email])
+  @@index([isActive])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+// ─── SESSIONS ──────────────────────────────────────────────
+// User authentication sessions for refresh token management
+model Session {
+  id          String    @id @default(uuid()) @db.VarChar(36)
+  userId      String    @db.VarChar(36)
+  refreshToken String   @db.VarChar(500)
+  userAgent   String?   @db.VarChar(500)
+  ipAddress   String?   @db.VarChar(45)
+  isRevoked   Boolean   @default(false)
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+  revokedAt   DateTime?
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([refreshToken])
+  @@index([userId, isRevoked])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+// ─── DEVICES ───────────────────────────────────────────────
+// User devices for push notifications and device management
+model Device {
+  id             String    @id @default(uuid()) @db.VarChar(36)
+  userId         String    @db.VarChar(36)
+  deviceId       String    @db.VarChar(255)
+  platform       String?   @db.VarChar(50)    // ios, android, web
+  pushToken      String?   @db.VarChar(500)
+  deviceName     String?   @db.VarChar(255)
+  appVersion     String?   @db.VarChar(20)
+  isActive       Boolean   @default(true)
+  lastUsedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, deviceId])
+  @@index([userId, isActive])
+  @@index([pushToken])
+  @@map("devices")
+}
+
+// ─── REMINDERS ─────────────────────────────────────────────
+// One-time reminders for bills, tasks, or events
+model Reminder {
+  id          String    @id @default(uuid()) @db.VarChar(36)
+  userId      String    @db.VarChar(36)
+  title       String    @db.VarChar(255)
+  description String?   @db.Text
+  type        String    @default("general") @db.VarChar(50)  // bill, task, event, general
+  remindAt    DateTime
+  dueDate     DateTime?
+  startDate   DateTime?
+  status      String    @default("active") @db.VarChar(20)   // active, completed, cancelled
+  priority    String    @default("medium") @db.VarChar(10)   // low, medium, high, urgent
+  isSent      Boolean   @default(false)
+  sentAt      DateTime?
+  isSnoozed   Boolean   @default(false)
+  snoozedUntil DateTime?
+  isRecurring Boolean   @default(false)
+  categoryId  String?   @db.VarChar(36)
+  deletedAt   DateTime?
+  metadata    Json?     @db.Json
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category  TransactionCategory? @relation(fields: [categoryId], references: [id])
+  recurring RecurringReminder[]
+
+  @@index([userId, remindAt])
+  @@index([userId, isSent])
+  @@index([remindAt, isSent])
+  @@map("reminders")
+}
+
+// ─── RECURRING REMINDERS ───────────────────────────────────
+// Recurring reminder patterns
+model RecurringReminder {
+  id              String   @id @default(uuid()) @db.VarChar(36)
+  userId          String   @db.VarChar(36)
+  reminderId      String?  @db.VarChar(36)
+  title           String   @db.VarChar(255)
+  description     String?  @db.Text
+  type            String   @default("general") @db.VarChar(50)
+  frequency       String   @db.VarChar(20)  // daily, weekly, biweekly, monthly, quarterly, yearly
+  interval        Int      @default(1)
+  dayOfMonth      Int?     // For monthly
+  dayOfWeek       Int?     // For weekly (0=Sunday, 6=Saturday)
+  monthOfYear     Int?     // For yearly
+  time            String?  @db.VarChar(5)  // HH:mm format
+  startDate       DateTime
+  endDate         DateTime?
+  isActive        Boolean  @default(true)
+  lastTriggeredAt DateTime?
+  nextTriggerAt   DateTime?
+  metadata        Json?    @db.Json
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reminder Reminder? @relation(fields: [reminderId], references: [id])
+
+  @@unique([reminderId])
+  @@index([userId, isActive])
+  @@index([nextTriggerAt, isActive])
+  @@map("recurring_reminders")
+}
+
+// ─── SUBSCRIPTION PLANS ────────────────────────────────────
+// Available subscription tiers and pricing
+model SubscriptionPlan {
+  id            String   @id @default(uuid()) @db.VarChar(36)
+  name          String   @db.VarChar(100)
+  description   String?  @db.Text
+  price         Decimal  @db.Decimal(10, 2)
+  currency      String   @default("USD") @db.VarChar(10)
+  interval      String   @db.VarChar(20)  // monthly, yearly
+  features      Json     @db.Json
+  maxAccounts   Int      @default(3)
+  maxCategories Int      @default(20)
+  maxBudgets    Int      @default(10)
+  maxBills      Int      @default(20)
+  maxGoals      Int      @default(10)
+  maxInvestments Int     @default(5)
+  maxFamilyMembers Int   @default(0)
+  isActive      Boolean  @default(true)
+  isDefault     Boolean  @default(false)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  subscriptions Subscription[]
+
+  @@index([isActive, sortOrder])
+  @@index([isDefault])
+  @@map("subscription_plans")
+}
+
+// ─── SUBSCRIPTIONS ─────────────────────────────────────────
+// User subscription assignments
+model Subscription {
+  id              String    @id @default(uuid()) @db.VarChar(36)
+  userId          String    @db.VarChar(36)
+  planId          String    @db.VarChar(36)
+  status          String    @default("active") @db.VarChar(20)  // active, cancelled, expired, trial, past_due
+  trialEndsAt     DateTime?
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelledAt     DateTime?
+  cancelAtPeriodEnd Boolean  @default(false)
+
+  // Stripe fields
+  stripeSubscriptionId  String?  @db.VarChar(255)
+  stripePriceId         String?  @db.VarChar(255)
+
+  // Razorpay fields
+  razorpaySubscriptionId String? @db.VarChar(255)
+  razorpayPlanId         String? @db.VarChar(255)
+
+  metadata        Json?     @db.Json
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan       SubscriptionPlan   @relation(fields: [planId], references: [id])
+  payments   Payment[]
+  invoices   Invoice[]
+
+  @@unique([userId])
+  @@index([planId])
+  @@index([status, currentPeriodEnd])
+  @@index([stripeSubscriptionId])
+  @@index([razorpaySubscriptionId])
+  @@map("subscriptions")
+}
+
+// ─── PAYMENTS ──────────────────────────────────────────────
+// Payment transactions for subscriptions
+model Payment {
+  id              String    @id @default(uuid()) @db.VarChar(36)
+  userId          String    @db.VarChar(36)
+  subscriptionId  String    @db.VarChar(36)
+  amount          Decimal   @db.Decimal(10, 2)
+  currency        String    @default("USD") @db.VarChar(10)
+  status          String    @db.VarChar(20)  // pending, completed, failed, refunded, partial_refund
+  paymentMethod   String?   @db.VarChar(50)  // card, upi, netbanking, wallet, stripe, razorpay
+  gateway         String?   @db.VarChar(20)  // stripe, razorpay
+
+  // Stripe fields
+  stripePaymentIntentId    String?  @db.VarChar(255)
+  stripePaymentMethodId    String?  @db.VarChar(255)
+  stripeChargeId           String?  @db.VarChar(255)
+
+  // Razorpay fields
+  razorpayPaymentId        String?  @db.VarChar(255)
+  razorpayOrderId          String?  @db.VarChar(255)
+  razorpaySignature        String?  @db.VarChar(255)
+
+  receiptUrl      String?   @db.VarChar(500)
+  failureMessage  String?   @db.Text
+  failureCode     String?   @db.VarChar(100)
+  paidAt          DateTime?
+  refundedAt      DateTime?
+  refundAmount    Decimal?  @db.Decimal(10, 2)
+  metadata        Json?     @db.Json
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription Subscription @relation(fields: [subscriptionId], references: [id])
+
+  @@index([userId, status])
+  @@index([subscriptionId])
+  @@index([stripePaymentIntentId])
+  @@index([razorpayPaymentId])
+  @@index([razorpayOrderId])
+  @@index([status, createdAt])
+  @@map("payments")
+}
+
+// ─── INVOICES ──────────────────────────────────────────────
+// Generated invoices for billing
+model Invoice {
+  id              String    @id @default(uuid()) @db.VarChar(36)
+  userId          String    @db.VarChar(36)
+  subscriptionId  String    @db.VarChar(36)
+  invoiceNumber   String    @unique @db.VarChar(50)
+  amount          Decimal   @db.Decimal(10, 2)
+  currency        String    @default("USD") @db.VarChar(10)
+  status          String    @db.VarChar(20)  // draft, sent, paid, overdue, cancelled
+  dueDate         DateTime
+  paidAt          DateTime?
+  pdfUrl          String?   @db.VarChar(500)
+  lineItems       Json      @db.Json
+  metadata        Json?     @db.Json
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription Subscription @relation(fields: [subscriptionId], references: [id])
+
+  @@index([userId, status])
+  @@index([subscriptionId])
+  @@index([invoiceNumber])
+  @@index([dueDate, status])
+  @@map("invoices")
+}
+
+// ─── FAMILIES ──────────────────────────────────────────────
+// Family/group sharing accounts
+model Family {
+  id          String    @id @default(uuid()) @db.VarChar(36)
+  name        String    @db.VarChar(255)
+  code        String?   @unique @db.VarChar(20)  // Invite code
+  ownerId     String    @db.VarChar(36)
+  maxMembers  Int       @default(5)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  members   FamilyMember[]
+  tasks     SharedTask[]
+  reminders SharedReminder[]
+
+  @@index([code])
+  @@index([ownerId])
+  @@map("families")
+}
+
+// ─── FAMILY MEMBERS ────────────────────────────────────────
+// Family membership mapping
+model FamilyMember {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  familyId  String   @db.VarChar(36)
+  userId    String   @db.VarChar(36)
+  role      String   @default("member") @db.VarChar(20)  // owner, admin, member, viewer
+  joinedAt  DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([familyId, userId])
+  @@index([familyId, role])
+  @@index([userId])
+  @@map("family_members")
+}
+
+// ─── CHATS ─────────────────────────────────────────────────
+// Chat/conversation threads
+model Chat {
+  id         String   @id @default(uuid()) @db.VarChar(36)
+  title      String?  @db.VarChar(255)
+  type       String   @default("direct") @db.VarChar(20)  // direct, group, family
+  createdBy  String   @db.VarChar(36)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  messages ChatMessage[]
+  participants ChatParticipant[]
+
+  @@index([createdBy])
+  @@index([type])
+  @@map("chats")
+}
+
+// ─── CHAT PARTICIPANTS ─────────────────────────────────────
+model ChatParticipant {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  chatId    String   @db.VarChar(36)
+  userId    String   @db.VarChar(36)
+  joinedAt  DateTime @default(now())
+  leftAt    DateTime?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  // Relations
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, userId])
+  @@index([userId, isActive])
+  @@map("chat_participants")
+}
+
+// ─── CHAT MESSAGES ─────────────────────────────────────────
+// Individual messages within chats
+model ChatMessage {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  chatId    String   @db.VarChar(36)
+  senderId  String   @db.VarChar(36)
+  content   String   @db.Text
+  messageType String @default("text") @db.VarChar(20)  // text, image, file, system
+  mediaUrl  String?  @db.VarChar(500)
+  isRead    Boolean  @default(false)
+  readAt    DateTime?
+  isEdited  Boolean  @default(false)
+  editedAt  DateTime?
+  replyToId String?  @db.VarChar(36)
+  metadata  Json?    @db.Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  chat     Chat        @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender   User        @relation("MessageSender", fields: [senderId], references: [id])
+  replyTo  ChatMessage? @relation("MessageReply", fields: [replyToId], references: [id])
+  replies  ChatMessage[] @relation("MessageReply")
+
+  @@index([chatId, createdAt])
+  @@index([senderId])
+  @@index([chatId, isRead])
+  @@index([messageType])
+  @@map("chat_messages")
+}
+
+// ─── SHARED TASKS ──────────────────────────────────────────
+// Tasks shared within families/groups
+model SharedTask {
+  id          String    @id @default(uuid()) @db.VarChar(36)
+  familyId    String    @db.VarChar(36)
+  createdById String    @db.VarChar(36)
+  assignedToId String?  @db.VarChar(36)
+  title       String    @db.VarChar(255)
+  description String?   @db.Text
+  status      String    @default("pending") @db.VarChar(20)  // pending, in_progress, completed, cancelled
+  priority    String    @default("medium") @db.VarChar(10)   // low, medium, high, urgent
+  dueDate     DateTime? @db.Date
+  completedAt DateTime?
+  completedById String? @db.VarChar(36)
+  isRecurring Boolean   @default(false)
+  frequency   String?   @db.VarChar(20)
+  metadata    Json?     @db.Json
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  family    Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  createdBy User   @relation("TaskCreator", fields: [createdById], references: [id])
+  assignedTo User? @relation("TaskAssignee", fields: [assignedToId], references: [id])
+
+  @@index([familyId, status])
+  @@index([assignedToId, status])
+  @@index([dueDate, status])
+  @@map("shared_tasks")
+}
+
+// ─── SHARED REMINDERS ─────────────────────────────────────
+// Reminders shared within families
+model SharedReminder {
+  id          String    @id @default(uuid()) @db.VarChar(36)
+  familyId    String    @db.VarChar(36)
+  createdById String    @db.VarChar(36)
+  title       String    @db.VarChar(255)
+  description String?   @db.Text
+  remindAt    DateTime
+  isSent      Boolean   @default(false)
+  isRecurring Boolean   @default(false)
+  frequency   String?   @db.VarChar(20)
+  metadata    Json?     @db.Json
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  family    Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  createdBy User   @relation(fields: [createdById], references: [id])
+
+  @@index([familyId, remindAt])
+  @@index([familyId, isSent])
+  @@map("shared_reminders")
+}
+
+// ─── ACCOUNTS ──────────────────────────────────────────────
+// Financial accounts (bank, credit card, cash, investment, etc.)
+model Account {
+  id              String   @id @default(uuid()) @db.VarChar(36)
+  userId          String   @db.VarChar(36)
+  name            String   @db.VarChar(255)
+  type            String   @db.VarChar(20)   // checking, savings, credit_card, cash, investment, loan, wallet
+  currency        String   @default("USD") @db.VarChar(10)
+  balance         Decimal  @default(0) @db.Decimal(15, 2)
+  initialBalance  Decimal  @default(0) @db.Decimal(15, 2)
+  creditLimit     Decimal? @db.Decimal(15, 2)
+  color           String?  @db.VarChar(50)
+  icon            String?  @db.VarChar(50)
+  isActive        Boolean  @default(true)
+  isArchived      Boolean  @default(false)
+  isDeleted       Boolean  @default(false)
+  lastSyncedAt    DateTime?
+  description     String?  @db.VarChar(500)
+  institution     String?  @db.VarChar(255)
+  lastFourDigits  String?  @db.VarChar(4)
+  sortOrder       Int      @default(0)
+  deletedAt       DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  bills        Bill[]
+  investments  Investment[]
+
+  @@index([userId, isActive])
+  @@index([userId, type])
+  @@index([userId, isArchived])
+  @@map("accounts")
+}
+
+// ─── TRANSACTION CATEGORIES ────────────────────────────────
+// Hierarchical transaction categories
+model TransactionCategory {
+  id              String    @id @default(uuid()) @db.VarChar(36)
+  userId          String    @db.VarChar(36)
+  name            String    @db.VarChar(100)
+  transactionType String    @db.VarChar(10)   // income, expense
+  icon            String?   @db.VarChar(50)
+  color           String?   @db.VarChar(50)
+  parentId        String?   @db.VarChar(36)
+  isDefault       Boolean   @default(false)
+  isActive        Boolean   @default(true)
+  sortOrder       Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent       TransactionCategory? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children     TransactionCategory[] @relation("CategoryHierarchy")
+  transactions Transaction[]
+  budgets      Budget[]
+  bills        Bill[]
+  reminders    Reminder[]
+
+  @@index([userId, transactionType])
+  @@index([userId, parentId])
+  @@index([userId, isActive])
+  @@index([name, userId])
+  @@map("transaction_categories")
+}
+
+// ─── TRANSACTIONS ──────────────────────────────────────────
+// Core financial transactions (income, expense, transfers)
+model Transaction {
+  id                 String    @id @default(uuid()) @db.VarChar(36)
+  userId             String    @db.VarChar(36)
+  accountId          String    @db.VarChar(36)
+  categoryId         String?   @db.VarChar(36)
+  amount             Decimal   @db.Decimal(15, 2)
+  type               String    @db.VarChar(10)    // income, expense, transfer
+  status             String    @default("completed") @db.VarChar(20)  // completed, pending, cancelled
+  date               DateTime  @db.Date
+  description        String?   @db.VarChar(500)
+  notes              String?   @db.Text
+  tags               Json?     @db.Json
+  isRecurring        Boolean   @default(false)
+  recurringId        String?   @db.VarChar(36)
+  recurringFrequency String?   @db.VarChar(20)
+  recurringEndDate   DateTime? @db.Date
+  receiptUrl         String?   @db.VarChar(500)
+  exchangeRate       Decimal?  @db.Decimal(10, 6)
+  originalCurrency   String?   @db.VarChar(10)
+  originalAmount     Decimal?  @db.Decimal(15, 2)
+  transferToAccountId String?  @db.VarChar(36)
+  isReviewed         Boolean   @default(false)
+  isSplit            Boolean   @default(false)
+  parentTransactionId String?  @db.VarChar(36)
+  metadata           Json?     @db.Json
+  deletedAt          DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  // Relations
+  user     User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account  Account             @relation(fields: [accountId], references: [id])
+  category TransactionCategory? @relation(fields: [categoryId], references: [id])
+  splitTransactions Transaction[] @relation("SplitTransaction")
+  parentTransaction Transaction? @relation("SplitTransaction", fields: [parentTransactionId], references: [id])
+
+  @@index([userId, date])
+  @@index([accountId, date])
+  @@index([categoryId, date])
+  @@index([userId, type, date])
+  @@index([userId, status])
+  @@index([userId, isReviewed])
+  @@index([date, status])
+  @@map("transactions")
+}
+
+// ─── BUDGETS ───────────────────────────────────────────────
+// Budget tracking by category and time period
+model Budget {
+  id         String    @id @default(uuid()) @db.VarChar(36)
+  userId     String    @db.VarChar(36)
+  categoryId String?   @db.VarChar(36)
+  name       String    @db.VarChar(255)
+  amount     Decimal   @db.Decimal(15, 2)
+  spent      Decimal   @default(0) @db.Decimal(15, 2)
+  period     String    @default("monthly") @db.VarChar(15)  // monthly, yearly, custom
+  startDate  DateTime  @db.Date
+  endDate    DateTime  @db.Date
+  isActive   Boolean   @default(true)
+  notifyAt   Int       @default(80)  // Percentage threshold for notification
+  notes      String?   @db.VarChar(500)
+  deletedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  // Relations
+  user     User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category TransactionCategory? @relation(fields: [categoryId], references: [id])
+
+  @@index([userId, isActive])
+  @@index([userId, period])
+  @@index([userId, startDate, endDate])
+  @@index([categoryId, startDate, endDate])
+  @@map("budgets")
+}
+
+// ─── BILLS ─────────────────────────────────────────────────
+// Bill tracking and payment reminders
+model Bill {
+  id           String    @id @default(uuid()) @db.VarChar(36)
+  userId       String    @db.VarChar(36)
+  accountId    String?   @db.VarChar(36)
+  categoryId   String?   @db.VarChar(36)
+  name         String    @db.VarChar(255)
+  amount       Decimal   @db.Decimal(15, 2)
+  dueDate      DateTime  @db.Date
+  isPaid       Boolean   @default(false)
+  paidDate     DateTime? @db.Date
+  isRecurring  Boolean   @default(false)
+  frequency    String?   @db.VarChar(20)
+  reminderDays Int       @default(5)
+  notes        String?   @db.VarChar(500)
+  payee        String?   @db.VarChar(255)
+  autopayUrl   String?   @db.VarChar(500)
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  user     User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account  Account?            @relation(fields: [accountId], references: [id])
+  category TransactionCategory? @relation(fields: [categoryId], references: [id])
+
+  @@index([userId, dueDate])
+  @@index([userId, isPaid])
+  @@index([dueDate, isPaid])
+  @@map("bills")
+}
+
+// ─── GOALS ─────────────────────────────────────────────────
+// Financial goals with progress tracking
+model Goal {
+  id            String    @id @default(uuid()) @db.VarChar(36)
+  userId        String    @db.VarChar(36)
+  accountId     String?   @db.VarChar(36)
+  name          String    @db.VarChar(255)
+  targetAmount  Decimal   @db.Decimal(15, 2)
+  currentAmount Decimal   @default(0) @db.Decimal(15, 2)
+  deadline      DateTime? @db.Date
+  type          String    @default("savings") @db.VarChar(20)  // savings, investment, debt, custom
+  icon          String?   @db.VarChar(50)
+  color         String?   @db.VarChar(50)
+  isCompleted   Boolean   @default(false)
+  completedAt   DateTime? @db.Date
+  sortOrder     Int?      @default(0)
+  notes         String?   @db.VarChar(500)
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isCompleted])
+  @@index([userId, deadline])
+  @@index([userId, type])
+  @@map("goals")
+}
+
+// ─── INVESTMENTS ───────────────────────────────────────────
+// Investment portfolio tracking
+model Investment {
+  id           String    @id @default(uuid()) @db.VarChar(36)
+  userId       String    @db.VarChar(36)
+  accountId    String?   @db.VarChar(36)
+  name         String    @db.VarChar(255)
+  type         String    @db.VarChar(20)    // stock, crypto, mutual_fund, etf, bond, real_estate, other
+  symbol       String?   @db.VarChar(20)
+  quantity     Decimal   @db.Decimal(15, 6)
+  buyPrice     Decimal   @db.Decimal(15, 2)
+  currentPrice Decimal?  @db.Decimal(15, 2)
+  purchaseDate DateTime? @db.Date
+  fees         Decimal?  @db.Decimal(15, 2)
+  currency     String    @default("USD") @db.VarChar(10)
+  notes        String?   @db.VarChar(500)
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account Account? @relation(fields: [accountId], references: [id])
+
+  @@index([userId, type])
+  @@index([userId, symbol])
+  @@map("investments")
+}
+
+// ─── ANALYTICS ─────────────────────────────────────────────
+// Pre-computed analytics for performance
+model Analytics {
+  id             String   @id @default(uuid()) @db.VarChar(36)
+  userId         String   @db.VarChar(36)
+  period         String   @db.VarChar(15)   // daily, weekly, monthly, yearly
+  periodStart    DateTime @db.Date
+  periodEnd      DateTime @db.Date
+  totalIncome    Decimal  @default(0) @db.Decimal(15, 2)
+  totalExpense   Decimal  @default(0) @db.Decimal(15, 2)
+  netAmount      Decimal  @default(0) @db.Decimal(15, 2)
+  totalAccountsBalance Decimal @default(0) @db.Decimal(15, 2)
+  topCategory    String?  @db.VarChar(100)
+  transactionCount Int    @default(0)
+  metadata       Json?    @db.Json
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, period, periodStart])
+  @@index([userId, period, periodStart])
+  @@index([userId, periodStart, periodEnd])
+  @@map("analytics")
+}
+
+// ─── NOTIFICATIONS ─────────────────────────────────────────
+// User notifications (in-app and push)
+model Notification {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  userId    String   @db.VarChar(36)
+  type      String   @db.VarChar(50)   // bill_reminder, budget_alert, goal_milestone, large_transaction, weekly_report, monthly_report, account_alert
+  title     String   @db.VarChar(255)
+  message   String   @db.Text
+  isRead    Boolean  @default(false)
+  readAt    DateTime?
+  actionUrl String?  @db.VarChar(500)
+  data      Json?    @db.Json
+  createdAt DateTime @default(now())
+
+  // Relations
+  user  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs  NotificationLog[]
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@index([userId, type])
+  @@index([isRead, createdAt])
+  @@map("notifications")
+}
+
+// ─── NOTIFICATION LOGS ─────────────────────────────────────
+// Notification delivery logs
+model NotificationLog {
+  id             String    @id @default(uuid()) @db.VarChar(36)
+  notificationId String    @db.VarChar(36)
+  userId         String    @db.VarChar(36)
+  channel        String    @db.VarChar(20)    // push, email, sms, in_app
+  status         String    @db.VarChar(20)    // sent, delivered, failed, opened
+  errorMessage   String?   @db.Text
+  deliveredAt    DateTime?
+  openedAt       DateTime?
+  metadata       Json?     @db.Json
+  createdAt      DateTime  @default(now())
+
+  // Relations
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([notificationId])
+  @@index([userId, status])
+  @@index([channel, createdAt])
+  @@map("notification_logs")
+}
+
+// ─── SMS DETECTIONS ────────────────────────────────────────
+// SMS-based transaction detection (auto-categorization)
+model SmsDetection {
+  id             String    @id @default(uuid()) @db.VarChar(36)
+  userId         String    @db.VarChar(36)
+  sender         String    @db.VarChar(255)
+  messageBody    String    @db.Text
+  detectedAmount Decimal?  @db.Decimal(15, 2)
+  detectedCurrency String? @db.VarChar(10)
+  detectedType   String?   @db.VarChar(10)    // income, expense
+  confidence     Float?    @db.Float
+  categoryId     String?   @db.VarChar(36)
+  isProcessed    Boolean   @default(false)
+  processedAt    DateTime?
+  transactionId  String?   @db.VarChar(36)
+  rawData        Json?     @db.Json
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isProcessed])
+  @@index([sender])
+  @@index([createdAt])
+  @@map("sms_detections")
+}
+
+// ─── SETTINGS ──────────────────────────────────────────────
+// User application settings
+model Settings {
+  id                    String   @id @default(uuid()) @db.VarChar(36)
+  userId                String   @unique @db.VarChar(36)
+  theme                 String   @default("system") @db.VarChar(10)   // light, dark, system
+  weeklyReport          Boolean  @default(true)
+  monthlyReport         Boolean  @default(true)
+  largeTransactionAlert Decimal  @default(1000) @db.Decimal(15, 2)
+  budgetAlertThreshold  Int      @default(80)   // percentage
+  pushNotifications     Boolean  @default(true)
+  emailNotifications    Boolean  @default(true)
+  smsNotifications      Boolean  @default(false)
+  biometricAuth         Boolean  @default(false)
+  autoDetectTransactions Boolean @default(true)
+  defaultCurrency       String   @default("USD") @db.VarChar(10)
+  dateFormat            String   @default("MM/dd/yyyy") @db.VarChar(20)
+  firstDayOfWeek        Int      @default(0)     // 0=Sunday, 1=Monday
+  language              String   @default("en") @db.VarChar(10)
+  metadata              Json?    @db.Json
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("settings")
+}
+
+// ─── FEATURE FLAGS ─────────────────────────────────────────
+// Feature flags for gradual rollout
+model FeatureFlag {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  name        String   @unique @db.VarChar(100)
+  description String?  @db.Text
+  isEnabled   Boolean  @default(false)
+  rollouts    Json?    @db.Json     // { "percentage": 50, "userIds": [...], "plans": [...] }
+  createdBy   String?  @db.VarChar(36)
+  startsAt    DateTime?
+  endsAt      DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([name])
+  @@index([isEnabled])
+  @@map("feature_flags")
+}
+
+// ─── WEBHOOK EVENTS ────────────────────────────────────────
+// Incoming webhook events from payment gateways
+model WebhookEvent {
+  id            String   @id @default(uuid()) @db.VarChar(36)
+  gateway       String   @db.VarChar(20)               // stripe, razorpay
+  eventId       String   @db.VarChar(255)               // Gateway's event ID
+  eventType     String   @db.VarChar(100)               // e.g., invoice.paid, payment_intent.succeeded
+  status        String   @default("pending") @db.VarChar(20)  // pending, processed, failed
+  requestBody   Json     @db.Json
+  responseStatus Int?    @default(200)
+  errorMessage  String?  @db.Text
+  processedAt   DateTime?
+  createdAt     DateTime @default(now())
+
+  @@unique([gateway, eventId])
+  @@index([gateway, status])
+  @@index([eventType, createdAt])
+  @@index([status, createdAt])
+  @@map("webhook_events")
+}
+
+// ─── PAYMENT METHODS ───────────────────────────────────────
+// Saved payment methods for users
+model PaymentMethod {
+  id              String    @id @default(uuid()) @db.VarChar(36)
+  userId          String    @db.VarChar(36)
+  gateway         String    @db.VarChar(20)               // stripe, razorpay
+  type            String    @db.VarChar(20)               // card, upi, netbanking, wallet
+  isDefault       Boolean   @default(false)
+
+  // Stripe fields
+  stripePaymentMethodId String? @db.VarChar(255)
+
+  // Razorpay fields
+  razorpayInstrumentId  String? @db.VarChar(255)
+  razorpayTokenId       String? @db.VarChar(255)
+
+  // Card details (masked)
+  lastFourDigits  String?   @db.VarChar(4)
+  cardBrand       String?   @db.VarChar(20)              // visa, mastercard, amex, rupay
+  expMonth        Int?
+  expYear         Int?
+  cardHolderName  String?   @db.VarChar(255)
+
+  // UPI details
+  upiHandle       String?   @db.VarChar(100)
+
+  // Bank details
+  bankName        String?   @db.VarChar(100)
+
+  isExpired       Boolean   @default(false)
+  billingAddress  Json?     @db.Json
+  metadata        Json?     @db.Json
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isDefault])
+  @@index([userId, gateway])
+  @@index([stripePaymentMethodId])
+  @@index([razorpayInstrumentId])
+  @@map("payment_methods")
+}
+
+// ─── QUOTA TRACKING ────────────────────────────────────────
+// Usage quota tracking per user
+model QuotaTracking {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  userId      String   @db.VarChar(36)
+  resource    String   @db.VarChar(50)   // accounts, categories, budgets, bills, goals, investments, family_members
+  used        Int      @default(0)
+  limit       Int      @default(0)
+  periodStart DateTime @db.Date
+  periodEnd   DateTime @db.Date
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, resource, periodStart])
+  @@index([userId, resource])
+  @@index([resource, periodStart, periodEnd])
+  @@map("quota_tracking")
+}
+
+// ─── ADMIN USERS ───────────────────────────────────────────
+// Administrative users with elevated privileges
+model AdminUser {
+  id        String    @id @default(uuid()) @db.VarChar(36)
+  email     String    @unique @db.VarChar(255)
+  password  String    @db.VarChar(255)
+  name      String    @db.VarChar(255)
+  role      String    @default("admin") @db.VarChar(20)  // super_admin, admin, support, analyst
+  permissions Json   @db.Json
+  isActive  Boolean   @default(true)
+  lastLoginAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relations
+  auditLogs AuditLog[]
+
+  @@index([email])
+  @@index([role])
+  @@map("admin_users")
+}
+
+// ─── AUDIT LOGS ────────────────────────────────────────────
+// Comprehensive audit trail for compliance
+model AuditLog {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  userId      String?  @db.VarChar(36)
+  adminId     String?  @db.VarChar(36)
+  action      String   @db.VarChar(100)   // created, updated, deleted, viewed, exported, login, logout
+  entity      String   @db.VarChar(50)    // user, account, transaction, budget, bill, goal, investment, subscription, settings
+  entityId    String?  @db.VarChar(36)
+  description String?  @db.Text
+  oldValues   Json?    @db.Json
+  newValues   Json?    @db.Json
+  ipAddress   String?  @db.VarChar(45)
+  userAgent   String?  @db.VarChar(500)
+  createdAt   DateTime @default(now())
+
+  // Relations
+  user  User?      @relation(fields: [userId], references: [id])
+  admin AdminUser? @relation(fields: [adminId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([adminId, createdAt])
+  @@index([entity, entityId])
+  @@index([action, createdAt])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ─── SCANNED BILLS ──────────────────────────────────────────
+// Stores analyzed bills from receipt scanning
+model ScannedBill {
+  id           String   @id @default(uuid()) @db.VarChar(36)
+  userId       String   @db.VarChar(36)
+  merchantName String?  @db.VarChar(255)
+  category     String?  @db.VarChar(100)
+  totalAmount  Decimal? @db.Decimal(12, 2)
+  currency     String   @default("INR") @db.VarChar(10)
+  billDate     DateTime?
+  items        Json?    @db.Json
+  notes        String?  @db.Text
+  imageUrl     String?  @db.Text
+  rawText      String?  @db.Text
+  confidence   Float?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, billDate])
+  @@index([userId, category])
+  @@map("scanned_bills")
+}
+
+// ─── SHARED FINANCE: GROUPS ─────────────────────────────────
+model SharedFinanceGroup {
+  id          String    @id @default(uuid()) @db.VarChar(36)
+  name        String    @db.VarChar(255)
+  type        String    @default("friends") @db.VarChar(20)   // friends, trip, family, couple, roommates, office, event, apartment
+  description String?   @db.Text
+  avatarUrl   String?   @db.VarChar(500)
+  coverUrl    String?   @db.VarChar(500)
+  currency    String    @default("INR") @db.VarChar(10)
+  inviteCode  String?   @unique @db.VarChar(20)
+  ownerId     String    @db.VarChar(36)
+  maxMembers  Int       @default(20)
+  status      String    @default("active") @db.VarChar(20)  // active, paused, completed, archived, closed
+  archivedAt  DateTime?
+  completedAt DateTime?
+  closedAt    DateTime?
+  closedBy    String?   @db.VarChar(36)   // userId who closed/archived
+  deletedAt   DateTime?
+
+  members           GroupMember[]
+  expenses          GroupExpense[]
+  settlements       Settlement[]
+  sharedBudgets     SharedBudget[]
+  contributionRules ContributionRule[]
+  sharedSubscriptions SharedSubscription[]
+  chats             GroupChat[]
+  trip              Trip?
+  coupleProfile     CoupleFinanceProfile?
+  inviteLinks       InviteLink[]
+  tempMembers       GroupMemberTemp[]
+  lifecycleEvents    GroupLifecycleEvent[]
+  memberRemovalLogs  GroupMemberRemovalLog[]
+  accessRestrictions GroupAccessRestriction[]
+
+  @@index([inviteCode])
+  @@index([ownerId])
+  @@index([type])
+  @@map("shared_finance_groups")
+}
+
+model GroupMember {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  groupId   String   @db.VarChar(36)
+  userId    String   @db.VarChar(36)
+  role      String   @default("member") @db.VarChar(20)   // owner, admin, member, viewer
+  nickname  String?  @db.VarChar(100)
+  isActive  Boolean  @default(true)
+  joinedAt  DateTime @default(now())
+  leftAt    DateTime?
+  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  group              SharedFinanceGroup   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paidExpenses       GroupExpense[]       @relation("ExpensePayer")
+  expenseSplits      ExpenseSplit[]
+  sentSettlements    Settlement[]         @relation("SettlementSender")
+  receivedSettlements Settlement[]        @relation("SettlementReceiver")
+  coupleAsPartner1   CoupleFinanceProfile? @relation("CouplePartner1")
+  coupleAsPartner2   CoupleFinanceProfile? @relation("CouplePartner2")
+  paidSubscriptions  SharedSubscription[]
+  subscriptionMembers SubscriptionMember[]
+
+  @@unique([groupId, userId])
+  @@index([userId])
+  @@index([groupId, role])
+  @@map("group_members")
+}
+
+// ─── SHARED FINANCE: GROUP EXPENSES ─────────────────────────
+model GroupExpense {
+  id              String    @id @default(uuid()) @db.VarChar(36)
+  groupId         String    @db.VarChar(36)
+  paidByMemberId  String    @db.VarChar(36)
+  description     String    @db.VarChar(500)
+  amount          Decimal   @db.Decimal(15, 2)
+  category        String    @default("other") @db.VarChar(50)
+  splitType       String    @default("equal") @db.VarChar(20)   // equal, percentage, exact, weighted, custom
+  date            DateTime  @db.Date
+  isReimbursement Boolean   @default(false)
+  notes           String?   @db.Text
+  receiptUrl      String?   @db.VarChar(500)
+  receiptData     Json?     @db.Json      // OCR extracted data
+  tripDayId       String?   @db.VarChar(36)
+  isRecurring     Boolean   @default(false)
+  recurringFrequency String? @db.VarChar(20)
+  recurringEndDate   DateTime? @db.Date
+  deletedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  group       SharedFinanceGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  paidBy      GroupMember         @relation("ExpensePayer", fields: [paidByMemberId], references: [id])
+  splits      ExpenseSplit[]
+  comments    ExpenseComment[]
+  attachments ExpenseAttachment[]
+  tripDay     TripDay?            @relation(fields: [tripDayId], references: [id])
+
+  @@index([groupId, date])
+  @@index([paidByMemberId])
+  @@index([category])
+  @@index([tripDayId])
+  @@map("group_expenses")
+}
+
+model ExpenseSplit {
+  id           String    @id @default(uuid()) @db.VarChar(36)
+  expenseId    String    @db.VarChar(36)
+  memberId     String    @db.VarChar(36)
+  amount       Decimal   @db.Decimal(15, 2)
+  percentage   Float?
+  weight       Float?
+  isSettled    Boolean   @default(false)
+  settledAt    DateTime?
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  expense GroupExpense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  member  GroupMember  @relation(fields: [memberId], references: [id])
+
+  @@unique([expenseId, memberId])
+  @@index([memberId, isSettled])
+  @@map("expense_splits")
+}
+
+model ExpenseComment {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  expenseId String   @db.VarChar(36)
+  userId    String   @db.VarChar(36)
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  expense GroupExpense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+
+  @@index([expenseId])
+  @@map("expense_comments")
+}
+
+model ExpenseAttachment {
+  id         String   @id @default(uuid()) @db.VarChar(36)
+  expenseId  String   @db.VarChar(36)
+  type       String   @default("image") @db.VarChar(20)   // image, document, receipt
+  url        String   @db.VarChar(500)
+  uploadedBy String   @db.VarChar(36)
+  createdAt  DateTime @default(now())
+
+  expense GroupExpense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+
+  @@index([expenseId])
+  @@map("expense_attachments")
+}
+
+// ─── SHARED FINANCE: SETTLEMENTS ────────────────────────────
+model Settlement {
+  id             String    @id @default(uuid()) @db.VarChar(36)
+  groupId        String    @db.VarChar(36)
+  fromMemberId   String    @db.VarChar(36)
+  toMemberId     String    @db.VarChar(36)
+  amount         Decimal   @db.Decimal(15, 2)
+  method         String    @default("cash") @db.VarChar(20)  // upi, bank_transfer, cash, partial, other
+  note           String?   @db.VarChar(500)
+  status         String    @default("pending") @db.VarChar(20)  // pending, completed, cancelled
+  proofUrl       String?   @db.VarChar(500)
+  completedAt    DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  group      SharedFinanceGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  fromMember GroupMember         @relation("SettlementSender", fields: [fromMemberId], references: [id])
+  toMember   GroupMember         @relation("SettlementReceiver", fields: [toMemberId], references: [id])
+
+  @@index([groupId, status])
+  @@index([fromMemberId])
+  @@index([toMemberId])
+  @@index([status])
+  @@map("settlements")
+}
+
+// ─── SHARED FINANCE: TRIPS ──────────────────────────────────
+model Trip {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  groupId     String   @unique @db.VarChar(36)
+  destination String   @db.VarChar(255)
+  description String?  @db.Text
+  startDate   DateTime @db.Date
+  endDate     DateTime @db.Date
+  budget      Decimal  @default(0) @db.Decimal(15, 2)
+  coverUrl    String?  @db.VarChar(500)
+  status      String   @default("planning") @db.VarChar(20) // planning, ongoing, completed, cancelled
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  group       SharedFinanceGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  days        TripDay[]
+
+  @@index([groupId])
+  @@index([status])
+  @@map("trips")
+}
+
+model TripDay {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  tripId    String   @db.VarChar(36)
+  date      DateTime @db.Date
+  notes     String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  trip      Trip           @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  expenses  GroupExpense[]
+
+  @@unique([tripId, date])
+  @@index([tripId])
+  @@map("trip_days")
+}
+
+// ─── SHARED FINANCE: COUPLE FINANCE ─────────────────────────
+model CoupleFinanceProfile {
+  id                  String   @id @default(uuid()) @db.VarChar(36)
+  groupId             String   @unique @db.VarChar(36)
+  partner1Id          String   @unique @db.VarChar(36)
+  partner2Id          String   @unique @db.VarChar(36)
+  salary1             Decimal? @db.Decimal(15, 2)
+  salary2             Decimal? @db.Decimal(15, 2)
+  contributionRatio   Float?   // 0-100, representing partner1's percentage
+  sharedSavingsGoal   Decimal? @db.Decimal(15, 2)
+  sharedSavingsCurrent Decimal? @default(0) @db.Decimal(15, 2)
+  monthlyBudget       Decimal? @db.Decimal(15, 2)
+  currency            String   @default("INR") @db.VarChar(10)
+  joinedAt            DateTime @default(now())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  group     SharedFinanceGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  partner1  GroupMember        @relation("CouplePartner1", fields: [partner1Id], references: [id])
+  partner2  GroupMember        @relation("CouplePartner2", fields: [partner2Id], references: [id])
+
+  @@index([groupId])
+  @@map("couple_finance_profiles")
+}
+
+// ─── SHARED FINANCE: SHARED BUDGETS ─────────────────────────
+model SharedBudget {
+  id          String    @id @default(uuid()) @db.VarChar(36)
+  groupId     String    @db.VarChar(36)
+  name        String    @db.VarChar(255)
+  category    String    @default("other") @db.VarChar(50)
+  totalAmount Decimal   @db.Decimal(15, 2)
+  spent       Decimal   @default(0) @db.Decimal(15, 2)
+  period      String    @default("monthly") @db.VarChar(15)  // weekly, monthly, yearly, custom
+  startDate   DateTime  @db.Date
+  endDate     DateTime  @db.Date
+  isActive    Boolean   @default(true)
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  group SharedFinanceGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, isActive])
+  @@index([groupId, category])
+  @@map("shared_budgets")
+}
+
+// ─── SHARED FINANCE: CONTRIBUTION RULES ─────────────────────
+model ContributionRule {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  groupId   String   @db.VarChar(36)
+  name      String   @db.VarChar(255)
+  type      String   @default("equal") @db.VarChar(20)  // equal, percentage, salary_ratio, fixed
+  values    Json     @db.Json     // [{ userId: string, value: number }]
+  isActive  Boolean  @default(true)
+  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  group SharedFinanceGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, isActive])
+  @@map("contribution_rules")
+}
+
+// ─── SHARED FINANCE: SHARED SUBSCRIPTIONS ───────────────────
+model SharedSubscription {
+  id                  String   @id @default(uuid()) @db.VarChar(36)
+  groupId             String   @db.VarChar(36)
+  name                String   @db.VarChar(255)
+  service             String   @db.VarChar(100)
+  amount              Decimal  @db.Decimal(15, 2)
+  currency            String   @default("INR") @db.VarChar(10)
+  billingCycle        String   @default("monthly") @db.VarChar(15)  // monthly, yearly, quarterly
+  nextBillingDate     DateTime @db.Date
+  paidByMemberId      String   @db.VarChar(36)
+  category            String?  @db.VarChar(50)
+  renewalReminderDays Int      @default(7)
+  isActive            Boolean  @default(true)
+  deletedAt           DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  group     SharedFinanceGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  paidBy    GroupMember         @relation(fields: [paidByMemberId], references: [id])
+  members   SubscriptionMember[]
+
+  @@index([groupId, isActive])
+  @@index([nextBillingDate])
+  @@map("shared_subscriptions")
+}
+
+model SubscriptionMember {
+  id             String   @id @default(uuid()) @db.VarChar(36)
+  subscriptionId String   @db.VarChar(36)
+  memberId       String   @db.VarChar(36)
+  share          Decimal  @db.Decimal(5, 2)   // percentage or fixed share
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  subscription SharedSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  member       GroupMember         @relation(fields: [memberId], references: [id])
+
+  @@unique([subscriptionId, memberId])
+  @@map("subscription_members")
+}
+
+// ─── SHARED FINANCE: GROUP CHAT ─────────────────────────────
+model GroupChat {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  groupId   String   @unique @db.VarChar(36)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  group    SharedFinanceGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  messages GroupChatMessage[]
+
+  @@map("group_chats")
+}
+
+model GroupChatMessage {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  chatId      String   @db.VarChar(36)
+  senderId    String   @db.VarChar(36)
+  content     String   @db.Text
+  messageType String   @default("text") @db.VarChar(20)  // text, image, file, expense, settlement, system
+  mediaUrl    String?  @db.VarChar(500)
+  replyToId   String?  @db.VarChar(36)
+  readBy      Json?    @db.Json     // Array of userIds who have read the message
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  chat    GroupChat         @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender  User              @relation(fields: [senderId], references: [id])
+  replyTo GroupChatMessage? @relation("ChatMessageReply", fields: [replyToId], references: [id])
+  replies GroupChatMessage[] @relation("ChatMessageReply")
+
+  @@index([chatId, createdAt])
+  @@index([senderId])
+  @@index([messageType])
+  @@map("group_chat_messages")
+}
+
+// ─── SHARED FINANCE: SALARY PROFILES ────────────────────────
+model SalaryProfile {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  userId    String   @db.VarChar(36)
+  groupId   String   @db.VarChar(36)
+  salary    Decimal  @db.Decimal(15, 2)
+  currency  String   @default("INR") @db.VarChar(10)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, groupId])
+  @@index([groupId])
+  @@map("salary_profiles")
+}
+
+// ─── EXTERNAL SHARING: TEMPORARY USERS ─────────────────────
+model TempUser {
+  id              String    @id @default(uuid()) @db.VarChar(36)
+  email           String?   @db.VarChar(255)
+  phone           String?   @db.VarChar(20)
+  googleId        String?   @db.VarChar(255)
+  displayName     String?   @db.VarChar(255)
+  avatarUrl       String?   @db.VarChar(500)
+  deviceId        String?   @db.VarChar(255)
+  devicePlatform  String?   @db.VarChar(20)    // ios, android, web
+  fcmToken        String?   @db.VarChar(500)
+
+  loginMethod     String    @default("anonymous") @db.VarChar(30) // anonymous, google, email_otp, phone_otp, link
+  sessionToken    String?   @unique @db.VarChar(500)
+  sessionExpiresAt DateTime?
+  refreshToken    String?   @db.VarChar(500)
+
+  // Conversion tracking
+  convertedToUserId String? @db.VarChar(36)
+  convertedAt      DateTime?
+  conversionMethod String?  @db.VarChar(30)    // signup, google_login, email_otp
+  conversionData   Json?    @db.Json            // scores, triggers, campaign info
+
+  // Activity & scoring
+  totalSettlements Decimal  @default(0) @db.Decimal(15, 2)
+  expenseCount     Int      @default(0)
+  groupCount       Int      @default(0)
+  sessionCount     Int      @default(0)
+  engagementScore  Float?   @db.Float           // 0-100 heuristic score
+  lastActiveAt     DateTime?
+  isActive         Boolean  @default(true)
+
+  deletedAt        DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  groupMemberships GroupMemberTemp[]
+  inviteLinks      InviteLink[]      @relation("TempUserInvites")
+  referrerLinks    ReferralLink[]
+  conversionEvents ConversionEvent[]
+  installEvents    InstallTracking[]
+  onboardingEvents OnboardingEvent[]
+  premiumTrials    PremiumTrial[]
+  referralHistory  ReferralHistory[]     @relation("ReferrerHistory")
+  referredUsers    ReferralHistory[]     @relation("ReferredUser")
+  sentActivityEvents GroupActivityEvent[] @relation("ActivitySender")
+  readChatMessages   TempUserChatRead[]
+
+  @@index([email])
+  @@index([phone])
+  @@index([googleId])
+  @@index([sessionToken])
+  @@index([engagementScore])
+  @@index([convertedToUserId])
+  @@index([lastActiveAt])
+  @@map("temp_users")
+}
+
+// ─── EXTERNAL SHARING: INVITE LINKS ────────────────────────
+model InviteLink {
+  id             String    @id @default(uuid()) @db.VarChar(36)
+  groupId        String    @db.VarChar(36)
+  createdByUserId String?  @db.VarChar(36)     // Dabbu user who created
+  createdByTempUserId String? @db.VarChar(36)  // OR temp user
+  token          String    @unique @db.VarChar(64)
+  shortCode      String?   @unique @db.VarChar(12)
+  qrCodeUrl      String?   @db.VarChar(500)
+
+  // Access control
+  maxUses        Int       @default(0)        // 0 = unlimited
+  useCount       Int       @default(0)
+  expiresAt      DateTime?
+  isRevoked      Boolean   @default(false)
+  revokedAt DateTime?
+
+  // Permissions for temporary users
+  canAddExpenses    Boolean @default(true)
+  canSettle         Boolean @default(true)
+  canChat           Boolean @default(true)
+  canUploadBills    Boolean @default(true)
+  canViewHistory    Boolean @default(true)
+  canInviteOthers   Boolean @default(false)
+
+  // Deep link data
+  deepLinkUrl    String?   @db.VarChar(500)
+  utmSource      String?   @db.VarChar(50)
+  utmCampaign    String?   @db.VarChar(50)
+  utmMedium      String?   @db.VarChar(50)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  group          SharedFinanceGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdByUser  User?              @relation(fields: [createdByUserId], references: [id])
+  createdByTempUser TempUser?       @relation("TempUserInvites", fields: [createdByTempUserId], references: [id])
+  groupMemberTemps GroupMemberTemp[]
+
+  @@index([token])
+  @@index([shortCode])
+  @@index([groupId])
+  @@index([expiresAt])
+  @@index([utmSource, utmCampaign])
+  @@map("invite_links")
+}
+
+// ─── EXTERNAL SHARING: TEMPORARY GROUP MEMBERS ─────────────
+model GroupMemberTemp {
+  id             String   @id @default(uuid()) @db.VarChar(36)
+  groupId        String   @db.VarChar(36)
+  tempUserId     String   @db.VarChar(36)
+  inviteLinkId   String?  @db.VarChar(36)
+  role           String   @default("member") @db.VarChar(20)
+  nickname       String?  @db.VarChar(100)
+  canAddExpenses Boolean  @default(true)
+  canSettle      Boolean  @default(true)
+  canChat        Boolean  @default(true)
+  canUploadBills Boolean  @default(true)
+
+  joinedAt       DateTime @default(now())
+  lastActiveAt   DateTime?
+  leftAt         DateTime?
+  isActive       Boolean  @default(true)
+  removedAt     DateTime?
+  removedBy     String?   @db.VarChar(36)
+  removalReason String?   @db.VarChar(100)  // admin_removed, group_closed, link_revoked, expired
+
+  group    SharedFinanceGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  tempUser TempUser           @relation(fields: [tempUserId], references: [id], onDelete: Cascade)
+  invite   InviteLink?        @relation(fields: [inviteLinkId], references: [id])
+
+  @@unique([groupId, tempUserId])
+  @@index([tempUserId])
+  @@index([groupId, isActive])
+  @@map("group_member_temp")
+}
+
+// ─── EXTERNAL SHARING: TRIAL & REFERRAL ────────────────────
+model PremiumTrial {
+  id             String   @id @default(uuid()) @db.VarChar(36)
+  userId         String?  @db.VarChar(36)      // Full user
+  tempUserId     String?  @db.VarChar(36)      // OR temp user
+  trialType      String   @db.VarChar(30)      // first_month_free, referral, trip_completion, conversion_reward, onboarding_bonus
+  status         String   @default("active") @db.VarChar(20) // active, expired, converted, cancelled
+  startsAt       DateTime @default(now())
+  expiresAt      DateTime
+  activatedAt    DateTime?
+  metadata       Json?    @db.Json             // source, campaign, referrer info
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user     User?    @relation(fields: [userId], references: [id])
+  tempUser TempUser? @relation(fields: [tempUserId], references: [id])
+
+  @@index([userId, status])
+  @@index([tempUserId, status])
+  @@index([trialType, status])
+  @@index([expiresAt, status])
+  @@map("premium_trials")
+}
+
+model ReferralLink {
+  id             String   @id @default(uuid()) @db.VarChar(36)
+  userId         String?  @db.VarChar(36)       // Full user referrer
+  tempUserId     String?  @db.VarChar(36)       // OR temp user referrer
+  code           String   @unique @db.VarChar(20)
+  totalClicks    Int      @default(0)
+  totalSignups   Int      @default(0)
+  totalConversions Int    @default(0)
+  totalRewards   Decimal? @default(0) @db.Decimal(10, 2)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user     User?    @relation(fields: [userId], references: [id])
+  tempUser TempUser? @relation(fields: [tempUserId], references: [id])
+  referralHistory ReferralHistory[]
+
+  @@index([code])
+  @@index([userId])
+  @@index([tempUserId])
+  @@map("referral_links")
+}
+
+model ReferralHistory {
+  id              String   @id @default(uuid()) @db.VarChar(36)
+  referrerUserId  String?  @db.VarChar(36)      // Full user
+  referrerTempId  String?  @db.VarChar(36)      // OR temp user
+  referredUserId  String?  @db.VarChar(36)      // Full user referred
+  referredTempId  String?  @db.VarChar(36)      // OR temp user referred
+  referralLinkId  String?  @db.VarChar(36)
+  status          String   @default("pending") @db.VarChar(20) // pending, converted, rewarded, expired
+  rewardAmount    Decimal? @default(0) @db.Decimal(10, 2)
+  rewardType      String?  @db.VarChar(30)      // premium_month, discount, cashback
+  rewardGivenAt   DateTime?
+  metadata        Json?    @db.Json
+  createdAt       DateTime @default(now())
+
+  referrerUser User?     @relation("ReferrerHistory", fields: [referrerUserId], references: [id])
+  referrerTemp TempUser? @relation("ReferrerHistory", fields: [referrerTempId], references: [id])
+  referredUser User?     @relation("ReferredUser", fields: [referredUserId], references: [id])
+  referredTemp TempUser? @relation("ReferredUser", fields: [referredTempId], references: [id])
+  link         ReferralLink? @relation(fields: [referralLinkId], references: [id])
+
+  @@index([referrerUserId, status])
+  @@index([referrerTempId, status])
+  @@index([referredUserId])
+  @@index([referredTempId])
+  @@map("referral_history")
+}
+
+// ─── EXTERNAL SHARING: CONVERSION TRACKING ─────────────────
+model ConversionEvent {
+  id           String   @id @default(uuid()) @db.VarChar(36)
+  tempUserId   String   @db.VarChar(36)
+  eventType    String   @db.VarChar(40)      // settlement_threshold, multi_participation, multi_group, high_value_trip, invited_others, prolonged_use
+  triggerData  Json?    @db.Json             // { amount, groupCount, etc }
+  score        Float?   @db.Float
+  isActioned   Boolean  @default(false)      // whether conversion prompt was shown
+  actionedAt   DateTime?
+  response     String?  @db.VarChar(20)      // dismissed, clicked, signed_up, ignored
+  createdAt    DateTime @default(now())
+
+  tempUser TempUser @relation(fields: [tempUserId], references: [id], onDelete: Cascade)
+
+  @@index([tempUserId, eventType])
+  @@index([tempUserId, isActioned])
+  @@index([score])
+  @@map("conversion_events")
+}
+
+model OnboardingEvent {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  tempUserId  String   @db.VarChar(36)
+  eventType   String   @db.VarChar(40)       // banner_shown, banner_clicked, signup_started, signup_completed, upsell_viewed, upsell_dismissed, app_install_clicked, deep_link_opened
+  source      String?  @db.VarChar(30)       // settlement_flow, expense_flow, chat_flow, dashboard, locked_feature
+  metadata    Json?    @db.Json
+  createdAt   DateTime @default(now())
+
+  tempUser TempUser @relation(fields: [tempUserId], references: [id], onDelete: Cascade)
+
+  @@index([tempUserId, eventType])
+  @@index([tempUserId, source])
+  @@map("onboarding_events")
+}
+
+model InstallTracking {
+  id              String   @id @default(uuid()) @db.VarChar(36)
+  tempUserId      String   @db.VarChar(36)
+  deviceId        String?  @db.VarChar(255)
+  platform        String?  @db.VarChar(20)     // ios, android
+  installSource   String?  @db.VarChar(30)     // banner, deep_link, referral, qr_code, share_link
+  isInstalled     Boolean  @default(false)
+  installUrl      String?  @db.VarChar(500)    // App Store / Play Store URL
+  redirectCount   Int      @default(0)
+  lastRedirectedAt DateTime?
+  metadata        Json?    @db.Json
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tempUser TempUser @relation(fields: [tempUserId], references: [id], onDelete: Cascade)
+
+  @@index([tempUserId])
+  @@index([deviceId])
+  @@map("install_tracking")
+}
+
+// ─── EXTERNAL SHARING: GROUP ACTIVITY ──────────────────────
+model GroupActivityEvent {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  groupId     String   @db.VarChar(36)
+  tempUserId  String?  @db.VarChar(36)
+  userId      String?  @db.VarChar(36)
+  eventType   String   @db.VarChar(40)       // expense_added, settlement_made, member_joined, member_left, chat_sent
+  metadata    Json?    @db.Json
+  createdAt   DateTime @default(now())
+
+  tempUser TempUser? @relation("ActivitySender", fields: [tempUserId], references: [id])
+
+  @@index([groupId, createdAt])
+  @@index([tempUserId])
+  @@index([eventType])
+  @@map("group_activity_events")
+}
+
+// ─── EXTERNAL SHARING: TEMP USER CHAT READS ───────────────
+model TempUserChatRead {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  tempUserId String  @db.VarChar(36)
+  messageId String   @db.VarChar(36)
+  readAt    DateTime @default(now())
+
+  tempUser TempUser @relation(fields: [tempUserId], references: [id], onDelete: Cascade)
+
+  @@unique([tempUserId, messageId])
+  @@map("temp_user_chat_reads")
+}
+
+// ─── EXTERNAL SHARING: LIFECYCLE & REVOCATION ────────────
+model GroupLifecycleEvent {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  groupId     String   @db.VarChar(36)
+  eventType   String   @db.VarChar(30)    // created, member_added, member_removed, paused, resumed, completed, archived, closed, invite_revoked, trip_ended
+  triggeredBy String   @db.VarChar(36)    // userId or tempUserId
+  targetUserId String? @db.VarChar(36)    // affected user (if applicable)
+  oldStatus   String?  @db.VarChar(20)
+  newStatus   String?  @db.VarChar(20)
+  metadata    Json?    @db.Json
+  createdAt   DateTime @default(now())
+
+  group SharedFinanceGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, createdAt])
+  @@index([eventType])
+  @@index([createdAt])
+  @@map("group_lifecycle_events")
+}
+
+model GroupMemberRemovalLog {
+  id            String   @id @default(uuid()) @db.VarChar(36)
+  groupId       String   @db.VarChar(36)
+  removedUserId  String? @db.VarChar(36)     // Full user removed
+  removedTempId String? @db.VarChar(36)      // OR temp user removed
+  removedBy     String   @db.VarChar(36)     // Admin who removed
+  removalType   String   @db.VarChar(30)    // admin_removed, self_leave, group_closed, invite_expired, system
+  reason        String?  @db.VarChar(500)
+  wasTempUser   Boolean  @default(false)
+  hadOutstandingBalance Boolean @default(false)
+  outstandingAmount Decimal? @db.Decimal(15, 2)
+  settledBeforeRemoval Boolean @default(false)
+  createdAt     DateTime @default(now())
+
+  group SharedFinanceGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, createdAt])
+  @@index([removedUserId])
+  @@index([removedTempId])
+  @@map("group_member_removal_logs")
+}
+
+model SessionRevocation {
+  id              String   @id @default(uuid()) @db.VarChar(36)
+  targetUserId    String?  @db.VarChar(36)     // Full user (optional, for temp users)
+  targetTempId    String?  @db.VarChar(36)     // OR temp user
+  groupId         String?  @db.VarChar(36)
+  revocationType  String   @db.VarChar(30)    // member_removed, group_closed, invite_revoked, session_expired, admin_action, group_completed
+  revokedSessionToken String? @db.VarChar(500)
+  revokedSocketIds  Json?   @db.Json          // Array of socket IDs that were disconnected
+  isProcessed     Boolean  @default(false)
+  processedAt     DateTime?
+  metadata        Json?    @db.Json
+  createdAt       DateTime @default(now())
+
+  @@index([targetUserId])
+  @@index([targetTempId])
+  @@index([groupId])
+  @@index([isProcessed, createdAt])
+  @@map("session_revocations")
+}
+
+model GroupAccessRestriction {
+  id              String   @id @default(uuid()) @db.VarChar(36)
+  groupId         String   @db.VarChar(36)
+  restrictionType String   @db.VarChar(30)    // no_new_expenses, no_edits, no_settlements, read_only, no_chat, no_invites, all_blocked
+  appliedTo       String   @db.VarChar(20)    // all, full_users, temp_users, specific_user, specific_temp
+  targetUserId    String?  @db.VarChar(36)
+  targetTempId    String?  @db.VarChar(36)
+  reason          String?  @db.VarChar(500)
+  isActive        Boolean  @default(true)
+  appliedBy       String   @db.VarChar(36)
+  expiresAt       DateTime?
+  removedAt       DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  group SharedFinanceGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, isActive])
+  @@index([restrictionType])
+  @@map("group_access_restrictions")
+}
+
+model GroupLifecycleNotification {
+  id              String   @id @default(uuid()) @db.VarChar(36)
+  groupId         String   @db.VarChar(36)
+  recipientUserId String?  @db.VarChar(36)     // Full user recipient
+  recipientTempId String?  @db.VarChar(36)     // OR temp user
+  notificationType String  @db.VarChar(40)    // member_removed, group_completed, group_archived, group_closed, access_expired, invite_revoked, trip_ended
+  title           String   @db.VarChar(255)
+  message         String   @db.Text
+  actionUrl       String?  @db.VarChar(500)
+  actionLabel     String?  @db.VarChar(100)   // "Install Dabbu", "View Summary", "Contact Admin"
+  isRead          Boolean  @default(false)
+  readAt          DateTime?
+  isSent          Boolean  @default(false)
+  sentAt          DateTime?
+  metadata        Json?    @db.Json
+  createdAt       DateTime @default(now())
+
+  @@index([groupId, notificationType])
+  @@index([recipientUserId, isRead])
+  @@index([recipientTempId, isRead])
+  @@index([isSent, createdAt])
+  @@map("group_lifecycle_notifications")
+}
+
+// ─── AI INSIGHTS: GROUP POLLS ──────────────────────────────
+model GroupPoll {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  groupId   String   @db.VarChar(36)
+  question  String   @db.VarChar(500)
+  createdBy String   @db.VarChar(36)
+  expiresAt DateTime?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  options PollOption[]
+  votes   PollVote[]
+
+  @@index([groupId, isActive])
+  @@map("group_polls")
+}
+
+model PollOption {
+  id     String @id @default(uuid()) @db.VarChar(36)
+  pollId String @db.VarChar(36)
+  text   String @db.VarChar(255)
+  sortOrder Int @default(0)
+
+  poll  GroupPoll @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  votes PollVote[]
+
+  @@map("poll_options")
+}
+
+model PollVote {
+  id       String @id @default(uuid()) @db.VarChar(36)
+  pollId   String @db.VarChar(36)
+  optionId String @db.VarChar(36)
+  userId   String @db.VarChar(36)
+
+  poll   GroupPoll  @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  option PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  @@unique([pollId, userId])
+  @@map("poll_votes")
+}
+
+// ─── AI INSIGHTS: SHARED GROCERY ───────────────────────────
+model SharedGroceryList {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  groupId     String   @db.VarChar(36)
+  name        String   @db.VarChar(255)
+  createdBy   String   @db.VarChar(36)
+  totalEstimated Decimal? @db.Decimal(15, 2)
+  totalActual    Decimal? @db.Decimal(15, 2)
+  status      String   @default("active") @db.VarChar(20)  // active, completed, cancelled
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  completedAt DateTime?
+
+  items GroceryItem[]
+
+  @@index([groupId, status])
+  @@map("shared_grocery_lists")
+}
+
+model GroceryItem {
+  id            String   @id @default(uuid()) @db.VarChar(36)
+  listId        String   @db.VarChar(36)
+  name          String   @db.VarChar(255)
+  quantity      Decimal  @default(1) @db.Decimal(10, 2)
+  unit          String   @default("pcs") @db.VarChar(20)
+  estimatedPrice Decimal? @db.Decimal(15, 2)
+  actualPrice   Decimal? @db.Decimal(15, 2)
+  assignedTo    String?  @db.VarChar(36)
+  category      String   @default("other") @db.VarChar(50)
+  isPurchased   Boolean  @default(false)
+  purchasedBy   String?  @db.VarChar(36)
+  purchasedAt   DateTime?
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  list SharedGroceryList @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  @@index([listId, isPurchased])
+  @@map("grocery_items")
+}
+
+// ─── AI INSIGHTS: SAVINGS CHALLENGES ───────────────────────
+model SavingsChallenge {
+  id             String   @id @default(uuid()) @db.VarChar(36)
+  name           String   @db.VarChar(255)
+  description    String?  @db.Text
+  icon           String   @default("🎯") @db.VarChar(10)
+  category       String   @db.VarChar(50)   // no_swiggy, grocery_opt, low_fuel, savings_goal, family_savings
+  targetDays     Int      @default(30)
+  targetSavings  Decimal? @db.Decimal(15, 2)
+  isActive       Boolean  @default(true)
+  isPublic       Boolean  @default(true)
+  createdBy      String   @db.VarChar(36)
+  badgeId        String?  @db.VarChar(50)
+  startsAt       DateTime @default(now())
+  endsAt         DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  participants ChallengeParticipant[]
+  badgeEarners ChallengeBadge[]
+
+  @@index([category, isActive])
+  @@index([isPublic])
+  @@map("savings_challenges")
+}
+
+model ChallengeParticipant {
+  id           String   @id @default(uuid()) @db.VarChar(36)
+  challengeId  String   @db.VarChar(36)
+  userId       String   @db.VarChar(36)
+  dayCount     Int      @default(0)
+  streak       Int      @default(0)
+  bestStreak   Int      @default(0)
+  skipped      Int      @default(0)
+  savingsAmount Decimal @default(0) @db.Decimal(15, 2)
+  completedToday Boolean @default(false)
+  lastCompletedAt DateTime?
+  joinedAt     DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  challenge SavingsChallenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@unique([challengeId, userId])
+  @@index([challengeId, streak])
+  @@map("challenge_participants")
+}
+
+model ChallengeBadge {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  challengeId String   @db.VarChar(36)
+  userId      String   @db.VarChar(36)
+  badgeId     String   @db.VarChar(50)
+  badgeName   String   @db.VarChar(100)
+  badgeEmoji  String   @default("🏅") @db.VarChar(10)
+  earnedAt    DateTime @default(now())
+
+  challenge SavingsChallenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@index([challengeId, userId])
+  @@map("challenge_badges")
+}
+
+// ─── AI INSIGHTS: MEMORIES ─────────────────────────────────
+model MemoryEntry {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  userId      String   @db.VarChar(36)
+  type        String   @db.VarChar(30)    // trip, expense, milestone, anniversary
+  title       String   @db.VarChar(255)
+  description String?  @db.Text
+  emoji       String   @default("📸") @db.VarChar(10)
+  amount      Decimal? @db.Decimal(15, 2)
+  groupId     String?  @db.VarChar(36)
+  tripId      String?  @db.VarChar(36)
+  expenseId   String?  @db.VarChar(36)
+  memberNames Json?    @db.Json
+  memoryDate  DateTime
+  isShared    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([userId, type])
+  @@index([userId, memoryDate])
+  @@index([groupId])
+  @@map("memory_entries")
+}
+
+// ─── AI INSIGHTS: FINANCIAL REPORTS ────────────────────────
+model FinancialReport {
+  id             String   @id @default(uuid()) @db.VarChar(36)
+  userId         String   @db.VarChar(36)
+  type           String   @db.VarChar(20)    // monthly, yearly, custom
+  month          Int?
+  year           Int
+  reportData     Json     @db.Json
+  totalIncome    Decimal  @default(0) @db.Decimal(15, 2)
+  totalExpenses  Decimal  @default(0) @db.Decimal(15, 2)
+  savings        Decimal  @default(0) @db.Decimal(15, 2)
+  insights       Json?    @db.Json
+  isGenerated    Boolean  @default(false)
+  generatedAt    DateTime?
+  createdAt      DateTime @default(now())
+
+  @@index([userId, type, year])
+  @@index([userId, year, month])
+  @@map("financial_reports")
+}
+
+// ─── AI INSIGHTS: QR SPLIT SESSIONS ────────────────────────
+model QRSplitSession {
+  id             String   @id @default(uuid()) @db.VarChar(36)
+  groupId        String?  @db.VarChar(36)
+  tableName      String   @db.VarChar(100)
+  totalAmount    Decimal? @db.Decimal(15, 2)
+  currency       String   @default("INR") @db.VarChar(5)
+  status         String   @default("active") @db.VarChar(20)  // active, settled, expired
+  createdBy      String   @db.VarChar(36)
+  expiresAt      DateTime?
+  createdAt      DateTime @default(now())
+  settledAt      DateTime?
+
+  participants QRSplitParticipant[]
+  items        QRSplitItem[]
+
+  @@index([status, createdAt])
+  @@map("qr_split_sessions")
+}
+
+model QRSplitParticipant {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  sessionId String   @db.VarChar(36)
+  name      String   @db.VarChar(100)
+  userId    String?  @db.VarChar(36)
+  tempId    String?  @db.VarChar(36)
+  amount    Decimal? @db.Decimal(15, 2)
+  isPaid    Boolean  @default(false)
+  joinedAt  DateTime @default(now())
+
+  session QRSplitSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("qr_split_participants")
+}
+
+model QRSplitItem {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  sessionId   String   @db.VarChar(36)
+  name        String   @db.VarChar(255)
+  quantity    Int      @default(1)
+  price       Decimal  @db.Decimal(15, 2)
+  assignedTo  String?  @db.VarChar(36)   // participant ID
+  createdAt   DateTime @default(now())
+
+  session QRSplitSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("qr_split_items")
+}
+
+// ─── AI INSIGHTS: LIFE EVENTS ─────────────────────────────
+model LifeEvent {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  userId      String   @db.VarChar(36)
+  eventType   String   @db.VarChar(50)    // wedding, baby, home, festival, college, bachelor, vacation, other
+  eventName   String   @db.VarChar(255)
+  description String?  @db.Text
+  totalBudget Decimal? @db.Decimal(15, 2)
+  currency    String   @default("INR") @db.VarChar(5)
+  startDate   DateTime
+  endDate     DateTime?
+  status      String   @default("planning") @db.VarChar(20)  // planning, ongoing, completed
+  isShared    Boolean  @default(false)
+  groupId     String?  @db.VarChar(36)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  contributors LifeEventContributor[]
+  expenses     LifeEventExpense[]
+
+  @@index([userId, eventType])
+  @@index([groupId])
+  @@map("life_events")
+}
+
+model LifeEventContributor {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  eventId   String   @db.VarChar(36)
+  name      String   @db.VarChar(100)
+  userId    String?  @db.VarChar(36)
+  amount    Decimal  @default(0) @db.Decimal(15, 2)
+  role      String   @default("contributor") @db.VarChar(50)
+  createdAt DateTime @default(now())
+
+  event LifeEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@map("life_event_contributors")
+}
+
+model LifeEventExpense {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  eventId     String   @db.VarChar(36)
+  category    String   @db.VarChar(50)   // venue, catering, decoration, travel, gifts, etc.
+  description String?  @db.VarChar(500)
+  amount      Decimal  @db.Decimal(15, 2)
+  paidBy      String?  @db.VarChar(36)
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  event LifeEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([category])
+  @@map("life_event_expenses")
+}
+
+// ─── VIEWS FOR PAGINATION OPTIMIZATION ─────────────────────
+// These will be created via raw SQL migrations for complex reporting
+
+// @@schema("dabbu")

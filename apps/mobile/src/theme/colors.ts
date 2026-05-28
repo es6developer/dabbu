@@ -1,0 +1,137 @@
+export type DarkPalette = typeof palette.dark;
+export type LightPalette = typeof palette.light;
+
+export const palette = {
+  white: '#FFFFFF',
+  black: '#000000',
+  transparent: 'transparent',
+  brand: {
+    primary: '#f7892c',
+    light: '#e9eef0',
+    dark: '#394049',
+    medium: '#3b4355',
+    muted: '#767a79',
+  },
+
+  dark: {
+    bg: {
+      primary: '#0A0A0F',
+      secondary: '#12121A',
+      tertiary: '#1A1A26',
+      card: '#14141F',
+      elevated: '#1E1E2E',
+      overlay: 'rgba(0, 0, 0, 0.6)',
+      glass: 'rgba(255, 255, 255, 0.05)',
+      glassLight: 'rgba(255, 255, 255, 0.08)',
+    },
+    text: {
+      primary: '#FFFFFF',
+      secondary: '#9E9EB8',
+      tertiary: '#6B6B80',
+      inverse: '#0A0A0F',
+      link: '#f7892c',
+    },
+    brand: {
+      primary: '#f7892c',
+      light: '#e9eef0',
+      dark: '#394049',
+      medium: '#3b4355',
+      muted: '#767a79',
+    },
+    border: {
+      subtle: 'rgba(255, 255, 255, 0.06)',
+      default: 'rgba(255, 255, 255, 0.1)',
+      active: 'rgba(255, 255, 255, 0.2)',
+    },
+    accent: {
+      primary: '#f7892c',
+      secondary: '#f9a85c',
+      tertiary: '#c46a1e',
+      gradient: ['#f7892c', '#f9a85c'],
+      gradientAlt: ['#f7892c', '#e17055'],
+    },
+    status: {
+      success: '#00B894',
+      successLight: 'rgba(0, 184, 148, 0.15)',
+      warning: '#FDCB6E',
+      warningLight: 'rgba(253, 203, 110, 0.15)',
+      error: '#FF6B6B',
+      errorLight: 'rgba(255, 107, 107, 0.15)',
+      info: '#74B9FF',
+      infoLight: 'rgba(116, 185, 255, 0.15)',
+    },
+    chart: {
+      line1: '#f7892c',
+      line2: '#00B894',
+      line3: '#FDCB6E',
+      line4: '#FF6B6B',
+      gradient1: ['rgba(247, 137, 44, 0.4)', 'rgba(247, 137, 44, 0)'],
+      gradient2: ['rgba(0, 184, 148, 0.4)', 'rgba(0, 184, 148, 0)'],
+    },
+    skeleton: {
+      base: '#1A1A26',
+      highlight: '#24243A',
+    },
+  },
+
+  light: {
+    bg: {
+      primary: '#FFFFFF',
+      secondary: '#F8F9FA',
+      tertiary: '#F0F0F5',
+      card: '#FFFFFF',
+      elevated: '#FFFFFF',
+      overlay: 'rgba(0, 0, 0, 0.3)',
+      glass: 'rgba(255, 255, 255, 0.7)',
+      glassLight: 'rgba(255, 255, 255, 0.9)',
+    },
+    text: {
+      primary: '#1A1A2E',
+      secondary: '#6B6B80',
+      tertiary: '#9E9EB8',
+      inverse: '#FFFFFF',
+      link: '#f7892c',
+    },
+    brand: {
+      primary: '#f7892c',
+      light: '#e9eef0',
+      dark: '#394049',
+      medium: '#3b4355',
+      muted: '#767a79',
+    },
+    border: {
+      subtle: 'rgba(0, 0, 0, 0.05)',
+      default: 'rgba(0, 0, 0, 0.1)',
+      active: 'rgba(0, 0, 0, 0.2)',
+    },
+    accent: {
+      primary: '#f7892c',
+      secondary: '#f9a85c',
+      tertiary: '#c46a1e',
+      gradient: ['#f7892c', '#f9a85c'],
+      gradientAlt: ['#f7892c', '#e17055'],
+    },
+    status: {
+      success: '#00B894',
+      successLight: 'rgba(0, 184, 148, 0.1)',
+      warning: '#FDCB6E',
+      warningLight: 'rgba(253, 203, 110, 0.1)',
+      error: '#FF6B6B',
+      errorLight: 'rgba(255, 107, 107, 0.1)',
+      info: '#74B9FF',
+      infoLight: 'rgba(116, 185, 255, 0.1)',
+    },
+    chart: {
+      line1: '#f7892c',
+      line2: '#00B894',
+      line3: '#FDCB6E',
+      line4: '#FF6B6B',
+      gradient1: ['rgba(247, 137, 44, 0.3)', 'rgba(247, 137, 44, 0)'],
+      gradient2: ['rgba(0, 184, 148, 0.3)', 'rgba(0, 184, 148, 0)'],
+    },
+    skeleton: {
+      base: '#E8E8EE',
+      highlight: '#F0F0F5',
+    },
+  },
+} as const;

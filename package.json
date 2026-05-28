@@ -1,0 +1,67 @@
+{
+  "name": "dabbu-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dabbu - Personal Finance Manager Monorepo",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:build": "docker-compose build",
+    "prepare": "husky install",
+    "db:migrate": "npm run migrate -w apps/backend",
+    "db:seed": "npm run seed -w apps/backend",
+    "commit": "cz"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^18.4.3",
+    "@commitlint/config-conventional": "^18.4.3",
+    "commitizen": "^4.3.0",
+    "cz-conventional-changelog": "^3.3.0",
+    "eslint": "^8.56.0",
+    "husky": "^9.0.1",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.2.0",
+    "turbo": "^1.12.0",
+    "typescript": "^5.3.3"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,css,md}": [
+      "prettier --write"
+    ]
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "packageManager": "npm@10.2.0",
+  "dependencies": {
+    "@nestjs/platform-socket.io": "11.1.24",
+    "@nestjs/websockets": "11.1.24",
+    "@tremor/react": "3.18.7",
+    "babel-plugin-module-resolver": "5.0.3",
+    "firebase-admin": "13.10.0",
+    "react-native-get-sms-android": "2.1.0",
+    "socket.io": "4.8.3"
+  }
+}
