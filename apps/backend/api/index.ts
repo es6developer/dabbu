@@ -1,52 +1,38 @@
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import { ValidationPipe, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ValidationPipe } from '@nestjs/common';
 import * as express from 'express';
-import { AppModule } from '../src/app.module';
-
-const logger = new Logger('Vercel');
+import { ServerlessAppModule } from './serverless-app.module';
 
 let cachedApp: express.Express;
 
 async function bootstrap() {
   const expressApp = express();
-  const app = await NestFactory.create(AppModule, new ExpressAdapter(expressApp), {
+  expressApp.use(express.json({ limit: '50mb' }));
+  expressApp.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+  const app = await NestFactory.create(ServerlessAppModule, new ExpressAdapter(expressApp), {
     bufferLogs: true,
     bodyParser: false,
   });
 
-  const configService = app.get(ConfigService);
-  const prefix = configService.get<string>('app.prefix', '/api/v1');
-
-  app.use(express.json({ limit: '50mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-
-  app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:8081', 'https://app.dabbu.app'],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  });
-
-  app.setGlobalPrefix(prefix);
-
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      transformOptions: { enableImplicitConversion: true },
-    }),
-  );
+  app.enableCors({ origin: '*', credentials: true });
+  app.setGlobalPrefix('/api/v1');
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   await app.init();
-  logger.log('NestJS app initialized for Vercel');
   return expressApp;
 }
 
 export default async function handler(req: any, res: any) {
   if (!cachedApp) {
-    cachedApp = await bootstrap();
+    try {
+      cachedApp = await bootstrap();
+    } catch (err) {
+      console.error('NestJS bootstrap failed:', err);
+      res.status(500).json({ error: 'Bootstrap failed', message: (err as Error).message });
+      return;
+    }
   }
   return cachedApp(req, res);
 }
