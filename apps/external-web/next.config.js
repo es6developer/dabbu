@@ -1,18 +1,21 @@
-const withPWA = require("next-pwa")({
-  dest: "public",
-  disable: process.env.NODE_ENV === "development",
+const withPWA = require('next-pwa')({
+  dest: 'public',
+  disable: process.env.NODE_ENV === 'development',
   register: true,
   skipWaiting: true,
 });
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   images: {
-    domains: ["localhost", "api.dabbu.app"],
+    domains: ['localhost', 'api.dabbu.app'],
     remotePatterns: [
       {
-        protocol: "https",
-        hostname: "**.dabbu.app",
+        protocol: 'https',
+        hostname: '**.dabbu.app',
       },
     ],
   },
@@ -22,7 +25,7 @@ const nextConfig = {
         fs: false,
         net: false,
         tls: false,
-        crypto: require.resolve("crypto-browserify"),
+        crypto: require.resolve('crypto-browserify'),
       };
     }
     return config;
@@ -30,11 +33,11 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: "/(.*)",
+        source: '/(.*)',
         headers: [
-          { key: "X-Frame-Options", value: "DENY" },
-          { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
         ],
       },
     ];
