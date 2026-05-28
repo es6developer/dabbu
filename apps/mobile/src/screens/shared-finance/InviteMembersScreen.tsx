@@ -142,21 +142,21 @@ export function InviteMembersScreen() {
     }
     setSendingEmail(true);
     try {
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
+      if (accessToken) setAccessToken(accessToken);
       const res = await createInviteLink(groupId);
       const link = `https://external-web-es6developers-projects.vercel.app/invite/${res.token}`;
-      await Share.share({
-        subject: `Join "${groupName || 'our group'}" on Dabbu`,
-        message: `${user?.firstName || 'Someone'} invited you to join "${groupName || 'our group'}" on Dabbu.\n\nTap the link to join:\n${link}\n\nDabbu makes it easy to split expenses and keep everyone on the same page.`,
-        recipients: [email.trim()],
-      });
+      Alert.alert(
+        'Invite Created',
+        `An invite link has been created for ${email.trim()}. They will be added to "${groupName || 'the group'}" as a member when they open the link and sign in.`,
+        [
+          { text: 'Copy Link', onPress: () => { Clipboard.setStringAsync(link); Alert.alert('Copied', 'Invite link copied!'); } },
+          { text: 'Share', onPress: () => Share.share({ message: `Join "${groupName || 'our group'}" on Dabbu: ${link}` }) },
+          { text: 'OK' },
+        ],
+      );
       setEmail('');
     } catch (e: any) {
-      if (e?.message !== 'User did not share') {
-        Alert.alert('Error', e.message || 'Failed to create invite link');
-      }
+      Alert.alert('Error', e.message || 'Failed to create invite link');
     } finally {
       setSendingEmail(false);
     }
