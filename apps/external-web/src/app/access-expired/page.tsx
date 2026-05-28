@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -38,7 +39,7 @@ const REASON_MESSAGES: Record<string, { title: string; subtitle: string }> = {
   },
 };
 
-export default function AccessExpiredPage() {
+function AccessExpiredPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -167,4 +168,8 @@ export default function AccessExpiredPage() {
       </div>
     </div>
   );
+}
+
+export default function Page() {
+  return <Suspense><AccessExpiredPage /></Suspense>;
 }

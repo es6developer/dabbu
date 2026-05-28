@@ -1,12 +1,13 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 
-export default function MemberRemovedPage() {
+function MemberRemovedPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -99,4 +100,8 @@ export default function MemberRemovedPage() {
       </div>
     </div>
   );
+}
+
+export default function Page() {
+  return <Suspense><MemberRemovedPage /></Suspense>;
 }

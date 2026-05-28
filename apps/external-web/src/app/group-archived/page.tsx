@@ -1,12 +1,13 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Archive } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 
-export default function GroupArchivedPage() {
+function GroupArchivedPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -120,4 +121,8 @@ export default function GroupArchivedPage() {
       </div>
     </div>
   );
+}
+
+export default function Page() {
+  return <Suspense><GroupArchivedPage /></Suspense>;
 }
