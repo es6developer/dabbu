@@ -1,16 +1,13 @@
-"use client";
+'use client';
 
-import { useEffect, useState, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { api, type Group } from "@/lib/api";
-import {
-  checkGroupAccess,
-  resolveAccessStatus,
-} from "@/lib/access-check";
-import { formatCurrency, getInitials, getRandomColor } from "@/lib/utils";
-import { toast } from "sonner";
+import { useEffect, useState, useCallback } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { api, type Group } from '@/lib/api';
+import { checkGroupAccess, resolveAccessStatus } from '@/lib/access-check';
+import { formatCurrency, getInitials, getRandomColor } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface InviteData {
   group: Group;
@@ -28,7 +25,7 @@ export default function InvitePage() {
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isAuthenticated = !!api.getTempToken();
+  const isAuthenticated = typeof window !== 'undefined' ? !!api.getTempToken() : false;
 
   const redirectIfNeeded = useCallback(
     async (groupId: string) => {
@@ -40,58 +37,58 @@ export default function InvitePage() {
       }
 
       const routeMap: Record<string, string> = {
-        expired: "/access-expired",
-        completed: "/group-completed",
-        archived: "/group-archived",
-        removed: "/member-removed",
-        closed: "/access-expired",
+        expired: '/access-expired',
+        completed: '/group-completed',
+        archived: '/group-archived',
+        removed: '/member-removed',
+        closed: '/access-expired',
       };
 
-      const route = routeMap[status] || "/access-expired";
+      const route = routeMap[status] || '/access-expired';
       const params = new URLSearchParams();
 
       if (response.data?.groupName) {
-        params.set("groupName", response.data.groupName);
+        params.set('groupName', response.data.groupName);
       }
       if (response.data?.groupType) {
-        params.set("groupType", response.data.groupType);
+        params.set('groupType', response.data.groupType);
       }
       if (response.reason) {
-        params.set("reason", response.reason);
+        params.set('reason', response.reason);
       }
       if (response.data?.totalSpent !== undefined) {
-        params.set("totalSpent", String(response.data.totalSpent));
+        params.set('totalSpent', String(response.data.totalSpent));
       }
       if (response.data?.personalBalance !== undefined) {
-        params.set("balance", String(response.data.personalBalance));
+        params.set('balance', String(response.data.personalBalance));
       }
       if (response.data?.totalPaid !== undefined) {
-        params.set("totalPaid", String(response.data.totalPaid));
+        params.set('totalPaid', String(response.data.totalPaid));
       }
       if (response.data?.totalOwed !== undefined) {
-        params.set("totalOwed", String(response.data.totalOwed));
+        params.set('totalOwed', String(response.data.totalOwed));
       }
       if (response.data?.settlementStatus) {
-        params.set("settlement", response.data.settlementStatus);
+        params.set('settlement', response.data.settlementStatus);
       }
       if (response.data?.memberCount !== undefined) {
-        params.set("members", String(response.data.memberCount));
+        params.set('members', String(response.data.memberCount));
       }
       if (response.data?.yourContribution !== undefined) {
-        params.set("contribution", String(response.data.yourContribution));
+        params.set('contribution', String(response.data.yourContribution));
       }
 
       if (response.data?.dateRange?.start) {
-        params.set("dateStart", response.data.dateRange.start);
+        params.set('dateStart', response.data.dateRange.start);
       }
       if (response.data?.dateRange?.end) {
-        params.set("dateEnd", response.data.dateRange.end);
+        params.set('dateEnd', response.data.dateRange.end);
       }
 
       const qs = params.toString();
       router.replace(qs ? `${route}?${qs}` : route);
     },
-    [router]
+    [router],
   );
 
   useEffect(() => {
@@ -105,36 +102,48 @@ export default function InvitePage() {
     setLoading(true);
     setError(null);
 
-    const res = await api.groups.getInvite(token);
+    try {
+      const res = await api.groups.getInvite(token);
 
-    if (res.error) {
-      if (res.status === 401 || res.status === 403) {
-        const reason =
-          res.status === 401
-            ? "This invite link is invalid or has expired"
-            : "You don't have permission to access this invite";
-        setError(reason);
-        setLoading(false);
+      if (res.error) {
+        if (res.status === 401 || res.status === 403) {
+          const reason =
+            res.status === 401
+              ? 'This invite link is invalid or has expired'
+              : "You don't have permission to access this invite";
+          setError(reason);
+          return;
+        }
+
+        if (res.status === 410) {
+          router.replace('/access-expired?reason=expired&message=invite_revoked');
+          return;
+        }
+
+        setError(res.error);
         return;
       }
 
-      if (res.status === 410) {
-        router.replace("/access-expired?reason=expired&message=invite_revoked");
-        return;
+      const data = res.data!;
+      const group = data.group;
+
+      // Normalize fields the backend may omit in invite response
+      if (!group.members) {
+        group.members = [];
+      }
+      if (!group.memberCount && group._count) {
+        group.memberCount = group._count.members;
+      }
+      if (group.totalBalance === undefined) {
+        group.totalBalance = 0;
       }
 
-      setError(res.error);
+      setInvite(data as InviteData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const data = res.data!;
-    const group = data.group;
-
-    await redirectIfNeeded(group.id);
-
-    setInvite(data as InviteData);
-    setLoading(false);
   };
 
   const handleJoin = async () => {
@@ -149,7 +158,7 @@ export default function InvitePage() {
       setJoining(false);
       return;
     }
-    toast.success("Joined the group!");
+    toast.success('Joined the group!');
     router.push(`/groups/${res.data!.group.id}`);
   };
 
@@ -189,7 +198,7 @@ export default function InvitePage() {
             </div>
             <h2 className="text-xl font-semibold mb-2">Invite Not Found</h2>
             <p className="text-dabbu-text-secondary mb-6">{error}</p>
-            <Button onClick={() => router.push("/")}>Go Home</Button>
+            <Button onClick={() => router.push('/')}>Go Home</Button>
           </CardContent>
         </Card>
       </div>
@@ -211,18 +220,11 @@ export default function InvitePage() {
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <div className="w-16 h-16 rounded-2xl bg-dabbu-accent flex items-center justify-center shadow-lg shadow-dabbu-accent/30">
-              <span className="text-white font-bold text-2xl">
-                {getInitials(group.name)}
-              </span>
+              <span className="text-white font-bold text-2xl">{getInitials(group.name)}</span>
             </div>
           </div>
           <div className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full bg-dabbu-accent-muted text-dabbu-accent text-xs font-medium mb-3 mx-auto">
-            <svg
-              className="w-3 h-3"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -234,18 +236,11 @@ export default function InvitePage() {
           </div>
           <CardTitle className="text-2xl">{group.name}</CardTitle>
           {group.description && (
-            <p className="text-dabbu-text-secondary text-sm mt-1">
-              {group.description}
-            </p>
+            <p className="text-dabbu-text-secondary text-sm mt-1">{group.description}</p>
           )}
           <div className="flex items-center justify-center gap-4 mt-3 text-sm text-dabbu-text-muted">
             <span className="flex items-center gap-1">
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -256,12 +251,7 @@ export default function InvitePage() {
               {group.memberCount} members
             </span>
             <span className="flex items-center gap-1">
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -276,9 +266,7 @@ export default function InvitePage() {
 
         <CardContent>
           <div className="mb-6">
-            <h4 className="text-sm font-medium text-dabbu-text-secondary mb-3">
-              Members
-            </h4>
+            <h4 className="text-sm font-medium text-dabbu-text-secondary mb-3">Members</h4>
             <div className="space-y-2">
               {group.members.slice(0, 8).map((member) => (
                 <div
@@ -294,23 +282,19 @@ export default function InvitePage() {
                     </div>
                     <div>
                       <p className="text-sm font-medium">{member.name}</p>
-                      <p className="text-xs text-dabbu-text-muted capitalize">
-                        {member.role}
-                      </p>
+                      <p className="text-xs text-dabbu-text-muted capitalize">{member.role}</p>
                     </div>
                   </div>
                   <span
                     className={`text-sm font-medium ${
                       member.balance > 0
-                        ? "text-dabbu-green"
+                        ? 'text-dabbu-green'
                         : member.balance < 0
-                        ? "text-dabbu-red"
-                        : "text-dabbu-text-muted"
+                          ? 'text-dabbu-red'
+                          : 'text-dabbu-text-muted'
                     }`}
                   >
-                    {member.balance === 0
-                      ? "Settled"
-                      : formatCurrency(member.balance)}
+                    {member.balance === 0 ? 'Settled' : formatCurrency(member.balance)}
                   </span>
                 </div>
               ))}
@@ -324,12 +308,7 @@ export default function InvitePage() {
 
           <div className="flex flex-col gap-2">
             {isAuthenticated ? (
-              <Button
-                size="lg"
-                className="w-full"
-                onClick={handleJoin}
-                loading={joining}
-              >
+              <Button size="lg" className="w-full" onClick={handleJoin} loading={joining}>
                 Join {group.name}
               </Button>
             ) : (
@@ -341,9 +320,7 @@ export default function InvitePage() {
                   variant="outline"
                   size="lg"
                   className="w-full"
-                  onClick={() =>
-                    router.push(`/auth?redirect=/invite/${token}`)
-                  }
+                  onClick={() => router.push(`/auth?redirect=/invite/${token}`)}
                 >
                   Continue as Guest
                 </Button>

@@ -308,7 +308,10 @@ export function TripDetailScreen() {
       </ScrollView>
 
       <TouchableOpacity
-        style={[styles.fab, { backgroundColor: colors.accent.primary, bottom: insets.bottom + 24 }]}
+        style={[
+          styles.fab,
+          { backgroundColor: colors.accent.primary, bottom: insets.bottom + 100 },
+        ]}
         onPress={() => navigation.navigate('CreateGroupExpense', { groupId, tripContext: trip.id })}
       >
         <Ionicons name="add" size={28} color="#FFFFFF" />

@@ -1,7 +1,13 @@
 import React, { useState, useCallback } from 'react';
 import {
-  View, Text, FlatList, TouchableOpacity, RefreshControl,
-  StyleSheet, ActivityIndicator, Pressable,
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  RefreshControl,
+  StyleSheet,
+  ActivityIndicator,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -36,7 +42,10 @@ interface GroupsResponse {
   coupleProfile?: CoupleProfile;
 }
 
-const GROUP_TYPE_CONFIG: Record<string, { icon: keyof typeof Ionicons.glyphMap; label: string; color: string }> = {
+const GROUP_TYPE_CONFIG: Record<
+  string,
+  { icon: keyof typeof Ionicons.glyphMap; label: string; color: string }
+> = {
   friends: { icon: 'people', label: 'Friends', color: '#74B9FF' },
   trip: { icon: 'airplane', label: 'Trip', color: '#00B894' },
   family: { icon: 'home', label: 'Family', color: '#FDCB6E' },
@@ -66,8 +75,11 @@ export function SharedFinanceHomeScreen() {
 
   const fetchGroups = useCallback(async (isRefresh = false) => {
     try {
-      if (isRefresh) setRefreshing(true);
-      else setLoading(true);
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
       setError(null);
       const data = await api.get<Group[]>('/shared-finance/groups');
       setGroups(data);
@@ -83,7 +95,7 @@ export function SharedFinanceHomeScreen() {
   useFocusEffect(
     useCallback(() => {
       fetchGroups();
-    }, [fetchGroups])
+    }, [fetchGroups]),
   );
 
   const renderGroupCard = ({ item }: { item: Group }) => {
@@ -133,7 +145,8 @@ export function SharedFinanceHomeScreen() {
               { color: isOwed ? colors.status.success : colors.status.error },
             ]}
           >
-            {isOwed ? '+' : '-'}{formatAmount(item.balance, item.currency)}
+            {isOwed ? '+' : '-'}
+            {formatAmount(item.balance, item.currency)}
           </Text>
         </View>
       </Card>
@@ -141,7 +154,9 @@ export function SharedFinanceHomeScreen() {
   };
 
   const renderCoupleCard = () => {
-    if (!coupleProfile) return null;
+    if (!coupleProfile) {
+      return null;
+    }
     const isOwed = coupleProfile.balance >= 0;
 
     return (
@@ -160,7 +175,12 @@ export function SharedFinanceHomeScreen() {
           </View>
           <Ionicons name="chevron-forward" size={20} color={colors.text.tertiary} />
         </View>
-        <View style={[styles.divider, { backgroundColor: colors.border.subtle, marginVertical: spacing.md }]} />
+        <View
+          style={[
+            styles.divider,
+            { backgroundColor: colors.border.subtle, marginVertical: spacing.md },
+          ]}
+        />
         <View style={styles.coupleBalanceRow}>
           <Text style={[typography.callout, { color: colors.text.secondary }]}>
             with {coupleProfile.partnerName}
@@ -171,7 +191,8 @@ export function SharedFinanceHomeScreen() {
               { color: isOwed ? colors.status.success : colors.status.error },
             ]}
           >
-            {isOwed ? '+' : '-'}{formatAmount(coupleProfile.balance, coupleProfile.currency)}
+            {isOwed ? '+' : '-'}
+            {formatAmount(coupleProfile.balance, coupleProfile.currency)}
           </Text>
         </View>
         <Text style={[typography.footnote, { color: colors.text.tertiary, marginTop: spacing.xs }]}>
@@ -189,7 +210,12 @@ export function SharedFinanceHomeScreen() {
       <Text style={[typography.h3, { color: colors.text.primary, marginTop: spacing.xl }]}>
         No groups yet
       </Text>
-      <Text style={[typography.callout, { color: colors.text.tertiary, textAlign: 'center', marginTop: spacing.sm }]}>
+      <Text
+        style={[
+          typography.callout,
+          { color: colors.text.tertiary, textAlign: 'center', marginTop: spacing.sm },
+        ]}
+      >
         Create your first shared finance group{'\n'}to start splitting expenses with friends
       </Text>
     </View>
@@ -281,7 +307,7 @@ export function SharedFinanceHomeScreen() {
             backgroundColor: colors.accent.primary,
             opacity: pressed ? 0.8 : 1,
             transform: [{ scale: pressed ? 0.95 : 1 }],
-            bottom: insets.bottom + 40,
+            bottom: insets.bottom + 120,
           },
         ]}
         onPress={() => navigation.navigate('CreateGroup')}

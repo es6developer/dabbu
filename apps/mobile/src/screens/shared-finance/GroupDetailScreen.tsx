@@ -997,7 +997,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     gap: 6,
     position: 'absolute',
-    bottom: 0,
+    bottom: 90,
     left: 0,
     right: 0,
   },

@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Keyboard } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+  Keyboard,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -12,27 +22,40 @@ export function LoginScreen() {
   const { login } = useAuth();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  const [email, setEmail] = useState('demo@dabbu.app');
-  const [password, setPassword] = useState('TestPass123!');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPw, setShowPw] = useState(false);
 
   async function handleLogin() {
-    if (!email.trim() || !password.trim()) { setError('Please fill in all fields'); return; }
-    setLoading(true); setError('');
+    if (!email.trim() || !password.trim()) {
+      setError('Please fill in all fields');
+      return;
+    }
+    setLoading(true);
+    setError('');
     try {
       await login(email.trim(), password);
     } catch (e: any) {
       setError(e.message);
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top + 16 }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView
+      style={[
+        styles.container,
+        { backgroundColor: colors.bg.primary, paddingTop: insets.top + 16 },
+      ]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <LinearGradient
         colors={isDark ? [colors.bg.secondary, colors.bg.primary] : ['#f8f4f0', colors.bg.primary]}
-        start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
       <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
@@ -46,7 +69,9 @@ export function LoginScreen() {
           <Ionicons name="wallet" size={30} color={colors.accent.primary} />
         </View>
         <Text style={[styles.title, { color: colors.text.primary }]}>Welcome back</Text>
-        <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>Sign in to manage your finances</Text>
+        <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>
+          Sign in to manage your finances
+        </Text>
       </View>
 
       {error ? (
@@ -56,23 +81,64 @@ export function LoginScreen() {
         </View>
       ) : null}
 
-      <View style={[styles.formCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.7)', borderColor: colors.border.subtle }]}>
-        <View style={[styles.inputGroup, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle }]}>
-          <Ionicons name="mail-outline" size={18} color={colors.text.tertiary} style={styles.inputIcon} />
+      <View
+        style={[
+          styles.formCard,
+          {
+            backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.7)',
+            borderColor: colors.border.subtle,
+          },
+        ]}
+      >
+        <View
+          style={[
+            styles.inputGroup,
+            { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+          ]}
+        >
+          <Ionicons
+            name="mail-outline"
+            size={18}
+            color={colors.text.tertiary}
+            style={styles.inputIcon}
+          />
           <TextInput
-            style={[styles.input, { color: colors.text.primary }]} placeholder="Email" placeholderTextColor={colors.text.tertiary}
-            value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address"
+            style={[styles.input, { color: colors.text.primary }]}
+            placeholder="Email"
+            placeholderTextColor={colors.text.tertiary}
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
           />
         </View>
 
-        <View style={[styles.inputGroup, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle }]}>
-          <Ionicons name="lock-closed-outline" size={18} color={colors.text.tertiary} style={styles.inputIcon} />
+        <View
+          style={[
+            styles.inputGroup,
+            { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+          ]}
+        >
+          <Ionicons
+            name="lock-closed-outline"
+            size={18}
+            color={colors.text.tertiary}
+            style={styles.inputIcon}
+          />
           <TextInput
-            style={[styles.input, { color: colors.text.primary }]} placeholder="Password" placeholderTextColor={colors.text.tertiary}
-            value={password} onChangeText={setPassword} secureTextEntry={!showPw}
+            style={[styles.input, { color: colors.text.primary }]}
+            placeholder="Password"
+            placeholderTextColor={colors.text.tertiary}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPw}
           />
           <TouchableOpacity onPress={() => setShowPw(!showPw)} style={styles.eye}>
-            <Ionicons name={showPw ? 'eye-off-outline' : 'eye-outline'} size={18} color={colors.text.tertiary} />
+            <Ionicons
+              name={showPw ? 'eye-off-outline' : 'eye-outline'}
+              size={18}
+              color={colors.text.tertiary}
+            />
           </TouchableOpacity>
         </View>
 
@@ -80,7 +146,15 @@ export function LoginScreen() {
           <Text style={[styles.forgot, { color: colors.accent.primary }]}>Forgot password?</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.button, { backgroundColor: colors.accent.primary }, loading && styles.buttonDisabled]} onPress={handleLogin} disabled={loading}>
+        <TouchableOpacity
+          style={[
+            styles.button,
+            { backgroundColor: colors.accent.primary },
+            loading && styles.buttonDisabled,
+          ]}
+          onPress={handleLogin}
+          disabled={loading}
+        >
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
@@ -92,8 +166,25 @@ export function LoginScreen() {
         </TouchableOpacity>
       </View>
 
+      <TouchableOpacity
+        style={[styles.guestButton, { borderColor: colors.border.subtle }]}
+        onPress={async () => {
+          setEmail('demo@dabbu.app');
+          setPassword('TestPass123!');
+          await new Promise((r) => setTimeout(r, 100));
+          handleLogin();
+        }}
+      >
+        <Ionicons name="person-outline" size={18} color={colors.accent.primary} />
+        <Text style={[styles.guestText, { color: colors.accent.primary }]}>
+          Continue as Guest (Demo)
+        </Text>
+      </TouchableOpacity>
+
       <TouchableOpacity style={styles.linkRow} onPress={() => navigation.navigate('Signup')}>
-        <Text style={[styles.linkText, { color: colors.text.tertiary }]}>Don't have an account? </Text>
+        <Text style={[styles.linkText, { color: colors.text.tertiary }]}>
+          Don't have an account?{' '}
+        </Text>
         <Text style={[styles.linkBold, { color: colors.accent.primary }]}>Sign Up</Text>
       </TouchableOpacity>
     </KeyboardAvoidingView>
@@ -103,15 +194,42 @@ export function LoginScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, paddingHorizontal: 24, paddingTop: 60 },
   back: { marginBottom: 28 },
-  backCircle: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  backCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   brand: { alignItems: 'center', marginBottom: 36 },
-  logo: { width: 56, height: 56, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
+  logo: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 18,
+  },
   title: { fontSize: 26, fontWeight: '700', marginBottom: 6 },
   subtitle: { fontSize: 14, textAlign: 'center' },
-  errorBox: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 12, marginBottom: 16, gap: 8 },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 16,
+    gap: 8,
+  },
   errorText: { fontSize: 13, flex: 1 },
   formCard: { borderRadius: 24, borderWidth: 1, padding: 20, marginBottom: 24 },
-  inputGroup: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, marginBottom: 14, borderWidth: 1, paddingHorizontal: 14 },
+  inputGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 14,
+    marginBottom: 14,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+  },
   inputIcon: { marginRight: 10 },
   input: { flex: 1, fontSize: 15, paddingVertical: 15 },
   eye: { padding: 4 },
@@ -120,6 +238,17 @@ const styles = StyleSheet.create({
   buttonDisabled: { opacity: 0.6 },
   buttonInner: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+  guestButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    marginBottom: 20,
+    gap: 8,
+  },
+  guestText: { fontSize: 14, fontWeight: '600' },
   linkRow: { flexDirection: 'row', justifyContent: 'center' },
   linkText: { fontSize: 14 },
   linkBold: { fontSize: 14, fontWeight: '600' },

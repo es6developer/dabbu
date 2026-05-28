@@ -59,21 +59,31 @@ async function request<T>(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+
   try {
     const res = await fetch(`${API_BASE_URL}${path}`, {
       method,
       headers,
       body: body ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
     });
 
-    const data = await res.json();
+    clearTimeout(timeout);
+    const body = await res.json();
+    const data = body?.data !== undefined ? body.data : body;
 
     if (!res.ok) {
-      return { error: data.message || data.error || 'Request failed', status: res.status };
+      return { error: body.message || body.error || 'Request failed', status: res.status };
     }
 
     return { data: data as T, status: res.status };
   } catch (err) {
+    clearTimeout(timeout);
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      return { error: 'Request timed out', status: 0 };
+    }
     return { error: err instanceof Error ? err.message : 'Network error', status: 0 };
   }
 }
@@ -163,6 +173,7 @@ export interface Group {
   members: Member[];
   createdAt: string;
   currency: string;
+  _count?: { members: number };
 }
 
 export interface Member {

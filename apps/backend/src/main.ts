@@ -35,6 +35,7 @@ async function bootstrap(): Promise<void> {
       'http://localhost:8081',
       'https://admin.dabbu.app',
       'https://app.dabbu.app',
+      'https://external-web-es6developers-projects.vercel.app',
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -66,10 +67,7 @@ async function bootstrap(): Promise<void> {
   app.useGlobalFilters(new AllExceptionsFilter());
 
   // ─── Global Interceptors ────────────────────────────
-  app.useGlobalInterceptors(
-    new LoggingInterceptor(),
-    new TransformInterceptor(),
-  );
+  app.useGlobalInterceptors(new LoggingInterceptor(), new TransformInterceptor());
 
   // ─── Swagger ────────────────────────────────────────
   const swaggerConfig = new DocumentBuilder()
@@ -80,10 +78,7 @@ async function bootstrap(): Promise<void> {
     .setLicense('MIT', 'https://opensource.org/licenses/MIT')
     .addServer(`http://localhost:${port}`, 'Local Development')
     .addServer('https://api.dabbu.app', 'Production')
-    .addBearerAuth(
-      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
-      'JWT',
-    )
+    .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'JWT')
     .addApiKey({ type: 'apiKey', name: 'x-api-key', in: 'header' }, 'ApiKey')
     .build();
 

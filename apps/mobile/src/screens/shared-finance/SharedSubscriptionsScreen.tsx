@@ -222,7 +222,10 @@ export function SharedSubscriptionsScreen() {
       />
 
       <TouchableOpacity
-        style={[styles.fab, { backgroundColor: colors.accent.primary, bottom: insets.bottom + 24 }]}
+        style={[
+          styles.fab,
+          { backgroundColor: colors.accent.primary, bottom: insets.bottom + 100 },
+        ]}
         onPress={() => navigation.navigate('CreateSharedSubscription', { groupId })}
       >
         <Ionicons name="add" size={28} color="#FFFFFF" />
