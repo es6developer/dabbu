@@ -59,26 +59,26 @@ async function request<T>(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000);
+  const abortController = new AbortController();
+  const timeout = setTimeout(() => abortController.abort(), 15000);
 
   try {
-    const res = await fetch(`${API_BASE_URL}${path}`, {
+    const response = await fetch(`${API_BASE_URL}${path}`, {
       method,
       headers,
       body: body ? JSON.stringify(body) : undefined,
-      signal: controller.signal,
+      signal: abortController.signal,
     });
 
     clearTimeout(timeout);
-    const body = await res.json();
-    const data = body?.data !== undefined ? body.data : body;
+    const json = await response.json();
+    const data = json?.data !== undefined ? json.data : json;
 
-    if (!res.ok) {
-      return { error: body.message || body.error || 'Request failed', status: res.status };
+    if (!response.ok) {
+      return { error: json.message || json.error || 'Request failed', status: response.status };
     }
 
-    return { data: data as T, status: res.status };
+    return { data: data as T, status: response.status };
   } catch (err) {
     clearTimeout(timeout);
     if (err instanceof DOMException && err.name === 'AbortError') {
