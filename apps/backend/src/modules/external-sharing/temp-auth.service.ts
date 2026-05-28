@@ -24,9 +24,11 @@ export class TempAuthService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createAnonymousSession(dto: AnonymousLoginDto) {
+    const deviceId = dto.deviceId || `auto_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+
     const existing = dto.deviceId
       ? await this.prisma.tempUser.findFirst({
-          where: { deviceId: dto.deviceId, isActive: true, convertedToUserId: null },
+          where: { deviceId, isActive: true, convertedToUserId: null },
         })
       : null;
 
@@ -43,17 +45,20 @@ export class TempAuthService {
           sessionExpiresAt,
           devicePlatform: dto.devicePlatform ?? existing.devicePlatform,
           fcmToken: dto.fcmToken ?? existing.fcmToken,
+          name: dto.name ?? existing.name,
           sessionCount: { increment: 1 },
           lastActiveAt: new Date(),
         },
       });
 
       return {
-        tempUser: existing.id,
-        sessionToken,
+        token: sessionToken,
         refreshToken,
-        expiresAt: sessionExpiresAt,
-        isExisting: true,
+        user: {
+          id: existing.id,
+          name: dto.name || existing.name,
+          isExisting: true,
+        },
       };
     }
 
@@ -63,9 +68,10 @@ export class TempAuthService {
 
     const tempUser = await this.prisma.tempUser.create({
       data: {
-        deviceId: dto.deviceId,
+        deviceId,
         devicePlatform: dto.devicePlatform ?? null,
         fcmToken: dto.fcmToken ?? null,
+        name: dto.name ?? null,
         loginMethod: 'anonymous',
         sessionToken,
         refreshToken,
@@ -76,11 +82,13 @@ export class TempAuthService {
     });
 
     return {
-      tempUser: tempUser.id,
-      sessionToken,
+      token: sessionToken,
       refreshToken,
-      expiresAt: sessionExpiresAt,
-      isExisting: false,
+      user: {
+        id: tempUser.id,
+        name: tempUser.name,
+        isExisting: false,
+      },
     };
   }
 

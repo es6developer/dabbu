@@ -116,10 +116,14 @@ export const api = {
         '/external-sharing/auth/phone-verify',
         { phone, otp },
       ),
-    anonymous: (name: string) =>
-      post<{ token: string; user: Record<string, unknown> }>('/external-sharing/auth/anonymous', {
+    anonymous: (name: string) => {
+      const deviceId = `web_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      return post<{ token: string; user: Record<string, unknown> }>('/external-sharing/auth/anonymous', {
         name,
-      }),
+        deviceId,
+        devicePlatform: 'web',
+      });
+    },
     google: () => {
       window.location.href = `${API_BASE_URL}/external-sharing/auth/google`;
     },
@@ -127,11 +131,13 @@ export const api = {
 
   groups: {
     get: (id: string) => get<Group>(`/shared-finance/groups/${id}`),
-    join: (token: string) =>
-      post<{ group: Group; membership: Record<string, unknown> }>(
+    join: (token: string) => {
+      const session = getTempSession();
+      return post<{ group: Group; membership: Record<string, unknown> }>(
         `/external-sharing/invites/${token}/join`,
-        {},
-      ),
+        { tempUserId: session?.id as string, nickname: session?.name as string },
+      );
+    },
     getInvite: (token: string) =>
       get<{ group: Group; inviter: Record<string, unknown>; permissions: string[] }>(
         `/external-sharing/invites/${token}`,

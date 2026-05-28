@@ -2,11 +2,11 @@ import { IsString, IsNotEmpty, IsOptional, IsEnum, MinLength } from 'class-valid
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class AnonymousLoginDto {
-  @ApiProperty({ example: 'abc123device' })
+  @ApiPropertyOptional({ example: 'abc123device' })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MinLength(1)
-  deviceId: string;
+  deviceId?: string;
 
   @ApiPropertyOptional({ example: 'ios' })
   @IsString()
@@ -18,4 +18,9 @@ export class AnonymousLoginDto {
   @IsString()
   @IsOptional()
   fcmToken?: string;
+
+  @ApiPropertyOptional({ example: 'Guest User' })
+  @IsString()
+  @IsOptional()
+  name?: string;
 }
