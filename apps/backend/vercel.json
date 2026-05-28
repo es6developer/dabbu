@@ -12,6 +12,7 @@
       "dest": "api/index.js"
     }
   ],
+  "outputDirectory": "dist",
   "env": {
     "NODE_ENV": "production",
     "API_PREFIX": "/api/v1",
