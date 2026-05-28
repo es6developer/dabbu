@@ -1,6 +1,9 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
     "outDir": "./dist",
     "declaration": true,
     "sourceMap": true

@@ -223,7 +223,7 @@ export class GroupsService {
       where: { groupId_userId: { groupId, userId } },
     });
 
-    if (requester.role !== 'owner') {
+    if (!requester || requester.role !== 'owner') {
       throw new ForbiddenException('Only the owner can change roles');
     }
 
