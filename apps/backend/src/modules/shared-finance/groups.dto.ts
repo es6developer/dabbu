@@ -66,3 +66,14 @@ export class SalaryProfileDto {
 
   @ApiPropertyOptional() @IsOptional() @IsString() currency?: string;
 }
+
+export class AddMemberByEmailDto {
+  @ApiProperty({ example: 'friend@example.com' })
+  @IsString()
+  email: string;
+
+  @ApiPropertyOptional({ example: 'Friend' })
+  @IsOptional()
+  @IsString()
+  displayName?: string;
+}

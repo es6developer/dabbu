@@ -6,7 +6,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { GroupsService } from './groups.service';
 import {
   CreateGroupDto, UpdateGroupDto, JoinGroupDto,
-  UpdateMemberRoleDto, SalaryProfileDto,
+  UpdateMemberRoleDto, SalaryProfileDto, AddMemberByEmailDto,
 } from './groups.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -106,6 +106,17 @@ export class GroupsController {
   @ApiOperation({ summary: 'Get group dashboard with aggregated data' })
   async getDashboard(@CurrentUser('id') userId: string, @Param('id') id: string) {
     return this.groupsService.getDashboard(id, userId);
+  }
+
+  @Post(':id/members/email')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Add a member to the group by email (no approval needed)' })
+  async addMemberByEmail(
+    @CurrentUser('id') userId: string,
+    @Param('id') id: string,
+    @Body() dto: AddMemberByEmailDto,
+  ) {
+    return this.groupsService.addMemberByEmail(id, userId, dto);
   }
 
   @Post(':id/profile')

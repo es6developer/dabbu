@@ -89,12 +89,13 @@ const SPLIT_TYPE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
 };
 
 const formatAmount = (amount: number, currency: string = 'INR') => {
+  const safeAmount = Number(amount) || 0;
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(Math.abs(amount));
+  }).format(Math.abs(safeAmount));
 };
 
 const formatDate = (dateStr: string) => {
@@ -154,7 +155,7 @@ export function GroupDetailScreen() {
         ]);
         const currentUserId = user?.id || data.ownerId;
         const myBalance = data.balances?.find((b: any) => b.userId === currentUserId);
-        const totalSpent = data.balances?.reduce((s: number, b: any) => s + b.totalPaid, 0) || 0;
+        const totalSpent = data.balances?.reduce((s: number, b: any) => s + Number(b.totalPaid ?? 0), 0) || 0;
 
         const transformed: GroupDetail = {
           id: data.id,
@@ -176,7 +177,7 @@ export function GroupDetailScreen() {
           expenses: (expensesRes || []).map((e: any) => ({
             id: e.id,
             description: e.description,
-            amount: Number(e.amount),
+            amount: Number(e.amount ?? 0),
             paidBy: {
               id: e.paidBy?.id || e.paidByMemberId,
               name: e.paidBy?.name || e.paidByName || 'Unknown',
@@ -436,7 +437,7 @@ export function GroupDetailScreen() {
               <Text
                 style={[typography.buttonSmall, { color: colors.accent.primary, marginLeft: 8 }]}
               >
-                Invite Members
+                Add Member
               </Text>
             </TouchableOpacity>
             {group.members.map((item) => (

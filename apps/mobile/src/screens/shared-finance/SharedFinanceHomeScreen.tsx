@@ -55,12 +55,13 @@ const GROUP_TYPE_CONFIG: Record<
 };
 
 const formatAmount = (amount: number, currency: string = 'INR') => {
+  const safeAmount = Number(amount) || 0;
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(Math.abs(amount));
+  }).format(Math.abs(safeAmount));
 };
 
 export function SharedFinanceHomeScreen() {

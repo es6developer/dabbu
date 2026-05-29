@@ -86,8 +86,8 @@ export function SettlementsScreen() {
   const pending = settlements.filter((s) => s.status === 'pending');
   const completed = settlements.filter((s) => s.status === 'completed');
   const filtered = tab === 'pending' ? pending : completed;
-  const totalPending = pending.reduce((sum, s) => sum + Number(s.amount), 0);
-  const totalCompleted = completed.reduce((sum, s) => sum + Number(s.amount), 0);
+  const totalPending = pending.reduce((sum, s) => sum + Number(s.amount ?? 0), 0);
+  const totalCompleted = completed.reduce((sum, s) => sum + Number(s.amount ?? 0), 0);
 
   if (loading) {
     return (
@@ -244,7 +244,7 @@ export function SettlementsScreen() {
               </View>
 
               <Text style={[styles.settlementAmount, { color: colors.text.primary }]}>
-                ₹{Number(settlement.amount).toLocaleString('en-IN')}
+                ₹{Number(settlement.amount ?? 0).toLocaleString('en-IN')}
               </Text>
 
               <View style={styles.settlementMeta}>

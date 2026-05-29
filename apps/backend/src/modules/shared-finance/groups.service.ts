@@ -3,7 +3,7 @@ import {
   ForbiddenException, BadRequestException, Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
-import { CreateGroupDto, UpdateGroupDto, UpdateMemberRoleDto, SalaryProfileDto } from './groups.dto';
+import { CreateGroupDto, UpdateGroupDto, UpdateMemberRoleDto, SalaryProfileDto, AddMemberByEmailDto } from './groups.dto';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -72,6 +72,14 @@ export class GroupsService {
           include: {
             user: {
               select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true, phone: true },
+            },
+          },
+        },
+        tempMembers: {
+          where: { isActive: true },
+          include: {
+            tempUser: {
+              select: { id: true, email: true, displayName: true, avatarUrl: true },
             },
           },
         },
@@ -400,6 +408,64 @@ export class GroupsService {
         netBalance,
       };
     });
+  }
+
+  async addMemberByEmail(groupId: string, requesterId: string, dto: AddMemberByEmailDto) {
+    const group = await this.findGroupOrThrow(groupId);
+    await this.validateAdmin(group.id, requesterId);
+
+    let tempUser = await this.prisma.tempUser.findFirst({
+      where: { email: dto.email, isActive: true },
+    });
+
+    if (!tempUser) {
+      tempUser = await this.prisma.tempUser.create({
+        data: {
+          email: dto.email,
+          displayName: dto.displayName ?? dto.email.split('@')[0],
+          loginMethod: 'email_otp',
+          sessionCount: 0,
+          lastActiveAt: new Date(),
+        },
+      });
+    }
+
+    const existingMember = await this.prisma.groupMemberTemp.findFirst({
+      where: { groupId, tempUserId: tempUser.id, isActive: true },
+    });
+
+    if (existingMember) {
+      throw new ConflictException('This email is already a member of the group');
+    }
+
+    await this.prisma.groupMemberTemp.create({
+      data: {
+        groupId,
+        tempUserId: tempUser.id,
+        role: 'member',
+        canAddExpenses: true,
+        canSettle: true,
+        canChat: true,
+        canUploadBills: true,
+        nickname: dto.displayName ?? dto.email.split('@')[0],
+      },
+    });
+
+    await this.prisma.tempUser.update({
+      where: { id: tempUser.id },
+      data: { groupCount: { increment: 1 } },
+    });
+
+    this.logger.log(`Member added by email ${dto.email} to group ${group.name}`);
+
+    return {
+      data: {
+        id: tempUser.id,
+        email: tempUser.email,
+        displayName: tempUser.displayName,
+        role: 'member',
+      },
+    };
   }
 
   private async findGroupOrThrow(groupId: string) {

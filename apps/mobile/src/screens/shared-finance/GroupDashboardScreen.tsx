@@ -79,12 +79,13 @@ const INSIGHT_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
 };
 
 const formatAmount = (amount: number, currency: string = 'INR') => {
+  const safeAmount = Number(amount) || 0;
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(Math.abs(amount));
+  }).format(Math.abs(safeAmount));
 };
 
 const formatDate = (dateStr: string) => {
@@ -162,7 +163,7 @@ export function GroupDashboardScreen() {
 
   const currency = data?.currency || 'INR';
   const spentPercentage = data && data.lastMonthSpent > 0
-    ? ((data.thisMonthSpent - data.lastMonthSpent) / data.lastMonthSpent * 100)
+    ? (Number(data.thisMonthSpent ?? 0) - Number(data.lastMonthSpent ?? 0)) / Number(data.lastMonthSpent ?? 1) * 100
     : 0;
   const isUp = spentPercentage > 0;
 
