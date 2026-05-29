@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { DashboardScreen } from '../screens/home/DashboardScreen';
+import { NotificationsScreen } from '../screens/home/NotificationsScreen';
 import { AccountsNavigator } from './AccountsNavigator';
 
 import { SharedFinanceNavigator } from './SharedFinanceNavigator';
@@ -27,6 +28,7 @@ import { isFeatureEnabled, isPremiumFeature, loadFeatures } from '../config/feat
 import { useAuth } from '../store/AuthContext';
 
 const Tab = createBottomTabNavigator();
+const DashboardStack = createNativeStackNavigator();
 const SettingsStack = createNativeStackNavigator();
 const RemindersStack = createNativeStackNavigator();
 const SmsStack = createNativeStackNavigator();
@@ -41,6 +43,31 @@ const TAB_ICONS: Record<
   SMS: { focused: 'chatbubbles', unfocused: 'chatbubbles-outline' },
   Settings: { focused: 'settings', unfocused: 'settings-outline' },
 };
+
+function DashboardNavigator() {
+  const { colors } = useTheme();
+  return (
+    <DashboardStack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.bg.primary },
+        headerTintColor: colors.text.primary,
+        headerTitleStyle: { fontWeight: '600' },
+        contentStyle: { backgroundColor: colors.bg.primary },
+      }}
+    >
+      <DashboardStack.Screen
+        name="DashboardMain"
+        component={DashboardScreen}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
+        name="Notifications"
+        component={NotificationsScreen}
+        options={{ headerShown: false }}
+      />
+    </DashboardStack.Navigator>
+  );
+}
 
 function SettingsNavigator() {
   const { colors } = useTheme();
@@ -167,7 +194,7 @@ interface TabConfig {
 }
 
 const ALL_TABS: TabConfig[] = [
-  { name: 'Dashboard', component: DashboardScreen, title: 'Dashboard' },
+  { name: 'Dashboard', component: DashboardNavigator, title: 'Dashboard' },
   { name: 'Accounts', component: AccountsNavigator, title: 'Expenses' },
   { name: 'Shared', component: SharedFinanceNavigator, title: 'Split' },
   { name: 'SMS', component: SmsNavigator, title: 'SMS', featureKey: 'sms_sync' },

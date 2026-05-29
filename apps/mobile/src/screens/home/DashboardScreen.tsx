@@ -108,7 +108,7 @@ export function DashboardScreen() {
                 <TouchableOpacity style={[styles.notifBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]} onPress={() => navigation.navigate('SMS', { screen: 'SmsPermission' })}>
                   <Ionicons name="chatbubbles-outline" size={20} color={colors.accent.primary} />
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.notifBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}>
+                <TouchableOpacity style={[styles.notifBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]} onPress={() => navigation.navigate('Notifications')}>
                   <Ionicons name="notifications-outline" size={20} color={colors.text.secondary} />
                   <View style={[styles.notifDot, { backgroundColor: colors.accent.primary }]} />
                 </TouchableOpacity>

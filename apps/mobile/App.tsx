@@ -5,18 +5,35 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Font from 'expo-font';
 import Toast from 'react-native-toast-message';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import { ThemeProvider } from './src/theme/ThemeProvider';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { AuthProvider } from './src/store/AuthContext';
 import { LockProvider } from './src/store/LockContext';
 import { loadFeatures } from './src/config/features';
+import { addNotificationResponseListener } from './src/services/notifications';
 
 SplashScreen.preventAutoHideAsync();
 LogBox.ignoreLogs(['Reanimated', 'ViewPropTypes']);
 
 export default function App(): React.ReactElement | null {
   const [appIsReady, setAppIsReady] = useState(false);
+  const navigationRef = React.useRef<NavigationContainerRef<any>>(null);
+
+  useEffect(() => {
+    const sub = addNotificationResponseListener((response) => {
+      const data = response.notification?.request?.content?.data;
+      if (data?.groupId) {
+        setTimeout(() => {
+          navigationRef.current?.navigate('Shared', {
+            screen: 'GroupDetail',
+            params: { groupId: data.groupId },
+          });
+        }, 500);
+      }
+    });
+    return () => sub.remove();
+  }, []);
 
   useEffect(() => {
     async function prepare(): Promise<void> {
@@ -53,7 +70,7 @@ export default function App(): React.ReactElement | null {
         <ThemeProvider>
           <AuthProvider>
             <LockProvider>
-              <NavigationContainer>
+              <NavigationContainer ref={navigationRef}>
                 <StatusBar
                   barStyle="light-content"
                   backgroundColor="transparent"

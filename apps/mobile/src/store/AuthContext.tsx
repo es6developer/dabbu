@@ -7,6 +7,7 @@ if (Platform.OS !== 'web') {
 }
 
 import { setAccessToken } from '../services/api';
+import { registerForPushNotifications } from '../services/notifications';
 
 interface User {
   id: string;
@@ -75,12 +76,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userData = await storage.getItem('userData');
 
       if (token && userData) {
-        setState({
-          isAuthenticated: true,
-          isLoading: false,
-          user: JSON.parse(userData),
-          accessToken: token,
-        });
+    setState({
+      isAuthenticated: true,
+      isLoading: false,
+      user,
+      accessToken: tokens.accessToken,
+    });
+
+    registerForPushNotifications(tokens.accessToken).catch(() => {});
       } else {
         setState((prev) => ({ ...prev, isLoading: false }));
       }
@@ -157,6 +160,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       accessToken: tokens.accessToken,
     });
+
+    registerForPushNotifications(tokens.accessToken).catch(() => {});
   }
 
   async function logout() {

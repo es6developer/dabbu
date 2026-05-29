@@ -414,55 +414,69 @@ export class GroupsService {
     const group = await this.findGroupOrThrow(groupId);
     await this.validateAdmin(group.id, requesterId);
 
-    let tempUser = await this.prisma.tempUser.findFirst({
-      where: { email: dto.email, isActive: true },
+    let user = await this.prisma.user.findFirst({
+      where: { email: dto.email, isActive: true, deletedAt: null },
     });
 
-    if (!tempUser) {
-      tempUser = await this.prisma.tempUser.create({
+    if (!user) {
+      const randomPassword = crypto.randomBytes(16).toString('hex');
+      const bcrypt = await import('bcrypt');
+      const hashed = await bcrypt.hash(randomPassword, 10);
+      user = await this.prisma.user.create({
         data: {
           email: dto.email,
-          displayName: dto.displayName ?? dto.email.split('@')[0],
-          loginMethod: 'email_otp',
-          sessionCount: 0,
-          lastActiveAt: new Date(),
+          password: hashed,
+          firstName: dto.displayName ?? dto.email.split('@')[0],
+          lastName: '',
+          isActive: true,
+          role: 'user',
         },
       });
+      this.logger.log(`New user created for email ${dto.email} with temp password`);
     }
 
-    const existingMember = await this.prisma.groupMemberTemp.findFirst({
-      where: { groupId, tempUserId: tempUser.id, isActive: true },
+    const existingMember = await this.prisma.groupMember.findFirst({
+      where: { groupId, userId: user.id, deletedAt: null },
     });
 
     if (existingMember) {
-      throw new ConflictException('This email is already a member of the group');
+      if (existingMember.isActive) {
+        throw new ConflictException('This email is already a member of the group');
+      }
+      await this.prisma.groupMember.update({
+        where: { id: existingMember.id },
+        data: { isActive: true, deletedAt: null, leftAt: null },
+      });
+      this.logger.log(`Re-activated member ${user.email} in group ${group.name}`);
+      return { data: { id: existingMember.id, userId: user.id, email: user.email, firstName: user.firstName, role: 'member' } };
     }
 
-    await this.prisma.groupMemberTemp.create({
+    const member = await this.prisma.groupMember.create({
       data: {
         groupId,
-        tempUserId: tempUser.id,
+        userId: user.id,
         role: 'member',
-        canAddExpenses: true,
-        canSettle: true,
-        canChat: true,
-        canUploadBills: true,
-        nickname: dto.displayName ?? dto.email.split('@')[0],
       },
     });
 
-    await this.prisma.tempUser.update({
-      where: { id: tempUser.id },
-      data: { groupCount: { increment: 1 } },
+    await this.prisma.notification.create({
+      data: {
+        userId: user.id,
+        type: 'family',
+        title: `You've been added to "${group.name}"`,
+        message: `${user.firstName}, you have been invited and are now part of this split group on Dabbu. Start adding expenses and splitting bills!`,
+        data: { groupId, groupName: group.name, action: 'group_member_added' },
+      },
     });
 
-    this.logger.log(`Member added by email ${dto.email} to group ${group.name}`);
+    this.logger.log(`Member ${user.email} added to group ${group.name}`);
 
     return {
       data: {
-        id: tempUser.id,
-        email: tempUser.email,
-        displayName: tempUser.displayName,
+        id: member.id,
+        userId: user.id,
+        email: user.email,
+        firstName: user.firstName,
         role: 'member',
       },
     };
