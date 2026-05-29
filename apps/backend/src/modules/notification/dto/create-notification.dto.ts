@@ -13,6 +13,8 @@ export enum NotificationType {
   FAMILY = 'family',
   SYSTEM = 'system',
   PROMOTIONAL = 'promotional',
+  GROUP_EXPENSE = 'group_expense',
+  GROUP_INCOME = 'group_income',
 }
 
 export enum NotificationChannel {

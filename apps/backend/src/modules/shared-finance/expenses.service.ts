@@ -7,12 +7,16 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { CreateExpenseDto, UpdateExpenseDto, SplitType } from './dto/expenses.dto';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class ExpensesService {
   private readonly logger = new Logger(ExpensesService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationService: NotificationService,
+  ) {}
 
   async create(groupId: string, userId: string, dto: CreateExpenseDto) {
     const member = await this.validateGroupMember(groupId, userId);
@@ -84,7 +88,42 @@ export class ExpensesService {
 
     await this.recalculateBalances(groupId);
     this.logger.log(`Expense ${expense.id} created in group ${groupId}`);
+
+    const actorName = expense.paidBy?.user?.firstName || 'Someone';
+    await this.notifyGroupMembers(
+      groupId,
+      member.userId,
+      actorName,
+      expense.description,
+      Number(expense.amount),
+      expense.id,
+    );
+
     return expense;
+  }
+
+  private async notifyGroupMembers(
+    groupId: string,
+    actorUserId: string,
+    actorName: string,
+    description: string,
+    amount: number,
+    entityId: string,
+  ) {
+    const members = await this.prisma.groupMember.findMany({
+      where: { groupId, isActive: true, deletedAt: null, userId: { not: actorUserId } },
+      select: { userId: true },
+    });
+
+    const title = `${actorName} added an expense`;
+    const body = `${description} — ₹${amount.toLocaleString('en-IN')}`;
+    const data = { groupId, expenseId: entityId, type: 'group_expense' };
+
+    for (const m of members) {
+      await this.notificationService.sendPush(m.userId, title, body, data).catch((err) =>
+        this.logger.warn(`Failed to notify user ${m.userId}: ${err.message}`),
+      );
+    }
   }
 
   async findAll(

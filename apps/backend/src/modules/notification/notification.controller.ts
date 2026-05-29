@@ -2,7 +2,7 @@ import {
   Controller, Get, Post, Patch, Delete, Body, Param, Query,
   UseGuards, HttpCode, HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards';
 import { CurrentUser } from '../../common/decorators';
 import { NotificationService } from './notification.service';
@@ -32,6 +32,42 @@ export class NotificationController {
   @ApiOperation({ summary: 'Get unread notification count' })
   async getUnreadCount(@CurrentUser('id') userId: string) {
     return this.notificationService.getUnreadCount(userId);
+  }
+
+  @Get('notifications/grouped')
+  @ApiOperation({ summary: 'Get notifications grouped by category (overdue/upcoming/paid/other)' })
+  async getGrouped(@CurrentUser('id') userId: string) {
+    return this.notificationService.getGroupedNotifications(userId);
+  }
+
+  @Get('notifications/filter')
+  @ApiOperation({ summary: 'Filter notifications by category/priority/status' })
+  @ApiQuery({ name: 'category', required: false })
+  @ApiQuery({ name: 'priority', required: false })
+  @ApiQuery({ name: 'overdue', required: false })
+  @ApiQuery({ name: 'isRead', required: false })
+  @ApiQuery({ name: 'type', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  @ApiQuery({ name: 'offset', required: false })
+  async filterNotifications(
+    @CurrentUser('id') userId: string,
+    @Query('category') category?: string,
+    @Query('priority') priority?: string,
+    @Query('overdue') overdue?: string,
+    @Query('isRead') isRead?: string,
+    @Query('type') type?: string,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+  ) {
+    return this.notificationService.getNotificationsWithFilters(userId, {
+      category,
+      priority,
+      overdue: overdue !== undefined ? overdue === 'true' : undefined,
+      isRead: isRead !== undefined ? isRead === 'true' : undefined,
+      type,
+      limit: limit ? parseInt(limit) : 50,
+      offset: offset ? parseInt(offset) : 0,
+    });
   }
 
   @Patch('notifications/read-all')
@@ -101,5 +137,12 @@ export class NotificationController {
     @Body() dto: UpdateNotificationPreferencesDto,
   ) {
     return this.notificationService.updatePreferences(userId, dto);
+  }
+
+  @Post('notifications/monthly-summary')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Generate monthly reminder summary notification' })
+  async generateMonthlySummary(@CurrentUser('id') userId: string) {
+    return this.notificationService.sendMonthlySummary(userId);
   }
 }

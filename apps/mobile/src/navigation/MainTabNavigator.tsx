@@ -5,10 +5,12 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { DashboardScreen } from '../screens/home/DashboardScreen';
 import { NotificationsScreen } from '../screens/home/NotificationsScreen';
+import { NotificationCenterScreen } from '../screens/home/NotificationCenterScreen';
 import { AccountsNavigator } from './AccountsNavigator';
 
 import { SharedFinanceNavigator } from './SharedFinanceNavigator';
 import { RemindersScreen } from '../screens/reminders/RemindersScreen';
+import { ReminderDetailScreen } from '../screens/reminders/ReminderDetailScreen';
 import { CreateReminderScreen } from '../screens/reminders/CreateReminderScreen';
 import { SmsDashboardScreen } from '../screens/sms/SmsDashboardScreen';
 import { SmsPermissionScreen } from '../screens/sms/SmsPermissionScreen';
@@ -40,6 +42,7 @@ const TAB_ICONS: Record<
   Dashboard: { focused: 'grid', unfocused: 'grid-outline' },
   Accounts: { focused: 'wallet', unfocused: 'wallet-outline' },
   Shared: { focused: 'people', unfocused: 'people-outline' },
+  Reminders: { focused: 'alarm', unfocused: 'alarm-outline' },
   SMS: { focused: 'chatbubbles', unfocused: 'chatbubbles-outline' },
   Settings: { focused: 'settings', unfocused: 'settings-outline' },
 };
@@ -63,6 +66,11 @@ function DashboardNavigator() {
       <DashboardStack.Screen
         name="Notifications"
         component={NotificationsScreen}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
+        name="NotificationCenter"
+        component={NotificationCenterScreen}
         options={{ headerShown: false }}
       />
     </DashboardStack.Navigator>
@@ -156,6 +164,11 @@ function RemindersNavigator() {
         component={CreateReminderScreen}
         options={{ title: 'New Reminder' }}
       />
+      <RemindersStack.Screen
+        name="ReminderDetail"
+        component={ReminderDetailScreen}
+        options={{ title: 'Reminder' }}
+      />
     </RemindersStack.Navigator>
   );
 }
@@ -197,6 +210,7 @@ const ALL_TABS: TabConfig[] = [
   { name: 'Dashboard', component: DashboardNavigator, title: 'Dashboard' },
   { name: 'Accounts', component: AccountsNavigator, title: 'Expenses' },
   { name: 'Shared', component: SharedFinanceNavigator, title: 'Split' },
+  { name: 'Reminders', component: RemindersNavigator, title: 'Reminders' },
   { name: 'SMS', component: SmsNavigator, title: 'SMS', featureKey: 'sms_sync' },
   { name: 'Settings', component: SettingsNavigator, title: 'Settings' },
 ];

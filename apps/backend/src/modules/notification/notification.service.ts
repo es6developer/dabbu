@@ -415,4 +415,116 @@ export class NotificationService {
       data: updateData,
     });
   }
+
+  async getGroupedNotifications(userId: string) {
+    const notifications = await this.prisma.notification.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+
+    const groups: Record<string, { label: string; notifications: typeof notifications }> = {
+      overdue: { label: 'Overdue', notifications: [] },
+      upcoming: { label: 'Upcoming', notifications: [] },
+      paid: { label: 'Completed', notifications: [] },
+      other: { label: 'Other', notifications: [] },
+    };
+
+    for (const n of notifications) {
+      if (n.overdue) {
+        groups.overdue.notifications.push(n);
+      } else if (n.type === 'reminder_upcoming' || n.type === 'reminder') {
+        groups.upcoming.notifications.push(n);
+      } else if (n.type === 'goal_milestone' || n.type === 'completed') {
+        groups.paid.notifications.push(n);
+      } else {
+        groups.other.notifications.push(n);
+      }
+    }
+
+    return Object.entries(groups)
+      .filter(([, g]) => g.notifications.length > 0)
+      .map(([key, g]) => ({ key, ...g }));
+  }
+
+  async getNotificationsWithFilters(
+    userId: string,
+    filters: {
+      category?: string;
+      priority?: string;
+      overdue?: boolean;
+      isRead?: boolean;
+      limit?: number;
+      offset?: number;
+      type?: string;
+    },
+  ) {
+    const where: any = { userId };
+    if (filters.category) where.category = filters.category;
+    if (filters.priority) where.priority = filters.priority;
+    if (filters.overdue !== undefined) where.overdue = filters.overdue;
+    if (filters.isRead !== undefined) where.isRead = filters.isRead;
+    if (filters.type) where.type = filters.type;
+
+    const [notifications, total] = await Promise.all([
+      this.prisma.notification.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        take: filters.limit || 50,
+        skip: filters.offset || 0,
+      }),
+      this.prisma.notification.count({ where }),
+    ]);
+
+    return { data: notifications, total, limit: filters.limit || 50, offset: filters.offset || 0 };
+  }
+
+  async sendMonthlySummary(userId: string) {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+    const [totalReminders, completedReminders, overdueReminders, upcomingReminders] =
+      await Promise.all([
+        this.prisma.reminder.count({ where: { userId, deletedAt: null } }),
+        this.prisma.reminder.count({
+          where: { userId, deletedAt: null, status: 'completed', updatedAt: { gte: startOfMonth, lte: endOfMonth } },
+        }),
+        this.prisma.reminder.count({
+          where: { userId, deletedAt: null, status: { not: 'completed' }, dueDate: { lt: now } },
+        }),
+        this.prisma.reminder.count({
+          where: { userId, deletedAt: null, status: 'pending', startDate: { gte: now, lte: endOfMonth } },
+        }),
+      ]);
+
+    const title = 'Monthly Reminder Summary';
+    const message = `${completedReminders} completed · ${overdueReminders} overdue · ${upcomingReminders} upcoming`;
+
+    const notification = await this.prisma.notification.create({
+      data: {
+        userId,
+        type: 'monthly_report',
+        title,
+        message,
+        priority: 'medium',
+        category: 'summary',
+        data: {
+          totalReminders,
+          completedReminders,
+          overdueReminders,
+          upcomingReminders,
+          month: now.getMonth() + 1,
+          year: now.getFullYear(),
+        },
+      },
+    });
+
+    await this.sendPush(userId, title, message, {
+      notificationId: notification.id,
+      type: 'monthly_report',
+    }).catch(() => {});
+
+    return notification;
+  }
 }

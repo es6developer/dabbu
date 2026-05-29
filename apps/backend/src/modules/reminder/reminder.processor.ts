@@ -2,13 +2,16 @@ import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { PrismaService } from '../../common/prisma/prisma.service';
-import { ReminderStatus } from './interfaces';
+import { ReminderNotificationService } from './reminder-notification.service';
 
 @Processor('reminder-queue')
 export class ReminderProcessor extends WorkerHost {
   private readonly logger = new Logger(ReminderProcessor.name);
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly reminderNotificationService: ReminderNotificationService,
+  ) {
     super();
   }
 
@@ -37,12 +40,9 @@ export class ReminderProcessor extends WorkerHost {
       return { skipped: true };
     }
 
-    if (reminder.status !== ReminderStatus.PENDING) {
-      this.logger.log(`Reminder ${reminderId} is not pending (status=${reminder.status}), skipping`);
-      return { skipped: true };
-    }
-
     this.logger.log(`Firing reminder: "${reminder.title}" (${reminderId})`);
+
+    await this.reminderNotificationService.sendDueReminderNotification(reminderId, userId);
 
     return {
       fired: true,
@@ -71,6 +71,8 @@ export class ReminderProcessor extends WorkerHost {
     }
 
     this.logger.log(`Processing recurring reminder: "${reminder.title}"`);
+
+    await this.reminderNotificationService.sendDueReminderNotification(reminderId, reminder.userId);
 
     return {
       processed: true,

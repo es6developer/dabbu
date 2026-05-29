@@ -3,6 +3,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { ReminderNotificationService } from './reminder-notification.service';
 import { ReminderStatus } from './interfaces';
 
 @Injectable()
@@ -11,6 +12,7 @@ export class ReminderSchedulerService {
 
   constructor(
     private readonly prisma: PrismaService,
+    private readonly reminderNotificationService: ReminderNotificationService,
     @InjectQueue('reminder-queue') private readonly reminderQueue: Queue,
   ) {}
 
@@ -118,6 +120,50 @@ export class ReminderSchedulerService {
       }
     } catch (error) {
       this.logger.error('Error unsnoozing reminders', error.stack);
+    }
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_6AM)
+  async sendOverdueFollowUps() {
+    const now = new Date();
+    try {
+      const overdueReminders = await this.prisma.reminder.findMany({
+        where: {
+          status: ReminderStatus.PENDING,
+          deletedAt: null,
+          dueDate: { lt: now },
+          isSent: true,
+        } as any,
+        take: 100,
+      });
+
+      for (const reminder of overdueReminders) {
+        await this.reminderNotificationService.sendOverdueFollowUp(reminder.id, reminder.userId);
+      }
+
+      if (overdueReminders.length > 0) {
+        this.logger.log(`Sent ${overdueReminders.length} overdue follow-up notifications`);
+      }
+    } catch (error) {
+      this.logger.error('Error sending overdue follow-ups', error.stack);
+    }
+  }
+
+  @Cron('0 8 1 * *')
+  async sendMonthlySummaries() {
+    try {
+      const userIds = await this.prisma.user.findMany({
+        where: { isActive: true },
+        select: { id: true },
+      });
+
+      for (const { id } of userIds) {
+        await this.reminderNotificationService.sendMonthlySummary(id);
+      }
+
+      this.logger.log(`Sent monthly summaries to ${userIds.length} users`);
+    } catch (error) {
+      this.logger.error('Error sending monthly summaries', error.stack);
     }
   }
 }

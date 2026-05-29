@@ -182,6 +182,7 @@ model Reminder {
   user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   category  TransactionCategory? @relation(fields: [categoryId], references: [id])
   recurring RecurringReminder[]
+  notifications Notification[]
 
   @@index([userId, remindAt])
   @@index([userId, isSent])
@@ -806,25 +807,37 @@ model Analytics {
 // ─── NOTIFICATIONS ─────────────────────────────────────────
 // User notifications (in-app and push)
 model Notification {
-  id        String   @id @default(uuid()) @db.VarChar(36)
-  userId    String   @db.VarChar(36)
-  type      String   @db.VarChar(50)   // bill_reminder, budget_alert, goal_milestone, large_transaction, weekly_report, monthly_report, account_alert
-  title     String   @db.VarChar(255)
-  message   String   @db.Text
-  isRead    Boolean  @default(false)
+  id        String    @id @default(uuid()) @db.VarChar(36)
+  userId    String    @db.VarChar(36)
+  type      String    @db.VarChar(50)   // bill_reminder, budget_alert, goal_milestone, large_transaction, weekly_report, monthly_report, account_alert, reminder_upcoming, reminder_overdue
+  title     String    @db.VarChar(255)
+  message   String    @db.Text
+  isRead    Boolean   @default(false)
   readAt    DateTime?
-  actionUrl String?  @db.VarChar(500)
-  data      Json?    @db.Json
-  createdAt DateTime @default(now())
+  actionUrl String?   @db.VarChar(500)
+  data      Json?     @db.Json
+  createdAt DateTime  @default(now())
+
+  // Smart reminder notification fields
+  reminderId  String?   @db.VarChar(36)
+  billId      String?   @db.VarChar(36)
+  priority    String    @default("medium") @db.VarChar(10)   // low, medium, high, urgent
+  category    String?   @db.VarChar(50)                       // bill, subscription, payment, task, event, goal
+  overdue     Boolean   @default(false)
+  snoozedUntil DateTime?
 
   // Relations
   user  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   logs  NotificationLog[]
+  reminder Reminder?        @relation(fields: [reminderId], references: [id], onDelete: SetNull)
 
   @@index([userId, isRead])
   @@index([userId, createdAt])
   @@index([userId, type])
+  @@index([userId, priority])
+  @@index([reminderId])
   @@index([isRead, createdAt])
+  @@index([overdue])
   @@map("notifications")
 }
 
@@ -1111,6 +1124,7 @@ model SharedFinanceGroup {
 
   members           GroupMember[]
   expenses          GroupExpense[]
+  incomes           GroupIncome[]
   settlements       Settlement[]
   sharedBudgets     SharedBudget[]
   contributionRules ContributionRule[]
@@ -1145,6 +1159,7 @@ model GroupMember {
 
   group              SharedFinanceGroup   @relation(fields: [groupId], references: [id], onDelete: Cascade)
   user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  addedIncomes       GroupIncome[]
   paidExpenses       GroupExpense[]       @relation("ExpensePayer")
   expenseSplits      ExpenseSplit[]
   sentSettlements    Settlement[]         @relation("SettlementSender")
@@ -1242,6 +1257,29 @@ model ExpenseAttachment {
 
   @@index([expenseId])
   @@map("expense_attachments")
+}
+
+// ─── SHARED FINANCE: GROUP INCOME ──────────────────────────
+model GroupIncome {
+  id              String    @id @default(uuid()) @db.VarChar(36)
+  groupId         String    @db.VarChar(36)
+  addedByMemberId String    @db.VarChar(36)
+  amount          Decimal   @db.Decimal(15, 2)
+  source          String    @default("other") @db.VarChar(50)  // salary, business, freelance, other
+  description     String    @db.VarChar(500)
+  date            DateTime  @db.Date
+  notes           String?   @db.Text
+  deletedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  group     SharedFinanceGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  addedBy   GroupMember        @relation(fields: [addedByMemberId], references: [id])
+
+  @@index([groupId, date])
+  @@index([addedByMemberId])
+  @@index([source])
+  @@map("group_incomes")
 }
 
 // ─── SHARED FINANCE: SETTLEMENTS ────────────────────────────

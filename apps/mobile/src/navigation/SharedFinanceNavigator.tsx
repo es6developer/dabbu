@@ -26,6 +26,7 @@ import { FinancialHealthScreen } from '../screens/shared-finance/FinancialHealth
 import { YearlyWrappedScreen } from '../screens/shared-finance/YearlyWrappedScreen';
 import { SavingsChallengesScreen } from '../screens/shared-finance/SavingsChallengesScreen';
 import { AiSettlementRemindersScreen } from '../screens/shared-finance/AiSettlementRemindersScreen';
+import { AddIncomeScreen } from '../screens/shared-finance/AddIncomeScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -43,6 +44,7 @@ export function SharedFinanceNavigator() {
       <Stack.Screen name="GroupDashboard" component={GroupDashboardScreen} options={{ title: 'Group Dashboard' }} />
       <Stack.Screen name="GroupSettings" component={GroupSettingsScreen} options={{ title: 'Settings' }} />
       <Stack.Screen name="CreateGroupExpense" component={CreateGroupExpenseScreen} options={{ title: 'Add Expense' }} />
+      <Stack.Screen name="AddIncome" component={AddIncomeScreen} options={{ title: 'Add Income' }} />
       <Stack.Screen name="GroupExpenseDetail" component={GroupExpenseDetailScreen} options={{ title: 'Expense Details' }} />
       <Stack.Screen name="Settlements" component={SettlementsScreen} options={{ title: 'Settlements' }} />
       <Stack.Screen name="CreateSettlement" component={CreateSettlementScreen} options={{ title: 'New Settlement' }} />

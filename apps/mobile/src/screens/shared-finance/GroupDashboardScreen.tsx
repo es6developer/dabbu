@@ -10,51 +10,42 @@ import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { Card } from '../../components/ui/Card';
 
+interface Summary {
+  totalIncome: number;
+  totalExpenses: number;
+  remaining: number;
+  totalExpensesCount: number;
+  totalIncomeCount: number;
+  memberCount: number;
+  currency: string;
+}
+
+interface MemberContribution {
+  memberId: string;
+  name: string;
+  avatarUrl?: string;
+  income: number;
+  expense: number;
+  net: number;
+}
+
 interface CategoryBreakdown {
-  category: string;
+  name: string;
   amount: number;
-  percentage: number;
   color: string;
 }
 
-interface MemberBalance {
-  from: string;
-  to: string;
+interface MonthlyTrend {
+  month: string;
   amount: number;
-}
-
-interface RecentExpense {
-  id: string;
-  description: string;
-  amount: number;
-  paidBy: { id: string; name: string };
-  date: string;
-}
-
-interface PendingSettlement {
-  id: string;
-  from: { id: string; name: string };
-  to: { id: string; name: string };
-  amount: number;
-  status: string;
-}
-
-interface Insight {
-  id: string;
-  text: string;
-  type: 'info' | 'warning' | 'success';
 }
 
 interface DashboardData {
-  totalSpent: number;
-  thisMonthSpent: number;
-  lastMonthSpent: number;
+  summary: Summary;
+  memberContributions: MemberContribution[];
   categoryBreakdown: CategoryBreakdown[];
-  memberBalances: MemberBalance[];
-  recentActivity: RecentExpense[];
-  pendingSettlements: PendingSettlement[];
-  insights: Insight[];
-  currency: string;
+  monthlyTrend: MonthlyTrend[];
+  incomeMonthlyTrend: MonthlyTrend[];
 }
 
 const CATEGORY_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
@@ -72,11 +63,11 @@ const CATEGORY_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   Other: 'ellipsis-horizontal-outline',
 };
 
-const INSIGHT_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  info: 'bulb-outline',
-  warning: 'alert-circle-outline',
-  success: 'checkmark-circle-outline',
-};
+const CATEGORY_COLORS = [
+  '#f7892c', '#7c3aed', '#06b6d4', '#10b981',
+  '#f43f5e', '#eab308', '#6366f1', '#ec4899',
+  '#14b8a6', '#f97316', '#8b5cf6', '#64748b',
+];
 
 const formatAmount = (amount: number, currency: string = 'INR') => {
   const safeAmount = Number(amount) || 0;
@@ -86,18 +77,6 @@ const formatAmount = (amount: number, currency: string = 'INR') => {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(Math.abs(safeAmount));
-};
-
-const formatDate = (dateStr: string) => {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diff = now.getTime() - date.getTime();
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-  if (days === 0) return 'Today';
-  if (days === 1) return 'Yesterday';
-  if (days < 7) return `${days}d ago`;
-  return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 };
 
 export function GroupDashboardScreen() {
@@ -116,8 +95,17 @@ export function GroupDashboardScreen() {
       if (isRefresh) setRefreshing(true);
       else setLoading(true);
       setError(null);
-      const res = await api.get<DashboardData>(`/shared-finance/groups/${groupId}/dashboard`);
-      setData(res);
+      const res = await api.get<any>(`/shared-finance/groups/${groupId}/dashboard`);
+      setData({
+        summary: res.summary,
+        memberContributions: res.memberContributions || [],
+        categoryBreakdown: (res.categoryBreakdown || []).map((c: any, i: number) => ({
+          ...c,
+          color: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
+        })),
+        monthlyTrend: res.monthlyTrend || [],
+        incomeMonthlyTrend: res.incomeMonthlyTrend || [],
+      });
     } catch (err: any) {
       setError(err.message || 'Failed to load dashboard');
     } finally {
@@ -161,11 +149,9 @@ export function GroupDashboardScreen() {
     );
   }
 
-  const currency = data?.currency || 'INR';
-  const spentPercentage = data && data.lastMonthSpent > 0
-    ? (Number(data.thisMonthSpent ?? 0) - Number(data.lastMonthSpent ?? 0)) / Number(data.lastMonthSpent ?? 1) * 100
-    : 0;
-  const isUp = spentPercentage > 0;
+  const currency = data?.summary?.currency || 'INR';
+  const { totalIncome, totalExpenses, remaining } = data?.summary || { totalIncome: 0, totalExpenses: 0, remaining: 0 };
+  const spentPct = totalIncome > 0 ? Math.min((totalExpenses / totalIncome) * 100, 100) : 0;
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg.primary }]}>
@@ -189,80 +175,85 @@ export function GroupDashboardScreen() {
           <View style={{ width: 24 }} />
         </View>
 
-        <Card variant="elevated" padding="2xl" style={styles.totalSpentCard}>
-          <Text style={[typography.callout, { color: colors.text.secondary, textAlign: 'center' }]}>
-            Total Spent
-          </Text>
-          <Text style={[typography.amountLarge, { color: colors.text.primary, textAlign: 'center', marginTop: spacing.sm }]}>
-            {formatAmount(data?.totalSpent ?? 0, currency)}
-          </Text>
-          <View style={[styles.monthRow, { backgroundColor: colors.bg.glass, borderRadius: br.lg, padding: spacing.md, marginTop: spacing.xl }]}>
-            <View style={styles.monthItem}>
-              <Text style={[typography.subhead, { color: colors.text.tertiary }]}>This Month</Text>
-              <Text style={[typography.bodyBold, { color: colors.text.primary, marginTop: 2 }]}>
-                {formatAmount(data?.thisMonthSpent ?? 0, currency)}
+        {/* Financial Overview Card */}
+        <Card variant="premium" padding="2xl" style={styles.overviewCard}>
+          <View style={styles.overviewRow}>
+            <View style={styles.overviewItem}>
+              <View style={[styles.overviewIcon, { backgroundColor: colors.status.success + '20' }]}>
+                <Ionicons name="trending-up" size={18} color={colors.status.success} />
+              </View>
+              <Text style={[typography.caption1, { color: colors.text.tertiary, marginTop: 8 }]}>Income</Text>
+              <Text style={[styles.overviewAmount, { color: colors.status.success }]}>
+                {formatAmount(totalIncome, currency)}
               </Text>
             </View>
-            <View style={[styles.monthDivider, { backgroundColor: colors.border.subtle }]} />
-            <View style={styles.monthItem}>
-              <Text style={[typography.subhead, { color: colors.text.tertiary }]}>vs Last Month</Text>
-              <View style={styles.monthChange}>
-                <Ionicons
-                  name={isUp ? 'trending-up' : 'trending-down'}
-                  size={16}
-                  color={isUp ? colors.status.error : colors.status.success}
-                />
-                <Text
-                  style={[
-                    typography.bodyBold,
-                    { color: isUp ? colors.status.error : colors.status.success, marginLeft: 4 },
-                  ]}
-                >
-                  {isUp ? '+' : ''}{spentPercentage.toFixed(1)}%
-                </Text>
+            <View style={styles.overviewDivider} />
+            <View style={styles.overviewItem}>
+              <View style={[styles.overviewIcon, { backgroundColor: colors.status.error + '20' }]}>
+                <Ionicons name="trending-down" size={18} color={colors.status.error} />
               </View>
+              <Text style={[typography.caption1, { color: colors.text.tertiary, marginTop: 8 }]}>Spent</Text>
+              <Text style={[styles.overviewAmount, { color: colors.status.error }]}>
+                {formatAmount(totalExpenses, currency)}
+              </Text>
             </View>
+            <View style={styles.overviewDivider} />
+            <View style={styles.overviewItem}>
+              <View style={[styles.overviewIcon, { backgroundColor: remaining >= 0 ? colors.status.success + '20' : colors.status.error + '20' }]}>
+                <Ionicons name="wallet-outline" size={18} color={remaining >= 0 ? colors.status.success : colors.status.error} />
+              </View>
+              <Text style={[typography.caption1, { color: colors.text.tertiary, marginTop: 8 }]}>Left</Text>
+              <Text style={[styles.overviewAmount, { color: remaining >= 0 ? colors.status.success : colors.status.error }]}>
+                {formatAmount(remaining, currency)}
+              </Text>
+            </View>
+          </View>
+          {totalIncome > 0 && (
+            <View style={[styles.spentBar, { backgroundColor: colors.bg.tertiary, marginTop: 16 }]}>
+              <View style={[styles.spentFill, { width: `${spentPct}%`, backgroundColor: colors.accent.primary }]} />
+            </View>
+          )}
+          <View style={styles.overviewFooter}>
+            <Text style={[typography.subhead, { color: colors.text.tertiary }]}>
+              {data?.summary?.totalIncomeCount || 0} income · {data?.summary?.totalExpensesCount || 0} expenses
+            </Text>
+            <Text style={[typography.subhead, { color: colors.text.tertiary }]}>
+              {spentPct.toFixed(0)}% spent
+            </Text>
           </View>
         </Card>
 
-        {data?.categoryBreakdown && data.categoryBreakdown.length > 0 && (
+        {/* Member Contributions */}
+        {data?.memberContributions && data.memberContributions.length > 0 && (
           <View style={styles.section}>
-            <Text style={[typography.h4, { color: colors.text.primary }]}>Category Breakdown</Text>
+            <Text style={[typography.h4, { color: colors.text.primary }]}>Member Contributions</Text>
             <Card variant="elevated" padding="lg" style={styles.sectionCard}>
-              {data.categoryBreakdown.map((cat, index) => (
-                <View key={cat.category}>
-                  <View style={styles.categoryRow}>
-                    <View style={styles.categoryLabel}>
-                      <Ionicons
-                        name={CATEGORY_ICONS[cat.category] || 'ellipsis-horizontal-outline'}
-                        size={16}
-                        color={cat.color}
-                      />
-                      <Text style={[typography.callout, { color: colors.text.primary, marginLeft: 8 }]}>
-                        {cat.category}
+              {data.memberContributions.map((mc, idx) => (
+                <View key={mc.memberId}>
+                  <View style={styles.memberContributionRow}>
+                    <View style={[styles.memberAvatar, { backgroundColor: colors.accent.primary + '25' }]}>
+                      <Text style={[styles.memberAvatarText, { color: colors.accent.primary }]}>
+                        {(mc.name || '?')[0].toUpperCase()}
                       </Text>
                     </View>
-                    <Text style={[typography.calloutBold, { color: colors.text.primary }]}>
-                      {formatAmount(cat.amount, currency)}
+                    <View style={styles.memberContributionInfo}>
+                      <Text style={[typography.callout, { color: colors.text.primary }]}>{mc.name}</Text>
+                      <View style={styles.memberContributionMeta}>
+                        <Text style={[typography.subhead, { color: colors.status.success }]}>
+                          +{formatAmount(mc.income, currency)}
+                        </Text>
+                        <Text style={[typography.subhead, { color: colors.text.tertiary }]}> · </Text>
+                        <Text style={[typography.subhead, { color: colors.status.error }]}>
+                          -{formatAmount(mc.expense, currency)}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={[typography.calloutBold, { color: mc.net >= 0 ? colors.status.success : colors.status.error }]}>
+                      {mc.net >= 0 ? '+' : ''}{formatAmount(mc.net, currency)}
                     </Text>
                   </View>
-                  <View style={[styles.barBackground, { backgroundColor: colors.bg.tertiary, borderRadius: br.sm }]}>
-                    <View
-                      style={[
-                        styles.barFill,
-                        {
-                          width: `${Math.max(cat.percentage, 3)}%`,
-                          backgroundColor: cat.color,
-                          borderRadius: br.sm,
-                        },
-                      ]}
-                    />
-                  </View>
-                  <Text style={[typography.caption1, { color: colors.text.tertiary, marginTop: 4, textAlign: 'right' }]}>
-                    {cat.percentage.toFixed(1)}%
-                  </Text>
-                  {index < data.categoryBreakdown.length - 1 && (
-                    <View style={[styles.catDivider, { backgroundColor: colors.border.subtle }]} />
+                  {idx < data.memberContributions.length - 1 && (
+                    <View style={[styles.divider, { backgroundColor: colors.border.subtle, marginVertical: 10 }]} />
                   )}
                 </View>
               ))}
@@ -270,134 +261,91 @@ export function GroupDashboardScreen() {
           </View>
         )}
 
-        {data?.memberBalances && data.memberBalances.length > 0 && (
+        {/* Category Breakdown */}
+        {data?.categoryBreakdown && data.categoryBreakdown.length > 0 && (
           <View style={styles.section}>
-            <Text style={[typography.h4, { color: colors.text.primary }]}>Who Owes Whom</Text>
+            <Text style={[typography.h4, { color: colors.text.primary }]}>Spending by Category</Text>
             <Card variant="elevated" padding="lg" style={styles.sectionCard}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View style={styles.balancesTable}>
-                  <View style={[styles.balancesHeader, { borderBottomColor: colors.border.subtle }]}>
-                    <Text style={[styles.tableHeaderText, { color: colors.text.tertiary, flex: 1 }]}>From</Text>
-                    <Text style={[styles.tableHeaderText, { color: colors.text.tertiary, flex: 1, textAlign: 'center' }]}>To</Text>
-                    <Text style={[styles.tableHeaderText, { color: colors.text.tertiary, flex: 1, textAlign: 'right' }]}>Amount</Text>
-                  </View>
-                  {data.memberBalances.map((mb, index) => (
-                    <View
-                      key={`${mb.from}-${mb.to}-${index}`}
-                      style={[styles.balanceRow, index < data.memberBalances.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border.subtle }]}
-                    >
-                      <Text style={[typography.callout, { color: colors.text.primary, flex: 1 }]}>
-                        {mb.from}
-                      </Text>
-                      <View style={{ flex: 1, alignItems: 'center' }}>
-                        <Ionicons name="arrow-forward" size={16} color={colors.text.tertiary} />
-                      </View>
-                      <Text style={[typography.callout, { color: colors.text.primary, flex: 1, textAlign: 'center' }]}>
-                        {mb.to}
-                      </Text>
-                      <Text style={[typography.calloutBold, { color: colors.status.success, flex: 1, textAlign: 'right' }]}>
-                        {formatAmount(mb.amount, currency)}
+              {data.categoryBreakdown.map((cat, index) => (
+                <View key={cat.name}>
+                  <View style={styles.categoryRow}>
+                    <View style={styles.categoryLabel}>
+                      <Ionicons
+                        name={CATEGORY_ICONS[cat.name] || 'ellipsis-horizontal-outline'}
+                        size={14}
+                        color={cat.color}
+                      />
+                      <Text style={[typography.callout, { color: colors.text.primary, marginLeft: 8 }]}>
+                        {cat.name}
                       </Text>
                     </View>
-                  ))}
+                    <Text style={[typography.calloutBold, { color: colors.text.primary }]}>
+                      {formatAmount(cat.amount, currency)}
+                    </Text>
+                  </View>
+                  <View style={[styles.barBg, { backgroundColor: colors.bg.tertiary }]}>
+                    <View style={[styles.barFill, { width: `${Math.max((cat.amount / totalExpenses) * 100, 2)}%`, backgroundColor: cat.color }]} />
+                  </View>
+                  {index < data.categoryBreakdown.length - 1 && (
+                    <View style={[styles.divider, { backgroundColor: colors.border.subtle, marginVertical: 10 }]} />
+                  )}
+                </View>
+              ))}
+            </Card>
+          </View>
+        )}
+
+        {/* Income Monthly Trend */}
+        {data?.incomeMonthlyTrend && data.incomeMonthlyTrend.length > 0 && (
+          <View style={styles.section}>
+            <Text style={[typography.h4, { color: colors.text.primary }]}>Income Trend</Text>
+            <Card variant="elevated" padding="lg" style={styles.sectionCard}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={styles.trendTable}>
+                  <View style={[styles.trendHeader, { borderBottomColor: colors.border.subtle }]}>
+                    <Text style={[styles.trendHeaderText, { color: colors.text.tertiary }]}>Month</Text>
+                    <Text style={[styles.trendHeaderText, { color: colors.text.tertiary }]}>Income</Text>
+                    <Text style={[styles.trendHeaderText, { color: colors.text.tertiary }]}>Spent</Text>
+                  </View>
+                  {data.incomeMonthlyTrend.map((trend, idx) => {
+                    const expenseTrend = data.monthlyTrend?.find((e) => e.month === trend.month);
+                    return (
+                      <View key={trend.month} style={[styles.trendRow, idx < data.incomeMonthlyTrend.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border.subtle }]}>
+                        <Text style={[typography.callout, { color: colors.text.primary }]}>{trend.month}</Text>
+                        <Text style={[typography.calloutBold, { color: colors.status.success }]}>
+                          {formatAmount(trend.amount, currency)}
+                        </Text>
+                        <Text style={[typography.calloutBold, { color: colors.status.error }]}>
+                          {formatAmount(expenseTrend?.amount || 0, currency)}
+                        </Text>
+                      </View>
+                    );
+                  })}
                 </View>
               </ScrollView>
             </Card>
           </View>
         )}
 
-        {data?.pendingSettlements && data.pendingSettlements.length > 0 && (
-          <View style={styles.section}>
-            <Card variant="outlined" padding="lg" style={[styles.pendingCard, { borderColor: colors.status.warning + '30' }]}>
-              <View style={styles.pendingHeader}>
-                <View style={styles.pendingTitleRow}>
-                  <Ionicons name="timer-outline" size={20} color={colors.status.warning} />
-                  <Text style={[typography.h4, { color: colors.text.primary, marginLeft: spacing.sm }]}>
-                    Pending Settlements
-                  </Text>
-                </View>
-                <Text style={[typography.subheadBold, { color: colors.status.warning }]}>
-                  {data.pendingSettlements.length}
-                </Text>
-              </View>
-              {data.pendingSettlements.map((ps) => (
-                <View key={ps.id} style={[styles.pendingItem, { borderTopColor: colors.border.subtle }]}>
-                  <Text style={[typography.callout, { color: colors.text.primary, flex: 1 }]}>
-                    {ps.from.name} → {ps.to.name}
-                  </Text>
-                  <Text style={[typography.calloutBold, { color: colors.status.warning }]}>
-                    {formatAmount(ps.amount, currency)}
-                  </Text>
-                </View>
-              ))}
-            </Card>
+        {/* Quick Actions */}
+        <View style={styles.section}>
+          <View style={styles.quickActionsRow}>
+            <TouchableOpacity
+              style={[styles.quickAction, { backgroundColor: colors.status.success + '15' }]}
+              onPress={() => navigation.navigate('AddIncome', { groupId })}
+            >
+              <Ionicons name="trending-up-outline" size={22} color={colors.status.success} />
+              <Text style={[styles.quickActionText, { color: colors.status.success }]}>Add Income</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.quickAction, { backgroundColor: colors.accent.primary + '15' }]}
+              onPress={() => navigation.navigate('CreateGroupExpense', { groupId })}
+            >
+              <Ionicons name="receipt-outline" size={22} color={colors.accent.primary} />
+              <Text style={[styles.quickActionText, { color: colors.accent.primary }]}>Add Expense</Text>
+            </TouchableOpacity>
           </View>
-        )}
-
-        {data?.recentActivity && data.recentActivity.length > 0 && (
-          <View style={styles.section}>
-            <Text style={[typography.h4, { color: colors.text.primary }]}>Recent Activity</Text>
-            <Card variant="elevated" padding="lg" style={styles.sectionCard}>
-              {data.recentActivity.map((expense, index) => (
-                <TouchableOpacity
-                  key={expense.id}
-                  style={[
-                    styles.activityItem,
-                    index < data.recentActivity.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border.subtle },
-                  ]}
-                  onPress={() => navigation.navigate('GroupExpenseDetail', { groupId, expenseId: expense.id })}
-                >
-                  <View style={[styles.activityIcon, { backgroundColor: colors.bg.tertiary }]}>
-                    <Ionicons name="receipt-outline" size={18} color={colors.accent.primary} />
-                  </View>
-                  <View style={styles.activityInfo}>
-                    <Text style={[typography.callout, { color: colors.text.primary }]} numberOfLines={1}>
-                      {expense.description}
-                    </Text>
-                    <Text style={[typography.subhead, { color: colors.text.tertiary }]}>
-                      {expense.paidBy.name} · {formatDate(expense.date)}
-                    </Text>
-                  </View>
-                  <Text style={[typography.calloutBold, { color: colors.text.primary }]}>
-                    {formatAmount(expense.amount, currency)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </Card>
-          </View>
-        )}
-
-        {data?.insights && data.insights.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.insightsHeader}>
-              <Ionicons name="sparkles" size={20} color={colors.accent.primary} />
-              <Text style={[typography.h4, { color: colors.text.primary, marginLeft: spacing.sm }]}>
-                AI Insights
-              </Text>
-            </View>
-            {data.insights.map((insight) => {
-              const insightColor = insight.type === 'warning' ? colors.status.warning
-                : insight.type === 'success' ? colors.status.success
-                : colors.status.info;
-              const insightBg = insight.type === 'warning' ? colors.status.warningLight
-                : insight.type === 'success' ? colors.status.successLight
-                : colors.status.infoLight;
-
-              return (
-                <Card key={insight.id} variant="elevated" padding="lg" style={[styles.insightCard]}>
-                  <View style={styles.insightRow}>
-                    <View style={[styles.insightIcon, { backgroundColor: insightBg }]}>
-                      <Ionicons name={INSIGHT_ICONS[insight.type]} size={20} color={insightColor} />
-                    </View>
-                    <Text style={[typography.callout, { color: colors.text.primary, flex: 1, marginLeft: spacing.md, lineHeight: 22 }]}>
-                      {insight.text}
-                    </Text>
-                  </View>
-                </Card>
-              );
-            })}
-          </View>
-        )}
+        </View>
 
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -408,151 +356,45 @@ export function GroupDashboardScreen() {
 const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 40,
-  },
+  safeArea: { flex: 1 },
+  scrollContent: { paddingBottom: 40 },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingHorizontal: 20, paddingVertical: 12,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  retryButton: {
-    marginTop: 20,
-    paddingHorizontal: 28,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  totalSpentCard: {
-    marginHorizontal: 20,
-    marginTop: 8,
-  },
-  monthRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  monthItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  monthDivider: {
-    width: 1,
-    height: 36,
-    marginHorizontal: 12,
-  },
-  monthChange: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 2,
-  },
-  section: {
-    marginTop: 28,
-    paddingHorizontal: 20,
-  },
-  sectionCard: {
-    marginTop: 12,
-  },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  retryButton: { marginTop: 20, paddingHorizontal: 28, paddingVertical: 12, borderRadius: 12 },
+  overviewCard: { marginHorizontal: 20, marginTop: 8, borderRadius: 24 },
+  overviewRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  overviewItem: { flex: 1, alignItems: 'center' },
+  overviewIcon: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  overviewAmount: { fontSize: 18, fontWeight: '700', letterSpacing: -0.5, marginTop: 4 },
+  overviewDivider: { width: 1, height: 48, backgroundColor: 'rgba(255,255,255,0.06)', marginHorizontal: 8 },
+  spentBar: { height: 6, borderRadius: 3, overflow: 'hidden' },
+  spentFill: { height: '100%', borderRadius: 3 },
+  overviewFooter: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
+  section: { marginTop: 28, paddingHorizontal: 20 },
+  sectionCard: { marginTop: 12 },
+  memberContributionRow: { flexDirection: 'row', alignItems: 'center' },
+  memberAvatar: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  memberAvatarText: { fontSize: 14, fontWeight: '700' },
+  memberContributionInfo: { flex: 1, marginLeft: 10 },
+  memberContributionMeta: { flexDirection: 'row', alignItems: 'center', marginTop: 2 },
   categoryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8,
   },
-  categoryLabel: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  categoryLabel: { flexDirection: 'row', alignItems: 'center' },
+  barBg: { height: 8, borderRadius: 4, overflow: 'hidden' },
+  barFill: { height: '100%', borderRadius: 4 },
+  trendTable: { minWidth: width - 80 },
+  trendHeader: { flexDirection: 'row', paddingBottom: 10, borderBottomWidth: 1, gap: 20 },
+  trendHeaderText: { flex: 1, fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  trendRow: { flexDirection: 'row', paddingVertical: 12, gap: 20 },
+  quickActionsRow: { flexDirection: 'row', gap: 12 },
+  quickAction: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    paddingVertical: 16, borderRadius: 16, gap: 8,
   },
-  barBackground: {
-    height: 8,
-    overflow: 'hidden',
-  },
-  barFill: {
-    height: '100%',
-  },
-  catDivider: {
-    height: 1,
-    marginVertical: 14,
-  },
-  balancesTable: {
-    minWidth: width - 80,
-  },
-  balancesHeader: {
-    flexDirection: 'row',
-    paddingBottom: 10,
-    borderBottomWidth: 1,
-  },
-  tableHeaderText: {
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  balanceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  pendingCard: {
-    marginTop: 0,
-  },
-  pendingHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  pendingTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  pendingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: 12,
-    marginTop: 10,
-    borderTopWidth: 1,
-  },
-  activityItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  activityIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  activityInfo: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  insightsHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  insightCard: {
-    marginBottom: 10,
-  },
-  insightRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  insightIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  quickActionText: { fontSize: 14, fontWeight: '700' },
+  divider: { height: 1 },
 });

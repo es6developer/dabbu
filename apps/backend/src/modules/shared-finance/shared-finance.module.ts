@@ -18,10 +18,13 @@ import { InsightsController } from './insights.controller';
 import { InsightsService } from './insights.service';
 import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
+import { IncomesController } from './incomes.controller';
+import { IncomesService } from './incomes.service';
 import { SharedFinanceRealtimeModule } from './realtime.module';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
-  imports: [PrismaModule, SharedFinanceRealtimeModule],
+  imports: [PrismaModule, SharedFinanceRealtimeModule, NotificationModule],
   controllers: [
     GroupsController,
     ExpensesController,
@@ -33,6 +36,7 @@ import { SharedFinanceRealtimeModule } from './realtime.module';
     ContributionsController,
     InsightsController,
     ChatController,
+    IncomesController,
   ],
   providers: [
     GroupsService,
@@ -44,6 +48,7 @@ import { SharedFinanceRealtimeModule } from './realtime.module';
     ContributionsService,
     InsightsService,
     ChatService,
+    IncomesService,
   ],
   exports: [
     GroupsService,
@@ -55,6 +60,7 @@ import { SharedFinanceRealtimeModule } from './realtime.module';
     ContributionsService,
     InsightsService,
     ChatService,
+    IncomesService,
   ],
 })
 export class SharedFinanceModule {}
