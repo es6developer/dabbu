@@ -72,7 +72,7 @@ export function SmsPermissionScreen() {
         sender: 'Manual',
       });
       setManualResult(res.data || res);
-    } catch { }
+    } catch (_e) { }
     setManualLoading(false);
   }
 

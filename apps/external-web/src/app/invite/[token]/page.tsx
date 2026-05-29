@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { api, type Group } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 import { checkGroupAccess, resolveAccessStatus } from '@/lib/access-check';
 import { formatCurrency, getInitials, getRandomColor } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -25,7 +26,7 @@ export default function InvitePage() {
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isAuthenticated = typeof window !== 'undefined' ? !!api.getTempToken() : false;
+  const { isAuthenticated, user } = useAuth();
 
   const redirectIfNeeded = useCallback(
     async (groupId: string) => {

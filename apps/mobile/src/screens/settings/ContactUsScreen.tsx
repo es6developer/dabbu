@@ -54,7 +54,7 @@ export function ContactUsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 24, paddingBottom: 60 },
+  content: { padding: 24, paddingBottom: 120 },
   hero: { alignItems: 'center', marginBottom: 32 },
   heroIcon: { width: 80, height: 80, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
   title: { fontSize: 28, fontWeight: '700', marginBottom: 4 },

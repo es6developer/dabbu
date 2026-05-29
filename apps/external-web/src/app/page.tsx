@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { useAuth } from "@/lib/auth-context";
 
 const FEATURES = [
   {
@@ -47,6 +48,7 @@ const FEATURES = [
 
 export default function LandingPage() {
   const router = useRouter();
+  const { user, isAuthenticated, logout } = useAuth();
   const [inviteCode, setInviteCode] = useState("");
 
   const handleJoin = (e: React.FormEvent) => {
@@ -70,16 +72,30 @@ export default function LandingPage() {
               </span>
             </div>
             <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => router.push("/auth")}
-              >
-                Sign In
-              </Button>
-              <Button size="sm" onClick={() => router.push("/auth")}>
-                Get Started
-              </Button>
+              {isAuthenticated ? (
+                <>
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-dabbu-accent/10 border border-dabbu-accent/20">
+                    <div className="w-6 h-6 rounded-full bg-dabbu-accent flex items-center justify-center text-xs font-bold text-white">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="text-sm font-medium text-dabbu-text">
+                      {user?.name}
+                    </span>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => { logout(); router.push('/'); }}>
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="ghost" size="sm" onClick={() => router.push("/auth")}>
+                    Sign In
+                  </Button>
+                  <Button size="sm" onClick={() => router.push("/auth")}>
+                    Get Started
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>

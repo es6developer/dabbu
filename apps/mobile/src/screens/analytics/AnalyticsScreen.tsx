@@ -142,7 +142,7 @@ export function AnalyticsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { paddingBottom: 32 },
+  content: { paddingBottom: 100 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   pageTitle: { fontSize: 28, fontWeight: '700', paddingHorizontal: 24, paddingTop: 60, paddingBottom: 24 },
   summaryRow: { flexDirection: 'row', paddingHorizontal: 24, gap: 12, marginBottom: 28 },

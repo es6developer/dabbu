@@ -130,7 +130,7 @@ export const ConversionModal: React.FC<ConversionModalProps> = ({
           source: trigger,
           tempUserId,
         });
-      } catch {
+      } catch (_e) {
         // ignore
       }
     }

@@ -47,7 +47,7 @@ export function RemindersScreen() {
       setReminders(Array.isArray(data) ? data : []);
       const unreadRes = await api.get<any>('/notifications/unread-count').catch(() => ({ count: 0 }));
       setUnreadCount(unreadRes?.count || 0);
-    } catch {
+    } catch (_e) {
       setReminders([]);
     } finally {
       setLoading(false);
@@ -157,7 +157,7 @@ export function RemindersScreen() {
       )}
 
       <TouchableOpacity
-        style={[styles.fab, { backgroundColor: colors.accent.primary }]}
+        style={[styles.fab, { backgroundColor: colors.accent.primary, bottom: insets.bottom + 100 }]}
         onPress={() => navigation.navigate('CreateReminder' as never)}
         activeOpacity={0.8}
       >
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
   priorityBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 100 },
   priorityText: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
   fab: {
-    position: 'absolute', bottom: 24, right: 20, width: 56, height: 56,
+    position: 'absolute', right: 20, width: 56, height: 56,
     borderRadius: 16, justifyContent: 'center', alignItems: 'center',
     shadowColor: '#f7892c', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6,
   },

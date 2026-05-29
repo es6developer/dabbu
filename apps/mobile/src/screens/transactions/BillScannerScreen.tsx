@@ -317,7 +317,7 @@ export function BillScannerScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 24, paddingBottom: 60, alignItems: 'center' },
+  content: { padding: 24, paddingBottom: 120, alignItems: 'center' },
   centerContent: { alignItems: 'center', justifyContent: 'center', paddingVertical: 40 },
   iconWrap: { width: 88, height: 88, borderRadius: 44, alignItems: 'center', justifyContent: 'center', marginBottom: 20, marginTop: 10 },
   title: { fontSize: 26, fontWeight: '700', marginBottom: 6, textAlign: 'center' },

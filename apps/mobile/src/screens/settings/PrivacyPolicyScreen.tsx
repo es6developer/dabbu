@@ -36,7 +36,7 @@ export function PrivacyPolicyScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 20, paddingBottom: 60 },
+  content: { padding: 20, paddingBottom: 120 },
   title: { fontSize: 28, fontWeight: '700', marginBottom: 4 },
   date: { fontSize: 13, marginBottom: 20 },
   intro: { fontSize: 14, lineHeight: 20, marginBottom: 24 },

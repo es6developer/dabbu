@@ -60,7 +60,7 @@ export async function loadFeatures(): Promise<void> {
         return f;
       });
     }
-  } catch {
+  } catch (_e) {
     // keep existing features on failure
   }
 }

@@ -9,6 +9,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -231,6 +232,7 @@ export function BillsListScreen() {
   const { colors } = useTheme();
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
+  const insets = useSafeAreaInsets();
 
   const [groups, setGroups] = useState<MonthlyGroup[]>([]);
   const [loading, setLoading] = useState(true);
@@ -361,7 +363,7 @@ export function BillsListScreen() {
       </ScrollView>
 
       <TouchableOpacity
-        style={[styles.fab, { backgroundColor: colors.accent.primary }]}
+        style={[styles.fab, { backgroundColor: colors.accent.primary, bottom: insets.bottom + 100 }]}
         onPress={() => navigation.navigate('BillScanner')}
         activeOpacity={0.8}
       >
@@ -445,7 +447,7 @@ const styles = StyleSheet.create({
   errorTitle: { fontSize: 20, fontWeight: '700', marginTop: 16, marginBottom: 8 },
   errorDesc: { fontSize: 14, textAlign: 'center', marginBottom: 24 },
   fab: {
-    position: 'absolute', right: 20, bottom: 24,
+    position: 'absolute', right: 20,
     width: 56, height: 56, borderRadius: 28,
     alignItems: 'center', justifyContent: 'center',
     elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 4 },

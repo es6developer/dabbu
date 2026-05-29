@@ -91,7 +91,7 @@ export function AiSettlementRemindersScreen() {
             onPress: async () => {
               try {
                 setReminders(prev => prev.filter(r => r.id !== reminder.id));
-              } catch {
+              } catch (_e) {
                 // ignore
               } finally {
                 setSettlingId(null);
@@ -294,7 +294,7 @@ export function AiSettlementRemindersScreen() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  scrollContent: { paddingBottom: 40 },
+  scrollContent: { paddingBottom: 100 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',

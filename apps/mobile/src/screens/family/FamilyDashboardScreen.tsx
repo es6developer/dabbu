@@ -5,11 +5,13 @@ import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export function FamilyDashboardScreen() {
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [families, setFamilies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -88,7 +90,7 @@ export function FamilyDashboardScreen() {
         }
       />
 
-      <TouchableOpacity style={[styles.fab, { backgroundColor: colors.accent.primary }]} onPress={() => navigation.navigate('CreateFamily')}>
+      <TouchableOpacity style={[styles.fab, { backgroundColor: colors.accent.primary, bottom: insets.bottom + 100 }]} onPress={() => navigation.navigate('CreateFamily')}>
         <Ionicons name="add" size={26} color="#FFFFFF" />
       </TouchableOpacity>
     </View>
@@ -115,5 +117,5 @@ const styles = StyleSheet.create({
   emptyDesc: { fontSize: 14, textAlign: 'center', paddingHorizontal: 40, lineHeight: 20 },
   emptyBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 14, paddingHorizontal: 24, borderRadius: 14, marginTop: 8 },
   emptyBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '600' },
-  fab: { position: 'absolute', bottom: 24, right: 24, width: 54, height: 54, borderRadius: 27, justifyContent: 'center', alignItems: 'center', elevation: 10, shadowColor: '#f7892c', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.35, shadowRadius: 12 },
+  fab: { position: 'absolute', right: 24, width: 54, height: 54, borderRadius: 27, justifyContent: 'center', alignItems: 'center', elevation: 10, shadowColor: '#f7892c', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.35, shadowRadius: 12 },
 });

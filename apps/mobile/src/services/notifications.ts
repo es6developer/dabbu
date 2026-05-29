@@ -47,7 +47,7 @@ export async function registerForPushNotifications(accessToken: string): Promise
       token: pushToken,
       deviceName: Platform.OS === 'ios' ? 'iPhone' : 'Android',
     });
-  } catch {
+  } catch (_e) {
     // silent
   }
 

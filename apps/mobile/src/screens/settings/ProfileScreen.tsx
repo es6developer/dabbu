@@ -146,7 +146,7 @@ export function ProfileScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 20, paddingBottom: 60 },
+  content: { padding: 20, paddingBottom: 120 },
   title: { fontSize: 28, fontWeight: '700', marginBottom: 24 },
   card: { borderRadius: 16, padding: 20, borderWidth: 1, marginBottom: 20 },
   sectionTitle: { fontSize: 16, fontWeight: '600', marginBottom: 16, paddingBottom: 12 },

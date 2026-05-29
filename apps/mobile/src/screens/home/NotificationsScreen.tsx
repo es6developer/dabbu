@@ -48,7 +48,7 @@ export function NotificationsScreen() {
       if (accessToken) setAccessToken(accessToken);
       const res = await api.get<any>(`/notifications?limit=50`);
       setNotifications(res?.data || res || []);
-    } catch {
+    } catch (_e) {
       // silent
     } finally {
       setLoading(false);
@@ -63,7 +63,7 @@ export function NotificationsScreen() {
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
       );
-    } catch {
+    } catch (_e) {
       // silent
     }
   }
@@ -73,7 +73,7 @@ export function NotificationsScreen() {
       if (accessToken) setAccessToken(accessToken);
       await api.patch(`/notifications/read-all`, {});
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-    } catch {
+    } catch (_e) {
       // silent
     }
   }

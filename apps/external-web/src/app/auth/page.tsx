@@ -4,11 +4,13 @@ import { Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 
 function AuthPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { login } = useAuth();
   const redirect = searchParams.get("redirect") || "/";
 
   const onSuccess = useCallback(
@@ -22,12 +24,11 @@ function AuthPage() {
         toast.error(res.error);
         return;
       }
-      api.setTempToken(res.data!.token);
-      api.setTempSession(res.data!.user as Record<string, unknown>);
+      login(res.data!.token, res.data!.user as Record<string, unknown>);
       toast.success("Welcome to Dabbu!");
       router.push(redirect);
     },
-    [router, redirect],
+    [router, redirect, login],
   );
 
   const onError = useCallback(() => {

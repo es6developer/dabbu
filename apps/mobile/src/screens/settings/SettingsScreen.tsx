@@ -83,7 +83,7 @@ export function SettingsScreen() {
       setAccessToken(getAccessToken());
       const res = await api.get<any>('/subscription/current');
       setSubscription(res.data);
-    } catch {
+    } catch (_e) {
       setSubscription(null);
     }
   }

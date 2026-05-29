@@ -106,7 +106,7 @@ export const ExpiredInviteScreen: React.FC<ExpiredInviteScreenProps> = ({
             else if (groupStatus === 'archived') setStatus('archived');
             else if (groupStatus === 'closed') setStatus('revoked');
             else setStatus('valid');
-          } catch {
+          } catch (_e) {
             setStatus('valid');
           }
         }

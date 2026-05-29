@@ -98,7 +98,7 @@ export function SmsDashboardScreen() {
       const res = await api.get<any>('/sms-detection');
       const data = Array.isArray(res.data?.data) ? res.data.data : Array.isArray(res.data) ? res.data : [];
       setDetections(data);
-    } catch { }
+    } catch (_e) { }
     finally { setLoading(false); }
   }
 
@@ -114,7 +114,7 @@ export function SmsDashboardScreen() {
           message: d.messageBody,
           sender: d.sender,
         });
-      } catch { }
+      } catch (_e) { }
     }
     if (fresh.length > 0) {
       await loadDetections();
@@ -159,7 +159,7 @@ export function SmsDashboardScreen() {
       const data = Array.isArray(res.data?.data) ? res.data.data : Array.isArray(res.data) ? res.data : [];
       setDetections(data);
       autoCreateFresh(data.filter((d: Detection) => !d.isProcessed));
-    } catch {
+    } catch (_e) {
       setNewBanner('Sync failed — check SMS permission and backend connection');
       setTimeout(() => setNewBanner(null), 5000);
     }
@@ -179,7 +179,7 @@ export function SmsDashboardScreen() {
       const data = Array.isArray(res.data?.data) ? res.data.data : Array.isArray(res.data) ? res.data : [];
       setDetections(data);
       autoCreateFresh(data.filter((d: Detection) => !d.isProcessed));
-    } catch { }
+    } catch (_e) { }
     finally { syncLockRef.current = false; }
   }
 

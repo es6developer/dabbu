@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -15,6 +16,7 @@ const FILTERS: { key: FilterType; label: string }[] = [
 
 export function RemindersListScreen() {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
   const [reminders, setReminders] = useState<any[]>([]);
@@ -124,7 +126,7 @@ export function RemindersListScreen() {
         }
       />
 
-      <TouchableOpacity style={[styles.fab, { backgroundColor: colors.accent.primary, shadowColor: colors.accent.primary }]} onPress={() => navigation.navigate('CreateReminder')}>
+      <TouchableOpacity style={[styles.fab, { backgroundColor: colors.accent.primary, shadowColor: colors.accent.primary, bottom: insets.bottom + 100 }]} onPress={() => navigation.navigate('CreateReminder')}>
         <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
     </View>
@@ -153,6 +155,6 @@ const styles = StyleSheet.create({
   emptyIcon: { fontSize: 48, opacity: 0.5, marginBottom: 16 },
   emptyTitle: { fontSize: 18, fontWeight: '600', marginBottom: 8 },
   emptyDesc: { fontSize: 14 },
-  fab: { position: 'absolute', bottom: 24, right: 24, width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 },
+  fab: { position: 'absolute', right: 24, width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 },
   fabText: { fontSize: 28, color: '#FFFFFF', lineHeight: 30 },
 });

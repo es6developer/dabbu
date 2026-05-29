@@ -5,11 +5,13 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export function TransactionsListScreen() {
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
   const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -92,7 +94,7 @@ export function TransactionsListScreen() {
       />
 
       <TouchableOpacity
-        style={[styles.fab, { backgroundColor: colors.accent.primary }]}
+        style={[styles.fab, { backgroundColor: colors.accent.primary, bottom: insets.bottom + 100 }]}
         onPress={() => navigation.navigate('AddExpense')}
         activeOpacity={0.85}
       >
@@ -119,5 +121,5 @@ const styles = StyleSheet.create({
   emptyIconWrap: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { fontSize: 17, fontWeight: '600' },
   emptyDesc: { fontSize: 13, textAlign: 'center', paddingHorizontal: 40, lineHeight: 18 },
-  fab: { position: 'absolute', bottom: 28, right: 24, width: 54, height: 54, borderRadius: 27, justifyContent: 'center', alignItems: 'center', elevation: 10, shadowColor: '#f7892c', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.35, shadowRadius: 12 },
+  fab: { position: 'absolute', right: 24, width: 54, height: 54, borderRadius: 27, justifyContent: 'center', alignItems: 'center', elevation: 10, shadowColor: '#f7892c', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.35, shadowRadius: 12 },
 });

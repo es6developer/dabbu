@@ -35,7 +35,7 @@ export const InstallPromptBanner: React.FC<InstallPromptBannerProps> = ({
       const url = platform === 'ios' ? APP_STORE_URL_IOS : PLAY_STORE_URL_ANDROID;
       await Linking.openURL(url);
       onInstalled?.();
-    } catch {
+    } catch (_e) {
       // ignore
     }
   }, [platform, source, onInstalled]);

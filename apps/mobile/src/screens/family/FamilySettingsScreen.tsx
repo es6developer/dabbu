@@ -178,7 +178,7 @@ export function FamilySettingsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 20, paddingBottom: 60 },
+  content: { padding: 20, paddingBottom: 120 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   errorText: { fontSize: 16 },
   title: { fontSize: 28, fontWeight: '700', marginBottom: 24 },

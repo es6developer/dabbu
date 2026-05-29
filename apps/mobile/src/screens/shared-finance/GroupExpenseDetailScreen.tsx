@@ -27,6 +27,8 @@ const CATEGORY_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   fuel: 'flame-outline',
   subscription: 'card-outline',
   household: 'layers-outline',
+  group: 'people-outline',
+  family: 'people-outline',
   other: 'ellipsis-horizontal-outline',
 };
 

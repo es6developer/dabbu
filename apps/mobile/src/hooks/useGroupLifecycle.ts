@@ -91,7 +91,7 @@ export function useGroupLifecycle({
         cleanup();
         navigation.navigate('SharedFinanceHome');
       }
-    } catch {
+    } catch (_e) {
       if (mountedRef.current) {
         setState((prev) => ({ ...prev, isLoading: false }));
       }
@@ -107,7 +107,7 @@ export function useGroupLifecycle({
       if (mountedRef.current) {
         setState((prev) => ({ ...prev, events }));
       }
-    } catch {
+    } catch (_e) {
       // silent
     }
   }, [groupId]);
@@ -169,7 +169,7 @@ export function useGroupLifecycle({
       });
 
       socketRef.current = socket;
-    } catch {
+    } catch (_e) {
       // polling will serve as fallback
     }
   }, [groupId, cleanup, onAccessRevoked, onStatusChanged, fetchEvents, navigation]);

@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setState((prev) => ({ ...prev, isLoading: false }));
       }
-    } catch {
+    } catch (_e) {
       setState((prev) => ({ ...prev, isLoading: false }));
     }
   }
@@ -105,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await storage.deleteItemAsync('refreshToken');
       await storage.deleteItemAsync('userData');
       setAccessToken(null);
-    } catch {
+    } catch (_e) {
       // ignore clear errors
     }
   }
@@ -178,7 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           body: JSON.stringify({ refreshToken: refresh }),
         });
       }
-    } catch {
+    } catch (_e) {
       // ignore logout API errors
     }
 
@@ -187,7 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await SecureStore.deleteItemAsync('appPin');
       await SecureStore.deleteItemAsync('appLockEnabled');
       await SecureStore.deleteItemAsync('biometricEnabled');
-    } catch {
+    } catch (_e) {
       /* ignore */
     }
     setState({ isAuthenticated: false, isLoading: false, user: null, accessToken: null });
@@ -219,7 +219,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setState((prev) => ({ ...prev, accessToken: tokens.accessToken }));
       return true;
-    } catch {
+    } catch (_e) {
       return false;
     }
   }

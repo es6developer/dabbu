@@ -34,7 +34,7 @@ class SyncService {
           await this.sync();
         }
       });
-    } catch {
+    } catch (_e) {
       await offlineStorage.setOnline(true);
     }
   }

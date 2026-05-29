@@ -102,7 +102,7 @@ export function TasksListScreen() {
             ))}
           </View>
         )}
-        contentContainerStyle={grouped.length === 0 ? styles.emptyContainer : { paddingBottom: 40 }}
+        contentContainerStyle={grouped.length === 0 ? styles.emptyContainer : { paddingBottom: 100 }}
         ListEmptyComponent={
           <View style={styles.empty}>
             <Text style={styles.emptyIcon}>📋</Text>

@@ -36,7 +36,7 @@ export function BudgetsListScreen() {
       <FlatList
         data={budgets} keyExtractor={(b) => b.id}
         refreshControl={<RefreshControl refreshing={false} onRefresh={loadBudgets} tintColor={colors.accent.primary} />}
-        contentContainerStyle={budgets.length === 0 ? styles.emptyContainer : { padding: 16, paddingBottom: 40 }}
+        contentContainerStyle={budgets.length === 0 ? styles.emptyContainer : { padding: 16, paddingBottom: 100 }}
         renderItem={({ item }) => {
           const spent = Number(item.spent || item._sum?.amount || 0);
           const limit = Number(item.limit || item.amount || 0);

@@ -32,7 +32,7 @@ export function useRefresh(fetch: () => Promise<any>) {
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    try { await fetch(); } catch { /* ignore */ }
+    try { await fetch(); } catch (_e) { /* ignore */ }
     finally { setRefreshing(false); }
   }, [fetch]);
   return { refreshing, onRefresh };

@@ -49,7 +49,7 @@ export function AddIncomeScreen() {
     try {
       const res = await api.get<any>(`/shared-finance/groups/${groupId}`);
       setMembers(res.members || []);
-    } catch {}
+    } catch (_e) {}
   }
 
   async function handleSubmit() {

@@ -70,7 +70,7 @@ export function NotificationCenterScreen() {
 
       const unreadRes = await api.get<any>('/notifications/unread-count').catch(() => ({ count: 0 }));
       setUnreadCount(unreadRes?.count || 0);
-    } catch {
+    } catch (e) {
       // silent
     } finally {
       setLoading(false);
@@ -88,7 +88,7 @@ export function NotificationCenterScreen() {
       await api.patch(`/notifications/${id}/read`, {});
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch {
+    } catch (e) {
       // silent
     }
   };
@@ -99,7 +99,7 @@ export function NotificationCenterScreen() {
       await api.patch('/notifications/read-all', {});
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
-    } catch {
+    } catch (e) {
       // silent
     }
   };
@@ -108,16 +108,16 @@ export function NotificationCenterScreen() {
     Alert.alert('Delete Notification', 'Are you sure?', [
       { text: 'Cancel', style: 'cancel' },
       {
-        text: 'Delete',
-        style: 'destructive',
+        text: 'Delete', style: 'destructive',
         onPress: async () => {
           try {
             if (accessToken) setAccessToken(accessToken);
             await api.delete(`/notifications/${id}`);
             setNotifications(prev => prev.filter(n => n.id !== id));
-          } catch {
+          } catch (e) {
             // silent
           }
+        },
       },
     ]);
   };
@@ -193,10 +193,7 @@ export function NotificationCenterScreen() {
           </View>
           <View style={styles.cardContent}>
             <View style={styles.titleRow}>
-              <Text
-                style={[styles.title, { color: colors.text.primary }]}
-                numberOfLines={1}
-              >
+              <Text style={[styles.title, { color: colors.text.primary }]} numberOfLines={1}>
                 {item.title}
               </Text>
               {item.overdue && (
@@ -284,9 +281,7 @@ export function NotificationCenterScreen() {
               <TouchableOpacity
                 style={[
                   styles.filterChip,
-                  {
-                    backgroundColor: isActive ? colors.accent.primary : colors.bg.tertiary,
-                  },
+                  { backgroundColor: isActive ? colors.accent.primary : colors.bg.tertiary },
                 ]}
                 onPress={() => setActiveFilter(f.key)}
               >
@@ -295,12 +290,7 @@ export function NotificationCenterScreen() {
                   size={14}
                   color={isActive ? '#FFFFFF' : colors.text.secondary}
                 />
-                <Text
-                  style={[
-                    styles.filterLabel,
-                    { color: isActive ? '#FFFFFF' : colors.text.secondary },
-                  ]}
-                >
+                <Text style={[styles.filterLabel, { color: isActive ? '#FFFFFF' : colors.text.secondary }]}>
                   {f.label}
                 </Text>
               </TouchableOpacity>
@@ -322,7 +312,7 @@ export function NotificationCenterScreen() {
             {activeFilter === 'all' ? 'No notifications yet' : 'No matching notifications'}
           </Text>
           <Text style={[styles.emptySub, { color: colors.text.tertiary }]}>
-            {activeFilter === 'all' ? 'You\'re all caught up!' : 'Try a different filter'}
+            {activeFilter === 'all' ? "You're all caught up!" : 'Try a different filter'}
           </Text>
         </View>
       ) : (
@@ -348,57 +338,27 @@ export function NotificationCenterScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingBottom: 12,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 20, paddingBottom: 12,
   },
   headerTitle: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5, flex: 1, marginLeft: 12 },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   markAllBtn: { paddingHorizontal: 4 },
   markAllText: { fontSize: 13, fontWeight: '600' },
-  countBadge: {
-    minWidth: 22,
-    height: 22,
-    borderRadius: 11,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 6,
-  },
+  countBadge: { minWidth: 22, height: 22, borderRadius: 11, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 6 },
   countText: { color: '#FFFFFF', fontSize: 11, fontWeight: '800' },
   filterRow: { marginBottom: 8 },
   filterList: { paddingHorizontal: 20, gap: 8 },
-  filterChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    gap: 6,
-  },
+  filterChip: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20, gap: 6 },
   filterLabel: { fontSize: 13, fontWeight: '600' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
   emptyIcon: { width: 80, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
   emptyTitle: { fontSize: 18, fontWeight: '700', marginBottom: 8 },
   emptySub: { fontSize: 14, textAlign: 'center' },
   list: { paddingHorizontal: 16, paddingTop: 8 },
-  card: {
-    borderRadius: 16,
-    borderWidth: 1,
-    borderLeftWidth: 3,
-    marginBottom: 10,
-    padding: 14,
-  },
+  card: { borderRadius: 16, borderWidth: 1, borderLeftWidth: 3, marginBottom: 10, padding: 14 },
   cardHeader: { flexDirection: 'row', alignItems: 'flex-start' },
-  iconContainer: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
+  iconContainer: { width: 38, height: 38, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
   cardContent: { flex: 1 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   title: { fontSize: 14, fontWeight: '700', flex: 1 },
@@ -410,13 +370,6 @@ const styles = StyleSheet.create({
   priorityDot: { width: 6, height: 6, borderRadius: 3 },
   unreadDot: { width: 8, height: 8, borderRadius: 4, marginLeft: 8, marginTop: 4 },
   actionsRow: { flexDirection: 'row', gap: 8, marginTop: 12, marginLeft: 50 },
-  actionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    gap: 4,
-  },
+  actionBtn: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 8, gap: 4 },
   actionText: { fontSize: 11, fontWeight: '600' },
 });

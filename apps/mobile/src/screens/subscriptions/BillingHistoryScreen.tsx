@@ -78,7 +78,7 @@ export function BillingHistoryScreen() {
             </View>
           );
         }}
-        contentContainerStyle={invoices.length === 0 ? styles.emptyContainer : { padding: 16, paddingBottom: 40 }}
+        contentContainerStyle={invoices.length === 0 ? styles.emptyContainer : { padding: 16, paddingBottom: 100 }}
         ListEmptyComponent={
           <View style={styles.empty}>
             <Text style={styles.emptyIcon}>🧾</Text>

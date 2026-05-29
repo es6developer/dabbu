@@ -60,7 +60,7 @@ export function CreateFamilyScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 20, paddingBottom: 60 },
+  content: { padding: 20, paddingBottom: 120 },
   hero: { alignItems: 'center', marginBottom: 32, marginTop: 16 },
   heroIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
   title: { fontSize: 28, fontWeight: '700', marginBottom: 8 },

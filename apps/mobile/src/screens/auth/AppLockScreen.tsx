@@ -87,7 +87,7 @@ export function AppLockScreen({ onUnlock }: Props) {
         fallbackLabel: 'Enter PIN',
       });
       if (result.success) onUnlock();
-    } catch { /* ignore */ }
+    } catch (_e) { /* ignore */ }
   }
 
   function handleForgotPin() {

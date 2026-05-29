@@ -37,7 +37,7 @@ class OfflineStorage {
       if (stored) {
         this.state = JSON.parse(stored);
       }
-    } catch {
+    } catch (_e) {
       // Use in-memory fallback
     }
   }
@@ -45,7 +45,7 @@ class OfflineStorage {
   private async persist() {
     try {
       await AsyncStorage.setItem(OfflineStorage.KEY, JSON.stringify(this.state));
-    } catch {
+    } catch (_e) {
       // In-memory only
     }
     this.notify();

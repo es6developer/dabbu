@@ -299,7 +299,7 @@ export function DashboardScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: { paddingBottom: 32 },
+  scrollContent: { paddingBottom: 100 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   headerGradient: { paddingBottom: 0 },
   header: { paddingHorizontal: 24, paddingBottom: 24 },

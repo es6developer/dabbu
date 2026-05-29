@@ -30,7 +30,7 @@ export function GoalsListScreen() {
       <FlatList
         data={goals} keyExtractor={(g) => g.id}
         refreshControl={<RefreshControl refreshing={false} onRefresh={loadGoals} tintColor={colors.accent.primary} />}
-        contentContainerStyle={goals.length === 0 ? styles.emptyContainer : { padding: 16, paddingBottom: 40 }}
+        contentContainerStyle={goals.length === 0 ? styles.emptyContainer : { padding: 16, paddingBottom: 100 }}
         renderItem={({ item }) => {
           const saved = Number(item.saved || item.currentAmount || 0);
           const target = Number(item.target || item.targetAmount || 0);

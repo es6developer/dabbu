@@ -43,7 +43,7 @@ export function InvestmentsListScreen() {
       <FlatList
         data={investments} keyExtractor={(i) => i.id}
         refreshControl={<RefreshControl refreshing={false} onRefresh={loadInvestments} tintColor={colors.accent.primary} />}
-        contentContainerStyle={investments.length === 0 ? styles.emptyContainer : { paddingHorizontal: 16, paddingBottom: 40 }}
+        contentContainerStyle={investments.length === 0 ? styles.emptyContainer : { paddingHorizontal: 16, paddingBottom: 100 }}
         renderItem={({ item }) => {
           const cur = Number(item.currentValue || item.amount || 0);
           const inv = Number(item.investedAmount || item.amount || 0);

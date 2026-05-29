@@ -105,7 +105,7 @@ export function CreateBudgetScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 20, paddingBottom: 60 },
+  content: { padding: 20, paddingBottom: 120 },
   title: { fontSize: 28, fontWeight: '700', marginBottom: 24 },
   errorBox: { padding: 12, borderRadius: 12, marginBottom: 16 },
   errorText: { fontSize: 14 },

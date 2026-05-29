@@ -69,7 +69,7 @@ export function useSessionValidity({
               setState((prev) => ({ ...prev, isValid: true, isExpired: false, isLoading: false }));
             }
             return;
-          } catch {
+          } catch (_e) {
             if (mountedRef.current) {
               setState((prev) => ({ ...prev, isValid: false, isExpired: true, isLoading: false }));
             }
@@ -124,7 +124,7 @@ export function useSessionValidity({
       socket.on('disconnect', () => {});
 
       socketRef.current = socket;
-    } catch {
+    } catch (_e) {
       // polling fallback
     }
   }, [handleExpiredSession]);
@@ -148,7 +148,7 @@ export function useSessionValidity({
         if (mountedRef.current) {
           setState({ isValid: true, isLoading: false, isExpired: false });
         }
-      } catch {
+      } catch (_e) {
         // re-auth failed
       }
     } else {
@@ -157,7 +157,7 @@ export function useSessionValidity({
         if (mountedRef.current) {
           setState({ isValid: true, isLoading: false, isExpired: false });
         }
-      } catch {
+      } catch (_e) {
         // re-auth failed
       }
     }

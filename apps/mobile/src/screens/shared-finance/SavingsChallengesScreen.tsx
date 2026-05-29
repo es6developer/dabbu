@@ -134,7 +134,7 @@ export function SavingsChallengesScreen() {
     try {
       const res = await api.get<LeaderboardEntry[]>(`/ai-insights/savings-challenges/${challengeId}/leaderboard`);
       setLeaderboardData(prev => ({ ...prev, [challengeId]: res }));
-    } catch {
+    } catch (_e) {
       // ignore
     } finally {
       setLoadingLeaderboard(prev => ({ ...prev, [challengeId]: false }));
@@ -422,7 +422,7 @@ export function SavingsChallengesScreen() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  scrollContent: { paddingBottom: 40 },
+  scrollContent: { paddingBottom: 100 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',

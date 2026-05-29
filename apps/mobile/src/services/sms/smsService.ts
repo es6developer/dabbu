@@ -5,7 +5,7 @@ function getReadSmsPermission() {
   try {
     const { PermissionsAndroid } = require('react-native');
     return PermissionsAndroid.PERMISSIONS.READ_SMS;
-  } catch {
+  } catch (_e) {
     return null;
   }
 }
@@ -57,7 +57,7 @@ export async function checkSmsPermission(): Promise<SmsPermissionStatus> {
     if (granted) return 'granted';
 
     return 'denied';
-  } catch {
+  } catch (_e) {
     return 'unavailable';
   }
 }
@@ -87,7 +87,7 @@ export async function requestSmsPermission(): Promise<SmsPermissionStatus> {
         }
         return 'denied';
     }
-  } catch {
+  } catch (_e) {
     return 'unavailable';
   }
 }
@@ -191,12 +191,12 @@ export async function readSmsSince(timestamp?: number): Promise<SmsMessage[]> {
               /(?:rs|inr|debited|credited|paid|received|balance|upi|spent|withdrawn|transfer|refund|payment|bill|recharge|emi|trf|amount|ac\b|card|bank|a\/c)/i.test(m.body),
             );
             resolve(messages);
-          } catch {
+          } catch (_e) {
             resolve([]);
           }
         },
       );
-    } catch {
+    } catch (_e) {
       resolve([]);
     }
   });

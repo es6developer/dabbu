@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, Switch, Alert, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -12,6 +13,7 @@ const DAYS_OF_WEEK = [{ label: 'Sun', value: 0 }, { label: 'Mon', value: 1 }, { 
 
 export function CreateReminderScreen() {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
   const [title, setTitle] = useState('');
@@ -71,7 +73,7 @@ export function CreateReminderScreen() {
   }
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.bg.primary }]} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <ScrollView style={[styles.container, { backgroundColor: colors.bg.primary }]} contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]} keyboardShouldPersistTaps="handled">
       <Text style={[styles.title, { color: colors.text.primary }]}>New Reminder</Text>
       {error ? <View style={[styles.errorBox, { backgroundColor: `${colors.status.error}18` }]}><Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text></View> : null}
 
@@ -167,7 +169,7 @@ export function CreateReminderScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 20, paddingBottom: 60 },
+  content: { padding: 20 },
   title: { fontSize: 28, fontWeight: '700', marginBottom: 24 },
   errorBox: { padding: 12, borderRadius: 12, marginBottom: 16 },
   errorText: { fontSize: 14 },

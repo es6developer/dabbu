@@ -47,7 +47,7 @@ export function useConversionEngine({ tempUserId, enabled = true }: UseConversio
       if (stored) {
         dismissedRef.current = new Set(JSON.parse(stored));
       }
-    } catch {
+    } catch (_e) {
       // ignore
     }
   }, []);
@@ -59,7 +59,7 @@ export function useConversionEngine({ tempUserId, enabled = true }: UseConversio
         DISMISSED_BANNERS_KEY,
         JSON.stringify([...dismissedRef.current]),
       );
-    } catch {
+    } catch (_e) {
       // ignore
     }
   }, []);
@@ -94,7 +94,7 @@ export function useConversionEngine({ tempUserId, enabled = true }: UseConversio
       if (mountedRef.current) {
         setState(prev => ({ ...prev, evaluation }));
       }
-    } catch {
+    } catch (_e) {
       // silent fail for evaluation
     }
   }, [tempUserId, enabled]);
@@ -107,7 +107,7 @@ export function useConversionEngine({ tempUserId, enabled = true }: UseConversio
     if (!tempUserId) return;
     try {
       await logOnboardingEvent({ eventType, bannerId, source, tempUserId });
-    } catch {
+    } catch (_e) {
       // silent fail for tracking
     }
   }, [tempUserId]);
