@@ -2,9 +2,12 @@ import {
   Injectable, Logger, BadRequestException, UnauthorizedException, ConflictException,
 } from '@nestjs/common';
 import * as crypto from 'crypto';
+import { OAuth2Client } from 'google-auth-library';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { AnonymousLoginDto } from './dto/anonymous-login.dto';
 import { GoogleLoginDto } from './dto/google-login.dto';
+
+const GOOGLE_CLIENT_ID = '1031730335520-m1ovd3tjcrm74a0pdqp03qgm27bnuita.apps.googleusercontent.com';
 
 interface OtpEntry {
   otp: string;
@@ -45,7 +48,7 @@ export class TempAuthService {
           sessionExpiresAt,
           devicePlatform: dto.devicePlatform ?? existing.devicePlatform,
           fcmToken: dto.fcmToken ?? existing.fcmToken,
-          name: dto.name ?? existing.name,
+          displayName: dto.name ?? existing.displayName,
           sessionCount: { increment: 1 },
           lastActiveAt: new Date(),
         },
@@ -56,7 +59,7 @@ export class TempAuthService {
         refreshToken,
         user: {
           id: existing.id,
-          name: dto.name || existing.name,
+          name: dto.name || existing.displayName,
           isExisting: true,
         },
       };
@@ -71,7 +74,7 @@ export class TempAuthService {
         deviceId,
         devicePlatform: dto.devicePlatform ?? null,
         fcmToken: dto.fcmToken ?? null,
-        name: dto.name ?? null,
+        displayName: dto.name ?? null,
         loginMethod: 'anonymous',
         sessionToken,
         refreshToken,
@@ -86,15 +89,36 @@ export class TempAuthService {
       refreshToken,
       user: {
         id: tempUser.id,
-        name: tempUser.name,
+        name: tempUser.displayName,
         isExisting: false,
       },
     };
   }
 
   async googleLogin(dto: GoogleLoginDto) {
+    const client = new OAuth2Client();
+    let payload;
+    try {
+      const ticket = await client.verifyIdToken({
+        idToken: dto.idToken,
+        audience: GOOGLE_CLIENT_ID,
+      });
+      payload = ticket.getPayload();
+    } catch (err) {
+      this.logger.error('Invalid Google ID token', err);
+      throw new UnauthorizedException('Invalid Google sign-in token');
+    }
+    if (!payload || !payload.sub) {
+      throw new BadRequestException('Could not verify Google identity');
+    }
+
+    const googleId = payload.sub;
+    const email = payload.email || null;
+    const displayName = payload.name || null;
+    const avatarUrl = payload.picture || null;
+
     let tempUser = await this.prisma.tempUser.findFirst({
-      where: { googleId: dto.email, isActive: true, convertedToUserId: null },
+      where: { googleId, isActive: true, convertedToUserId: null },
     });
 
     const sessionToken = this.generateSessionToken();
@@ -105,8 +129,9 @@ export class TempAuthService {
       tempUser = await this.prisma.tempUser.update({
         where: { id: tempUser.id },
         data: {
-          displayName: dto.displayName ?? tempUser.displayName,
-          avatarUrl: dto.avatarUrl ?? tempUser.avatarUrl,
+          email: email ?? tempUser.email,
+          displayName: displayName ?? tempUser.displayName,
+          avatarUrl: avatarUrl ?? tempUser.avatarUrl,
           deviceId: dto.deviceId ?? tempUser.deviceId,
           sessionToken,
           refreshToken,
@@ -119,10 +144,10 @@ export class TempAuthService {
     } else {
       tempUser = await this.prisma.tempUser.create({
         data: {
-          email: dto.email ?? null,
-          googleId: dto.email,
-          displayName: dto.displayName ?? null,
-          avatarUrl: dto.avatarUrl ?? null,
+          email,
+          googleId,
+          displayName,
+          avatarUrl,
           deviceId: dto.deviceId ?? null,
           loginMethod: 'google',
           sessionToken,
@@ -134,7 +159,6 @@ export class TempAuthService {
       });
     }
 
-    const isExisting = !!dto.email && !!tempUser;
     return {
       token: sessionToken,
       refreshToken,
@@ -142,7 +166,6 @@ export class TempAuthService {
         id: tempUser.id,
         name: tempUser.displayName || tempUser.email || 'Guest',
         email: tempUser.email,
-        isExisting,
       },
     };
   }
@@ -273,7 +296,6 @@ export class TempAuthService {
         id: tempUser.id,
         name: tempUser.displayName || tempUser.email || 'Guest',
         email: tempUser.email,
-        isExisting: !!existing,
       },
     };
   }
