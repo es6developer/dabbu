@@ -102,30 +102,12 @@ export const api = {
   clearTempSession,
 
   auth: {
-    sendOtp: (email: string) =>
-      post<{ success: boolean }>('/external-sharing/auth/email-otp', { email }),
-    verifyOtp: (email: string, otp: string) =>
-      post<{ token: string; user: Record<string, unknown> }>(
-        '/external-sharing/auth/email-verify',
-        { email, otp },
-      ),
-    phoneSendOtp: (phone: string) =>
-      post<{ success: boolean }>('/external-sharing/auth/phone-otp', { phone }),
-    phoneVerifyOtp: (phone: string, otp: string) =>
-      post<{ token: string; user: Record<string, unknown> }>(
-        '/external-sharing/auth/phone-verify',
-        { phone, otp },
-      ),
-    anonymous: (name: string) => {
+    google: (idToken: string) => {
       const deviceId = `web_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-      return post<{ token: string; user: Record<string, unknown> }>('/external-sharing/auth/anonymous', {
-        name,
-        deviceId,
-        devicePlatform: 'web',
-      });
-    },
-    google: () => {
-      window.location.href = `${API_BASE_URL}/external-sharing/auth/google`;
+      return post<{ token: string; user: Record<string, unknown> }>(
+        '/external-sharing/auth/google',
+        { idToken, deviceId, devicePlatform: 'web' },
+      );
     },
   },
 

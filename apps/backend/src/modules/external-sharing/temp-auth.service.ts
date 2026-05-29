@@ -134,11 +134,16 @@ export class TempAuthService {
       });
     }
 
+    const isExisting = !!dto.email && !!tempUser;
     return {
-      tempUser: tempUser.id,
-      sessionToken,
+      token: sessionToken,
       refreshToken,
-      expiresAt: sessionExpiresAt,
+      user: {
+        id: tempUser.id,
+        name: tempUser.displayName || tempUser.email || 'Guest',
+        email: tempUser.email,
+        isExisting,
+      },
     };
   }
 
@@ -262,10 +267,14 @@ export class TempAuthService {
     });
 
     return {
-      tempUser: tempUser.id,
-      sessionToken,
-      refreshToken: newRefreshToken,
-      expiresAt: sessionExpiresAt,
+      token: sessionToken,
+      refreshToken,
+      user: {
+        id: tempUser.id,
+        name: tempUser.displayName || tempUser.email || 'Guest',
+        email: tempUser.email,
+        isExisting: !!existing,
+      },
     };
   }
 

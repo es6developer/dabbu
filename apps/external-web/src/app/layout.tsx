@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Toaster } from "sonner";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import "./globals.css";
+
+const GOOGLE_CLIENT_ID = "1031730335520-m1ovd3tjcrm74a0pdqp03qgm27bnuita.apps.googleusercontent.com";
 
 export const metadata: Metadata = {
   title: "Dabbu Split - Collaborative Finance",
@@ -43,7 +46,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="min-h-screen bg-dabbu-bg text-dabbu-text antialiased">
-        <ThemeProvider>{children}</ThemeProvider>
+        <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+          <ThemeProvider>{children}</ThemeProvider>
+        </GoogleOAuthProvider>
         <Toaster
           position="top-center"
           toastOptions={{
