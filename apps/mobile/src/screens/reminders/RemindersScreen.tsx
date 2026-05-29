@@ -42,10 +42,12 @@ export function RemindersScreen() {
       if (isRefresh) setRefreshing(true);
       else setLoading(true);
       if (accessToken) setAccessToken(accessToken);
-      const res = await api.get<any>('/reminders?status=pending');
+      const [res, unreadRes] = await Promise.all([
+        api.get<any>('/reminders?status=pending'),
+        api.get<any>('/notifications/unread-count').catch(() => ({ count: 0 })),
+      ]);
       const data = res?.data || [];
       setReminders(Array.isArray(data) ? data : []);
-      const unreadRes = await api.get<any>('/notifications/unread-count').catch(() => ({ count: 0 }));
       setUnreadCount(unreadRes?.count || 0);
     } catch (_e) {
       setReminders([]);

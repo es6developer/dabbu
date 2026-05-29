@@ -44,7 +44,7 @@ export default function App(): React.ReactElement | null {
           'Inter-SemiBold': require('./src/assets/fonts/Inter-SemiBold.ttf'),
           'Inter-Bold': require('./src/assets/fonts/Inter-Bold.ttf'),
         });
-        await loadFeatures();
+        loadFeatures();
       } catch (e) {
         console.warn('Font loading error:', e);
       } finally {

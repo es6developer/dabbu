@@ -76,14 +76,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userData = await storage.getItem('userData');
 
       if (token && userData) {
-    setState({
-      isAuthenticated: true,
-      isLoading: false,
-      user,
-      accessToken: tokens.accessToken,
-    });
+        const parsedUser = JSON.parse(userData);
+        setAccessToken(token);
+        setState({
+          isAuthenticated: true,
+          isLoading: false,
+          user: parsedUser,
+          accessToken: token,
+        });
 
-    registerForPushNotifications(tokens.accessToken).catch(() => {});
+        registerForPushNotifications(token).catch(() => {});
       } else {
         setState((prev) => ({ ...prev, isLoading: false }));
       }
