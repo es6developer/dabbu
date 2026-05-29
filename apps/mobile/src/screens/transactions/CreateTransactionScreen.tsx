@@ -28,13 +28,11 @@ export function CreateTransactionScreen() {
   const [description, setDescription] = useState(prefill?.description || '');
   const [category, setCategory] = useState(prefill?.categoryName || '');
   const [categoryId, setCategoryId] = useState('');
-  const [accountId, setAccountId] = useState('');
   const [date, setDate] = useState(prefill?.date || new Date().toISOString().split('T')[0]);
   const [tags, setTags] = useState((prefill?.tags || []).join(', '));
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurringFrequency, setRecurringFrequency] = useState('monthly');
   const [categories, setCategories] = useState<any[]>([]);
-  const [accounts, setAccounts] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [loadingMeta, setLoadingMeta] = useState(true);
@@ -47,14 +45,9 @@ export function CreateTransactionScreen() {
   async function loadMeta() {
     let catData: any[] = [];
     try {
-      const [catRes, accRes] = await Promise.all([
-        api.get<any>('/categories'),
-        api.get<any>('/accounts'),
-      ]);
+      const catRes = await api.get<any>('/categories');
       catData = Array.isArray(catRes.data) ? catRes.data : Array.isArray(catRes.data?.data) ? catRes.data.data : [];
       setCategories(catData);
-      const accData = Array.isArray(accRes.data) ? accRes.data : Array.isArray(accRes.data?.data) ? accRes.data.data : [];
-      setAccounts(accData);
     } catch (e) { /* ignore */ }
     finally {
       if (prefill?.categoryName && catData.length > 0) {
@@ -77,7 +70,6 @@ export function CreateTransactionScreen() {
 
   async function handleSave() {
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) { setError('Valid amount is required'); return; }
-    if (!accountId) { setError('Please select an account'); return; }
     setError('');
     setSaving(true);
     if (accessToken) setAccessToken(accessToken);
@@ -86,7 +78,6 @@ export function CreateTransactionScreen() {
         amount: Number(amount),
         type: type === 'income' ? 'income' : 'expense',
         description: description.trim(),
-        accountId,
         date,
         tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
         isRecurring,
@@ -144,19 +135,6 @@ export function CreateTransactionScreen() {
           </TouchableOpacity>
         ))}
       </View>
-
-      <Text style={[styles.label, { color: colors.text.tertiary }]}>Account</Text>
-      {accounts.length === 0 ? (
-        <Text style={[styles.emptyMeta, { color: colors.text.tertiary }]}>No accounts found. Link an account first.</Text>
-      ) : (
-        <View style={styles.chipRow}>
-          {accounts.map((acc) => (
-            <TouchableOpacity key={acc.id} style={[styles.chip, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle }, accountId === acc.id && { backgroundColor: `${colors.accent.primary}20`, borderColor: colors.accent.primary }]} onPress={() => setAccountId(acc.id)}>
-              <Text style={[styles.chipText, { color: colors.text.tertiary }, accountId === acc.id && { color: colors.accent.primary, fontWeight: '600' }]}>{acc.name}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
 
       <Text style={[styles.label, { color: colors.text.tertiary }]}>Date</Text>
       <TextInput style={[styles.input, { backgroundColor: colors.bg.tertiary, color: colors.text.primary, borderColor: colors.border.subtle }]} value={date} onChangeText={setDate} placeholder="YYYY-MM-DD" placeholderTextColor={colors.text.tertiary} />
