@@ -86,9 +86,10 @@ const GROUP_TYPE_CONFIG: Record<
 
 const SPLIT_TYPE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   equal: 'git-branch-outline',
-  custom: 'options-outline',
   percentage: 'percent-outline',
-  shares: 'layers-outline',
+  exact: 'calculator-outline',
+  weighted: 'layers-outline',
+  custom: 'options-outline',
 };
 
 const formatAmount = (amount: number, currency: string = 'INR') => {
@@ -180,18 +181,20 @@ export function GroupDetailScreen() {
             role: m.role,
             balance: data.balances?.find((b: any) => b.memberId === m.id)?.netBalance || 0,
           })),
-          expenses: (expensesRes || []).map((e: any) => ({
-            id: e.id,
-            description: e.description,
-            amount: Number(e.amount ?? 0),
-            paidBy: {
-              id: e.paidBy?.id || e.paidByMemberId,
-              name: e.paidBy?.name || e.paidByName || 'Unknown',
-            },
-            date: e.date || e.createdAt,
-            splitType: e.splitType || 'equal',
-            category: e.category,
-          })),
+          expenses: (expensesRes || []).map((e: any) => {
+            const paidByName = e.paidBy?.user
+              ? `${e.paidBy.user.firstName || ''} ${e.paidBy.user.lastName || ''}`.trim()
+              : e.paidBy?.name || e.paidByName || 'Unknown';
+            return {
+              id: e.id,
+              description: e.description,
+              amount: Number(e.amount ?? 0),
+              paidBy: { id: e.paidBy?.id || e.paidByMemberId, name: paidByName },
+              date: e.date || e.createdAt,
+              splitType: e.splitType || 'equal',
+              category: e.category,
+            };
+          }),
           settlements: (settlementsRes || []).map((s: any) => ({
             id: s.id,
             from: {
