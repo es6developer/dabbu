@@ -12,6 +12,7 @@ export function ExpenseTabNavigator() {
 
   return (
     <Tab.Navigator
+      initialRouteName="SharedCircles"
       screenOptions={{
         tabBarStyle: {
           backgroundColor: colors.bg.primary,

@@ -136,7 +136,7 @@ export function GroupExpensesScreen() {
         }
         ListHeaderComponent={
           <View>
-            <View style={[styles.headerSection, { paddingTop: insets.top + 16 }]}>
+            <View style={[styles.headerSection]}>
               <TouchableOpacity
                 onPress={() => navigation.goBack()}
                 style={[
@@ -301,7 +301,7 @@ export function GroupExpensesScreen() {
         colors={['#6C5CE7', '#A29BFE']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={[styles.fab, { bottom: insets.bottom + 24 }]}
+        style={[styles.fab, { bottom: insets.bottom + 125 }]}
       >
         <TouchableOpacity
           onPress={() =>

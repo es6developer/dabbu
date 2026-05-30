@@ -224,7 +224,6 @@ export class InvitationService {
             name: true,
             type: true,
             avatarUrl: true,
-            memberCount: true,
             ownerId: true,
           },
         },
