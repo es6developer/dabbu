@@ -1,6 +1,4 @@
-import {
-  Injectable, NotFoundException, BadRequestException, Logger,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { addDays, addWeeks, addMonths, addYears, startOfDay, endOfDay, isBefore } from 'date-fns';
 import { CreateReminderDto, UpdateReminderDto, ListRemindersQueryDto } from './dto';
@@ -24,6 +22,7 @@ export class ReminderService {
           type: reminderData.type,
           priority: reminderData.priority,
           status: reminderData.status || ReminderStatus.PENDING,
+          remindAt: new Date(reminderData.startDate),
           startDate: new Date(reminderData.startDate),
           dueDate: reminderData.dueDate ? new Date(reminderData.dueDate) : null,
           snoozedUntil: reminderData.snoozedUntil ? new Date(reminderData.snoozedUntil) : null,
@@ -76,9 +75,15 @@ export class ReminderService {
       deletedAt: null,
     };
 
-    if (query.type) where.type = query.type;
-    if (query.priority) where.priority = query.priority;
-    if (query.status) where.status = query.status;
+    if (query.type) {
+      where.type = query.type;
+    }
+    if (query.priority) {
+      where.priority = query.priority;
+    }
+    if (query.status) {
+      where.status = query.status;
+    }
     if (query.search) {
       where.OR = [
         { title: { contains: query.search, mode: 'insensitive' } },
@@ -87,8 +92,12 @@ export class ReminderService {
     }
     if (query.startDate || query.endDate) {
       where.startDate = {};
-      if (query.startDate) where.startDate.gte = new Date(query.startDate);
-      if (query.endDate) where.startDate.lte = new Date(query.endDate);
+      if (query.startDate) {
+        where.startDate.gte = new Date(query.startDate);
+      }
+      if (query.endDate) {
+        where.startDate.lte = new Date(query.endDate);
+      }
     }
 
     const [items, total] = await Promise.all([
@@ -125,7 +134,9 @@ export class ReminderService {
       },
     });
 
-    if (!reminder) throw new NotFoundException('Reminder not found');
+    if (!reminder) {
+      throw new NotFoundException('Reminder not found');
+    }
     return this._formatReminder(reminder);
   }
 
@@ -134,24 +145,50 @@ export class ReminderService {
       where: { id, userId, deletedAt: null },
     });
 
-    if (!existing) throw new NotFoundException('Reminder not found');
+    if (!existing) {
+      throw new NotFoundException('Reminder not found');
+    }
 
     const { recurring, ...reminderData } = dto;
 
     return this.prisma.$transaction(async (tx) => {
       const updateData: any = {};
 
-      if (reminderData.title !== undefined) updateData.title = reminderData.title;
-      if (reminderData.description !== undefined) updateData.description = reminderData.description;
-      if (reminderData.type !== undefined) updateData.type = reminderData.type;
-      if (reminderData.priority !== undefined) updateData.priority = reminderData.priority;
-      if (reminderData.status !== undefined) updateData.status = reminderData.status;
-      if (reminderData.startDate !== undefined) updateData.startDate = new Date(reminderData.startDate);
-      if (reminderData.dueDate !== undefined) updateData.dueDate = reminderData.dueDate ? new Date(reminderData.dueDate) : null;
-      if (reminderData.snoozedUntil !== undefined) updateData.snoozedUntil = reminderData.snoozedUntil ? new Date(reminderData.snoozedUntil) : null;
-      if (reminderData.isRecurring !== undefined) updateData.isRecurring = reminderData.isRecurring;
-      if (reminderData.categoryId !== undefined) updateData.categoryId = reminderData.categoryId;
-      if (reminderData.metadata !== undefined) updateData.metadata = reminderData.metadata;
+      if (reminderData.title !== undefined) {
+        updateData.title = reminderData.title;
+      }
+      if (reminderData.description !== undefined) {
+        updateData.description = reminderData.description;
+      }
+      if (reminderData.type !== undefined) {
+        updateData.type = reminderData.type;
+      }
+      if (reminderData.priority !== undefined) {
+        updateData.priority = reminderData.priority;
+      }
+      if (reminderData.status !== undefined) {
+        updateData.status = reminderData.status;
+      }
+      if (reminderData.startDate !== undefined) {
+        updateData.startDate = new Date(reminderData.startDate);
+      }
+      if (reminderData.dueDate !== undefined) {
+        updateData.dueDate = reminderData.dueDate ? new Date(reminderData.dueDate) : null;
+      }
+      if (reminderData.snoozedUntil !== undefined) {
+        updateData.snoozedUntil = reminderData.snoozedUntil
+          ? new Date(reminderData.snoozedUntil)
+          : null;
+      }
+      if (reminderData.isRecurring !== undefined) {
+        updateData.isRecurring = reminderData.isRecurring;
+      }
+      if (reminderData.categoryId !== undefined) {
+        updateData.categoryId = reminderData.categoryId;
+      }
+      if (reminderData.metadata !== undefined) {
+        updateData.metadata = reminderData.metadata;
+      }
 
       const reminder = await tx.reminder.update({
         where: { id },
@@ -213,7 +250,9 @@ export class ReminderService {
       where: { id, userId, deletedAt: null },
     });
 
-    if (!existing) throw new NotFoundException('Reminder not found');
+    if (!existing) {
+      throw new NotFoundException('Reminder not found');
+    }
 
     await this.prisma.reminder.update({
       where: { id },
@@ -228,7 +267,9 @@ export class ReminderService {
       where: { id, userId, deletedAt: null },
     });
 
-    if (!existing) throw new NotFoundException('Reminder not found');
+    if (!existing) {
+      throw new NotFoundException('Reminder not found');
+    }
 
     const reminder = await this.prisma.reminder.update({
       where: { id },
@@ -251,7 +292,9 @@ export class ReminderService {
       where: { id, userId, deletedAt: null },
     });
 
-    if (!existing) throw new NotFoundException('Reminder not found');
+    if (!existing) {
+      throw new NotFoundException('Reminder not found');
+    }
 
     const snoozedUntil = new Date(until);
     if (isBefore(snoozedUntil, new Date())) {
@@ -315,10 +358,7 @@ export class ReminderService {
         deletedAt: null,
         status: { notIn: [ReminderStatus.COMPLETED, ReminderStatus.DISMISSED] },
         dueDate: { lt: now },
-        OR: [
-          { snoozedUntil: null },
-          { snoozedUntil: { lt: now } },
-        ],
+        OR: [{ snoozedUntil: null }, { snoozedUntil: { lt: now } }],
       } as any,
       orderBy: { dueDate: 'asc' },
       include: { recurring: true, category: true },
@@ -368,7 +408,9 @@ export class ReminderService {
 
   private async _handleRecurrenceAfterCompletion(reminder: any) {
     const recurring = reminder.recurring;
-    if (!recurring) return;
+    if (!recurring) {
+      return;
+    }
 
     const newCount = (recurring.count || 0) + 1;
 
@@ -467,14 +509,17 @@ export class ReminderService {
   }
 
   private _formatReminder(reminder: any) {
-    if (!reminder) return null;
+    if (!reminder) {
+      return null;
+    }
 
     let parsedDaysOfWeek: number[] | undefined;
     if (reminder.recurring?.daysOfWeek) {
       try {
-        parsedDaysOfWeek = typeof reminder.recurring.daysOfWeek === 'string'
-          ? JSON.parse(reminder.recurring.daysOfWeek)
-          : reminder.recurring.daysOfWeek;
+        parsedDaysOfWeek =
+          typeof reminder.recurring.daysOfWeek === 'string'
+            ? JSON.parse(reminder.recurring.daysOfWeek)
+            : reminder.recurring.daysOfWeek;
       } catch {
         parsedDaysOfWeek = undefined;
       }

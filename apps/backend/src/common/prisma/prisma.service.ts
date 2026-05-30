@@ -6,10 +6,13 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   private readonly logger = new Logger(PrismaService.name);
 
   constructor() {
+    const baseUrl = process.env.DATABASE_URL || '';
+    const url = baseUrl.includes('?')
+      ? baseUrl + '&connection_limit=1&pool_timeout=10'
+      : baseUrl + '?connection_limit=1&pool_timeout=10';
     super({
-      log: process.env.NODE_ENV === 'development'
-        ? ['query', 'info', 'warn', 'error']
-        : ['error'],
+      log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
+      datasourceUrl: url,
     });
   }
 
@@ -29,9 +32,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     }
     const tableNames = Object.values(this).filter(
       (value): value is { tableName: string } =>
-        typeof value === 'object' &&
-        value !== null &&
-        'tableName' in value,
+        typeof value === 'object' && value !== null && 'tableName' in value,
     );
     for (const table of tableNames) {
       await this.$executeRawUnsafe(`DELETE FROM \`${table.tableName}\``);

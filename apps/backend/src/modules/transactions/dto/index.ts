@@ -1,4 +1,14 @@
-import { IsString, IsNumber, IsOptional, IsBoolean, IsDateString, IsEnum, IsArray, Min, Max } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsBoolean,
+  IsDateString,
+  IsEnum,
+  IsArray,
+  Min,
+  Max,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export enum TransactionType {
@@ -37,11 +47,18 @@ export class CreateTransactionDto {
   @ApiPropertyOptional() @IsOptional() @IsString() paymentMethod?: string;
 
   @ApiPropertyOptional() @IsOptional() @IsString() bankName?: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsString() groupId?: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsString() expenseGroupId?: string;
 }
 
 export class UpdateTransactionDto {
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0.01) amount?: number;
-  @ApiPropertyOptional({ enum: TransactionType }) @IsOptional() @IsEnum(TransactionType) type?: TransactionType;
+  @ApiPropertyOptional({ enum: TransactionType })
+  @IsOptional()
+  @IsEnum(TransactionType)
+  type?: TransactionType;
   @ApiPropertyOptional() @IsOptional() @IsString() accountId?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() categoryId?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() title?: string;
@@ -64,4 +81,8 @@ export class TransactionFilterDto {
   @ApiPropertyOptional() @IsOptional() @IsString() search?: string;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(1) page?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(1) @Max(100) limit?: number;
+
+  @ApiPropertyOptional() @IsOptional() @IsString() groupId?: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsString() expenseGroupId?: string;
 }

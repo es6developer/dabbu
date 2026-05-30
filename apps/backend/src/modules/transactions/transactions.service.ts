@@ -10,18 +10,26 @@ export class TransactionsService {
     const account = await this.prisma.account.findFirst({
       where: { id: dto.accountId, userId, isDeleted: false },
     });
-    if (!account) throw new NotFoundException('Account not found');
+    if (!account) {
+      throw new NotFoundException('Account not found');
+    }
 
-    const categoryId = dto.categoryId || await this.predictCategory(userId, dto);
+    const categoryId = dto.categoryId || (await this.predictCategory(userId, dto));
+
+    const metadata: Record<string, any> = {};
+    if (dto.groupId) {
+      metadata.groupId = dto.groupId;
+    }
 
     const tx = await this.prisma.transaction.create({
       data: {
         userId,
         accountId: dto.accountId,
         categoryId,
+        expenseGroupId: dto.expenseGroupId || null,
         amount: dto.amount,
         type: dto.type,
-        date: new Date(dto.date),
+        date: dto.date ? new Date(dto.date) : new Date(),
         description: dto.description || dto.title,
         notes: dto.notes,
         tags: dto.tags || [],
@@ -29,6 +37,7 @@ export class TransactionsService {
         recurringFrequency: dto.recurringFrequency,
         receiptUrl: dto.receiptUrl,
         status: 'completed',
+        metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
       },
       include: { category: true, account: { select: { name: true, type: true } } },
     });
@@ -40,25 +49,45 @@ export class TransactionsService {
   async findAll(userId: string, filter: TransactionFilterDto) {
     const where: any = { userId, deletedAt: null };
 
-    if (filter.type) where.type = filter.type;
-    if (filter.categoryId) where.categoryId = filter.categoryId;
-    if (filter.accountId) where.accountId = filter.accountId;
-    if (filter.startDate) where.date = { ...where.date, gte: new Date(filter.startDate) };
-    if (filter.endDate) where.date = { ...where.date, lte: new Date(filter.endDate) };
-    if (filter.minAmount) where.amount = { ...where.amount, gte: filter.minAmount };
-    if (filter.maxAmount) where.amount = { ...where.amount, lte: filter.maxAmount };
+    if (filter.type) {
+      where.type = filter.type;
+    }
+    if (filter.categoryId) {
+      where.categoryId = filter.categoryId;
+    }
+    if (filter.accountId) {
+      where.accountId = filter.accountId;
+    }
+    if (filter.expenseGroupId) {
+      where.expenseGroupId = filter.expenseGroupId;
+    }
+    if (filter.startDate) {
+      where.date = { ...where.date, gte: new Date(filter.startDate) };
+    }
+    if (filter.endDate) {
+      where.date = { ...where.date, lte: new Date(filter.endDate) };
+    }
+    if (filter.minAmount) {
+      where.amount = { ...where.amount, gte: filter.minAmount };
+    }
+    if (filter.maxAmount) {
+      where.amount = { ...where.amount, lte: filter.maxAmount };
+    }
     if (filter.search) {
       where.OR = [
-        { description: { contains: filter.search, mode: 'insensitive' } },
-        { notes: { contains: filter.search, mode: 'insensitive' } },
+        { description: { contains: filter.search } },
+        { notes: { contains: filter.search } },
       ];
     }
 
     const page = filter.page || 1;
     const limit = filter.limit || 20;
+
+    // groupId is stored in the metadata JSON field; we filter in-memory
+    const needsGroupFilter = !!filter.groupId;
     const skip = (page - 1) * limit;
 
-    const [data, total] = await Promise.all([
+    const [rawData, total] = await Promise.all([
       this.prisma.transaction.findMany({
         where,
         include: { category: true, account: { select: { name: true, type: true } } },
@@ -69,6 +98,10 @@ export class TransactionsService {
       this.prisma.transaction.count({ where }),
     ]);
 
+    const data = needsGroupFilter
+      ? rawData.filter((t) => (t.metadata as any)?.groupId === filter.groupId)
+      : rawData;
+
     return { data, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   }
 
@@ -77,7 +110,9 @@ export class TransactionsService {
       where: { id, userId, deletedAt: null },
       include: { category: true, account: true },
     });
-    if (!tx) throw new NotFoundException('Transaction not found');
+    if (!tx) {
+      throw new NotFoundException('Transaction not found');
+    }
     return { data: tx };
   }
 
@@ -85,7 +120,9 @@ export class TransactionsService {
     const existing = await this.prisma.transaction.findFirst({
       where: { id, userId, deletedAt: null },
     });
-    if (!existing) throw new NotFoundException('Transaction not found');
+    if (!existing) {
+      throw new NotFoundException('Transaction not found');
+    }
 
     const tx = await this.prisma.transaction.update({
       where: { id },
@@ -118,7 +155,9 @@ export class TransactionsService {
     const existing = await this.prisma.transaction.findFirst({
       where: { id, userId, deletedAt: null },
     });
-    if (!existing) throw new NotFoundException('Transaction not found');
+    if (!existing) {
+      throw new NotFoundException('Transaction not found');
+    }
 
     await this.prisma.transaction.update({
       where: { id },
@@ -131,11 +170,9 @@ export class TransactionsService {
   async search(userId: string, query: string, limit: number = 20) {
     const data = await this.prisma.transaction.findMany({
       where: {
-        userId, deletedAt: null,
-        OR: [
-          { description: { contains: query, mode: 'insensitive' } },
-          { notes: { contains: query, mode: 'insensitive' } },
-        ],
+        userId,
+        deletedAt: null,
+        OR: [{ description: { contains: query } }, { notes: { contains: query } }],
       },
       include: { category: true, account: { select: { name: true } } },
       orderBy: { date: 'desc' },
@@ -172,16 +209,26 @@ export class TransactionsService {
     const monthlyData: Record<string, { income: number; expense: number }> = {};
     transactions.forEach((t) => {
       const key = `${t.date.getFullYear()}-${String(t.date.getMonth() + 1).padStart(2, '0')}`;
-      if (!monthlyData[key]) monthlyData[key] = { income: 0, expense: 0 };
-      if (t.type === 'income') monthlyData[key].income += Number(t.amount);
-      else monthlyData[key].expense += Number(t.amount);
+      if (!monthlyData[key]) {
+        monthlyData[key] = { income: 0, expense: 0 };
+      }
+      if (t.type === 'income') {
+        monthlyData[key].income += Number(t.amount);
+      } else {
+        monthlyData[key].expense += Number(t.amount);
+      }
     });
 
     const recent = transactions.slice(0, 10);
 
     return {
       data: {
-        summary: { totalExpense, totalIncome, netSavings: totalIncome - totalExpense, transactionCount: transactions.length },
+        summary: {
+          totalExpense,
+          totalIncome,
+          netSavings: totalIncome - totalExpense,
+          transactionCount: transactions.length,
+        },
         categoryBreakdown: Object.entries(categoryBreakdown)
           .map(([name, amount]) => ({ name, amount }))
           .sort((a, b) => b.amount - a.amount),
@@ -195,8 +242,12 @@ export class TransactionsService {
 
   async getCategorySummary(userId: string, startDate?: string, endDate?: string) {
     const where: any = { userId, deletedAt: null, type: 'expense' };
-    if (startDate) where.date = { ...where.date, gte: new Date(startDate) };
-    if (endDate) where.date = { ...where.date, lte: new Date(endDate) };
+    if (startDate) {
+      where.date = { ...where.date, gte: new Date(startDate) };
+    }
+    if (endDate) {
+      where.date = { ...where.date, lte: new Date(endDate) };
+    }
 
     const transactions = await this.prisma.transaction.findMany({
       where,
@@ -240,9 +291,14 @@ export class TransactionsService {
     const monthly: Record<string, { income: number; expense: number }> = {};
     transactions.forEach((t) => {
       const key = `${t.date.getFullYear()}-${String(t.date.getMonth() + 1).padStart(2, '0')}`;
-      if (!monthly[key]) monthly[key] = { income: 0, expense: 0 };
-      if (t.type === 'income') monthly[key].income += Number(t.amount);
-      else monthly[key].expense += Number(t.amount);
+      if (!monthly[key]) {
+        monthly[key] = { income: 0, expense: 0 };
+      }
+      if (t.type === 'income') {
+        monthly[key].income += Number(t.amount);
+      } else {
+        monthly[key].expense += Number(t.amount);
+      }
     });
 
     return {
@@ -265,7 +321,9 @@ export class TransactionsService {
     const existing = await this.prisma.transaction.findFirst({
       where: { id, userId, deletedAt: null },
     });
-    if (!existing) throw new NotFoundException('Transaction not found');
+    if (!existing) {
+      throw new NotFoundException('Transaction not found');
+    }
 
     const receiptUrl = `/uploads/receipts/${file.filename}`;
     await this.prisma.transaction.update({
@@ -289,22 +347,98 @@ export class TransactionsService {
   }
 
   private async predictCategory(userId: string, dto: CreateTransactionDto): Promise<string | null> {
-    if (dto.categoryId) return dto.categoryId;
+    if (dto.categoryId) {
+      return dto.categoryId;
+    }
 
     const keyword = (dto.description || dto.title || '').toLowerCase();
     const categoryMap: Record<string, string[]> = {
-      'Food & Dining': ['food', 'restaurant', 'swiggy', 'zomato', 'dining', 'cafe', 'lunch', 'dinner', 'breakfast', 'uber eats', 'pizza', 'burger'],
-      'Transportation': ['uber', 'ola', 'fuel', 'petrol', 'diesel', 'metro', 'bus', 'cab', 'uber', 'ola', 'parking', 'toll'],
-      'Shopping': ['amazon', 'flipkart', 'myntra', 'shopping', 'mall', 'clothing', 'electronics', 'online'],
-      'Bills & Utilities': ['electricity', 'water', 'gas', 'broadband', 'wifi', 'phone', 'mobile', 'recharge', 'bill'],
-      'Entertainment': ['netflix', 'prime', 'hotstar', 'movie', 'cinema', 'spotify', 'game', 'entertainment'],
-      'Healthcare': ['hospital', 'doctor', 'clinic', 'pharmacy', 'medicine', 'medical', 'health', 'doctor', 'dentist'],
-      'Education': ['course', 'class', 'training', 'book', 'education', 'university', 'college', 'school', 'tutor'],
-      'Rent': ['rent', 'lease', 'deposit'],
-      'Salary': ['salary', 'income', 'payroll', 'payout', 'wages'],
-      'Transfer': ['transfer', 'neft', 'imps', 'rtgs', 'upi', 'bank transfer'],
-      'Investment': ['mutual fund', 'stock', 'share', 'investment', 'sip', 'fd', 'fixed deposit'],
-      'EMI': ['emi', 'loan', 'installment'],
+      'Food & Dining': [
+        'food',
+        'restaurant',
+        'swiggy',
+        'zomato',
+        'dining',
+        'cafe',
+        'lunch',
+        'dinner',
+        'breakfast',
+        'uber eats',
+        'pizza',
+        'burger',
+      ],
+      Transportation: [
+        'uber',
+        'ola',
+        'fuel',
+        'petrol',
+        'diesel',
+        'metro',
+        'bus',
+        'cab',
+        'uber',
+        'ola',
+        'parking',
+        'toll',
+      ],
+      Shopping: [
+        'amazon',
+        'flipkart',
+        'myntra',
+        'shopping',
+        'mall',
+        'clothing',
+        'electronics',
+        'online',
+      ],
+      'Bills & Utilities': [
+        'electricity',
+        'water',
+        'gas',
+        'broadband',
+        'wifi',
+        'phone',
+        'mobile',
+        'recharge',
+        'bill',
+      ],
+      Entertainment: [
+        'netflix',
+        'prime',
+        'hotstar',
+        'movie',
+        'cinema',
+        'spotify',
+        'game',
+        'entertainment',
+      ],
+      Healthcare: [
+        'hospital',
+        'doctor',
+        'clinic',
+        'pharmacy',
+        'medicine',
+        'medical',
+        'health',
+        'doctor',
+        'dentist',
+      ],
+      Education: [
+        'course',
+        'class',
+        'training',
+        'book',
+        'education',
+        'university',
+        'college',
+        'school',
+        'tutor',
+      ],
+      Rent: ['rent', 'lease', 'deposit'],
+      Salary: ['salary', 'income', 'payroll', 'payout', 'wages'],
+      Transfer: ['transfer', 'neft', 'imps', 'rtgs', 'upi', 'bank transfer'],
+      Investment: ['mutual fund', 'stock', 'share', 'investment', 'sip', 'fd', 'fixed deposit'],
+      EMI: ['emi', 'loan', 'installment'],
     };
 
     for (const [category, keywords] of Object.entries(categoryMap)) {
@@ -312,7 +446,9 @@ export class TransactionsService {
         const found = await this.prisma.transactionCategory.findFirst({
           where: { userId, name: category, isActive: true },
         });
-        if (found) return found.id;
+        if (found) {
+          return found.id;
+        }
       }
     }
     return null;

@@ -11,6 +11,7 @@ import { RootNavigator } from './src/navigation/RootNavigator';
 import { AuthProvider } from './src/store/AuthContext';
 import { LockProvider } from './src/store/LockContext';
 import { loadFeatures } from './src/config/features';
+import { warmupBackend } from './src/services/api';
 import { addNotificationResponseListener } from './src/services/notifications';
 
 SplashScreen.preventAutoHideAsync();
@@ -45,6 +46,7 @@ export default function App(): React.ReactElement | null {
           'Inter-Bold': require('./src/assets/fonts/Inter-Bold.ttf'),
         });
         loadFeatures();
+        warmupBackend();
       } catch (e) {
         console.warn('Font loading error:', e);
       } finally {
@@ -71,11 +73,7 @@ export default function App(): React.ReactElement | null {
           <AuthProvider>
             <LockProvider>
               <NavigationContainer ref={navigationRef}>
-                <StatusBar
-                  barStyle="light-content"
-                  backgroundColor="transparent"
-                  translucent
-                />
+                <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
                 <RootNavigator />
               </NavigationContainer>
               <Toast />

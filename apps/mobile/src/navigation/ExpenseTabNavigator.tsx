@@ -1,8 +1,8 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { TransactionsListScreen } from '../screens/transactions/TransactionsListScreen';
-import { AccountsListScreen } from '../screens/accounts/AccountsListScreen';
+import { MyWalletScreen } from '../screens/transactions/MyWalletScreen';
+import { SharedCirclesScreen } from '../screens/transactions/SharedCirclesScreen';
 import { useTheme } from '../theme';
 
 const Tab = createBottomTabNavigator();
@@ -30,13 +30,14 @@ export function ExpenseTabNavigator() {
       }}
     >
       <Tab.Screen
-        name="TransactionsList"
-        component={TransactionsListScreen}
+        name="MyWallet"
+        component={MyWalletScreen}
         options={{
-          title: 'Transactions',
+          title: 'My Wallet',
+          headerShown: false,
           tabBarIcon: ({ focused, size }) => (
             <Ionicons
-              name={focused ? 'list' : 'list-outline'}
+              name={focused ? 'wallet' : 'wallet-outline'}
               size={size}
               color={focused ? colors.accent.primary : colors.text.tertiary}
             />
@@ -44,13 +45,14 @@ export function ExpenseTabNavigator() {
         }}
       />
       <Tab.Screen
-        name="AccountsList"
-        component={AccountsListScreen}
+        name="SharedCircles"
+        component={SharedCirclesScreen}
         options={{
-          title: 'Accounts',
+          title: 'Shared Circles',
+          headerShown: false,
           tabBarIcon: ({ focused, size }) => (
             <Ionicons
-              name={focused ? 'wallet' : 'wallet-outline'}
+              name={focused ? 'people' : 'people-outline'}
               size={size}
               color={focused ? colors.accent.primary : colors.text.tertiary}
             />

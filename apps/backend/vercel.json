@@ -1,4 +1,8 @@
 {
+  "framework": null,
+  "buildCommand": "npm run vercel-build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
   "version": 2,
   "builds": [
     {
@@ -15,6 +19,7 @@
   "env": {
     "NODE_ENV": "production",
     "API_PREFIX": "/api/v1",
-    "API_PORT": "4000"
+    "API_PORT": "4000",
+    "HUSKY": "0"
   }
 }

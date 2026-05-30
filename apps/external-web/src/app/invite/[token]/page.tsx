@@ -160,7 +160,7 @@ export default function InvitePage() {
       return;
     }
     toast.success('Joined the group!');
-    router.push(`/groups/${res.data!.group.id}`);
+    router.push(`/groups/${res.data!.group?.id ?? res.data?.['groupId']}`);
   };
 
   if (loading) {

@@ -13,7 +13,8 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
-import { api } from '../../services/api';
+import { api, setAccessToken } from '../../services/api';
+import { useAuth } from '../../store/AuthContext';
 import { Card } from '../../components/ui/Card';
 
 interface Group {
@@ -68,6 +69,7 @@ export function SharedFinanceHomeScreen() {
   const { colors, spacing, borderRadius: br, typography } = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
+  const { accessToken } = useAuth();
   const [groups, setGroups] = useState<Group[]>([]);
   const [coupleProfile, setCoupleProfile] = useState<CoupleProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -82,6 +84,9 @@ export function SharedFinanceHomeScreen() {
         setLoading(true);
       }
       setError(null);
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
       const data = await api.get<Group[]>('/shared-finance/groups');
       setGroups(data);
       setCoupleProfile(null);
@@ -241,7 +246,7 @@ export function SharedFinanceHomeScreen() {
     <>
       {renderCoupleCard()}
       <View style={styles.sectionHeader}>
-        <Text style={[typography.h3, { color: colors.text.primary }]}>Your Groups</Text>
+        <Text style={[typography.h3, { color: colors.text.primary }]}>Your Groups </Text>
         <Text style={[typography.subhead, { color: colors.text.tertiary }]}>
           {(groups || []).length} {(groups || []).length === 1 ? 'group' : 'groups'}
         </Text>

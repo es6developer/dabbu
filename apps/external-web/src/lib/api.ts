@@ -106,7 +106,7 @@ export const api = {
       const deviceId = `web_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
       return post<{ token: string; user: Record<string, unknown> }>(
         '/external-sharing/auth/google',
-        { idToken, deviceId, devicePlatform: 'web' },
+        { idToken, deviceId },
       );
     },
   },
@@ -117,7 +117,7 @@ export const api = {
       const session = getTempSession();
       return post<{ group: Group; membership: Record<string, unknown> }>(
         `/external-sharing/invites/${token}/join`,
-        { tempUserId: session?.id as string, nickname: session?.name as string },
+        { tempUserId: session?.id as string, nickname: session?.name as string, token: token },
       );
     },
     getInvite: (token: string) =>

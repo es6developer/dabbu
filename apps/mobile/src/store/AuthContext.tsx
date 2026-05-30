@@ -127,6 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const json = await res.json();
     const { user, tokens } = json.data;
 
+    setAccessToken(tokens.accessToken);
     await storeAuth(tokens.accessToken, user);
     const storage = getStorage();
     await storage.setItem('refreshToken', tokens.refreshToken);
@@ -154,6 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const json = await res.json();
     const { user, tokens } = json.data;
 
+    setAccessToken(tokens.accessToken);
     await storeAuth(tokens.accessToken, user);
 
     setState({

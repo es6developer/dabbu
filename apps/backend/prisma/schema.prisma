@@ -100,6 +100,8 @@ model User {
   referralHistoryAsReferrer  ReferralHistory[] @relation("ReferrerHistory")
   referralHistoryAsReferred  ReferralHistory[] @relation("ReferredUser")
   createdInviteLinks         InviteLink[]
+  expenseGroups              ExpenseGroup[]
+  expenseGroupMemberships    ExpenseGroupMember[]
 
   @@index([email])
   @@index([isActive])
@@ -633,17 +635,19 @@ model Transaction {
   isReviewed         Boolean   @default(false)
   isSplit            Boolean   @default(false)
   parentTransactionId String?  @db.VarChar(36)
+  expenseGroupId     String?   @db.VarChar(36)
   metadata           Json?     @db.Json
   deletedAt          DateTime?
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
   // Relations
-  user     User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  account  Account             @relation(fields: [accountId], references: [id])
-  category TransactionCategory? @relation(fields: [categoryId], references: [id])
-  splitTransactions Transaction[] @relation("SplitTransaction")
-  parentTransaction Transaction? @relation("SplitTransaction", fields: [parentTransactionId], references: [id])
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account       Account             @relation(fields: [accountId], references: [id])
+  category      TransactionCategory? @relation(fields: [categoryId], references: [id])
+  expenseGroup  ExpenseGroup?       @relation(fields: [expenseGroupId], references: [id])
+  splitTransactions Transaction[]   @relation("SplitTransaction")
+  parentTransaction Transaction?    @relation("SplitTransaction", fields: [parentTransactionId], references: [id])
 
   @@index([userId, date])
   @@index([accountId, date])
@@ -2213,6 +2217,42 @@ model LifeEventExpense {
   @@index([eventId])
   @@index([category])
   @@map("life_event_expenses")
+}
+
+// ─── EXPENSE GROUPS (Expenses tab, NOT split groups) ──────
+model ExpenseGroup {
+  id            String   @id @default(uuid()) @db.VarChar(36)
+  name          String   @db.VarChar(255)
+  description   String?  @db.VarChar(500)
+  icon          String   @default("users") @db.VarChar(50)
+  currency      String   @default("INR") @db.VarChar(10)
+  monthlyBudget Decimal? @db.Decimal(15, 2)
+  monthlyIncome Decimal? @db.Decimal(15, 2)
+  createdBy     String   @db.VarChar(36)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user         User                @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  members      ExpenseGroupMember[]
+  transactions Transaction[]
+
+  @@index([createdBy])
+  @@map("expense_groups")
+}
+
+model ExpenseGroupMember {
+  id         String   @id @default(uuid()) @db.VarChar(36)
+  groupId    String   @db.VarChar(36)
+  userId     String   @db.VarChar(36)
+  role       String   @default("member") @db.VarChar(20) // admin, member
+  addedAt    DateTime @default(now())
+
+  group ExpenseGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([userId])
+  @@map("expense_group_members")
 }
 
 // ─── VIEWS FOR PAGINATION OPTIMIZATION ─────────────────────
