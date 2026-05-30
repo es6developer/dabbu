@@ -1,0 +1,11 @@
+node_modules
+.git
+.cache
+.next
+dist
+apps/mobile
+apps/external-web/public
+apps/external-web/.next
+*.apk
+*.aab
+*.hprof
