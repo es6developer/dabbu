@@ -46,7 +46,7 @@ let features: FeatureFlag[] = [...DEFAULT_FEATURES];
 
 export async function loadFeatures(): Promise<void> {
   try {
-    const apiUrl = 'https://backend-es6developers-projects.vercel.app/api/v1';
+    const apiUrl = 'https://backend-ochre-delta-80.vercel.app/api/v1';
     const res = await fetch(`${apiUrl}/features`);
     const json = await res.json();
     const remoteFlags = Array.isArray(json.data) ? json.data : [];

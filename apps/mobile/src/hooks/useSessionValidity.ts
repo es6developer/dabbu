@@ -5,7 +5,7 @@ import { api } from '../services/api';
 import { refreshTempSession } from '../services/external-sharing';
 
 const SESSION_CHECK_INTERVAL = 5 * 60 * 1000;
-const SOCKET_URL = 'wss://backend-es6developers-projects.vercel.app';
+const SOCKET_URL = 'wss://backend-ochre-delta-80.vercel.app';
 
 interface SessionValidityState {
   isValid: boolean;

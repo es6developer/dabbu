@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,10 +8,12 @@ import {
   StyleSheet,
   ActivityIndicator,
   Pressable,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -30,17 +32,8 @@ interface Group {
   updatedAt: string;
 }
 
-interface CoupleProfile {
-  id: string;
-  partnerName: string;
-  totalSpent: number;
-  balance: number;
-  currency: string;
-}
-
 interface GroupsResponse {
   groups: Group[];
-  coupleProfile?: CoupleProfile;
 }
 
 const GROUP_TYPE_CONFIG: Record<
@@ -71,32 +64,34 @@ export function SharedFinanceHomeScreen() {
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
   const [groups, setGroups] = useState<Group[]>([]);
-  const [coupleProfile, setCoupleProfile] = useState<CoupleProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
 
-  const fetchGroups = useCallback(async (isRefresh = false) => {
-    try {
-      if (isRefresh) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
+  const fetchGroups = useCallback(
+    async (isRefresh = false) => {
+      try {
+        if (isRefresh) {
+          setRefreshing(true);
+        } else {
+          setLoading(true);
+        }
+        setError(null);
+        if (accessToken) {
+          setAccessToken(accessToken);
+        }
+        const data = await api.get<Group[]>('/shared-finance/groups');
+        setGroups(data);
+      } catch (err: any) {
+        setError(err.message || 'Failed to load groups');
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
       }
-      setError(null);
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
-      const data = await api.get<Group[]>('/shared-finance/groups');
-      setGroups(data);
-      setCoupleProfile(null);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load groups');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+    },
+    [accessToken],
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -104,47 +99,53 @@ export function SharedFinanceHomeScreen() {
     }, [fetchGroups]),
   );
 
+  const filteredGroups = useMemo(
+    () => groups.filter((g) => g.name.toLowerCase().includes(search.toLowerCase())),
+    [groups, search],
+  );
+
+  const totalOwed = groups.reduce((s, g) => s + Math.max(Number(g.balance) || 0, 0), 0);
+  const totalDebt = groups.reduce((s, g) => s + Math.max(-(Number(g.balance) || 0), 0), 0);
+
   const renderGroupCard = ({ item }: { item: Group }) => {
     const config = GROUP_TYPE_CONFIG[item.type] || GROUP_TYPE_CONFIG.friends;
-    const firstLetter = item.name.charAt(0).toUpperCase();
-    const isOwed = item.balance >= 0;
+    const isOwed = Number(item.balance) >= 0;
 
     return (
-      <Card
-        variant="elevated"
-        padding="lg"
-        style={styles.groupCard}
+      <TouchableOpacity
+        activeOpacity={0.7}
         onPress={() => navigation.navigate('GroupDetail', { groupId: item.id })}
+        style={[styles.groupCard, { backgroundColor: colors.bg.card }]}
       >
-        <View style={styles.groupCardRow}>
-          <View style={[styles.avatar, { backgroundColor: config.color + '25' }]}>
-            <Text style={[styles.avatarText, { color: config.color }]}>{firstLetter}</Text>
+        <View style={styles.groupCardLeft}>
+          <LinearGradient
+            colors={[config.color + '30', config.color + '10']}
+            style={[styles.groupAvatar]}
+          >
+            <Ionicons name={config.icon} size={22} color={config.color} />
+          </LinearGradient>
+        </View>
+        <View style={styles.groupCardCenter}>
+          <Text style={[typography.bodyBold, { color: colors.text.primary }]} numberOfLines={1}>
+            {item.name}
+          </Text>
+          <View style={styles.groupMeta}>
+            <Ionicons name="people-outline" size={12} color={colors.text.tertiary} />
+            <Text style={[styles.metaText, { color: colors.text.tertiary }]}>
+              {item.memberCount} {item.memberCount === 1 ? 'member' : 'members'}
+            </Text>
+            <View style={[styles.metaDot, { backgroundColor: colors.text.tertiary + '40' }]} />
+            <Text style={[styles.metaText, { color: colors.text.tertiary }]} numberOfLines={1}>
+              Spent {formatAmount(item.totalSpent, item.currency)}
+            </Text>
           </View>
-          <View style={styles.groupInfo}>
-            <View style={styles.groupNameRow}>
-              <Text style={[typography.h4, { color: colors.text.primary }]} numberOfLines={1}>
-                {item.name}
-              </Text>
-              <View style={[styles.typeBadge, { backgroundColor: config.color + '20' }]}>
-                <Ionicons name={config.icon} size={10} color={config.color} />
-                <Text style={[styles.typeBadgeText, { color: config.color }]}>{config.label}</Text>
-              </View>
-            </View>
-            <View style={styles.groupMetaRow}>
-              <Ionicons name="people-outline" size={14} color={colors.text.tertiary} />
-              <Text style={[styles.metaText, { color: colors.text.tertiary }]}>
-                {item.memberCount} members
-              </Text>
-              <View style={styles.metaDot} />
-              <Text style={[styles.metaText, { color: colors.text.tertiary }]}>
-                Total: {formatAmount(item.totalSpent, item.currency)}
-              </Text>
+          <View style={styles.groupTypeRow}>
+            <View style={[styles.typePill, { backgroundColor: config.color + '20' }]}>
+              <Text style={[styles.typePillText, { color: config.color }]}>{config.label}</Text>
             </View>
           </View>
         </View>
-        <View style={[styles.divider, { backgroundColor: colors.border.subtle }]} />
-        <View style={styles.balanceRow}>
-          <Text style={[typography.callout, { color: colors.text.secondary }]}>Your balance</Text>
+        <View style={styles.groupCardRight}>
           <Text
             style={[
               styles.balanceAmount,
@@ -154,102 +155,104 @@ export function SharedFinanceHomeScreen() {
             {isOwed ? '+' : '-'}
             {formatAmount(item.balance, item.currency)}
           </Text>
-        </View>
-      </Card>
-    );
-  };
-
-  const renderCoupleCard = () => {
-    if (!coupleProfile) {
-      return null;
-    }
-    const isOwed = coupleProfile.balance >= 0;
-
-    return (
-      <Card
-        variant="premium"
-        padding="lg"
-        style={[styles.coupleCard, { borderColor: colors.accent.primary + '30' }]}
-        onPress={() => navigation.navigate('CoupleFinanceDashboard')}
-      >
-        <View style={styles.coupleCardHeader}>
-          <View style={styles.coupleTitleRow}>
-            <Ionicons name="heart" size={20} color={colors.status.error} />
-            <Text style={[typography.h4, { color: colors.text.primary, marginLeft: spacing.sm }]}>
-              Couple Finance
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.text.tertiary} />
-        </View>
-        <View
-          style={[
-            styles.divider,
-            { backgroundColor: colors.border.subtle, marginVertical: spacing.md },
-          ]}
-        />
-        <View style={styles.coupleBalanceRow}>
-          <Text style={[typography.callout, { color: colors.text.secondary }]}>
-            with {coupleProfile.partnerName}
-          </Text>
-          <Text
-            style={[
-              styles.balanceAmount,
-              { color: isOwed ? colors.status.success : colors.status.error },
-            ]}
-          >
-            {isOwed ? '+' : '-'}
-            {formatAmount(coupleProfile.balance, coupleProfile.currency)}
+          <Text style={[styles.balanceLabel, { color: colors.text.tertiary }]}>
+            {isOwed ? 'gets back' : 'owes'}
           </Text>
         </View>
-        <Text style={[typography.footnote, { color: colors.text.tertiary, marginTop: spacing.xs }]}>
-          Total spent: {formatAmount(coupleProfile.totalSpent, coupleProfile.currency)}
-        </Text>
-      </Card>
+      </TouchableOpacity>
     );
   };
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <View style={[styles.emptyIconContainer, { backgroundColor: colors.bg.tertiary }]}>
-        <Ionicons name="wallet-outline" size={48} color={colors.text.tertiary} />
+        <Ionicons name="wallet-outline" size={44} color={colors.text.tertiary} />
       </View>
       <Text style={[typography.h3, { color: colors.text.primary, marginTop: spacing.xl }]}>
-        No groups yet
+        {search ? 'No groups found' : 'No groups yet'}
       </Text>
       <Text
         style={[
           typography.callout,
-          { color: colors.text.tertiary, textAlign: 'center', marginTop: spacing.sm },
+          {
+            color: colors.text.tertiary,
+            textAlign: 'center',
+            marginTop: spacing.sm,
+            lineHeight: 20,
+          },
         ]}
       >
-        Create your first shared finance group{'\n'}to start splitting expenses with friends
+        {search
+          ? 'Try a different search term'
+          : 'Create your first shared group to start\nsplitting expenses with friends'}
       </Text>
-    </View>
-  );
-
-  const renderError = () => (
-    <View style={styles.emptyContainer}>
-      <Ionicons name="cloud-offline-outline" size={48} color={colors.status.error} />
-      <Text style={[typography.callout, { color: colors.text.secondary, marginTop: spacing.md }]}>
-        {error}
-      </Text>
-      <TouchableOpacity
-        style={[styles.retryButton, { backgroundColor: colors.accent.primary }]}
-        onPress={() => fetchGroups()}
-      >
-        <Text style={[typography.buttonSmall, { color: '#FFFFFF' }]}>Retry</Text>
-      </TouchableOpacity>
     </View>
   );
 
   const renderHeader = () => (
     <>
-      {renderCoupleCard()}
-      <View style={styles.sectionHeader}>
-        <Text style={[typography.h3, { color: colors.text.primary }]}>Your Groups </Text>
-        <Text style={[typography.subhead, { color: colors.text.tertiary }]}>
-          {(groups || []).length} {(groups || []).length === 1 ? 'group' : 'groups'}
+      <LinearGradient
+        colors={[colors.accent.primary + '20', colors.bg.primary]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={styles.summaryCard}
+      >
+        <Text style={[typography.footnote, { color: colors.text.secondary }]}>Your Groups</Text>
+        <Text style={[typography.amountLarge, { color: colors.text.primary, marginTop: 4 }]}>
+          {groups.length} {groups.length === 1 ? 'group' : 'groups'}
         </Text>
+        <View style={styles.summaryRow}>
+          <View style={styles.summaryItem}>
+            <Text style={[typography.h4, { color: colors.status.success }]}>
+              +{formatAmount(totalOwed)}
+            </Text>
+            <Text style={[typography.caption, { color: colors.text.tertiary }]}>total owed</Text>
+          </View>
+          <View style={[styles.summaryDivider, { backgroundColor: colors.border.subtle }]} />
+          <View style={styles.summaryItem}>
+            <Text style={[typography.h4, { color: colors.status.error }]}>
+              -{formatAmount(totalDebt)}
+            </Text>
+            <Text style={[typography.caption, { color: colors.text.tertiary }]}>total owe</Text>
+          </View>
+        </View>
+      </LinearGradient>
+
+      <View style={styles.searchContainer}>
+        <View style={[styles.searchBar, { backgroundColor: colors.bg.tertiary }]}>
+          <Ionicons name="search-outline" size={16} color={colors.text.tertiary} />
+          <TextInput
+            style={[styles.searchInput, { color: colors.text.primary }]}
+            placeholder="Search groups..."
+            placeholderTextColor={colors.text.tertiary}
+            value={search}
+            onChangeText={setSearch}
+          />
+          {search ? (
+            <TouchableOpacity onPress={() => setSearch('')}>
+              <Ionicons name="close-circle" size={16} color={colors.text.tertiary} />
+            </TouchableOpacity>
+          ) : null}
+        </View>
+      </View>
+
+      <View style={styles.quickActions}>
+        <TouchableOpacity
+          style={[styles.quickAction, { backgroundColor: colors.accent.primary }]}
+          onPress={() => navigation.navigate('CreateGroup')}
+        >
+          <Ionicons name="add" size={18} color="#FFF" />
+          <Text style={[styles.quickActionText, { color: '#FFF' }]}>New Group</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.quickActionSecondary, { backgroundColor: colors.accent.primary + '15' }]}
+          onPress={() => navigation.navigate('Invitations')}
+        >
+          <Ionicons name="mail-outline" size={18} color={colors.accent.primary} />
+          <Text style={[styles.quickActionText, { color: colors.accent.primary }]}>
+            Invitations
+          </Text>
+        </TouchableOpacity>
       </View>
     </>
   );
@@ -257,6 +260,9 @@ export function SharedFinanceHomeScreen() {
   if (loading && !refreshing) {
     return (
       <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg.primary }]}>
+        <View style={styles.headerBar}>
+          <Text style={[typography.h1, { color: colors.text.primary }]}>Groups</Text>
+        </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.accent.primary} />
         </View>
@@ -266,29 +272,34 @@ export function SharedFinanceHomeScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg.primary }]}>
-      <View style={[styles.header, { borderBottomColor: colors.border.subtle }]}>
-        <Text style={[typography.h1, { color: colors.text.primary }]}>Shared Finance</Text>
-        <View style={styles.headerActions}>
-          <TouchableOpacity
-            style={[styles.headerButton, { backgroundColor: colors.bg.tertiary }]}
-            onPress={() => navigation.navigate('CreateGroup')}
-          >
-            <Ionicons name="add" size={20} color={colors.accent.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.headerButton, { backgroundColor: colors.bg.tertiary }]}
-            onPress={() => navigation.navigate('Settings')}
-          >
-            <Ionicons name="person" size={20} color={colors.text.secondary} />
-          </TouchableOpacity>
-        </View>
+      <View style={[styles.headerBar, { borderBottomColor: colors.border.subtle }]}>
+        <Text style={[typography.h1, { color: colors.text.primary }]}>Groups</Text>
+        <TouchableOpacity
+          style={[styles.settingsBtn, { backgroundColor: colors.bg.tertiary }]}
+          onPress={() => navigation.navigate('Invitations')}
+        >
+          <Ionicons name="mail-outline" size={20} color={colors.text.secondary} />
+        </TouchableOpacity>
       </View>
 
-      {error && !(groups || []).length ? (
-        renderError()
+      {error && !groups.length ? (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="cloud-offline-outline" size={48} color={colors.status.error} />
+          <Text
+            style={[typography.callout, { color: colors.text.secondary, marginTop: spacing.md }]}
+          >
+            {error}
+          </Text>
+          <TouchableOpacity
+            style={[styles.retryButton, { backgroundColor: colors.accent.primary }]}
+            onPress={() => fetchGroups()}
+          >
+            <Text style={[typography.buttonSmall, { color: '#FFFFFF' }]}>Retry</Text>
+          </TouchableOpacity>
+        </View>
       ) : (
         <FlatList
-          data={groups}
+          data={filteredGroups}
           keyExtractor={(item) => item.id}
           renderItem={renderGroupCard}
           ListHeaderComponent={renderHeader}
@@ -313,41 +324,28 @@ export function SharedFinanceHomeScreen() {
             backgroundColor: colors.accent.primary,
             opacity: pressed ? 0.8 : 1,
             transform: [{ scale: pressed ? 0.95 : 1 }],
-            bottom: insets.bottom + 120,
+            bottom: insets.bottom + 24,
           },
         ]}
         onPress={() => navigation.navigate('CreateGroup')}
       >
-        <Ionicons name="add" size={28} color="#FFFFFF" />
+        <Ionicons name="add" size={26} color="#FFFFFF" />
       </Pressable>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  header: {
+  safeArea: { flex: 1 },
+  headerBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderBottomWidth: 1,
   },
-  profileButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  headerButton: {
+  settingsBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -355,59 +353,94 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   listContent: {
-    paddingHorizontal: 24,
-    paddingBottom: 140,
+    paddingHorizontal: 20,
+    paddingBottom: 120,
   },
-  sectionHeader: {
+  summaryCard: {
+    marginTop: 12,
+    marginBottom: 8,
+    padding: 20,
+    borderRadius: 16,
+  },
+  summaryRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 14,
+    gap: 16,
+  },
+  summaryItem: {
+    flex: 1,
+  },
+  summaryDivider: {
+    width: 1,
+    height: 32,
+  },
+  searchContainer: {
+    paddingHorizontal: 0,
+    marginBottom: 12,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    height: 40,
+    borderRadius: 12,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    paddingVertical: 0,
+  },
+  quickActions: {
+    flexDirection: 'row',
+    gap: 10,
     marginBottom: 16,
   },
-  groupCard: {
-    marginBottom: 14,
-  },
-  groupCardRow: {
+  quickAction: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    gap: 6,
   },
-  avatar: {
+  quickActionSecondary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    gap: 6,
+  },
+  quickActionText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  groupCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: 14,
+    marginBottom: 10,
+  },
+  groupCardLeft: {
+    marginRight: 14,
+  },
+  groupAvatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  avatarText: {
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  groupInfo: {
+  groupCardCenter: {
     flex: 1,
-    marginLeft: 14,
   },
-  groupNameRow: {
+  groupMeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-  },
-  typeBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 100,
-    gap: 4,
-  },
-  typeBadgeText: {
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  groupMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 6,
+    marginTop: 4,
     gap: 4,
   },
   metaText: {
@@ -418,40 +451,32 @@ const styles = StyleSheet.create({
     width: 3,
     height: 3,
     borderRadius: 1.5,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    marginHorizontal: 6,
+    marginHorizontal: 4,
   },
-  divider: {
-    height: 1,
-    marginVertical: 12,
-  },
-  balanceRow: {
+  groupTypeRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    marginTop: 6,
+  },
+  typePill: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 100,
+  },
+  typePillText: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  groupCardRight: {
+    alignItems: 'flex-end',
+    marginLeft: 10,
   },
   balanceAmount: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '700',
-    letterSpacing: -0.3,
   },
-  coupleCard: {
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  coupleCardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  coupleTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  coupleBalanceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  balanceLabel: {
+    fontSize: 11,
+    marginTop: 2,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -459,9 +484,9 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyIconContainer: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: 88,
+    height: 88,
+    borderRadius: 44,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -478,16 +503,15 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    bottom: 32,
     right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#f7892c',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
   },

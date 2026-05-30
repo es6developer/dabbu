@@ -1,6 +1,8 @@
-const API_URL = 'https://backend-es6developers-projects.vercel.app/api/v1';
+const API_URL = 'https://backend-ochre-delta-80.vercel.app/api/v1';
 
 let accessToken: string | null = null;
+let refreshTokenFn: (() => Promise<boolean>) | null = null;
+let onSessionExpiredFn: (() => void) | null = null;
 
 export function setAccessToken(token: string | null) {
   accessToken = token;
@@ -8,6 +10,14 @@ export function setAccessToken(token: string | null) {
 
 export function getAccessToken(): string | null {
   return accessToken;
+}
+
+export function setRefreshTokenHandler(fn: () => Promise<boolean>) {
+  refreshTokenFn = fn;
+}
+
+export function setOnSessionExpiredHandler(fn: () => void) {
+  onSessionExpiredFn = fn;
 }
 
 let warmupDone = false;
@@ -100,6 +110,27 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     const timeout = attempt === 0 ? REQUEST_TIMEOUT : RETRY_TIMEOUT;
     try {
       const res = await fetchWithTimeout(path, { ...options, headers }, timeout);
+
+      if (res.status === 401 && refreshTokenFn) {
+        const refreshed = await refreshTokenFn();
+        if (refreshed) {
+          headers['Authorization'] = `Bearer ${accessToken}`;
+          const retryRes = await fetchWithTimeout(path, { ...options, headers }, timeout);
+          if (retryRes.ok) {
+            const retryBody = await retryRes.json();
+            const retryData = retryBody?.data ?? retryBody;
+            if (!options.method || options.method === 'GET') {
+              setCached(key, retryData);
+            }
+            return retryData as T;
+          }
+        }
+        accessToken = null;
+        if (onSessionExpiredFn) {
+          onSessionExpiredFn();
+        }
+        throw new Error('Session expired. Please login again.');
+      }
 
       if (!res.ok) {
         const error = await res.json().catch(() => ({ message: ['Request failed'] }));

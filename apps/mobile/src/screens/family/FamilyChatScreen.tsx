@@ -13,7 +13,7 @@ import { useTheme } from '../../theme';
 import io from 'socket.io-client';
 import { useAuth } from '../../store/AuthContext';
 
-const SOCKET_URL = 'wss://backend-es6developers-projects.vercel.app';
+const SOCKET_URL = 'wss://backend-ochre-delta-80.vercel.app';
 
 export function FamilyChatScreen() {
   const { colors } = useTheme();

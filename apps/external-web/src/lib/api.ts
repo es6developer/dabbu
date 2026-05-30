@@ -1,4 +1,5 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.dabbu.app';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'https://backend-ochre-delta-80.vercel.app/api/v1';
 
 interface ApiResponse<T> {
   data?: T;
@@ -102,7 +103,7 @@ function normalizeGroup(raw: any): Group {
       avatar: m.user?.avatarUrl,
       balance: 0,
       isOnline: false,
-      role: m.role === 'owner' ? 'admin' : (m.role || 'member'),
+      role: m.role === 'owner' ? 'admin' : m.role || 'member',
     })),
     ...(raw.tempMembers || []).map((tm: any) => ({
       id: tm.tempUser?.id || tm.tempUserId,
@@ -166,7 +167,8 @@ function normalizeExpense(raw: any): Expense {
           ? [shareUser.firstName, shareUser.lastName].filter(Boolean).join(' ').trim()
           : 'Unknown',
         amount: Number(s.amount),
-        percentage: s.percentage !== null && s.percentage !== undefined ? Number(s.percentage) : undefined,
+        percentage:
+          s.percentage !== null && s.percentage !== undefined ? Number(s.percentage) : undefined,
         settled: s.isSettled || false,
       };
     }),
@@ -218,12 +220,16 @@ function normalizeSettlement(raw: any): Settlement {
 }
 
 function normalizeExpenseList(raw: any): Expense[] {
-  if (!Array.isArray(raw)) return [];
+  if (!Array.isArray(raw)) {
+    return [];
+  }
   return raw.map(normalizeExpense);
 }
 
 function normalizeSettlementList(raw: any): Settlement[] {
-  if (!Array.isArray(raw)) return [];
+  if (!Array.isArray(raw)) {
+    return [];
+  }
   return raw.map(normalizeSettlement);
 }
 
@@ -280,10 +286,15 @@ export const api = {
     },
     join: (token: string) => {
       const session = getTempSession();
-      return post<{ groupId: string; groupName: string; role: string; permissions: Record<string, boolean> }>(
-        `/external-sharing/invites/${token}/join`,
-        { tempUserId: session?.id as string, nickname: session?.name as string },
-      );
+      return post<{
+        groupId: string;
+        groupName: string;
+        role: string;
+        permissions: Record<string, boolean>;
+      }>(`/external-sharing/invites/${token}/join`, {
+        tempUserId: session?.id as string,
+        nickname: session?.name as string,
+      });
     },
     getInvite: (token: string) =>
       get<{ group: Group; inviter?: Record<string, unknown>; permissions?: string[] }>(
@@ -329,7 +340,9 @@ export const api = {
         note: data.note,
       }),
     markPaid: (groupId: string, settlementId: string) =>
-      patch<Settlement>(`/shared-finance/groups/${groupId}/settlements/${settlementId}`, { status: 'completed' }),
+      patch<Settlement>(`/shared-finance/groups/${groupId}/settlements/${settlementId}`, {
+        status: 'completed',
+      }),
   },
 
   chat: {

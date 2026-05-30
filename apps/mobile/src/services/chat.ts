@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = 'wss://backend-es6developers-projects.vercel.app';
+const SOCKET_URL = 'wss://backend-ochre-delta-80.vercel.app';
 
 let socket: Socket | null = null;
 

@@ -6,7 +6,11 @@ if (Platform.OS !== 'web') {
   SecureStore = require('expo-secure-store');
 }
 
-import { setAccessToken } from '../services/api';
+import {
+  setAccessToken,
+  setRefreshTokenHandler,
+  setOnSessionExpiredHandler,
+} from '../services/api';
 import { registerForPushNotifications } from '../services/notifications';
 
 interface User {
@@ -34,7 +38,7 @@ interface AuthContextType extends AuthState {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_URL = 'https://backend-es6developers-projects.vercel.app/api/v1';
+const API_URL = 'https://backend-ochre-delta-80.vercel.app/api/v1';
 
 interface StorageInterface {
   getItem: (key: string) => Promise<string | null>;
@@ -66,6 +70,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
+    setRefreshTokenHandler(refreshToken);
+    setOnSessionExpiredHandler(() => {
+      clearAuth().then(() => {
+        setState({ isAuthenticated: false, isLoading: false, user: null, accessToken: null });
+      });
+    });
     loadStoredAuth();
   }, []);
 

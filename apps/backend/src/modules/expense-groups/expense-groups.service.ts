@@ -67,7 +67,7 @@ export class ExpenseGroupsService {
       monthlyBudget: dto.monthlyBudget || null,
       createdBy: userId,
       members: {
-        create: { userId, role: 'admin' },
+        create: [{ userId, role: 'admin' }],
       },
     };
 

@@ -564,112 +564,215 @@ export function GroupDetailScreen() {
     );
   };
 
-  const renderSegmentContent = () => {
-    if (!group) {
-      return null;
-    }
+  const segmentData: any[] =
+    activeSegment === 'expenses'
+      ? (group?.expenses ?? [])
+      : activeSegment === 'balances'
+        ? (group?.members ?? [])
+        : (group?.settlements ?? []);
 
+  const renderSegmentItem = ({ item }: { item: any }) => {
     switch (activeSegment) {
-      case 'expenses': {
-        const items = group.expenses ?? [];
-        if (items.length === 0) {
-          return (
-            <View style={styles.emptySegment}>
-              <Ionicons name="receipt-outline" size={40} color={colors.text.tertiary} />
-              <Text
-                style={[typography.callout, { color: colors.text.tertiary, marginTop: spacing.md }]}
-              >
-                No expenses yet
-              </Text>
+      case 'expenses':
+        return renderExpenseItem({ item });
+      case 'balances':
+        return renderMemberItem({ item });
+      case 'settlements':
+        return renderSettlementItem({ item });
+    }
+  };
+
+  const emptyStateConfig = {
+    expenses: { icon: 'receipt-outline' as const, text: 'No expenses yet' },
+    balances: { icon: 'people-outline' as const, text: 'No members yet' },
+    settlements: { icon: 'swap-horizontal-outline' as const, text: 'No settlements yet' },
+  };
+
+  const renderListHeader = () => (
+    <>
+      <GroupStatusBanner
+        status={status}
+        groupName={group?.name || ''}
+        isAdmin={(group?.members ?? []).some((m) => m.role === 'owner' || m.role === 'admin')}
+        onReactivate={() => {}}
+        onArchive={() => {}}
+        onViewSummary={() => navigation.navigate('GroupDashboard', { groupId })}
+      />
+
+      <AccessRevokedModal
+        visible={showRevokedModal}
+        onDismiss={() => {
+          setShowRevokedModal(false);
+          navigation.navigate('SharedFinanceHome');
+        }}
+        reason={(revocationReason as any) || 'member_removed'}
+        groupName={group?.name || ''}
+      />
+
+      <PremiumUpgradeModal
+        visible={showUpgradeModal}
+        onDismiss={() => setShowUpgradeModal(false)}
+        onUpgrade={handleUpgrade}
+        groupName={group?.name}
+        currentLimit={group?.planLimit || 2}
+        premiumLimit={30}
+      />
+
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+          </TouchableOpacity>
+          <View style={styles.headerInfo}>
+            <Text style={[typography.h2, { color: colors.text.primary }]}>{group?.name}</Text>
+            <View style={styles.headerBadges}>
+              <View style={[styles.badge, { backgroundColor: config.color + '20' }]}>
+                <Ionicons name={config.icon} size={12} color={config.color} />
+                <Text style={[styles.badgeText, { color: config.color }]}>{config.label}</Text>
+              </View>
+              <View style={[styles.badge, { backgroundColor: colors.bg.tertiary }]}>
+                <Ionicons name="people-outline" size={12} color={colors.text.secondary} />
+                <Text style={[styles.badgeText, { color: colors.text.secondary }]}>
+                  {group?.memberCount} members
+                </Text>
+              </View>
             </View>
-          );
-        }
-        return (
-          <View style={styles.segmentList}>
-            <View style={styles.sectionHeader}>
-              <Text style={[typography.subheadBold, { color: colors.text.tertiary }]}>
-                ALL EXPENSES
-              </Text>
-              <Text style={[typography.footnote, { color: colors.text.tertiary }]}>
-                {items.length} total
-              </Text>
-            </View>
-            {items.map((item) => (
-              <View key={item.id}>{renderExpenseItem({ item })}</View>
-            ))}
           </View>
-        );
-      }
-      case 'balances': {
-        const items = group.members ?? [];
-        if (items.length === 0) {
-          return (
-            <View style={styles.emptySegment}>
-              <Ionicons name="people-outline" size={40} color={colors.text.tertiary} />
-              <Text
-                style={[typography.callout, { color: colors.text.tertiary, marginTop: spacing.md }]}
-              >
-                No members yet
-              </Text>
+        </View>
+        <TouchableOpacity
+          style={[styles.settingsButton, { backgroundColor: colors.bg.tertiary }]}
+          onPress={() => navigation.navigate('GroupSettings', { groupId })}
+        >
+          <Ionicons name="settings-outline" size={22} color={colors.text.secondary} />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.balanceSummary}>
+        <LinearGradient
+          colors={[config.color + '30', colors.bg.card]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.gradientCard}
+        >
+          <View style={styles.gradientCardHeader}>
+            <View style={[styles.typeBadge, { backgroundColor: config.color + '25' }]}>
+              <Ionicons name={config.icon} size={12} color={config.color} />
+              <Text style={[styles.typeBadgeText, { color: config.color }]}>{config.label}</Text>
             </View>
-          );
-        }
-        return (
-          <View style={styles.segmentList}>
-            <TouchableOpacity
+          </View>
+          <Text style={[typography.h3, { color: colors.text.primary, marginTop: spacing.md }]}>
+            {group?.name}
+          </Text>
+          <View style={styles.balanceSection}>
+            <Text
               style={[
-                styles.inviteButton,
+                typography.amountLarge,
                 {
-                  backgroundColor: colors.accent.primary + '15',
-                  borderColor: colors.accent.primary + '30',
+                  color: isOwed ? colors.status.success : colors.status.error,
+                  marginTop: spacing.xs,
                 },
               ]}
-              onPress={handleAddMemberPress}
             >
-              <Ionicons name="person-add-outline" size={20} color={colors.accent.primary} />
+              {isOwed ? '+' : '-'}
+              {formatAmount(group?.balance ?? 0, group?.currency)}
+            </Text>
+            <Text
+              style={[typography.footnote, { color: colors.text.tertiary, marginTop: spacing.xs }]}
+            >
+              {isOwed ? 'You are owed' : 'You owe'}
+            </Text>
+          </View>
+          <View
+            style={[
+              styles.gradientDivider,
+              { backgroundColor: colors.border.subtle, marginVertical: spacing.md },
+            ]}
+          />
+          <View style={styles.totalSpentRow}>
+            <Text style={[typography.footnote, { color: colors.text.secondary }]}>Total spent</Text>
+            <Text style={[typography.callout, { color: colors.text.primary, fontWeight: '600' }]}>
+              {formatAmount(group?.totalSpent ?? 0, group?.currency)}
+            </Text>
+          </View>
+        </LinearGradient>
+      </View>
+
+      {group?.id && (
+        <View style={styles.inviteSection}>
+          <TouchableOpacity
+            style={[
+              styles.inviteBanner,
+              {
+                backgroundColor: colors.accent.primary + '12',
+                borderColor: colors.accent.primary + '30',
+              },
+            ]}
+            onPress={handleInviteExternal}
+            activeOpacity={0.7}
+            disabled={invitingExternal}
+          >
+            {invitingExternal ? (
+              <ActivityIndicator size="small" color={colors.accent.primary} />
+            ) : (
+              <Ionicons name="share-outline" size={16} color={colors.accent.primary} />
+            )}
+            <Text style={[styles.inviteBannerText, { color: colors.accent.primary }]}>
+              {invitingExternal ? 'Creating link...' : 'Share Invite Link'}
+            </Text>
+            <Ionicons name="chevron-forward" size={14} color={colors.accent.primary} />
+          </TouchableOpacity>
+        </View>
+      )}
+
+      <View style={[styles.segmentControl, { backgroundColor: colors.bg.tertiary }]}>
+        {SEGMENTS.map((seg) => {
+          const isActive = activeSegment === seg.key;
+          return (
+            <TouchableOpacity
+              key={seg.key}
+              style={[
+                styles.segmentOption,
+                isActive && {
+                  backgroundColor: colors.bg.elevated,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.15,
+                  shadowRadius: 4,
+                  elevation: 3,
+                },
+              ]}
+              onPress={() => setActiveSegment(seg.key)}
+            >
+              <Ionicons
+                name={seg.icon}
+                size={16}
+                color={isActive ? colors.accent.primary : colors.text.tertiary}
+              />
               <Text
-                style={[typography.buttonSmall, { color: colors.accent.primary, marginLeft: 8 }]}
+                style={[
+                  typography.subheadBold,
+                  { color: isActive ? colors.accent.primary : colors.text.tertiary, marginLeft: 6 },
+                ]}
               >
-                Add Member
+                {seg.label}
               </Text>
             </TouchableOpacity>
-            {items.map((item) => (
-              <View key={item.id}>{renderMemberItem({ item })}</View>
-            ))}
-          </View>
-        );
-      }
-      case 'settlements': {
-        const items = group.settlements ?? [];
-        if (items.length === 0) {
-          return (
-            <View style={styles.emptySegment}>
-              <Ionicons name="swap-horizontal-outline" size={40} color={colors.text.tertiary} />
-              <Text
-                style={[typography.callout, { color: colors.text.tertiary, marginTop: spacing.md }]}
-              >
-                No settlements yet
-              </Text>
-            </View>
           );
-        }
-        return (
-          <View style={styles.segmentList}>
-            <View style={styles.sectionHeader}>
-              <Text style={[typography.subheadBold, { color: colors.text.tertiary }]}>
-                SETTLEMENTS
-              </Text>
-              <Text style={[typography.footnote, { color: colors.text.tertiary }]}>
-                {items.length} total
-              </Text>
-            </View>
-            {items.map((item) => (
-              <View key={item.id}>{renderSettlementItem({ item })}</View>
-            ))}
-          </View>
-        );
-      }
-    }
+        })}
+      </View>
+    </>
+  );
+
+  const renderListEmpty = () => {
+    const cfg = emptyStateConfig[activeSegment];
+    return (
+      <View style={styles.emptySegment}>
+        <Ionicons name={cfg.icon} size={40} color={colors.text.tertiary} />
+        <Text style={[typography.callout, { color: colors.text.tertiary, marginTop: spacing.md }]}>
+          {cfg.text}
+        </Text>
+      </View>
+    );
   };
 
   if (loading && !group) {
@@ -683,7 +786,7 @@ export function GroupDetailScreen() {
   if (error && !group) {
     return (
       <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg.primary }]}>
-        <View style={styles.loadingContainer}>
+        <View style={styles.errorContainer}>
           <Ionicons name="cloud-offline-outline" size={48} color={colors.status.error} />
           <Text
             style={[typography.callout, { color: colors.text.secondary, marginTop: spacing.md }]}
@@ -704,202 +807,12 @@ export function GroupDetailScreen() {
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg.primary }]}>
       <FlatList
-        data={[]}
-        keyExtractor={() => 'dummy'}
-        renderItem={() => null}
-        ListHeaderComponent={
-          <>
-            <GroupStatusBanner
-              status={status}
-              groupName={group?.name || ''}
-              isAdmin={(group?.members ?? []).some((m) => m.role === 'owner' || m.role === 'admin')}
-              onReactivate={() => {}}
-              onArchive={() => {}}
-              onViewSummary={() => navigation.navigate('GroupDashboard', { groupId })}
-            />
-
-            <AccessRevokedModal
-              visible={showRevokedModal}
-              onDismiss={() => {
-                setShowRevokedModal(false);
-                navigation.navigate('SharedFinanceHome');
-              }}
-              reason={(revocationReason as any) || 'member_removed'}
-              groupName={group?.name || ''}
-            />
-
-            <PremiumUpgradeModal
-              visible={showUpgradeModal}
-              onDismiss={() => setShowUpgradeModal(false)}
-              onUpgrade={handleUpgrade}
-              groupName={group?.name}
-              currentLimit={group?.planLimit || 2}
-              premiumLimit={30}
-            />
-
-            <View style={styles.header}>
-              <View style={styles.headerLeft}>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                  <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
-                </TouchableOpacity>
-                <View style={styles.headerInfo}>
-                  <Text style={[typography.h2, { color: colors.text.primary }]}>{group?.name}</Text>
-                  <View style={styles.headerBadges}>
-                    <View style={[styles.badge, { backgroundColor: config.color + '20' }]}>
-                      <Ionicons name={config.icon} size={12} color={config.color} />
-                      <Text style={[styles.badgeText, { color: config.color }]}>
-                        {config.label}
-                      </Text>
-                    </View>
-                    <View style={[styles.badge, { backgroundColor: colors.bg.tertiary }]}>
-                      <Ionicons name="people-outline" size={12} color={colors.text.secondary} />
-                      <Text style={[styles.badgeText, { color: colors.text.secondary }]}>
-                        {group?.memberCount} members
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              </View>
-              <TouchableOpacity
-                style={[styles.settingsButton, { backgroundColor: colors.bg.tertiary }]}
-                onPress={() => navigation.navigate('GroupSettings', { groupId })}
-              >
-                <Ionicons name="settings-outline" size={22} color={colors.text.secondary} />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.balanceSummary}>
-              <LinearGradient
-                colors={[config.color + '30', colors.bg.card]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.gradientCard}
-              >
-                <View style={styles.gradientCardHeader}>
-                  <View style={[styles.typeBadge, { backgroundColor: config.color + '25' }]}>
-                    <Ionicons name={config.icon} size={12} color={config.color} />
-                    <Text style={[styles.typeBadgeText, { color: config.color }]}>
-                      {config.label}
-                    </Text>
-                  </View>
-                </View>
-                <Text
-                  style={[typography.h3, { color: colors.text.primary, marginTop: spacing.md }]}
-                >
-                  {group?.name}
-                </Text>
-                <View style={styles.balanceSection}>
-                  <Text
-                    style={[
-                      typography.amountLarge,
-                      {
-                        color: isOwed ? colors.status.success : colors.status.error,
-                        marginTop: spacing.xs,
-                      },
-                    ]}
-                  >
-                    {isOwed ? '+' : '-'}
-                    {formatAmount(group?.balance ?? 0, group?.currency)}
-                  </Text>
-                  <Text
-                    style={[
-                      typography.footnote,
-                      { color: colors.text.tertiary, marginTop: spacing.xs },
-                    ]}
-                  >
-                    {isOwed ? 'You are owed' : 'You owe'}
-                  </Text>
-                </View>
-                <View
-                  style={[
-                    styles.gradientDivider,
-                    { backgroundColor: colors.border.subtle, marginVertical: spacing.md },
-                  ]}
-                />
-                <View style={styles.totalSpentRow}>
-                  <Text style={[typography.footnote, { color: colors.text.secondary }]}>
-                    Total spent
-                  </Text>
-                  <Text
-                    style={[typography.callout, { color: colors.text.primary, fontWeight: '600' }]}
-                  >
-                    {formatAmount(group?.totalSpent ?? 0, group?.currency)}
-                  </Text>
-                </View>
-              </LinearGradient>
-            </View>
-
-            {group?.id && (
-              <View style={styles.inviteSection}>
-                <TouchableOpacity
-                  style={[
-                    styles.inviteBanner,
-                    {
-                      backgroundColor: colors.accent.primary + '12',
-                      borderColor: colors.accent.primary + '30',
-                    },
-                  ]}
-                  onPress={handleInviteExternal}
-                  activeOpacity={0.7}
-                  disabled={invitingExternal}
-                >
-                  {invitingExternal ? (
-                    <ActivityIndicator size="small" color={colors.accent.primary} />
-                  ) : (
-                    <Ionicons name="share-outline" size={16} color={colors.accent.primary} />
-                  )}
-                  <Text style={[styles.inviteBannerText, { color: colors.accent.primary }]}>
-                    {invitingExternal ? 'Creating link...' : 'Share Invite Link'}
-                  </Text>
-                  <Ionicons name="chevron-forward" size={14} color={colors.accent.primary} />
-                </TouchableOpacity>
-              </View>
-            )}
-
-            <View style={[styles.segmentControl, { backgroundColor: colors.bg.tertiary }]}>
-              {SEGMENTS.map((seg) => {
-                const isActive = activeSegment === seg.key;
-                return (
-                  <TouchableOpacity
-                    key={seg.key}
-                    style={[
-                      styles.segmentOption,
-                      isActive && {
-                        backgroundColor: colors.bg.elevated,
-                        shadowColor: '#000',
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity: 0.15,
-                        shadowRadius: 4,
-                        elevation: 3,
-                      },
-                    ]}
-                    onPress={() => setActiveSegment(seg.key)}
-                  >
-                    <Ionicons
-                      name={seg.icon}
-                      size={16}
-                      color={isActive ? colors.accent.primary : colors.text.tertiary}
-                    />
-                    <Text
-                      style={[
-                        typography.subheadBold,
-                        {
-                          color: isActive ? colors.accent.primary : colors.text.tertiary,
-                          marginLeft: 6,
-                        },
-                      ]}
-                    >
-                      {seg.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </>
-        }
-        ListFooterComponent={
-          <View style={{ paddingBottom: insets.bottom + 140 }}>{renderSegmentContent()}</View>
-        }
+        data={segmentData}
+        keyExtractor={(item: any) => item.id}
+        renderItem={renderSegmentItem}
+        ListHeaderComponent={renderListHeader}
+        ListEmptyComponent={renderListEmpty}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 140 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl

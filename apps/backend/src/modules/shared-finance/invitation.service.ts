@@ -165,6 +165,18 @@ export class InvitationService {
 
     this.logger.log(`User ${userId} accepted invitation to group ${invitation.groupId}`);
 
+    try {
+      await this.notificationService.create({
+        userId: invitation.invitedBy,
+        type: 'group_invitation_accepted',
+        title: 'Invitation Accepted',
+        body: `${user.firstName || user.email} joined "${invitation.group.name}"`,
+        data: { groupId: invitation.groupId, invitedUserId: userId },
+      });
+    } catch (e) {
+      this.logger.warn(`Failed to send notification for invitation accept: ${e.message}`);
+    }
+
     return { data: { message: 'Invitation accepted' } };
   }
 

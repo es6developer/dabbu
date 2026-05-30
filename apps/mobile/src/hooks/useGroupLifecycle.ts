@@ -10,7 +10,7 @@ import {
 } from '../services/access-control';
 
 const POLL_INTERVAL = 30 * 1000;
-const SOCKET_URL = 'wss://backend-es6developers-projects.vercel.app';
+const SOCKET_URL = 'wss://backend-ochre-delta-80.vercel.app';
 
 interface GroupLifecycleState {
   status: GroupLifecycleStatus;

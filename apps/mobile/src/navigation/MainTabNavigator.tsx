@@ -215,7 +215,7 @@ const ALL_TABS: TabConfig[] = [
   { name: 'Settings', component: SettingsNavigator, title: 'Settings' },
 ];
 
-const API_URL = 'https://backend-es6developers-projects.vercel.app/api/v1';
+const API_URL = 'https://backend-ochre-delta-80.vercel.app/api/v1';
 
 export function MainTabNavigator() {
   const { colors, isDark } = useTheme();
