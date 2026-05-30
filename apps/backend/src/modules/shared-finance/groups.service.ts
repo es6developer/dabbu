@@ -89,34 +89,85 @@ export class GroupsService {
   }
 
   async findOne(groupId: string, userId: string) {
-    const group = await this.prisma.sharedFinanceGroup.findUnique({
-      where: { id: groupId },
-      include: {
-        members: {
-          where: { deletedAt: null },
-          include: {
-            user: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                avatarUrl: true,
-                email: true,
-                phone: true,
+    const [group, balances, expenses, settlements] = await Promise.all([
+      this.prisma.sharedFinanceGroup.findUnique({
+        where: { id: groupId },
+        include: {
+          members: {
+            where: { deletedAt: null },
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  avatarUrl: true,
+                  email: true,
+                  phone: true,
+                },
               },
             },
           },
+          tempMembers: {
+            where: { isActive: true },
+            include: {
+              tempUser: {
+                select: { id: true, email: true, displayName: true, avatarUrl: true },
+              },
+            },
+          },
+          _count: { select: { members: true, expenses: true, settlements: true } },
         },
-        tempMembers: {
-          where: { isActive: true },
-          include: {
-            tempUser: {
-              select: { id: true, email: true, displayName: true, avatarUrl: true },
+      }),
+      this.calculateBalances(groupId),
+      this.prisma.groupExpense.findMany({
+        where: { groupId, deletedAt: null },
+        select: {
+          id: true,
+          description: true,
+          amount: true,
+          category: true,
+          splitType: true,
+          date: true,
+          createdAt: true,
+          paidByMemberId: true,
+          paidBy: {
+            select: {
+              id: true,
+              user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
             },
           },
         },
-      },
-    });
+        orderBy: { date: 'desc' },
+        take: 50,
+      }),
+      this.prisma.settlement.findMany({
+        where: { groupId, deletedAt: null },
+        select: {
+          id: true,
+          amount: true,
+          status: true,
+          createdAt: true,
+          completedAt: true,
+          fromMemberId: true,
+          toMemberId: true,
+          fromMember: {
+            select: {
+              id: true,
+              user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+            },
+          },
+          toMember: {
+            select: {
+              id: true,
+              user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+      }),
+    ]);
 
     if (!group) {
       throw new NotFoundException('Group not found');
@@ -126,10 +177,15 @@ export class GroupsService {
     }
     await this.validateMember(group.id, userId);
 
-    const balances = await this.calculateBalances(group.id);
-
     return {
-      data: { ...group, balances, isPremium: group.maxMembers > 2, planLimit: group.maxMembers },
+      data: {
+        ...group,
+        balances,
+        expenses,
+        settlements,
+        isPremium: group.maxMembers > 2,
+        planLimit: group.maxMembers,
+      },
     };
   }
 
@@ -473,34 +529,51 @@ export class GroupsService {
   }
 
   private async calculateBalances(groupId: string) {
-    const members = await this.prisma.groupMember.findMany({
-      where: { groupId, isActive: true, deletedAt: null },
-      include: {
-        user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
-        paidExpenses: {
-          where: { deletedAt: null },
-          select: { amount: true },
-        },
-        expenseSplits: {
-          where: { deletedAt: null },
-          select: { amount: true, isSettled: true },
-        },
-        sentSettlements: {
-          where: { status: 'completed', deletedAt: null },
-          select: { amount: true },
-        },
-        receivedSettlements: {
-          where: { status: 'completed', deletedAt: null },
-          select: { amount: true },
-        },
-      },
-    });
+    const [members, paidTotals, owedTotals, sentSettlementTotals, receivedSettlementTotals] =
+      await Promise.all([
+        this.prisma.groupMember.findMany({
+          where: { groupId, isActive: true, deletedAt: null },
+          select: {
+            id: true,
+            user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+          },
+        }),
+        this.prisma.groupExpense.groupBy({
+          by: ['paidByMemberId'],
+          where: { groupId, deletedAt: null },
+          _sum: { amount: true },
+        }),
+        this.prisma.expenseSplit.groupBy({
+          by: ['memberId'],
+          where: { deletedAt: null, expense: { groupId, deletedAt: null } },
+          _sum: { amount: true },
+        }),
+        this.prisma.settlement.groupBy({
+          by: ['fromMemberId'],
+          where: { groupId, status: 'completed', deletedAt: null },
+          _sum: { amount: true },
+        }),
+        this.prisma.settlement.groupBy({
+          by: ['toMemberId'],
+          where: { groupId, status: 'completed', deletedAt: null },
+          _sum: { amount: true },
+        }),
+      ]);
+
+    const paidByMember = new Map(paidTotals.map((item) => [item.paidByMemberId, Number(item._sum.amount || 0)]));
+    const owedByMember = new Map(owedTotals.map((item) => [item.memberId, Number(item._sum.amount || 0)]));
+    const sentByMember = new Map(
+      sentSettlementTotals.map((item) => [item.fromMemberId, Number(item._sum.amount || 0)]),
+    );
+    const receivedByMember = new Map(
+      receivedSettlementTotals.map((item) => [item.toMemberId, Number(item._sum.amount || 0)]),
+    );
 
     return members.map((m) => {
-      const totalPaid = m.paidExpenses.reduce((s, e) => s + Number(e.amount), 0);
-      const totalOwed = m.expenseSplits.reduce((s, e) => s + Number(e.amount), 0);
-      const sentSettlements = m.sentSettlements.reduce((s, e) => s + Number(e.amount), 0);
-      const receivedSettlements = m.receivedSettlements.reduce((s, e) => s + Number(e.amount), 0);
+      const totalPaid = paidByMember.get(m.id) || 0;
+      const totalOwed = owedByMember.get(m.id) || 0;
+      const sentSettlements = sentByMember.get(m.id) || 0;
+      const receivedSettlements = receivedByMember.get(m.id) || 0;
 
       const netBalance = totalPaid - totalOwed - sentSettlements + receivedSettlements;
 

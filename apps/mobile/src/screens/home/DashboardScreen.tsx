@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -7,635 +7,489 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
-  Dimensions,
   Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Svg, { Circle } from 'react-native-svg';
-import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../store/AuthContext';
 import { api, setAccessToken } from '../../services/api';
-import { useTheme, spacing, borderRadius } from '../../theme';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Card } from '../../components/ui/Card';
+import { useTheme } from '../../theme';
 
-const { width } = Dimensions.get('window');
-const CARD_WIDTH = (width - 64) / 2;
+type IconName = keyof typeof Ionicons.glyphMap;
+
+interface DashboardData {
+  accountStats: any | null;
+  transactionStats: any | null;
+  categories: any[];
+  expenseGroups: any[];
+  sharedGroups: any[];
+  reminders: any[];
+}
+
+const emptyData: DashboardData = {
+  accountStats: null,
+  transactionStats: null,
+  categories: [],
+  expenseGroups: [],
+  sharedGroups: [],
+  reminders: [],
+};
+
+const moneyFormat = (value: number) => {
+  const amount = Number(value || 0);
+  if (Math.abs(amount) >= 10000000) return `₹${(amount / 10000000).toFixed(1)}Cr`;
+  if (Math.abs(amount) >= 100000) return `₹${(amount / 100000).toFixed(1)}L`;
+  return `₹${amount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+};
+
+const listFromResponse = (value: any): any[] => {
+  if (Array.isArray(value)) return value;
+  if (Array.isArray(value?.data)) return value.data;
+  if (Array.isArray(value?.items)) return value.items;
+  return [];
+};
+
+const valueFromResult = (result: PromiseSettledResult<any>, fallback: any) =>
+  result.status === 'fulfilled' ? result.value : fallback;
 
 export function DashboardScreen() {
   const navigation = useNavigation<any>();
   const { user, accessToken } = useAuth();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  const [stats, setStats] = useState<any>(null);
-  const [categoryData, setCategoryData] = useState<any[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true);
   const fadeAnim = useRef(new Animated.Value(0)).current;
-
   const abortRef = useRef<AbortController | null>(null);
 
-  useEffect(() => {
-    if (accessToken) {
-      setAccessToken(accessToken);
-    }
-    loadData();
-    return () => {
-      if (abortRef.current) {
-        abortRef.current.abort();
-      }
-    };
-  }, [accessToken]);
+  const [data, setData] = useState<DashboardData>(emptyData);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    if (!loading) {
-      Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
-    }
-  }, [loading]);
+  const loadData = useCallback(async () => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const signal = controller.signal;
 
-  async function loadData() {
-    if (abortRef.current) {
-      abortRef.current.abort();
-    }
-    abortRef.current = new AbortController();
-    const signal = abortRef.current.signal;
+    if (accessToken) setAccessToken(accessToken);
+
     try {
-      const [statsRes, catRes] = await Promise.all([
-        api.get<any>('/accounts/stats', signal),
-        api.get<any>('/transactions/categories-summary?months=1', signal),
-      ]);
-      if (signal.aborted) {
-        return;
-      }
-      setStats(Array.isArray(statsRes) ? null : statsRes);
-      setCategoryData(Array.isArray(catRes) ? (catRes as any[]).slice(0, 5) : []);
-    } catch (e) {
-      if (e instanceof DOMException && e.name === 'AbortError') {
-        return;
-      }
-      console.error('Dashboard load error:', (e as Error)?.message || e);
+      const [accountStats, txStats, categories, expenseGroups, sharedGroups, reminders] =
+        await Promise.allSettled([
+          api.get<any>('/accounts/stats', signal),
+          api.get<any>('/transactions/stats', signal),
+          api.get<any>('/transactions/categories-summary?months=1', signal),
+          api.get<any>('/expense-groups', signal),
+          api.get<any>('/shared-finance/groups', signal),
+          api.get<any>('/reminders', signal),
+        ]);
+
+      if (signal.aborted) return;
+
+      setData({
+        accountStats: valueFromResult(accountStats, null),
+        transactionStats: valueFromResult(txStats, null),
+        categories: listFromResponse(valueFromResult(categories, [])),
+        expenseGroups: listFromResponse(valueFromResult(expenseGroups, [])),
+        sharedGroups: listFromResponse(valueFromResult(sharedGroups, [])),
+        reminders: listFromResponse(valueFromResult(reminders, [])),
+      });
     } finally {
       if (!signal.aborted) {
         setLoading(false);
+        setRefreshing(false);
       }
     }
-  }
+  }, [accessToken]);
+
+  useEffect(() => {
+    loadData();
+    return () => abortRef.current?.abort();
+  }, [loadData]);
+
+  useEffect(() => {
+    if (!loading) {
+      Animated.timing(fadeAnim, { toValue: 1, duration: 280, useNativeDriver: true }).start();
+    }
+  }, [fadeAnim, loading]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await loadData();
-    setRefreshing(false);
-  }, []);
+  }, [loadData]);
 
-  const txn = stats?.recentTransactions || [];
-  const monthlyIncome = Number(stats?.monthlyIncome || 0);
-  const monthlyExpense = Number(stats?.monthlyExpense || 0);
-  const totalBalance = Number(stats?.totalBalance || 0);
-  const totalAccounts = stats?.totalAccounts || 0;
+  const accountStats = data.accountStats || {};
+  const txSummary = data.transactionStats?.summary || data.transactionStats || {};
+  const totalBalance = Number(accountStats.totalBalance || 0);
+  const monthlyIncome = Number(accountStats.monthlyIncome || txSummary.totalIncome || 0);
+  const monthlyExpense = Number(accountStats.monthlyExpense || txSummary.totalExpense || 0);
+  const totalAccounts = Number(accountStats.totalAccounts || 0);
+  const activeReminders = data.reminders.filter((item) => item.status !== 'completed').length;
+  const recentTransactions = accountStats.recentTransactions || data.transactionStats?.recentTransactions || [];
+  const netFlow = monthlyIncome - monthlyExpense;
+  const spendRate = monthlyIncome > 0 ? Math.min(100, Math.round((monthlyExpense / monthlyIncome) * 100)) : 0;
+
+  const topCategory = useMemo(() => {
+    const first = data.categories[0];
+    if (!first) return null;
+    return {
+      name: first.name || first.category || 'Spending',
+      amount: Number(first.total || first.amount || 0),
+      percentage: Number(first.percentage || 0),
+    };
+  }, [data.categories]);
+
+  const primaryActions = [
+    {
+      label: 'Add Expense',
+      icon: 'add-circle-outline' as IconName,
+      color: '#00A86B',
+      onPress: () => navigation.navigate('Accounts', { screen: 'CreateTransaction' }),
+    },
+    {
+      label: 'Scan Bill',
+      icon: 'scan-outline' as IconName,
+      color: '#E85D04',
+      onPress: () => navigation.navigate('Accounts', { screen: 'BillScanner' }),
+    },
+    {
+      label: 'Split Group',
+      icon: 'people-outline' as IconName,
+      color: '#5B5FE8',
+      onPress: () => navigation.navigate('Accounts', { screen: 'ExpenseHome', params: { screen: 'SharedCircles' } }),
+    },
+    {
+      label: 'Reminder',
+      icon: 'alarm-outline' as IconName,
+      color: '#0B84A5',
+      onPress: () => navigation.navigate('Reminders', { screen: 'CreateReminder' }),
+    },
+  ];
+
+  const featureCards = [
+    {
+      title: 'Wallet',
+      meta: `${totalAccounts} account${totalAccounts === 1 ? '' : 's'}`,
+      icon: 'wallet-outline' as IconName,
+      color: '#0B84A5',
+      onPress: () => navigation.navigate('Accounts', { screen: 'ExpenseHome', params: { screen: 'MyWallet' } }),
+    },
+    {
+      title: 'Expenses',
+      meta: `${moneyFormat(monthlyExpense)} this month`,
+      icon: 'receipt-outline' as IconName,
+      color: '#D64550',
+      onPress: () => navigation.navigate('Accounts', { screen: 'ExpenseHome', params: { screen: 'MyWallet' } }),
+    },
+    {
+      title: 'Split',
+      meta: `${data.expenseGroups.length} group${data.expenseGroups.length === 1 ? '' : 's'}`,
+      icon: 'git-branch-outline' as IconName,
+      color: '#5B5FE8',
+      onPress: () => navigation.navigate('Accounts', { screen: 'ExpenseHome', params: { screen: 'SharedCircles' } }),
+    },
+    {
+      title: 'Shared',
+      meta: `${data.sharedGroups.length} circle${data.sharedGroups.length === 1 ? '' : 's'}`,
+      icon: 'people-circle-outline' as IconName,
+      color: '#7B3F98',
+      onPress: () => navigation.navigate('Shared', { screen: 'SharedFinanceHome' }),
+    },
+    {
+      title: 'Bills',
+      meta: 'Due dates',
+      icon: 'calendar-outline' as IconName,
+      color: '#C26A00',
+      onPress: () => navigation.navigate('Accounts', { screen: 'BillsList' }),
+    },
+    {
+      title: 'Reports',
+      meta: topCategory ? topCategory.name : 'Analytics',
+      icon: 'analytics-outline' as IconName,
+      color: '#247BA0',
+      onPress: () => navigation.navigate('Settings', { screen: 'Analytics' }),
+    },
+    {
+      title: 'SMS',
+      meta: 'Auto detect',
+      icon: 'chatbubbles-outline' as IconName,
+      color: '#2D9CDB',
+      onPress: () => navigation.navigate('SMS', { screen: 'SmsDashboard' }),
+    },
+    {
+      title: 'Premium',
+      meta: 'Plans',
+      icon: 'diamond-outline' as IconName,
+      color: '#8A5CF6',
+      onPress: () => navigation.navigate('Settings', { screen: 'Subscription' }),
+    },
+  ];
 
   if (loading) {
     return (
       <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}>
         <ActivityIndicator color={colors.accent.primary} size="large" />
+        <Text style={[styles.loadingText, { color: colors.text.tertiary }]}>Preparing your money dashboard</Text>
       </View>
     );
   }
 
-  const formatCurrency = (val: number) => {
-    if (val >= 10000000) {
-      return '₹' + (val / 10000000).toFixed(1) + 'Cr';
-    }
-    if (val >= 100000) {
-      return '₹' + (val / 100000).toFixed(1) + 'L';
-    }
-    return '₹' + val.toLocaleString('en-IN');
-  };
-
-  const totalSpending = monthlyIncome + monthlyExpense || 1;
-  const incomePct = (monthlyIncome / totalSpending) * 100;
-  const expensePct = (monthlyExpense / totalSpending) * 100;
-  const ringRadius = 42;
-  const ringCirc = 2 * Math.PI * ringRadius;
-
-  const quickActions = [
-    {
-      icon: 'camera-outline',
-      label: 'Scan Bill',
-      color: '#FF6B6B',
-      action: () => navigation.navigate('Accounts', { screen: 'BillScanner' }),
-    },
-    {
-      icon: 'add-circle-outline',
-      label: 'Add Expense',
-      color: '#00B894',
-      action: () => navigation.navigate('Accounts', { screen: 'AddExpense' }),
-    },
-    {
-      icon: 'swap-horizontal-outline',
-      label: 'Transfer',
-      color: '#FDCB6E',
-      action: () => navigation.navigate('Accounts', { screen: 'CreateTransaction' }),
-    },
-    {
-      icon: 'pie-chart-outline',
-      label: 'Budgets',
-      color: '#74B9FF',
-      action: () =>
-        navigation.navigate('Accounts', { screen: 'ExpenseHome', params: { screen: 'MyWallet' } }),
-    },
-  ];
-
   return (
-    <Animated.View
-      style={[styles.container, { backgroundColor: colors.bg.primary, opacity: fadeAnim }]}
-    >
+    <Animated.View style={[styles.container, { backgroundColor: colors.bg.primary, opacity: fadeAnim }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.accent.primary}
-          />
-        }
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 14 }]}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent.primary} />}
       >
+        <View style={styles.header}>
+          <View style={styles.headerText}>
+            <Text style={[styles.eyebrow, { color: colors.text.tertiary }]}>Dabbu</Text>
+            <Text style={[styles.title, { color: colors.text.primary }]}>Hi {user?.firstName || 'there'}</Text>
+          </View>
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={[styles.iconButton, { backgroundColor: colors.bg.tertiary }]}
+              onPress={() => navigation.navigate('Notifications')}
+            >
+              <Ionicons name="notifications-outline" size={20} color={colors.text.secondary} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.avatar}
+              onPress={() => navigation.navigate('Settings', { screen: 'SettingsMain' })}
+            >
+              <Text style={styles.avatarText}>{(user?.firstName?.[0] || 'U').toUpperCase()}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         <LinearGradient
-          colors={isDark ? ['#1a1a2e', colors.bg.primary] : ['#eef1ff', colors.bg.primary]}
+          colors={isDark ? ['#111827', '#1F2937'] : ['#FFFFFF', '#EEF4FF']}
           start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={[styles.headerGradient, { paddingTop: insets.top + 16 }]}
+          end={{ x: 1, y: 1 }}
+          style={[styles.balancePanel, { borderColor: colors.border.subtle }]}
         >
-          <View style={styles.header}>
-            <View style={styles.headerTop}>
-              <View style={styles.headerLeft}>
-                <Text style={[styles.greeting, { color: colors.text.tertiary }]}>Welcome back</Text>
-                <Text style={[styles.name, { color: colors.text.primary }]}>
-                  {user?.firstName || 'there'}
-                </Text>
-              </View>
-              <View style={styles.headerRight}>
-                <TouchableOpacity
-                  style={[
-                    styles.notifBtn,
-                    { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' },
-                  ]}
-                  onPress={() => navigation.navigate('SMS', { screen: 'SmsPermission' })}
-                >
-                  <Ionicons name="chatbubbles-outline" size={20} color={colors.accent.primary} />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.notifBtn,
-                    { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' },
-                  ]}
-                  onPress={() => navigation.navigate('Notifications')}
-                >
-                  <Ionicons name="notifications-outline" size={20} color={colors.text.secondary} />
-                  <View style={[styles.notifDot, { backgroundColor: colors.accent.primary }]} />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.avatarWrap}
-                  onPress={() => navigation.navigate('Settings', { screen: 'SettingsMain' })}
-                >
-                  <LinearGradient
-                    colors={['#f7892c', '#ff9f43']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.avatar}
-                  >
-                    <Text style={styles.avatarText}>{user?.firstName?.[0] || 'U'}</Text>
-                  </LinearGradient>
-                  <View
-                    style={[
-                      styles.avatarDot,
-                      { backgroundColor: colors.status.success, borderColor: colors.bg.primary },
-                    ]}
-                  />
-                </TouchableOpacity>
-              </View>
+          <View style={styles.panelTop}>
+            <Text style={[styles.panelLabel, { color: colors.text.tertiary }]}>Available balance</Text>
+            <View style={[styles.netBadge, { backgroundColor: netFlow >= 0 ? '#00A86B18' : '#D6455018' }]}>
+              <Ionicons name={netFlow >= 0 ? 'trending-up' : 'trending-down'} size={13} color={netFlow >= 0 ? '#00A86B' : '#D64550'} />
+              <Text style={[styles.netBadgeText, { color: netFlow >= 0 ? '#00A86B' : '#D64550' }]}>
+                {netFlow >= 0 ? '+' : '-'}{moneyFormat(Math.abs(netFlow))}
+              </Text>
             </View>
           </View>
-
-          <Card variant="glass" style={styles.balanceCard} padding="xl">
-            <View style={styles.balanceTop}>
-              <View style={styles.balanceLabelRow}>
-                <View style={[styles.balanceDot, { backgroundColor: colors.accent.primary }]} />
-                <Text style={[styles.balanceLabel, { color: colors.text.tertiary }]}>
-                  Total Balance
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={[
-                  styles.eyeBtn,
-                  { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' },
-                ]}
-              >
-                <Ionicons name="eye-outline" size={16} color={colors.text.tertiary} />
-              </TouchableOpacity>
-            </View>
-            <Text style={[styles.balanceAmount, { color: colors.text.primary }]}>
-              {formatCurrency(totalBalance)}
-            </Text>
-            <View style={styles.balanceMeta}>
-              <View style={styles.balanceMetaItem}>
-                <Text style={[styles.balanceMetaLabel, { color: colors.text.tertiary }]}>
-                  Income
-                </Text>
-                <Text style={[styles.balanceMetaValue, { color: colors.status.success }]}>
-                  +{formatCurrency(monthlyIncome)}
-                </Text>
-              </View>
-              <View
-                style={[styles.balanceMetaDivider, { backgroundColor: colors.border.subtle }]}
-              />
-              <View style={styles.balanceMetaItem}>
-                <Text style={[styles.balanceMetaLabel, { color: colors.text.tertiary }]}>
-                  Spent
-                </Text>
-                <Text style={[styles.balanceMetaValue, { color: colors.status.error }]}>
-                  -{formatCurrency(monthlyExpense)}
-                </Text>
-              </View>
-              <View
-                style={[styles.balanceMetaDivider, { backgroundColor: colors.border.subtle }]}
-              />
-              <View style={styles.balanceMetaItem}>
-                <Text style={[styles.balanceMetaLabel, { color: colors.text.tertiary }]}>
-                  Accounts
-                </Text>
-                <Text style={[styles.balanceMetaValue, { color: colors.text.primary }]}>
-                  {totalAccounts}
-                </Text>
-              </View>
-            </View>
-          </Card>
+          <Text style={[styles.balanceAmount, { color: colors.text.primary }]}>{moneyFormat(totalBalance)}</Text>
+          <View style={[styles.progressTrack, { backgroundColor: colors.bg.tertiary }]}>
+            <View style={[styles.progressFill, { width: `${spendRate}%`, backgroundColor: spendRate > 80 ? '#D64550' : colors.accent.primary }]} />
+          </View>
+          <View style={styles.moneyStats}>
+            <MoneyStat label="Income" value={moneyFormat(monthlyIncome)} color="#00A86B" />
+            <MoneyStat label="Spent" value={moneyFormat(monthlyExpense)} color="#D64550" />
+            <MoneyStat label="Rate" value={`${spendRate}%`} color={colors.text.primary} />
+          </View>
         </LinearGradient>
 
-        <View style={styles.quickActions}>
-          {quickActions.map((action, i) => (
-            <TouchableOpacity
-              key={i}
-              style={[
-                styles.quickActionCard,
-                {
-                  backgroundColor: colors.bg.card,
-                  borderWidth: 1,
-                  borderColor: colors.border.subtle,
-                },
-              ]}
-              onPress={action.action}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.quickActionIcon, { backgroundColor: action.color + '20' }]}>
-                <Ionicons name={action.icon as any} size={22} color={action.color} />
+        <View style={styles.actionRow}>
+          {primaryActions.map((action) => (
+            <TouchableOpacity key={action.label} style={styles.actionItem} onPress={action.onPress} activeOpacity={0.75}>
+              <View style={[styles.actionIcon, { backgroundColor: action.color + '18' }]}>
+                <Ionicons name={action.icon} size={22} color={action.color} />
               </View>
-              <Text style={[styles.quickActionLabel, { color: colors.text.secondary }]}>
-                {action.label}
-              </Text>
+              <Text style={[styles.actionLabel, { color: colors.text.secondary }]} numberOfLines={2}>{action.label}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        {categoryData.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
-                Spending Breakdown
-              </Text>
-              <TouchableOpacity style={styles.seeAllBtn}>
-                <Text style={[styles.seeAllText, { color: colors.accent.primary }]}>Details</Text>
-                <Ionicons name="chevron-forward" size={12} color={colors.accent.primary} />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.breakdownContainer}>
-              <View style={styles.ringSection}>
-                <Svg width={110} height={110} viewBox="0 0 110 110">
-                  <Circle
-                    cx="55"
-                    cy="55"
-                    r={ringRadius}
-                    stroke={isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}
-                    strokeWidth="10"
-                    fill="none"
-                  />
-                  {categoryData.slice(0, 4).map((cat: any, i: number) => {
-                    const pct = Math.min(cat.percentage || 0, 100);
-                    const dashLen = (pct / 100) * ringCirc;
-                    const offset = categoryData
-                      .slice(0, i)
-                      .reduce(
-                        (s: number, c: any) =>
-                          s - (Math.min(c.percentage || 0, 100) / 100) * ringCirc,
-                        -ringCirc * 0.25,
-                      );
-                    return (
-                      <Circle
-                        key={i}
-                        cx="55"
-                        cy="55"
-                        r={ringRadius}
-                        stroke={cat.color || ['#FF6B6B', '#FDCB6E', '#00B894', '#74B9FF'][i]}
-                        strokeWidth="10"
-                        fill="none"
-                        strokeDasharray={`${dashLen} ${ringCirc - dashLen}`}
-                        strokeDashoffset={offset}
-                        strokeLinecap="round"
-                      />
-                    );
-                  })}
-                </Svg>
-                <View style={styles.ringCenter}>
-                  <Text style={[styles.ringCenterValue, { color: colors.text.primary }]}>
-                    {categoryData
-                      .reduce((s: number, c: any) => s + (c.percentage || 0), 0)
-                      .toFixed(0)}
-                    %
-                  </Text>
-                  <Text style={[styles.ringCenterLabel, { color: colors.text.tertiary }]}>
-                    spent
-                  </Text>
-                </View>
-              </View>
-              <View style={styles.breakdownList}>
-                {categoryData.slice(0, 4).map((cat: any, i: number) => (
-                  <View key={i} style={styles.breakdownRow}>
-                    <View
-                      style={[
-                        styles.breakdownDot,
-                        {
-                          backgroundColor:
-                            cat.color || ['#FF6B6B', '#FDCB6E', '#00B894', '#74B9FF'][i],
-                        },
-                      ]}
-                    />
-                    <Text
-                      style={[styles.breakdownName, { color: colors.text.secondary }]}
-                      numberOfLines={1}
-                    >
-                      {cat.name}
-                    </Text>
-                    <Text style={[styles.breakdownPct, { color: colors.text.primary }]}>
-                      {Math.round(cat.percentage || 0)}%
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          </View>
-        )}
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Features</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Settings', { screen: 'Analytics' })}>
+            <Text style={[styles.sectionLink, { color: colors.accent.primary }]}>Reports</Text>
+          </TouchableOpacity>
+        </View>
 
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
-              Recent Activity
-            </Text>
+        <View style={styles.featureGrid}>
+          {featureCards.map((feature) => (
             <TouchableOpacity
-              onPress={() =>
-                navigation.navigate('Accounts', {
-                  screen: 'ExpenseHome',
-                  params: { screen: 'MyWallet' },
-                })
-              }
-              style={styles.seeAllBtn}
+              key={feature.title}
+              style={[styles.featureCard, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}
+              onPress={feature.onPress}
+              activeOpacity={0.78}
             >
-              <Text style={[styles.seeAllText, { color: colors.accent.primary }]}>See all</Text>
-              <Ionicons name="chevron-forward" size={12} color={colors.accent.primary} />
-            </TouchableOpacity>
-          </View>
-          {txn.length === 0 ? (
-            <Card variant="glass" style={styles.emptyCard} padding="xl">
-              <View style={styles.emptyContent}>
-                <View
-                  style={[styles.emptyIconWrap, { backgroundColor: colors.accent.primary + '15' }]}
-                >
-                  <Ionicons name="receipt-outline" size={32} color={colors.accent.primary} />
-                </View>
-                <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
-                  No transactions yet
-                </Text>
-                <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
-                  Tap + to add your first transaction or scan a bill
-                </Text>
+              <View style={[styles.featureIcon, { backgroundColor: feature.color + '16' }]}>
+                <Ionicons name={feature.icon} size={20} color={feature.color} />
               </View>
-            </Card>
+              <Text style={[styles.featureTitle, { color: colors.text.primary }]}>{feature.title}</Text>
+              <Text style={[styles.featureMeta, { color: colors.text.tertiary }]} numberOfLines={1}>{feature.meta}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={styles.snapshotRow}>
+          <SnapshotCard
+            title="Top Spend"
+            value={topCategory ? moneyFormat(topCategory.amount) : '₹0'}
+            detail={topCategory ? `${topCategory.name} · ${Math.round(topCategory.percentage)}%` : 'No category data'}
+            icon="pie-chart-outline"
+            color="#E85D04"
+            bg={colors.bg.secondary}
+            border={colors.border.subtle}
+            text={colors.text.primary}
+            muted={colors.text.tertiary}
+          />
+          <SnapshotCard
+            title="Tasks"
+            value={`${activeReminders}`}
+            detail={`${data.reminders.length} reminder${data.reminders.length === 1 ? '' : 's'}`}
+            icon="alarm-outline"
+            color="#0B84A5"
+            bg={colors.bg.secondary}
+            border={colors.border.subtle}
+            text={colors.text.primary}
+            muted={colors.text.tertiary}
+          />
+        </View>
+
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Recent Activity</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Accounts', { screen: 'ExpenseHome', params: { screen: 'MyWallet' } })}>
+            <Text style={[styles.sectionLink, { color: colors.accent.primary }]}>See all</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.activityList}>
+          {recentTransactions.slice(0, 5).length === 0 ? (
+            <View style={[styles.emptyCard, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}>
+              <Ionicons name="receipt-outline" size={28} color={colors.text.tertiary} />
+              <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No transactions yet</Text>
+              <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>Add an expense or scan a bill to start tracking.</Text>
+            </View>
           ) : (
-            txn.map((item: any, i: number) => {
+            recentTransactions.slice(0, 5).map((item: any, index: number) => {
               const isExpense = item.type === 'expense';
               return (
                 <TouchableOpacity
-                  key={item.id || i}
-                  style={[
-                    styles.txnCard,
-                    {
-                      backgroundColor: colors.bg.card,
-                      borderWidth: 1,
-                      borderColor: colors.border.subtle,
-                    },
-                  ]}
-                  activeOpacity={0.7}
-                  onPress={() =>
-                    navigation.navigate('Accounts', {
-                      screen: 'TransactionDetail',
-                      params: { transactionId: item.id },
-                    })
-                  }
+                  key={item.id || index}
+                  style={[styles.activityItem, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}
+                  onPress={() => navigation.navigate('Accounts', { screen: 'TransactionDetail', params: { transactionId: item.id } })}
+                  activeOpacity={0.75}
                 >
-                  <View
-                    style={[
-                      styles.txnIconWrap,
-                      {
-                        backgroundColor: isExpense
-                          ? colors.status.error + '18'
-                          : colors.status.success + '18',
-                      },
-                    ]}
-                  >
-                    <Ionicons
-                      name={isExpense ? 'arrow-up' : 'arrow-down'}
-                      size={16}
-                      color={isExpense ? colors.status.error : colors.status.success}
-                    />
+                  <View style={[styles.activityIcon, { backgroundColor: isExpense ? '#D6455018' : '#00A86B18' }]}>
+                    <Ionicons name={isExpense ? 'arrow-up' : 'arrow-down'} size={15} color={isExpense ? '#D64550' : '#00A86B'} />
                   </View>
-                  <View style={styles.txnInfo}>
-                    <Text
-                      style={[styles.txnName, { color: colors.text.primary }]}
-                      numberOfLines={1}
-                    >
+                  <View style={styles.activityBody}>
+                    <Text style={[styles.activityTitle, { color: colors.text.primary }]} numberOfLines={1}>
                       {item.description || item.category?.name || 'Transaction'}
                     </Text>
-                    <Text style={[styles.txnMeta, { color: colors.text.tertiary }]}>
-                      {item.category?.name ? `${item.category.name} · ` : ''}
-                      {new Date(item.date || item.createdAt).toLocaleDateString('en-IN', {
-                        day: 'numeric',
-                        month: 'short',
-                      })}
+                    <Text style={[styles.activityMeta, { color: colors.text.tertiary }]}>
+                      {new Date(item.date || item.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                     </Text>
                   </View>
-                  <View style={styles.txnRight}>
-                    <Text
-                      style={[
-                        styles.txnAmount,
-                        { color: isExpense ? colors.status.error : colors.status.success },
-                      ]}
-                    >
-                      {isExpense ? '-' : '+'}
-                      {formatCurrency(Number(item.amount))}
-                    </Text>
-                  </View>
+                  <Text style={[styles.activityAmount, { color: isExpense ? '#D64550' : '#00A86B' }]}>
+                    {isExpense ? '-' : '+'}{moneyFormat(Number(item.amount || 0))}
+                  </Text>
                 </TouchableOpacity>
               );
             })
           )}
         </View>
-
-        <View style={{ height: 100 }} />
       </ScrollView>
     </Animated.View>
   );
 }
 
+function MoneyStat({ label, value, color }: { label: string; value: string; color: string }) {
+  return (
+    <View style={styles.moneyStat}>
+      <Text style={styles.moneyStatLabel}>{label}</Text>
+      <Text style={[styles.moneyStatValue, { color }]} numberOfLines={1}>{value}</Text>
+    </View>
+  );
+}
+
+function SnapshotCard({
+  title,
+  value,
+  detail,
+  icon,
+  color,
+  bg,
+  border,
+  text,
+  muted,
+}: {
+  title: string;
+  value: string;
+  detail: string;
+  icon: IconName;
+  color: string;
+  bg: string;
+  border: string;
+  text: string;
+  muted: string;
+}) {
+  return (
+    <View style={[styles.snapshotCard, { backgroundColor: bg, borderColor: border }]}>
+      <View style={[styles.snapshotIcon, { backgroundColor: color + '16' }]}>
+        <Ionicons name={icon} size={18} color={color} />
+      </View>
+      <Text style={[styles.snapshotTitle, { color: muted }]}>{title}</Text>
+      <Text style={[styles.snapshotValue, { color: text }]}>{value}</Text>
+      <Text style={[styles.snapshotDetail, { color: muted }]} numberOfLines={1}>{detail}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: { paddingBottom: 100 },
-  loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  headerGradient: { paddingBottom: 0 },
-  header: { paddingHorizontal: 24, paddingBottom: 24 },
-  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  headerLeft: {},
-  greeting: { fontSize: 13, fontWeight: '500', marginBottom: 2 },
-  name: { fontSize: 24, fontWeight: '700' },
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  notifBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  notifDot: { width: 6, height: 6, borderRadius: 3, position: 'absolute', top: 10, right: 10 },
-  avatarWrap: { position: 'relative' },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: { fontSize: 17, fontWeight: '700', color: '#FFFFFF' },
-  avatarDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-    borderWidth: 2,
-  },
-  balanceCard: { marginHorizontal: 24 },
-  balanceTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  balanceLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  balanceDot: { width: 6, height: 6, borderRadius: 3 },
-  balanceLabel: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1 },
-  eyeBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  balanceAmount: { fontSize: 38, fontWeight: '700', letterSpacing: -1, marginBottom: 16 },
-  balanceMeta: { flexDirection: 'row', alignItems: 'center' },
-  balanceMetaItem: { flex: 1 },
-  balanceMetaLabel: {
-    fontSize: 10,
-    fontWeight: '500',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 2,
-  },
-  balanceMetaValue: { fontSize: 15, fontWeight: '700' },
-  balanceMetaDivider: { width: 1, height: 32, marginHorizontal: 8 },
-  quickActions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 24,
-    gap: 12,
-    marginTop: 24,
-    marginBottom: 28,
-  },
-  quickActionCard: { width: CARD_WIDTH, borderRadius: 18, padding: 18, alignItems: 'center' },
-  quickActionIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  quickActionLabel: { fontSize: 13, fontWeight: '600' },
-  section: { paddingHorizontal: 24, marginBottom: 24 },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  sectionTitle: { fontSize: 18, fontWeight: '700' },
-  seeAllBtn: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  seeAllText: { fontSize: 13, fontWeight: '600' },
-  breakdownContainer: { flexDirection: 'row', alignItems: 'center', gap: 24 },
-  ringSection: {
-    width: 110,
-    height: 110,
-    position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  ringCenter: { position: 'absolute', alignItems: 'center' },
-  ringCenterValue: { fontSize: 18, fontWeight: '800', letterSpacing: -0.5 },
-  ringCenterLabel: { fontSize: 9, fontWeight: '500', marginTop: 1 },
-  breakdownList: { flex: 1, gap: 10 },
-  breakdownRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  breakdownDot: { width: 8, height: 8, borderRadius: 4 },
-  breakdownName: { flex: 1, fontSize: 13, fontWeight: '500' },
-  breakdownPct: { fontSize: 13, fontWeight: '700' },
-  emptyCard: { alignItems: 'center' },
-  emptyContent: { alignItems: 'center', paddingVertical: 12, gap: 8 },
-  emptyIconWrap: {
-    width: 56,
-    height: 56,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyTitle: { fontSize: 16, fontWeight: '600' },
-  emptyDesc: { fontSize: 12, textAlign: 'center', lineHeight: 18 },
-  txnCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 18,
-    marginBottom: 8,
-    gap: 14,
-  },
-  txnIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  txnInfo: { flex: 1 },
-  txnName: { fontSize: 14, fontWeight: '600', marginBottom: 2 },
-  txnMeta: { fontSize: 11 },
-  txnRight: {},
-  txnAmount: { fontSize: 15, fontWeight: '700' },
+  scrollContent: { paddingHorizontal: 20, paddingBottom: 120 },
+  loading: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 },
+  loadingText: { marginTop: 12, fontSize: 13, fontWeight: '500' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 },
+  headerText: { flex: 1 },
+  eyebrow: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8 },
+  title: { fontSize: 28, fontWeight: '800', marginTop: 2 },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  iconButton: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  avatar: { width: 42, height: 42, borderRadius: 14, backgroundColor: '#E85D04', alignItems: 'center', justifyContent: 'center' },
+  avatarText: { color: '#FFFFFF', fontSize: 16, fontWeight: '800' },
+  balancePanel: { borderWidth: 1, borderRadius: 24, padding: 20, marginBottom: 18 },
+  panelTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
+  panelLabel: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.7 },
+  netBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 },
+  netBadgeText: { fontSize: 12, fontWeight: '800' },
+  balanceAmount: { fontSize: 38, fontWeight: '800', marginBottom: 16 },
+  progressTrack: { height: 8, borderRadius: 999, overflow: 'hidden', marginBottom: 16 },
+  progressFill: { height: '100%', borderRadius: 999 },
+  moneyStats: { flexDirection: 'row', gap: 10 },
+  moneyStat: { flex: 1 },
+  moneyStatLabel: { color: 'rgba(127,127,127,0.9)', fontSize: 10, fontWeight: '700', textTransform: 'uppercase', marginBottom: 4 },
+  moneyStatValue: { fontSize: 14, fontWeight: '800' },
+  actionRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24 },
+  actionItem: { width: '23%', alignItems: 'center' },
+  actionIcon: { width: 52, height: 52, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+  actionLabel: { fontSize: 11, fontWeight: '700', textAlign: 'center', lineHeight: 14 },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+  sectionTitle: { fontSize: 18, fontWeight: '800' },
+  sectionLink: { fontSize: 13, fontWeight: '800' },
+  featureGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 24 },
+  featureCard: { width: '48.5%', borderWidth: 1, borderRadius: 18, padding: 14, minHeight: 118 },
+  featureIcon: { width: 38, height: 38, borderRadius: 13, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
+  featureTitle: { fontSize: 15, fontWeight: '800', marginBottom: 4 },
+  featureMeta: { fontSize: 12, fontWeight: '600' },
+  snapshotRow: { flexDirection: 'row', gap: 10, marginBottom: 24 },
+  snapshotCard: { flex: 1, borderWidth: 1, borderRadius: 18, padding: 14 },
+  snapshotIcon: { width: 34, height: 34, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
+  snapshotTitle: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', marginBottom: 3 },
+  snapshotValue: { fontSize: 20, fontWeight: '800', marginBottom: 3 },
+  snapshotDetail: { fontSize: 12, fontWeight: '600' },
+  activityList: { gap: 10 },
+  activityItem: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: 16, padding: 12 },
+  activityIcon: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  activityBody: { flex: 1, minWidth: 0 },
+  activityTitle: { fontSize: 14, fontWeight: '800', marginBottom: 3 },
+  activityMeta: { fontSize: 11, fontWeight: '600' },
+  activityAmount: { fontSize: 14, fontWeight: '800', marginLeft: 8 },
+  emptyCard: { borderWidth: 1, borderRadius: 18, padding: 22, alignItems: 'center' },
+  emptyTitle: { fontSize: 15, fontWeight: '800', marginTop: 10 },
+  emptyText: { fontSize: 12, textAlign: 'center', marginTop: 4, lineHeight: 17 },
 });

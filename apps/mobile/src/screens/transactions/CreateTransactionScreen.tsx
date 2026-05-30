@@ -68,14 +68,22 @@ export function CreateTransactionScreen() {
   async function loadMeta() {
     let catData: any[] = [];
     try {
-      const [catRes, grpRes] = await Promise.all([
+      const [catResult, grpResult] = await Promise.allSettled([
         api.get<any[]>('/categories'),
         api.get<any>('/expense-groups'),
       ]);
-      catData = Array.isArray(catRes) ? catRes : Array.isArray(catRes?.data) ? catRes.data : [];
+
+      const catRes = catResult.status === 'fulfilled' ? catResult.value : [];
+      const grpRes = grpResult.status === 'fulfilled' ? grpResult.value : [];
+
+      catData = Array.isArray(catRes) ? catRes : Array.isArray((catRes as any)?.data) ? (catRes as any).data : [];
       setCategories(catData);
-      const g = Array.isArray(grpRes) ? grpRes : Array.isArray(grpRes?.data) ? grpRes.data : [];
+      const g = Array.isArray(grpRes) ? grpRes : Array.isArray((grpRes as any)?.data) ? (grpRes as any).data : [];
       setGroups(g);
+
+      if (catResult.status === 'rejected' && grpResult.status === 'rejected') {
+        throw catResult.reason || grpResult.reason;
+      }
     } catch (e: any) {
       if (catData.length === 0) {
         setError('Could not load categories: ' + (e.message || 'network error'));

@@ -57,10 +57,12 @@ export function SharedCirclesScreen() {
       if (accessToken) {
         setAccessToken(accessToken);
       }
-      const [grpRes, txRes] = await Promise.all([
+      const [grpResult, txResult] = await Promise.allSettled([
         api.get<any>('/expense-groups'),
         api.get<any>('/transactions'),
       ]);
+      const grpRes = grpResult.status === 'fulfilled' ? grpResult.value : [];
+      const txRes = txResult.status === 'fulfilled' ? txResult.value : [];
       const g = Array.isArray(grpRes) ? grpRes : Array.isArray(grpRes?.data) ? grpRes.data : [];
       setGroups(g);
       const txData = Array.isArray(txRes) ? txRes : Array.isArray(txRes?.data) ? txRes.data : [];

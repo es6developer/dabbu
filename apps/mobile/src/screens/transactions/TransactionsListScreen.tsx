@@ -113,11 +113,14 @@ export function TransactionsListScreen() {
 
   const loadData = useCallback(async () => {
     try {
-      const [txRes, statsRes, grpRes] = await Promise.all([
+      const [txResult, statsResult, grpResult] = await Promise.allSettled([
         api.get<any>('/transactions'),
         api.get<any>('/transactions/stats'),
         api.get<any>('/expense-groups'),
       ]);
+      const txRes = txResult.status === 'fulfilled' ? txResult.value : [];
+      const statsRes = statsResult.status === 'fulfilled' ? statsResult.value : null;
+      const grpRes = grpResult.status === 'fulfilled' ? grpResult.value : [];
       const txData = Array.isArray(txRes) ? txRes : Array.isArray(txRes?.data) ? txRes.data : [];
       setTransactions(txData);
       if (statsRes?.summary) {

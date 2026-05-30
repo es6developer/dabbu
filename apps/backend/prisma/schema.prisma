@@ -656,6 +656,7 @@ model Transaction {
   @@index([userId, type, date])
   @@index([userId, status])
   @@index([userId, isReviewed])
+  @@index([expenseGroupId, date])
   @@index([date, status])
   @@map("transactions")
 }

@@ -256,6 +256,9 @@ export function MainTabNavigator() {
   const isPremium = planPrice > 0;
 
   const visibleTabs = ALL_TABS.filter((tab) => {
+    if (tab.name === 'SMS' && Platform.OS === 'ios') {
+      return false;
+    }
     if (tab.featureKey) {
       if (isPremiumFeature(tab.featureKey as any) && !isPremium) {
         return false;

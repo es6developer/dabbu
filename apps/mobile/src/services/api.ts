@@ -48,6 +48,10 @@ function cacheKey(method: string, path: string): string {
   return `${method}:${path}`;
 }
 
+function shouldCacheGet(path: string): boolean {
+  return !path.startsWith('/expense-groups') && !path.startsWith('/shared-finance/groups');
+}
+
 function getCached<T>(key: string, allowStale = false): T | null {
   const entry = cache.get(key);
   if (!entry) {
@@ -95,7 +99,7 @@ async function fetchWithTimeout(
   const timeoutController = new AbortController();
   const timeoutId = setTimeout(() => timeoutController.abort(), timeout);
   try {
-    const signal = mergeSignals(timeoutController.signal, options.signal);
+    const signal = mergeSignals(timeoutController.signal, options.signal ?? undefined);
     return await fetch(`${API_URL}${path}`, { ...options, signal });
   } finally {
     clearTimeout(timeoutId);
@@ -105,7 +109,9 @@ async function fetchWithTimeout(
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const key = cacheKey(options.method || 'GET', path);
 
-  if (!options.method || options.method === 'GET') {
+  const canCache = (!options.method || options.method === 'GET') && shouldCacheGet(path);
+
+  if (canCache) {
     const cached = getCached<T>(key);
     if (cached) {
       return cached;
@@ -146,7 +152,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
           if (retryRes.ok) {
             const retryBody = await retryRes.json();
             const retryData = retryBody?.data ?? retryBody;
-            if (!options.method || options.method === 'GET') {
+            if (canCache) {
               setCached(key, retryData);
             }
             return retryData as T;
@@ -168,7 +174,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       const body = await res.json();
       const data = body?.data ?? body;
 
-      if (!options.method || options.method === 'GET') {
+      if (canCache) {
         setCached(key, data);
       } else {
         cache.clear();
@@ -183,7 +189,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
         continue;
       }
 
-      if (isGet) {
+      if (canCache) {
         const stale = getCached<T>(key, true);
         if (stale) {
           return stale;
