@@ -15,6 +15,7 @@ export enum NotificationType {
   PROMOTIONAL = 'promotional',
   GROUP_EXPENSE = 'group_expense',
   GROUP_INCOME = 'group_income',
+  GROUP_ADD = 'group_add',
 }
 
 export enum NotificationChannel {

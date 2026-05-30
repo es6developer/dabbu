@@ -29,6 +29,7 @@ import { useTheme } from '../theme';
 import { isFeatureEnabled, isPremiumFeature, loadFeatures } from '../config/features';
 import { useAuth } from '../store/AuthContext';
 
+
 const Tab = createBottomTabNavigator();
 const DashboardStack = createNativeStackNavigator();
 const SettingsStack = createNativeStackNavigator();
@@ -48,13 +49,17 @@ const TAB_ICONS: Record<
 };
 
 function DashboardNavigator() {
-  const { colors } = useTheme();
+  const { colors, typography } = useTheme();
   return (
     <DashboardStack.Navigator
       screenOptions={{
         headerStyle: { backgroundColor: colors.bg.primary },
         headerTintColor: colors.text.primary,
-        headerTitleStyle: { fontWeight: '600' },
+headerTitleStyle: {
+  fontFamily: typography.calloutBold.fontFamily,
+  fontSize: typography.calloutBold.fontSize,
+  fontWeight: typography.calloutBold.fontWeight,
+},
         contentStyle: { backgroundColor: colors.bg.primary },
       }}
     >
@@ -78,13 +83,17 @@ function DashboardNavigator() {
 }
 
 function SettingsNavigator() {
-  const { colors } = useTheme();
+  const { colors, typography } = useTheme();
   return (
     <SettingsStack.Navigator
       screenOptions={{
         headerStyle: { backgroundColor: colors.bg.primary },
         headerTintColor: colors.text.primary,
-        headerTitleStyle: { fontWeight: '600' },
+       headerTitleStyle: {
+  fontFamily: typography.calloutBold.fontFamily,
+  fontSize: typography.calloutBold.fontSize,
+  fontWeight: typography.calloutBold.fontWeight,
+},
         contentStyle: { backgroundColor: colors.bg.primary },
       }}
     >
@@ -144,13 +153,17 @@ function SettingsNavigator() {
 }
 
 function RemindersNavigator() {
-  const { colors } = useTheme();
+  const { colors, typography } = useTheme();
   return (
     <RemindersStack.Navigator
       screenOptions={{
         headerStyle: { backgroundColor: colors.bg.primary },
         headerTintColor: colors.text.primary,
-        headerTitleStyle: { fontWeight: '600' },
+        headerTitleStyle: {
+          fontFamily: typography.calloutBold.fontFamily,
+          fontSize: typography.calloutBold.fontSize,
+          fontWeight: typography.calloutBold.fontWeight,
+        },
         contentStyle: { backgroundColor: colors.bg.primary },
       }}
     >
@@ -174,13 +187,17 @@ function RemindersNavigator() {
 }
 
 function SmsNavigator() {
-  const { colors } = useTheme();
+  const { colors, typography } = useTheme();
   return (
     <SmsStack.Navigator
       screenOptions={{
         headerStyle: { backgroundColor: colors.bg.primary },
         headerTintColor: colors.text.primary,
-        headerTitleStyle: { fontWeight: '600' },
+        headerTitleStyle: {
+          fontFamily: typography.calloutBold.fontFamily,
+          fontSize: typography.calloutBold.fontSize,
+          fontWeight: typography.calloutBold.fontWeight,
+        },
         contentStyle: { backgroundColor: colors.bg.primary },
       }}
     >
@@ -218,7 +235,7 @@ const ALL_TABS: TabConfig[] = [
 const API_URL = 'https://backend-ochre-delta-80.vercel.app/api/v1';
 
 export function MainTabNavigator() {
-  const { colors, isDark } = useTheme();
+  const { colors, isDark, typography} = useTheme();
   const { user, accessToken } = useAuth();
   const [subscription, setSubscription] = useState<any>(null);
 
@@ -286,7 +303,7 @@ export function MainTabNavigator() {
         tabBarLabelStyle: { fontSize: 10, fontWeight: '600', letterSpacing: 0.3 },
         headerStyle: { backgroundColor: colors.bg.primary },
         headerTintColor: colors.text.primary,
-        headerTitleStyle: { fontWeight: '600' },
+        headerTitleStyle: { ...typography.calloutBold },
       })}
     >
       {visibleTabs.map((tab) => (

@@ -112,10 +112,16 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     }
   }
 
+  const isFormData = typeof (options as any).body !== 'string' &&
+    typeof FormData !== 'undefined' && (options as any).body instanceof FormData;
+
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
   };
+
+  if (!isFormData) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   if (accessToken) {
     headers['Authorization'] = `Bearer ${accessToken}`;
@@ -124,7 +130,13 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   for (let attempt = 0; attempt < 2; attempt++) {
     const timeout = attempt === 0 ? REQUEST_TIMEOUT : RETRY_TIMEOUT;
     try {
-      const res = await fetchWithTimeout(path, { ...options, headers }, timeout);
+      // If body is an object and not FormData, stringify as JSON
+      const sentOptions = { ...options, headers } as RequestInit;
+      if (sentOptions.body && !(sentOptions.body instanceof FormData) && typeof sentOptions.body !== 'string') {
+        sentOptions.body = JSON.stringify(sentOptions.body);
+      }
+
+      const res = await fetchWithTimeout(path, sentOptions, timeout);
 
       if (res.status === 401 && refreshTokenFn) {
         const refreshed = await refreshTokenFn();
@@ -193,17 +205,9 @@ export const api = {
   get: <T>(path: string, signal?: AbortSignal) =>
     request<T>(path, { method: 'GET', ...(signal ? { signal } : {}) }),
   post: <T>(path: string, body?: any, signal?: AbortSignal) =>
-    request<T>(path, {
-      method: 'POST',
-      body: body ? JSON.stringify(body) : undefined,
-      ...(signal ? { signal } : {}),
-    }),
+    request<T>(path, { method: 'POST', body: body ?? undefined, ...(signal ? { signal } : {}) }),
   patch: <T>(path: string, body?: any, signal?: AbortSignal) =>
-    request<T>(path, {
-      method: 'PATCH',
-      body: body ? JSON.stringify(body) : undefined,
-      ...(signal ? { signal } : {}),
-    }),
+    request<T>(path, { method: 'PATCH', body: body ?? undefined, ...(signal ? { signal } : {}) }),
   delete: <T>(path: string, signal?: AbortSignal) =>
     request<T>(path, { method: 'DELETE', ...(signal ? { signal } : {}) }),
 };

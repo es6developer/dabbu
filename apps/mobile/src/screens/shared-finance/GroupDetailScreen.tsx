@@ -176,11 +176,11 @@ function SkeletonLoader() {
           },
         ]}
       />
-      <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+      <View style={{ flexDirection: 'row', marginBottom: 16 }}>
         <Animated.View
           style={[
             styles.skelBlock,
-            { backgroundColor: colors.skeleton.base, opacity, height: 90, flex: 1 },
+            { backgroundColor: colors.skeleton.base, opacity, height: 90, flex: 1, marginRight: 10 },
           ]}
         />
         <Animated.View
@@ -311,7 +311,7 @@ export function GroupDetailScreen() {
         const balances = data.balances ?? [];
         const members = data.members ?? [];
         const currentUserId = user?.id || data.ownerId;
-        const myBalance = balances.find((b: any) => b?.userId === currentUserId);
+        const myBalance = balances.find((b: any) => b?.userId === currentUserId || b?.memberId === currentUserId);
         const totalSpent = balances.reduce((s: number, b: any) => s + Number(b?.totalPaid ?? 0), 0);
 
         const transformed: GroupDetail = {
@@ -373,7 +373,7 @@ export function GroupDetailScreen() {
         }
       }
     },
-    [groupId, paramInviteCode],
+    [groupId, paramInviteCode, user?.id],
   );
 
   useFocusEffect(
@@ -409,7 +409,7 @@ export function GroupDetailScreen() {
     try {
       const res = await createInviteLink(groupId);
       const token = res.token;
-      const link = `https://external-web.vercel.app//invite/${token}`;
+      const link = `https://external-web.vercel.app/invite/${token}`;
       await Share.share({
         message: `Join my group "${group?.name}" on Dabbu! ${link}`,
       });
@@ -949,14 +949,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    gap: 12,
   },
   headerInfo: {
     flex: 1,
   },
   headerBadges: {
     flexDirection: 'row',
-    gap: 8,
     marginTop: 6,
   },
   badge: {
@@ -965,7 +963,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 100,
-    gap: 4,
   },
   badgeText: {
     fontSize: 11,
@@ -999,7 +996,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 100,
-    gap: 5,
   },
   typeBadgeText: {
     fontSize: 11,
@@ -1090,7 +1086,6 @@ const styles = StyleSheet.create({
   memberNameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
   },
   roleBadge: {
     paddingHorizontal: 8,
@@ -1142,6 +1137,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 60,
   },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
   inviteButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1184,7 +1185,6 @@ const styles = StyleSheet.create({
   fabContainer: {
     position: 'absolute',
     flexDirection: 'row',
-    gap: 10,
   },
   fab: {
     flexDirection: 'row',

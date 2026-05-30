@@ -152,7 +152,7 @@ export function BillScannerScreen() {
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.8,
-      base64: true,
+      base64: false,
     });
     if (result.canceled || !result.assets?.[0]) {
       return;
@@ -169,7 +169,7 @@ export function BillScannerScreen() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.8,
-      base64: true,
+      base64: false,
     });
     if (result.canceled || !result.assets?.[0]) {
       return;
@@ -182,12 +182,20 @@ export function BillScannerScreen() {
     setScanState('scanning');
     setBillData(null);
     try {
-      const base64 = asset.base64;
-      if (!base64) {
+      // Send image as multipart/form-data to avoid keeping large base64 strings in JS heap
+      const uri = asset.uri;
+      if (!uri) {
         throw new Error('Could not read image data');
       }
+
+      const fileName = asset.fileName || uri.split('/').pop() || 'photo.jpg';
       const mimeType = asset.mimeType || 'image/jpeg';
-      const res = await api.post<any>('/transactions/scan-bill', { image: base64, mimeType });
+
+      const form = new FormData();
+      // @ts-ignore - React Native FormData file object
+      form.append('file', { uri, name: fileName, type: mimeType });
+
+      const res = await api.post<any>('/transactions/scan-bill', form as any);
       if (res && res.amount) {
         navigation.navigate('CreateTransaction', {
           prefill: {

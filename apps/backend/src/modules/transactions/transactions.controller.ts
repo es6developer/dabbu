@@ -1,7 +1,8 @@
 import {
   Controller, Get, Post, Patch, Delete, Body, Param, Query,
-  UseGuards, HttpCode, HttpStatus, UploadedFile, UseInterceptors,
+  UseGuards, HttpCode, HttpStatus, UploadedFile, UseInterceptors, BadRequestException,
 } from '@nestjs/common';
+import * as multer from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes } from '@nestjs/swagger';
 import { TransactionsService } from './transactions.service';
@@ -121,11 +122,37 @@ export class TransactionsController {
   }
 
   @Post('scan-bill')
+  @UseInterceptors(FileInterceptor('file', { storage: multer.memoryStorage(), limits: { fileSize: 10_000_000 } }))
   @HttpCode(HttpStatus.OK)
+  @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Scan a bill/receipt image and extract transaction data using AI' })
   async scanBill(
-    @Body() body: { image: string; mimeType?: string },
+    @Body() body: { image?: string; mimeType?: string },
+    @UploadedFile() file?: any,
   ) {
+    // Support both JSON base64 uploads (legacy) and multipart file uploads
+    if (file) {
+      // multer memory storage may provide buffer; otherwise read from path
+      let base64: string | null = null;
+      if (file.buffer) {
+        base64 = file.buffer.toString('base64');
+      } else if (file.path) {
+        const fs = await import('fs');
+        const b = await fs.promises.readFile(file.path);
+        base64 = b.toString('base64');
+      }
+      if (!base64) {
+        throw new BadRequestException('Failed to read uploaded file');
+      }
+      const mime = file.mimetype || body.mimeType || 'image/jpeg';
+      const result = await this.billScanner.scanBill(base64, mime);
+      return { data: result };
+    }
+
+    if (!body || !body.image) {
+      throw new BadRequestException('No image provided');
+    }
+
     const result = await this.billScanner.scanBill(body.image, body.mimeType);
     return { data: result };
   }

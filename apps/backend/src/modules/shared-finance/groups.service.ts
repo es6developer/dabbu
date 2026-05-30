@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { InvitationService } from './invitation.service';
+import { NotificationService } from '../notification/notification.service';
 import {
   CreateGroupDto,
   UpdateGroupDto,
@@ -16,6 +17,7 @@ import {
   AddMemberByEmailDto,
 } from './groups.dto';
 import * as crypto from 'crypto';
+import { NotificationType } from '../notification/dto';
 
 @Injectable()
 export class GroupsService {
@@ -24,6 +26,7 @@ export class GroupsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly invitationService: InvitationService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async create(userId: string, dto: CreateGroupDto) {
@@ -514,6 +517,65 @@ export class GroupsService {
   }
 
   async addMemberByEmail(groupId: string, requesterId: string, dto: AddMemberByEmailDto) {
+    // Only admins/owners may add members directly
+    await this.validateAdmin(groupId, requesterId);
+
+    const email = (dto.email || '').trim();
+    if (!email) {
+      throw new BadRequestException('Email is required');
+    }
+
+    const existingUser = await this.prisma.user.findFirst({
+      where: { email, isActive: true, deletedAt: null },
+    });
+
+    // If user exists in system, add them immediately to the group
+    if (existingUser) {
+      const existingMember = await this.prisma.groupMember.findFirst({
+        where: { groupId, userId: existingUser.id, deletedAt: null },
+      });
+      if (existingMember && existingMember.isActive) {
+        throw new ConflictException('This user is already a member of the group');
+      }
+
+      if (existingMember) {
+        // reactivate previously removed member
+        const updated = await this.prisma.groupMember.update({
+          where: { id: existingMember.id },
+          data: { isActive: true, deletedAt: null, leftAt: null },
+        });
+        try {
+          await this.notificationService.create({
+            userId: existingUser.id,
+            type: NotificationType.GROUP_ADD,
+            title: `Added to "${(await this.findGroupOrThrow(groupId)).name}"`,
+            body: `You were added to the group by a member. Open the app to view the group.`,
+            data: { groupId },
+          });
+        } catch (e) {
+          this.logger.warn(`Failed to notify user ${existingUser.id} about group add: ${e.message}`);
+        }
+        return { data: { memberId: updated.id, message: 'Member added' } };
+      }
+
+      const member = await this.prisma.groupMember.create({
+        data: { groupId, userId: existingUser.id, role: 'member' },
+      });
+      try {
+        await this.notificationService.create({
+          userId: existingUser.id,
+          type: NotificationType.GROUP_ADD,
+          title: `Added to "${(await this.findGroupOrThrow(groupId)).name}"`,
+          body: `You were added to the group by a member. Open the app to view the group.`,
+          data: { groupId },
+        });
+      } catch (e) {
+        this.logger.warn(`Failed to notify user ${existingUser.id} about group add: ${e.message}`);
+      }
+      return { data: { memberId: member.id, message: 'Member added' } };
+    }
+
+    // If user not registered, fall back to invitation flow
     return this.invitationService.createInvitation(groupId, requesterId, dto.email);
   }
 

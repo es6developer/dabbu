@@ -1,5 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useTheme } from '../theme';
 import { SharedFinanceHomeScreen } from '../screens/shared-finance/SharedFinanceHomeScreen';
 import { CreateGroupScreen } from '../screens/shared-finance/CreateGroupScreen';
 import { GroupDetailScreen } from '../screens/shared-finance/GroupDetailScreen';
