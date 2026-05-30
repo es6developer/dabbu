@@ -1,16 +1,30 @@
 import {
-  Injectable, NotFoundException, ConflictException,
-  ForbiddenException, BadRequestException, Logger,
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  ForbiddenException,
+  BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
-import { CreateGroupDto, UpdateGroupDto, UpdateMemberRoleDto, SalaryProfileDto, AddMemberByEmailDto } from './groups.dto';
+import { InvitationService } from './invitation.service';
+import {
+  CreateGroupDto,
+  UpdateGroupDto,
+  UpdateMemberRoleDto,
+  SalaryProfileDto,
+  AddMemberByEmailDto,
+} from './groups.dto';
 import * as crypto from 'crypto';
 
 @Injectable()
 export class GroupsService {
   private readonly logger = new Logger(GroupsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly invitationService: InvitationService,
+  ) {}
 
   async create(userId: string, dto: CreateGroupDto) {
     const inviteCode = crypto.randomBytes(4).toString('hex').toUpperCase();
@@ -19,7 +33,8 @@ export class GroupsService {
       where: { id: userId },
       select: { role: true },
     });
-    const isPremium = user?.role === 'premium' || user?.role === 'admin' || user?.role === 'super_admin';
+    const isPremium =
+      user?.role === 'premium' || user?.role === 'admin' || user?.role === 'super_admin';
     const maxMembers = isPremium ? Math.min(dto.maxMembers || 30, 30) : 2;
 
     const group = await this.prisma.sharedFinanceGroup.create({
@@ -78,7 +93,14 @@ export class GroupsService {
           where: { deletedAt: null },
           include: {
             user: {
-              select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true, phone: true },
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatarUrl: true,
+                email: true,
+                phone: true,
+              },
             },
           },
         },
@@ -93,13 +115,19 @@ export class GroupsService {
       },
     });
 
-    if (!group) throw new NotFoundException('Group not found');
-    if (group.deletedAt) throw new NotFoundException('Group not found');
+    if (!group) {
+      throw new NotFoundException('Group not found');
+    }
+    if (group.deletedAt) {
+      throw new NotFoundException('Group not found');
+    }
     await this.validateMember(group.id, userId);
 
     const balances = await this.calculateBalances(group.id);
 
-    return { data: { ...group, balances, isPremium: group.maxMembers > 2, planLimit: group.maxMembers } };
+    return {
+      data: { ...group, balances, isPremium: group.maxMembers > 2, planLimit: group.maxMembers },
+    };
   }
 
   async update(groupId: string, userId: string, dto: UpdateGroupDto) {
@@ -154,9 +182,15 @@ export class GroupsService {
       include: { _count: { select: { members: true } } },
     });
 
-    if (!group || group.deletedAt) throw new NotFoundException('Group not found');
-    if (group.status !== 'active') throw new BadRequestException('Group is no longer active');
-    if (group.inviteCode !== inviteCode) throw new BadRequestException('Invalid invite code');
+    if (!group || group.deletedAt) {
+      throw new NotFoundException('Group not found');
+    }
+    if (group.status !== 'active') {
+      throw new BadRequestException('Group is no longer active');
+    }
+    if (group.inviteCode !== inviteCode) {
+      throw new BadRequestException('Invalid invite code');
+    }
 
     const existingMember = await this.prisma.groupMember.findUnique({
       where: { groupId_userId: { groupId, userId } },
@@ -168,7 +202,9 @@ export class GroupsService {
           where: { id: existingMember.id },
           data: { deletedAt: null, isActive: true, leftAt: null },
           include: {
-            user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true } },
+            user: {
+              select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true },
+            },
           },
         });
         this.logger.log(`User re-joined group ${group.name}`);
@@ -182,17 +218,24 @@ export class GroupsService {
         where: { id: userId },
         select: { role: true },
       });
-      const isPremium = requester?.role === 'premium' || requester?.role === 'admin' || requester?.role === 'super_admin';
+      const isPremium =
+        requester?.role === 'premium' ||
+        requester?.role === 'admin' ||
+        requester?.role === 'super_admin';
       if (isPremium) {
         throw new BadRequestException(`Group member limit of ${group.maxMembers} reached.`);
       }
-      throw new BadRequestException(`Free plan limit of ${group.maxMembers} members reached. Upgrade to Premium to add up to 30 members.`);
+      throw new BadRequestException(
+        `Free plan limit of ${group.maxMembers} members reached. Upgrade to Premium to add up to 30 members.`,
+      );
     }
 
     const member = await this.prisma.groupMember.create({
       data: { groupId, userId, role: 'member' },
       include: {
-        user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true } },
+        user: {
+          select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true },
+        },
       },
     });
 
@@ -205,7 +248,9 @@ export class GroupsService {
       where: { groupId_userId: { groupId, userId } },
     });
 
-    if (!member) throw new NotFoundException('Not a member of this group');
+    if (!member) {
+      throw new NotFoundException('Not a member of this group');
+    }
     if (member.role === 'owner') {
       throw new BadRequestException('Transfer ownership before leaving');
     }
@@ -226,8 +271,12 @@ export class GroupsService {
       where: { id: memberId },
     });
 
-    if (!member) throw new NotFoundException('Member not found');
-    if (member.role === 'owner') throw new BadRequestException('Cannot remove the owner');
+    if (!member) {
+      throw new NotFoundException('Member not found');
+    }
+    if (member.role === 'owner') {
+      throw new BadRequestException('Cannot remove the owner');
+    }
 
     await this.prisma.groupMember.update({
       where: { id: memberId },
@@ -238,7 +287,12 @@ export class GroupsService {
     return { message: 'Member removed' };
   }
 
-  async updateMemberRole(groupId: string, userId: string, memberId: string, dto: UpdateMemberRoleDto) {
+  async updateMemberRole(
+    groupId: string,
+    userId: string,
+    memberId: string,
+    dto: UpdateMemberRoleDto,
+  ) {
     const group = await this.findGroupOrThrow(groupId);
     await this.validateAdmin(group.id, userId);
 
@@ -254,8 +308,12 @@ export class GroupsService {
       where: { id: memberId },
     });
 
-    if (!target) throw new NotFoundException('Member not found');
-    if (target.role === 'owner') throw new BadRequestException('Cannot change the owner role');
+    if (!target) {
+      throw new NotFoundException('Member not found');
+    }
+    if (target.role === 'owner') {
+      throw new BadRequestException('Cannot change the owner role');
+    }
 
     const updated = await this.prisma.groupMember.update({
       where: { id: memberId },
@@ -272,28 +330,23 @@ export class GroupsService {
     const group = await this.findGroupOrThrow(groupId);
     await this.validateMember(group.id, userId);
 
-    const [expenses, incomes, balances, memberCount, members, recentSettlements] = await Promise.all([
+    const [expenses, balances, memberCount, members, recentSettlements] = await Promise.all([
       this.prisma.groupExpense.findMany({
         where: { groupId, deletedAt: null },
         include: {
           paidBy: {
-            include: { user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } } },
+            include: {
+              user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+            },
           },
           splits: {
             include: {
               member: {
-                include: { user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } } },
+                include: {
+                  user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+                },
               },
             },
-          },
-        },
-        orderBy: { date: 'desc' },
-      }),
-      this.prisma.groupIncome.findMany({
-        where: { groupId, deletedAt: null },
-        include: {
-          addedBy: {
-            include: { user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } } },
           },
         },
         orderBy: { date: 'desc' },
@@ -312,18 +365,21 @@ export class GroupsService {
         take: 10,
         include: {
           fromMember: {
-            include: { user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } } },
+            include: {
+              user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+            },
           },
           toMember: {
-            include: { user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } } },
+            include: {
+              user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+            },
           },
         },
       }),
     ]);
 
     const totalExpenses = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
-    const totalIncome = incomes.reduce((sum, i) => sum + Number(i.amount), 0);
-    const remaining = totalIncome - totalExpenses;
+    const remaining = totalExpenses;
 
     const categoryBreakdown: Record<string, number> = {};
     expenses.forEach((e) => {
@@ -337,16 +393,7 @@ export class GroupsService {
       monthlyTrend[key] = (monthlyTrend[key] || 0) + Number(e.amount);
     });
 
-    const incomeMonthlyTrend: Record<string, number> = {};
-    incomes.forEach((i) => {
-      const key = `${i.date.getFullYear()}-${String(i.date.getMonth() + 1).padStart(2, '0')}`;
-      incomeMonthlyTrend[key] = (incomeMonthlyTrend[key] || 0) + Number(i.amount);
-    });
-
     const memberContributions = members.map((m) => {
-      const memberIncomes = incomes
-        .filter((i) => i.addedBy?.id === m.id || i.addedByMemberId === m.id)
-        .reduce((s, i) => s + Number(i.amount), 0);
       const memberExpenses = expenses
         .filter((e) => e.paidBy?.id === m.id || e.paidByMemberId === m.id)
         .reduce((s, e) => s + Number(e.amount), 0);
@@ -354,9 +401,8 @@ export class GroupsService {
         memberId: m.id,
         name: `${m.user.firstName} ${m.user.lastName}`.trim(),
         avatarUrl: m.user.avatarUrl,
-        income: memberIncomes,
         expense: memberExpenses,
-        net: memberIncomes - memberExpenses,
+        net: -memberExpenses,
       };
     });
 
@@ -365,11 +411,9 @@ export class GroupsService {
     return {
       data: {
         summary: {
-          totalIncome,
           totalExpenses,
           remaining,
           totalExpensesCount: expenses.length,
-          totalIncomeCount: incomes.length,
           memberCount,
           currency: group.currency,
         },
@@ -378,9 +422,6 @@ export class GroupsService {
           .map(([name, amount]) => ({ name, amount }))
           .sort((a, b) => b.amount - a.amount),
         monthlyTrend: Object.entries(monthlyTrend)
-          .sort(([a], [b]) => a.localeCompare(b))
-          .map(([month, amount]) => ({ month, amount })),
-        incomeMonthlyTrend: Object.entries(incomeMonthlyTrend)
           .sort(([a], [b]) => a.localeCompare(b))
           .map(([month, amount]) => ({ month, amount })),
         memberBalances: balances,
@@ -473,97 +514,16 @@ export class GroupsService {
   }
 
   async addMemberByEmail(groupId: string, requesterId: string, dto: AddMemberByEmailDto) {
-    const group = await this.findGroupOrThrow(groupId);
-    await this.validateAdmin(group.id, requesterId);
-
-    const memberCount = await this.prisma.groupMember.count({
-      where: { groupId, isActive: true, deletedAt: null },
-    });
-    if (memberCount >= group.maxMembers) {
-      const requester = await this.prisma.user.findUnique({
-        where: { id: requesterId },
-        select: { role: true },
-      });
-      const isPremium = requester?.role === 'premium' || requester?.role === 'admin' || requester?.role === 'super_admin';
-      if (isPremium) {
-        throw new BadRequestException(`Group member limit of ${group.maxMembers} reached. Upgrade to increase limit.`);
-      }
-      throw new BadRequestException(`Free plan limit of ${group.maxMembers} members reached. Upgrade to Premium to add up to 30 members.`);
-    }
-
-    let user = await this.prisma.user.findFirst({
-      where: { email: dto.email, isActive: true, deletedAt: null },
-    });
-
-    if (!user) {
-      const randomPassword = crypto.randomBytes(16).toString('hex');
-      const bcrypt = await import('bcrypt');
-      const hashed = await bcrypt.hash(randomPassword, 10);
-      user = await this.prisma.user.create({
-        data: {
-          email: dto.email,
-          password: hashed,
-          firstName: dto.displayName ?? dto.email.split('@')[0],
-          lastName: '',
-          isActive: true,
-          role: 'user',
-        },
-      });
-      this.logger.log(`New user created for email ${dto.email} with temp password`);
-    }
-
-    const existingMember = await this.prisma.groupMember.findFirst({
-      where: { groupId, userId: user.id, deletedAt: null },
-    });
-
-    if (existingMember) {
-      if (existingMember.isActive) {
-        throw new ConflictException('This email is already a member of the group');
-      }
-      await this.prisma.groupMember.update({
-        where: { id: existingMember.id },
-        data: { isActive: true, deletedAt: null, leftAt: null },
-      });
-      this.logger.log(`Re-activated member ${user.email} in group ${group.name}`);
-      return { data: { id: existingMember.id, userId: user.id, email: user.email, firstName: user.firstName, role: 'member' } };
-    }
-
-    const member = await this.prisma.groupMember.create({
-      data: {
-        groupId,
-        userId: user.id,
-        role: 'member',
-      },
-    });
-
-    await this.prisma.notification.create({
-      data: {
-        userId: user.id,
-        type: 'family',
-        title: `You've been added to "${group.name}"`,
-        message: `${user.firstName}, you have been invited and are now part of this split group on Dabbu. Start adding expenses and splitting bills!`,
-        data: { groupId, groupName: group.name, action: 'group_member_added' },
-      },
-    });
-
-    this.logger.log(`Member ${user.email} added to group ${group.name}`);
-
-    return {
-      data: {
-        id: member.id,
-        userId: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        role: 'member',
-      },
-    };
+    return this.invitationService.createInvitation(groupId, requesterId, dto.email);
   }
 
   private async findGroupOrThrow(groupId: string) {
     const group = await this.prisma.sharedFinanceGroup.findUnique({
       where: { id: groupId },
     });
-    if (!group || group.deletedAt) throw new NotFoundException('Group not found');
+    if (!group || group.deletedAt) {
+      throw new NotFoundException('Group not found');
+    }
     return group;
   }
 

@@ -26,45 +26,139 @@ import { FinancialHealthScreen } from '../screens/shared-finance/FinancialHealth
 import { YearlyWrappedScreen } from '../screens/shared-finance/YearlyWrappedScreen';
 import { SavingsChallengesScreen } from '../screens/shared-finance/SavingsChallengesScreen';
 import { AiSettlementRemindersScreen } from '../screens/shared-finance/AiSettlementRemindersScreen';
-import { AddIncomeScreen } from '../screens/shared-finance/AddIncomeScreen';
+import { InvitationPendingScreen } from '../screens/shared-finance/InvitationPendingScreen';
 
 const Stack = createNativeStackNavigator();
 
 export function SharedFinanceNavigator() {
   return (
-    <Stack.Navigator screenOptions={{
-      headerStyle: { backgroundColor: '#0A0A0F' },
-      headerTintColor: '#FFFFFF',
-      headerTitleStyle: { fontWeight: '600' },
-      contentStyle: { backgroundColor: '#0A0A0F' },
-    }}>
-      <Stack.Screen name="SharedFinanceHome" component={SharedFinanceHomeScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="CreateGroup" component={CreateGroupScreen} options={{ title: 'Create Group' }} />
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: '#0A0A0F' },
+        headerTintColor: '#FFFFFF',
+        headerTitleStyle: { fontWeight: '600' },
+        contentStyle: { backgroundColor: '#0A0A0F' },
+      }}
+    >
+      <Stack.Screen
+        name="SharedFinanceHome"
+        component={SharedFinanceHomeScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CreateGroup"
+        component={CreateGroupScreen}
+        options={{ title: 'Create Group' }}
+      />
       <Stack.Screen name="GroupDetail" component={GroupDetailScreen} options={{ title: 'Group' }} />
-      <Stack.Screen name="GroupDashboard" component={GroupDashboardScreen} options={{ title: 'Group Dashboard' }} />
-      <Stack.Screen name="GroupSettings" component={GroupSettingsScreen} options={{ title: 'Settings' }} />
-      <Stack.Screen name="CreateGroupExpense" component={CreateGroupExpenseScreen} options={{ title: 'Add Expense' }} />
-      <Stack.Screen name="AddIncome" component={AddIncomeScreen} options={{ title: 'Add Income' }} />
-      <Stack.Screen name="GroupExpenseDetail" component={GroupExpenseDetailScreen} options={{ title: 'Expense Details' }} />
-      <Stack.Screen name="Settlements" component={SettlementsScreen} options={{ title: 'Settlements' }} />
-      <Stack.Screen name="CreateSettlement" component={CreateSettlementScreen} options={{ title: 'New Settlement' }} />
-      <Stack.Screen name="CoupleFinanceDashboard" component={CoupleFinanceDashboardScreen} options={{ title: 'Couple Finance' }} />
+      <Stack.Screen
+        name="GroupDashboard"
+        component={GroupDashboardScreen}
+        options={{ title: 'Group Dashboard' }}
+      />
+      <Stack.Screen
+        name="GroupSettings"
+        component={GroupSettingsScreen}
+        options={{ title: 'Settings' }}
+      />
+      <Stack.Screen
+        name="CreateGroupExpense"
+        component={CreateGroupExpenseScreen}
+        options={{ title: 'Add Expense' }}
+      />
+      <Stack.Screen
+        name="Invitations"
+        component={InvitationPendingScreen}
+        options={{ title: 'Invitations' }}
+      />
+      <Stack.Screen
+        name="GroupExpenseDetail"
+        component={GroupExpenseDetailScreen}
+        options={{ title: 'Expense Details' }}
+      />
+      <Stack.Screen
+        name="Settlements"
+        component={SettlementsScreen}
+        options={{ title: 'Settlements' }}
+      />
+      <Stack.Screen
+        name="CreateSettlement"
+        component={CreateSettlementScreen}
+        options={{ title: 'New Settlement' }}
+      />
+      <Stack.Screen
+        name="CoupleFinanceDashboard"
+        component={CoupleFinanceDashboardScreen}
+        options={{ title: 'Couple Finance' }}
+      />
       <Stack.Screen name="TripDetail" component={TripDetailScreen} options={{ title: 'Trip' }} />
-      <Stack.Screen name="TripDashboard" component={TripDashboardScreen} options={{ title: 'Trip Dashboard' }} />
-      <Stack.Screen name="SharedSubscriptions" component={SharedSubscriptionsScreen} options={{ title: 'Subscriptions' }} />
-      <Stack.Screen name="CreateSharedSubscription" component={CreateSharedSubscriptionScreen} options={{ title: 'New Subscription' }} />
+      <Stack.Screen
+        name="TripDashboard"
+        component={TripDashboardScreen}
+        options={{ title: 'Trip Dashboard' }}
+      />
+      <Stack.Screen
+        name="SharedSubscriptions"
+        component={SharedSubscriptionsScreen}
+        options={{ title: 'Subscriptions' }}
+      />
+      <Stack.Screen
+        name="CreateSharedSubscription"
+        component={CreateSharedSubscriptionScreen}
+        options={{ title: 'New Subscription' }}
+      />
       <Stack.Screen name="GroupChat" component={GroupChatScreen} options={{ title: 'Chat' }} />
-      <Stack.Screen name="ContributionRules" component={ContributionRulesScreen} options={{ title: 'Contribution Rules' }} />
-      <Stack.Screen name="InviteMembers" component={InviteMembersScreen} options={{ title: 'Invite Members' }} />
-      <Stack.Screen name="InviteAccept" component={InviteAcceptScreen} options={{ title: 'Join Group' }} />
-      <Stack.Screen name="GroupPersonality" component={GroupPersonalityScreen} options={{ title: 'Group Personality' }} />
-      <Stack.Screen name="AiGroupPolls" component={AiGroupPollsScreen} options={{ title: 'Polls' }} />
+      <Stack.Screen
+        name="ContributionRules"
+        component={ContributionRulesScreen}
+        options={{ title: 'Contribution Rules' }}
+      />
+      <Stack.Screen
+        name="InviteMembers"
+        component={InviteMembersScreen}
+        options={{ title: 'Invite Members' }}
+      />
+      <Stack.Screen
+        name="InviteAccept"
+        component={InviteAcceptScreen}
+        options={{ title: 'Join Group' }}
+      />
+      <Stack.Screen
+        name="GroupPersonality"
+        component={GroupPersonalityScreen}
+        options={{ title: 'Group Personality' }}
+      />
+      <Stack.Screen
+        name="AiGroupPolls"
+        component={AiGroupPollsScreen}
+        options={{ title: 'Polls' }}
+      />
       <Stack.Screen name="AiGrocery" component={AiGroceryScreen} options={{ title: 'Grocery' }} />
-      <Stack.Screen name="TripStory" component={TripStoryScreen} options={{ title: 'Trip Story' }} />
-      <Stack.Screen name="FinancialHealth" component={FinancialHealthScreen} options={{ title: 'Financial Health' }} />
-      <Stack.Screen name="YearlyWrapped" component={YearlyWrappedScreen} options={{ title: 'Dabbu Wrapped' }} />
-      <Stack.Screen name="SavingsChallenges" component={SavingsChallengesScreen} options={{ title: 'Challenges' }} />
-      <Stack.Screen name="AiSettlementReminders" component={AiSettlementRemindersScreen} options={{ title: 'Reminders' }} />
+      <Stack.Screen
+        name="TripStory"
+        component={TripStoryScreen}
+        options={{ title: 'Trip Story' }}
+      />
+      <Stack.Screen
+        name="FinancialHealth"
+        component={FinancialHealthScreen}
+        options={{ title: 'Financial Health' }}
+      />
+      <Stack.Screen
+        name="YearlyWrapped"
+        component={YearlyWrappedScreen}
+        options={{ title: 'Dabbu Wrapped' }}
+      />
+      <Stack.Screen
+        name="SavingsChallenges"
+        component={SavingsChallengesScreen}
+        options={{ title: 'Challenges' }}
+      />
+      <Stack.Screen
+        name="AiSettlementReminders"
+        component={AiSettlementRemindersScreen}
+        options={{ title: 'Reminders' }}
+      />
     </Stack.Navigator>
   );
 }

@@ -1141,6 +1141,7 @@ model SharedFinanceGroup {
   lifecycleEvents    GroupLifecycleEvent[]
   memberRemovalLogs  GroupMemberRemovalLog[]
   accessRestrictions GroupAccessRestriction[]
+  invitations        GroupInvitation[]
 
   @@index([inviteCode])
   @@index([ownerId])
@@ -1177,6 +1178,24 @@ model GroupMember {
   @@index([userId])
   @@index([groupId, role])
   @@map("group_members")
+}
+
+model GroupInvitation {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  groupId   String   @db.VarChar(36)
+  email     String   @db.VarChar(255)
+  invitedBy String   @db.VarChar(36)
+  status    String   @default("pending") @db.VarChar(20)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  expiresAt DateTime
+
+  group SharedFinanceGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([groupId])
+  @@index([email])
+  @@index([email, status])
+  @@map("group_invitations")
 }
 
 // ─── SHARED FINANCE: GROUP EXPENSES ─────────────────────────

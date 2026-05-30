@@ -1,7 +1,13 @@
 import React, { useState, useCallback } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, RefreshControl,
-  StyleSheet, ActivityIndicator, Dimensions,
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  RefreshControl,
+  StyleSheet,
+  ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -11,11 +17,8 @@ import { api } from '../../services/api';
 import { Card } from '../../components/ui/Card';
 
 interface Summary {
-  totalIncome: number;
   totalExpenses: number;
-  remaining: number;
   totalExpensesCount: number;
-  totalIncomeCount: number;
   memberCount: number;
   currency: string;
 }
@@ -24,7 +27,6 @@ interface MemberContribution {
   memberId: string;
   name: string;
   avatarUrl?: string;
-  income: number;
   expense: number;
   net: number;
 }
@@ -45,7 +47,6 @@ interface DashboardData {
   memberContributions: MemberContribution[];
   categoryBreakdown: CategoryBreakdown[];
   monthlyTrend: MonthlyTrend[];
-  incomeMonthlyTrend: MonthlyTrend[];
 }
 
 const CATEGORY_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
@@ -64,9 +65,18 @@ const CATEGORY_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
 };
 
 const CATEGORY_COLORS = [
-  '#f7892c', '#7c3aed', '#06b6d4', '#10b981',
-  '#f43f5e', '#eab308', '#6366f1', '#ec4899',
-  '#14b8a6', '#f97316', '#8b5cf6', '#64748b',
+  '#f7892c',
+  '#7c3aed',
+  '#06b6d4',
+  '#10b981',
+  '#f43f5e',
+  '#eab308',
+  '#6366f1',
+  '#ec4899',
+  '#14b8a6',
+  '#f97316',
+  '#8b5cf6',
+  '#64748b',
 ];
 
 const formatAmount = (amount: number, currency: string = 'INR') => {
@@ -90,34 +100,44 @@ export function GroupDashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchDashboard = useCallback(async (isRefresh = false) => {
-    try {
-      if (isRefresh) setRefreshing(true);
-      else setLoading(true);
-      setError(null);
-      const res = await api.get<any>(`/shared-finance/groups/${groupId}/dashboard`);
-      setData({
-        summary: res.summary,
-        memberContributions: res.memberContributions || [],
-        categoryBreakdown: (res.categoryBreakdown || []).map((c: any, i: number) => ({
-          ...c,
-          color: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
-        })),
-        monthlyTrend: res.monthlyTrend || [],
-        incomeMonthlyTrend: res.incomeMonthlyTrend || [],
-      });
-    } catch (err: any) {
-      setError(err.message || 'Failed to load dashboard');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [groupId]);
+  const fetchDashboard = useCallback(
+    async (isRefresh = false) => {
+      try {
+        if (isRefresh) {
+          setRefreshing(true);
+        } else {
+          setLoading(true);
+        }
+        setError(null);
+        const res = await api.get<any>(`/shared-finance/groups/${groupId}/dashboard`);
+        setData({
+          summary: res.summary || {
+            totalExpenses: 0,
+            totalExpensesCount: 0,
+            memberCount: 0,
+            currency: 'INR',
+          },
+          memberContributions: res.memberContributions || [],
+          categoryBreakdown: (res.categoryBreakdown || []).map((c: any, i: number) => ({
+            ...c,
+            color: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
+          })),
+          monthlyTrend: res.monthlyTrend || [],
+        });
+      } catch (err: any) {
+        setError(err.message || 'Failed to load dashboard');
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [groupId],
+  );
 
   useFocusEffect(
     useCallback(() => {
       fetchDashboard();
-    }, [fetchDashboard])
+    }, [fetchDashboard]),
   );
 
   if (loading && !data) {
@@ -135,7 +155,9 @@ export function GroupDashboardScreen() {
       <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg.primary }]}>
         <View style={styles.loadingContainer}>
           <Ionicons name="cloud-offline-outline" size={48} color={colors.status.error} />
-          <Text style={[typography.callout, { color: colors.text.secondary, marginTop: spacing.md }]}>
+          <Text
+            style={[typography.callout, { color: colors.text.secondary, marginTop: spacing.md }]}
+          >
             {error}
           </Text>
           <TouchableOpacity
@@ -150,8 +172,7 @@ export function GroupDashboardScreen() {
   }
 
   const currency = data?.summary?.currency || 'INR';
-  const { totalIncome, totalExpenses, remaining } = data?.summary || { totalIncome: 0, totalExpenses: 0, remaining: 0 };
-  const spentPct = totalIncome > 0 ? Math.min((totalExpenses / totalIncome) * 100, 100) : 0;
+  const totalExpenses = data?.summary?.totalExpenses || 0;
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg.primary }]}>
@@ -179,81 +200,80 @@ export function GroupDashboardScreen() {
         <Card variant="premium" padding="2xl" style={styles.overviewCard}>
           <View style={styles.overviewRow}>
             <View style={styles.overviewItem}>
-              <View style={[styles.overviewIcon, { backgroundColor: colors.status.success + '20' }]}>
-                <Ionicons name="trending-up" size={18} color={colors.status.success} />
-              </View>
-              <Text style={[typography.caption1, { color: colors.text.tertiary, marginTop: 8 }]}>Income</Text>
-              <Text style={[styles.overviewAmount, { color: colors.status.success }]}>
-                {formatAmount(totalIncome, currency)}
-              </Text>
-            </View>
-            <View style={styles.overviewDivider} />
-            <View style={styles.overviewItem}>
               <View style={[styles.overviewIcon, { backgroundColor: colors.status.error + '20' }]}>
                 <Ionicons name="trending-down" size={18} color={colors.status.error} />
               </View>
-              <Text style={[typography.caption1, { color: colors.text.tertiary, marginTop: 8 }]}>Spent</Text>
+              <Text style={[typography.caption1, { color: colors.text.tertiary, marginTop: 8 }]}>
+                Total Spent
+              </Text>
               <Text style={[styles.overviewAmount, { color: colors.status.error }]}>
                 {formatAmount(totalExpenses, currency)}
               </Text>
             </View>
             <View style={styles.overviewDivider} />
             <View style={styles.overviewItem}>
-              <View style={[styles.overviewIcon, { backgroundColor: remaining >= 0 ? colors.status.success + '20' : colors.status.error + '20' }]}>
-                <Ionicons name="wallet-outline" size={18} color={remaining >= 0 ? colors.status.success : colors.status.error} />
+              <View
+                style={[styles.overviewIcon, { backgroundColor: colors.accent.primary + '20' }]}
+              >
+                <Ionicons name="receipt-outline" size={18} color={colors.accent.primary} />
               </View>
-              <Text style={[typography.caption1, { color: colors.text.tertiary, marginTop: 8 }]}>Left</Text>
-              <Text style={[styles.overviewAmount, { color: remaining >= 0 ? colors.status.success : colors.status.error }]}>
-                {formatAmount(remaining, currency)}
+              <Text style={[typography.caption1, { color: colors.text.tertiary, marginTop: 8 }]}>
+                Expenses
+              </Text>
+              <Text style={[styles.overviewAmount, { color: colors.accent.primary }]}>
+                {data?.summary?.totalExpensesCount || 0}
               </Text>
             </View>
-          </View>
-          {totalIncome > 0 && (
-            <View style={[styles.spentBar, { backgroundColor: colors.bg.tertiary, marginTop: 16 }]}>
-              <View style={[styles.spentFill, { width: `${spentPct}%`, backgroundColor: colors.accent.primary }]} />
-            </View>
-          )}
-          <View style={styles.overviewFooter}>
-            <Text style={[typography.subhead, { color: colors.text.tertiary }]}>
-              {data?.summary?.totalIncomeCount || 0} income · {data?.summary?.totalExpensesCount || 0} expenses
-            </Text>
-            <Text style={[typography.subhead, { color: colors.text.tertiary }]}>
-              {spentPct.toFixed(0)}% spent
-            </Text>
           </View>
         </Card>
 
         {/* Member Contributions */}
         {data?.memberContributions && data.memberContributions.length > 0 && (
           <View style={styles.section}>
-            <Text style={[typography.h4, { color: colors.text.primary }]}>Member Contributions</Text>
+            <Text style={[typography.h4, { color: colors.text.primary }]}>
+              Member Contributions
+            </Text>
             <Card variant="elevated" padding="lg" style={styles.sectionCard}>
               {data.memberContributions.map((mc, idx) => (
                 <View key={mc.memberId}>
                   <View style={styles.memberContributionRow}>
-                    <View style={[styles.memberAvatar, { backgroundColor: colors.accent.primary + '25' }]}>
+                    <View
+                      style={[
+                        styles.memberAvatar,
+                        { backgroundColor: colors.accent.primary + '25' },
+                      ]}
+                    >
                       <Text style={[styles.memberAvatarText, { color: colors.accent.primary }]}>
                         {(mc.name || '?')[0].toUpperCase()}
                       </Text>
                     </View>
                     <View style={styles.memberContributionInfo}>
-                      <Text style={[typography.callout, { color: colors.text.primary }]}>{mc.name}</Text>
+                      <Text style={[typography.callout, { color: colors.text.primary }]}>
+                        {mc.name}
+                      </Text>
                       <View style={styles.memberContributionMeta}>
-                        <Text style={[typography.subhead, { color: colors.status.success }]}>
-                          +{formatAmount(mc.income, currency)}
-                        </Text>
-                        <Text style={[typography.subhead, { color: colors.text.tertiary }]}> · </Text>
                         <Text style={[typography.subhead, { color: colors.status.error }]}>
-                          -{formatAmount(mc.expense, currency)}
+                          Paid: {formatAmount(mc.expense, currency)}
                         </Text>
                       </View>
                     </View>
-                    <Text style={[typography.calloutBold, { color: mc.net >= 0 ? colors.status.success : colors.status.error }]}>
-                      {mc.net >= 0 ? '+' : ''}{formatAmount(mc.net, currency)}
+                    <Text
+                      style={[
+                        typography.calloutBold,
+                        { color: mc.net >= 0 ? colors.status.success : colors.status.error },
+                      ]}
+                    >
+                      {mc.net >= 0 ? '+' : ''}
+                      {formatAmount(mc.net, currency)}
                     </Text>
                   </View>
                   {idx < data.memberContributions.length - 1 && (
-                    <View style={[styles.divider, { backgroundColor: colors.border.subtle, marginVertical: 10 }]} />
+                    <View
+                      style={[
+                        styles.divider,
+                        { backgroundColor: colors.border.subtle, marginVertical: 10 },
+                      ]}
+                    />
                   )}
                 </View>
               ))}
@@ -264,7 +284,9 @@ export function GroupDashboardScreen() {
         {/* Category Breakdown */}
         {data?.categoryBreakdown && data.categoryBreakdown.length > 0 && (
           <View style={styles.section}>
-            <Text style={[typography.h4, { color: colors.text.primary }]}>Spending by Category</Text>
+            <Text style={[typography.h4, { color: colors.text.primary }]}>
+              Spending by Category
+            </Text>
             <Card variant="elevated" padding="lg" style={styles.sectionCard}>
               {data.categoryBreakdown.map((cat, index) => (
                 <View key={cat.name}>
@@ -275,7 +297,9 @@ export function GroupDashboardScreen() {
                         size={14}
                         color={cat.color}
                       />
-                      <Text style={[typography.callout, { color: colors.text.primary, marginLeft: 8 }]}>
+                      <Text
+                        style={[typography.callout, { color: colors.text.primary, marginLeft: 8 }]}
+                      >
                         {cat.name}
                       </Text>
                     </View>
@@ -284,10 +308,23 @@ export function GroupDashboardScreen() {
                     </Text>
                   </View>
                   <View style={[styles.barBg, { backgroundColor: colors.bg.tertiary }]}>
-                    <View style={[styles.barFill, { width: `${Math.max((cat.amount / totalExpenses) * 100, 2)}%`, backgroundColor: cat.color }]} />
+                    <View
+                      style={[
+                        styles.barFill,
+                        {
+                          width: `${Math.max((cat.amount / totalExpenses) * 100, 2)}%`,
+                          backgroundColor: cat.color,
+                        },
+                      ]}
+                    />
                   </View>
                   {index < data.categoryBreakdown.length - 1 && (
-                    <View style={[styles.divider, { backgroundColor: colors.border.subtle, marginVertical: 10 }]} />
+                    <View
+                      style={[
+                        styles.divider,
+                        { backgroundColor: colors.border.subtle, marginVertical: 10 },
+                      ]}
+                    />
                   )}
                 </View>
               ))}
@@ -296,31 +333,39 @@ export function GroupDashboardScreen() {
         )}
 
         {/* Income Monthly Trend */}
-        {data?.incomeMonthlyTrend && data.incomeMonthlyTrend.length > 0 && (
+        {data?.monthlyTrend && data.monthlyTrend.length > 0 && (
           <View style={styles.section}>
-            <Text style={[typography.h4, { color: colors.text.primary }]}>Income Trend</Text>
+            <Text style={[typography.h4, { color: colors.text.primary }]}>Monthly Spending</Text>
             <Card variant="elevated" padding="lg" style={styles.sectionCard}>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View style={styles.trendTable}>
                   <View style={[styles.trendHeader, { borderBottomColor: colors.border.subtle }]}>
-                    <Text style={[styles.trendHeaderText, { color: colors.text.tertiary }]}>Month</Text>
-                    <Text style={[styles.trendHeaderText, { color: colors.text.tertiary }]}>Income</Text>
-                    <Text style={[styles.trendHeaderText, { color: colors.text.tertiary }]}>Spent</Text>
+                    <Text style={[styles.trendHeaderText, { color: colors.text.tertiary }]}>
+                      Month
+                    </Text>
+                    <Text style={[styles.trendHeaderText, { color: colors.text.tertiary }]}>
+                      Spent
+                    </Text>
                   </View>
-                  {data.incomeMonthlyTrend.map((trend, idx) => {
-                    const expenseTrend = data.monthlyTrend?.find((e) => e.month === trend.month);
-                    return (
-                      <View key={trend.month} style={[styles.trendRow, idx < data.incomeMonthlyTrend.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border.subtle }]}>
-                        <Text style={[typography.callout, { color: colors.text.primary }]}>{trend.month}</Text>
-                        <Text style={[typography.calloutBold, { color: colors.status.success }]}>
-                          {formatAmount(trend.amount, currency)}
-                        </Text>
-                        <Text style={[typography.calloutBold, { color: colors.status.error }]}>
-                          {formatAmount(expenseTrend?.amount || 0, currency)}
-                        </Text>
-                      </View>
-                    );
-                  })}
+                  {data.monthlyTrend.map((trend, idx) => (
+                    <View
+                      key={trend.month}
+                      style={[
+                        styles.trendRow,
+                        idx < data.monthlyTrend.length - 1 && {
+                          borderBottomWidth: 1,
+                          borderBottomColor: colors.border.subtle,
+                        },
+                      ]}
+                    >
+                      <Text style={[typography.callout, { color: colors.text.primary }]}>
+                        {trend.month}
+                      </Text>
+                      <Text style={[typography.calloutBold, { color: colors.status.error }]}>
+                        {formatAmount(trend.amount, currency)}
+                      </Text>
+                    </View>
+                  ))}
                 </View>
               </ScrollView>
             </Card>
@@ -331,18 +376,13 @@ export function GroupDashboardScreen() {
         <View style={styles.section}>
           <View style={styles.quickActionsRow}>
             <TouchableOpacity
-              style={[styles.quickAction, { backgroundColor: colors.status.success + '15' }]}
-              onPress={() => navigation.navigate('AddIncome', { groupId })}
-            >
-              <Ionicons name="trending-up-outline" size={22} color={colors.status.success} />
-              <Text style={[styles.quickActionText, { color: colors.status.success }]}>Add Income</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
               style={[styles.quickAction, { backgroundColor: colors.accent.primary + '15' }]}
               onPress={() => navigation.navigate('CreateGroupExpense', { groupId })}
             >
               <Ionicons name="receipt-outline" size={22} color={colors.accent.primary} />
-              <Text style={[styles.quickActionText, { color: colors.accent.primary }]}>Add Expense</Text>
+              <Text style={[styles.quickActionText, { color: colors.accent.primary }]}>
+                Add Expense
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -359,41 +399,75 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   scrollContent: { paddingBottom: 100 },
   header: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 20, paddingVertical: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
   },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   retryButton: { marginTop: 20, paddingHorizontal: 28, paddingVertical: 12, borderRadius: 12 },
   overviewCard: { marginHorizontal: 20, marginTop: 8, borderRadius: 24 },
   overviewRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   overviewItem: { flex: 1, alignItems: 'center' },
-  overviewIcon: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  overviewIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   overviewAmount: { fontSize: 18, fontWeight: '700', letterSpacing: -0.5, marginTop: 4 },
-  overviewDivider: { width: 1, height: 48, backgroundColor: 'rgba(255,255,255,0.06)', marginHorizontal: 8 },
+  overviewDivider: {
+    width: 1,
+    height: 48,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    marginHorizontal: 8,
+  },
   spentBar: { height: 6, borderRadius: 3, overflow: 'hidden' },
   spentFill: { height: '100%', borderRadius: 3 },
   overviewFooter: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
   section: { marginTop: 28, paddingHorizontal: 20 },
   sectionCard: { marginTop: 12 },
   memberContributionRow: { flexDirection: 'row', alignItems: 'center' },
-  memberAvatar: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  memberAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   memberAvatarText: { fontSize: 14, fontWeight: '700' },
   memberContributionInfo: { flex: 1, marginLeft: 10 },
   memberContributionMeta: { flexDirection: 'row', alignItems: 'center', marginTop: 2 },
   categoryRow: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   categoryLabel: { flexDirection: 'row', alignItems: 'center' },
   barBg: { height: 8, borderRadius: 4, overflow: 'hidden' },
   barFill: { height: '100%', borderRadius: 4 },
   trendTable: { minWidth: width - 80 },
   trendHeader: { flexDirection: 'row', paddingBottom: 10, borderBottomWidth: 1, gap: 20 },
-  trendHeaderText: { flex: 1, fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  trendHeaderText: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
   trendRow: { flexDirection: 'row', paddingVertical: 12, gap: 20 },
   quickActionsRow: { flexDirection: 'row', gap: 12 },
   quickAction: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    paddingVertical: 16, borderRadius: 16, gap: 8,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 16,
+    gap: 8,
   },
   quickActionText: { fontSize: 14, fontWeight: '700' },
   divider: { height: 1 },

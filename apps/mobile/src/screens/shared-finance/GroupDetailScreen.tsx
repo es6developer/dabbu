@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,26 +6,27 @@ import {
   TouchableOpacity,
   RefreshControl,
   StyleSheet,
-  ActivityIndicator,
   Dimensions,
   Share,
   Alert,
+  Animated,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { createInviteLink } from '../../services/external-sharing';
 import { useAuth } from '../../store/AuthContext';
 import { Card } from '../../components/ui/Card';
-import { Button } from '../../components/ui/Button';
 import { useGroupLifecycle } from '../../hooks/useGroupLifecycle';
 import { GroupStatusBanner } from '../../components/shared-finance/GroupStatusBanner';
 import { AccessRevokedModal } from '../../components/shared-finance/AccessRevokedModal';
 import { PremiumUpgradeModal } from '../../components/shared-finance/PremiumUpgradeModal';
 
-type Segments = 'expenses' | 'members' | 'settlements';
+type Segments = 'expenses' | 'balances' | 'settlements';
 
 interface GroupMember {
   id: string;
@@ -55,30 +56,18 @@ interface Settlement {
   date: string;
 }
 
-interface Income {
-  id: string;
-  description: string;
-  amount: number;
-  source: string;
-  addedBy: { id: string; name: string };
-  date: string;
-}
-
 interface GroupDetail {
   id: string;
   name: string;
   type: 'friends' | 'trip' | 'family' | 'couple' | 'roommates' | 'office';
   description?: string;
   memberCount: number;
-  totalIncome: number;
   totalSpent: number;
-  remaining: number;
   balance: number;
   currency: string;
   inviteCode?: string;
   members: GroupMember[];
   expenses: Expense[];
-  incomes: Income[];
   settlements: Settlement[];
   isPremium?: boolean;
   planLimit?: number;
@@ -98,7 +87,6 @@ const GROUP_TYPE_CONFIG: Record<
 
 const SPLIT_TYPE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   equal: 'git-branch-outline',
-  // percentage: 'percent-outline',
   exact: 'calculator-outline',
   weighted: 'layers-outline',
   custom: 'options-outline',
@@ -115,6 +103,9 @@ const formatAmount = (amount: number, currency: string = 'INR') => {
 };
 
 const formatDate = (dateStr: string) => {
+  if (!dateStr) {
+    return '';
+  }
   const date = new Date(dateStr);
   const now = new Date();
   const diff = now.getTime() - date.getTime();
@@ -132,6 +123,107 @@ const formatDate = (dateStr: string) => {
   return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 };
 
+function SkeletonLoader() {
+  const { colors } = useTheme();
+  const opacity = useRef(new Animated.Value(0.3)).current;
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 1, duration: 800, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0.3, duration: 800, useNativeDriver: true }),
+      ]),
+    );
+    animation.start();
+    return () => animation.stop();
+  }, []);
+
+  return (
+    <View style={styles.skeletonContainer}>
+      <Animated.View
+        style={[
+          styles.skelBlock,
+          {
+            backgroundColor: colors.skeleton.base,
+            opacity,
+            width: '35%',
+            height: 22,
+            marginBottom: 16,
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.skelBlock,
+          {
+            backgroundColor: colors.skeleton.base,
+            opacity,
+            width: '65%',
+            height: 64,
+            marginBottom: 24,
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.skelBlock,
+          {
+            backgroundColor: colors.skeleton.base,
+            opacity,
+            width: '100%',
+            height: 140,
+            marginBottom: 16,
+          },
+        ]}
+      />
+      <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+        <Animated.View
+          style={[
+            styles.skelBlock,
+            { backgroundColor: colors.skeleton.base, opacity, height: 90, flex: 1 },
+          ]}
+        />
+        <Animated.View
+          style={[
+            styles.skelBlock,
+            { backgroundColor: colors.skeleton.base, opacity, height: 90, flex: 1 },
+          ]}
+        />
+      </View>
+      <Animated.View
+        style={[
+          styles.skelBlock,
+          {
+            backgroundColor: colors.skeleton.base,
+            opacity,
+            width: '100%',
+            height: 16,
+            marginBottom: 12,
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.skelBlock,
+          {
+            backgroundColor: colors.skeleton.base,
+            opacity,
+            width: '70%',
+            height: 16,
+            marginBottom: 12,
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.skelBlock,
+          { backgroundColor: colors.skeleton.base, opacity, width: '100%', height: 80 },
+        ]}
+      />
+    </View>
+  );
+}
+
 export function GroupDetailScreen() {
   const { colors, spacing, borderRadius: br, typography } = useTheme();
   const insets = useSafeAreaInsets();
@@ -139,7 +231,8 @@ export function GroupDetailScreen() {
   const navigation = useNavigation<any>();
   const route =
     useRoute<RouteProp<{ params: { groupId: string; inviteCode?: string } }, 'params'>>();
-  const { groupId, inviteCode: paramInviteCode } = route.params;
+  const groupId = route.params?.groupId;
+  const paramInviteCode = route.params?.inviteCode;
 
   const [group, setGroup] = useState<GroupDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -152,12 +245,15 @@ export function GroupDetailScreen() {
 
   const { status, restrictions, accessRevoked, revocationReason, isReadOnly, hasRestriction } =
     useGroupLifecycle({
-      groupId,
+      groupId: groupId ?? '',
       onAccessRevoked: () => setShowRevokedModal(true),
     });
 
   const fetchGroup = useCallback(
     async (isRefresh = false) => {
+      if (!groupId) {
+        return;
+      }
       try {
         if (isRefresh) {
           setRefreshing(true);
@@ -165,46 +261,64 @@ export function GroupDetailScreen() {
           setLoading(true);
         }
         setError(null);
-        const [data, expensesRes, settlementsRes, incomesRes] = await Promise.all([
-          api.get<any>(`/shared-finance/groups/${groupId}`),
-          api.get<any[]>(`/shared-finance/groups/${groupId}/expenses`).catch(() => []),
-          api.get<any[]>(`/shared-finance/groups/${groupId}/settlements`).catch(() => []),
-          api.get<any[]>(`/shared-finance/groups/${groupId}/incomes`).catch(() => []),
-        ]);
+
+        let data: any = null;
+        let expensesRes: any[] = [];
+        let settlementsRes: any[] = [];
+
+        try {
+          data = await api.get<any>(`/shared-finance/groups/${groupId}`);
+        } catch {
+          setError('Group not found');
+          return;
+        }
+
+        try {
+          expensesRes = await api.get<any[]>(`/shared-finance/groups/${groupId}/expenses`);
+        } catch {
+          expensesRes = [];
+        }
+        try {
+          settlementsRes = await api.get<any[]>(`/shared-finance/groups/${groupId}/settlements`);
+        } catch {
+          settlementsRes = [];
+        }
+
+        if (!data) {
+          setError('Group not found');
+          return;
+        }
+
+        const balances = data.balances ?? [];
+        const members = data.members ?? [];
         const currentUserId = user?.id || data.ownerId;
-        const myBalance = data.balances?.find((b: any) => b.userId === currentUserId);
-        const totalSpent =
-          data.balances?.reduce((s: number, b: any) => s + Number(b.totalPaid ?? 0), 0) || 0;
-        const totalIncome = (incomesRes || []).reduce(
-          (s: number, i: any) => s + Number(i.amount ?? 0),
-          0,
-        );
-        const remaining = totalIncome - totalSpent;
+        const myBalance = balances.find((b: any) => b?.userId === currentUserId);
+        const totalSpent = balances.reduce((s: number, b: any) => s + Number(b?.totalPaid ?? 0), 0);
 
         const transformed: GroupDetail = {
           id: data.id,
           name: data.name,
           type: data.type,
           description: data.description,
-          memberCount: data._count?.members || data.members?.length || 0,
+          memberCount: data._count?.members || members.length || 0,
           inviteCode: data.inviteCode || paramInviteCode,
-          totalIncome,
           totalSpent,
-          remaining,
           balance: myBalance?.netBalance || 0,
           currency: data.currency,
           isPremium: data.isPremium,
           planLimit: data.planLimit,
-          members: (data.members || []).map((m: any) => ({
+          members: members.map((m: any) => ({
             id: m.id,
-            name: m.user ? `${m.user.firstName} ${m.user.lastName}`.trim() : m.name || 'Unknown',
+            name: m.user
+              ? `${m.user.firstName ?? ''} ${m.user.lastName ?? ''}`.trim()
+              : m.name || 'Unknown',
             email: m.user?.email || '',
             role: m.role,
-            balance: data.balances?.find((b: any) => b.memberId === m.id)?.netBalance || 0,
+            balance: balances.find((b: any) => b?.memberId === m.id)?.netBalance || 0,
           })),
-          expenses: (expensesRes || []).map((e: any) => {
+          expenses: (expensesRes ?? []).map((e: any) => {
             const paidByName = e.paidBy?.user
-              ? `${e.paidBy.user.firstName || ''} ${e.paidBy.user.lastName || ''}`.trim()
+              ? `${e.paidBy.user.firstName ?? ''} ${e.paidBy.user.lastName ?? ''}`.trim()
               : e.paidBy?.name || e.paidByName || 'Unknown';
             return {
               id: e.id,
@@ -216,20 +330,7 @@ export function GroupDetailScreen() {
               category: e.category,
             };
           }),
-          incomes: (incomesRes || []).map((i: any) => {
-            const addedByName = i.addedBy?.user
-              ? `${i.addedBy.user.firstName || ''} ${i.addedBy.user.lastName || ''}`.trim()
-              : i.addedBy?.name || i.addedByName || 'Unknown';
-            return {
-              id: i.id,
-              description: i.description,
-              amount: Number(i.amount ?? 0),
-              source: i.source || 'other',
-              addedBy: { id: i.addedBy?.id || i.addedByMemberId, name: addedByName },
-              date: i.date || i.createdAt,
-            };
-          }),
-          settlements: (settlementsRes || []).map((s: any) => ({
+          settlements: (settlementsRes ?? []).map((s: any) => ({
             id: s.id,
             from: {
               id: s.from?.id || s.fromMemberId,
@@ -243,31 +344,28 @@ export function GroupDetailScreen() {
         };
         setGroup(transformed);
       } catch (err: any) {
-        setError(err.message || 'Failed to load group');
+        setError(err?.message || 'Failed to load group');
       } finally {
         setLoading(false);
         setRefreshing(false);
       }
     },
-    [groupId],
+    [groupId, paramInviteCode],
   );
 
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       let mounted = true;
-
       const load = async () => {
         if (mounted) {
           await fetchGroup();
         }
       };
-
       load();
-
       return () => {
         mounted = false;
       };
-    }, [groupId]),
+    }, [groupId, fetchGroup]),
   );
 
   const handleAddMemberPress = useCallback(() => {
@@ -297,7 +395,7 @@ export function GroupDetailScreen() {
         message: `Join my group "${group?.name}" on Dabbu! ${link}`,
       });
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to create invite link');
+      Alert.alert('Error', e?.message || 'Failed to create invite link');
     } finally {
       setInvitingExternal(false);
     }
@@ -310,47 +408,9 @@ export function GroupDetailScreen() {
 
   const SEGMENTS: { key: Segments; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
     { key: 'expenses', label: 'Expenses', icon: 'receipt-outline' },
-    { key: 'members', label: 'Members', icon: 'people-outline' },
+    { key: 'balances', label: 'Balances', icon: 'people-outline' },
     { key: 'settlements', label: 'Settlements', icon: 'swap-horizontal-outline' },
   ];
-
-  const renderIncomeItem = ({ item }: { item: Income }) => (
-    <Card variant="elevated" padding="lg" style={styles.expenseCard}>
-      <View style={styles.expenseRow}>
-        <View
-          style={[
-            styles.expenseIconContainer,
-            { backgroundColor: colors.status.successLight || '#10B98120' },
-          ]}
-        >
-          <Ionicons
-            name={
-              item.source === 'salary'
-                ? 'briefcase-outline'
-                : item.source === 'business'
-                  ? 'storefront-outline'
-                  : item.source === 'freelance'
-                    ? 'laptop-outline'
-                    : 'trending-up-outline'
-            }
-            size={20}
-            color={colors.status.success}
-          />
-        </View>
-        <View style={styles.expenseInfo}>
-          <Text style={[typography.bodyBold, { color: colors.text.primary }]} numberOfLines={1}>
-            {item.description}
-          </Text>
-          <Text style={[typography.subhead, { color: colors.text.tertiary, marginTop: 2 }]}>
-            Added by {item.addedBy.name} · {formatDate(item.date)}
-          </Text>
-        </View>
-        <Text style={[styles.expenseAmount, { color: colors.status.success }]}>
-          +{formatAmount(item.amount, group?.currency)}
-        </Text>
-      </View>
-    </Card>
-  );
 
   const renderExpenseItem = ({ item }: { item: Expense }) => (
     <Card
@@ -511,32 +571,49 @@ export function GroupDetailScreen() {
 
     switch (activeSegment) {
       case 'expenses': {
-        const hasIncomes = (group.incomes?.length ?? 0) > 0;
-        const hasExpenses = group.expenses?.length > 0;
-        if (!hasIncomes && !hasExpenses) {
+        const items = group.expenses ?? [];
+        if (items.length === 0) {
           return (
             <View style={styles.emptySegment}>
               <Ionicons name="receipt-outline" size={40} color={colors.text.tertiary} />
               <Text
                 style={[typography.callout, { color: colors.text.tertiary, marginTop: spacing.md }]}
               >
-                No entries yet. Add income or expenses to get started.
+                No expenses yet
               </Text>
             </View>
           );
         }
         return (
           <View style={styles.segmentList}>
-            {group.incomes?.map((item) => (
-              <View key={item.id}>{renderIncomeItem({ item })}</View>
-            ))}
-            {group.expenses.map((item) => (
+            <View style={styles.sectionHeader}>
+              <Text style={[typography.subheadBold, { color: colors.text.tertiary }]}>
+                ALL EXPENSES
+              </Text>
+              <Text style={[typography.footnote, { color: colors.text.tertiary }]}>
+                {items.length} total
+              </Text>
+            </View>
+            {items.map((item) => (
               <View key={item.id}>{renderExpenseItem({ item })}</View>
             ))}
           </View>
         );
       }
-      case 'members':
+      case 'balances': {
+        const items = group.members ?? [];
+        if (items.length === 0) {
+          return (
+            <View style={styles.emptySegment}>
+              <Ionicons name="people-outline" size={40} color={colors.text.tertiary} />
+              <Text
+                style={[typography.callout, { color: colors.text.tertiary, marginTop: spacing.md }]}
+              >
+                No members yet
+              </Text>
+            </View>
+          );
+        }
         return (
           <View style={styles.segmentList}>
             <TouchableOpacity
@@ -556,13 +633,15 @@ export function GroupDetailScreen() {
                 Add Member
               </Text>
             </TouchableOpacity>
-            {group.members.map((item) => (
+            {items.map((item) => (
               <View key={item.id}>{renderMemberItem({ item })}</View>
             ))}
           </View>
         );
-      case 'settlements':
-        if (!group.settlements?.length) {
+      }
+      case 'settlements': {
+        const items = group.settlements ?? [];
+        if (items.length === 0) {
           return (
             <View style={styles.emptySegment}>
               <Ionicons name="swap-horizontal-outline" size={40} color={colors.text.tertiary} />
@@ -576,20 +655,27 @@ export function GroupDetailScreen() {
         }
         return (
           <View style={styles.segmentList}>
-            {group.settlements.map((item) => (
+            <View style={styles.sectionHeader}>
+              <Text style={[typography.subheadBold, { color: colors.text.tertiary }]}>
+                SETTLEMENTS
+              </Text>
+              <Text style={[typography.footnote, { color: colors.text.tertiary }]}>
+                {items.length} total
+              </Text>
+            </View>
+            {items.map((item) => (
               <View key={item.id}>{renderSettlementItem({ item })}</View>
             ))}
           </View>
         );
+      }
     }
   };
 
   if (loading && !group) {
     return (
       <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg.primary }]}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.accent.primary} />
-        </View>
+        <SkeletonLoader />
       </SafeAreaView>
     );
   }
@@ -626,7 +712,7 @@ export function GroupDetailScreen() {
             <GroupStatusBanner
               status={status}
               groupName={group?.name || ''}
-              isAdmin={group?.members?.some((m) => m.role === 'owner' || m.role === 'admin')}
+              isAdmin={(group?.members ?? []).some((m) => m.role === 'owner' || m.role === 'admin')}
               onReactivate={() => {}}
               onArchive={() => {}}
               onViewSummary={() => navigation.navigate('GroupDashboard', { groupId })}
@@ -682,6 +768,67 @@ export function GroupDetailScreen() {
               </TouchableOpacity>
             </View>
 
+            <View style={styles.balanceSummary}>
+              <LinearGradient
+                colors={[config.color + '30', colors.bg.card]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.gradientCard}
+              >
+                <View style={styles.gradientCardHeader}>
+                  <View style={[styles.typeBadge, { backgroundColor: config.color + '25' }]}>
+                    <Ionicons name={config.icon} size={12} color={config.color} />
+                    <Text style={[styles.typeBadgeText, { color: config.color }]}>
+                      {config.label}
+                    </Text>
+                  </View>
+                </View>
+                <Text
+                  style={[typography.h3, { color: colors.text.primary, marginTop: spacing.md }]}
+                >
+                  {group?.name}
+                </Text>
+                <View style={styles.balanceSection}>
+                  <Text
+                    style={[
+                      typography.amountLarge,
+                      {
+                        color: isOwed ? colors.status.success : colors.status.error,
+                        marginTop: spacing.xs,
+                      },
+                    ]}
+                  >
+                    {isOwed ? '+' : '-'}
+                    {formatAmount(group?.balance ?? 0, group?.currency)}
+                  </Text>
+                  <Text
+                    style={[
+                      typography.footnote,
+                      { color: colors.text.tertiary, marginTop: spacing.xs },
+                    ]}
+                  >
+                    {isOwed ? 'You are owed' : 'You owe'}
+                  </Text>
+                </View>
+                <View
+                  style={[
+                    styles.gradientDivider,
+                    { backgroundColor: colors.border.subtle, marginVertical: spacing.md },
+                  ]}
+                />
+                <View style={styles.totalSpentRow}>
+                  <Text style={[typography.footnote, { color: colors.text.secondary }]}>
+                    Total spent
+                  </Text>
+                  <Text
+                    style={[typography.callout, { color: colors.text.primary, fontWeight: '600' }]}
+                  >
+                    {formatAmount(group?.totalSpent ?? 0, group?.currency)}
+                  </Text>
+                </View>
+              </LinearGradient>
+            </View>
+
             {group?.id && (
               <View style={styles.inviteSection}>
                 <TouchableOpacity
@@ -708,103 +855,6 @@ export function GroupDetailScreen() {
                 </TouchableOpacity>
               </View>
             )}
-
-            <View style={styles.balanceSummary}>
-              <Card variant="premium" padding="lg" style={styles.balanceCard}>
-                <View style={styles.financialOverview}>
-                  <View style={styles.financialItem}>
-                    <Text style={[typography.caption1, { color: colors.status.success }]}>
-                      Income
-                    </Text>
-                    <Text style={[styles.financialAmount, { color: colors.status.success }]}>
-                      {formatAmount(group?.totalIncome ?? 0, group?.currency)}
-                    </Text>
-                  </View>
-                  <View style={styles.financialDivider} />
-                  <View style={styles.financialItem}>
-                    <Text style={[typography.caption1, { color: colors.status.error }]}>Spent</Text>
-                    <Text style={[styles.financialAmount, { color: colors.status.error }]}>
-                      {formatAmount(group?.totalSpent ?? 0, group?.currency)}
-                    </Text>
-                  </View>
-                  <View style={styles.financialDivider} />
-                  <View style={styles.financialItem}>
-                    <Text
-                      style={[
-                        typography.caption1,
-                        {
-                          color:
-                            (group?.remaining ?? 0) >= 0
-                              ? colors.status.success
-                              : colors.status.error,
-                        },
-                      ]}
-                    >
-                      Left
-                    </Text>
-                    <Text
-                      style={[
-                        styles.financialAmount,
-                        {
-                          color:
-                            (group?.remaining ?? 0) >= 0
-                              ? colors.status.success
-                              : colors.status.error,
-                        },
-                      ]}
-                    >
-                      {formatAmount(group?.remaining ?? 0, group?.currency)}
-                    </Text>
-                  </View>
-                </View>
-                {(group?.remaining ?? 0) > 0 && (
-                  <View
-                    style={[
-                      styles.remainingBar,
-                      { backgroundColor: colors.bg.tertiary, marginTop: 12 },
-                    ]}
-                  >
-                    <View
-                      style={[
-                        styles.remainingFill,
-                        {
-                          width: `${Math.min(((group?.totalSpent ?? 0) / (group?.totalIncome ?? 1)) * 100, 100)}%`,
-                          backgroundColor: colors.accent.primary,
-                        },
-                      ]}
-                    />
-                  </View>
-                )}
-                <View
-                  style={[
-                    styles.divider,
-                    { backgroundColor: colors.border.subtle, marginVertical: spacing.md },
-                  ]}
-                />
-                <View style={styles.balanceRow}>
-                  <Text style={[typography.callout, { color: colors.text.secondary }]}>
-                    Your Balance
-                  </Text>
-                  <Text
-                    style={[
-                      styles.balanceAmount,
-                      { color: isOwed ? colors.status.success : colors.status.error },
-                    ]}
-                  >
-                    {isOwed ? '+' : '-'}
-                    {formatAmount(group?.balance ?? 0, group?.currency)}
-                  </Text>
-                </View>
-                <Text
-                  style={[
-                    typography.footnote,
-                    { color: colors.text.tertiary, marginTop: spacing.xs },
-                  ]}
-                >
-                  {isOwed ? 'You are owed' : 'You owe'}
-                </Text>
-              </Card>
-            </View>
 
             <View style={[styles.segmentControl, { backgroundColor: colors.bg.tertiary }]}>
               {SEGMENTS.map((seg) => {
@@ -848,135 +898,91 @@ export function GroupDetailScreen() {
           </>
         }
         ListFooterComponent={
-          <View style={{ paddingBottom: insets.bottom + 160 }}>{renderSegmentContent()}</View>
+          <View style={{ paddingBottom: insets.bottom + 140 }}>{renderSegmentContent()}</View>
         }
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => fetchGroup(true)}
+            tintColor={colors.accent.primary}
+          />
+        }
       />
 
-      <View
-        style={[
-          styles.bottomBar,
-          {
-            backgroundColor: colors.bg.secondary,
-            borderTopColor: colors.border.subtle,
-            paddingBottom: insets.bottom + 40,
-          },
-        ]}
-      >
-        {status === 'completed' ? (
+      {group?.id && status !== 'completed' && (
+        <View style={[styles.fabContainer, { bottom: insets.bottom + 16, right: 16 }]}>
           <TouchableOpacity
-            style={[styles.bottomAction, { backgroundColor: colors.accent.primary }]}
-            onPress={() => navigation.navigate('GroupDashboard', { groupId })}
+            style={[
+              styles.fab,
+              styles.fabPrimary,
+              {
+                backgroundColor: isReadOnly ? colors.bg.tertiary : colors.accent.primary,
+                opacity: isReadOnly ? 0.5 : 1,
+              },
+            ]}
+            onPress={() => {
+              if (!isReadOnly) {
+                navigation.navigate('CreateGroupExpense', { groupId });
+              }
+            }}
+            disabled={isReadOnly}
+            activeOpacity={0.8}
           >
-            <Ionicons name="stats-chart-outline" size={20} color="#FFFFFF" />
-            <Text style={[typography.buttonSmall, { color: '#FFFFFF', marginLeft: 6 }]}>
-              View Summary
+            <Ionicons name="add-circle" size={24} color="#FFFFFF" />
+            <Text style={[typography.buttonSmall, { color: '#FFFFFF', marginLeft: 8 }]}>
+              Add Expense
             </Text>
           </TouchableOpacity>
-        ) : (
-          <>
-            <TouchableOpacity
+          <TouchableOpacity
+            style={[
+              styles.fab,
+              styles.fabSecondary,
+              {
+                backgroundColor: isReadOnly ? colors.bg.tertiary : colors.bg.glassLight,
+                opacity: isReadOnly ? 0.5 : 1,
+              },
+            ]}
+            onPress={() => {
+              if (!isReadOnly) {
+                navigation.navigate('CreateSettlement', { groupId });
+              }
+            }}
+            disabled={isReadOnly}
+            activeOpacity={0.8}
+          >
+            <Ionicons
+              name="swap-horizontal"
+              size={22}
+              color={isReadOnly ? colors.text.tertiary : colors.text.primary}
+            />
+            <Text
               style={[
-                styles.bottomAction,
-                {
-                  backgroundColor: isReadOnly ? colors.bg.tertiary : colors.status.success,
-                  opacity: isReadOnly ? 0.5 : 1,
-                },
+                typography.buttonSmall,
+                { color: isReadOnly ? colors.text.tertiary : colors.text.primary, marginLeft: 8 },
               ]}
-              onPress={() => {
-                if (!isReadOnly) {
-                  navigation.navigate('AddIncome', { groupId, groupName: group?.name });
-                }
-              }}
-              disabled={isReadOnly}
             >
-              <Ionicons
-                name="trending-up-outline"
-                size={20}
-                color={isReadOnly ? colors.text.tertiary : '#FFFFFF'}
-              />
-              <Text
-                style={[
-                  typography.buttonSmall,
-                  { color: isReadOnly ? colors.text.tertiary : '#FFFFFF', marginLeft: 4 },
-                ]}
-              >
-                Income
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.bottomAction,
-                {
-                  backgroundColor: isReadOnly ? colors.bg.tertiary : colors.accent.primary,
-                  opacity: isReadOnly ? 0.5 : 1,
-                },
-              ]}
-              onPress={() => {
-                if (!isReadOnly) {
-                  navigation.navigate('CreateGroupExpense', { groupId });
-                }
-              }}
-              disabled={isReadOnly}
-            >
-              <Ionicons
-                name="add-circle-outline"
-                size={20}
-                color={isReadOnly ? colors.text.tertiary : '#FFFFFF'}
-              />
-              <Text
-                style={[
-                  typography.buttonSmall,
-                  { color: isReadOnly ? colors.text.tertiary : '#FFFFFF', marginLeft: 4 },
-                ]}
-              >
-                Expense
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.bottomAction,
-                {
-                  backgroundColor: isReadOnly ? colors.bg.tertiary : colors.bg.glassLight,
-                  opacity: isReadOnly ? 0.5 : 1,
-                },
-              ]}
-              onPress={() => {
-                if (!isReadOnly) {
-                  navigation.navigate('CreateSettlement', { groupId });
-                }
-              }}
-              disabled={isReadOnly}
-            >
-              <Ionicons
-                name="swap-horizontal"
-                size={20}
-                color={isReadOnly ? colors.text.tertiary : colors.text.primary}
-              />
-              <Text
-                style={[
-                  typography.buttonSmall,
-                  { color: isReadOnly ? colors.text.tertiary : colors.text.primary, marginLeft: 4 },
-                ]}
-              >
-                Settle
-              </Text>
-            </TouchableOpacity>
-          </>
-        )}
+              Settle Up
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {group?.id && status === 'completed' && (
         <TouchableOpacity
-          style={[styles.bottomActionSmall, { backgroundColor: colors.bg.glassLight }]}
-          onPress={handleAddMemberPress}
-        >
-          <Ionicons name="person-add-outline" size={20} color={colors.accent.primary} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.bottomActionSmall, { backgroundColor: colors.bg.glassLight }]}
+          style={[
+            styles.fabSummary,
+            { backgroundColor: colors.accent.primary, bottom: insets.bottom + 16 },
+          ]}
           onPress={() => navigation.navigate('GroupDashboard', { groupId })}
+          activeOpacity={0.8}
         >
-          <Ionicons name="stats-chart-outline" size={20} color={colors.text.secondary} />
+          <Ionicons name="stats-chart-outline" size={22} color="#FFFFFF" />
+          <Text style={[typography.buttonSmall, { color: '#FFFFFF', marginLeft: 8 }]}>
+            View Summary
+          </Text>
         </TouchableOpacity>
-      </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -986,6 +992,14 @@ const { width } = Dimensions.get('window');
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+  },
+  skeletonContainer: {
+    padding: 20,
+    paddingTop: 40,
+    flex: 1,
+  },
+  skelBlock: {
+    borderRadius: 12,
   },
   header: {
     flexDirection: 'row',
@@ -1033,51 +1047,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginTop: 12,
   },
-  balanceCard: {
+  gradientCard: {
     borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
-  financialOverview: {
+  gradientCardHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  financialItem: {
-    flex: 1,
+  typeBadge: {
+    flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 100,
+    gap: 5,
   },
-  financialDivider: {
-    width: 1,
-    height: 36,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    marginHorizontal: 8,
+  typeBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
-  financialAmount: {
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: -0.3,
+  balanceSection: {
     marginTop: 4,
   },
-  remainingBar: {
-    height: 6,
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  remainingFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  divider: {
+  gradientDivider: {
     height: 1,
   },
-  balanceRow: {
+  totalSpentRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  balanceAmount: {
-    fontSize: 20,
-    fontWeight: '700',
-    letterSpacing: -0.3,
   },
   segmentControl: {
     flexDirection: 'row',
@@ -1097,6 +1098,13 @@ const styles = StyleSheet.create({
   segmentList: {
     paddingHorizontal: 20,
     paddingTop: 12,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    paddingHorizontal: 4,
   },
   expenseCard: {
     marginBottom: 10,
@@ -1227,34 +1235,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 12,
   },
-  bottomBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderTopWidth: 1,
-    gap: 6,
-    position: 'absolute',
-    bottom: 90,
-    left: 0,
-    right: 0,
-  },
-  bottomAction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    borderRadius: 14,
-    flex: 1,
-    justifyContent: 'center',
-  },
-  bottomActionSmall: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   inviteSection: {
     paddingHorizontal: 20,
     marginTop: 12,
@@ -1264,5 +1244,44 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginLeft: 8,
+  },
+  fabContainer: {
+    position: 'absolute',
+    flexDirection: 'row',
+    gap: 10,
+  },
+  fab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: 100,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  fabPrimary: {
+    shadowColor: '#f7892c',
+  },
+  fabSecondary: {
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  fabSummary: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
 });

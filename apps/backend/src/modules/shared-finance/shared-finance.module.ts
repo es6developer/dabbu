@@ -10,7 +10,10 @@ import { TripsController } from './trips.controller';
 import { TripsService } from './trips.service';
 import { CoupleController } from './couple.controller';
 import { CoupleService } from './couple.service';
-import { SubscriptionsController, SubscriptionsRemindersController } from './subscriptions.controller';
+import {
+  SubscriptionsController,
+  SubscriptionsRemindersController,
+} from './subscriptions.controller';
 import { SubscriptionsService } from './subscriptions.service';
 import { ContributionsController } from './contributions.controller';
 import { ContributionsService } from './contributions.service';
@@ -20,6 +23,8 @@ import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
 import { IncomesController } from './incomes.controller';
 import { IncomesService } from './incomes.service';
+import { InvitationController } from './invitation.controller';
+import { InvitationService } from './invitation.service';
 import { SharedFinanceRealtimeModule } from './realtime.module';
 import { NotificationModule } from '../notification/notification.module';
 
@@ -37,6 +42,7 @@ import { NotificationModule } from '../notification/notification.module';
     InsightsController,
     ChatController,
     IncomesController,
+    InvitationController,
   ],
   providers: [
     GroupsService,
@@ -49,6 +55,7 @@ import { NotificationModule } from '../notification/notification.module';
     InsightsService,
     ChatService,
     IncomesService,
+    InvitationService,
   ],
   exports: [
     GroupsService,
@@ -61,6 +68,7 @@ import { NotificationModule } from '../notification/notification.module';
     InsightsService,
     ChatService,
     IncomesService,
+    InvitationService,
   ],
 })
 export class SharedFinanceModule {}
