@@ -8,12 +8,12 @@ import {
   CreateGroupDto, UpdateGroupDto, JoinGroupDto,
   UpdateMemberRoleDto, SalaryProfileDto, AddMemberByEmailDto,
 } from './groups.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { DualAuthGuard } from '../../common/guards/dual-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @ApiTags('Shared Finance')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(DualAuthGuard)
 @Controller('shared-finance/groups')
 export class GroupsController {
   constructor(private readonly groupsService: GroupsService) {}

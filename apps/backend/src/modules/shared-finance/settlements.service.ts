@@ -188,10 +188,10 @@ export class SettlementsService {
     for (const settlement of existingSettlements) {
       if (settlement.status === 'completed') {
         if (netBalance.has(settlement.fromMember.userId)) {
-          netBalance.set(settlement.fromMember.userId, netBalance.get(settlement.fromMember.userId)! - Number(settlement.amount));
+          netBalance.set(settlement.fromMember.userId, netBalance.get(settlement.fromMember.userId)! + Number(settlement.amount));
         }
         if (netBalance.has(settlement.toMember.userId)) {
-          netBalance.set(settlement.toMember.userId, netBalance.get(settlement.toMember.userId)! + Number(settlement.amount));
+          netBalance.set(settlement.toMember.userId, netBalance.get(settlement.toMember.userId)! - Number(settlement.amount));
         }
       }
     }
@@ -281,9 +281,15 @@ export class SettlementsService {
     const member = await this.prisma.groupMember.findUnique({
       where: { groupId_userId: { groupId, userId } },
     });
-    if (!member || !member.isActive || member.deletedAt) {
+    if (member && member.isActive && !member.deletedAt) {
+      return member;
+    }
+    const tempMember = await this.prisma.groupMemberTemp.findUnique({
+      where: { groupId_tempUserId: { groupId, tempUserId: userId } },
+    });
+    if (!tempMember || !tempMember.isActive) {
       throw new ForbiddenException('Not a group member');
     }
-    return member;
+    return tempMember;
   }
 }

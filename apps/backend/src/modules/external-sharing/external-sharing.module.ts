@@ -18,6 +18,7 @@ import { AccessControlService } from './access-control.service';
 import { RevocationService } from './revocation.service';
 import { LifecycleNotificationService } from './lifecycle-notification.service';
 import { TempUserAccessGuard, GroupStatusGuard } from './access-guard';
+import { DualAuthGuard } from '../../common/guards/dual-auth.guard';
 
 @Module({
   imports: [PrismaModule, SharedFinanceRealtimeModule],
@@ -40,6 +41,7 @@ import { TempUserAccessGuard, GroupStatusGuard } from './access-guard';
     AccessControlService,
     RevocationService,
     LifecycleNotificationService,
+    DualAuthGuard,
     TempUserAccessGuard,
     GroupStatusGuard,
   ],

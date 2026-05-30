@@ -5,12 +5,12 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { SettlementsService } from './settlements.service';
 import { CreateSettlementDto, UpdateSettlementDto } from './dto/expenses.dto';
-import { JwtAuthGuard } from '../../common/guards';
+import { DualAuthGuard } from '../../common/guards';
 import { CurrentUser } from '../../common/decorators';
 
 @ApiTags('Shared Finance - Settlements')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(DualAuthGuard)
 @Controller('shared-finance/groups/:groupId/settlements')
 export class SettlementsController {
   constructor(private readonly settlementsService: SettlementsService) {}

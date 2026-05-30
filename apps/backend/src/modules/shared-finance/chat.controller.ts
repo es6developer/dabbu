@@ -5,12 +5,12 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ChatService } from './chat.service';
 import { SendMessageDto, ChatPaginationQueryDto } from './dto/chat.dto';
-import { JwtAuthGuard } from '../../common/guards';
+import { DualAuthGuard } from '../../common/guards';
 import { CurrentUser } from '../../common/decorators';
 
 @ApiTags('Shared Finance - Chat')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(DualAuthGuard)
 @Controller('shared-finance/groups/:groupId/chat')
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}

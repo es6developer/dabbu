@@ -21,10 +21,9 @@ import { InsightsController } from './insights.controller';
 import { InsightsService } from './insights.service';
 import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
-import { IncomesController } from './incomes.controller';
-import { IncomesService } from './incomes.service';
 import { InvitationController } from './invitation.controller';
 import { InvitationService } from './invitation.service';
+import { DualAuthGuard } from '../../common/guards/dual-auth.guard';
 import { SharedFinanceRealtimeModule } from './realtime.module';
 import { NotificationModule } from '../notification/notification.module';
 
@@ -41,10 +40,10 @@ import { NotificationModule } from '../notification/notification.module';
     ContributionsController,
     InsightsController,
     ChatController,
-    IncomesController,
     InvitationController,
   ],
   providers: [
+    DualAuthGuard,
     GroupsService,
     ExpensesService,
     SettlementsService,
@@ -54,7 +53,6 @@ import { NotificationModule } from '../notification/notification.module';
     ContributionsService,
     InsightsService,
     ChatService,
-    IncomesService,
     InvitationService,
   ],
   exports: [
@@ -67,7 +65,6 @@ import { NotificationModule } from '../notification/notification.module';
     ContributionsService,
     InsightsService,
     ChatService,
-    IncomesService,
     InvitationService,
   ],
 })

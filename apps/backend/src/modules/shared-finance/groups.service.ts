@@ -531,7 +531,13 @@ export class GroupsService {
     const member = await this.prisma.groupMember.findUnique({
       where: { groupId_userId: { groupId, userId } },
     });
-    if (!member || member.deletedAt || !member.isActive) {
+    if (member && !member.deletedAt && member.isActive) {
+      return;
+    }
+    const tempMember = await this.prisma.groupMemberTemp.findUnique({
+      where: { groupId_tempUserId: { groupId, tempUserId: userId } },
+    });
+    if (!tempMember || !tempMember.isActive) {
       throw new ForbiddenException('Not a member of this group');
     }
   }

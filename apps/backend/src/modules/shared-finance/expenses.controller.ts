@@ -7,12 +7,12 @@ import { ExpensesService } from './expenses.service';
 import {
   CreateExpenseDto, UpdateExpenseDto, CreateCommentDto, CreateAttachmentDto,
 } from './dto/expenses.dto';
-import { JwtAuthGuard } from '../../common/guards';
+import { DualAuthGuard } from '../../common/guards';
 import { CurrentUser } from '../../common/decorators';
 
 @ApiTags('Shared Finance - Expenses')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(DualAuthGuard)
 @Controller('shared-finance/groups/:groupId/expenses')
 export class ExpensesController {
   constructor(private readonly expensesService: ExpensesService) {}

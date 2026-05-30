@@ -125,21 +125,32 @@ export default function InvitePage() {
         return;
       }
 
-      const data = res.data!;
-      const group = data.group;
+      const raw = res.data!;
+      const groupInfo = raw.group as any;
 
-      // Normalize fields the backend may omit in invite response
-      if (!group.members) {
-        group.members = [];
-      }
-      if (!group.memberCount && group._count) {
-        group.memberCount = group._count.members;
-      }
-      if (group.totalBalance === undefined) {
-        group.totalBalance = 0;
+      let group: Group = {
+        id: groupInfo.id,
+        name: groupInfo.name,
+        type: groupInfo.type,
+        description: groupInfo.description,
+        memberCount: groupInfo._count?.members || 0,
+        totalBalance: 0,
+        members: [],
+        createdAt: '',
+        currency: groupInfo.currency || 'INR',
+        _count: groupInfo._count,
+      };
+
+      const fullGroupRes = await api.groups.get(group.id);
+      if (fullGroupRes.data) {
+        group = fullGroupRes.data;
       }
 
-      setInvite(data as InviteData);
+      setInvite({
+        group,
+        inviter: (raw.inviter as { name: string; avatar?: string } | undefined) || { name: 'Someone' },
+        permissions: [],
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
@@ -160,7 +171,10 @@ export default function InvitePage() {
       return;
     }
     toast.success('Joined the group!');
-    router.push(`/groups/${res.data!.group?.id ?? res.data?.['groupId']}`);
+    const joinedGroupId = res.data?.groupId || invite?.group?.id;
+    if (joinedGroupId) {
+      router.push(`/groups/${joinedGroupId}`);
+    }
   };
 
   if (loading) {

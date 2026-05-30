@@ -4,12 +4,12 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { LifecycleService } from './lifecycle.service';
 import { UpdateGroupStatusDto } from './dto/lifecycle.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { DualAuthGuard } from '../../common/guards/dual-auth.guard';
+import { CurrentUser, Public } from '../../common/decorators';
 
 @ApiTags('External Sharing - Lifecycle')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(DualAuthGuard)
 @Controller('external-sharing/lifecycle')
 export class LifecycleController {
   constructor(private readonly lifecycleService: LifecycleService) {}
@@ -25,6 +25,7 @@ export class LifecycleController {
     return this.lifecycleService.updateStatus(groupId, dto.status, userId, dto.reason);
   }
 
+  @Public()
   @Get('groups/:groupId/status')
   @ApiOperation({ summary: 'Get group status' })
   async getStatus(@Param('groupId') groupId: string) {
@@ -32,6 +33,7 @@ export class LifecycleController {
     return { data: result };
   }
 
+  @Public()
   @Get('groups/:groupId/events')
   @ApiOperation({ summary: 'Get group lifecycle events' })
   async getEvents(@Param('groupId') groupId: string) {
