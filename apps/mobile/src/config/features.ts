@@ -44,10 +44,11 @@ const DEFAULT_FEATURES: FeatureFlag[] = [
 
 let features: FeatureFlag[] = [...DEFAULT_FEATURES];
 
+import { API_URL } from './api';
+
 export async function loadFeatures(): Promise<void> {
   try {
-    const apiUrl = 'https://backend-ochre-delta-80.vercel.app/api/v1';
-    const res = await fetch(`${apiUrl}/features`);
+    const res = await fetch(`${API_URL}/features`);
     const json = await res.json();
     const remoteFlags = Array.isArray(json.data) ? json.data : [];
 

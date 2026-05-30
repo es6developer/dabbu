@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Platform } from 'react-native';
+import { API_URL } from '../config/api';
 
 let SecureStore: any = {};
 if (Platform.OS !== 'web') {
@@ -37,8 +38,6 @@ interface AuthContextType extends AuthState {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const API_URL = 'https://backend-ochre-delta-80.vercel.app/api/v1';
 
 interface StorageInterface {
   getItem: (key: string) => Promise<string | null>;

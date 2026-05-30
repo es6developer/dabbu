@@ -1,4 +1,4 @@
-const API_URL = 'https://backend-ochre-delta-80.vercel.app/api/v1';
+import { API_URL } from '../config/api';
 
 let accessToken: string | null = null;
 let refreshTokenFn: (() => Promise<boolean>) | null = null;

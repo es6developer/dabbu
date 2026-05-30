@@ -176,17 +176,11 @@ function SkeletonLoader() {
           },
         ]}
       />
-      <View style={{ flexDirection: 'row', marginBottom: 16 }}>
+      <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
         <Animated.View
           style={[
             styles.skelBlock,
-            {
-              backgroundColor: colors.skeleton.base,
-              opacity,
-              height: 90,
-              flex: 1,
-              marginRight: 10,
-            },
+            { backgroundColor: colors.skeleton.base, opacity, height: 90, flex: 1 },
           ]}
         />
         <Animated.View
@@ -245,21 +239,11 @@ export function GroupDetailScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeSegment, setActiveSegment] = useState<Segments>('expenses');
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [expenseOffset, setExpenseOffset] = useState(0);
-  const [expenseTotal, setExpenseTotal] = useState<number | null>(null);
-  const [hasMoreExpenses, setHasMoreExpenses] = useState(true);
-  const [settlements, setSettlements] = useState<Settlement[]>([]);
-  const [settlementOffset, setSettlementOffset] = useState(0);
-  const [hasMoreSettlements, setHasMoreSettlements] = useState(true);
-  const [segmentLoading, setSegmentLoading] = useState(false);
-  const [segmentError, setSegmentError] = useState<string | null>(null);
   const [showRevokedModal, setShowRevokedModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [invitingExternal, setInvitingExternal] = useState(false);
 
   const abortRef = useRef<AbortController | null>(null);
-  const segmentAbortRef = useRef<AbortController | null>(null);
 
   const { status, restrictions, accessRevoked, revocationReason, isReadOnly, hasRestriction } =
     useGroupLifecycle({
@@ -270,6 +254,9 @@ export function GroupDetailScreen() {
   const fetchGroup = useCallback(
     async (isRefresh = false) => {
       if (!groupId) {
+        setLoading(false);
+        setRefreshing(false);
+        setError('Invalid group identifier');
         return;
       }
 
@@ -289,6 +276,8 @@ export function GroupDetailScreen() {
         setError(null);
 
         let data: any = null;
+        let expensesRes: any[] = [];
+        let settlementsRes: any[] = [];
 
         try {
           data = await api.get<any>(`/shared-finance/groups/${groupId}`, signal);
@@ -297,6 +286,20 @@ export function GroupDetailScreen() {
             setError('Group not found');
           }
           return;
+        }
+
+        try {
+          expensesRes = await api.get<any[]>(`/shared-finance/groups/${groupId}/expenses`, signal);
+        } catch {
+          expensesRes = [];
+        }
+        try {
+          settlementsRes = await api.get<any[]>(
+            `/shared-finance/groups/${groupId}/settlements`,
+            signal,
+          );
+        } catch {
+          settlementsRes = [];
         }
 
         if (signal.aborted) {
@@ -311,9 +314,7 @@ export function GroupDetailScreen() {
         const balances = data.balances ?? [];
         const members = data.members ?? [];
         const currentUserId = user?.id || data.ownerId;
-        const myBalance = balances.find(
-          (b: any) => b?.userId === currentUserId || b?.memberId === currentUserId,
-        );
+        const myBalance = balances.find((b: any) => b?.userId === currentUserId);
         const totalSpent = balances.reduce((s: number, b: any) => s + Number(b?.totalPaid ?? 0), 0);
 
         const transformed: GroupDetail = {
@@ -337,8 +338,31 @@ export function GroupDetailScreen() {
             role: m.role,
             balance: balances.find((b: any) => b?.memberId === m.id)?.netBalance || 0,
           })),
-          expenses: [],
-          settlements: [],
+          expenses: (expensesRes ?? []).map((e: any) => {
+            const paidByName = e.paidBy?.user
+              ? `${e.paidBy.user.firstName ?? ''} ${e.paidBy.user.lastName ?? ''}`.trim()
+              : e.paidBy?.name || e.paidByName || 'Unknown';
+            return {
+              id: e.id,
+              description: e.description,
+              amount: Number(e.amount ?? 0),
+              paidBy: { id: e.paidBy?.id || e.paidByMemberId, name: paidByName },
+              date: e.date || e.createdAt,
+              splitType: e.splitType || 'equal',
+              category: e.category,
+            };
+          }),
+          settlements: (settlementsRes ?? []).map((s: any) => ({
+            id: s.id,
+            from: {
+              id: s.from?.id || s.fromMemberId,
+              name: s.from?.name || s.fromName || 'Unknown',
+            },
+            to: { id: s.to?.id || s.toMemberId, name: s.to?.name || s.toName || 'Unknown' },
+            amount: Number(s.amount),
+            status: s.status || 'pending',
+            date: s.date || s.createdAt,
+          })),
         };
         setGroup(transformed);
       } catch (err: any) {
@@ -352,81 +376,8 @@ export function GroupDetailScreen() {
         }
       }
     },
-    [groupId, paramInviteCode, user?.id],
+    [groupId, paramInviteCode],
   );
-
-  const loadSegment = useCallback(
-    async (segment: Segments, reset = false) => {
-      if (!groupId) {
-        return;
-      }
-      if (segment === 'balances') {
-        return;
-      }
-
-      if (segmentAbortRef.current) {
-        segmentAbortRef.current.abort();
-      }
-      const controller = new AbortController();
-      segmentAbortRef.current = controller;
-      const signal = controller.signal;
-
-      setSegmentError(null);
-      setSegmentLoading(true);
-
-      try {
-        const limit = 30;
-        if (segment === 'expenses') {
-          const offset = reset ? 0 : expenseOffset;
-          const response = await api.get<any>(
-            `/shared-finance/groups/${groupId}/expenses?limit=${limit}&offset=${offset}`,
-            signal,
-          );
-          if (signal.aborted) {
-            return;
-          }
-          const loadedExpenses = Array.isArray(response) ? response : (response?.data ?? []);
-          const totalCount = response?.total ?? null;
-          const nextCount = reset ? loadedExpenses.length : expenses.length + loadedExpenses.length;
-          setExpenses((prev) => (reset ? loadedExpenses : [...prev, ...loadedExpenses]));
-          setExpenseTotal(totalCount);
-          setHasMoreExpenses(
-            totalCount === null ? loadedExpenses.length === limit : nextCount < totalCount,
-          );
-          setExpenseOffset(offset + loadedExpenses.length);
-        } else if (segment === 'settlements') {
-          const offset = reset ? 0 : settlementOffset;
-          const response = await api.get<any>(
-            `/shared-finance/groups/${groupId}/settlements?limit=${limit}&offset=${offset}`,
-            signal,
-          );
-          if (signal.aborted) {
-            return;
-          }
-          const loadedSettlements = Array.isArray(response) ? response : (response?.data ?? []);
-          setSettlements((prev) => (reset ? loadedSettlements : [...prev, ...loadedSettlements]));
-          setHasMoreSettlements(loadedSettlements.length === limit);
-          setSettlementOffset(offset + loadedSettlements.length);
-        }
-      } catch (err: any) {
-        if (!signal.aborted) {
-          setSegmentError(err?.message || 'Failed to load data');
-        }
-      } finally {
-        if (!signal.aborted) {
-          setSegmentLoading(false);
-        }
-      }
-    },
-    [groupId, expenseOffset, settlementOffset, expenses.length, settlements.length],
-  );
-
-  useEffect(() => {
-    if (!groupId) {
-      return;
-    }
-    loadSegment(activeSegment, true);
-  }, [groupId, activeSegment, loadSegment]);
 
   useFocusEffect(
     useCallback(() => {
@@ -461,7 +412,7 @@ export function GroupDetailScreen() {
     try {
       const res = await createInviteLink(groupId);
       const token = res.token;
-      const link = `https://external-web.vercel.app/invite/${token}`;
+      const link = `https://external-web.vercel.app//invite/${token}`;
       await Share.share({
         message: `Join my group "${group?.name}" on Dabbu! ${link}`,
       });
@@ -637,10 +588,10 @@ export function GroupDetailScreen() {
 
   const segmentData: any[] =
     activeSegment === 'expenses'
-      ? expenses
+      ? (group?.expenses ?? [])
       : activeSegment === 'balances'
         ? (group?.members ?? [])
-        : settlements;
+        : (group?.settlements ?? []);
 
   const renderSegmentItem = ({ item }: { item: any }) => {
     switch (activeSegment) {
@@ -835,33 +786,24 @@ export function GroupDetailScreen() {
   );
 
   const renderListEmpty = () => {
-    if (segmentLoading) {
-      return (
-        <View style={styles.emptySegment}>
-          <ActivityIndicator size="large" color={colors.accent.primary} />
-        </View>
-      );
-    }
-    if (segmentError) {
-      return (
-        <View style={styles.emptySegment}>
-          <Text style={[typography.callout, { color: colors.text.secondary, textAlign: 'center' }]}>
-            {segmentError}
-          </Text>
-        </View>
-      );
-    }
     const cfg = emptyStateConfig[activeSegment];
-
     return (
       <View style={styles.emptySegment}>
-        <Ionicons name={cfg.icon} size={48} color={colors.text.tertiary} />
-        <Text style={[typography.callout, { color: colors.text.secondary, marginTop: spacing.md }]}>
+        <Ionicons name={cfg.icon} size={40} color={colors.text.tertiary} />
+        <Text style={[typography.callout, { color: colors.text.tertiary, marginTop: spacing.md }]}>
           {cfg.text}
         </Text>
       </View>
     );
   };
+
+  if (loading && !group) {
+    return (
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg.primary }]}>
+        <SkeletonLoader />
+      </SafeAreaView>
+    );
+  }
 
   if (error && !group) {
     return (
@@ -892,22 +834,6 @@ export function GroupDetailScreen() {
         renderItem={renderSegmentItem}
         ListHeaderComponent={renderListHeader}
         ListEmptyComponent={renderListEmpty}
-        ListFooterComponent={
-          segmentLoading ? (
-            <View style={styles.emptySegment}>
-              <ActivityIndicator size="small" color={colors.accent.primary} />
-            </View>
-          ) : null
-        }
-        onEndReachedThreshold={0.5}
-        onEndReached={() => {
-          if (activeSegment === 'expenses' && hasMoreExpenses && !segmentLoading) {
-            loadSegment(activeSegment);
-          }
-          if (activeSegment === 'settlements' && hasMoreSettlements && !segmentLoading) {
-            loadSegment(activeSegment);
-          }
-        }}
         contentContainerStyle={{ paddingBottom: insets.bottom + 140 }}
         showsVerticalScrollIndicator={false}
         removeClippedSubviews={true}
@@ -1026,12 +952,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    gap: 12,
   },
   headerInfo: {
     flex: 1,
   },
   headerBadges: {
     flexDirection: 'row',
+    gap: 8,
     marginTop: 6,
   },
   badge: {
@@ -1040,6 +968,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 100,
+    gap: 4,
   },
   badgeText: {
     fontSize: 11,
@@ -1073,6 +1002,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 100,
+    gap: 5,
   },
   typeBadgeText: {
     fontSize: 11,
@@ -1163,6 +1093,7 @@ const styles = StyleSheet.create({
   memberNameRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
   },
   roleBadge: {
     paddingHorizontal: 8,
@@ -1214,12 +1145,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 60,
   },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
   inviteButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1237,6 +1162,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 14,
     borderWidth: 1,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 28,
   },
   loadingContainer: {
     flex: 1,
@@ -1262,6 +1193,7 @@ const styles = StyleSheet.create({
   fabContainer: {
     position: 'absolute',
     flexDirection: 'row',
+    gap: 10,
   },
   fab: {
     flexDirection: 'row',

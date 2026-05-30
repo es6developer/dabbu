@@ -232,7 +232,7 @@ const ALL_TABS: TabConfig[] = [
   { name: 'Settings', component: SettingsNavigator, title: 'Settings' },
 ];
 
-const API_URL = 'https://backend-ochre-delta-80.vercel.app/api/v1';
+import { API_URL } from '../config/api';
 
 export function MainTabNavigator() {
   const { colors, isDark, typography} = useTheme();
@@ -311,7 +311,13 @@ export function MainTabNavigator() {
           key={tab.name}
           name={tab.name}
           component={tab.component}
-          options={{ headerShown: false, title: tab.title }}
+          options={{
+            headerShown: false,
+            title: tab.title,
+            tabBarStyle: tab.name === 'SMS' && Platform.OS === 'ios'
+              ? { display: 'none' }
+              : undefined,
+          }}
         />
       ))}
     </Tab.Navigator>
