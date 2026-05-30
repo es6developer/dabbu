@@ -20,7 +20,7 @@
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "docker:build": "docker-compose build",
-    "prepare": "husky install",
+    "prepare": "husky install || true",
     "db:migrate": "npm run migrate -w apps/backend",
     "db:seed": "npm run seed -w apps/backend",
     "commit": "cz"
