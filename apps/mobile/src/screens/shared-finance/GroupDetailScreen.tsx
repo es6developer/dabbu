@@ -243,6 +243,8 @@ export function GroupDetailScreen() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [invitingExternal, setInvitingExternal] = useState(false);
 
+  const abortRef = useRef<AbortController | null>(null);
+
   const { status, restrictions, accessRevoked, revocationReason, isReadOnly, hasRestriction } =
     useGroupLifecycle({
       groupId: groupId ?? '',
@@ -254,6 +256,14 @@ export function GroupDetailScreen() {
       if (!groupId) {
         return;
       }
+
+      if (abortRef.current) {
+        abortRef.current.abort();
+      }
+      const controller = new AbortController();
+      abortRef.current = controller;
+      const signal = controller.signal;
+
       try {
         if (isRefresh) {
           setRefreshing(true);
@@ -267,21 +277,30 @@ export function GroupDetailScreen() {
         let settlementsRes: any[] = [];
 
         try {
-          data = await api.get<any>(`/shared-finance/groups/${groupId}`);
+          data = await api.get<any>(`/shared-finance/groups/${groupId}`, signal);
         } catch {
-          setError('Group not found');
+          if (!signal.aborted) {
+            setError('Group not found');
+          }
           return;
         }
 
         try {
-          expensesRes = await api.get<any[]>(`/shared-finance/groups/${groupId}/expenses`);
+          expensesRes = await api.get<any[]>(`/shared-finance/groups/${groupId}/expenses`, signal);
         } catch {
           expensesRes = [];
         }
         try {
-          settlementsRes = await api.get<any[]>(`/shared-finance/groups/${groupId}/settlements`);
+          settlementsRes = await api.get<any[]>(
+            `/shared-finance/groups/${groupId}/settlements`,
+            signal,
+          );
         } catch {
           settlementsRes = [];
+        }
+
+        if (signal.aborted) {
+          return;
         }
 
         if (!data) {
@@ -344,10 +363,14 @@ export function GroupDetailScreen() {
         };
         setGroup(transformed);
       } catch (err: any) {
-        setError(err?.message || 'Failed to load group');
+        if (!signal.aborted) {
+          setError(err?.message || 'Failed to load group');
+        }
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        if (!signal.aborted) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     },
     [groupId, paramInviteCode],
@@ -355,15 +378,11 @@ export function GroupDetailScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      let mounted = true;
-      const load = async () => {
-        if (mounted) {
-          await fetchGroup();
-        }
-      };
-      load();
+      fetchGroup();
       return () => {
-        mounted = false;
+        if (abortRef.current) {
+          abortRef.current.abort();
+        }
       };
     }, [groupId, fetchGroup]),
   );

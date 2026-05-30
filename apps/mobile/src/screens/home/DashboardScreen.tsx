@@ -34,11 +34,18 @@ export function DashboardScreen() {
   const [loading, setLoading] = useState(true);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
+  const abortRef = useRef<AbortController | null>(null);
+
   useEffect(() => {
     if (accessToken) {
       setAccessToken(accessToken);
     }
     loadData();
+    return () => {
+      if (abortRef.current) {
+        abortRef.current.abort();
+      }
+    };
   }, [accessToken]);
 
   useEffect(() => {
@@ -48,17 +55,30 @@ export function DashboardScreen() {
   }, [loading]);
 
   async function loadData() {
+    if (abortRef.current) {
+      abortRef.current.abort();
+    }
+    abortRef.current = new AbortController();
+    const signal = abortRef.current.signal;
     try {
       const [statsRes, catRes] = await Promise.all([
-        api.get<any>('/accounts/stats'),
-        api.get<any>('/transactions/categories-summary?months=1'),
+        api.get<any>('/accounts/stats', signal),
+        api.get<any>('/transactions/categories-summary?months=1', signal),
       ]);
+      if (signal.aborted) {
+        return;
+      }
       setStats(Array.isArray(statsRes) ? null : statsRes);
       setCategoryData(Array.isArray(catRes) ? (catRes as any[]).slice(0, 5) : []);
     } catch (e) {
-      console.error('Dashboard load error:', e);
+      if (e instanceof DOMException && e.name === 'AbortError') {
+        return;
+      }
+      console.error('Dashboard load error:', (e as Error)?.message || e);
     } finally {
-      setLoading(false);
+      if (!signal.aborted) {
+        setLoading(false);
+      }
     }
   }
 

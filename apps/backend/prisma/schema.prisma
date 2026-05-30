@@ -201,14 +201,16 @@ model RecurringReminder {
   title           String   @db.VarChar(255)
   description     String?  @db.Text
   type            String   @default("general") @db.VarChar(50)
-  frequency       String   @db.VarChar(20)  // daily, weekly, biweekly, monthly, quarterly, yearly
+  frequency       String   @db.VarChar(20)
   interval        Int      @default(1)
-  dayOfMonth      Int?     // For monthly
-  dayOfWeek       Int?     // For weekly (0=Sunday, 6=Saturday)
-  monthOfYear     Int?     // For yearly
-  time            String?  @db.VarChar(5)  // HH:mm format
+  dayOfMonth      Int?
+  daysOfWeek      String?  // JSON array for multi-day patterns
+  monthOfYear     Int?
+  time            String?  @db.VarChar(5)
   startDate       DateTime
   endDate         DateTime?
+  occurrences     Int?     // Max number of occurrences
+  count           Int      @default(0)  // How many times it has triggered
   isActive        Boolean  @default(true)
   lastTriggeredAt DateTime?
   nextTriggerAt   DateTime?
@@ -216,7 +218,6 @@ model RecurringReminder {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  // Relations
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   reminder Reminder? @relation(fields: [reminderId], references: [id])
 

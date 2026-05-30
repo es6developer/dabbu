@@ -44,6 +44,10 @@ export class ReminderService {
 
         await tx.recurringReminder.create({
           data: {
+            userId,
+            title: reminder.title,
+            type: reminder.type,
+            startDate: nextTriggerAt,
             reminderId: reminder.id,
             frequency: recurring.frequency,
             interval: recurring.interval ?? 1,
@@ -54,8 +58,8 @@ export class ReminderService {
             occurrences: recurring.occurrences ?? null,
             count: 0,
             nextTriggerAt,
-            createdByUserId: userId,
-          } as any,
+            isActive: true,
+          },
         });
       }
 
@@ -227,11 +231,15 @@ export class ReminderService {
         } else if (dto.isRecurring) {
           await tx.recurringReminder.create({
             data: {
+              userId,
+              title: reminder.title,
+              type: reminder.type,
+              startDate: reminder.startDate || new Date(),
               reminderId: id,
               ...recurringData,
               count: 0,
-              createdByUserId: userId,
-            } as any,
+              isActive: true,
+            },
           });
         }
       }
@@ -461,12 +469,13 @@ export class ReminderService {
             type: existing.type,
             priority: existing.priority,
             status: ReminderStatus.PENDING,
+            remindAt: nextTriggerAt,
             startDate: nextTriggerAt,
             dueDate: existing.dueDate ? addDays(nextTriggerAt, 1) : null,
             isRecurring: true,
             categoryId: existing.categoryId,
             metadata: existing.metadata,
-          } as any,
+          },
         });
       }
     });

@@ -73,15 +73,30 @@ function setCached(key: string, data: any): void {
   cache.set(key, { data, expiry: Date.now() + CACHE_TTL });
 }
 
+function mergeSignals(timeoutSignal: AbortSignal, userSignal?: AbortSignal): AbortSignal {
+  if (!userSignal) {
+    return timeoutSignal;
+  }
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  timeoutSignal.addEventListener('abort', abort);
+  userSignal.addEventListener('abort', abort);
+  if (timeoutSignal.aborted || userSignal.aborted) {
+    controller.abort();
+  }
+  return controller.signal;
+}
+
 async function fetchWithTimeout(
   path: string,
   options: RequestInit,
   timeout: number,
 ): Promise<Response> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  const timeoutController = new AbortController();
+  const timeoutId = setTimeout(() => timeoutController.abort(), timeout);
   try {
-    return await fetch(`${API_URL}${path}`, { ...options, signal: controller.signal });
+    const signal = mergeSignals(timeoutController.signal, options.signal);
+    return await fetch(`${API_URL}${path}`, { ...options, signal });
   } finally {
     clearTimeout(timeoutId);
   }
@@ -133,8 +148,9 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       }
 
       if (!res.ok) {
-        const error = await res.json().catch(() => ({ message: ['Request failed'] }));
-        throw new Error(error.message?.[0] || `HTTP ${res.status}`);
+        const error = await res.json().catch(() => ({ message: 'Request failed' }));
+        const msg = Array.isArray(error.message) ? error.message[0] : error.message;
+        throw new Error(msg || `HTTP ${res.status}`);
       }
 
       const body = await res.json();
@@ -174,12 +190,22 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 export const api = {
-  get: <T>(path: string) => request<T>(path),
-  post: <T>(path: string, body?: any) =>
-    request<T>(path, { method: 'POST', body: body ? JSON.stringify(body) : undefined }),
-  patch: <T>(path: string, body?: any) =>
-    request<T>(path, { method: 'PATCH', body: body ? JSON.stringify(body) : undefined }),
-  delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
+  get: <T>(path: string, signal?: AbortSignal) =>
+    request<T>(path, { method: 'GET', ...(signal ? { signal } : {}) }),
+  post: <T>(path: string, body?: any, signal?: AbortSignal) =>
+    request<T>(path, {
+      method: 'POST',
+      body: body ? JSON.stringify(body) : undefined,
+      ...(signal ? { signal } : {}),
+    }),
+  patch: <T>(path: string, body?: any, signal?: AbortSignal) =>
+    request<T>(path, {
+      method: 'PATCH',
+      body: body ? JSON.stringify(body) : undefined,
+      ...(signal ? { signal } : {}),
+    }),
+  delete: <T>(path: string, signal?: AbortSignal) =>
+    request<T>(path, { method: 'DELETE', ...(signal ? { signal } : {}) }),
 };
 
 export function clearCache() {
