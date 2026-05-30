@@ -51,7 +51,6 @@ export function CreateTransactionScreen() {
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurringFrequency, setRecurringFrequency] = useState('monthly');
   const [categories, setCategories] = useState<any[]>([]);
-  const [accounts, setAccounts] = useState<any[]>([]);
   const [groups, setGroups] = useState<any[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState(prefill?.groupId || '');
   const [selectedGroupName, setSelectedGroupName] = useState(prefill?.groupName || '');
@@ -69,17 +68,14 @@ export function CreateTransactionScreen() {
   async function loadMeta() {
     let catData: any[] = [];
     try {
-      const [catRes, grpRes, accRes] = await Promise.all([
+      const [catRes, grpRes] = await Promise.all([
         api.get<any[]>('/categories'),
         api.get<any>('/expense-groups'),
-        api.get<any[]>('/accounts'),
       ]);
       catData = Array.isArray(catRes) ? catRes : Array.isArray(catRes?.data) ? catRes.data : [];
       setCategories(catData);
       const g = Array.isArray(grpRes) ? grpRes : Array.isArray(grpRes?.data) ? grpRes.data : [];
       setGroups(g);
-      const a = Array.isArray(accRes) ? accRes : Array.isArray(accRes?.data) ? accRes.data : [];
-      setAccounts(a);
     } catch (e: any) {
       if (catData.length === 0) {
         setError('Could not load categories: ' + (e.message || 'network error'));
@@ -114,12 +110,10 @@ export function CreateTransactionScreen() {
       setAccessToken(accessToken);
     }
     try {
-      const defaultAccount = accounts.find((a: any) => a.type === 'cash') || accounts[0];
       const data: any = {
         amount: Number(amount),
         type: type === 'income' ? 'income' : 'expense',
         description: description.trim(),
-        accountId: defaultAccount?.id,
         date,
         tags: tags
           .split(',')
@@ -128,11 +122,6 @@ export function CreateTransactionScreen() {
         isRecurring,
         recurringFrequency: isRecurring ? recurringFrequency : undefined,
       };
-      if (!data.accountId) {
-        setError('No account found. Please create an account first.');
-        setSaving(false);
-        return;
-      }
       if (categoryId) {
         data.categoryId = categoryId;
       }

@@ -22,7 +22,7 @@ export class CreateTransactionDto {
 
   @ApiProperty({ enum: TransactionType }) @IsEnum(TransactionType) type: TransactionType;
 
-  @ApiProperty() @IsString() accountId: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() accountId?: string;
 
   @ApiPropertyOptional() @IsOptional() @IsString() categoryId?: string;
 

@@ -178,8 +178,8 @@ export interface TransactionSummary {
   categoryName?: string;
   categoryIcon?: string;
   categoryColor?: string;
-  accountId: string;
-  accountName: string;
+  accountId?: string;
+  accountName?: string;
   isRecurring: boolean;
 }
 
@@ -301,40 +301,62 @@ export interface DashboardSummary {
 
 // ─── Enums ─────────────────────────────────────────────────
 export const ACCOUNT_TYPES: AccountType[] = [
-  'checking', 'savings', 'credit_card', 'cash', 'investment', 'loan', 'wallet',
+  'checking',
+  'savings',
+  'credit_card',
+  'cash',
+  'investment',
+  'loan',
+  'wallet',
 ];
 
-export const TRANSACTION_TYPES: TransactionType[] = [
-  'income', 'expense', 'transfer',
-];
+export const TRANSACTION_TYPES: TransactionType[] = ['income', 'expense', 'transfer'];
 
-export const TRANSACTION_STATUSES: TransactionStatus[] = [
-  'completed', 'pending', 'cancelled',
-];
+export const TRANSACTION_STATUSES: TransactionStatus[] = ['completed', 'pending', 'cancelled'];
 
 export const RECURRING_FREQUENCIES: RecurringFrequency[] = [
-  'daily', 'weekly', 'biweekly', 'monthly', 'quarterly', 'yearly',
+  'daily',
+  'weekly',
+  'biweekly',
+  'monthly',
+  'quarterly',
+  'yearly',
 ];
 
-export const BUDGET_PERIODS: BudgetPeriod[] = [
-  'monthly', 'yearly', 'custom',
-];
+export const BUDGET_PERIODS: BudgetPeriod[] = ['monthly', 'yearly', 'custom'];
 
-export const GOAL_TYPES: GoalType[] = [
-  'savings', 'investment', 'debt', 'custom',
-];
+export const GOAL_TYPES: GoalType[] = ['savings', 'investment', 'debt', 'custom'];
 
 export const INVESTMENT_TYPES: InvestmentType[] = [
-  'stock', 'crypto', 'mutual_fund', 'etf', 'bond', 'real_estate', 'other',
+  'stock',
+  'crypto',
+  'mutual_fund',
+  'etf',
+  'bond',
+  'real_estate',
+  'other',
 ];
 
 export const NOTIFICATION_TYPES: NotificationType[] = [
-  'bill_reminder', 'budget_alert', 'goal_milestone',
-  'large_transaction', 'weekly_report', 'monthly_report', 'account_alert',
+  'bill_reminder',
+  'budget_alert',
+  'goal_milestone',
+  'large_transaction',
+  'weekly_report',
+  'monthly_report',
+  'account_alert',
 ];
 
 // ─── Shared Finance Types ─────────────────────────────────
-export type GroupType = 'friends' | 'trip' | 'family' | 'couple' | 'roommates' | 'office' | 'event' | 'apartment';
+export type GroupType =
+  | 'friends'
+  | 'trip'
+  | 'family'
+  | 'couple'
+  | 'roommates'
+  | 'office'
+  | 'event'
+  | 'apartment';
 
 export type GroupMemberRole = 'owner' | 'admin' | 'member' | 'viewer';
 
@@ -342,10 +364,22 @@ export type SplitType = 'equal' | 'percentage' | 'exact' | 'weighted' | 'custom'
 
 export type SettlementMethod = 'upi' | 'bank_transfer' | 'cash' | 'partial' | 'other';
 
-export type ExpenseCategory = 
-  | 'food' | 'groceries' | 'transport' | 'accommodation' | 'utilities' 
-  | 'entertainment' | 'shopping' | 'healthcare' | 'education' | 'rent'
-  | 'fuel' | 'insurance' | 'subscription' | 'household' | 'other';
+export type ExpenseCategory =
+  | 'food'
+  | 'groceries'
+  | 'transport'
+  | 'accommodation'
+  | 'utilities'
+  | 'entertainment'
+  | 'shopping'
+  | 'healthcare'
+  | 'education'
+  | 'rent'
+  | 'fuel'
+  | 'insurance'
+  | 'subscription'
+  | 'household'
+  | 'other';
 
 // Group models
 export interface GroupSummary {
@@ -613,7 +647,12 @@ export interface GroupChatDetail {
 // ─── External Sharing & Viral Growth Types ────────────────
 export type TempUserLoginMethod = 'anonymous' | 'google' | 'email_otp' | 'phone_otp' | 'link';
 
-export type TrialType = 'first_month_free' | 'referral' | 'trip_completion' | 'conversion_reward' | 'onboarding_bonus';
+export type TrialType =
+  | 'first_month_free'
+  | 'referral'
+  | 'trip_completion'
+  | 'conversion_reward'
+  | 'onboarding_bonus';
 
 export type TrialStatus = 'active' | 'expired' | 'converted' | 'cancelled';
 
@@ -764,22 +803,49 @@ export interface ViralAnalytics {
 export type GroupStatus = 'active' | 'paused' | 'completed' | 'archived' | 'closed';
 
 export type LifecycleEventType =
-  | 'created' | 'member_added' | 'member_removed' | 'paused' | 'resumed'
-  | 'completed' | 'archived' | 'closed' | 'invite_revoked' | 'trip_ended';
+  | 'created'
+  | 'member_added'
+  | 'member_removed'
+  | 'paused'
+  | 'resumed'
+  | 'completed'
+  | 'archived'
+  | 'closed'
+  | 'invite_revoked'
+  | 'trip_ended';
 
 export type RestrictionType =
-  | 'no_new_expenses' | 'no_edits' | 'no_settlements' | 'read_only'
-  | 'no_chat' | 'no_invites' | 'all_blocked';
+  | 'no_new_expenses'
+  | 'no_edits'
+  | 'no_settlements'
+  | 'read_only'
+  | 'no_chat'
+  | 'no_invites'
+  | 'all_blocked';
 
 export type RevocationType =
-  | 'member_removed' | 'group_closed' | 'invite_revoked'
-  | 'session_expired' | 'admin_action' | 'group_completed';
+  | 'member_removed'
+  | 'group_closed'
+  | 'invite_revoked'
+  | 'session_expired'
+  | 'admin_action'
+  | 'group_completed';
 
-export type RemovalType = 'admin_removed' | 'self_leave' | 'group_closed' | 'invite_expired' | 'system';
+export type RemovalType =
+  | 'admin_removed'
+  | 'self_leave'
+  | 'group_closed'
+  | 'invite_expired'
+  | 'system';
 
 export type LifecycleNotificationType =
-  | 'member_removed' | 'group_completed' | 'group_archived'
-  | 'group_closed' | 'access_expired' | 'invite_revoked' | 'trip_ended';
+  | 'member_removed'
+  | 'group_completed'
+  | 'group_archived'
+  | 'group_closed'
+  | 'access_expired'
+  | 'invite_revoked'
+  | 'trip_ended';
 
 export interface GroupLifecycleEventData {
   id: string;

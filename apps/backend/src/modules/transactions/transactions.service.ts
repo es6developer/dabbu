@@ -7,12 +7,7 @@ export class TransactionsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(userId: string, dto: CreateTransactionDto) {
-    const account = await this.prisma.account.findFirst({
-      where: { id: dto.accountId, userId, isDeleted: false },
-    });
-    if (!account) {
-      throw new NotFoundException('Account not found');
-    }
+    const accountId = dto.accountId || (await this.resolveDefaultAccount(userId));
 
     const categoryId = dto.categoryId || (await this.predictCategory(userId, dto));
 
@@ -24,7 +19,7 @@ export class TransactionsService {
     const tx = await this.prisma.transaction.create({
       data: {
         userId,
-        accountId: dto.accountId,
+        accountId,
         categoryId,
         expenseGroupId: dto.expenseGroupId || null,
         amount: dto.amount,
@@ -42,7 +37,7 @@ export class TransactionsService {
       include: { category: true, account: { select: { name: true, type: true } } },
     });
 
-    await this.updateAccountBalance(userId, dto.accountId);
+    await this.updateAccountBalance(userId, accountId);
     return tx;
   }
 
@@ -470,5 +465,17 @@ export class TransactionsService {
       where: { id: accountId },
       data: { balance, lastSyncedAt: new Date() },
     });
+  }
+
+  private async resolveDefaultAccount(userId: string): Promise<string> {
+    const account = await this.prisma.account.findFirst({
+      where: { userId, isActive: true, isDeleted: false },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true },
+    });
+    if (!account) {
+      throw new NotFoundException('No account found. Please create an account first.');
+    }
+    return account.id;
   }
 }
