@@ -1,6 +1,14 @@
 import {
-  Controller, Get, Post, Patch, Body, Param,
-  UseGuards, HttpCode, HttpStatus,
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { SettlementsService } from './settlements.service';
@@ -20,8 +28,13 @@ export class SettlementsController {
   async findAll(
     @Param('groupId') groupId: string,
     @CurrentUser() user: any,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
   ) {
-    return this.settlementsService.findAll(groupId, user.id);
+    return this.settlementsService.findAll(groupId, user.id, {
+      limit: limit ? parseInt(limit, 10) : 50,
+      offset: offset ? parseInt(offset, 10) : 0,
+    });
   }
 
   @Post()
@@ -48,19 +61,13 @@ export class SettlementsController {
 
   @Get('optimize')
   @ApiOperation({ summary: 'Get debt simplification graph' })
-  async getOptimizedDebts(
-    @Param('groupId') groupId: string,
-    @CurrentUser() user: any,
-  ) {
+  async getOptimizedDebts(@Param('groupId') groupId: string, @CurrentUser() user: any) {
     return this.settlementsService.getOptimizedDebts(groupId, user.id);
   }
 
   @Get('simplify')
   @ApiOperation({ summary: 'Get optimized settlement suggestions' })
-  async getSimplifiedSettlements(
-    @Param('groupId') groupId: string,
-    @CurrentUser() user: any,
-  ) {
+  async getSimplifiedSettlements(@Param('groupId') groupId: string, @CurrentUser() user: any) {
     return this.settlementsService.getSimplifiedSettlements(groupId, user.id);
   }
 }

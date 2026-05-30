@@ -1,6 +1,9 @@
 import {
-  Injectable, NotFoundException, BadRequestException,
-  ForbiddenException, Logger,
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { CreateSettlementDto, UpdateSettlementDto, SettlementStatus } from './dto/expenses.dto';
@@ -11,7 +14,7 @@ export class SettlementsService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(groupId: string, userId: string) {
+  async findAll(groupId: string, userId: string, query?: { limit?: number; offset?: number }) {
     await this.validateGroupMember(groupId, userId);
 
     return this.prisma.settlement.findMany({
@@ -29,6 +32,8 @@ export class SettlementsService {
         },
       },
       orderBy: { createdAt: 'desc' },
+      take: query?.limit || 50,
+      skip: query?.offset || 0,
     });
   }
 
@@ -81,7 +86,12 @@ export class SettlementsService {
     return settlement;
   }
 
-  async updateStatus(groupId: string, settlementId: string, userId: string, dto: UpdateSettlementDto) {
+  async updateStatus(
+    groupId: string,
+    settlementId: string,
+    userId: string,
+    dto: UpdateSettlementDto,
+  ) {
     await this.validateGroupMember(groupId, userId);
 
     const settlement = await this.prisma.settlement.findUnique({
@@ -175,7 +185,10 @@ export class SettlementsService {
       for (const split of expense.splits) {
         const splitMember = members.find((m) => m.id === split.memberId);
         if (splitMember) {
-          netBalance.set(splitMember.userId, (netBalance.get(splitMember.userId) || 0) - Number(split.amount));
+          netBalance.set(
+            splitMember.userId,
+            (netBalance.get(splitMember.userId) || 0) - Number(split.amount),
+          );
         }
       }
     }
@@ -188,10 +201,16 @@ export class SettlementsService {
     for (const settlement of existingSettlements) {
       if (settlement.status === 'completed') {
         if (netBalance.has(settlement.fromMember.userId)) {
-          netBalance.set(settlement.fromMember.userId, netBalance.get(settlement.fromMember.userId)! + Number(settlement.amount));
+          netBalance.set(
+            settlement.fromMember.userId,
+            netBalance.get(settlement.fromMember.userId)! + Number(settlement.amount),
+          );
         }
         if (netBalance.has(settlement.toMember.userId)) {
-          netBalance.set(settlement.toMember.userId, netBalance.get(settlement.toMember.userId)! - Number(settlement.amount));
+          netBalance.set(
+            settlement.toMember.userId,
+            netBalance.get(settlement.toMember.userId)! - Number(settlement.amount),
+          );
         }
       }
     }
@@ -208,8 +227,11 @@ export class SettlementsService {
     const debtors: { memberId: string; amount: number }[] = [];
 
     for (const b of balances) {
-      if (b.amount > 0) creditors.push(b);
-      else if (b.amount < 0) debtors.push({ memberId: b.memberId, amount: -b.amount });
+      if (b.amount > 0) {
+        creditors.push(b);
+      } else if (b.amount < 0) {
+        debtors.push({ memberId: b.memberId, amount: -b.amount });
+      }
     }
 
     creditors.sort((a, b) => b.amount - a.amount);
@@ -232,8 +254,12 @@ export class SettlementsService {
       creditor.amount -= roundedAmount;
       debtor.amount -= roundedAmount;
 
-      if (creditor.amount < 0.01) ci++;
-      if (debtor.amount < 0.01) di++;
+      if (creditor.amount < 0.01) {
+        ci++;
+      }
+      if (debtor.amount < 0.01) {
+        di++;
+      }
     }
 
     const memberIds = [...new Set(transactions.flatMap((t) => [t.from, t.to]))];

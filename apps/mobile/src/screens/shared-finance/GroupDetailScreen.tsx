@@ -814,6 +814,10 @@ export function GroupDetailScreen() {
         ListEmptyComponent={renderListEmpty}
         contentContainerStyle={{ paddingBottom: insets.bottom + 140 }}
         showsVerticalScrollIndicator={false}
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        initialNumToRender={10}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

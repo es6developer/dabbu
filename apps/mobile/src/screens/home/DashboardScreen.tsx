@@ -53,8 +53,8 @@ export function DashboardScreen() {
         api.get<any>('/accounts/stats'),
         api.get<any>('/transactions/categories-summary?months=1'),
       ]);
-      setStats(statsRes.data);
-      setCategoryData(Array.isArray(catRes.data) ? catRes.data.slice(0, 5) : []);
+      setStats(Array.isArray(statsRes) ? null : statsRes);
+      setCategoryData(Array.isArray(catRes) ? (catRes as any[]).slice(0, 5) : []);
     } catch (e) {
       console.error('Dashboard load error:', e);
     } finally {
