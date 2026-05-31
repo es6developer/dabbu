@@ -30,11 +30,12 @@ export function warmupBackend(): void {
   if (accessToken) {
     headers['Authorization'] = `Bearer ${accessToken}`;
   }
-  fetch(`${API_URL}/features`, { headers, signal: AbortSignal.timeout(5000) }).catch(() => {});
+  const ctrl = new AbortController();
+  setTimeout(() => ctrl.abort(), 5000);
+  fetch(`${API_URL}/features`, { headers, signal: ctrl.signal }).catch(() => {});
 }
 
-const REQUEST_TIMEOUT = 8_000;
-const RETRY_TIMEOUT = 14_000;
+const REQUEST_TIMEOUT = 15_000;
 
 interface CacheEntry {
   data: any;
@@ -96,13 +97,13 @@ async function fetchWithTimeout(
   options: RequestInit,
   timeout: number,
 ): Promise<Response> {
-  const timeoutController = new AbortController();
-  const timeoutId = setTimeout(() => timeoutController.abort(), timeout);
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeout);
+  const signal = mergeSignals(ctrl.signal, options.signal ?? undefined);
   try {
-    const signal = mergeSignals(timeoutController.signal, options.signal ?? undefined);
     return await fetch(`${API_URL}${path}`, { ...options, signal });
   } finally {
-    clearTimeout(timeoutId);
+    clearTimeout(timer);
   }
 }
 
@@ -139,83 +140,65 @@ async function request<T>(
     headers['Authorization'] = `Bearer ${accessToken}`;
   }
 
-  for (let attempt = 0; attempt < 2; attempt++) {
-    const baseTimeout = customTimeout || (attempt === 0 ? REQUEST_TIMEOUT : RETRY_TIMEOUT);
-    const timeout = attempt === 0 ? baseTimeout : Math.max(baseTimeout, RETRY_TIMEOUT);
-    try {
-      // If body is an object and not FormData, stringify as JSON
-      const sentOptions = { ...options, headers } as RequestInit;
-      if (
-        sentOptions.body &&
-        !(sentOptions.body instanceof FormData) &&
-        typeof sentOptions.body !== 'string'
-      ) {
-        sentOptions.body = JSON.stringify(sentOptions.body);
-      }
-
-      const res = await fetchWithTimeout(path, sentOptions, timeout);
-
-      if (res.status === 401 && refreshTokenFn) {
-        const refreshed = await refreshTokenFn();
-        if (refreshed) {
-          headers['Authorization'] = `Bearer ${accessToken}`;
-          const retryRes = await fetchWithTimeout(path, { ...options, headers }, timeout);
-          if (retryRes.ok) {
-            const retryBody = await retryRes.json();
-            const retryData = retryBody?.data ?? retryBody;
-            if (canCache) {
-              setCached(key, retryData);
-            }
-            return retryData as T;
-          }
-        }
-        accessToken = null;
-        if (onSessionExpiredFn) {
-          onSessionExpiredFn();
-        }
-        throw new Error('Session expired. Please login again.');
-      }
-
-      if (!res.ok) {
-        const error = await res.json().catch(() => ({ message: 'Request failed' }));
-        const msg = Array.isArray(error.message) ? error.message[0] : error.message;
-        throw new Error(msg || `HTTP ${res.status}`);
-      }
-
-      const body = await res.json();
-      const data = body?.data ?? body;
-
-      if (canCache) {
-        setCached(key, data);
-      } else {
-        cache.clear();
-      }
-
-      return data as T;
-    } catch (err: any) {
-      const isTimeout = err.name === 'AbortError' || err.name === 'TimeoutError';
-      const isGet = !options.method || options.method === 'GET';
-
-      if (isTimeout && attempt === 0) {
-        continue;
-      }
-
-      if (canCache) {
-        const stale = getCached<T>(key, true);
-        if (stale) {
-          return stale;
-        }
-      }
-
-      if (isGet && isTimeout) {
-        throw new Error('Request timed out. Please check your connection.');
-      }
-
-      throw err;
+  const timeout = customTimeout || REQUEST_TIMEOUT;
+  try {
+    const sentOptions = { ...options, headers } as RequestInit;
+    if (
+      sentOptions.body &&
+      !(sentOptions.body instanceof FormData) &&
+      typeof sentOptions.body !== 'string'
+    ) {
+      sentOptions.body = JSON.stringify(sentOptions.body);
     }
-  }
 
-  throw new Error('Request failed');
+    const res = await fetchWithTimeout(path, sentOptions, timeout);
+
+    if (res.status === 401 && refreshTokenFn) {
+      const refreshed = await refreshTokenFn();
+      if (refreshed) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+        const retryRes = await fetchWithTimeout(path, { ...options, headers }, timeout);
+        if (retryRes.ok) {
+          const retryBody = await retryRes.json();
+          const retryData = retryBody?.data ?? retryBody;
+          if (canCache) {
+            setCached(key, retryData);
+          }
+          return retryData as T;
+        }
+      }
+      accessToken = null;
+      if (onSessionExpiredFn) {
+        onSessionExpiredFn();
+      }
+      throw new Error('Session expired. Please login again.');
+    }
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ message: 'Request failed' }));
+      const msg = Array.isArray(error.message) ? error.message[0] : error.message;
+      throw new Error(msg || `HTTP ${res.status}`);
+    }
+
+    const body = await res.json();
+    const data = body?.data ?? body;
+
+    if (canCache) {
+      setCached(key, data);
+    } else {
+      cache.clear();
+    }
+
+    return data as T;
+  } catch (err: any) {
+    if (canCache) {
+      const stale = getCached<T>(key, true);
+      if (stale) {
+        return stale;
+      }
+    }
+    throw err;
+  }
 }
 
 export const api = {
@@ -240,3 +223,69 @@ export const api = {
 export function clearCache() {
   cache.clear();
 }
+
+// ── request debug logger ──────────────────────────────────
+export interface RequestLogEntry {
+  url: string;
+  method: string;
+  start: number;
+  end?: number;
+  ms?: number;
+  status?: 'pending' | 'done' | 'error';
+}
+
+export const requestLog: RequestLogEntry[] = [];
+
+function logRequestStart(path: string, method: string): number {
+  const id = requestLog.length;
+  requestLog.push({ url: path, method, start: Date.now(), status: 'pending' });
+  return id;
+}
+
+function logRequestEnd(id: number, status: 'done' | 'error') {
+  const entry = requestLog[id];
+  if (entry) {
+    entry.end = Date.now();
+    entry.ms = entry.end - entry.start;
+    entry.status = status;
+  }
+}
+
+// wrap original request
+const _origRequest = request;
+
+async function requestWithLog<T>(
+  path: string,
+  options: RequestInit = {},
+  customTimeout?: number,
+): Promise<T> {
+  const logId = logRequestStart(path, options.method || 'GET');
+  try {
+    const result = await _origRequest<T>(path, options, customTimeout);
+    logRequestEnd(logId, 'done');
+    return result;
+  } catch (e) {
+    logRequestEnd(logId, 'error');
+    throw e;
+  }
+}
+
+// redirect exports to tracked version
+export const apiWithLog = {
+  get: <T>(path: string, signal?: AbortSignal, timeout?: number) =>
+    requestWithLog<T>(path, { method: 'GET', ...(signal ? { signal } : {}) }, timeout),
+  post: <T>(path: string, body?: any, signal?: AbortSignal, timeout?: number) =>
+    requestWithLog<T>(
+      path,
+      { method: 'POST', body: body ?? undefined, ...(signal ? { signal } : {}) },
+      timeout,
+    ),
+  patch: <T>(path: string, body?: any, signal?: AbortSignal, timeout?: number) =>
+    requestWithLog<T>(
+      path,
+      { method: 'PATCH', body: body ?? undefined, ...(signal ? { signal } : {}) },
+      timeout,
+    ),
+  delete: <T>(path: string, signal?: AbortSignal, timeout?: number) =>
+    requestWithLog<T>(path, { method: 'DELETE', ...(signal ? { signal } : {}) }, timeout),
+};
