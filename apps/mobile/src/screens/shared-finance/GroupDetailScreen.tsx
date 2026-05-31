@@ -200,6 +200,7 @@ export function GroupDetailScreen() {
 
   return (
     <SafeAreaView style={[s.screen, { backgroundColor: colors.bg.primary }]}>
+      <ApiDebugOverlay />
       <FlatList
         data={segmentData}
         keyExtractor={keyExtractor}
@@ -382,7 +383,6 @@ export function GroupDetailScreen() {
           </Text>
         </TouchableOpacity>
       </View>
-      <ApiDebugOverlay />
     </SafeAreaView>
   );
 }
