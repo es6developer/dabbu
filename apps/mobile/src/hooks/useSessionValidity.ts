@@ -92,7 +92,7 @@ export function useSessionValidity({
     setState((prev) => ({ ...prev, isValid: false, isExpired: true }));
     cleanup();
     onSessionExpired?.();
-    navigation.navigate('SharedFinanceHome');
+    navigation.navigate('MainTabs');
   }, [onSessionExpired, navigation]);
 
   const cleanup = useCallback(() => {

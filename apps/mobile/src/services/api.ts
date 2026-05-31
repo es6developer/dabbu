@@ -50,7 +50,7 @@ function cacheKey(method: string, path: string): string {
 }
 
 function shouldCacheGet(path: string): boolean {
-  return !path.startsWith('/expense-groups') && !path.startsWith('/shared-finance/groups');
+  return !path.startsWith('/expense-groups');
 }
 
 function getCached<T>(key: string, allowStale = false): T | null {

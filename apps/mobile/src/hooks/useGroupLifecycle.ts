@@ -1,6 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigation } from '@react-navigation/native';
-import { io, Socket } from 'socket.io-client';
 import {
   checkGroupAccessStatus,
   getGroupLifecycleEvents,
@@ -10,7 +8,6 @@ import {
 } from '../services/access-control';
 
 const POLL_INTERVAL = 30 * 1000;
-const SOCKET_URL = 'wss://backend-ochre-delta-80.vercel.app';
 
 interface GroupLifecycleState {
   status: GroupLifecycleStatus;
@@ -23,18 +20,15 @@ interface GroupLifecycleState {
 
 interface UseGroupLifecycleOptions {
   groupId: string;
-  isTempUser?: boolean;
   onAccessRevoked?: (reason: string) => void;
   onStatusChanged?: (status: GroupLifecycleStatus) => void;
 }
 
 export function useGroupLifecycle({
   groupId,
-  isTempUser = false,
   onAccessRevoked,
   onStatusChanged,
 }: UseGroupLifecycleOptions) {
-  const navigation = useNavigation<any>();
   const [state, setState] = useState<GroupLifecycleState>({
     status: 'active',
     events: [],
@@ -43,7 +37,6 @@ export function useGroupLifecycle({
     accessRevoked: false,
   });
 
-  const socketRef = useRef<Socket | null>(null);
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const mountedRef = useRef(true);
   const previousStatusRef = useRef<GroupLifecycleStatus>('active');
@@ -88,15 +81,13 @@ export function useGroupLifecycle({
           }));
         }
         onAccessRevoked?.(statusData.revocationReason);
-        cleanup();
-        navigation.navigate('SharedFinanceHome');
       }
-    } catch (_e) {
+    } catch {
       if (mountedRef.current) {
         setState((prev) => ({ ...prev, isLoading: false }));
       }
     }
-  }, [groupId, onAccessRevoked, onStatusChanged, navigation]);
+  }, [groupId, onAccessRevoked, onStatusChanged]);
 
   const fetchEvents = useCallback(async () => {
     if (!groupId) {
@@ -107,7 +98,7 @@ export function useGroupLifecycle({
       if (mountedRef.current) {
         setState((prev) => ({ ...prev, events }));
       }
-    } catch (_e) {
+    } catch {
       // silent
     }
   }, [groupId]);
@@ -117,62 +108,7 @@ export function useGroupLifecycle({
       clearInterval(pollIntervalRef.current);
       pollIntervalRef.current = null;
     }
-    if (socketRef.current) {
-      socketRef.current.disconnect();
-      socketRef.current = null;
-    }
   }, []);
-
-  const setupSocket = useCallback(() => {
-    if (socketRef.current?.connected) {
-      return;
-    }
-
-    try {
-      const socket = io(SOCKET_URL, {
-        transports: ['websocket'],
-        query: { groupId },
-      });
-
-      socket.on('connect', () => {
-        socket.emit('join_group_lifecycle', { groupId });
-      });
-
-      socket.on('access_revoked', (data: { reason: string }) => {
-        if (!mountedRef.current) {
-          return;
-        }
-        setState((prev) => ({ ...prev, accessRevoked: true, revocationReason: data.reason }));
-        cleanup();
-        onAccessRevoked?.(data.reason);
-        navigation.navigate('SharedFinanceHome');
-      });
-
-      socket.on('status_changed', (data: { status: GroupLifecycleStatus }) => {
-        if (!mountedRef.current) {
-          return;
-        }
-        setState((prev) => ({ ...prev, status: data.status }));
-        onStatusChanged?.(data.status);
-        fetchEvents();
-      });
-
-      socket.on('restrictions_updated', (data: { restrictions: GroupRestriction[] }) => {
-        if (!mountedRef.current) {
-          return;
-        }
-        setState((prev) => ({ ...prev, restrictions: data.restrictions }));
-      });
-
-      socket.on('disconnect', () => {
-        // reconnection handled by socket.io
-      });
-
-      socketRef.current = socket;
-    } catch (_e) {
-      // polling will serve as fallback
-    }
-  }, [groupId, cleanup, onAccessRevoked, onStatusChanged, fetchEvents, navigation]);
 
   useEffect(() => {
     if (!groupId) {
@@ -181,14 +117,13 @@ export function useGroupLifecycle({
 
     fetchStatus();
     fetchEvents();
-    setupSocket();
 
     pollIntervalRef.current = setInterval(() => {
       fetchStatus();
     }, POLL_INTERVAL);
 
     return cleanup;
-  }, [groupId, fetchStatus, fetchEvents, setupSocket, cleanup]);
+  }, [groupId, fetchStatus, fetchEvents, cleanup]);
 
   const refresh = useCallback(() => {
     fetchStatus();

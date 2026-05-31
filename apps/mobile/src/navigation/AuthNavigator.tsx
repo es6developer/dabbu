@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useTheme } from '../theme';
 import { SplashScreen } from '../screens/auth/SplashScreen';
 import { OnboardingScreen } from '../screens/auth/OnboardingScreen';
 import { LoginScreen } from '../screens/auth/LoginScreen';
@@ -9,7 +10,6 @@ import { SignupScreen } from '../screens/auth/SignupScreen';
 import { ForgotPasswordScreen } from '../screens/auth/ForgotPasswordScreen';
 import { OtpVerificationScreen } from '../screens/auth/OtpVerificationScreen';
 import { BiometricSetupScreen } from '../screens/auth/BiometricSetupScreen';
-
 
 export type AuthStackParamList = {
   Splash: undefined;
@@ -24,6 +24,7 @@ export type AuthStackParamList = {
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
 export function AuthNavigator(): React.ReactElement {
+  const { colors } = useTheme();
   const [route, setRoute] = useState<'Onboarding' | 'Login' | null>(null);
 
   useEffect(() => {
@@ -32,7 +33,9 @@ export function AuthNavigator(): React.ReactElement {
     });
   }, []);
 
-  if (!route) return <SplashScreen />;
+  if (!route) {
+    return <SplashScreen />;
+  }
 
   return (
     <Stack.Navigator
@@ -40,7 +43,7 @@ export function AuthNavigator(): React.ReactElement {
       screenOptions={{
         headerShown: false,
         animation: 'slide_from_right',
-        contentStyle: { backgroundColor: '#0A0A0F' },
+        contentStyle: { backgroundColor: colors.bg.primary },
       }}
     >
       <Stack.Screen name="Onboarding" component={OnboardingScreen} />

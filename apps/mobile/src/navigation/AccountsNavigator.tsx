@@ -11,19 +11,6 @@ import { TransactionDetailScreen } from '../screens/transactions/TransactionDeta
 import { CreateExpenseGroupScreen } from '../screens/transactions/CreateExpenseGroupScreen';
 import { GroupExpensesScreen } from '../screens/transactions/GroupExpensesScreen';
 import { ExpenseTabNavigator } from './ExpenseTabNavigator';
-import { CreateTransactionScreen } from '../screens/transactions/CreateTransactionScreen';
-import { TransactionDetailScreen } from '../screens/transactions/TransactionDetailScreen';
-import { AddExpenseScreen } from '../screens/transactions/AddExpenseScreen';
-import { BillScannerScreen } from '../screens/transactions/BillScannerScreen';
-import { BillsListScreen } from '../screens/bills/BillsListScreen';
-import { BillDetailScreen } from '../screens/bills/BillDetailScreen';
-import { MonthlyComparisonScreen } from '../screens/bills/MonthlyComparisonScreen';
-import { CreateGroupScreen } from '../screens/shared-finance/CreateGroupScreen';
-import { GroupDetailScreen } from '../screens/shared-finance/GroupDetailScreen';
-import { GroupExpensesScreen } from '../screens/transactions/GroupExpensesScreen';
-import { CreateExpenseGroupScreen } from '../screens/transactions/CreateExpenseGroupScreen';
-
-const Stack = createNativeStackNavigator();
 
 export function AccountsNavigator() {
   const Stack = createNativeStackNavigator();
@@ -76,16 +63,6 @@ export function AccountsNavigator() {
         name="CreateExpenseGroup"
         component={CreateExpenseGroupScreen}
         options={{ title: 'Create Expense Group' }}
-      />
-      <Stack.Screen
-        name="CreateGroup"
-        component={CreateGroupScreen}
-        options={{ title: 'Create Group' }}
-      />
-      <Stack.Screen
-        name="GroupDetail"
-        component={GroupDetailScreen}
-        options={{ title: 'Group Details' }}
       />
       <Stack.Screen
         name="GroupExpenses"

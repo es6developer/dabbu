@@ -33,10 +33,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { SmsDetectionModule } from './modules/sms-detection/sms-detection.module';
 import { FeaturesModule } from './modules/features/features.module';
 import { BillsModule } from './modules/bills/bills.module';
-import { SharedFinanceModule } from './modules/shared-finance/shared-finance.module';
 import { ExpenseGroupsModule } from './modules/expense-groups/expense-groups.module';
-import { ExternalSharingModule } from './modules/external-sharing/external-sharing.module';
-import { AiInsightsModule } from './modules/ai-insights/ai-insights.module';
 import { CurrencyModule } from './modules/currency/currency.module';
 
 @Module({
@@ -96,10 +93,7 @@ import { CurrencyModule } from './modules/currency/currency.module';
     SmsDetectionModule,
     FeaturesModule,
     BillsModule,
-    SharedFinanceModule,
     ExpenseGroupsModule,
-    ExternalSharingModule,
-    AiInsightsModule,
     CurrencyModule,
   ],
   controllers: [HealthController],

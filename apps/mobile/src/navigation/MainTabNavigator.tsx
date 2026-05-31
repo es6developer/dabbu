@@ -7,8 +7,6 @@ import { DashboardScreen } from '../screens/home/DashboardScreen';
 import { NotificationsScreen } from '../screens/home/NotificationsScreen';
 import { NotificationCenterScreen } from '../screens/home/NotificationCenterScreen';
 import { AccountsNavigator } from './AccountsNavigator';
-
-import { SharedFinanceNavigator } from './SharedFinanceNavigator';
 import { RemindersScreen } from '../screens/reminders/RemindersScreen';
 import { ReminderDetailScreen } from '../screens/reminders/ReminderDetailScreen';
 import { CreateReminderScreen } from '../screens/reminders/CreateReminderScreen';
@@ -28,7 +26,6 @@ import { AnalyticsScreen } from '../screens/analytics/AnalyticsScreen';
 import { useTheme } from '../theme';
 import { isFeatureEnabled, isPremiumFeature, loadFeatures } from '../config/features';
 import { useAuth } from '../store/AuthContext';
-
 
 const Tab = createBottomTabNavigator();
 const DashboardStack = createNativeStackNavigator();
@@ -55,11 +52,11 @@ function DashboardNavigator() {
       screenOptions={{
         headerStyle: { backgroundColor: colors.bg.primary },
         headerTintColor: colors.text.primary,
-headerTitleStyle: {
-  fontFamily: typography.calloutBold.fontFamily,
-  fontSize: typography.calloutBold.fontSize,
-  fontWeight: typography.calloutBold.fontWeight,
-},
+        headerTitleStyle: {
+          fontFamily: typography.calloutBold.fontFamily,
+          fontSize: typography.calloutBold.fontSize,
+          fontWeight: typography.calloutBold.fontWeight,
+        },
         contentStyle: { backgroundColor: colors.bg.primary },
       }}
     >
@@ -89,11 +86,11 @@ function SettingsNavigator() {
       screenOptions={{
         headerStyle: { backgroundColor: colors.bg.primary },
         headerTintColor: colors.text.primary,
-       headerTitleStyle: {
-  fontFamily: typography.calloutBold.fontFamily,
-  fontSize: typography.calloutBold.fontSize,
-  fontWeight: typography.calloutBold.fontWeight,
-},
+        headerTitleStyle: {
+          fontFamily: typography.calloutBold.fontFamily,
+          fontSize: typography.calloutBold.fontSize,
+          fontWeight: typography.calloutBold.fontWeight,
+        },
         contentStyle: { backgroundColor: colors.bg.primary },
       }}
     >
@@ -226,7 +223,6 @@ interface TabConfig {
 const ALL_TABS: TabConfig[] = [
   { name: 'Dashboard', component: DashboardNavigator, title: 'Dashboard' },
   { name: 'Accounts', component: AccountsNavigator, title: 'Expenses' },
-  { name: 'Shared', component: SharedFinanceNavigator, title: 'Split' },
   { name: 'Reminders', component: RemindersNavigator, title: 'Reminders' },
   { name: 'SMS', component: SmsNavigator, title: 'SMS', featureKey: 'sms_sync' },
   { name: 'Settings', component: SettingsNavigator, title: 'Settings' },
@@ -235,7 +231,7 @@ const ALL_TABS: TabConfig[] = [
 import { API_URL } from '../config/api';
 
 export function MainTabNavigator() {
-  const { colors, isDark, typography} = useTheme();
+  const { colors, isDark, typography } = useTheme();
   const { user, accessToken } = useAuth();
   const [subscription, setSubscription] = useState<any>(null);
 
@@ -290,8 +286,8 @@ export function MainTabNavigator() {
           );
         },
         tabBarStyle: {
-          backgroundColor: isDark ? 'rgba(18,18,26,0.92)' : 'rgba(255,255,255,0.92)',
-          borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+          backgroundColor: colors.bg.glass,
+          borderTopColor: colors.border.subtle,
           borderTopWidth: 1,
           paddingTop: 8,
           height: 85,
@@ -303,7 +299,7 @@ export function MainTabNavigator() {
         },
         tabBarActiveTintColor: colors.accent.primary,
         tabBarInactiveTintColor: colors.text.tertiary,
-        tabBarLabelStyle: { fontSize: 10, fontWeight: '600', letterSpacing: 0.3 },
+        tabBarLabelStyle: { ...typography.tab },
         headerStyle: { backgroundColor: colors.bg.primary },
         headerTintColor: colors.text.primary,
         headerTitleStyle: { ...typography.calloutBold },
@@ -317,9 +313,8 @@ export function MainTabNavigator() {
           options={{
             headerShown: false,
             title: tab.title,
-            tabBarStyle: tab.name === 'SMS' && Platform.OS === 'ios'
-              ? { display: 'none' }
-              : undefined,
+            tabBarStyle:
+              tab.name === 'SMS' && Platform.OS === 'ios' ? { display: 'none' } : undefined,
           }}
         />
       ))}

@@ -24,7 +24,6 @@ interface DashboardData {
   transactionStats: any | null;
   categories: any[];
   expenseGroups: any[];
-  sharedGroups: any[];
   reminders: any[];
 }
 
@@ -33,7 +32,6 @@ const emptyData: DashboardData = {
   transactionStats: null,
   categories: [],
   expenseGroups: [],
-  sharedGroups: [],
   reminders: [],
 };
 
@@ -87,13 +85,12 @@ export function DashboardScreen() {
     }
 
     try {
-      const [accountStats, txStats, categories, expenseGroups, sharedGroups, reminders] =
+      const [accountStats, txStats, categories, expenseGroups, reminders] =
         await Promise.allSettled([
           api.get<any>('/accounts/stats', signal),
           api.get<any>('/transactions/stats', signal),
           api.get<any>('/transactions/categories-summary?months=1', signal),
           api.get<any>('/expense-groups', signal),
-          api.get<any>('/shared-finance/groups', signal),
           api.get<any>('/reminders', signal),
         ]);
 
@@ -106,7 +103,6 @@ export function DashboardScreen() {
         transactionStats: valueFromResult(txStats, null),
         categories: listFromResponse(valueFromResult(categories, [])),
         expenseGroups: listFromResponse(valueFromResult(expenseGroups, [])),
-        sharedGroups: listFromResponse(valueFromResult(sharedGroups, [])),
         reminders: listFromResponse(valueFromResult(reminders, [])),
       });
     } finally {
@@ -216,13 +212,6 @@ export function DashboardScreen() {
           screen: 'ExpenseHome',
           params: { screen: 'SharedCircles' },
         }),
-    },
-    {
-      title: 'Shared',
-      meta: `${data.sharedGroups.length} circle${data.sharedGroups.length === 1 ? '' : 's'}`,
-      icon: 'people-circle-outline' as IconName,
-      color: '#7B3F98',
-      onPress: () => navigation.navigate('Shared', { screen: 'SharedFinanceHome' }),
     },
     {
       title: 'Bills',
