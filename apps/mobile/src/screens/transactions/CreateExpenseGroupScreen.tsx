@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,9 @@ import {
   ActivityIndicator,
   ScrollView,
   Alert,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -15,6 +18,10 @@ import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 const ICONS = [
   'users',
@@ -40,13 +47,41 @@ export function CreateExpenseGroupScreen() {
   const [icon, setIcon] = useState('users');
   const [currency, setCurrency] = useState('INR');
   const [monthlyBudget, setMonthlyBudget] = useState('');
-  const [memberEmails, setMemberEmails] = useState('');
+  const [memberEmails, setMemberEmails] = useState<string[]>(['']);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const inputsRef = useRef<(TextInput | null)[]>([]);
+
+  const updateEmail = useCallback((index: number, value: string) => {
+    setMemberEmails((prev) => {
+      const next = [...prev];
+      next[index] = value;
+      return next;
+    });
+  }, []);
+
+  const addRow = useCallback(() => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setMemberEmails((prev) => [...prev, '']);
+    setTimeout(() => inputsRef.current[inputsRef.current.length - 1]?.focus(), 150);
+  }, []);
+
+  const removeRow = useCallback((index: number) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setMemberEmails((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
   async function handleCreate() {
     if (!name.trim()) {
       setError('Group name is required');
+      return;
+    }
+    const validEmails = memberEmails.map((e) => e.trim()).filter(Boolean);
+    const invalid = validEmails.filter((e) => !isValidEmail(e));
+    if (invalid.length > 0) {
+      setError(`Invalid email${invalid.length > 1 ? 's' : ''}: ${invalid.join(', ')}`);
       return;
     }
     setError('');
@@ -55,10 +90,6 @@ export function CreateExpenseGroupScreen() {
       setAccessToken(accessToken);
     }
     try {
-      const emails = memberEmails
-        .split(',')
-        .map((e) => e.trim())
-        .filter(Boolean);
       const payload: any = { name: name.trim(), icon, currency };
       if (description.trim()) {
         payload.description = description.trim();
@@ -66,8 +97,8 @@ export function CreateExpenseGroupScreen() {
       if (monthlyBudget.trim()) {
         payload.monthlyBudget = Number(monthlyBudget);
       }
-      if (emails.length > 0) {
-        payload.memberEmails = emails;
+      if (validEmails.length > 0) {
+        payload.memberEmails = validEmails;
       }
       await api.post('/expense-groups', payload);
       navigation.navigate('ExpenseHome', { screen: 'SharedCircles' });
@@ -235,28 +266,68 @@ export function CreateExpenseGroupScreen() {
         />
       </View>
 
-      <Text style={[styles.label, { color: colors.text.tertiary }]}>
-        Member Emails{' '}
-        <Text style={{ fontWeight: '400', textTransform: 'none' }}>
-          (comma separated, max 2 on Free)
+      <View style={styles.memberSection}>
+        <Text style={[styles.label, { color: colors.text.tertiary }]}>
+          Members <Text style={{ fontWeight: '400', textTransform: 'none' }}>(max 2 on Free)</Text>
         </Text>
-      </Text>
-      <TextInput
-        style={[
-          styles.input,
-          {
-            backgroundColor: colors.bg.tertiary,
-            color: colors.text.primary,
-            borderColor: colors.border.subtle,
-          },
-        ]}
-        value={memberEmails}
-        onChangeText={setMemberEmails}
-        placeholder="e.g. john@email.com, jane@email.com"
-        placeholderTextColor={colors.text.tertiary}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+
+        {memberEmails.map((email, index) => (
+          <View key={index} style={styles.memberRow}>
+            <View
+              style={[
+                styles.memberInputWrap,
+                {
+                  backgroundColor: colors.bg.tertiary,
+                  borderColor: colors.border.subtle,
+                },
+              ]}
+            >
+              <Ionicons
+                name="person-outline"
+                size={16}
+                color={colors.text.tertiary}
+                style={styles.memberIcon}
+              />
+              <TextInput
+                ref={(ref) => {
+                  inputsRef.current[index] = ref;
+                }}
+                style={[
+                  styles.memberInput,
+                  { color: colors.text.primary },
+                  !email.trim() && index === memberEmails.length - 1 ? { minWidth: 120 } : null,
+                ]}
+                value={email}
+                onChangeText={(v) => updateEmail(index, v)}
+                placeholder={index === 0 ? 'john@email.com' : 'jane@email.com'}
+                placeholderTextColor={colors.text.tertiary}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                returnKeyType={index === memberEmails.length - 1 ? 'done' : 'next'}
+                onSubmitEditing={() => {
+                  if (index === memberEmails.length - 1) {
+                    addRow();
+                  } else {
+                    inputsRef.current[index + 1]?.focus();
+                  }
+                }}
+              />
+              {email.trim() && (
+                <TouchableOpacity onPress={() => removeRow(index)} style={styles.memberRemoveBtn}>
+                  <Ionicons name="close-circle" size={18} color={colors.status.error} />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        ))}
+
+        <TouchableOpacity style={styles.addMemberBtn} onPress={addRow} activeOpacity={0.7}>
+          <Ionicons name="add-circle-outline" size={18} color={colors.accent.primary} />
+          <Text style={[styles.addMemberText, { color: colors.accent.primary }]}>
+            Add another member
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={[styles.planInfo, { backgroundColor: colors.bg.tertiary }]}>
         <Ionicons name="shield-outline" size={16} color="#FF6B6B" />
@@ -358,6 +429,48 @@ const styles = StyleSheet.create({
   currencyChip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, borderWidth: 1 },
   currencyText: { fontSize: 14, fontWeight: '600' },
 
+  memberSection: {
+    marginTop: 8,
+  },
+  memberRow: {
+    paddingHorizontal: 24,
+    marginBottom: 8,
+  },
+  memberInputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingRight: 8,
+  },
+  memberIcon: {
+    paddingLeft: 14,
+  },
+  memberInput: {
+    flex: 1,
+    fontSize: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 14,
+  },
+  memberRemoveBtn: {
+    padding: 4,
+  },
+  addMemberBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 24,
+    marginTop: 4,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  addMemberText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
   planInfo: {
     flexDirection: 'row',
     alignItems: 'center',

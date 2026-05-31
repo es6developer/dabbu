@@ -15,7 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../store/AuthContext';
 import { api, setAccessToken } from '../../services/api';
-import { useTheme } from '../../theme';
+import { useTheme, typography as typographyStyles } from '../../theme';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -39,15 +39,25 @@ const emptyData: DashboardData = {
 
 const moneyFormat = (value: number) => {
   const amount = Number(value || 0);
-  if (Math.abs(amount) >= 10000000) return `₹${(amount / 10000000).toFixed(1)}Cr`;
-  if (Math.abs(amount) >= 100000) return `₹${(amount / 100000).toFixed(1)}L`;
+  if (Math.abs(amount) >= 10000000) {
+    return `₹${(amount / 10000000).toFixed(1)}Cr`;
+  }
+  if (Math.abs(amount) >= 100000) {
+    return `₹${(amount / 100000).toFixed(1)}L`;
+  }
   return `₹${amount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 };
 
 const listFromResponse = (value: any): any[] => {
-  if (Array.isArray(value)) return value;
-  if (Array.isArray(value?.data)) return value.data;
-  if (Array.isArray(value?.items)) return value.items;
+  if (Array.isArray(value)) {
+    return value;
+  }
+  if (Array.isArray(value?.data)) {
+    return value.data;
+  }
+  if (Array.isArray(value?.items)) {
+    return value.items;
+  }
   return [];
 };
 
@@ -57,7 +67,7 @@ const valueFromResult = (result: PromiseSettledResult<any>, fallback: any) =>
 export function DashboardScreen() {
   const navigation = useNavigation<any>();
   const { user, accessToken } = useAuth();
-  const { colors, isDark } = useTheme();
+  const { colors, isDark, typography } = useTheme();
   const insets = useSafeAreaInsets();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const abortRef = useRef<AbortController | null>(null);
@@ -72,7 +82,9 @@ export function DashboardScreen() {
     abortRef.current = controller;
     const signal = controller.signal;
 
-    if (accessToken) setAccessToken(accessToken);
+    if (accessToken) {
+      setAccessToken(accessToken);
+    }
 
     try {
       const [accountStats, txStats, categories, expenseGroups, sharedGroups, reminders] =
@@ -85,7 +97,9 @@ export function DashboardScreen() {
           api.get<any>('/reminders', signal),
         ]);
 
-      if (signal.aborted) return;
+      if (signal.aborted) {
+        return;
+      }
 
       setData({
         accountStats: valueFromResult(accountStats, null),
@@ -126,13 +140,17 @@ export function DashboardScreen() {
   const monthlyExpense = Number(accountStats.monthlyExpense || txSummary.totalExpense || 0);
   const totalAccounts = Number(accountStats.totalAccounts || 0);
   const activeReminders = data.reminders.filter((item) => item.status !== 'completed').length;
-  const recentTransactions = accountStats.recentTransactions || data.transactionStats?.recentTransactions || [];
+  const recentTransactions =
+    accountStats.recentTransactions || data.transactionStats?.recentTransactions || [];
   const netFlow = monthlyIncome - monthlyExpense;
-  const spendRate = monthlyIncome > 0 ? Math.min(100, Math.round((monthlyExpense / monthlyIncome) * 100)) : 0;
+  const spendRate =
+    monthlyIncome > 0 ? Math.min(100, Math.round((monthlyExpense / monthlyIncome) * 100)) : 0;
 
   const topCategory = useMemo(() => {
     const first = data.categories[0];
-    if (!first) return null;
+    if (!first) {
+      return null;
+    }
     return {
       name: first.name || first.category || 'Spending',
       amount: Number(first.total || first.amount || 0),
@@ -157,7 +175,11 @@ export function DashboardScreen() {
       label: 'Split Group',
       icon: 'people-outline' as IconName,
       color: '#5B5FE8',
-      onPress: () => navigation.navigate('Accounts', { screen: 'ExpenseHome', params: { screen: 'SharedCircles' } }),
+      onPress: () =>
+        navigation.navigate('Accounts', {
+          screen: 'ExpenseHome',
+          params: { screen: 'SharedCircles' },
+        }),
     },
     {
       label: 'Reminder',
@@ -173,21 +195,27 @@ export function DashboardScreen() {
       meta: `${totalAccounts} account${totalAccounts === 1 ? '' : 's'}`,
       icon: 'wallet-outline' as IconName,
       color: '#0B84A5',
-      onPress: () => navigation.navigate('Accounts', { screen: 'ExpenseHome', params: { screen: 'MyWallet' } }),
+      onPress: () =>
+        navigation.navigate('Accounts', { screen: 'ExpenseHome', params: { screen: 'MyWallet' } }),
     },
     {
       title: 'Expenses',
       meta: `${moneyFormat(monthlyExpense)} this month`,
       icon: 'receipt-outline' as IconName,
       color: '#D64550',
-      onPress: () => navigation.navigate('Accounts', { screen: 'ExpenseHome', params: { screen: 'MyWallet' } }),
+      onPress: () =>
+        navigation.navigate('Accounts', { screen: 'ExpenseHome', params: { screen: 'MyWallet' } }),
     },
     {
       title: 'Split',
       meta: `${data.expenseGroups.length} group${data.expenseGroups.length === 1 ? '' : 's'}`,
       icon: 'git-branch-outline' as IconName,
       color: '#5B5FE8',
-      onPress: () => navigation.navigate('Accounts', { screen: 'ExpenseHome', params: { screen: 'SharedCircles' } }),
+      onPress: () =>
+        navigation.navigate('Accounts', {
+          screen: 'ExpenseHome',
+          params: { screen: 'SharedCircles' },
+        }),
     },
     {
       title: 'Shared',
@@ -230,22 +258,34 @@ export function DashboardScreen() {
     return (
       <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}>
         <ActivityIndicator color={colors.accent.primary} size="large" />
-        <Text style={[styles.loadingText, { color: colors.text.tertiary }]}>Preparing your money dashboard</Text>
+        <Text style={[styles.loadingText, { color: colors.text.tertiary }]}>
+          Preparing your money dashboard
+        </Text>
       </View>
     );
   }
 
   return (
-    <Animated.View style={[styles.container, { backgroundColor: colors.bg.primary, opacity: fadeAnim }]}>
+    <Animated.View
+      style={[styles.container, { backgroundColor: colors.bg.primary, opacity: fadeAnim }]}
+    >
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 14 }]}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent.primary} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.accent.primary}
+          />
+        }
       >
         <View style={styles.header}>
           <View style={styles.headerText}>
             <Text style={[styles.eyebrow, { color: colors.text.tertiary }]}>Dabbu</Text>
-            <Text style={[styles.title, { color: colors.text.primary }]}>Hi {user?.firstName || 'there'}</Text>
+            <Text style={[styles.title, { color: colors.text.primary }]}>
+              Hi {user?.firstName || 'there'}
+            </Text>
           </View>
           <View style={styles.headerActions}>
             <TouchableOpacity
@@ -270,17 +310,39 @@ export function DashboardScreen() {
           style={[styles.balancePanel, { borderColor: colors.border.subtle }]}
         >
           <View style={styles.panelTop}>
-            <Text style={[styles.panelLabel, { color: colors.text.tertiary }]}>Available balance</Text>
-            <View style={[styles.netBadge, { backgroundColor: netFlow >= 0 ? '#00A86B18' : '#D6455018' }]}>
-              <Ionicons name={netFlow >= 0 ? 'trending-up' : 'trending-down'} size={13} color={netFlow >= 0 ? '#00A86B' : '#D64550'} />
+            <Text style={[styles.panelLabel, { color: colors.text.tertiary }]}>
+              Available balance
+            </Text>
+            <View
+              style={[
+                styles.netBadge,
+                { backgroundColor: netFlow >= 0 ? '#00A86B18' : '#D6455018' },
+              ]}
+            >
+              <Ionicons
+                name={netFlow >= 0 ? 'trending-up' : 'trending-down'}
+                size={13}
+                color={netFlow >= 0 ? '#00A86B' : '#D64550'}
+              />
               <Text style={[styles.netBadgeText, { color: netFlow >= 0 ? '#00A86B' : '#D64550' }]}>
-                {netFlow >= 0 ? '+' : '-'}{moneyFormat(Math.abs(netFlow))}
+                {netFlow >= 0 ? '+' : '-'}
+                {moneyFormat(Math.abs(netFlow))}
               </Text>
             </View>
           </View>
-          <Text style={[styles.balanceAmount, { color: colors.text.primary }]}>{moneyFormat(totalBalance)}</Text>
+          <Text style={[styles.balanceAmount, { color: colors.text.primary }]}>
+            {moneyFormat(totalBalance)}
+          </Text>
           <View style={[styles.progressTrack, { backgroundColor: colors.bg.tertiary }]}>
-            <View style={[styles.progressFill, { width: `${spendRate}%`, backgroundColor: spendRate > 80 ? '#D64550' : colors.accent.primary }]} />
+            <View
+              style={[
+                styles.progressFill,
+                {
+                  width: `${spendRate}%`,
+                  backgroundColor: spendRate > 80 ? '#D64550' : colors.accent.primary,
+                },
+              ]}
+            />
           </View>
           <View style={styles.moneyStats}>
             <MoneyStat label="Income" value={moneyFormat(monthlyIncome)} color="#00A86B" />
@@ -291,18 +353,30 @@ export function DashboardScreen() {
 
         <View style={styles.actionRow}>
           {primaryActions.map((action) => (
-            <TouchableOpacity key={action.label} style={styles.actionItem} onPress={action.onPress} activeOpacity={0.75}>
+            <TouchableOpacity
+              key={action.label}
+              style={styles.actionItem}
+              onPress={action.onPress}
+              activeOpacity={0.75}
+            >
               <View style={[styles.actionIcon, { backgroundColor: action.color + '18' }]}>
                 <Ionicons name={action.icon} size={22} color={action.color} />
               </View>
-              <Text style={[styles.actionLabel, { color: colors.text.secondary }]} numberOfLines={2}>{action.label}</Text>
+              <Text
+                style={[styles.actionLabel, { color: colors.text.secondary }]}
+                numberOfLines={2}
+              >
+                {action.label}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
 
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Features</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Settings', { screen: 'Analytics' })}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Settings', { screen: 'Analytics' })}
+          >
             <Text style={[styles.sectionLink, { color: colors.accent.primary }]}>Reports</Text>
           </TouchableOpacity>
         </View>
@@ -311,15 +385,22 @@ export function DashboardScreen() {
           {featureCards.map((feature) => (
             <TouchableOpacity
               key={feature.title}
-              style={[styles.featureCard, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}
+              style={[
+                styles.featureCard,
+                { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+              ]}
               onPress={feature.onPress}
               activeOpacity={0.78}
             >
               <View style={[styles.featureIcon, { backgroundColor: feature.color + '16' }]}>
                 <Ionicons name={feature.icon} size={20} color={feature.color} />
               </View>
-              <Text style={[styles.featureTitle, { color: colors.text.primary }]}>{feature.title}</Text>
-              <Text style={[styles.featureMeta, { color: colors.text.tertiary }]} numberOfLines={1}>{feature.meta}</Text>
+              <Text style={[styles.featureTitle, { color: colors.text.primary }]}>
+                {feature.title}
+              </Text>
+              <Text style={[styles.featureMeta, { color: colors.text.tertiary }]} numberOfLines={1}>
+                {feature.meta}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -328,7 +409,11 @@ export function DashboardScreen() {
           <SnapshotCard
             title="Top Spend"
             value={topCategory ? moneyFormat(topCategory.amount) : '₹0'}
-            detail={topCategory ? `${topCategory.name} · ${Math.round(topCategory.percentage)}%` : 'No category data'}
+            detail={
+              topCategory
+                ? `${topCategory.name} · ${Math.round(topCategory.percentage)}%`
+                : 'No category data'
+            }
             icon="pie-chart-outline"
             color="#E85D04"
             bg={colors.bg.secondary}
@@ -351,17 +436,33 @@ export function DashboardScreen() {
 
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Recent Activity</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Accounts', { screen: 'ExpenseHome', params: { screen: 'MyWallet' } })}>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate('Accounts', {
+                screen: 'ExpenseHome',
+                params: { screen: 'MyWallet' },
+              })
+            }
+          >
             <Text style={[styles.sectionLink, { color: colors.accent.primary }]}>See all</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.activityList}>
           {recentTransactions.slice(0, 5).length === 0 ? (
-            <View style={[styles.emptyCard, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}>
+            <View
+              style={[
+                styles.emptyCard,
+                { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+              ]}
+            >
               <Ionicons name="receipt-outline" size={28} color={colors.text.tertiary} />
-              <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No transactions yet</Text>
-              <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>Add an expense or scan a bill to start tracking.</Text>
+              <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
+                No transactions yet
+              </Text>
+              <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
+                Add an expense or scan a bill to start tracking.
+              </Text>
             </View>
           ) : (
             recentTransactions.slice(0, 5).map((item: any, index: number) => {
@@ -369,23 +470,49 @@ export function DashboardScreen() {
               return (
                 <TouchableOpacity
                   key={item.id || index}
-                  style={[styles.activityItem, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}
-                  onPress={() => navigation.navigate('Accounts', { screen: 'TransactionDetail', params: { transactionId: item.id } })}
+                  style={[
+                    styles.activityItem,
+                    { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+                  ]}
+                  onPress={() =>
+                    navigation.navigate('Accounts', {
+                      screen: 'TransactionDetail',
+                      params: { transactionId: item.id },
+                    })
+                  }
                   activeOpacity={0.75}
                 >
-                  <View style={[styles.activityIcon, { backgroundColor: isExpense ? '#D6455018' : '#00A86B18' }]}>
-                    <Ionicons name={isExpense ? 'arrow-up' : 'arrow-down'} size={15} color={isExpense ? '#D64550' : '#00A86B'} />
+                  <View
+                    style={[
+                      styles.activityIcon,
+                      { backgroundColor: isExpense ? '#D6455018' : '#00A86B18' },
+                    ]}
+                  >
+                    <Ionicons
+                      name={isExpense ? 'arrow-up' : 'arrow-down'}
+                      size={15}
+                      color={isExpense ? '#D64550' : '#00A86B'}
+                    />
                   </View>
                   <View style={styles.activityBody}>
-                    <Text style={[styles.activityTitle, { color: colors.text.primary }]} numberOfLines={1}>
+                    <Text
+                      style={[styles.activityTitle, { color: colors.text.primary }]}
+                      numberOfLines={1}
+                    >
                       {item.description || item.category?.name || 'Transaction'}
                     </Text>
                     <Text style={[styles.activityMeta, { color: colors.text.tertiary }]}>
-                      {new Date(item.date || item.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                      {new Date(item.date || item.createdAt).toLocaleDateString('en-IN', {
+                        day: 'numeric',
+                        month: 'short',
+                      })}
                     </Text>
                   </View>
-                  <Text style={[styles.activityAmount, { color: isExpense ? '#D64550' : '#00A86B' }]}>
-                    {isExpense ? '-' : '+'}{moneyFormat(Number(item.amount || 0))}
+                  <Text
+                    style={[styles.activityAmount, { color: isExpense ? '#D64550' : '#00A86B' }]}
+                  >
+                    {isExpense ? '-' : '+'}
+                    {moneyFormat(Number(item.amount || 0))}
                   </Text>
                 </TouchableOpacity>
               );
@@ -401,7 +528,9 @@ function MoneyStat({ label, value, color }: { label: string; value: string; colo
   return (
     <View style={styles.moneyStat}>
       <Text style={styles.moneyStatLabel}>{label}</Text>
-      <Text style={[styles.moneyStatValue, { color }]} numberOfLines={1}>{value}</Text>
+      <Text style={[styles.moneyStatValue, { color }]} numberOfLines={1}>
+        {value}
+      </Text>
     </View>
   );
 }
@@ -434,7 +563,9 @@ function SnapshotCard({
       </View>
       <Text style={[styles.snapshotTitle, { color: muted }]}>{title}</Text>
       <Text style={[styles.snapshotValue, { color: text }]}>{value}</Text>
-      <Text style={[styles.snapshotDetail, { color: muted }]} numberOfLines={1}>{detail}</Text>
+      <Text style={[styles.snapshotDetail, { color: muted }]} numberOfLines={1}>
+        {detail}
+      </Text>
     </View>
   );
 }
@@ -443,53 +574,132 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { paddingHorizontal: 20, paddingBottom: 120 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 },
-  loadingText: { marginTop: 12, fontSize: 13, fontWeight: '500' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 },
+  loadingText: { marginTop: 12, ...typographyStyles.secondary },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 18,
+  },
   headerText: { flex: 1 },
-  eyebrow: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8 },
-  title: { fontSize: 28, fontWeight: '800', marginTop: 2 },
+  eyebrow: { ...typographyStyles.caption1, textTransform: 'uppercase', letterSpacing: 0.8 },
+  title: { ...typographyStyles.appTitle, marginTop: 2 },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  iconButton: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  avatar: { width: 42, height: 42, borderRadius: 14, backgroundColor: '#E85D04', alignItems: 'center', justifyContent: 'center' },
-  avatarText: { color: '#FFFFFF', fontSize: 16, fontWeight: '800' },
+  iconButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    backgroundColor: '#E85D04',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: { color: '#FFFFFF', ...typographyStyles.cardTitle },
   balancePanel: { borderWidth: 1, borderRadius: 24, padding: 20, marginBottom: 18 },
-  panelTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  panelLabel: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.7 },
-  netBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 },
-  netBadgeText: { fontSize: 12, fontWeight: '800' },
-  balanceAmount: { fontSize: 38, fontWeight: '800', marginBottom: 16 },
+  panelTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  panelLabel: { ...typographyStyles.caption1, textTransform: 'uppercase', letterSpacing: 0.7 },
+  netBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  netBadgeText: { fontFamily: 'Inter-SemiBold', fontSize: 12 },
+  balanceAmount: { ...typographyStyles.amount, marginBottom: 16 },
   progressTrack: { height: 8, borderRadius: 999, overflow: 'hidden', marginBottom: 16 },
   progressFill: { height: '100%', borderRadius: 999 },
   moneyStats: { flexDirection: 'row', gap: 10 },
   moneyStat: { flex: 1 },
-  moneyStatLabel: { color: 'rgba(127,127,127,0.9)', fontSize: 10, fontWeight: '700', textTransform: 'uppercase', marginBottom: 4 },
-  moneyStatValue: { fontSize: 14, fontWeight: '800' },
+  moneyStatLabel: {
+    color: 'rgba(127,127,127,0.9)',
+    ...typographyStyles.caption2,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  moneyStatValue: { ...typographyStyles.calloutBold },
   actionRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24 },
   actionItem: { width: '23%', alignItems: 'center' },
-  actionIcon: { width: 52, height: 52, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
-  actionLabel: { fontSize: 11, fontWeight: '700', textAlign: 'center', lineHeight: 14 },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
-  sectionTitle: { fontSize: 18, fontWeight: '800' },
-  sectionLink: { fontSize: 13, fontWeight: '800' },
+  actionIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  actionLabel: { ...typographyStyles.caption1, textAlign: 'center', fontFamily: 'Inter-SemiBold' },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  sectionTitle: { ...typographyStyles.sectionHeader },
+  sectionLink: { ...typographyStyles.subhead, fontFamily: 'Inter-SemiBold' },
   featureGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 24 },
   featureCard: { width: '48.5%', borderWidth: 1, borderRadius: 18, padding: 14, minHeight: 118 },
-  featureIcon: { width: 38, height: 38, borderRadius: 13, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
-  featureTitle: { fontSize: 15, fontWeight: '800', marginBottom: 4 },
-  featureMeta: { fontSize: 12, fontWeight: '600' },
+  featureIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  featureTitle: { ...typographyStyles.body, fontFamily: 'Inter-SemiBold', marginBottom: 4 },
+  featureMeta: { ...typographyStyles.footnote, fontFamily: 'Inter-SemiBold' },
   snapshotRow: { flexDirection: 'row', gap: 10, marginBottom: 24 },
   snapshotCard: { flex: 1, borderWidth: 1, borderRadius: 18, padding: 14 },
-  snapshotIcon: { width: 34, height: 34, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
-  snapshotTitle: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', marginBottom: 3 },
-  snapshotValue: { fontSize: 20, fontWeight: '800', marginBottom: 3 },
-  snapshotDetail: { fontSize: 12, fontWeight: '600' },
+  snapshotIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  snapshotTitle: {
+    ...typographyStyles.caption1,
+    textTransform: 'uppercase',
+    marginBottom: 3,
+    fontFamily: 'Inter-Bold',
+  },
+  snapshotValue: { ...typographyStyles.amountSmall, marginBottom: 3 },
+  snapshotDetail: { ...typographyStyles.footnote, fontFamily: 'Inter-SemiBold' },
   activityList: { gap: 10 },
-  activityItem: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: 16, padding: 12 },
-  activityIcon: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  activityItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 12,
+  },
+  activityIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
   activityBody: { flex: 1, minWidth: 0 },
-  activityTitle: { fontSize: 14, fontWeight: '800', marginBottom: 3 },
-  activityMeta: { fontSize: 11, fontWeight: '600' },
-  activityAmount: { fontSize: 14, fontWeight: '800', marginLeft: 8 },
+  activityTitle: { ...typographyStyles.calloutBold, marginBottom: 3 },
+  activityMeta: { ...typographyStyles.caption1, fontFamily: 'Inter-Medium' },
+  activityAmount: { ...typographyStyles.calloutBold, marginLeft: 8 },
   emptyCard: { borderWidth: 1, borderRadius: 18, padding: 22, alignItems: 'center' },
-  emptyTitle: { fontSize: 15, fontWeight: '800', marginTop: 10 },
-  emptyText: { fontSize: 12, textAlign: 'center', marginTop: 4, lineHeight: 17 },
+  emptyTitle: { ...typographyStyles.body, fontFamily: 'Inter-Bold', marginTop: 10 },
+  emptyText: { ...typographyStyles.footnote, textAlign: 'center', marginTop: 4 },
 });

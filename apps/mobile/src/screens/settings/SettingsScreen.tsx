@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../store/AuthContext';
 import { useAppLock } from '../../store/LockContext';
-import { useTheme } from '../../theme';
+import { useTheme, typography as typographyStyles } from '../../theme';
 import { api, setAccessToken, getAccessToken } from '../../services/api';
 
 type IconName = keyof typeof Ionicons.glyphMap;
@@ -70,7 +70,7 @@ export function SettingsScreen() {
   const navigation = useNavigation<any>();
   const { user, logout } = useAuth();
   const { lockApp } = useAppLock();
-  const { colors, isDark } = useTheme();
+  const { colors, isDark, typography } = useTheme();
   const insets = useSafeAreaInsets();
   const [subscription, setSubscription] = useState<any>(null);
 
@@ -95,7 +95,17 @@ export function SettingsScreen() {
       lockApp();
       return;
     }
-    const registered = ['Profile', 'Subscription', 'Security', 'Theme', 'Currency', 'Help', 'Contact', 'Privacy', 'Analytics'];
+    const registered = [
+      'Profile',
+      'Subscription',
+      'Security',
+      'Theme',
+      'Currency',
+      'Help',
+      'Contact',
+      'Privacy',
+      'Analytics',
+    ];
     if (!registered.includes(screen)) {
       Alert.alert('Coming Soon', `${screen} settings will be available soon`);
       return;
@@ -107,7 +117,7 @@ export function SettingsScreen() {
         [
           { text: 'Cancel', style: 'cancel' },
           { text: 'View Plans', onPress: () => navigation.navigate('Subscription') },
-        ]
+        ],
       );
       return;
     }
@@ -125,9 +135,16 @@ export function SettingsScreen() {
           <View style={styles.headerRow}>
             <View>
               <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Settings</Text>
-              <Text style={[styles.headerSub, { color: colors.text.tertiary }]}>Personalise your experience</Text>
+              <Text style={[styles.headerSub, { color: colors.text.tertiary }]}>
+                Personalise your experience
+              </Text>
             </View>
-            <TouchableOpacity style={[styles.closeBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}>
+            <TouchableOpacity
+              style={[
+                styles.closeBtn,
+                { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' },
+              ]}
+            >
               <Ionicons name="close" size={20} color={colors.text.secondary} />
             </TouchableOpacity>
           </View>
@@ -140,10 +157,17 @@ export function SettingsScreen() {
           style={styles.profileWrap}
         >
           <LinearGradient
-            colors={isDark ? ['rgba(99,102,241,0.2)', 'rgba(139,92,246,0.08)'] : ['rgba(99,102,241,0.12)', 'rgba(139,92,246,0.04)']}
+            colors={
+              isDark
+                ? ['rgba(99,102,241,0.2)', 'rgba(139,92,246,0.08)']
+                : ['rgba(99,102,241,0.12)', 'rgba(139,92,246,0.04)']
+            }
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={[styles.profileCard, { borderColor: isDark ? 'rgba(99,102,241,0.25)' : 'rgba(99,102,241,0.15)' }]}
+            style={[
+              styles.profileCard,
+              { borderColor: isDark ? 'rgba(99,102,241,0.25)' : 'rgba(99,102,241,0.15)' },
+            ]}
           >
             <View style={styles.profileLeft}>
               <LinearGradient
@@ -158,10 +182,31 @@ export function SettingsScreen() {
                 <Text style={[styles.name, { color: colors.text.primary }]}>
                   {user?.firstName || 'User'} {user?.lastName || ''}
                 </Text>
-                <Text style={[styles.email, { color: colors.text.tertiary }]} numberOfLines={1}>{user?.email || ''}</Text>
-                <View style={[styles.planBadge, { backgroundColor: isPremium ? `${colors.accent.primary}18` : `${colors.text.tertiary}18` }]}>
-                  <View style={[styles.planDot, { backgroundColor: isPremium ? colors.accent.primary : colors.text.tertiary }]} />
-                  <Text style={[styles.planLabel, { color: isPremium ? colors.accent.primary : colors.text.tertiary }]}>
+                <Text style={[styles.email, { color: colors.text.tertiary }]} numberOfLines={1}>
+                  {user?.email || ''}
+                </Text>
+                <View
+                  style={[
+                    styles.planBadge,
+                    {
+                      backgroundColor: isPremium
+                        ? `${colors.accent.primary}18`
+                        : `${colors.text.tertiary}18`,
+                    },
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.planDot,
+                      { backgroundColor: isPremium ? colors.accent.primary : colors.text.tertiary },
+                    ]}
+                  />
+                  <Text
+                    style={[
+                      styles.planLabel,
+                      { color: isPremium ? colors.accent.primary : colors.text.tertiary },
+                    ]}
+                  >
                     {isPremium ? 'Premium Plan' : 'Free Plan'}
                   </Text>
                 </View>
@@ -174,8 +219,15 @@ export function SettingsScreen() {
         {/* Sections */}
         {SECTIONS.map((section, i) => (
           <View key={i} style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text.disabled }]}>{section.title}</Text>
-            <View style={[styles.sectionCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text.disabled }]}>
+              {section.title}
+            </Text>
+            <View
+              style={[
+                styles.sectionCard,
+                { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+              ]}
+            >
               {section.items.map((item, j) => {
                 const iconStyle = ROW_ICON_MAP[item.label];
                 return (
@@ -183,7 +235,10 @@ export function SettingsScreen() {
                     key={j}
                     style={[
                       styles.row,
-                      j < section.items.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border.subtle },
+                      j < section.items.length - 1 && {
+                        borderBottomWidth: StyleSheet.hairlineWidth,
+                        borderBottomColor: colors.border.subtle,
+                      },
                     ]}
                     onPress={() => handleNav(item.screen, item.premium, item.action)}
                     activeOpacity={0.5}
@@ -194,14 +249,27 @@ export function SettingsScreen() {
                       end={{ x: 1, y: 1 }}
                       style={styles.rowIcon}
                     >
-                      <Ionicons name={iconStyle?.icon as any || item.icon} size={16} color="#fff" />
+                      <Ionicons
+                        name={(iconStyle?.icon as any) || item.icon}
+                        size={16}
+                        color="#fff"
+                      />
                     </LinearGradient>
-                    <Text style={[styles.rowLabel, { color: colors.text.primary }]}>{item.label}</Text>
+                    <Text style={[styles.rowLabel, { color: colors.text.primary }]}>
+                      {item.label}
+                    </Text>
                     <View style={styles.rowRight}>
                       {item.premium && !isPremium && (
-                        <View style={[styles.premiumBadge, { backgroundColor: colors.accent.primary + '15' }]}>
+                        <View
+                          style={[
+                            styles.premiumBadge,
+                            { backgroundColor: colors.accent.primary + '15' },
+                          ]}
+                        >
                           <Ionicons name="lock-closed" size={9} color={colors.accent.primary} />
-                          <Text style={[styles.premiumLabel, { color: colors.accent.primary }]}>Premium</Text>
+                          <Text style={[styles.premiumLabel, { color: colors.accent.primary }]}>
+                            Premium
+                          </Text>
                         </View>
                       )}
                       <Ionicons name="chevron-forward" size={15} color={colors.text.disabled} />
@@ -215,11 +283,20 @@ export function SettingsScreen() {
 
         {/* Logout */}
         <TouchableOpacity
-          style={[styles.logoutRow, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}
+          style={[
+            styles.logoutRow,
+            { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+          ]}
           onPress={() => {
             Alert.alert('Logout', 'Are you sure you want to logout?', [
               { text: 'Cancel', style: 'cancel' },
-              { text: 'Logout', style: 'destructive', onPress: () => { logout().catch(() => {}); } },
+              {
+                text: 'Logout',
+                style: 'destructive',
+                onPress: () => {
+                  logout().catch(() => {});
+                },
+              },
             ]);
           }}
           activeOpacity={0.5}
@@ -242,9 +319,16 @@ const styles = StyleSheet.create({
 
   header: { paddingHorizontal: 20, paddingBottom: 4 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  headerTitle: { fontSize: 32, fontWeight: '800', letterSpacing: -0.8 },
-  headerSub: { fontSize: 14, marginTop: 2, fontWeight: '500' },
-  closeBtn: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
+  headerTitle: { ...typographyStyles.appTitle, fontSize: 32, letterSpacing: -0.8 },
+  headerSub: { ...typographyStyles.body, marginTop: 2, fontFamily: 'Inter-Medium' },
+  closeBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
 
   profileWrap: { marginHorizontal: 16, marginTop: 20, marginBottom: 28 },
   profileCard: {
@@ -255,17 +339,38 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   profileLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  avatar: { width: 52, height: 52, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { color: '#fff', fontSize: 20, fontWeight: '700' },
+  avatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: { color: '#fff', fontFamily: 'Inter-Bold', fontSize: 20 },
   profileInfo: { marginLeft: 14, flex: 1 },
-  name: { fontSize: 17, fontWeight: '700' },
-  email: { fontSize: 12, marginTop: 1 },
-  planBadge: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20, gap: 5, marginTop: 5 },
+  name: { ...typographyStyles.body, fontSize: 17, fontFamily: 'Inter-SemiBold' },
+  email: { ...typographyStyles.footnote, marginTop: 1, fontFamily: 'Inter-Medium' },
+  planBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 20,
+    gap: 5,
+    marginTop: 5,
+  },
   planDot: { width: 5, height: 5, borderRadius: 3 },
-  planLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 0.3 },
+  planLabel: { fontFamily: 'Inter-Bold', fontSize: 10, letterSpacing: 0.3 },
 
   section: { marginBottom: 16, paddingHorizontal: 16 },
-  sectionTitle: { fontSize: 12, fontWeight: '600', letterSpacing: 0.5, marginBottom: 8, marginLeft: 4 },
+  sectionTitle: {
+    ...typographyStyles.footnote,
+    fontFamily: 'Inter-SemiBold',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+    marginLeft: 4,
+  },
   sectionCard: { borderRadius: 16, borderWidth: 1, overflow: 'hidden' },
 
   row: {
@@ -274,11 +379,25 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     paddingHorizontal: 14,
   },
-  rowIcon: { width: 30, height: 30, borderRadius: 9, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  rowLabel: { flex: 1, fontSize: 15, fontWeight: '600' },
+  rowIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  rowLabel: { flex: 1, ...typographyStyles.body, fontFamily: 'Inter-SemiBold' },
   rowRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  premiumBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6 },
-  premiumLabel: { fontSize: 10, fontWeight: '700' },
+  premiumBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  premiumLabel: { fontFamily: 'Inter-Bold', fontSize: 10 },
 
   logoutRow: {
     flexDirection: 'row',
@@ -288,8 +407,20 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
   },
-  logoutIcon: { width: 30, height: 30, borderRadius: 9, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  logoutText: { fontSize: 15, fontWeight: '600' },
+  logoutIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  logoutText: { ...typographyStyles.body, fontFamily: 'Inter-SemiBold' },
 
-  version: { textAlign: 'center', fontSize: 12, marginTop: 24, fontWeight: '500' },
+  version: {
+    textAlign: 'center',
+    ...typographyStyles.footnote,
+    fontFamily: 'Inter-Medium',
+    marginTop: 24,
+  },
 });

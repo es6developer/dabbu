@@ -21,14 +21,22 @@ function formatCurrency(val: number) {
 }
 
 function normalizePayload<T>(response: any): T {
-  if (!response) return [] as unknown as T;
-  if (Array.isArray(response)) return response as T;
-  if (response.data && Array.isArray(response.data)) return response.data as T;
+  if (!response) {
+    return [] as unknown as T;
+  }
+  if (Array.isArray(response)) {
+    return response as T;
+  }
+  if (response.data && Array.isArray(response.data)) {
+    return response.data as T;
+  }
   return response as T;
 }
 
 function getSettledError(result: PromiseSettledResult<any>): string | null {
-  if (result.status === 'fulfilled') return null;
+  if (result.status === 'fulfilled') {
+    return null;
+  }
   return result.reason?.message || 'Request failed';
 }
 
@@ -68,8 +76,12 @@ function MoneyLoader() {
       >
         <Text style={styles.moneyCoinText}>₹</Text>
       </Animated.View>
-      <Text style={[styles.moneyLoadingTitle, { color: colors.text.primary }]}>Loading expenses</Text>
-      <Text style={[styles.moneyLoadingText, { color: colors.text.tertiary }]}>Counting every rupee</Text>
+      <Text style={[styles.moneyLoadingTitle, { color: colors.text.primary }]}>
+        Loading expenses
+      </Text>
+      <Text style={[styles.moneyLoadingText, { color: colors.text.tertiary }]}>
+        Counting every rupee
+      </Text>
     </View>
   );
 }
@@ -112,7 +124,9 @@ export function GroupExpensesScreen() {
       const groupData = grpRes.status === 'fulfilled' ? normalizePayload<any>(grpRes.value) : null;
 
       if (txRes.status === 'rejected' && grpRes.status === 'rejected') {
-        throw new Error(getSettledError(txRes) || getSettledError(grpRes) || 'Unable to load expenses');
+        throw new Error(
+          getSettledError(txRes) || getSettledError(grpRes) || 'Unable to load expenses',
+        );
       }
 
       setTransactions(Array.isArray(txData) ? txData : []);
@@ -129,9 +143,11 @@ export function GroupExpensesScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      setLoading(true);
+      if (transactions.length === 0) {
+        setLoading(true);
+      }
       loadData();
-    }, [loadData]),
+    }, [loadData, transactions.length]),
   );
 
   const onRefresh = useCallback(async () => {
@@ -185,7 +201,12 @@ export function GroupExpensesScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.loadingScreen, { backgroundColor: colors.bg.primary, paddingTop: insets.top + 14 }]}> 
+      <View
+        style={[
+          styles.loadingScreen,
+          { backgroundColor: colors.bg.primary, paddingTop: insets.top + 14 },
+        ]}
+      >
         <MoneyLoader />
       </View>
     );
@@ -193,41 +214,55 @@ export function GroupExpensesScreen() {
 
   const listHeader = (
     <View style={styles.headerSection}>
-      <View style={styles.headerRow}> 
+      <View style={styles.headerRow}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
-          style={[styles.backBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}
+          style={[
+            styles.backBtn,
+            { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' },
+          ]}
         >
           <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
         </TouchableOpacity>
         <LinearGradient colors={['#6C5CE7', '#A29BFE']} style={styles.avatarCircle}>
-          <Ionicons name={group?.icon === 'users' ? 'people' : group?.icon || 'people'} size={24} color="#FFF" />
+          <Ionicons
+            name={group?.icon === 'users' ? 'people' : group?.icon || 'people'}
+            size={24}
+            color="#FFF"
+          />
         </LinearGradient>
         <View style={styles.groupInfo}>
-          <Text style={[styles.groupName, { color: colors.text.primary }]} numberOfLines={1}>{displayedGroupName}</Text>
-          <Text style={[styles.groupMembers, { color: colors.text.secondary }]}> 
+          <Text style={[styles.groupName, { color: colors.text.primary }]} numberOfLines={1}>
+            {displayedGroupName}
+          </Text>
+          <Text style={[styles.groupMembers, { color: colors.text.secondary }]}>
             {members.length} member{members.length !== 1 ? 's' : ''}
           </Text>
         </View>
       </View>
 
-      <View style={styles.summaryGrid}> 
-        <LinearGradient colors={['#1a1a2e', '#16213e']} style={styles.summaryCard}> 
+      <View style={styles.summaryGrid}>
+        <LinearGradient colors={['#1a1a2e', '#16213e']} style={styles.summaryCard}>
           <Text style={styles.summaryLabel}>Total Expenses</Text>
           <Text style={styles.summaryValue}>{formatCurrency(stats.totalExpense)}</Text>
         </LinearGradient>
-        <LinearGradient colors={['#1a1a2e', '#16213e']} style={styles.summaryCard}> 
+        <LinearGradient colors={['#1a1a2e', '#16213e']} style={styles.summaryCard}>
           <Text style={styles.summaryLabel}>Transactions</Text>
           <Text style={styles.summaryValue}>{stats.totalCount}</Text>
         </LinearGradient>
-        <LinearGradient colors={['#1a1a2e', '#16213e']} style={styles.summaryCard}> 
+        <LinearGradient colors={['#1a1a2e', '#16213e']} style={styles.summaryCard}>
           <Text style={styles.summaryLabel}>Monthly Spend</Text>
           <Text style={styles.summaryValue}>{formatCurrency(stats.monthlySpending)}</Text>
         </LinearGradient>
         {stats.budgetRemaining !== null && (
-          <LinearGradient colors={['#1a1a2e', '#16213e']} style={styles.summaryCard}> 
+          <LinearGradient colors={['#1a1a2e', '#16213e']} style={styles.summaryCard}>
             <Text style={styles.summaryLabel}>Budget Left</Text>
-            <Text style={[styles.summaryValue, { color: stats.budgetRemaining >= 0 ? '#00B894' : '#FF6B6B' }]}> 
+            <Text
+              style={[
+                styles.summaryValue,
+                { color: stats.budgetRemaining >= 0 ? '#00B894' : '#FF6B6B' },
+              ]}
+            >
               {formatCurrency(Math.abs(stats.budgetRemaining))}
             </Text>
           </LinearGradient>
@@ -235,13 +270,18 @@ export function GroupExpensesScreen() {
       </View>
 
       {members.length > 0 && (
-        <View style={styles.membersSection}> 
+        <View style={styles.membersSection}>
           <Text style={[styles.sectionTitle, { color: colors.text.secondary }]}>Members</Text>
           <View style={styles.membersRow}>
             {members.map((member: any) => (
-              <View key={member.id} style={[styles.memberChip, { backgroundColor: colors.bg.tertiary }]}> 
+              <View
+                key={member.id}
+                style={[styles.memberChip, { backgroundColor: colors.bg.tertiary }]}
+              >
                 <LinearGradient colors={['#6C5CE7', '#A29BFE']} style={styles.memberDot}>
-                  <Text style={styles.memberInitial}>{(member.user?.firstName?.[0] || member.firstName?.[0] || '?').toUpperCase()}</Text>
+                  <Text style={styles.memberInitial}>
+                    {(member.user?.firstName?.[0] || member.firstName?.[0] || '?').toUpperCase()}
+                  </Text>
                 </LinearGradient>
                 <Text style={[styles.memberName, { color: colors.text.primary }]} numberOfLines={1}>
                   {member.user?.firstName || member.user?.email || member.firstName || 'Member'}
@@ -253,16 +293,36 @@ export function GroupExpensesScreen() {
       )}
 
       {transactions.length > 0 && (
-        <Text style={[styles.sectionTitle, { color: colors.text.secondary, paddingHorizontal: 24, paddingTop: 20, paddingBottom: 8 }]}>All Expenses</Text>
+        <Text
+          style={[
+            styles.sectionTitle,
+            {
+              color: colors.text.secondary,
+              paddingHorizontal: 24,
+              paddingTop: 20,
+              paddingBottom: 8,
+            },
+          ]}
+        >
+          All Expenses
+        </Text>
       )}
     </View>
   );
 
   if (error) {
     return (
-      <View style={[styles.loadingScreen, { backgroundColor: colors.bg.primary, paddingTop: insets.top + 14 }]}> 
+      <View
+        style={[
+          styles.loadingScreen,
+          { backgroundColor: colors.bg.primary, paddingTop: insets.top + 14 },
+        ]}
+      >
         <Text style={[styles.errorText, { color: colors.text.primary }]}>{error}</Text>
-        <TouchableOpacity style={[styles.retryBtn, { backgroundColor: colors.accent.primary }]} onPress={onRetry}>
+        <TouchableOpacity
+          style={[styles.retryBtn, { backgroundColor: colors.accent.primary }]}
+          onPress={onRetry}
+        >
           <Text style={[styles.retryText, { color: '#FFFFFF' }]}>Retry</Text>
         </TouchableOpacity>
       </View>
@@ -270,13 +330,25 @@ export function GroupExpensesScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bg.primary }]}> 
+    <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <FlatList
         data={transactions}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent.primary} />}
-        contentContainerStyle={transactions.length === 0 ? styles.emptyContainer : { paddingBottom: insets.bottom + 140 }}
+        windowSize={10}
+        maxToRenderPerBatch={10}
+        initialNumToRender={8}
+        removeClippedSubviews={true}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.accent.primary}
+          />
+        }
+        contentContainerStyle={
+          transactions.length === 0 ? styles.emptyContainer : { paddingBottom: insets.bottom + 140 }
+        }
         ListHeaderComponent={listHeader}
         renderItem={({ item }) => {
           const isIncome = item.type === 'income';
@@ -298,33 +370,52 @@ export function GroupExpensesScreen() {
               </LinearGradient>
               <View style={styles.txBody}>
                 <View style={styles.txTop}>
-                  <Text style={[styles.txUserName, { color: colors.text.primary }]} numberOfLines={1}>{userName}</Text>
-                  <Text style={[styles.txAmount, { color: isIncome ? '#00B894' : '#FF6B6B' }]}> 
-                    {isIncome ? '+' : '-'}{formatCurrency(Number(item.amount || 0))}
+                  <Text
+                    style={[styles.txUserName, { color: colors.text.primary }]}
+                    numberOfLines={1}
+                  >
+                    {userName}
+                  </Text>
+                  <Text style={[styles.txAmount, { color: isIncome ? '#00B894' : '#FF6B6B' }]}>
+                    {isIncome ? '+' : '-'}
+                    {formatCurrency(Number(item.amount || 0))}
                   </Text>
                 </View>
                 <View style={styles.txBottom}>
-                  <Text style={[styles.txDesc, { color: colors.text.tertiary }]} numberOfLines={1}>{item.description || catName}</Text>
-                  <Text style={[styles.txTime, { color: colors.text.tertiary }]}> {isNaN(date.getTime()) ? '' : date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} </Text>
+                  <Text style={[styles.txDesc, { color: colors.text.tertiary }]} numberOfLines={1}>
+                    {item.description || catName}
+                  </Text>
+                  <Text style={[styles.txTime, { color: colors.text.tertiary }]}>
+                    {' '}
+                    {isNaN(date.getTime())
+                      ? ''
+                      : date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}{' '}
+                  </Text>
                 </View>
               </View>
             </TouchableOpacity>
           );
         }}
         ListEmptyComponent={
-          <View style={styles.empty}> 
+          <View style={styles.empty}>
             <LinearGradient colors={['#6C5CE720', '#A29BFE20']} style={styles.emptyIconWrap}>
               <Ionicons name="receipt-outline" size={44} color="#6C5CE7" />
             </LinearGradient>
             <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No expenses yet</Text>
-            <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>Add your first expense to this group</Text>
+            <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
+              Add your first expense to this group
+            </Text>
           </View>
         }
       />
 
       <TouchableOpacity
         style={[styles.fab, { bottom: insets.bottom + 24, backgroundColor: '#6C5CE7' }]}
-        onPress={() => navigation.navigate('CreateTransaction', { prefill: { groupId, groupName: displayedGroupName, returnTo: 'GroupExpenses' } })}
+        onPress={() =>
+          navigation.navigate('CreateTransaction', {
+            prefill: { groupId, groupName: displayedGroupName, returnTo: 'GroupExpenses' },
+          })
+        }
         activeOpacity={0.85}
       >
         <Ionicons name="add" size={28} color="#FFFFFF" />

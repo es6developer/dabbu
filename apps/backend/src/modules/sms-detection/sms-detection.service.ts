@@ -1,4 +1,9 @@
-import { Injectable, Logger, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { NlpEngine } from './engines/nlp-engine';
 import { HeuristicEngine } from './engines/heuristic-engine';
@@ -21,20 +26,22 @@ export class SmsDetectionService {
         take: 100,
       });
 
-      const categoryIds = [...new Set(detections.map((d) => d.categoryId).filter((id): id is string => !!id))];
-      const categories = categoryIds.length > 0
-        ? await this.prisma.transactionCategory.findMany({
-            where: { id: { in: categoryIds } },
-            select: { id: true, name: true },
-          })
-        : [];
+      const categoryIds = [
+        ...new Set(detections.map((d) => d.categoryId).filter((id): id is string => !!id)),
+      ];
+      const categories =
+        categoryIds.length > 0
+          ? await this.prisma.transactionCategory.findMany({
+              where: { id: { in: categoryIds } },
+              select: { id: true, name: true },
+            })
+          : [];
       const catMap = new Map(categories.map((c) => [c.id, c.name]));
 
       const enriched = detections.map((d) => ({
         ...d,
-        category: d.categoryId && catMap.has(d.categoryId)
-          ? { name: catMap.get(d.categoryId) }
-          : null,
+        category:
+          d.categoryId && catMap.has(d.categoryId) ? { name: catMap.get(d.categoryId) } : null,
       }));
 
       const totalDetected = enriched.length;
@@ -65,7 +72,9 @@ export class SmsDetectionService {
       }
 
       if (parsed.isSpam || parsed.isPromotional) {
-        this.logger.log(`Skipped spam/promotional SMS in parseAndSave from ${sender}: "${message.slice(0, 80)}"`);
+        this.logger.log(
+          `Skipped spam/promotional SMS in parseAndSave from ${sender}: "${message.slice(0, 80)}"`,
+        );
         return { parsed: null, message: 'Spam or promotional SMS — skipped' };
       }
 
@@ -88,18 +97,21 @@ export class SmsDetectionService {
           messageBody: message,
           detectedAmount: parsed.amount,
           detectedCurrency: parsed.currency,
-          detectedType: categorization?.categoryType === 'income'
-            ? 'income'
-            : ['credit', 'refund', 'cashback'].includes(parsed.transactionType)
+          detectedType:
+            categorization?.categoryType === 'income'
               ? 'income'
-              : 'expense',
+              : ['credit', 'refund', 'cashback'].includes(parsed.transactionType)
+                ? 'income'
+                : 'expense',
           confidence: parsed.confidence,
           categoryId,
           rawData: { parsed, categorization } as any,
         },
       });
 
-      this.logger.log(`SMS parsed and saved: ${detection.id} amount=${parsed.amount} type=${parsed.transactionType}`);
+      this.logger.log(
+        `SMS parsed and saved: ${detection.id} amount=${parsed.amount} type=${parsed.transactionType}`,
+      );
       return { parsed, categorization, detection };
     } catch (err) {
       this.logger.error('Failed to parse and save SMS', err);
@@ -137,22 +149,18 @@ export class SmsDetectionService {
         orderBy: { sortOrder: 'asc' },
       });
 
-      if (!account) {
-        this.logger.error(`No active account found for user ${userId}`);
-        return { success: false, message: 'No active account found. Create an account first.' };
-      }
-
-      const txType = categorization?.categoryType === 'income'
-        ? 'income'
-        : ['credit', 'refund', 'cashback'].includes(parsed.transactionType)
+      const txType =
+        categorization?.categoryType === 'income'
           ? 'income'
-          : 'expense';
+          : ['credit', 'refund', 'cashback'].includes(parsed.transactionType)
+            ? 'income'
+            : 'expense';
 
       const [transaction, detection] = await this.prisma.$transaction([
         this.prisma.transaction.create({
           data: {
             userId,
-            accountId: account.id,
+            accountId: account?.id || null,
             categoryId,
             amount: parsed.amount,
             type: txType,
@@ -189,7 +197,9 @@ export class SmsDetectionService {
         data: { transactionId: transaction.id },
       });
 
-      this.logger.log(`Transaction created from SMS: ${transaction.id} amount=${parsed.amount} type=${txType}`);
+      this.logger.log(
+        `Transaction created from SMS: ${transaction.id} amount=${parsed.amount} type=${txType}`,
+      );
       return { success: true, parsed, categorization, detection, transaction };
     } catch (err) {
       this.logger.error('Failed to detect and create transaction from SMS', err);
@@ -198,7 +208,9 @@ export class SmsDetectionService {
   }
 
   private async lookupCategoryId(userId: string, categorization: any): Promise<string | null> {
-    if (!categorization?.categoryName) return null;
+    if (!categorization?.categoryName) {
+      return null;
+    }
 
     const catName = categorization.categoryName;
 
@@ -226,7 +238,9 @@ export class SmsDetectionService {
         const exact = await this.prisma.transactionCategory.findFirst({
           where: { userId, name: alias, isActive: true },
         });
-        if (exact) return exact.id;
+        if (exact) {
+          return exact.id;
+        }
       }
 
       // Try bidirectional contains as fallback
@@ -235,15 +249,16 @@ export class SmsDetectionService {
         select: { id: true, name: true },
       });
 
-      const match = all.find(
-        (c) =>
-          aliases.some(
-            (a) =>
-              c.name.toLowerCase().includes(a.toLowerCase()) ||
-              a.toLowerCase().includes(c.name.toLowerCase()),
-          ),
+      const match = all.find((c) =>
+        aliases.some(
+          (a) =>
+            c.name.toLowerCase().includes(a.toLowerCase()) ||
+            a.toLowerCase().includes(c.name.toLowerCase()),
+        ),
       );
-      if (match) return match.id;
+      if (match) {
+        return match.id;
+      }
 
       // Final fallback: first default category ordered by sortOrder
       const defaultCategory = await this.prisma.transactionCategory.findFirst({

@@ -1,5 +1,15 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useTheme } from '../theme';
+import { AddExpenseScreen } from '../screens/transactions/AddExpenseScreen';
+import { BillScannerScreen } from '../screens/transactions/BillScannerScreen';
+import { CreateTransactionScreen } from '../screens/transactions/CreateTransactionScreen';
+import { BillsListScreen } from '../screens/bills/BillsListScreen';
+import { BillDetailScreen } from '../screens/bills/BillDetailScreen';
+import { MonthlyComparisonScreen } from '../screens/bills/MonthlyComparisonScreen';
+import { TransactionDetailScreen } from '../screens/transactions/TransactionDetailScreen';
+import { CreateExpenseGroupScreen } from '../screens/transactions/CreateExpenseGroupScreen';
+import { GroupExpensesScreen } from '../screens/transactions/GroupExpensesScreen';
 import { ExpenseTabNavigator } from './ExpenseTabNavigator';
 import { CreateTransactionScreen } from '../screens/transactions/CreateTransactionScreen';
 import { TransactionDetailScreen } from '../screens/transactions/TransactionDetailScreen';
@@ -16,13 +26,14 @@ import { CreateExpenseGroupScreen } from '../screens/transactions/CreateExpenseG
 const Stack = createNativeStackNavigator();
 
 export function AccountsNavigator() {
+  const Stack = createNativeStackNavigator();
+  const { colors, typography } = useTheme();
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: '#0A0A0F' },
-        headerTintColor: '#FFFFFF',
-        headerTitleStyle: { fontWeight: '600' },
-        contentStyle: { backgroundColor: '#0A0A0F' },
+        headerStyle: { backgroundColor: colors.bg.primary },
+        headerTintColor: colors.text.primary,
+        headerTitleStyle: { ...typography.calloutBold },
       }}
     >
       <Stack.Screen

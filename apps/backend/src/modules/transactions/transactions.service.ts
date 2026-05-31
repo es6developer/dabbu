@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { CreateTransactionDto, UpdateTransactionDto, TransactionFilterDto } from './dto';
 
@@ -7,8 +7,6 @@ export class TransactionsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(userId: string, dto: CreateTransactionDto) {
-    const accountId = dto.accountId || (await this.resolveDefaultAccount(userId));
-
     const categoryId = dto.categoryId || (await this.predictCategory(userId, dto));
 
     const metadata: Record<string, any> = {};
@@ -19,7 +17,7 @@ export class TransactionsService {
     const tx = await this.prisma.transaction.create({
       data: {
         userId,
-        accountId,
+        accountId: dto.accountId || null,
         categoryId,
         expenseGroupId: dto.expenseGroupId || null,
         amount: dto.amount,
@@ -34,10 +32,8 @@ export class TransactionsService {
         status: 'completed',
         metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
       },
-      include: { category: true, account: { select: { name: true, type: true } } },
+      include: { category: true },
     });
-
-    await this.updateAccountBalance(userId, accountId);
     return tx;
   }
 
@@ -85,7 +81,7 @@ export class TransactionsService {
     const [rawData, total] = await Promise.all([
       this.prisma.transaction.findMany({
         where,
-        include: { category: true, account: { select: { name: true, type: true } } },
+        include: { category: true },
         orderBy: { date: 'desc' },
         skip,
         take: limit,
@@ -103,7 +99,7 @@ export class TransactionsService {
   async findOne(userId: string, id: string) {
     const tx = await this.prisma.transaction.findFirst({
       where: { id, userId, deletedAt: null },
-      include: { category: true, account: true },
+      include: { category: true },
     });
     if (!tx) {
       throw new NotFoundException('Transaction not found');
@@ -133,15 +129,8 @@ export class TransactionsService {
         ...(dto.isRecurring !== undefined && { isRecurring: dto.isRecurring }),
         ...(dto.recurringFrequency !== undefined && { recurringFrequency: dto.recurringFrequency }),
       },
-      include: { category: true, account: { select: { name: true } } },
+      include: { category: true },
     });
-
-    if (dto.accountId && dto.accountId !== existing.accountId) {
-      await this.updateAccountBalance(userId, existing.accountId);
-      await this.updateAccountBalance(userId, dto.accountId);
-    } else if (dto.amount !== undefined || dto.type !== undefined) {
-      await this.updateAccountBalance(userId, existing.accountId);
-    }
 
     return { data: tx };
   }
@@ -158,8 +147,6 @@ export class TransactionsService {
       where: { id },
       data: { deletedAt: new Date() },
     });
-
-    await this.updateAccountBalance(userId, existing.accountId);
   }
 
   async search(userId: string, query: string, limit: number = 20) {
@@ -169,7 +156,7 @@ export class TransactionsService {
         deletedAt: null,
         OR: [{ description: { contains: query } }, { notes: { contains: query } }],
       },
-      include: { category: true, account: { select: { name: true } } },
+      include: { category: true },
       orderBy: { date: 'desc' },
       take: limit,
     });
@@ -447,35 +434,5 @@ export class TransactionsService {
       }
     }
     return null;
-  }
-
-  private async updateAccountBalance(userId: string, accountId: string) {
-    const agg = await this.prisma.transaction.aggregate({
-      where: { accountId, userId, deletedAt: null },
-      _sum: { amount: true },
-    });
-
-    const account = await this.prisma.account.findUnique({
-      where: { id: accountId },
-      select: { initialBalance: true },
-    });
-
-    const balance = Number(account?.initialBalance || 0) + Number(agg._sum.amount || 0);
-    await this.prisma.account.update({
-      where: { id: accountId },
-      data: { balance, lastSyncedAt: new Date() },
-    });
-  }
-
-  private async resolveDefaultAccount(userId: string): Promise<string> {
-    const account = await this.prisma.account.findFirst({
-      where: { userId, isActive: true, isDeleted: false },
-      orderBy: { createdAt: 'asc' },
-      select: { id: true },
-    });
-    if (!account) {
-      throw new NotFoundException('No account found. Please create an account first.');
-    }
-    return account.id;
   }
 }

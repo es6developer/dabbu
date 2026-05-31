@@ -32,13 +32,14 @@ import { InvitationPendingScreen } from '../screens/shared-finance/InvitationPen
 const Stack = createNativeStackNavigator();
 
 export function SharedFinanceNavigator() {
+  const { colors, typography } = useTheme();
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: '#0A0A0F' },
-        headerTintColor: '#FFFFFF',
-        headerTitleStyle: { fontWeight: '600' },
-        contentStyle: { backgroundColor: '#0A0A0F' },
+        headerStyle: { backgroundColor: colors.bg.primary },
+        headerTintColor: colors.text.primary,
+        headerTitleStyle: { ...typography.calloutBold },
+        contentStyle: { backgroundColor: colors.bg.primary },
       }}
     >
       <Stack.Screen

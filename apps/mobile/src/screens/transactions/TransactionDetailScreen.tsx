@@ -12,13 +12,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
-import { useTheme } from '../../theme';
+import { useTheme, typography as typographyStyles } from '../../theme';
 
 export function TransactionDetailScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
-  const { colors } = useTheme();
+  const { colors, typography } = useTheme();
   const { transactionId } = route.params || {};
   const [txn, setTxn] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -107,11 +107,6 @@ export function TransactionDetailScreen() {
           colors={colors}
           label="Category"
           value={txn.category?.name || txn.category || '-'}
-        />
-        <DetailRow
-          colors={colors}
-          label="Account"
-          value={txn.account?.name || txn.account || '-'}
         />
         <DetailRow
           colors={colors}
@@ -211,9 +206,14 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   amountCard: { margin: 16, padding: 32, borderRadius: 20, alignItems: 'center' },
-  amoountLabel: { fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 },
-  amount: { fontSize: 40, fontWeight: '700', letterSpacing: -1, marginBottom: 8 },
-  amountDesc: { fontSize: 15, textAlign: 'center' },
+  amoountLabel: {
+    ...typographyStyles.footnote,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  amount: { ...typographyStyles.amount, marginBottom: 8 },
+  amountDesc: { ...typographyStyles.body, textAlign: 'center', fontFamily: 'Inter-SemiBold' },
   section: { paddingHorizontal: 16 },
   detailRow: {
     flexDirection: 'row',
@@ -222,11 +222,16 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  detailLabel: { fontSize: 13, flex: 1 },
-  detailValue: { fontSize: 14, fontWeight: '500', flex: 1, textAlign: 'right' },
+  detailLabel: { ...typographyStyles.subhead, flex: 1 },
+  detailValue: {
+    ...typographyStyles.body,
+    fontFamily: 'Inter-Medium',
+    flex: 1,
+    textAlign: 'right',
+  },
   tagsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, justifyContent: 'flex-end', flex: 1 },
   tag: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
-  tagText: { fontSize: 11 },
+  tagText: { ...typographyStyles.caption1 },
   actions: { flexDirection: 'row', padding: 16, gap: 12, marginBottom: 40 },
   actionBtn: {
     flex: 1,
@@ -237,5 +242,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  actionBtnText: { fontSize: 15, fontWeight: '600' },
+  actionBtnText: { ...typographyStyles.body, fontFamily: 'Inter-SemiBold' },
 });

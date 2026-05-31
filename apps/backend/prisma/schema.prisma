@@ -615,7 +615,7 @@ model TransactionCategory {
 model Transaction {
   id                 String    @id @default(uuid()) @db.VarChar(36)
   userId             String    @db.VarChar(36)
-  accountId          String    @db.VarChar(36)
+  accountId          String?   @db.VarChar(36)
   categoryId         String?   @db.VarChar(36)
   amount             Decimal   @db.Decimal(15, 2)
   type               String    @db.VarChar(10)    // income, expense, transfer
@@ -644,7 +644,7 @@ model Transaction {
 
   // Relations
   user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  account       Account             @relation(fields: [accountId], references: [id])
+  account       Account?            @relation(fields: [accountId], references: [id])
   category      TransactionCategory? @relation(fields: [categoryId], references: [id])
   expenseGroup  ExpenseGroup?       @relation(fields: [expenseGroupId], references: [id])
   splitTransactions Transaction[]   @relation("SplitTransaction")

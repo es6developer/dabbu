@@ -16,7 +16,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
-import { useTheme } from '../../theme';
+import { useTheme, typography as typographyStyles } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -42,7 +42,7 @@ function formatCurrency(val: number) {
 export function SharedCirclesScreen() {
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
-  const { colors, isDark } = useTheme();
+  const { colors, isDark, typography } = useTheme();
   const insets = useSafeAreaInsets();
 
   const [groups, setGroups] = useState<any[]>([]);
@@ -146,80 +146,78 @@ export function SharedCirclesScreen() {
     const budgetRemaining = item.monthlyBudget ? item.monthlyBudget - expenseData.total : null;
 
     return (
-      <TouchableOpacity
-        activeOpacity={0.7}
-        onPress={() =>
-          navigation.navigate('GroupExpenses', { groupId: item.id, groupName: item.name })
-        }
-        onLongPress={() => {
-          Alert.alert(item.name, '', [
-            {
-              text: 'View Details',
-              onPress: () =>
-                navigation.navigate('GroupExpenses', { groupId: item.id, groupName: item.name }),
-            },
-            { text: 'Delete', style: 'destructive', onPress: () => confirmDelete(item.id) },
-            { text: 'Cancel', style: 'cancel' },
-          ]);
-        }}
-      >
-        <LinearGradient
-          colors={['#1a1a2e', '#16213e']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.groupCard}
+      <View style={styles.groupCardWrapper}>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() =>
+            navigation.navigate('GroupExpenses', { groupId: item.id, groupName: item.name })
+          }
+          style={styles.groupCardTouch}
         >
-          <View style={styles.groupCardTop}>
-            <LinearGradient colors={['#6C5CE7', '#A29BFE']} style={styles.groupCardAvatar}>
-              <Ionicons name={iconName as any} size={22} color="#FFF" />
-            </LinearGradient>
-            <View style={styles.groupCardInfo}>
-              <Text style={styles.groupCardName} numberOfLines={1}>
-                {item.name}
-              </Text>
-              <Text style={styles.groupCardMembers}>
-                <Ionicons name="people-outline" size={11} color="rgba(255,255,255,0.5)" />{' '}
-                {item._count?.members || 0} member{(item._count?.members || 0) !== 1 ? 's' : ''}
-              </Text>
+          <LinearGradient
+            colors={['#1a1a2e', '#16213e']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.groupCard}
+          >
+            <View style={styles.groupCardTop}>
+              <LinearGradient colors={['#6C5CE7', '#A29BFE']} style={styles.groupCardAvatar}>
+                <Ionicons name={iconName as any} size={22} color="#FFF" />
+              </LinearGradient>
+              <View style={styles.groupCardInfo}>
+                <Text style={styles.groupCardName} numberOfLines={1}>
+                  {item.name}
+                </Text>
+                <Text style={styles.groupCardMembers}>
+                  <Ionicons name="people-outline" size={11} color="rgba(255,255,255,0.5)" />{' '}
+                  {item._count?.members || 0} member{(item._count?.members || 0) !== 1 ? 's' : ''}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.groupCardDeleteBtn}
+                onPress={() => confirmDelete(item.id)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons name="trash-outline" size={18} color="rgba(255,255,255,0.4)" />
+              </TouchableOpacity>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.3)" />
-          </View>
 
-          <View style={styles.groupCardStats}>
-            <View style={styles.groupCardStat}>
-              <Text style={styles.groupCardStatLabel}>Total Expense</Text>
-              <Text style={styles.groupCardStatValue}>{formatCurrency(expenseData.total)}</Text>
-            </View>
-            {budgetRemaining !== null && (
+            <View style={styles.groupCardStats}>
               <View style={styles.groupCardStat}>
-                <Text style={styles.groupCardStatLabel}>Budget Left</Text>
-                <Text
-                  style={[
-                    styles.groupCardStatValue,
-                    { color: budgetRemaining >= 0 ? '#00B894' : '#FF6B6B' },
-                  ]}
-                >
-                  {formatCurrency(Math.abs(budgetRemaining))}
+                <Text style={styles.groupCardStatLabel}>Total Expense</Text>
+                <Text style={styles.groupCardStatValue}>{formatCurrency(expenseData.total)}</Text>
+              </View>
+              {budgetRemaining !== null && (
+                <View style={styles.groupCardStat}>
+                  <Text style={styles.groupCardStatLabel}>Budget Left</Text>
+                  <Text
+                    style={[
+                      styles.groupCardStatValue,
+                      { color: budgetRemaining >= 0 ? '#00B894' : '#FF6B6B' },
+                    ]}
+                  >
+                    {formatCurrency(Math.abs(budgetRemaining))}
+                  </Text>
+                </View>
+              )}
+              <View style={styles.groupCardStat}>
+                <Text style={styles.groupCardStatLabel}>Transactions</Text>
+                <Text style={styles.groupCardStatValue}>{expenseData.count}</Text>
+              </View>
+            </View>
+
+            {expenseData.latest && (
+              <View style={styles.groupCardLatest}>
+                <Text style={styles.groupCardLatestLabel}>Latest</Text>
+                <Text style={styles.groupCardLatestText} numberOfLines={1}>
+                  {expenseData.latest.description || 'Expense'} ·{' '}
+                  {formatCurrency(Number(expenseData.latest.amount))}
                 </Text>
               </View>
             )}
-            <View style={styles.groupCardStat}>
-              <Text style={styles.groupCardStatLabel}>Transactions</Text>
-              <Text style={styles.groupCardStatValue}>{expenseData.count}</Text>
-            </View>
-          </View>
-
-          {expenseData.latest && (
-            <View style={styles.groupCardLatest}>
-              <Text style={styles.groupCardLatestLabel}>Latest</Text>
-              <Text style={styles.groupCardLatestText} numberOfLines={1}>
-                {expenseData.latest.description || 'Expense'} ·{' '}
-                {formatCurrency(Number(expenseData.latest.amount))}
-              </Text>
-            </View>
-          )}
-        </LinearGradient>
-      </TouchableOpacity>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
     );
   }
 
@@ -274,6 +272,10 @@ export function SharedCirclesScreen() {
         data={filtered}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
+        windowSize={10}
+        maxToRenderPerBatch={10}
+        initialNumToRender={5}
+        removeClippedSubviews={true}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -420,8 +422,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 12,
   },
-  headerGreeting: { fontSize: 13, fontWeight: '500', marginBottom: 2 },
-  headerTitle: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5 },
+  headerGreeting: { ...typographyStyles.secondary, marginBottom: 2 },
+  headerTitle: { ...typographyStyles.appTitle },
   createBtn: {
     width: 44,
     height: 44,
@@ -441,8 +443,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   planBarLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  planBarText: { fontSize: 13, fontWeight: '500' },
-  planBarAction: { fontSize: 13, fontWeight: '700' },
+  planBarText: { ...typographyStyles.secondary },
+  planBarAction: { ...typographyStyles.subhead, fontFamily: 'Inter-Bold' },
 
   searchRow: { paddingHorizontal: 24, marginBottom: 8 },
   searchBar: {
@@ -452,14 +454,16 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     height: 48,
   },
-  searchInput: { flex: 1, fontSize: 15, marginLeft: 10 },
+  searchInput: { flex: 1, fontSize: 15, fontFamily: 'Inter-Regular', marginLeft: 10 },
 
   filterRow: { flexDirection: 'row', paddingHorizontal: 24, gap: 8, marginBottom: 16 },
   filterChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1 },
   filterChipActive: { backgroundColor: '#f7892c', borderColor: '#f7892c' },
-  filterChipText: { fontSize: 13, fontWeight: '600' },
+  filterChipText: { ...typographyStyles.subhead, fontFamily: 'Inter-SemiBold' },
 
-  groupCard: { marginHorizontal: 24, marginBottom: 12, borderRadius: 20, padding: 18, gap: 14 },
+  groupCardWrapper: { position: 'relative' },
+  groupCardTouch: { marginHorizontal: 24, marginBottom: 12 },
+  groupCard: { borderRadius: 20, padding: 18, gap: 14 },
   groupCardTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   groupCardAvatar: {
     width: 48,
@@ -469,8 +473,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   groupCardInfo: { flex: 1 },
-  groupCardName: { fontSize: 17, fontWeight: '700', color: '#FFF' },
-  groupCardMembers: { fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 2 },
+  groupCardDeleteBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  groupCardName: { fontSize: 17, fontFamily: 'Inter-Bold', color: '#FFF' },
+  groupCardMembers: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: 2,
+  },
   groupCardStats: { flexDirection: 'row', gap: 12 },
   groupCardStat: {
     flex: 1,
@@ -480,12 +497,13 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   groupCardStatLabel: {
+    fontFamily: 'Inter-Medium',
     fontSize: 10,
     color: 'rgba(255,255,255,0.4)',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  groupCardStatValue: { fontSize: 15, fontWeight: '700', color: '#FFF' },
+  groupCardStatValue: { fontFamily: 'Inter-Bold', fontSize: 15, color: '#FFF' },
   groupCardLatest: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -495,12 +513,18 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   groupCardLatestLabel: {
+    fontFamily: 'Inter-Medium',
     fontSize: 10,
     color: 'rgba(255,255,255,0.3)',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  groupCardLatestText: { flex: 1, fontSize: 13, color: 'rgba(255,255,255,0.7)' },
+  groupCardLatestText: {
+    flex: 1,
+    fontFamily: 'Inter-Regular',
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.7)',
+  },
 
   empty: { alignItems: 'center', gap: 12, paddingTop: 60 },
   emptyIcon: {
@@ -510,8 +534,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  emptyTitle: { fontSize: 17, fontWeight: '700' },
-  emptyDesc: { fontSize: 13, textAlign: 'center', paddingHorizontal: 48, lineHeight: 18 },
+  emptyTitle: { ...typographyStyles.body, fontFamily: 'Inter-Bold' },
+  emptyDesc: { ...typographyStyles.subhead, textAlign: 'center', paddingHorizontal: 48 },
   emptyCta: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -521,5 +545,5 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginTop: 8,
   },
-  emptyCtaText: { color: '#FFF', fontSize: 15, fontWeight: '600' },
+  emptyCtaText: { color: '#FFF', ...typographyStyles.body, fontFamily: 'Inter-SemiBold' },
 });

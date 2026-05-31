@@ -8,7 +8,7 @@ import { useTheme } from '../theme';
 const Tab = createBottomTabNavigator();
 
 export function ExpenseTabNavigator() {
-  const { colors } = useTheme();
+  const { colors, typography } = useTheme();
 
   return (
     <Tab.Navigator
@@ -24,10 +24,10 @@ export function ExpenseTabNavigator() {
         },
         tabBarActiveTintColor: colors.accent.primary,
         tabBarInactiveTintColor: colors.text.tertiary,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '500' },
+        tabBarLabelStyle: { ...typography.tab },
         headerStyle: { backgroundColor: colors.bg.primary },
         headerTintColor: colors.text.primary,
-        headerTitleStyle: { fontWeight: '600' },
+        headerTitleStyle: { ...typography.calloutBold },
       }}
     >
       <Tab.Screen
