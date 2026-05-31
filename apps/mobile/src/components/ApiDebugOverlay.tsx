@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, Platform } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { requestLog, RequestLogEntry } from '../services/api';
 
 function formatMs(ms?: number): string {
@@ -26,10 +26,6 @@ export function ApiDebugOverlay() {
 
   const pending = entries.filter((e) => e.status === 'pending');
   const done = entries.filter((e) => e.status !== undefined && e.status !== null);
-
-  if (Platform.OS !== 'web' && !__DEV__) {
-    return null;
-  }
 
   return (
     <View style={styles.container} pointerEvents="box-none">
