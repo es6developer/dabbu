@@ -80,6 +80,10 @@ export class FcmService {
     deviceToken: string,
     payload: PushPayload,
   ): Promise<{ success: boolean; error?: string }> {
+    if (deviceToken.startsWith('ExponentPushToken[') || deviceToken.startsWith('ExpoPushToken[')) {
+      return this.sendExpoPush(deviceToken, payload);
+    }
+
     if (!this.initialized) {
       return { success: false, error: 'Firebase not initialized' };
     }
@@ -119,6 +123,44 @@ export class FcmService {
       }
 
       return { success: false, error: errorMessage };
+    }
+  }
+
+  private async sendExpoPush(
+    deviceToken: string,
+    payload: PushPayload,
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const response = await fetch('https://exp.host/--/api/v2/push/send', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Accept-Encoding': 'gzip, deflate',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: deviceToken,
+          title: payload.notification.title,
+          body: payload.notification.body,
+          data: payload.data,
+          sound: 'default',
+          channelId: 'default',
+          priority: 'high',
+        }),
+      });
+      const result = await response.json().catch(() => null);
+      const ticket = result?.data;
+      if (response.ok && ticket?.status !== 'error') {
+        return { success: true };
+      }
+      const error = ticket?.details?.error || ticket?.message || result?.errors?.[0]?.message || 'Expo push failed';
+      if (error === 'DeviceNotRegistered') {
+        return { success: false, error: 'INVALID_TOKEN' };
+      }
+      return { success: false, error };
+    } catch (error: any) {
+      this.logger.error(`Expo push error: ${error.message}`);
+      return { success: false, error: error.message || 'Expo push failed' };
     }
   }
 

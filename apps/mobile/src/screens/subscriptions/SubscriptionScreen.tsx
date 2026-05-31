@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
 export function SubscriptionScreen() {
   const { colors } = useTheme();
@@ -48,7 +49,17 @@ export function SubscriptionScreen() {
     }
   }
 
-  if (loading) return <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}><ActivityIndicator color={colors.accent.primary} size="large" /></View>;
+  if (loading) {
+    return (
+      <View style={[styles.loading, { backgroundColor: colors.bg.primary, paddingHorizontal: 24, gap: 16 }]}>
+        <Skeleton width={180} height={16} />
+        <Skeleton width="100%" height={100} borderRadius={16} />
+        <Skeleton width="100%" height={60} borderRadius={16} />
+        <Skeleton width="100%" height={60} borderRadius={16} />
+        <Skeleton width="75%" height={60} borderRadius={16} />
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.bg.primary }]} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent.primary} />}>

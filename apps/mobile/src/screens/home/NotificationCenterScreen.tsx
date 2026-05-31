@@ -152,10 +152,13 @@ export function NotificationCenterScreen() {
       handleMarkRead(item.id);
     }
     if (item.data?.reminderId) {
-      navigation.navigate('ReminderDetail', { reminderId: item.data.reminderId });
+      navigation.navigate('Reminders', {
+        screen: 'ReminderDetail',
+        params: { reminderId: item.data.reminderId },
+      });
     } else if (item.data?.groupId) {
-      navigation.navigate('Shared', {
-        screen: 'GroupDetail',
+      navigation.navigate('Accounts', {
+        screen: 'GroupExpenses',
         params: { groupId: item.data.groupId },
       });
     }

@@ -81,8 +81,8 @@ export function NotificationsScreen() {
   function handleNotificationPress(item: NotificationItem) {
     handleMarkRead(item.id);
     if (item.data?.groupId) {
-      navigation.navigate('Shared', {
-        screen: 'GroupDetail',
+      navigation.navigate('Accounts', {
+        screen: 'GroupExpenses',
         params: { groupId: item.data.groupId },
       });
     }

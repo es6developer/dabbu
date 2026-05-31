@@ -5,8 +5,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Font from 'expo-font';
 import Toast from 'react-native-toast-message';
-import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
-import { ThemeProvider } from './src/theme/ThemeProvider';
+import { NavigationContainer, NavigationContainerRef, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { ThemeProvider, useTheme } from './src/theme/ThemeProvider';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { AuthProvider } from './src/store/AuthContext';
 import { LockProvider } from './src/store/LockContext';
@@ -16,6 +16,41 @@ import { addNotificationResponseListener } from './src/services/notifications';
 
 SplashScreen.preventAutoHideAsync();
 LogBox.ignoreLogs(['Reanimated', 'ViewPropTypes']);
+
+function ThemedStatusBar() {
+  const { isDark, colors } = useTheme();
+  return (
+    <StatusBar
+      barStyle={isDark ? 'light-content' : 'dark-content'}
+      backgroundColor={colors.bg.primary}
+      translucent
+    />
+  );
+}
+
+function ThemedNavigationContainer({ children, navigationRef }: { children: React.ReactNode; navigationRef: React.RefObject<NavigationContainerRef<any>> }) {
+  const { isDark, colors } = useTheme();
+  const navTheme = React.useMemo(() => {
+    const base = isDark ? DarkTheme : DefaultTheme;
+    return {
+      ...base,
+      dark: isDark,
+      colors: {
+        ...base.colors,
+        background: colors.bg.primary,
+        card: colors.bg.secondary,
+        text: colors.text.primary,
+        border: colors.border.default,
+        primary: colors.accent.primary,
+      },
+    };
+  }, [isDark, colors]);
+  return (
+    <NavigationContainer ref={navigationRef} theme={navTheme}>
+      {children}
+    </NavigationContainer>
+  );
+}
 
 export default function App(): React.ReactElement | null {
   const [appIsReady, setAppIsReady] = useState(false);
@@ -72,10 +107,10 @@ export default function App(): React.ReactElement | null {
         <ThemeProvider>
           <AuthProvider>
             <LockProvider>
-              <NavigationContainer ref={navigationRef}>
-                <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+              <ThemedNavigationContainer navigationRef={navigationRef}>
+                <ThemedStatusBar />
                 <RootNavigator />
-              </NavigationContainer>
+              </ThemedNavigationContainer>
               <Toast />
             </LockProvider>
           </AuthProvider>

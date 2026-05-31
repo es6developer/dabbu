@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { DatePickerField } from '../../components/ui/DatePickerField';
 
 const PRIORITIES = ['low', 'medium', 'high', 'urgent'];
 const TASK_CATEGORIES = ['General', 'Grocery', 'Shopping', 'Custom'];
@@ -119,8 +120,7 @@ export function CreateTaskScreen() {
         <Text style={[styles.noMembers, { color: colors.text.tertiary }]}>No family members found. Join a family first.</Text>
       )}
 
-      <Text style={[styles.label, { color: colors.text.secondary }]}>Due Date (optional)</Text>
-      <TextInput style={[styles.input, { backgroundColor: colors.bg.secondary, color: colors.text.primary, borderColor: colors.border.subtle }]} value={dueDate} onChangeText={setDueDate} placeholder="YYYY-MM-DD" placeholderTextColor={colors.text.tertiary} />
+      <DatePickerField label="Due Date" value={dueDate} onChange={setDueDate} optional />
 
       <TouchableOpacity style={[styles.saveBtn, { backgroundColor: colors.accent.primary }, saving && { opacity: 0.6 }]} onPress={handleSave} disabled={saving}>
         {saving ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.saveBtnText}>Create Task</Text>}

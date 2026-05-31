@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
+import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -23,7 +24,19 @@ export function InvestmentsListScreen() {
     finally { setLoading(false); }
   }
 
-  if (loading) return <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}><ActivityIndicator color={colors.accent.primary} size="large" /></View>;
+  if (loading) {
+    return (
+      <View style={[styles.loading, { backgroundColor: colors.bg.primary, paddingHorizontal: 24, gap: 16 }]}>
+        <Skeleton width={160} height={16} />
+        <Skeleton width="100%" height={90} borderRadius={16} />
+        <Skeleton width="100%" height={60} borderRadius={12} />
+        <Skeleton width="100%" height={60} borderRadius={12} />
+        <Skeleton width="80%" height={60} borderRadius={12} />
+        <Skeleton width="100%" height={60} borderRadius={12} />
+        <Skeleton width="60%" height={60} borderRadius={12} />
+      </View>
+    );
+  }
 
   const totalValue = investments.reduce((s, i) => s + Number(i.currentValue || i.amount || 0), 0);
   const totalInvested = investments.reduce((s, i) => s + Number(i.investedAmount || i.amount || 0), 0);

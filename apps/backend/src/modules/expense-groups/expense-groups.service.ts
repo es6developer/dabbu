@@ -8,6 +8,8 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { CreateExpenseGroupDto, UpdateExpenseGroupDto, AddMemberDto } from './expense-groups.dto';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationType } from '../notification/dto/create-notification.dto';
 
 const PLAN_LIMITS = {
   free: { maxGroups: 5, maxMembersPerGroup: 2 },
@@ -19,7 +21,10 @@ const PLAN_LIMITS = {
 export class ExpenseGroupsService {
   private readonly logger = new Logger(ExpenseGroupsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationService: NotificationService,
+  ) {}
 
   private async getUserPlan(
     userId: string,
@@ -223,6 +228,10 @@ export class ExpenseGroupsService {
       },
     });
 
+    await this.notifyMemberAdded(userId, user.id, group.name, id).catch((error) => {
+      this.logger.warn(`Failed to notify added group member: ${error.message}`);
+    });
+
     return { data: member };
   }
 
@@ -237,6 +246,45 @@ export class ExpenseGroupsService {
 
     await this.prisma.expenseGroupMember.delete({ where: { id: memberId } });
     return { message: 'Member removed' };
+  }
+
+  async updateMemberRole(id: string, userId: string, memberId: string, role: 'admin' | 'member') {
+    const group = await this.findGroupOrThrow(id);
+    this.validateAdmin(group, userId);
+
+    const member = await this.prisma.expenseGroupMember.findFirst({
+      where: { id: memberId, groupId: id },
+    });
+    if (!member) {
+      throw new NotFoundException('Member not found');
+    }
+    if (member.userId === group.createdBy && role !== 'admin') {
+      throw new BadRequestException('Group owner must remain an admin');
+    }
+
+    const updated = await this.prisma.expenseGroupMember.update({
+      where: { id: memberId },
+      data: { role },
+      include: {
+        user: {
+          select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true },
+        },
+      },
+    });
+    return { data: updated };
+  }
+
+  async leave(id: string, userId: string) {
+    const group = await this.findGroupOrThrow(id);
+    const member = group.members?.find((m: any) => m.userId === userId);
+    if (!member) {
+      throw new ForbiddenException('Not a member of this group');
+    }
+    if (group.createdBy === userId) {
+      throw new BadRequestException('Transfer ownership before leaving this group');
+    }
+    await this.prisma.expenseGroupMember.delete({ where: { id: member.id } });
+    return { message: 'Left expense group' };
   }
 
   private async findGroupOrThrow(id: string) {
@@ -265,5 +313,33 @@ export class ExpenseGroupsService {
     if (member.role !== 'admin') {
       throw new ForbiddenException('Only admins can perform this action');
     }
+  }
+
+  private async notifyMemberAdded(
+    actorUserId: string,
+    addedUserId: string,
+    groupName: string,
+    groupId: string,
+  ) {
+    const actor = await this.prisma.user.findUnique({
+      where: { id: actorUserId },
+      select: { firstName: true, lastName: true, email: true },
+    });
+    const actorName =
+      `${actor?.firstName || ''} ${actor?.lastName || ''}`.trim() ||
+      actor?.email ||
+      'Someone';
+
+    await this.notificationService.create({
+      userId: addedUserId,
+      type: NotificationType.GROUP_ADD,
+      title: 'Added to a group',
+      body: `${actorName} added you to ${groupName}`,
+      data: {
+        groupId,
+        actorUserId,
+        screen: 'GroupExpenses',
+      },
+    });
   }
 }

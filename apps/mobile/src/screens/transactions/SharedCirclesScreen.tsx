@@ -1,48 +1,39 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
   FlatList,
   StyleSheet,
   TouchableOpacity,
-  ActivityIndicator,
   RefreshControl,
   TextInput,
   Dimensions,
   Alert,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
-import { useTheme, typography as typographyStyles } from '../../theme';
+import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Skeleton, SkeletonCard } from '../../components/ui/AnimatedSkeleton';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CARD_WIDTH = SCREEN_WIDTH - 48;
 
 const GROUP_ICONS: Record<string, string> = {
-  users: 'people',
-  home: 'home',
-  heart: 'heart',
-  star: 'star',
-  briefcase: 'briefcase',
-  cart: 'cart',
-  airplane: 'airplane',
-  restaurant: 'restaurant',
-  car: 'car',
-  fitness: 'fitness',
+  users: 'people', home: 'home', heart: 'heart', star: 'star',
+  briefcase: 'briefcase', cart: 'cart', airplane: 'airplane',
+  restaurant: 'restaurant', car: 'car', fitness: 'fitness',
 };
 
-function formatCurrency(val: number) {
-  return '₹' + val.toLocaleString('en-IN', { maximumFractionDigits: 0 });
-}
+function fmt(v: number) { return '₹' + v.toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
 
 export function SharedCirclesScreen() {
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
-  const { colors, isDark, typography } = useTheme();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 
   const [groups, setGroups] = useState<any[]>([]);
@@ -52,39 +43,31 @@ export function SharedCirclesScreen() {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<'all' | 'recent' | 'active'>('all');
 
-  const loadData = useCallback(async () => {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const abortRef = useRef<AbortController | null>(null);
+
+  const loadData = useCallback(async (refresh = false) => {
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    if (refresh) setRefreshing(true); else setLoading(true);
     try {
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
+      if (accessToken) setAccessToken(accessToken);
       const [grpResult, txResult] = await Promise.allSettled([
-        api.get<any>('/expense-groups'),
-        api.get<any>('/transactions'),
+        api.get<any>('/expense-groups', ctrl.signal),
+        api.get<any>('/transactions', ctrl.signal),
       ]);
-      const grpRes = grpResult.status === 'fulfilled' ? grpResult.value : [];
-      const txRes = txResult.status === 'fulfilled' ? txResult.value : [];
-      const g = Array.isArray(grpRes) ? grpRes : Array.isArray(grpRes?.data) ? grpRes.data : [];
+      if (ctrl.signal.aborted) return;
+      const g = grpResult.status === 'fulfilled' ? (Array.isArray(grpResult.value) ? grpResult.value : Array.isArray(grpResult.value?.data) ? grpResult.value.data : []) : [];
+      const txData = txResult.status === 'fulfilled' ? (Array.isArray(txResult.value) ? txResult.value : Array.isArray(txResult.value?.data) ? txResult.value.data : []) : [];
       setGroups(g);
-      const txData = Array.isArray(txRes) ? txRes : Array.isArray(txRes?.data) ? txRes.data : [];
       setTransactions(txData);
-    } catch (e) {
-      /* ignore */
-    } finally {
-      setLoading(false);
-    }
-  }, [accessToken]);
+      Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
+    } catch (e) { /* ignore */ }
+    finally { if (!ctrl.signal.aborted) { setLoading(false); setRefreshing(false); } }
+  }, [accessToken, fadeAnim]);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadData();
-    }, [loadData]),
-  );
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await loadData();
-    setRefreshing(false);
-  }, [loadData]);
+  useFocusEffect(useCallback(() => { loadData(); return () => abortRef.current?.abort(); }, [loadData]));
 
   const planInfo = groups[0]?._plan || { tier: 'free', maxGroups: 5, maxMembersPerGroup: 2 };
 
@@ -92,307 +75,171 @@ export function SharedCirclesScreen() {
     const map: Record<string, { total: number; count: number; latest: any }> = {};
     for (const tx of transactions) {
       const gid = tx.expenseGroupId;
-      if (!gid) {
-        continue;
-      }
-      if (!map[gid]) {
-        map[gid] = { total: 0, count: 0, latest: null };
-      }
+      if (!gid) continue;
+      if (!map[gid]) map[gid] = { total: 0, count: 0, latest: null };
       map[gid].total += Number(tx.amount);
       map[gid].count += 1;
-      if (!map[gid].latest || new Date(tx.date) > new Date(map[gid].latest.date)) {
-        map[gid].latest = tx;
-      }
+      if (!map[gid].latest || new Date(tx.date) > new Date(map[gid].latest.date)) map[gid].latest = tx;
     }
     return map;
   }, [transactions]);
 
   const filtered = useMemo(() => {
     let list = [...groups];
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      list = list.filter((g) => g.name?.toLowerCase().includes(q));
-    }
-    if (sortBy === 'recent') {
-      list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    } else if (sortBy === 'active') {
-      list.sort((a, b) => (groupExpenses[b.id]?.count || 0) - (groupExpenses[a.id]?.count || 0));
-    }
+    if (search.trim()) { const q = search.toLowerCase(); list = list.filter(g => g.name?.toLowerCase().includes(q)); }
+    if (sortBy === 'recent') list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    else if (sortBy === 'active') list.sort((a, b) => (groupExpenses[b.id]?.count || 0) - (groupExpenses[a.id]?.count || 0));
     return list;
   }, [groups, search, sortBy, groupExpenses]);
 
   function handleCreateGroup() {
-    const currentCount = groups.length;
-    if (currentCount >= planInfo.maxGroups) {
-      Alert.alert(
-        'Plan Limit Reached',
-        `Free plan allows up to ${planInfo.maxGroups} groups. Upgrade to Premium for up to 30 groups or Gold for unlimited.`,
-        [
-          {
-            text: 'Upgrade',
-            onPress: () => navigation.navigate('Settings', { screen: 'Subscription' }),
-          },
-          { text: 'Cancel', style: 'cancel' },
-        ],
-      );
+    if (groups.length >= planInfo.maxGroups) {
+      Alert.alert('Plan Limit', `Free plan allows ${planInfo.maxGroups} groups. Upgrade for more.`, [
+        { text: 'Upgrade', onPress: () => navigation.navigate('Settings', { screen: 'Subscription' }) },
+        { text: 'Cancel', style: 'cancel' },
+      ]);
       return;
     }
     navigation.navigate('CreateExpenseGroup');
   }
 
-  function renderGroupCard({ item }: { item: any }) {
-    const expenseData = groupExpenses[item.id] || { total: 0, count: 0, latest: null };
-    const iconName = GROUP_ICONS[item.icon] || 'people';
-    const budgetRemaining = item.monthlyBudget ? item.monthlyBudget - expenseData.total : null;
-
-    return (
-      <View style={styles.groupCardWrapper}>
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() =>
-            navigation.navigate('GroupExpenses', { groupId: item.id, groupName: item.name })
-          }
-          style={styles.groupCardTouch}
-        >
-          <LinearGradient
-            colors={['#1a1a2e', '#16213e']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.groupCard}
-          >
-            <View style={styles.groupCardTop}>
-              <LinearGradient colors={['#6C5CE7', '#A29BFE']} style={styles.groupCardAvatar}>
-                <Ionicons name={iconName as any} size={22} color="#FFF" />
-              </LinearGradient>
-              <View style={styles.groupCardInfo}>
-                <Text style={styles.groupCardName} numberOfLines={1}>
-                  {item.name}
-                </Text>
-                <Text style={styles.groupCardMembers}>
-                  <Ionicons name="people-outline" size={11} color="rgba(255,255,255,0.5)" />{' '}
-                  {item._count?.members || 0} member{(item._count?.members || 0) !== 1 ? 's' : ''}
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={styles.groupCardDeleteBtn}
-                onPress={() => confirmDelete(item.id)}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <Ionicons name="trash-outline" size={18} color="rgba(255,255,255,0.4)" />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.groupCardStats}>
-              <View style={styles.groupCardStat}>
-                <Text style={styles.groupCardStatLabel}>Total Expense</Text>
-                <Text style={styles.groupCardStatValue}>{formatCurrency(expenseData.total)}</Text>
-              </View>
-              {budgetRemaining !== null && (
-                <View style={styles.groupCardStat}>
-                  <Text style={styles.groupCardStatLabel}>Budget Left</Text>
-                  <Text
-                    style={[
-                      styles.groupCardStatValue,
-                      { color: budgetRemaining >= 0 ? '#00B894' : '#FF6B6B' },
-                    ]}
-                  >
-                    {formatCurrency(Math.abs(budgetRemaining))}
-                  </Text>
-                </View>
-              )}
-              <View style={styles.groupCardStat}>
-                <Text style={styles.groupCardStatLabel}>Transactions</Text>
-                <Text style={styles.groupCardStatValue}>{expenseData.count}</Text>
-              </View>
-            </View>
-
-            {expenseData.latest && (
-              <View style={styles.groupCardLatest}>
-                <Text style={styles.groupCardLatestLabel}>Latest</Text>
-                <Text style={styles.groupCardLatestText} numberOfLines={1}>
-                  {expenseData.latest.description || 'Expense'} ·{' '}
-                  {formatCurrency(Number(expenseData.latest.amount))}
-                </Text>
-              </View>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
   async function confirmDelete(id: string) {
-    Alert.alert('Delete Group', 'All group data will be lost. Are you sure?', [
+    Alert.alert('Delete Group', 'All group data will be lost.', [
       { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            if (accessToken) {
-              setAccessToken(accessToken);
-            }
-            await api.delete(`/expense-groups/${id}`);
-            setGroups((prev) => prev.filter((g) => g.id !== id));
-          } catch (e: any) {
-            Alert.alert('Error', e.message || 'Failed to delete');
-          }
-        },
-      },
+      { text: 'Delete', style: 'destructive', onPress: async () => {
+        try {
+          if (accessToken) setAccessToken(accessToken);
+          await api.delete(`/expense-groups/${id}`);
+          setGroups(p => p.filter(g => g.id !== id));
+        } catch (e: any) { Alert.alert('Error', e.message); }
+      }},
     ]);
   }
 
   if (loading) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
-        <View style={[styles.loadingHeader, { paddingTop: insets.top + 16 }]}>
-          <View
-            style={[
-              styles.skeletonBlock,
-              { width: 140, height: 28, backgroundColor: colors.bg.tertiary },
-            ]}
-          />
-          <View
-            style={[
-              styles.skeletonBlock,
-              { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.bg.tertiary },
-            ]}
-          />
+      <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
+        <View style={[s.header, { paddingTop: insets.top + 16 }]}>
+          <View>
+            <Skeleton width={100} height={14} />
+            <Skeleton width={100} height={28} style={{ marginTop: 4 }} />
+          </View>
+          <Skeleton width={44} height={44} borderRadius={14} />
         </View>
-        {[1, 2, 3].map((i) => (
-          <View key={i} style={[styles.skeletonCard, { backgroundColor: colors.bg.tertiary }]} />
-        ))}
+        <Skeleton width="90%" height={44} borderRadius={12} style={{ marginHorizontal: 24, marginBottom: 12 }} />
+        {[1,2,3].map(i => <SkeletonCard key={i} style={{ marginHorizontal: 24, marginBottom: 12 }} />)}
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
+    <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
       <FlatList
         data={filtered}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id}
         showsVerticalScrollIndicator={false}
-        windowSize={10}
-        maxToRenderPerBatch={10}
+        windowSize={5}
         initialNumToRender={5}
-        removeClippedSubviews={true}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.accent.primary}
-          />
-        }
-        contentContainerStyle={groups.length === 0 ? styles.emptyContainer : { paddingBottom: 100 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} tintColor={colors.accent.primary} />}
+        contentContainerStyle={groups.length === 0 ? s.emptyContainer : { paddingBottom: 100 }}
         ListHeaderComponent={
-          <View>
-            <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+          <Animated.View style={{ opacity: fadeAnim }}>
+            <View style={[s.header, { paddingTop: insets.top + 16 }]}>
               <View>
-                <Text style={[styles.headerGreeting, { color: colors.text.tertiary }]}>
-                  Shared Circles
-                </Text>
-                <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Groups</Text>
+                <Text style={[s.subtitle, { color: colors.text.tertiary }]}>Shared Circles</Text>
+                <Text style={[s.title, { color: colors.text.primary }]}>Groups</Text>
               </View>
-              <TouchableOpacity
-                style={[styles.createBtn, { backgroundColor: colors.accent.primary }]}
-                onPress={handleCreateGroup}
-              >
+              <TouchableOpacity style={[s.addBtn, { backgroundColor: colors.accent.primary }]} onPress={handleCreateGroup}>
                 <Ionicons name="add" size={22} color="#FFF" />
               </TouchableOpacity>
             </View>
 
-            <View style={[styles.planBar, { backgroundColor: colors.bg.tertiary }]}>
-              <View style={styles.planBarLeft}>
-                <Ionicons
-                  name={
-                    planInfo.tier === 'free'
-                      ? 'shield-outline'
-                      : planInfo.tier === 'gold'
-                        ? 'shield-checkmark'
-                        : 'shield-half-outline'
-                  }
-                  size={16}
-                  color={planInfo.tier === 'free' ? '#FF6B6B' : '#00B894'}
-                />
-                <Text style={[styles.planBarText, { color: colors.text.secondary }]}>
-                  {groups.length} / {planInfo.maxGroups} groups used
-                </Text>
+            <View style={[s.planBar, { backgroundColor: colors.bg.tertiary }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Ionicons name={planInfo.tier === 'free' ? 'shield-outline' : 'shield-checkmark'} size={16} color={planInfo.tier === 'free' ? '#FF6B6B' : '#00B894'} />
+                <Text style={[s.planText, { color: colors.text.secondary }]}>{groups.length}/{planInfo.maxGroups} groups</Text>
               </View>
               {planInfo.tier === 'free' && (
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}
-                >
-                  <Text style={[styles.planBarAction, { color: colors.accent.primary }]}>
-                    Upgrade
-                  </Text>
+                <TouchableOpacity onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}>
+                  <Text style={[s.planAction, { color: colors.accent.primary }]}>Upgrade</Text>
                 </TouchableOpacity>
               )}
             </View>
 
-            <View style={styles.searchRow}>
-              <View style={[styles.searchBar, { backgroundColor: colors.bg.tertiary }]}>
+            <View style={s.searchRow}>
+              <View style={[s.searchBar, { backgroundColor: colors.bg.tertiary }]}>
                 <Ionicons name="search-outline" size={18} color={colors.text.tertiary} />
-                <TextInput
-                  style={[styles.searchInput, { color: colors.text.primary }]}
-                  value={search}
-                  onChangeText={setSearch}
-                  placeholder="Search groups"
-                  placeholderTextColor={colors.text.tertiary}
-                />
-                {search ? (
-                  <TouchableOpacity onPress={() => setSearch('')}>
-                    <Ionicons name="close-circle" size={18} color={colors.text.tertiary} />
-                  </TouchableOpacity>
-                ) : null}
+                <TextInput style={[s.searchInput, { color: colors.text.primary }]} value={search} onChangeText={setSearch} placeholder="Search groups" placeholderTextColor={colors.text.tertiary} />
+                {search ? <TouchableOpacity onPress={() => setSearch('')}><Ionicons name="close-circle" size={18} color={colors.text.tertiary} /></TouchableOpacity> : null}
               </View>
             </View>
 
-            <View style={styles.filterRow}>
-              {(['all', 'recent', 'active'] as const).map((s) => (
-                <TouchableOpacity
-                  key={s}
-                  style={[
-                    styles.filterChip,
-                    sortBy === s
-                      ? styles.filterChipActive
-                      : { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-                  ]}
-                  onPress={() => setSortBy(s)}
-                >
-                  <Text
-                    style={[
-                      styles.filterChipText,
-                      { color: sortBy === s ? '#FFF' : colors.text.secondary },
-                    ]}
-                  >
-                    {s.charAt(0).toUpperCase() + s.slice(1)}
-                  </Text>
+            <View style={s.filterRow}>
+              {(['all', 'recent', 'active'] as const).map(option => (
+                <TouchableOpacity key={option} style={[s.filterChip, sortBy === option ? s.filterChipActive : { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle }]} onPress={() => setSortBy(option)}>
+                  <Text style={[s.filterText, { color: sortBy === option ? '#FFF' : colors.text.secondary }]}>{option.charAt(0).toUpperCase() + option.slice(1)}</Text>
                 </TouchableOpacity>
               ))}
             </View>
-          </View>
+          </Animated.View>
         }
-        renderItem={renderGroupCard}
+        renderItem={({ item }) => {
+          const ed = groupExpenses[item.id] || { total: 0, count: 0, latest: null };
+          const budgetLeft = item.monthlyBudget ? item.monthlyBudget - ed.total : null;
+          return (
+            <View>
+              <TouchableOpacity activeOpacity={0.7} onPress={() => navigation.navigate('GroupExpenses', { groupId: item.id, groupName: item.name })} style={s.cardOuter}>
+                <LinearGradient colors={['#1a1a2e', '#16213e']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.card}>
+                  <View style={s.cardTop}>
+                    <LinearGradient colors={['#6C5CE7', '#A29BFE']} style={s.cardAvatar}>
+                      <Ionicons name={(GROUP_ICONS[item.icon] || 'people') as any} size={22} color="#FFF" />
+                    </LinearGradient>
+                    <View style={{ flex: 1 }}>
+                      <Text style={s.cardName} numberOfLines={1}>{item.name}</Text>
+                      <Text style={s.cardMembers}><Ionicons name="people-outline" size={11} color="rgba(255,255,255,0.5)" /> {item._count?.members || 0} member{(item._count?.members || 0) !== 1 ? 's' : ''}</Text>
+                    </View>
+                    <TouchableOpacity style={s.deleteBtn} onPress={() => confirmDelete(item.id)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                      <Ionicons name="trash-outline" size={18} color="rgba(255,255,255,0.4)" />
+                    </TouchableOpacity>
+                  </View>
+                  <View style={s.statsRow}>
+                    <View style={s.stat}>
+                      <Text style={s.statLabel}>Total</Text>
+                      <Text style={s.statVal}>{fmt(ed.total)}</Text>
+                    </View>
+                    {budgetLeft !== null && (
+                      <View style={s.stat}>
+                        <Text style={s.statLabel}>Budget Left</Text>
+                        <Text style={[s.statVal, { color: budgetLeft >= 0 ? '#00B894' : '#FF6B6B' }]}>{fmt(Math.abs(budgetLeft))}</Text>
+                      </View>
+                    )}
+                    <View style={s.stat}>
+                      <Text style={s.statLabel}>Txns</Text>
+                      <Text style={s.statVal}>{ed.count}</Text>
+                    </View>
+                  </View>
+                  {ed.latest && (
+                    <View style={s.latest}>
+                      <Text style={s.latestLabel}>Latest</Text>
+                      <Text style={s.latestText} numberOfLines={1}>{ed.latest.description || 'Expense'} · {fmt(Number(ed.latest.amount))}</Text>
+                    </View>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          );
+        }}
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <LinearGradient colors={['#6C5CE720', '#A29BFE20']} style={styles.emptyIcon}>
+          <View style={s.empty}>
+            <LinearGradient colors={['#6C5CE720', '#A29BFE20']} style={s.emptyIcon}>
               <Ionicons name="people" size={44} color="#6C5CE7" />
             </LinearGradient>
-            <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
-              {search ? 'No groups found' : 'No groups yet'}
-            </Text>
-            <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
-              {search
-                ? 'Try a different search'
-                : 'Create your first circle to track expenses together'}
-            </Text>
+            <Text style={[s.emptyTitle, { color: colors.text.primary }]}>{search ? 'No groups found' : 'No groups yet'}</Text>
+            <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>{search ? 'Try a different search' : 'Create your first circle'}</Text>
             {!search && (
-              <TouchableOpacity
-                style={[styles.emptyCta, { backgroundColor: colors.accent.primary }]}
-                onPress={handleCreateGroup}
-              >
+              <TouchableOpacity style={[s.emptyCta, { backgroundColor: colors.accent.primary }]} onPress={handleCreateGroup}>
                 <Ionicons name="add" size={18} color="#FFF" />
-                <Text style={styles.emptyCtaText}>Create Group</Text>
+                <Text style={s.emptyCtaText}>Create Group</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -402,148 +249,41 @@ export function SharedCirclesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  loadingHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingBottom: 16,
-  },
-  skeletonBlock: { borderRadius: 8 },
-  skeletonCard: { marginHorizontal: 24, height: 160, borderRadius: 20, marginBottom: 12 },
+const s = StyleSheet.create({
+  screen: { flex: 1 },
   emptyContainer: { flexGrow: 1, justifyContent: 'center' },
-
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingBottom: 12,
-  },
-  headerGreeting: { ...typographyStyles.secondary, marginBottom: 2 },
-  headerTitle: { ...typographyStyles.appTitle },
-  createBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  planBar: {
-    marginHorizontal: 24,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  planBarLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  planBarText: { ...typographyStyles.secondary },
-  planBarAction: { ...typographyStyles.subhead, fontFamily: 'Inter-Bold' },
-
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, paddingBottom: 12 },
+  subtitle: { fontSize: 13, fontWeight: '500', marginBottom: 2 },
+  title: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5 },
+  addBtn: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  planBar: { marginHorizontal: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 12, marginBottom: 12 },
+  planText: { fontSize: 13, fontWeight: '500' },
+  planAction: { fontSize: 13, fontWeight: '700' },
   searchRow: { paddingHorizontal: 24, marginBottom: 8 },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    borderRadius: 16,
-    height: 48,
-  },
-  searchInput: { flex: 1, fontSize: 15, fontFamily: 'Inter-Regular', marginLeft: 10 },
-
+  searchBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, borderRadius: 16, height: 46 },
+  searchInput: { flex: 1, fontSize: 14, marginLeft: 10 },
   filterRow: { flexDirection: 'row', paddingHorizontal: 24, gap: 8, marginBottom: 16 },
-  filterChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1 },
+  filterChip: { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, borderWidth: 1 },
   filterChipActive: { backgroundColor: '#f7892c', borderColor: '#f7892c' },
-  filterChipText: { ...typographyStyles.subhead, fontFamily: 'Inter-SemiBold' },
-
-  groupCardWrapper: { position: 'relative' },
-  groupCardTouch: { marginHorizontal: 24, marginBottom: 12 },
-  groupCard: { borderRadius: 20, padding: 18, gap: 14 },
-  groupCardTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  groupCardAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  groupCardInfo: { flex: 1 },
-  groupCardDeleteBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.08)',
-  },
-  groupCardName: { fontSize: 17, fontFamily: 'Inter-Bold', color: '#FFF' },
-  groupCardMembers: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    color: 'rgba(255,255,255,0.5)',
-    marginTop: 2,
-  },
-  groupCardStats: { flexDirection: 'row', gap: 12 },
-  groupCardStat: {
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 12,
-    padding: 10,
-    gap: 2,
-  },
-  groupCardStatLabel: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 10,
-    color: 'rgba(255,255,255,0.4)',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  groupCardStatValue: { fontFamily: 'Inter-Bold', fontSize: 15, color: '#FFF' },
-  groupCardLatest: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 10,
-    padding: 10,
-  },
-  groupCardLatestLabel: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 10,
-    color: 'rgba(255,255,255,0.3)',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  groupCardLatestText: {
-    flex: 1,
-    fontFamily: 'Inter-Regular',
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.7)',
-  },
-
+  filterText: { fontSize: 12, fontWeight: '600' },
+  cardOuter: { marginHorizontal: 24, marginBottom: 12 },
+  card: { borderRadius: 20, padding: 18, gap: 14 },
+  cardTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  cardAvatar: { width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  cardName: { fontSize: 17, fontWeight: '700', color: '#FFF' },
+  cardMembers: { fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 2 },
+  deleteBtn: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.08)' },
+  statsRow: { flexDirection: 'row', gap: 12 },
+  stat: { flex: 1, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 10, gap: 2 },
+  statLabel: { fontSize: 10, fontWeight: '600', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: 0.5 },
+  statVal: { fontSize: 15, fontWeight: '700', color: '#FFF' },
+  latest: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: 10 },
+  latestLabel: { fontSize: 10, fontWeight: '600', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: 0.5 },
+  latestText: { flex: 1, fontSize: 13, color: 'rgba(255,255,255,0.7)' },
   empty: { alignItems: 'center', gap: 12, paddingTop: 60 },
-  emptyIcon: {
-    width: 88,
-    height: 88,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyTitle: { ...typographyStyles.body, fontFamily: 'Inter-Bold' },
-  emptyDesc: { ...typographyStyles.subhead, textAlign: 'center', paddingHorizontal: 48 },
-  emptyCta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 14,
-    marginTop: 8,
-  },
-  emptyCtaText: { color: '#FFF', ...typographyStyles.body, fontFamily: 'Inter-SemiBold' },
+  emptyIcon: { width: 88, height: 88, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
+  emptyTitle: { fontSize: 17, fontWeight: '700' },
+  emptyDesc: { fontSize: 13, textAlign: 'center', paddingHorizontal: 48 },
+  emptyCta: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 14, marginTop: 8 },
+  emptyCtaText: { color: '#FFF', fontSize: 15, fontWeight: '600' },
 });

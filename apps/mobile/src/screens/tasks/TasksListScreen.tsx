@@ -3,6 +3,7 @@ import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, 
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
 export function TasksListScreen() {
   const { colors } = useTheme();
@@ -64,7 +65,17 @@ export function TasksListScreen() {
     return [{ family: 'Tasks', tasks }];
   }
 
-  if (loading) return <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}><ActivityIndicator color={colors.accent.primary} size="large" /></View>;
+  if (loading) {
+    return (
+      <View style={[styles.loading, { backgroundColor: colors.bg.primary, paddingHorizontal: 24, gap: 14 }]}>
+        <Skeleton width={140} height={18} />
+        <Skeleton width="100%" height={80} borderRadius={14} />
+        <Skeleton width="100%" height={80} borderRadius={14} />
+        <Skeleton width="100%" height={80} borderRadius={14} />
+        <Skeleton width="70%" height={80} borderRadius={14} />
+      </View>
+    );
+  }
 
   const grouped = groupTasksByFamily();
 

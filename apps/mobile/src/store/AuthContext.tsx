@@ -147,6 +147,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       accessToken: tokens.accessToken,
     });
+
+    registerForPushNotifications(tokens.accessToken).catch(() => {});
   }
 
   async function register(email: string, password: string, firstName: string, lastName: string) {

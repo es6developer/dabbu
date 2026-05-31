@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
@@ -44,7 +45,17 @@ export function BudgetDetailScreen() {
     ]);
   }
 
-  if (loading) return <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}><ActivityIndicator color={colors.accent.primary} size="large" /></View>;
+  if (loading) {
+    return (
+      <View style={[styles.loading, { backgroundColor: colors.bg.primary, paddingHorizontal: 24, gap: 16 }]}>
+        <Skeleton width={180} height={20} />
+        <Skeleton width="100%" height={140} borderRadius={20} />
+        <Skeleton width="100%" height={60} borderRadius={12} />
+        <Skeleton width="100%" height={60} borderRadius={12} />
+        <Skeleton width="70%" height={60} borderRadius={12} />
+      </View>
+    );
+  }
   if (!budget) return <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}><Text style={[styles.errorText, { color: colors.status.error }]}>Budget not found</Text></View>;
 
   const spent = Number(budget.spent || budget._sum?.amount || 0);

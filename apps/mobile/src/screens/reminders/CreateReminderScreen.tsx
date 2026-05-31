@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { DatePickerField } from '../../components/ui/DatePickerField';
 
 const REMINDER_TYPES = ['general', 'payment', 'bill', 'subscription', 'goal'];
 const PRIORITIES = ['low', 'medium', 'high', 'urgent'];
@@ -245,37 +246,9 @@ export function CreateReminderScreen() {
         </View>
       )}
 
-      <Text style={[styles.label, { color: colors.text.secondary }]}>Start Date</Text>
-      <TextInput
-        style={[
-          styles.input,
-          {
-            backgroundColor: colors.bg.secondary,
-            color: colors.text.primary,
-            borderColor: colors.border.subtle,
-          },
-        ]}
-        value={startDate}
-        onChangeText={setStartDate}
-        placeholder="YYYY-MM-DD"
-        placeholderTextColor={colors.text.tertiary}
-      />
+      <DatePickerField label="Start Date" value={startDate} onChange={setStartDate} />
 
-      <Text style={[styles.label, { color: colors.text.secondary }]}>Due Date (optional)</Text>
-      <TextInput
-        style={[
-          styles.input,
-          {
-            backgroundColor: colors.bg.secondary,
-            color: colors.text.primary,
-            borderColor: colors.border.subtle,
-          },
-        ]}
-        value={dueDate}
-        onChangeText={setDueDate}
-        placeholder="YYYY-MM-DD"
-        placeholderTextColor={colors.text.tertiary}
-      />
+      <DatePickerField label="Due Date" value={dueDate} onChange={setDueDate} optional />
 
       <Text style={[styles.label, { color: colors.text.secondary }]}>Category</Text>
       <TextInput

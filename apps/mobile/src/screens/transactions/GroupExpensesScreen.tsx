@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,11 @@ import {
   TouchableOpacity,
   Animated,
   RefreshControl,
+  Modal,
+  TextInput,
+  Alert,
+  ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
@@ -15,82 +20,25 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Skeleton, SkeletonCard } from '../../components/ui/AnimatedSkeleton';
 
-function formatCurrency(val: number) {
-  return '₹' + Number(val || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+function fmt(v: number) { return '₹' + Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
+
+function normalize<T>(res: any): T {
+  if (!res) return [] as unknown as T;
+  if (Array.isArray(res)) return res as T;
+  if (res.data && Array.isArray(res.data)) return res.data as T;
+  return res as T;
 }
 
-function normalizePayload<T>(response: any): T {
-  if (!response) {
-    return [] as unknown as T;
-  }
-  if (Array.isArray(response)) {
-    return response as T;
-  }
-  if (response.data && Array.isArray(response.data)) {
-    return response.data as T;
-  }
-  return response as T;
-}
-
-function getSettledError(result: PromiseSettledResult<any>): string | null {
-  if (result.status === 'fulfilled') {
-    return null;
-  }
-  return result.reason?.message || 'Request failed';
-}
-
-function MoneyLoader() {
-  const { colors } = useTheme();
-  const pulse = useRef(new Animated.Value(0.65)).current;
-  const lift = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const animation = Animated.loop(
-      Animated.parallel([
-        Animated.sequence([
-          Animated.timing(pulse, { toValue: 1, duration: 650, useNativeDriver: true }),
-          Animated.timing(pulse, { toValue: 0.65, duration: 650, useNativeDriver: true }),
-        ]),
-        Animated.sequence([
-          Animated.timing(lift, { toValue: -8, duration: 650, useNativeDriver: true }),
-          Animated.timing(lift, { toValue: 0, duration: 650, useNativeDriver: true }),
-        ]),
-      ]),
-    );
-    animation.start();
-    return () => animation.stop();
-  }, [lift, pulse]);
-
-  return (
-    <View style={styles.moneyLoader}>
-      <Animated.View
-        style={[
-          styles.moneyCoin,
-          {
-            backgroundColor: colors.accent.primary,
-            opacity: pulse,
-            transform: [{ translateY: lift }],
-          },
-        ]}
-      >
-        <Text style={styles.moneyCoinText}>₹</Text>
-      </Animated.View>
-      <Text style={[styles.moneyLoadingTitle, { color: colors.text.primary }]}>
-        Loading expenses
-      </Text>
-      <Text style={[styles.moneyLoadingText, { color: colors.text.tertiary }]}>
-        Counting every rupee
-      </Text>
-    </View>
-  );
-}
+const GROUP_TABS = ['overview', 'expenses', 'balances', 'members', 'activity', 'settings'] as const;
+const GROUP_ICONS = ['users', 'home', 'heart', 'star', 'briefcase', 'cart', 'airplane', 'restaurant', 'car', 'fitness'];
 
 export function GroupExpensesScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const { accessToken } = useAuth();
-  const { colors, isDark, typography } = useTheme();
+  const { accessToken, user: currentUser } = useAuth();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { groupId, groupName: routeGroupName } = route.params || {};
 
@@ -99,570 +47,538 @@ export function GroupExpensesScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [savingGroup, setSavingGroup] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editBudget, setEditBudget] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [editIcon, setEditIcon] = useState('users');
+  const [activeTab, setActiveTab] = useState<(typeof GROUP_TABS)[number]>('overview');
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const abortRef = useRef<AbortController | null>(null);
 
-  const loadData = useCallback(async () => {
-    if (!groupId) {
-      setError('Missing group identifier');
-      setTransactions([]);
-      setGroup(null);
-      setLoading(false);
-      setRefreshing(false);
-      return;
-    }
+  const loadData = useCallback(async (refresh = false) => {
+    if (!groupId) { setError('Missing group'); setLoading(false); return; }
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    if (refresh) setRefreshing(true); else setLoading(true);
+    setError(null);
 
     try {
-      setError(null);
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
+      if (accessToken) setAccessToken(accessToken);
       const [txRes, grpRes] = await Promise.allSettled([
-        api.get<any>(`/transactions?expenseGroupId=${groupId}`),
-        api.get<any>(`/expense-groups/${groupId}`),
+        api.get<any>(`/transactions?expenseGroupId=${groupId}`, ctrl.signal),
+        api.get<any>(`/expense-groups/${groupId}`, ctrl.signal),
       ]);
+      if (ctrl.signal.aborted) return;
 
-      const txData = normalizePayload<any[]>(txRes.status === 'fulfilled' ? txRes.value : null);
-      const groupData = grpRes.status === 'fulfilled' ? normalizePayload<any>(grpRes.value) : null;
-
-      if (txRes.status === 'rejected' && grpRes.status === 'rejected') {
-        throw new Error(
-          getSettledError(txRes) || getSettledError(grpRes) || 'Unable to load expenses',
-        );
-      }
+      const txData = normalize<any[]>(txRes.status === 'fulfilled' ? txRes.value : null);
+      const gData = grpRes.status === 'fulfilled' ? normalize<any>(grpRes.value) : null;
+      if (txRes.status === 'rejected' && grpRes.status === 'rejected') throw new Error('Unable to load');
 
       setTransactions(Array.isArray(txData) ? txData : []);
-      setGroup(groupData);
-      setError(getSettledError(txRes) || getSettledError(grpRes));
-    } catch (loadError: any) {
-      setError(loadError?.message || 'Unable to load expenses');
-      setTransactions([]);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [accessToken, groupId]);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (transactions.length === 0) {
-        setLoading(true);
+      setGroup(gData);
+      if (gData) {
+        setEditName(gData.name || '');
+        setEditDescription(gData.description || '');
+        setEditBudget(gData.monthlyBudget ? String(gData.monthlyBudget) : '');
+        setEditIcon(gData.icon || 'users');
       }
-      loadData();
-    }, [loadData, transactions.length]),
-  );
+      Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
+    } catch (e: any) { if (!ctrl.signal.aborted) setError(e.message || 'Unable to load'); }
+    finally { if (!ctrl.signal.aborted) { setLoading(false); setRefreshing(false); } }
+  }, [accessToken, groupId, fadeAnim]);
 
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await loadData();
-  }, [loadData]);
-
-  const onRetry = useCallback(async () => {
-    setLoading(true);
-    await loadData();
-  }, [loadData]);
+  useFocusEffect(useCallback(() => { if (transactions.length === 0) setLoading(true); loadData(); return () => abortRef.current?.abort(); }, [loadData]));
 
   const stats = useMemo(() => {
     const now = new Date();
-    const monthly = transactions.filter((t) => {
-      const date = new Date(t.date || t.createdAt || t.createdAt);
-      return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
-    });
-    const totalExpense = transactions
-      .filter((t) => t.type === 'expense')
-      .reduce((sum, t) => sum + Number(t.amount || 0), 0);
-    const totalIncome = transactions
-      .filter((t) => t.type === 'income')
-      .reduce((sum, t) => sum + Number(t.amount || 0), 0);
-    const monthlySpending = monthly
-      .filter((t) => t.type === 'expense')
-      .reduce((sum, t) => sum + Number(t.amount || 0), 0);
-    const budget = Number(group?.monthlyBudget || 0);
-    const budgetRemaining = budget > 0 ? budget - monthlySpending : null;
-    return {
-      totalExpense,
-      totalIncome,
-      monthlySpending,
-      budgetRemaining,
-      totalCount: transactions.length,
-    };
+    const monthly = transactions.filter(t => { const d = new Date(t.date || t.createdAt); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); });
+    const te = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount||0), 0);
+    const ti = transactions.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount||0), 0);
+    const ms = monthly.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount||0), 0);
+    const budget = Number(group?.monthlyBudget||0);
+    return { totalExpense: te, totalIncome: ti, monthlySpending: ms, budgetRemaining: budget > 0 ? budget - ms : null, totalCount: transactions.length };
   }, [transactions, group]);
 
   const members = Array.isArray(group?.members) ? group.members : [];
   const memberMap = useMemo(() => {
-    const map: Record<string, any> = {};
-    members.forEach((member: any) => {
-      if (member?.userId) {
-        map[member.userId] = member.user || member;
-      }
-    });
-    return map;
+    const m: Record<string, any> = {};
+    members.forEach((mem: any) => { if (mem?.userId) m[mem.userId] = mem.user || mem; });
+    return m;
   }, [members]);
+  const name = group?.name || routeGroupName || 'Group';
 
-  const displayedGroupName = group?.name || routeGroupName || 'Group';
+  async function saveGroupSettings() {
+    if (!editName.trim()) return Alert.alert('Group name required', 'Please enter a group name.');
+    setSavingGroup(true);
+    try {
+      if (accessToken) setAccessToken(accessToken);
+      await api.patch(`/expense-groups/${groupId}`, {
+        name: editName.trim(),
+        description: editDescription.trim(),
+        icon: editIcon,
+        monthlyBudget: editBudget.trim() ? Number(editBudget) : null,
+      });
+      await loadData(true);
+      setSettingsOpen(false);
+    } catch (e: any) { Alert.alert('Unable to save', e.message || 'Try again'); }
+    finally { setSavingGroup(false); }
+  }
+
+  const activity = useMemo(() => {
+    const txActivity = transactions.slice(0, 8).map((tx) => ({
+      id: tx.id,
+      title: 'Expense created',
+      detail: `${tx.description || tx.category?.name || 'Expense'} · ${fmt(Number(tx.amount || 0))}`,
+      date: tx.createdAt || tx.date,
+      icon: 'receipt-outline',
+    }));
+    const memberActivity = members.slice(0, 6).map((member: any) => ({
+      id: `member-${member.id}`,
+      title: 'Member added',
+      detail: member.user?.firstName || member.user?.email || 'Member',
+      date: member.addedAt,
+      icon: 'person-add-outline',
+    }));
+    return [...txActivity, ...memberActivity]
+      .filter((item) => item.date)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [transactions, members]);
+
+  const balanceRows = useMemo<Array<{ id: string; name: string; paid: number; balance: number }>>(() => {
+    if (members.length === 0) return [];
+    const total = stats.totalExpense;
+    const share = total / Math.max(members.length, 1);
+    return members.map((member: any) => {
+      const paid = transactions
+        .filter((tx) => tx.userId === member.userId && tx.type === 'expense')
+        .reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
+      return {
+        id: member.id,
+        name: member.user?.firstName || member.user?.email || 'Member',
+        paid,
+        balance: paid - share,
+      };
+    });
+  }, [members, stats.totalExpense, transactions]);
+
+  async function addMember() {
+    if (!inviteEmail.trim()) return;
+    setSavingGroup(true);
+    try {
+      if (accessToken) setAccessToken(accessToken);
+      await api.post(`/expense-groups/${groupId}/members`, { email: inviteEmail.trim() });
+      setInviteEmail('');
+      await loadData(true);
+    } catch (e: any) { Alert.alert('Unable to add member', e.message || 'Try again'); }
+    finally { setSavingGroup(false); }
+  }
+
+  async function removeMember(member: any) {
+    Alert.alert('Remove member', `Remove ${member.user?.firstName || member.user?.email || 'this member'}?`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Remove', style: 'destructive', onPress: async () => {
+        try {
+          if (accessToken) setAccessToken(accessToken);
+          await api.delete(`/expense-groups/${groupId}/members/${member.id}`);
+          await loadData(true);
+        } catch (e: any) { Alert.alert('Unable to remove member', e.message || 'Try again'); }
+      } },
+    ]);
+  }
+
+  async function changeMemberRole(member: any, role: 'admin' | 'member') {
+    try {
+      if (accessToken) setAccessToken(accessToken);
+      await api.patch(`/expense-groups/${groupId}/members/${member.id}/role`, { role });
+      await loadData(true);
+    } catch (e: any) {
+      Alert.alert('Unable to update role', e.message || 'Try again');
+    }
+  }
+
+  async function leaveGroup() {
+    Alert.alert('Leave group', 'You will lose access to this group unless another member adds you again.', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Leave', style: 'destructive', onPress: async () => {
+        try {
+          if (accessToken) setAccessToken(accessToken);
+          await api.post(`/expense-groups/${groupId}/leave`);
+          navigation.goBack();
+        } catch (e: any) {
+          Alert.alert('Unable to leave group', e.message || 'Try again');
+        }
+      } },
+    ]);
+  }
 
   if (loading) {
     return (
-      <View
-        style={[
-          styles.loadingScreen,
-          { backgroundColor: colors.bg.primary, paddingTop: insets.top + 14 },
-        ]}
-      >
-        <MoneyLoader />
+      <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
+        <View style={[s.loadWrap, { paddingTop: insets.top + 14 }]}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20 }}>
+            <Skeleton width={38} height={38} borderRadius={12} />
+            <Skeleton width={52} height={52} borderRadius={16} />
+            <View style={{ flex: 1, gap: 6 }}>
+              <Skeleton width="60%" height={18} />
+              <Skeleton width="30%" height={12} />
+            </View>
+          </View>
+          <View style={{ flexDirection: 'row', paddingHorizontal: 20, gap: 10, marginTop: 18 }}>
+            {[1,2,3,4].map(i => <Skeleton key={i} style={{ flex: 1 }} width="100%" height={80} borderRadius={18} />)}
+          </View>
+          <View style={{ marginTop: 20, paddingHorizontal: 20, gap: 10 }}>
+            {[1,2,3].map(i => <SkeletonCard key={i} />)}
+          </View>
+        </View>
       </View>
     );
   }
 
-  const listHeader = (
-    <View style={styles.headerSection}>
-      <View style={styles.headerRow}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={[
-            styles.backBtn,
-            { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' },
-          ]}
-        >
-          <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
-        </TouchableOpacity>
-        <LinearGradient colors={['#6C5CE7', '#A29BFE']} style={styles.avatarCircle}>
-          <Ionicons
-            name={group?.icon === 'users' ? 'people' : group?.icon || 'people'}
-            size={24}
-            color="#FFF"
-          />
-        </LinearGradient>
-        <View style={styles.groupInfo}>
-          <Text style={[styles.groupName, { color: colors.text.primary }]} numberOfLines={1}>
-            {displayedGroupName}
-          </Text>
-          <Text style={[styles.groupMembers, { color: colors.text.secondary }]}>
-            {members.length} member{members.length !== 1 ? 's' : ''}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.summaryGrid}>
-        <LinearGradient colors={['#1a1a2e', '#16213e']} style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Total Expenses</Text>
-          <Text style={styles.summaryValue}>{formatCurrency(stats.totalExpense)}</Text>
-        </LinearGradient>
-        <LinearGradient colors={['#1a1a2e', '#16213e']} style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Transactions</Text>
-          <Text style={styles.summaryValue}>{stats.totalCount}</Text>
-        </LinearGradient>
-        <LinearGradient colors={['#1a1a2e', '#16213e']} style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Monthly Spend</Text>
-          <Text style={styles.summaryValue}>{formatCurrency(stats.monthlySpending)}</Text>
-        </LinearGradient>
-        {stats.budgetRemaining !== null && (
-          <LinearGradient colors={['#1a1a2e', '#16213e']} style={styles.summaryCard}>
-            <Text style={styles.summaryLabel}>Budget Left</Text>
-            <Text
-              style={[
-                styles.summaryValue,
-                { color: stats.budgetRemaining >= 0 ? '#00B894' : '#FF6B6B' },
-              ]}
-            >
-              {formatCurrency(Math.abs(stats.budgetRemaining))}
-            </Text>
-          </LinearGradient>
-        )}
-      </View>
-
-      {members.length > 0 && (
-        <View style={styles.membersSection}>
-          <Text style={[styles.sectionTitle, { color: colors.text.secondary }]}>Members</Text>
-          <View style={styles.membersRow}>
-            {members.map((member: any) => (
-              <View
-                key={member.id}
-                style={[styles.memberChip, { backgroundColor: colors.bg.tertiary }]}
-              >
-                <LinearGradient colors={['#6C5CE7', '#A29BFE']} style={styles.memberDot}>
-                  <Text style={styles.memberInitial}>
-                    {(member.user?.firstName?.[0] || member.firstName?.[0] || '?').toUpperCase()}
-                  </Text>
-                </LinearGradient>
-                <Text style={[styles.memberName, { color: colors.text.primary }]} numberOfLines={1}>
-                  {member.user?.firstName || member.user?.email || member.firstName || 'Member'}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      )}
-
-      {transactions.length > 0 && (
-        <Text
-          style={[
-            styles.sectionTitle,
-            {
-              color: colors.text.secondary,
-              paddingHorizontal: 24,
-              paddingTop: 20,
-              paddingBottom: 8,
-            },
-          ]}
-        >
-          All Expenses
-        </Text>
-      )}
-    </View>
-  );
-
   if (error) {
     return (
-      <View
-        style={[
-          styles.loadingScreen,
-          { backgroundColor: colors.bg.primary, paddingTop: insets.top + 14 },
-        ]}
-      >
-        <Text style={[styles.errorText, { color: colors.text.primary }]}>{error}</Text>
-        <TouchableOpacity
-          style={[styles.retryBtn, { backgroundColor: colors.accent.primary }]}
-          onPress={onRetry}
-        >
-          <Text style={[styles.retryText, { color: '#FFFFFF' }]}>Retry</Text>
+      <View style={[s.screen, { backgroundColor: colors.bg.primary, justifyContent: 'center', alignItems: 'center', paddingTop: insets.top }]}>
+        <Text style={[s.errText, { color: colors.text.primary }]}>{error}</Text>
+        <TouchableOpacity style={[s.retry, { backgroundColor: colors.accent.primary }]} onPress={() => loadData()}>
+          <Text style={{ color: '#FFF', fontWeight: '700' }}>Retry</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
+    <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
       <FlatList
-        data={transactions}
-        keyExtractor={(item) => item.id}
+        data={activeTab === 'expenses' ? transactions : []}
+        keyExtractor={item => item.id}
         showsVerticalScrollIndicator={false}
-        windowSize={10}
-        maxToRenderPerBatch={10}
         initialNumToRender={8}
-        removeClippedSubviews={true}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.accent.primary}
-          />
+        windowSize={5}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} tintColor={colors.accent.primary} />}
+        contentContainerStyle={transactions.length === 0 ? s.emptyContainer : { paddingBottom: insets.bottom + 140 }}
+        ListHeaderComponent={
+          <Animated.View style={{ opacity: fadeAnim }}>
+            <View style={[s.headerRow, { paddingTop: insets.top + 14 }]}>
+              <TouchableOpacity onPress={() => navigation.goBack()} style={[s.backBtn, { backgroundColor: 'rgba(255,255,255,0.08)' }]}>
+                <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
+              </TouchableOpacity>
+              <LinearGradient colors={['#6C5CE7', '#A29BFE']} style={s.avatar}>
+                <Ionicons name={(group?.icon === 'users' ? 'people' : group?.icon || 'people') as any} size={24} color="#FFF" />
+              </LinearGradient>
+              <View style={{ flex: 1 }}>
+                <Text style={[s.name, { color: colors.text.primary }]} numberOfLines={1}>{name}</Text>
+                <Text style={[s.memberCount, { color: colors.text.tertiary }]}>{members.length} member{members.length !== 1 ? 's' : ''}</Text>
+              </View>
+              <TouchableOpacity onPress={() => setSettingsOpen(true)} style={[s.backBtn, { backgroundColor: 'rgba(255,255,255,0.08)' }]}>
+                <Ionicons name="settings-outline" size={20} color={colors.text.primary} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={s.grid}>
+              <LinearGradient colors={['#1a1a2e', '#16213e']} style={s.statCard}>
+                <Text style={s.statLabel}>Total</Text>
+                <Text style={s.statVal}>{fmt(stats.totalExpense)}</Text>
+              </LinearGradient>
+              <LinearGradient colors={['#1a1a2e', '#16213e']} style={s.statCard}>
+                <Text style={s.statLabel}>Txns</Text>
+                <Text style={s.statVal}>{stats.totalCount}</Text>
+              </LinearGradient>
+              <LinearGradient colors={['#1a1a2e', '#16213e']} style={s.statCard}>
+                <Text style={s.statLabel}>Monthly</Text>
+                <Text style={s.statVal}>{fmt(stats.monthlySpending)}</Text>
+              </LinearGradient>
+              {stats.budgetRemaining !== null && (
+                <LinearGradient colors={['#1a1a2e', '#16213e']} style={s.statCard}>
+                  <Text style={s.statLabel}>Budget Left</Text>
+                  <Text style={[s.statVal, { color: stats.budgetRemaining >= 0 ? '#00B894' : '#FF6B6B' }]}>{fmt(Math.abs(stats.budgetRemaining))}</Text>
+                </LinearGradient>
+              )}
+            </View>
+
+            {members.length > 0 && (
+              <View style={s.memberSection}>
+                <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Members</Text>
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  {members.map((m: any) => (
+                    <View key={m.id} style={[s.memberChip, { backgroundColor: colors.bg.tertiary }]}>
+                      <LinearGradient colors={['#6C5CE7', '#A29BFE']} style={s.memberDot}>
+                        <Text style={s.memberInit}>{(m.user?.firstName?.[0] || m.firstName?.[0] || '?').toUpperCase()}</Text>
+                      </LinearGradient>
+                      <Text style={[s.memberName, { color: colors.text.primary }]} numberOfLines={1}>{m.user?.firstName || m.user?.email || m.firstName || 'Member'}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.tabRow}>
+              {GROUP_TABS.map((tab) => (
+                <TouchableOpacity
+                  key={tab}
+                  style={[
+                    s.tabChip,
+                    activeTab === tab ? { backgroundColor: colors.accent.primary } : { backgroundColor: colors.bg.tertiary },
+                  ]}
+                  onPress={() => tab === 'settings' ? setSettingsOpen(true) : setActiveTab(tab)}
+                >
+                  <Text style={[s.tabText, { color: activeTab === tab ? '#FFF' : colors.text.secondary }]}>
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            {activeTab === 'overview' && (
+              <View style={s.tabPanel}>
+                <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Overview</Text>
+                <View style={[s.infoPanel, { backgroundColor: colors.bg.secondary }]}>
+                  <Text style={[s.infoTitle, { color: colors.text.primary }]}>{group?.description || 'No description added'}</Text>
+                  <Text style={[s.infoText, { color: colors.text.tertiary }]}>This month: {fmt(stats.monthlySpending)} · {stats.totalCount} transactions</Text>
+                </View>
+              </View>
+            )}
+
+            {activeTab === 'balances' && (
+              <View style={s.tabPanel}>
+                <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Balances</Text>
+                {balanceRows.map((row) => (
+                  <View key={row.id} style={[s.balanceRow, { backgroundColor: colors.bg.secondary }]}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[s.balanceName, { color: colors.text.primary }]}>{row.name}</Text>
+                      <Text style={[s.balanceSub, { color: colors.text.tertiary }]}>Paid {fmt(row.paid)}</Text>
+                    </View>
+                    <Text style={[s.balanceAmount, { color: row.balance >= 0 ? '#00B894' : '#FF6B6B' }]}>
+                      {row.balance >= 0 ? 'Gets ' : 'Owes '}{fmt(Math.abs(row.balance))}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {activeTab === 'members' && (
+              <View style={s.tabPanel}>
+                <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Members</Text>
+                {members.map((member: any) => (
+                  <View key={member.id} style={[s.balanceRow, { backgroundColor: colors.bg.secondary }]}>
+                    <Text style={[s.balanceName, { color: colors.text.primary, flex: 1 }]}>{member.user?.firstName || member.user?.email || 'Member'}</Text>
+                    <Text style={[s.rolePill, { color: colors.accent.primary, backgroundColor: `${colors.accent.primary}18` }]}>{member.role || 'member'}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {activeTab === 'activity' && (
+              <View style={s.tabPanel}>
+                <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Activity</Text>
+                {activity.map((item) => (
+                  <View key={item.id} style={s.activityRow}>
+                    <View style={[s.activityIcon, { backgroundColor: colors.bg.tertiary }]}>
+                      <Ionicons name={item.icon as any} size={16} color={colors.accent.primary} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[s.balanceName, { color: colors.text.primary }]}>{item.title}</Text>
+                      <Text style={[s.balanceSub, { color: colors.text.tertiary }]}>{item.detail}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {activeTab === 'expenses' && transactions.length > 0 && <Text style={[s.secTitle, { color: colors.text.tertiary, paddingHorizontal: 24, paddingTop: 20, paddingBottom: 8 }]}>Expenses</Text>}
+          </Animated.View>
         }
-        contentContainerStyle={
-          transactions.length === 0 ? styles.emptyContainer : { paddingBottom: insets.bottom + 140 }
-        }
-        ListHeaderComponent={listHeader}
         renderItem={({ item }) => {
           const isIncome = item.type === 'income';
           const user = memberMap[item.userId];
-          const userName = user
-            ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'You'
-            : 'You';
-          const catName = item.category?.name || item.category || 'Other';
+          const userName = user ? `${user.firstName||''} ${user.lastName||''}`.trim() || 'You' : 'You';
+          const cat = item.category?.name || item.category || 'Other';
           const date = new Date(item.date || item.createdAt || '');
-
           return (
-            <TouchableOpacity
-              style={[styles.txCard, { backgroundColor: colors.bg.secondary }]}
-              onPress={() => navigation.navigate('TransactionDetail', { transactionId: item.id })}
-              activeOpacity={0.8}
-            >
-              <LinearGradient colors={['#6C5CE7', '#A29BFE']} style={styles.txAvatar}>
-                <Text style={styles.txAvatarText}>{userName[0]?.toUpperCase() || '?'}</Text>
+            <TouchableOpacity style={[s.txCard, { backgroundColor: colors.bg.secondary }]} onPress={() => navigation.navigate('TransactionDetail', { transactionId: item.id })} activeOpacity={0.8}>
+              <LinearGradient colors={['#6C5CE7', '#A29BFE']} style={s.txAvatar}>
+                <Text style={s.txAvatarText}>{userName[0]?.toUpperCase() || '?'}</Text>
               </LinearGradient>
-              <View style={styles.txBody}>
-                <View style={styles.txTop}>
-                  <Text
-                    style={[styles.txUserName, { color: colors.text.primary }]}
-                    numberOfLines={1}
-                  >
-                    {userName}
-                  </Text>
-                  <Text style={[styles.txAmount, { color: isIncome ? '#00B894' : '#FF6B6B' }]}>
-                    {isIncome ? '+' : '-'}
-                    {formatCurrency(Number(item.amount || 0))}
-                  </Text>
+              <View style={{ flex: 1 }}>
+                <View style={s.txTop}>
+                  <Text style={[s.txUser, { color: colors.text.primary }]} numberOfLines={1}>{userName}</Text>
+                  <Text style={[s.txAmount, { color: isIncome ? '#00B894' : '#FF6B6B' }]}>{isIncome ? '+' : '-'}{fmt(Number(item.amount||0))}</Text>
                 </View>
-                <View style={styles.txBottom}>
-                  <Text style={[styles.txDesc, { color: colors.text.tertiary }]} numberOfLines={1}>
-                    {item.description || catName}
-                  </Text>
-                  <Text style={[styles.txTime, { color: colors.text.tertiary }]}>
-                    {' '}
-                    {isNaN(date.getTime())
-                      ? ''
-                      : date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}{' '}
-                  </Text>
+                <View style={s.txBottom}>
+                  <Text style={[s.txDesc, { color: colors.text.tertiary }]} numberOfLines={1}>{item.description || cat}</Text>
+                  {!isNaN(date.getTime()) && <Text style={[s.txTime, { color: colors.text.tertiary }]}>{date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</Text>}
                 </View>
               </View>
             </TouchableOpacity>
           );
         }}
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <LinearGradient colors={['#6C5CE720', '#A29BFE20']} style={styles.emptyIconWrap}>
+          <View style={s.empty}>
+            <LinearGradient colors={['#6C5CE720', '#A29BFE20']} style={s.emptyIcon}>
               <Ionicons name="receipt-outline" size={44} color="#6C5CE7" />
             </LinearGradient>
-            <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No expenses yet</Text>
-            <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
-              Add your first expense to this group
-            </Text>
+            <Text style={[s.emptyTitle, { color: colors.text.primary }]}>No expenses yet</Text>
+            <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>Add your first expense</Text>
           </View>
         }
       />
-
-      <TouchableOpacity
-        style={[styles.fab, { bottom: insets.bottom + 24, backgroundColor: '#6C5CE7' }]}
-        onPress={() =>
-          navigation.navigate('CreateTransaction', {
-            prefill: { groupId, groupName: displayedGroupName, returnTo: 'GroupExpenses' },
-          })
-        }
-        activeOpacity={0.85}
-      >
+      <TouchableOpacity style={[s.fab, { bottom: insets.bottom + 24 }]} onPress={() => navigation.navigate('CreateTransaction', { prefill: { groupId, groupName: name, returnTo: 'GroupExpenses' } })} activeOpacity={0.85}>
         <Ionicons name="add" size={28} color="#FFFFFF" />
       </TouchableOpacity>
+      <Modal visible={settingsOpen} animationType="slide" transparent onRequestClose={() => setSettingsOpen(false)}>
+        <View style={s.modalBackdrop}>
+          <View style={[s.sheet, { backgroundColor: colors.bg.primary, paddingBottom: insets.bottom + 18 }]}>
+            <View style={s.sheetHandle} />
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={s.sheetHeader}>
+                <Text style={[s.sheetTitle, { color: colors.text.primary }]}>Group Settings</Text>
+                <TouchableOpacity onPress={() => setSettingsOpen(false)} style={[s.iconClose, { backgroundColor: colors.bg.tertiary }]}>
+                  <Ionicons name="close" size={20} color={colors.text.primary} />
+                </TouchableOpacity>
+              </View>
+              <Text style={[s.inputLabel, { color: colors.text.tertiary }]}>Name</Text>
+              <TextInput value={editName} onChangeText={setEditName} style={[s.input, { backgroundColor: colors.bg.tertiary, color: colors.text.primary, borderColor: colors.border.subtle }]} placeholderTextColor={colors.text.tertiary} />
+              <Text style={[s.inputLabel, { color: colors.text.tertiary }]}>Icon</Text>
+              <View style={s.iconGrid}>
+                {GROUP_ICONS.map((icon) => (
+                  <TouchableOpacity
+                    key={icon}
+                    style={[
+                      s.iconPick,
+                      { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+                      editIcon === icon && { borderColor: colors.accent.primary, backgroundColor: `${colors.accent.primary}18` },
+                    ]}
+                    onPress={() => setEditIcon(icon)}
+                  >
+                    <Ionicons name={(icon === 'users' ? 'people' : icon) as any} size={20} color={editIcon === icon ? colors.accent.primary : colors.text.tertiary} />
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <Text style={[s.inputLabel, { color: colors.text.tertiary }]}>Description</Text>
+              <TextInput value={editDescription} onChangeText={setEditDescription} style={[s.input, { backgroundColor: colors.bg.tertiary, color: colors.text.primary, borderColor: colors.border.subtle }]} placeholder="Trip, home, office..." placeholderTextColor={colors.text.tertiary} />
+              <Text style={[s.inputLabel, { color: colors.text.tertiary }]}>Monthly Budget</Text>
+              <TextInput value={editBudget} onChangeText={setEditBudget} keyboardType="decimal-pad" style={[s.input, { backgroundColor: colors.bg.tertiary, color: colors.text.primary, borderColor: colors.border.subtle }]} placeholder="0" placeholderTextColor={colors.text.tertiary} />
+              <TouchableOpacity style={[s.primaryAction, { backgroundColor: colors.accent.primary }]} onPress={saveGroupSettings} disabled={savingGroup}>
+                {savingGroup ? <ActivityIndicator color="#FFF" /> : <Text style={s.primaryActionText}>Save Group</Text>}
+              </TouchableOpacity>
+
+              <Text style={[s.sheetSubTitle, { color: colors.text.primary }]}>Members</Text>
+              <View style={[s.addMemberBox, { backgroundColor: colors.bg.tertiary }]}>
+                <TextInput value={inviteEmail} onChangeText={setInviteEmail} autoCapitalize="none" keyboardType="email-address" style={[s.memberInput, { color: colors.text.primary }]} placeholder="member@email.com" placeholderTextColor={colors.text.tertiary} />
+                <TouchableOpacity onPress={addMember} style={[s.memberAddBtn, { backgroundColor: colors.accent.primary }]}>
+                  <Ionicons name="person-add-outline" size={18} color="#FFF" />
+                </TouchableOpacity>
+              </View>
+              {members.map((member: any) => (
+                <View key={member.id} style={[s.memberManageRow, { borderBottomColor: colors.border.subtle }]}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[s.memberManageName, { color: colors.text.primary }]}>{member.user?.firstName || member.user?.email || 'Member'}</Text>
+                    <Text style={[s.memberManageRole, { color: colors.text.tertiary }]}>{member.role || 'member'}</Text>
+                  </View>
+                  {member.userId !== currentUser?.id && (
+                    <TouchableOpacity
+                      onPress={() => changeMemberRole(member, member.role === 'admin' ? 'member' : 'admin')}
+                      style={s.roleActionBtn}
+                    >
+                      <Text style={[s.roleActionText, { color: colors.accent.primary }]}>
+                        {member.role === 'admin' ? 'Make Member' : 'Make Admin'}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                  {member.role !== 'admin' && (
+                    <TouchableOpacity onPress={() => removeMember(member)} style={s.removeMemberBtn}>
+                      <Ionicons name="remove-circle-outline" size={22} color="#FF6B6B" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ))}
+              {group?.createdBy !== currentUser?.id && (
+                <TouchableOpacity style={[s.dangerAction, { backgroundColor: colors.status.errorLight }]} onPress={leaveGroup}>
+                  <Ionicons name="exit-outline" size={18} color={colors.status.error} />
+                  <Text style={[s.dangerText, { color: colors.status.error }]}>Leave Group</Text>
+                </TouchableOpacity>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  loadingScreen: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerSection: {
-    paddingBottom: 20,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    paddingHorizontal: 20,
-  },
-  backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  groupInfo: {
-    flex: 1,
-  },
-  groupName: {
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  groupMembers: {
-    marginTop: 4,
-    fontSize: 12,
-  },
-  summaryGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 20,
-    gap: 10,
-    marginTop: 18,
-  },
-  summaryCard: {
-    flex: 1,
-    minWidth: 140,
-    padding: 14,
-    borderRadius: 18,
-  },
-  summaryLabel: {
-    fontSize: 10,
-    color: 'rgba(255,255,255,0.6)',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  summaryValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginTop: 8,
-  },
-  membersSection: {
-    marginTop: 18,
-    paddingHorizontal: 20,
-  },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 10,
-  },
-  membersRow: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  memberChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    gap: 8,
-  },
-  memberDot: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  memberInitial: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  memberName: {
-    fontSize: 13,
-    fontWeight: '500',
-    maxWidth: 90,
-  },
-  txCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: 20,
-    marginBottom: 10,
-    padding: 14,
-    borderRadius: 18,
-  },
-  txAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  txAvatarText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  txBody: {
-    flex: 1,
-  },
-  txTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  txUserName: {
-    fontSize: 14,
-    fontWeight: '600',
-    flex: 1,
-  },
-  txAmount: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  txBottom: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 5,
-  },
-  txDesc: {
-    fontSize: 12,
-    flex: 1,
-  },
-  txTime: {
-    fontSize: 11,
-    marginLeft: 8,
-  },
-  emptyContainer: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingTop: 60,
-  },
-  empty: {
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 40,
-  },
-  emptyIconWrap: {
-    width: 88,
-    height: 88,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  emptyDesc: {
-    fontSize: 13,
-    textAlign: 'center',
-    paddingHorizontal: 48,
-    lineHeight: 18,
-  },
-  fab: {
-    position: 'absolute',
-    right: 24,
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 14,
-    shadowColor: '#6C5CE7',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-  },
-  retryBtn: {
-    marginTop: 18,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 14,
-  },
-  retryText: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  errorText: {
-    fontSize: 16,
-    textAlign: 'center',
-    paddingHorizontal: 24,
-  },
-  moneyLoader: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 32,
-  },
-  moneyCoin: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 18,
-  },
-  moneyCoinText: {
-    color: '#FFFFFF',
-    fontSize: 38,
-    fontWeight: '800',
-  },
-  moneyLoadingTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    marginBottom: 6,
-  },
-  moneyLoadingText: {
-    fontSize: 13,
-    textAlign: 'center',
-  },
+const s = StyleSheet.create({
+  screen: { flex: 1 },
+  loadWrap: { flex: 1 },
+  emptyContainer: { flexGrow: 1, justifyContent: 'center', paddingTop: 60 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20 },
+  backBtn: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  avatar: { width: 52, height: 52, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  name: { fontSize: 20, fontWeight: '700' },
+  memberCount: { fontSize: 12, marginTop: 2 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 20, gap: 10, marginTop: 18 },
+  statCard: { flex: 1, minWidth: 140, padding: 14, borderRadius: 18 },
+  statLabel: { fontSize: 10, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: 0.5 },
+  statVal: { fontSize: 18, fontWeight: '700', color: '#FFF', marginTop: 8 },
+  memberSection: { marginTop: 18, paddingHorizontal: 20 },
+  secTitle: { fontSize: 13, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 },
+  memberChip: { flexDirection: 'row', alignItems: 'center', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 8, gap: 8 },
+  memberDot: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  memberInit: { color: '#FFF', fontSize: 11, fontWeight: '700' },
+  memberName: { fontSize: 13, fontWeight: '500', maxWidth: 90 },
+  tabRow: { paddingHorizontal: 20, gap: 8, paddingTop: 20, paddingBottom: 6 },
+  tabChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18 },
+  tabText: { fontSize: 12, fontWeight: '700' },
+  tabPanel: { paddingHorizontal: 20, paddingTop: 14, gap: 10 },
+  infoPanel: { borderRadius: 18, padding: 16 },
+  infoTitle: { fontSize: 15, fontWeight: '700' },
+  infoText: { fontSize: 12, marginTop: 6 },
+  balanceRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 16, padding: 14, marginBottom: 8 },
+  balanceName: { fontSize: 14, fontWeight: '700' },
+  balanceSub: { fontSize: 12, marginTop: 3 },
+  balanceAmount: { fontSize: 14, fontWeight: '800' },
+  rolePill: { overflow: 'hidden', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, textTransform: 'capitalize', fontSize: 12, fontWeight: '800' },
+  activityRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8 },
+  activityIcon: { width: 34, height: 34, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  txCard: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 20, marginBottom: 10, padding: 14, borderRadius: 18 },
+  txAvatar: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  txAvatarText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+  txTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  txUser: { fontSize: 14, fontWeight: '600', flex: 1 },
+  txAmount: { fontSize: 16, fontWeight: '700' },
+  txBottom: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 5 },
+  txDesc: { fontSize: 12, flex: 1 },
+  txTime: { fontSize: 11, marginLeft: 8 },
+  empty: { alignItems: 'center', gap: 12, paddingVertical: 40 },
+  emptyIcon: { width: 88, height: 88, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
+  emptyTitle: { fontSize: 17, fontWeight: '700' },
+  emptyDesc: { fontSize: 13, textAlign: 'center', paddingHorizontal: 48 },
+  fab: { position: 'absolute', right: 24, width: 58, height: 58, borderRadius: 29, justifyContent: 'center', alignItems: 'center', elevation: 14, shadowColor: '#6C5CE7', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.35, shadowRadius: 12, backgroundColor: '#6C5CE7' },
+  errText: { fontSize: 16, textAlign: 'center', paddingHorizontal: 24 },
+  retry: { marginTop: 18, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 14 },
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
+  sheet: { maxHeight: '88%', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 22, paddingTop: 10 },
+  sheetHandle: { alignSelf: 'center', width: 42, height: 4, borderRadius: 2, backgroundColor: 'rgba(150,150,150,0.4)', marginBottom: 16 },
+  sheetHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
+  sheetTitle: { fontSize: 22, fontWeight: '800' },
+  sheetSubTitle: { fontSize: 17, fontWeight: '700', marginTop: 22, marginBottom: 10 },
+  iconClose: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  inputLabel: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', marginTop: 14, marginBottom: 8 },
+  input: { borderWidth: 1, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 13, fontSize: 15 },
+  iconGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  iconPick: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
+  primaryAction: { height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginTop: 18 },
+  primaryActionText: { color: '#FFF', fontSize: 15, fontWeight: '800' },
+  addMemberBox: { flexDirection: 'row', alignItems: 'center', borderRadius: 16, paddingLeft: 14, marginBottom: 10 },
+  memberInput: { flex: 1, height: 48, fontSize: 14 },
+  memberAddBtn: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginRight: 4 },
+  memberManageRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth },
+  memberManageName: { fontSize: 15, fontWeight: '700' },
+  memberManageRole: { fontSize: 12, marginTop: 2, textTransform: 'capitalize' },
+  roleActionBtn: { paddingHorizontal: 10, paddingVertical: 8 },
+  roleActionText: { fontSize: 12, fontWeight: '800' },
+  removeMemberBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  dangerAction: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 46, borderRadius: 14, marginTop: 18 },
+  dangerText: { fontSize: 14, fontWeight: '800' },
 });

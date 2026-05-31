@@ -212,14 +212,14 @@ export function SettingsScreen() {
                 </View>
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.text.disabled} />
+            <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
           </LinearGradient>
         </TouchableOpacity>
 
         {/* Sections */}
         {SECTIONS.map((section, i) => (
           <View key={i} style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text.disabled }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text.tertiary }]}>
               {section.title}
             </Text>
             <View
@@ -272,7 +272,7 @@ export function SettingsScreen() {
                           </Text>
                         </View>
                       )}
-                      <Ionicons name="chevron-forward" size={15} color={colors.text.disabled} />
+                      <Ionicons name="chevron-forward" size={15} color={colors.text.tertiary} />
                     </View>
                   </TouchableOpacity>
                 );
@@ -308,7 +308,7 @@ export function SettingsScreen() {
         </TouchableOpacity>
 
         {/* Version */}
-        <Text style={[styles.version, { color: colors.text.disabled }]}>Dabbu v1.0.0</Text>
+        <Text style={[styles.version, { color: colors.text.tertiary }]}>Dabbu v1.0.0</Text>
       </ScrollView>
     </View>
   );

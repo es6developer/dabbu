@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+import Constants from 'expo-constants';
 import { api, setAccessToken } from './api';
 
 Notifications.setNotificationHandler({
@@ -12,6 +13,28 @@ Notifications.setNotificationHandler({
 });
 
 let deviceId: string | null = null;
+
+function getProjectId(): string | undefined {
+  return (
+    Constants.expoConfig?.extra?.eas?.projectId ||
+    Constants.easConfig?.projectId ||
+    undefined
+  );
+}
+
+function getStableDeviceId(): string {
+  if (deviceId) {
+    return deviceId;
+  }
+  const nativeId =
+    (Device as any).osBuildId ||
+    (Device as any).osInternalBuildId ||
+    Device.modelId ||
+    Device.modelName ||
+    'device';
+  deviceId = `${Platform.OS}_${String(nativeId).replace(/\s+/g, '_')}`;
+  return deviceId;
+}
 
 export async function registerForPushNotifications(accessToken: string): Promise<void> {
   setAccessToken(accessToken);
@@ -33,13 +56,13 @@ export async function registerForPushNotifications(accessToken: string): Promise
   }
 
   try {
-    const tokenData = await Notifications.getExpoPushTokenAsync({
-      projectId: undefined,
-    });
+    const projectId = getProjectId();
+    const tokenData = await Notifications.getExpoPushTokenAsync(
+      projectId ? { projectId } : undefined,
+    );
     const pushToken = tokenData.data;
 
-    const storedId = `${Platform.OS}_${Date.now()}`;
-    deviceId = storedId;
+    const storedId = getStableDeviceId();
 
     await api.post('/devices/register', {
       deviceId: storedId,
@@ -63,12 +86,12 @@ export async function registerForPushNotifications(accessToken: string): Promise
 
 export function addNotificationResponseListener(
   handler: (response: Notifications.NotificationResponse) => void,
-): Notifications.EventSubscription {
+): Notifications.Subscription {
   return Notifications.addNotificationResponseReceivedListener(handler);
 }
 
 export function addNotificationReceivedListener(
   handler: (notification: Notifications.Notification) => void,
-): Notifications.EventSubscription {
+): Notifications.Subscription {
   return Notifications.addNotificationReceivedListener(handler);
 }

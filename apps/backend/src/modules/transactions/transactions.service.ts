@@ -9,9 +9,12 @@ export class TransactionsService {
   async create(userId: string, dto: CreateTransactionDto) {
     const categoryId = dto.categoryId || (await this.predictCategory(userId, dto));
 
-    const metadata: Record<string, any> = {};
+    const metadata: Record<string, any> = { ...((dto as any).metadata || {}) };
     if (dto.groupId) {
       metadata.groupId = dto.groupId;
+    }
+    if ((dto as any).paymentMethod) {
+      metadata.paymentType = (dto as any).paymentMethod;
     }
 
     const tx = await this.prisma.transaction.create({
@@ -128,6 +131,8 @@ export class TransactionsService {
         ...(dto.tags !== undefined && { tags: dto.tags }),
         ...(dto.isRecurring !== undefined && { isRecurring: dto.isRecurring }),
         ...(dto.recurringFrequency !== undefined && { recurringFrequency: dto.recurringFrequency }),
+        ...(dto.expenseGroupId !== undefined && { expenseGroupId: dto.expenseGroupId || null }),
+        ...(dto.metadata !== undefined && { metadata: dto.metadata }),
       },
       include: { category: true },
     });

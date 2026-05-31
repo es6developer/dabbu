@@ -217,11 +217,21 @@ export class BillScannerService {
 
   async scanBill(base64Image: string, _mimeType: string = 'image/jpeg'): Promise<BillScanResult> {
     const imageData = base64Image.startsWith('data:') ? base64Image.split(',')[1] : base64Image;
-
     const imageBuffer = Buffer.from(imageData, 'base64');
 
     this.logger.log(`Scanning bill image (${Math.round(imageBuffer.length / 1024)} KB)`);
 
+    const result = await Promise.race([
+      this.runOcr(imageBuffer),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('OCR processing timed out after 90 seconds')), 90_000),
+      ),
+    ]);
+
+    return result;
+  }
+
+  private async runOcr(imageBuffer: Buffer): Promise<BillScanResult> {
     const metadata = await sharp(imageBuffer).metadata();
     const origWidth = metadata.width || 1000;
 
@@ -229,19 +239,16 @@ export class BillScannerService {
 
     try {
       let pipeline = sharp(imageBuffer);
-      if (!metadata.width || metadata.width < 2800) {
-        pipeline = pipeline.resize({
-          width: Math.min(origWidth * 2, 3200),
-          withoutEnlargement: false,
-        });
+      const targetWidth = Math.min(origWidth, 1600);
+      if (origWidth > targetWidth) {
+        pipeline = pipeline.resize({ width: targetWidth, withoutEnlargement: true });
       }
       processedBuffer = (await pipeline
         .greyscale()
         .normalise({ lower: 1, upper: 99 })
-        .sharpen(1.5, 2, 1)
-        .median(1)
+        .sharpen(0.8)
         .toBuffer()) as unknown as Buffer;
-      this.logger.log(`Preprocessed image (${Math.round(processedBuffer.length / 1024)} KB)`);
+      this.logger.log(`Preprocessed image ${origWidth}→${targetWidth}px (${Math.round(processedBuffer.length / 1024)} KB)`);
     } catch (err) {
       this.logger.warn('Preprocessing failed, using original', err);
       processedBuffer = imageBuffer;
@@ -252,6 +259,8 @@ export class BillScannerService {
     const worker = await createWorker('eng', OEM.LSTM_ONLY, {
       logger: () => {},
       cachePath: '/tmp',
+      cacheMethod: 'readWrite',
+      corePath: undefined,
     });
 
     try {

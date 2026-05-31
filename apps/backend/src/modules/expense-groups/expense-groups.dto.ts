@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsArray, IsNumber, Min } from 'class-validator';
+import { IsString, IsOptional, IsArray, IsNumber, Min, IsIn } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateExpenseGroupDto {
@@ -20,4 +20,11 @@ export class UpdateExpenseGroupDto {
 
 export class AddMemberDto {
   @ApiProperty() @IsString() email: string;
+}
+
+export class UpdateMemberRoleDto {
+  @ApiProperty({ enum: ['admin', 'member'] })
+  @IsString()
+  @IsIn(['admin', 'member'])
+  role: 'admin' | 'member';
 }

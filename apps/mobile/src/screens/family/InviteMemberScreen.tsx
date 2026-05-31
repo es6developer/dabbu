@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
 export function InviteMemberScreen() {
   const { colors } = useTheme();
@@ -80,7 +81,17 @@ export function InviteMemberScreen() {
     }
   }
 
-  if (loading) return <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}><ActivityIndicator color={colors.accent.primary} size="large" /></View>;
+  if (loading) {
+    return (
+      <View style={[styles.loading, { backgroundColor: colors.bg.primary, paddingHorizontal: 24, gap: 16 }]}>
+        <Skeleton width={180} height={16} />
+        <Skeleton width="100%" height={60} borderRadius={16} />
+        <Skeleton width="100%" height={50} borderRadius={16} />
+        <Skeleton width="100%" height={50} borderRadius={16} />
+        <Skeleton width="75%" height={50} borderRadius={16} />
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.bg.primary }]} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">

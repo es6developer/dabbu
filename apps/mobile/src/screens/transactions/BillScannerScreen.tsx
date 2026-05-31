@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -142,6 +142,9 @@ export function BillScannerScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [billData, setBillData] = useState<BillData | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [elapsed, setElapsed] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const startedAtRef = useRef(0);
 
   async function openCamera() {
     const perm = await ImagePicker.requestCameraPermissionsAsync();
@@ -181,8 +184,13 @@ export function BillScannerScreen() {
     setImageUri(asset.uri);
     setScanState('scanning');
     setBillData(null);
+    setErrorMessage('');
+    setElapsed(0);
+    startedAtRef.current = Date.now();
+    timerRef.current = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startedAtRef.current) / 1000));
+    }, 1000);
     try {
-      // Send image as multipart/form-data to avoid keeping large base64 strings in JS heap
       const uri = asset.uri;
       if (!uri) {
         throw new Error('Could not read image data');
@@ -195,7 +203,7 @@ export function BillScannerScreen() {
       // @ts-expect-error - React Native FormData file object
       form.append('file', { uri, name: fileName, type: mimeType });
 
-      const res = await api.post<any>('/transactions/scan-bill', form as any, undefined, 60_000);
+      const res = await api.post<any>('/transactions/scan-bill', form as any, undefined, 120_000);
       if (res && res.amount) {
         navigation.navigate('CreateTransaction', {
           prefill: {
@@ -210,9 +218,18 @@ export function BillScannerScreen() {
       }
     } catch (e: any) {
       const msg = e.message || 'Could not scan the bill.';
+      const isTimeout = msg.includes('timed out') || msg.includes('aborted') || msg.includes('AbortError');
       setScanState('error');
-      setErrorMessage(msg);
-      Alert.alert('Scan Failed', msg);
+      if (isTimeout) {
+        setErrorMessage('Scan is taking too long. Please try a clearer photo or enter details manually.');
+      } else {
+        setErrorMessage(msg);
+      }
+    } finally {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
     }
   }
 
@@ -221,6 +238,11 @@ export function BillScannerScreen() {
     setImageUri(null);
     setBillData(null);
     setErrorMessage('');
+    setElapsed(0);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
   }
 
   return (
@@ -280,8 +302,22 @@ export function BillScannerScreen() {
           )}
           <ActivityIndicator color={colors.accent.primary} size="large" style={{ marginTop: 20 }} />
           <Text style={[styles.scanningText, { color: colors.text.secondary }]}>
-            Analyzing bill...
+            {elapsed > 15 ? 'Still analyzing... taking longer than expected' : 'Analyzing bill...'}
           </Text>
+          {elapsed > 5 && (
+            <Text style={[styles.elapsedText, { color: colors.text.tertiary }]}>
+              {elapsed}s elapsed
+            </Text>
+          )}
+          {elapsed > 20 && (
+            <TouchableOpacity
+              style={[styles.actionBtn, { backgroundColor: colors.bg.secondary, borderWidth: 1, borderColor: colors.border.subtle, marginTop: 16 }]}
+              onPress={handleRetry}
+            >
+              <Ionicons name="close" size={20} color={colors.text.primary} />
+              <Text style={[styles.actionBtnText, { color: colors.text.primary }]}>Cancel</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
 
@@ -290,13 +326,24 @@ export function BillScannerScreen() {
           <Ionicons name="alert-circle" size={56} color={colors.status.error} />
           <Text style={[styles.errorTitle, { color: colors.text.primary }]}>Scan Failed</Text>
           <Text style={[styles.errorDesc, { color: colors.text.tertiary }]}>{errorMessage}</Text>
-          <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: colors.accent.primary }]}
-            onPress={handleRetry}
-          >
-            <Ionicons name="refresh" size={20} color="#FFFFFF" />
-            <Text style={styles.actionBtnText}>Try Again</Text>
-          </TouchableOpacity>
+          <View style={{ gap: 12, width: '100%' }}>
+            <TouchableOpacity
+              style={[styles.actionBtn, { backgroundColor: colors.accent.primary }]}
+              onPress={handleRetry}
+            >
+              <Ionicons name="refresh" size={20} color="#FFFFFF" />
+              <Text style={styles.actionBtnText}>Try Again</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.border.default }]}
+              onPress={() => navigation.navigate('CreateTransaction' as any)}
+            >
+              <Ionicons name="create-outline" size={20} color={colors.text.secondary} />
+              <Text style={[styles.actionBtnText, { color: colors.text.secondary }]}>
+                Enter Manually
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
     </ScrollView>
@@ -350,6 +397,7 @@ const styles = StyleSheet.create({
   viewBillsText: { fontSize: 14, fontWeight: '600' },
   preview: { width: '100%', height: 200, borderRadius: 16, marginBottom: 16 },
   scanningText: { fontSize: 15, marginTop: 12, fontWeight: '500' },
+  elapsedText: { fontSize: 13, marginTop: 4 },
   errorTitle: { fontSize: 20, fontWeight: '700', marginTop: 16, marginBottom: 8 },
   errorDesc: { fontSize: 14, textAlign: 'center', marginBottom: 24, paddingHorizontal: 32 },
 });

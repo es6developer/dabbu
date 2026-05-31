@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme, typography as typographyStyles } from '../../theme';
@@ -34,7 +35,7 @@ export function TransactionDetailScreen() {
   async function loadTransaction() {
     try {
       const res = await api.get<any>(`/transactions/${transactionId}`);
-      setTxn(res.data);
+      setTxn(res?.data ?? res);
     } catch (e) {
       /* ignore */
     } finally {
@@ -66,6 +67,20 @@ export function TransactionDetailScreen() {
     ]);
   }
 
+  async function handleMarkSettled() {
+    try {
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      await api.patch(`/transactions/${transactionId}`, {
+        metadata: { ...(txn.metadata || {}), settlementStatus: 'settled' },
+      });
+      setTxn((prev: any) => ({ ...prev, metadata: { ...(prev.metadata || {}), settlementStatus: 'settled' } }));
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to mark settled');
+    }
+  }
+
   if (loading) {
     return (
       <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}>
@@ -86,21 +101,23 @@ export function TransactionDetailScreen() {
   const formatCurrency = (val: number) => '₹' + val.toLocaleString('en-IN');
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.bg.primary }]}>
-      <View style={[styles.amountCard, { backgroundColor: colors.bg.tertiary }]}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.bg.primary }]} contentContainerStyle={styles.content}>
+      <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}>
+        <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
+      </TouchableOpacity>
+
+      <LinearGradient colors={isCredit ? ['#00B894', '#00CEC9'] : ['#1a1a2e', '#0f3460']} style={styles.amountCard}>
         <Text style={[styles.amoountLabel, { color: colors.text.tertiary }]}>{txn.type} </Text>
-        <Text
-          style={[styles.amount, { color: isCredit ? colors.status.success : colors.status.error }]}
-        >
+        <Text style={styles.amount}>
           {sign}
           {formatCurrency(Number(txn.amount))}
         </Text>
         {txn.description && (
-          <Text style={[styles.amountDesc, { color: colors.text.secondary }]}>
+          <Text style={styles.amountDesc}>
             {txn.description}
           </Text>
         )}
-      </View>
+      </LinearGradient>
 
       <View style={styles.section}>
         <DetailRow
@@ -141,6 +158,8 @@ export function TransactionDetailScreen() {
           valueColor={txn.isReconciled ? colors.status.success : colors.status.warning}
         />
         <DetailRow colors={colors} label="Type" value={txn.type} />
+        <DetailRow colors={colors} label="Split" value={txn.metadata?.splitMethod || 'equal'} />
+        <DetailRow colors={colors} label="Settlement" value={txn.metadata?.settlementStatus || 'pending'} />
         {txn.reference && <DetailRow colors={colors} label="Reference" value={txn.reference} />}
         {txn.notes && (
           <View style={[styles.detailRow, { borderBottomColor: colors.border.subtle }]}>
@@ -159,6 +178,30 @@ export function TransactionDetailScreen() {
         >
           <Ionicons name="create-outline" size={18} color={colors.text.primary} />
           <Text style={[styles.actionBtnText, { color: colors.text.primary }]}>Edit</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.actionBtn, { backgroundColor: colors.bg.tertiary }]}
+          onPress={() => navigation.navigate('CreateTransaction', { prefill: {
+            amount: Number(txn.amount),
+            description: txn.description,
+            categoryName: txn.category?.name,
+            date: new Date(txn.date || txn.createdAt).toISOString().split('T')[0],
+            tags: txn.tags || [],
+            groupId: txn.expenseGroupId,
+          } })}
+        >
+          <Ionicons name="copy-outline" size={18} color={colors.text.primary} />
+          <Text style={[styles.actionBtnText, { color: colors.text.primary }]}>Duplicate</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.actions}>
+        <TouchableOpacity
+          style={[styles.actionBtn, { backgroundColor: colors.status.successLight || `${colors.status.success}22` }]}
+          onPress={handleMarkSettled}
+        >
+          <Ionicons name="checkmark-done-outline" size={18} color={colors.status.success} />
+          <Text style={[styles.actionBtnText, { color: colors.status.success }]}>Mark Settled</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.actionBtn, { backgroundColor: colors.status.errorLight }]}
@@ -204,16 +247,18 @@ function DetailRow({
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  content: { paddingBottom: 30 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  amountCard: { margin: 16, padding: 32, borderRadius: 20, alignItems: 'center' },
+  backBtn: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center', margin: 16, marginBottom: 0 },
+  amountCard: { margin: 16, padding: 32, borderRadius: 24, alignItems: 'center' },
   amoountLabel: {
     ...typographyStyles.footnote,
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: 8,
   },
-  amount: { ...typographyStyles.amount, marginBottom: 8 },
-  amountDesc: { ...typographyStyles.body, textAlign: 'center', fontFamily: 'Inter-SemiBold' },
+  amount: { ...typographyStyles.amount, marginBottom: 8, color: '#FFF' },
+  amountDesc: { ...typographyStyles.body, textAlign: 'center', fontFamily: 'Inter-SemiBold', color: 'rgba(255,255,255,0.75)' },
   section: { paddingHorizontal: 16 },
   detailRow: {
     flexDirection: 'row',

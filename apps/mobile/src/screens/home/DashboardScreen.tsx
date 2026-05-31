@@ -6,7 +6,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   RefreshControl,
-  ActivityIndicator,
   Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../store/AuthContext';
 import { api, setAccessToken } from '../../services/api';
+import { Skeleton, SkeletonList } from '../../components/ui/AnimatedSkeleton';
 import { useTheme, typography as typographyStyles } from '../../theme';
 
 type IconName = keyof typeof Ionicons.glyphMap;
@@ -245,11 +245,24 @@ export function DashboardScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}>
-        <ActivityIndicator color={colors.accent.primary} size="large" />
-        <Text style={[styles.loadingText, { color: colors.text.tertiary }]}>
-          Preparing your money dashboard
-        </Text>
+      <View style={[styles.loading, { backgroundColor: colors.bg.primary, paddingTop: insets.top + 16 }]}>
+        <View style={{ paddingHorizontal: 24, gap: 8 }}>
+          <Skeleton width={160} height={16} />
+          <Skeleton width={200} height={32} />
+        </View>
+        <View style={{ marginTop: 20, paddingHorizontal: 24 }}>
+          <Skeleton width="100%" height={180} borderRadius={24} />
+        </View>
+        <View style={{ flexDirection: 'row', paddingHorizontal: 24, gap: 12, marginTop: 20 }}>
+          {[1,2,3,4].map(i => <Skeleton key={i} width="22%" height={72} borderRadius={16} />)}
+        </View>
+        <View style={{ marginTop: 24, gap: 12, paddingHorizontal: 24 }}>
+          <Skeleton width={120} height={14} />
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            {[1,2,3,4].map(i => <Skeleton key={i} width="45%" height={90} borderRadius={16} />)}
+          </View>
+        </View>
+        <SkeletonList count={3} />
       </View>
     );
   }

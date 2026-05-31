@@ -3,6 +3,7 @@ import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, 
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
 export function BillingHistoryScreen() {
   const { colors } = useTheme();
@@ -46,7 +47,17 @@ export function BillingHistoryScreen() {
     }
   }
 
-  if (loading) return <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}><ActivityIndicator color={colors.accent.primary} size="large" /></View>;
+  if (loading) {
+    return (
+      <View style={[styles.loading, { backgroundColor: colors.bg.primary, paddingHorizontal: 24, gap: 14 }]}>
+        <Skeleton width={160} height={16} />
+        <Skeleton width="100%" height={70} borderRadius={14} />
+        <Skeleton width="100%" height={70} borderRadius={14} />
+        <Skeleton width="100%" height={70} borderRadius={14} />
+        <Skeleton width="80%" height={70} borderRadius={14} />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>

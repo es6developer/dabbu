@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
+import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -29,7 +30,18 @@ export function BudgetsListScreen() {
     return colors.status.success;
   }
 
-  if (loading) return <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}><ActivityIndicator color={colors.accent.primary} size="large" /></View>;
+  if (loading) {
+    return (
+      <View style={[styles.loading, { backgroundColor: colors.bg.primary, paddingHorizontal: 24, gap: 16 }]}>
+        <Skeleton width={140} height={16} />
+        <Skeleton width="100%" height={70} borderRadius={16} />
+        <Skeleton width="100%" height={70} borderRadius={16} />
+        <Skeleton width="85%" height={70} borderRadius={16} />
+        <Skeleton width="100%" height={70} borderRadius={16} />
+        <Skeleton width="60%" height={70} borderRadius={16} />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>

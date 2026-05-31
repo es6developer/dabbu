@@ -13,9 +13,18 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
+import { Skeleton } from '../../components/ui/AnimatedSkeleton';
+import { DatePickerField } from '../../components/ui/DatePickerField';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const PAYMENT_TYPES = ['Cash', 'UPI', 'Card', 'Bank'];
+const SPLIT_METHODS = [
+  { id: 'equal', label: 'Equal' },
+  { id: 'exact', label: 'Exact' },
+  { id: 'percentage', label: 'Percent' },
+  { id: 'shares', label: 'Shares' },
+  { id: 'unequal', label: 'Unequal' },
+];
 
 type PrefillParams = {
   prefill?: {
@@ -28,6 +37,7 @@ type PrefillParams = {
     groupName?: string;
     returnTo?: string;
   };
+  transaction?: any;
 };
 
 export function CreateTransactionScreen() {
@@ -38,22 +48,31 @@ export function CreateTransactionScreen() {
   const { accessToken } = useAuth();
   const { colors } = useTheme();
   const prefill = route.params?.prefill;
+  const editingTransaction = route.params?.transaction;
+  const isEditing = Boolean(editingTransaction?.id);
 
-  const [amount, setAmount] = useState(prefill?.amount ? String(prefill.amount) : '');
-  const [type, setType] = useState<'income' | 'expense'>('expense');
-  const [description, setDescription] = useState(prefill?.description || '');
-  const [category, setCategory] = useState(prefill?.categoryName || '');
-  const [categoryId, setCategoryId] = useState('');
-  const [paymentType, setPaymentType] = useState('');
-  const [date, setDate] = useState(prefill?.date || new Date().toISOString().split('T')[0]);
-  const [tags, setTags] = useState((prefill?.tags || []).join(', '));
-  const [notes, setNotes] = useState('');
+  const [amount, setAmount] = useState(
+    editingTransaction?.amount ? String(editingTransaction.amount) : prefill?.amount ? String(prefill.amount) : '',
+  );
+  const [type, setType] = useState<'income' | 'expense'>(editingTransaction?.type || 'expense');
+  const [description, setDescription] = useState(editingTransaction?.description || prefill?.description || '');
+  const [category, setCategory] = useState(editingTransaction?.category?.name || prefill?.categoryName || '');
+  const [categoryId, setCategoryId] = useState(editingTransaction?.categoryId || editingTransaction?.category?.id || '');
+  const [paymentType, setPaymentType] = useState(editingTransaction?.metadata?.paymentType || '');
+  const [date, setDate] = useState(
+    (editingTransaction?.date ? new Date(editingTransaction.date).toISOString().split('T')[0] : undefined) ||
+      prefill?.date ||
+      new Date().toISOString().split('T')[0],
+  );
+  const [tags, setTags] = useState(((editingTransaction?.tags as string[]) || prefill?.tags || []).join(', '));
+  const [notes, setNotes] = useState(editingTransaction?.notes || '');
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurringFrequency, setRecurringFrequency] = useState('monthly');
   const [categories, setCategories] = useState<any[]>([]);
   const [groups, setGroups] = useState<any[]>([]);
-  const [selectedGroupId, setSelectedGroupId] = useState(prefill?.groupId || '');
+  const [selectedGroupId, setSelectedGroupId] = useState(editingTransaction?.expenseGroupId || prefill?.groupId || '');
   const [selectedGroupName, setSelectedGroupName] = useState(prefill?.groupName || '');
+  const [splitMethod, setSplitMethod] = useState(editingTransaction?.metadata?.splitMethod || 'equal');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [loadingMeta, setLoadingMeta] = useState(true);
@@ -142,14 +161,19 @@ export function CreateTransactionScreen() {
       if (notes.trim()) {
         data.notes = notes.trim();
       }
-      await api.post('/transactions', data);
+      data.metadata = { ...(editingTransaction?.metadata || {}), paymentType, splitMethod };
+      if (isEditing) {
+        await api.patch(`/transactions/${editingTransaction.id}`, data);
+      } else {
+        await api.post('/transactions', data);
+      }
       if (prefill?.returnTo === 'GroupExpenses' && selectedGroupId) {
         navigation.navigate('GroupExpenses', {
           groupId: selectedGroupId,
           groupName: selectedGroupName || prefill.groupName,
         });
       } else {
-        navigation.navigate('ExpenseHome');
+        navigation.navigate(isEditing ? 'TransactionDetail' : 'ExpenseHome', isEditing ? { transactionId: editingTransaction.id } : undefined);
       }
     } catch (e: any) {
       setError(e.message || 'Failed to create transaction');
@@ -161,7 +185,13 @@ export function CreateTransactionScreen() {
   if (loadingMeta) {
     return (
       <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}>
-        <ActivityIndicator color={colors.accent.primary} size="large" />
+        <View style={{ paddingHorizontal: 24, gap: 16, width: '100%' }}>
+          <Skeleton width={120} height={16} />
+          <Skeleton width="100%" height={60} borderRadius={16} />
+          <Skeleton width="100%" height={60} borderRadius={16} />
+          <Skeleton width="80%" height={60} borderRadius={16} />
+          <Skeleton width="100%" height={120} borderRadius={16} />
+        </View>
       </View>
     );
   }
@@ -172,7 +202,7 @@ export function CreateTransactionScreen() {
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
     >
-      <Text style={[styles.title, { color: colors.text.primary }]}>New Transaction</Text>
+      <Text style={[styles.title, { color: colors.text.primary }]}>{isEditing ? 'Edit Transaction' : 'New Transaction'}</Text>
       {error ? (
         <View style={[styles.errorBox, { backgroundColor: colors.status.errorLight }]}>
           <Ionicons name="alert-circle" size={16} color={colors.status.error} />
@@ -375,23 +405,44 @@ export function CreateTransactionScreen() {
         ))}
       </View>
 
-      <Text style={[styles.label, { color: colors.text.tertiary }]}>Date</Text>
-      <TextInput
-        style={[
-          styles.input,
-          {
-            backgroundColor: colors.bg.tertiary,
-            color: colors.text.primary,
-            borderColor: colors.border.subtle,
-          },
-        ]}
-        value={date}
-        onChangeText={setDate}
-        placeholder="YYYY-MM-DD"
-        placeholderTextColor={colors.text.tertiary}
-      />
+      {selectedGroupId ? (
+        <>
+          <Text style={[styles.label, { color: colors.text.tertiary }]}>Split Method</Text>
+          <View style={styles.chipRow}>
+            {SPLIT_METHODS.map((method) => (
+              <TouchableOpacity
+                key={method.id}
+                style={[
+                  styles.chip,
+                  { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+                  splitMethod === method.id && {
+                    backgroundColor: `${colors.accent.primary}20`,
+                    borderColor: colors.accent.primary,
+                  },
+                ]}
+                onPress={() => setSplitMethod(method.id)}
+              >
+                <Text
+                  style={[
+                    styles.chipText,
+                    { color: colors.text.tertiary },
+                    splitMethod === method.id && { color: colors.accent.primary, fontWeight: '600' },
+                  ]}
+                >
+                  {method.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <Text style={[styles.helperText, { color: colors.text.tertiary }]}>
+            Allocation details are saved with the transaction and can be expanded into per-member balances.
+          </Text>
+        </>
+      ) : null}
 
-      <Text style={[styles.label, { color: colors.text.tertiary }]}>Tags (comma separated)</Text>
+      <DatePickerField label="Date" value={date} onChange={setDate} />
+
+      <Text style={[styles.label, { color: colors.text.tertiary }]}>Tags</Text>
       <TextInput
         style={[
           styles.input,
@@ -403,14 +454,15 @@ export function CreateTransactionScreen() {
         ]}
         value={tags}
         onChangeText={setTags}
-        placeholder="e.g. food, grocery"
+        placeholder="food, travel, office"
         placeholderTextColor={colors.text.tertiary}
       />
 
-      <Text style={[styles.label, { color: colors.text.tertiary }]}>Notes (optional)</Text>
+      <Text style={[styles.label, { color: colors.text.tertiary }]}>Notes</Text>
       <TextInput
         style={[
           styles.input,
+          styles.notesInput,
           {
             backgroundColor: colors.bg.tertiary,
             color: colors.text.primary,
@@ -419,10 +471,11 @@ export function CreateTransactionScreen() {
         ]}
         value={notes}
         onChangeText={setNotes}
-        placeholder="Add notes..."
+        placeholder="Add context, receipt details, settlement notes..."
         placeholderTextColor={colors.text.tertiary}
         multiline
-        numberOfLines={2}
+        numberOfLines={4}
+        textAlignVertical="top"
       />
 
       <View style={styles.switchRow}>
@@ -451,27 +504,27 @@ export function CreateTransactionScreen() {
       </View>
       {isRecurring && (
         <View style={styles.frequencyRow}>
-          {['daily', 'weekly', 'monthly', 'yearly'].map((f) => (
+          {['daily', 'weekly', 'monthly', 'yearly'].map((frequency) => (
             <TouchableOpacity
-              key={f}
+              key={frequency}
               style={[
                 styles.freqChip,
                 { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-                recurringFrequency === f && {
+                recurringFrequency === frequency && {
                   backgroundColor: `${colors.accent.primary}20`,
                   borderColor: colors.accent.primary,
                 },
               ]}
-              onPress={() => setRecurringFrequency(f)}
+              onPress={() => setRecurringFrequency(frequency)}
             >
               <Text
                 style={[
                   styles.freqChipText,
                   { color: colors.text.tertiary },
-                  recurringFrequency === f && { color: colors.accent.primary, fontWeight: '600' },
+                  recurringFrequency === frequency && { color: colors.accent.primary, fontWeight: '600' },
                 ]}
               >
-                {f.charAt(0).toUpperCase() + f.slice(1)}
+                {frequency.charAt(0).toUpperCase() + frequency.slice(1)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -490,7 +543,7 @@ export function CreateTransactionScreen() {
         {saving ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.saveBtnText}>Create Transaction</Text>
+          <Text style={styles.saveBtnText}>{isEditing ? 'Save Changes' : 'Create Transaction'}</Text>
         )}
       </TouchableOpacity>
     </ScrollView>
@@ -538,6 +591,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
   },
+  notesInput: { minHeight: 96 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
   chip: {
     paddingHorizontal: 14,
@@ -549,6 +603,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   chipText: { fontSize: 13 },
+  helperText: { fontSize: 12, lineHeight: 18, marginTop: -2, marginBottom: 8 },
   emptyMeta: { fontSize: 14, fontStyle: 'italic' },
   switchRow: {
     flexDirection: 'row',

@@ -5,6 +5,7 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
 export function SecurityScreen() {
   const { colors } = useTheme();
@@ -166,7 +167,17 @@ export function SecurityScreen() {
     }
   }
 
-  if (loading) return <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}><ActivityIndicator color={colors.accent.primary} size="large" /></View>;
+  if (loading) {
+    return (
+      <View style={[styles.loading, { backgroundColor: colors.bg.primary, paddingHorizontal: 24, gap: 16 }]}>
+        <Skeleton width={120} height={16} />
+        <Skeleton width="100%" height={80} borderRadius={16} />
+        <Skeleton width="100%" height={60} borderRadius={16} />
+        <Skeleton width="100%" height={60} borderRadius={16} />
+        <Skeleton width="85%" height={60} borderRadius={16} />
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.bg.primary }]} contentContainerStyle={styles.content}>

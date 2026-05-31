@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { DatePickerField } from '../../components/ui/DatePickerField';
 
 const PERIODS = ['monthly', 'yearly', 'weekly'];
 
@@ -90,11 +91,9 @@ export function CreateBudgetScreen() {
       </View>
       <TextInput style={[styles.input, { backgroundColor: colors.bg.secondary, color: colors.text.primary, borderColor: colors.border.subtle }]} value={category} onChangeText={setCategory} placeholder="Or type custom" placeholderTextColor={colors.text.tertiary} />
 
-      <Text style={[styles.label, { color: colors.text.secondary }]}>Start Date</Text>
-      <TextInput style={[styles.input, { backgroundColor: colors.bg.secondary, color: colors.text.primary, borderColor: colors.border.subtle }]} value={startDate} onChangeText={setStartDate} placeholder="YYYY-MM-DD" placeholderTextColor={colors.text.tertiary} />
+      <DatePickerField label="Start Date" value={startDate} onChange={setStartDate} />
 
-      <Text style={[styles.label, { color: colors.text.secondary }]}>End Date (optional)</Text>
-      <TextInput style={[styles.input, { backgroundColor: colors.bg.secondary, color: colors.text.primary, borderColor: colors.border.subtle }]} value={endDate} onChangeText={setEndDate} placeholder="YYYY-MM-DD" placeholderTextColor={colors.text.tertiary} />
+      <DatePickerField label="End Date" value={endDate} onChange={setEndDate} optional />
 
       <TouchableOpacity style={[styles.saveBtn, { backgroundColor: colors.accent.primary }, saving && { opacity: 0.6 }]} onPress={handleSave} disabled={saving}>
         {saving ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.saveBtnText}>Create Budget</Text>}

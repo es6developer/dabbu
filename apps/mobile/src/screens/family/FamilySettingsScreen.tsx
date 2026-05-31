@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet, TextInput, TouchableOpacity, Activi
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
 export function FamilySettingsScreen() {
   const { colors } = useTheme();
@@ -115,7 +116,17 @@ export function FamilySettingsScreen() {
     return { bg: `${colors.text.tertiary}26`, color: colors.text.tertiary };
   }
 
-  if (loading) return <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}><ActivityIndicator color={colors.accent.primary} size="large" /></View>;
+  if (loading) {
+    return (
+      <View style={[styles.loading, { backgroundColor: colors.bg.primary, paddingHorizontal: 24, gap: 16 }]}>
+        <Skeleton width={160} height={16} />
+        <Skeleton width="100%" height={60} borderRadius={16} />
+        <Skeleton width="100%" height={60} borderRadius={16} />
+        <Skeleton width="100%" height={60} borderRadius={16} />
+        <Skeleton width="80%" height={60} borderRadius={16} />
+      </View>
+    );
+  }
   if (!family) return <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}><Text style={[styles.errorText, { color: colors.status.error }]}>No family found</Text></View>;
 
   return (

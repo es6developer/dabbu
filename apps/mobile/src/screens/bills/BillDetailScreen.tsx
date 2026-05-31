@@ -8,6 +8,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { DatePickerField } from '../../components/ui/DatePickerField';
 
 const CATEGORIES = [
   'Groceries', 'Dining', 'Transport', 'Shopping', 'Utilities',
@@ -226,14 +227,7 @@ export function BillDetailScreen() {
         </View>
 
         <View style={[styles.card, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}>
-          <Text style={[styles.fieldLabel, { color: colors.text.tertiary }]}>Date</Text>
-          <TextInput
-            style={[styles.textInput, { color: colors.text.primary, borderColor: colors.border.subtle, backgroundColor: colors.bg.tertiary }]}
-            value={date}
-            onChangeText={setDate}
-            placeholder="YYYY-MM-DD"
-            placeholderTextColor={colors.text.tertiary}
-          />
+          <DatePickerField label="Date" value={date} onChange={setDate} />
         </View>
 
         <View style={[styles.card, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}>

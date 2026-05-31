@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { ExpenseGroupsService } from './expense-groups.service';
-import { CreateExpenseGroupDto, UpdateExpenseGroupDto, AddMemberDto } from './expense-groups.dto';
+import { CreateExpenseGroupDto, UpdateExpenseGroupDto, AddMemberDto, UpdateMemberRoleDto } from './expense-groups.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
@@ -79,5 +79,23 @@ export class ExpenseGroupsController {
     @Param('memberId') memberId: string,
   ) {
     return this.expenseGroupsService.removeMember(id, userId, memberId);
+  }
+
+  @Patch(':id/members/:memberId/role')
+  @ApiOperation({ summary: 'Change expense group member role' })
+  async updateMemberRole(
+    @CurrentUser('id') userId: string,
+    @Param('id') id: string,
+    @Param('memberId') memberId: string,
+    @Body() dto: UpdateMemberRoleDto,
+  ) {
+    return this.expenseGroupsService.updateMemberRole(id, userId, memberId, dto.role);
+  }
+
+  @Post(':id/leave')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Leave expense group' })
+  async leave(@CurrentUser('id') userId: string, @Param('id') id: string) {
+    return this.expenseGroupsService.leave(id, userId);
   }
 }

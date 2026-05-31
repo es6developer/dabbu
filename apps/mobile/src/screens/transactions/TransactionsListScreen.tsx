@@ -109,6 +109,9 @@ export function TransactionsListScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedGroupId, setSelectedGroupId] = useState('');
+  const [settlementStatus, setSettlementStatus] = useState<'all' | 'pending' | 'settled'>('all');
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'highest' | 'lowest'>('newest');
   const [summary, setSummary] = useState({ totalIncome: 0, totalExpense: 0 });
 
   const loadData = useCallback(async () => {
@@ -184,21 +187,36 @@ export function TransactionsListScreen() {
   }, [transactions]);
 
   const filtered = useMemo(() => {
-    let list = transactions;
+    let list = [...transactions];
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(
         (t) =>
           (t.description || '').toLowerCase().includes(q) ||
           (t.category?.name || t.category || '').toLowerCase().includes(q) ||
-          (t.notes || '').toLowerCase().includes(q),
+          (t.notes || '').toLowerCase().includes(q) ||
+          (t.user?.firstName || '').toLowerCase().includes(q) ||
+          (t.user?.email || '').toLowerCase().includes(q),
       );
     }
     if (selectedCategory) {
       list = list.filter((t) => (t.category?.name || t.category) === selectedCategory);
     }
+    if (selectedGroupId) {
+      list = list.filter((t) => t.expenseGroupId === selectedGroupId);
+    }
+    if (settlementStatus !== 'all') {
+      list = list.filter((t) => (t.metadata?.settlementStatus || 'pending') === settlementStatus);
+    }
+    list.sort((a, b) => {
+      if (sortBy === 'highest') return Number(b.amount || 0) - Number(a.amount || 0);
+      if (sortBy === 'lowest') return Number(a.amount || 0) - Number(b.amount || 0);
+      const ad = new Date(a.date || a.createdAt).getTime();
+      const bd = new Date(b.date || b.createdAt).getTime();
+      return sortBy === 'oldest' ? ad - bd : bd - ad;
+    });
     return groupByDate(list);
-  }, [transactions, search, selectedCategory]);
+  }, [transactions, search, selectedCategory, selectedGroupId, settlementStatus, sortBy]);
 
   const remaining = summary.totalIncome - summary.totalExpense;
   const savingsPct =
@@ -236,14 +254,15 @@ export function TransactionsListScreen() {
           end={{ x: 1, y: 1 }}
           style={styles.cardIcon}
         >
-          <Ionicons name={getCategoryIcon(categoryName)} size={18} color="#FFF" />
+          <Ionicons name={getCategoryIcon(categoryName) as any} size={18} color="#FFF" />
         </LinearGradient>
         <View style={styles.cardBody}>
           <Text style={[styles.cardDesc, { color: colors.text.primary }]} numberOfLines={1}>
             {item.description || categoryName}
           </Text>
           <Text style={[styles.cardDate, { color: colors.text.tertiary }]}>
-            {timeStr} · {categoryName}
+          {timeStr} · {categoryName}
+            {item.metadata?.settlementStatus === 'settled' ? ' · Settled' : ''}
           </Text>
         </View>
         <Text style={[styles.cardAmount, { color: isIncome ? '#00B894' : '#FF6B6B' }]}>
@@ -495,6 +514,89 @@ export function TransactionsListScreen() {
                 ))}
               </ScrollView>
             )}
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.filterRow}
+              contentContainerStyle={styles.filterContent}
+            >
+              {(['newest', 'oldest', 'highest', 'lowest'] as const).map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={[
+                    styles.filterChip,
+                    sortBy === option
+                      ? styles.filterChipActive
+                      : { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+                  ]}
+                  onPress={() => setSortBy(option)}
+                >
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      { color: sortBy === option ? '#FFF' : colors.text.secondary },
+                    ]}
+                  >
+                    {option === 'newest'
+                      ? 'Newest'
+                      : option === 'oldest'
+                        ? 'Oldest'
+                        : option === 'highest'
+                          ? 'Highest'
+                          : 'Lowest'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+              {(['all', 'pending', 'settled'] as const).map((status) => (
+                <TouchableOpacity
+                  key={status}
+                  style={[
+                    styles.filterChip,
+                    settlementStatus === status
+                      ? styles.filterChipActive
+                      : { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+                  ]}
+                  onPress={() => setSettlementStatus(status)}
+                >
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      { color: settlementStatus === status ? '#FFF' : colors.text.secondary },
+                    ]}
+                  >
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+              {groups.map((group: any) => (
+                <TouchableOpacity
+                  key={group.id}
+                  style={[
+                    styles.filterChip,
+                    selectedGroupId === group.id
+                      ? styles.filterChipActive
+                      : { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+                  ]}
+                  onPress={() => setSelectedGroupId(selectedGroupId === group.id ? '' : group.id)}
+                >
+                  <Ionicons
+                    name="people-outline"
+                    size={14}
+                    color={selectedGroupId === group.id ? '#FFF' : colors.text.secondary}
+                    style={{ marginRight: 4 }}
+                  />
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      { color: selectedGroupId === group.id ? '#FFF' : colors.text.secondary },
+                    ]}
+                  >
+                    {group.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
 
             <Text
               style={[
