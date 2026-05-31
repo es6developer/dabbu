@@ -67,8 +67,12 @@ export function ApiDebugOverlay() {
               <Text style={styles.url} numberOfLines={1}>
                 {shortUrl(e.url)}
               </Text>
-              <Text style={[styles.time, e.status === 'pending' && { color: '#FFD43B' }]}>
-                {e.status === 'pending' ? `⏳${formatMs(Date.now() - e.start)}` : formatMs(e.ms)}
+              <Text
+                style={[styles.time, { color: e.status === 'pending' ? '#FFD43B' : '#40C057' }]}
+              >
+                {e.status === 'pending'
+                  ? `⏳ ${formatMs(Date.now() - e.start)}`
+                  : `✓ ${formatMs(e.ms)}`}
               </Text>
             </View>
           ))}
