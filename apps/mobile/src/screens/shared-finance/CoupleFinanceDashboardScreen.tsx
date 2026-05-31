@@ -18,6 +18,8 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { Card } from '../../components/ui/Card';
+import { safeData } from '../../utils/shared-finance';
+import { useSharedFinanceRealtime } from '../../hooks/useSharedFinanceRealtime';
 
 const { width } = Dimensions.get('window');
 
@@ -30,6 +32,20 @@ export function CoupleFinanceDashboardScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const groupIdRef = useRef<string | null>(null);
+
+  if (dashboard?.groupId && !groupIdRef.current) {
+    groupIdRef.current = dashboard.groupId;
+  }
+
+  useSharedFinanceRealtime({
+    groupId: groupIdRef.current,
+    onExpenseCreated: () => loadData(),
+    onExpenseUpdated: () => loadData(),
+    onExpenseDeleted: () => loadData(),
+    onSettlementCreated: () => loadData(),
+    onSettlementUpdated: () => loadData(),
+  });
 
   useEffect(() => {
     if (accessToken) {
@@ -50,10 +66,11 @@ export function CoupleFinanceDashboardScreen() {
         api.get<any>('/shared-finance/couple/dashboard'),
         api.get<any>('/shared-finance/couple/profile'),
       ]);
-      setDashboard(dashRes.data);
-      setProfile(profRes.data);
+      setDashboard(safeData(dashRes, null));
+      setProfile(safeData(profRes, null));
     } catch (e) {
       console.error('CoupleFinanceDashboard load error:', e);
+      setDashboard(null);
     } finally {
       setLoading(false);
     }

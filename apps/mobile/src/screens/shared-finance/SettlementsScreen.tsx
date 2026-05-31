@@ -14,6 +14,7 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
+import { safeData } from '../../utils/shared-finance';
 
 type SettlementTab = 'pending' | 'completed';
 
@@ -47,12 +48,16 @@ export function SettlementsScreen() {
       setAccessToken(accessToken);
     }
     loadSettlements();
-  }, []);
+  }, [groupId]);
 
   async function loadSettlements() {
+    if (!groupId) {
+      setLoading(false);
+      return;
+    }
     try {
       const res = await api.get<any>(`/shared-finance/groups/${groupId}/settlements`);
-      setSettlements(res.data || []);
+      setSettlements(Array.isArray(safeData(res, [])) ? safeData(res, []) : []);
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to load settlements');
     } finally {

@@ -18,6 +18,8 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { Card } from '../../components/ui/Card';
+import { safeData } from '../../utils/shared-finance';
+import { useSharedFinanceRealtime } from '../../hooks/useSharedFinanceRealtime';
 
 const { width } = Dimensions.get('window');
 
@@ -32,6 +34,15 @@ export function TripDashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
+  useSharedFinanceRealtime({
+    groupId,
+    onExpenseCreated: () => loadDashboard(),
+    onExpenseUpdated: () => loadDashboard(),
+    onExpenseDeleted: () => loadDashboard(),
+    onSettlementCreated: () => loadDashboard(),
+    onSettlementUpdated: () => loadDashboard(),
+  });
+
   useEffect(() => {
     if (accessToken) {
       setAccessToken(accessToken);
@@ -45,12 +56,22 @@ export function TripDashboardScreen() {
     }
   }, [loading]);
 
+  useEffect(() => {
+    if (!groupId) {
+      setLoading(false);
+    }
+  }, [groupId]);
+
   async function loadDashboard() {
+    if (!groupId) {
+      return;
+    }
     try {
       const res = await api.get<any>(`/shared-finance/groups/${groupId}/trip/dashboard`);
-      setDashboard(res.data);
+      setDashboard(safeData(res, null));
     } catch (e) {
       console.error('TripDashboard load error:', e);
+      setDashboard(null);
     } finally {
       setLoading(false);
     }

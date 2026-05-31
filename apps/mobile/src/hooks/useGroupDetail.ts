@@ -5,8 +5,73 @@ import { api, setAccessToken } from '../services/api';
 import { createInviteLink } from '../services/external-sharing';
 import { useAuth } from '../store/AuthContext';
 import { useGroupLifecycle } from './useGroupLifecycle';
-import { formatMemberName, normalizeResponseList } from '../utils/shared-finance';
-import { GroupDetail, Segments, GroupMember, Expense, Settlement } from '../types/shared-finance';
+import { GroupDetail, Segments } from '../types/shared-finance';
+
+interface RawData {
+  group: any;
+  expenses: any[];
+  settlements: any[];
+}
+
+function toGroupDetail(raw: RawData, userId?: string, inviteCode?: string): GroupDetail {
+  const { group, expenses, settlements } = raw;
+  const members = Array.isArray(group.members) ? group.members.filter(Boolean) : [];
+  const balances = Array.isArray(group.balances) ? group.balances : [];
+  const uid = userId || group.ownerId;
+  const myBal = balances.find((b: any) => b?.userId === uid) ?? {};
+  const totalSpent = balances.reduce((s: number, b: any) => s + Number(b?.totalPaid ?? 0), 0);
+
+  return {
+    id: group.id,
+    name: group.name,
+    type: group.type,
+    description: group.description,
+    memberCount: group._count?.members || members.length || 0,
+    inviteCode: group.inviteCode || inviteCode,
+    totalSpent,
+    balance: Number(myBal?.netBalance ?? 0),
+    currency: group.currency || 'INR',
+    isPremium: group.isPremium,
+    planLimit: group.planLimit,
+    members: members.map((m: any) => ({
+      id: m.id,
+      name: m.user
+        ? `${m.user.firstName ?? ''} ${m.user.lastName ?? ''}`.trim()
+        : m.name || 'Unknown',
+      email: m.user?.email || '',
+      role: m.role,
+      balance: Number(balances.find((b: any) => b?.memberId === m.id)?.netBalance ?? 0),
+    })),
+    expenses: expenses.filter(Boolean).map((e: any) => ({
+      id: e.id,
+      description: e.description,
+      amount: Number(e.amount ?? 0),
+      paidBy: {
+        id: e.paidBy?.id || e.paidByMemberId || '',
+        name: e.paidBy?.user
+          ? `${e.paidBy.user.firstName ?? ''} ${e.paidBy.user.lastName ?? ''}`.trim()
+          : e.paidBy?.name || e.paidByName || 'Unknown',
+      },
+      date: e.date || e.createdAt,
+      splitType: e.splitType || 'equal',
+      category: e.category,
+    })),
+    settlements: settlements.filter(Boolean).map((s: any) => ({
+      id: s.id,
+      from: {
+        id: s.from?.id || s.fromMember?.id || s.fromMemberId || '',
+        name: s.from?.name || s.fromName || '',
+      },
+      to: {
+        id: s.to?.id || s.toMember?.id || s.toMemberId || '',
+        name: s.to?.name || s.toName || '',
+      },
+      amount: Number(s.amount ?? 0),
+      status: s.status || 'pending',
+      date: s.date || s.createdAt,
+    })),
+  };
+}
 
 export function useGroupDetail() {
   const { accessToken, user } = useAuth();
@@ -17,7 +82,7 @@ export function useGroupDetail() {
   const inviteCode = route.params?.inviteCode;
 
   const [group, setGroup] = useState<GroupDetail | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeSegment, setActiveSegment] = useState<Segments>('expenses');
@@ -25,168 +90,125 @@ export function useGroupDetail() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [invitingExternal, setInvitingExternal] = useState(false);
 
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const latestRequestRef = useRef(0);
+  const abortRef = useRef<AbortController | null>(null);
+  const latestReq = useRef(0);
 
-  const { status, accessRevoked, revocationReason, isReadOnly } = useGroupLifecycle({
+  const { status, revocationReason, isReadOnly } = useGroupLifecycle({
     groupId: groupId || '',
     onAccessRevoked: () => setShowRevokedModal(true),
   });
 
-  const fetchGroup = useCallback(
+  const fetchRaw = useCallback(
+    async (signal: AbortSignal): Promise<RawData | null> => {
+      if (!groupId || signal.aborted) {
+        return null;
+      }
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+
+      const groupRes = await api.get<any>(`/shared-finance/groups/${groupId}`, signal);
+      if (signal.aborted) {
+        return null;
+      }
+      const raw = groupRes.data ?? groupRes;
+      if (!raw) {
+        return null;
+      }
+
+      const hasExpenses = Array.isArray(raw.expenses);
+      const hasSettlements = Array.isArray(raw.settlements);
+
+      let expenses: any[] = hasExpenses ? raw.expenses : [];
+      let settlements: any[] = hasSettlements ? raw.settlements : [];
+
+      if (!hasExpenses || !hasSettlements) {
+        const [ee, ss] = await Promise.allSettled([
+          !hasExpenses
+            ? api.get<any[]>(`/shared-finance/groups/${groupId}/expenses?limit=50`, signal)
+            : Promise.resolve([]),
+          !hasSettlements
+            ? api.get<any[]>(`/shared-finance/groups/${groupId}/settlements?limit=50`, signal)
+            : Promise.resolve([]),
+        ]);
+        if (signal.aborted) {
+          return null;
+        }
+        if (ee.status === 'fulfilled') {
+          const d = ee.value;
+          expenses = Array.isArray(d) ? d : Array.isArray((d as any)?.data) ? (d as any).data : [];
+        }
+        if (ss.status === 'fulfilled') {
+          const d = ss.value;
+          settlements = Array.isArray(d)
+            ? d
+            : Array.isArray((d as any)?.data)
+              ? (d as any).data
+              : [];
+        }
+      }
+
+      return { group: raw, expenses, settlements };
+    },
+    [accessToken, groupId],
+  );
+
+  const loadGroup = useCallback(
     async (refresh = false) => {
       if (!groupId) {
-        setError('Invalid group identifier');
+        setError('Invalid group');
         setGroup(null);
-        setLoading(false);
+        setInitialLoading(false);
         setRefreshing(false);
         return;
       }
 
-      abortControllerRef.current?.abort();
-      const controller = new AbortController();
-      abortControllerRef.current = controller;
-      const signal = controller.signal;
-      const requestId = ++latestRequestRef.current;
+      abortRef.current?.abort();
+      const ctrl = new AbortController();
+      abortRef.current = ctrl;
+      const signal = ctrl.signal;
+      const reqId = ++latestReq.current;
 
       if (refresh) {
         setRefreshing(true);
       } else {
-        setLoading(true);
+        setInitialLoading(true);
       }
       setError(null);
 
       try {
-        if (accessToken) {
-          setAccessToken(accessToken);
-        }
-
-        const groupResponse = await api.get<any>(`/shared-finance/groups/${groupId}`, signal);
-        if (signal.aborted || requestId !== latestRequestRef.current) {
+        const raw = await fetchRaw(signal);
+        if (signal.aborted || reqId !== latestReq.current) {
           return;
         }
 
-        const groupData = groupResponse.data ?? groupResponse;
-        if (!groupData) {
+        if (!raw) {
           setError('Group not found');
           setGroup(null);
           return;
         }
 
-        const [expensesResult, settlementsResult] =
-          Array.isArray(groupData.expenses) || Array.isArray(groupData.settlements)
-            ? ([
-                { status: 'fulfilled', value: groupData.expenses || [] },
-                { status: 'fulfilled', value: groupData.settlements || [] },
-              ] as PromiseSettledResult<any>[])
-            : await Promise.allSettled([
-                api.get<any[]>(`/shared-finance/groups/${groupId}/expenses?limit=50`, signal),
-                api.get<any[]>(`/shared-finance/groups/${groupId}/settlements?limit=50`, signal),
-              ]);
-
-        if (signal.aborted || requestId !== latestRequestRef.current) {
-          return;
-        }
-
-        const rawMembers = Array.isArray(groupData.members)
-          ? groupData.members.filter(Boolean)
-          : [];
-        const rawBalances = Array.isArray(groupData.balances) ? groupData.balances : [];
-        const currentUserId = user?.id || groupData.ownerId;
-        const myBalance =
-          rawBalances.find((balance: any) => balance?.userId === currentUserId) ?? {};
-        const totalSpent = rawBalances.reduce(
-          (sum: number, item: any) => sum + Number(item?.totalPaid ?? 0),
-          0,
-        );
-
-        const transformedGroup: GroupDetail = {
-          id: groupData.id,
-          name: groupData.name,
-          type: groupData.type,
-          description: groupData.description,
-          memberCount: groupData._count?.members || rawMembers.length || 0,
-          inviteCode: groupData.inviteCode || inviteCode,
-          totalSpent,
-          balance: Number(myBalance?.netBalance ?? 0),
-          currency: groupData.currency || 'INR',
-          isPremium: groupData.isPremium,
-          planLimit: groupData.planLimit,
-          members: rawMembers.map((member: any) => ({
-            id: member.id,
-            name: member.user
-              ? `${member.user.firstName ?? ''} ${member.user.lastName ?? ''}`.trim()
-              : member.name || 'Unknown',
-            email: member.user?.email || '',
-            role: member.role,
-            balance: Number(
-              rawBalances.find((balance: any) => balance?.memberId === member.id)?.netBalance ?? 0,
-            ),
-          })),
-          expenses: normalizeResponseList(expensesResult)
-            .filter(Boolean)
-            .map((expense: any) => ({
-              id: expense.id,
-              description: expense.description,
-              amount: Number(expense.amount ?? 0),
-              paidBy: {
-                id: expense.paidBy?.id || expense.paidByMemberId || '',
-                name: expense.paidBy?.user
-                  ? `${expense.paidBy.user.firstName ?? ''} ${expense.paidBy.user.lastName ?? ''}`.trim()
-                  : expense.paidBy?.name || expense.paidByName || 'Unknown',
-              },
-              date: expense.date || expense.createdAt,
-              splitType: expense.splitType || 'equal',
-              category: expense.category,
-            })),
-          settlements: normalizeResponseList(settlementsResult)
-            .filter(Boolean)
-            .map((settlement: any) => ({
-              id: settlement.id,
-              from: {
-                id:
-                  settlement.from?.id || settlement.fromMember?.id || settlement.fromMemberId || '',
-                name:
-                  settlement.from?.name ||
-                  settlement.fromName ||
-                  formatMemberName(settlement.fromMember) ||
-                  'Unknown',
-              },
-              to: {
-                id: settlement.to?.id || settlement.toMember?.id || settlement.toMemberId || '',
-                name:
-                  settlement.to?.name ||
-                  settlement.toName ||
-                  formatMemberName(settlement.toMember) ||
-                  'Unknown',
-              },
-              amount: Number(settlement.amount ?? 0),
-              status: settlement.status || 'pending',
-              date: settlement.date || settlement.createdAt,
-            })),
-        };
-
-        setGroup(transformedGroup);
-      } catch (fetchError: any) {
+        setGroup(toGroupDetail(raw, user?.id, inviteCode));
+      } catch (err: any) {
         if (!signal.aborted) {
-          setError(fetchError?.message || 'Unable to load group.');
+          setError(err?.message || 'Unable to load group');
           setGroup(null);
         }
       } finally {
-        if (latestRequestRef.current === requestId) {
-          setLoading(false);
+        if (reqId === latestReq.current) {
+          setInitialLoading(false);
           setRefreshing(false);
         }
       }
     },
-    [accessToken, groupId, inviteCode, user?.id],
+    [fetchRaw, groupId, inviteCode, user?.id],
   );
 
   useFocusEffect(
     useCallback(() => {
-      fetchGroup();
-      return () => abortControllerRef.current?.abort();
-    }, [fetchGroup]),
+      loadGroup();
+      return () => abortRef.current?.abort();
+    }, [loadGroup]),
   );
 
   const handleInviteExternal = useCallback(async () => {
@@ -200,8 +222,8 @@ export function useGroupDetail() {
       await Share.share({
         message: `Join my group "${group?.name || 'my group'}" on Dabbu! ${url}`,
       });
-    } catch (inviteError: any) {
-      Alert.alert('Unable to share invite', inviteError?.message || 'Please try again.');
+    } catch (e: any) {
+      Alert.alert('Unable to share invite', e?.message || 'Please try again.');
     } finally {
       setInvitingExternal(false);
     }
@@ -209,7 +231,7 @@ export function useGroupDetail() {
 
   return {
     group,
-    loading,
+    initialLoading,
     refreshing,
     error,
     activeSegment,
@@ -222,7 +244,7 @@ export function useGroupDetail() {
     status,
     isReadOnly,
     revocationReason,
-    fetchGroup,
+    loadGroup,
     handleInviteExternal,
     navigation,
     groupId,

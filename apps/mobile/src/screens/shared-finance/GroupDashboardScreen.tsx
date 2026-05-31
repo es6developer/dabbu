@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { Card } from '../../components/ui/Card';
+import { useSharedFinanceRealtime } from '../../hooks/useSharedFinanceRealtime';
 
 interface Summary {
   totalExpenses: number;
@@ -99,6 +100,35 @@ export function GroupDashboardScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useSharedFinanceRealtime({
+    groupId,
+    onExpenseCreated: () => {
+      if (data) {
+        fetchDashboard(true);
+      }
+    },
+    onExpenseUpdated: () => {
+      if (data) {
+        fetchDashboard(true);
+      }
+    },
+    onExpenseDeleted: () => {
+      if (data) {
+        fetchDashboard(true);
+      }
+    },
+    onSettlementCreated: () => {
+      if (data) {
+        fetchDashboard(true);
+      }
+    },
+    onSettlementUpdated: () => {
+      if (data) {
+        fetchDashboard(true);
+      }
+    },
+  });
 
   const fetchDashboard = useCallback(
     async (isRefresh = false) => {

@@ -17,6 +17,7 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { Card } from '../../components/ui/Card';
+import { safeData } from '../../utils/shared-finance';
 
 export function SharedSubscriptionsScreen() {
   const route = useRoute<any>();
@@ -43,8 +44,8 @@ export function SharedSubscriptionsScreen() {
         api.get<any>(`/shared-finance/groups/${groupId}/subscriptions`),
         api.get<any>('/shared-finance/subscriptions/reminders/upcoming'),
       ]);
-      setSubscriptions(Array.isArray(subRes.data) ? subRes.data : []);
-      setUpcoming(Array.isArray(upcRes.data) ? upcRes.data : []);
+      setSubscriptions(Array.isArray(safeData(subRes, [])) ? safeData(subRes, []) : []);
+      setUpcoming(Array.isArray(safeData(upcRes, [])) ? safeData(upcRes, []) : []);
     } catch (e) {
       console.error('SharedSubscriptions load error:', e);
     } finally {

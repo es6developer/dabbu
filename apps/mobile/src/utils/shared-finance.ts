@@ -40,6 +40,16 @@ export const formatMemberName = (member?: any) => {
   return `${member.user.firstName ?? ''} ${member.user.lastName ?? ''}`.trim();
 };
 
+export const safeData = <T>(res: any, fallback: T): T => {
+  if (!res) {
+    return fallback;
+  }
+  if (res.data !== undefined) {
+    return res.data as T;
+  }
+  return res as T;
+};
+
 export const normalizeResponseList = (result: PromiseSettledResult<any>): any[] => {
   if (result.status !== 'fulfilled') {
     return [];
