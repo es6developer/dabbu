@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "turbo run dev --parallel",
     "build": "turbo run build",
-    "vercel-build": "turbo run build",
+    "vercel-build": "turbo run build && npm run db:seed",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",

@@ -276,3 +276,4 @@ const styles = StyleSheet.create({
   planActionText: { fontSize: 14, fontWeight: '700' },
   billingBtn: { paddingVertical: 16, alignItems: 'center', marginBottom: 40 },
   billingBtnText: { fontSize: 15, fontWeight: '700' },
+});
