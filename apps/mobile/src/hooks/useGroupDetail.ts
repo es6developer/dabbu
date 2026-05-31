@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Alert, Share } from 'react-native';
-import { apiWithLog, setAccessToken } from '../services/api';
+import { api, setAccessToken } from '../services/api';
 import { createInviteLink } from '../services/external-sharing';
 import { useAuth } from '../store/AuthContext';
 import { useGroupLifecycle } from './useGroupLifecycle';
@@ -125,7 +125,7 @@ export function useGroupDetail() {
           setAccessToken(accessToken);
         }
 
-        const res = await apiWithLog.get<any>(`/shared-finance/groups/${groupId}`, signal);
+        const res = await api.get<any>(`/shared-finance/groups/${groupId}`, signal);
         if (signal.aborted || reqId !== reqRef.current) {
           return;
         }
@@ -145,13 +145,10 @@ export function useGroupDetail() {
         if (!hasExpenses || !hasSettlements) {
           const [ee, ss] = await Promise.allSettled([
             !hasExpenses
-              ? apiWithLog.get<any[]>(`/shared-finance/groups/${groupId}/expenses?limit=50`, signal)
+              ? api.get<any[]>(`/shared-finance/groups/${groupId}/expenses?limit=50`, signal)
               : Promise.resolve([]),
             !hasSettlements
-              ? apiWithLog.get<any[]>(
-                  `/shared-finance/groups/${groupId}/settlements?limit=50`,
-                  signal,
-                )
+              ? api.get<any[]>(`/shared-finance/groups/${groupId}/settlements?limit=50`, signal)
               : Promise.resolve([]),
           ]);
           if (signal.aborted || reqId !== reqRef.current) {

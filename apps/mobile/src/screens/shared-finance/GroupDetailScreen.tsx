@@ -12,7 +12,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { useGroupDetail } from '../../hooks/useGroupDetail';
-import { ApiDebugOverlay } from '../../components/ApiDebugOverlay';
 
 const TYPE_META: Record<
   string,
@@ -200,7 +199,6 @@ export function GroupDetailScreen() {
 
   return (
     <SafeAreaView style={[s.screen, { backgroundColor: colors.bg.primary }]}>
-      <ApiDebugOverlay />
       <FlatList
         data={segmentData}
         keyExtractor={keyExtractor}
