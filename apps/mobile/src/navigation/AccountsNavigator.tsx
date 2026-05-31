@@ -20,7 +20,7 @@ export function AccountsNavigator() {
       screenOptions={{
         headerStyle: { backgroundColor: colors.bg.primary },
         headerTintColor: colors.text.primary,
-        headerTitleStyle: { ...typography.calloutBold },
+        headerTitleStyle: { ...(typography.calloutBold as any), color: colors.text.primary },
       }}
     >
       <Stack.Screen
@@ -31,7 +31,7 @@ export function AccountsNavigator() {
       <Stack.Screen
         name="AddExpense"
         component={AddExpenseScreen}
-        options={{ title: 'Add Expense' }}
+        options={{ title: 'Add Expense', headerShown: false }}
       />
       <Stack.Screen
         name="BillScanner"
@@ -57,17 +57,17 @@ export function AccountsNavigator() {
       <Stack.Screen
         name="TransactionDetail"
         component={TransactionDetailScreen}
-        options={{ title: 'Transaction Details' }}
+        options={{ title: 'Transaction Details', headerShown: false }}
       />
       <Stack.Screen
         name="CreateExpenseGroup"
         component={CreateExpenseGroupScreen}
-        options={{ title: 'Create Expense Group' }}
+        options={{ title: 'Create Expense Group', headerShown: false }}
       />
       <Stack.Screen
         name="GroupExpenses"
         component={GroupExpensesScreen}
-        options={{ title: 'Group Expenses' }}
+        options={{ title: 'Group Expenses', headerShown: false }}
       />
     </Stack.Navigator>
   );

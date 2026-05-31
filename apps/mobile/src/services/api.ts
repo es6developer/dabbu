@@ -39,30 +39,30 @@ const REQUEST_TIMEOUT = 15_000;
 
 interface CacheEntry {
   data: any;
-  expiry: number;
+  createdAt: number;
 }
 
 const cache = new Map<string, CacheEntry>();
-const CACHE_TTL = 15_000;
+const CACHEABLE_PREFIXES = [
+  '/transactions',
+  '/expense-groups',
+  '/categories',
+  '/bills',
+  '/notifications',
+  '/preferences',
+];
 
 function cacheKey(method: string, path: string): string {
   return `${method}:${path}`;
 }
 
 function shouldCacheGet(path: string): boolean {
-  return !path.startsWith('/expense-groups');
+  return CACHEABLE_PREFIXES.some((prefix) => path.startsWith(prefix));
 }
 
-function getCached<T>(key: string, allowStale = false): T | null {
+function getCached<T>(key: string): T | null {
   const entry = cache.get(key);
   if (!entry) {
-    return null;
-  }
-  if (Date.now() > entry.expiry) {
-    if (allowStale) {
-      return entry.data as T;
-    }
-    cache.delete(key);
     return null;
   }
   return entry.data as T;
@@ -75,7 +75,21 @@ function setCached(key: string, data: any): void {
       cache.delete(firstKey);
     }
   }
-  cache.set(key, { data, expiry: Date.now() + CACHE_TTL });
+  cache.set(key, { data, createdAt: Date.now() });
+}
+
+function invalidateCacheForMutation(path: string): void {
+  if (
+    path.startsWith('/transactions') ||
+    path.startsWith('/expense-groups') ||
+    path.startsWith('/categories') ||
+    path.startsWith('/bills') ||
+    path.startsWith('/devices') ||
+    path.startsWith('/preferences') ||
+    path.startsWith('/notifications')
+  ) {
+    cache.clear();
+  }
 }
 
 function mergeSignals(timeoutSignal: AbortSignal, userSignal?: AbortSignal): AbortSignal {
@@ -163,6 +177,8 @@ async function request<T>(
           const retryData = retryBody?.data ?? retryBody;
           if (canCache) {
             setCached(key, retryData);
+          } else if (options.method && options.method !== 'GET') {
+            invalidateCacheForMutation(path);
           }
           return retryData as T;
         }
@@ -185,14 +201,14 @@ async function request<T>(
 
     if (canCache) {
       setCached(key, data);
-    } else {
-      cache.clear();
+    } else if (options.method && options.method !== 'GET') {
+      invalidateCacheForMutation(path);
     }
 
     return data as T;
   } catch (err: any) {
     if (canCache) {
-      const stale = getCached<T>(key, true);
+      const stale = getCached<T>(key);
       if (stale) {
         return stale;
       }

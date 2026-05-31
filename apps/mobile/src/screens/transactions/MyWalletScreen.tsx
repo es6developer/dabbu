@@ -197,8 +197,11 @@ export function MyWalletScreen() {
                 </Text>
                 <Text style={[s.headerTitle, { color: colors.text.primary }]}>My Wallet</Text>
               </View>
-              <TouchableOpacity style={[s.avatar, { backgroundColor: `${colors.accent.primary}20` }]}>
-                <Ionicons name="person" size={20} color={colors.accent.primary} />
+              <TouchableOpacity
+                style={[s.avatar, { backgroundColor: `${colors.accent.primary}20` }]}
+                onPress={() => navigation.navigate('AddExpense')}
+              >
+                <Ionicons name="add" size={22} color={colors.accent.primary} />
               </TouchableOpacity>
             </Animated.View>
 
@@ -330,12 +333,6 @@ export function MyWalletScreen() {
           </View>
         }
       />
-
-      <LinearGradient colors={['#f7892c', '#FF6B6B']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[s.fab, { bottom: insets.bottom + 24 }]}>
-        <TouchableOpacity onPress={() => navigation.navigate('AddExpense')} activeOpacity={0.85} style={s.fabTouch}>
-          <Ionicons name="add" size={28} color="#FFFFFF" />
-        </TouchableOpacity>
-      </LinearGradient>
     </View>
   );
 }
@@ -387,6 +384,4 @@ const s = StyleSheet.create({
   emptyDesc: { fontSize: 13, textAlign: 'center', paddingHorizontal: 48, lineHeight: 18 },
   emptyCta: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 14, marginTop: 4 },
   emptyCtaText: { color: '#FFF', fontSize: 15, fontWeight: '600' },
-  fab: { position: 'absolute', right: 24, width: 58, height: 58, borderRadius: 29, elevation: 12, shadowColor: '#f7892c', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.4, shadowRadius: 16 },
-  fabTouch: { width: 58, height: 58, borderRadius: 29, justifyContent: 'center', alignItems: 'center' },
 });

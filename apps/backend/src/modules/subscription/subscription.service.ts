@@ -24,6 +24,26 @@ export class SubscriptionService {
     @InjectQueue('subscription-queue') private readonly subscriptionQueue: Queue,
   ) {}
 
+  private getPeriodEnd(startDate: Date, interval: string) {
+    const endDate = new Date(startDate);
+    switch (interval) {
+      case 'quarterly':
+        endDate.setMonth(endDate.getMonth() + 3);
+        break;
+      case 'semiannual':
+        endDate.setMonth(endDate.getMonth() + 6);
+        break;
+      case 'yearly':
+        endDate.setFullYear(endDate.getFullYear() + 1);
+        break;
+      case 'monthly':
+      default:
+        endDate.setMonth(endDate.getMonth() + 1);
+        break;
+    }
+    return endDate;
+  }
+
   async getPlans() {
     return this.prisma.subscriptionPlan.findMany({
       where: { isActive: true },
@@ -80,9 +100,7 @@ export class SubscriptionService {
     }
 
     const now = new Date();
-    const periodEnd = plan.interval === 'yearly'
-      ? new Date(now.getFullYear() + 1, now.getMonth(), now.getDate())
-      : new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
+    const periodEnd = this.getPeriodEnd(now, plan.interval);
 
     return this.prisma.$transaction(async (tx) => {
       if (existing) {
@@ -220,9 +238,7 @@ export class SubscriptionService {
         data: {
           planId: newPlan.id,
           currentPeriodStart: new Date(),
-          currentPeriodEnd: newPlan.interval === 'yearly'
-            ? new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate())
-            : new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()),
+          currentPeriodEnd: this.getPeriodEnd(new Date(), newPlan.interval),
         },
         include: { plan: true },
       });

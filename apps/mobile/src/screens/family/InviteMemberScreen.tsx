@@ -179,4 +179,6 @@ const styles = StyleSheet.create({
   inviteStatus: { fontSize: 11 },
   cancelInviteBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
   cancelInviteText: { fontSize: 12, fontWeight: '600' },
+  errorBox: { padding: 12, borderRadius: 14, marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  errorText: { fontSize: 13, fontWeight: '600' },
 });

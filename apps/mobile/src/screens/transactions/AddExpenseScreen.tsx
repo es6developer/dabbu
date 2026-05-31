@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { Card } from '../../components/ui/Card';
 
@@ -44,6 +45,7 @@ const OPTIONS: OptionCard[] = [
 
 export function AddExpenseScreen() {
   const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
 
   function handleSelect(type: OptionType) {
@@ -57,7 +59,7 @@ export function AddExpenseScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
+    <View style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top + 16 }]}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <TouchableOpacity
@@ -78,21 +80,21 @@ export function AddExpenseScreen() {
 
       <View style={styles.optionsContainer}>
         {OPTIONS.map((option, i) => (
-          <TouchableOpacity
-            key={option.type}
-            style={[
-              styles.card,
-              { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#f8f9ff' },
-            ]}
-            onPress={() => handleSelect(option.type)}
-            activeOpacity={0.7}
-          >
-            <LinearGradient
-              colors={option.gradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.iconWrap}
+            <TouchableOpacity
+              key={option.type}
+              style={[
+                styles.card,
+                { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#f8f9ff' },
+              ]}
+              onPress={() => handleSelect(option.type)}
+              activeOpacity={0.7}
             >
+              <LinearGradient
+                colors={option.type === 'group' ? [...colors.accent.gradient] : option.gradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.iconWrap}
+              >
               <Ionicons name={option.icon} size={26} color="#FFFFFF" />
             </LinearGradient>
             <View style={styles.cardContent}>

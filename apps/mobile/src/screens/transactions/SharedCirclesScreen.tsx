@@ -33,7 +33,8 @@ function fmt(v: number) { return '₹' + v.toLocaleString('en-IN', { maximumFrac
 export function SharedCirclesScreen() {
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  const cardGradient = [colors.bg.secondary, colors.bg.tertiary];
   const insets = useSafeAreaInsets();
 
   const [groups, setGroups] = useState<any[]>([]);
@@ -189,39 +190,39 @@ export function SharedCirclesScreen() {
           return (
             <View>
               <TouchableOpacity activeOpacity={0.7} onPress={() => navigation.navigate('GroupExpenses', { groupId: item.id, groupName: item.name })} style={s.cardOuter}>
-                <LinearGradient colors={['#1a1a2e', '#16213e']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.card}>
+                <LinearGradient colors={cardGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.card}>
                   <View style={s.cardTop}>
-                    <LinearGradient colors={['#6C5CE7', '#A29BFE']} style={s.cardAvatar}>
+                    <LinearGradient colors={[...colors.accent.gradient]} style={s.cardAvatar}>
                       <Ionicons name={(GROUP_ICONS[item.icon] || 'people') as any} size={22} color="#FFF" />
                     </LinearGradient>
                     <View style={{ flex: 1 }}>
-                      <Text style={s.cardName} numberOfLines={1}>{item.name}</Text>
-                      <Text style={s.cardMembers}><Ionicons name="people-outline" size={11} color="rgba(255,255,255,0.5)" /> {item._count?.members || 0} member{(item._count?.members || 0) !== 1 ? 's' : ''}</Text>
+                      <Text style={[s.cardName, { color: colors.text.primary }]} numberOfLines={1}>{item.name}</Text>
+                      <Text style={[s.cardMembers, { color: colors.text.secondary }]}><Ionicons name="people-outline" size={11} color={colors.text.secondary} /> {item._count?.members || 0} member{(item._count?.members || 0) !== 1 ? 's' : ''}</Text>
                     </View>
-                    <TouchableOpacity style={s.deleteBtn} onPress={() => confirmDelete(item.id)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                      <Ionicons name="trash-outline" size={18} color="rgba(255,255,255,0.4)" />
+                    <TouchableOpacity style={[s.deleteBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]} onPress={() => confirmDelete(item.id)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                      <Ionicons name="trash-outline" size={18} color={isDark ? 'rgba(255,255,255,0.4)' : colors.text.secondary} />
                     </TouchableOpacity>
                   </View>
                   <View style={s.statsRow}>
-                    <View style={s.stat}>
-                      <Text style={s.statLabel}>Total</Text>
-                      <Text style={s.statVal}>{fmt(ed.total)}</Text>
+                    <View style={[s.stat, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}> 
+                      <Text style={[s.statLabel, { color: isDark ? 'rgba(255,255,255,0.4)' : colors.text.secondary }]}>Total</Text>
+                      <Text style={[s.statVal, { color: colors.text.primary }]}>{fmt(ed.total)}</Text>
                     </View>
                     {budgetLeft !== null && (
-                      <View style={s.stat}>
-                        <Text style={s.statLabel}>Budget Left</Text>
-                        <Text style={[s.statVal, { color: budgetLeft >= 0 ? '#00B894' : '#FF6B6B' }]}>{fmt(Math.abs(budgetLeft))}</Text>
+                      <View style={[s.stat, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}> 
+                        <Text style={[s.statLabel, { color: isDark ? 'rgba(255,255,255,0.4)' : colors.text.secondary }]}>Budget Left</Text>
+                        <Text style={[s.statVal, { color: budgetLeft >= 0 ? colors.status.success : colors.status.error }]}>{fmt(Math.abs(budgetLeft))}</Text>
                       </View>
                     )}
-                    <View style={s.stat}>
-                      <Text style={s.statLabel}>Txns</Text>
-                      <Text style={s.statVal}>{ed.count}</Text>
+                    <View style={[s.stat, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}> 
+                      <Text style={[s.statLabel, { color: isDark ? 'rgba(255,255,255,0.4)' : colors.text.secondary }]}>Txns</Text>
+                      <Text style={[s.statVal, { color: colors.text.primary }]}>{ed.count}</Text>
                     </View>
                   </View>
                   {ed.latest && (
-                    <View style={s.latest}>
-                      <Text style={s.latestLabel}>Latest</Text>
-                      <Text style={s.latestText} numberOfLines={1}>{ed.latest.description || 'Expense'} · {fmt(Number(ed.latest.amount))}</Text>
+                    <View style={[s.latest, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }]}> 
+                      <Text style={[s.latestLabel, { color: isDark ? 'rgba(255,255,255,0.3)' : colors.text.secondary }]}>Latest</Text>
+                      <Text style={[s.latestText, { color: colors.text.tertiary }]} numberOfLines={1}>{ed.latest.description || 'Expense'} · {fmt(Number(ed.latest.amount))}</Text>
                     </View>
                   )}
                 </LinearGradient>
@@ -231,8 +232,8 @@ export function SharedCirclesScreen() {
         }}
         ListEmptyComponent={
           <View style={s.empty}>
-            <LinearGradient colors={['#6C5CE720', '#A29BFE20']} style={s.emptyIcon}>
-              <Ionicons name="people" size={44} color="#6C5CE7" />
+            <LinearGradient colors={[`${colors.accent.primary}20`, `${colors.accent.secondary}20`]} style={s.emptyIcon}>
+              <Ionicons name="people" size={44} color={colors.accent.primary} />
             </LinearGradient>
             <Text style={[s.emptyTitle, { color: colors.text.primary }]}>{search ? 'No groups found' : 'No groups yet'}</Text>
             <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>{search ? 'Try a different search' : 'Create your first circle'}</Text>

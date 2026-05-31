@@ -15,6 +15,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
@@ -39,6 +40,7 @@ const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD'];
 
 export function CreateExpenseGroupScreen() {
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const { accessToken } = useAuth();
   const { colors, isDark } = useTheme();
 
@@ -122,7 +124,7 @@ export function CreateExpenseGroupScreen() {
 
   return (
     <ScrollView
-      style={[styles.container, { backgroundColor: colors.bg.primary }]}
+      style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top + 16 }]}
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
     >
@@ -137,7 +139,7 @@ export function CreateExpenseGroupScreen() {
       </TouchableOpacity>
 
       <LinearGradient
-        colors={['#6C5CE7', '#A29BFE']}
+        colors={[...colors.accent.gradient]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.heroSection}

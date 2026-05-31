@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -17,11 +18,15 @@ import { useTheme, typography as typographyStyles } from '../../theme';
 
 export function TransactionDetailScreen() {
   const route = useRoute<any>();
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
   const { colors, typography } = useTheme();
   const { transactionId } = route.params || {};
   const [txn, setTxn] = useState<any>(null);
+  const amountGradient = txn?.type === 'income'
+    ? [...colors.accent.gradient]
+    : [colors.bg.secondary, colors.bg.tertiary];
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
 
@@ -101,12 +106,12 @@ export function TransactionDetailScreen() {
   const formatCurrency = (val: number) => '₹' + val.toLocaleString('en-IN');
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.bg.primary }]} contentContainerStyle={styles.content}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top + 16 }]} contentContainerStyle={styles.content}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}>
         <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
       </TouchableOpacity>
 
-      <LinearGradient colors={isCredit ? ['#00B894', '#00CEC9'] : ['#1a1a2e', '#0f3460']} style={styles.amountCard}>
+      <LinearGradient colors={amountGradient} style={styles.amountCard}>
         <Text style={[styles.amoountLabel, { color: colors.text.tertiary }]}>{txn.type} </Text>
         <Text style={styles.amount}>
           {sign}

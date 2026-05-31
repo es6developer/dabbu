@@ -307,8 +307,9 @@ export function TransactionsListScreen() {
               </View>
               <TouchableOpacity
                 style={[styles.avatar, { backgroundColor: `${colors.accent.primary}25` }]}
+                onPress={() => navigation.navigate('AddExpense')}
               >
-                <Ionicons name="person" size={20} color={colors.accent.primary} />
+                <Ionicons name="add" size={22} color={colors.accent.primary} />
               </TouchableOpacity>
             </View>
 
@@ -415,7 +416,7 @@ export function TransactionsListScreen() {
                       }
                       activeOpacity={0.7}
                     >
-                      <LinearGradient colors={['#6C5CE7', '#A29BFE']} style={styles.groupAvatar}>
+                      <LinearGradient colors={[...colors.accent.gradient]} style={styles.groupAvatar}>
                         <Text style={styles.groupAvatarText}>
                           {(g.name || 'G')[0].toUpperCase()}
                         </Text>
@@ -640,20 +641,6 @@ export function TransactionsListScreen() {
         }
       />
 
-      <LinearGradient
-        colors={['#f7892c', '#FF6B6B']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.fab, { bottom: insets.bottom + 24 }]}
-      >
-        <TouchableOpacity
-          onPress={() => navigation.navigate('AddExpense')}
-          activeOpacity={0.85}
-          style={styles.fabTouch}
-        >
-          <Ionicons name="add" size={28} color="#FFFFFF" />
-        </TouchableOpacity>
-      </LinearGradient>
     </View>
   );
 }
@@ -815,25 +802,4 @@ const styles = StyleSheet.create({
   },
   emptyTitle: { fontSize: 17, fontWeight: '600' },
   emptyDesc: { fontSize: 13, textAlign: 'center', paddingHorizontal: 40, lineHeight: 18 },
-
-  // ── FAB ──
-  fab: {
-    position: 'absolute',
-    right: 24,
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    elevation: 12,
-    shadowColor: '#f7892c',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-  },
-  fabTouch: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
 });

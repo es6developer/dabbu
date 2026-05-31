@@ -23,7 +23,7 @@ export function CurrencyScreen() {
   const { colors } = useTheme();
   const { user } = useAuth();
   const [currencies, setCurrencies] = useState<Currency[]>([]);
-  const [selected, setSelected] = useState(user?.currency || 'INR');
+  const [selected, setSelected] = useState((user as any)?.currency || 'INR');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 

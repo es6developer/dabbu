@@ -8,7 +8,7 @@ import { useTheme } from '../../theme';
 import { Card } from '../../components/ui/Card';
 
 const TYPE_META: Record<string, { icon: keyof typeof Ionicons.glyphMap; color: string }> = {
-  savings: { icon: 'piggy-bank', color: '#00B894' },
+  savings: { icon: 'wallet-outline', color: '#00B894' },
   checking: { icon: 'card', color: '#0984E3' },
   credit_card: { icon: 'card', color: '#E17055' },
   cash: { icon: 'cash', color: '#FDCB6E' },
