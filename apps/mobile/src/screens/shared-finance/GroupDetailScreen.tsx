@@ -124,6 +124,8 @@ export function GroupDetailScreen() {
     loadGroup,
     navigation,
     groupId,
+    handleInviteExternal,
+    invitingExternal,
   } = useGroupDetail();
 
   const meta = useMemo(
@@ -251,13 +253,42 @@ export function GroupDetailScreen() {
               ))}
             </View>
 
-            <TouchableOpacity
-              style={[s.summaryCta, { backgroundColor: colors.accent.primary }]}
-              onPress={() => navigation.navigate('GroupDashboard', { groupId })}
-            >
-              <Ionicons name="stats-chart-outline" size={18} color="#FFFFFF" />
-              <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 14 }}>Dashboard</Text>
-            </TouchableOpacity>
+            <View style={s.actionRow}>
+              <TouchableOpacity
+                style={[s.actionBtn, { backgroundColor: colors.accent.primary, flex: 1 }]}
+                onPress={() => navigation.navigate('GroupDashboard', { groupId })}
+              >
+                <Ionicons name="stats-chart-outline" size={16} color="#FFFFFF" />
+                <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 13, marginLeft: 4 }}>
+                  Dashboard
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[s.actionBtn, { backgroundColor: colors.bg.tertiary, flex: 1 }]}
+                onPress={() =>
+                  navigation.navigate('InviteMembers', { groupId, groupName: group?.name })
+                }
+              >
+                <Ionicons name="person-add-outline" size={16} color={colors.text.primary} />
+                <Text
+                  style={{
+                    color: colors.text.primary,
+                    fontWeight: '600',
+                    fontSize: 13,
+                    marginLeft: 4,
+                  }}
+                >
+                  Invite
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[s.actionBtn, { backgroundColor: colors.bg.tertiary, flex: 0 }]}
+                onPress={handleInviteExternal}
+                disabled={invitingExternal}
+              >
+                <Ionicons name="share-outline" size={16} color={colors.accent.primary} />
+              </TouchableOpacity>
+            </View>
 
             <View style={[s.tabRow, { backgroundColor: colors.bg.tertiary }]}>
               {SEGMENTS.map((seg) => {
@@ -376,14 +407,18 @@ const s = StyleSheet.create({
   },
   statsRow: { flexDirection: 'row', marginTop: 20, gap: 10 },
   statCard: { flex: 1, borderRadius: 14, padding: 14, alignItems: 'center' },
-  summaryCta: {
+  actionRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 16,
+  },
+  actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    marginTop: 16,
-    paddingVertical: 14,
-    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 12,
   },
   tabRow: { flexDirection: 'row', borderRadius: 12, padding: 3, marginTop: 16 },
   tab: { flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: 'center' },
