@@ -44,7 +44,7 @@ export function ReminderDetailScreen() {
   async function loadReminder() {
     try {
       const res = await api.get<any>(`/reminders/${reminderId}`);
-      setReminder(res?.data ?? res);
+      setReminder(res);
     } catch (e) {
       /* ignore */
     } finally {
@@ -75,8 +75,8 @@ export function ReminderDetailScreen() {
       if (accessToken) {
         setAccessToken(accessToken);
       }
-      const snoozeUntil = new Date(Date.now() + minutes * 60000).toISOString();
-      await api.patch(`/reminders/${reminderId}`, { snoozeUntil });
+      const until = new Date(Date.now() + minutes * 60000).toISOString();
+      await api.post(`/reminders/${reminderId}/snooze`, { until });
       Alert.alert('Snoozed', `Reminder snoozed for ${minutes} minutes`);
       loadReminder();
     } catch (e: any) {

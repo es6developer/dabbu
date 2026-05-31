@@ -192,10 +192,10 @@ export function BillScannerScreen() {
       const mimeType = asset.mimeType || 'image/jpeg';
 
       const form = new FormData();
-      // @ts-ignore - React Native FormData file object
+      // @ts-expect-error - React Native FormData file object
       form.append('file', { uri, name: fileName, type: mimeType });
 
-      const res = await api.post<any>('/transactions/scan-bill', form as any);
+      const res = await api.post<any>('/transactions/scan-bill', form as any, undefined, 60_000);
       if (res && res.amount) {
         navigation.navigate('CreateTransaction', {
           prefill: {

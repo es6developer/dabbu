@@ -1,4 +1,4 @@
-import { Module, MiddlewareConsumer, NestModule, RequestMethod } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
@@ -37,6 +37,7 @@ import { SharedFinanceModule } from './modules/shared-finance/shared-finance.mod
 import { ExpenseGroupsModule } from './modules/expense-groups/expense-groups.module';
 import { ExternalSharingModule } from './modules/external-sharing/external-sharing.module';
 import { AiInsightsModule } from './modules/ai-insights/ai-insights.module';
+import { CurrencyModule } from './modules/currency/currency.module';
 
 @Module({
   imports: [
@@ -99,6 +100,7 @@ import { AiInsightsModule } from './modules/ai-insights/ai-insights.module';
     ExpenseGroupsModule,
     ExternalSharingModule,
     AiInsightsModule,
+    CurrencyModule,
   ],
   controllers: [HealthController],
   providers: [

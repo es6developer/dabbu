@@ -1,6 +1,18 @@
 import {
-  IsString, IsOptional, IsEnum, IsDateString, IsUUID, IsBoolean, IsObject,
-  MinLength, MaxLength, IsInt, IsArray, Min, Max, IsNumber, ValidateNested,
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsDateString,
+  IsUUID,
+  IsBoolean,
+  IsObject,
+  MinLength,
+  MaxLength,
+  IsInt,
+  IsArray,
+  Min,
+  Max,
+  ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -74,7 +86,11 @@ export class CreateReminderDto {
   @IsEnum(ReminderPriority)
   priority: ReminderPriority;
 
-  @ApiPropertyOptional({ enum: ReminderStatus, description: 'Status', default: ReminderStatus.PENDING })
+  @ApiPropertyOptional({
+    enum: ReminderStatus,
+    description: 'Status',
+    default: ReminderStatus.PENDING,
+  })
   @IsOptional()
   @IsEnum(ReminderStatus)
   status?: ReminderStatus;
@@ -93,9 +109,10 @@ export class CreateReminderDto {
   @IsDateString()
   snoozedUntil?: string;
 
-  @ApiProperty({ description: 'Whether the reminder repeats' })
+  @ApiPropertyOptional({ description: 'Whether the reminder repeats', default: false })
+  @IsOptional()
   @IsBoolean()
-  isRecurring: boolean;
+  isRecurring?: boolean;
 
   @ApiPropertyOptional({ description: 'Transaction category ID' })
   @IsOptional()

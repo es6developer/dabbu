@@ -2276,6 +2276,20 @@ model ExpenseGroupMember {
   @@map("expense_group_members")
 }
 
+// ─── CURRENCIES ─────────────────────────────────────────────
+model Currency {
+  id       String   @id @default(uuid()) @db.VarChar(36)
+  code     String   @unique @db.VarChar(3)
+  name     String   @db.VarChar(100)
+  symbol   String   @db.VarChar(10)
+  locale   String?  @db.VarChar(10)
+  isActive Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("currencies")
+}
+
 // ─── VIEWS FOR PAGINATION OPTIMIZATION ─────────────────────
 // These will be created via raw SQL migrations for complex reporting
 

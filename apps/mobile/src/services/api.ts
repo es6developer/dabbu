@@ -106,7 +106,11 @@ async function fetchWithTimeout(
   }
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+async function request<T>(
+  path: string,
+  options: RequestInit = {},
+  customTimeout?: number,
+): Promise<T> {
   const key = cacheKey(options.method || 'GET', path);
 
   const canCache = (!options.method || options.method === 'GET') && shouldCacheGet(path);
@@ -118,8 +122,10 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     }
   }
 
-  const isFormData = typeof (options as any).body !== 'string' &&
-    typeof FormData !== 'undefined' && (options as any).body instanceof FormData;
+  const isFormData =
+    typeof (options as any).body !== 'string' &&
+    typeof FormData !== 'undefined' &&
+    (options as any).body instanceof FormData;
 
   const headers: Record<string, string> = {
     ...(options.headers as Record<string, string>),
@@ -134,11 +140,16 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   }
 
   for (let attempt = 0; attempt < 2; attempt++) {
-    const timeout = attempt === 0 ? REQUEST_TIMEOUT : RETRY_TIMEOUT;
+    const baseTimeout = customTimeout || (attempt === 0 ? REQUEST_TIMEOUT : RETRY_TIMEOUT);
+    const timeout = attempt === 0 ? baseTimeout : Math.max(baseTimeout, RETRY_TIMEOUT);
     try {
       // If body is an object and not FormData, stringify as JSON
       const sentOptions = { ...options, headers } as RequestInit;
-      if (sentOptions.body && !(sentOptions.body instanceof FormData) && typeof sentOptions.body !== 'string') {
+      if (
+        sentOptions.body &&
+        !(sentOptions.body instanceof FormData) &&
+        typeof sentOptions.body !== 'string'
+      ) {
         sentOptions.body = JSON.stringify(sentOptions.body);
       }
 
@@ -208,14 +219,22 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 export const api = {
-  get: <T>(path: string, signal?: AbortSignal) =>
-    request<T>(path, { method: 'GET', ...(signal ? { signal } : {}) }),
-  post: <T>(path: string, body?: any, signal?: AbortSignal) =>
-    request<T>(path, { method: 'POST', body: body ?? undefined, ...(signal ? { signal } : {}) }),
-  patch: <T>(path: string, body?: any, signal?: AbortSignal) =>
-    request<T>(path, { method: 'PATCH', body: body ?? undefined, ...(signal ? { signal } : {}) }),
-  delete: <T>(path: string, signal?: AbortSignal) =>
-    request<T>(path, { method: 'DELETE', ...(signal ? { signal } : {}) }),
+  get: <T>(path: string, signal?: AbortSignal, timeout?: number) =>
+    request<T>(path, { method: 'GET', ...(signal ? { signal } : {}) }, timeout),
+  post: <T>(path: string, body?: any, signal?: AbortSignal, timeout?: number) =>
+    request<T>(
+      path,
+      { method: 'POST', body: body ?? undefined, ...(signal ? { signal } : {}) },
+      timeout,
+    ),
+  patch: <T>(path: string, body?: any, signal?: AbortSignal, timeout?: number) =>
+    request<T>(
+      path,
+      { method: 'PATCH', body: body ?? undefined, ...(signal ? { signal } : {}) },
+      timeout,
+    ),
+  delete: <T>(path: string, signal?: AbortSignal, timeout?: number) =>
+    request<T>(path, { method: 'DELETE', ...(signal ? { signal } : {}) }, timeout),
 };
 
 export function clearCache() {
