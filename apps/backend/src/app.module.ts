@@ -9,6 +9,7 @@ import { BullModule } from '@nestjs/bullmq';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
+import mailConfig from './config/mail.config';
 
 // Database
 import { DatabaseModule } from './database/database.module';
@@ -37,13 +38,14 @@ import { CurrencyModule } from './modules/currency/currency.module';
 import { BillsModule } from './modules/bills/bills.module';
 import { SharedFinanceModule } from './modules/shared-finance/shared-finance.module';
 import { UserPreferencesModule } from './modules/user-preferences/user-preferences.module';
+import { EmailModule } from './modules/email/email.module';
 
 @Module({
   imports: [
     // ─── Configuration ─────────────────────────────
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, databaseConfig, jwtConfig],
+      load: [appConfig, databaseConfig, jwtConfig, mailConfig],
       envFilePath: ['.env', '.env.local'],
     }),
 
@@ -99,6 +101,7 @@ import { UserPreferencesModule } from './modules/user-preferences/user-preferenc
     CurrencyModule,
     SharedFinanceModule,
     UserPreferencesModule,
+    EmailModule,
   ],
   controllers: [HealthController],
   providers: [

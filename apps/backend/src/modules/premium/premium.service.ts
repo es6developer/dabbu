@@ -1,9 +1,13 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class PremiumService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private emailService: EmailService,
+  ) {}
 
   async getPlans() {
     return this.prisma.subscriptionPlan.findMany({
@@ -50,6 +54,29 @@ export class PremiumService {
       },
     });
     await this.syncEntitlements(userId, sub.id, plan);
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, firstName: true },
+    });
+    if (user) {
+      const intervalLabel =
+        plan.interval === 'monthly'
+          ? 'Monthly'
+          : plan.interval === 'quarterly'
+            ? 'Quarterly'
+            : plan.interval === 'halfyearly'
+              ? 'Half-Yearly'
+              : 'Yearly';
+      this.emailService.sendPremiumActivatedEmail(
+        user.email,
+        user.firstName,
+        plan.name,
+        intervalLabel,
+        plan.features as string[],
+      );
+    }
+
     return sub;
   }
 
@@ -171,6 +198,28 @@ export class PremiumService {
       },
     });
     await this.syncEntitlements(sub.userId, sub.id, sub.plan);
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: sub.userId },
+      select: { email: true, firstName: true },
+    });
+    if (user) {
+      const intervalLabel =
+        sub.plan.interval === 'monthly'
+          ? 'Monthly'
+          : sub.plan.interval === 'quarterly'
+            ? 'Quarterly'
+            : sub.plan.interval === 'halfyearly'
+              ? 'Half-Yearly'
+              : 'Yearly';
+      this.emailService.sendPremiumActivatedEmail(
+        user.email,
+        user.firstName,
+        sub.plan.name,
+        intervalLabel,
+        sub.plan.features as string[],
+      );
+    }
   }
 
   private async deactivateSubscription(razorpaySubscriptionId: string) {
@@ -213,6 +262,33 @@ export class PremiumService {
         paidAt: new Date(),
       },
     });
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: sub.userId },
+      select: { email: true, firstName: true },
+    });
+    if (user && sub.status === 'active') {
+      const amount = payload.amount ? `₹${(payload.amount / 100).toLocaleString('en-IN')}` : '₹0';
+      const renewalDate = new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+      const plan = await this.prisma.subscriptionPlan.findUnique({ where: { id: sub.planId } });
+      const nextBillingDate = plan
+        ? this.calculatePeriodEnd(new Date(), plan.interval, plan.intervalCount).toLocaleDateString(
+            'en-US',
+            { year: 'numeric', month: 'long', day: 'numeric' },
+          )
+        : '';
+      this.emailService.sendPremiumRenewedEmail(
+        user.email,
+        user.firstName,
+        renewalDate,
+        nextBillingDate,
+        amount,
+      );
+    }
   }
 
   private async recordFailedPayment(payload: any) {
@@ -237,6 +313,16 @@ export class PremiumService {
         failureReason: payload.failure_reason || 'Payment failed',
       },
     });
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: sub.userId },
+      select: { email: true, firstName: true },
+    });
+    const plan = await this.prisma.subscriptionPlan.findUnique({ where: { id: sub.planId } });
+    if (user && plan) {
+      const amount = payload.amount ? `₹${(payload.amount / 100).toLocaleString('en-IN')}` : '₹0';
+      this.emailService.sendPaymentFailedEmail(user.email, user.firstName, plan.name, amount);
+    }
   }
 
   private calculatePeriodEnd(from: Date, interval: string, count: number): Date {

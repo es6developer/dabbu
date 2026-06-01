@@ -10,6 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { EmailService } from '../email/email.service';
 import { RegisterDto, LoginDto, RefreshTokenDto } from './dto/auth.dto';
 import { JwtPayload, TokenPair } from './interfaces/jwt-payload.interface';
 
@@ -23,6 +24,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly emailService: EmailService,
   ) {}
 
   async register(dto: RegisterDto): Promise<{ user: any; tokens: TokenPair }> {
@@ -83,6 +85,9 @@ export class AuthService {
     await this.createSession(user.id, tokens.refreshToken);
 
     const { password, ...userWithoutPassword } = user;
+
+    this.emailService.sendWelcomeEmail(user.email, user.firstName);
+
     return { user: userWithoutPassword, tokens };
   }
 
@@ -205,7 +210,7 @@ export class AuthService {
       },
     });
 
-    this.logger.log(`Password reset token for ${email}: ${resetToken}`);
+    this.emailService.sendForgotPasswordEmail(user.email, user.firstName, resetToken);
 
     return { message: 'If the email exists, a reset link has been sent.' };
   }
@@ -248,6 +253,11 @@ export class AuthService {
       where: { userId: matchedUser.id, isRevoked: false },
       data: { isRevoked: true, revokedAt: new Date() },
     });
+
+    this.emailService.sendPasswordChangedEmail(
+      matchedUser.email,
+      matchedUser.email.split('@')[0] || 'User',
+    );
 
     return { message: 'Password reset successfully' };
   }

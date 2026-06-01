@@ -664,16 +664,16 @@ async function main() {
   for (let w = 0; w < 20; w++) {
     await prisma.webhookEvent.create({
       data: {
-        gateway: 'razorpay',
         eventId: `evt_${crypto.randomBytes(12).toString('hex')}`,
         eventType: randomElement([
-          'payment_intent.succeeded',
-          'invoice.paid',
-          'subscription.created',
-          'charge.refunded',
+          'subscription.activated',
+          'subscription.charged',
+          'payment.authorized',
+          'payment.captured',
+          'payment.failed',
         ]),
         status: randomElement(['processed', 'processed', 'pending']),
-        requestBody: { id: `evt_${w}`, type: 'payment' },
+        payload: { id: `evt_${w}`, type: 'event' },
       },
     });
   }
