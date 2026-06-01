@@ -1,0 +1,3240 @@
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
+import * as crypto from 'crypto';
+import { PrismaService } from '../../common/prisma/prisma.service';
+import { SettlementEngine } from './engines/settlement.engine';
+import { AiInsightsEngine } from './engines/ai-insights.engine';
+import { GroupLifecycleService } from './engines/group-lifecycle.service';
+import { AccessRevocationEngine } from './engines/access-revocation.engine';
+import { TripCostForecastEngine } from './engines/trip-forecast.engine';
+import { DuplicateDetectionEngine } from './engines/duplicate-detection.engine';
+import { Server } from 'socket.io';
+import {
+  CreateGroupDto,
+  UpdateGroupDto,
+  InviteMemberDto,
+  CreateExpenseDto,
+  UpdateExpenseDto,
+  ExpenseSplitDto,
+  CreateSettlementDto,
+  CompleteSettlementDto,
+  CreateCoupleProfileDto,
+  SendCoupleInviteDto,
+  CreateTripDto,
+  AddTripExpenseDto,
+  CreateSubscriptionDto,
+  SubscriptionShareDto,
+  CreateHouseholdBillDto,
+  HouseShareDto,
+  CreateContributionRuleDto,
+  CreateSharedGoalDto,
+  ContributeToGoalDto,
+  SendMessageDto,
+  UpdateSalaryProfileDto,
+  TransitionStatusDto,
+  CreateWalletDto,
+  ContributeToWalletDto,
+  SpendFromWalletDto,
+  TransferWalletDto,
+  CreateAdvanceContributionDto,
+  ContributeToAdvanceDto,
+  AdjustAdvanceDto,
+  RequestApprovalDto,
+  ApproveExpenseDto,
+  UploadDocumentDto,
+  UpdateDocumentPermissionDto,
+  CreateCalendarEventDto,
+  CreateSplitTemplateDto,
+  CreateFromTemplateDto,
+  UploadCreditCardBillDto,
+  SplitTransactionDto,
+  CreateCashPoolDto,
+  CashPoolTransactionDto,
+  CreateEmergencyFundDto,
+  ContributeToEmergencyFundDto,
+  WithdrawFromEmergencyFundDto,
+  CreateNetWorthSnapshotDto,
+  ExportDataDto,
+  CreateReferralDto,
+  TripForecastDto,
+} from './dto/shared-finance.dto';
+
+@Injectable()
+export class SharedFinanceService {
+  private readonly logger = new Logger(SharedFinanceService.name);
+
+  private socketServer: Server | null = null;
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly settlementEngine: SettlementEngine,
+    private readonly aiInsightsEngine: AiInsightsEngine,
+    private readonly lifecycleService: GroupLifecycleService,
+    private readonly revocationEngine: AccessRevocationEngine,
+    private readonly tripForecastEngine: TripCostForecastEngine,
+    private readonly duplicateEngine: DuplicateDetectionEngine,
+  ) {}
+
+  setSocketServer(server: Server) {
+    this.socketServer = server;
+  }
+
+  // ─── Group Management ──────────────────────────────────────
+
+  async createGroup(userId: string, dto: CreateGroupDto) {
+    const group = await this.prisma.sharedGroup.create({
+      data: {
+        name: dto.name,
+        description: dto.description,
+        type: dto.type || 'friends',
+        icon: dto.icon || 'people',
+        coverColor: dto.coverColor || '#f7892c',
+        currency: dto.currency || 'INR',
+        monthlyBudget: dto.monthlyBudget,
+        monthlyIncome: dto.monthlyIncome,
+        status: 'ACTIVE',
+        statusChangedAt: new Date(),
+        statusChangedBy: userId,
+        createdBy: userId,
+        members: {
+          create: {
+            userId,
+            role: 'admin',
+          },
+        },
+      },
+      include: {
+        members: {
+          include: {
+            user: {
+              select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true },
+            },
+          },
+        },
+      },
+    });
+
+    await this.prisma.groupLifecycleEvent.create({
+      data: {
+        groupId: group.id,
+        eventType: 'created',
+        toStatus: 'ACTIVE',
+        triggeredBy: userId,
+        metadata: { name: group.name, type: group.type },
+      },
+    });
+
+    return group;
+  }
+
+  async getGroup(groupId: string, userId: string) {
+    const { readable, reason } = await this.lifecycleService.getAccessibleGroupData(
+      groupId,
+      userId,
+    );
+    if (!readable) {
+      throw new ForbiddenException(reason || 'Access denied');
+    }
+
+    const group = await this.prisma.sharedGroup.findUnique({
+      where: { id: groupId },
+      include: {
+        members: {
+          where: { isActive: true },
+          include: {
+            user: {
+              select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true },
+            },
+          },
+        },
+        trip: true,
+        coupleProfile: {
+          include: {
+            partner1: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+            partner2: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+          },
+        },
+        contributionRules: {
+          where: { isActive: true },
+        },
+        sharedSubscriptions: {
+          where: { isActive: true },
+          include: {
+            shares: true,
+            payer: { select: { id: true, firstName: true, lastName: true } },
+          },
+        },
+        _count: {
+          select: {
+            expenses: true,
+            settlements: true,
+            groupMessages: true,
+            sharedGoals: true,
+          },
+        },
+      },
+    });
+
+    if (!group) {
+      throw new NotFoundException('Group not found');
+    }
+
+    return group;
+  }
+
+  async getUserGroups(userId: string) {
+    const memberships = await this.prisma.sharedGroupMember.findMany({
+      where: { userId, isActive: true },
+      include: {
+        group: {
+          include: {
+            _count: {
+              select: { members: true, expenses: true },
+            },
+          },
+        },
+      },
+      orderBy: { joinedAt: 'desc' },
+    });
+
+    return memberships.map((m) => ({
+      ...m.group,
+      role: m.role,
+      nickname: m.nickname,
+      joinedAt: m.joinedAt,
+      totalSpent: Number(m.group.totalSpent || 0),
+      monthlyBudget: Number(m.group.monthlyBudget || 0),
+      monthlyIncome: Number(m.group.monthlyIncome || 0),
+    }));
+  }
+
+  async updateGroup(groupId: string, userId: string, dto: UpdateGroupDto) {
+    await this.verifyAdmin(groupId, userId);
+
+    const group = await this.prisma.sharedGroup.update({
+      where: { id: groupId },
+      data: {
+        ...(dto.name !== undefined && { name: dto.name }),
+        ...(dto.description !== undefined && { description: dto.description }),
+        ...(dto.type !== undefined && { type: dto.type }),
+        ...(dto.icon !== undefined && { icon: dto.icon }),
+        ...(dto.coverColor !== undefined && { coverColor: dto.coverColor }),
+        ...(dto.monthlyBudget !== undefined && { monthlyBudget: dto.monthlyBudget }),
+        ...(dto.monthlyIncome !== undefined && { monthlyIncome: dto.monthlyIncome }),
+      },
+    });
+
+    return group;
+  }
+
+  async deleteGroup(groupId: string, userId: string) {
+    await this.verifyAdmin(groupId, userId);
+
+    await this.prisma.sharedGroup.delete({ where: { id: groupId } });
+
+    return { message: 'Group deleted successfully' };
+  }
+
+  async addMember(groupId: string, targetUserId: string, adminId: string) {
+    await this.verifyAdmin(groupId, adminId);
+
+    const existing = await this.prisma.sharedGroupMember.findUnique({
+      where: { groupId_userId: { groupId, userId: targetUserId } },
+    });
+    if (existing) {
+      throw new BadRequestException('User is already a member');
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { id: targetUserId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const member = await this.prisma.sharedGroupMember.create({
+      data: { groupId, userId: targetUserId, role: 'member' },
+      include: {
+        user: {
+          select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true },
+        },
+      },
+    });
+
+    await this.prisma.sharedGroup.update({
+      where: { id: groupId },
+      data: { totalSpent: undefined },
+    });
+
+    return member;
+  }
+
+  async removeMember(groupId: string, memberId: string, adminId: string) {
+    await this.verifyAdmin(groupId, adminId);
+
+    const member = await this.prisma.sharedGroupMember.findUnique({
+      where: { id: memberId },
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true, email: true } },
+      },
+    });
+    if (!member) {
+      throw new NotFoundException('Member not found');
+    }
+    if (member.groupId !== groupId) {
+      throw new BadRequestException('Member not in this group');
+    }
+    if (member.role === 'admin') {
+      throw new BadRequestException('Cannot remove an admin. Demote first.');
+    }
+
+    // Check if the member has outstanding balance
+    const expenses = await this.prisma.sharedExpense.findMany({
+      where: { groupId },
+      include: { splits: true },
+    });
+    const allMembers = await this.prisma.sharedGroupMember.findMany({
+      where: { groupId, isActive: true },
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true, email: true } },
+      },
+    });
+    const balances = this.settlementEngine.calculateBalances(expenses, allMembers);
+    const memberBalance = balances.find((b) => b.userId === member.userId);
+    const hasOutstandingBalance = memberBalance && Math.abs(memberBalance.balance) > 0.01;
+
+    // Deactivate member (soft delete)
+    await this.prisma.sharedGroupMember.update({
+      where: { id: memberId },
+      data: {
+        isActive: false,
+        removedAt: new Date(),
+        removedBy: adminId,
+        removalReason: 'Removed by admin',
+      },
+    });
+
+    // Revoke access (sessions, invites, sockets)
+    const revocationResult = await this.revocationEngine.revokeMemberAccess(
+      groupId,
+      member.userId,
+      adminId,
+      `Removed from group by admin`,
+      this.socketServer || undefined,
+    );
+
+    // Log the removal
+    await this.prisma.memberRemovalLog.create({
+      data: {
+        groupId,
+        memberId: member.userId,
+        removedBy: adminId,
+        reason: 'Removed by admin',
+        hadOutstandingBalance: hasOutstandingBalance || false,
+        balanceAtRemoval: hasOutstandingBalance ? Math.abs(memberBalance!.balance) : undefined,
+        invalidationToken: revocationResult.invalidationToken,
+      },
+    });
+
+    // Log lifecycle event
+    await this.prisma.groupLifecycleEvent.create({
+      data: {
+        groupId,
+        eventType: 'member_removed',
+        triggeredBy: adminId,
+        metadata: {
+          removedUserId: member.userId,
+          removedUserEmail: member.user.email,
+          hadOutstandingBalance: hasOutstandingBalance,
+          sessionsTerminated: revocationResult.sessionsTerminated,
+        },
+      },
+    });
+
+    this.logger.warn(
+      `Member ${member.user.email} (${member.userId}) removed from group ${groupId} by admin ${adminId}. ` +
+        `Balance outstanding: ${hasOutstandingBalance}. Sessions invalidated: ${revocationResult.sessionsTerminated}`,
+    );
+
+    return {
+      message: 'Member removed successfully. Access revoked.',
+      sessionsTerminated: revocationResult.sessionsTerminated,
+      hadOutstandingBalance: hasOutstandingBalance || false,
+    };
+  }
+
+  async leaveGroup(groupId: string, userId: string) {
+    const member = await this.prisma.sharedGroupMember.findUnique({
+      where: { groupId_userId: { groupId, userId } },
+    });
+    if (!member) {
+      throw new NotFoundException('You are not a member of this group');
+    }
+
+    const adminCount = await this.prisma.sharedGroupMember.count({
+      where: { groupId, role: 'admin', isActive: true },
+    });
+
+    if (member.role === 'admin' && adminCount <= 1) {
+      throw new BadRequestException('You are the only admin. Transfer ownership before leaving.');
+    }
+
+    // Soft deactivate instead of hard delete
+    await this.prisma.sharedGroupMember.update({
+      where: { id: member.id },
+      data: {
+        isActive: false,
+        removedAt: new Date(),
+        removalReason: 'Member left voluntarily',
+      },
+    });
+
+    // Leave the socket room
+    if (this.socketServer) {
+      this.socketServer.to(`user:${userId}`).emit('leftGroup', {
+        groupId,
+        message: 'You have left the group.',
+      });
+    }
+
+    await this.prisma.groupLifecycleEvent.create({
+      data: {
+        groupId,
+        eventType: 'member_left',
+        triggeredBy: userId,
+        metadata: { userId, leftAt: new Date().toISOString() },
+      },
+    });
+
+    return { message: 'Left group successfully' };
+  }
+
+  async inviteMember(groupId: string, invitedByUserId: string, dto: InviteMemberDto) {
+    await this.verifyAdmin(groupId, invitedByUserId);
+    await this.lifecycleService.assertCanInvite(groupId);
+
+    const existingInvite = await this.prisma.groupInvite.findFirst({
+      where: { groupId, email: dto.email, status: 'active', expiresAt: { gte: new Date() } },
+    });
+    if (existingInvite) {
+      throw new BadRequestException('Active invite already exists for this email');
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 7 * 86400000);
+
+    const invite = await this.prisma.groupInvite.create({
+      data: {
+        groupId,
+        email: dto.email,
+        invitedBy: invitedByUserId,
+        token,
+        expiresAt,
+        status: 'active',
+      },
+      include: {
+        group: { select: { name: true } },
+        inviter: { select: { firstName: true, lastName: true, email: true } },
+      },
+    });
+
+    return invite;
+  }
+
+  async validateInvite(token: string) {
+    const invite = await this.prisma.groupInvite.findUnique({
+      where: { token },
+      include: {
+        group: { select: { id: true, name: true, icon: true, type: true } },
+        inviter: { select: { firstName: true, lastName: true, email: true } },
+      },
+    });
+
+    if (!invite) {
+      throw new NotFoundException('Invalid invite token');
+    }
+    if (invite.status !== 'active') {
+      const reason =
+        invite.status === 'revoked'
+          ? 'This invite has been revoked by the group admin.'
+          : invite.status === 'expired'
+            ? 'This invite has expired.'
+            : 'This invite is no longer valid.';
+      throw new BadRequestException(reason);
+    }
+    if (invite.expiresAt < new Date()) {
+      await this.prisma.groupInvite.update({
+        where: { id: invite.id },
+        data: { status: 'expired' },
+      });
+      throw new BadRequestException('Invite has expired');
+    }
+
+    return invite;
+  }
+
+  async joinViaInvite(token: string, userId: string) {
+    const invite = await this.validateInvite(token);
+
+    const existingMember = await this.prisma.sharedGroupMember.findUnique({
+      where: { groupId_userId: { groupId: invite.groupId, userId } },
+    });
+    if (existingMember) {
+      throw new BadRequestException('You are already a member of this group');
+    }
+
+    await this.prisma.sharedGroupMember.create({
+      data: { groupId: invite.group.id, userId },
+    });
+
+    await this.prisma.groupInvite.update({
+      where: { id: invite.id },
+      data: { usedAt: new Date(), status: 'used' },
+    });
+
+    return { message: 'Joined group successfully', group: invite.group };
+  }
+
+  // ─── Expense Management ────────────────────────────────────
+
+  async createExpense(groupId: string, userId: string, dto: CreateExpenseDto) {
+    await this.lifecycleService.assertCanAddExpense(groupId);
+
+    const member = await this.prisma.sharedGroupMember.findUnique({
+      where: { groupId_userId: { groupId, userId } },
+    });
+    if (!member || !member.isActive) {
+      throw new ForbiddenException('Not a group member');
+    }
+
+    const totalSplit = dto.splits.reduce((sum, s) => sum + s.amount, 0);
+    if (Math.abs(totalSplit - dto.amount) > 0.01) {
+      throw new BadRequestException('Split amounts must equal the total expense amount');
+    }
+
+    const expense = await this.prisma.sharedExpense.create({
+      data: {
+        groupId,
+        description: dto.description,
+        amount: dto.amount,
+        paidBy: dto.paidBy,
+        category: dto.category || 'Other',
+        date: dto.date ? new Date(dto.date) : new Date(),
+        splitType: dto.splitType || 'equal',
+        notes: dto.notes,
+        splits: {
+          create: dto.splits.map((s) => ({
+            userId: s.userId,
+            amount: s.amount,
+            percentage: s.percentage || null,
+            shares: s.shares || null,
+          })),
+        },
+      },
+      include: {
+        splits: {
+          include: {
+            user: { select: { id: true, firstName: true, lastName: true } },
+          },
+        },
+        payer: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+      },
+    });
+
+    await this.updateGroupTotalSpent(groupId);
+
+    return expense;
+  }
+
+  async getGroupExpenses(groupId: string) {
+    const expenses = await this.prisma.sharedExpense.findMany({
+      where: { groupId },
+      include: {
+        splits: {
+          include: {
+            user: { select: { id: true, firstName: true, lastName: true, email: true } },
+          },
+        },
+        payer: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+        comments: {
+          take: 3,
+          orderBy: { createdAt: 'desc' },
+          include: {
+            sender: { select: { id: true, firstName: true, lastName: true } },
+          },
+        },
+      },
+      orderBy: { date: 'desc' },
+    });
+
+    return expenses;
+  }
+
+  async getExpense(expenseId: string) {
+    const expense = await this.prisma.sharedExpense.findUnique({
+      where: { id: expenseId },
+      include: {
+        splits: {
+          include: {
+            user: { select: { id: true, firstName: true, lastName: true, email: true } },
+          },
+        },
+        payer: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+        comments: {
+          include: {
+            sender: { select: { id: true, firstName: true, lastName: true } },
+          },
+          orderBy: { createdAt: 'asc' },
+        },
+      },
+    });
+
+    if (!expense) {
+      throw new NotFoundException('Expense not found');
+    }
+
+    return expense;
+  }
+
+  async updateExpense(expenseId: string, userId: string, dto: UpdateExpenseDto) {
+    const expense = await this.prisma.sharedExpense.findUnique({
+      where: { id: expenseId },
+      select: { id: true, paidBy: true, groupId: true },
+    });
+    if (!expense) {
+      throw new NotFoundException('Expense not found');
+    }
+    if (expense.paidBy !== userId) {
+      throw new ForbiddenException('Only the payer can edit this expense');
+    }
+
+    await this.lifecycleService.assertCanAddExpense(expense.groupId);
+
+    const updated = await this.prisma.sharedExpense.update({
+      where: { id: expenseId },
+      data: {
+        ...(dto.description !== undefined && { description: dto.description }),
+        ...(dto.amount !== undefined && { amount: dto.amount }),
+        ...(dto.category !== undefined && { category: dto.category }),
+        ...(dto.date !== undefined && { date: new Date(dto.date) }),
+        ...(dto.notes !== undefined && { notes: dto.notes }),
+      },
+      include: {
+        splits: {
+          include: {
+            user: { select: { id: true, firstName: true, lastName: true } },
+          },
+        },
+        payer: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    await this.updateGroupTotalSpent(expense.groupId);
+
+    return updated;
+  }
+
+  async deleteExpense(expenseId: string, userId: string) {
+    const expense = await this.prisma.sharedExpense.findUnique({
+      where: { id: expenseId },
+      select: { id: true, paidBy: true, groupId: true },
+    });
+    if (!expense) {
+      throw new NotFoundException('Expense not found');
+    }
+    if (expense.paidBy !== userId) {
+      throw new ForbiddenException('Only the payer can delete this expense');
+    }
+
+    await this.lifecycleService.assertCanAddExpense(expense.groupId);
+
+    await this.prisma.sharedExpense.delete({ where: { id: expenseId } });
+    await this.updateGroupTotalSpent(expense.groupId);
+
+    return { message: 'Expense deleted successfully' };
+  }
+
+  async getBalances(groupId: string) {
+    const [expenses, members] = await Promise.all([
+      this.prisma.sharedExpense.findMany({
+        where: { groupId },
+        include: {
+          splits: {
+            include: {
+              user: { select: { id: true, firstName: true, lastName: true, email: true } },
+            },
+          },
+          payer: { select: { id: true, firstName: true, lastName: true, email: true } },
+        },
+      }),
+      this.prisma.sharedGroupMember.findMany({
+        where: { groupId },
+        include: {
+          user: { select: { id: true, firstName: true, lastName: true, email: true } },
+        },
+      }),
+    ]);
+
+    return this.settlementEngine.calculateBalances(expenses, members);
+  }
+
+  // ─── Settlement Engine ─────────────────────────────────────
+
+  async getSettlementPlan(groupId: string) {
+    const balances = await this.getBalances(groupId);
+    return this.settlementEngine.calculateOptimizedSettlements(balances);
+  }
+
+  async createSettlement(
+    groupId: string,
+    fromUserId: string,
+    toUserId: string,
+    amount: number,
+    method?: string,
+  ) {
+    await this.lifecycleService.assertCanSettle(groupId);
+
+    const fromMember = await this.prisma.sharedGroupMember.findUnique({
+      where: { groupId_userId: { groupId, userId: fromUserId } },
+    });
+    if (!fromMember || !fromMember.isActive) {
+      throw new ForbiddenException('Debtor is not an active member');
+    }
+
+    const toMember = await this.prisma.sharedGroupMember.findUnique({
+      where: { groupId_userId: { groupId, userId: toUserId } },
+    });
+    if (!toMember || !toMember.isActive) {
+      throw new ForbiddenException('Creditor is not an active member');
+    }
+
+    const settlement = await this.prisma.settlement.create({
+      data: {
+        groupId,
+        fromUserId,
+        toUserId,
+        amount,
+        method: method || 'cash',
+      },
+      include: {
+        fromUser: { select: { id: true, firstName: true, lastName: true } },
+        toUser: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    return settlement;
+  }
+
+  async completeSettlement(settlementId: string, userId: string) {
+    const settlement = await this.prisma.settlement.findUnique({
+      where: { id: settlementId },
+    });
+    if (!settlement) {
+      throw new NotFoundException('Settlement not found');
+    }
+
+    if (settlement.fromUserId !== userId && settlement.toUserId !== userId) {
+      throw new ForbiddenException('Only involved parties can complete this settlement');
+    }
+
+    const updated = await this.prisma.settlement.update({
+      where: { id: settlementId },
+      data: { status: 'completed', settledAt: new Date() },
+      include: {
+        fromUser: { select: { id: true, firstName: true, lastName: true } },
+        toUser: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    return updated;
+  }
+
+  async getSettlementHistory(groupId: string) {
+    const settlements = await this.prisma.settlement.findMany({
+      where: { groupId },
+      include: {
+        fromUser: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+        toUser: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return settlements;
+  }
+
+  // ─── Couple Finance ────────────────────────────────────────
+
+  async createCoupleProfile(
+    groupId: string,
+    partner1Id: string,
+    partner2Id: string,
+    dto: CreateCoupleProfileDto,
+  ) {
+    const existing = await this.prisma.coupleFinanceProfile.findUnique({
+      where: { groupId },
+    });
+    if (existing) {
+      throw new BadRequestException('Couple profile already exists for this group');
+    }
+
+    const profile = await this.prisma.coupleFinanceProfile.create({
+      data: {
+        groupId,
+        partner1Id,
+        partner2Id,
+        splitRatio: dto.splitRatio || '50:50',
+        contributionType: dto.contributionType || 'equal',
+        sharedBudget: dto.sharedBudget,
+        savingsGoal: dto.savingsGoal,
+      },
+      include: {
+        partner1: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+        partner2: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+        group: { select: { id: true, name: true } },
+      },
+    });
+
+    return profile;
+  }
+
+  async getCoupleDashboard(groupId: string) {
+    const profile = await this.prisma.coupleFinanceProfile.findUnique({
+      where: { groupId },
+      include: {
+        partner1: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatarUrl: true,
+            email: true,
+            salaryProfile: true,
+          },
+        },
+        partner2: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatarUrl: true,
+            email: true,
+            salaryProfile: true,
+          },
+        },
+      },
+    });
+    if (!profile) {
+      throw new NotFoundException('Couple profile not found');
+    }
+
+    const expenses = await this.prisma.sharedExpense.findMany({
+      where: { groupId },
+      include: { splits: true },
+      orderBy: { date: 'desc' },
+    });
+
+    const balances = this.settlementEngine.calculateBalances(expenses, [
+      { userId: profile.partner1Id, user: profile.partner1 },
+      { userId: profile.partner2Id, user: profile.partner2 },
+    ]);
+
+    const monthlyOverview = this.aiInsightsEngine.getMonthlyComparison(expenses);
+
+    let salarySuggestion: any = null;
+    if (profile.partner1.salaryProfile && profile.partner2.salaryProfile) {
+      salarySuggestion = this.calculateRecommendedSplit(
+        Number(profile.partner1.salaryProfile.salary),
+        Number(profile.partner2.salaryProfile.salary),
+      );
+    }
+
+    const thisMonth = new Date();
+    const startOfMonth = new Date(thisMonth.getFullYear(), thisMonth.getMonth(), 1);
+    const monthlySpending = expenses
+      .filter((e) => new Date(e.date) >= startOfMonth)
+      .reduce((s, e) => s + Number(e.amount), 0);
+
+    return {
+      profile,
+      balances,
+      monthlyOverview,
+      salarySuggestion,
+      sharedBudget: {
+        budget: Number(profile.sharedBudget || 0),
+        spent: monthlySpending,
+        remaining: Number(profile.sharedBudget || 0) - monthlySpending,
+      },
+      savingsProgress: profile.savingsGoal
+        ? {
+            goal: Number(profile.savingsGoal),
+            saved:
+              Number(profile.savingsGoal || 0) -
+              (profile.savingsGoal ? Number(profile.savingsGoal) * 0.3 : 0),
+            percentage: 70,
+          }
+        : null,
+    };
+  }
+
+  async sendCoupleInvite(senderId: string, receiverEmail: string) {
+    const receiver = await this.prisma.user.findUnique({
+      where: { email: receiverEmail },
+    });
+    if (!receiver) {
+      throw new NotFoundException('User not found with this email');
+    }
+
+    const existing = await this.prisma.coupleFinanceInvite.findUnique({
+      where: { senderId_receiverId: { senderId, receiverId: receiver.id } },
+    });
+    if (existing && existing.status === 'pending') {
+      throw new BadRequestException('Active invite already sent to this user');
+    }
+
+    const invite = await this.prisma.coupleFinanceInvite.create({
+      data: {
+        senderId,
+        receiverId: receiver.id,
+      },
+      include: {
+        sender: { select: { id: true, firstName: true, lastName: true, email: true } },
+        receiver: { select: { id: true, firstName: true, lastName: true, email: true } },
+      },
+    });
+
+    return invite;
+  }
+
+  async acceptCoupleInvite(inviteId: string, groupId: string) {
+    const invite = await this.prisma.coupleFinanceInvite.findUnique({
+      where: { id: inviteId },
+    });
+    if (!invite) {
+      throw new NotFoundException('Invite not found');
+    }
+    if (invite.status !== 'pending') {
+      throw new BadRequestException('Invite is no longer pending');
+    }
+
+    const group = await this.prisma.sharedGroup.findUnique({ where: { id: groupId } });
+    if (!group) {
+      throw new NotFoundException('Group not found');
+    }
+
+    await this.prisma.coupleFinanceProfile.create({
+      data: {
+        groupId,
+        partner1Id: invite.senderId,
+        partner2Id: invite.receiverId,
+      },
+    });
+
+    await this.prisma.coupleFinanceInvite.update({
+      where: { id: inviteId },
+      data: { status: 'accepted', groupId },
+    });
+
+    await this.prisma.sharedGroupMember.upsert({
+      where: { groupId_userId: { groupId, userId: invite.receiverId } },
+      update: {},
+      create: { groupId, userId: invite.receiverId, role: 'member' },
+    });
+
+    return { message: 'Couple invite accepted, group set up' };
+  }
+
+  async updateSalaryProfile(userId: string, dto: UpdateSalaryProfileDto) {
+    const profile = await this.prisma.salaryProfile.upsert({
+      where: { userId },
+      update: {
+        salary: dto.salary,
+        currency: dto.currency || 'INR',
+        frequency: dto.frequency || 'monthly',
+      },
+      create: {
+        userId,
+        salary: dto.salary,
+        currency: dto.currency || 'INR',
+        frequency: dto.frequency || 'monthly',
+      },
+    });
+
+    return profile;
+  }
+
+  calculateRecommendedSplit(salary1: number, salary2: number) {
+    const total = salary1 + salary2;
+    if (total === 0) {
+      return { ratio: '50:50', partner1Percent: 50, partner2Percent: 50 };
+    }
+    const p1Percent = Math.round((salary1 / total) * 100);
+    const p2Percent = 100 - p1Percent;
+    return {
+      ratio: `${p1Percent}:${p2Percent}`,
+      partner1Percent: p1Percent,
+      partner2Percent: p2Percent,
+      partner1Salary: salary1,
+      partner2Salary: salary2,
+    };
+  }
+
+  // ─── Trip Management ───────────────────────────────────────
+
+  async createTrip(groupId: string, userId: string, dto: CreateTripDto) {
+    await this.verifyAdmin(groupId, userId);
+
+    const trip = await this.prisma.tripGroup.upsert({
+      where: { groupId },
+      update: {
+        destination: dto.destination,
+        startDate: dto.startDate ? new Date(dto.startDate) : undefined,
+        endDate: dto.endDate ? new Date(dto.endDate) : undefined,
+        totalBudget: dto.totalBudget,
+        distanceKm: dto.distanceKm,
+        transportMode: dto.transportMode,
+        notes: dto.notes,
+      },
+      create: {
+        groupId,
+        destination: dto.destination,
+        startDate: dto.startDate ? new Date(dto.startDate) : null,
+        endDate: dto.endDate ? new Date(dto.endDate) : null,
+        totalBudget: dto.totalBudget,
+        distanceKm: dto.distanceKm,
+        transportMode: dto.transportMode,
+        notes: dto.notes,
+      },
+    });
+
+    return trip;
+  }
+
+  async getTripDashboard(groupId: string) {
+    const trip = await this.prisma.tripGroup.findUnique({
+      where: { groupId },
+      include: {
+        expenses: {
+          include: {
+            user: { select: { id: true, firstName: true, lastName: true } },
+          },
+          orderBy: { date: 'desc' },
+        },
+      },
+    });
+    if (!trip) {
+      throw new NotFoundException('Trip not found for this group');
+    }
+
+    const categoryBreakdown = new Map<string, { total: number; count: number; items: any[] }>();
+    for (const exp of trip.expenses) {
+      const cat = exp.category || 'other';
+      if (!categoryBreakdown.has(cat)) {
+        categoryBreakdown.set(cat, { total: 0, count: 0, items: [] });
+      }
+      const entry = categoryBreakdown.get(cat)!;
+      entry.total += Number(exp.amount);
+      entry.count++;
+      entry.items.push(exp);
+    }
+
+    return {
+      ...trip,
+      totalBudget: Number(trip.totalBudget || 0),
+      totalSpent: Number(trip.totalSpent || 0),
+      remaining: Number(trip.totalBudget || 0) - Number(trip.totalSpent || 0),
+      categoryBreakdown: Array.from(categoryBreakdown.entries()).map(([category, data]) => ({
+        category,
+        total: Math.round(data.total * 100) / 100,
+        count: data.count,
+        items: data.items,
+      })),
+    };
+  }
+
+  async addTripExpense(tripId: string, userId: string, dto: AddTripExpenseDto) {
+    const trip = await this.prisma.tripGroup.findUnique({ where: { id: tripId } });
+    if (!trip) {
+      throw new NotFoundException('Trip not found');
+    }
+
+    const expense = await this.prisma.tripExpense.create({
+      data: {
+        tripId,
+        category: dto.category,
+        amount: dto.amount,
+        paidBy: dto.paidBy,
+        date: dto.date ? new Date(dto.date) : new Date(),
+        note: dto.note,
+      },
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    const totalSpent = await this.prisma.tripExpense.aggregate({
+      where: { tripId },
+      _sum: { amount: true },
+    });
+
+    await this.prisma.tripGroup.update({
+      where: { id: tripId },
+      data: { totalSpent: totalSpent._sum.amount || 0 },
+    });
+
+    return expense;
+  }
+
+  // ─── Shared Subscriptions ──────────────────────────────────
+
+  async createSubscription(groupId: string, userId: string, dto: CreateSubscriptionDto) {
+    const subscription = await this.prisma.sharedSubscription.create({
+      data: {
+        groupId,
+        name: dto.name,
+        provider: dto.provider,
+        amount: dto.amount,
+        currency: dto.currency || 'INR',
+        billingCycle: dto.billingCycle || 'monthly',
+        nextBilling: dto.nextBilling ? new Date(dto.nextBilling) : null,
+        category: dto.category || 'ott',
+        paidBy: dto.paidBy,
+        splitType: dto.splitType || 'equal',
+        shares: {
+          create: dto.shares.map((s) => ({
+            userId: s.userId,
+            amount: s.amount,
+          })),
+        },
+      },
+      include: {
+        shares: {
+          include: {
+            user: { select: { id: true, firstName: true, lastName: true, email: true } },
+          },
+        },
+        payer: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    return subscription;
+  }
+
+  async getGroupSubscriptions(groupId: string) {
+    const subscriptions = await this.prisma.sharedSubscription.findMany({
+      where: { groupId, isActive: true },
+      include: {
+        shares: {
+          include: {
+            user: { select: { id: true, firstName: true, lastName: true, email: true } },
+          },
+        },
+        payer: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+      },
+      orderBy: { nextBilling: 'asc' },
+    });
+
+    return subscriptions.map((sub) => ({
+      ...sub,
+      amount: Number(sub.amount),
+      contributionStatus: sub.shares.map((s) => ({
+        ...s,
+        amount: Number(s.amount),
+      })),
+    }));
+  }
+
+  async markSubscriptionPaid(subscriptionId: string, userId: string) {
+    const share = await this.prisma.subscriptionContribution.findUnique({
+      where: { subscriptionId_userId: { subscriptionId, userId } },
+    });
+    if (!share) {
+      throw new NotFoundException('Share not found');
+    }
+
+    const updated = await this.prisma.subscriptionContribution.update({
+      where: { id: share.id },
+      data: { isPaid: true },
+    });
+
+    return updated;
+  }
+
+  // ─── Household ─────────────────────────────────────────────
+
+  async createHouseholdBill(groupId: string, userId: string, dto: CreateHouseholdBillDto) {
+    const bill = await this.prisma.householdBill.create({
+      data: {
+        groupId,
+        type: dto.type,
+        amount: dto.amount,
+        dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
+        paidBy: dto.paidBy,
+        period: dto.period,
+        notes: dto.notes,
+        contributions: {
+          create: dto.shares.map((s) => ({
+            userId: s.userId,
+            amount: s.amount,
+          })),
+        },
+      },
+      include: {
+        contributions: {
+          include: {
+            user: { select: { id: true, firstName: true, lastName: true } },
+          },
+        },
+        payer: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    return bill;
+  }
+
+  async getHouseholdBills(groupId: string, period?: string) {
+    const where: any = { groupId };
+    if (period) {
+      where.period = period;
+    }
+
+    const bills = await this.prisma.householdBill.findMany({
+      where,
+      include: {
+        contributions: {
+          include: {
+            user: { select: { id: true, firstName: true, lastName: true } },
+          },
+        },
+        payer: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+      },
+      orderBy: { dueDate: 'asc' },
+    });
+
+    return bills;
+  }
+
+  async markBillPaid(billId: string, userId: string) {
+    const bill = await this.prisma.householdBill.findUnique({ where: { id: billId } });
+    if (!bill) {
+      throw new NotFoundException('Bill not found');
+    }
+
+    const contribution = await this.prisma.householdContribution.findUnique({
+      where: { billId_userId: { billId, userId } },
+    });
+    if (!contribution) {
+      throw new NotFoundException('Contribution not found for this user');
+    }
+
+    const updated = await this.prisma.householdContribution.update({
+      where: { id: contribution.id },
+      data: { isPaid: true },
+    });
+
+    const allPaid = await this.prisma.householdContribution.findMany({
+      where: { billId, isPaid: false },
+    });
+
+    if (allPaid.length === 0) {
+      await this.prisma.householdBill.update({
+        where: { id: billId },
+        data: { isPaid: true, paidAt: new Date() },
+      });
+    }
+
+    return updated;
+  }
+
+  // ─── Contribution Rules ────────────────────────────────────
+
+  async createContributionRule(groupId: string, userId: string, dto: CreateContributionRuleDto) {
+    await this.verifyAdmin(groupId, userId);
+
+    const rule = await this.prisma.contributionRule.create({
+      data: {
+        groupId,
+        name: dto.name,
+        type: dto.type || 'equal',
+        values: dto.values,
+        frequency: dto.frequency || 'monthly',
+        autoApply: dto.autoApply || false,
+      },
+    });
+
+    return rule;
+  }
+
+  async getContributionRules(groupId: string) {
+    const rules = await this.prisma.contributionRule.findMany({
+      where: { groupId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return rules;
+  }
+
+  async applyContributionRule(groupId: string, ruleId: string) {
+    const rule = await this.prisma.contributionRule.findUnique({
+      where: { id: ruleId },
+    });
+    if (!rule) {
+      throw new NotFoundException('Rule not found');
+    }
+
+    const members = await this.prisma.sharedGroupMember.findMany({
+      where: { groupId },
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    const values = rule.values as Record<string, number>;
+    const totalValue = Object.values(values).reduce((s, v) => s + v, 0);
+    if (totalValue <= 0) {
+      throw new BadRequestException('Invalid rule values');
+    }
+
+    const expenseAmount = totalValue;
+    const splits = members
+      .map((m) => {
+        const share = values[m.userId] || 0;
+        return {
+          userId: m.userId,
+          amount: share,
+        };
+      })
+      .filter((s) => s.amount > 0);
+
+    const expense = await this.prisma.sharedExpense.create({
+      data: {
+        groupId,
+        description: `Auto: ${rule.name} (${rule.frequency})`,
+        amount: expenseAmount,
+        paidBy: members[0]?.userId || '',
+        category: 'Contribution',
+        splitType: rule.type,
+        splits: {
+          create: splits,
+        },
+      },
+      include: {
+        splits: {
+          include: {
+            user: { select: { id: true, firstName: true, lastName: true } },
+          },
+        },
+      },
+    });
+
+    await this.updateGroupTotalSpent(groupId);
+
+    return expense;
+  }
+
+  // ─── Shared Goals ──────────────────────────────────────────
+
+  async createSharedGoal(groupId: string, userId: string, dto: CreateSharedGoalDto) {
+    const goal = await this.prisma.sharedGoal.create({
+      data: {
+        groupId,
+        name: dto.name,
+        targetAmount: dto.targetAmount,
+        deadline: dto.deadline ? new Date(dto.deadline) : null,
+        category: dto.category || 'savings',
+        notes: dto.notes,
+        createdBy: userId,
+      },
+      include: {
+        creator: { select: { id: true, firstName: true, lastName: true } },
+        contributions: {
+          include: {
+            user: { select: { id: true, firstName: true, lastName: true } },
+          },
+        },
+      },
+    });
+
+    return goal;
+  }
+
+  async getSharedGoals(groupId: string) {
+    const goals = await this.prisma.sharedGoal.findMany({
+      where: { groupId },
+      include: {
+        creator: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+        contributions: {
+          include: {
+            user: { select: { id: true, firstName: true, lastName: true } },
+          },
+          orderBy: { date: 'desc' },
+        },
+      },
+      orderBy: [{ deadline: 'asc' }, { createdAt: 'desc' }],
+    });
+
+    return goals.map((g) => ({
+      ...g,
+      targetAmount: Number(g.targetAmount),
+      savedAmount: Number(g.savedAmount),
+      progress:
+        Number(g.targetAmount) > 0
+          ? Math.round((Number(g.savedAmount) / Number(g.targetAmount)) * 100)
+          : 0,
+    }));
+  }
+
+  async contributeToGoal(goalId: string, userId: string, amount: number) {
+    const goal = await this.prisma.sharedGoal.findUnique({ where: { id: goalId } });
+    if (!goal) {
+      throw new NotFoundException('Goal not found');
+    }
+
+    const contribution = await this.prisma.sharedGoalContribution.create({
+      data: {
+        goalId,
+        userId,
+        amount,
+      },
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    const totalSaved = await this.prisma.sharedGoalContribution.aggregate({
+      where: { goalId },
+      _sum: { amount: true },
+    });
+
+    await this.prisma.sharedGoal.update({
+      where: { id: goalId },
+      data: {
+        savedAmount: totalSaved._sum.amount || 0,
+      },
+    });
+
+    return contribution;
+  }
+
+  // ─── Chat ──────────────────────────────────────────────────
+
+  async sendMessage(groupId: string, userId: string, dto: SendMessageDto) {
+    const message = await this.prisma.groupChatMessage.create({
+      data: {
+        groupId,
+        senderId: userId,
+        message: dto.message,
+        type: dto.type || 'text',
+        imageUrl: dto.imageUrl,
+        expenseId: dto.expenseId,
+        metadata: dto.metadata || undefined,
+      },
+      include: {
+        sender: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+        expense: {
+          select: { id: true, description: true, amount: true, category: true },
+        },
+      },
+    });
+
+    return message;
+  }
+
+  async getMessages(groupId: string, limit: number = 50, before?: string) {
+    const where: any = { groupId };
+    if (before) {
+      const cursor = await this.prisma.groupChatMessage.findUnique({
+        where: { id: before },
+        select: { createdAt: true },
+      });
+      if (cursor) {
+        where.createdAt = { lt: cursor.createdAt };
+      }
+    }
+
+    const messages = await this.prisma.groupChatMessage.findMany({
+      where,
+      include: {
+        sender: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+        expense: {
+          select: { id: true, description: true, amount: true, category: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+
+    return messages.reverse();
+  }
+
+  async pinMessage(messageId: string, groupId: string) {
+    const message = await this.prisma.groupChatMessage.findUnique({
+      where: { id: messageId },
+    });
+    if (!message) {
+      throw new NotFoundException('Message not found');
+    }
+    if (message.groupId !== groupId) {
+      throw new BadRequestException('Message not in this group');
+    }
+
+    const updated = await this.prisma.groupChatMessage.update({
+      where: { id: messageId },
+      data: { isPinned: !message.isPinned },
+    });
+
+    return updated;
+  }
+
+  // ─── Dashboard ─────────────────────────────────────────────
+
+  async getGroupDashboard(groupId: string) {
+    const [group, expenses, settlements, members, goals, subscriptions] = await Promise.all([
+      this.prisma.sharedGroup.findUnique({
+        where: { id: groupId },
+        include: {
+          trip: true,
+          coupleProfile: true,
+        },
+      }),
+      this.prisma.sharedExpense.findMany({
+        where: { groupId },
+        include: {
+          splits: true,
+          payer: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+        },
+        orderBy: { date: 'desc' },
+      }),
+      this.prisma.settlement.findMany({
+        where: { groupId },
+        include: {
+          fromUser: { select: { id: true, firstName: true, lastName: true } },
+          toUser: { select: { id: true, firstName: true, lastName: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.sharedGroupMember.findMany({
+        where: { groupId },
+        include: {
+          user: {
+            select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true },
+          },
+        },
+      }),
+      this.prisma.sharedGoal.findMany({
+        where: { groupId },
+        include: { contributions: true },
+      }),
+      this.prisma.sharedSubscription.findMany({
+        where: { groupId, isActive: true },
+        include: { shares: true },
+      }),
+    ]);
+
+    if (!group) {
+      throw new NotFoundException('Group not found');
+    }
+
+    const balances = this.settlementEngine.calculateBalances(expenses, members);
+    const settlementPlan = this.settlementEngine.calculateOptimizedSettlements(balances);
+
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthlySpending = expenses
+      .filter((e) => new Date(e.date) >= startOfMonth)
+      .reduce((s, e) => s + Number(e.amount), 0);
+
+    const categoryBreakdown = new Map<string, number>();
+    for (const exp of expenses) {
+      const cat = exp.category || 'Other';
+      categoryBreakdown.set(cat, (categoryBreakdown.get(cat) || 0) + Number(exp.amount));
+    }
+
+    const totalSpent = Number(group.totalSpent || 0);
+
+    return {
+      summary: {
+        totalSpent,
+        expenseCount: expenses.length,
+        memberCount: members.length,
+        monthlySpending,
+        monthlyBudget: Number(group.monthlyBudget || 0),
+        budgetRemaining: Number(group.monthlyBudget || 0) - monthlySpending,
+      },
+      balances,
+      settlementPlan,
+      recentExpenses: expenses.slice(0, 10),
+      recentSettlements: settlements.slice(0, 10),
+      categoryBreakdown: Array.from(categoryBreakdown.entries()).map(([category, total]) => ({
+        category,
+        total,
+        percentage: totalSpent > 0 ? Math.round((total / totalSpent) * 100) : 0,
+      })),
+      memberStats: members.map((m) => ({
+        userId: m.userId,
+        name: `${m.user.firstName} ${m.user.lastName}`.trim(),
+        avatarUrl: m.user.avatarUrl,
+        role: m.role,
+        totalPaid: expenses
+          .filter((e) => e.paidBy === m.userId)
+          .reduce((s, e) => s + Number(e.amount), 0),
+        expenseCount: expenses.filter((e) => e.paidBy === m.userId).length,
+      })),
+      trip: group.trip
+        ? {
+            ...group.trip,
+            totalBudget: Number(group.trip.totalBudget || 0),
+            totalSpent: Number(group.trip.totalSpent || 0),
+          }
+        : null,
+      subscriptions: subscriptions.map((s) => ({
+        ...s,
+        amount: Number(s.amount),
+        paidCount: s.shares.filter((sh) => sh.isPaid).length,
+        totalCount: s.shares.length,
+      })),
+      goals: goals.map((g) => ({
+        ...g,
+        targetAmount: Number(g.targetAmount),
+        savedAmount: Number(g.savedAmount),
+        progress:
+          Number(g.targetAmount) > 0
+            ? Math.round((Number(g.savedAmount) / Number(g.targetAmount)) * 100)
+            : 0,
+      })),
+    };
+  }
+
+  async getGroupInsights(groupId: string, period?: string) {
+    const [expenses, members, group] = await Promise.all([
+      this.prisma.sharedExpense.findMany({
+        where: { groupId },
+        include: { splits: true, payer: true },
+      }),
+      this.prisma.sharedGroupMember.findMany({
+        where: { groupId },
+        include: { user: { select: { id: true, firstName: true, lastName: true } } },
+      }),
+      this.prisma.sharedGroup.findUnique({
+        where: { id: groupId },
+        include: { trip: true, coupleProfile: true, sharedSubscriptions: true },
+      }),
+    ]);
+
+    if (!group) {
+      throw new NotFoundException('Group not found');
+    }
+
+    return this.aiInsightsEngine.generateInsights(expenses, members, group, period);
+  }
+
+  // ─── Group Wallet System ─────────────────────────────────────
+
+  async createWallet(groupId: string, userId: string, dto: CreateWalletDto) {
+    const member = await this.prisma.sharedGroupMember.findUnique({
+      where: { groupId_userId: { groupId, userId } },
+    });
+    if (!member || !member.isActive) {
+      throw new ForbiddenException('Not a group member');
+    }
+
+    const wallet = await this.prisma.groupWallet.create({
+      data: {
+        groupId,
+        name: dto.name,
+        description: dto.description,
+        currency: dto.currency || 'INR',
+        requiresApproval: dto.requiresApproval || false,
+        createdBy: userId,
+        members: {
+          create: { userId, role: 'admin', share: 0 },
+        },
+      },
+      include: {
+        members: { include: { user: { select: { id: true, firstName: true, lastName: true } } } },
+      },
+    });
+
+    return wallet;
+  }
+
+  async getGroupWallets(groupId: string) {
+    return this.prisma.groupWallet.findMany({
+      where: { groupId },
+      include: {
+        members: { include: { user: { select: { id: true, firstName: true, lastName: true } } } },
+        _count: { select: { transactions: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getWallet(walletId: string) {
+    const wallet = await this.prisma.groupWallet.findUnique({
+      where: { id: walletId },
+      include: {
+        members: {
+          include: {
+            user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+          },
+        },
+        transactions: { orderBy: { createdAt: 'desc' }, take: 50 },
+      },
+    });
+    if (!wallet) {
+      throw new NotFoundException('Wallet not found');
+    }
+    return { ...wallet, balance: Number(wallet.balance) };
+  }
+
+  async contributeToWallet(walletId: string, userId: string, dto: ContributeToWalletDto) {
+    const wallet = await this.prisma.groupWallet.findUnique({ where: { id: walletId } });
+    if (!wallet) {
+      throw new NotFoundException('Wallet not found');
+    }
+    if (wallet.isLocked) {
+      throw new BadRequestException('Wallet is locked');
+    }
+
+    const previousBalance = Number(wallet.balance);
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.groupWallet.update({
+        where: { id: walletId },
+        data: { balance: previousBalance + dto.amount },
+      });
+
+      const txn = await tx.groupWalletTransaction.create({
+        data: {
+          walletId,
+          type: 'contribute',
+          amount: dto.amount,
+          balanceBefore: previousBalance,
+          balanceAfter: Number(updated.balance),
+          description: dto.description || 'Wallet contribution',
+          performedBy: userId,
+          status: 'completed',
+        },
+      });
+
+      return txn;
+    });
+
+    if (this.socketServer) {
+      this.socketServer.to(`group:${wallet.groupId}`).emit('walletUpdated', {
+        walletId,
+        balance: previousBalance + dto.amount,
+      });
+    }
+
+    return result;
+  }
+
+  async spendFromWallet(walletId: string, userId: string, dto: SpendFromWalletDto) {
+    const wallet = await this.prisma.groupWallet.findUnique({ where: { id: walletId } });
+    if (!wallet) {
+      throw new NotFoundException('Wallet not found');
+    }
+    if (wallet.isLocked) {
+      throw new BadRequestException('Wallet is locked');
+    }
+
+    const previousBalance = Number(wallet.balance);
+    if (previousBalance < dto.amount) {
+      throw new BadRequestException('Insufficient wallet balance');
+    }
+
+    const status = wallet.requiresApproval ? 'pending' : 'completed';
+
+    const txn = await this.prisma.groupWalletTransaction.create({
+      data: {
+        walletId,
+        type: 'spend',
+        amount: -dto.amount,
+        balanceBefore: previousBalance,
+        balanceAfter: previousBalance - dto.amount,
+        description: dto.description,
+        referenceId: dto.referenceId,
+        performedBy: userId,
+        status,
+      },
+    });
+
+    if (status === 'completed') {
+      await this.prisma.groupWallet.update({
+        where: { id: walletId },
+        data: { balance: previousBalance - dto.amount },
+      });
+    }
+
+    return txn;
+  }
+
+  async approveWalletTransaction(transactionId: string, userId: string, action: string) {
+    const txn = await this.prisma.groupWalletTransaction.findUnique({
+      where: { id: transactionId },
+      include: { wallet: true },
+    });
+    if (!txn) {
+      throw new NotFoundException('Transaction not found');
+    }
+
+    if (action === 'approved') {
+      const walletBalance = Number(txn.wallet.balance);
+      const txnAmount = Number(txn.amount);
+
+      await this.prisma.$transaction(async (tx) => {
+        await tx.groupWalletTransaction.update({
+          where: { id: transactionId },
+          data: { status: 'approved', approvedBy: userId, approvedAt: new Date() },
+        });
+        await tx.groupWallet.update({
+          where: { id: txn.walletId },
+          data: { balance: walletBalance + txnAmount },
+        });
+      });
+    } else {
+      await this.prisma.groupWalletTransaction.update({
+        where: { id: transactionId },
+        data: { status: 'rejected', approvedBy: userId, approvedAt: new Date() },
+      });
+    }
+
+    if (this.socketServer) {
+      this.socketServer.to(`group:${txn.wallet.groupId}`).emit('walletTransactionUpdated', {
+        transactionId,
+        status: action,
+      });
+    }
+
+    return { message: `Transaction ${action}` };
+  }
+
+  async transferBetweenWallets(
+    fromWalletId: string,
+    toWalletId: string,
+    userId: string,
+    dto: TransferWalletDto,
+  ) {
+    const fromWallet = await this.prisma.groupWallet.findUnique({ where: { id: fromWalletId } });
+    const toWallet = await this.prisma.groupWallet.findUnique({ where: { id: toWalletId } });
+    if (!fromWallet || !toWallet) {
+      throw new NotFoundException('Wallet not found');
+    }
+    if (fromWallet.isLocked || toWallet.isLocked) {
+      throw new BadRequestException('One of the wallets is locked');
+    }
+
+    const fromBalance = Number(fromWallet.balance);
+    if (fromBalance < dto.amount) {
+      throw new BadRequestException('Insufficient balance');
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.groupWallet.update({
+        where: { id: fromWalletId },
+        data: { balance: fromBalance - dto.amount },
+      });
+      await tx.groupWallet.update({
+        where: { id: toWalletId },
+        data: { balance: Number(toWallet.balance) + dto.amount },
+      });
+      await tx.groupWalletTransaction.create({
+        data: {
+          walletId: fromWalletId,
+          type: 'transfer_out',
+          amount: -dto.amount,
+          balanceBefore: fromBalance,
+          balanceAfter: fromBalance - dto.amount,
+          description: dto.description || `Transfer to ${toWallet.name}`,
+          referenceId: toWalletId,
+          performedBy: userId,
+        },
+      });
+      await tx.groupWalletTransaction.create({
+        data: {
+          walletId: toWalletId,
+          type: 'transfer_in',
+          amount: dto.amount,
+          balanceBefore: Number(toWallet.balance),
+          balanceAfter: Number(toWallet.balance) + dto.amount,
+          description: dto.description || `Transfer from ${fromWallet.name}`,
+          referenceId: fromWalletId,
+          performedBy: userId,
+        },
+      });
+    });
+
+    return { message: 'Transfer completed' };
+  }
+
+  async toggleWalletLock(walletId: string, userId: string) {
+    const wallet = await this.prisma.groupWallet.findUnique({ where: { id: walletId } });
+    if (!wallet) {
+      throw new NotFoundException('Wallet not found');
+    }
+
+    const updated = await this.prisma.groupWallet.update({
+      where: { id: walletId },
+      data: { isLocked: !wallet.isLocked },
+    });
+
+    return updated;
+  }
+
+  async getWalletReport(walletId: string) {
+    const wallet = await this.prisma.groupWallet.findUnique({ where: { id: walletId } });
+    if (!wallet) {
+      throw new NotFoundException('Wallet not found');
+    }
+
+    const transactions = await this.prisma.groupWalletTransaction.findMany({
+      where: { walletId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const totalContributed = transactions
+      .filter((t) => t.type === 'contribute')
+      .reduce((s, t) => s + Number(t.amount), 0);
+    const totalSpent = transactions
+      .filter((t) => t.type === 'spend' && t.status === 'completed')
+      .reduce((s, t) => s + Math.abs(Number(t.amount)), 0);
+
+    return {
+      wallet: { ...wallet, balance: Number(wallet.balance) },
+      summary: { totalContributed, totalSpent, transactionCount: transactions.length },
+      recentTransactions: transactions.slice(0, 20),
+    };
+  }
+
+  // ─── Advance Contribution System ─────────────────────────────
+
+  async createAdvanceContribution(
+    groupId: string,
+    userId: string,
+    dto: CreateAdvanceContributionDto,
+  ) {
+    const advance = await this.prisma.advanceContribution.create({
+      data: {
+        groupId,
+        paidBy: userId,
+        description: dto.description,
+        amount: dto.amount,
+        category: dto.category || 'general',
+        dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
+      },
+      include: {
+        payer: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    return advance;
+  }
+
+  async getGroupAdvances(groupId: string) {
+    const advances = await this.prisma.advanceContribution.findMany({
+      where: { groupId },
+      include: {
+        payer: { select: { id: true, firstName: true, lastName: true } },
+        contributions: {
+          include: { user: { select: { id: true, firstName: true, lastName: true } } },
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return advances.map((a) => ({
+      ...a,
+      amount: Number(a.amount),
+      settledAmount: a.contributions.reduce((s, c) => s + Number(c.amount), 0),
+      remaining: Number(a.amount) - a.contributions.reduce((s, c) => s + Number(c.amount), 0),
+    }));
+  }
+
+  async contributeToAdvance(advanceId: string, userId: string, dto: ContributeToAdvanceDto) {
+    const advance = await this.prisma.advanceContribution.findUnique({ where: { id: advanceId } });
+    if (!advance) {
+      throw new NotFoundException('Advance not found');
+    }
+
+    const contribution = await this.prisma.advanceContributionHistory.create({
+      data: {
+        advanceId,
+        userId,
+        amount: dto.amount,
+        note: dto.note,
+      },
+      include: { user: { select: { id: true, firstName: true, lastName: true } } },
+    });
+
+    const totalContributed = await this.prisma.advanceContributionHistory.aggregate({
+      where: { advanceId },
+      _sum: { amount: true },
+    });
+
+    const totalAmount = Number(advance.amount);
+    const contributed = Number(totalContributed._sum.amount || 0);
+
+    if (contributed >= totalAmount) {
+      await this.prisma.advanceContribution.update({
+        where: { id: advanceId },
+        data: { status: 'settled', settledAt: new Date() },
+      });
+    } else if (contributed > 0) {
+      await this.prisma.advanceContribution.update({
+        where: { id: advanceId },
+        data: { status: 'partially_settled' },
+      });
+    }
+
+    return contribution;
+  }
+
+  // ─── Expense Approval Workflow ──────────────────────────────
+
+  async requestApproval(groupId: string, userId: string, dto: RequestApprovalDto) {
+    const expense = await this.prisma.sharedExpense.findUnique({ where: { id: dto.expenseId } });
+    if (!expense) {
+      throw new NotFoundException('Expense not found');
+    }
+
+    const existing = await this.prisma.expenseApproval.findUnique({
+      where: { expenseId: dto.expenseId },
+    });
+    if (existing) {
+      throw new BadRequestException('Approval already requested');
+    }
+
+    const approval = await this.prisma.expenseApproval.create({
+      data: {
+        expenseId: dto.expenseId,
+        groupId,
+        requestedBy: userId,
+        status: 'pending',
+        history: {
+          create: {
+            fromStatus: 'none',
+            toStatus: 'pending',
+            changedBy: userId,
+            comment: dto.comment || 'Approval requested',
+          },
+        },
+      },
+      include: {
+        expense: { select: { id: true, description: true, amount: true } },
+      },
+    });
+
+    return approval;
+  }
+
+  async approveExpense(approvalId: string, userId: string, dto: ApproveExpenseDto) {
+    const approval = await this.prisma.expenseApproval.findUnique({ where: { id: approvalId } });
+    if (!approval) {
+      throw new NotFoundException('Approval not found');
+    }
+    if (approval.status !== 'pending') {
+      throw new BadRequestException('Already processed');
+    }
+
+    const updated = await this.prisma.expenseApproval.update({
+      where: { id: approvalId },
+      data: {
+        status: dto.action === 'approved' ? 'approved' : 'rejected',
+        approvedBy: userId,
+        approvedAt: new Date(),
+        rejectReason: dto.action === 'rejected' ? dto.rejectReason || 'Rejected' : null,
+        history: {
+          create: {
+            fromStatus: 'pending',
+            toStatus: dto.action === 'approved' ? 'approved' : 'rejected',
+            changedBy: userId,
+            comment: dto.comment || `${dto.action === 'approved' ? 'Approved' : 'Rejected'}`,
+          },
+        },
+      },
+      include: {
+        expense: { select: { id: true, description: true, amount: true } },
+        approver: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    if (this.socketServer) {
+      this.socketServer.to(`group:${approval.groupId}`).emit('expenseApprovalUpdated', {
+        approvalId,
+        status: dto.action,
+      });
+    }
+
+    return updated;
+  }
+
+  async getPendingApprovals(groupId: string) {
+    return this.prisma.expenseApproval.findMany({
+      where: { groupId, status: 'pending' },
+      include: {
+        expense: {
+          include: {
+            payer: { select: { id: true, firstName: true, lastName: true } },
+          },
+        },
+        requester: { select: { id: true, firstName: true, lastName: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getApprovalHistory(groupId: string) {
+    return this.prisma.expenseApproval.findMany({
+      where: { groupId },
+      include: {
+        expense: { select: { id: true, description: true, amount: true, category: true } },
+        requester: { select: { id: true, firstName: true, lastName: true } },
+        approver: { select: { id: true, firstName: true, lastName: true } },
+        history: {
+          include: { changer: { select: { firstName: true, lastName: true } } },
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: 50,
+    });
+  }
+
+  // ─── Group Document Vault ───────────────────────────────────
+
+  async uploadDocument(groupId: string, userId: string, dto: UploadDocumentDto) {
+    const doc = await this.prisma.groupDocument.create({
+      data: {
+        groupId,
+        uploadedBy: userId,
+        name: dto.name,
+        type: dto.type,
+        category: dto.category || 'other',
+        fileUrl: dto.fileUrl,
+        mimeType: dto.mimeType,
+        fileSize: dto.fileSize,
+        description: dto.description,
+        expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null,
+      },
+      include: {
+        uploader: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    await this.prisma.documentAuditLog.create({
+      data: {
+        documentId: doc.id,
+        action: 'upload',
+        performedBy: userId,
+      },
+    });
+
+    return doc;
+  }
+
+  async getGroupDocuments(groupId: string, type?: string) {
+    const where: any = { groupId, isArchived: false };
+    if (type) {
+      where.type = type;
+    }
+
+    return this.prisma.groupDocument.findMany({
+      where,
+      include: {
+        uploader: { select: { id: true, firstName: true, lastName: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getDocument(documentId: string) {
+    const doc = await this.prisma.groupDocument.findUnique({
+      where: { id: documentId },
+      include: {
+        uploader: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+        permissions: { include: { user: { select: { firstName: true, lastName: true } } } },
+      },
+    });
+    if (!doc) {
+      throw new NotFoundException('Document not found');
+    }
+
+    await this.prisma.documentAuditLog.create({
+      data: { documentId, action: 'view', performedBy: 'system' },
+    });
+
+    return doc;
+  }
+
+  async deleteDocument(documentId: string, userId: string) {
+    const doc = await this.prisma.groupDocument.findUnique({ where: { id: documentId } });
+    if (!doc) {
+      throw new NotFoundException('Document not found');
+    }
+
+    await this.prisma.groupDocument.update({
+      where: { id: documentId },
+      data: { isArchived: true },
+    });
+
+    await this.prisma.documentAuditLog.create({
+      data: { documentId, action: 'delete', performedBy: userId, metadata: { soft: true } },
+    });
+
+    return { message: 'Document archived' };
+  }
+
+  async shareDocument(
+    documentId: string,
+    userId: string,
+    targetUserId: string,
+    permissions?: UpdateDocumentPermissionDto,
+  ) {
+    const perm = await this.prisma.documentPermission.upsert({
+      where: { documentId_userId: { documentId, userId: targetUserId } },
+      update: {
+        canView: permissions?.canView ?? true,
+        canDownload: permissions?.canDownload ?? false,
+        canShare: permissions?.canShare ?? false,
+        canDelete: permissions?.canDelete ?? false,
+      },
+      create: {
+        documentId,
+        userId: targetUserId,
+        canView: permissions?.canView ?? true,
+        canDownload: permissions?.canDownload ?? false,
+        canShare: permissions?.canShare ?? false,
+        canDelete: permissions?.canDelete ?? false,
+      },
+    });
+
+    await this.prisma.documentAuditLog.create({
+      data: {
+        documentId,
+        action: 'share',
+        performedBy: userId,
+        metadata: { sharedWith: targetUserId },
+      },
+    });
+
+    return perm;
+  }
+
+  // ─── Group Calendar ─────────────────────────────────────────
+
+  async getOrCreateCalendar(groupId: string) {
+    let calendar = await this.prisma.groupCalendar.findUnique({ where: { groupId } });
+    if (!calendar) {
+      calendar = await this.prisma.groupCalendar.create({
+        data: { groupId },
+      });
+    }
+    return calendar;
+  }
+
+  async createCalendarEvent(groupId: string, userId: string, dto: CreateCalendarEventDto) {
+    const calendar = await this.getOrCreateCalendar(groupId);
+
+    const event = await this.prisma.calendarEvent.create({
+      data: {
+        calendarId: calendar.id,
+        title: dto.title,
+        description: dto.description,
+        eventType: dto.eventType || 'custom',
+        startDate: new Date(dto.startDate),
+        endDate: dto.endDate ? new Date(dto.endDate) : null,
+        allDay: dto.allDay || false,
+        color: dto.color,
+        recurrence: dto.recurrence,
+        referenceId: dto.referenceId,
+        createdBy: userId,
+      },
+      include: {
+        creator: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    if (this.socketServer) {
+      this.socketServer.to(`group:${groupId}`).emit('calendarEventCreated', event);
+    }
+
+    return event;
+  }
+
+  async getCalendarEvents(groupId: string, startDate?: string, endDate?: string) {
+    const calendar = await this.getOrCreateCalendar(groupId);
+
+    const where: any = { calendarId: calendar.id };
+    if (startDate) {
+      where.startDate = { gte: new Date(startDate) };
+    }
+    if (endDate) {
+      where.endDate = { ...where.endDate, lte: new Date(endDate) };
+    }
+
+    return this.prisma.calendarEvent.findMany({
+      where,
+      include: {
+        creator: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+      },
+      orderBy: { startDate: 'asc' },
+    });
+  }
+
+  async deleteCalendarEvent(eventId: string) {
+    const event = await this.prisma.calendarEvent.findUnique({ where: { id: eventId } });
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+
+    await this.prisma.calendarEvent.delete({ where: { id: eventId } });
+    return { message: 'Event deleted' };
+  }
+
+  // ─── Split Templates ────────────────────────────────────────
+
+  async createSplitTemplate(userId: string, dto: CreateSplitTemplateDto) {
+    return this.prisma.splitTemplate.create({
+      data: {
+        name: dto.name,
+        description: dto.description,
+        groupType: dto.groupType || 'friends',
+        icon: dto.icon || 'documents',
+        coverColor: dto.coverColor || '#f7892c',
+        createdBy: userId,
+      },
+    });
+  }
+
+  async getSplitTemplates(groupType?: string) {
+    const where: any = {};
+    if (groupType) {
+      where.groupType = groupType;
+    }
+    return this.prisma.splitTemplate.findMany({
+      where,
+      include: {
+        categories: true,
+        contributionRules: true,
+        creator: { select: { id: true, firstName: true, lastName: true } },
+      },
+      orderBy: [{ isOfficial: 'desc' }, { usageCount: 'desc' }],
+    });
+  }
+
+  async createGroupFromTemplate(groupId: string, templateId: string, dto: CreateFromTemplateDto) {
+    const template = await this.prisma.splitTemplate.findUnique({
+      where: { id: templateId },
+      include: { categories: true, contributionRules: true },
+    });
+    if (!template) {
+      throw new NotFoundException('Template not found');
+    }
+
+    await this.prisma.splitTemplate.update({
+      where: { id: templateId },
+      data: { usageCount: { increment: 1 } },
+    });
+
+    return { message: 'Template applied', template };
+  }
+
+  // ─── Credit Card Bill Split ────────────────────────────────
+
+  async uploadCreditCardBill(groupId: string, userId: string, dto: UploadCreditCardBillDto) {
+    return this.prisma.creditCardBill.create({
+      data: {
+        groupId,
+        uploadedBy: userId,
+        cardHolder: dto.cardHolder,
+        cardType: dto.cardType,
+        lastFour: dto.lastFour,
+        statementDate: dto.statementDate ? new Date(dto.statementDate) : null,
+        dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
+        totalAmount: dto.totalAmount,
+        currency: dto.currency || 'INR',
+        fileUrl: dto.fileUrl,
+        ocrText: dto.ocrText,
+      },
+      include: {
+        uploader: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+  }
+
+  async getGroupCreditCardBills(groupId: string) {
+    return this.prisma.creditCardBill.findMany({
+      where: { groupId },
+      include: {
+        uploader: { select: { id: true, firstName: true, lastName: true } },
+        _count: { select: { transactions: true, splits: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async addCreditCardTransactions(
+    billId: string,
+    transactions: {
+      date: string;
+      description: string;
+      amount: number;
+      category?: string;
+      merchant?: string;
+    }[],
+  ) {
+    const bill = await this.prisma.creditCardBill.findUnique({ where: { id: billId } });
+    if (!bill) {
+      throw new NotFoundException('Bill not found');
+    }
+
+    const created = [];
+    for (const t of transactions) {
+      const tx = await this.prisma.creditCardTransaction.create({
+        data: {
+          billId,
+          date: new Date(t.date),
+          description: t.description,
+          amount: t.amount,
+          category: t.category,
+          merchant: t.merchant,
+        },
+      });
+      created.push(tx);
+    }
+
+    await this.prisma.creditCardBill.update({
+      where: { id: billId },
+      data: { status: 'parsed' },
+    });
+
+    return created;
+  }
+
+  async splitTransaction(transactionId: string, splits: { userId: string; amount: number }[]) {
+    const txn = await this.prisma.creditCardTransaction.findUnique({
+      where: { id: transactionId },
+    });
+    if (!txn) {
+      throw new NotFoundException('Transaction not found');
+    }
+
+    const totalSplit = splits.reduce((s, sp) => s + sp.amount, 0);
+    if (Math.abs(totalSplit - Number(txn.amount)) > 0.01) {
+      throw new BadRequestException('Split amounts must equal the transaction amount');
+    }
+
+    const created = [];
+    for (const sp of splits) {
+      const split = await this.prisma.billSplit.create({
+        data: {
+          billId: txn.billId,
+          transactionId,
+          userId: sp.userId,
+          amount: sp.amount,
+        },
+        include: { user: { select: { id: true, firstName: true, lastName: true } } },
+      });
+      created.push(split);
+    }
+
+    await this.prisma.creditCardTransaction.update({
+      where: { id: transactionId },
+      data: { isSplit: true },
+    });
+
+    return created;
+  }
+
+  // ─── Cash Pool ──────────────────────────────────────────────
+
+  async createCashPool(groupId: string, userId: string, dto: CreateCashPoolDto) {
+    return this.prisma.cashPool.create({
+      data: {
+        groupId,
+        name: dto.name || 'Cash Pool',
+        totalCash: dto.totalCash,
+        remaining: dto.totalCash,
+        currency: dto.currency || 'INR',
+        custodian: dto.custodian,
+      },
+      include: {
+        custodianRel: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+  }
+
+  async getGroupCashPools(groupId: string) {
+    return this.prisma.cashPool.findMany({
+      where: { groupId, isActive: true },
+      include: {
+        custodianRel: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+        _count: { select: { transactions: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async addCashTransaction(poolId: string, userId: string, dto: CashPoolTransactionDto) {
+    const pool = await this.prisma.cashPool.findUnique({ where: { id: poolId } });
+    if (!pool) {
+      throw new NotFoundException('Cash pool not found');
+    }
+
+    const remaining = Number(pool.remaining);
+    let balanceAfter = remaining;
+
+    if (dto.type === 'deposit') {
+      balanceAfter = remaining + dto.amount;
+    } else if (dto.type === 'spend') {
+      if (remaining < dto.amount) {
+        throw new BadRequestException('Insufficient cash');
+      }
+      balanceAfter = remaining - dto.amount;
+    }
+
+    const txn = await this.prisma.cashTransaction.create({
+      data: {
+        poolId,
+        type: dto.type,
+        amount: dto.type === 'spend' ? -dto.amount : dto.amount,
+        description: dto.description,
+        category: dto.category,
+        performedBy: userId,
+        balanceBefore: remaining,
+        balanceAfter,
+      },
+    });
+
+    await this.prisma.cashPool.update({
+      where: { id: poolId },
+      data: { remaining: balanceAfter },
+    });
+
+    return txn;
+  }
+
+  async getPoolTransactions(poolId: string) {
+    return this.prisma.cashTransaction.findMany({
+      where: { poolId },
+      include: { performer: { select: { id: true, firstName: true, lastName: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  // ─── Emergency Fund ─────────────────────────────────────────
+
+  async createEmergencyFund(groupId: string, userId: string, dto: CreateEmergencyFundDto) {
+    return this.prisma.emergencyFund.create({
+      data: {
+        groupId,
+        name: dto.name || 'Emergency Fund',
+        targetAmount: dto.targetAmount,
+        monthlyContribution: dto.monthlyContribution,
+        currency: dto.currency || 'INR',
+        createdBy: userId,
+      },
+    });
+  }
+
+  async getGroupEmergencyFunds(groupId: string) {
+    const funds = await this.prisma.emergencyFund.findMany({
+      where: { groupId, isActive: true },
+      include: {
+        creator: { select: { id: true, firstName: true, lastName: true } },
+        _count: { select: { contributions: true, withdrawals: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return funds.map((f) => ({
+      ...f,
+      targetAmount: Number(f.targetAmount),
+      savedAmount: Number(f.savedAmount),
+      monthlyContribution: Number(f.monthlyContribution),
+      progress:
+        Number(f.targetAmount) > 0
+          ? Math.round((Number(f.savedAmount) / Number(f.targetAmount)) * 100)
+          : 0,
+    }));
+  }
+
+  async contributeToEmergencyFund(
+    fundId: string,
+    userId: string,
+    dto: ContributeToEmergencyFundDto,
+  ) {
+    const fund = await this.prisma.emergencyFund.findUnique({ where: { id: fundId } });
+    if (!fund) {
+      throw new NotFoundException('Emergency fund not found');
+    }
+
+    const [contribution] = await this.prisma.$transaction(async (tx) => {
+      const c = await tx.emergencyContribution.create({
+        data: { fundId, userId, amount: dto.amount, note: dto.note },
+        include: { user: { select: { id: true, firstName: true, lastName: true } } },
+      });
+
+      await tx.emergencyFund.update({
+        where: { id: fundId },
+        data: { savedAmount: Number(fund.savedAmount) + dto.amount },
+      });
+
+      return [c];
+    });
+
+    return contribution;
+  }
+
+  async requestEmergencyWithdrawal(
+    fundId: string,
+    userId: string,
+    dto: WithdrawFromEmergencyFundDto,
+  ) {
+    const fund = await this.prisma.emergencyFund.findUnique({ where: { id: fundId } });
+    if (!fund) {
+      throw new NotFoundException('Emergency fund not found');
+    }
+    if (Number(fund.savedAmount) < dto.amount) {
+      throw new BadRequestException('Insufficient funds');
+    }
+
+    return this.prisma.emergencyWithdrawal.create({
+      data: {
+        fundId,
+        withdrawnBy: userId,
+        amount: dto.amount,
+        reason: dto.reason,
+        status: 'pending',
+      },
+      include: {
+        withdrawer: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+  }
+
+  async approveEmergencyWithdrawal(withdrawalId: string, userId: string, action: string) {
+    const withdrawal = await this.prisma.emergencyWithdrawal.findUnique({
+      where: { id: withdrawalId },
+      include: { fund: true },
+    });
+    if (!withdrawal) {
+      throw new NotFoundException('Withdrawal not found');
+    }
+
+    if (action === 'approved') {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.emergencyWithdrawal.update({
+          where: { id: withdrawalId },
+          data: { status: 'approved', approvedBy: userId, approvedAt: new Date() },
+        });
+        await tx.emergencyFund.update({
+          where: { id: withdrawal.fundId },
+          data: { savedAmount: Number(withdrawal.fund.savedAmount) - Number(withdrawal.amount) },
+        });
+      });
+    } else {
+      await this.prisma.emergencyWithdrawal.update({
+        where: { id: withdrawalId },
+        data: { status: 'rejected', approvedBy: userId, approvedAt: new Date() },
+      });
+    }
+
+    return { message: `Withdrawal ${action}` };
+  }
+
+  // ─── Family Net Worth ───────────────────────────────────────
+
+  async createNetWorthSnapshot(groupId: string, userId: string, dto: CreateNetWorthSnapshotDto) {
+    let totalAssets = 0;
+    let totalLiabilities = 0;
+
+    for (const item of dto.items) {
+      if (item.category === 'asset') {
+        totalAssets += item.amount;
+      } else {
+        totalLiabilities += item.amount;
+      }
+    }
+
+    const netWorth = totalAssets - totalLiabilities;
+    const savingsRatio =
+      totalAssets > 0 ? ((totalAssets - totalLiabilities) / totalAssets) * 100 : 0;
+
+    const snapshot = await this.prisma.familyNetWorthSnapshot.create({
+      data: {
+        groupId,
+        totalAssets,
+        totalLiabilities,
+        netWorth,
+        savingsRatio: Math.round(savingsRatio * 100) / 100,
+        items: {
+          create: dto.items.map((item) => ({
+            type: item.type,
+            name: item.name,
+            amount: item.amount,
+            category: item.category,
+          })),
+        },
+      },
+      include: { items: true },
+    });
+
+    return snapshot;
+  }
+
+  async getNetWorthHistory(groupId: string) {
+    const snapshots = await this.prisma.familyNetWorthSnapshot.findMany({
+      where: { groupId },
+      include: { items: true },
+      orderBy: { snapshotDate: 'desc' },
+      take: 12,
+    });
+
+    return snapshots.map((s) => ({
+      ...s,
+      totalAssets: Number(s.totalAssets),
+      totalLiabilities: Number(s.totalLiabilities),
+      netWorth: Number(s.netWorth),
+      savingsRatio: Number(s.savingsRatio),
+    }));
+  }
+
+  async getLatestNetWorth(groupId: string) {
+    const latest = await this.prisma.familyNetWorthSnapshot.findFirst({
+      where: { groupId },
+      include: { items: true },
+      orderBy: { snapshotDate: 'desc' },
+    });
+
+    if (!latest) {
+      return null;
+    }
+
+    return {
+      ...latest,
+      totalAssets: Number(latest.totalAssets),
+      totalLiabilities: Number(latest.totalLiabilities),
+      netWorth: Number(latest.netWorth),
+      savingsRatio: Number(latest.savingsRatio),
+    };
+  }
+
+  // ─── Export System ──────────────────────────────────────────
+
+  async exportGroupData(groupId: string, userId: string, dto: ExportDataDto) {
+    await this.verifyAdmin(groupId, userId);
+
+    const group = await this.prisma.sharedGroup.findUnique({ where: { id: groupId } });
+    if (!group) {
+      throw new NotFoundException('Group not found');
+    }
+
+    const exportRecord = await this.prisma.exportHistory.create({
+      data: {
+        groupId,
+        exportedBy: userId,
+        exportType: dto.exportType,
+        reportType: dto.reportType,
+        status: 'completed',
+      },
+    });
+
+    return { message: `Export ${dto.exportType} generated`, exportId: exportRecord.id };
+  }
+
+  async getExportHistory(groupId: string) {
+    return this.prisma.exportHistory.findMany({
+      where: { groupId },
+      include: { exporter: { select: { id: true, firstName: true, lastName: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    });
+  }
+
+  // ─── Trip Cost Forecast ─────────────────────────────────────
+
+  async forecastTripCost(dto: TripForecastDto) {
+    return this.tripForecastEngine.forecast(dto);
+  }
+
+  // ─── Duplicate Detection ────────────────────────────────────
+
+  async checkDuplicateExpense(groupId: string, dto: CreateExpenseDto) {
+    const existing = await this.prisma.sharedExpense.findMany({
+      where: { groupId },
+      include: { payer: { select: { id: true, firstName: true, lastName: true } } },
+      orderBy: { date: 'desc' },
+      take: 100,
+    });
+
+    return this.duplicateEngine.detect(
+      {
+        description: dto.description,
+        amount: dto.amount,
+        paidBy: dto.paidBy,
+        category: dto.category,
+        date: dto.date,
+        notes: dto.notes,
+      },
+      existing,
+    );
+  }
+
+  // ─── Auto-OCR Expense Creation ─────────────────────────────
+
+  async createExpenseFromOcr(groupId: string, userId: string, ocrText: string) {
+    // Simple inline OCR parser
+    const lines = ocrText.split('\n').filter(Boolean);
+    let description = '';
+    let amount = 0;
+    const category = 'Other';
+    const merchant = '';
+
+    const amountMatch = ocrText.match(/[₹$€£]\s*([0-9,]+\.?\d*)/);
+    if (amountMatch) {
+      amount = parseFloat(amountMatch[1].replace(/,/g, ''));
+    }
+
+    if (lines.length > 0) {
+      description = lines[0].trim().substring(0, 200);
+    }
+
+    if (!description || !amount) {
+      throw new BadRequestException('Could not extract expense details from OCR text');
+    }
+
+    const members = await this.prisma.sharedGroupMember.findMany({
+      where: { groupId, isActive: true },
+      include: { user: { select: { id: true, firstName: true, lastName: true } } },
+    });
+
+    const splitAmount = members.length > 0 ? amount / members.length : amount;
+    const splits = members.map((m) => ({
+      userId: m.userId,
+      amount: Math.round(splitAmount * 100) / 100,
+    }));
+
+    const expense = await this.prisma.sharedExpense.create({
+      data: {
+        groupId,
+        description,
+        amount,
+        paidBy: userId,
+        category: category || 'Other',
+        date: new Date(),
+        splitType: 'equal',
+        notes: `Auto-created from OCR: ${merchant || ''}`,
+        splits: { create: splits },
+      },
+      include: {
+        splits: { include: { user: { select: { id: true, firstName: true, lastName: true } } } },
+        payer: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+      },
+    });
+
+    await this.updateGroupTotalSpent(groupId);
+
+    return { expense, draft: { description, amount, category, merchant } };
+  }
+
+  // ─── Gamification & Achievements ───────────────────────────
+
+  async getUserBadges(userId: string) {
+    return this.prisma.userBadge.findMany({
+      where: { userId },
+      include: { badge: true },
+      orderBy: [{ isEarned: 'desc' }, { progress: 'desc' }],
+    });
+  }
+
+  async getAllBadges() {
+    return this.prisma.badge.findMany({
+      orderBy: [{ tier: 'asc' }, { category: 'asc' }],
+    });
+  }
+
+  async getGroupGamificationStats(groupId: string) {
+    const members = await this.prisma.sharedGroupMember.findMany({
+      where: { groupId, isActive: true },
+      select: { userId: true },
+    });
+
+    const memberBadges = [];
+    for (const m of members) {
+      const badges = await this.prisma.userBadge.findMany({
+        where: { userId: m.userId, isEarned: true },
+        include: { badge: true },
+      });
+      memberBadges.push({ userId: m.userId, badges });
+    }
+
+    return { memberBadges };
+  }
+
+  // ─── Referral Program ──────────────────────────────────────
+
+  async createReferral(userId: string, dto: CreateReferralDto) {
+    const code = 'DABBU-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+
+    const referral = await this.prisma.referralProgram.create({
+      data: {
+        referrerId: userId,
+        refereeEmail: dto.refereeEmail,
+        code,
+        rewardDays: 30,
+      },
+    });
+
+    return referral;
+  }
+
+  async getUserReferrals(userId: string) {
+    return this.prisma.referralProgram.findMany({
+      where: { referrerId: userId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getReferralStats(userId: string) {
+    const referrals = await this.prisma.referralProgram.findMany({
+      where: { referrerId: userId },
+    });
+
+    return {
+      total: referrals.length,
+      pending: referrals.filter((r) => r.status === 'pending').length,
+      converted: referrals.filter((r) => r.status === 'converted').length,
+      signedUp: referrals.filter((r) => r.status === 'signed_up').length,
+      rewardDays: referrals.filter((r) => r.rewardClaimed).reduce((s, r) => s + r.rewardDays, 0),
+    };
+  }
+
+  // ─── Premium Conversion Tracking ───────────────────────────
+
+  async trackPremiumTrigger(userId: string, trigger: string, metadata?: any) {
+    return this.prisma.premiumConversionEvent.create({
+      data: {
+        userId,
+        trigger,
+        metadata: metadata || {},
+      },
+    });
+  }
+
+  async dismissPremiumBanner(eventId: string) {
+    return this.prisma.premiumConversionEvent.update({
+      where: { id: eventId },
+      data: { bannerDismissed: true },
+    });
+  }
+
+  async startPremiumTrial(eventId: string) {
+    return this.prisma.premiumConversionEvent.update({
+      where: { id: eventId },
+      data: { trialStarted: true, trialStartedAt: new Date() },
+    });
+  }
+
+  // ─── Analytics ─────────────────────────────────────────────
+
+  async getAdvancedAnalytics(groupId: string) {
+    const [expenses, members, settlements, goals] = await Promise.all([
+      this.prisma.sharedExpense.findMany({ where: { groupId } }),
+      this.prisma.sharedGroupMember.findMany({
+        where: { groupId, isActive: true },
+        include: { user: { select: { id: true, firstName: true, lastName: true } } },
+      }),
+      this.prisma.settlement.findMany({ where: { groupId } }),
+      this.prisma.sharedGoal.findMany({ where: { groupId } }),
+    ]);
+
+    const totalSpent = expenses.reduce((s, e) => s + Number(e.amount), 0);
+    const monthlySpending = this.aiInsightsEngine.getMonthlyComparison(expenses);
+
+    const categoryTrends = new Map<string, { total: number; count: number }>();
+    for (const e of expenses) {
+      const cat = e.category || 'Other';
+      if (!categoryTrends.has(cat)) {
+        categoryTrends.set(cat, { total: 0, count: 0 });
+      }
+      const c = categoryTrends.get(cat)!;
+      c.total += Number(e.amount);
+      c.count++;
+    }
+
+    const memberSpending = members.map((m) => {
+      const paid = expenses
+        .filter((e) => e.paidBy === m.userId)
+        .reduce((s, e) => s + Number(e.amount), 0);
+      const owed = expenses
+        .filter((e) => e.splits?.some((s) => s.userId === m.userId))
+        .reduce((s, e) => s + Number(e.amount), 0);
+      return {
+        userId: m.userId,
+        name: `${m.user.firstName} ${m.user.lastName}`.trim(),
+        totalPaid: paid,
+        totalOwed: owed,
+        netPosition: paid - owed,
+      };
+    });
+
+    const completedSettlements = settlements.filter((s) => s.status === 'completed').length;
+    const pendingSettlements = settlements.filter((s) => s.status === 'pending').length;
+    const settlementScore =
+      settlements.length > 0 ? Math.round((completedSettlements / settlements.length) * 100) : 100;
+
+    const goalProgress =
+      goals.length > 0
+        ? goals.reduce(
+            (s, g) => s + (Number(g.savedAmount) / Number(g.targetAmount || 1)) * 100,
+            0,
+          ) / goals.length
+        : 0;
+    const healthScore = Math.round(
+      settlementScore * 0.4 +
+        goalProgress * 0.3 +
+        (memberSpending.filter((m) => m.netPosition >= 0).length / Math.max(members.length, 1)) *
+          100 *
+          0.3,
+    );
+
+    return {
+      summary: {
+        totalSpent,
+        totalExpenses: expenses.length,
+        averageExpense: expenses.length > 0 ? totalSpent / expenses.length : 0,
+        monthlyAverage:
+          monthlySpending.length > 0 ? totalSpent / Math.max(monthlySpending.length, 1) : 0,
+      },
+      categoryTrends: Array.from(categoryTrends.entries()).map(([category, data]) => ({
+        category,
+        total: data.total,
+        count: data.count,
+        percentage: totalSpent > 0 ? Math.round((data.total / totalSpent) * 100) : 0,
+      })),
+      memberSpending: memberSpending.sort((a, b) => b.totalPaid - a.totalPaid),
+      fairnessScore: this.calculateGiniFairness(memberSpending.map((m) => m.totalPaid)),
+      settlementScore,
+      healthScore,
+    };
+  }
+
+  private calculateGiniFairness(values: number[]): number {
+    if (values.length === 0) {
+      return 1;
+    }
+    const sorted = [...values].sort((a, b) => a - b);
+    const n = sorted.length;
+    const sum = sorted.reduce((s, v) => s + v, 0);
+    if (sum === 0) {
+      return 1;
+    }
+    let gini = 0;
+    for (let i = 0; i < n; i++) {
+      gini += (2 * (i + 1) - n - 1) * sorted[i];
+    }
+    gini /= n * sum;
+    return Math.max(0, Math.min(1, Math.round((1 - gini) * 100) / 100));
+  }
+
+  // ─── Group Lifecycle ─────────────────────────────────────────
+
+  async transitionGroupStatus(groupId: string, userId: string, newStatus: string) {
+    return this.lifecycleService.transitionGroupStatus(
+      groupId,
+      userId,
+      newStatus as any,
+      this.socketServer || undefined,
+    );
+  }
+
+  async finalizeGroupSettlements(groupId: string, userId: string) {
+    return this.lifecycleService.finalizeSettlements(groupId, userId);
+  }
+
+  async getGroupLifecycleHistory(groupId: string) {
+    return this.lifecycleService.getLifecycleHistory(groupId);
+  }
+
+  async getMemberRemovalLogs(groupId: string) {
+    return this.lifecycleService.getMemberRemovalLogs(groupId);
+  }
+
+  async revokeAllInvites(groupId: string, userId: string) {
+    await this.verifyAdmin(groupId, userId);
+
+    const result = await this.prisma.groupInvite.updateMany({
+      where: { groupId, status: 'active' },
+      data: {
+        status: 'revoked',
+        revokedAt: new Date(),
+        revokedBy: userId,
+      },
+    });
+
+    await this.prisma.groupLifecycleEvent.create({
+      data: {
+        groupId,
+        eventType: 'invite_revoked',
+        triggeredBy: userId,
+        metadata: { count: result.count },
+      },
+    });
+
+    if (this.socketServer) {
+      this.socketServer.to(`group:${groupId}`).emit('invitesRevoked', {
+        groupId,
+        message: 'All active invites have been revoked.',
+      });
+    }
+
+    return { message: `${result.count} invites revoked`, count: result.count };
+  }
+
+  async getGroupStatus(groupId: string) {
+    const group = await this.prisma.sharedGroup.findUnique({
+      where: { id: groupId },
+      select: {
+        id: true,
+        status: true,
+        statusChangedAt: true,
+        statusChangedBy: true,
+        completedAt: true,
+        archivedAt: true,
+        closedAt: true,
+        pausedAt: true,
+        frozenAt: true,
+        settlementsFinalized: true,
+        finalizedAt: true,
+      },
+    });
+    if (!group) {
+      throw new NotFoundException('Group not found');
+    }
+    return group;
+  }
+
+  async exportGroupReport(groupId: string, userId: string) {
+    await this.verifyAdmin(groupId, userId);
+
+    const [group, expenses, settlements, members, messages] = await Promise.all([
+      this.prisma.sharedGroup.findUnique({ where: { id: groupId } }),
+      this.prisma.sharedExpense.findMany({
+        where: { groupId },
+        include: {
+          splits: { include: { user: { select: { firstName: true, lastName: true } } } },
+          payer: { select: { firstName: true, lastName: true } },
+        },
+        orderBy: { date: 'desc' },
+      }),
+      this.prisma.settlement.findMany({
+        where: { groupId },
+        include: {
+          fromUser: { select: { firstName: true, lastName: true } },
+          toUser: { select: { firstName: true, lastName: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.sharedGroupMember.findMany({
+        where: { groupId },
+        include: {
+          user: { select: { id: true, firstName: true, lastName: true, email: true } },
+        },
+      }),
+      this.prisma.groupChatMessage.findMany({
+        where: { groupId },
+        include: { sender: { select: { firstName: true, lastName: true } } },
+        orderBy: { createdAt: 'asc' },
+      }),
+    ]);
+
+    if (!group) {
+      throw new NotFoundException('Group not found');
+    }
+
+    await this.prisma.groupLifecycleEvent.create({
+      data: {
+        groupId,
+        eventType: 'report_exported',
+        triggeredBy: userId,
+        metadata: { exportedAt: new Date().toISOString() },
+      },
+    });
+
+    return {
+      group: {
+        name: group.name,
+        type: group.type,
+        status: group.status,
+        createdAt: group.createdAt,
+      },
+      summary: {
+        totalExpenses: expenses.length,
+        totalAmount: expenses.reduce((s, e) => s + Number(e.amount), 0),
+        totalSettlements: settlements.length,
+        members: members.length,
+        messages: messages.length,
+        completedSettlements: settlements.filter((s) => s.status === 'completed').length,
+      },
+      expenses: expenses.map((e) => ({
+        date: e.date,
+        description: e.description,
+        amount: Number(e.amount),
+        category: e.category,
+        paidBy: `${e.payer.firstName} ${e.payer.lastName}`,
+        splitType: e.splitType,
+        splits: e.splits.map((s) => ({
+          user: `${s.user.firstName} ${s.user.lastName}`,
+          amount: Number(s.amount),
+        })),
+      })),
+      settlements: settlements.map((s) => ({
+        from: `${s.fromUser.firstName} ${s.fromUser.lastName}`,
+        to: `${s.toUser.firstName} ${s.toUser.lastName}`,
+        amount: Number(s.amount),
+        status: s.status,
+        method: s.method,
+        date: s.createdAt,
+      })),
+      members: members.map((m) => ({
+        name: `${m.user.firstName} ${m.user.lastName}`,
+        email: m.user.email,
+        role: m.role,
+        joinedAt: m.joinedAt,
+        isActive: m.isActive,
+      })),
+    };
+  }
+
+  // ─── Helpers ───────────────────────────────────────────────
+
+  private async verifyAdmin(groupId: string, userId: string) {
+    const member = await this.prisma.sharedGroupMember.findUnique({
+      where: { groupId_userId: { groupId, userId } },
+    });
+    if (!member) {
+      throw new NotFoundException('Group not found or not a member');
+    }
+    if (member.role !== 'admin') {
+      throw new ForbiddenException('Only admins can perform this action');
+    }
+    return member;
+  }
+
+  private async updateGroupTotalSpent(groupId: string) {
+    const result = await this.prisma.sharedExpense.aggregate({
+      where: { groupId },
+      _sum: { amount: true },
+    });
+
+    await this.prisma.sharedGroup.update({
+      where: { id: groupId },
+      data: { totalSpent: result._sum.amount || 0 },
+    });
+  }
+}

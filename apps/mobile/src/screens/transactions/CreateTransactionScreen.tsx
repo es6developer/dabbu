@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -16,6 +17,8 @@ import { useTheme } from '../../theme';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { DatePickerField } from '../../components/ui/DatePickerField';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const RECURRING_FREQUENCIES = ['weekly', 'monthly', 'yearly'] as const;
 
 const PAYMENT_TYPES = ['Cash', 'UPI', 'Card', 'Bank'];
 const SPLIT_METHODS = [
@@ -52,27 +55,47 @@ export function CreateTransactionScreen() {
   const isEditing = Boolean(editingTransaction?.id);
 
   const [amount, setAmount] = useState(
-    editingTransaction?.amount ? String(editingTransaction.amount) : prefill?.amount ? String(prefill.amount) : '',
+    editingTransaction?.amount
+      ? String(editingTransaction.amount)
+      : prefill?.amount
+        ? String(prefill.amount)
+        : '',
   );
   const [type, setType] = useState<'income' | 'expense'>(editingTransaction?.type || 'expense');
-  const [description, setDescription] = useState(editingTransaction?.description || prefill?.description || '');
-  const [category, setCategory] = useState(editingTransaction?.category?.name || prefill?.categoryName || '');
-  const [categoryId, setCategoryId] = useState(editingTransaction?.categoryId || editingTransaction?.category?.id || '');
+  const [description, setDescription] = useState(
+    editingTransaction?.description || prefill?.description || '',
+  );
+  const [category, setCategory] = useState(
+    editingTransaction?.category?.name || prefill?.categoryName || '',
+  );
+  const [categoryId, setCategoryId] = useState(
+    editingTransaction?.categoryId || editingTransaction?.category?.id || '',
+  );
   const [paymentType, setPaymentType] = useState(editingTransaction?.metadata?.paymentType || '');
   const [date, setDate] = useState(
-    (editingTransaction?.date ? new Date(editingTransaction.date).toISOString().split('T')[0] : undefined) ||
+    (editingTransaction?.date
+      ? new Date(editingTransaction.date).toISOString().split('T')[0]
+      : undefined) ||
       prefill?.date ||
       new Date().toISOString().split('T')[0],
   );
-  const [tags, setTags] = useState(((editingTransaction?.tags as string[]) || prefill?.tags || []).join(', '));
+  const [tags, setTags] = useState(
+    ((editingTransaction?.tags as string[]) || prefill?.tags || []).join(', '),
+  );
   const [notes, setNotes] = useState(editingTransaction?.notes || '');
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurringFrequency, setRecurringFrequency] = useState('monthly');
+  const [recurringEndDate, setRecurringEndDate] = useState('');
+  const recurringAnim = useRef(new Animated.Value(0)).current;
   const [categories, setCategories] = useState<any[]>([]);
   const [groups, setGroups] = useState<any[]>([]);
-  const [selectedGroupId, setSelectedGroupId] = useState(editingTransaction?.expenseGroupId || prefill?.groupId || '');
+  const [selectedGroupId, setSelectedGroupId] = useState(
+    editingTransaction?.expenseGroupId || prefill?.groupId || '',
+  );
   const [selectedGroupName, setSelectedGroupName] = useState(prefill?.groupName || '');
-  const [splitMethod, setSplitMethod] = useState(editingTransaction?.metadata?.splitMethod || 'equal');
+  const [splitMethod, setSplitMethod] = useState(
+    editingTransaction?.metadata?.splitMethod || 'equal',
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [loadingMeta, setLoadingMeta] = useState(true);
@@ -95,9 +118,17 @@ export function CreateTransactionScreen() {
       const catRes = catResult.status === 'fulfilled' ? catResult.value : [];
       const grpRes = grpResult.status === 'fulfilled' ? grpResult.value : [];
 
-      catData = Array.isArray(catRes) ? catRes : Array.isArray((catRes as any)?.data) ? (catRes as any).data : [];
+      catData = Array.isArray(catRes)
+        ? catRes
+        : Array.isArray((catRes as any)?.data)
+          ? (catRes as any).data
+          : [];
       setCategories(catData);
-      const g = Array.isArray(grpRes) ? grpRes : Array.isArray((grpRes as any)?.data) ? (grpRes as any).data : [];
+      const g = Array.isArray(grpRes)
+        ? grpRes
+        : Array.isArray((grpRes as any)?.data)
+          ? (grpRes as any).data
+          : [];
       setGroups(g);
 
       if (catResult.status === 'rejected' && grpResult.status === 'rejected') {
@@ -148,6 +179,7 @@ export function CreateTransactionScreen() {
           .filter(Boolean),
         isRecurring,
         recurringFrequency: isRecurring ? recurringFrequency : undefined,
+        recurringEndDate: isRecurring && recurringEndDate ? recurringEndDate : undefined,
       };
       if (categoryId) {
         data.categoryId = categoryId;
@@ -173,7 +205,10 @@ export function CreateTransactionScreen() {
           groupName: selectedGroupName || prefill.groupName,
         });
       } else {
-        navigation.navigate(isEditing ? 'TransactionDetail' : 'ExpenseHome', isEditing ? { transactionId: editingTransaction.id } : undefined);
+        navigation.navigate(
+          isEditing ? 'TransactionDetail' : 'ExpenseHome',
+          isEditing ? { transactionId: editingTransaction.id } : undefined,
+        );
       }
     } catch (e: any) {
       setError(e.message || 'Failed to create transaction');
@@ -181,6 +216,33 @@ export function CreateTransactionScreen() {
       setSaving(false);
     }
   }
+
+  const recurringHeight = isRecurring
+    ? recurringAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 220],
+      })
+    : recurringAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 220],
+      });
+  const recurringOpacity = isRecurring
+    ? recurringAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 1],
+      })
+    : recurringAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 1],
+      });
+
+  useEffect(() => {
+    Animated.timing(recurringAnim, {
+      toValue: isRecurring ? 1 : 0,
+      duration: 250,
+      useNativeDriver: false,
+    }).start();
+  }, [isRecurring, recurringAnim]);
 
   if (loadingMeta) {
     return (
@@ -202,7 +264,9 @@ export function CreateTransactionScreen() {
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
     >
-      <Text style={[styles.title, { color: colors.text.primary }]}>{isEditing ? 'Edit Transaction' : 'New Transaction'}</Text>
+      <Text style={[styles.title, { color: colors.text.primary }]}>
+        {isEditing ? 'Edit Transaction' : 'New Transaction'}
+      </Text>
       {error ? (
         <View style={[styles.errorBox, { backgroundColor: colors.status.errorLight }]}>
           <Ionicons name="alert-circle" size={16} color={colors.status.error} />
@@ -426,7 +490,10 @@ export function CreateTransactionScreen() {
                   style={[
                     styles.chipText,
                     { color: colors.text.tertiary },
-                    splitMethod === method.id && { color: colors.accent.primary, fontWeight: '600' },
+                    splitMethod === method.id && {
+                      color: colors.accent.primary,
+                      fontWeight: '600',
+                    },
                   ]}
                 >
                   {method.label}
@@ -435,7 +502,8 @@ export function CreateTransactionScreen() {
             ))}
           </View>
           <Text style={[styles.helperText, { color: colors.text.tertiary }]}>
-            Allocation details are saved with the transaction and can be expanded into per-member balances.
+            Allocation details are saved with the transaction and can be expanded into per-member
+            balances.
           </Text>
         </>
       ) : null}
@@ -502,34 +570,53 @@ export function CreateTransactionScreen() {
           </Text>
         </TouchableOpacity>
       </View>
-      {isRecurring && (
-        <View style={styles.frequencyRow}>
-          {['daily', 'weekly', 'monthly', 'yearly'].map((frequency) => (
-            <TouchableOpacity
-              key={frequency}
-              style={[
-                styles.freqChip,
-                { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-                recurringFrequency === frequency && {
-                  backgroundColor: `${colors.accent.primary}20`,
-                  borderColor: colors.accent.primary,
-                },
-              ]}
-              onPress={() => setRecurringFrequency(frequency)}
-            >
-              <Text
+      <Animated.View
+        style={[
+          styles.recurringExpanded,
+          { maxHeight: recurringHeight, opacity: recurringOpacity, overflow: 'hidden' },
+        ]}
+      >
+        <View style={{ gap: 14 }}>
+          <Text style={[styles.label, { color: colors.text.tertiary, marginBottom: 4 }]}>
+            Frequency
+          </Text>
+          <View style={styles.frequencyRow}>
+            {RECURRING_FREQUENCIES.map((frequency) => (
+              <TouchableOpacity
+                key={frequency}
                 style={[
-                  styles.freqChipText,
-                  { color: colors.text.tertiary },
-                  recurringFrequency === frequency && { color: colors.accent.primary, fontWeight: '600' },
+                  styles.freqChip,
+                  { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+                  recurringFrequency === frequency && {
+                    backgroundColor: `${colors.accent.primary}20`,
+                    borderColor: colors.accent.primary,
+                  },
                 ]}
+                onPress={() => setRecurringFrequency(frequency)}
               >
-                {frequency.charAt(0).toUpperCase() + frequency.slice(1)}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <Text
+                  style={[
+                    styles.freqChipText,
+                    { color: colors.text.tertiary },
+                    recurringFrequency === frequency && {
+                      color: colors.accent.primary,
+                      fontWeight: '600',
+                    },
+                  ]}
+                >
+                  {frequency.charAt(0).toUpperCase() + frequency.slice(1)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <DatePickerField
+            label="End Date"
+            value={recurringEndDate}
+            onChange={setRecurringEndDate}
+            optional
+          />
         </View>
-      )}
+      </Animated.View>
 
       <TouchableOpacity
         style={[
@@ -543,7 +630,9 @@ export function CreateTransactionScreen() {
         {saving ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.saveBtnText}>{isEditing ? 'Save Changes' : 'Create Transaction'}</Text>
+          <Text style={styles.saveBtnText}>
+            {isEditing ? 'Save Changes' : 'Create Transaction'}
+          </Text>
         )}
       </TouchableOpacity>
     </ScrollView>
@@ -613,7 +702,8 @@ const styles = StyleSheet.create({
   },
   recurringToggle: { paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, borderWidth: 1 },
   recurringToggleText: { fontSize: 13, fontWeight: '600' },
-  frequencyRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
+  recurringExpanded: { marginTop: 12 },
+  frequencyRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   freqChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1 },
   freqChipText: { fontSize: 13 },
   saveBtn: { paddingVertical: 16, borderRadius: 14, alignItems: 'center', marginTop: 32 },

@@ -7,6 +7,7 @@ import { DashboardScreen } from '../screens/home/DashboardScreen';
 import { NotificationsScreen } from '../screens/home/NotificationsScreen';
 import { NotificationCenterScreen } from '../screens/home/NotificationCenterScreen';
 import { AccountsNavigator } from './AccountsNavigator';
+import { SharedFinanceNavigator } from './SharedFinanceNavigator';
 import { RemindersScreen } from '../screens/reminders/RemindersScreen';
 import { ReminderDetailScreen } from '../screens/reminders/ReminderDetailScreen';
 import { CreateReminderScreen } from '../screens/reminders/CreateReminderScreen';
@@ -223,6 +224,7 @@ interface TabConfig {
 const ALL_TABS: TabConfig[] = [
   { name: 'Dashboard', component: DashboardNavigator, title: 'Dashboard' },
   { name: 'Accounts', component: AccountsNavigator, title: 'Expenses' },
+  { name: 'Shared', component: SharedFinanceNavigator, title: 'Shared' },
   { name: 'Reminders', component: RemindersNavigator, title: 'Reminders' },
   { name: 'SMS', component: SmsNavigator, title: 'SMS', featureKey: 'sms_sync' },
   { name: 'Settings', component: SettingsNavigator, title: 'Settings' },

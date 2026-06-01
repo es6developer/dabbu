@@ -27,6 +27,7 @@ import { TransactionsModule } from './modules/transactions/transactions.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { ReminderModule } from './modules/reminder/reminder.module';
 import { SubscriptionModule } from './modules/subscription/subscription.module';
+import { ExternalSharingModule } from './modules/external-sharing/external-sharing.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { AdminModule } from './modules/admin/admin.module';
@@ -35,6 +36,7 @@ import { FeaturesModule } from './modules/features/features.module';
 import { BillsModule } from './modules/bills/bills.module';
 import { ExpenseGroupsModule } from './modules/expense-groups/expense-groups.module';
 import { CurrencyModule } from './modules/currency/currency.module';
+import { SharedFinanceModule } from './modules/shared-finance/shared-finance.module';
 
 @Module({
   imports: [
@@ -87,6 +89,7 @@ import { CurrencyModule } from './modules/currency/currency.module';
     CategoriesModule,
     ReminderModule,
     SubscriptionModule,
+    ExternalSharingModule,
     NotificationModule,
     AnalyticsModule,
     AdminModule,
@@ -95,6 +98,7 @@ import { CurrencyModule } from './modules/currency/currency.module';
     BillsModule,
     ExpenseGroupsModule,
     CurrencyModule,
+    SharedFinanceModule,
   ],
   controllers: [HealthController],
   providers: [

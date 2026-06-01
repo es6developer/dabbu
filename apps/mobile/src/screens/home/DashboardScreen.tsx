@@ -172,9 +172,8 @@ export function DashboardScreen() {
       icon: 'people-outline' as IconName,
       color: '#5B5FE8',
       onPress: () =>
-        navigation.navigate('Accounts', {
-          screen: 'ExpenseHome',
-          params: { screen: 'SharedCircles' },
+        navigation.navigate('Shared', {
+          screen: 'SharedFinanceHome',
         }),
     },
     {
@@ -208,9 +207,8 @@ export function DashboardScreen() {
       icon: 'git-branch-outline' as IconName,
       color: '#5B5FE8',
       onPress: () =>
-        navigation.navigate('Accounts', {
-          screen: 'ExpenseHome',
-          params: { screen: 'SharedCircles' },
+        navigation.navigate('Shared', {
+          screen: 'SharedFinanceHome',
         }),
     },
     {
@@ -245,7 +243,12 @@ export function DashboardScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.loading, { backgroundColor: colors.bg.primary, paddingTop: insets.top + 16 }]}>
+      <View
+        style={[
+          styles.loading,
+          { backgroundColor: colors.bg.primary, paddingTop: insets.top + 16 },
+        ]}
+      >
         <View style={{ paddingHorizontal: 24, gap: 8 }}>
           <Skeleton width={160} height={16} />
           <Skeleton width={200} height={32} />
@@ -254,12 +257,16 @@ export function DashboardScreen() {
           <Skeleton width="100%" height={180} borderRadius={24} />
         </View>
         <View style={{ flexDirection: 'row', paddingHorizontal: 24, gap: 12, marginTop: 20 }}>
-          {[1,2,3,4].map(i => <Skeleton key={i} width="22%" height={72} borderRadius={16} />)}
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} width="22%" height={72} borderRadius={16} />
+          ))}
         </View>
         <View style={{ marginTop: 24, gap: 12, paddingHorizontal: 24 }}>
           <Skeleton width={120} height={14} />
           <View style={{ flexDirection: 'row', gap: 12 }}>
-            {[1,2,3,4].map(i => <Skeleton key={i} width="45%" height={90} borderRadius={16} />)}
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} width="45%" height={90} borderRadius={16} />
+            ))}
           </View>
         </View>
         <SkeletonList count={3} />
