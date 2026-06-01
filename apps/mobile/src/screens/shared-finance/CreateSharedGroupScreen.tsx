@@ -87,7 +87,7 @@ export function CreateSharedGroupScreen() {
       if (monthlyBudget.trim()) {
         payload.monthlyBudget = Number(monthlyBudget);
       }
-      const res = await api.post<any>('/shared-groups', payload);
+      const res = await api.post<any>('/shared-finance/groups', payload);
       const newGroupId = res?.id || res?._id;
       if (newGroupId) {
         navigation.replace('SharedGroupDetail', {

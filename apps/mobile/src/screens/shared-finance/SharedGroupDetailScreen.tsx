@@ -79,8 +79,8 @@ export function SharedGroupDetailScreen() {
           setAccessToken(accessToken);
         }
         const [groupRes, expensesRes] = await Promise.allSettled([
-          api.get<any>(`/shared-groups/${groupId}`, ctrl.signal),
-          api.get<any>(`/shared-expenses?groupId=${groupId}`, ctrl.signal),
+          api.get<any>(`/shared-finance/groups/${groupId}`, ctrl.signal),
+          api.get<any>(`/shared-finance/groups/${groupId}/expenses`, ctrl.signal),
         ]);
         if (ctrl.signal.aborted) {
           return;
@@ -556,7 +556,7 @@ export function SharedGroupDetailScreen() {
       if (accessToken) {
         setAccessToken(accessToken);
       }
-      await api.patch(`/shared-groups/${groupId}/members/${member.id}/role`, {
+      await api.patch(`/shared-finance/groups/${groupId}/members/${member.id}/role`, {
         role,
       });
       await loadData(true);
@@ -579,7 +579,7 @@ export function SharedGroupDetailScreen() {
               if (accessToken) {
                 setAccessToken(accessToken);
               }
-              await api.delete(`/shared-groups/${groupId}/members/${member.id}`);
+              await api.delete(`/shared-finance/groups/${groupId}/members/${member.id}`);
               await loadData(true);
             } catch (e: any) {
               Alert.alert('Error', e.message || 'Failed to remove member');
@@ -745,6 +745,43 @@ export function SharedGroupDetailScreen() {
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
+              contentContainerStyle={s.featureRow}
+            >
+              <TouchableOpacity
+                style={[
+                  s.featureCard,
+                  { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+                ]}
+                onPress={() => navigation.navigate('GroupWallet', { groupId })}
+              >
+                <LinearGradient
+                  colors={[`${colors.accent.primary}20`, `${colors.accent.primary}08`]}
+                  style={s.featureIcon}
+                >
+                  <Ionicons name="wallet" size={18} color={colors.accent.primary} />
+                </LinearGradient>
+                <Text style={[s.featureLabel, { color: colors.text.primary }]}>Wallets</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  s.featureCard,
+                  { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+                ]}
+                onPress={() => navigation.navigate('SplitTemplates', { groupId })}
+              >
+                <LinearGradient
+                  colors={[`${colors.status.success}20`, `${colors.status.success}08`]}
+                  style={s.featureIcon}
+                >
+                  <Ionicons name="documents" size={18} color={colors.status.success} />
+                </LinearGradient>
+                <Text style={[s.featureLabel, { color: colors.text.primary }]}>Splits</Text>
+              </TouchableOpacity>
+            </ScrollView>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
               contentContainerStyle={s.tabRow}
             >
               {TABS.map((tab) => (
@@ -875,6 +912,24 @@ const s = StyleSheet.create({
     borderRadius: 14,
   },
   quickActionText: { color: '#FFF', fontSize: 12, fontWeight: '800' },
+  featureRow: { paddingHorizontal: 20, gap: 10, marginTop: 16 },
+  featureCard: {
+    width: 90,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderRadius: 14,
+    borderWidth: 1,
+    alignItems: 'center',
+    gap: 8,
+  },
+  featureIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  featureLabel: { fontSize: 12, fontWeight: '700' },
   tabRow: { paddingHorizontal: 20, gap: 8, paddingTop: 20, paddingBottom: 6 },
   tabChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18 },
   tabText: { fontSize: 12, fontWeight: '700' },

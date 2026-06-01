@@ -50,6 +50,8 @@ import {
   UploadDocumentDto,
   CreateCalendarEventDto,
   CreateSplitTemplateDto,
+  TemplateCategoryDto,
+  CreateFromTemplateDto,
   UploadCreditCardBillDto,
   CreateCashPoolDto,
   CreateEmergencyFundDto,
@@ -116,6 +118,25 @@ export class SharedFinanceController {
     @CurrentUser('id') adminId: string,
   ) {
     return this.sf.addMember(groupId, dto.userId, adminId);
+  }
+
+  @Get('groups/:groupId/members')
+  @UseGuards(GroupMemberGuard)
+  @ApiOperation({ summary: 'Get active group members' })
+  async getGroupMembers(@Param('groupId') groupId: string) {
+    return this.sf.getGroupMembers(groupId);
+  }
+
+  @Patch('groups/:groupId/members/:memberId/role')
+  @UseGuards(GroupMemberGuard)
+  @ApiOperation({ summary: 'Update member role (admin only)' })
+  async updateMemberRole(
+    @Param('groupId') groupId: string,
+    @Param('memberId') memberId: string,
+    @CurrentUser('id') userId: string,
+    @Body('role') role: string,
+  ) {
+    return this.sf.updateMemberRole(groupId, memberId, userId, role);
   }
 
   @Post('groups/:groupId/leave')
@@ -259,7 +280,7 @@ export class SharedFinanceController {
     return this.sf.getExpense(expenseId);
   }
 
-  @Put('expenses/:expenseId')
+  @Patch('expenses/:expenseId')
   @ApiOperation({ summary: 'Update expense (creator only)' })
   async updateExpense(
     @Param('expenseId') expenseId: string,
@@ -536,6 +557,60 @@ export class SharedFinanceController {
   @ApiOperation({ summary: 'Toggle pin message in group chat' })
   async pinMessage(@Param('messageId') messageId: string, @Param('groupId') groupId: string) {
     return this.sf.pinMessage(messageId, groupId);
+  }
+
+  // ─── Split Templates ───────────────────────────────────────
+
+  @Post('split-templates')
+  @ApiOperation({ summary: 'Create a split template' })
+  async createSplitTemplate(
+    @CurrentUser('id') userId: string,
+    @Body() dto: CreateSplitTemplateDto,
+  ) {
+    return this.sf.createSplitTemplate(userId, dto);
+  }
+
+  @Get('split-templates')
+  @ApiOperation({ summary: 'Get all split templates' })
+  @ApiQuery({ name: 'groupType', required: false })
+  async getSplitTemplates(@Query('groupType') groupType?: string) {
+    return this.sf.getSplitTemplates(groupType);
+  }
+
+  @Get('split-templates/:templateId')
+  @ApiOperation({ summary: 'Get single split template' })
+  async getSplitTemplate(@Param('templateId') templateId: string) {
+    return this.sf.getSplitTemplate(templateId);
+  }
+
+  @Put('split-templates/:templateId')
+  @ApiOperation({ summary: 'Update a split template' })
+  async updateSplitTemplate(
+    @Param('templateId') templateId: string,
+    @CurrentUser('id') userId: string,
+    @Body() dto: CreateSplitTemplateDto,
+  ) {
+    return this.sf.updateSplitTemplate(templateId, userId, dto);
+  }
+
+  @Delete('split-templates/:templateId')
+  @ApiOperation({ summary: 'Delete a split template' })
+  async deleteSplitTemplate(
+    @Param('templateId') templateId: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.sf.deleteSplitTemplate(templateId, userId);
+  }
+
+  @Post('groups/:groupId/apply-template')
+  @UseGuards(GroupMemberGuard)
+  @ApiOperation({ summary: 'Apply a split template to a group' })
+  async applySplitTemplate(
+    @Param('groupId') groupId: string,
+    @CurrentUser('id') userId: string,
+    @Body() dto: CreateFromTemplateDto,
+  ) {
+    return this.sf.createGroupFromTemplate(groupId, dto.templateId, dto);
   }
 
   // ─── Dashboard & Insights ──────────────────────────────────

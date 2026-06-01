@@ -412,6 +412,53 @@ export class SharedFinanceService {
     return { message: 'Left group successfully' };
   }
 
+  async getGroupMembers(groupId: string) {
+    return this.prisma.sharedGroupMember.findMany({
+      where: { groupId, isActive: true },
+      include: {
+        user: {
+          select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true },
+        },
+      },
+      orderBy: { joinedAt: 'asc' },
+    });
+  }
+
+  async updateMemberRole(groupId: string, memberId: string, userId: string, role: string) {
+    await this.verifyAdmin(groupId, userId);
+
+    const member = await this.prisma.sharedGroupMember.findUnique({ where: { id: memberId } });
+    if (!member) {
+      throw new NotFoundException('Member not found');
+    }
+    if (member.groupId !== groupId) {
+      throw new BadRequestException('Member not in this group');
+    }
+    if (!['admin', 'member', 'viewer'].includes(role)) {
+      throw new BadRequestException('Invalid role. Must be admin, member, or viewer');
+    }
+
+    const updated = await this.prisma.sharedGroupMember.update({
+      where: { id: memberId },
+      data: { role },
+      include: {
+        user: {
+          select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true },
+        },
+      },
+    });
+
+    if (this.socketServer) {
+      this.socketServer.to(`group:${groupId}`).emit('memberRoleUpdated', {
+        memberId,
+        userId: member.userId,
+        role,
+      });
+    }
+
+    return updated;
+  }
+
   async inviteMember(groupId: string, invitedByUserId: string, dto: InviteMemberDto) {
     await this.verifyAdmin(groupId, invitedByUserId);
     await this.lifecycleService.assertCanInvite(groupId);
@@ -510,7 +557,8 @@ export class SharedFinanceService {
       throw new ForbiddenException('Not a group member');
     }
 
-    const totalSplit = dto.splits.reduce((sum, s) => sum + s.amount, 0);
+    const splitData = dto.splits || (await this.buildEqualSplits(groupId, dto.amount, dto.paidBy));
+    const totalSplit = splitData.reduce((sum, s) => sum + s.amount, 0);
     if (Math.abs(totalSplit - dto.amount) > 0.01) {
       throw new BadRequestException('Split amounts must equal the total expense amount');
     }
@@ -526,7 +574,7 @@ export class SharedFinanceService {
         splitType: dto.splitType || 'equal',
         notes: dto.notes,
         splits: {
-          create: dto.splits.map((s) => ({
+          create: splitData.map((s) => ({
             userId: s.userId,
             amount: s.amount,
             percentage: s.percentage || null,
@@ -2298,16 +2346,28 @@ export class SharedFinanceService {
   // ─── Split Templates ────────────────────────────────────────
 
   async createSplitTemplate(userId: string, dto: CreateSplitTemplateDto) {
-    return this.prisma.splitTemplate.create({
+    const template = await this.prisma.splitTemplate.create({
       data: {
         name: dto.name,
         description: dto.description,
         groupType: dto.groupType || 'friends',
         icon: dto.icon || 'documents',
         coverColor: dto.coverColor || '#f7892c',
+        defaultBudget: dto.defaultBudget,
         createdBy: userId,
       },
+      include: {
+        categories: true,
+        contributionRules: true,
+        creator: { select: { id: true, firstName: true, lastName: true } },
+      },
     });
+
+    if (this.socketServer) {
+      this.socketServer.to(`user:${userId}`).emit('splitTemplateCreated', template);
+    }
+
+    return template;
   }
 
   async getSplitTemplates(groupType?: string) {
@@ -2326,6 +2386,72 @@ export class SharedFinanceService {
     });
   }
 
+  async getSplitTemplate(templateId: string) {
+    const template = await this.prisma.splitTemplate.findUnique({
+      where: { id: templateId },
+      include: {
+        categories: true,
+        contributionRules: true,
+        creator: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+    if (!template) {
+      throw new NotFoundException('Split template not found');
+    }
+    return template;
+  }
+
+  async updateSplitTemplate(templateId: string, userId: string, dto: CreateSplitTemplateDto) {
+    const existing = await this.prisma.splitTemplate.findUnique({ where: { id: templateId } });
+    if (!existing) {
+      throw new NotFoundException('Split template not found');
+    }
+    if (existing.createdBy && existing.createdBy !== userId) {
+      throw new ForbiddenException('You can only edit your own templates');
+    }
+
+    const updated = await this.prisma.splitTemplate.update({
+      where: { id: templateId },
+      data: {
+        name: dto.name,
+        description: dto.description,
+        groupType: dto.groupType,
+        icon: dto.icon,
+        coverColor: dto.coverColor,
+        defaultBudget: dto.defaultBudget,
+      },
+      include: {
+        categories: true,
+        contributionRules: true,
+        creator: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    if (this.socketServer) {
+      this.socketServer.to(`user:${userId}`).emit('splitTemplateUpdated', updated);
+    }
+
+    return updated;
+  }
+
+  async deleteSplitTemplate(templateId: string, userId: string) {
+    const existing = await this.prisma.splitTemplate.findUnique({ where: { id: templateId } });
+    if (!existing) {
+      throw new NotFoundException('Split template not found');
+    }
+    if (existing.createdBy && existing.createdBy !== userId) {
+      throw new ForbiddenException('You can only delete your own templates');
+    }
+
+    await this.prisma.splitTemplate.delete({ where: { id: templateId } });
+
+    if (this.socketServer) {
+      this.socketServer.to(`user:${userId}`).emit('splitTemplateDeleted', { templateId });
+    }
+
+    return { message: 'Template deleted' };
+  }
+
   async createGroupFromTemplate(groupId: string, templateId: string, dto: CreateFromTemplateDto) {
     const template = await this.prisma.splitTemplate.findUnique({
       where: { id: templateId },
@@ -2340,7 +2466,15 @@ export class SharedFinanceService {
       data: { usageCount: { increment: 1 } },
     });
 
-    return { message: 'Template applied', template };
+    if (this.socketServer) {
+      this.socketServer.to(`group:${groupId}`).emit('templateApplied', {
+        templateId,
+        templateName: template.name,
+        groupId,
+      });
+    }
+
+    return { message: `Template "${template.name}" applied`, template };
   }
 
   // ─── Credit Card Bill Split ────────────────────────────────
@@ -3224,6 +3358,21 @@ export class SharedFinanceService {
       throw new ForbiddenException('Only admins can perform this action');
     }
     return member;
+  }
+
+  private async buildEqualSplits(groupId: string, amount: number, excludeUserId: string) {
+    const members = await this.prisma.sharedGroupMember.findMany({
+      where: { groupId, isActive: true, userId: { not: excludeUserId } },
+      select: { userId: true },
+    });
+    const allSplitUsers = [excludeUserId, ...members.map((m) => m.userId)];
+    const perPerson = amount / allSplitUsers.length;
+    return allSplitUsers.map((userId) => ({
+      userId,
+      amount: perPerson,
+      percentage: null,
+      shares: null,
+    }));
   }
 
   private async updateGroupTotalSpent(groupId: string) {

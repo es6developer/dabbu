@@ -82,7 +82,10 @@ export function GroupChatScreen() {
         if (accessToken) {
           setAccessToken(accessToken);
         }
-        const res = await api.get<any>(`/shared-groups/${groupId}/messages`, ctrl.signal);
+        const res = await api.get<any>(
+          `/shared-finance/groups/${groupId}/chat/messages`,
+          ctrl.signal,
+        );
         if (ctrl.signal.aborted) {
           return;
         }
@@ -127,7 +130,7 @@ export function GroupChatScreen() {
       if (accessToken) {
         setAccessToken(accessToken);
       }
-      const res = await api.post<any>(`/shared-groups/${groupId}/messages`, {
+      const res = await api.post<any>(`/shared-finance/groups/${groupId}/chat/messages`, {
         text: msgText,
       });
       const newMsg = res?.data || res;

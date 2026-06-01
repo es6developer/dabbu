@@ -74,7 +74,7 @@ export function SharedExpenseFormScreen() {
 
   async function loadMembers() {
     try {
-      const res = await api.get<any>(`/shared-groups/${groupId}/members`);
+      const res = await api.get<any>(`/shared-finance/groups/${groupId}/members`);
       const data = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
       setMembers(data);
       if (!paidBy && data.length > 0) {
@@ -219,9 +219,9 @@ export function SharedExpenseFormScreen() {
         notes: notes.trim() || undefined,
       };
       if (edit && expenseId) {
-        await api.patch(`/shared-expenses/${expenseId}`, payload);
+        await api.patch(`/shared-finance/expenses/${expenseId}`, payload);
       } else {
-        await api.post('/shared-expenses', payload);
+        await api.post(`/shared-finance/groups/${groupId}/expenses`, payload);
       }
       navigation.goBack();
     } catch (e: any) {

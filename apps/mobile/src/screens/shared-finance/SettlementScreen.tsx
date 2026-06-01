@@ -61,8 +61,8 @@ export function SettlementScreen() {
           setAccessToken(accessToken);
         }
         const [optRes, histRes] = await Promise.allSettled([
-          api.get<any>(`/shared-groups/${groupId}/settlements/optimized`),
-          api.get<any>(`/shared-groups/${groupId}/settlements/history`),
+          api.get<any>(`/shared-finance/groups/${groupId}/settlements/plan`),
+          api.get<any>(`/shared-finance/groups/${groupId}/settlements`),
         ]);
         if (optRes.status === 'fulfilled') {
           const d = optRes.value?.data || optRes.value;
@@ -94,7 +94,7 @@ export function SettlementScreen() {
       if (accessToken) {
         setAccessToken(accessToken);
       }
-      await api.post(`/shared-groups/${groupId}/settlements/${settlementId}/settle`, {
+      await api.post(`/shared-finance/settlements/${settlementId}/complete`, {
         method: selectedMethod,
       });
       Alert.alert('Settled', 'Marked as settled successfully');

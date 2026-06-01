@@ -14,6 +14,7 @@ import { AccessExpiredScreen } from '../screens/shared-finance/AccessExpiredScre
 import { TripCompletedScreen } from '../screens/shared-finance/TripCompletedScreen';
 import { GroupWalletScreen } from '../screens/shared-finance/GroupWalletScreen';
 import { WalletTransferScreen } from '../screens/shared-finance/WalletTransferScreen';
+import { SplitTemplatesScreen } from '../screens/shared-finance/SplitTemplatesScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -93,6 +94,11 @@ export function SharedFinanceNavigator() {
       <Stack.Screen
         name="WalletTransfer"
         component={WalletTransferScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="SplitTemplates"
+        component={SplitTemplatesScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

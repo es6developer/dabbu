@@ -80,7 +80,7 @@ export function SharedFinanceHomeScreen() {
         if (accessToken) {
           setAccessToken(accessToken);
         }
-        const res = await api.get<any>('/shared-groups', ctrl.signal);
+        const res = await api.get<any>('/shared-finance/groups', ctrl.signal);
         if (ctrl.signal.aborted) {
           return;
         }
@@ -137,7 +137,7 @@ export function SharedFinanceHomeScreen() {
             if (accessToken) {
               setAccessToken(accessToken);
             }
-            await api.delete(`/shared-groups/${group.id}`);
+            await api.delete(`/shared-finance/groups/${group.id}`);
             setGroups((prev) => prev.filter((g) => g.id !== group.id));
           } catch (e: any) {
             Alert.alert('Error', e.message || 'Failed to delete group');

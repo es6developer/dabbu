@@ -208,12 +208,13 @@ export class CreateExpenseDto {
   @IsOptional()
   notes?: string;
 
-  @ApiProperty({ type: [ExpenseSplitDto] })
+  @ApiPropertyOptional({ type: [ExpenseSplitDto] })
   @IsArray()
   @ArrayMinSize(1)
   @ValidateNested({ each: true })
   @Type(() => ExpenseSplitDto)
-  splits: ExpenseSplitDto[];
+  @IsOptional()
+  splits?: ExpenseSplitDto[];
 }
 
 export class UpdateExpenseDto {
