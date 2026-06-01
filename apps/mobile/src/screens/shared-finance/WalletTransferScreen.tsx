@@ -6,14 +6,14 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { PageContainer } from '../../components/ui/PageContainer';
+import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 
 export function WalletTransferScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { accessToken } = useAuth();
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
   const { fromWalletId, groupId } = route.params;
 
   const [wallets, setWallets] = useState<any[]>([]);
@@ -60,123 +60,131 @@ export function WalletTransferScreen() {
   const fmt = (v: number) => '₹' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 
   return (
-    <View
-      style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}
-    >
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
-        </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text.primary }]}>Transfer Funds</Text>
-        <View style={{ width: 40 }} />
-      </View>
+    <PageContainer noPadding>
+      <KeyboardAvoidingContainer>
+        <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+              <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+            </TouchableOpacity>
+            <Text style={[styles.title, { color: colors.text.primary }]}>Transfer Funds</Text>
+            <View style={{ width: 40 }} />
+          </View>
 
-      <View style={{ padding: 16 }}>
-        <Text style={[styles.sectionLabel, { color: colors.text.secondary }]}>
-          Select destination wallet
-        </Text>
-      </View>
+          <View style={{ padding: 16 }}>
+            <Text style={[styles.sectionLabel, { color: colors.text.secondary }]}>
+              Select destination wallet
+            </Text>
+          </View>
 
-      {loading ? (
-        <Text style={[styles.loadingText, { color: colors.text.tertiary }]}>
-          Loading wallets...
-        </Text>
-      ) : (
-        <FlatList
-          data={wallets}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }}
-          ListEmptyComponent={
-            <View style={{ alignItems: 'center', paddingVertical: 40 }}>
-              <Ionicons name="wallet-outline" size={40} color={colors.text.tertiary} />
-              <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
-                No other wallets available
-              </Text>
-            </View>
-          }
-          renderItem={({ item }) => (
-            <TouchableOpacity
+          {loading ? (
+            <Text style={[styles.loadingText, { color: colors.text.tertiary }]}>
+              Loading wallets...
+            </Text>
+          ) : (
+            <FlatList
+              data={wallets}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }}
+              ListEmptyComponent={
+                <View style={{ alignItems: 'center', paddingVertical: 40 }}>
+                  <Ionicons name="wallet-outline" size={40} color={colors.text.tertiary} />
+                  <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
+                    No other wallets available
+                  </Text>
+                </View>
+              }
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.walletItem,
+                    {
+                      backgroundColor:
+                        targetWalletId === item.id
+                          ? `${colors.accent.primary}20`
+                          : colors.bg.secondary,
+                      borderColor:
+                        targetWalletId === item.id ? colors.accent.primary : colors.border.subtle,
+                    },
+                  ]}
+                  onPress={() => setTargetWalletId(item.id)}
+                >
+                  <LinearGradient
+                    colors={[`${colors.accent.primary}25`, `${colors.accent.secondary}15`]}
+                    style={styles.iconWrap}
+                  >
+                    <Ionicons name="wallet" size={22} color={colors.accent.primary} />
+                  </LinearGradient>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.walletName, { color: colors.text.primary }]}>
+                      {item.name}
+                    </Text>
+                    <Text style={[styles.walletBal, { color: colors.accent.primary }]}>
+                      {fmt(Number(item.balance))}
+                    </Text>
+                  </View>
+                  {targetWalletId === item.id && (
+                    <Ionicons name="checkmark-circle" size={22} color={colors.status.success} />
+                  )}
+                </TouchableOpacity>
+              )}
+            />
+          )}
+
+          <View
+            style={[
+              styles.form,
+              { backgroundColor: colors.bg.secondary, borderTopColor: colors.border.subtle },
+            ]}
+          >
+            <TextInput
               style={[
-                styles.walletItem,
+                styles.input,
                 {
-                  backgroundColor:
-                    targetWalletId === item.id ? `${colors.accent.primary}20` : colors.bg.secondary,
-                  borderColor:
-                    targetWalletId === item.id ? colors.accent.primary : colors.border.subtle,
+                  backgroundColor: colors.bg.tertiary,
+                  color: colors.text.primary,
+                  borderColor: colors.border.subtle,
                 },
               ]}
-              onPress={() => setTargetWalletId(item.id)}
+              placeholder="Amount"
+              placeholderTextColor={colors.text.tertiary}
+              keyboardType="decimal-pad"
+              value={amount}
+              onChangeText={setAmount}
+            />
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.bg.tertiary,
+                  color: colors.text.primary,
+                  borderColor: colors.border.subtle,
+                },
+              ]}
+              placeholder="Description (optional)"
+              placeholderTextColor={colors.text.tertiary}
+              value={description}
+              onChangeText={setDescription}
+            />
+            <TouchableOpacity
+              style={[
+                styles.transferBtn,
+                {
+                  backgroundColor:
+                    targetWalletId && amount ? colors.accent.primary : colors.bg.tertiary,
+                },
+              ]}
+              onPress={handleTransfer}
+              disabled={!targetWalletId || !amount || submitting}
             >
-              <LinearGradient
-                colors={[`${colors.accent.primary}25`, `${colors.accent.secondary}15`]}
-                style={styles.iconWrap}
-              >
-                <Ionicons name="wallet" size={22} color={colors.accent.primary} />
-              </LinearGradient>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.walletName, { color: colors.text.primary }]}>{item.name}</Text>
-                <Text style={[styles.walletBal, { color: colors.accent.primary }]}>
-                  {fmt(Number(item.balance))}
-                </Text>
-              </View>
-              {targetWalletId === item.id && (
-                <Ionicons name="checkmark-circle" size={22} color={colors.status.success} />
-              )}
+              <Text style={styles.transferBtnText}>
+                {submitting ? 'Transferring...' : 'Transfer'}
+              </Text>
             </TouchableOpacity>
-          )}
-        />
-      )}
-
-      <View
-        style={[
-          styles.form,
-          { backgroundColor: colors.bg.secondary, borderTopColor: colors.border.subtle },
-        ]}
-      >
-        <TextInput
-          style={[
-            styles.input,
-            {
-              backgroundColor: colors.bg.tertiary,
-              color: colors.text.primary,
-              borderColor: colors.border.subtle,
-            },
-          ]}
-          placeholder="Amount"
-          placeholderTextColor={colors.text.tertiary}
-          keyboardType="decimal-pad"
-          value={amount}
-          onChangeText={setAmount}
-        />
-        <TextInput
-          style={[
-            styles.input,
-            {
-              backgroundColor: colors.bg.tertiary,
-              color: colors.text.primary,
-              borderColor: colors.border.subtle,
-            },
-          ]}
-          placeholder="Description (optional)"
-          placeholderTextColor={colors.text.tertiary}
-          value={description}
-          onChangeText={setDescription}
-        />
-        <TouchableOpacity
-          style={[
-            styles.transferBtn,
-            {
-              backgroundColor:
-                targetWalletId && amount ? colors.accent.primary : colors.bg.tertiary,
-            },
-          ]}
-          onPress={handleTransfer}
-          disabled={!targetWalletId || !amount || submitting}
-        >
-          <Text style={styles.transferBtnText}>{submitting ? 'Transferring...' : 'Transfer'}</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+          </View>
+        </View>
+      </KeyboardAvoidingContainer>
+    </PageContainer>
   );
 }
 

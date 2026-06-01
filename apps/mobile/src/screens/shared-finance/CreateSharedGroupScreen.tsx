@@ -12,10 +12,11 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
+import { PageContainer } from '../../components/ui/PageContainer';
+import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 
 const GROUP_TYPES = [
   'Friends',
@@ -51,7 +52,6 @@ const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD'];
 
 export function CreateSharedGroupScreen() {
   const navigation = useNavigation<any>();
-  const insets = useSafeAreaInsets();
   const { accessToken } = useAuth();
   const { colors, isDark } = useTheme();
 
@@ -105,201 +105,205 @@ export function CreateSharedGroupScreen() {
   }
 
   return (
-    <ScrollView
-      style={[s.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top + 16 }]}
-      contentContainerStyle={s.content}
-      keyboardShouldPersistTaps="handled"
-    >
-      <TouchableOpacity
-        onPress={() => navigation.goBack()}
-        style={[
-          s.backBtn,
-          {
-            backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-          },
-        ]}
-      >
-        <Ionicons name="close" size={22} color={colors.text.primary} />
-      </TouchableOpacity>
-
-      <LinearGradient
-        colors={[...colors.accent.gradient]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={s.heroSection}
-      >
-        <Text style={s.heroTitle}>New Shared Group</Text>
-        <Text style={s.heroSub}>Track expenses together with friends, family, and more</Text>
-      </LinearGradient>
-
-      {error ? (
-        <View style={[s.errorBox, { backgroundColor: colors.status.errorLight }]}>
-          <Ionicons name="alert-circle" size={16} color={colors.status.error} />
-          <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
-        </View>
-      ) : null}
-
-      <Text style={[s.label, { color: colors.text.tertiary }]}>Group Name</Text>
-      <TextInput
-        style={[
-          s.input,
-          {
-            backgroundColor: colors.bg.tertiary,
-            color: colors.text.primary,
-            borderColor: colors.border.subtle,
-          },
-        ]}
-        value={name}
-        onChangeText={setName}
-        placeholder="e.g. Goa Trip 2025"
-        placeholderTextColor={colors.text.tertiary}
-      />
-
-      <Text style={[s.label, { color: colors.text.tertiary }]}>Group Type</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={s.typeRow}
-      >
-        {GROUP_TYPES.map((t) => (
+    <PageContainer noPadding>
+      <KeyboardAvoidingContainer>
+        <View style={[s.container, s.content]}>
           <TouchableOpacity
-            key={t}
+            onPress={() => navigation.goBack()}
             style={[
-              s.typeChip,
-              { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-              type === t && {
-                backgroundColor: `${colors.accent.primary}20`,
-                borderColor: colors.accent.primary,
+              s.backBtn,
+              {
+                backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
               },
             ]}
-            onPress={() => setType(t)}
           >
-            <Text
-              style={[
-                s.typeChipText,
-                {
-                  color: type === t ? colors.accent.primary : colors.text.secondary,
-                },
-              ]}
-            >
-              {t}
-            </Text>
+            <Ionicons name="close" size={22} color={colors.text.primary} />
           </TouchableOpacity>
-        ))}
-      </ScrollView>
 
-      <Text style={[s.label, { color: colors.text.tertiary }]}>Description (optional)</Text>
-      <TextInput
-        style={[
-          s.input,
-          {
-            backgroundColor: colors.bg.tertiary,
-            color: colors.text.primary,
-            borderColor: colors.border.subtle,
-          },
-        ]}
-        value={description}
-        onChangeText={setDescription}
-        placeholder="What's this group for?"
-        placeholderTextColor={colors.text.tertiary}
-        multiline
-      />
+          <LinearGradient
+            colors={[...colors.accent.gradient]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={s.heroSection}
+          >
+            <Text style={s.heroTitle}>New Shared Group</Text>
+            <Text style={s.heroSub}>Track expenses together with friends, family, and more</Text>
+          </LinearGradient>
 
-      <Text style={[s.label, { color: colors.text.tertiary }]}>Currency</Text>
-      <View style={s.currencyRow}>
-        {CURRENCIES.map((c) => (
-          <TouchableOpacity
-            key={c}
+          {error ? (
+            <View style={[s.errorBox, { backgroundColor: colors.status.errorLight }]}>
+              <Ionicons name="alert-circle" size={16} color={colors.status.error} />
+              <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
+            </View>
+          ) : null}
+
+          <Text style={[s.label, { color: colors.text.tertiary }]}>Group Name</Text>
+          <TextInput
             style={[
-              s.currencyChip,
-              { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-              currency === c && {
-                backgroundColor: `${colors.accent.primary}20`,
-                borderColor: colors.accent.primary,
+              s.input,
+              {
+                backgroundColor: colors.bg.tertiary,
+                color: colors.text.primary,
+                borderColor: colors.border.subtle,
               },
             ]}
-            onPress={() => setCurrency(c)}
+            value={name}
+            onChangeText={setName}
+            placeholder="e.g. Goa Trip 2025"
+            placeholderTextColor={colors.text.tertiary}
+          />
+
+          <Text style={[s.label, { color: colors.text.tertiary }]}>Group Type</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={s.typeRow}
           >
-            <Text
-              style={[
-                s.currencyText,
-                {
-                  color: currency === c ? colors.accent.primary : colors.text.secondary,
-                },
-              ]}
-            >
-              {c}
+            {GROUP_TYPES.map((t) => (
+              <TouchableOpacity
+                key={t}
+                style={[
+                  s.typeChip,
+                  { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+                  type === t && {
+                    backgroundColor: `${colors.accent.primary}20`,
+                    borderColor: colors.accent.primary,
+                  },
+                ]}
+                onPress={() => setType(t)}
+              >
+                <Text
+                  style={[
+                    s.typeChipText,
+                    {
+                      color: type === t ? colors.accent.primary : colors.text.secondary,
+                    },
+                  ]}
+                >
+                  {t}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          <Text style={[s.label, { color: colors.text.tertiary }]}>Description (optional)</Text>
+          <TextInput
+            style={[
+              s.input,
+              {
+                backgroundColor: colors.bg.tertiary,
+                color: colors.text.primary,
+                borderColor: colors.border.subtle,
+              },
+            ]}
+            value={description}
+            onChangeText={setDescription}
+            placeholder="What's this group for?"
+            placeholderTextColor={colors.text.tertiary}
+            multiline
+          />
+
+          <Text style={[s.label, { color: colors.text.tertiary }]}>Currency</Text>
+          <View style={s.currencyRow}>
+            {CURRENCIES.map((c) => (
+              <TouchableOpacity
+                key={c}
+                style={[
+                  s.currencyChip,
+                  { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+                  currency === c && {
+                    backgroundColor: `${colors.accent.primary}20`,
+                    borderColor: colors.accent.primary,
+                  },
+                ]}
+                onPress={() => setCurrency(c)}
+              >
+                <Text
+                  style={[
+                    s.currencyText,
+                    {
+                      color: currency === c ? colors.accent.primary : colors.text.secondary,
+                    },
+                  ]}
+                >
+                  {c}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={[s.label, { color: colors.text.tertiary }]}>Icon</Text>
+          <View style={s.iconGrid}>
+            {ICON_OPTIONS.map((opt) => (
+              <TouchableOpacity
+                key={opt.name}
+                style={[
+                  s.iconBtn,
+                  { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+                  icon === opt.name && {
+                    backgroundColor: `${colors.accent.primary}20`,
+                    borderColor: colors.accent.primary,
+                  },
+                ]}
+                onPress={() => setIcon(opt.name)}
+              >
+                <Ionicons
+                  name={opt.icon as any}
+                  size={22}
+                  color={icon === opt.name ? colors.accent.primary : colors.text.tertiary}
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={[s.label, { color: colors.text.tertiary }]}>Monthly Budget (optional)</Text>
+          <View
+            style={[
+              s.inputRow,
+              { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+            ]}
+          >
+            <Text style={[s.currencyPrefix, { color: colors.text.tertiary }]}>
+              {currency === 'INR'
+                ? '₹'
+                : currency === 'USD'
+                  ? '$'
+                  : currency === 'EUR'
+                    ? '€'
+                    : currency === 'GBP'
+                      ? '£'
+                      : currency === 'AED'
+                        ? 'د.إ'
+                        : '$'}
             </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <Text style={[s.label, { color: colors.text.tertiary }]}>Icon</Text>
-      <View style={s.iconGrid}>
-        {ICON_OPTIONS.map((opt) => (
-          <TouchableOpacity
-            key={opt.name}
-            style={[
-              s.iconBtn,
-              { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-              icon === opt.name && {
-                backgroundColor: `${colors.accent.primary}20`,
-                borderColor: colors.accent.primary,
-              },
-            ]}
-            onPress={() => setIcon(opt.name)}
-          >
-            <Ionicons
-              name={opt.icon as any}
-              size={22}
-              color={icon === opt.name ? colors.accent.primary : colors.text.tertiary}
+            <TextInput
+              style={[s.inputFlex, { color: colors.text.primary }]}
+              value={monthlyBudget}
+              onChangeText={setMonthlyBudget}
+              placeholder="0"
+              placeholderTextColor={colors.text.tertiary}
+              keyboardType="decimal-pad"
             />
+          </View>
+
+          <TouchableOpacity
+            style={[
+              s.saveBtn,
+              { backgroundColor: colors.accent.primary },
+              saving && { opacity: 0.6 },
+            ]}
+            onPress={handleCreate}
+            disabled={saving}
+          >
+            {saving ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <Text style={s.saveBtnText}>Create Group</Text>
+            )}
           </TouchableOpacity>
-        ))}
-      </View>
-
-      <Text style={[s.label, { color: colors.text.tertiary }]}>Monthly Budget (optional)</Text>
-      <View
-        style={[
-          s.inputRow,
-          { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-        ]}
-      >
-        <Text style={[s.currencyPrefix, { color: colors.text.tertiary }]}>
-          {currency === 'INR'
-            ? '₹'
-            : currency === 'USD'
-              ? '$'
-              : currency === 'EUR'
-                ? '€'
-                : currency === 'GBP'
-                  ? '£'
-                  : currency === 'AED'
-                    ? 'د.إ'
-                    : '$'}
-        </Text>
-        <TextInput
-          style={[s.inputFlex, { color: colors.text.primary }]}
-          value={monthlyBudget}
-          onChangeText={setMonthlyBudget}
-          placeholder="0"
-          placeholderTextColor={colors.text.tertiary}
-          keyboardType="decimal-pad"
-        />
-      </View>
-
-      <TouchableOpacity
-        style={[s.saveBtn, { backgroundColor: colors.accent.primary }, saving && { opacity: 0.6 }]}
-        onPress={handleCreate}
-        disabled={saving}
-      >
-        {saving ? (
-          <ActivityIndicator color="#FFF" />
-        ) : (
-          <Text style={s.saveBtnText}>Create Group</Text>
-        )}
-      </TouchableOpacity>
-    </ScrollView>
+        </View>
+      </KeyboardAvoidingContainer>
+    </PageContainer>
   );
 }
 

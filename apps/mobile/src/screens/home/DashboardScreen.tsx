@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../store/AuthContext';
 import { api, setAccessToken } from '../../services/api';
@@ -125,14 +125,18 @@ export function DashboardScreen() {
     }
   }, [accessToken]);
 
-  useEffect(() => {
-    loadPreferences();
-  }, [loadPreferences]);
+  useFocusEffect(
+    useCallback(() => {
+      loadPreferences();
+    }, [loadPreferences]),
+  );
 
-  useEffect(() => {
-    loadData();
-    return () => abortRef.current?.abort();
-  }, [loadData]);
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+      return () => abortRef.current?.abort();
+    }, [loadData]),
+  );
 
   useEffect(() => {
     if (!loading) {

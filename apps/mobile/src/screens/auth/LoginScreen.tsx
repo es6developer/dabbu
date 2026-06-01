@@ -5,23 +5,20 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
   ActivityIndicator,
-  Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { PageContainer } from '../../components/ui/PageContainer';
+import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 
 export function LoginScreen() {
   const navigation = useNavigation<any>();
   const { login } = useAuth();
   const { colors, isDark } = useTheme();
-  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -45,154 +42,156 @@ export function LoginScreen() {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={[
-        styles.container,
-        { backgroundColor: colors.bg.primary, paddingTop: insets.top + 16 },
-      ]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <LinearGradient
-        colors={isDark ? [colors.bg.secondary, colors.bg.primary] : ['#f8f4f0', colors.bg.primary]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
-      <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
-        <View style={[styles.backCircle, { backgroundColor: colors.bg.tertiary }]}>
-          <Ionicons name="arrow-back" size={20} color={colors.text.secondary} />
-        </View>
-      </TouchableOpacity>
+    <PageContainer noPadding>
+      <KeyboardAvoidingContainer>
+        <LinearGradient
+          colors={
+            isDark ? [colors.bg.secondary, colors.bg.primary] : ['#f8f4f0', colors.bg.primary]
+          }
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+        <View style={styles.container}>
+          <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
+            <View style={[styles.backCircle, { backgroundColor: colors.bg.tertiary }]}>
+              <Ionicons name="arrow-back" size={20} color={colors.text.secondary} />
+            </View>
+          </TouchableOpacity>
 
-      <View style={styles.brand}>
-        <View style={[styles.logo, { backgroundColor: `${colors.accent.primary}18` }]}>
-          <Ionicons name="wallet" size={30} color={colors.accent.primary} />
-        </View>
-        <Text style={[styles.title, { color: colors.text.primary }]}>Welcome back</Text>
-        <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>
-          Sign in to manage your finances
-        </Text>
-      </View>
+          <View style={styles.brand}>
+            <View style={[styles.logo, { backgroundColor: `${colors.accent.primary}18` }]}>
+              <Ionicons name="wallet" size={30} color={colors.accent.primary} />
+            </View>
+            <Text style={[styles.title, { color: colors.text.primary }]}>Welcome back</Text>
+            <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>
+              Sign in to manage your finances
+            </Text>
+          </View>
 
-      {error ? (
-        <View style={[styles.errorBox, { backgroundColor: `${colors.status.error}12` }]}>
-          <Ionicons name="alert-circle" size={16} color={colors.status.error} />
-          <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text>
-        </View>
-      ) : null}
+          {error ? (
+            <View style={[styles.errorBox, { backgroundColor: `${colors.status.error}12` }]}>
+              <Ionicons name="alert-circle" size={16} color={colors.status.error} />
+              <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text>
+            </View>
+          ) : null}
 
-      <View
-        style={[
-          styles.formCard,
-          {
-            backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.7)',
-            borderColor: colors.border.subtle,
-          },
-        ]}
-      >
-        <View
-          style={[
-            styles.inputGroup,
-            { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-          ]}
-        >
-          <Ionicons
-            name="mail-outline"
-            size={18}
-            color={colors.text.tertiary}
-            style={styles.inputIcon}
-          />
-          <TextInput
-            style={[styles.input, { color: colors.text.primary }]}
-            placeholder="Email"
-            placeholderTextColor={colors.text.tertiary}
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
-        </View>
+          <View
+            style={[
+              styles.formCard,
+              {
+                backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.7)',
+                borderColor: colors.border.subtle,
+              },
+            ]}
+          >
+            <View
+              style={[
+                styles.inputGroup,
+                { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+              ]}
+            >
+              <Ionicons
+                name="mail-outline"
+                size={18}
+                color={colors.text.tertiary}
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={[styles.input, { color: colors.text.primary }]}
+                placeholder="Email"
+                placeholderTextColor={colors.text.tertiary}
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+              />
+            </View>
 
-        <View
-          style={[
-            styles.inputGroup,
-            { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-          ]}
-        >
-          <Ionicons
-            name="lock-closed-outline"
-            size={18}
-            color={colors.text.tertiary}
-            style={styles.inputIcon}
-          />
-          <TextInput
-            style={[styles.input, { color: colors.text.primary }]}
-            placeholder="Password"
-            placeholderTextColor={colors.text.tertiary}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!showPw}
-          />
-          <TouchableOpacity onPress={() => setShowPw(!showPw)} style={styles.eye}>
-            <Ionicons
-              name={showPw ? 'eye-off-outline' : 'eye-outline'}
-              size={18}
-              color={colors.text.tertiary}
-            />
+            <View
+              style={[
+                styles.inputGroup,
+                { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+              ]}
+            >
+              <Ionicons
+                name="lock-closed-outline"
+                size={18}
+                color={colors.text.tertiary}
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={[styles.input, { color: colors.text.primary }]}
+                placeholder="Password"
+                placeholderTextColor={colors.text.tertiary}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPw}
+              />
+              <TouchableOpacity onPress={() => setShowPw(!showPw)} style={styles.eye}>
+                <Ionicons
+                  name={showPw ? 'eye-off-outline' : 'eye-outline'}
+                  size={18}
+                  color={colors.text.tertiary}
+                />
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+              <Text style={[styles.forgot, { color: colors.accent.primary }]}>
+                Forgot password?
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.button,
+                { backgroundColor: colors.accent.primary },
+                loading && styles.buttonDisabled,
+              ]}
+              onPress={handleLogin}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <View style={styles.buttonInner}>
+                  <Text style={styles.buttonText}>Sign In</Text>
+                  <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={[styles.guestButton, { borderColor: colors.border.subtle }]}
+            onPress={async () => {
+              setEmail('demo@dabbu.app');
+              setPassword('TestPass123!');
+              await new Promise((r) => setTimeout(r, 100));
+              handleLogin();
+            }}
+          >
+            <Ionicons name="person-outline" size={18} color={colors.accent.primary} />
+            <Text style={[styles.guestText, { color: colors.accent.primary }]}>
+              Continue as Guest (Demo)
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.linkRow} onPress={() => navigation.navigate('Signup')}>
+            <Text style={[styles.linkText, { color: colors.text.tertiary }]}>
+              Don't have an account?{' '}
+            </Text>
+            <Text style={[styles.linkBold, { color: colors.accent.primary }]}>Sign Up</Text>
           </TouchableOpacity>
         </View>
-
-        <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
-          <Text style={[styles.forgot, { color: colors.accent.primary }]}>Forgot password?</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.button,
-            { backgroundColor: colors.accent.primary },
-            loading && styles.buttonDisabled,
-          ]}
-          onPress={handleLogin}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <View style={styles.buttonInner}>
-              <Text style={styles.buttonText}>Sign In</Text>
-              <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
-            </View>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity
-        style={[styles.guestButton, { borderColor: colors.border.subtle }]}
-        onPress={async () => {
-          setEmail('demo@dabbu.app');
-          setPassword('TestPass123!');
-          await new Promise((r) => setTimeout(r, 100));
-          handleLogin();
-        }}
-      >
-        <Ionicons name="person-outline" size={18} color={colors.accent.primary} />
-        <Text style={[styles.guestText, { color: colors.accent.primary }]}>
-          Continue as Guest (Demo)
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.linkRow} onPress={() => navigation.navigate('Signup')}>
-        <Text style={[styles.linkText, { color: colors.text.tertiary }]}>
-          Don't have an account?{' '}
-        </Text>
-        <Text style={[styles.linkBold, { color: colors.accent.primary }]}>Sign Up</Text>
-      </TouchableOpacity>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingContainer>
+    </PageContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 24, paddingTop: 60 },
+  container: { flex: 1, paddingHorizontal: 24 },
   back: { marginBottom: 28 },
   backCircle: {
     width: 40,

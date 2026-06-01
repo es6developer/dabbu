@@ -2,21 +2,20 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  ScrollView,
   TextInput,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, typography as typographyStyles } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { PageContainer } from '../../components/ui/PageContainer';
+import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 
 export function ProfileScreen() {
   const { colors, typography } = useTheme();
-  const insets = useSafeAreaInsets();
   const { accessToken, user, logout } = useAuth();
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
@@ -122,219 +121,230 @@ export function ProfileScreen() {
   }
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: colors.bg.primary }]}
-      contentContainerStyle={{ ...styles.content, paddingTop: insets.top + 20 }}
-      keyboardShouldPersistTaps="handled"
-    >
-      <Text style={[styles.title, { color: colors.text.primary }]}>Profile</Text>
+    <PageContainer noPadding>
+      <KeyboardAvoidingContainer>
+        <View style={styles.container}>
+          <Text style={[styles.title, { color: colors.text.primary }]}>Profile</Text>
 
-      <View
-        style={[
-          styles.card,
-          { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
-        ]}
-      >
-        <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
-          Personal Information
-        </Text>
-        {error ? (
-          <View style={[styles.errorBox, { backgroundColor: `${colors.status.error}18` }]}>
-            <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text>
-          </View>
-        ) : null}
-
-        <Text style={[styles.label, { color: colors.text.secondary }]}>First Name</Text>
-        <TextInput
-          style={[
-            styles.input,
-            {
-              backgroundColor: colors.bg.tertiary,
-              color: colors.text.primary,
-              borderColor: colors.border.subtle,
-            },
-          ]}
-          value={firstName}
-          onChangeText={setFirstName}
-          placeholder="First name"
-          placeholderTextColor={colors.text.tertiary}
-        />
-
-        <Text style={[styles.label, { color: colors.text.secondary }]}>Last Name</Text>
-        <TextInput
-          style={[
-            styles.input,
-            {
-              backgroundColor: colors.bg.tertiary,
-              color: colors.text.primary,
-              borderColor: colors.border.subtle,
-            },
-          ]}
-          value={lastName}
-          onChangeText={setLastName}
-          placeholder="Last name"
-          placeholderTextColor={colors.text.tertiary}
-        />
-
-        <Text style={[styles.label, { color: colors.text.secondary }]}>Email</Text>
-        <TextInput
-          style={[
-            styles.input,
-            {
-              backgroundColor: colors.bg.tertiary,
-              color: colors.text.tertiary,
-              borderColor: colors.border.subtle,
-            },
-            { opacity: 0.5 },
-          ]}
-          value={user?.email || ''}
-          editable={false}
-        />
-
-        <Text style={[styles.label, { color: colors.text.secondary }]}>Phone</Text>
-        <TextInput
-          style={[
-            styles.input,
-            {
-              backgroundColor: colors.bg.tertiary,
-              color: colors.text.primary,
-              borderColor: colors.border.subtle,
-            },
-          ]}
-          value={phone}
-          onChangeText={setPhone}
-          placeholder="Phone number"
-          placeholderTextColor={colors.text.tertiary}
-          keyboardType="phone-pad"
-        />
-
-        <TouchableOpacity
-          style={[
-            styles.saveBtn,
-            { backgroundColor: colors.accent.primary },
-            saving && { opacity: 0.6 },
-          ]}
-          onPress={handleSaveProfile}
-          disabled={saving}
-        >
-          {saving ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <Text style={styles.saveBtnText}>Save Changes</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      <View
-        style={[
-          styles.card,
-          { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
-        ]}
-      >
-        <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Change Password</Text>
-        {passwordError ? (
-          <View style={[styles.errorBox, { backgroundColor: `${colors.status.error}18` }]}>
-            <Text style={[styles.errorText, { color: colors.status.error }]}>{passwordError}</Text>
-          </View>
-        ) : null}
-
-        <Text style={[styles.label, { color: colors.text.secondary }]}>Current Password</Text>
-        <TextInput
-          style={[
-            styles.input,
-            {
-              backgroundColor: colors.bg.tertiary,
-              color: colors.text.primary,
-              borderColor: colors.border.subtle,
-            },
-          ]}
-          value={currentPassword}
-          onChangeText={setCurrentPassword}
-          placeholder="Current password"
-          placeholderTextColor={colors.text.tertiary}
-          secureTextEntry
-        />
-
-        <Text style={[styles.label, { color: colors.text.secondary }]}>New Password</Text>
-        <TextInput
-          style={[
-            styles.input,
-            {
-              backgroundColor: colors.bg.tertiary,
-              color: colors.text.primary,
-              borderColor: colors.border.subtle,
-            },
-          ]}
-          value={newPassword}
-          onChangeText={setNewPassword}
-          placeholder="New password (min 6 chars)"
-          placeholderTextColor={colors.text.tertiary}
-          secureTextEntry
-        />
-
-        <Text style={[styles.label, { color: colors.text.secondary }]}>Confirm New Password</Text>
-        <TextInput
-          style={[
-            styles.input,
-            {
-              backgroundColor: colors.bg.tertiary,
-              color: colors.text.primary,
-              borderColor: colors.border.subtle,
-            },
-          ]}
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          placeholder="Confirm new password"
-          placeholderTextColor={colors.text.tertiary}
-          secureTextEntry
-        />
-
-        <TouchableOpacity
-          style={[
-            styles.passwordBtn,
-            { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-            changingPassword && { opacity: 0.6 },
-          ]}
-          onPress={handleChangePassword}
-          disabled={changingPassword}
-        >
-          {changingPassword ? (
-            <ActivityIndicator color={colors.text.primary} />
-          ) : (
-            <Text style={[styles.passwordBtnText, { color: colors.text.primary }]}>
-              Update Password
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+            ]}
+          >
+            <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+              Personal Information
             </Text>
-          )}
-        </TouchableOpacity>
-      </View>
+            {error ? (
+              <View style={[styles.errorBox, { backgroundColor: `${colors.status.error}18` }]}>
+                <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text>
+              </View>
+            ) : null}
 
-      <View
-        style={[
-          styles.dangerSection,
-          { backgroundColor: `${colors.status.error}10`, borderColor: `${colors.status.error}30` },
-        ]}
-      >
-        <Text style={[styles.dangerTitle, { color: colors.status.error }]}>Danger Zone</Text>
-        <Text style={[styles.dangerDesc, { color: colors.text.tertiary }]}>
-          Once you delete your account, there is no going back.
-        </Text>
-        <TouchableOpacity
-          style={[
-            styles.deleteBtn,
-            { backgroundColor: `${colors.status.error}30`, borderColor: colors.status.error },
-          ]}
-          onPress={handleDeleteAccount}
-        >
-          <Text style={[styles.deleteBtnText, { color: colors.status.error }]}>Delete Account</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+            <Text style={[styles.label, { color: colors.text.secondary }]}>First Name</Text>
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.bg.tertiary,
+                  color: colors.text.primary,
+                  borderColor: colors.border.subtle,
+                },
+              ]}
+              value={firstName}
+              onChangeText={setFirstName}
+              placeholder="First name"
+              placeholderTextColor={colors.text.tertiary}
+            />
+
+            <Text style={[styles.label, { color: colors.text.secondary }]}>Last Name</Text>
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.bg.tertiary,
+                  color: colors.text.primary,
+                  borderColor: colors.border.subtle,
+                },
+              ]}
+              value={lastName}
+              onChangeText={setLastName}
+              placeholder="Last name"
+              placeholderTextColor={colors.text.tertiary}
+            />
+
+            <Text style={[styles.label, { color: colors.text.secondary }]}>Email</Text>
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.bg.tertiary,
+                  color: colors.text.tertiary,
+                  borderColor: colors.border.subtle,
+                },
+                { opacity: 0.5 },
+              ]}
+              value={user?.email || ''}
+              editable={false}
+            />
+
+            <Text style={[styles.label, { color: colors.text.secondary }]}>Phone</Text>
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.bg.tertiary,
+                  color: colors.text.primary,
+                  borderColor: colors.border.subtle,
+                },
+              ]}
+              value={phone}
+              onChangeText={setPhone}
+              placeholder="Phone number"
+              placeholderTextColor={colors.text.tertiary}
+              keyboardType="phone-pad"
+            />
+
+            <TouchableOpacity
+              style={[
+                styles.saveBtn,
+                { backgroundColor: colors.accent.primary },
+                saving && { opacity: 0.6 },
+              ]}
+              onPress={handleSaveProfile}
+              disabled={saving}
+            >
+              {saving ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.saveBtnText}>Save Changes</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+            ]}
+          >
+            <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+              Change Password
+            </Text>
+            {passwordError ? (
+              <View style={[styles.errorBox, { backgroundColor: `${colors.status.error}18` }]}>
+                <Text style={[styles.errorText, { color: colors.status.error }]}>
+                  {passwordError}
+                </Text>
+              </View>
+            ) : null}
+
+            <Text style={[styles.label, { color: colors.text.secondary }]}>Current Password</Text>
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.bg.tertiary,
+                  color: colors.text.primary,
+                  borderColor: colors.border.subtle,
+                },
+              ]}
+              value={currentPassword}
+              onChangeText={setCurrentPassword}
+              placeholder="Current password"
+              placeholderTextColor={colors.text.tertiary}
+              secureTextEntry
+            />
+
+            <Text style={[styles.label, { color: colors.text.secondary }]}>New Password</Text>
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.bg.tertiary,
+                  color: colors.text.primary,
+                  borderColor: colors.border.subtle,
+                },
+              ]}
+              value={newPassword}
+              onChangeText={setNewPassword}
+              placeholder="New password (min 6 chars)"
+              placeholderTextColor={colors.text.tertiary}
+              secureTextEntry
+            />
+
+            <Text style={[styles.label, { color: colors.text.secondary }]}>
+              Confirm New Password
+            </Text>
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.bg.tertiary,
+                  color: colors.text.primary,
+                  borderColor: colors.border.subtle,
+                },
+              ]}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholder="Confirm new password"
+              placeholderTextColor={colors.text.tertiary}
+              secureTextEntry
+            />
+
+            <TouchableOpacity
+              style={[
+                styles.passwordBtn,
+                { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+                changingPassword && { opacity: 0.6 },
+              ]}
+              onPress={handleChangePassword}
+              disabled={changingPassword}
+            >
+              {changingPassword ? (
+                <ActivityIndicator color={colors.text.primary} />
+              ) : (
+                <Text style={[styles.passwordBtnText, { color: colors.text.primary }]}>
+                  Update Password
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          <View
+            style={[
+              styles.dangerSection,
+              {
+                backgroundColor: `${colors.status.error}10`,
+                borderColor: `${colors.status.error}30`,
+              },
+            ]}
+          >
+            <Text style={[styles.dangerTitle, { color: colors.status.error }]}>Danger Zone</Text>
+            <Text style={[styles.dangerDesc, { color: colors.text.tertiary }]}>
+              Once you delete your account, there is no going back.
+            </Text>
+            <TouchableOpacity
+              style={[
+                styles.deleteBtn,
+                { backgroundColor: `${colors.status.error}30`, borderColor: colors.status.error },
+              ]}
+              onPress={handleDeleteAccount}
+            >
+              <Text style={[styles.deleteBtnText, { color: colors.status.error }]}>
+                Delete Account
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </KeyboardAvoidingContainer>
+    </PageContainer>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 20, paddingBottom: 120 },
+  content: { padding: 20 },
   title: { ...typographyStyles.appTitle, marginBottom: 24 },
   card: { borderRadius: 16, padding: 20, borderWidth: 1, marginBottom: 20 },
   sectionTitle: { ...typographyStyles.cardTitle, marginBottom: 16, paddingBottom: 12 },

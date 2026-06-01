@@ -8,17 +8,15 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
-  TextInput,
-  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
+import { PageContainer } from '../../components/ui/PageContainer';
 
 function fmt(v: number) {
   return '₹' + v.toLocaleString('en-IN', { maximumFractionDigits: 0 });
@@ -34,7 +32,6 @@ const SETTLEMENT_METHODS = [
 export function SettlementScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const insets = useSafeAreaInsets();
   const { accessToken } = useAuth();
   const { colors, isDark } = useTheme();
   const { groupId } = route.params || {};
@@ -108,229 +105,244 @@ export function SettlementScreen() {
 
   if (loading) {
     return (
-      <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
-        <View style={{ padding: 24, paddingTop: insets.top + 16, gap: 16 }}>
-          <Skeleton width={120} height={14} />
-          <Skeleton width="100%" height={120} borderRadius={18} />
-          <Skeleton width="100%" height={180} borderRadius={18} />
+      <PageContainer>
+        <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
+          <View style={{ padding: 24, gap: 16 }}>
+            <Skeleton width={120} height={14} />
+            <Skeleton width="100%" height={120} borderRadius={18} />
+            <Skeleton width="100%" height={180} borderRadius={18} />
+          </View>
         </View>
-      </View>
+      </PageContainer>
     );
   }
 
   return (
-    <ScrollView
-      style={[s.screen, { backgroundColor: colors.bg.primary }]}
-      contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={() => loadData(true)}
-          tintColor={colors.accent.primary}
-        />
-      }
-    >
-      <View style={[s.headerRow, { paddingTop: insets.top + 14, paddingHorizontal: 20 }]}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={[s.backBtn, { backgroundColor: colors.bg.glassLight }]}
-        >
-          <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
-        </TouchableOpacity>
-        <Text style={[s.headerTitle, { color: colors.text.primary }]}>Settlements</Text>
-      </View>
+    <PageContainer noPadding>
+      <ScrollView
+        style={[s.screen, { backgroundColor: colors.bg.primary }]}
+        contentContainerStyle={{ paddingBottom: 40 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => loadData(true)}
+            tintColor={colors.accent.primary}
+          />
+        }
+      >
+        <View style={[s.headerRow, { paddingHorizontal: 20 }]}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={[s.backBtn, { backgroundColor: colors.bg.glassLight }]}
+          >
+            <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
+          </TouchableOpacity>
+          <Text style={[s.headerTitle, { color: colors.text.primary }]}>Settlements</Text>
+        </View>
 
-      <Text style={[s.sectionTitle, { color: colors.text.tertiary }]}>Optimized Settlements</Text>
+        <Text style={[s.sectionTitle, { color: colors.text.tertiary }]}>Optimized Settlements</Text>
 
-      {settlements.length > 0 ? (
-        <View style={s.settlementsList}>
-          {settlements.map((s, i) => (
-            <LinearGradient
-              key={s.id || i}
-              colors={[colors.bg.secondary, colors.bg.tertiary]}
-              style={s.settlementCard}
-            >
-              <View style={s.settlementFlow}>
-                <View style={s.settlementParty}>
-                  <LinearGradient colors={[...colors.accent.gradient]} style={s.partyAvatar}>
-                    <Text style={s.partyInit}>{(s.fromName?.[0] || '?').toUpperCase()}</Text>
-                  </LinearGradient>
-                  <Text style={[s.partyName, { color: colors.text.secondary }]}>
-                    {s.fromName || 'Someone'}
-                  </Text>
+        {settlements.length > 0 ? (
+          <View style={s.settlementsList}>
+            {settlements.map((s, i) => (
+              <LinearGradient
+                key={s.id || i}
+                colors={[colors.bg.secondary, colors.bg.tertiary]}
+                style={s.settlementCard}
+              >
+                <View style={s.settlementFlow}>
+                  <View style={s.settlementParty}>
+                    <LinearGradient colors={[...colors.accent.gradient]} style={s.partyAvatar}>
+                      <Text style={s.partyInit}>{(s.fromName?.[0] || '?').toUpperCase()}</Text>
+                    </LinearGradient>
+                    <Text style={[s.partyName, { color: colors.text.secondary }]}>
+                      {s.fromName || 'Someone'}
+                    </Text>
+                  </View>
+                  <View style={s.flowCenter}>
+                    <Ionicons name="arrow-forward" size={20} color={colors.accent.primary} />
+                    <Text style={[s.flowAmount, { color: colors.accent.primary }]}>
+                      {fmt(s.amount || 0)}
+                    </Text>
+                  </View>
+                  <View style={s.settlementParty}>
+                    <LinearGradient colors={[...colors.accent.gradientAlt]} style={s.partyAvatar}>
+                      <Text style={s.partyInit}>{(s.toName?.[0] || '?').toUpperCase()}</Text>
+                    </LinearGradient>
+                    <Text style={[s.partyName, { color: colors.text.secondary }]}>
+                      {s.toName || 'Someone'}
+                    </Text>
+                  </View>
                 </View>
-                <View style={s.flowCenter}>
-                  <Ionicons name="arrow-forward" size={20} color={colors.accent.primary} />
-                  <Text style={[s.flowAmount, { color: colors.accent.primary }]}>
-                    {fmt(s.amount || 0)}
-                  </Text>
-                </View>
-                <View style={s.settlementParty}>
-                  <LinearGradient colors={[...colors.accent.gradientAlt]} style={s.partyAvatar}>
-                    <Text style={s.partyInit}>{(s.toName?.[0] || '?').toUpperCase()}</Text>
-                  </LinearGradient>
-                  <Text style={[s.partyName, { color: colors.text.secondary }]}>
-                    {s.toName || 'Someone'}
-                  </Text>
-                </View>
-              </View>
-              {s.status !== 'completed' && (
-                <>
-                  <Text style={[s.methodLabel, { color: colors.text.tertiary }]}>Settle via</Text>
-                  <View style={s.methodRow}>
-                    {SETTLEMENT_METHODS.map((m) => (
-                      <TouchableOpacity
-                        key={m.key}
-                        style={[
-                          s.methodChip,
-                          {
-                            backgroundColor: colors.bg.tertiary,
-                            borderColor: colors.border.subtle,
-                          },
-                          selectedMethod === m.key && {
-                            backgroundColor: `${colors.accent.primary}20`,
-                            borderColor: colors.accent.primary,
-                          },
-                        ]}
-                        onPress={() => setSelectedMethod(m.key)}
-                      >
-                        <Ionicons
-                          name={m.icon as any}
-                          size={16}
-                          color={
-                            selectedMethod === m.key ? colors.accent.primary : colors.text.tertiary
-                          }
-                        />
-                        <Text
+                {s.status !== 'completed' && (
+                  <>
+                    <Text style={[s.methodLabel, { color: colors.text.tertiary }]}>Settle via</Text>
+                    <View style={s.methodRow}>
+                      {SETTLEMENT_METHODS.map((m) => (
+                        <TouchableOpacity
+                          key={m.key}
                           style={[
-                            s.methodText,
+                            s.methodChip,
                             {
-                              color:
-                                selectedMethod === m.key
-                                  ? colors.accent.primary
-                                  : colors.text.tertiary,
+                              backgroundColor: colors.bg.tertiary,
+                              borderColor: colors.border.subtle,
+                            },
+                            selectedMethod === m.key && {
+                              backgroundColor: `${colors.accent.primary}20`,
+                              borderColor: colors.accent.primary,
                             },
                           ]}
+                          onPress={() => setSelectedMethod(m.key)}
                         >
-                          {m.label}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                  <TouchableOpacity
-                    style={[
-                      s.settleBtn,
-                      { backgroundColor: colors.status.success },
-                      submitting === s.id && { opacity: 0.6 },
-                    ]}
-                    onPress={() => markSettled(s.id)}
-                    disabled={submitting === s.id}
+                          <Ionicons
+                            name={m.icon as any}
+                            size={16}
+                            color={
+                              selectedMethod === m.key
+                                ? colors.accent.primary
+                                : colors.text.tertiary
+                            }
+                          />
+                          <Text
+                            style={[
+                              s.methodText,
+                              {
+                                color:
+                                  selectedMethod === m.key
+                                    ? colors.accent.primary
+                                    : colors.text.tertiary,
+                              },
+                            ]}
+                          >
+                            {m.label}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                    <TouchableOpacity
+                      style={[
+                        s.settleBtn,
+                        { backgroundColor: colors.status.success },
+                        submitting === s.id && { opacity: 0.6 },
+                      ]}
+                      onPress={() => markSettled(s.id)}
+                      disabled={submitting === s.id}
+                    >
+                      {submitting === s.id ? (
+                        <ActivityIndicator size="small" color="#FFF" />
+                      ) : (
+                        <>
+                          <Ionicons name="checkmark-circle-outline" size={18} color="#FFF" />
+                          <Text style={s.settleBtnText}>Mark as Settled</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[s.uploadBtn, { backgroundColor: colors.bg.tertiary }]}
+                      onPress={() =>
+                        Alert.alert('Upload Proof', 'Photo upload feature coming soon')
+                      }
+                    >
+                      <Ionicons name="camera-outline" size={16} color={colors.text.tertiary} />
+                      <Text style={[s.uploadBtnText, { color: colors.text.tertiary }]}>
+                        Upload Proof Image
+                      </Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+                {s.status === 'completed' && (
+                  <View
+                    style={[s.completedBadge, { backgroundColor: `${colors.status.success}20` }]}
                   >
-                    {submitting === s.id ? (
-                      <ActivityIndicator size="small" color="#FFF" />
-                    ) : (
-                      <>
-                        <Ionicons name="checkmark-circle-outline" size={18} color="#FFF" />
-                        <Text style={s.settleBtnText}>Mark as Settled</Text>
-                      </>
-                    )}
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[s.uploadBtn, { backgroundColor: colors.bg.tertiary }]}
-                    onPress={() => Alert.alert('Upload Proof', 'Photo upload feature coming soon')}
-                  >
-                    <Ionicons name="camera-outline" size={16} color={colors.text.tertiary} />
-                    <Text style={[s.uploadBtnText, { color: colors.text.tertiary }]}>
-                      Upload Proof Image
+                    <Ionicons name="checkmark-circle" size={16} color={colors.status.success} />
+                    <Text style={[s.completedText, { color: colors.status.success }]}>
+                      Settled via {s.method || 'UPI'}
                     </Text>
-                  </TouchableOpacity>
-                </>
-              )}
-              {s.status === 'completed' && (
-                <View style={[s.completedBadge, { backgroundColor: `${colors.status.success}20` }]}>
-                  <Ionicons name="checkmark-circle" size={16} color={colors.status.success} />
-                  <Text style={[s.completedText, { color: colors.status.success }]}>
-                    Settled via {s.method || 'UPI'}
-                  </Text>
-                </View>
-              )}
-            </LinearGradient>
-          ))}
-        </View>
-      ) : (
-        <View style={[s.emptyCard, { backgroundColor: colors.bg.secondary }]}>
-          <Ionicons name="checkmark-done-outline" size={36} color={colors.status.success} />
-          <Text style={[s.emptyTitle, { color: colors.text.primary }]}>All settled up!</Text>
-          <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>
-            No pending settlements. Everyone is square.
-          </Text>
-        </View>
-      )}
+                  </View>
+                )}
+              </LinearGradient>
+            ))}
+          </View>
+        ) : (
+          <View style={[s.emptyCard, { backgroundColor: colors.bg.secondary }]}>
+            <Ionicons name="checkmark-done-outline" size={36} color={colors.status.success} />
+            <Text style={[s.emptyTitle, { color: colors.text.primary }]}>All settled up!</Text>
+            <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>
+              No pending settlements. Everyone is square.
+            </Text>
+          </View>
+        )}
 
-      <Text style={[s.sectionTitle, { color: colors.text.tertiary }]}>Settlement History</Text>
+        <Text style={[s.sectionTitle, { color: colors.text.tertiary }]}>Settlement History</Text>
 
-      {history.length > 0 ? (
-        <View style={s.historyList}>
-          {history.map((h: any, i: number) => (
-            <View key={h.id || i} style={[s.historyCard, { backgroundColor: colors.bg.secondary }]}>
-              <View style={s.historyLeft}>
-                <View style={[s.historyIcon, { backgroundColor: `${colors.status.success}15` }]}>
-                  <Ionicons name="swap-horizontal" size={18} color={colors.status.success} />
+        {history.length > 0 ? (
+          <View style={s.historyList}>
+            {history.map((h: any, i: number) => (
+              <View
+                key={h.id || i}
+                style={[s.historyCard, { backgroundColor: colors.bg.secondary }]}
+              >
+                <View style={s.historyLeft}>
+                  <View style={[s.historyIcon, { backgroundColor: `${colors.status.success}15` }]}>
+                    <Ionicons name="swap-horizontal" size={18} color={colors.status.success} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[s.historyTitle, { color: colors.text.primary }]}>
+                      {h.fromName || 'Someone'} → {h.toName || 'Someone'}
+                    </Text>
+                    <Text style={[s.historyMeta, { color: colors.text.tertiary }]}>
+                      {h.method || 'UPI'} ·{' '}
+                      {h.date
+                        ? new Date(h.date).toLocaleDateString('en-IN', {
+                            day: 'numeric',
+                            month: 'short',
+                          })
+                        : ''}
+                    </Text>
+                  </View>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[s.historyTitle, { color: colors.text.primary }]}>
-                    {h.fromName || 'Someone'} → {h.toName || 'Someone'}
+                <View style={s.historyRight}>
+                  <Text style={[s.historyAmount, { color: colors.text.primary }]}>
+                    {fmt(h.amount || 0)}
                   </Text>
-                  <Text style={[s.historyMeta, { color: colors.text.tertiary }]}>
-                    {h.method || 'UPI'} ·{' '}
-                    {h.date
-                      ? new Date(h.date).toLocaleDateString('en-IN', {
-                          day: 'numeric',
-                          month: 'short',
-                        })
-                      : ''}
-                  </Text>
-                </View>
-              </View>
-              <View style={s.historyRight}>
-                <Text style={[s.historyAmount, { color: colors.text.primary }]}>
-                  {fmt(h.amount || 0)}
-                </Text>
-                <View
-                  style={[
-                    s.statusBadge,
-                    {
-                      backgroundColor:
-                        h.status === 'completed'
-                          ? `${colors.status.success}20`
-                          : `${colors.status.warning}20`,
-                    },
-                  ]}
-                >
-                  <Text
+                  <View
                     style={[
-                      s.statusText,
+                      s.statusBadge,
                       {
-                        color:
-                          h.status === 'completed' ? colors.status.success : colors.status.warning,
+                        backgroundColor:
+                          h.status === 'completed'
+                            ? `${colors.status.success}20`
+                            : `${colors.status.warning}20`,
                       },
                     ]}
                   >
-                    {h.status === 'completed' ? 'Completed' : 'Pending'}
-                  </Text>
+                    <Text
+                      style={[
+                        s.statusText,
+                        {
+                          color:
+                            h.status === 'completed'
+                              ? colors.status.success
+                              : colors.status.warning,
+                        },
+                      ]}
+                    >
+                      {h.status === 'completed' ? 'Completed' : 'Pending'}
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
-          ))}
-        </View>
-      ) : (
-        <View style={[s.emptyCard, { backgroundColor: colors.bg.secondary }]}>
-          <Text style={[s.emptyTitle, { color: colors.text.tertiary }]}>
-            No settlement history yet
-          </Text>
-        </View>
-      )}
-    </ScrollView>
+            ))}
+          </View>
+        ) : (
+          <View style={[s.emptyCard, { backgroundColor: colors.bg.secondary }]}>
+            <Text style={[s.emptyTitle, { color: colors.text.tertiary }]}>
+              No settlement history yet
+            </Text>
+          </View>
+        )}
+      </ScrollView>
+    </PageContainer>
   );
 }
 

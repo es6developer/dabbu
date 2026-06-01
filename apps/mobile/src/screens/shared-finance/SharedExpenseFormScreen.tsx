@@ -12,11 +12,12 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { DatePickerField } from '../../components/ui/DatePickerField';
+import { PageContainer } from '../../components/ui/PageContainer';
+import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 
 const CATEGORIES = [
   'Food',
@@ -43,7 +44,6 @@ const SPLIT_TYPES = [
 export function SharedExpenseFormScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const insets = useSafeAreaInsets();
   const { accessToken, user: currentUser } = useAuth();
   const { colors, isDark } = useTheme();
   const { groupId, expenseId, edit } = route.params || {};
@@ -232,275 +232,282 @@ export function SharedExpenseFormScreen() {
   }
 
   return (
-    <ScrollView
-      style={[s.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top + 16 }]}
-      contentContainerStyle={s.content}
-      keyboardShouldPersistTaps="handled"
-    >
-      <TouchableOpacity
-        onPress={() => navigation.goBack()}
-        style={[
-          s.backBtn,
-          {
-            backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-          },
-        ]}
-      >
-        <Ionicons name="close" size={22} color={colors.text.primary} />
-      </TouchableOpacity>
+    <PageContainer noPadding>
+      <KeyboardAvoidingContainer>
+        <View style={[s.container, s.content]}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={[
+              s.backBtn,
+              {
+                backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+              },
+            ]}
+          >
+            <Ionicons name="close" size={22} color={colors.text.primary} />
+          </TouchableOpacity>
 
-      <LinearGradient
-        colors={[...colors.accent.gradientAlt]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={s.heroSection}
-      >
-        <Text style={s.heroTitle}>{edit ? 'Edit Expense' : 'Add Expense'}</Text>
-        <Text style={s.heroSub}>Track shared expenses in this group</Text>
-      </LinearGradient>
+          <LinearGradient
+            colors={[...colors.accent.gradientAlt]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={s.heroSection}
+          >
+            <Text style={s.heroTitle}>{edit ? 'Edit Expense' : 'Add Expense'}</Text>
+            <Text style={s.heroSub}>Track shared expenses in this group</Text>
+          </LinearGradient>
 
-      {error ? (
-        <View style={[s.errorBox, { backgroundColor: colors.status.errorLight }]}>
-          <Ionicons name="alert-circle" size={16} color={colors.status.error} />
-          <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
-        </View>
-      ) : null}
+          {error ? (
+            <View style={[s.errorBox, { backgroundColor: colors.status.errorLight }]}>
+              <Ionicons name="alert-circle" size={16} color={colors.status.error} />
+              <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
+            </View>
+          ) : null}
 
-      <Text style={[s.label, { color: colors.text.tertiary }]}>Description</Text>
-      <TextInput
-        style={[
-          s.input,
-          {
-            backgroundColor: colors.bg.tertiary,
-            color: colors.text.primary,
-            borderColor: colors.border.subtle,
-          },
-        ]}
-        value={description}
-        onChangeText={setDescription}
-        placeholder="Dinner at Kaema"
-        placeholderTextColor={colors.text.tertiary}
-      />
+          <Text style={[s.label, { color: colors.text.tertiary }]}>Description</Text>
+          <TextInput
+            style={[
+              s.input,
+              {
+                backgroundColor: colors.bg.tertiary,
+                color: colors.text.primary,
+                borderColor: colors.border.subtle,
+              },
+            ]}
+            value={description}
+            onChangeText={setDescription}
+            placeholder="Dinner at Kaema"
+            placeholderTextColor={colors.text.tertiary}
+          />
 
-      <Text style={[s.label, { color: colors.text.tertiary }]}>Amount</Text>
-      <View
-        style={[
-          s.inputRow,
-          { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-        ]}
-      >
-        <Text style={[s.currencyPrefix, { color: colors.text.tertiary }]}>₹</Text>
-        <TextInput
-          style={[s.inputFlex, { color: colors.text.primary }]}
-          value={amount}
-          onChangeText={setAmount}
-          placeholder="0"
-          placeholderTextColor={colors.text.tertiary}
-          keyboardType="decimal-pad"
-        />
-      </View>
+          <Text style={[s.label, { color: colors.text.tertiary }]}>Amount</Text>
+          <View
+            style={[
+              s.inputRow,
+              { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+            ]}
+          >
+            <Text style={[s.currencyPrefix, { color: colors.text.tertiary }]}>₹</Text>
+            <TextInput
+              style={[s.inputFlex, { color: colors.text.primary }]}
+              value={amount}
+              onChangeText={setAmount}
+              placeholder="0"
+              placeholderTextColor={colors.text.tertiary}
+              keyboardType="decimal-pad"
+            />
+          </View>
 
-      <Text style={[s.label, { color: colors.text.tertiary }]}>Paid By</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={s.chipRow}
-      >
-        {members.map((m: any) => {
-          const selected = paidBy === m.id;
-          return (
-            <TouchableOpacity
-              key={m.id}
-              style={[
-                s.payerChip,
-                { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-                selected && {
-                  backgroundColor: `${colors.accent.primary}20`,
-                  borderColor: colors.accent.primary,
-                },
-              ]}
-              onPress={() => setPaidBy(m.id)}
-            >
-              <LinearGradient colors={[...colors.accent.gradient]} style={s.payerDot}>
-                <Text style={s.payerInit}>{(m.user?.firstName?.[0] || '?').toUpperCase()}</Text>
-              </LinearGradient>
-              <Text
+          <Text style={[s.label, { color: colors.text.tertiary }]}>Paid By</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={s.chipRow}
+          >
+            {members.map((m: any) => {
+              const selected = paidBy === m.id;
+              return (
+                <TouchableOpacity
+                  key={m.id}
+                  style={[
+                    s.payerChip,
+                    { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+                    selected && {
+                      backgroundColor: `${colors.accent.primary}20`,
+                      borderColor: colors.accent.primary,
+                    },
+                  ]}
+                  onPress={() => setPaidBy(m.id)}
+                >
+                  <LinearGradient colors={[...colors.accent.gradient]} style={s.payerDot}>
+                    <Text style={s.payerInit}>{(m.user?.firstName?.[0] || '?').toUpperCase()}</Text>
+                  </LinearGradient>
+                  <Text
+                    style={[
+                      s.payerName,
+                      {
+                        color: selected ? colors.accent.primary : colors.text.secondary,
+                      },
+                    ]}
+                  >
+                    {m.user?.firstName || m.user?.email || 'Member'}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
+          <DatePickerField label="Date" value={date} onChange={setDate} placeholder="Select date" />
+
+          <Text style={[s.label, { color: colors.text.tertiary }]}>Category</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={s.chipRow}
+          >
+            {CATEGORIES.map((cat) => (
+              <TouchableOpacity
+                key={cat}
                 style={[
-                  s.payerName,
-                  {
-                    color: selected ? colors.accent.primary : colors.text.secondary,
+                  s.catChip,
+                  { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+                  category === cat && {
+                    backgroundColor: `${colors.accent.primary}20`,
+                    borderColor: colors.accent.primary,
                   },
                 ]}
+                onPress={() => setCategory(cat)}
               >
-                {m.user?.firstName || m.user?.email || 'Member'}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-
-      <DatePickerField label="Date" value={date} onChange={setDate} placeholder="Select date" />
-
-      <Text style={[s.label, { color: colors.text.tertiary }]}>Category</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={s.chipRow}
-      >
-        {CATEGORIES.map((cat) => (
-          <TouchableOpacity
-            key={cat}
-            style={[
-              s.catChip,
-              { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-              category === cat && {
-                backgroundColor: `${colors.accent.primary}20`,
-                borderColor: colors.accent.primary,
-              },
-            ]}
-            onPress={() => setCategory(cat)}
-          >
-            <Text
-              style={[
-                s.catChipText,
-                {
-                  color: category === cat ? colors.accent.primary : colors.text.secondary,
-                },
-              ]}
-            >
-              {cat}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      <Text style={[s.label, { color: colors.text.tertiary }]}>Split Type</Text>
-      <View style={s.splitTypeRow}>
-        {SPLIT_TYPES.map((st) => (
-          <TouchableOpacity
-            key={st.key}
-            style={[
-              s.splitTypeChip,
-              { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-              splitType === st.key && {
-                backgroundColor: `${colors.accent.primary}20`,
-                borderColor: colors.accent.primary,
-              },
-            ]}
-            onPress={() => setSplitType(st.key)}
-          >
-            <Text
-              style={[
-                s.splitTypeText,
-                {
-                  color: splitType === st.key ? colors.accent.primary : colors.text.secondary,
-                },
-              ]}
-            >
-              {st.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {(splitType === 'percentage' || splitType === 'exact' || splitType === 'shares') && (
-        <>
-          <Text style={[s.label, { color: colors.text.tertiary }]}>
-            {splitType === 'percentage'
-              ? 'Percentages per member'
-              : splitType === 'exact'
-                ? 'Exact amounts per member'
-                : 'Shares per member'}
-          </Text>
-          {members.map((m: any) => {
-            const mName = m.user?.firstName || m.user?.email || 'Member';
-            const val = splitType === 'shares' ? sharesCount[m.id] || '' : splitValues[m.id] || '';
-            return (
-              <View key={m.id} style={s.splitMemberRow}>
-                <Text style={[s.splitMemberName, { color: colors.text.secondary }]}>{mName}</Text>
-                <View
+                <Text
                   style={[
-                    s.splitInputWrap,
+                    s.catChipText,
                     {
-                      backgroundColor: colors.bg.tertiary,
-                      borderColor: colors.border.subtle,
+                      color: category === cat ? colors.accent.primary : colors.text.secondary,
                     },
                   ]}
                 >
-                  {splitType === 'exact' && (
-                    <Text style={[s.splitPrefix, { color: colors.text.tertiary }]}>₹</Text>
-                  )}
-                  <TextInput
-                    style={[s.splitInput, { color: colors.text.primary }]}
-                    value={val}
-                    onChangeText={(v) => {
-                      if (splitType === 'shares') {
-                        setSharesCount((prev) => ({ ...prev, [m.id]: v }));
-                      } else {
-                        setSplitValues((prev) => ({ ...prev, [m.id]: v }));
-                      }
-                    }}
-                    keyboardType="decimal-pad"
-                    placeholder={splitType === 'percentage' ? '0%' : '0'}
-                    placeholderTextColor={colors.text.tertiary}
-                  />
-                </View>
-              </View>
-            );
-          })}
-        </>
-      )}
+                  {cat}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
 
-      <Text style={[s.label, { color: colors.text.tertiary }]}>Split Preview</Text>
-      <View style={[s.previewBox, { backgroundColor: colors.bg.secondary }]}>
-        {splitPreview.length > 0 ? (
-          splitPreview.map((item, i) => (
-            <View key={i} style={s.previewRow}>
-              <Text style={[s.previewName, { color: colors.text.primary }]}>{item.name}</Text>
-              <Text style={[s.previewValue, { color: colors.text.primary }]}>
-                {'detail' in item && item.detail
-                  ? `${item.detail} · ₹${Math.round(item.value)}`
-                  : `₹${Math.round(item.value)}`}
+          <Text style={[s.label, { color: colors.text.tertiary }]}>Split Type</Text>
+          <View style={s.splitTypeRow}>
+            {SPLIT_TYPES.map((st) => (
+              <TouchableOpacity
+                key={st.key}
+                style={[
+                  s.splitTypeChip,
+                  { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+                  splitType === st.key && {
+                    backgroundColor: `${colors.accent.primary}20`,
+                    borderColor: colors.accent.primary,
+                  },
+                ]}
+                onPress={() => setSplitType(st.key)}
+              >
+                <Text
+                  style={[
+                    s.splitTypeText,
+                    {
+                      color: splitType === st.key ? colors.accent.primary : colors.text.secondary,
+                    },
+                  ]}
+                >
+                  {st.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {(splitType === 'percentage' || splitType === 'exact' || splitType === 'shares') && (
+            <>
+              <Text style={[s.label, { color: colors.text.tertiary }]}>
+                {splitType === 'percentage'
+                  ? 'Percentages per member'
+                  : splitType === 'exact'
+                    ? 'Exact amounts per member'
+                    : 'Shares per member'}
               </Text>
-            </View>
-          ))
-        ) : (
-          <Text style={[s.previewEmpty, { color: colors.text.tertiary }]}>
-            Enter amount and split details to see preview
-          </Text>
-        )}
-      </View>
+              {members.map((m: any) => {
+                const mName = m.user?.firstName || m.user?.email || 'Member';
+                const val =
+                  splitType === 'shares' ? sharesCount[m.id] || '' : splitValues[m.id] || '';
+                return (
+                  <View key={m.id} style={s.splitMemberRow}>
+                    <Text style={[s.splitMemberName, { color: colors.text.secondary }]}>
+                      {mName}
+                    </Text>
+                    <View
+                      style={[
+                        s.splitInputWrap,
+                        {
+                          backgroundColor: colors.bg.tertiary,
+                          borderColor: colors.border.subtle,
+                        },
+                      ]}
+                    >
+                      {splitType === 'exact' && (
+                        <Text style={[s.splitPrefix, { color: colors.text.tertiary }]}>₹</Text>
+                      )}
+                      <TextInput
+                        style={[s.splitInput, { color: colors.text.primary }]}
+                        value={val}
+                        onChangeText={(v) => {
+                          if (splitType === 'shares') {
+                            setSharesCount((prev) => ({ ...prev, [m.id]: v }));
+                          } else {
+                            setSplitValues((prev) => ({ ...prev, [m.id]: v }));
+                          }
+                        }}
+                        keyboardType="decimal-pad"
+                        placeholder={splitType === 'percentage' ? '0%' : '0'}
+                        placeholderTextColor={colors.text.tertiary}
+                      />
+                    </View>
+                  </View>
+                );
+              })}
+            </>
+          )}
 
-      <Text style={[s.label, { color: colors.text.tertiary }]}>Notes (optional)</Text>
-      <TextInput
-        style={[
-          s.input,
-          s.notesInput,
-          {
-            backgroundColor: colors.bg.tertiary,
-            color: colors.text.primary,
-            borderColor: colors.border.subtle,
-          },
-        ]}
-        value={notes}
-        onChangeText={setNotes}
-        placeholder="Any additional notes..."
-        placeholderTextColor={colors.text.tertiary}
-        multiline
-      />
+          <Text style={[s.label, { color: colors.text.tertiary }]}>Split Preview</Text>
+          <View style={[s.previewBox, { backgroundColor: colors.bg.secondary }]}>
+            {splitPreview.length > 0 ? (
+              splitPreview.map((item, i) => (
+                <View key={i} style={s.previewRow}>
+                  <Text style={[s.previewName, { color: colors.text.primary }]}>{item.name}</Text>
+                  <Text style={[s.previewValue, { color: colors.text.primary }]}>
+                    {'detail' in item && item.detail
+                      ? `${item.detail} · ₹${Math.round(item.value)}`
+                      : `₹${Math.round(item.value)}`}
+                  </Text>
+                </View>
+              ))
+            ) : (
+              <Text style={[s.previewEmpty, { color: colors.text.tertiary }]}>
+                Enter amount and split details to see preview
+              </Text>
+            )}
+          </View>
 
-      <TouchableOpacity
-        style={[s.saveBtn, { backgroundColor: colors.accent.primary }, saving && { opacity: 0.6 }]}
-        onPress={handleSave}
-        disabled={saving}
-      >
-        {saving ? (
-          <ActivityIndicator color="#FFF" />
-        ) : (
-          <Text style={s.saveBtnText}>{edit ? 'Update Expense' : 'Save Expense'}</Text>
-        )}
-      </TouchableOpacity>
-    </ScrollView>
+          <Text style={[s.label, { color: colors.text.tertiary }]}>Notes (optional)</Text>
+          <TextInput
+            style={[
+              s.input,
+              s.notesInput,
+              {
+                backgroundColor: colors.bg.tertiary,
+                color: colors.text.primary,
+                borderColor: colors.border.subtle,
+              },
+            ]}
+            value={notes}
+            onChangeText={setNotes}
+            placeholder="Any additional notes..."
+            placeholderTextColor={colors.text.tertiary}
+            multiline
+          />
+
+          <TouchableOpacity
+            style={[
+              s.saveBtn,
+              { backgroundColor: colors.accent.primary },
+              saving && { opacity: 0.6 },
+            ]}
+            onPress={handleSave}
+            disabled={saving}
+          >
+            {saving ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <Text style={s.saveBtnText}>{edit ? 'Update Expense' : 'Save Expense'}</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingContainer>
+    </PageContainer>
   );
 }
 

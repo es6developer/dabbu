@@ -6,20 +6,19 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  ScrollView,
   Alert,
   LayoutAnimation,
   Platform,
   UIManager,
-  KeyboardAvoidingView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
+import { PageContainer } from '../../components/ui/PageContainer';
+import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -41,7 +40,6 @@ const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD'];
 
 export function CreateExpenseGroupScreen() {
   const navigation = useNavigation<any>();
-  const insets = useSafeAreaInsets();
   const { accessToken } = useAuth();
   const { colors, isDark } = useTheme();
 
@@ -124,247 +122,250 @@ export function CreateExpenseGroupScreen() {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top + 8 }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-      >
-      <TouchableOpacity
-        onPress={() => navigation.goBack()}
-        style={[
-          styles.backBtn,
-          { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' },
-        ]}
-      >
-        <Ionicons name="close" size={22} color={colors.text.primary} />
-      </TouchableOpacity>
-
-      <LinearGradient
-        colors={[...colors.accent.gradient]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.heroSection}
-      >
-        <Text style={styles.heroTitle}>New Circle</Text>
-        <Text style={styles.heroSub}>Create a group to track expenses together</Text>
-      </LinearGradient>
-
-      {error ? (
-        <View style={[styles.errorBox, { backgroundColor: colors.status.errorLight }]}>
-          <Ionicons name="alert-circle" size={16} color={colors.status.error} />
-          <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text>
-        </View>
-      ) : null}
-
-      <Text style={[styles.label, { color: colors.text.tertiary }]}>Group Name</Text>
-      <TextInput
-        style={[
-          styles.input,
-          {
-            backgroundColor: colors.bg.tertiary,
-            color: colors.text.primary,
-            borderColor: colors.border.subtle,
-          },
-        ]}
-        value={name}
-        onChangeText={setName}
-        placeholder="e.g. Roommates, Road Trip"
-        placeholderTextColor={colors.text.tertiary}
-      />
-
-      <Text style={[styles.label, { color: colors.text.tertiary }]}>Description (optional)</Text>
-      <TextInput
-        style={[
-          styles.input,
-          {
-            backgroundColor: colors.bg.tertiary,
-            color: colors.text.primary,
-            borderColor: colors.border.subtle,
-          },
-        ]}
-        value={description}
-        onChangeText={setDescription}
-        placeholder="What's this group for?"
-        placeholderTextColor={colors.text.tertiary}
-      />
-
-      <Text style={[styles.label, { color: colors.text.tertiary }]}>Choose Icon</Text>
-      <View style={styles.iconRow}>
-        {ICONS.map((ic) => (
+    <PageContainer noPadding>
+      <KeyboardAvoidingContainer>
+        <View style={styles.container}>
           <TouchableOpacity
-            key={ic}
+            onPress={() => navigation.goBack()}
             style={[
-              styles.iconBtn,
-              { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-              icon === ic && {
-                backgroundColor: `${colors.accent.primary}20`,
-                borderColor: colors.accent.primary,
-              },
+              styles.backBtn,
+              { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' },
             ]}
-            onPress={() => setIcon(ic)}
           >
-            <Ionicons
-              name={ic as any}
-              size={22}
-              color={icon === ic ? colors.accent.primary : colors.text.tertiary}
-            />
+            <Ionicons name="close" size={22} color={colors.text.primary} />
           </TouchableOpacity>
-        ))}
-      </View>
 
-      <Text style={[styles.label, { color: colors.text.tertiary }]}>Currency</Text>
-      <View style={styles.currencyRow}>
-        {CURRENCIES.map((c) => (
-          <TouchableOpacity
-            key={c}
-            style={[
-              styles.currencyChip,
-              { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-              currency === c && {
-                backgroundColor: `${colors.accent.primary}20`,
-                borderColor: colors.accent.primary,
-              },
-            ]}
-            onPress={() => setCurrency(c)}
+          <LinearGradient
+            colors={[...colors.accent.gradient]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.heroSection}
           >
-            <Text
-              style={[
-                styles.currencyText,
-                { color: currency === c ? colors.accent.primary : colors.text.secondary },
-              ]}
-            >
-              {c}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+            <Text style={styles.heroTitle}>New Circle</Text>
+            <Text style={styles.heroSub}>Create a group to track expenses together</Text>
+          </LinearGradient>
 
-      <Text style={[styles.label, { color: colors.text.tertiary }]}>Monthly Budget (optional)</Text>
-      <View
-        style={[
-          styles.inputRow,
-          { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-        ]}
-      >
-        <Text style={[styles.currencyPrefix, { color: colors.text.tertiary }]}>
-          {currency === 'INR'
-            ? '₹'
-            : currency === 'USD'
-              ? '$'
-              : currency === 'EUR'
-                ? '€'
-                : currency === 'GBP'
-                  ? '£'
-                  : currency === 'AED'
-                    ? 'د.إ'
-                    : '$'}
-        </Text>
-        <TextInput
-          style={[styles.inputFlex, { color: colors.text.primary }]}
-          value={monthlyBudget}
-          onChangeText={setMonthlyBudget}
-          placeholder="0"
-          placeholderTextColor={colors.text.tertiary}
-          keyboardType="decimal-pad"
-        />
-      </View>
-
-      <View style={styles.memberSection}>
-        <Text style={[styles.label, { color: colors.text.tertiary }]}>
-          Members <Text style={{ fontWeight: '400', textTransform: 'none' }}>(max 2 on Free)</Text>
-        </Text>
-
-        {memberEmails.map((email, index) => (
-          <View key={index} style={styles.memberRow}>
-            <View
-              style={[
-                styles.memberInputWrap,
-                {
-                  backgroundColor: colors.bg.tertiary,
-                  borderColor: colors.border.subtle,
-                },
-              ]}
-            >
-              <Ionicons
-                name="person-outline"
-                size={16}
-                color={colors.text.tertiary}
-                style={styles.memberIcon}
-              />
-              <TextInput
-                ref={(ref) => {
-                  inputsRef.current[index] = ref;
-                }}
-                style={[
-                  styles.memberInput,
-                  { color: colors.text.primary },
-                  !email.trim() && index === memberEmails.length - 1 ? { minWidth: 120 } : null,
-                ]}
-                value={email}
-                onChangeText={(v) => updateEmail(index, v)}
-                placeholder={index === 0 ? 'john@email.com' : 'jane@email.com'}
-                placeholderTextColor={colors.text.tertiary}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                returnKeyType={index === memberEmails.length - 1 ? 'done' : 'next'}
-                onSubmitEditing={() => {
-                  if (index === memberEmails.length - 1) {
-                    addRow();
-                  } else {
-                    inputsRef.current[index + 1]?.focus();
-                  }
-                }}
-              />
-              {email.trim() && (
-                <TouchableOpacity onPress={() => removeRow(index)} style={styles.memberRemoveBtn}>
-                  <Ionicons name="close-circle" size={18} color={colors.status.error} />
-                </TouchableOpacity>
-              )}
+          {error ? (
+            <View style={[styles.errorBox, { backgroundColor: colors.status.errorLight }]}>
+              <Ionicons name="alert-circle" size={16} color={colors.status.error} />
+              <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text>
             </View>
-          </View>
-        ))}
+          ) : null}
 
-        <TouchableOpacity style={styles.addMemberBtn} onPress={addRow} activeOpacity={0.7}>
-          <Ionicons name="add-circle-outline" size={18} color={colors.accent.primary} />
-          <Text style={[styles.addMemberText, { color: colors.accent.primary }]}>
-            Add another member
+          <Text style={[styles.label, { color: colors.text.tertiary }]}>Group Name</Text>
+          <TextInput
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.bg.tertiary,
+                color: colors.text.primary,
+                borderColor: colors.border.subtle,
+              },
+            ]}
+            value={name}
+            onChangeText={setName}
+            placeholder="e.g. Roommates, Road Trip"
+            placeholderTextColor={colors.text.tertiary}
+          />
+
+          <Text style={[styles.label, { color: colors.text.tertiary }]}>
+            Description (optional)
           </Text>
-        </TouchableOpacity>
-      </View>
+          <TextInput
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.bg.tertiary,
+                color: colors.text.primary,
+                borderColor: colors.border.subtle,
+              },
+            ]}
+            value={description}
+            onChangeText={setDescription}
+            placeholder="What's this group for?"
+            placeholderTextColor={colors.text.tertiary}
+          />
 
-      <View style={[styles.planInfo, { backgroundColor: colors.bg.tertiary }]}>
-        <Ionicons name="shield-outline" size={16} color="#FF6B6B" />
-        <Text style={[styles.planInfoText, { color: colors.text.tertiary }]}>
-          Free plan: 5 groups max · 2 members per group
-        </Text>
-        <TouchableOpacity
-          onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}
-        >
-          <Text style={[styles.planUpgrade, { color: colors.accent.primary }]}>Upgrade</Text>
-        </TouchableOpacity>
-      </View>
+          <Text style={[styles.label, { color: colors.text.tertiary }]}>Choose Icon</Text>
+          <View style={styles.iconRow}>
+            {ICONS.map((ic) => (
+              <TouchableOpacity
+                key={ic}
+                style={[
+                  styles.iconBtn,
+                  { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+                  icon === ic && {
+                    backgroundColor: `${colors.accent.primary}20`,
+                    borderColor: colors.accent.primary,
+                  },
+                ]}
+                onPress={() => setIcon(ic)}
+              >
+                <Ionicons
+                  name={ic as any}
+                  size={22}
+                  color={icon === ic ? colors.accent.primary : colors.text.tertiary}
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
 
-      <TouchableOpacity
-        style={[
-          styles.saveBtn,
-          { backgroundColor: colors.accent.primary },
-          saving && { opacity: 0.6 },
-        ]}
-        onPress={handleCreate}
-        disabled={saving}
-      >
-        {saving ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.saveBtnText}>Create Group</Text>
-        )}
-      </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <Text style={[styles.label, { color: colors.text.tertiary }]}>Currency</Text>
+          <View style={styles.currencyRow}>
+            {CURRENCIES.map((c) => (
+              <TouchableOpacity
+                key={c}
+                style={[
+                  styles.currencyChip,
+                  { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+                  currency === c && {
+                    backgroundColor: `${colors.accent.primary}20`,
+                    borderColor: colors.accent.primary,
+                  },
+                ]}
+                onPress={() => setCurrency(c)}
+              >
+                <Text
+                  style={[
+                    styles.currencyText,
+                    { color: currency === c ? colors.accent.primary : colors.text.secondary },
+                  ]}
+                >
+                  {c}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={[styles.label, { color: colors.text.tertiary }]}>
+            Monthly Budget (optional)
+          </Text>
+          <View
+            style={[
+              styles.inputRow,
+              { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+            ]}
+          >
+            <Text style={[styles.currencyPrefix, { color: colors.text.tertiary }]}>
+              {currency === 'INR'
+                ? '₹'
+                : currency === 'USD'
+                  ? '$'
+                  : currency === 'EUR'
+                    ? '€'
+                    : currency === 'GBP'
+                      ? '£'
+                      : currency === 'AED'
+                        ? 'د.إ'
+                        : '$'}
+            </Text>
+            <TextInput
+              style={[styles.inputFlex, { color: colors.text.primary }]}
+              value={monthlyBudget}
+              onChangeText={setMonthlyBudget}
+              placeholder="0"
+              placeholderTextColor={colors.text.tertiary}
+              keyboardType="decimal-pad"
+            />
+          </View>
+
+          <View style={styles.memberSection}>
+            <Text style={[styles.label, { color: colors.text.tertiary }]}>
+              Members{' '}
+              <Text style={{ fontWeight: '400', textTransform: 'none' }}>(max 2 on Free)</Text>
+            </Text>
+
+            {memberEmails.map((email, index) => (
+              <View key={index} style={styles.memberRow}>
+                <View
+                  style={[
+                    styles.memberInputWrap,
+                    {
+                      backgroundColor: colors.bg.tertiary,
+                      borderColor: colors.border.subtle,
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name="person-outline"
+                    size={16}
+                    color={colors.text.tertiary}
+                    style={styles.memberIcon}
+                  />
+                  <TextInput
+                    ref={(ref) => {
+                      inputsRef.current[index] = ref;
+                    }}
+                    style={[
+                      styles.memberInput,
+                      { color: colors.text.primary },
+                      !email.trim() && index === memberEmails.length - 1 ? { minWidth: 120 } : null,
+                    ]}
+                    value={email}
+                    onChangeText={(v) => updateEmail(index, v)}
+                    placeholder={index === 0 ? 'john@email.com' : 'jane@email.com'}
+                    placeholderTextColor={colors.text.tertiary}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    returnKeyType={index === memberEmails.length - 1 ? 'done' : 'next'}
+                    onSubmitEditing={() => {
+                      if (index === memberEmails.length - 1) {
+                        addRow();
+                      } else {
+                        inputsRef.current[index + 1]?.focus();
+                      }
+                    }}
+                  />
+                  {email.trim() && (
+                    <TouchableOpacity
+                      onPress={() => removeRow(index)}
+                      style={styles.memberRemoveBtn}
+                    >
+                      <Ionicons name="close-circle" size={18} color={colors.status.error} />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+            ))}
+
+            <TouchableOpacity style={styles.addMemberBtn} onPress={addRow} activeOpacity={0.7}>
+              <Ionicons name="add-circle-outline" size={18} color={colors.accent.primary} />
+              <Text style={[styles.addMemberText, { color: colors.accent.primary }]}>
+                Add another member
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={[styles.planInfo, { backgroundColor: colors.bg.tertiary }]}>
+            <Ionicons name="shield-outline" size={16} color="#FF6B6B" />
+            <Text style={[styles.planInfoText, { color: colors.text.tertiary }]}>
+              Free plan: 5 groups max · 2 members per group
+            </Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}
+            >
+              <Text style={[styles.planUpgrade, { color: colors.accent.primary }]}>Upgrade</Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={[
+              styles.saveBtn,
+              { backgroundColor: colors.accent.primary },
+              saving && { opacity: 0.6 },
+            ]}
+            onPress={handleCreate}
+            disabled={saving}
+          >
+            {saving ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.saveBtnText}>Create Group</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingContainer>
+    </PageContainer>
   );
 }
 

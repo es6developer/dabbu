@@ -2,22 +2,20 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  ScrollView,
   TextInput,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
   Switch,
   Alert,
-  Platform,
-  KeyboardAvoidingView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { DatePickerField } from '../../components/ui/DatePickerField';
+import { PageContainer } from '../../components/ui/PageContainer';
+import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 
 const REMINDER_TYPES = ['general', 'payment', 'bill', 'subscription', 'goal'];
 const PRIORITIES = ['low', 'medium', 'high', 'urgent'];
@@ -34,7 +32,6 @@ const DAYS_OF_WEEK = [
 
 export function CreateReminderScreen() {
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
   const [title, setTitle] = useState('');
@@ -106,231 +103,17 @@ export function CreateReminderScreen() {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: colors.bg.primary }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 80 }]}
-        keyboardShouldPersistTaps="handled"
-      >
-      <Text style={[styles.title, { color: colors.text.primary }]}>New Reminder</Text>
-      {error ? (
-        <View style={[styles.errorBox, { backgroundColor: `${colors.status.error}18` }]}>
-          <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text>
-        </View>
-      ) : null}
-
-      <Text style={[styles.label, { color: colors.text.secondary }]}>Title</Text>
-      <TextInput
-        style={[
-          styles.input,
-          {
-            backgroundColor: colors.bg.secondary,
-            color: colors.text.primary,
-            borderColor: colors.border.subtle,
-          },
-        ]}
-        value={title}
-        onChangeText={setTitle}
-        placeholder="Reminder title"
-        placeholderTextColor={colors.text.tertiary}
-      />
-
-      <Text style={[styles.label, { color: colors.text.secondary }]}>Description</Text>
-      <TextInput
-        style={[
-          styles.input,
-          styles.textArea,
-          {
-            backgroundColor: colors.bg.secondary,
-            color: colors.text.primary,
-            borderColor: colors.border.subtle,
-          },
-        ]}
-        value={description}
-        onChangeText={setDescription}
-        placeholder="Description"
-        placeholderTextColor={colors.text.tertiary}
-        multiline
-        numberOfLines={4}
-      />
-
-      <Text style={[styles.label, { color: colors.text.secondary }]}>Type</Text>
-      <TouchableOpacity
-        style={[
-          styles.picker,
-          { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
-        ]}
-        onPress={() => setShowTypePicker(!showTypePicker)}
-      >
-        <Text style={[styles.pickerText, { color: colors.text.primary }]}>
-          {type.charAt(0).toUpperCase() + type.slice(1)}
-        </Text>
-        <Text style={[styles.pickerArrow, { color: colors.text.tertiary }]}>▼</Text>
-      </TouchableOpacity>
-      {showTypePicker && (
-        <View
-          style={[
-            styles.pickerOptions,
-            { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
-          ]}
-        >
-          {REMINDER_TYPES.map((t) => (
-            <TouchableOpacity
-              key={t}
-              style={[
-                styles.pickerOption,
-                { borderBottomColor: colors.border.subtle },
-                type === t && { backgroundColor: `${colors.accent.primary}18` },
-              ]}
-              onPress={() => {
-                setType(t);
-                setShowTypePicker(false);
-              }}
-            >
-              <Text
-                style={[
-                  styles.pickerOptionText,
-                  { color: colors.text.primary },
-                  type === t && { color: colors.accent.primary },
-                ]}
-              >
-                {t.charAt(0).toUpperCase() + t.slice(1)}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-
-      <Text style={[styles.label, { color: colors.text.secondary }]}>Priority</Text>
-      <TouchableOpacity
-        style={[
-          styles.picker,
-          { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
-        ]}
-        onPress={() => setShowPriorityPicker(!showPriorityPicker)}
-      >
-        <Text style={[styles.pickerText, { color: getPriorityColor(priority) }]}>
-          {priority.charAt(0).toUpperCase() + priority.slice(1)}
-        </Text>
-        <Text style={[styles.pickerArrow, { color: colors.text.tertiary }]}>▼</Text>
-      </TouchableOpacity>
-      {showPriorityPicker && (
-        <View
-          style={[
-            styles.pickerOptions,
-            { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
-          ]}
-        >
-          {PRIORITIES.map((p) => (
-            <TouchableOpacity
-              key={p}
-              style={[
-                styles.pickerOption,
-                { borderBottomColor: colors.border.subtle },
-                priority === p && { backgroundColor: `${colors.accent.primary}18` },
-              ]}
-              onPress={() => {
-                setPriority(p);
-                setShowPriorityPicker(false);
-              }}
-            >
-              <Text
-                style={[
-                  styles.pickerOptionText,
-                  { color: colors.text.primary },
-                  priority === p && { color: colors.accent.primary },
-                ]}
-              >
-                {p.charAt(0).toUpperCase() + p.slice(1)}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-
-      <DatePickerField label="Start Date" value={startDate} onChange={setStartDate} />
-
-      <DatePickerField label="Due Date" value={dueDate} onChange={setDueDate} optional />
-
-      <Text style={[styles.label, { color: colors.text.secondary }]}>Category</Text>
-      <TextInput
-        style={[
-          styles.input,
-          {
-            backgroundColor: colors.bg.secondary,
-            color: colors.text.primary,
-            borderColor: colors.border.subtle,
-          },
-        ]}
-        value={category}
-        onChangeText={setCategory}
-        placeholder="e.g. Work, Personal"
-        placeholderTextColor={colors.text.tertiary}
-      />
-
-      <View style={styles.switchRow}>
-        <Text style={[styles.label, { color: colors.text.secondary }]}>Recurring</Text>
-        <Switch
-          value={isRecurring}
-          onValueChange={setIsRecurring}
-          trackColor={{ false: colors.border.subtle, true: colors.accent.primary }}
-          thumbColor={isRecurring ? '#FFFFFF' : colors.text.tertiary}
-        />
-      </View>
-
-      {isRecurring && (
-        <>
-          <Text style={[styles.label, { color: colors.text.secondary }]}>Frequency</Text>
-          <TouchableOpacity
-            style={[
-              styles.picker,
-              { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
-            ]}
-            onPress={() => setShowFreqPicker(!showFreqPicker)}
-          >
-            <Text style={[styles.pickerText, { color: colors.text.primary }]}>
-              {frequency.charAt(0).toUpperCase() + frequency.slice(1)}
-            </Text>
-            <Text style={[styles.pickerArrow, { color: colors.text.tertiary }]}>▼</Text>
-          </TouchableOpacity>
-          {showFreqPicker && (
-            <View
-              style={[
-                styles.pickerOptions,
-                { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
-              ]}
-            >
-              {FREQUENCIES.map((f) => (
-                <TouchableOpacity
-                  key={f}
-                  style={[
-                    styles.pickerOption,
-                    { borderBottomColor: colors.border.subtle },
-                    frequency === f && { backgroundColor: `${colors.accent.primary}18` },
-                  ]}
-                  onPress={() => {
-                    setFrequency(f);
-                    setShowFreqPicker(false);
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.pickerOptionText,
-                      { color: colors.text.primary },
-                      frequency === f && { color: colors.accent.primary },
-                    ]}
-                  >
-                    {f.charAt(0).toUpperCase() + f.slice(1)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+    <PageContainer noPadding>
+      <KeyboardAvoidingContainer>
+        <View style={styles.content}>
+          <Text style={[styles.title, { color: colors.text.primary }]}>New Reminder</Text>
+          {error ? (
+            <View style={[styles.errorBox, { backgroundColor: `${colors.status.error}18` }]}>
+              <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text>
             </View>
-          )}
+          ) : null}
 
-          <Text style={[styles.label, { color: colors.text.secondary }]}>Interval</Text>
+          <Text style={[styles.label, { color: colors.text.secondary }]}>Title</Text>
           <TextInput
             style={[
               styles.input,
@@ -340,60 +123,269 @@ export function CreateReminderScreen() {
                 borderColor: colors.border.subtle,
               },
             ]}
-            value={interval}
-            onChangeText={setInterval}
-            placeholder="1"
+            value={title}
+            onChangeText={setTitle}
+            placeholder="Reminder title"
             placeholderTextColor={colors.text.tertiary}
-            keyboardType="number-pad"
           />
 
-          <Text style={[styles.label, { color: colors.text.secondary }]}>Day of Week</Text>
-          <View style={styles.dayRow}>
-            {DAYS_OF_WEEK.map((d) => (
-              <TouchableOpacity
-                key={d.value}
-                style={[
-                  styles.dayBtn,
-                  { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
-                  dayOfWeek === d.value && {
-                    backgroundColor: colors.accent.primary,
-                    borderColor: colors.accent.primary,
-                  },
-                ]}
-                onPress={() => setDayOfWeek(d.value)}
-              >
-                <Text
+          <Text style={[styles.label, { color: colors.text.secondary }]}>Description</Text>
+          <TextInput
+            style={[
+              styles.input,
+              styles.textArea,
+              {
+                backgroundColor: colors.bg.secondary,
+                color: colors.text.primary,
+                borderColor: colors.border.subtle,
+              },
+            ]}
+            value={description}
+            onChangeText={setDescription}
+            placeholder="Description"
+            placeholderTextColor={colors.text.tertiary}
+            multiline
+            numberOfLines={4}
+          />
+
+          <Text style={[styles.label, { color: colors.text.secondary }]}>Type</Text>
+          <TouchableOpacity
+            style={[
+              styles.picker,
+              { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+            ]}
+            onPress={() => setShowTypePicker(!showTypePicker)}
+          >
+            <Text style={[styles.pickerText, { color: colors.text.primary }]}>
+              {type.charAt(0).toUpperCase() + type.slice(1)}
+            </Text>
+            <Text style={[styles.pickerArrow, { color: colors.text.tertiary }]}>▼</Text>
+          </TouchableOpacity>
+          {showTypePicker && (
+            <View
+              style={[
+                styles.pickerOptions,
+                { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+              ]}
+            >
+              {REMINDER_TYPES.map((t) => (
+                <TouchableOpacity
+                  key={t}
                   style={[
-                    styles.dayBtnText,
-                    { color: colors.text.tertiary },
-                    dayOfWeek === d.value && { color: '#FFFFFF' },
+                    styles.pickerOption,
+                    { borderBottomColor: colors.border.subtle },
+                    type === t && { backgroundColor: `${colors.accent.primary}18` },
+                  ]}
+                  onPress={() => {
+                    setType(t);
+                    setShowTypePicker(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.pickerOptionText,
+                      { color: colors.text.primary },
+                      type === t && { color: colors.accent.primary },
+                    ]}
+                  >
+                    {t.charAt(0).toUpperCase() + t.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
+          <Text style={[styles.label, { color: colors.text.secondary }]}>Priority</Text>
+          <TouchableOpacity
+            style={[
+              styles.picker,
+              { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+            ]}
+            onPress={() => setShowPriorityPicker(!showPriorityPicker)}
+          >
+            <Text style={[styles.pickerText, { color: getPriorityColor(priority) }]}>
+              {priority.charAt(0).toUpperCase() + priority.slice(1)}
+            </Text>
+            <Text style={[styles.pickerArrow, { color: colors.text.tertiary }]}>▼</Text>
+          </TouchableOpacity>
+          {showPriorityPicker && (
+            <View
+              style={[
+                styles.pickerOptions,
+                { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+              ]}
+            >
+              {PRIORITIES.map((p) => (
+                <TouchableOpacity
+                  key={p}
+                  style={[
+                    styles.pickerOption,
+                    { borderBottomColor: colors.border.subtle },
+                    priority === p && { backgroundColor: `${colors.accent.primary}18` },
+                  ]}
+                  onPress={() => {
+                    setPriority(p);
+                    setShowPriorityPicker(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.pickerOptionText,
+                      { color: colors.text.primary },
+                      priority === p && { color: colors.accent.primary },
+                    ]}
+                  >
+                    {p.charAt(0).toUpperCase() + p.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
+          <DatePickerField label="Start Date" value={startDate} onChange={setStartDate} />
+
+          <DatePickerField label="Due Date" value={dueDate} onChange={setDueDate} optional />
+
+          <Text style={[styles.label, { color: colors.text.secondary }]}>Category</Text>
+          <TextInput
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.bg.secondary,
+                color: colors.text.primary,
+                borderColor: colors.border.subtle,
+              },
+            ]}
+            value={category}
+            onChangeText={setCategory}
+            placeholder="e.g. Work, Personal"
+            placeholderTextColor={colors.text.tertiary}
+          />
+
+          <View style={styles.switchRow}>
+            <Text style={[styles.label, { color: colors.text.secondary }]}>Recurring</Text>
+            <Switch
+              value={isRecurring}
+              onValueChange={setIsRecurring}
+              trackColor={{ false: colors.border.subtle, true: colors.accent.primary }}
+              thumbColor={isRecurring ? '#FFFFFF' : colors.text.tertiary}
+            />
+          </View>
+
+          {isRecurring && (
+            <>
+              <Text style={[styles.label, { color: colors.text.secondary }]}>Frequency</Text>
+              <TouchableOpacity
+                style={[
+                  styles.picker,
+                  { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+                ]}
+                onPress={() => setShowFreqPicker(!showFreqPicker)}
+              >
+                <Text style={[styles.pickerText, { color: colors.text.primary }]}>
+                  {frequency.charAt(0).toUpperCase() + frequency.slice(1)}
+                </Text>
+                <Text style={[styles.pickerArrow, { color: colors.text.tertiary }]}>▼</Text>
+              </TouchableOpacity>
+              {showFreqPicker && (
+                <View
+                  style={[
+                    styles.pickerOptions,
+                    { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
                   ]}
                 >
-                  {d.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </>
-      )}
+                  {FREQUENCIES.map((f) => (
+                    <TouchableOpacity
+                      key={f}
+                      style={[
+                        styles.pickerOption,
+                        { borderBottomColor: colors.border.subtle },
+                        frequency === f && { backgroundColor: `${colors.accent.primary}18` },
+                      ]}
+                      onPress={() => {
+                        setFrequency(f);
+                        setShowFreqPicker(false);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.pickerOptionText,
+                          { color: colors.text.primary },
+                          frequency === f && { color: colors.accent.primary },
+                        ]}
+                      >
+                        {f.charAt(0).toUpperCase() + f.slice(1)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
 
-      <TouchableOpacity
-        style={[
-          styles.saveBtn,
-          { backgroundColor: colors.accent.primary },
-          saving && { opacity: 0.6 },
-        ]}
-        onPress={handleSave}
-        disabled={saving}
-      >
-        {saving ? (
-          <ActivityIndicator color="#FFFFFF" />
-        ) : (
-          <Text style={styles.saveBtnText}>Create Reminder</Text>
-        )}
-      </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+              <Text style={[styles.label, { color: colors.text.secondary }]}>Interval</Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.bg.secondary,
+                    color: colors.text.primary,
+                    borderColor: colors.border.subtle,
+                  },
+                ]}
+                value={interval}
+                onChangeText={setInterval}
+                placeholder="1"
+                placeholderTextColor={colors.text.tertiary}
+                keyboardType="number-pad"
+              />
+
+              <Text style={[styles.label, { color: colors.text.secondary }]}>Day of Week</Text>
+              <View style={styles.dayRow}>
+                {DAYS_OF_WEEK.map((d) => (
+                  <TouchableOpacity
+                    key={d.value}
+                    style={[
+                      styles.dayBtn,
+                      { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+                      dayOfWeek === d.value && {
+                        backgroundColor: colors.accent.primary,
+                        borderColor: colors.accent.primary,
+                      },
+                    ]}
+                    onPress={() => setDayOfWeek(d.value)}
+                  >
+                    <Text
+                      style={[
+                        styles.dayBtnText,
+                        { color: colors.text.tertiary },
+                        dayOfWeek === d.value && { color: '#FFFFFF' },
+                      ]}
+                    >
+                      {d.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </>
+          )}
+
+          <TouchableOpacity
+            style={[
+              styles.saveBtn,
+              { backgroundColor: colors.accent.primary },
+              saving && { opacity: 0.6 },
+            ]}
+            onPress={handleSave}
+            disabled={saving}
+          >
+            {saving ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.saveBtnText}>Create Reminder</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingContainer>
+    </PageContainer>
   );
 }
 

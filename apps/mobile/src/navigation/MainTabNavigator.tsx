@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Platform, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { DashboardScreen } from '../screens/home/DashboardScreen';
 import { NotificationsScreen } from '../screens/home/NotificationsScreen';
@@ -251,7 +252,7 @@ export function MainTabNavigator() {
   const [subscription, setSubscription] = useState<any>(null);
   const [bottomMenuConfig, setBottomMenuConfig] = useState<any[]>([]);
 
-  useEffect(() => {
+  const loadPreferences = useCallback(() => {
     if (!accessToken) {
       return;
     }
@@ -273,6 +274,12 @@ export function MainTabNavigator() {
       })
       .catch(() => {});
   }, [accessToken]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadPreferences();
+    }, [loadPreferences]),
+  );
 
   const planPrice: number = Number(subscription?.plan?.price || 0);
   const isPremium = planPrice > 0;

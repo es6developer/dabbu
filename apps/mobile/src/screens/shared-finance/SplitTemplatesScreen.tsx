@@ -12,10 +12,11 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
+import { PageContainer } from '../../components/ui/PageContainer';
+import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 
 const GROUP_TYPES = ['friends', 'couple', 'trip', 'family', 'roommates'] as const;
 const ICONS = [
@@ -38,7 +39,6 @@ export function SplitTemplatesScreen() {
   const route = useRoute<any>();
   const { accessToken } = useAuth();
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
   const groupId = route.params?.groupId;
 
   const [templates, setTemplates] = useState<any[]>([]);
@@ -145,242 +145,260 @@ export function SplitTemplatesScreen() {
 
   if (loading) {
     return (
-      <View style={[s.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}>
-        <Text style={[s.loadingText, { color: colors.text.tertiary }]}>Loading templates...</Text>
-      </View>
+      <PageContainer>
+        <View style={[s.container, { backgroundColor: colors.bg.primary }]}>
+          <Text style={[s.loadingText, { color: colors.text.tertiary }]}>Loading templates...</Text>
+        </View>
+      </PageContainer>
     );
   }
 
   return (
-    <View style={[s.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}>
-      <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-          <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
-        </TouchableOpacity>
-        <Text style={[s.title, { color: colors.text.primary }]}>Split Templates</Text>
-        <TouchableOpacity
-          onPress={() => setShowCreate(true)}
-          style={[s.addBtn, { backgroundColor: colors.accent.primary }]}
-        >
-          <Ionicons name="add" size={22} color="#FFF" />
-        </TouchableOpacity>
-      </View>
-
-      <FlatList
-        data={templates}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 16, gap: 12 }}
-        refreshing={refreshing}
-        onRefresh={() => {
-          setRefreshing(true);
-          loadTemplates();
-        }}
-        ListEmptyComponent={
-          <View style={{ alignItems: 'center', paddingVertical: 60 }}>
-            <Ionicons name="documents-outline" size={48} color={colors.text.tertiary} />
-            <Text style={[s.emptyText, { color: colors.text.tertiary }]}>
-              No templates yet. Create one!
-            </Text>
+    <PageContainer noPadding>
+      <KeyboardAvoidingContainer>
+        <View style={[s.container, { backgroundColor: colors.bg.primary }]}>
+          <View style={s.header}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
+              <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+            </TouchableOpacity>
+            <Text style={[s.title, { color: colors.text.primary }]}>Split Templates</Text>
+            <TouchableOpacity
+              onPress={() => setShowCreate(true)}
+              style={[s.addBtn, { backgroundColor: colors.accent.primary }]}
+            >
+              <Ionicons name="add" size={22} color="#FFF" />
+            </TouchableOpacity>
           </View>
-        }
-        renderItem={({ item }) => (
-          <View
-            style={[
-              s.card,
-              { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
-            ]}
-          >
-            <View style={s.cardTop}>
-              <LinearGradient
-                colors={[
-                  `${item.coverColor || coverColor}25`,
-                  `${item.coverColor || coverColor}10`,
-                ]}
-                style={s.iconWrap}
-              >
-                <Ionicons name={item.icon as any} size={24} color={item.coverColor || coverColor} />
-              </LinearGradient>
-              <View style={{ flex: 1 }}>
-                <Text style={[s.cardName, { color: colors.text.primary }]}>{item.name}</Text>
-                {item.description && (
-                  <Text style={[s.cardDesc, { color: colors.text.tertiary }]} numberOfLines={1}>
-                    {item.description}
-                  </Text>
-                )}
-              </View>
-              <TouchableOpacity onPress={() => handleDelete(item.id)} style={s.deleteBtn}>
-                <Ionicons name="trash-outline" size={16} color={colors.status.error} />
-              </TouchableOpacity>
-            </View>
-            <View style={s.metaRow}>
-              <View style={[s.badge, { backgroundColor: `${colors.accent.primary}15` }]}>
-                <Ionicons name="people" size={11} color={colors.accent.primary} />
-                <Text style={[s.badgeText, { color: colors.accent.primary }]}>
-                  {item.groupType}
+
+          <FlatList
+            data={templates}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={{ padding: 16, gap: 12 }}
+            refreshing={refreshing}
+            onRefresh={() => {
+              setRefreshing(true);
+              loadTemplates();
+            }}
+            ListEmptyComponent={
+              <View style={{ alignItems: 'center', paddingVertical: 60 }}>
+                <Ionicons name="documents-outline" size={48} color={colors.text.tertiary} />
+                <Text style={[s.emptyText, { color: colors.text.tertiary }]}>
+                  No templates yet. Create one!
                 </Text>
               </View>
-              <Text style={[s.usageText, { color: colors.text.tertiary }]}>
-                Used {item.usageCount || 0} times
-              </Text>
-              {item.isOfficial && (
-                <View style={[s.badge, { backgroundColor: `${colors.status.success}15` }]}>
-                  <Ionicons name="checkmark-circle" size={11} color={colors.status.success} />
-                  <Text style={[s.badgeText, { color: colors.status.success }]}>Official</Text>
-                </View>
-              )}
-            </View>
-            {item.categories?.length > 0 && (
-              <View style={s.catRow}>
-                {item.categories.slice(0, 4).map((cat: any) => (
-                  <View key={cat.id} style={[s.catChip, { backgroundColor: colors.bg.tertiary }]}>
-                    <Ionicons name={cat.icon as any} size={12} color={colors.text.secondary} />
-                    <Text style={[s.catText, { color: colors.text.secondary }]}>{cat.name}</Text>
+            }
+            renderItem={({ item }) => (
+              <View
+                style={[
+                  s.card,
+                  { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+                ]}
+              >
+                <View style={s.cardTop}>
+                  <LinearGradient
+                    colors={[
+                      `${item.coverColor || coverColor}25`,
+                      `${item.coverColor || coverColor}10`,
+                    ]}
+                    style={s.iconWrap}
+                  >
+                    <Ionicons
+                      name={item.icon as any}
+                      size={24}
+                      color={item.coverColor || coverColor}
+                    />
+                  </LinearGradient>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[s.cardName, { color: colors.text.primary }]}>{item.name}</Text>
+                    {item.description && (
+                      <Text style={[s.cardDesc, { color: colors.text.tertiary }]} numberOfLines={1}>
+                        {item.description}
+                      </Text>
+                    )}
                   </View>
-                ))}
-                {item.categories.length > 4 && (
-                  <Text style={[s.catMore, { color: colors.text.tertiary }]}>
-                    +{item.categories.length - 4}
+                  <TouchableOpacity onPress={() => handleDelete(item.id)} style={s.deleteBtn}>
+                    <Ionicons name="trash-outline" size={16} color={colors.status.error} />
+                  </TouchableOpacity>
+                </View>
+                <View style={s.metaRow}>
+                  <View style={[s.badge, { backgroundColor: `${colors.accent.primary}15` }]}>
+                    <Ionicons name="people" size={11} color={colors.accent.primary} />
+                    <Text style={[s.badgeText, { color: colors.accent.primary }]}>
+                      {item.groupType}
+                    </Text>
+                  </View>
+                  <Text style={[s.usageText, { color: colors.text.tertiary }]}>
+                    Used {item.usageCount || 0} times
                   </Text>
+                  {item.isOfficial && (
+                    <View style={[s.badge, { backgroundColor: `${colors.status.success}15` }]}>
+                      <Ionicons name="checkmark-circle" size={11} color={colors.status.success} />
+                      <Text style={[s.badgeText, { color: colors.status.success }]}>Official</Text>
+                    </View>
+                  )}
+                </View>
+                {item.categories?.length > 0 && (
+                  <View style={s.catRow}>
+                    {item.categories.slice(0, 4).map((cat: any) => (
+                      <View
+                        key={cat.id}
+                        style={[s.catChip, { backgroundColor: colors.bg.tertiary }]}
+                      >
+                        <Ionicons name={cat.icon as any} size={12} color={colors.text.secondary} />
+                        <Text style={[s.catText, { color: colors.text.secondary }]}>
+                          {cat.name}
+                        </Text>
+                      </View>
+                    ))}
+                    {item.categories.length > 4 && (
+                      <Text style={[s.catMore, { color: colors.text.tertiary }]}>
+                        +{item.categories.length - 4}
+                      </Text>
+                    )}
+                  </View>
+                )}
+                {groupId && (
+                  <TouchableOpacity
+                    style={[s.applyBtn, { backgroundColor: colors.accent.primary }]}
+                    onPress={() => handleApply(item.id)}
+                    disabled={applyingId === item.id}
+                  >
+                    {applyingId === item.id ? (
+                      <ActivityIndicator size="small" color="#FFF" />
+                    ) : (
+                      <>
+                        <Ionicons name="download-outline" size={16} color="#FFF" />
+                        <Text style={s.applyText}>Apply to Group</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
                 )}
               </View>
             )}
-            {groupId && (
-              <TouchableOpacity
-                style={[s.applyBtn, { backgroundColor: colors.accent.primary }]}
-                onPress={() => handleApply(item.id)}
-                disabled={applyingId === item.id}
-              >
-                {applyingId === item.id ? (
-                  <ActivityIndicator size="small" color="#FFF" />
-                ) : (
-                  <>
-                    <Ionicons name="download-outline" size={16} color="#FFF" />
-                    <Text style={s.applyText}>Apply to Group</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
-      />
+          />
 
-      {showCreate && (
-        <View style={s.overlay}>
-          <View style={[s.modal, { backgroundColor: colors.bg.secondary }]}>
-            <Text style={[s.modalTitle, { color: colors.text.primary }]}>New Template</Text>
-            <TextInput
-              style={[
-                s.input,
-                {
-                  backgroundColor: colors.bg.tertiary,
-                  color: colors.text.primary,
-                  borderColor: colors.border.subtle,
-                },
-              ]}
-              placeholder="Template name"
-              placeholderTextColor={colors.text.tertiary}
-              value={name}
-              onChangeText={setName}
-            />
-            <TextInput
-              style={[
-                s.input,
-                {
-                  backgroundColor: colors.bg.tertiary,
-                  color: colors.text.primary,
-                  borderColor: colors.border.subtle,
-                },
-              ]}
-              placeholder="Description (optional)"
-              placeholderTextColor={colors.text.tertiary}
-              value={description}
-              onChangeText={setDescription}
-            />
-            <Text style={[s.label, { color: colors.text.secondary }]}>Group Type</Text>
-            <View style={s.chipRow}>
-              {GROUP_TYPES.map((gt) => (
-                <TouchableOpacity
-                  key={gt}
+          {showCreate && (
+            <View style={s.overlay}>
+              <View style={[s.modal, { backgroundColor: colors.bg.secondary }]}>
+                <Text style={[s.modalTitle, { color: colors.text.primary }]}>New Template</Text>
+                <TextInput
                   style={[
-                    s.chip,
+                    s.input,
                     {
-                      backgroundColor:
-                        groupType === gt ? `${colors.accent.primary}20` : colors.bg.tertiary,
-                      borderColor: groupType === gt ? colors.accent.primary : colors.border.subtle,
+                      backgroundColor: colors.bg.tertiary,
+                      color: colors.text.primary,
+                      borderColor: colors.border.subtle,
                     },
                   ]}
-                  onPress={() => setGroupType(gt)}
-                >
-                  <Text
+                  placeholder="Template name"
+                  placeholderTextColor={colors.text.tertiary}
+                  value={name}
+                  onChangeText={setName}
+                />
+                <TextInput
+                  style={[
+                    s.input,
+                    {
+                      backgroundColor: colors.bg.tertiary,
+                      color: colors.text.primary,
+                      borderColor: colors.border.subtle,
+                    },
+                  ]}
+                  placeholder="Description (optional)"
+                  placeholderTextColor={colors.text.tertiary}
+                  value={description}
+                  onChangeText={setDescription}
+                />
+                <Text style={[s.label, { color: colors.text.secondary }]}>Group Type</Text>
+                <View style={s.chipRow}>
+                  {GROUP_TYPES.map((gt) => (
+                    <TouchableOpacity
+                      key={gt}
+                      style={[
+                        s.chip,
+                        {
+                          backgroundColor:
+                            groupType === gt ? `${colors.accent.primary}20` : colors.bg.tertiary,
+                          borderColor:
+                            groupType === gt ? colors.accent.primary : colors.border.subtle,
+                        },
+                      ]}
+                      onPress={() => setGroupType(gt)}
+                    >
+                      <Text
+                        style={[
+                          s.chipText,
+                          {
+                            color: groupType === gt ? colors.accent.primary : colors.text.secondary,
+                          },
+                        ]}
+                      >
+                        {gt}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                <Text style={[s.label, { color: colors.text.secondary }]}>Icon</Text>
+                <View style={s.chipRow}>
+                  {ICONS.map((ic) => (
+                    <TouchableOpacity
+                      key={ic}
+                      style={[
+                        s.iconChip,
+                        {
+                          backgroundColor:
+                            icon === ic ? `${colors.accent.primary}20` : colors.bg.tertiary,
+                          borderColor: icon === ic ? colors.accent.primary : colors.border.subtle,
+                        },
+                      ]}
+                      onPress={() => setIcon(ic)}
+                    >
+                      <Ionicons
+                        name={ic as any}
+                        size={18}
+                        color={icon === ic ? colors.accent.primary : colors.text.secondary}
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                <Text style={[s.label, { color: colors.text.secondary }]}>Color</Text>
+                <View style={s.chipRow}>
+                  {PRESET_COLORS.map((c) => (
+                    <TouchableOpacity
+                      key={c}
+                      style={[
+                        s.colorDot,
+                        {
+                          backgroundColor: c,
+                          borderColor: coverColor === c ? colors.text.primary : 'transparent',
+                          borderWidth: coverColor === c ? 2.5 : 0,
+                        },
+                      ]}
+                      onPress={() => setCoverColor(c)}
+                    />
+                  ))}
+                </View>
+                <View style={s.modalActions}>
+                  <TouchableOpacity onPress={() => setShowCreate(false)} style={s.cancelBtn}>
+                    <Text style={[s.cancelText, { color: colors.text.secondary }]}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={handleCreate}
+                    disabled={creating || !name.trim()}
                     style={[
-                      s.chipText,
-                      { color: groupType === gt ? colors.accent.primary : colors.text.secondary },
+                      s.confirmBtn,
+                      { backgroundColor: name.trim() ? colors.accent.primary : colors.bg.tertiary },
                     ]}
                   >
-                    {gt}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                    <Text style={s.confirmText}>{creating ? 'Creating...' : 'Create'}</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
-            <Text style={[s.label, { color: colors.text.secondary }]}>Icon</Text>
-            <View style={s.chipRow}>
-              {ICONS.map((ic) => (
-                <TouchableOpacity
-                  key={ic}
-                  style={[
-                    s.iconChip,
-                    {
-                      backgroundColor:
-                        icon === ic ? `${colors.accent.primary}20` : colors.bg.tertiary,
-                      borderColor: icon === ic ? colors.accent.primary : colors.border.subtle,
-                    },
-                  ]}
-                  onPress={() => setIcon(ic)}
-                >
-                  <Ionicons
-                    name={ic as any}
-                    size={18}
-                    color={icon === ic ? colors.accent.primary : colors.text.secondary}
-                  />
-                </TouchableOpacity>
-              ))}
-            </View>
-            <Text style={[s.label, { color: colors.text.secondary }]}>Color</Text>
-            <View style={s.chipRow}>
-              {PRESET_COLORS.map((c) => (
-                <TouchableOpacity
-                  key={c}
-                  style={[
-                    s.colorDot,
-                    {
-                      backgroundColor: c,
-                      borderColor: coverColor === c ? colors.text.primary : 'transparent',
-                      borderWidth: coverColor === c ? 2.5 : 0,
-                    },
-                  ]}
-                  onPress={() => setCoverColor(c)}
-                />
-              ))}
-            </View>
-            <View style={s.modalActions}>
-              <TouchableOpacity onPress={() => setShowCreate(false)} style={s.cancelBtn}>
-                <Text style={[s.cancelText, { color: colors.text.secondary }]}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleCreate}
-                disabled={creating || !name.trim()}
-                style={[
-                  s.confirmBtn,
-                  { backgroundColor: name.trim() ? colors.accent.primary : colors.bg.tertiary },
-                ]}
-              >
-                <Text style={s.confirmText}>{creating ? 'Creating...' : 'Create'}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+          )}
         </View>
-      )}
-    </View>
+      </KeyboardAvoidingContainer>
+    </PageContainer>
   );
 }
 
