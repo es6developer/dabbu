@@ -109,11 +109,6 @@ function SettingsNavigator() {
         options={{ title: 'Profile' }}
       />
       <SettingsStack.Screen
-        name="BillingHistory"
-        component={BillingHistoryScreen}
-        options={{ title: 'Billing History' }}
-      />
-      <SettingsStack.Screen
         name="Security"
         component={SecurityScreen}
         options={{ title: 'Security' }}
@@ -121,6 +116,11 @@ function SettingsNavigator() {
       <SettingsStack.Screen
         name="Premium"
         component={PremiumScreen}
+        options={{ headerShown: false }}
+      />
+      <SettingsStack.Screen
+        name="BillingHistory"
+        component={BillingHistoryScreen}
         options={{ headerShown: false }}
       />
       <SettingsStack.Screen name="Theme" component={ThemeScreen} options={{ title: 'Theme' }} />
@@ -148,16 +148,6 @@ function SettingsNavigator() {
         name="Analytics"
         component={AnalyticsScreen}
         options={{ title: 'Reports' }}
-      />
-      <SettingsStack.Screen
-        name="Premium"
-        component={PremiumScreen}
-        options={{ headerShown: false }}
-      />
-      <SettingsStack.Screen
-        name="BillingHistory"
-        component={BillingHistoryScreen}
-        options={{ headerShown: false }}
       />
       <SettingsStack.Screen
         name="CustomiseDashboard"
