@@ -102,7 +102,11 @@ export class PremiumService {
   async isPremium(userId: string): Promise<boolean> {
     const sub = await this.prisma.subscription.findUnique({
       where: { userId },
-      select: { status: true, currentPeriodEnd: true },
+      select: {
+        status: true,
+        currentPeriodEnd: true,
+        plan: { select: { code: true } },
+      },
     });
     if (!sub) {
       return false;
@@ -111,6 +115,9 @@ export class PremiumService {
       return false;
     }
     if (sub.currentPeriodEnd < new Date()) {
+      return false;
+    }
+    if (sub.plan.code === 'FREE') {
       return false;
     }
     return true;

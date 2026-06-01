@@ -134,7 +134,7 @@ export function PremiumScreen() {
     );
   }
 
-  if (currentSub?.status === 'active') {
+  if (currentSub?.status === 'active' && currentSub?.plan?.code !== 'FREE') {
     const plan = currentSub.plan;
     const endDate = new Date(currentSub.currentPeriodEnd).toLocaleDateString('en-IN', {
       day: 'numeric',
