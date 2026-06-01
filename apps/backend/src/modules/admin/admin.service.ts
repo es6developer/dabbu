@@ -1,6 +1,10 @@
 import {
-  Injectable, UnauthorizedException, ConflictException, NotFoundException, Logger,
-      } from '@nestjs/common';
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+  NotFoundException,
+  Logger,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
@@ -12,13 +16,8 @@ import {
   AdminCreateDto,
   ListUsersQueryDto,
   UpdateUserStatusDto,
-  CreateFeatureFlagDto,
   BroadcastNotificationDto,
   ListAuditLogsQueryDto,
-  ListPaymentsQueryDto,
-  CreatePlanDto,
-  UpdatePlanDto,
-  SystemStatsResponse,
 } from './dto';
 
 @Injectable()
@@ -112,7 +111,7 @@ export class AdminService {
     return result;
   }
 
-  async getDashboardStats(): Promise<SystemStatsResponse> {
+  async getDashboardStats() {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -121,31 +120,17 @@ export class AdminService {
       totalUsers,
       activeUsers,
       totalAdmins,
-      activeSubscriptions,
       totalFamilies,
       totalReminders,
       totalTransactions,
-      revenueThisMonth,
-      pendingPayments,
-      totalFeatureFlags,
       newUsersToday,
     ] = await Promise.all([
       this.prisma.user.count({ where: { deletedAt: null } }),
       this.prisma.user.count({ where: { isActive: true, deletedAt: null } }),
       this.prisma.adminUser.count(),
-      this.prisma.subscription.count({ where: { status: 'active' } }),
       this.prisma.family.count({ where: { isActive: true } }),
       this.prisma.reminder.count(),
       this.prisma.transaction.count({ where: { deletedAt: null } }),
-      this.prisma.payment.aggregate({
-        where: {
-          status: 'completed',
-          paidAt: { gte: startOfMonth },
-        },
-        _sum: { amount: true },
-      }),
-      this.prisma.payment.count({ where: { status: 'pending' } }),
-      this.prisma.featureFlag.count(),
       this.prisma.user.count({
         where: {
           createdAt: { gte: startOfToday },
@@ -158,14 +143,13 @@ export class AdminService {
       totalUsers,
       activeUsers,
       totalAdmins,
-      activeSubscriptions,
       totalFamilies,
       totalReminders,
       totalTransactions,
-      revenueThisMonth: revenueThisMonth._sum.amount?.toNumber() ?? 0,
-      pendingPayments,
-      totalFeatureFlags,
       newUsersToday,
+      activeSubscriptions: await this.prisma.subscription
+        .count({ where: { status: 'active' } })
+        .catch(() => 0),
     };
   }
 
@@ -184,8 +168,11 @@ export class AdminService {
       ];
     }
 
-    if (query.status === 'active') where.isActive = true;
-    else if (query.status === 'inactive') where.isActive = false;
+    if (query.status === 'active') {
+      where.isActive = true;
+    } else if (query.status === 'inactive') {
+      where.isActive = false;
+    }
 
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
@@ -243,8 +230,6 @@ export class AdminService {
             reminders: true,
             recurringReminders: true,
             transactions: true,
-            payments: true,
-            invoices: true,
             familyMemberships: true,
             notifications: true,
           },
@@ -313,10 +298,6 @@ export class AdminService {
       include: {
         plan: true,
         payments: {
-          orderBy: { createdAt: 'desc' },
-          take: 10,
-        },
-        invoices: {
           orderBy: { createdAt: 'desc' },
           take: 10,
         },
@@ -406,140 +387,21 @@ export class AdminService {
     return { message: 'Family deleted successfully' };
   }
 
-  async listSubscriptions(page = 1, limit = 20) {
-    const skip = (page - 1) * limit;
-
-    const [subscriptions, total] = await Promise.all([
-      this.prisma.subscription.findMany({
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          plan: { select: { id: true, name: true, price: true, currency: true, interval: true } },
-          user: { select: { id: true, email: true, firstName: true, lastName: true } },
-        },
-      }),
-      this.prisma.subscription.count(),
-    ]);
-
-    return {
-      data: subscriptions,
-      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
-    };
-  }
-
-  async getSubscriptionStats() {
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-    const [
-      totalSubscriptions,
-      activeSubscriptions,
-      cancelledSubscriptions,
-      expiredSubscriptions,
-      trialSubscriptions,
-      pastDueSubscriptions,
-      planDistribution,
-      totalRevenue,
-      revenueThisMonth,
-    ] = await Promise.all([
-      this.prisma.subscription.count(),
-      this.prisma.subscription.count({ where: { status: 'active' } }),
-      this.prisma.subscription.count({ where: { status: 'cancelled' } }),
-      this.prisma.subscription.count({ where: { status: 'expired' } }),
-      this.prisma.subscription.count({ where: { status: { in: ['trial', 'active'] }, trialEndsAt: { not: null } } }),
-      this.prisma.subscription.count({ where: { status: 'past_due' } }),
-      this.prisma.subscriptionPlan.findMany({
-        select: {
-          id: true,
-          name: true,
-          price: true,
-          _count: { select: { subscriptions: true } },
-        },
-      }),
-      this.prisma.payment.aggregate({
-        where: { status: 'completed' },
-        _sum: { amount: true },
-      }),
-      this.prisma.payment.aggregate({
-        where: { status: 'completed', paidAt: { gte: startOfMonth } },
-        _sum: { amount: true },
-      }),
-    ]);
-
-    const activeSubsWithPlans = await this.prisma.subscription.findMany({
-      where: { status: 'active' },
-      include: { plan: { select: { price: true, interval: true, currency: true } } },
-    });
-
-    const mrr = activeSubsWithPlans.reduce((sum, sub) => {
-      const price = sub.plan.price.toNumber();
-      const monthly = sub.plan.interval === 'yearly' ? price / 12 : price;
-      return sum + monthly;
-    }, 0);
-
-    const totalPaid = await this.prisma.payment.count({ where: { status: 'completed' } });
-    const churnRate = totalPaid > 0 ? (cancelledSubscriptions / totalPaid) * 100 : 0;
-
-    return {
-      totalSubscriptions,
-      activeSubscriptions,
-      cancelledSubscriptions,
-      expiredSubscriptions,
-      trialSubscriptions,
-      pastDueSubscriptions,
-      planDistribution: planDistribution.map((p) => ({
-        id: p.id,
-        name: p.name,
-        price: p.price.toNumber(),
-        subscriberCount: p._count.subscriptions,
-      })),
-      mrr: Math.round(mrr * 100) / 100,
-      arr: Math.round(mrr * 12 * 100) / 100,
-      totalRevenue: totalRevenue._sum.amount?.toNumber() ?? 0,
-      revenueThisMonth: revenueThisMonth._sum.amount?.toNumber() ?? 0,
-      churnRate: Math.round(churnRate * 100) / 100,
-    };
-  }
-
-  async listPayments(query: ListPaymentsQueryDto) {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 20;
-    const skip = (page - 1) * limit;
-
-    const where: any = {};
-    if (query.status) where.status = query.status;
-    if (query.gateway) where.gateway = query.gateway;
-
-    const [payments, total] = await Promise.all([
-      this.prisma.payment.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          user: { select: { id: true, email: true, firstName: true, lastName: true } },
-          subscription: { include: { plan: { select: { name: true } } } },
-        },
-      }),
-      this.prisma.payment.count({ where }),
-    ]);
-
-    return {
-      data: payments,
-      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
-    };
-  }
-
   async listAuditLogs(query: ListAuditLogsQueryDto) {
     const page = query.page ?? 1;
     const limit = query.limit ?? 50;
     const skip = (page - 1) * limit;
 
     const where: any = {};
-    if (query.adminId) where.adminId = query.adminId;
-    if (query.action) where.action = query.action;
-    if (query.entity) where.entity = query.entity;
+    if (query.adminId) {
+      where.adminId = query.adminId;
+    }
+    if (query.action) {
+      where.action = query.action;
+    }
+    if (query.entity) {
+      where.entity = query.entity;
+    }
 
     const [logs, total] = await Promise.all([
       this.prisma.auditLog.findMany({
@@ -561,163 +423,6 @@ export class AdminService {
     };
   }
 
-  async listPlans() {
-    return this.prisma.subscriptionPlan.findMany({
-      orderBy: { sortOrder: 'asc' },
-    });
-  }
-
-  async createPlan(dto: CreatePlanDto, adminId: string) {
-    const plan = await this.prisma.subscriptionPlan.create({
-      data: {
-        name: dto.name,
-        description: dto.description || null,
-        price: dto.price,
-        currency: dto.currency || 'INR',
-        interval: dto.interval || 'monthly',
-        features: (dto.features as any) || Prisma.JsonNull,
-        maxAccounts: dto.maxAccounts ?? 3,
-        maxCategories: dto.maxCategories ?? 20,
-        maxBudgets: dto.maxBudgets ?? 10,
-        maxBills: dto.maxBills ?? 20,
-        maxGoals: dto.maxGoals ?? 10,
-        maxInvestments: dto.maxInvestments ?? 5,
-        maxFamilyMembers: dto.maxFamilyMembers ?? 0,
-        isActive: dto.isActive ?? true,
-        sortOrder: dto.sortOrder ?? 0,
-      },
-    });
-
-    await this.createAuditLog({
-      adminId,
-      action: 'created',
-      entity: 'plan',
-      entityId: plan.id,
-      description: `Created plan: ${plan.name}`,
-      ipAddress: null,
-    });
-
-    return plan;
-  }
-
-  async updatePlan(id: string, dto: UpdatePlanDto, adminId: string) {
-    const plan = await this.prisma.subscriptionPlan.findUnique({ where: { id } });
-    if (!plan) {
-      throw new NotFoundException('Plan not found');
-    }
-
-    const updated = await this.prisma.subscriptionPlan.update({
-      where: { id },
-      data: {
-        ...(dto.name !== undefined && { name: dto.name }),
-        ...(dto.description !== undefined && { description: dto.description }),
-        ...(dto.price !== undefined && { price: dto.price }),
-        ...(dto.currency !== undefined && { currency: dto.currency }),
-        ...(dto.interval !== undefined && { interval: dto.interval }),
-        ...(dto.features !== undefined && { features: dto.features as any }),
-        ...(dto.maxAccounts !== undefined && { maxAccounts: dto.maxAccounts }),
-        ...(dto.maxCategories !== undefined && { maxCategories: dto.maxCategories }),
-        ...(dto.maxBudgets !== undefined && { maxBudgets: dto.maxBudgets }),
-        ...(dto.maxBills !== undefined && { maxBills: dto.maxBills }),
-        ...(dto.maxGoals !== undefined && { maxGoals: dto.maxGoals }),
-        ...(dto.maxInvestments !== undefined && { maxInvestments: dto.maxInvestments }),
-        ...(dto.maxFamilyMembers !== undefined && { maxFamilyMembers: dto.maxFamilyMembers }),
-        ...(dto.isActive !== undefined && { isActive: dto.isActive }),
-        ...(dto.sortOrder !== undefined && { sortOrder: dto.sortOrder }),
-      },
-    });
-
-    await this.createAuditLog({
-      adminId,
-      action: 'updated',
-      entity: 'plan',
-      entityId: id,
-      description: `Updated plan: ${updated.name}`,
-      ipAddress: null,
-    });
-
-    return updated;
-  }
-
-  async deletePlan(id: string, adminId: string) {
-    const plan = await this.prisma.subscriptionPlan.findUnique({ where: { id } });
-    if (!plan) {
-      throw new NotFoundException('Plan not found');
-    }
-
-    await this.prisma.subscriptionPlan.delete({ where: { id } });
-
-    await this.createAuditLog({
-      adminId,
-      action: 'deleted',
-      entity: 'plan',
-      entityId: id,
-      description: `Deleted plan: ${plan.name}`,
-      ipAddress: null,
-    });
-
-    return { message: 'Plan deleted successfully' };
-  }
-
-  async createFeatureFlag(dto: CreateFeatureFlagDto, adminId: string) {
-    const existing = await this.prisma.featureFlag.findUnique({
-      where: { name: dto.name },
-    });
-    if (existing) {
-      throw new ConflictException(`Feature flag "${dto.name}" already exists`);
-    }
-
-    const flag = await this.prisma.featureFlag.create({
-      data: {
-        name: dto.name,
-        description: dto.description || null,
-        isEnabled: dto.isEnabled ?? false,
-        createdBy: adminId,
-        rollouts: Prisma.JsonNull,
-      },
-    });
-
-    await this.createAuditLog({
-      adminId,
-      action: 'created',
-      entity: 'feature_flag',
-      entityId: flag.id,
-      description: `Created feature flag: ${flag.name}`,
-      ipAddress: null,
-    });
-
-    return flag;
-  }
-
-  async listFeatureFlags() {
-    return this.prisma.featureFlag.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
-  }
-
-  async toggleFeatureFlag(id: string, adminId: string) {
-    const flag = await this.prisma.featureFlag.findUnique({ where: { id } });
-    if (!flag) {
-      throw new NotFoundException('Feature flag not found');
-    }
-
-    const updated = await this.prisma.featureFlag.update({
-      where: { id },
-      data: { isEnabled: !flag.isEnabled },
-    });
-
-    await this.createAuditLog({
-      adminId,
-      action: 'updated',
-      entity: 'feature_flag',
-      entityId: id,
-      description: `Toggled feature flag "${flag.name}" to ${updated.isEnabled}`,
-      ipAddress: null,
-    });
-
-    return updated;
-  }
-
   async broadcastNotification(dto: BroadcastNotificationDto, adminId: string) {
     const users = await this.prisma.user.findMany({
       where: { isActive: true, deletedAt: null },
@@ -729,15 +434,16 @@ export class AdminService {
     let sentCount = 0;
     for (const user of users) {
       try {
-        await this.notificationService.sendPush(
-          user.id,
-          dto.title,
-          dto.message,
-          { type: dto.type || 'system', broadcastBy: adminId },
-        );
+        await this.notificationService.sendPush(user.id, dto.title, dto.message, {
+          type: dto.type || 'system',
+          broadcastBy: adminId,
+        });
         sentCount++;
       } catch (error) {
-        this.logger.error(`Failed to send broadcast to user ${user.id}`, error instanceof Error ? error.stack : error);
+        this.logger.error(
+          `Failed to send broadcast to user ${user.id}`,
+          error instanceof Error ? error.stack : error,
+        );
       }
     }
 

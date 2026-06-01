@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "tsc -p tsconfig.vercel.json; prisma generate",
-    "vercel-build": "tsc -p tsconfig.vercel.json; prisma generate; prisma db push --accept-data-loss || true",
+    "vercel-build": "tsc -p tsconfig.vercel.json; prisma generate; prisma db push --accept-data-loss || true; ts-node prisma/seed-prod.ts || true",
     "dev": "nest start --watch",
     "start": "nest start",
     "start:prod": "node dist/main",

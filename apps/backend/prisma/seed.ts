@@ -201,9 +201,9 @@ async function main() {
   await prisma.$transaction([
     prisma.auditLog.deleteMany(),
     prisma.adminUser.deleteMany(),
-    prisma.quotaTracking.deleteMany(),
-    prisma.featureFlag.deleteMany(),
     prisma.webhookEvent.deleteMany(),
+    prisma.premiumEntitlement.deleteMany(),
+    prisma.paymentTransaction.deleteMany(),
     prisma.notificationLog.deleteMany(),
     prisma.notification.deleteMany(),
     prisma.smsDetection.deleteMany(),
@@ -221,9 +221,6 @@ async function main() {
     prisma.bill.deleteMany(),
     prisma.budget.deleteMany(),
     prisma.transaction.deleteMany(),
-    prisma.paymentMethod.deleteMany(),
-    prisma.invoice.deleteMany(),
-    prisma.payment.deleteMany(),
     prisma.account.deleteMany(),
     prisma.session.deleteMany(),
     prisma.device.deleteMany(),
@@ -241,181 +238,138 @@ async function main() {
   const plans = [
     {
       name: 'Free',
-      description: 'Start with expense tracking, basic reports, groups and 5 OCR scans every month.',
+      code: 'FREE',
+      description: 'Start with expense tracking, basic reports, and groups.',
       price: 0,
       currency: 'INR',
       interval: 'monthly',
-      maxAccounts: 2,
-      maxFamilyMembers: 0,
-      maxCategories: 10,
-      maxBudgets: 2,
-      maxBills: 5,
-      maxGoals: 2,
-      maxInvestments: 0,
+      intervalCount: 1,
+      popular: false,
+      bestValue: false,
+      features: [
+        'expense_income_tracking',
+        'basic_reports',
+        'groups',
+        'group_limit_5',
+        'reminders',
+        'ocr_scans_per_month_5',
+      ],
       isActive: true,
-      isDefault: true,
       sortOrder: 0,
-      features: {
-        expense_income_tracking: true,
-        basic_reports: true,
-        groups: true,
-        group_limit: 5,
-        group_join_limit: 10,
-        ocr_scans_per_month: 5,
-        reminders: true,
-        custom_categories: false,
-        family_sharing: false,
-        advanced_analytics: false,
-        priority_support: false,
-        unlimited_accounts: false,
-        export_data: false,
-      },
     },
-
     {
-      name: 'Premium',
-      description: 'Unlock full premium access with unlimited reports, groups, insights and support.',
+      name: 'Premium Monthly',
+      code: 'MONTHLY_89',
+      description: 'Full premium access with unlimited reports, groups, insights and support.',
       price: 89,
       currency: 'INR',
       interval: 'monthly',
-      maxAccounts: 50,
-      maxFamilyMembers: 20,
-      maxCategories: 200,
-      maxBudgets: 100,
-      maxBills: 200,
-      maxGoals: 100,
-      maxInvestments: 50,
+      intervalCount: 1,
+      popular: false,
+      bestValue: false,
+      features: [
+        'unlimited_groups',
+        'unlimited_ocr',
+        'advanced_analytics',
+        'family_sharing',
+        'custom_categories',
+        'priority_support',
+        'export_data',
+        'unlimited_accounts',
+        'budget_forecasting',
+        'ai_insights',
+        'investments',
+      ],
       isActive: true,
-      isDefault: false,
       sortOrder: 1,
-      features: {
-        expense_income_tracking: true,
-        advanced_reports: true,
-        smart_alerts: true,
-        unlimited_groups: true,
-        unlimited_members: true,
-        ocr_scans_per_month: 50,
-        family_sharing: true,
-        custom_categories: true,
-        analytics_dashboard: true,
-        priority_support: true,
-        export_data: true,
-        unlimited_accounts: true,
-        budget_forecasting: true,
-      },
     },
-
     {
-      name: 'Premium',
+      name: 'Premium Quarterly',
+      code: 'QUARTERLY_219',
       description: 'Most popular quarterly plan with full premium benefits at a great price.',
       price: 219,
       currency: 'INR',
       interval: 'quarterly',
-      maxAccounts: 50,
-      maxFamilyMembers: 20,
-      maxCategories: 200,
-      maxBudgets: 100,
-      maxBills: 200,
-      maxGoals: 100,
-      maxInvestments: 50,
+      intervalCount: 1,
+      popular: true,
+      bestValue: false,
+      features: [
+        'unlimited_groups',
+        'unlimited_ocr',
+        'advanced_analytics',
+        'family_sharing',
+        'custom_categories',
+        'priority_support',
+        'export_data',
+        'unlimited_accounts',
+        'budget_forecasting',
+        'ai_insights',
+        'investments',
+      ],
       isActive: true,
-      isDefault: false,
       sortOrder: 2,
-      features: {
-        expense_income_tracking: true,
-        advanced_reports: true,
-        smart_alerts: true,
-        unlimited_groups: true,
-        unlimited_members: true,
-        ocr_scans_per_month: 50,
-        family_sharing: true,
-        custom_categories: true,
-        analytics_dashboard: true,
-        priority_support: true,
-        export_data: true,
-        unlimited_accounts: true,
-        budget_forecasting: true,
-      },
     },
-
     {
-      name: 'Premium',
-      description: 'Six-month premium access with the same unlimited savings and more control.',
+      name: 'Premium Half-Yearly',
+      code: 'HALFYEARLY_389',
+      description: 'Six months of premium access with maximum savings and full control.',
       price: 389,
       currency: 'INR',
-      interval: 'semiannual',
-      maxAccounts: 50,
-      maxFamilyMembers: 20,
-      maxCategories: 200,
-      maxBudgets: 100,
-      maxBills: 200,
-      maxGoals: 100,
-      maxInvestments: 50,
+      interval: 'halfyearly',
+      intervalCount: 1,
+      popular: false,
+      bestValue: false,
+      features: [
+        'unlimited_groups',
+        'unlimited_ocr',
+        'advanced_analytics',
+        'family_sharing',
+        'custom_categories',
+        'priority_support',
+        'export_data',
+        'unlimited_accounts',
+        'budget_forecasting',
+        'ai_insights',
+        'investments',
+      ],
       isActive: true,
-      isDefault: false,
       sortOrder: 3,
-      features: {
-        expense_income_tracking: true,
-        advanced_reports: true,
-        smart_alerts: true,
-        unlimited_groups: true,
-        unlimited_members: true,
-        ocr_scans_per_month: 50,
-        family_sharing: true,
-        custom_categories: true,
-        analytics_dashboard: true,
-        priority_support: true,
-        export_data: true,
-        unlimited_accounts: true,
-        budget_forecasting: true,
-      },
     },
-
     {
-      name: 'Premium',
-      description: 'Best annual value with unlimited premium tools, full support and long-term savings.',
+      name: 'Premium Yearly',
+      code: 'YEARLY_699',
+      description:
+        'Best annual value with unlimited premium tools, full support and long-term savings.',
       price: 699,
       currency: 'INR',
       interval: 'yearly',
-      maxAccounts: 50,
-      maxFamilyMembers: 20,
-      maxCategories: 200,
-      maxBudgets: 100,
-      maxBills: 200,
-      maxGoals: 100,
-      maxInvestments: 50,
+      intervalCount: 1,
+      popular: false,
+      bestValue: true,
+      features: [
+        'unlimited_groups',
+        'unlimited_ocr',
+        'advanced_analytics',
+        'family_sharing',
+        'custom_categories',
+        'priority_support',
+        'export_data',
+        'unlimited_accounts',
+        'budget_forecasting',
+        'ai_insights',
+        'investments',
+      ],
       isActive: true,
-      isDefault: false,
       sortOrder: 4,
-      features: {
-        expense_income_tracking: true,
-        advanced_reports: true,
-        smart_alerts: true,
-        unlimited_groups: true,
-        unlimited_members: true,
-        ocr_scans_per_month: 50,
-        family_sharing: true,
-        custom_categories: true,
-        analytics_dashboard: true,
-        priority_support: true,
-        export_data: true,
-        unlimited_accounts: true,
-        budget_forecasting: true,
-      },
     },
   ];
 
   const planRecords: Array<{
     id: string;
     name: string;
+    code: string;
     price: number;
     interval: string;
-    maxAccounts: number;
-    maxCategories: number;
-    maxBudgets: number;
-    maxBills: number;
-    maxGoals: number;
-    maxFamilyMembers: number;
   }> = [];
   for (const p of plans) {
     const rec: any = await prisma.subscriptionPlan.create({ data: p as any });
@@ -485,8 +439,7 @@ async function main() {
   const accountRecords: Array<{ id: string; userId: string; type: string; balance: any }> = [];
 
   const freePlanId = planRecords[0].id;
-  const basicPlanId = planRecords[1].id;
-  const premiumPlanId = planRecords[2].id;
+  const monthlyPremiumPlanId = planRecords[1].id;
 
   const demoUser = await prisma.user.create({
     data: {
@@ -517,7 +470,7 @@ async function main() {
       },
       subscription: {
         create: {
-          planId: premiumPlanId,
+          planId: monthlyPremiumPlanId,
           status: 'active',
           currentPeriodStart: new Date(),
           currentPeriodEnd: new Date(Date.now() + 365 * 86400000),
@@ -707,37 +660,11 @@ async function main() {
   await prisma.adminUser.createMany({ data: adminUsers });
   console.log(`  ✓ ${adminUsers.length} admin user`);
 
-  // ── Feature Flags (names must match mobile FeatureKey) ──
-  const flags = [
-    { name: 'add_expense', description: 'Add Expense', isEnabled: true },
-    { name: 'edit_expense', description: 'Edit Expense', isEnabled: true },
-    { name: 'delete_expense', description: 'Delete Expense', isEnabled: true },
-    { name: 'add_category', description: 'Add Custom Category', isEnabled: true },
-    { name: 'sms_sync', description: 'SMS Auto-sync', isEnabled: true },
-
-    { name: 'analytics', description: 'Advanced Analytics', isEnabled: true },
-    { name: 'recurring_detection', description: 'Recurring Detection', isEnabled: true },
-    { name: 'ai_insights', description: 'AI Insights', isEnabled: true },
-    { name: 'export_data', description: 'Export PDF/Excel', isEnabled: true },
-    { name: 'unlimited_accounts', description: 'Unlimited Accounts', isEnabled: true },
-    { name: 'family_sharing', description: 'Family Sharing', isEnabled: true },
-    { name: 'chat', description: 'Family Chat', isEnabled: true },
-    { name: 'budgets', description: 'Budgets', isEnabled: true },
-    { name: 'bills', description: 'Bills', isEnabled: true },
-    { name: 'goals', description: 'Goals', isEnabled: true },
-    { name: 'investments', description: 'Investments', isEnabled: true },
-  ];
-
-  for (const f of flags) {
-    await prisma.featureFlag.create({ data: f as any });
-  }
-  console.log(`  ✓ ${flags.length} feature flags`);
-
   // ── Webhook events ──
   for (let w = 0; w < 20; w++) {
     await prisma.webhookEvent.create({
       data: {
-        gateway: randomElement(['stripe', 'razorpay']),
+        gateway: 'razorpay',
         eventId: `evt_${crypto.randomBytes(12).toString('hex')}`,
         eventType: randomElement([
           'payment_intent.succeeded',
@@ -820,7 +747,7 @@ async function main() {
   console.log(`   Users: ${userRecords.length}`);
   console.log(`   Admins: 1`);
   console.log(`\n📧 Test credentials:`);
-  console.log(`   User: demo@dabbu.app / TestPass123! (Basic plan - premium)`);
+  console.log(`   User: demo@dabbu.app / TestPass123! (Premium - Monthly)`);
   console.log(`   User: freeuser@dabbu.app / TestPass123! (Free plan)`);
   console.log(`   Admin: admin@dabbu.app / Admin@123\n`);
 }

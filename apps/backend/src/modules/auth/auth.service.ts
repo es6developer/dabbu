@@ -1,5 +1,9 @@
 import {
-  Injectable, UnauthorizedException, ConflictException, BadRequestException, Logger,
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+  BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -56,7 +60,13 @@ export class AuthService {
         },
         subscription: {
           create: {
-            planId: (await this.prisma.subscriptionPlan.findFirst({ where: { isDefault: true } }))?.id || '',
+            planId:
+              (
+                await this.prisma.subscriptionPlan.findFirst({
+                  where: { isActive: true },
+                  orderBy: { sortOrder: 'asc' },
+                })
+              )?.id || '',
             status: 'active',
             currentPeriodStart: new Date(),
             currentPeriodEnd: new Date(Date.now() + 365 * 86400000),
@@ -82,11 +92,15 @@ export class AuthService {
       include: { settings: true, subscription: { include: { plan: true } } },
     });
 
-    if (!user) throw new UnauthorizedException('Invalid email or password');
+    if (!user) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
     if (user.lockoutUntil && user.lockoutUntil > new Date()) {
       throw new UnauthorizedException('Account is temporarily locked. Try again later.');
     }
-    if (!user.isActive) throw new UnauthorizedException('Account is deactivated');
+    if (!user.isActive) {
+      throw new UnauthorizedException('Account is deactivated');
+    }
 
     const isPasswordValid = await bcrypt.compare(dto.password, user.password);
     if (!isPasswordValid) {
@@ -164,7 +178,9 @@ export class AuthService {
         },
       },
     });
-    if (!user) throw new UnauthorizedException('User not found');
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
 
     const { password, ...userWithoutPassword } = user;
     return userWithoutPassword;
@@ -206,13 +222,15 @@ export class AuthService {
 
     let matchedUser: { id: string; email: string } | null = null;
     for (const user of users) {
-      if (user.otpCode && await bcrypt.compare(token, user.otpCode)) {
+      if (user.otpCode && (await bcrypt.compare(token, user.otpCode))) {
         matchedUser = user;
         break;
       }
     }
 
-    if (!matchedUser) throw new BadRequestException('Invalid or expired reset token');
+    if (!matchedUser) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
 
     const hashedPassword = await bcrypt.hash(password, 12);
     await this.prisma.user.update({

@@ -33,7 +33,7 @@ export class ExpenseGroupsService {
       this.prisma.user.findUnique({ where: { id: userId }, select: { role: true } }),
       this.prisma.subscription.findUnique({
         where: { userId },
-        include: { plan: { select: { maxFamilyMembers: true, features: true, name: true } } },
+        include: { plan: { select: { features: true, name: true } } },
       }),
     ]);
 
@@ -46,7 +46,10 @@ export class ExpenseGroupsService {
     if (planName.includes('gold')) {
       return { ...PLAN_LIMITS.gold, tier: 'gold' };
     }
-    if (subscription && (subscription.plan?.maxFamilyMembers > 0 || planName.includes('premium'))) {
+    if (
+      subscription &&
+      (subscription.plan?.name?.toLowerCase().includes('premium') || planName.includes('premium'))
+    ) {
       return { ...PLAN_LIMITS.premium, tier: 'premium' };
     }
     return { ...PLAN_LIMITS.free, tier: 'free' };
@@ -326,9 +329,7 @@ export class ExpenseGroupsService {
       select: { firstName: true, lastName: true, email: true },
     });
     const actorName =
-      `${actor?.firstName || ''} ${actor?.lastName || ''}`.trim() ||
-      actor?.email ||
-      'Someone';
+      `${actor?.firstName || ''} ${actor?.lastName || ''}`.trim() || actor?.email || 'Someone';
 
     await this.notificationService.create({
       userId: addedUserId,

@@ -29,7 +29,6 @@ import {
   SendCoupleInviteDto,
   CreateTripDto,
   AddTripExpenseDto,
-  CreateSubscriptionDto,
   CreateHouseholdBillDto,
   CreateContributionRuleDto,
   CreateSharedGoalDto,
@@ -411,35 +410,6 @@ export class SharedFinanceController {
     @Body() dto: AddTripExpenseDto,
   ) {
     return this.sf.addTripExpense(tripId, userId, dto);
-  }
-
-  // ─── Shared Subscriptions ──────────────────────────────────
-
-  @Post('groups/:groupId/subscriptions')
-  @UseGuards(GroupMemberGuard)
-  @ApiOperation({ summary: 'Create shared subscription' })
-  async createSubscription(
-    @Param('groupId') groupId: string,
-    @CurrentUser('id') userId: string,
-    @Body() dto: CreateSubscriptionDto,
-  ) {
-    return this.sf.createSubscription(groupId, userId, dto);
-  }
-
-  @Get('groups/:groupId/subscriptions')
-  @UseGuards(GroupMemberGuard)
-  @ApiOperation({ summary: 'Get group subscriptions' })
-  async getGroupSubscriptions(@Param('groupId') groupId: string) {
-    return this.sf.getGroupSubscriptions(groupId);
-  }
-
-  @Post('subscriptions/:subscriptionId/mark-paid')
-  @ApiOperation({ summary: 'Mark subscription share as paid' })
-  async markSubscriptionPaid(
-    @Param('subscriptionId') subscriptionId: string,
-    @CurrentUser('id') userId: string,
-  ) {
-    return this.sf.markSubscriptionPaid(subscriptionId, userId);
   }
 
   // ─── Household Bills ───────────────────────────────────────

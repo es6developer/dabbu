@@ -80,8 +80,8 @@ model User {
   reminders          Reminder[]
   recurringReminders RecurringReminder[]
   subscription       Subscription?
-  payments           Payment[]
-  invoices           Invoice[]
+  premiumEntitlements PremiumEntitlement[]
+  paymentTransactions PaymentTransaction[]
   familyMemberships  FamilyMember[]
   chatParticipants   ChatParticipant[]
   sentMessages       ChatMessage[]        @relation("MessageSender")
@@ -92,7 +92,6 @@ model User {
   notificationLogs   NotificationLog[]
   smsDetections      SmsDetection[]
   settings           Settings?
-  quotaTracking      QuotaTracking[]
   auditLogs          AuditLog[]
   accounts           Account[]
   budgets            Budget[]
@@ -100,7 +99,6 @@ model User {
   scannedBills       ScannedBill[]
   goals              Goal[]
   investments        Investment[]
-  paymentMethods     PaymentMethod[]
   createdTasks       SharedTask[]         @relation("TaskCreator")
   assignedTasks      SharedTask[]         @relation("TaskAssignee")
   createdReminders   SharedReminder[]
@@ -117,8 +115,6 @@ model User {
   coupleProfileAsPartner2    CoupleFinanceProfile[] @relation("CouplePartner2")
   coupleFinanceInvites       CoupleFinanceInvite[]  @relation("InviteSender")
   receivedCoupleFinanceInvites CoupleFinanceInvite[] @relation("InviteReceiver")
-  sharedSubscriptions        SharedSubscription[]
-  subscriptionContributions  SubscriptionContribution[]
   tripExpenses               TripExpense[]
   groupChatMessages          GroupChatMessage[]
   groupChatReads             GroupChatRead[]
@@ -158,7 +154,6 @@ model User {
   userBadges                   UserBadge[]
   referralProgramsReferred     ReferralProgram[]
   referralProgramsReferee      ReferralProgram[] @relation("ReferredUser")
-  premiumConversionEvents      PremiumConversionEvent[]
   exportHistories              ExportHistory[]
 
   @@index([email])
@@ -283,150 +278,6 @@ model RecurringReminder {
   @@index([userId, isActive])
   @@index([nextTriggerAt, isActive])
   @@map("recurring_reminders")
-}
-
-// ─── SUBSCRIPTION PLANS ────────────────────────────────────
-// Available subscription tiers and pricing
-model SubscriptionPlan {
-  id            String   @id @default(uuid()) @db.VarChar(36)
-  name          String   @db.VarChar(100)
-  description   String?  @db.Text
-  price         Decimal  @db.Decimal(10, 2)
-  currency      String   @default("USD") @db.VarChar(10)
-  interval      String   @db.VarChar(20)  // monthly, yearly
-  features      Json     @db.Json
-  maxAccounts   Int      @default(3)
-  maxCategories Int      @default(20)
-  maxBudgets    Int      @default(10)
-  maxBills      Int      @default(20)
-  maxGoals      Int      @default(10)
-  maxInvestments Int     @default(5)
-  maxFamilyMembers Int   @default(0)
-  isActive      Boolean  @default(true)
-  isDefault     Boolean  @default(false)
-  sortOrder     Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  // Relations
-  subscriptions Subscription[]
-
-  @@index([isActive, sortOrder])
-  @@index([isDefault])
-  @@map("subscription_plans")
-}
-
-// ─── SUBSCRIPTIONS ─────────────────────────────────────────
-// User subscription assignments
-model Subscription {
-  id              String    @id @default(uuid()) @db.VarChar(36)
-  userId          String    @db.VarChar(36)
-  planId          String    @db.VarChar(36)
-  status          String    @default("active") @db.VarChar(20)  // active, cancelled, expired, trial, past_due
-  trialEndsAt     DateTime?
-  currentPeriodStart DateTime
-  currentPeriodEnd   DateTime
-  cancelledAt     DateTime?
-  cancelAtPeriodEnd Boolean  @default(false)
-
-  // Stripe fields
-  stripeSubscriptionId  String?  @db.VarChar(255)
-  stripePriceId         String?  @db.VarChar(255)
-
-  // Razorpay fields
-  razorpaySubscriptionId String? @db.VarChar(255)
-  razorpayPlanId         String? @db.VarChar(255)
-
-  metadata        Json?     @db.Json
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  // Relations
-  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan       SubscriptionPlan   @relation(fields: [planId], references: [id])
-  payments   Payment[]
-  invoices   Invoice[]
-
-  @@unique([userId])
-  @@index([planId])
-  @@index([status, currentPeriodEnd])
-  @@index([stripeSubscriptionId])
-  @@index([razorpaySubscriptionId])
-  @@map("subscriptions")
-}
-
-// ─── PAYMENTS ──────────────────────────────────────────────
-// Payment transactions for subscriptions
-model Payment {
-  id              String    @id @default(uuid()) @db.VarChar(36)
-  userId          String    @db.VarChar(36)
-  subscriptionId  String    @db.VarChar(36)
-  amount          Decimal   @db.Decimal(10, 2)
-  currency        String    @default("USD") @db.VarChar(10)
-  status          String    @db.VarChar(20)  // pending, completed, failed, refunded, partial_refund
-  paymentMethod   String?   @db.VarChar(50)  // card, upi, netbanking, wallet, stripe, razorpay
-  gateway         String?   @db.VarChar(20)  // stripe, razorpay
-
-  // Stripe fields
-  stripePaymentIntentId    String?  @db.VarChar(255)
-  stripePaymentMethodId    String?  @db.VarChar(255)
-  stripeChargeId           String?  @db.VarChar(255)
-
-  // Razorpay fields
-  razorpayPaymentId        String?  @db.VarChar(255)
-  razorpayOrderId          String?  @db.VarChar(255)
-  razorpaySignature        String?  @db.VarChar(255)
-
-  receiptUrl      String?   @db.VarChar(500)
-  failureMessage  String?   @db.Text
-  failureCode     String?   @db.VarChar(100)
-  paidAt          DateTime?
-  refundedAt      DateTime?
-  refundAmount    Decimal?  @db.Decimal(10, 2)
-  metadata        Json?     @db.Json
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  // Relations
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subscription Subscription @relation(fields: [subscriptionId], references: [id])
-
-  @@index([userId, status])
-  @@index([subscriptionId])
-  @@index([stripePaymentIntentId])
-  @@index([razorpayPaymentId])
-  @@index([razorpayOrderId])
-  @@index([status, createdAt])
-  @@map("payments")
-}
-
-// ─── INVOICES ──────────────────────────────────────────────
-// Generated invoices for billing
-model Invoice {
-  id              String    @id @default(uuid()) @db.VarChar(36)
-  userId          String    @db.VarChar(36)
-  subscriptionId  String    @db.VarChar(36)
-  invoiceNumber   String    @unique @db.VarChar(50)
-  amount          Decimal   @db.Decimal(10, 2)
-  currency        String    @default("USD") @db.VarChar(10)
-  status          String    @db.VarChar(20)  // draft, sent, paid, overdue, cancelled
-  dueDate         DateTime
-  paidAt          DateTime?
-  pdfUrl          String?   @db.VarChar(500)
-  lineItems       Json      @db.Json
-  metadata        Json?     @db.Json
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  // Relations
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subscription Subscription @relation(fields: [subscriptionId], references: [id])
-
-  @@index([userId, status])
-  @@index([subscriptionId])
-  @@index([invoiceNumber])
-  @@index([dueDate, status])
-  @@map("invoices")
 }
 
 // ─── FAMILIES ──────────────────────────────────────────────
@@ -986,113 +837,6 @@ model Settings {
   @@map("settings")
 }
 
-// ─── FEATURE FLAGS ─────────────────────────────────────────
-// Feature flags for gradual rollout
-model FeatureFlag {
-  id          String   @id @default(uuid()) @db.VarChar(36)
-  name        String   @unique @db.VarChar(100)
-  description String?  @db.Text
-  isEnabled   Boolean  @default(false)
-  rollouts    Json?    @db.Json     // { "percentage": 50, "userIds": [...], "plans": [...] }
-  createdBy   String?  @db.VarChar(36)
-  startsAt    DateTime?
-  endsAt      DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([name])
-  @@index([isEnabled])
-  @@map("feature_flags")
-}
-
-// ─── WEBHOOK EVENTS ────────────────────────────────────────
-// Incoming webhook events from payment gateways
-model WebhookEvent {
-  id            String   @id @default(uuid()) @db.VarChar(36)
-  gateway       String   @db.VarChar(20)               // stripe, razorpay
-  eventId       String   @db.VarChar(255)               // Gateway's event ID
-  eventType     String   @db.VarChar(100)               // e.g., invoice.paid, payment_intent.succeeded
-  status        String   @default("pending") @db.VarChar(20)  // pending, processed, failed
-  requestBody   Json     @db.Json
-  responseStatus Int?    @default(200)
-  errorMessage  String?  @db.Text
-  processedAt   DateTime?
-  createdAt     DateTime @default(now())
-
-  @@unique([gateway, eventId])
-  @@index([gateway, status])
-  @@index([eventType, createdAt])
-  @@index([status, createdAt])
-  @@map("webhook_events")
-}
-
-// ─── PAYMENT METHODS ───────────────────────────────────────
-// Saved payment methods for users
-model PaymentMethod {
-  id              String    @id @default(uuid()) @db.VarChar(36)
-  userId          String    @db.VarChar(36)
-  gateway         String    @db.VarChar(20)               // stripe, razorpay
-  type            String    @db.VarChar(20)               // card, upi, netbanking, wallet
-  isDefault       Boolean   @default(false)
-
-  // Stripe fields
-  stripePaymentMethodId String? @db.VarChar(255)
-
-  // Razorpay fields
-  razorpayInstrumentId  String? @db.VarChar(255)
-  razorpayTokenId       String? @db.VarChar(255)
-
-  // Card details (masked)
-  lastFourDigits  String?   @db.VarChar(4)
-  cardBrand       String?   @db.VarChar(20)              // visa, mastercard, amex, rupay
-  expMonth        Int?
-  expYear         Int?
-  cardHolderName  String?   @db.VarChar(255)
-
-  // UPI details
-  upiHandle       String?   @db.VarChar(100)
-
-  // Bank details
-  bankName        String?   @db.VarChar(100)
-
-  isExpired       Boolean   @default(false)
-  billingAddress  Json?     @db.Json
-  metadata        Json?     @db.Json
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, isDefault])
-  @@index([userId, gateway])
-  @@index([stripePaymentMethodId])
-  @@index([razorpayInstrumentId])
-  @@map("payment_methods")
-}
-
-// ─── QUOTA TRACKING ────────────────────────────────────────
-// Usage quota tracking per user
-model QuotaTracking {
-  id          String   @id @default(uuid()) @db.VarChar(36)
-  userId      String   @db.VarChar(36)
-  resource    String   @db.VarChar(50)   // accounts, categories, budgets, bills, goals, investments, family_members
-  used        Int      @default(0)
-  limit       Int      @default(0)
-  periodStart DateTime @db.Date
-  periodEnd   DateTime @db.Date
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, resource, periodStart])
-  @@index([userId, resource])
-  @@index([resource, periodStart, periodEnd])
-  @@map("quota_tracking")
-}
-
 // ─── ADMIN USERS ───────────────────────────────────────────
 // Administrative users with elevated privileges
 model AdminUser {
@@ -1286,7 +1030,6 @@ model SharedGroup {
   householdBills     HouseholdBill[]
   trip               TripGroup?
   coupleProfile      CoupleFinanceProfile?
-  sharedSubscriptions SharedSubscription[]
   lifecycleEvents    GroupLifecycleEvent[]
   memberRemovalLogs  MemberRemovalLog[]
   reimbursementLogs  ReimbursementLog[]
@@ -1561,45 +1304,6 @@ model TripExpense {
 
   @@index([tripId, category])
   @@map("trip_expenses")
-}
-
-model SharedSubscription {
-  id            String   @id @default(uuid()) @db.VarChar(36)
-  groupId       String   @db.VarChar(36)
-  name          String   @db.VarChar(255)
-  provider      String   @db.VarChar(100)
-  amount        Decimal  @db.Decimal(15, 2)
-  currency      String   @default("INR") @db.VarChar(10)
-  billingCycle  String   @default("monthly") @db.VarChar(20) // monthly, yearly, quarterly
-  nextBilling   DateTime?
-  category      String   @default("ott") @db.VarChar(50) // ott, software, fitness, music, cloud, other
-  paidBy        String   @db.VarChar(36)
-  splitType     String   @default("equal") @db.VarChar(30)
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  group  SharedGroup               @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  payer  User                      @relation(fields: [paidBy], references: [id])
-  shares SubscriptionContribution[]
-
-  @@index([groupId, isActive])
-  @@map("shared_subscriptions")
-}
-
-model SubscriptionContribution {
-  id             String  @id @default(uuid()) @db.VarChar(36)
-  subscriptionId String  @db.VarChar(36)
-  userId         String  @db.VarChar(36)
-  amount         Decimal @db.Decimal(15, 2)
-  isPaid         Boolean @default(false)
-  dueDate        DateTime?
-
-  subscription SharedSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
-  user         User               @relation(fields: [userId], references: [id])
-
-  @@unique([subscriptionId, userId])
-  @@map("subscription_contributions")
 }
 
 model HouseholdBill {
@@ -2352,22 +2056,124 @@ model ExportHistory {
   @@map("export_history")
 }
 
-// ─── Premium Conversion Tracking ──────────────────────────
+// ─── SUBSCRIPTION PLANS ────────────────────────────────────
+model SubscriptionPlan {
+  id            String   @id @default(uuid()) @db.VarChar(36)
+  name          String   @db.VarChar(100)
+  code          String   @unique @db.VarChar(50)
+  description   String?  @db.Text
+  price         Decimal  @db.Decimal(10, 2)
+  currency      String   @default("INR") @db.VarChar(10)
+  interval      String   @db.VarChar(20)
+  intervalCount Int      @default(1)
+  popular       Boolean  @default(false)
+  bestValue     Boolean  @default(false)
+  features      Json     @db.Json
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  razorpayPlanId String? @db.VarChar(255)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-model PremiumConversionEvent {
-  id         String   @id @default(uuid()) @db.VarChar(36)
-  userId     String   @db.VarChar(36)
-  trigger    String   @db.VarChar(50) // large_group, multiple_wallets, ocr_usage, family_analytics, export_usage, referral
-  metadata   Json?    @db.Json
-  bannerShown Boolean @default(false)
-  bannerDismissed Boolean @default(false)
-  trialStarted Boolean @default(false)
-  trialStartedAt DateTime?
-  convertedAt DateTime?
-  createdAt  DateTime @default(now())
+  subscriptions Subscription[]
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([code])
+  @@index([isActive, sortOrder])
+  @@map("subscription_plans")
+}
 
-  @@index([userId, trigger])
-  @@map("premium_conversion_events")
+// ─── SUBSCRIPTIONS ─────────────────────────────────────────
+model Subscription {
+  id              String    @id @default(uuid()) @db.VarChar(36)
+  userId          String    @db.VarChar(36)
+  planId          String    @db.VarChar(36)
+  status          String    @default("active") @db.VarChar(20)
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelledAt     DateTime?
+  cancelAtPeriodEnd Boolean  @default(false)
+  razorpaySubscriptionId String? @db.VarChar(255)
+  razorpayOrderId        String? @db.VarChar(255)
+  metadata        Json?     @db.Json
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan           SubscriptionPlan     @relation(fields: [planId], references: [id])
+  payments       PaymentTransaction[]
+  entitlements   PremiumEntitlement[]
+
+  @@unique([userId])
+  @@index([planId])
+  @@index([status, currentPeriodEnd])
+  @@index([razorpaySubscriptionId])
+  @@map("subscriptions")
+}
+
+// ─── PAYMENT TRANSACTIONS ──────────────────────────────────
+model PaymentTransaction {
+  id                String    @id @default(uuid()) @db.VarChar(36)
+  userId            String    @db.VarChar(36)
+  subscriptionId    String    @db.VarChar(36)
+  amount            Decimal   @db.Decimal(10, 2)
+  currency          String    @default("INR") @db.VarChar(10)
+  status            String    @db.VarChar(20)
+  method            String?   @db.VarChar(50)
+  razorpayPaymentId String?   @db.VarChar(255)
+  razorpayOrderId   String?   @db.VarChar(255)
+  razorpaySignature String?   @db.VarChar(255)
+  invoiceId         String?   @db.VarChar(255)
+  failureReason     String?   @db.Text
+  paidAt            DateTime?
+  refundedAt        DateTime?
+  refundAmount      Decimal?  @db.Decimal(10, 2)
+  metadata          Json?     @db.Json
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription Subscription @relation(fields: [subscriptionId], references: [id])
+
+  @@index([userId, status])
+  @@index([subscriptionId])
+  @@index([razorpayPaymentId])
+  @@index([razorpayOrderId])
+  @@index([status, createdAt])
+  @@map("payment_transactions")
+}
+
+// ─── WEBHOOK EVENTS ────────────────────────────────────────
+model WebhookEvent {
+  id            String   @id @default(uuid()) @db.VarChar(36)
+  eventId       String   @db.VarChar(255)
+  eventType     String   @db.VarChar(100)
+  status        String   @default("pending") @db.VarChar(20)
+  payload       Json     @db.Json
+  errorMessage  String?  @db.Text
+  processedAt   DateTime?
+  createdAt     DateTime @default(now())
+
+  @@unique([eventId])
+  @@index([eventType, createdAt])
+  @@index([status, createdAt])
+  @@map("webhook_events")
+}
+
+// ─── PREMIUM ENTITLEMENTS ──────────────────────────────────
+model PremiumEntitlement {
+  id             String   @id @default(uuid()) @db.VarChar(36)
+  userId         String   @db.VarChar(36)
+  subscriptionId String   @db.VarChar(36)
+  featureKey     String   @db.VarChar(100)
+  enabled        Boolean  @default(true)
+  grantedAt      DateTime @default(now())
+  expiresAt      DateTime?
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription Subscription @relation(fields: [subscriptionId], references: [id])
+
+  @@unique([userId, featureKey])
+  @@index([userId, enabled])
+  @@index([subscriptionId])
+  @@map("premium_entitlements")
 }

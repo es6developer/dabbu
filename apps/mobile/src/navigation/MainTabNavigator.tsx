@@ -16,8 +16,8 @@ import { SmsPermissionScreen } from '../screens/sms/SmsPermissionScreen';
 import { SettingsScreen } from '../screens/settings/SettingsScreen';
 import { ProfileScreen } from '../screens/settings/ProfileScreen';
 import { SecurityScreen } from '../screens/settings/SecurityScreen';
-import { SubscriptionScreen } from '../screens/subscriptions/SubscriptionScreen';
-import { BillingHistoryScreen } from '../screens/subscriptions/BillingHistoryScreen';
+import { PremiumScreen } from '../screens/premium/PremiumScreen';
+import { BillingHistoryScreen } from '../screens/premium/BillingHistoryScreen';
 import { ThemeScreen } from '../screens/settings/ThemeScreen';
 import { CurrencyScreen } from '../screens/settings/CurrencyScreen';
 import { HelpCenterScreen } from '../screens/settings/HelpCenterScreen';
@@ -109,11 +109,6 @@ function SettingsNavigator() {
         options={{ title: 'Profile' }}
       />
       <SettingsStack.Screen
-        name="Subscription"
-        component={SubscriptionScreen}
-        options={{ title: 'Subscription' }}
-      />
-      <SettingsStack.Screen
         name="BillingHistory"
         component={BillingHistoryScreen}
         options={{ title: 'Billing History' }}
@@ -122,6 +117,11 @@ function SettingsNavigator() {
         name="Security"
         component={SecurityScreen}
         options={{ title: 'Security' }}
+      />
+      <SettingsStack.Screen
+        name="Premium"
+        component={PremiumScreen}
+        options={{ headerShown: false }}
       />
       <SettingsStack.Screen name="Theme" component={ThemeScreen} options={{ title: 'Theme' }} />
       <SettingsStack.Screen
@@ -148,6 +148,16 @@ function SettingsNavigator() {
         name="Analytics"
         component={AnalyticsScreen}
         options={{ title: 'Reports' }}
+      />
+      <SettingsStack.Screen
+        name="Premium"
+        component={PremiumScreen}
+        options={{ headerShown: false }}
+      />
+      <SettingsStack.Screen
+        name="BillingHistory"
+        component={BillingHistoryScreen}
+        options={{ headerShown: false }}
       />
       <SettingsStack.Screen
         name="CustomiseDashboard"
@@ -256,17 +266,22 @@ export function MainTabNavigator() {
       return;
     }
     loadFeatures();
-    fetch(`${API_URL}/subscription/current`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
-      .then((r) => r.json())
-      .then((json) => setSubscription(json.data))
-      .catch(() => setSubscription(null));
-    api.get<any>('/user/preferences').then((res) => {
-      if (res?.bottomMenuConfig) {
-        setBottomMenuConfig(res.bottomMenuConfig);
-      }
-    }).catch(() => {});
+    api
+      .get<any>('/premium/check')
+      .then((res) => {
+        if (res?.isPremium) {
+          setSubscription({ plan: { price: 1 } });
+        }
+      })
+      .catch(() => {});
+    api
+      .get<any>('/user/preferences')
+      .then((res) => {
+        if (res?.bottomMenuConfig) {
+          setBottomMenuConfig(res.bottomMenuConfig);
+        }
+      })
+      .catch(() => {});
   }, [accessToken]);
 
   const planPrice: number = Number(subscription?.plan?.price || 0);

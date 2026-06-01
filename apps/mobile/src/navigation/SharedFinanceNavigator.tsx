@@ -9,7 +9,6 @@ import { CoupleFinanceScreen } from '../screens/shared-finance/CoupleFinanceScre
 import { TripDashboardScreen } from '../screens/shared-finance/TripDashboardScreen';
 import { SettlementScreen } from '../screens/shared-finance/SettlementScreen';
 import { GroupChatScreen } from '../screens/shared-finance/GroupChatScreen';
-import { SharedSubscriptionsScreen } from '../screens/shared-finance/SharedSubscriptionsScreen';
 import { AccessExpiredScreen } from '../screens/shared-finance/AccessExpiredScreen';
 import { TripCompletedScreen } from '../screens/shared-finance/TripCompletedScreen';
 import { GroupWalletScreen } from '../screens/shared-finance/GroupWalletScreen';
@@ -71,11 +70,6 @@ export function SharedFinanceNavigator() {
         options={{ title: 'Settlements' }}
       />
       <Stack.Screen name="GroupChat" component={GroupChatScreen} options={{ title: 'Chat' }} />
-      <Stack.Screen
-        name="SharedSubscriptions"
-        component={SharedSubscriptionsScreen}
-        options={{ title: 'Subscriptions' }}
-      />
       <Stack.Screen
         name="AccessExpired"
         component={AccessExpiredScreen}

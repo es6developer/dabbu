@@ -27,8 +27,6 @@ import {
   SendCoupleInviteDto,
   CreateTripDto,
   AddTripExpenseDto,
-  CreateSubscriptionDto,
-  SubscriptionShareDto,
   CreateHouseholdBillDto,
   HouseShareDto,
   CreateContributionRuleDto,
@@ -161,13 +159,6 @@ export class SharedFinanceService {
         },
         contributionRules: {
           where: { isActive: true },
-        },
-        sharedSubscriptions: {
-          where: { isActive: true },
-          include: {
-            shares: true,
-            payer: { select: { id: true, firstName: true, lastName: true } },
-          },
         },
         _count: {
           select: {
@@ -1135,81 +1126,6 @@ export class SharedFinanceService {
     return expense;
   }
 
-  // ─── Shared Subscriptions ──────────────────────────────────
-
-  async createSubscription(groupId: string, userId: string, dto: CreateSubscriptionDto) {
-    const subscription = await this.prisma.sharedSubscription.create({
-      data: {
-        groupId,
-        name: dto.name,
-        provider: dto.provider,
-        amount: dto.amount,
-        currency: dto.currency || 'INR',
-        billingCycle: dto.billingCycle || 'monthly',
-        nextBilling: dto.nextBilling ? new Date(dto.nextBilling) : null,
-        category: dto.category || 'ott',
-        paidBy: dto.paidBy,
-        splitType: dto.splitType || 'equal',
-        shares: {
-          create: dto.shares.map((s) => ({
-            userId: s.userId,
-            amount: s.amount,
-          })),
-        },
-      },
-      include: {
-        shares: {
-          include: {
-            user: { select: { id: true, firstName: true, lastName: true, email: true } },
-          },
-        },
-        payer: { select: { id: true, firstName: true, lastName: true } },
-      },
-    });
-
-    return subscription;
-  }
-
-  async getGroupSubscriptions(groupId: string) {
-    const subscriptions = await this.prisma.sharedSubscription.findMany({
-      where: { groupId, isActive: true },
-      include: {
-        shares: {
-          include: {
-            user: { select: { id: true, firstName: true, lastName: true, email: true } },
-          },
-        },
-        payer: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
-      },
-      orderBy: { nextBilling: 'asc' },
-    });
-
-    return subscriptions.map((sub) => ({
-      ...sub,
-      amount: Number(sub.amount),
-      contributionStatus: sub.shares.map((s) => ({
-        ...s,
-        amount: Number(s.amount),
-      })),
-    }));
-  }
-
-  async markSubscriptionPaid(subscriptionId: string, userId: string) {
-    const share = await this.prisma.subscriptionContribution.findUnique({
-      where: { subscriptionId_userId: { subscriptionId, userId } },
-    });
-    if (!share) {
-      throw new NotFoundException('Share not found');
-    }
-
-    const updated = await this.prisma.subscriptionContribution.update({
-      where: { id: share.id },
-      data: { isPaid: true },
-    });
-
-    return updated;
-  }
-
   // ─── Household ─────────────────────────────────────────────
 
   async createHouseholdBill(groupId: string, userId: string, dto: CreateHouseholdBillDto) {
@@ -1539,7 +1455,7 @@ export class SharedFinanceService {
   // ─── Dashboard ─────────────────────────────────────────────
 
   async getGroupDashboard(groupId: string) {
-    const [group, expenses, settlements, members, goals, subscriptions] = await Promise.all([
+    const [group, expenses, settlements, members, goals] = await Promise.all([
       this.prisma.sharedGroup.findUnique({
         where: { id: groupId },
         include: {
@@ -1574,10 +1490,6 @@ export class SharedFinanceService {
       this.prisma.sharedGoal.findMany({
         where: { groupId },
         include: { contributions: true },
-      }),
-      this.prisma.sharedSubscription.findMany({
-        where: { groupId, isActive: true },
-        include: { shares: true },
       }),
     ]);
 
@@ -1637,12 +1549,6 @@ export class SharedFinanceService {
             totalSpent: Number(group.trip.totalSpent || 0),
           }
         : null,
-      subscriptions: subscriptions.map((s) => ({
-        ...s,
-        amount: Number(s.amount),
-        paidCount: s.shares.filter((sh) => sh.isPaid).length,
-        totalCount: s.shares.length,
-      })),
       goals: goals.map((g) => ({
         ...g,
         targetAmount: Number(g.targetAmount),
@@ -1667,7 +1573,7 @@ export class SharedFinanceService {
       }),
       this.prisma.sharedGroup.findUnique({
         where: { id: groupId },
-        include: { trip: true, coupleProfile: true, sharedSubscriptions: true },
+        include: { trip: true, coupleProfile: true },
       }),
     ]);
 
@@ -3046,32 +2952,6 @@ export class SharedFinanceService {
       signedUp: referrals.filter((r) => r.status === 'signed_up').length,
       rewardDays: referrals.filter((r) => r.rewardClaimed).reduce((s, r) => s + r.rewardDays, 0),
     };
-  }
-
-  // ─── Premium Conversion Tracking ───────────────────────────
-
-  async trackPremiumTrigger(userId: string, trigger: string, metadata?: any) {
-    return this.prisma.premiumConversionEvent.create({
-      data: {
-        userId,
-        trigger,
-        metadata: metadata || {},
-      },
-    });
-  }
-
-  async dismissPremiumBanner(eventId: string) {
-    return this.prisma.premiumConversionEvent.update({
-      where: { id: eventId },
-      data: { bannerDismissed: true },
-    });
-  }
-
-  async startPremiumTrial(eventId: string) {
-    return this.prisma.premiumConversionEvent.update({
-      where: { id: eventId },
-      data: { trialStarted: true, trialStartedAt: new Date() },
-    });
   }
 
   // ─── Analytics ─────────────────────────────────────────────

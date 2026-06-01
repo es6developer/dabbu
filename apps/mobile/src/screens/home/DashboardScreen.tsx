@@ -253,7 +253,7 @@ export function DashboardScreen() {
       meta: 'Plans',
       icon: 'diamond-outline' as IconName,
       color: '#8A5CF6',
-      onPress: () => navigation.navigate('Settings', { screen: 'Subscription' }),
+      onPress: () => navigation.navigate('Settings', { screen: 'Premium' }),
     },
   ];
 
@@ -329,234 +329,244 @@ export function DashboardScreen() {
         </View>
 
         {(!widgetOrder.length || widgetOrder.includes('balance')) && (
-        <LinearGradient
-          colors={isDark ? ['#111827', '#1F2937'] : ['#FFFFFF', '#EEF4FF']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[styles.balancePanel, { borderColor: colors.border.subtle }]}
-        >
-          <View style={styles.panelTop}>
-            <Text style={[styles.panelLabel, { color: colors.text.tertiary }]}>
-              Available balance
-            </Text>
-            <View
-              style={[
-                styles.netBadge,
-                { backgroundColor: netFlow >= 0 ? '#00A86B18' : '#D6455018' },
-              ]}
-            >
-              <Ionicons
-                name={netFlow >= 0 ? 'trending-up' : 'trending-down'}
-                size={13}
-                color={netFlow >= 0 ? '#00A86B' : '#D64550'}
-              />
-              <Text style={[styles.netBadgeText, { color: netFlow >= 0 ? '#00A86B' : '#D64550' }]}>
-                {netFlow >= 0 ? '+' : '-'}
-                {moneyFormat(Math.abs(netFlow))}
+          <LinearGradient
+            colors={isDark ? ['#111827', '#1F2937'] : ['#FFFFFF', '#EEF4FF']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.balancePanel, { borderColor: colors.border.subtle }]}
+          >
+            <View style={styles.panelTop}>
+              <Text style={[styles.panelLabel, { color: colors.text.tertiary }]}>
+                Available balance
               </Text>
+              <View
+                style={[
+                  styles.netBadge,
+                  { backgroundColor: netFlow >= 0 ? '#00A86B18' : '#D6455018' },
+                ]}
+              >
+                <Ionicons
+                  name={netFlow >= 0 ? 'trending-up' : 'trending-down'}
+                  size={13}
+                  color={netFlow >= 0 ? '#00A86B' : '#D64550'}
+                />
+                <Text
+                  style={[styles.netBadgeText, { color: netFlow >= 0 ? '#00A86B' : '#D64550' }]}
+                >
+                  {netFlow >= 0 ? '+' : '-'}
+                  {moneyFormat(Math.abs(netFlow))}
+                </Text>
+              </View>
             </View>
-          </View>
-          <Text style={[styles.balanceAmount, { color: colors.text.primary }]}>
-            {moneyFormat(totalBalance)}
-          </Text>
-          <View style={[styles.progressTrack, { backgroundColor: colors.bg.tertiary }]}>
-            <View
-              style={[
-                styles.progressFill,
-                {
-                  width: `${spendRate}%`,
-                  backgroundColor: spendRate > 80 ? '#D64550' : colors.accent.primary,
-                },
-              ]}
-            />
-          </View>
-          <View style={styles.moneyStats}>
-            <MoneyStat label="Income" value={moneyFormat(monthlyIncome)} color="#00A86B" />
-            <MoneyStat label="Spent" value={moneyFormat(monthlyExpense)} color="#D64550" />
-            <MoneyStat label="Rate" value={`${spendRate}%`} color={colors.text.primary} />
-          </View>
-        </LinearGradient>
+            <Text style={[styles.balanceAmount, { color: colors.text.primary }]}>
+              {moneyFormat(totalBalance)}
+            </Text>
+            <View style={[styles.progressTrack, { backgroundColor: colors.bg.tertiary }]}>
+              <View
+                style={[
+                  styles.progressFill,
+                  {
+                    width: `${spendRate}%`,
+                    backgroundColor: spendRate > 80 ? '#D64550' : colors.accent.primary,
+                  },
+                ]}
+              />
+            </View>
+            <View style={styles.moneyStats}>
+              <MoneyStat label="Income" value={moneyFormat(monthlyIncome)} color="#00A86B" />
+              <MoneyStat label="Spent" value={moneyFormat(monthlyExpense)} color="#D64550" />
+              <MoneyStat label="Rate" value={`${spendRate}%`} color={colors.text.primary} />
+            </View>
+          </LinearGradient>
         )}
 
         {(!widgetOrder.length || widgetOrder.includes('quickActions')) && (
-        <View style={styles.actionRow}>
-          {primaryActions.map((action) => (
-            <TouchableOpacity
-              key={action.label}
-              style={styles.actionItem}
-              onPress={action.onPress}
-              activeOpacity={0.75}
-            >
-              <View style={[styles.actionIcon, { backgroundColor: action.color + '18' }]}>
-                <Ionicons name={action.icon} size={22} color={action.color} />
-              </View>
-              <Text
-                style={[styles.actionLabel, { color: colors.text.secondary }]}
-                numberOfLines={2}
+          <View style={styles.actionRow}>
+            {primaryActions.map((action) => (
+              <TouchableOpacity
+                key={action.label}
+                style={styles.actionItem}
+                onPress={action.onPress}
+                activeOpacity={0.75}
               >
-                {action.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+                <View style={[styles.actionIcon, { backgroundColor: action.color + '18' }]}>
+                  <Ionicons name={action.icon} size={22} color={action.color} />
+                </View>
+                <Text
+                  style={[styles.actionLabel, { color: colors.text.secondary }]}
+                  numberOfLines={2}
+                >
+                  {action.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         )}
 
         {(!widgetOrder.length || widgetOrder.includes('features')) && (
-        <>
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Features</Text>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Settings', { screen: 'Analytics' })}
-          >
-            <Text style={[styles.sectionLink, { color: colors.accent.primary }]}>Reports</Text>
-          </TouchableOpacity>
-        </View>
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Features</Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Settings', { screen: 'Analytics' })}
+              >
+                <Text style={[styles.sectionLink, { color: colors.accent.primary }]}>Reports</Text>
+              </TouchableOpacity>
+            </View>
 
-        <View style={styles.featureGrid}>
-          {featureCards.map((feature) => (
-            <TouchableOpacity
-              key={feature.title}
-              style={[
-                styles.featureCard,
-                { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
-              ]}
-              onPress={feature.onPress}
-              activeOpacity={0.78}
-            >
-              <View style={[styles.featureIcon, { backgroundColor: feature.color + '16' }]}>
-                <Ionicons name={feature.icon} size={20} color={feature.color} />
-              </View>
-              <Text style={[styles.featureTitle, { color: colors.text.primary }]}>
-                {feature.title}
-              </Text>
-              <Text style={[styles.featureMeta, { color: colors.text.tertiary }]} numberOfLines={1}>
-                {feature.meta}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        </>
+            <View style={styles.featureGrid}>
+              {featureCards.map((feature) => (
+                <TouchableOpacity
+                  key={feature.title}
+                  style={[
+                    styles.featureCard,
+                    { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+                  ]}
+                  onPress={feature.onPress}
+                  activeOpacity={0.78}
+                >
+                  <View style={[styles.featureIcon, { backgroundColor: feature.color + '16' }]}>
+                    <Ionicons name={feature.icon} size={20} color={feature.color} />
+                  </View>
+                  <Text style={[styles.featureTitle, { color: colors.text.primary }]}>
+                    {feature.title}
+                  </Text>
+                  <Text
+                    style={[styles.featureMeta, { color: colors.text.tertiary }]}
+                    numberOfLines={1}
+                  >
+                    {feature.meta}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
         )}
 
         {(!widgetOrder.length || widgetOrder.includes('snapshots')) && (
-        <View style={styles.snapshotRow}>
-          <SnapshotCard
-            title="Top Spend"
-            value={topCategory ? moneyFormat(topCategory.amount) : '₹0'}
-            detail={
-              topCategory
-                ? `${topCategory.name} · ${Math.round(topCategory.percentage)}%`
-                : 'No category data'
-            }
-            icon="pie-chart-outline"
-            color="#E85D04"
-            bg={colors.bg.secondary}
-            border={colors.border.subtle}
-            text={colors.text.primary}
-            muted={colors.text.tertiary}
-          />
-          <SnapshotCard
-            title="Tasks"
-            value={`${activeReminders}`}
-            detail={`${data.reminders.length} reminder${data.reminders.length === 1 ? '' : 's'}`}
-            icon="alarm-outline"
-            color="#0B84A5"
-            bg={colors.bg.secondary}
-            border={colors.border.subtle}
-            text={colors.text.primary}
-            muted={colors.text.tertiary}
-          />
-        </View>
+          <View style={styles.snapshotRow}>
+            <SnapshotCard
+              title="Top Spend"
+              value={topCategory ? moneyFormat(topCategory.amount) : '₹0'}
+              detail={
+                topCategory
+                  ? `${topCategory.name} · ${Math.round(topCategory.percentage)}%`
+                  : 'No category data'
+              }
+              icon="pie-chart-outline"
+              color="#E85D04"
+              bg={colors.bg.secondary}
+              border={colors.border.subtle}
+              text={colors.text.primary}
+              muted={colors.text.tertiary}
+            />
+            <SnapshotCard
+              title="Tasks"
+              value={`${activeReminders}`}
+              detail={`${data.reminders.length} reminder${data.reminders.length === 1 ? '' : 's'}`}
+              icon="alarm-outline"
+              color="#0B84A5"
+              bg={colors.bg.secondary}
+              border={colors.border.subtle}
+              text={colors.text.primary}
+              muted={colors.text.tertiary}
+            />
+          </View>
         )}
 
         {(!widgetOrder.length || widgetOrder.includes('recentActivity')) && (
-        <>
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Recent Activity</Text>
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate('Accounts', {
-                screen: 'ExpenseHome',
-                params: { screen: 'MyWallet' },
-              })
-            }
-          >
-            <Text style={[styles.sectionLink, { color: colors.accent.primary }]}>See all</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.activityList}>
-          {recentTransactions.slice(0, 5).length === 0 ? (
-            <View
-              style={[
-                styles.emptyCard,
-                { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
-              ]}
-            >
-              <Ionicons name="receipt-outline" size={28} color={colors.text.tertiary} />
-              <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
-                No transactions yet
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+                Recent Activity
               </Text>
-              <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
-                Add an expense or scan a bill to start tracking.
-              </Text>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate('Accounts', {
+                    screen: 'ExpenseHome',
+                    params: { screen: 'MyWallet' },
+                  })
+                }
+              >
+                <Text style={[styles.sectionLink, { color: colors.accent.primary }]}>See all</Text>
+              </TouchableOpacity>
             </View>
-          ) : (
-            recentTransactions.slice(0, 5).map((item: any, index: number) => {
-              const isExpense = item.type === 'expense';
-              return (
-                <TouchableOpacity
-                  key={item.id || index}
+
+            <View style={styles.activityList}>
+              {recentTransactions.slice(0, 5).length === 0 ? (
+                <View
                   style={[
-                    styles.activityItem,
+                    styles.emptyCard,
                     { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
                   ]}
-                  onPress={() =>
-                    navigation.navigate('Accounts', {
-                      screen: 'TransactionDetail',
-                      params: { transactionId: item.id },
-                    })
-                  }
-                  activeOpacity={0.75}
                 >
-                  <View
-                    style={[
-                      styles.activityIcon,
-                      { backgroundColor: isExpense ? '#D6455018' : '#00A86B18' },
-                    ]}
-                  >
-                    <Ionicons
-                      name={isExpense ? 'arrow-up' : 'arrow-down'}
-                      size={15}
-                      color={isExpense ? '#D64550' : '#00A86B'}
-                    />
-                  </View>
-                  <View style={styles.activityBody}>
-                    <Text
-                      style={[styles.activityTitle, { color: colors.text.primary }]}
-                      numberOfLines={1}
-                    >
-                      {item.description || item.category?.name || 'Transaction'}
-                    </Text>
-                    <Text style={[styles.activityMeta, { color: colors.text.tertiary }]}>
-                      {new Date(item.date || item.createdAt).toLocaleDateString('en-IN', {
-                        day: 'numeric',
-                        month: 'short',
-                      })}
-                    </Text>
-                  </View>
-                  <Text
-                    style={[styles.activityAmount, { color: isExpense ? '#D64550' : '#00A86B' }]}
-                  >
-                    {isExpense ? '-' : '+'}
-                    {moneyFormat(Number(item.amount || 0))}
+                  <Ionicons name="receipt-outline" size={28} color={colors.text.tertiary} />
+                  <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
+                    No transactions yet
                   </Text>
-                </TouchableOpacity>
-              );
-            })
-          )}
-        </View>
-        </>
+                  <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
+                    Add an expense or scan a bill to start tracking.
+                  </Text>
+                </View>
+              ) : (
+                recentTransactions.slice(0, 5).map((item: any, index: number) => {
+                  const isExpense = item.type === 'expense';
+                  return (
+                    <TouchableOpacity
+                      key={item.id || index}
+                      style={[
+                        styles.activityItem,
+                        { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+                      ]}
+                      onPress={() =>
+                        navigation.navigate('Accounts', {
+                          screen: 'TransactionDetail',
+                          params: { transactionId: item.id },
+                        })
+                      }
+                      activeOpacity={0.75}
+                    >
+                      <View
+                        style={[
+                          styles.activityIcon,
+                          { backgroundColor: isExpense ? '#D6455018' : '#00A86B18' },
+                        ]}
+                      >
+                        <Ionicons
+                          name={isExpense ? 'arrow-up' : 'arrow-down'}
+                          size={15}
+                          color={isExpense ? '#D64550' : '#00A86B'}
+                        />
+                      </View>
+                      <View style={styles.activityBody}>
+                        <Text
+                          style={[styles.activityTitle, { color: colors.text.primary }]}
+                          numberOfLines={1}
+                        >
+                          {item.description || item.category?.name || 'Transaction'}
+                        </Text>
+                        <Text style={[styles.activityMeta, { color: colors.text.tertiary }]}>
+                          {new Date(item.date || item.createdAt).toLocaleDateString('en-IN', {
+                            day: 'numeric',
+                            month: 'short',
+                          })}
+                        </Text>
+                      </View>
+                      <Text
+                        style={[
+                          styles.activityAmount,
+                          { color: isExpense ? '#D64550' : '#00A86B' },
+                        ]}
+                      >
+                        {isExpense ? '-' : '+'}
+                        {moneyFormat(Number(item.amount || 0))}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })
+              )}
+            </View>
+          </>
         )}
       </ScrollView>
     </Animated.View>

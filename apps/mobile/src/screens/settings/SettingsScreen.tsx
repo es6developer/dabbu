@@ -25,7 +25,7 @@ const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
     title: 'Account',
     items: [
       { label: 'Profile', icon: 'person-circle', screen: 'Profile' },
-      { label: 'Subscription', icon: 'diamond', screen: 'Subscription' },
+      { label: 'Subscription', icon: 'diamond', screen: 'Premium' },
       { label: 'Security', icon: 'shield-checkmark', screen: 'Security' },
       { label: 'Lock App', icon: 'lock-closed', screen: 'Security', action: 'lock' },
     ],
@@ -85,14 +85,14 @@ export function SettingsScreen() {
   async function loadSubscription() {
     try {
       setAccessToken(getAccessToken());
-      const res = await api.get<any>('/subscription/current');
-      setSubscription(res.data);
+      const res = await api.get<any>('/premium/current');
+      setSubscription(res);
     } catch (_e) {
       setSubscription(null);
     }
   }
 
-  const isPremium = Number(subscription?.plan?.price || 0) > 0;
+  const isPremium = !!subscription && subscription.status === 'active';
 
   const handleNav = (screen: string, premium?: boolean, action?: 'lock') => {
     if (action === 'lock') {
@@ -101,8 +101,8 @@ export function SettingsScreen() {
     }
     const registered = [
       'Profile',
-      'Subscription',
       'Security',
+      'Premium',
       'Theme',
       'Currency',
       'CustomiseDashboard',
