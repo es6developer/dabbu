@@ -10,6 +10,7 @@ import {
   Switch,
   Alert,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -105,11 +106,15 @@ export function CreateReminderScreen() {
   }
 
   return (
-    <ScrollView
+    <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: colors.bg.primary }]}
-      contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
-      keyboardShouldPersistTaps="handled"
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 80 }]}
+        keyboardShouldPersistTaps="handled"
+      >
       <Text style={[styles.title, { color: colors.text.primary }]}>New Reminder</Text>
       {error ? (
         <View style={[styles.errorBox, { backgroundColor: `${colors.status.error}18` }]}>
@@ -387,14 +392,15 @@ export function CreateReminderScreen() {
           <Text style={styles.saveBtnText}>Create Reminder</Text>
         )}
       </TouchableOpacity>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 20 },
-  title: { fontSize: 28, fontWeight: '700', marginBottom: 24 },
+  title: { fontSize: 26, fontWeight: '800', marginBottom: 18 },
   errorBox: { padding: 12, borderRadius: 12, marginBottom: 16 },
   errorText: { fontSize: 14 },
   label: {

@@ -73,6 +73,18 @@ export function DashboardScreen() {
   const [data, setData] = useState<DashboardData>(emptyData);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [widgetOrder, setWidgetOrder] = useState<string[]>([]);
+
+  const loadPreferences = useCallback(async () => {
+    try {
+      const res = await api.get<any>('/user/preferences');
+      const layout: any[] = res?.dashboardLayout || [];
+      const sorted = layout.sort((a: any, b: any) => a.order - b.order);
+      setWidgetOrder(sorted.filter((w: any) => w.visible).map((w: any) => w.id));
+    } catch {
+      setWidgetOrder(['balance', 'quickActions', 'features', 'snapshots', 'recentActivity']);
+    }
+  }, []);
 
   const loadData = useCallback(async () => {
     abortRef.current?.abort();
@@ -112,6 +124,10 @@ export function DashboardScreen() {
       }
     }
   }, [accessToken]);
+
+  useEffect(() => {
+    loadPreferences();
+  }, [loadPreferences]);
 
   useEffect(() => {
     loadData();
@@ -312,6 +328,7 @@ export function DashboardScreen() {
           </View>
         </View>
 
+        {(!widgetOrder.length || widgetOrder.includes('balance')) && (
         <LinearGradient
           colors={isDark ? ['#111827', '#1F2937'] : ['#FFFFFF', '#EEF4FF']}
           start={{ x: 0, y: 0 }}
@@ -359,7 +376,9 @@ export function DashboardScreen() {
             <MoneyStat label="Rate" value={`${spendRate}%`} color={colors.text.primary} />
           </View>
         </LinearGradient>
+        )}
 
+        {(!widgetOrder.length || widgetOrder.includes('quickActions')) && (
         <View style={styles.actionRow}>
           {primaryActions.map((action) => (
             <TouchableOpacity
@@ -380,7 +399,10 @@ export function DashboardScreen() {
             </TouchableOpacity>
           ))}
         </View>
+        )}
 
+        {(!widgetOrder.length || widgetOrder.includes('features')) && (
+        <>
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Features</Text>
           <TouchableOpacity
@@ -413,7 +435,10 @@ export function DashboardScreen() {
             </TouchableOpacity>
           ))}
         </View>
+        </>
+        )}
 
+        {(!widgetOrder.length || widgetOrder.includes('snapshots')) && (
         <View style={styles.snapshotRow}>
           <SnapshotCard
             title="Top Spend"
@@ -442,7 +467,10 @@ export function DashboardScreen() {
             muted={colors.text.tertiary}
           />
         </View>
+        )}
 
+        {(!widgetOrder.length || widgetOrder.includes('recentActivity')) && (
+        <>
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Recent Activity</Text>
           <TouchableOpacity
@@ -528,6 +556,8 @@ export function DashboardScreen() {
             })
           )}
         </View>
+        </>
+        )}
       </ScrollView>
     </Animated.View>
   );

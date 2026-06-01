@@ -12,7 +12,6 @@ import {
   Alert,
   ScrollView,
   ActivityIndicator,
-  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
@@ -40,7 +39,7 @@ function normalize<T>(res: any): T {
   return res as T;
 }
 
-const GROUP_TABS = ['overview', 'expenses', 'balances', 'members', 'activity', 'settings'] as const;
+const GROUP_TABS = ['overview', 'expenses', 'members', 'activity', 'settings'] as const;
 const GROUP_ICONS = [
   'users',
   'home',
@@ -229,27 +228,6 @@ export function GroupExpensesScreen() {
       .filter((item) => item.date)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [transactions, members]);
-
-  const balanceRows = useMemo<
-    Array<{ id: string; name: string; paid: number; balance: number }>
-  >(() => {
-    if (members.length === 0) {
-      return [];
-    }
-    const total = stats.totalExpense;
-    const share = total / Math.max(members.length, 1);
-    return members.map((member: any) => {
-      const paid = transactions
-        .filter((tx) => tx.userId === member.userId && tx.type === 'expense')
-        .reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
-      return {
-        id: member.id,
-        name: member.user?.firstName || member.user?.email || 'Member',
-        paid,
-        balance: paid - share,
-      };
-    });
-  }, [members, stats.totalExpense, transactions]);
 
   async function addMember() {
     if (!inviteEmail.trim()) {
@@ -544,66 +522,15 @@ export function GroupExpensesScreen() {
               </View>
             )}
 
-            {activeTab === 'balances' && (
-              <View style={s.tabPanel}>
-                <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Balances</Text>
-                {balanceRows.map((row) => {
-                  const currentUserOwes = row.balance < 0;
-                  const targetName = row.name;
-                  const targetEmail = members.find((m: any) => m.id === row.id)?.user?.email;
-                  return (
-                    <View
-                      key={row.id}
-                      style={[s.balanceCard, { backgroundColor: colors.bg.secondary }]}
-                    >
-                      <View style={{ flex: 1 }}>
-                        <Text style={[s.balanceName, { color: colors.text.primary }]}>
-                          {row.name}
-                        </Text>
-                        <Text style={[s.balanceSub, { color: colors.text.tertiary }]}>
-                          Paid {fmt(row.paid)}
-                        </Text>
-                      </View>
-                      <Text
-                        style={[
-                          s.balanceAmount,
-                          { color: row.balance >= 0 ? '#00B894' : '#FF6B6B' },
-                        ]}
-                      >
-                        {row.balance >= 0 ? 'Gets ' : 'Owes '}
-                        {fmt(Math.abs(row.balance))}
-                      </Text>
-                      {currentUserOwes && (
-                        <TouchableOpacity
-                          style={[s.settleBtn, { backgroundColor: colors.status.success }]}
-                          onPress={() => {
-                            const upiLink = `upi://pay?pa=${encodeURIComponent(targetEmail || '')}&pn=${encodeURIComponent(targetName)}&am=${Math.abs(row.balance)}&cu=INR&tn=Settling%20up%20via%20Dabbu%20App`;
-                            Linking.openURL(upiLink).catch(() =>
-                              Alert.alert(
-                                'Unable to open UPI',
-                                'No UPI app found. Please try GPay, PhonePe, or Paytm.',
-                              ),
-                            );
-                          }}
-                        >
-                          <Text style={s.settleBtnText}>Settle Up</Text>
-                        </TouchableOpacity>
-                      )}
-                    </View>
-                  );
-                })}
-              </View>
-            )}
-
             {activeTab === 'members' && (
               <View style={s.tabPanel}>
                 <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Members</Text>
                 {members.map((member: any) => (
                   <View
                     key={member.id}
-                    style={[s.balanceRow, { backgroundColor: colors.bg.secondary }]}
+                    style={[s.memberListRow, { backgroundColor: colors.bg.secondary }]}
                   >
-                    <Text style={[s.balanceName, { color: colors.text.primary, flex: 1 }]}>
+                    <Text style={[s.rowTitle, { color: colors.text.primary, flex: 1 }]}>
                       {member.user?.firstName || member.user?.email || 'Member'}
                     </Text>
                     <Text
@@ -631,10 +558,10 @@ export function GroupExpensesScreen() {
                       <Ionicons name={item.icon as any} size={16} color={colors.accent.primary} />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={[s.balanceName, { color: colors.text.primary }]}>
+                      <Text style={[s.rowTitle, { color: colors.text.primary }]}>
                         {item.title}
                       </Text>
-                      <Text style={[s.balanceSub, { color: colors.text.tertiary }]}>
+                      <Text style={[s.rowSub, { color: colors.text.tertiary }]}>
                         {item.detail}
                       </Text>
                     </View>
@@ -968,26 +895,15 @@ const s = StyleSheet.create({
   infoPanel: { borderRadius: 18, padding: 16 },
   infoTitle: { fontSize: 15, fontWeight: '700' },
   infoText: { fontSize: 12, marginTop: 6 },
-  balanceRow: {
+  memberListRow: {
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 16,
     padding: 14,
     marginBottom: 8,
   },
-  balanceCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 8,
-    gap: 10,
-  },
-  balanceName: { fontSize: 14, fontWeight: '700' },
-  balanceSub: { fontSize: 12, marginTop: 3 },
-  balanceAmount: { fontSize: 14, fontWeight: '800' },
-  settleBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10 },
-  settleBtnText: { color: '#FFF', fontSize: 12, fontWeight: '800' },
+  rowTitle: { fontSize: 14, fontWeight: '700' },
+  rowSub: { fontSize: 12, marginTop: 3 },
   rolePill: {
     overflow: 'hidden',
     paddingHorizontal: 10,

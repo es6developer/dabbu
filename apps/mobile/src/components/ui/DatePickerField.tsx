@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Platform,
+  Modal,
 } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
@@ -38,41 +39,24 @@ export function DatePickerField({
 }: DatePickerFieldProps) {
   const { colors } = useTheme();
   const [show, setShow] = useState(false);
-  const [mode, setMode] = useState<'date' | 'time'>('date');
 
   const currentDate = value
     ? new Date(value + 'T12:00:00')
     : new Date();
 
   const handleChange = (_event: DateTimePickerEvent, selectedDate?: Date) => {
-    if (Platform.OS === 'android') {
+    if (Platform.OS !== 'ios') {
       setShow(false);
     }
     if (!selectedDate) return;
 
-    if (mode === 'date') {
-      const now = new Date();
-      selectedDate.setHours(now.getHours(), now.getMinutes(), 0, 0);
-      const y = selectedDate.getFullYear();
-      const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
-      const d = String(selectedDate.getDate()).padStart(2, '0');
-      onChange(`${y}-${m}-${d}`);
-      if (Platform.OS === 'ios') {
-        setMode('time');
-      }
-    } else {
-      const existing = value ? new Date(value + 'T00:00:00') : new Date();
-      existing.setHours(selectedDate.getHours(), selectedDate.getMinutes(), 0, 0);
-      const y = existing.getFullYear();
-      const m = String(existing.getMonth() + 1).padStart(2, '0');
-      const d = String(existing.getDate()).padStart(2, '0');
-      onChange(`${y}-${m}-${d}`);
-      setMode('date');
-    }
+    const y = selectedDate.getFullYear();
+    const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
+    const d = String(selectedDate.getDate()).padStart(2, '0');
+    onChange(`${y}-${m}-${d}`);
   };
 
   const openDatePicker = () => {
-    setMode('date');
     setShow(true);
   };
 
@@ -108,13 +92,35 @@ export function DatePickerField({
         </Text>
         <Ionicons name="chevron-down" size={16} color={colors.text.tertiary} />
       </TouchableOpacity>
-      {show && (
+      {show && Platform.OS === 'ios' && (
+        <Modal transparent animationType="fade" visible={show} onRequestClose={() => setShow(false)}>
+          <View style={styles.modalBackdrop}>
+            <View style={[styles.iosSheet, { backgroundColor: colors.bg.secondary }]}>
+              <View style={styles.iosHeader}>
+                <TouchableOpacity onPress={() => setShow(false)}>
+                  <Text style={[styles.iosAction, { color: colors.text.tertiary }]}>Cancel</Text>
+                </TouchableOpacity>
+                <Text style={[styles.iosTitle, { color: colors.text.primary }]}>{label}</Text>
+                <TouchableOpacity onPress={() => setShow(false)}>
+                  <Text style={[styles.iosAction, { color: colors.accent.primary }]}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={currentDate}
+                mode="date"
+                display="spinner"
+                onChange={handleChange}
+              />
+            </View>
+          </View>
+        </Modal>
+      )}
+      {show && Platform.OS !== 'ios' && (
         <DateTimePicker
           value={currentDate}
-          mode={mode}
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          mode="date"
+          display="default"
           onChange={handleChange}
-          themeVariant="dark"
         />
       )}
     </View>
@@ -145,4 +151,24 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
   },
+  modalBackdrop: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.35)',
+  },
+  iosSheet: {
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    paddingBottom: 20,
+    overflow: 'hidden',
+  },
+  iosHeader: {
+    height: 48,
+    paddingHorizontal: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  iosTitle: { fontSize: 15, fontWeight: '700' },
+  iosAction: { fontSize: 15, fontWeight: '700' },
 });

@@ -110,7 +110,6 @@ export function TransactionsListScreen() {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedGroupId, setSelectedGroupId] = useState('');
-  const [settlementStatus, setSettlementStatus] = useState<'all' | 'pending' | 'settled'>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'highest' | 'lowest'>('newest');
   const [summary, setSummary] = useState({ totalIncome: 0, totalExpense: 0 });
 
@@ -205,9 +204,6 @@ export function TransactionsListScreen() {
     if (selectedGroupId) {
       list = list.filter((t) => t.expenseGroupId === selectedGroupId);
     }
-    if (settlementStatus !== 'all') {
-      list = list.filter((t) => (t.metadata?.settlementStatus || 'pending') === settlementStatus);
-    }
     list.sort((a, b) => {
       if (sortBy === 'highest') return Number(b.amount || 0) - Number(a.amount || 0);
       if (sortBy === 'lowest') return Number(a.amount || 0) - Number(b.amount || 0);
@@ -216,7 +212,7 @@ export function TransactionsListScreen() {
       return sortBy === 'oldest' ? ad - bd : bd - ad;
     });
     return groupByDate(list);
-  }, [transactions, search, selectedCategory, selectedGroupId, settlementStatus, sortBy]);
+  }, [transactions, search, selectedCategory, selectedGroupId, sortBy]);
 
   const remaining = summary.totalIncome - summary.totalExpense;
   const savingsPct =
@@ -262,7 +258,6 @@ export function TransactionsListScreen() {
           </Text>
           <Text style={[styles.cardDate, { color: colors.text.tertiary }]}>
           {timeStr} · {categoryName}
-            {item.metadata?.settlementStatus === 'settled' ? ' · Settled' : ''}
           </Text>
         </View>
         <Text style={[styles.cardAmount, { color: isIncome ? '#00B894' : '#FF6B6B' }]}>
@@ -546,27 +541,6 @@ export function TransactionsListScreen() {
                         : option === 'highest'
                           ? 'Highest'
                           : 'Lowest'}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-              {(['all', 'pending', 'settled'] as const).map((status) => (
-                <TouchableOpacity
-                  key={status}
-                  style={[
-                    styles.filterChip,
-                    settlementStatus === status
-                      ? styles.filterChipActive
-                      : { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-                  ]}
-                  onPress={() => setSettlementStatus(status)}
-                >
-                  <Text
-                    style={[
-                      styles.filterChipText,
-                      { color: settlementStatus === status ? '#FFF' : colors.text.secondary },
-                    ]}
-                  >
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
                   </Text>
                 </TouchableOpacity>
               ))}

@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Animated,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -21,14 +23,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const RECURRING_FREQUENCIES = ['weekly', 'monthly', 'yearly'] as const;
 
 const PAYMENT_TYPES = ['Cash', 'UPI', 'Card', 'Bank'];
-const SPLIT_METHODS = [
-  { id: 'equal', label: 'Equal' },
-  { id: 'exact', label: 'Exact' },
-  { id: 'percentage', label: 'Percent' },
-  { id: 'shares', label: 'Shares' },
-  { id: 'unequal', label: 'Unequal' },
-];
-
 type PrefillParams = {
   prefill?: {
     amount?: number;
@@ -93,9 +87,6 @@ export function CreateTransactionScreen() {
     editingTransaction?.expenseGroupId || prefill?.groupId || '',
   );
   const [selectedGroupName, setSelectedGroupName] = useState(prefill?.groupName || '');
-  const [splitMethod, setSplitMethod] = useState(
-    editingTransaction?.metadata?.splitMethod || 'equal',
-  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [loadingMeta, setLoadingMeta] = useState(true);
@@ -193,7 +184,7 @@ export function CreateTransactionScreen() {
       if (notes.trim()) {
         data.notes = notes.trim();
       }
-      data.metadata = { ...(editingTransaction?.metadata || {}), paymentType, splitMethod };
+      data.metadata = { ...(editingTransaction?.metadata || {}), paymentType };
       if (isEditing) {
         await api.patch(`/transactions/${editingTransaction.id}`, data);
       } else {
@@ -259,11 +250,16 @@ export function CreateTransactionScreen() {
   }
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: colors.bg.primary, bottom: 20 }]}
-      contentContainerStyle={styles.content}
-      keyboardShouldPersistTaps="handled"
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: colors.bg.primary }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 12 : 0}
     >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 36 }]}
+        keyboardShouldPersistTaps="handled"
+      >
       <Text style={[styles.title, { color: colors.text.primary }]}>
         {isEditing ? 'Edit Transaction' : 'New Transaction'}
       </Text>
@@ -469,45 +465,6 @@ export function CreateTransactionScreen() {
         ))}
       </View>
 
-      {selectedGroupId ? (
-        <>
-          <Text style={[styles.label, { color: colors.text.tertiary }]}>Split Method</Text>
-          <View style={styles.chipRow}>
-            {SPLIT_METHODS.map((method) => (
-              <TouchableOpacity
-                key={method.id}
-                style={[
-                  styles.chip,
-                  { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-                  splitMethod === method.id && {
-                    backgroundColor: `${colors.accent.primary}20`,
-                    borderColor: colors.accent.primary,
-                  },
-                ]}
-                onPress={() => setSplitMethod(method.id)}
-              >
-                <Text
-                  style={[
-                    styles.chipText,
-                    { color: colors.text.tertiary },
-                    splitMethod === method.id && {
-                      color: colors.accent.primary,
-                      fontWeight: '600',
-                    },
-                  ]}
-                >
-                  {method.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <Text style={[styles.helperText, { color: colors.text.tertiary }]}>
-            Allocation details are saved with the transaction and can be expanded into per-member
-            balances.
-          </Text>
-        </>
-      ) : null}
-
       <DatePickerField label="Date" value={date} onChange={setDate} />
 
       <Text style={[styles.label, { color: colors.text.tertiary }]}>Tags</Text>
@@ -539,7 +496,7 @@ export function CreateTransactionScreen() {
         ]}
         value={notes}
         onChangeText={setNotes}
-        placeholder="Add context, receipt details, settlement notes..."
+        placeholder="Add context, receipt details, or member notes..."
         placeholderTextColor={colors.text.tertiary}
         multiline
         numberOfLines={4}
@@ -621,7 +578,7 @@ export function CreateTransactionScreen() {
       <TouchableOpacity
         style={[
           styles.saveBtn,
-          { backgroundColor: colors.accent.primary, bottom: insets.bottom + 20 },
+          { backgroundColor: colors.accent.primary },
           saving && { opacity: 0.6 },
         ]}
         onPress={handleSave}
@@ -635,13 +592,14 @@ export function CreateTransactionScreen() {
           </Text>
         )}
       </TouchableOpacity>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 24, paddingBottom: 60 },
+  content: { padding: 24 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 26, fontWeight: '700', marginBottom: 24 },
   errorBox: {

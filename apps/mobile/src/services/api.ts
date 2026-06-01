@@ -226,6 +226,12 @@ export const api = {
       { method: 'POST', body: body ?? undefined, ...(signal ? { signal } : {}) },
       timeout,
     ),
+  put: <T>(path: string, body?: any, signal?: AbortSignal, timeout?: number) =>
+    request<T>(
+      path,
+      { method: 'PUT', body: body ?? undefined, ...(signal ? { signal } : {}) },
+      timeout,
+    ),
   patch: <T>(path: string, body?: any, signal?: AbortSignal, timeout?: number) =>
     request<T>(
       path,

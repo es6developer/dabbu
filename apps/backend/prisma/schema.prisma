@@ -69,6 +69,11 @@ model User {
   mergedIntoId   String?  @db.VarChar(36)                       // points to full user after merge
   mergedAt       DateTime?
 
+  // Dashboard & navigation customization
+  dashboardLayout   Json?   @db.Json    // Array of widget configs [{id, visible, order}]
+  bottomMenuConfig  Json?   @db.Json    // Array of tab configs [{id, visible, order}]
+  preferredPrimaryColor String? @db.VarChar(20)  // User's preferred accent color hex
+
   // Relations
   sessions           Session[]
   devices            Device[]

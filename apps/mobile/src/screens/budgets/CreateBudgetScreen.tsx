@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
@@ -59,7 +59,8 @@ export function CreateBudgetScreen() {
   }
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.bg.primary }]} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg.primary }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Text style={[styles.title, { color: colors.text.primary }]}>Create Budget</Text>
       {error ? <View style={[styles.errorBox, { backgroundColor: `${colors.status.error}18` }]}><Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text></View> : null}
 
@@ -98,14 +99,15 @@ export function CreateBudgetScreen() {
       <TouchableOpacity style={[styles.saveBtn, { backgroundColor: colors.accent.primary }, saving && { opacity: 0.6 }]} onPress={handleSave} disabled={saving}>
         {saving ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.saveBtnText}>Create Budget</Text>}
       </TouchableOpacity>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 20, paddingBottom: 120 },
-  title: { fontSize: 28, fontWeight: '700', marginBottom: 24 },
+  title: { fontSize: 26, fontWeight: '800', marginBottom: 18 },
   errorBox: { padding: 12, borderRadius: 12, marginBottom: 16 },
   errorText: { fontSize: 14 },
   label: { fontSize: 13, fontWeight: '600', marginBottom: 8, marginTop: 16, textTransform: 'uppercase', letterSpacing: 0.5 },

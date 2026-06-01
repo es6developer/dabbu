@@ -37,6 +37,7 @@ import { BillsModule } from './modules/bills/bills.module';
 import { ExpenseGroupsModule } from './modules/expense-groups/expense-groups.module';
 import { CurrencyModule } from './modules/currency/currency.module';
 import { SharedFinanceModule } from './modules/shared-finance/shared-finance.module';
+import { UserPreferencesModule } from './modules/user-preferences/user-preferences.module';
 
 @Module({
   imports: [
@@ -99,6 +100,7 @@ import { SharedFinanceModule } from './modules/shared-finance/shared-finance.mod
     ExpenseGroupsModule,
     CurrencyModule,
     SharedFinanceModule,
+    UserPreferencesModule,
   ],
   controllers: [HealthController],
   providers: [

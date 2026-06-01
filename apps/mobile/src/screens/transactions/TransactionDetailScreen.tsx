@@ -72,20 +72,6 @@ export function TransactionDetailScreen() {
     ]);
   }
 
-  async function handleMarkSettled() {
-    try {
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
-      await api.patch(`/transactions/${transactionId}`, {
-        metadata: { ...(txn.metadata || {}), settlementStatus: 'settled' },
-      });
-      setTxn((prev: any) => ({ ...prev, metadata: { ...(prev.metadata || {}), settlementStatus: 'settled' } }));
-    } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to mark settled');
-    }
-  }
-
   if (loading) {
     return (
       <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}>
@@ -163,8 +149,6 @@ export function TransactionDetailScreen() {
           valueColor={txn.isReconciled ? colors.status.success : colors.status.warning}
         />
         <DetailRow colors={colors} label="Type" value={txn.type} />
-        <DetailRow colors={colors} label="Split" value={txn.metadata?.splitMethod || 'equal'} />
-        <DetailRow colors={colors} label="Settlement" value={txn.metadata?.settlementStatus || 'pending'} />
         {txn.reference && <DetailRow colors={colors} label="Reference" value={txn.reference} />}
         {txn.notes && (
           <View style={[styles.detailRow, { borderBottomColor: colors.border.subtle }]}>
@@ -201,13 +185,6 @@ export function TransactionDetailScreen() {
       </View>
 
       <View style={styles.actions}>
-        <TouchableOpacity
-          style={[styles.actionBtn, { backgroundColor: colors.status.successLight || `${colors.status.success}22` }]}
-          onPress={handleMarkSettled}
-        >
-          <Ionicons name="checkmark-done-outline" size={18} color={colors.status.success} />
-          <Text style={[styles.actionBtnText, { color: colors.status.success }]}>Mark Settled</Text>
-        </TouchableOpacity>
         <TouchableOpacity
           style={[styles.actionBtn, { backgroundColor: colors.status.errorLight }]}
           onPress={handleDelete}

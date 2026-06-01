@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Platform, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -24,9 +24,12 @@ import { HelpCenterScreen } from '../screens/settings/HelpCenterScreen';
 import { ContactUsScreen } from '../screens/settings/ContactUsScreen';
 import { PrivacyPolicyScreen } from '../screens/settings/PrivacyPolicyScreen';
 import { AnalyticsScreen } from '../screens/analytics/AnalyticsScreen';
+import { CustomiseDashboardScreen } from '../screens/settings/CustomiseDashboardScreen';
+import { CustomiseBottomMenuScreen } from '../screens/settings/CustomiseBottomMenuScreen';
 import { useTheme } from '../theme';
 import { isFeatureEnabled, isPremiumFeature, loadFeatures } from '../config/features';
 import { useAuth } from '../store/AuthContext';
+import { api } from '../services/api';
 
 const Tab = createBottomTabNavigator();
 const DashboardStack = createNativeStackNavigator();
@@ -146,6 +149,16 @@ function SettingsNavigator() {
         component={AnalyticsScreen}
         options={{ title: 'Reports' }}
       />
+      <SettingsStack.Screen
+        name="CustomiseDashboard"
+        component={CustomiseDashboardScreen}
+        options={{ headerShown: false }}
+      />
+      <SettingsStack.Screen
+        name="CustomiseBottomMenu"
+        component={CustomiseBottomMenuScreen}
+        options={{ headerShown: false }}
+      />
     </SettingsStack.Navigator>
   );
 }
@@ -236,6 +249,7 @@ export function MainTabNavigator() {
   const { colors, isDark, typography } = useTheme();
   const { user, accessToken } = useAuth();
   const [subscription, setSubscription] = useState<any>(null);
+  const [bottomMenuConfig, setBottomMenuConfig] = useState<any[]>([]);
 
   useEffect(() => {
     if (!accessToken) {
@@ -248,12 +262,37 @@ export function MainTabNavigator() {
       .then((r) => r.json())
       .then((json) => setSubscription(json.data))
       .catch(() => setSubscription(null));
+    api.get<any>('/user/preferences').then((res) => {
+      if (res?.bottomMenuConfig) {
+        setBottomMenuConfig(res.bottomMenuConfig);
+      }
+    }).catch(() => {});
   }, [accessToken]);
 
   const planPrice: number = Number(subscription?.plan?.price || 0);
   const isPremium = planPrice > 0;
 
-  const visibleTabs = ALL_TABS.filter((tab) => {
+  const getTabOrder = useCallback(() => {
+    if (bottomMenuConfig.length === 0) {
+      return ALL_TABS;
+    }
+    const configMap = new Map(bottomMenuConfig.map((c: any) => [c.id, c]));
+    const configured = ALL_TABS.filter((tab) => {
+      const cfg = configMap.get(tab.name);
+      return cfg ? cfg.visible !== false : true;
+    }).sort((a, b) => {
+      const aCfg = configMap.get(a.name);
+      const bCfg = configMap.get(b.name);
+      return (aCfg?.order ?? 99) - (bCfg?.order ?? 99);
+    });
+    const settingsTab = ALL_TABS.find((t) => t.name === 'Settings');
+    if (settingsTab && !configured.some((t) => t.name === 'Settings')) {
+      configured.push(settingsTab);
+    }
+    return configured;
+  }, [bottomMenuConfig]);
+
+  const visibleTabs = getTabOrder().filter((tab) => {
     if (tab.name === 'SMS' && Platform.OS === 'ios') {
       return false;
     }

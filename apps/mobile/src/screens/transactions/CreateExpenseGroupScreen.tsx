@@ -11,6 +11,7 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -123,11 +124,15 @@ export function CreateExpenseGroupScreen() {
   }
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top + 16 }]}
-      contentContainerStyle={styles.content}
-      keyboardShouldPersistTaps="handled"
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top + 8 }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
       <TouchableOpacity
         onPress={() => navigation.goBack()}
         style={[
@@ -358,13 +363,14 @@ export function CreateExpenseGroupScreen() {
           <Text style={styles.saveBtnText}>Create Group</Text>
         )}
       </TouchableOpacity>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { paddingBottom: 60 },
+  content: { paddingBottom: 96 },
   backBtn: {
     width: 38,
     height: 38,
@@ -372,7 +378,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 24,
-    marginTop: 16,
+    marginTop: 8,
     marginBottom: 16,
   },
 
