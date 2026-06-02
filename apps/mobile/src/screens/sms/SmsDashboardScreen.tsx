@@ -284,7 +284,7 @@ export function SmsDashboardScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
-      <View style={[styles.header, { paddingTop: insets.top + 12, paddingBottom: 12 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 8, paddingBottom: 12 }]}>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>SMS Intelligence</Text>
         <View style={styles.headerRight}>
           {autoCreating && (

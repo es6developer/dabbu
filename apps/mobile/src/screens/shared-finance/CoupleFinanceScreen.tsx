@@ -113,7 +113,7 @@ export function CoupleFinanceScreen() {
   if (loading) {
     return (
       <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
-        <View style={{ padding: 24, paddingTop: insets.top + 16, gap: 16 }}>
+        <View style={{ padding: 24, paddingTop: insets.top + 8, gap: 16 }}>
           <Skeleton width={120} height={14} />
           <Skeleton width="100%" height={160} borderRadius={24} />
           <Skeleton width="100%" height={80} borderRadius={18} />
@@ -127,7 +127,7 @@ export function CoupleFinanceScreen() {
     return (
       <ScrollView
         style={[s.screen, { backgroundColor: colors.bg.primary }]}
-        contentContainerStyle={{ paddingTop: insets.top + 16, paddingBottom: 40 }}
+        contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: 40 }}
       >
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -203,7 +203,7 @@ export function CoupleFinanceScreen() {
         />
       }
     >
-      <View style={{ paddingTop: insets.top + 16, paddingHorizontal: 20 }}>
+      <View style={{ paddingTop: insets.top + 8, paddingHorizontal: 20 }}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={[s.backBtn, { backgroundColor: colors.bg.glassLight }]}

@@ -194,7 +194,7 @@ export function SharedFinanceHomeScreen() {
   if (loading) {
     return (
       <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
-        <View style={[s.header, { paddingTop: insets.top + 16, paddingHorizontal: 24 }]}>
+        <View style={[s.header, { paddingTop: insets.top + 8, paddingHorizontal: 24 }]}>
           <View>
             <Skeleton width={80} height={14} />
             <Skeleton width={140} height={28} style={{ marginTop: 4 }} />
@@ -246,7 +246,7 @@ export function SharedFinanceHomeScreen() {
         }
         ListHeaderComponent={
           <Animated.View style={{ opacity: fadeAnim }}>
-            <View style={[s.header, { paddingTop: insets.top + 16 }]}>
+            <View style={[s.header, { paddingTop: insets.top + 8 }]}>
               <View>
                 <Text style={[s.subtitle, { color: colors.text.tertiary }]}>Financial OS</Text>
                 <Text style={[s.title, { color: colors.text.primary }]}>Your Spaces</Text>

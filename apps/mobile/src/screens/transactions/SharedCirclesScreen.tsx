@@ -120,7 +120,7 @@ export function SharedCirclesScreen() {
   if (loading) {
     return (
       <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
-        <View style={[s.header, { paddingTop: insets.top + 16 }]}>
+        <View style={[s.header, { paddingTop: insets.top + 8 }]}>
           <View>
             <Skeleton width={100} height={14} />
             <Skeleton width={100} height={28} style={{ marginTop: 4 }} />
@@ -145,7 +145,7 @@ export function SharedCirclesScreen() {
         contentContainerStyle={groups.length === 0 ? s.emptyContainer : { paddingBottom: 100 }}
         ListHeaderComponent={
           <Animated.View style={{ opacity: fadeAnim }}>
-            <View style={[s.header, { paddingTop: insets.top + 16 }]}>
+            <View style={[s.header, { paddingTop: insets.top + 8 }]}>
               <View>
                 <Text style={[s.subtitle, { color: colors.text.tertiary }]}>Shared Circles</Text>
                 <Text style={[s.title, { color: colors.text.primary }]}>Groups</Text>

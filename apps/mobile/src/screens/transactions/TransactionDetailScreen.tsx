@@ -92,7 +92,7 @@ export function TransactionDetailScreen() {
   const formatCurrency = (val: number) => '₹' + val.toLocaleString('en-IN');
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top + 16 }]} contentContainerStyle={styles.content}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top + 8 }]} contentContainerStyle={styles.content}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}>
         <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
       </TouchableOpacity>

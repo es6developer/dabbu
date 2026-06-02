@@ -156,7 +156,7 @@ export function MyWalletScreen() {
   if (loading) {
     return (
       <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
-        <View style={[s.header, { paddingTop: insets.top + 16 }]}>
+        <View style={[s.header, { paddingTop: insets.top + 8 }]}>
           <View>
             <Skeleton width={100} height={14} />
             <Skeleton width={140} height={28} style={{ marginTop: 6 }} />
@@ -190,7 +190,7 @@ export function MyWalletScreen() {
         ListHeaderComponent={
           <Animated.View style={{ opacity: fadeAnim }}>
             {/* ─── Header ─── */}
-            <Animated.View style={[s.header, { paddingTop: insets.top + 16, opacity: headerOpacity }]}>
+            <Animated.View style={[s.header, { paddingTop: insets.top + 8, opacity: headerOpacity }]}>
               <View>
                 <Text style={[s.greeting, { color: colors.text.tertiary }]}>
                   {new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 18 ? 'Good afternoon' : 'Good evening'}

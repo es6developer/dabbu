@@ -63,8 +63,6 @@ export class ReminderService {
         });
       }
 
-      await this._updateQuota(userId, 'reminders', tx);
-
       return this._formatReminder(reminder);
     });
   }

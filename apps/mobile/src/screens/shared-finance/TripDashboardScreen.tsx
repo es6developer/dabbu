@@ -137,7 +137,7 @@ export function TripDashboardScreen() {
   if (loading) {
     return (
       <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
-        <View style={{ padding: 24, paddingTop: insets.top + 16, gap: 16 }}>
+        <View style={{ padding: 24, paddingTop: insets.top + 8, gap: 16 }}>
           <Skeleton width={120} height={14} />
           <Skeleton width="100%" height={180} borderRadius={24} />
           <Skeleton width="100%" height={100} borderRadius={18} />
@@ -176,7 +176,7 @@ export function TripDashboardScreen() {
       >
         <LinearGradient
           colors={['#0f3443', '#34e89e']}
-          style={[s.heroSection, { paddingTop: insets.top + 20 }]}
+          style={[s.heroSection, { paddingTop: insets.top + 8 }]}
         >
           <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtnWrap}>
             <Ionicons name="chevron-back" size={22} color="#FFF" />

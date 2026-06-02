@@ -146,7 +146,7 @@ export function RemindersScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
-      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <Text style={[styles.title, { color: colors.text.primary }]}>Reminders</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity

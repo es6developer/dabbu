@@ -59,7 +59,7 @@ export function AddExpenseScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top + 16 }]}>
+    <View style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top + 8 }]}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <TouchableOpacity

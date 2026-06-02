@@ -313,7 +313,7 @@ export function GroupExpensesScreen() {
   if (loading) {
     return (
       <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
-        <View style={[s.loadWrap, { paddingTop: insets.top + 14 }]}>
+        <View style={[s.loadWrap, { paddingTop: insets.top + 8 }]}>
           <View
             style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20 }}
           >
@@ -383,7 +383,7 @@ export function GroupExpensesScreen() {
         }
         ListHeaderComponent={
           <Animated.View style={{ opacity: fadeAnim }}>
-            <View style={[s.headerRow, { paddingTop: insets.top + 14 }]}>
+            <View style={[s.headerRow, { paddingTop: insets.top + 8 }]}>
               <TouchableOpacity
                 onPress={() => navigation.goBack()}
                 style={[s.backBtn, { backgroundColor: colors.bg.glassLight }]}

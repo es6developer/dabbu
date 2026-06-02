@@ -137,7 +137,7 @@ export function SettingsScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
       >
         {/* Header */}
-        <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
+        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
           <View style={styles.headerRow}>
             <View>
               <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Settings</Text>

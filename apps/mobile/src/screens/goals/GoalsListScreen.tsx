@@ -8,6 +8,11 @@ import {
   RefreshControl,
   Animated,
   Dimensions,
+  Modal,
+  TextInput,
+  Alert,
+  ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -61,6 +66,59 @@ export function GoalsListScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [showCreate, setShowCreate] = useState(false);
+  const [goalName, setGoalName] = useState('');
+  const [goalTarget, setGoalTarget] = useState('');
+  const [goalType, setGoalType] = useState('savings');
+  const [goalDeadline, setGoalDeadline] = useState('');
+  const [goalMonthly, setGoalMonthly] = useState('');
+  const [goalNotes, setGoalNotes] = useState('');
+  const [creating, setCreating] = useState(false);
+
+  async function handleCreateGoal() {
+    if (!goalName.trim()) {
+      Alert.alert('Error', 'Goal name is required');
+      return;
+    }
+    const target = parseFloat(goalTarget);
+    if (!target || target <= 0) {
+      Alert.alert('Error', 'Target amount must be greater than 0');
+      return;
+    }
+    setCreating(true);
+    try {
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      const payload: any = {
+        name: goalName.trim(),
+        targetAmount: target,
+        type: goalType,
+      };
+      if (goalDeadline.trim()) {
+        payload.deadline = goalDeadline.trim();
+      }
+      if (goalMonthly.trim()) {
+        payload.monthlyContribution = parseFloat(goalMonthly) || undefined;
+      }
+      if (goalNotes.trim()) {
+        payload.notes = goalNotes.trim();
+      }
+      await api.post('/goals', payload);
+      setShowCreate(false);
+      setGoalName('');
+      setGoalTarget('');
+      setGoalType('savings');
+      setGoalDeadline('');
+      setGoalMonthly('');
+      setGoalNotes('');
+      loadGoals();
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to create goal');
+    } finally {
+      setCreating(false);
+    }
+  }
 
   useEffect(() => {
     if (accessToken) {
@@ -99,7 +157,7 @@ export function GoalsListScreen() {
           styles.loading,
           {
             backgroundColor: colors.bg.primary,
-            paddingTop: insets.top + 16,
+            paddingTop: insets.top + 8,
             paddingHorizontal: 24,
             gap: 16,
           },
@@ -117,6 +175,7 @@ export function GoalsListScreen() {
   }
 
   return (
+    <>
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <FlatList
         data={goals}
@@ -136,7 +195,7 @@ export function GoalsListScreen() {
         }
         ListHeaderComponent={
           <Animated.View style={{ opacity: fadeAnim }}>
-            <View style={[styles.headerRow, { paddingTop: insets.top + 16 }]}>
+            <View style={[styles.headerRow, { paddingTop: insets.top + 8 }]}>
               <View>
                 <Text style={[styles.eyebrow, { color: colors.text.tertiary }]}>Financial OS</Text>
                 <Text style={[styles.title, { color: colors.text.primary }]}>Goals</Text>
@@ -318,7 +377,7 @@ export function GoalsListScreen() {
             </Text>
             <TouchableOpacity
               style={[styles.emptyCta, { backgroundColor: colors.accent.primary }]}
-              onPress={() => {}}
+              onPress={() => setShowCreate(true)}
             >
               <Ionicons name="add" size={18} color="#FFF" />
               <Text style={styles.emptyCtaText}>Create Goal</Text>
@@ -327,6 +386,100 @@ export function GoalsListScreen() {
         }
       />
     </View>
+
+      <Modal visible={showCreate} transparent animationType="fade" onRequestClose={() => setShowCreate(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowCreate(false)}>
+          <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
+            <TouchableOpacity activeOpacity={1} style={[styles.modalContent, { backgroundColor: colors.bg.secondary }]}>
+              <Text style={[styles.modalTitle, { color: colors.text.primary }]}>Create Goal</Text>
+
+              <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>Goal Name</Text>
+              <TextInput
+                style={[styles.textInput, { backgroundColor: colors.bg.tertiary, color: colors.text.primary, borderColor: colors.border.subtle }]}
+                value={goalName}
+                onChangeText={setGoalName}
+                placeholder="e.g. Emergency Fund"
+                placeholderTextColor={colors.text.tertiary}
+              />
+
+              <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>Target Amount (₹)</Text>
+              <TextInput
+                style={[styles.textInput, { backgroundColor: colors.bg.tertiary, color: colors.text.primary, borderColor: colors.border.subtle }]}
+                value={goalTarget}
+                onChangeText={setGoalTarget}
+                placeholder="500000"
+                placeholderTextColor={colors.text.tertiary}
+                keyboardType="number-pad"
+              />
+
+              <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>Type</Text>
+              <View style={styles.typeRow}>
+                {['savings', 'investment', 'debt', 'custom'].map(t => (
+                  <TouchableOpacity
+                    key={t}
+                    style={[styles.typeBtn, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle }, goalType === t && { backgroundColor: colors.accent.primary, borderColor: colors.accent.primary }]}
+                    onPress={() => setGoalType(t)}
+                  >
+                    <Text style={[styles.typeBtnText, { color: colors.text.tertiary }, goalType === t && { color: '#FFF' }]}>
+                      {t.charAt(0).toUpperCase() + t.slice(1)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>Deadline (optional)</Text>
+              <TextInput
+                style={[styles.textInput, { backgroundColor: colors.bg.tertiary, color: colors.text.primary, borderColor: colors.border.subtle }]}
+                value={goalDeadline}
+                onChangeText={setGoalDeadline}
+                placeholder="2026-12-31"
+                placeholderTextColor={colors.text.tertiary}
+              />
+
+              <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>Monthly Contribution (optional)</Text>
+              <TextInput
+                style={[styles.textInput, { backgroundColor: colors.bg.tertiary, color: colors.text.primary, borderColor: colors.border.subtle }]}
+                value={goalMonthly}
+                onChangeText={setGoalMonthly}
+                placeholder="50000"
+                placeholderTextColor={colors.text.tertiary}
+                keyboardType="number-pad"
+              />
+
+              <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>Notes (optional)</Text>
+              <TextInput
+                style={[styles.textInput, { backgroundColor: colors.bg.tertiary, color: colors.text.primary, borderColor: colors.border.subtle, height: 80, textAlignVertical: 'top' }]}
+                value={goalNotes}
+                onChangeText={setGoalNotes}
+                placeholder="Any notes..."
+                placeholderTextColor={colors.text.tertiary}
+                multiline
+              />
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={[styles.modalBtn, { backgroundColor: colors.accent.primary }]}
+                  onPress={handleCreateGoal}
+                  disabled={creating}
+                >
+                  {creating ? (
+                    <ActivityIndicator size="small" color="#FFF" />
+                  ) : (
+                    <Text style={styles.modalBtnText}>Create Goal</Text>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalBtn, { backgroundColor: colors.bg.tertiary }]}
+                  onPress={() => setShowCreate(false)}
+                >
+                  <Text style={[styles.modalBtnText, { color: colors.text.secondary }]}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </ScrollView>
+        </TouchableOpacity>
+      </Modal>
+    </>
   );
 }
 
@@ -428,4 +581,16 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   emptyCtaText: { color: '#FFF', fontSize: 15, fontWeight: '600' },
+
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', padding: 20 },
+  modalContent: { borderRadius: 20, padding: 24 },
+  modalTitle: { fontSize: 22, fontWeight: '700', marginBottom: 18 },
+  fieldLabel: { fontSize: 12, fontWeight: '600', marginBottom: 6, marginTop: 14, textTransform: 'uppercase', letterSpacing: 0.5 },
+  textInput: { fontSize: 15, paddingHorizontal: 14, paddingVertical: 12, borderRadius: 12, borderWidth: 1 },
+  typeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  typeBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, borderWidth: 1 },
+  typeBtnText: { fontSize: 13, fontWeight: '600' },
+  modalActions: { flexDirection: 'row', gap: 10, marginTop: 24 },
+  modalBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
+  modalBtnText: { color: '#FFF', fontSize: 15, fontWeight: '600' },
 });

@@ -43,7 +43,7 @@ export function OnboardingScreen() {
       colors={isDark ? [colors.bg.secondary, colors.bg.primary] : ['#f8f4f0', colors.bg.primary]}
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }}
-      style={[styles.container, { paddingTop: insets.top + 16 }]}
+      style={[styles.container, { paddingTop: insets.top + 8 }]}
     >
       <TouchableOpacity
         style={styles.skip}

@@ -289,7 +289,7 @@ export function TransactionsListScreen() {
         ListHeaderComponent={
           <View>
             {/* ── HEADER ── */}
-            <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+            <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
               <View>
                 <Text style={[styles.greeting, { color: colors.text.tertiary }]}>
                   {new Date().getHours() < 12

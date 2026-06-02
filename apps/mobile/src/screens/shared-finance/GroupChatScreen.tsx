@@ -242,7 +242,7 @@ export function GroupChatScreen() {
           style={[
             s.header,
             {
-              paddingTop: insets.top + 14,
+              paddingTop: insets.top + 8,
               backgroundColor: colors.bg.primary,
             },
           ]}
@@ -276,7 +276,7 @@ export function GroupChatScreen() {
         style={[
           s.header,
           {
-            paddingTop: insets.top + 14,
+            paddingTop: insets.top + 8,
             backgroundColor: colors.bg.primary,
             borderBottomColor: colors.border.subtle,
           },

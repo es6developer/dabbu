@@ -53,7 +53,7 @@ export function BillingHistoryScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: '#0A0A1A' }]}>
-      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>

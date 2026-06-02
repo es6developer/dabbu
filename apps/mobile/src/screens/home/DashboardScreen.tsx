@@ -295,7 +295,7 @@ export function DashboardScreen() {
       <View
         style={[
           styles.loading,
-          { backgroundColor: colors.bg.primary, paddingTop: insets.top + 16 },
+          { backgroundColor: colors.bg.primary, paddingTop: insets.top + 8 },
         ]}
       >
         <View style={{ paddingHorizontal: 24, gap: 8 }}>
@@ -329,7 +329,7 @@ export function DashboardScreen() {
     >
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 14 }]}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 8 }]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
