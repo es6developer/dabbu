@@ -61,8 +61,12 @@ export function CreateSharedGroupScreen() {
   const [currency, setCurrency] = useState('INR');
   const [icon, setIcon] = useState('people');
   const [monthlyBudget, setMonthlyBudget] = useState('');
+  const [upiId, setUpiId] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  const upiTypes = ['Friends', 'Trip', 'Roommates', 'Event'];
+  const showUpiInput = upiTypes.includes(type);
 
   async function handleCreate() {
     if (!name.trim()) {
@@ -286,6 +290,40 @@ export function CreateSharedGroupScreen() {
             />
           </View>
 
+          {showUpiInput && (
+            <>
+              <Text style={[s.label, { color: colors.text.tertiary, marginTop: 24 }]}>
+                Your UPI ID {type === 'Trip' || type === 'Event' ? '(Recommended)' : ''}
+              </Text>
+              <View style={[s.infoBanner, { backgroundColor: `${colors.accent.primary}12` }]}>
+                <Ionicons
+                  name="information-circle-outline"
+                  size={16}
+                  color={colors.accent.primary}
+                />
+                <Text style={[s.infoBannerText, { color: colors.accent.primary }]}>
+                  Add your UPI ID for faster settlements
+                </Text>
+              </View>
+              <TextInput
+                style={[
+                  s.input,
+                  {
+                    backgroundColor: colors.bg.tertiary,
+                    color: colors.text.primary,
+                    borderColor: colors.border.subtle,
+                  },
+                ]}
+                value={upiId}
+                onChangeText={setUpiId}
+                placeholder="e.g. name@okaxis"
+                placeholderTextColor={colors.text.tertiary}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </>
+          )}
+
           <TouchableOpacity
             style={[
               s.saveBtn,
@@ -409,4 +447,13 @@ const s = StyleSheet.create({
     marginHorizontal: 24,
   },
   saveBtnText: { color: '#FFF', fontSize: 17, fontWeight: '600' },
+  infoBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 24,
+    padding: 10,
+    borderRadius: 10,
+  },
+  infoBannerText: { fontSize: 12, fontWeight: '600', flex: 1 },
 });

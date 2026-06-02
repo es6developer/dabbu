@@ -622,6 +622,61 @@ export class SettlementsService {
   }
 
   /**
+   * Guest marks payment as done via shareable link
+   */
+  async guestPayNow(token: string, upiId?: string) {
+    const link = await this.prisma.payNowLink.findUnique({
+      where: { token },
+      include: {
+        fromUser: { select: { id: true, firstName: true, lastName: true } },
+        toUser: { select: { id: true, firstName: true, lastName: true } },
+        group: { select: { id: true, name: true } },
+      },
+    });
+    if (!link || link.expiresAt < new Date()) {
+      throw new NotFoundException('Payment link not found or expired');
+    }
+    if (link.status !== 'active') {
+      throw new BadRequestException('Payment already completed');
+    }
+
+    // If guest provides their UPI ID, store it
+    if (upiId) {
+      const guest = await this.prisma.guestMember.findUnique({
+        where: { userId: link.fromUserId },
+      });
+      if (guest && !guest.upiId) {
+        await this.prisma.guestMember.update({ where: { id: guest.id }, data: { upiId } });
+      }
+    }
+
+    // Mark link as paid
+    await this.prisma.payNowLink.update({
+      where: { id: link.id },
+      data: { status: 'paid', paidAt: new Date() },
+    });
+
+    // Update settlement status
+    if (link.settlementId) {
+      await this.prisma.settlement.update({
+        where: { id: link.settlementId },
+        data: { status: 'completed', settledAt: new Date(), method: 'upi' },
+      });
+    }
+
+    await this.logActivity({
+      groupId: link.groupId,
+      userId: link.fromUserId,
+      userName: `${link.fromUser.firstName} ${link.fromUser.lastName}`.trim(),
+      action: 'payment_completed',
+      description: `Paid ₹${Number(link.amount).toLocaleString('en-IN')} to ${link.toUser.firstName} via shared payment link`,
+      metadata: { settlementId: link.settlementId, amount: Number(link.amount), token },
+    });
+
+    return { status: 'completed', message: 'Payment recorded successfully' };
+  }
+
+  /**
    * Update guest member's UPI ID
    */
   async updateUpiId(userId: string, upiId: string) {
@@ -634,6 +689,170 @@ export class SettlementsService {
       where: { id: guest.id },
       data: { upiId, settlementPreference: 'upi' },
     });
+  }
+
+  // ─── Payment Reminders ──────────────────────────────────────
+
+  /**
+   * Trigger payment reminders for pending settlements
+   */
+  async getPaymentReminders(userId: string) {
+    const pending = await this.prisma.settlement.findMany({
+      where: {
+        fromUserId: userId,
+        status: 'pending',
+      },
+      include: {
+        fromUser: { select: { id: true, firstName: true, lastName: true } },
+        toUser: { select: { id: true, firstName: true, lastName: true } },
+        group: { select: { id: true, name: true, type: true } },
+        confirmation: true,
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    return pending.map((s) => {
+      const daysElapsed = Math.floor((Date.now() - new Date(s.createdAt).getTime()) / 86400000);
+      const reminderLevel = daysElapsed >= 7 ? 3 : daysElapsed >= 3 ? 2 : daysElapsed >= 1 ? 1 : 0;
+
+      return {
+        settlementId: s.id,
+        amount: Number(s.amount),
+        to: `${s.toUser.firstName} ${s.toUser.lastName}`.trim(),
+        groupName: s.group.name,
+        groupType: s.group.type,
+        daysElapsed,
+        reminderLevel,
+        pendingDays:
+          reminderLevel === 0 ? 1 : reminderLevel === 1 ? 3 : reminderLevel === 2 ? 7 : null,
+      };
+    });
+  }
+
+  /**
+   * Generate shareable WhatsApp reminder text
+   */
+  async generateReminderText(userId: string, settlementId: string) {
+    const settlement = await this.prisma.settlement.findUnique({
+      where: { id: settlementId },
+      include: {
+        fromUser: { select: { firstName: true, lastName: true } },
+        toUser: { select: { firstName: true, lastName: true } },
+        group: { select: { name: true } },
+      },
+    });
+    if (!settlement) {
+      throw new NotFoundException('Settlement not found');
+    }
+
+    const amount = Number(settlement.amount).toLocaleString('en-IN');
+    const payerName = `${settlement.fromUser.firstName} ${settlement.fromUser.lastName}`.trim();
+    const groupName = settlement.group.name;
+
+    return {
+      text: `Hey! 👋\n\nYou owe ₹${amount} to ${payerName} in "${groupName}" on Dabbu.\n\nPay now: https://dabbu.app/pay\n\nPlease settle up when you can! 🙏`,
+    };
+  }
+
+  // ─── Group Summary Report ──────────────────────────────────
+
+  async getGroupSummary(groupId: string) {
+    const group = await this.prisma.sharedGroup.findUnique({
+      where: { id: groupId },
+      include: {
+        members: {
+          where: { isActive: true },
+          include: {
+            user: { select: { id: true, firstName: true, lastName: true, email: true } },
+          },
+        },
+      },
+    });
+    if (!group) {
+      throw new NotFoundException('Group not found');
+    }
+
+    const expenses = await this.prisma.sharedExpense.findMany({
+      where: { groupId },
+      include: {
+        payer: { select: { id: true, firstName: true, lastName: true } },
+        splits: true,
+      },
+    });
+
+    const settlements = await this.prisma.settlement.findMany({
+      where: { groupId },
+    });
+
+    const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount), 0);
+    const completedSettlements = settlements.filter((s) => s.status === 'completed').length;
+    const totalSettlements = settlements.length;
+    const completionRate =
+      totalSettlements > 0 ? Math.round((completedSettlements / totalSettlements) * 100) : 0;
+
+    const memberContributions = group.members
+      .map((m) => {
+        const paid = expenses
+          .filter((e) => e.paidBy === m.userId)
+          .reduce((s, e) => s + Number(e.amount), 0);
+        return {
+          name: [m.user.firstName, m.user.lastName].filter(Boolean).join(' ') || m.user.email,
+          totalPaid: paid,
+          percentage: totalExpenses > 0 ? Math.round((paid / totalExpenses) * 100) : 0,
+        };
+      })
+      .sort((a, b) => b.totalPaid - a.totalPaid);
+
+    return {
+      groupName: group.name,
+      groupType: group.type,
+      totalExpenses,
+      memberCount: group.members.length,
+      totalTransactions: expenses.length,
+      highestContributor: memberContributions[0] || null,
+      settlementCompletionRate: completionRate,
+      totalSettlements,
+      completedSettlements,
+      memberContributions,
+      createdAt: group.createdAt,
+    };
+  }
+
+  // ─── Guest-to-User Conversion ──────────────────────────────
+
+  async getConversionStatus(userId: string) {
+    const guestProfile = await this.prisma.guestMember.findMany({
+      where: { userId },
+    });
+    const groupCount = guestProfile.length;
+
+    const expensesSubmitted = await this.prisma.expenseApprovalQueue.count({
+      where: { guestId: userId, status: 'approved' },
+    });
+
+    const settlementsConfirmed = await this.prisma.settlement.findMany({
+      where: {
+        OR: [{ fromUserId: userId }, { toUserId: userId }],
+        status: 'completed',
+      },
+    });
+
+    const metrics = {
+      groupsJoined: groupCount,
+      expensesAdded: expensesSubmitted,
+      settlementsConfirmed: settlementsConfirmed.length,
+    };
+
+    const shouldPrompt =
+      groupCount >= 3 || expensesSubmitted >= 5 || settlementsConfirmed.length >= 3;
+
+    return {
+      ...metrics,
+      shouldPrompt,
+      message: shouldPrompt
+        ? 'Create your own Spaces! Track expenses, family budgets, trips, and business finances.'
+        : null,
+    };
   }
 
   // ─── Activity Logging ────────────────────────────────────────

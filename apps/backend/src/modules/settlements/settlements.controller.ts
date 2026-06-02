@@ -152,4 +152,67 @@ export class SettlementsController {
   async updateUpiId(@Req() req: any, @Body() dto: AddUpiIdDto) {
     return this.settlementsService.updateUpiId(req.user.id, dto.upiId);
   }
+
+  // ─── Public Guest Endpoints (no auth required) ──────────
+
+  @Post('guest/pay/:token')
+  @ApiOperation({ summary: 'Guest initiates payment via shareable link (public)' })
+  async guestPayNow(@Param('token') token: string, @Body() dto: { upiId?: string }) {
+    return this.settlementsService.guestPayNow(token, dto.upiId);
+  }
+
+  @Post('guest/confirm')
+  @ApiOperation({ summary: 'Guest confirms settlement (public)' })
+  async guestConfirmSettlement(@Body() dto: { settlementId: string; reason?: string }) {
+    return this.settlementsService.confirmReceipt('guest', dto.settlementId, dto.reason);
+  }
+
+  @Post('guest/reject')
+  @ApiOperation({ summary: 'Guest rejects settlement (public)' })
+  async guestRejectSettlement(@Body() dto: { settlementId: string; reason: string }) {
+    return this.settlementsService.rejectReceipt('guest', dto.settlementId, dto.reason);
+  }
+
+  @Get('guest/dashboard/:groupId')
+  @ApiOperation({ summary: 'Get guest dashboard (public)' })
+  async getPublicGuestDashboard(@Param('groupId', ParseUUIDPipe) groupId: string) {
+    return this.settlementsService.getGuestDashboard('guest', groupId);
+  }
+
+  // ─── Reminders & Summary ────────────────────────────
+
+  @Get('reminders')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get payment reminders for current user' })
+  async getPaymentReminders(@Req() req: any) {
+    return this.settlementsService.getPaymentReminders(req.user.id);
+  }
+
+  @Get('reminders/:settlementId/text')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Generate WhatsApp reminder text for a settlement' })
+  async generateReminderText(
+    @Req() req: any,
+    @Param('settlementId', ParseUUIDPipe) settlementId: string,
+  ) {
+    return this.settlementsService.generateReminderText(req.user.id, settlementId);
+  }
+
+  @Get('summary/:groupId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get group summary report' })
+  async getGroupSummary(@Param('groupId', ParseUUIDPipe) groupId: string) {
+    return this.settlementsService.getGroupSummary(groupId);
+  }
+
+  @Get('conversion-status')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Check guest-to-user conversion eligibility' })
+  async getConversionStatus(@Req() req: any) {
+    return this.settlementsService.getConversionStatus(req.user.id);
+  }
 }

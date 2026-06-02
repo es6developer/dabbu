@@ -406,6 +406,26 @@ export const api = {
         method: 'upi',
       });
     },
+
+    getPayLink: async (token: string) => {
+      return get<any>(`/settlements/pay/${token}`);
+    },
+
+    guestPayNow: async (token: string, upiId?: string) => {
+      return post<any>(`/settlements/guest/pay/${token}`, upiId ? { upiId } : {});
+    },
+
+    guestConfirmSettlement: async (
+      settlementId: string,
+      action: 'confirm' | 'reject',
+      reason?: string,
+    ) => {
+      return post<any>(`/settlements/guest/${action}`, { settlementId, reason });
+    },
+
+    getGuestDashboard: async (groupId: string) => {
+      return get<any>(`/settlements/guest/dashboard/${groupId}`);
+    },
   },
 
   chat: {
