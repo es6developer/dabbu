@@ -37,27 +37,37 @@ export class PremiumController {
   @ApiOperation({ summary: 'Create subscription for a plan' })
   async createSubscription(@Req() req: any, @Body('planCode') planCode: string) {
     const userId = req.user.id;
-    const sub = await this.premiumService.createSubscription(userId, planCode);
+
+    // 1. Ensure Razorpay plan exists (creates via API if needed)
+    const razorpayPlanId = await this.premiumService.ensureRazorpayPlan(planCode);
+
+    // 2. Create local subscription with 'incomplete' status (payment pending)
+    const sub = await this.premiumService.createSubscription(userId, planCode, 'incomplete');
+
+    // 3. Get plan details for addon amount
     const plan = await this.prisma.subscriptionPlan.findUnique({ where: { id: sub.planId } });
-    let checkoutUrl = null;
-    if (plan?.razorpayPlanId) {
-      try {
-        const razorpaySub = await this.razorpayService.createSubscription({
-          planId: plan.razorpayPlanId,
-          totalCount: 1,
-          customerEmail: req.user.email,
-          notes: { userId, subscriptionId: sub.id },
-        });
-        await this.prisma.subscription.update({
-          where: { id: sub.id },
-          data: { razorpaySubscriptionId: razorpaySub.id, razorpayOrderId: razorpaySub.order_id },
-        });
-        (sub as any).razorpaySubscriptionId = razorpaySub.id;
-        checkoutUrl = `https://api.razorpay.com/v1/subscriptions/${razorpaySub.id}/checkout`;
-      } catch {
-        /* noop */
-      }
-    }
+    const addonAmount = plan ? Number(plan.price) * 100 : undefined;
+
+    // 4. Create Razorpay subscription with auto-pay (total_count=0 for infinite, addon for first charge)
+    const razorpaySub = await this.razorpayService.createSubscription({
+      planId: razorpayPlanId,
+      totalCount: 0,
+      customerEmail: req.user.email,
+      customerContact: req.user.phone,
+      notes: { userId, subscriptionId: sub.id, planCode },
+      addonAmount,
+    });
+
+    // 5. Store Razorpay subscription ID on local subscription
+    await this.prisma.subscription.update({
+      where: { id: sub.id },
+      data: { razorpaySubscriptionId: razorpaySub.id },
+    });
+    (sub as any).razorpaySubscriptionId = razorpaySub.id;
+
+    // 6. Return checkout URL for user to authorize auto-debit
+    const checkoutUrl = `https://api.razorpay.com/v1/subscriptions/${razorpaySub.id}/checkout`;
+
     return { ...sub, checkoutUrl };
   }
 

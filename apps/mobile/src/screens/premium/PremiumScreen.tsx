@@ -59,11 +59,27 @@ function CheckoutOverlay({ url, onClose }: { url: string; onClose: () => void })
       <WebView
         source={{ uri: url }}
         onNavigationStateChange={(navState) => {
-          if (navState.url.includes('success') || navState.url.includes('callback')) {
+          if (
+            navState.url.includes('success') ||
+            navState.url.includes('callback') ||
+            navState.url.includes('/subscriptions/')
+          ) {
             onClose();
           }
         }}
       />
+    </View>
+  );
+}
+
+function ProcessingOverlay() {
+  return (
+    <View style={[StyleSheet.absoluteFill, styles.processingOverlay]}>
+      <View style={styles.processingCard}>
+        <ActivityIndicator size="large" color="#F5A623" />
+        <Text style={styles.processingTitle}>Processing Payment</Text>
+        <Text style={styles.processingText}>Please wait while we confirm your subscription...</Text>
+      </View>
     </View>
   );
 }
@@ -75,8 +91,10 @@ export function PremiumScreen() {
   const [selectedPlan, setSelectedPlan] = useState(3);
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
   const [currentSub, setCurrentSub] = useState<any>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const heroScale = useRef(new Animated.Value(0.8)).current;
@@ -88,12 +106,24 @@ export function PremiumScreen() {
       Animated.spring(heroScale, { toValue: 1, friction: 6, useNativeDriver: true }),
     ]).start();
     loadCurrentSubscription();
+    return () => {
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+      }
+    };
   }, []);
 
   const loadCurrentSubscription = useCallback(async () => {
     try {
       const sub = await api.get<any>('/premium/current');
       setCurrentSub(sub);
+      if (sub?.status === 'active' && sub?.plan?.code !== 'FREE') {
+        setProcessing(false);
+        if (pollRef.current) {
+          clearInterval(pollRef.current);
+          pollRef.current = null;
+        }
+      }
     } catch {
       /* noop */
     } finally {
@@ -101,10 +131,45 @@ export function PremiumScreen() {
     }
   }, []);
 
+  const waitForActivation = useCallback(() => {
+    setProcessing(true);
+    let attempts = 0;
+    const maxAttempts = 30;
+    pollRef.current = setInterval(async () => {
+      attempts++;
+      try {
+        const sub = await api.get<any>('/premium/current');
+        if (sub?.status === 'active' && sub?.plan?.code !== 'FREE') {
+          setCurrentSub(sub);
+          setProcessing(false);
+          if (pollRef.current) {
+            clearInterval(pollRef.current);
+            pollRef.current = null;
+          }
+          Alert.alert('Welcome to Premium!', 'Your subscription is now active.');
+        }
+      } catch {
+        /* noop */
+      }
+      if (attempts >= maxAttempts) {
+        if (pollRef.current) {
+          clearInterval(pollRef.current);
+          pollRef.current = null;
+        }
+        setProcessing(false);
+        Alert.alert(
+          'Still processing',
+          'Your payment was received but activation is taking longer than expected. Please check your subscription status in a few moments.',
+        );
+        loadCurrentSubscription();
+      }
+    }, 2000);
+  }, [loadCurrentSubscription]);
+
   const handleWebViewClose = useCallback(() => {
     setCheckoutUrl(null);
-    loadCurrentSubscription();
-  }, [loadCurrentSubscription]);
+    waitForActivation();
+  }, [waitForActivation]);
 
   const handleSubscribe = async () => {
     const plan = PLANS[selectedPlan];
@@ -113,12 +178,8 @@ export function PremiumScreen() {
       const result: any = await api.post('/premium/subscribe', { planCode: plan.code });
       if (result?.checkoutUrl) {
         setCheckoutUrl(result.checkoutUrl);
-      } else if (result?.razorpaySubscriptionId) {
-        Alert.alert('Success', 'Welcome to Dabbu Premium!');
-        setCurrentSub(await api.get<any>('/premium/current'));
       } else {
-        Alert.alert('Success', 'Premium subscription activated!');
-        setCurrentSub(result);
+        Alert.alert('Error', 'Failed to initiate payment. Please try again.');
       }
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'Subscription failed. Please try again.');
@@ -177,8 +238,47 @@ export function PremiumScreen() {
             </View>
             <Text style={styles.activeTitle}>You're on Premium</Text>
           </LinearGradient>
+          <View style={styles.activeDetails}>
+            <View style={styles.detailCard}>
+              <Ionicons name="calendar" size={20} color="#FFD700" />
+              <View>
+                <Text style={styles.detailLabel}>Current Period Ends</Text>
+                <Text style={styles.detailValue}>{endDate}</Text>
+              </View>
+            </View>
+            <View style={styles.detailCard}>
+              <Ionicons name="card" size={20} color="#FFD700" />
+              <View>
+                <Text style={styles.detailLabel}>Plan</Text>
+                <Text style={styles.detailValue}>{currentSub.plan?.name || 'Premium'}</Text>
+              </View>
+            </View>
+            {currentSub.cancelAtPeriodEnd && (
+              <View style={styles.detailCard}>
+                <Ionicons name="alert-circle" size={20} color="#FF5050" />
+                <View>
+                  <Text style={[styles.detailLabel, { color: '#FF5050' }]}>
+                    Cancellation Scheduled
+                  </Text>
+                  <Text style={styles.detailValue}>Ends on {endDate}</Text>
+                </View>
+              </View>
+            )}
+            <TouchableOpacity
+              style={styles.billingBtn}
+              onPress={() => navigation.navigate('BillingHistory')}
+            >
+              <Ionicons name="receipt" size={18} color="#FFFFFF" />
+              <Text style={styles.billingBtnText}> Billing History</Text>
+            </TouchableOpacity>
+            {!currentSub.cancelAtPeriodEnd && (
+              <TouchableOpacity style={styles.cancelBtn} onPress={handleCancel}>
+                <Text style={styles.cancelBtnText}>Cancel Subscription</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </ScrollView>
-        {checkoutUrl && <CheckoutOverlay url={checkoutUrl} onClose={handleWebViewClose} />}
+        {processing && <ProcessingOverlay />}
       </View>
     );
   }
@@ -254,6 +354,7 @@ export function PremiumScreen() {
           ]}
         >
           <Text style={styles.plansTitle}>Choose Your Plan</Text>
+          <Text style={styles.plansSubtitle}>Auto-pay subscription • Cancel anytime</Text>
           <View style={styles.plansGrid}>
             {PLANS.map((plan, index) => {
               const isSelected = selectedPlan === index;
@@ -301,9 +402,9 @@ export function PremiumScreen() {
         style={[styles.stickyCta, { paddingBottom: insets.bottom + 16, opacity: fadeAnim }]}
       >
         <TouchableOpacity
-          style={[styles.upgradeBtn, subscribing && styles.upgradeBtnDisabled]}
+          style={[styles.upgradeBtn, (subscribing || processing) && styles.upgradeBtnDisabled]}
           onPress={handleSubscribe}
-          disabled={subscribing}
+          disabled={subscribing || processing}
           activeOpacity={0.85}
         >
           <LinearGradient
@@ -312,7 +413,7 @@ export function PremiumScreen() {
             end={{ x: 1, y: 0 }}
             style={[styles.upgradeBtnGradient]}
           />
-          {subscribing ? (
+          {subscribing || processing ? (
             <ActivityIndicator size="small" color="#000" />
           ) : (
             <>
@@ -325,6 +426,7 @@ export function PremiumScreen() {
       </Animated.View>
 
       {checkoutUrl && <CheckoutOverlay url={checkoutUrl} onClose={handleWebViewClose} />}
+      {processing && <ProcessingOverlay />}
     </View>
   );
 }
@@ -397,8 +499,14 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '800',
     color: '#FFFFFF',
-    marginBottom: 16,
+    marginBottom: 4,
     textAlign: 'center',
+  },
+  plansSubtitle: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.4)',
+    textAlign: 'center',
+    marginBottom: 16,
   },
   plansGrid: { gap: 10 },
   planCard: {
@@ -417,7 +525,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 6,
   },
-  planBadgeText: { color: '#000', fontSize: 9, fontWeight: '800' },
+  planBadgeText: { color: '#000', fontSize: 9, fontWeight: '700' },
   planLabel: { fontSize: 15, fontWeight: '700', color: 'rgba(255,255,255,0.8)' },
   planPrice: { fontSize: 24, fontWeight: '900', color: '#FFFFFF', marginTop: 4 },
   planPeriod: { fontSize: 12, color: 'rgba(255,255,255,0.5)' },
@@ -475,8 +583,35 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 14,
     alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.2)',
   },
   billingBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
+  processingOverlay: {
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  processingCard: {
+    backgroundColor: '#1A1A2E',
+    borderRadius: 20,
+    padding: 32,
+    alignItems: 'center',
+    gap: 16,
+    marginHorizontal: 40,
+  },
+  processingTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  processingText: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.6)',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
 });

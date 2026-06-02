@@ -1,12 +1,29 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { EmailService } from '../email/email.service';
+import { RazorpayService } from './razorpay.service';
 
 @Injectable()
 export class PremiumService {
+  private readonly RAZORPAY_PLAN_MAP: Record<
+    string,
+    { period: string; interval: number; amount: number }
+  > = {
+    MONTHLY_89: { period: 'monthly', interval: 1, amount: 8900 },
+    QUARTERLY_219: { period: 'monthly', interval: 3, amount: 21900 },
+    HALFYEARLY_389: { period: 'monthly', interval: 6, amount: 38900 },
+    YEARLY_699: { period: 'yearly', interval: 1, amount: 69900 },
+  };
+
   constructor(
     private prisma: PrismaService,
     private emailService: EmailService,
+    private razorpayService: RazorpayService,
   ) {}
 
   async getPlans() {
@@ -24,7 +41,7 @@ export class PremiumService {
     return sub;
   }
 
-  async createSubscription(userId: string, planCode: string) {
+  async createSubscription(userId: string, planCode: string, status: string = 'incomplete') {
     const plan = await this.prisma.subscriptionPlan.findUnique({ where: { code: planCode } });
     if (!plan || !plan.isActive) {
       throw new NotFoundException('Plan not found');
@@ -40,44 +57,47 @@ export class PremiumService {
       create: {
         userId,
         planId: plan.id,
-        status: 'active',
+        status,
         currentPeriodStart: now,
         currentPeriodEnd: periodEnd,
       },
       update: {
         planId: plan.id,
-        status: 'active',
+        status,
         currentPeriodStart: now,
         currentPeriodEnd: periodEnd,
         cancelledAt: null,
         cancelAtPeriodEnd: false,
       },
     });
-    await this.syncEntitlements(userId, sub.id, plan);
-
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { email: true, firstName: true },
-    });
-    if (user) {
-      const intervalLabel =
-        plan.interval === 'monthly'
-          ? 'Monthly'
-          : plan.interval === 'quarterly'
-            ? 'Quarterly'
-            : plan.interval === 'halfyearly'
-              ? 'Half-Yearly'
-              : 'Yearly';
-      this.emailService.sendPremiumActivatedEmail(
-        user.email,
-        user.firstName,
-        plan.name,
-        intervalLabel,
-        plan.features as string[],
-      );
-    }
 
     return sub;
+  }
+
+  async ensureRazorpayPlan(planCode: string): Promise<string> {
+    const plan = await this.prisma.subscriptionPlan.findUnique({ where: { code: planCode } });
+    if (!plan) {
+      throw new NotFoundException('Plan not found');
+    }
+    if (plan.razorpayPlanId) {
+      return plan.razorpayPlanId;
+    }
+    const config = this.RAZORPAY_PLAN_MAP[planCode];
+    if (!config) {
+      throw new BadRequestException(`No Razorpay plan config for ${planCode}`);
+    }
+    const rzpPlan = await this.razorpayService.createPlan({
+      period: config.period,
+      interval: config.interval,
+      amount: config.amount,
+      name: planCode,
+      description: plan.name,
+    });
+    await this.prisma.subscriptionPlan.update({
+      where: { code: planCode },
+      data: { razorpayPlanId: rzpPlan.id },
+    });
+    return rzpPlan.id;
   }
 
   async cancelSubscription(userId: string) {

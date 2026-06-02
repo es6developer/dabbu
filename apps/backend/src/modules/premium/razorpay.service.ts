@@ -18,12 +18,49 @@ export class RazorpayService {
     return `Basic ${Buffer.from(`${this.keyId}:${this.keySecret}`).toString('base64')}`;
   }
 
+  async createPlan(params: {
+    period: string;
+    interval: number;
+    amount: number;
+    name: string;
+    description?: string;
+  }) {
+    try {
+      const response = await axios.post(
+        'https://api.razorpay.com/v1/plans',
+        {
+          period: params.period,
+          interval: params.interval,
+          item: {
+            name: params.name,
+            description: params.description || params.name,
+            amount: params.amount,
+            currency: 'INR',
+          },
+          notes: { plan_code: params.name },
+        },
+        {
+          headers: {
+            Authorization: this.authHeader(),
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+      return response.data;
+    } catch (err: any) {
+      throw new InternalServerErrorException(
+        err.response?.data?.error?.description || 'Failed to create Razorpay plan',
+      );
+    }
+  }
+
   async createSubscription(params: {
     planId: string;
     totalCount: number;
     customerEmail: string;
     customerContact?: string;
     notes?: Record<string, string>;
+    addonAmount?: number;
   }) {
     try {
       const body: any = {
@@ -35,6 +72,17 @@ export class RazorpayService {
       };
       if (params.customerContact) {
         body.notify_info.notify_phone = params.customerContact;
+      }
+      if (params.addonAmount) {
+        body.addons = [
+          {
+            item: {
+              name: 'Subscription (Current Period)',
+              amount: params.addonAmount,
+              currency: 'INR',
+            },
+          },
+        ];
       }
       const response = await axios.post('https://api.razorpay.com/v1/subscriptions', body, {
         headers: {
