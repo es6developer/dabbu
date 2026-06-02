@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   cardBalance: { fontSize: 16, fontWeight: '700' },
   accountBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, marginTop: 4 },
   accountBadgeText: { fontSize: 9, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.3 },
-  empty: { alignItems: 'center', paddingTop: 80, gap: 12 },
+  empty: { alignItems: 'center', paddingTop: 40, gap: 12 },
   emptyTitle: { fontSize: 17, fontWeight: '600' },
   emptyDesc: { fontSize: 13 },
 });

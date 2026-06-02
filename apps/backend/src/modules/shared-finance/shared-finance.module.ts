@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PrismaModule } from '../../common/prisma/prisma.module';
 import { NotificationModule } from '../notification/notification.module';
+import { EmailModule } from '../email/email.module';
 import { SharedFinanceController } from './shared-finance.controller';
 import { SharedFinanceService } from './shared-finance.service';
 import { SettlementEngine } from './engines/settlement.engine';
@@ -18,6 +19,7 @@ import { GroupMemberGuard } from './guards/group-member.guard';
   imports: [
     PrismaModule,
     NotificationModule,
+    EmailModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

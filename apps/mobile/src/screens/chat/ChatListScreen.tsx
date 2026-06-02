@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   chatInfo: { flex: 1 },
   chatName: { fontSize: 15, fontWeight: '600', marginBottom: 3 },
   lastMsg: { fontSize: 12 },
-  empty: { alignItems: 'center', paddingTop: 80, gap: 10 },
+  empty: { alignItems: 'center', paddingTop: 40, gap: 10 },
   emptyTitle: { fontSize: 18, fontWeight: '600' },
   emptyDesc: { fontSize: 14 },
 });

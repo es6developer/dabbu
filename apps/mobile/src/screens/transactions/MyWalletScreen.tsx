@@ -339,7 +339,7 @@ export function MyWalletScreen() {
 
 const s = StyleSheet.create({
   screen: { flex: 1 },
-  emptyContainer: { flexGrow: 1, justifyContent: 'center' },
+  emptyContainer: { flexGrow: 1 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, paddingBottom: 16 },
   greeting: { fontSize: 13, fontWeight: '500', marginBottom: 2 },
   headerTitle: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5 },

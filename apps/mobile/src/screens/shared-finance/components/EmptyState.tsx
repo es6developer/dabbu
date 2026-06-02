@@ -46,7 +46,7 @@ export function EmptyState({
 }
 
 const styles = StyleSheet.create({
-  wrapper: { alignItems: 'center', gap: 12, paddingVertical: 60, paddingHorizontal: 24 },
+  wrapper: { alignItems: 'center', gap: 12, paddingVertical: 40, paddingHorizontal: 24 },
   iconWrap: {
     width: 88,
     height: 88,

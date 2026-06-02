@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   dueDate: { fontSize: 11 },
   priorityBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, marginLeft: 8 },
   priorityText: { fontSize: 10, fontWeight: '600' },
-  emptyContainer: { flexGrow: 1, justifyContent: 'center' },
+  emptyContainer: { flexGrow: 1 },
   empty: { alignItems: 'center' },
   emptyIcon: { fontSize: 48, opacity: 0.5, marginBottom: 16 },
   emptyTitle: { fontSize: 18, fontWeight: '600', marginBottom: 8 },

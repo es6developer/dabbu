@@ -13,7 +13,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
-import { useTheme } from '../../theme';
+import { BaseScreen } from '../../components/ui/BaseScreen';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { FloatingActionButton } from '../../components/ui/FloatingActionButton';
+import { useTheme, spacing } from '../../theme';
 import { Card } from '../../components/ui/Card';
 
 interface Reminder {
@@ -145,9 +148,12 @@ export function RemindersScreen() {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        <Text style={[styles.title, { color: colors.text.primary }]}>Reminders</Text>
+    <BaseScreen>
+      <View style={styles.header}>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.eyebrow, { color: colors.text.tertiary }]}>Financial OS</Text>
+          <Text style={[styles.title, { color: colors.text.primary }]}>Reminders</Text>
+        </View>
         <View style={styles.headerActions}>
           <TouchableOpacity
             style={[styles.headerBtn, { backgroundColor: colors.bg.tertiary }]}
@@ -168,18 +174,14 @@ export function RemindersScreen() {
           <ActivityIndicator size="large" color={colors.accent.primary} />
         </View>
       ) : reminders.length === 0 ? (
-        <View style={styles.center}>
-          <View style={[styles.emptyIcon, { backgroundColor: colors.bg.tertiary }]}>
-            <Ionicons name="alarm-outline" size={40} color={colors.text.tertiary} />
-          </View>
-          <Text
-            style={[typography.callout, { color: colors.text.secondary, marginTop: spacing.md }]}
-          >
-            No reminders yet
-          </Text>
-          <Text style={[typography.subhead, { color: colors.text.tertiary, marginTop: 4 }]}>
-            Create your first reminder to get started
-          </Text>
+        <View style={{ paddingTop: spacing['4xl'] }}>
+          <EmptyState
+            icon="alarm-outline"
+            title="No reminders yet"
+            message="Create your first reminder to get started"
+            actionLabel="Create Reminder"
+            onAction={() => navigation.navigate('CreateReminder' as never)}
+          />
         </View>
       ) : (
         <FlatList
@@ -198,37 +200,36 @@ export function RemindersScreen() {
         />
       )}
 
-      <TouchableOpacity
-        style={[
-          styles.fab,
-          { backgroundColor: colors.accent.primary, bottom: insets.bottom + 100 },
-        ]}
+      <FloatingActionButton
         onPress={() => navigation.navigate('CreateReminder' as never)}
-        activeOpacity={0.8}
-      >
-        <Ionicons name="add" size={24} color="#FFFFFF" />
-      </TouchableOpacity>
-    </View>
+        icon="add"
+      />
+    </BaseScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingBottom: 12,
+    paddingBottom: spacing.sm,
+  },
+  eyebrow: {
+    fontSize: 13,
+    fontWeight: '500',
+    marginBottom: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
   },
   title: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5 },
-  headerActions: { flexDirection: 'row', gap: 8 },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   headerBtn: {
     width: 40,
     height: 40,
     borderRadius: 12,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   badge: {
     position: 'absolute',
@@ -237,45 +238,28 @@ const styles = StyleSheet.create({
     minWidth: 18,
     height: 18,
     borderRadius: 9,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 4,
   },
-  badgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '800' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
-  emptyIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  list: { paddingHorizontal: 20, paddingTop: 8 },
-  card: { marginBottom: 10 },
+  badgeText: { color: '#FFF', fontSize: 10, fontWeight: '700' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  list: { paddingBottom: 100 },
+  card: { marginBottom: 8 },
   row: { flexDirection: 'row', alignItems: 'center' },
   iconBox: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    justifyContent: 'center',
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     alignItems: 'center',
-  },
-  info: { flex: 1, marginLeft: 12 },
-  priorityBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 100 },
-  priorityText: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
-  fab: {
-    position: 'absolute',
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 16,
     justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#f7892c',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    marginRight: 14,
   },
+  info: { flex: 1 },
+  priorityBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  priorityText: { fontSize: 10, fontWeight: '700' },
 });

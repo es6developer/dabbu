@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
   billCardRight: { alignItems: 'flex-end', marginLeft: 12 },
   billAmount: { fontSize: 15, fontWeight: '700', marginBottom: 2 },
   billDate: { fontSize: 11 },
-  emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 60, paddingHorizontal: 32 },
+  emptyContainer: { flex: 1, alignItems: 'center', paddingVertical: 60, paddingHorizontal: 32 },
   emptyIconWrap: { width: 120, height: 120, borderRadius: 60, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
   emptyTitle: { fontSize: 22, fontWeight: '700', marginBottom: 8 },
   emptyDesc: { fontSize: 14, textAlign: 'center', lineHeight: 22, marginBottom: 32 },
@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
   shimmerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   shimmerCircle: { width: 40, height: 40, borderRadius: 12 },
   shimmerLine: { height: 12, borderRadius: 6 },
-  errorContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 80, paddingHorizontal: 32 },
+  errorContainer: { flex: 1, alignItems: 'center', paddingVertical: 40, paddingHorizontal: 32 },
   errorTitle: { fontSize: 20, fontWeight: '700', marginTop: 16, marginBottom: 8 },
   errorDesc: { fontSize: 14, textAlign: 'center', marginBottom: 24 },
   fab: {

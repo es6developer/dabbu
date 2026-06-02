@@ -623,7 +623,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   listContent: { paddingBottom: 100 },
-  emptyContainer: { flexGrow: 1, justifyContent: 'center' },
+  emptyContainer: { flexGrow: 1 },
 
   // ── Header ──
   header: {

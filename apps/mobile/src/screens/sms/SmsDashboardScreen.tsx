@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
   badge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
   badgeText: { fontSize: 11, fontWeight: '600' },
   conf: { fontSize: 11, fontWeight: '500' },
-  emptyContainer: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 16 },
+  emptyContainer: { flexGrow: 1, paddingHorizontal: 16 },
   empty: { alignItems: 'center', gap: 12, paddingHorizontal: 32 },
   emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { fontSize: 17, fontWeight: '600' },

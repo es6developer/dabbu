@@ -10,6 +10,12 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BaseScreen } from '../../components/ui/BaseScreen';
+import { PageHeader } from '../../components/ui/PageHeader';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { FloatingActionButton } from '../../components/ui/FloatingActionButton';
+import { FilterSection } from '../../components/ui/FilterSection';
+import { spacing } from '../../theme';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -110,41 +116,18 @@ export function RemindersListScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}>
-        <ActivityIndicator color={colors.accent.primary} size="large" />
-      </View>
+      <BaseScreen>
+        <View style={{ justifyContent: 'center', alignItems: 'center', flex: 1 }}>
+          <ActivityIndicator color={colors.accent.primary} size="large" />
+        </View>
+      </BaseScreen>
     );
   }
 
-  return (
-    <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
-      <View style={styles.filterRow}>
-        {FILTERS.map((f) => (
-          <TouchableOpacity
-            key={f.key}
-            style={[
-              styles.filterChip,
-              { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
-              filter === f.key && {
-                backgroundColor: colors.accent.primary,
-                borderColor: colors.accent.primary,
-              },
-            ]}
-            onPress={() => setFilter(f.key)}
-          >
-            <Text
-              style={[
-                styles.filterChipText,
-                { color: colors.text.tertiary },
-                filter === f.key && { color: '#FFFFFF' },
-              ]}
-            >
-              {f.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+  const FILTER_OPTIONS = FILTERS.map(f => ({ key: f.key, label: f.label }));
 
+  return (
+    <BaseScreen noPadding>
       <FlatList
         data={filteredData}
         keyExtractor={(r) => r.id}
@@ -154,6 +137,19 @@ export function RemindersListScreen() {
             onRefresh={onRefresh}
             tintColor={colors.accent.primary}
           />
+        }
+        ListHeaderComponent={
+          <View style={{ paddingHorizontal: spacing.lg }}>
+            <PageHeader
+              title="Reminders"
+              subtitle="Financial OS"
+            />
+            <FilterSection
+              options={FILTER_OPTIONS}
+              selected={filter}
+              onSelect={(key) => setFilter(key as FilterType)}
+            />
+          </View>
         }
         renderItem={({ item }) => (
           <TouchableOpacity
@@ -193,46 +189,35 @@ export function RemindersListScreen() {
           </TouchableOpacity>
         )}
         contentContainerStyle={
-          filteredData.length === 0 ? styles.emptyContainer : { paddingBottom: 100 }
+          filteredData.length === 0
+            ? styles.emptyContainer
+            : { paddingBottom: insets.bottom + 100, paddingHorizontal: spacing.lg }
         }
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>🔔</Text>
-            <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No reminders</Text>
-            <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
-              Create a reminder to get started
-            </Text>
-          </View>
+          <EmptyState
+            icon="notifications-outline"
+            title="No reminders"
+            message="Create a reminder to get started"
+            actionLabel="Create Reminder"
+            onAction={() => navigation.navigate('CreateReminder')}
+          />
         }
       />
 
-      <TouchableOpacity
-        style={[
-          styles.fab,
-          {
-            backgroundColor: colors.accent.primary,
-            shadowColor: colors.accent.primary,
-            bottom: insets.bottom + 100,
-          },
-        ]}
+      <FloatingActionButton
         onPress={() => navigation.navigate('CreateReminder')}
-      >
-        <Text style={styles.fabText}>+</Text>
-      </TouchableOpacity>
-    </View>
+        icon="add"
+      />
+    </BaseScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  filterRow: { flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
-  filterChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 22, borderWidth: 1 },
-  filterChipText: { fontSize: 13, fontWeight: '500' },
+  emptyContainer: { flexGrow: 1, paddingHorizontal: spacing.lg },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 16,
+    marginHorizontal: spacing.lg,
     marginVertical: 4,
     padding: 16,
     borderRadius: 16,
@@ -247,23 +232,4 @@ const styles = StyleSheet.create({
   priorityBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
   priorityText: { fontSize: 10, fontWeight: '600' },
   completedBadge: { fontSize: 14, fontWeight: '700' },
-  emptyContainer: { flexGrow: 1, justifyContent: 'center' },
-  empty: { alignItems: 'center' },
-  emptyIcon: { fontSize: 48, opacity: 0.5, marginBottom: 16 },
-  emptyTitle: { fontSize: 18, fontWeight: '600', marginBottom: 8 },
-  emptyDesc: { fontSize: 14 },
-  fab: {
-    position: 'absolute',
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  fabText: { fontSize: 28, color: '#FFFFFF', lineHeight: 30 },
 });

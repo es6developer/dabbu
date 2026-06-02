@@ -14,6 +14,7 @@ import { AccessRevocationEngine } from './engines/access-revocation.engine';
 import { TripCostForecastEngine } from './engines/trip-forecast.engine';
 import { DuplicateDetectionEngine } from './engines/duplicate-detection.engine';
 import { NotificationService } from '../notification/notification.service';
+import { EmailService } from '../email/email.service';
 import { Server } from 'socket.io';
 import {
   CreateGroupDto,
@@ -78,6 +79,7 @@ export class SharedFinanceService {
     private readonly tripForecastEngine: TripCostForecastEngine,
     private readonly duplicateEngine: DuplicateDetectionEngine,
     private readonly notificationService: NotificationService,
+    private readonly emailService: EmailService,
   ) {}
 
   setSocketServer(server: Server) {
@@ -271,6 +273,56 @@ export class SharedFinanceService {
         type: 'member_added',
         groupId,
       })
+      .catch(() => {});
+
+    return member;
+  }
+
+  async addMemberByEmail(groupId: string, email: string, role: string | undefined, adminId: string) {
+    await this.verifyAdmin(groupId, adminId);
+
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      throw new NotFoundException(`No user found with email ${email}. They need to sign up first.`);
+    }
+
+    const existing = await this.prisma.sharedGroupMember.findUnique({
+      where: { groupId_userId: { groupId, userId: user.id } },
+    });
+    if (existing) {
+      throw new BadRequestException(`${email} is already a member`);
+    }
+
+    const member = await this.prisma.sharedGroupMember.create({
+      data: { groupId, userId: user.id, role: role || 'member' },
+      include: {
+        user: {
+          select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true },
+        },
+      },
+    });
+
+    await this.prisma.sharedGroup.update({
+      where: { id: groupId },
+      data: { totalSpent: undefined },
+    });
+
+    const group = await this.prisma.sharedGroup.findUnique({
+      where: { id: groupId },
+      select: { name: true },
+    });
+    this.notificationService
+      .sendPush(user.id, 'Added to Group', `You were added to "${group?.name || 'a group'}"`, {
+        type: 'member_added',
+        groupId,
+      })
+      .catch(() => {});
+
+    const adminUser = await this.prisma.user.findUnique({ where: { id: adminId }, select: { firstName: true, lastName: true } });
+    const inviterName = adminUser ? `${adminUser.firstName || ''} ${adminUser.lastName || ''}`.trim() || 'An admin' : 'An admin';
+    const memberName = user.firstName || user.email;
+    this.emailService
+      .sendGroupInviteEmail(user.email, memberName, group?.name || 'a group', inviterName)
       .catch(() => {});
 
     return member;

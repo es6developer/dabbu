@@ -10,6 +10,7 @@ import {
   premiumRenewedEmail,
   premiumExpiryReminderEmail,
   paymentFailedEmail,
+  groupInviteEmail,
 } from './email.templates';
 import { EMAIL_SUBJECTS, PASSWORD_RESET_EXPIRY_MINUTES } from './email.constants';
 
@@ -166,6 +167,20 @@ export class EmailService {
         expiryDate,
         `${this.frontendUrl}/premium`,
       ),
+    });
+  }
+
+  async sendGroupInviteEmail(
+    to: string,
+    name: string,
+    groupName: string,
+    inviterName: string,
+  ): Promise<void> {
+    const groupUrl = `${this.frontendUrl}/shared-finance/groups`;
+    await this.send({
+      to,
+      subject: EMAIL_SUBJECTS.GROUP_INVITE,
+      html: groupInviteEmail(name, groupName, inviterName, groupUrl),
     });
   }
 

@@ -55,15 +55,13 @@ export function EmptyState({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
     gap: spacing.sm,
     paddingHorizontal: spacing['2xl'],
-    paddingVertical: spacing['6xl'],
+    paddingVertical: spacing['4xl'],
   },
   compact: {
-    paddingVertical: spacing['4xl'],
+    paddingVertical: spacing['2xl'],
   },
   iconWrap: {
     width: 88,

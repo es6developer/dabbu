@@ -285,6 +285,37 @@ export function premiumExpiryReminderEmail(
   `);
 }
 
+export function groupInviteEmail(
+  name: string,
+  groupName: string,
+  inviterName: string,
+  groupUrl: string,
+): string {
+  return baseTemplate(`
+    <h1 style="font-size:24px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
+      You've been added to a group
+    </h1>
+    <p style="font-size:15px;color:${TEXT_MUTED};line-height:1.6;margin:0 0 20px;">
+      Hi ${name}, <strong>${inviterName}</strong> added you to <strong>${groupName}</strong> 
+      on Dabbu. You can now track shared expenses, split bills, and settle up together.
+    </p>
+    <table cellpadding="0" cellspacing="0" border="0" style="margin:24px auto;">
+      <tr>
+        <td align="center" style="background:linear-gradient(135deg,${PRIMARY},${PRIMARY_DARK});border-radius:8px;">
+          <a href="${groupUrl}" target="_blank" style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:600;color:#FFFFFF;text-decoration:none;line-height:20px;letter-spacing:0.3px;">Open Group</a>
+        </td>
+      </tr>
+    </table>
+    <div style="${divider()}"></div>
+    <p style="font-size:13px;color:${TEXT_MUTED};line-height:1.5;margin:0;">
+      You can add expenses, see what others are spending, and settle up — all from the group.
+    </p>
+    <p style="font-size:13px;color:${TEXT_MUTED};line-height:1.5;margin:16px 0 0;">
+      Need help? <a href="mailto:support@dabbu.app" style="color:${PRIMARY};font-weight:500;">Contact support</a>
+    </p>
+  `);
+}
+
 export function paymentFailedEmail(
   name: string,
   planName: string,

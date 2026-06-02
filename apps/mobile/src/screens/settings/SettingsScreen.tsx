@@ -4,8 +4,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BaseScreen } from '../../components/ui/BaseScreen';
+import { PageHeader } from '../../components/ui/PageHeader';
 import { useAuth } from '../../store/AuthContext';
 import { useAppLock } from '../../store/LockContext';
+import { spacing } from '../../theme';
 import { useTheme, typography as typographyStyles } from '../../theme';
 import { api, setAccessToken, getAccessToken } from '../../services/api';
 
@@ -131,13 +134,13 @@ export function SettingsScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
+    <BaseScreen>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
       >
         {/* Header */}
-        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <View style={styles.header}>
           <View style={styles.headerRow}>
             <View>
               <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Settings</Text>
@@ -316,14 +319,12 @@ export function SettingsScreen() {
         {/* Version */}
         <Text style={[styles.version, { color: colors.text.tertiary }]}>Dabbu v1.0.0</Text>
       </ScrollView>
-    </View>
+    </BaseScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-
-  header: { paddingHorizontal: 20, paddingBottom: 4 },
+  header: { paddingBottom: spacing.sm },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   headerTitle: { ...typographyStyles.appTitle, fontSize: 32, letterSpacing: -0.8 },
   headerSub: { ...typographyStyles.body, marginTop: 2, fontFamily: 'Inter-Medium' },

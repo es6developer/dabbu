@@ -20,9 +20,11 @@ import {
   CreateGroupDto,
   UpdateGroupDto,
   AddMemberDto,
+  AddMemberByEmailDto,
   InviteMemberDto,
   CreateExpenseDto,
   UpdateExpenseDto,
+  ExpenseSplitDto,
   CreateSettlementDto,
   CompleteSettlementDto,
   CreateCoupleProfileDto,
@@ -30,30 +32,34 @@ import {
   CreateTripDto,
   AddTripExpenseDto,
   CreateHouseholdBillDto,
+  HouseShareDto,
   CreateContributionRuleDto,
   CreateSharedGoalDto,
   ContributeToGoalDto,
   SendMessageDto,
   UpdateSalaryProfileDto,
   TransitionStatusDto,
-  RemoveMemberDto,
-  RevokeInviteDto,
   CreateWalletDto,
   ContributeToWalletDto,
   SpendFromWalletDto,
   TransferWalletDto,
-  ApproveWalletTransactionDto,
   CreateAdvanceContributionDto,
+  ContributeToAdvanceDto,
+  AdjustAdvanceDto,
   RequestApprovalDto,
   ApproveExpenseDto,
   UploadDocumentDto,
+  UpdateDocumentPermissionDto,
   CreateCalendarEventDto,
   CreateSplitTemplateDto,
-  TemplateCategoryDto,
   CreateFromTemplateDto,
   UploadCreditCardBillDto,
+  SplitTransactionDto,
   CreateCashPoolDto,
+  CashPoolTransactionDto,
   CreateEmergencyFundDto,
+  ContributeToEmergencyFundDto,
+  WithdrawFromEmergencyFundDto,
   CreateNetWorthSnapshotDto,
   ExportDataDto,
   CreateReferralDto,
@@ -117,6 +123,17 @@ export class SharedFinanceController {
     @CurrentUser('id') adminId: string,
   ) {
     return this.sf.addMember(groupId, dto.userId, adminId);
+  }
+
+  @Post('groups/:groupId/members/add-by-email')
+  @UseGuards(GroupMemberGuard)
+  @ApiOperation({ summary: 'Add member by email (admin only) — immediately adds them to group' })
+  async addMemberByEmail(
+    @Param('groupId') groupId: string,
+    @Body() dto: AddMemberByEmailDto,
+    @CurrentUser('id') adminId: string,
+  ) {
+    return this.sf.addMemberByEmail(groupId, dto.email, dto.role, adminId);
   }
 
   @Get('groups/:groupId/members')

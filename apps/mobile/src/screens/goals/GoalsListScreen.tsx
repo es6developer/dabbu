@@ -18,6 +18,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
+import { BaseScreen } from '../../components/ui/BaseScreen';
+import { PageHeader } from '../../components/ui/PageHeader';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { spacing } from '../../theme';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -152,31 +156,23 @@ export function GoalsListScreen() {
 
   if (loading) {
     return (
-      <View
-        style={[
-          styles.loading,
-          {
-            backgroundColor: colors.bg.primary,
-            paddingTop: insets.top + 8,
-            paddingHorizontal: 24,
-            gap: 16,
-          },
-        ]}
-      >
-        <Skeleton width={120} height={16} />
-        <Skeleton width="100%" height={100} borderRadius={20} />
-        <Skeleton width="100%" height={70} borderRadius={16} />
-        <Skeleton width="100%" height={70} borderRadius={16} />
-        <Skeleton width="80%" height={70} borderRadius={16} />
-        <Skeleton width="100%" height={70} borderRadius={16} />
-        <Skeleton width="55%" height={70} borderRadius={16} />
-      </View>
+      <BaseScreen>
+        <View style={{ paddingHorizontal: 24, gap: 16, paddingTop: spacing.sm }}>
+          <Skeleton width={120} height={16} />
+          <Skeleton width="100%" height={100} borderRadius={20} />
+          <Skeleton width="100%" height={70} borderRadius={16} />
+          <Skeleton width="100%" height={70} borderRadius={16} />
+          <Skeleton width="80%" height={70} borderRadius={16} />
+          <Skeleton width="100%" height={70} borderRadius={16} />
+          <Skeleton width="55%" height={70} borderRadius={16} />
+        </View>
+      </BaseScreen>
     );
   }
 
   return (
     <>
-    <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
+    <BaseScreen noPadding>
       <FlatList
         data={goals}
         keyExtractor={(g) => g.id}
@@ -191,17 +187,16 @@ export function GoalsListScreen() {
           />
         }
         contentContainerStyle={
-          goals.length === 0 ? styles.emptyContainer : { paddingBottom: insets.bottom + 100 }
+          goals.length === 0
+            ? styles.emptyContainer
+            : { paddingBottom: insets.bottom + 100, paddingHorizontal: spacing.lg }
         }
         ListHeaderComponent={
           <Animated.View style={{ opacity: fadeAnim }}>
-            <View style={[styles.headerRow, { paddingTop: insets.top + 8 }]}>
-              <View>
-                <Text style={[styles.eyebrow, { color: colors.text.tertiary }]}>Financial OS</Text>
-                <Text style={[styles.title, { color: colors.text.primary }]}>Goals</Text>
-              </View>
-              <View style={{ width: 44 }} />
-            </View>
+            <PageHeader
+              title="Goals"
+              subtitle="Financial OS"
+            />
             {goals.length > 0 && (
               <LinearGradient
                 colors={['#1A1A2E', '#16213E']}
@@ -364,28 +359,16 @@ export function GoalsListScreen() {
           );
         }}
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <LinearGradient
-              colors={[`${colors.accent.primary}20`, `${colors.accent.secondary}20`]}
-              style={styles.emptyIcon}
-            >
-              <Ionicons name="trophy-outline" size={48} color={colors.accent.primary} />
-            </LinearGradient>
-            <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No goals yet</Text>
-            <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
-              Set a financial goal — save for a vacation, emergency fund, or anything that matters
-            </Text>
-            <TouchableOpacity
-              style={[styles.emptyCta, { backgroundColor: colors.accent.primary }]}
-              onPress={() => setShowCreate(true)}
-            >
-              <Ionicons name="add" size={18} color="#FFF" />
-              <Text style={styles.emptyCtaText}>Create Goal</Text>
-            </TouchableOpacity>
-          </View>
+          <EmptyState
+            icon="trophy-outline"
+            title="No goals yet"
+            message="Set a financial goal — save for a vacation, emergency fund, or anything that matters"
+            actionLabel="Create Goal"
+            onAction={() => setShowCreate(true)}
+          />
         }
       />
-    </View>
+    </BaseScreen>
 
       <Modal visible={showCreate} transparent animationType="fade" onRequestClose={() => setShowCreate(false)}>
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowCreate(false)}>
@@ -484,33 +467,9 @@ export function GoalsListScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  emptyContainer: { flexGrow: 1, paddingHorizontal: spacing.lg },
 
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingBottom: 16,
-  },
-  eyebrow: {
-    fontSize: 13,
-    fontWeight: '500',
-    marginBottom: 2,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  title: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5 },
-  addBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  overallCard: { marginHorizontal: 24, borderRadius: 20, padding: 18, marginBottom: 16, gap: 10 },
+  overallCard: { marginHorizontal: spacing.lg, borderRadius: 20, padding: 18, marginBottom: spacing.lg, gap: 10 },
   overallTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   overallLabel: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
   overallPct: { fontSize: 22, fontWeight: '800' },
@@ -519,7 +478,7 @@ const styles = StyleSheet.create({
   overallStats: { flexDirection: 'row', justifyContent: 'space-between' },
   overallStat: { fontSize: 12, fontWeight: '500' },
 
-  card: { marginHorizontal: 24, marginBottom: 10, borderRadius: 20, padding: 16, gap: 12 },
+  card: { marginHorizontal: spacing.lg, marginBottom: 10, borderRadius: 20, padding: 16, gap: 12 },
   cardTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
   cardIcon: {
     width: 44,
@@ -559,28 +518,6 @@ const styles = StyleSheet.create({
   footerItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   footerText: { fontSize: 11, fontWeight: '500' },
   cardPct: { marginLeft: 'auto', fontSize: 13, fontWeight: '700' },
-
-  emptyContainer: { flexGrow: 1, justifyContent: 'center' },
-  empty: { alignItems: 'center', gap: 12, paddingTop: 40 },
-  emptyIcon: {
-    width: 96,
-    height: 96,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyTitle: { fontSize: 20, fontWeight: '700' },
-  emptyDesc: { fontSize: 13, textAlign: 'center', paddingHorizontal: 48, lineHeight: 20 },
-  emptyCta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderRadius: 14,
-    marginTop: 8,
-  },
-  emptyCtaText: { color: '#FFF', fontSize: 15, fontWeight: '600' },
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', padding: 20 },
   modalContent: { borderRadius: 20, padding: 24 },

@@ -6,7 +6,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   RefreshControl,
-  TextInput,
   Dimensions,
   Alert,
   Animated,
@@ -16,6 +15,13 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { BaseScreen } from '../../components/ui/BaseScreen';
+import { PageHeader } from '../../components/ui/PageHeader';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { FloatingActionButton } from '../../components/ui/FloatingActionButton';
+import { SearchSection } from '../../components/ui/SearchSection';
+import { FilterSection } from '../../components/ui/FilterSection';
+import { spacing } from '../../theme';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Skeleton, SkeletonCard } from '../../components/ui/AnimatedSkeleton';
@@ -191,21 +197,20 @@ export function SharedFinanceHomeScreen() {
     return { saved, target, pct: target > 0 ? Math.min((saved / target) * 100, 100) : 0 };
   }, [goals]);
 
+  const typeFilterOptions = GROUP_TYPES.map(g => ({ key: g.key, label: g.label }));
+
   if (loading) {
     return (
-      <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
-        <View style={[s.header, { paddingTop: insets.top + 8, paddingHorizontal: 24 }]}>
-          <View>
-            <Skeleton width={80} height={14} />
-            <Skeleton width={140} height={28} style={{ marginTop: 4 }} />
-          </View>
-          <Skeleton width={44} height={44} borderRadius={14} />
+      <BaseScreen noPadding>
+        <View style={{ paddingHorizontal: 24, paddingTop: spacing.sm }}>
+          <Skeleton width={80} height={14} />
+          <Skeleton width={140} height={28} style={{ marginTop: 4 }} />
         </View>
         <Skeleton
           width="90%"
           height={80}
           borderRadius={20}
-          style={{ marginHorizontal: 24, marginBottom: 16 }}
+          style={{ marginHorizontal: 24, marginBottom: 16, marginTop: 16 }}
         />
         <Skeleton
           width="90%"
@@ -222,12 +227,12 @@ export function SharedFinanceHomeScreen() {
         {[1, 2, 3].map((i) => (
           <SkeletonCard key={i} style={{ marginHorizontal: 24, marginBottom: 12 }} />
         ))}
-      </View>
+      </BaseScreen>
     );
   }
 
   return (
-    <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
+    <BaseScreen noPadding>
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}
@@ -242,26 +247,28 @@ export function SharedFinanceHomeScreen() {
           />
         }
         contentContainerStyle={
-          filtered.length === 0 ? s.emptyContainer : { paddingBottom: insets.bottom + 100 }
+          filtered.length === 0
+            ? s.emptyContainer
+            : { paddingBottom: insets.bottom + 100 }
         }
         ListHeaderComponent={
-          <Animated.View style={{ opacity: fadeAnim }}>
-            <View style={[s.header, { paddingTop: insets.top + 8 }]}>
-              <View>
-                <Text style={[s.subtitle, { color: colors.text.tertiary }]}>Financial OS</Text>
-                <Text style={[s.title, { color: colors.text.primary }]}>Your Spaces</Text>
-              </View>
-              <TouchableOpacity
-                style={[s.addBtn, { backgroundColor: colors.accent.primary }]}
-                onPress={() => navigation.navigate('CreateSharedGroup')}
-              >
-                <Ionicons name="add" size={22} color="#FFF" />
-              </TouchableOpacity>
-            </View>
+          <Animated.View style={{ opacity: fadeAnim, paddingHorizontal: spacing.lg }}>
+            <PageHeader
+              title="Your Spaces"
+              subtitle="Financial OS"
+              rightAction={
+                <TouchableOpacity
+                  style={[s.addBtn, { backgroundColor: colors.accent.primary }]}
+                  onPress={() => navigation.navigate('CreateSharedGroup')}
+                >
+                  <Ionicons name="add" size={22} color="#FFF" />
+                </TouchableOpacity>
+              }
+            />
             {goals.length > 0 && (
               <TouchableOpacity
                 activeOpacity={0.7}
-                onPress={() => navigation.navigate('MainTabs', { screen: 'Goals' })}
+                onPress={() => navigation.navigate('MainTabs', { screen: 'Dashboard', params: { screen: 'GoalsList' } })}
                 style={s.goalsBanner}
               >
                 <LinearGradient
@@ -311,49 +318,16 @@ export function SharedFinanceHomeScreen() {
                 </LinearGradient>
               </TouchableOpacity>
             )}
-            <View style={s.searchRow}>
-              <View style={[s.searchBar, { backgroundColor: colors.bg.tertiary }]}>
-                <Ionicons name="search-outline" size={18} color={colors.text.tertiary} />
-                <TextInput
-                  style={[s.searchInput, { color: colors.text.primary }]}
-                  value={search}
-                  onChangeText={setSearch}
-                  placeholder="Search spaces..."
-                  placeholderTextColor={colors.text.tertiary}
-                />
-                {search ? (
-                  <TouchableOpacity onPress={() => setSearch('')}>
-                    <Ionicons name="close-circle" size={18} color={colors.text.tertiary} />
-                  </TouchableOpacity>
-                ) : null}
-              </View>
-            </View>
-            <FlatList
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              data={GROUP_TYPES}
-              keyExtractor={(item) => item.key}
-              contentContainerStyle={s.typeFilterRow}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[
-                    s.typeChip,
-                    typeFilter === item.key
-                      ? { backgroundColor: colors.accent.primary }
-                      : { backgroundColor: colors.bg.tertiary },
-                  ]}
-                  onPress={() => setTypeFilter(item.key)}
-                >
-                  <Text
-                    style={[
-                      s.typeChipText,
-                      { color: typeFilter === item.key ? '#FFF' : colors.text.secondary },
-                    ]}
-                  >
-                    {item.label}
-                  </Text>
-                </TouchableOpacity>
-              )}
+            <SearchSection
+              value={search}
+              onChangeText={setSearch}
+              placeholder="Search spaces..."
+              onClear={() => setSearch('')}
+            />
+            <FilterSection
+              options={typeFilterOptions}
+              selected={typeFilter}
+              onSelect={setTypeFilter}
             />
           </Animated.View>
         }
@@ -431,62 +405,30 @@ export function SharedFinanceHomeScreen() {
           );
         }}
         ListEmptyComponent={
-          <View style={s.empty}>
-            <LinearGradient
-              colors={[`${colors.accent.primary}20`, `${colors.accent.secondary}20`]}
-              style={s.emptyIcon}
-            >
-              <Ionicons name="grid-outline" size={44} color={colors.accent.primary} />
-            </LinearGradient>
-            <Text style={[s.emptyTitle, { color: colors.text.primary }]}>
-              {search || typeFilter !== 'all' ? 'No spaces found' : 'No spaces yet'}
-            </Text>
-            <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>
-              {search || typeFilter !== 'all'
+          <EmptyState
+            icon="grid-outline"
+            title={search || typeFilter !== 'all' ? 'No spaces found' : 'No spaces yet'}
+            message={
+              search || typeFilter !== 'all'
                 ? 'Try a different search or filter'
-                : 'Create a space to split expenses with your people'}
-            </Text>
-            {!search && typeFilter === 'all' && (
-              <TouchableOpacity
-                style={[s.emptyCta, { backgroundColor: colors.accent.primary }]}
-                onPress={() => navigation.navigate('CreateSharedGroup')}
-              >
-                <Ionicons name="add" size={18} color="#FFF" />
-                <Text style={s.emptyCtaText}>Create Space</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+                : 'Create a space to split expenses with your people'
+            }
+            actionLabel={!search && typeFilter === 'all' ? 'Create Space' : undefined}
+            onAction={!search && typeFilter === 'all' ? () => navigation.navigate('CreateSharedGroup') : undefined}
+          />
         }
       />
 
-      <TouchableOpacity
-        style={[s.fab, { backgroundColor: colors.accent.primary, bottom: insets.bottom + 24 }]}
+      <FloatingActionButton
         onPress={() => navigation.navigate('CreateSharedGroup')}
-      >
-        <Ionicons name="add" size={26} color="#FFF" />
-      </TouchableOpacity>
-    </View>
+        icon="add"
+      />
+    </BaseScreen>
   );
 }
 
 const s = StyleSheet.create({
-  screen: { flex: 1 },
-  emptyContainer: { flexGrow: 1, justifyContent: 'center' },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingBottom: 12,
-  },
-  subtitle: {
-    fontSize: 13,
-    fontWeight: '500',
-    marginBottom: 2,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  title: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5 },
+  emptyContainer: { flexGrow: 1 },
   addBtn: {
     width: 44,
     height: 44,
@@ -495,7 +437,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  goalsBanner: { marginHorizontal: 24, marginBottom: 16 },
+  goalsBanner: { marginBottom: spacing.lg },
   goalsBannerInner: { borderRadius: 20, padding: 16, gap: 10 },
   goalsBannerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   goalsIcon: {
@@ -514,20 +456,7 @@ const s = StyleSheet.create({
   goalsBannerStat: { fontSize: 12 },
   goalsBannerCount: { fontSize: 12, fontWeight: '600' },
 
-  searchRow: { paddingHorizontal: 24, marginBottom: 8 },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    borderRadius: 16,
-    height: 46,
-  },
-  searchInput: { flex: 1, fontSize: 14, marginLeft: 10 },
-  typeFilterRow: { paddingHorizontal: 24, gap: 8, paddingBottom: 16 },
-  typeChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, marginRight: 8 },
-  typeChipText: { fontSize: 12, fontWeight: '600' },
-
-  cardOuter: { marginHorizontal: 24, marginBottom: 16 },
+  cardOuter: { marginHorizontal: spacing.lg, marginBottom: spacing.lg },
   card: { borderRadius: 20, overflow: 'hidden', backgroundColor: 'transparent' },
   cardCover: { height: 120 },
   cardCoverOverlay: {
@@ -580,39 +509,4 @@ const s = StyleSheet.create({
     letterSpacing: 0.5,
   },
   cardStatValue: { fontSize: 15, fontWeight: '700' },
-
-  empty: { alignItems: 'center', gap: 12, paddingTop: 40 },
-  emptyIcon: {
-    width: 88,
-    height: 88,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyTitle: { fontSize: 17, fontWeight: '700' },
-  emptyDesc: { fontSize: 13, textAlign: 'center', paddingHorizontal: 48 },
-  emptyCta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 14,
-    marginTop: 8,
-  },
-  emptyCtaText: { color: '#FFF', fontSize: 15, fontWeight: '600' },
-  fab: {
-    position: 'absolute',
-    right: 24,
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 10,
-    shadowColor: '#f7892c',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-  },
 });

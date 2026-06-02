@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   cardRight: { alignItems: 'flex-end' },
   currentValue: { fontSize: 16, fontWeight: '700', marginBottom: 2 },
   returnPct: { fontSize: 13, fontWeight: '600' },
-  emptyContainer: { flexGrow: 1, justifyContent: 'center' },
+  emptyContainer: { flexGrow: 1 },
   empty: { alignItems: 'center' },
   emptyIcon: { fontSize: 48, opacity: 0.5, marginBottom: 16 },
   emptyTitle: { fontSize: 18, fontWeight: '600', marginBottom: 8 },

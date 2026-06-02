@@ -782,21 +782,15 @@ export function SharedGroupDetailScreen() {
       if (accessToken) {
         setAccessToken(accessToken);
       }
-      const res = await api.post<any>(`/shared-finance/groups/${groupId}/invites`, {
+      await api.post<any>(`/shared-finance/groups/${groupId}/members/add-by-email`, {
         email: addMemberEmail.trim(),
       });
-      const token = res?.token || res?.inviteToken || res?.data?.inviteToken;
-      if (token) {
-        setInviteToken(token);
-      }
       setAddMemberModalVisible(false);
       setAddMemberEmail('');
-      Alert.alert(
-        'Invite Sent',
-        `Invite link generated for ${addMemberEmail.trim()}. Share it with them!`,
-      );
+      Alert.alert('Member Added', `${addMemberEmail.trim()} has been added to the group. They can see the group when they log in.`);
+      loadData(true);
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to send invite');
+      Alert.alert('Error', e.message || 'Failed to add member');
     } finally {
       setAddMemberLoading(false);
     }
@@ -1230,7 +1224,7 @@ export function SharedGroupDetailScreen() {
 const s = StyleSheet.create({
   screen: { flex: 1 },
   loadWrap: { flex: 1 },
-  emptyContainer: { flexGrow: 1, justifyContent: 'center', paddingTop: 60 },
+  emptyContainer: { flexGrow: 1, paddingTop: 60 },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',

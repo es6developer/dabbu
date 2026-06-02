@@ -252,7 +252,7 @@ export function SharedCirclesScreen() {
 
 const s = StyleSheet.create({
   screen: { flex: 1 },
-  emptyContainer: { flexGrow: 1, justifyContent: 'center' },
+  emptyContainer: { flexGrow: 1 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, paddingBottom: 12 },
   subtitle: { fontSize: 13, fontWeight: '500', marginBottom: 2 },
   title: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5 },

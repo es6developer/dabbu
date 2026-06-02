@@ -14,6 +14,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../store/AuthContext';
 import { api, setAccessToken } from '../../services/api';
+import { BaseScreen } from '../../components/ui/BaseScreen';
 import { Skeleton, SkeletonList } from '../../components/ui/AnimatedSkeleton';
 import { useTheme, typography as typographyStyles } from '../../theme';
 
@@ -229,6 +230,15 @@ export function DashboardScreen() {
       label: 'Reminder',
       icon: 'alarm-outline' as IconName,
       color: '#0B84A5',
+      onPress: () =>
+        navigation.navigate('Shared', {
+          screen: 'SharedFinanceHome',
+        }),
+    },
+    {
+      label: 'Reminder',
+      icon: 'alarm-outline' as IconName,
+      color: '#0B84A5',
       onPress: () => navigation.navigate('Reminders', { screen: 'CreateReminder' }),
     },
   ];
@@ -292,12 +302,7 @@ export function DashboardScreen() {
 
   if (loading) {
     return (
-      <View
-        style={[
-          styles.loading,
-          { backgroundColor: colors.bg.primary, paddingTop: insets.top + 8 },
-        ]}
-      >
+      <BaseScreen>
         <View style={{ paddingHorizontal: 24, gap: 8 }}>
           <Skeleton width={160} height={16} />
           <Skeleton width={200} height={32} />
@@ -319,17 +324,15 @@ export function DashboardScreen() {
           </View>
         </View>
         <SkeletonList count={3} />
-      </View>
+      </BaseScreen>
     );
   }
 
   return (
-    <Animated.View
-      style={[styles.container, { backgroundColor: colors.bg.primary, opacity: fadeAnim }]}
-    >
+    <BaseScreen>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 8 }]}
+        contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -439,7 +442,7 @@ export function DashboardScreen() {
         {(!widgetOrder.length || widgetOrder.includes('goals')) && goalsData.length > 0 && (
           <TouchableOpacity
             activeOpacity={0.7}
-            onPress={() => navigation.navigate('Goals')}
+            onPress={() => navigation.navigate('GoalsList')}
             style={styles.goalsCard}
           >
             <LinearGradient
@@ -716,7 +719,7 @@ export function DashboardScreen() {
           </>
         )}
       </ScrollView>
-    </Animated.View>
+    </BaseScreen>
   );
 }
 
@@ -767,10 +770,7 @@ function SnapshotCard({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  scrollContent: { paddingHorizontal: 20, paddingBottom: 120 },
-  loading: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 },
-  loadingText: { marginTop: 12, ...typographyStyles.secondary },
+  scrollContent: { paddingHorizontal: 0, paddingBottom: 120 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

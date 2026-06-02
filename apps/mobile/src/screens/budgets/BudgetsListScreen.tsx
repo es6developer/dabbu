@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
   cardFooter: { flexDirection: 'row', justifyContent: 'space-between' },
   spent: { fontSize: 14, fontWeight: '600' },
   limit: { fontSize: 14 },
-  emptyContainer: { flexGrow: 1, justifyContent: 'center' },
+  emptyContainer: { flexGrow: 1 },
   empty: { alignItems: 'center' },
   emptyIcon: { fontSize: 48, opacity: 0.5, marginBottom: 16 },
   emptyTitle: { fontSize: 18, fontWeight: '600', marginBottom: 8 },

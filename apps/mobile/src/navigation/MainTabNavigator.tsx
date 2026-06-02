@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Platform, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
@@ -29,7 +29,6 @@ import { AnalyticsScreen } from '../screens/analytics/AnalyticsScreen';
 import { CustomiseDashboardScreen } from '../screens/settings/CustomiseDashboardScreen';
 import { CustomiseBottomMenuScreen } from '../screens/settings/CustomiseBottomMenuScreen';
 import { useTheme } from '../theme';
-import { isFeatureEnabled, isPremiumFeature, loadFeatures } from '../config/features';
 import { useAuth } from '../store/AuthContext';
 import { api } from '../services/api';
 
@@ -46,9 +45,6 @@ const TAB_ICONS: Record<
   Dashboard: { focused: 'compass', unfocused: 'compass-outline' },
   Accounts: { focused: 'receipt', unfocused: 'receipt-outline' },
   Shared: { focused: 'grid', unfocused: 'grid-outline' },
-  Goals: { focused: 'trophy', unfocused: 'trophy-outline' },
-  Reminders: { focused: 'notifications', unfocused: 'notifications-outline' },
-  SMS: { focused: 'chatbubbles', unfocused: 'chatbubbles-outline' },
   Settings: { focused: 'settings', unfocused: 'settings-outline' },
 };
 
@@ -80,6 +76,21 @@ function DashboardNavigator() {
       <DashboardStack.Screen
         name="NotificationCenter"
         component={NotificationCenterScreen}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
+        name="GoalsList"
+        component={GoalsListScreen}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
+        name="Reminders"
+        component={RemindersNavigator}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
+        name="SMS"
+        component={SmsNavigator}
         options={{ headerShown: false }}
       />
     </DashboardStack.Navigator>
@@ -241,13 +252,8 @@ const ALL_TABS: TabConfig[] = [
   { name: 'Dashboard', component: DashboardNavigator, title: 'Dashboard' },
   { name: 'Accounts', component: AccountsNavigator, title: 'Expenses' },
   { name: 'Shared', component: SharedFinanceNavigator, title: 'Spaces' },
-  { name: 'Goals', component: GoalsListScreen, title: 'Goals' },
-  { name: 'Reminders', component: RemindersNavigator, title: 'Reminders' },
-  { name: 'SMS', component: SmsNavigator, title: 'SMS', featureKey: 'sms_sync' },
   { name: 'Settings', component: SettingsNavigator, title: 'Settings' },
 ];
-
-import { API_URL } from '../config/api';
 
 export function MainTabNavigator() {
   const { colors, isDark, typography } = useTheme();
@@ -259,7 +265,6 @@ export function MainTabNavigator() {
     if (!accessToken) {
       return;
     }
-    loadFeatures();
     api
       .get<any>('/premium/check')
       .then((res) => {
@@ -308,17 +313,6 @@ export function MainTabNavigator() {
   }, [bottomMenuConfig]);
 
   const visibleTabs = getTabOrder().filter((tab) => {
-    if (tab.name === 'SMS' && Platform.OS === 'ios') {
-      return false;
-    }
-    if (tab.featureKey) {
-      if (isPremiumFeature(tab.featureKey as any) && !isPremium) {
-        return false;
-      }
-      if (!isFeatureEnabled(tab.featureKey as any)) {
-        return false;
-      }
-    }
     if (tab.premium && !isPremium) {
       return false;
     }
@@ -373,8 +367,6 @@ export function MainTabNavigator() {
           options={{
             headerShown: false,
             title: tab.title,
-            tabBarStyle:
-              tab.name === 'SMS' && Platform.OS === 'ios' ? { display: 'none' } : undefined,
           }}
         />
       ))}

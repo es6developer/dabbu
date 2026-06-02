@@ -836,7 +836,7 @@ export function GroupExpensesScreen() {
 const s = StyleSheet.create({
   screen: { flex: 1 },
   loadWrap: { flex: 1 },
-  emptyContainer: { flexGrow: 1, justifyContent: 'center', paddingTop: 60 },
+  emptyContainer: { flexGrow: 1, paddingTop: 60 },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20 },
   backBtn: {
     width: 38,

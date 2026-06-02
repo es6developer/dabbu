@@ -116,6 +116,18 @@ export class UpdateGroupDto {
   monthlyIncome?: number;
 }
 
+export class AddMemberByEmailDto {
+  @ApiProperty({ example: 'friend@email.com' })
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @ApiPropertyOptional({ example: 'member', default: 'member' })
+  @IsString()
+  @IsOptional()
+  role?: string;
+}
+
 export class AddMemberDto {
   @ApiProperty({ example: 'uuid-of-user' })
   @IsUUID()
