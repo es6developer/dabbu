@@ -68,6 +68,9 @@ export function SharedGroupDetailScreen() {
   const [editName, setEditName] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [savingSettings, setSavingSettings] = useState(false);
+  const [addMemberModalVisible, setAddMemberModalVisible] = useState(false);
+  const [addMemberEmail, setAddMemberEmail] = useState('');
+  const [addMemberLoading, setAddMemberLoading] = useState(false);
 
   const loadData = useCallback(
     async (refresh = false) => {
@@ -578,20 +581,29 @@ export function SharedGroupDetailScreen() {
             </TouchableOpacity>
           );
         })}
-        <TouchableOpacity
-          style={[s.inviteBtn, { backgroundColor: colors.accent.primary }]}
-          onPress={handleGenerateInvite}
-          disabled={inviteLoading}
-        >
-          <Ionicons
-            name={inviteLoading ? 'hourglass-outline' : 'share-outline'}
-            size={18}
-            color="#FFF"
-          />
-          <Text style={s.inviteBtnText}>
-            {inviteLoading ? 'Generating...' : 'Share Invite Link'}
-          </Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <TouchableOpacity
+            style={[s.inviteBtn, { backgroundColor: colors.accent.primary, flex: 1 }]}
+            onPress={() => setAddMemberModalVisible(true)}
+          >
+            <Ionicons name="person-add-outline" size={18} color="#FFF" />
+            <Text style={s.inviteBtnText}>Add Member</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[s.inviteBtn, { backgroundColor: colors.bg.tertiary, flex: 1 }]}
+            onPress={handleGenerateInvite}
+            disabled={inviteLoading}
+          >
+            <Ionicons
+              name={inviteLoading ? 'hourglass-outline' : 'share-outline'}
+              size={18}
+              color={colors.text.primary}
+            />
+            <Text style={[s.inviteBtnText, { color: colors.text.primary }]}>
+              {inviteLoading ? 'Generating...' : 'Invite Link'}
+            </Text>
+          </TouchableOpacity>
+        </View>
         {inviteToken && (
           <TouchableOpacity
             style={[s.viewLinkBtn, { borderColor: colors.border.default }]}
@@ -624,14 +636,14 @@ export function SharedGroupDetailScreen() {
                   selectable
                   numberOfLines={2}
                 >
-                  {inviteToken ? `https://dabbu.app/invite/${inviteToken}` : ''}
+                  {inviteToken ? `https://external-web.vercel.app/invite/${inviteToken}` : ''}
                 </Text>
               </View>
               <View style={s.modalActions}>
                 <TouchableOpacity
                   style={[s.modalBtn, { backgroundColor: colors.accent.primary }]}
                   onPress={async () => {
-                    const url = `https://dabbu.app/invite/${inviteToken}`;
+                    const url = `https://external-web.vercel.app/invite/${inviteToken}`;
                     const text = `Join "${name}" on Dabbu! ${url}`;
                     await Share.share({ message: text, url }).catch(() => {});
                     setInviteModalVisible(false);
@@ -643,7 +655,7 @@ export function SharedGroupDetailScreen() {
                 <TouchableOpacity
                   style={[s.modalBtn, { backgroundColor: `${colors.status.success}20` }]}
                   onPress={async () => {
-                    const url = `https://dabbu.app/invite/${inviteToken}`;
+                    const url = `https://external-web.vercel.app/invite/${inviteToken}`;
                     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Join "${name}" on Dabbu! ${url}`)}`;
                     const supported = await Linking.canOpenURL(whatsappUrl);
                     if (supported) {
@@ -747,7 +759,7 @@ export function SharedGroupDetailScreen() {
         return;
       }
       setInviteToken(token);
-      const inviteUrl = `https://dabbu.app/invite/${token}`;
+      const inviteUrl = `https://external-web.vercel.app/invite/${token}`;
       const shareText = `Join "${name}" on Dabbu! Track shared expenses, split bills, and settle up easily.\n\n${inviteUrl}`;
       try {
         await Share.share({ message: shareText, url: inviteUrl });
@@ -758,6 +770,35 @@ export function SharedGroupDetailScreen() {
       Alert.alert('Error', e.message || 'Failed to generate invite');
     } finally {
       setInviteLoading(false);
+    }
+  }
+
+  async function handleAddMember() {
+    if (!groupId || !addMemberEmail.trim()) {
+      return;
+    }
+    setAddMemberLoading(true);
+    try {
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      const res = await api.post<any>(`/shared-finance/groups/${groupId}/invites`, {
+        email: addMemberEmail.trim(),
+      });
+      const token = res?.token || res?.inviteToken || res?.data?.inviteToken;
+      if (token) {
+        setInviteToken(token);
+      }
+      setAddMemberModalVisible(false);
+      setAddMemberEmail('');
+      Alert.alert(
+        'Invite Sent',
+        `Invite link generated for ${addMemberEmail.trim()}. Share it with them!`,
+      );
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to send invite');
+    } finally {
+      setAddMemberLoading(false);
     }
   }
 
@@ -1113,6 +1154,68 @@ export function SharedGroupDetailScreen() {
               <TouchableOpacity
                 style={[s.modalBtn, { backgroundColor: colors.bg.tertiary }]}
                 onPress={() => setSettingsOpen(false)}
+              >
+                <Text style={[s.modalBtnText, { color: colors.text.secondary }]}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      <Modal
+        visible={addMemberModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setAddMemberModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={s.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setAddMemberModalVisible(false)}
+        >
+          <View style={[s.modalContent, { backgroundColor: colors.bg.secondary }]}>
+            <Text style={[s.modalTitle, { color: colors.text.primary }]}>Add Member</Text>
+            <Text style={[s.modalDesc, { color: colors.text.tertiary }]}>
+              Enter their email to generate an invite link
+            </Text>
+
+            <Text style={[s.fieldLabel, { color: colors.text.secondary }]}>Email Address</Text>
+            <TextInput
+              style={[
+                s.textInput,
+                {
+                  backgroundColor: colors.bg.tertiary,
+                  color: colors.text.primary,
+                  borderColor: colors.border.subtle,
+                },
+              ]}
+              value={addMemberEmail}
+              onChangeText={setAddMemberEmail}
+              placeholder="friend@email.com"
+              placeholderTextColor={colors.text.tertiary}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoFocus
+            />
+
+            <View style={s.modalActions}>
+              <TouchableOpacity
+                style={[s.modalBtn, { backgroundColor: colors.accent.primary }]}
+                onPress={handleAddMember}
+                disabled={addMemberLoading || !addMemberEmail.trim()}
+              >
+                {addMemberLoading ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  <>
+                    <Ionicons name="send" size={18} color="#FFF" />
+                    <Text style={s.modalBtnText}> Send Invite</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[s.modalBtn, { backgroundColor: colors.bg.tertiary }]}
+                onPress={() => setAddMemberModalVisible(false)}
               >
                 <Text style={[s.modalBtnText, { color: colors.text.secondary }]}>Cancel</Text>
               </TouchableOpacity>

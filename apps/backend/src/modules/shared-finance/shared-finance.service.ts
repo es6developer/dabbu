@@ -13,6 +13,7 @@ import { GroupLifecycleService } from './engines/group-lifecycle.service';
 import { AccessRevocationEngine } from './engines/access-revocation.engine';
 import { TripCostForecastEngine } from './engines/trip-forecast.engine';
 import { DuplicateDetectionEngine } from './engines/duplicate-detection.engine';
+import { NotificationService } from '../notification/notification.service';
 import { Server } from 'socket.io';
 import {
   CreateGroupDto,
@@ -76,6 +77,7 @@ export class SharedFinanceService {
     private readonly revocationEngine: AccessRevocationEngine,
     private readonly tripForecastEngine: TripCostForecastEngine,
     private readonly duplicateEngine: DuplicateDetectionEngine,
+    private readonly notificationService: NotificationService,
   ) {}
 
   setSocketServer(server: Server) {
@@ -478,6 +480,15 @@ export class SharedFinanceService {
         inviter: { select: { firstName: true, lastName: true, email: true } },
       },
     });
+
+    await this.notificationService
+      .sendPush(
+        invitedByUserId,
+        'Invite Sent',
+        `Invite link created for ${dto.email} to join "${invite.group.name}"`,
+        { type: 'group_invite', groupId },
+      )
+      .catch(() => {});
 
     return invite;
   }

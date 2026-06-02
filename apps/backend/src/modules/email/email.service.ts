@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
 
@@ -23,17 +22,16 @@ export class EmailService {
   private frontendUrl: string;
   private initialized = false;
 
-  constructor(private readonly configService: ConfigService) {
-    this.fromName = this.configService.get<string>('mail.fromName') || 'Dabbu';
-    this.fromEmail = this.configService.get<string>('mail.fromEmail') || '';
-    this.frontendUrl =
-      this.configService.get<string>('mail.frontendUrl') || 'https://web-omega-snowy-80.vercel.app';
+  constructor() {
+    this.fromName = process.env.EMAIL_FROM_NAME || 'Dabbu';
+    this.fromEmail = process.env.EMAIL_FROM || 'noreply@dabbu.app';
+    this.frontendUrl = process.env.FRONTEND_URL || 'https://web-omega-snowy-80.vercel.app';
 
-    const host = this.configService.get<string>('mail.host');
-    const port = this.configService.get<number>('mail.port');
-    const secure = this.configService.get<boolean>('mail.secure');
-    const user = this.configService.get<string>('mail.user');
-    const password = this.configService.get<string>('mail.password');
+    const host = process.env.SMTP_HOST;
+    const port = Number(process.env.SMTP_PORT) || 587;
+    const secure = process.env.SMTP_SECURE === 'true';
+    const user = process.env.SMTP_USER;
+    const password = process.env.SMTP_PASS;
 
     if (host && user && password) {
       this.transporter = nodemailer.createTransport({

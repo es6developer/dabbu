@@ -359,7 +359,7 @@ export function MainTabNavigator() {
         },
         tabBarActiveTintColor: colors.accent.primary,
         tabBarInactiveTintColor: colors.text.tertiary,
-        tabBarShowLabel: false,
+        tabBarLabelStyle: { fontSize: 9, fontWeight: '500' },
         headerStyle: { backgroundColor: colors.bg.primary },
         headerTintColor: colors.text.primary,
         headerTitleStyle: { ...typography.calloutBold },

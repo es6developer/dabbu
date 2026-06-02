@@ -404,7 +404,7 @@
       <div class="space-y-6">
         <div class="reveal glass rounded-2xl p-6 flex items-start gap-5">
           <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/20 text-sm font-black text-brand">1</span>
-          <div><h3 class="font-bold text-lg">Add Income</h3><p class="mt-1 text-sm text-white/50">Start with your salary, freelance revenue, allowances, or any regular inflow.</p></div>
+          <div><h3 class="font-bold text-lg">Scan Bills</h3><p class="mt-1 text-sm text-white/50">Snap a receipt with your camera — Dabbu auto-extracts amount, date, merchant, and items.</p></div>
         </div>
         <div class="reveal glass rounded-2xl p-6 flex items-start gap-5" style="--delay:90ms">
           <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/20 text-sm font-black text-brand">2</span>
@@ -412,15 +412,15 @@
         </div>
         <div class="reveal glass rounded-2xl p-6 flex items-start gap-5" style="--delay:180ms">
           <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/20 text-sm font-black text-brand">3</span>
-          <div><h3 class="font-bold text-lg">Set Budgets</h3><p class="mt-1 text-sm text-white/50">Create monthly limits and watch progress update without spreadsheet fatigue.</p></div>
+          <div><h3 class="font-bold text-lg">Set Budgets</h3><p class="mt-1 text-sm text-white/50">Create monthly limits and watch progress update in real time without spreadsheet fatigue.</p></div>
         </div>
         <div class="reveal glass rounded-2xl p-6 flex items-start gap-5" style="--delay:270ms">
           <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/20 text-sm font-black text-brand">4</span>
-          <div><h3 class="font-bold text-lg">Analyze Reports</h3><p class="mt-1 text-sm text-white/50">See trends, patterns, and category shifts before they become problems.</p></div>
+          <div><h3 class="font-bold text-lg">Split with Friends</h3><p class="mt-1 text-sm text-white/50">Share group expenses, track who owes what, and settle up — no awkward math required.</p></div>
         </div>
         <div class="reveal glass rounded-2xl p-6 flex items-start gap-5" style="--delay:360ms">
           <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/20 text-sm font-black text-brand">5</span>
-          <div><h3 class="font-bold text-lg">Improve Habits</h3><p class="mt-1 text-sm text-white/50">Turn visibility into better choices, cleaner budgets, and more control.</p></div>
+          <div><h3 class="font-bold text-lg">Set Reminders</h3><p class="mt-1 text-sm text-white/50">Never miss a bill or subscription payment with smart recurring reminders and snooze.</p></div>
         </div>
       </div>
     </div>
@@ -438,7 +438,7 @@
           <div class="mt-3 flex items-end gap-1.5"><span class="text-4xl font-black text-white">₹0</span><span class="pb-1 text-sm text-white/40">/forever</span></div>
           <p class="mt-2 text-sm text-white/50">Everything you need to start tracking your money.</p>
           <ul class="mt-6 space-y-2.5 text-sm">
-            <li class="flex items-start gap-3"><svg class="mt-0.5 h-4 w-4 shrink-0 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Expense & Income tracking</li>
+            <li class="flex items-start gap-3"><svg class="mt-0.5 h-4 w-4 shrink-0 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Expense tracking</li>
             <li class="flex items-start gap-3"><svg class="mt-0.5 h-4 w-4 shrink-0 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Basic reports</li>
             <li class="flex items-start gap-3 text-white/35"><svg class="mt-0.5 h-4 w-4 shrink-0 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg> Can't customise tabs & dashboard <span class="text-[10px] font-bold uppercase text-brand ml-auto">Premium</span></li>
             <li class="flex items-start gap-3 text-white/35"><svg class="mt-0.5 h-4 w-4 shrink-0 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg> Max 5 groups (split + expense) <span class="text-[10px] font-bold uppercase text-brand ml-auto">Limit</span></li>
@@ -599,8 +599,8 @@ const iconPaths = [
   "M18 18H8a5 5 0 1 1 .9-9.9A7 7 0 0 1 22 11a4 4 0 0 1-4 7Z",
   "M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16Zm10 2-4.3-4.3"
 ];
-const features = ["Expense Tracking", "Income Tracking", "Budget Planning", "Subscription Tracking", "Financial Reports", "Smart Analytics", "Spending Trends", "Premium Insights", "Cloud Sync", "Fast Search"];
-const descriptions = ["Capture every spend with clean categories.", "Know what comes in and when it lands.", "Plan limits without spreadsheet clutter.", "Find recurring payments before they bite.", "Readable summaries for monthly decisions.", "Spot trends, spikes, and better choices.", "Compare patterns across weeks and months.", "Deeper nudges for financial discipline.", "Keep money data ready across devices.", "Find old entries with instant filtering."];
+const features = ["Expense Tracking", "OCR Bill Scanner", "Budget Planning", "Subscription Tracking", "Financial Reports", "Smart Analytics", "Split Expenses", "Reminders & Snooze", "Cloud Sync", "Fast Search"];
+const descriptions = ["Capture every spend with clean categories.", "Snap a receipt — Dabbu auto-extracts amount, date & merchant.", "Plan limits without spreadsheet clutter.", "Find recurring payments before they bite.", "Readable summaries for monthly decisions.", "Spot trends, spikes, and better choices.", "Share costs with friends and settle up instantly.", "Never miss a payment with smart recurring reminders.", "Keep money data ready across devices.", "Find old entries with instant filtering."];
 features.forEach((name, index) => {
   document.getElementById("featureGrid").insertAdjacentHTML("beforeend",
     `<article class="reveal glass rounded-xl p-4 glass-hover" style="--delay:${(index % 5) * 70}ms"><div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-brand/15 text-brand"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="${iconPaths[index]}" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3 class="font-bold text-sm">${name}</h3><p class="mt-1.5 text-xs leading-relaxed text-white/50">${descriptions[index]}</p></article>`
@@ -613,9 +613,9 @@ function phoneMarkup(label, variant) {
     : variant % 3 === 1
     ? `<div class="mt-4 grid grid-cols-2 gap-1.5">${["Food","Rent","Travel","Fun"].map((x,i)=>`<div class="rounded-xl bg-white/[.07] p-2.5"><p class="text-[10px] text-white/40">${x}</p><p class="mt-0.5 font-bold text-white text-sm">₹${[4200,18000,2800,1900][i]}</p></div>`).join("")}</div>`
     : `<div class="mt-4 flex h-24 items-end gap-1.5">${[45,80,55,95,68,76].map((h,i)=>`<span class="flex-1 rounded-t-lg ${i%2?'bg-paper/40':'bg-brand'}" style="height:${h}%"></span>`).join("")}</div>`;
-  return `<div class="reveal flex flex-col items-center" style="--delay:${variant * 100}ms"><div class="phone-mock scale-[.82] transition duration-500 hover:scale-[.88]"><div class="phone-screen p-3.5"><p class="mt-8 text-[10px] font-black uppercase tracking-wider text-white/40">${label}</p><h3 class="mt-1 text-xl font-black text-white">${label === "Premium" ? "Dabbu Plus" : label}</h3>${blocks}<div class="mt-4 rounded-2xl bg-paper p-3 text-ink"><p class="text-[10px] font-bold text-muted">Insight</p><p class="mt-0.5 font-black text-sm">${["₹8.4k saved","Fast expense added","Trend is improving","Budget 82% safe","Smart alert ready","Unlock insights"][variant]}</p></div></div></div><p class="mt-1 text-center text-xs font-bold text-white/50">${label}</p></div>`;
+  return `<div class="reveal flex flex-col items-center" style="--delay:${variant * 100}ms"><div class="phone-mock scale-[.82] transition duration-500 hover:scale-[.88]"><div class="phone-screen p-3.5"><p class="mt-8 text-[10px] font-black uppercase tracking-wider text-white/40">${label}</p><h3 class="mt-1 text-xl font-black text-white">${label === "Premium" ? "Dabbu Plus" : label}</h3>${blocks}<div class="mt-4 rounded-2xl bg-paper p-3 text-ink"><p class="text-[10px] font-bold text-muted">Insight</p><p class="mt-0.5 font-black text-sm">${["₹82k tracked","Receipt scanned","₹4.2k settled","Budget 72% safe","3 due today","Unlock insights"][variant]}</p></div></div></div><p class="mt-1 text-center text-xs font-bold text-white/50">${label}</p></div>`;
 }
-["Dashboard", "Add Expense", "Reports", "Budgets", "Analytics", "Premium"].forEach((label, i) => document.getElementById("showcaseGrid").insertAdjacentHTML("beforeend", phoneMarkup(label, i)));
+["Dashboard", "Scan Bill", "Groups", "Budgets", "Reminders", "Premium"].forEach((label, i) => document.getElementById("showcaseGrid").insertAdjacentHTML("beforeend", phoneMarkup(label, i)));
 
 const testimonials = [
   ["Aarav M.", "Dabbu made my monthly spending obvious in the first week. The app feels sharp, fast, and genuinely premium."],
@@ -628,14 +628,14 @@ const testimonials = [
   `<article class="glass w-[300px] shrink-0 rounded-2xl p-5"><div class="mb-3 flex gap-0.5 text-sm text-brand">★★★★★</div><p class="text-sm leading-relaxed text-white/70">"${quote}"</p><p class="mt-4 text-xs font-bold text-white">${name}</p></article>`
 ));
 
-["Faster", "Better Insights", "Mobile First", "Easy Reports", "Modern Experience", "Smart Analytics"].forEach((advantage) => {
+["OCR Bill Scanning", "Group Expense Splitting", "Smart Reminders", "Spending Insights", "Mobile First", "Easy Reports", "Modern Experience"].forEach((advantage) => {
   document.getElementById("compareRows").insertAdjacentHTML("beforeend",
     `<div class="grid grid-cols-3 p-4 text-sm text-white/50"><span class="font-bold text-white">${advantage}</span><span class="text-center text-brand font-bold">✓ Included</span><span class="text-center text-white/30">Manual</span></div>`
   );
 });
 
 const faqs = [
-  ["Is Dabbu free?", "Yes. Dabbu includes free expense tracking, income tracking, and basic reports. Premium unlocks deeper analytics and advanced tools."],
+  ["Is Dabbu free?", "Yes. Dabbu includes free expense tracking, OCR bill scanning, budgets, and basic reports. Premium unlocks deeper analytics and advanced tools."],
   ["Is Premium worth it?", "Premium is designed for users who want stronger insights, unlimited categories, subscription tracking, and upcoming AI-powered features."],
   ["Is my data secure?", "Dabbu is designed with secure authentication, encrypted storage practices, privacy-first product decisions, and no data selling."],
   ["Can I export reports?", "Exportable reports are planned for users who need clean monthly summaries for personal reviews or accountant-ready records."],
