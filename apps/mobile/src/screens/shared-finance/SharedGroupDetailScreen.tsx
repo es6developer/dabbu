@@ -12,6 +12,8 @@ import {
   Linking,
   Share,
   Modal,
+  TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
@@ -62,6 +64,10 @@ export function SharedGroupDetailScreen() {
   const [inviteToken, setInviteToken] = useState<string | null>(null);
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteModalVisible, setInviteModalVisible] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [savingSettings, setSavingSettings] = useState(false);
 
   const loadData = useCallback(
     async (refresh = false) => {
@@ -701,6 +707,28 @@ export function SharedGroupDetailScreen() {
     );
   }
 
+  async function handleSaveSettings() {
+    if (!editName.trim()) {
+      return Alert.alert('Name required', 'Please enter a group name.');
+    }
+    setSavingSettings(true);
+    try {
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      await api.put(`/shared-finance/groups/${groupId}`, {
+        name: editName.trim(),
+        description: editDescription.trim(),
+      });
+      await loadData(true);
+      setSettingsOpen(false);
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to save settings');
+    } finally {
+      setSavingSettings(false);
+    }
+  }
+
   async function handleGenerateInvite() {
     if (!groupId) {
       return;
@@ -817,6 +845,18 @@ export function SharedGroupDetailScreen() {
                   </View>
                 </View>
               </View>
+              {isAdmin && (
+                <TouchableOpacity
+                  style={[s.iconBtn, { backgroundColor: colors.bg.glassLight }]}
+                  onPress={() => {
+                    setEditName(name);
+                    setEditDescription(group?.description || '');
+                    setSettingsOpen(true);
+                  }}
+                >
+                  <Ionicons name="settings-outline" size={20} color={colors.text.primary} />
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
                 style={[s.iconBtn, { backgroundColor: colors.bg.glassLight }]}
                 onPress={handleGenerateInvite}
@@ -999,6 +1039,87 @@ export function SharedGroupDetailScreen() {
           ) : null
         }
       />
+
+      <Modal
+        visible={settingsOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSettingsOpen(false)}
+      >
+        <TouchableOpacity
+          style={s.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setSettingsOpen(false)}
+        >
+          <View style={[s.modalContent, { backgroundColor: colors.bg.secondary }]}>
+            <Text style={[s.modalTitle, { color: colors.text.primary }]}>Group Settings</Text>
+            <Text style={[s.modalDesc, { color: colors.text.tertiary }]}>
+              Edit your group name and description
+            </Text>
+
+            <Text style={[s.fieldLabel, { color: colors.text.secondary }]}>Group Name</Text>
+            <TextInput
+              style={[
+                s.textInput,
+                {
+                  backgroundColor: colors.bg.tertiary,
+                  color: colors.text.primary,
+                  borderColor: colors.border.subtle,
+                },
+              ]}
+              value={editName}
+              onChangeText={setEditName}
+              placeholder="Enter group name"
+              placeholderTextColor={colors.text.tertiary}
+              autoFocus
+            />
+
+            <Text style={[s.fieldLabel, { color: colors.text.secondary, marginTop: 16 }]}>
+              Description
+            </Text>
+            <TextInput
+              style={[
+                s.textInput,
+                {
+                  backgroundColor: colors.bg.tertiary,
+                  color: colors.text.primary,
+                  borderColor: colors.border.subtle,
+                  height: 80,
+                  textAlignVertical: 'top',
+                },
+              ]}
+              value={editDescription}
+              onChangeText={setEditDescription}
+              placeholder="Add a description (optional)"
+              placeholderTextColor={colors.text.tertiary}
+              multiline
+            />
+
+            <View style={s.modalActions}>
+              <TouchableOpacity
+                style={[s.modalBtn, { backgroundColor: colors.accent.primary }]}
+                onPress={handleSaveSettings}
+                disabled={savingSettings}
+              >
+                {savingSettings ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  <>
+                    <Ionicons name="checkmark" size={18} color="#FFF" />
+                    <Text style={s.modalBtnText}> Save</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[s.modalBtn, { backgroundColor: colors.bg.tertiary }]}
+                onPress={() => setSettingsOpen(false)}
+              >
+                <Text style={[s.modalBtnText, { color: colors.text.secondary }]}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -1262,4 +1383,12 @@ const s = StyleSheet.create({
   modalBtnText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
   modalClose: { alignItems: 'center', paddingVertical: 8 },
   modalCloseText: { fontSize: 14, fontWeight: '600' },
+  fieldLabel: { fontSize: 13, fontWeight: '600', marginBottom: 6 },
+  textInput: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+  },
 });
