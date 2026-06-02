@@ -8,9 +8,10 @@ import {
   Animated,
   RefreshControl,
   ScrollView,
-  ActivityIndicator,
   Alert,
   Linking,
+  Share,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
@@ -58,6 +59,9 @@ export function SharedGroupDetailScreen() {
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>('overview');
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const abortRef = useRef<AbortController | null>(null);
+  const [inviteToken, setInviteToken] = useState<string | null>(null);
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [inviteModalVisible, setInviteModalVisible] = useState(false);
 
   const loadData = useCallback(
     async (refresh = false) => {
@@ -501,7 +505,7 @@ export function SharedGroupDetailScreen() {
             title="No members"
             message="Invite members to get started"
             actionLabel="Invite Members"
-            onAction={() => {}}
+            onAction={handleGenerateInvite}
           />
         </View>
       );
@@ -568,6 +572,92 @@ export function SharedGroupDetailScreen() {
             </TouchableOpacity>
           );
         })}
+        <TouchableOpacity
+          style={[s.inviteBtn, { backgroundColor: colors.accent.primary }]}
+          onPress={handleGenerateInvite}
+          disabled={inviteLoading}
+        >
+          <Ionicons
+            name={inviteLoading ? 'hourglass-outline' : 'share-outline'}
+            size={18}
+            color="#FFF"
+          />
+          <Text style={s.inviteBtnText}>
+            {inviteLoading ? 'Generating...' : 'Share Invite Link'}
+          </Text>
+        </TouchableOpacity>
+        {inviteToken && (
+          <TouchableOpacity
+            style={[s.viewLinkBtn, { borderColor: colors.border.default }]}
+            onPress={() => setInviteModalVisible(true)}
+          >
+            <Ionicons name="link-outline" size={16} color={colors.accent.primary} />
+            <Text style={[s.viewLinkText, { color: colors.accent.primary }]}>View invite link</Text>
+          </TouchableOpacity>
+        )}
+
+        <Modal
+          visible={inviteModalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setInviteModalVisible(false)}
+        >
+          <TouchableOpacity
+            style={s.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setInviteModalVisible(false)}
+          >
+            <View style={[s.modalContent, { backgroundColor: colors.bg.secondary }]}>
+              <Text style={[s.modalTitle, { color: colors.text.primary }]}>Invite Link</Text>
+              <Text style={[s.modalDesc, { color: colors.text.tertiary }]}>
+                Share this link with anyone to join "{name}"
+              </Text>
+              <View style={[s.linkBox, { backgroundColor: colors.bg.tertiary }]}>
+                <Text
+                  style={[s.linkText, { color: colors.text.primary }]}
+                  selectable
+                  numberOfLines={2}
+                >
+                  {inviteToken ? `https://dabbu.app/invite/${inviteToken}` : ''}
+                </Text>
+              </View>
+              <View style={s.modalActions}>
+                <TouchableOpacity
+                  style={[s.modalBtn, { backgroundColor: colors.accent.primary }]}
+                  onPress={async () => {
+                    const url = `https://dabbu.app/invite/${inviteToken}`;
+                    const text = `Join "${name}" on Dabbu! ${url}`;
+                    await Share.share({ message: text, url }).catch(() => {});
+                    setInviteModalVisible(false);
+                  }}
+                >
+                  <Ionicons name="share-outline" size={18} color="#FFF" />
+                  <Text style={s.modalBtnText}>Share</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[s.modalBtn, { backgroundColor: `${colors.status.success}20` }]}
+                  onPress={async () => {
+                    const url = `https://dabbu.app/invite/${inviteToken}`;
+                    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Join "${name}" on Dabbu! ${url}`)}`;
+                    const supported = await Linking.canOpenURL(whatsappUrl);
+                    if (supported) {
+                      await Linking.openURL(whatsappUrl);
+                    } else {
+                      await Share.share({ message: url });
+                    }
+                    setInviteModalVisible(false);
+                  }}
+                >
+                  <Ionicons name="logo-whatsapp" size={18} color={colors.status.success} />
+                  <Text style={[s.modalBtnText, { color: colors.status.success }]}>WhatsApp</Text>
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity style={s.modalClose} onPress={() => setInviteModalVisible(false)}>
+                <Text style={[s.modalCloseText, { color: colors.text.tertiary }]}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </View>
     );
   }
@@ -609,6 +699,38 @@ export function SharedGroupDetailScreen() {
         },
       ],
     );
+  }
+
+  async function handleGenerateInvite() {
+    if (!groupId) {
+      return;
+    }
+    setInviteLoading(true);
+    try {
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      const res = await api.post<any>(`/shared-finance/groups/${groupId}/invites`, {
+        email: `invitee-${Date.now()}@temp.dabbu.app`,
+      });
+      const token = res?.token || res?.inviteToken || res?.data?.inviteToken;
+      if (!token) {
+        Alert.alert('Error', 'Failed to generate invite link');
+        return;
+      }
+      setInviteToken(token);
+      const inviteUrl = `https://dabbu.app/invite/${token}`;
+      const shareText = `Join "${name}" on Dabbu! Track shared expenses, split bills, and settle up easily.\n\n${inviteUrl}`;
+      try {
+        await Share.share({ message: shareText, url: inviteUrl });
+      } catch {
+        Alert.alert('Invite Link', inviteUrl);
+      }
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to generate invite');
+    } finally {
+      setInviteLoading(false);
+    }
   }
 
   function renderActivity() {
@@ -697,9 +819,14 @@ export function SharedGroupDetailScreen() {
               </View>
               <TouchableOpacity
                 style={[s.iconBtn, { backgroundColor: colors.bg.glassLight }]}
-                onPress={() => navigation.navigate('SharedGroupSettings', { groupId })}
+                onPress={handleGenerateInvite}
+                disabled={inviteLoading}
               >
-                <Ionicons name="settings-outline" size={20} color={colors.text.primary} />
+                <Ionicons
+                  name={inviteLoading ? 'hourglass-outline' : 'share-outline'}
+                  size={20}
+                  color={colors.text.primary}
+                />
               </TouchableOpacity>
             </View>
 
@@ -1082,4 +1209,57 @@ const s = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 14,
   },
+  inviteBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 12,
+    paddingVertical: 12,
+    borderRadius: 14,
+  },
+  inviteBtnText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
+  viewLinkBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  viewLinkText: { fontSize: 13, fontWeight: '600' },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalContent: {
+    width: '100%',
+    borderRadius: 24,
+    padding: 24,
+    gap: 16,
+  },
+  modalTitle: { fontSize: 20, fontWeight: '700' },
+  modalDesc: { fontSize: 14, lineHeight: 20 },
+  linkBox: {
+    padding: 14,
+    borderRadius: 12,
+  },
+  linkText: { fontSize: 13 },
+  modalActions: { flexDirection: 'row', gap: 10, marginTop: 4 },
+  modalBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    borderRadius: 14,
+  },
+  modalBtnText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
+  modalClose: { alignItems: 'center', paddingVertical: 8 },
+  modalCloseText: { fontSize: 14, fontWeight: '600' },
 });
