@@ -3,14 +3,18 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } fr
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
+import DraggableFlatList, {
+  RenderItemParams,
+  ScaleDecorator,
+} from 'react-native-draggable-flatlist';
 import { useTheme } from '../../theme';
 import { api, setAccessToken, getAccessToken } from '../../services/api';
 
 const TAB_META: Record<string, { label: string; icon: string; desc: string }> = {
   Dashboard: { label: 'Dashboard', icon: 'compass', desc: 'Home screen with overview' },
   Accounts: { label: 'Expenses', icon: 'receipt', desc: 'Transactions & accounts' },
-  Shared: { label: 'Shared', icon: 'people', desc: 'Group expenses & splits' },
+  Shared: { label: 'Spaces', icon: 'grid', desc: 'Split expenses & shared accounts' },
+  Goals: { label: 'Goals', icon: 'trophy', desc: 'Savings goals & milestones' },
   Reminders: { label: 'Reminders', icon: 'notifications', desc: 'Bill & task reminders' },
   SMS: { label: 'SMS', icon: 'chatbubbles', desc: 'Auto-detect SMS transactions' },
   Settings: { label: 'Settings', icon: 'settings', desc: 'Profile, preferences & more' },
@@ -30,26 +34,37 @@ export function CustomiseBottomMenuScreen() {
       const res = await api.get<any>('/user/preferences');
       const config = res?.bottomMenuConfig || [];
       setTabs(config.sort((a: any, b: any) => a.order - b.order));
-    } catch { /* use defaults */ }
+    } catch {
+      /* use defaults */
+    }
     setLoading(false);
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const handleSave = async () => {
     setSaving(true);
-    const config = tabs.map((t, i) => ({ id: t.id, visible: t.visible, order: i, locked: t.locked }));
+    const config = tabs.map((t, i) => ({
+      id: t.id,
+      visible: t.visible,
+      order: i,
+      locked: t.locked,
+    }));
     try {
       await api.put('/user/preferences/bottom-menu', { config });
       Alert.alert('Saved', 'Bottom menu layout updated');
       navigation.goBack();
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'Failed to save');
-    } finally { setSaving(false); }
+    } finally {
+      setSaving(false);
+    }
   };
 
   const toggleVisibility = (index: number) => {
-    setTabs(prev => prev.map((t, i) => i === index ? { ...t, visible: !t.visible } : t));
+    setTabs((prev) => prev.map((t, i) => (i === index ? { ...t, visible: !t.visible } : t)));
   };
 
   const renderItem = ({ item, drag, isActive, getIndex }: RenderItemParams<any>) => {
@@ -77,7 +92,7 @@ export function CustomiseBottomMenuScreen() {
             style={{ marginRight: 12 }}
           />
           <View style={[styles.tabIcon, { backgroundColor: `${colors.accent.primary}18` }]}>
-            <Ionicons name={(meta.icon as any)} size={20} color={colors.accent.primary} />
+            <Ionicons name={meta.icon as any} size={20} color={colors.accent.primary} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[styles.tabLabel, { color: colors.text.primary }]}>
@@ -93,7 +108,13 @@ export function CustomiseBottomMenuScreen() {
             <Ionicons
               name={item.visible ? 'eye-outline' : 'eye-off-outline'}
               size={20}
-              color={isSettings ? colors.text.tertiary : (item.visible ? colors.accent.primary : colors.text.tertiary)}
+              color={
+                isSettings
+                  ? colors.text.tertiary
+                  : item.visible
+                    ? colors.accent.primary
+                    : colors.text.tertiary
+              }
             />
           </TouchableOpacity>
         </TouchableOpacity>
@@ -103,7 +124,12 @@ export function CustomiseBottomMenuScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top + 60 }]}>
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: colors.bg.primary, paddingTop: insets.top + 60 },
+        ]}
+      >
         <ActivityIndicator size="large" color={colors.accent.primary} />
       </View>
     );
@@ -149,12 +175,37 @@ export function CustomiseBottomMenuScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 8 },
-  backBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   title: { fontSize: 20, fontWeight: '800' },
   subtitle: { fontSize: 13, textAlign: 'center', paddingHorizontal: 24, marginBottom: 8 },
-  tabItem: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 16, borderWidth: 1 },
-  tabIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  tabItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  tabIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
   tabLabel: { fontSize: 15, fontWeight: '700' },
   tabDesc: { fontSize: 11, marginTop: 2 },
   eyeBtn: { padding: 8 },

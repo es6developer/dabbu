@@ -22,42 +22,55 @@ import { Skeleton, SkeletonCard } from '../../components/ui/AnimatedSkeleton';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const GROUP_TYPES = [
-  { key: 'all', label: 'All' },
-  { key: 'friends', label: 'Friends' },
-  { key: 'trip', label: 'Trip' },
-  { key: 'family', label: 'Family' },
-  { key: 'couple', label: 'Couple' },
-  { key: 'roommates', label: 'Roommates' },
-  { key: 'office', label: 'Office' },
-  { key: 'event', label: 'Event' },
-  { key: 'apartment', label: 'Apartment' },
-] as const;
-
-const TYPE_ICONS: Record<string, string> = {
-  friends: 'people',
-  trip: 'airplane',
-  family: 'home',
-  couple: 'heart',
-  roommates: 'business',
-  office: 'briefcase',
-  event: 'calendar',
-  apartment: 'building',
-  default: 'people',
+const SPACE_TYPE_CONFIG: Record<
+  string,
+  { label: string; icon: string; gradient: [string, string]; emoji: string }
+> = {
+  friends: { label: 'Friends', icon: 'people', gradient: ['#4F6EF7', '#7C8FF8'], emoji: '👥' },
+  trip: { label: 'Trip', icon: 'airplane', gradient: ['#00B894', '#00D9A6'], emoji: '✈️' },
+  family: { label: 'Family', icon: 'home', gradient: ['#E85D04', '#FF8A3C'], emoji: '👨‍👩‍👧‍👦' },
+  couple: { label: 'Couple', icon: 'heart', gradient: ['#FF6B9D', '#FF8FB3'], emoji: '💑' },
+  roommates: {
+    label: 'Roommates',
+    icon: 'business',
+    gradient: ['#6C5CE7', '#A29BFE'],
+    emoji: '🏠',
+  },
+  office: { label: 'Office', icon: 'briefcase', gradient: ['#247BA0', '#4A9FC7'], emoji: '💼' },
+  event: { label: 'Event', icon: 'calendar', gradient: ['#D64550', '#FF6B6B'], emoji: '🎉' },
+  apartment: {
+    label: 'Apartment',
+    icon: 'building',
+    gradient: ['#8A5CF6', '#B794F4'],
+    emoji: '🏢',
+  },
+  default: { label: 'Group', icon: 'people', gradient: ['#4F6EF7', '#7C8FF8'], emoji: '👥' },
 };
 
+const GROUP_TYPES = [
+  { key: 'all', label: 'All' },
+  ...Object.entries(SPACE_TYPE_CONFIG)
+    .filter(([k]) => k !== 'default')
+    .map(([k, v]) => ({ key: k, label: v.label })),
+];
+
 function fmt(v: number) {
-  return '₹' + v.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+  return '₹' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+}
+
+function pct(v: number) {
+  return Math.round(v) + '%';
 }
 
 export function SharedFinanceHomeScreen() {
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
   const { colors, isDark } = useTheme();
-  const cardGradient = [colors.bg.secondary, colors.bg.tertiary];
   const insets = useSafeAreaInsets();
 
   const [groups, setGroups] = useState<any[]>([]);
+  const [goals, setGoals] = useState<any[]>([]);
+  const [goalsLoading, setGoalsLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
@@ -80,12 +93,31 @@ export function SharedFinanceHomeScreen() {
         if (accessToken) {
           setAccessToken(accessToken);
         }
-        const res = await api.get<any>('/shared-finance/groups', ctrl.signal);
+        const [groupsRes, goalsRes] = await Promise.allSettled([
+          api.get<any>('/shared-finance/groups', ctrl.signal),
+          api.get<any>('/goals', ctrl.signal),
+        ]);
         if (ctrl.signal.aborted) {
           return;
         }
-        const data = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
-        setGroups(data);
+        const groupsData =
+          groupsRes.status === 'fulfilled'
+            ? Array.isArray(groupsRes.value)
+              ? groupsRes.value
+              : Array.isArray(groupsRes.value?.data)
+                ? groupsRes.value.data
+                : []
+            : [];
+        const goalsData =
+          goalsRes.status === 'fulfilled'
+            ? Array.isArray(goalsRes.value?.data)
+              ? goalsRes.value.data
+              : Array.isArray(goalsRes.value)
+                ? goalsRes.value
+                : []
+            : [];
+        setGroups(groupsData);
+        setGoals(goalsData);
         Animated.timing(fadeAnim, {
           toValue: 1,
           duration: 300,
@@ -94,11 +126,13 @@ export function SharedFinanceHomeScreen() {
       } catch (e: any) {
         if (!ctrl.signal.aborted && e.message !== 'Session expired. Please login again.') {
           setGroups([]);
+          setGoals([]);
         }
       } finally {
         if (!ctrl.signal.aborted) {
           setLoading(false);
           setRefreshing(false);
+          setGoalsLoading(false);
         }
       }
     },
@@ -127,7 +161,7 @@ export function SharedFinanceHomeScreen() {
   }, [groups, search, typeFilter]);
 
   async function handleDelete(group: any) {
-    Alert.alert('Delete Group', `Delete "${group.name}"? All shared data will be lost.`, [
+    Alert.alert('Delete Space', `Delete "${group.name}"? All shared data will be lost.`, [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',
@@ -140,12 +174,22 @@ export function SharedFinanceHomeScreen() {
             await api.delete(`/shared-finance/groups/${group.id}`);
             setGroups((prev) => prev.filter((g) => g.id !== group.id));
           } catch (e: any) {
-            Alert.alert('Error', e.message || 'Failed to delete group');
+            Alert.alert('Error', e.message || 'Failed to delete space');
           }
         },
       },
     ]);
   }
+
+  const goalTotal = useMemo(() => {
+    let saved = 0,
+      target = 0;
+    goals.forEach((g) => {
+      saved += Number(g.saved || g.currentAmount || 0);
+      target += Number(g.target || g.targetAmount || 0);
+    });
+    return { saved, target, pct: target > 0 ? Math.min((saved / target) * 100, 100) : 0 };
+  }, [goals]);
 
   if (loading) {
     return (
@@ -157,6 +201,12 @@ export function SharedFinanceHomeScreen() {
           </View>
           <Skeleton width={44} height={44} borderRadius={14} />
         </View>
+        <Skeleton
+          width="90%"
+          height={80}
+          borderRadius={20}
+          style={{ marginHorizontal: 24, marginBottom: 16 }}
+        />
         <Skeleton
           width="90%"
           height={44}
@@ -198,8 +248,8 @@ export function SharedFinanceHomeScreen() {
           <Animated.View style={{ opacity: fadeAnim }}>
             <View style={[s.header, { paddingTop: insets.top + 16 }]}>
               <View>
-                <Text style={[s.subtitle, { color: colors.text.tertiary }]}>Shared Finance</Text>
-                <Text style={[s.title, { color: colors.text.primary }]}>Your Groups</Text>
+                <Text style={[s.subtitle, { color: colors.text.tertiary }]}>Financial OS</Text>
+                <Text style={[s.title, { color: colors.text.primary }]}>Your Spaces</Text>
               </View>
               <TouchableOpacity
                 style={[s.addBtn, { backgroundColor: colors.accent.primary }]}
@@ -208,7 +258,59 @@ export function SharedFinanceHomeScreen() {
                 <Ionicons name="add" size={22} color="#FFF" />
               </TouchableOpacity>
             </View>
-
+            {goals.length > 0 && (
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('MainTabs', { screen: 'Goals' })}
+                style={s.goalsBanner}
+              >
+                <LinearGradient
+                  colors={[colors.accent.primary + '20', colors.accent.secondary + '15']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={s.goalsBannerInner}
+                >
+                  <View style={s.goalsBannerTop}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <View
+                        style={[s.goalsIcon, { backgroundColor: colors.accent.primary + '25' }]}
+                      >
+                        <Ionicons name="trophy-outline" size={16} color={colors.accent.primary} />
+                      </View>
+                      <Text style={[s.goalsBannerTitle, { color: colors.text.primary }]}>
+                        Goal Progress
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+                  </View>
+                  <View style={s.goalsBannerBar}>
+                    <View style={[s.goalsBannerTrack, { backgroundColor: colors.bg.tertiary }]}>
+                      <View
+                        style={[
+                          s.goalsBannerFill,
+                          {
+                            width: `${goalTotal.pct}%`,
+                            backgroundColor: colors.accent.primary,
+                          },
+                        ]}
+                      />
+                    </View>
+                    <Text style={[s.goalsBannerPct, { color: colors.accent.primary }]}>
+                      {pct(goalTotal.pct)}
+                    </Text>
+                  </View>
+                  <View style={s.goalsBannerStats}>
+                    <Text style={[s.goalsBannerStat, { color: colors.text.tertiary }]}>
+                      <Text style={{ color: colors.status.success }}>{fmt(goalTotal.saved)}</Text>{' '}
+                      saved of {fmt(goalTotal.target)}
+                    </Text>
+                    <Text style={[s.goalsBannerCount, { color: colors.text.tertiary }]}>
+                      {goals.length} goal{goals.length > 1 ? 's' : ''}
+                    </Text>
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
+            )}
             <View style={s.searchRow}>
               <View style={[s.searchBar, { backgroundColor: colors.bg.tertiary }]}>
                 <Ionicons name="search-outline" size={18} color={colors.text.tertiary} />
@@ -216,7 +318,7 @@ export function SharedFinanceHomeScreen() {
                   style={[s.searchInput, { color: colors.text.primary }]}
                   value={search}
                   onChangeText={setSearch}
-                  placeholder="Search groups..."
+                  placeholder="Search spaces..."
                   placeholderTextColor={colors.text.tertiary}
                 />
                 {search ? (
@@ -226,7 +328,6 @@ export function SharedFinanceHomeScreen() {
                 ) : null}
               </View>
             </View>
-
             <FlatList
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -246,9 +347,7 @@ export function SharedFinanceHomeScreen() {
                   <Text
                     style={[
                       s.typeChipText,
-                      {
-                        color: typeFilter === item.key ? '#FFF' : colors.text.secondary,
-                      },
+                      { color: typeFilter === item.key ? '#FFF' : colors.text.secondary },
                     ]}
                   >
                     {item.label}
@@ -260,7 +359,7 @@ export function SharedFinanceHomeScreen() {
         }
         renderItem={({ item }) => {
           const type = item.type || 'default';
-          const typeIcon = TYPE_ICONS[type] || TYPE_ICONS.default;
+          const cfg = SPACE_TYPE_CONFIG[type] || SPACE_TYPE_CONFIG.default;
           const totalSpent = Number(item.totalSpent || 0);
           const memberCount = item._count?.members || item.members?.length || 0;
           return (
@@ -275,101 +374,59 @@ export function SharedFinanceHomeScreen() {
               onLongPress={() => handleDelete(item)}
               style={s.cardOuter}
             >
-              <LinearGradient
-                colors={cardGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={s.card}
-              >
-                <View style={s.cardTop}>
-                  <LinearGradient colors={[...colors.accent.gradient]} style={s.cardAvatar}>
-                    <Ionicons name={typeIcon as any} size={22} color="#FFF" />
-                  </LinearGradient>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[s.cardName, { color: colors.text.primary }]} numberOfLines={1}>
+              <View style={s.card}>
+                <LinearGradient
+                  colors={cfg.gradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={s.cardCover}
+                >
+                  <View style={s.cardCoverOverlay}>
+                    <View style={s.cardCoverTop}>
+                      <View style={s.cardCoverIcon}>
+                        <Ionicons name={cfg.icon as any} size={20} color="#FFF" />
+                      </View>
+                      <View style={[s.cardTypeBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
+                        <Text style={s.cardTypeBadgeText}>{cfg.label}</Text>
+                      </View>
+                    </View>
+                    <Text style={s.cardCoverName} numberOfLines={1}>
                       {item.name}
                     </Text>
-                    <View style={s.cardMetaRow}>
-                      <Ionicons name="people-outline" size={11} color={colors.text.secondary} />
-                      <Text style={[s.cardMembers, { color: colors.text.secondary }]}>
-                        {memberCount} member{memberCount !== 1 ? 's' : ''}
+                    {item.description ? (
+                      <Text style={s.cardCoverDesc} numberOfLines={1}>
+                        {item.description}
                       </Text>
-                      <View
-                        style={[s.typeBadge, { backgroundColor: `${colors.accent.primary}20` }]}
-                      >
-                        <Text style={[s.typeBadgeText, { color: colors.accent.primary }]}>
-                          {type.charAt(0).toUpperCase() + type.slice(1)}
-                        </Text>
-                      </View>
+                    ) : null}
+                  </View>
+                </LinearGradient>
+                <View style={s.cardBody}>
+                  <View style={s.cardStats}>
+                    <View style={s.cardStat}>
+                      <Text style={[s.cardStatLabel, { color: colors.text.tertiary }]}>
+                        Total Spent
+                      </Text>
+                      <Text style={[s.cardStatValue, { color: colors.text.primary }]}>
+                        {fmt(totalSpent)}
+                      </Text>
+                    </View>
+                    <View style={s.cardStat}>
+                      <Text style={[s.cardStatLabel, { color: colors.text.tertiary }]}>
+                        Members
+                      </Text>
+                      <Text style={[s.cardStatValue, { color: colors.text.primary }]}>
+                        {memberCount}
+                      </Text>
+                    </View>
+                    <View style={s.cardStat}>
+                      <Text style={[s.cardStatLabel, { color: colors.text.tertiary }]}>Txns</Text>
+                      <Text style={[s.cardStatValue, { color: colors.text.primary }]}>
+                        {item._count?.expenses || item.expenseCount || 0}
+                      </Text>
                     </View>
                   </View>
                 </View>
-
-                <View style={s.statsRow}>
-                  <View
-                    style={[
-                      s.stat,
-                      {
-                        backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        s.statLabel,
-                        {
-                          color: isDark ? 'rgba(255,255,255,0.4)' : colors.text.secondary,
-                        },
-                      ]}
-                    >
-                      Total Spent
-                    </Text>
-                    <Text style={[s.statVal, { color: colors.text.primary }]}>
-                      {fmt(totalSpent)}
-                    </Text>
-                  </View>
-                  <View
-                    style={[
-                      s.stat,
-                      {
-                        backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        s.statLabel,
-                        {
-                          color: isDark ? 'rgba(255,255,255,0.4)' : colors.text.secondary,
-                        },
-                      ]}
-                    >
-                      Txns
-                    </Text>
-                    <Text style={[s.statVal, { color: colors.text.primary }]}>
-                      {item._count?.expenses || item.expenseCount || 0}
-                    </Text>
-                  </View>
-                </View>
-
-                {item.description ? (
-                  <View
-                    style={[
-                      s.descriptionRow,
-                      {
-                        backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={[s.descriptionText, { color: colors.text.tertiary }]}
-                      numberOfLines={1}
-                    >
-                      {item.description}
-                    </Text>
-                  </View>
-                ) : null}
-              </LinearGradient>
+              </View>
             </TouchableOpacity>
           );
         }}
@@ -379,15 +436,15 @@ export function SharedFinanceHomeScreen() {
               colors={[`${colors.accent.primary}20`, `${colors.accent.secondary}20`]}
               style={s.emptyIcon}
             >
-              <Ionicons name="people" size={44} color={colors.accent.primary} />
+              <Ionicons name="grid-outline" size={44} color={colors.accent.primary} />
             </LinearGradient>
             <Text style={[s.emptyTitle, { color: colors.text.primary }]}>
-              {search || typeFilter !== 'all' ? 'No groups found' : 'No shared groups yet'}
+              {search || typeFilter !== 'all' ? 'No spaces found' : 'No spaces yet'}
             </Text>
             <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>
               {search || typeFilter !== 'all'
                 ? 'Try a different search or filter'
-                : 'Create a group to start tracking shared expenses'}
+                : 'Create a space to split expenses with your people'}
             </Text>
             {!search && typeFilter === 'all' && (
               <TouchableOpacity
@@ -395,7 +452,7 @@ export function SharedFinanceHomeScreen() {
                 onPress={() => navigation.navigate('CreateSharedGroup')}
               >
                 <Ionicons name="add" size={18} color="#FFF" />
-                <Text style={s.emptyCtaText}>Create Group</Text>
+                <Text style={s.emptyCtaText}>Create Space</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -403,13 +460,7 @@ export function SharedFinanceHomeScreen() {
       />
 
       <TouchableOpacity
-        style={[
-          s.fab,
-          {
-            backgroundColor: colors.accent.primary,
-            bottom: insets.bottom + 24,
-          },
-        ]}
+        style={[s.fab, { backgroundColor: colors.accent.primary, bottom: insets.bottom + 24 }]}
         onPress={() => navigation.navigate('CreateSharedGroup')}
       >
         <Ionicons name="add" size={26} color="#FFF" />
@@ -428,7 +479,13 @@ const s = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 12,
   },
-  subtitle: { fontSize: 13, fontWeight: '500', marginBottom: 2 },
+  subtitle: {
+    fontSize: 13,
+    fontWeight: '500',
+    marginBottom: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
   title: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5 },
   addBtn: {
     width: 44,
@@ -437,6 +494,26 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
+  goalsBanner: { marginHorizontal: 24, marginBottom: 16 },
+  goalsBannerInner: { borderRadius: 20, padding: 16, gap: 10 },
+  goalsBannerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  goalsIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  goalsBannerTitle: { fontSize: 15, fontWeight: '700' },
+  goalsBannerBar: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  goalsBannerTrack: { flex: 1, height: 8, borderRadius: 999, overflow: 'hidden' },
+  goalsBannerFill: { height: '100%', borderRadius: 999 },
+  goalsBannerPct: { fontSize: 13, fontWeight: '700', width: 40, textAlign: 'right' },
+  goalsBannerStats: { flexDirection: 'row', justifyContent: 'space-between' },
+  goalsBannerStat: { fontSize: 12 },
+  goalsBannerCount: { fontSize: 12, fontWeight: '600' },
+
   searchRow: { paddingHorizontal: 24, marginBottom: 8 },
   searchBar: {
     flexDirection: 'row',
@@ -447,57 +524,64 @@ const s = StyleSheet.create({
   },
   searchInput: { flex: 1, fontSize: 14, marginLeft: 10 },
   typeFilterRow: { paddingHorizontal: 24, gap: 8, paddingBottom: 16 },
-  typeChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
-  },
+  typeChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, marginRight: 8 },
   typeChipText: { fontSize: 12, fontWeight: '600' },
-  cardOuter: { marginHorizontal: 24, marginBottom: 12 },
-  card: { borderRadius: 20, padding: 18, gap: 14 },
-  cardTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  cardAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
+
+  cardOuter: { marginHorizontal: 24, marginBottom: 16 },
+  card: { borderRadius: 20, overflow: 'hidden', backgroundColor: 'transparent' },
+  cardCover: { height: 120 },
+  cardCoverOverlay: {
+    flex: 1,
+    padding: 16,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.2)',
+  },
+  cardCoverTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    position: 'absolute',
+    top: 12,
+    left: 16,
+    right: 16,
+  },
+  cardCoverIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cardName: { fontSize: 17, fontWeight: '700' },
-  cardMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 4,
-  },
-  cardMembers: { fontSize: 12 },
-  typeBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+  cardTypeBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 8,
   },
-  typeBadgeText: { fontSize: 10, fontWeight: '700' },
-  statsRow: { flexDirection: 'row', gap: 12 },
-  stat: {
-    flex: 1,
-    borderRadius: 12,
-    padding: 10,
-    gap: 2,
+  cardTypeBadgeText: { color: '#FFF', fontSize: 11, fontWeight: '700' },
+  cardCoverName: { fontSize: 20, fontWeight: '800', color: '#FFF' },
+  cardCoverDesc: { fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
+  cardBody: {
+    backgroundColor: 'transparent',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    borderWidth: 1,
+    borderTopWidth: 0,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
-  statLabel: {
+  cardStats: { flexDirection: 'row', gap: 12 },
+  cardStat: { flex: 1, gap: 2 },
+  cardStatLabel: {
     fontSize: 10,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  statVal: { fontSize: 15, fontWeight: '700' },
-  descriptionRow: {
-    borderRadius: 10,
-    padding: 10,
-  },
-  descriptionText: { fontSize: 13 },
-  empty: { alignItems: 'center', gap: 12, paddingTop: 60 },
+  cardStatValue: { fontSize: 15, fontWeight: '700' },
+
+  empty: { alignItems: 'center', gap: 12, paddingTop: 40 },
   emptyIcon: {
     width: 88,
     height: 88,

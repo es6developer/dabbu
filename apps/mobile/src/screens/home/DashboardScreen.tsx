@@ -25,6 +25,8 @@ interface DashboardData {
   categories: any[];
   expenseGroups: any[];
   reminders: any[];
+  goals: any[];
+  sharedGroups: any[];
 }
 
 const emptyData: DashboardData = {
@@ -33,6 +35,8 @@ const emptyData: DashboardData = {
   categories: [],
   expenseGroups: [],
   reminders: [],
+  goals: [],
+  sharedGroups: [],
 };
 
 const moneyFormat = (value: number) => {
@@ -82,7 +86,15 @@ export function DashboardScreen() {
       const sorted = layout.sort((a: any, b: any) => a.order - b.order);
       setWidgetOrder(sorted.filter((w: any) => w.visible).map((w: any) => w.id));
     } catch {
-      setWidgetOrder(['balance', 'quickActions', 'features', 'snapshots', 'recentActivity']);
+      setWidgetOrder([
+        'balance',
+        'quickActions',
+        'goals',
+        'spaces',
+        'features',
+        'snapshots',
+        'recentActivity',
+      ]);
     }
   }, []);
 
@@ -97,13 +109,15 @@ export function DashboardScreen() {
     }
 
     try {
-      const [accountStats, txStats, categories, expenseGroups, reminders] =
+      const [accountStats, txStats, categories, expenseGroups, reminders, goals, sharedGroups] =
         await Promise.allSettled([
           api.get<any>('/accounts/stats', signal),
           api.get<any>('/transactions/stats', signal),
           api.get<any>('/transactions/categories-summary?months=1', signal),
           api.get<any>('/expense-groups', signal),
           api.get<any>('/reminders', signal),
+          api.get<any>('/goals', signal),
+          api.get<any>('/shared-finance/groups', signal),
         ]);
 
       if (signal.aborted) {
@@ -116,6 +130,8 @@ export function DashboardScreen() {
         categories: listFromResponse(valueFromResult(categories, [])),
         expenseGroups: listFromResponse(valueFromResult(expenseGroups, [])),
         reminders: listFromResponse(valueFromResult(reminders, [])),
+        goals: listFromResponse(valueFromResult(goals, [])),
+        sharedGroups: listFromResponse(valueFromResult(sharedGroups, [])),
       });
     } finally {
       if (!signal.aborted) {
@@ -161,6 +177,19 @@ export function DashboardScreen() {
   const netFlow = monthlyIncome - monthlyExpense;
   const spendRate =
     monthlyIncome > 0 ? Math.min(100, Math.round((monthlyExpense / monthlyIncome) * 100)) : 0;
+
+  const goalsData = data.goals || [];
+  const spacesData = data.sharedGroups || [];
+  const goalsTotalSaved = goalsData.reduce(
+    (sum: number, g: any) => sum + Number(g.saved || g.currentAmount || 0),
+    0,
+  );
+  const goalsTotalTarget = goalsData.reduce(
+    (sum: number, g: any) => sum + Number(g.target || g.targetAmount || 0),
+    0,
+  );
+  const goalsOverallPct =
+    goalsTotalTarget > 0 ? Math.min((goalsTotalSaved / goalsTotalTarget) * 100, 100) : 0;
 
   const topCategory = useMemo(() => {
     const first = data.categories[0];
@@ -405,6 +434,120 @@ export function DashboardScreen() {
               </TouchableOpacity>
             ))}
           </View>
+        )}
+
+        {(!widgetOrder.length || widgetOrder.includes('goals')) && goalsData.length > 0 && (
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate('Goals')}
+            style={styles.goalsCard}
+          >
+            <LinearGradient
+              colors={['#1A1A2E', '#16213E']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.goalsCardInner}
+            >
+              <View style={styles.goalsCardTop}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <View
+                    style={[styles.goalsIcon, { backgroundColor: colors.accent.primary + '25' }]}
+                  >
+                    <Ionicons name="trophy-outline" size={16} color={colors.accent.primary} />
+                  </View>
+                  <View>
+                    <Text style={[styles.goalsTitle, { color: colors.text.primary }]}>
+                      Goal Progress
+                    </Text>
+                    <Text style={[styles.goalsCount, { color: colors.text.tertiary }]}>
+                      {goalsData.length} goal{goalsData.length > 1 ? 's' : ''}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.goalsPctWrap}>
+                  <Text style={[styles.goalsPct, { color: colors.accent.primary }]}>
+                    {Math.round(goalsOverallPct)}%
+                  </Text>
+                  <Ionicons name="chevron-forward" size={14} color={colors.text.tertiary} />
+                </View>
+              </View>
+              <View style={[styles.goalsTrack, { backgroundColor: colors.bg.tertiary }]}>
+                <View
+                  style={[
+                    styles.goalsFill,
+                    { width: `${goalsOverallPct}%`, backgroundColor: colors.accent.primary },
+                  ]}
+                />
+              </View>
+              <View style={styles.goalsStats}>
+                <Text style={[styles.goalsStatText, { color: colors.text.secondary }]}>
+                  <Text style={{ color: colors.status.success }}>
+                    {moneyFormat(goalsTotalSaved)}
+                  </Text>{' '}
+                  saved
+                </Text>
+                <Text style={[styles.goalsStatText, { color: colors.text.secondary }]}>
+                  of {moneyFormat(goalsTotalTarget)}
+                </Text>
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
+
+        {(!widgetOrder.length || widgetOrder.includes('spaces')) && spacesData.length > 0 && (
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate('Shared', { screen: 'SharedFinanceHome' })}
+            style={styles.spacesCard}
+          >
+            <View style={styles.spacesCardInner}>
+              <View style={styles.spacesCardTop}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <View style={[styles.spacesIcon, { backgroundColor: '#4F6EF720' }]}>
+                    <Ionicons name="grid-outline" size={16} color="#4F6EF7" />
+                  </View>
+                  <View>
+                    <Text style={[styles.spacesTitle, { color: colors.text.primary }]}>
+                      Your Spaces
+                    </Text>
+                    <Text style={[styles.spacesCount, { color: colors.text.tertiary }]}>
+                      {spacesData.length} active space{spacesData.length > 1 ? 's' : ''}
+                    </Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={14} color={colors.text.tertiary} />
+              </View>
+              <View style={styles.spacesPreview}>
+                {spacesData.slice(0, 3).map((s: any, i: number) => {
+                  const typeColors: Record<string, string> = {
+                    friends: '#4F6EF7',
+                    trip: '#00B894',
+                    family: '#E85D04',
+                    couple: '#FF6B9D',
+                    roommates: '#6C5CE7',
+                    office: '#247BA0',
+                    event: '#D64550',
+                    apartment: '#8A5CF6',
+                  };
+                  const c = typeColors[s.type] || '#4F6EF7';
+                  return (
+                    <View key={s.id || i} style={styles.spacesPreviewItem}>
+                      <View style={[styles.spacesPreviewDot, { backgroundColor: c }]} />
+                      <Text
+                        style={[styles.spacesPreviewName, { color: colors.text.secondary }]}
+                        numberOfLines={1}
+                      >
+                        {s.name}
+                      </Text>
+                      <Text style={[styles.spacesPreviewAmount, { color: colors.text.tertiary }]}>
+                        {moneyFormat(Number(s.totalSpent || 0))}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+          </TouchableOpacity>
         )}
 
         {(!widgetOrder.length || widgetOrder.includes('features')) && (
@@ -755,4 +898,52 @@ const styles = StyleSheet.create({
   emptyCard: { borderWidth: 1, borderRadius: 18, padding: 22, alignItems: 'center' },
   emptyTitle: { ...typographyStyles.body, fontFamily: 'Inter-Bold', marginTop: 10 },
   emptyText: { ...typographyStyles.footnote, textAlign: 'center', marginTop: 4 },
+
+  goalsCard: { marginBottom: 16 },
+  goalsCardInner: { borderRadius: 20, padding: 16, gap: 10 },
+  goalsCardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  goalsIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  goalsTitle: { fontSize: 15, fontWeight: '700' },
+  goalsCount: { fontSize: 11, fontWeight: '500', marginTop: 1 },
+  goalsPctWrap: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  goalsPct: { fontSize: 18, fontWeight: '800' },
+  goalsTrack: { height: 6, borderRadius: 999, overflow: 'hidden' },
+  goalsFill: { height: '100%', borderRadius: 999 },
+  goalsStats: { flexDirection: 'row', justifyContent: 'space-between' },
+  goalsStatText: { fontSize: 11, fontWeight: '500' },
+
+  spacesCard: { marginBottom: 16 },
+  spacesCardInner: {
+    backgroundColor: 'transparent',
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+  spacesCardTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  spacesIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  spacesTitle: { fontSize: 15, fontWeight: '700' },
+  spacesCount: { fontSize: 11, fontWeight: '500', marginTop: 1 },
+  spacesPreview: { gap: 8 },
+  spacesPreviewItem: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  spacesPreviewDot: { width: 8, height: 8, borderRadius: 4 },
+  spacesPreviewName: { flex: 1, fontSize: 12, fontWeight: '600' },
+  spacesPreviewAmount: { fontSize: 11, fontWeight: '600' },
 });

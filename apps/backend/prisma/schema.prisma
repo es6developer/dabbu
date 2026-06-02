@@ -646,10 +646,11 @@ model Goal {
   type          String    @default("savings") @db.VarChar(20)  // savings, investment, debt, custom
   icon          String?   @db.VarChar(50)
   color         String?   @db.VarChar(50)
-  isCompleted   Boolean   @default(false)
-  completedAt   DateTime? @db.Date
-  sortOrder     Int?      @default(0)
-  notes         String?   @db.VarChar(500)
+  monthlyContribution Decimal?  @db.Decimal(15, 2)
+  isCompleted         Boolean   @default(false)
+  completedAt         DateTime? @db.Date
+  sortOrder           Int?      @default(0)
+  notes               String?   @db.VarChar(500)
   deletedAt     DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

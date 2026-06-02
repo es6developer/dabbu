@@ -9,6 +9,7 @@ import { NotificationsScreen } from '../screens/home/NotificationsScreen';
 import { NotificationCenterScreen } from '../screens/home/NotificationCenterScreen';
 import { AccountsNavigator } from './AccountsNavigator';
 import { SharedFinanceNavigator } from './SharedFinanceNavigator';
+import { GoalsListScreen } from '../screens/goals/GoalsListScreen';
 import { RemindersScreen } from '../screens/reminders/RemindersScreen';
 import { ReminderDetailScreen } from '../screens/reminders/ReminderDetailScreen';
 import { CreateReminderScreen } from '../screens/reminders/CreateReminderScreen';
@@ -44,7 +45,8 @@ const TAB_ICONS: Record<
 > = {
   Dashboard: { focused: 'compass', unfocused: 'compass-outline' },
   Accounts: { focused: 'receipt', unfocused: 'receipt-outline' },
-  Shared: { focused: 'people', unfocused: 'people-outline' },
+  Shared: { focused: 'grid', unfocused: 'grid-outline' },
+  Goals: { focused: 'trophy', unfocused: 'trophy-outline' },
   Reminders: { focused: 'notifications', unfocused: 'notifications-outline' },
   SMS: { focused: 'chatbubbles', unfocused: 'chatbubbles-outline' },
   Settings: { focused: 'settings', unfocused: 'settings-outline' },
@@ -238,7 +240,8 @@ interface TabConfig {
 const ALL_TABS: TabConfig[] = [
   { name: 'Dashboard', component: DashboardNavigator, title: 'Dashboard' },
   { name: 'Accounts', component: AccountsNavigator, title: 'Expenses' },
-  { name: 'Shared', component: SharedFinanceNavigator, title: 'Shared' },
+  { name: 'Shared', component: SharedFinanceNavigator, title: 'Spaces' },
+  { name: 'Goals', component: GoalsListScreen, title: 'Goals' },
   { name: 'Reminders', component: RemindersNavigator, title: 'Reminders' },
   { name: 'SMS', component: SmsNavigator, title: 'SMS', featureKey: 'sms_sync' },
   { name: 'Settings', component: SettingsNavigator, title: 'Settings' },
