@@ -262,6 +262,17 @@ export class SharedFinanceService {
       data: { totalSpent: undefined },
     });
 
+    const group = await this.prisma.sharedGroup.findUnique({
+      where: { id: groupId },
+      select: { name: true },
+    });
+    this.notificationService
+      .sendPush(targetUserId, 'Added to Group', `You were added to "${group?.name || 'a group'}"`, {
+        type: 'member_added',
+        groupId,
+      })
+      .catch(() => {});
+
     return member;
   }
 
@@ -543,6 +554,25 @@ export class SharedFinanceService {
       where: { id: invite.id },
       data: { usedAt: new Date(), status: 'used' },
     });
+
+    const [newMember, inviterUser] = await Promise.all([
+      this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { firstName: true, lastName: true },
+      }),
+      this.prisma.user.findUnique({ where: { id: invite.invitedBy }, select: { id: true } }),
+    ]);
+    if (inviterUser) {
+      const memberName = newMember
+        ? `${newMember.firstName || ''} ${newMember.lastName || ''}`.trim()
+        : 'Someone';
+      await this.notificationService
+        .sendPush(inviterUser.id, 'Member Joined', `${memberName} joined "${invite.group.name}"`, {
+          type: 'member_joined',
+          groupId: invite.group.id,
+        })
+        .catch(() => {});
+    }
 
     return { message: 'Joined group successfully', group: invite.group };
   }

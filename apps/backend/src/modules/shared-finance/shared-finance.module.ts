@@ -2,6 +2,7 @@ import { Module, OnModuleInit, Logger } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PrismaModule } from '../../common/prisma/prisma.module';
+import { NotificationModule } from '../notification/notification.module';
 import { SharedFinanceController } from './shared-finance.controller';
 import { SharedFinanceService } from './shared-finance.service';
 import { SettlementEngine } from './engines/settlement.engine';
@@ -16,6 +17,7 @@ import { GroupMemberGuard } from './guards/group-member.guard';
 @Module({
   imports: [
     PrismaModule,
+    NotificationModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

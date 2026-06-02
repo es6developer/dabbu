@@ -381,7 +381,7 @@
         <h2 class="reveal font-display text-3xl font-extrabold tracking-tight sm:text-5xl" style="--delay:80ms">A premium control center for personal finance.</h2>
         <p class="reveal mt-4 text-white/50 max-w-lg mx-auto" style="--delay:160ms">Fast capture, useful reports, and calm planning tools in one polished mobile experience.</p>
       </div>
-      <div id="featureGrid" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5"></div>
+      <div id="featureGrid" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"></div>
     </div>
   </section>
 
@@ -597,10 +597,12 @@ const iconPaths = [
   "M4 16l5-5 4 4 7-9M20 6v6h-6",
   "M12 2l3 7h7l-5.5 4.3 2.2 7L12 16.5 5.3 20.3l2.2-7L2 9h7l3-7Z",
   "M18 18H8a5 5 0 1 1 .9-9.9A7 7 0 0 1 22 11a4 4 0 0 1-4 7Z",
-  "M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16Zm10 2-4.3-4.3"
+  "M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16Zm10 2-4.3-4.3",
+  "M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9zM15 13a3 3 0 11-6 0 3 3 0 016 0z",
+  "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
 ];
-const features = ["Expense Tracking", "OCR Bill Scanner", "Budget Planning", "Subscription Tracking", "Financial Reports", "Smart Analytics", "Split Expenses", "Reminders & Snooze", "Cloud Sync", "Fast Search"];
-const descriptions = ["Capture every spend with clean categories.", "Snap a receipt — Dabbu auto-extracts amount, date & merchant.", "Plan limits without spreadsheet clutter.", "Find recurring payments before they bite.", "Readable summaries for monthly decisions.", "Spot trends, spikes, and better choices.", "Share costs with friends and settle up instantly.", "Never miss a payment with smart recurring reminders.", "Keep money data ready across devices.", "Find old entries with instant filtering."];
+const features = ["Expense Tracking", "OCR Bill Scanner", "Budget Planning", "Spaces & Workspaces", "Financial Reports", "Smart Analytics", "Split Expenses", "Reminders & Snooze", "Goals & Targets", "Fast Search", "Share via Invite", "Subscription Tracking"];
+const descriptions = ["Capture every spend with clean categories.", "Snap a receipt — Dabbu auto-extracts amount, date & merchant.", "Plan limits without spreadsheet clutter.", "Create dedicated spaces for trips, roommates, family & more.", "Readable summaries for monthly decisions.", "Spot trends, spikes, and better choices.", "Share costs with friends and settle up instantly.", "Never miss a payment with smart recurring reminders.", "Set savings targets and track progress as a team.", "Find old entries with instant filtering.", "Invite anyone via email or link — even without an account.", "Find recurring payments before they bite."];
 features.forEach((name, index) => {
   document.getElementById("featureGrid").insertAdjacentHTML("beforeend",
     `<article class="reveal glass rounded-xl p-4 glass-hover" style="--delay:${(index % 5) * 70}ms"><div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-brand/15 text-brand"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="${iconPaths[index]}" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3 class="font-bold text-sm">${name}</h3><p class="mt-1.5 text-xs leading-relaxed text-white/50">${descriptions[index]}</p></article>`
