@@ -17,14 +17,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
+import { WebView } from 'react-native-webview';
 
 const { width } = Dimensions.get('window');
 
 const PLANS = [
-  { code: 'MONTHLY_89', label: 'Monthly', price: '₹89', period: '/mo', badge: null },
-  { code: 'QUARTERLY_219', label: 'Quarterly', price: '₹219', period: '/qtr', badge: null },
-  { code: 'HALFYEARLY_389', label: 'Half-Yearly', price: '₹389', period: '/6mo', badge: null },
-  { code: 'YEARLY_699', label: 'Yearly', price: '₹699', period: '/yr', badge: 'BEST VALUE' },
+  { code: 'MONTHLY_89', label: 'Monthly', price: '\u20B989', period: '/mo', badge: null },
+  { code: 'QUARTERLY_219', label: 'Quarterly', price: '\u20B9219', period: '/qtr', badge: null },
+  { code: 'HALFYEARLY_389', label: 'Half-Yearly', price: '\u20B9389', period: '/6mo', badge: null },
+  { code: 'YEARLY_699', label: 'Yearly', price: '\u20B9699', period: '/yr', badge: 'BEST VALUE' },
 ];
 
 const PREMIUM_FEATURES = [
@@ -52,6 +53,21 @@ const FREE_FEATURES = [
   '10 Reminders',
 ];
 
+function CheckoutOverlay({ url, onClose }: { url: string; onClose: () => void }) {
+  return (
+    <View style={StyleSheet.absoluteFill}>
+      <WebView
+        source={{ uri: url }}
+        onNavigationStateChange={(navState) => {
+          if (navState.url.includes('success') || navState.url.includes('callback')) {
+            onClose();
+          }
+        }}
+      />
+    </View>
+  );
+}
+
 export function PremiumScreen() {
   const navigation = useNavigation<any>();
   const { colors, typography } = useTheme();
@@ -59,6 +75,7 @@ export function PremiumScreen() {
   const [selectedPlan, setSelectedPlan] = useState(3);
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState(false);
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
   const [currentSub, setCurrentSub] = useState<any>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
@@ -73,7 +90,7 @@ export function PremiumScreen() {
     loadCurrentSubscription();
   }, []);
 
-  const loadCurrentSubscription = async () => {
+  const loadCurrentSubscription = useCallback(async () => {
     try {
       const sub = await api.get<any>('/premium/current');
       setCurrentSub(sub);
@@ -82,14 +99,21 @@ export function PremiumScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  const handleWebViewClose = useCallback(() => {
+    setCheckoutUrl(null);
+    loadCurrentSubscription();
+  }, [loadCurrentSubscription]);
 
   const handleSubscribe = async () => {
     const plan = PLANS[selectedPlan];
     setSubscribing(true);
     try {
       const result: any = await api.post('/premium/subscribe', { planCode: plan.code });
-      if (result?.razorpaySubscriptionId) {
+      if (result?.checkoutUrl) {
+        setCheckoutUrl(result.checkoutUrl);
+      } else if (result?.razorpaySubscriptionId) {
         Alert.alert('Success', 'Welcome to Dabbu Premium!');
         setCurrentSub(await api.get<any>('/premium/current'));
       } else {
@@ -135,60 +159,33 @@ export function PremiumScreen() {
   }
 
   if (currentSub?.status === 'active' && currentSub?.plan?.code !== 'FREE') {
-    const plan = currentSub.plan;
     const endDate = new Date(currentSub.currentPeriodEnd).toLocaleDateString('en-IN', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
     });
     return (
-      <ScrollView style={[styles.container, { backgroundColor: '#0A0A1A' }]}>
-        <LinearGradient
-          colors={['#1A0A2E', '#0A0A1A']}
-          style={[styles.activeHeader, { paddingTop: insets.top + 60 }]}
-        >
-          <View style={styles.premiumBadgeLarge}>
-            <Ionicons name="diamond" size={24} color="#FFD700" />
-            <Text style={styles.premiumBadgeText}>DABBU PREMIUM</Text>
-          </View>
-          <Text style={styles.activeTitle}>You're on Premium</Text>
-          <Text style={styles.activePlan}>{plan?.name || 'Premium Plan'}</Text>
-        </LinearGradient>
-        <View style={styles.activeDetails}>
-          <View style={styles.detailCard}>
-            <Ionicons name="calendar-outline" size={20} color="#FFD700" />
-            <View>
-              <Text style={styles.detailLabel}>Renewal Date</Text>
-              <Text style={styles.detailValue}>{endDate}</Text>
-            </View>
-          </View>
-          <View style={styles.detailCard}>
-            <Ionicons name="cash-outline" size={20} color="#FFD700" />
-            <View>
-              <Text style={styles.detailLabel}>Amount</Text>
-              <Text style={styles.detailValue}>
-                ₹{Number(plan?.price || 0).toLocaleString('en-IN')}
-              </Text>
-            </View>
-          </View>
-          <TouchableOpacity style={styles.cancelBtn} onPress={handleCancel}>
-            <Text style={styles.cancelBtnText}>Cancel Subscription</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.billingBtn}
-            onPress={() => navigation.navigate('BillingHistory')}
+      <View style={{ flex: 1, backgroundColor: '#0A0A1A' }}>
+        <ScrollView style={[styles.container, { backgroundColor: '#0A0A1A' }]}>
+          <LinearGradient
+            colors={['#1A0A2E', '#0A0A1A']}
+            style={[styles.activeHeader, { paddingTop: insets.top + 60 }]}
           >
-            <Text style={styles.billingBtnText}>View Billing History</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+            <View style={styles.premiumBadgeLarge}>
+              <Ionicons name="diamond" size={24} color="#FFD700" />
+              <Text style={styles.premiumBadgeText}>DABBU PREMIUM</Text>
+            </View>
+            <Text style={styles.activeTitle}>You're on Premium</Text>
+          </LinearGradient>
+        </ScrollView>
+        {checkoutUrl && <CheckoutOverlay url={checkoutUrl} onClose={handleWebViewClose} />}
+      </View>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: '#0A0A1A' }]}>
+    <View style={{ flex: 1, backgroundColor: '#0A0A1A' }}>
       <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
-        {/* Hero Section */}
         <Animated.View
           style={[styles.heroSection, { opacity: fadeAnim, transform: [{ scale: heroScale }] }]}
         >
@@ -211,7 +208,6 @@ export function PremiumScreen() {
           </LinearGradient>
         </Animated.View>
 
-        {/* Features Section */}
         <Animated.View
           style={[
             styles.featuresSection,
@@ -251,7 +247,6 @@ export function PremiumScreen() {
           </View>
         </Animated.View>
 
-        {/* Plan Selector */}
         <Animated.View
           style={[
             styles.plansSection,
@@ -302,7 +297,6 @@ export function PremiumScreen() {
         <View style={{ height: 120 }} />
       </ScrollView>
 
-      {/* Sticky CTA */}
       <Animated.View
         style={[styles.stickyCta, { paddingBottom: insets.bottom + 16, opacity: fadeAnim }]}
       >
@@ -329,6 +323,8 @@ export function PremiumScreen() {
         </TouchableOpacity>
         <Text style={styles.guaranteeText}>Cancel anytime • 7-day money back guarantee</Text>
       </Animated.View>
+
+      {checkoutUrl && <CheckoutOverlay url={checkoutUrl} onClose={handleWebViewClose} />}
     </View>
   );
 }

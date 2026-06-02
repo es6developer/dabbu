@@ -39,6 +39,7 @@ export class PremiumController {
     const userId = req.user.id;
     const sub = await this.premiumService.createSubscription(userId, planCode);
     const plan = await this.prisma.subscriptionPlan.findUnique({ where: { id: sub.planId } });
+    let checkoutUrl = null;
     if (plan?.razorpayPlanId) {
       try {
         const razorpaySub = await this.razorpayService.createSubscription({
@@ -52,12 +53,12 @@ export class PremiumController {
           data: { razorpaySubscriptionId: razorpaySub.id, razorpayOrderId: razorpaySub.order_id },
         });
         (sub as any).razorpaySubscriptionId = razorpaySub.id;
-        (sub as any).razorpayOrderId = razorpaySub.order_id;
+        checkoutUrl = `https://api.razorpay.com/v1/subscriptions/${razorpaySub.id}/checkout`;
       } catch {
         /* noop */
       }
     }
-    return sub;
+    return { ...sub, checkoutUrl };
   }
 
   @Post('cancel')
