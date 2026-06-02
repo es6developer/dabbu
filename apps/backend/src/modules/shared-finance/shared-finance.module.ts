@@ -41,7 +41,7 @@ import { GroupMemberGuard } from './guards/group-member.guard';
     SharedFinanceGateway,
     GroupMemberGuard,
   ],
-  exports: [SharedFinanceService, AccessRevocationEngine, GroupLifecycleService],
+  exports: [SharedFinanceService, SettlementEngine, AccessRevocationEngine, GroupLifecycleService],
 })
 export class SharedFinanceModule implements OnModuleInit {
   private readonly logger = new Logger(SharedFinanceModule.name);

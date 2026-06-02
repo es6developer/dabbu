@@ -52,10 +52,7 @@ async function request<T>(
   body?: Record<string, unknown>,
 ): Promise<ApiResponse<T>> {
   const token = getTempToken();
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
@@ -70,15 +67,12 @@ async function request<T>(
       body: body ? JSON.stringify(body) : undefined,
       signal: abortController.signal,
     });
-
     clearTimeout(timeout);
     const json = await response.json();
     const data = json?.data !== undefined ? json.data : json;
-
     if (!response.ok) {
       return { error: json.message || json.error || 'Request failed', status: response.status };
     }
-
     return { data: data as T, status: response.status };
   } catch (err) {
     clearTimeout(timeout);
@@ -238,7 +232,6 @@ function normalizeChatMessage(raw: any): ChatMessage {
   const senderName = senderUser
     ? [senderUser.firstName, senderUser.lastName].filter(Boolean).join(' ').trim()
     : raw.senderName || 'Unknown';
-
   return {
     id: raw.id,
     sender: {
@@ -273,6 +266,159 @@ export const api = {
         '/external-sharing/auth/google',
         { idToken, deviceId },
       );
+    },
+  },
+
+  groups: {
+    get: async (groupId: string) => {
+      const res = await get<any>(`/shared-finance/groups/${groupId}`);
+      if (res.error) {
+        return res as ApiResponse<Group>;
+      }
+      return { data: normalizeGroup(res.data!), status: res.status };
+    },
+
+    getInvite: async (token: string) => {
+      const res = await get<any>(`/shared-finance/invites/${token}`);
+      if (res.error) {
+        return res;
+      }
+      const raw = res.data || res;
+      const groupInfo = raw.group as any;
+      const inviterInfo = raw.inviter as any;
+      const group: Group = {
+        id: groupInfo?.id,
+        name: groupInfo?.name || 'Group',
+        type: groupInfo?.type || 'shared',
+        description: groupInfo?.description,
+        memberCount: 0,
+        totalBalance: 0,
+        members: [],
+        createdAt: groupInfo?.createdAt || '',
+        currency: groupInfo?.currency || 'INR',
+      };
+      return {
+        data: {
+          group,
+          inviter: inviterInfo
+            ? {
+                name:
+                  [inviterInfo.firstName, inviterInfo.lastName].filter(Boolean).join(' ') ||
+                  inviterInfo.email,
+              }
+            : { name: 'Someone' },
+          permissions: [],
+        },
+        status: 200,
+      };
+    },
+
+    join: async (token: string) => {
+      const res = await post<any>(`/shared-finance/invites/${token}/join`, {});
+      const raw = res.data || res;
+      const groupId = raw?.group?.id || raw?.groupId;
+      if (groupId) {
+        return { data: { groupId }, status: res.status };
+      }
+      return { error: 'Failed to join group', status: 400 };
+    },
+
+    generateInvite: async (groupId: string) => {
+      const res = await post<any>(`/shared-finance/groups/${groupId}/invites`, {
+        email: `invitee-${Date.now()}@temp.dabbu.app`,
+      });
+      const raw = res.data || res;
+      const inviteToken = raw?.token || raw?.inviteToken;
+      if (inviteToken) {
+        return { data: { inviteToken }, status: res.status };
+      }
+      return res;
+    },
+  },
+
+  expenses: {
+    list: async (groupId: string) => {
+      const res = await get<any[]>(`/shared-finance/expenses?groupId=${groupId}`);
+      if (res.error) {
+        return res as ApiResponse<Expense[]>;
+      }
+      return { data: normalizeExpenseList(res.data || []), status: res.status };
+    },
+
+    create: async (
+      groupId: string,
+      data: {
+        description: string;
+        amount: number;
+        category: string;
+        splitType: string;
+        paidById: string;
+        shares?: { memberId: string; amount: number; percentage?: number }[];
+        date?: string;
+        notes?: string;
+      },
+    ) => {
+      return post<any>(`/shared-finance/expenses`, {
+        groupId,
+        description: data.description,
+        amount: data.amount,
+        paidBy: data.paidById,
+        category: data.category,
+        splitType: data.splitType,
+        date: data.date || new Date().toISOString(),
+        splits: data.shares || [],
+        notes: data.notes || '',
+      });
+    },
+  },
+
+  settlements: {
+    list: async (groupId: string) => {
+      const res = await get<any[]>(`/shared-finance/settlements?groupId=${groupId}`);
+      if (res.error) {
+        return res as ApiResponse<Settlement[]>;
+      }
+      return { data: normalizeSettlementList(res.data || []), status: res.status };
+    },
+
+    create: async (
+      groupId: string,
+      data: {
+        fromId: string;
+        toId: string;
+        amount: number;
+        method: string;
+        note?: string;
+      },
+    ) => {
+      return post<any>(`/shared-finance/settlements`, {
+        groupId,
+        fromId: data.fromId,
+        toId: data.toId,
+        amount: data.amount,
+        method: data.method,
+        note: data.note,
+      });
+    },
+
+    markPaid: async (groupId: string, settlementId: string) => {
+      return patch<any>(`/shared-finance/settlements/${settlementId}/complete`, {
+        method: 'upi',
+      });
+    },
+  },
+
+  chat: {
+    list: async (groupId: string) => {
+      const res = await get<any[]>(`/shared-finance/chat?groupId=${groupId}`);
+      if (res.error) {
+        return res as ApiResponse<ChatMessage[]>;
+      }
+      return { data: (res.data || []).map(normalizeChatMessage), status: res.status };
+    },
+
+    send: async (groupId: string, content: string) => {
+      return post<any>(`/shared-finance/chat`, { groupId, content });
     },
   },
 };

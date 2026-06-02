@@ -65,7 +65,7 @@ export function SharedFinanceNavigator() {
         options={{ title: 'Trip Dashboard' }}
       />
       <Stack.Screen
-        name="Settlements"
+        name="Settlement"
         component={SettlementScreen}
         options={{ title: 'Settlements' }}
       />

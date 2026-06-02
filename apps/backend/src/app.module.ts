@@ -38,6 +38,7 @@ import { CurrencyModule } from './modules/currency/currency.module';
 import { BillsModule } from './modules/bills/bills.module';
 import { GoalsModule } from './modules/goals/goals.module';
 import { SharedFinanceModule } from './modules/shared-finance/shared-finance.module';
+import { SettlementsModule } from './modules/settlements/settlements.module';
 import { UserPreferencesModule } from './modules/user-preferences/user-preferences.module';
 import { EmailModule } from './modules/email/email.module';
 
@@ -102,6 +103,7 @@ import { EmailModule } from './modules/email/email.module';
     CurrencyModule,
     GoalsModule,
     SharedFinanceModule,
+    SettlementsModule,
     UserPreferencesModule,
     EmailModule,
   ],

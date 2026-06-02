@@ -155,6 +155,11 @@ model User {
   referralProgramsReferred     ReferralProgram[]
   referralProgramsReferee      ReferralProgram[] @relation("ReferredUser")
   exportHistories              ExportHistory[]
+  guestProfile                 GuestMember?
+  expenseApprovalQueue         ExpenseApprovalQueue[]
+  groupActivities              GroupActivity[]
+  payNowLinksFrom              PayNowLink[] @relation("PayFrom")
+  payNowLinksTo                PayNowLink[] @relation("PayTo")
 
   @@index([email])
   @@index([isActive])
@@ -1045,6 +1050,11 @@ model SharedGroup {
   emergencyFunds       EmergencyFund[]
   netWorthSnapshots    FamilyNetWorthSnapshot[]
   exports              ExportHistory[]
+  guestMembers         GuestMember[]
+  settlementConfirmations SettlementConfirmation[]
+  expenseApprovalQueue ExpenseApprovalQueue[]
+  activities           GroupActivity[]
+  payNowLinks          PayNowLink[]
 
   @@index([createdBy])
   @@index([type])
@@ -1171,12 +1181,172 @@ model Settlement {
   group     SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   fromUser  User        @relation("SettlementFrom", fields: [fromUserId], references: [id])
   toUser    User        @relation("SettlementTo", fields: [toUserId], references: [id])
+  confirmation  SettlementConfirmation?
+  payNowLinks   PayNowLink[]
 
   @@index([groupId])
   @@index([fromUserId])
   @@index([toUserId])
   @@index([status])
   @@map("settlements")
+}
+
+// ─── GUEST / EXTERNAL MEMBER ─────────────────────────────
+// Enhanced profile for temp/guest users with payment details
+model GuestMember {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  userId    String   @unique @db.VarChar(36)
+  groupId   String   @db.VarChar(36)
+
+  // Profile
+  name      String   @db.VarChar(255)
+  phone     String?  @db.VarChar(20)
+  email     String?  @db.VarChar(255)
+  avatarUrl String?  @db.VarChar(500)
+
+  // Payment details
+  upiId     String?  @db.VarChar(100)
+  settlementPreference String @default("upi") @db.VarChar(20) // upi, cash, bank, other
+
+  // Invite tracking
+  inviteToken   String?  @unique @db.VarChar(255)
+  inviteStatus  String   @default("pending") @db.VarChar(20) // pending, accepted, expired, revoked
+  invitedAt     DateTime @default(now())
+  acceptedAt    DateTime?
+  expiresAt     DateTime
+
+  // Settlement status
+  totalOwed     Decimal  @default(0) @db.Decimal(15, 2)
+  totalPaid     Decimal  @default(0) @db.Decimal(15, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([groupId])
+  @@index([inviteToken])
+  @@index([phone])
+  @@map("guest_members")
+}
+
+// ─── SETTLEMENT CONFIRMATION ──────────────────────────────
+// Tracks payer confirmations and receiver confirmations
+model SettlementConfirmation {
+  id           String   @id @default(uuid()) @db.VarChar(36)
+  settlementId String   @unique @db.VarChar(36)
+  groupId      String   @db.VarChar(36)
+
+  // Payer confirms they sent payment
+  payerConfirmed    Boolean  @default(false)
+  payerConfirmedAt  DateTime?
+  payerNote         String?  @db.VarChar(500)
+
+  // Receiver confirms they received payment
+  receiverConfirmed   Boolean  @default(false)
+  receiverConfirmedAt DateTime?
+  receiverNote        String?  @db.VarChar(500)
+  receiverRejected    Boolean  @default(false)
+  rejectionReason     String?  @db.VarChar(500)
+
+  // UPI payment tracking
+  upiTransactionId  String?  @db.VarChar(255)
+  upiDeepLink       String?  @db.VarChar(500)
+  paymentMethod     String?  @db.VarChar(30) // gpay, phonepay, paytm, bhim, other
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  settlement Settlement  @relation(fields: [settlementId], references: [id], onDelete: Cascade)
+  group      SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([settlementId])
+  @@index([groupId])
+  @@map("settlement_confirmations")
+}
+
+// ─── EXPENSE APPROVAL QUEUE ───────────────────────────────
+// Guest-submitted expenses pending admin approval
+model ExpenseApprovalQueue {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  groupId     String   @db.VarChar(36)
+  guestId     String   @db.VarChar(36) // userId of guest
+  guestName   String   @db.VarChar(255)
+
+  description String   @db.VarChar(500)
+  amount      Decimal  @db.Decimal(15, 2)
+  category    String   @default("Other") @db.VarChar(100)
+  paidBy      String   @db.VarChar(36) // userId of who paid
+
+  status      String   @default("pending") @db.VarChar(20) // pending, approved, rejected
+  reviewedBy  String?  @db.VarChar(36) // admin userId who reviewed
+  reviewedAt  DateTime?
+  rejectReason String? @db.VarChar(500)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  group SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  guest User        @relation(fields: [guestId], references: [id])
+
+  @@index([groupId, status])
+  @@index([guestId])
+  @@map("expense_approval_queue")
+}
+
+// ─── GROUP ACTIVITY TIMELINE ──────────────────────────────
+// Tracks all actions within a group for transparency
+model GroupActivity {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  groupId   String   @db.VarChar(36)
+  userId    String   @db.VarChar(36)
+  userName  String   @db.VarChar(255)
+
+  action    String   @db.VarChar(50)  // expense_added, member_joined, settlement_requested,
+                                      // settlement_confirmed, guest_added_expense, payment_completed,
+                                      // guest_approved, member_removed, group_created, goal_added
+  description String @db.VarChar(500)
+  metadata   Json?   @db.Json        // { expenseId, amount, settlementId, guestName, etc. }
+
+  createdAt DateTime @default(now())
+
+  group SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User        @relation(fields: [userId], references: [id])
+
+  @@index([groupId, createdAt])
+  @@index([userId])
+  @@map("group_activities")
+}
+
+// ─── PAY NOW / SHAREABLE SETTLEMENT LINK ──────────────────
+// Shareable links for non-app users to pay
+model PayNowLink {
+  id           String   @id @default(uuid()) @db.VarChar(36)
+  groupId      String   @db.VarChar(36)
+  settlementId String?  @db.VarChar(36)
+  fromUserId   String   @db.VarChar(36)
+  toUserId     String   @db.VarChar(36)
+  amount       Decimal  @db.Decimal(15, 2)
+
+  token        String   @unique @db.VarChar(255)
+  status       String   @default("active") @db.VarChar(20) // active, paid, expired, cancelled
+  paidAt       DateTime?
+  expiresAt    DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  group     SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  settlement Settlement? @relation(fields: [settlementId], references: [id])
+  fromUser   User        @relation("PayFrom", fields: [fromUserId], references: [id])
+  toUser     User        @relation("PayTo", fields: [toUserId], references: [id])
+
+  @@index([token])
+  @@index([groupId])
+  @@index([status])
+  @@map("pay_now_links")
 }
 
 model ReimbursementLog {

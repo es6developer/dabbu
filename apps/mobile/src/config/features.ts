@@ -48,7 +48,9 @@ import { API_URL } from './api';
 
 export async function loadFeatures(): Promise<void> {
   try {
-    const res = await fetch(`${API_URL}/features`);
+    const ctrl = new AbortController();
+    setTimeout(() => ctrl.abort(), 5000);
+    const res = await fetch(`${API_URL}/features`, { signal: ctrl.signal });
     const json = await res.json();
     const remoteFlags = Array.isArray(json.data) ? json.data : [];
 

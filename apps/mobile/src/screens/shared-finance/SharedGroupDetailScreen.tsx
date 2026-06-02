@@ -51,6 +51,7 @@ export function SharedGroupDetailScreen() {
 
   const [group, setGroup] = useState<any>(null);
   const [expenses, setExpenses] = useState<any[]>([]);
+  const [activityData, setActivityData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -78,20 +79,23 @@ export function SharedGroupDetailScreen() {
         if (accessToken) {
           setAccessToken(accessToken);
         }
-        const [groupRes, expensesRes] = await Promise.allSettled([
+        const [groupRes, expensesRes, activityRes] = await Promise.allSettled([
           api.get<any>(`/shared-finance/groups/${groupId}`, ctrl.signal),
           api.get<any>(`/shared-finance/groups/${groupId}/expenses`, ctrl.signal),
+          api.get<any>(`/settlements/activity/${groupId}?limit=50`, ctrl.signal),
         ]);
         if (ctrl.signal.aborted) {
           return;
         }
         const gData = groupRes.status === 'fulfilled' ? normalize<any>(groupRes.value) : null;
         const eData = expensesRes.status === 'fulfilled' ? normalize<any[]>(expensesRes.value) : [];
+        const aData = activityRes.status === 'fulfilled' ? normalize<any[]>(activityRes.value) : [];
         if (groupRes.status === 'rejected' && expensesRes.status === 'rejected') {
           throw new Error('Unable to load data');
         }
         setGroup(gData);
         setExpenses(Array.isArray(eData) ? eData : []);
+        setActivityData(Array.isArray(aData) ? aData : []);
         Animated.timing(fadeAnim, {
           toValue: 1,
           duration: 300,
@@ -203,6 +207,23 @@ export function SharedGroupDetailScreen() {
   }, [members, stats.totalSpent, expenses]);
 
   const activity = useMemo(() => {
+    const iconMap: Record<string, string> = {
+      expense_added: 'receipt-outline',
+      member_joined: 'person-add-outline',
+      settlement_requested: 'swap-horizontal-outline',
+      settlement_confirmed: 'checkmark-circle-outline',
+      guest_added_expense: 'person-outline',
+      payment_completed: 'cash-outline',
+      guest_approved: 'shield-checkmark-outline',
+    };
+    const apiActivity = activityData.map((a: any) => ({
+      id: a.id,
+      title: a.description,
+      detail: `${a.userName} · ${new Date(a.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`,
+      date: a.createdAt,
+      icon: (iconMap[a.action] || 'ellipse-outline') as any,
+      type: a.action as any,
+    }));
     const expenseActivity = expenses.slice(0, 20).map((tx) => ({
       id: tx.id,
       title: 'Expense added',
@@ -219,10 +240,10 @@ export function SharedGroupDetailScreen() {
       icon: 'person-add-outline' as const,
       type: 'member' as const,
     }));
-    return [...expenseActivity, ...memberActivity]
+    return [...apiActivity, ...expenseActivity, ...memberActivity]
       .filter((item) => item.date)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [expenses, members]);
+  }, [activityData, expenses, members]);
 
   if (loading) {
     return (
