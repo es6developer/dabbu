@@ -218,10 +218,13 @@ export function BillScannerScreen() {
       }
     } catch (e: any) {
       const msg = e.message || 'Could not scan the bill.';
-      const isTimeout = msg.includes('timed out') || msg.includes('aborted') || msg.includes('AbortError');
+      const isTimeout =
+        msg.includes('timed out') || msg.includes('aborted') || msg.includes('AbortError');
       setScanState('error');
       if (isTimeout) {
-        setErrorMessage('Scan is taking too long. Please try a clearer photo or enter details manually.');
+        setErrorMessage(
+          'Scan is taking too long. Please try a clearer photo or enter details manually.',
+        );
       } else {
         setErrorMessage(msg);
       }
@@ -248,7 +251,7 @@ export function BillScannerScreen() {
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: colors.bg.primary }]}
-      contentContainerStyle={{ ...styles.content, paddingTop: insets.top + 24 }}
+      contentContainerStyle={{ ...styles.content, paddingTop: insets.top + 8 }}
     >
       {scanState === 'idle' && (
         <>
@@ -311,7 +314,15 @@ export function BillScannerScreen() {
           )}
           {elapsed > 20 && (
             <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: colors.bg.secondary, borderWidth: 1, borderColor: colors.border.subtle, marginTop: 16 }]}
+              style={[
+                styles.actionBtn,
+                {
+                  backgroundColor: colors.bg.secondary,
+                  borderWidth: 1,
+                  borderColor: colors.border.subtle,
+                  marginTop: 16,
+                },
+              ]}
               onPress={handleRetry}
             >
               <Ionicons name="close" size={20} color={colors.text.primary} />
@@ -335,7 +346,14 @@ export function BillScannerScreen() {
               <Text style={styles.actionBtnText}>Try Again</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.border.default }]}
+              style={[
+                styles.actionBtn,
+                {
+                  backgroundColor: 'transparent',
+                  borderWidth: 1,
+                  borderColor: colors.border.default,
+                },
+              ]}
               onPress={() => navigation.navigate('CreateTransaction' as any)}
             >
               <Ionicons name="create-outline" size={20} color={colors.text.secondary} />

@@ -3,13 +3,24 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } fr
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
+import DraggableFlatList, {
+  RenderItemParams,
+  ScaleDecorator,
+} from 'react-native-draggable-flatlist';
 import { useTheme } from '../../theme';
 import { api, setAccessToken, getAccessToken } from '../../services/api';
 
 const WIDGET_META: Record<string, { label: string; icon: string; desc: string }> = {
-  balance: { label: 'Balance Panel', icon: 'wallet', desc: 'Account balance, income, expense summary' },
-  quickActions: { label: 'Quick Actions', icon: 'flash', desc: 'Add Expense, Scan Bill, Split, Reminder' },
+  balance: {
+    label: 'Balance Panel',
+    icon: 'wallet',
+    desc: 'Account balance, income, expense summary',
+  },
+  quickActions: {
+    label: 'Quick Actions',
+    icon: 'flash',
+    desc: 'Add Expense, Scan Bill, Split, Reminder',
+  },
   features: { label: 'Features Grid', icon: 'grid', desc: 'App feature shortcuts' },
   snapshots: { label: 'Snapshot Cards', icon: 'stats-chart', desc: 'Top spend & tasks summary' },
   recentActivity: { label: 'Recent Activity', icon: 'time', desc: 'Latest transactions' },
@@ -29,11 +40,15 @@ export function CustomiseDashboardScreen() {
       const res = await api.get<any>('/user/preferences');
       const layout = res?.dashboardLayout || [];
       setWidgets(layout.sort((a: any, b: any) => a.order - b.order));
-    } catch { /* use defaults */ }
+    } catch {
+      /* use defaults */
+    }
     setLoading(false);
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -44,11 +59,13 @@ export function CustomiseDashboardScreen() {
       navigation.goBack();
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'Failed to save');
-    } finally { setSaving(false); }
+    } finally {
+      setSaving(false);
+    }
   };
 
   const toggleVisibility = (index: number) => {
-    setWidgets(prev => prev.map((w, i) => i === index ? { ...w, visible: !w.visible } : w));
+    setWidgets((prev) => prev.map((w, i) => (i === index ? { ...w, visible: !w.visible } : w)));
   };
 
   const renderItem = ({ item, drag, isActive, getIndex }: RenderItemParams<any>) => {
@@ -68,9 +85,14 @@ export function CustomiseDashboardScreen() {
             },
           ]}
         >
-          <Ionicons name="menu" size={20} color={colors.text.tertiary} style={{ marginRight: 12 }} />
+          <Ionicons
+            name="menu"
+            size={20}
+            color={colors.text.tertiary}
+            style={{ marginRight: 12 }}
+          />
           <View style={[styles.widgetIcon, { backgroundColor: `${colors.accent.primary}18` }]}>
-            <Ionicons name={(meta.icon as any)} size={20} color={colors.accent.primary} />
+            <Ionicons name={meta.icon as any} size={20} color={colors.accent.primary} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[styles.widgetLabel, { color: colors.text.primary }]}>{meta.label}</Text>
@@ -90,7 +112,9 @@ export function CustomiseDashboardScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top + 60 }]}>
+      <View
+        style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}
+      >
         <ActivityIndicator size="large" color={colors.accent.primary} />
       </View>
     );
@@ -136,12 +160,37 @@ export function CustomiseDashboardScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 8 },
-  backBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   title: { fontSize: 20, fontWeight: '800' },
   subtitle: { fontSize: 13, textAlign: 'center', paddingHorizontal: 24, marginBottom: 8 },
-  widgetItem: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 16, borderWidth: 1 },
-  widgetIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  widgetItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  widgetIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
   widgetLabel: { fontSize: 15, fontWeight: '700' },
   widgetDesc: { fontSize: 11, marginTop: 2 },
   eyeBtn: { padding: 8 },

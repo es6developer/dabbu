@@ -45,7 +45,7 @@ export function BillingHistoryScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, { paddingTop: insets.top + 60 }]}>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
         <ActivityIndicator size="large" color="#F5A623" />
       </View>
     );

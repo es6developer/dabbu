@@ -99,7 +99,7 @@ export function GoalsListScreen() {
           styles.loading,
           {
             backgroundColor: colors.bg.primary,
-            paddingTop: insets.top + 60,
+            paddingTop: insets.top + 16,
             paddingHorizontal: 24,
             gap: 16,
           },

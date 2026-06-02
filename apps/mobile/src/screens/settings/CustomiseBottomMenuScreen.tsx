@@ -125,10 +125,7 @@ export function CustomiseBottomMenuScreen() {
   if (loading) {
     return (
       <View
-        style={[
-          styles.container,
-          { backgroundColor: colors.bg.primary, paddingTop: insets.top + 60 },
-        ]}
+        style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}
       >
         <ActivityIndicator size="large" color={colors.accent.primary} />
       </View>

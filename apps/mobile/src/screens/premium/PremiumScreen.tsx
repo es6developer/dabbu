@@ -230,7 +230,7 @@ export function PremiumScreen() {
         <ScrollView style={[styles.container, { backgroundColor: '#0A0A1A' }]}>
           <LinearGradient
             colors={['#1A0A2E', '#0A0A1A']}
-            style={[styles.activeHeader, { paddingTop: insets.top + 60 }]}
+            style={[styles.activeHeader, { paddingTop: insets.top }]}
           >
             <View style={styles.premiumBadgeLarge}>
               <Ionicons name="diamond" size={24} color="#FFD700" />
@@ -293,7 +293,7 @@ export function PremiumScreen() {
             colors={['#1A0A2E', '#2D1B4E', '#0A0A1A']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={[styles.heroGradient, { paddingTop: insets.top + 40 }]}
+            style={[styles.heroGradient, { paddingTop: insets.top }]}
           >
             <View style={styles.premiumBadgeSmall}>
               <Ionicons name="diamond" size={14} color="#FFD700" />

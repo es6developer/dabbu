@@ -332,37 +332,34 @@ export function MainTabNavigator() {
           const icons = TAB_ICONS[route.name];
           const iconColor = focused ? colors.accent.primary : colors.text.tertiary;
           return (
-            <View style={focused ? styles.tabIconActive : null}>
-              <Ionicons
-                name={focused ? icons.focused : icons.unfocused}
-                size={size}
-                color={iconColor}
-              />
-            </View>
+            <Ionicons
+              name={focused ? icons.focused : icons.unfocused}
+              size={focused ? size : size - 2}
+              color={iconColor}
+            />
           );
         },
         tabBarStyle: {
           backgroundColor: colors.bg.secondary,
           borderTopWidth: 0,
           borderCurve: 'continuous',
-          paddingTop: 8,
-          height: 70,
-          paddingBottom: 8,
-          paddingHorizontal: 16,
+          height: 52,
+          paddingBottom: 0,
+          paddingHorizontal: 4,
           position: 'absolute',
-          left: 16,
-          right: 16,
-          bottom: 24,
-          borderRadius: 36,
-          elevation: 12,
+          left: 12,
+          right: 12,
+          bottom: 12,
+          borderRadius: 16,
+          elevation: 6,
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.3,
-          shadowRadius: 16,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.15,
+          shadowRadius: 12,
         },
         tabBarActiveTintColor: colors.accent.primary,
         tabBarInactiveTintColor: colors.text.tertiary,
-        tabBarLabelStyle: { ...typography.tab },
+        tabBarShowLabel: false,
         headerStyle: { backgroundColor: colors.bg.primary },
         headerTintColor: colors.text.primary,
         headerTitleStyle: { ...typography.calloutBold },
@@ -385,8 +382,4 @@ export function MainTabNavigator() {
   );
 }
 
-const styles = StyleSheet.create({
-  tabIconActive: {
-    marginTop: -2,
-  },
-});
+const styles = StyleSheet.create({});
