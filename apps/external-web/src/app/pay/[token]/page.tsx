@@ -91,7 +91,7 @@ export default function PayLinkPage() {
       }
       toast.success('Payment initiated! Did it go through?');
       setPaying(false);
-      setPaid(false);
+      setPaid(true);
     } catch {
       setPaying(false);
     }

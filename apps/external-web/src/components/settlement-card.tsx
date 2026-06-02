@@ -49,7 +49,12 @@ export function SettlementCard({
   };
 
   const handlePayNow = () => {
-    const upiLink = `upi://pay?pa=${encodeURIComponent(settlement.to.email || '')}&pn=${encodeURIComponent(settlement.to.name)}&am=${settlement.amount}&cu=INR&tn=Settlement%20via%20Dabbu`;
+    const vpa = settlement.to.email || '';
+    if (!vpa) {
+      toast.error('No UPI ID available for this member');
+      return;
+    }
+    const upiLink = `upi://pay?pa=${encodeURIComponent(vpa)}&pn=${encodeURIComponent(settlement.to.name)}&am=${settlement.amount}&cu=INR&tn=Settlement%20via%20Dabbu`;
     window.open(upiLink, '_blank');
     setShowConfirm(true);
   };

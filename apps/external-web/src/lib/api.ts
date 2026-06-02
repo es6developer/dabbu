@@ -408,11 +408,11 @@ export const api = {
     },
 
     getPayLink: async (token: string) => {
-      return get<any>(`/settlements/pay/${token}`);
+      return get<any>(`/shared-finance/settlements/pay/${token}`);
     },
 
     guestPayNow: async (token: string, upiId?: string) => {
-      return post<any>(`/settlements/guest/pay/${token}`, upiId ? { upiId } : {});
+      return post<any>(`/shared-finance/settlements/guest/pay/${token}`, upiId ? { upiId } : {});
     },
 
     guestConfirmSettlement: async (
@@ -420,11 +420,11 @@ export const api = {
       action: 'confirm' | 'reject',
       reason?: string,
     ) => {
-      return post<any>(`/settlements/guest/${action}`, { settlementId, reason });
+      return post<any>(`/shared-finance/settlements/guest/${action}`, { settlementId, reason });
     },
 
     getGuestDashboard: async (groupId: string) => {
-      return get<any>(`/settlements/guest/dashboard/${groupId}`);
+      return get<any>(`/shared-finance/settlements/guest/dashboard/${groupId}`);
     },
   },
 

@@ -1,11 +1,8 @@
-"use client";
+'use client';
 
-import { useEffect, useState, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
-import {
-  checkGroupAccess,
-  resolveAccessStatus,
-} from "@/lib/access-check";
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { checkGroupAccess, resolveAccessStatus } from '@/lib/access-check';
 
 interface AccessCheckProps {
   groupId: string;
@@ -16,24 +13,22 @@ interface AccessCheckProps {
 }
 
 const STATUS_ROUTES: Record<string, string> = {
-  expired: "/access-expired",
-  completed: "/group-completed",
-  archived: "/group-archived",
-  removed: "/member-removed",
-  closed: "/access-expired",
+  expired: '/access-expired',
+  completed: '/group-completed',
+  archived: '/group-archived',
+  removed: '/member-removed',
+  closed: '/access-expired',
 };
 
 export function AccessCheck({
   groupId,
   children,
   fallback,
-  pollingInterval = 60000,
+  pollingInterval = 120000,
   onAccessDenied,
 }: AccessCheckProps) {
   const router = useRouter();
-  const [status, setStatus] = useState<"loading" | "valid" | "denied">(
-    "loading"
-  );
+  const [status, setStatus] = useState<'loading' | 'valid' | 'denied'>('loading');
   const mountedRef = useRef(true);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -46,55 +41,54 @@ export function AccessCheck({
     if (!mountedRef.current) {
       return;
     }
-    const { status: resolvedStatus, shouldRedirect } =
-      resolveAccessStatus(response);
+    const { status: resolvedStatus, shouldRedirect } = resolveAccessStatus(response);
 
     if (!shouldRedirect) {
-      setStatus("valid");
+      setStatus('valid');
       return;
     }
 
-    setStatus("denied");
+    setStatus('denied');
     onAccessDenied?.(resolvedStatus);
 
-    const route = STATUS_ROUTES[resolvedStatus] || "/access-expired";
+    const route = STATUS_ROUTES[resolvedStatus] || '/access-expired';
     const params = new URLSearchParams();
 
     if (response.reason) {
-      params.set("reason", response.reason);
+      params.set('reason', response.reason);
     }
     if (response.data?.groupName) {
-      params.set("groupName", response.data.groupName);
+      params.set('groupName', response.data.groupName);
     }
     if (response.data?.groupType) {
-      params.set("groupType", response.data.groupType);
+      params.set('groupType', response.data.groupType);
     }
     if (response.data?.dateRange?.start) {
-      params.set("dateStart", response.data.dateRange.start);
+      params.set('dateStart', response.data.dateRange.start);
     }
     if (response.data?.dateRange?.end) {
-      params.set("dateEnd", response.data.dateRange.end);
+      params.set('dateEnd', response.data.dateRange.end);
     }
     if (response.data?.totalSpent !== undefined) {
-      params.set("totalSpent", String(response.data.totalSpent));
+      params.set('totalSpent', String(response.data.totalSpent));
     }
     if (response.data?.personalBalance !== undefined) {
-      params.set("balance", String(response.data.personalBalance));
+      params.set('balance', String(response.data.personalBalance));
     }
     if (response.data?.totalPaid !== undefined) {
-      params.set("totalPaid", String(response.data.totalPaid));
+      params.set('totalPaid', String(response.data.totalPaid));
     }
     if (response.data?.totalOwed !== undefined) {
-      params.set("totalOwed", String(response.data.totalOwed));
+      params.set('totalOwed', String(response.data.totalOwed));
     }
     if (response.data?.settlementStatus) {
-      params.set("settlement", response.data.settlementStatus);
+      params.set('settlement', response.data.settlementStatus);
     }
     if (response.data?.memberCount !== undefined) {
-      params.set("members", String(response.data.memberCount));
+      params.set('members', String(response.data.memberCount));
     }
     if (response.data?.yourContribution !== undefined) {
-      params.set("contribution", String(response.data.yourContribution));
+      params.set('contribution', String(response.data.yourContribution));
     }
 
     const qs = params.toString();
@@ -118,7 +112,7 @@ export function AccessCheck({
     };
   }, [checkAccess, pollingInterval]);
 
-  if (status === "loading") {
+  if (status === 'loading') {
     if (fallback) {
       return <>{fallback}</>;
     }
@@ -135,7 +129,7 @@ export function AccessCheck({
     );
   }
 
-  if (status === "denied") {
+  if (status === 'denied') {
     return null;
   }
 

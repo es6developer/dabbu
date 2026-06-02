@@ -1,7 +1,7 @@
-import { io, Socket } from "socket.io-client";
-import { api } from "./api";
+import { io, Socket } from 'socket.io-client';
+import { api } from './api';
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || "wss://api.dabbu.app";
+const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'wss://backend-ochre-delta-80.vercel.app';
 
 let socket: Socket | null = null;
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
@@ -16,7 +16,7 @@ function getToken(): string | null {
 
 export function connectToGroup(groupId: string): Socket {
   if (socket?.connected) {
-    socket.emit("join:group", { groupId, token: getToken() });
+    socket.emit('join:group', { groupId, token: getToken() });
     return socket;
   }
 
@@ -24,7 +24,7 @@ export function connectToGroup(groupId: string): Socket {
 
   socket = io(SOCKET_URL, {
     auth: { token },
-    transports: ["websocket", "polling"],
+    transports: ['websocket', 'polling'],
     reconnection: true,
     reconnectionAttempts: 10,
     reconnectionDelay: 1000,
@@ -32,79 +32,79 @@ export function connectToGroup(groupId: string): Socket {
     timeout: 20000,
   });
 
-  socket.on("connect", () => {
-    socket?.emit("join:group", { groupId, token: getToken() });
-    const handlerSet = listeners.get("connect");
+  socket.on('connect', () => {
+    socket?.emit('join:group', { groupId, token: getToken() });
+    const handlerSet = listeners.get('connect');
     if (handlerSet) {
       handlerSet.forEach((fn) => fn());
     }
   });
 
-  socket.on("disconnect", (reason) => {
-    const handlerSet = listeners.get("disconnect");
+  socket.on('disconnect', (reason) => {
+    const handlerSet = listeners.get('disconnect');
     if (handlerSet) {
       handlerSet.forEach((fn) => fn(reason));
     }
   });
 
-  socket.on("connect_error", (err) => {
-    const handlerSet = listeners.get("error");
+  socket.on('connect_error', (err) => {
+    const handlerSet = listeners.get('error');
     if (handlerSet) {
       handlerSet.forEach((fn) => fn(err.message));
     }
   });
 
-  socket.on("expense:new", (data) => {
-    const handlerSet = listeners.get("expense:new");
+  socket.on('expense:new', (data) => {
+    const handlerSet = listeners.get('expense:new');
     if (handlerSet) {
       handlerSet.forEach((fn) => fn(data));
     }
   });
 
-  socket.on("expense:updated", (data) => {
-    const handlerSet = listeners.get("expense:updated");
+  socket.on('expense:updated', (data) => {
+    const handlerSet = listeners.get('expense:updated');
     if (handlerSet) {
       handlerSet.forEach((fn) => fn(data));
     }
   });
 
-  socket.on("settlement:new", (data) => {
-    const handlerSet = listeners.get("settlement:new");
+  socket.on('settlement:new', (data) => {
+    const handlerSet = listeners.get('settlement:new');
     if (handlerSet) {
       handlerSet.forEach((fn) => fn(data));
     }
   });
 
-  socket.on("settlement:updated", (data) => {
-    const handlerSet = listeners.get("settlement:updated");
+  socket.on('settlement:updated', (data) => {
+    const handlerSet = listeners.get('settlement:updated');
     if (handlerSet) {
       handlerSet.forEach((fn) => fn(data));
     }
   });
 
-  socket.on("chat:message", (data) => {
-    const handlerSet = listeners.get("chat:message");
+  socket.on('chat:message', (data) => {
+    const handlerSet = listeners.get('chat:message');
     if (handlerSet) {
       handlerSet.forEach((fn) => fn(data));
     }
   });
 
-  socket.on("member:joined", (data) => {
-    const handlerSet = listeners.get("member:joined");
+  socket.on('member:joined', (data) => {
+    const handlerSet = listeners.get('member:joined');
     if (handlerSet) {
       handlerSet.forEach((fn) => fn(data));
     }
   });
 
-  socket.on("member:left", (data) => {
-    const handlerSet = listeners.get("member:left");
+  socket.on('member:left', (data) => {
+    const handlerSet = listeners.get('member:left');
     if (handlerSet) {
       handlerSet.forEach((fn) => fn(data));
     }
   });
 
-  socket.on("member:updated", (data) => {
-    const handlerSet = listeners.get("member:updated");
+  socket.on('member:updated', (data) => {
+    const handlerSet = listeners.get('member:updated');
     if (handlerSet) {
       handlerSet.forEach((fn) => fn(data));
     }

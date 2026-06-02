@@ -1,27 +1,27 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { api, type Group, type Member, type Expense } from "@/lib/api";
-import { formatCurrency, cn } from "@/lib/utils";
-import { toast } from "sonner";
+} from '@/components/ui/select';
+import { api, type Group, type Member, type Expense } from '@/lib/api';
+import { formatCurrency, cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 const PAYMENT_METHODS = [
-  { value: "cash", label: "Cash" },
-  { value: "upi", label: "UPI" },
-  { value: "bank", label: "Bank Transfer" },
-  { value: "paypal", label: "PayPal" },
-  { value: "other", label: "Other" },
+  { value: 'cash', label: 'Cash' },
+  { value: 'upi', label: 'UPI' },
+  { value: 'bank', label: 'Bank Transfer' },
+  { value: 'paypal', label: 'PayPal' },
+  { value: 'other', label: 'Other' },
 ];
 
 export default function NewSettlementPage() {
@@ -30,21 +30,23 @@ export default function NewSettlementPage() {
   const groupId = params.id as string;
 
   const [group, setGroup] = useState<Group | null>(null);
-  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  const [fromId, setFromId] = useState("");
-  const [toId, setToId] = useState("");
-  const [amount, setAmount] = useState("");
-  const [method, setMethod] = useState("upi");
-  const [note, setNote] = useState("");
+  const [fromId, setFromId] = useState('');
+  const [toId, setToId] = useState('');
+  const [amount, setAmount] = useState('');
+  const [method, setMethod] = useState('upi');
+  const [note, setNote] = useState('');
 
   const session = api.getTempSession();
-  const currentUserId = (session?.id as string) || "";
+  const currentUserId = (session?.id as string) || '';
 
   useEffect(() => {
-    if (!groupId) return;
+    if (!groupId) {
+      return;
+    }
     loadData();
   }, [groupId]);
 
@@ -56,7 +58,7 @@ export default function NewSettlementPage() {
 
     if (groupRes.error) {
       toast.error(groupRes.error);
-      router.push("/");
+      router.push('/');
       return;
     }
 
@@ -78,7 +80,9 @@ export default function NewSettlementPage() {
   };
 
   const getDebtSuggestions = () => {
-    if (!group) return [];
+    if (!group) {
+      return [];
+    }
     const debtors = group.members
       .filter((m) => m.balance < 0)
       .sort((a, b) => a.balance - b.balance);
@@ -120,16 +124,16 @@ export default function NewSettlementPage() {
     e.preventDefault();
 
     if (!fromId || !toId) {
-      toast.error("Please select who pays and who receives");
+      toast.error('Please select who pays and who receives');
       return;
     }
     if (fromId === toId) {
-      toast.error("Cannot settle with yourself");
+      toast.error('Cannot settle with yourself');
       return;
     }
     const parsedAmount = parseFloat(amount);
     if (!parsedAmount || parsedAmount <= 0) {
-      toast.error("Please enter a valid amount");
+      toast.error('Please enter a valid amount');
       return;
     }
 
@@ -148,7 +152,7 @@ export default function NewSettlementPage() {
       return;
     }
 
-    toast.success("Settlement created!");
+    toast.success('Settlement created!');
     router.push(`/groups/${groupId}`);
   };
 
@@ -160,7 +164,9 @@ export default function NewSettlementPage() {
     );
   }
 
-  if (!group) return null;
+  if (!group) {
+    return null;
+  }
 
   const suggestions = getDebtSuggestions();
   const fromBalance = memberBalance(fromId);
@@ -175,8 +181,18 @@ export default function NewSettlementPage() {
               onClick={() => router.back()}
               className="p-2 -ml-2 rounded-lg hover:bg-dabbu-surface2 transition-colors"
             >
-              <svg className="w-5 h-5 text-dabbu-text" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <svg
+                className="w-5 h-5 text-dabbu-text"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
             </button>
             <h1 className="text-lg font-semibold">Settle Up</h1>
@@ -189,8 +205,18 @@ export default function NewSettlementPage() {
           <Card className="mb-6 border-dabbu-accent/20 bg-dabbu-accent-muted/50">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2">
-                <svg className="w-4 h-4 text-dabbu-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="w-4 h-4 text-dabbu-accent"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 Suggested Settlements
               </CardTitle>
@@ -213,22 +239,34 @@ export default function NewSettlementPage() {
                         className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
                         style={{
                           backgroundColor: `hsl(${
-                            s.from.name.split("").reduce((a, c) => a + c.charCodeAt(0), 0) * 45 % 360
+                            (s.from.name.split('').reduce((a, c) => a + c.charCodeAt(0), 0) * 45) %
+                            360
                           }, 70%, 50%)`,
                         }}
                       >
-                        {s.from.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
+                        {s.from.name
+                          .split(' ')
+                          .map((n) => n[0])
+                          .join('')
+                          .toUpperCase()
+                          .slice(0, 2)}
                       </div>
                       <span className="text-xs text-dabbu-text-secondary">pays</span>
                       <div
                         className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
                         style={{
                           backgroundColor: `hsl(${
-                            s.to.name.split("").reduce((a, c) => a + c.charCodeAt(0), 0) * 45 % 360
+                            (s.to.name.split('').reduce((a, c) => a + c.charCodeAt(0), 0) * 45) %
+                            360
                           }, 70%, 50%)`,
                         }}
                       >
-                        {s.to.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
+                        {s.to.name
+                          .split(' ')
+                          .map((n) => n[0])
+                          .join('')
+                          .toUpperCase()
+                          .slice(0, 2)}
                       </div>
                     </div>
                     <span className="text-sm font-semibold text-dabbu-accent">
@@ -256,13 +294,11 @@ export default function NewSettlementPage() {
                   return (
                     <SelectItem key={member.id} value={member.id}>
                       <div className="flex items-center justify-between w-full gap-4">
-                        <span>
-                          {member.id === currentUserId ? "You" : member.name}
-                        </span>
+                        <span>{member.id === currentUserId ? 'You' : member.name}</span>
                         <span
                           className={cn(
-                            "text-xs",
-                            bal < 0 ? "text-dabbu-red" : "text-dabbu-text-muted"
+                            'text-xs',
+                            bal < 0 ? 'text-dabbu-red' : 'text-dabbu-text-muted',
                           )}
                         >
                           {formatCurrency(bal)}
@@ -282,8 +318,18 @@ export default function NewSettlementPage() {
 
           <div className="flex justify-center">
             <div className="w-10 h-10 rounded-full bg-dabbu-accent-muted flex items-center justify-center">
-              <svg className="w-5 h-5 text-dabbu-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              <svg
+                className="w-5 h-5 text-dabbu-accent"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M14 5l7 7m0 0l-7 7m7-7H3"
+                />
               </svg>
             </div>
           </div>
@@ -304,15 +350,11 @@ export default function NewSettlementPage() {
                     return (
                       <SelectItem key={member.id} value={member.id}>
                         <div className="flex items-center justify-between w-full gap-4">
-                          <span>
-                            {member.id === currentUserId ? "You" : member.name}
-                          </span>
+                          <span>{member.id === currentUserId ? 'You' : member.name}</span>
                           <span
                             className={cn(
-                              "text-xs",
-                              bal > 0
-                                ? "text-dabbu-green"
-                                : "text-dabbu-text-muted"
+                              'text-xs',
+                              bal > 0 ? 'text-dabbu-green' : 'text-dabbu-text-muted',
                             )}
                           >
                             {formatCurrency(bal)}
@@ -324,9 +366,7 @@ export default function NewSettlementPage() {
               </SelectContent>
             </Select>
             {toBalance > 0 && (
-              <p className="text-xs text-dabbu-green mt-1">
-                Is owed {formatCurrency(toBalance)}
-              </p>
+              <p className="text-xs text-dabbu-green mt-1">Is owed {formatCurrency(toBalance)}</p>
             )}
           </div>
 
@@ -378,15 +418,13 @@ export default function NewSettlementPage() {
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-dabbu-text-secondary">From</span>
               <span className="text-sm font-medium text-dabbu-text">
-                {group.members.find((m) => m.id === fromId)?.name ||
-                  "Select payer"}
+                {group.members.find((m) => m.id === fromId)?.name || 'Select payer'}
               </span>
             </div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-dabbu-text-secondary">To</span>
               <span className="text-sm font-medium text-dabbu-text">
-                {group.members.find((m) => m.id === toId)?.name ||
-                  "Select receiver"}
+                {group.members.find((m) => m.id === toId)?.name || 'Select receiver'}
               </span>
             </div>
             <div className="flex items-center justify-between pt-2 border-t border-dabbu-border">
@@ -397,12 +435,7 @@ export default function NewSettlementPage() {
             </div>
           </div>
 
-          <Button
-            type="submit"
-            className="w-full h-14 text-base"
-            size="lg"
-            loading={submitting}
-          >
+          <Button type="submit" className="w-full h-14 text-base" size="lg" loading={submitting}>
             Create Settlement
           </Button>
         </form>
