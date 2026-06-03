@@ -79,7 +79,7 @@ export function SharedExpenseFormScreen() {
       setMembers(data);
       if (!paidBy && data.length > 0) {
         const me = data.find((m: any) => m.userId === currentUser?.id);
-        setPaidBy(me?.id || data[0].id);
+        setPaidBy(me?.userId || data[0].userId);
       }
     } catch (e: any) {
       // ignore
@@ -104,10 +104,14 @@ export function SharedExpenseFormScreen() {
           const vals: Record<string, string> = {};
           const shares: Record<string, string> = {};
           for (const s of e.splits) {
+            const member = members.find((m: any) => m.userId === s.userId);
+            const key = member?.id || s.userId;
             if (e.splitType === 'shares') {
-              shares[s.memberId] = String(s.shares || '');
+              shares[key] = String(s.shares || '');
+            } else if (e.splitType === 'percentage') {
+              vals[key] = String(s.percentage || '');
             } else {
-              vals[s.memberId] = String(s.value || '');
+              vals[key] = String(s.amount || '');
             }
           }
           setSplitValues(vals);
@@ -120,8 +124,8 @@ export function SharedExpenseFormScreen() {
   }
 
   const payerName = useCallback(
-    (memberId: string) => {
-      const m = members.find((mm: any) => mm.id === memberId);
+    (userId: string) => {
+      const m = members.find((mm: any) => mm.userId === userId);
       return m?.user?.firstName || m?.user?.email || 'Someone';
     },
     [members],
@@ -196,19 +200,24 @@ export function SharedExpenseFormScreen() {
       if (accessToken) {
         setAccessToken(accessToken);
       }
-      const splits = members.map((m: any) => ({
-        memberId: m.id,
-        value:
-          splitType === 'percentage'
-            ? Number(splitValues[m.id]) || 0
-            : splitType === 'exact'
-              ? Number(splitValues[m.id]) || 0
-              : splitType === 'shares'
-                ? Number(sharesCount[m.id]) || 0
-                : undefined,
-      }));
+      const totalAmt = Number(amount) || 0;
+      const totalShares = Object.values(sharesCount).reduce((s, v) => s + (Number(v) || 0), 0);
+      const splits = members.map((m: any) => {
+        const splitBase: any = { userId: m.userId };
+        if (splitType === 'percentage') {
+          const pct = Number(splitValues[m.id]) || 0;
+          splitBase.amount = (totalAmt * pct) / 100;
+          splitBase.percentage = pct;
+        } else if (splitType === 'exact') {
+          splitBase.amount = Number(splitValues[m.id]) || 0;
+        } else if (splitType === 'shares') {
+          const s = Number(sharesCount[m.id]) || 0;
+          splitBase.shares = s;
+          splitBase.amount = totalShares > 0 ? (totalAmt * s) / totalShares : 0;
+        }
+        return splitBase;
+      });
       const payload = {
-        groupId,
         description: description.trim(),
         amount: Number(amount),
         paidBy,
@@ -305,10 +314,10 @@ export function SharedExpenseFormScreen() {
             contentContainerStyle={s.chipRow}
           >
             {members.map((m: any) => {
-              const selected = paidBy === m.id;
+              const selected = paidBy === m.userId;
               return (
                 <TouchableOpacity
-                  key={m.id}
+                  key={m.userId}
                   style={[
                     s.payerChip,
                     { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
@@ -317,7 +326,7 @@ export function SharedExpenseFormScreen() {
                       borderColor: colors.accent.primary,
                     },
                   ]}
-                  onPress={() => setPaidBy(m.id)}
+                  onPress={() => setPaidBy(m.userId)}
                 >
                   <LinearGradient colors={[...colors.accent.gradient]} style={s.payerDot}>
                     <Text style={s.payerInit}>{(m.user?.firstName?.[0] || '?').toUpperCase()}</Text>
