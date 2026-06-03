@@ -361,7 +361,7 @@ export function DocumentVaultScreen() {
         <TouchableOpacity
           style={[s.fab, { backgroundColor: colors.accent.primary }]}
           activeOpacity={0.7}
-          onPress={() => setShowUploadOptions(true)}
+          onPress={pickAndUpload}
         >
           <Ionicons name="add" size={24} color="#FFF" />
         </TouchableOpacity>
