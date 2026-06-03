@@ -96,7 +96,7 @@ export class AuthService {
 
     const { password, ...userWithoutPassword } = user;
 
-    this.emailService.sendWelcomeEmail(user.email, user.firstName);
+    await this.emailService.sendWelcomeEmail(user.email, user.firstName);
 
     return { user: userWithoutPassword, tokens };
   }
@@ -220,7 +220,7 @@ export class AuthService {
       },
     });
 
-    this.emailService.sendForgotPasswordEmail(user.email, user.firstName, resetToken);
+    await this.emailService.sendForgotPasswordEmail(user.email, user.firstName, resetToken);
 
     return { message: 'If the email exists, a reset link has been sent.' };
   }
@@ -264,7 +264,7 @@ export class AuthService {
       data: { isRevoked: true, revokedAt: new Date() },
     });
 
-    this.emailService.sendPasswordChangedEmail(
+    await this.emailService.sendPasswordChangedEmail(
       matchedUser.email,
       matchedUser.email.split('@')[0] || 'User',
     );

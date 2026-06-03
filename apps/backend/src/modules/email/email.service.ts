@@ -25,14 +25,17 @@ export class EmailService {
 
   constructor() {
     this.fromName = process.env.EMAIL_FROM_NAME || 'Dabbu';
-    this.fromEmail = process.env.EMAIL_FROM || 'noreply@dabbu.app';
-    this.frontendUrl = process.env.FRONTEND_URL || 'https://web-omega-snowy-80.vercel.app';
+    this.fromEmail =
+      process.env.EMAIL_FROM || process.env.SMTP_EMAIL || process.env.SMTP_USER || 'noreply@dabbu.app';
+    this.frontendUrl = (
+      process.env.FRONTEND_URL || 'https://web-omega-snowy-80.vercel.app'
+    ).replace(/\/+$/, '');
 
     const host = process.env.SMTP_HOST;
     const port = Number(process.env.SMTP_PORT) || 587;
     const secure = process.env.SMTP_SECURE === 'true';
-    const user = process.env.SMTP_USER;
-    const password = process.env.SMTP_PASS;
+    const user = process.env.SMTP_USER || process.env.SMTP_EMAIL;
+    const password = process.env.SMTP_PASS || process.env.SMTP_PASSWORD;
 
     if (host && user && password) {
       this.transporter = nodemailer.createTransport({
