@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "turbo run dev --parallel",
     "build": "turbo run build",
-    "vercel-build": "npm run build -w apps/backend && npm run db:seed",
+    "vercel-build": "echo 'ROOT_DIR:'; pwd; echo 'FILES:'; ls -la; echo 'BACKEND_FILES:'; ls apps/backend/; cd apps/backend && npm run vercel-build",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",

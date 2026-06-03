@@ -36,6 +36,12 @@ module.exports = async (req, res) => {
   } catch (err) {
     console.error('Fatal error:', err.message);
     console.error('Stack:', err.stack);
+    if (req.url === '/api/v1/health') {
+      return res.status(200).json({
+        status: 'degraded',
+        error: err.message,
+      });
+    }
     res.status(500).json({
       error: 'Internal Server Error',
       message: err.message,
