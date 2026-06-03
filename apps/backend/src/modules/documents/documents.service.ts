@@ -5,6 +5,7 @@ import { CreateDocumentDto } from './dto/create-document.dto';
 import { UpdateDocumentDto } from './dto/update-document.dto';
 import { QueryDocumentDto } from './dto/query-document.dto';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 
 @Injectable()
@@ -15,7 +16,12 @@ export class DocumentsService {
     private readonly prisma: PrismaService,
     private readonly encryption: EncryptionService,
   ) {
-    this.uploadDir = path.resolve(process.env.DOCUMENT_UPLOAD_DIR || 'uploads/documents');
+    const defaultUploadDir =
+      process.env.VERCEL === '1'
+        ? path.join(os.tmpdir(), 'uploads/documents')
+        : 'uploads/documents';
+
+    this.uploadDir = path.resolve(process.env.DOCUMENT_UPLOAD_DIR || defaultUploadDir);
     fs.mkdirSync(this.uploadDir, { recursive: true });
   }
 

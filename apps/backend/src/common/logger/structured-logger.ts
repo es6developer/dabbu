@@ -1,6 +1,7 @@
 import { Injectable, LoggerService, Scope } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 
 export interface LogEntry {
@@ -24,10 +25,18 @@ export class StructuredLogger implements LoggerService {
   private logDir: string;
 
   constructor(private configService: ConfigService) {
-    this.logDir = path.join(process.cwd(), 'logs');
+    this.logDir =
+      process.env.VERCEL === '1'
+        ? path.join(os.tmpdir(), 'logs')
+        : path.join(process.cwd(), 'logs');
+
     if (this.configService.get('app.nodeEnv') === 'production') {
-      if (!fs.existsSync(this.logDir)) {
-        fs.mkdirSync(this.logDir, { recursive: true });
+      try {
+        if (!fs.existsSync(this.logDir)) {
+          fs.mkdirSync(this.logDir, { recursive: true });
+        }
+      } catch {
+        this.logDir = os.tmpdir();
       }
     }
   }

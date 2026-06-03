@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -65,10 +66,17 @@ export function SignupScreen() {
             </View>
           </TouchableOpacity>
 
-          <Text style={[styles.title, { color: colors.text.primary }]}>Create account</Text>
-          <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>
-            Start managing money together with your family and friends
-          </Text>
+          <View style={styles.brand}>
+            <Image
+              source={require('../../../assets/logo.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
+            <Text style={[styles.title, { color: colors.text.primary }]}>Create account</Text>
+            <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>
+              Start managing money together with your family and friends
+            </Text>
+          </View>
 
           {error ? (
             <View style={[styles.errorBox, { backgroundColor: `${colors.status.error}12` }]}>
@@ -196,6 +204,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  brand: { alignItems: 'center', marginBottom: 24 },
+  logoImage: {
+    width: 80,
+    height: 80,
+    marginBottom: 12,
   },
   title: { fontSize: 28, fontWeight: '700', marginBottom: 6 },
   subtitle: { fontSize: 14, marginBottom: 28 },

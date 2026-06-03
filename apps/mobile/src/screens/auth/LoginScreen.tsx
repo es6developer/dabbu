@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -60,9 +61,11 @@ export function LoginScreen() {
           </TouchableOpacity>
 
           <View style={styles.brand}>
-            <View style={[styles.logo, { backgroundColor: `${colors.accent.primary}18` }]}>
-              <Ionicons name="wallet" size={30} color={colors.accent.primary} />
-            </View>
+            <Image
+              source={require('../../../assets/logo.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
             <Text style={[styles.title, { color: colors.text.primary }]}>Welcome back</Text>
             <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>
               Sign in to manage money together with your people
@@ -201,12 +204,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   brand: { alignItems: 'center', marginBottom: 36 },
-  logo: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+  logoImage: {
+    width: 80,
+    height: 80,
     marginBottom: 18,
   },
   title: { fontSize: 26, fontWeight: '700', marginBottom: 6 },

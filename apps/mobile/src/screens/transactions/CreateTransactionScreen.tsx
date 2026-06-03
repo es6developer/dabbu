@@ -52,7 +52,6 @@ export function CreateTransactionScreen() {
         ? String(prefill.amount)
         : '',
   );
-  const [type, setType] = useState<'income' | 'expense'>(editingTransaction?.type || 'expense');
   const [description, setDescription] = useState(
     editingTransaction?.description || prefill?.description || '',
   );
@@ -158,7 +157,7 @@ export function CreateTransactionScreen() {
     try {
       const data: any = {
         amount: Number(amount),
-        type: type === 'income' ? 'income' : 'expense',
+        type: 'expense',
         description: description.trim(),
         date,
         tags: tags
@@ -261,41 +260,6 @@ export function CreateTransactionScreen() {
               <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text>
             </View>
           ) : null}
-
-          <View style={[styles.typeToggle, { backgroundColor: colors.bg.tertiary }]}>
-            <TouchableOpacity
-              style={[
-                styles.typeBtn,
-                type === 'expense' && { backgroundColor: colors.status.error },
-              ]}
-              onPress={() => setType('expense')}
-            >
-              <Text
-                style={[
-                  styles.typeBtnText,
-                  { color: type === 'expense' ? '#fff' : colors.text.tertiary },
-                ]}
-              >
-                Expense
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.typeBtn,
-                type === 'income' && { backgroundColor: colors.status.success },
-              ]}
-              onPress={() => setType('income')}
-            >
-              <Text
-                style={[
-                  styles.typeBtnText,
-                  { color: type === 'income' ? '#fff' : colors.text.tertiary },
-                ]}
-              >
-                Income
-              </Text>
-            </TouchableOpacity>
-          </View>
 
           <Text style={[styles.label, { color: colors.text.tertiary }]}>Amount</Text>
           <View
