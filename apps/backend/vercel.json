@@ -1,5 +1,8 @@
 {
   "version": 2,
+  "rootDirectory": "apps/backend",
+  "buildCommand": "npm run vercel-build",
+  "outputDirectory": ".",
   "rewrites": [
     {
       "source": "/(.*)",

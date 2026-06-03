@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "turbo run dev --parallel",
     "build": "turbo run build",
-    "vercel-build": "echo 'ROOT_DIR:'; pwd; echo 'FILES:'; ls -la; echo 'BACKEND_FILES:'; ls apps/backend/; cd apps/backend && npm run vercel-build",
+    "vercel-build": "echo 'Root vercel-build not needed when rootDirectory is set in vercel.json'",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
