@@ -65,6 +65,7 @@ import {
   ExportDataDto,
   CreateReferralDto,
   TripForecastDto,
+  ApproveWalletTransactionDto,
 } from './dto/shared-finance.dto';
 
 @ApiTags('Shared Finance')

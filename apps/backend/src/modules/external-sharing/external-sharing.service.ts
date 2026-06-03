@@ -11,7 +11,7 @@ import * as crypto from 'crypto';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { InviteExternalMemberDto } from './dto/external-sharing.dto';
 
-interface TempTokens {
+export interface TempTokens {
   accessToken: string;
   refreshToken: string;
   expiresAt: Date;
@@ -255,9 +255,7 @@ export class ExternalSharingService {
     };
   }
 
-  private async verifyGoogleToken(
-    idToken: string,
-  ): Promise<{
+  private async verifyGoogleToken(idToken: string): Promise<{
     email: string;
     given_name?: string;
     family_name?: string;

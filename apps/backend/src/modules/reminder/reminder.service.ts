@@ -472,7 +472,7 @@ export class ReminderService {
             dueDate: existing.dueDate ? addDays(nextTriggerAt, 1) : null,
             isRecurring: true,
             categoryId: existing.categoryId,
-            metadata: existing.metadata,
+            metadata: existing.metadata as any,
           },
         });
       }

@@ -278,7 +278,12 @@ export class SharedFinanceService {
     return member;
   }
 
-  async addMemberByEmail(groupId: string, email: string, role: string | undefined, adminId: string) {
+  async addMemberByEmail(
+    groupId: string,
+    email: string,
+    role: string | undefined,
+    adminId: string,
+  ) {
     await this.verifyAdmin(groupId, adminId);
 
     const user = await this.prisma.user.findUnique({ where: { email } });
@@ -318,8 +323,13 @@ export class SharedFinanceService {
       })
       .catch(() => {});
 
-    const adminUser = await this.prisma.user.findUnique({ where: { id: adminId }, select: { firstName: true, lastName: true } });
-    const inviterName = adminUser ? `${adminUser.firstName || ''} ${adminUser.lastName || ''}`.trim() || 'An admin' : 'An admin';
+    const adminUser = await this.prisma.user.findUnique({
+      where: { id: adminId },
+      select: { firstName: true, lastName: true },
+    });
+    const inviterName = adminUser
+      ? `${adminUser.firstName || ''} ${adminUser.lastName || ''}`.trim() || 'An admin'
+      : 'An admin';
     const memberName = user.firstName || user.email;
     this.emailService
       .sendGroupInviteEmail(user.email, memberName, group?.name || 'a group', inviterName)
@@ -1019,9 +1029,10 @@ export class SharedFinanceService {
       savedAmount: Number(g.savedAmount),
       deadline: g.deadline,
       category: g.category,
-      progress: Number(g.targetAmount) > 0
-        ? Math.round((Number(g.savedAmount) / Number(g.targetAmount)) * 100)
-        : 0,
+      progress:
+        Number(g.targetAmount) > 0
+          ? Math.round((Number(g.savedAmount) / Number(g.targetAmount)) * 100)
+          : 0,
     }));
 
     const partner1Paid = expenses
@@ -1061,8 +1072,7 @@ export class SharedFinanceService {
     }
 
     const totalSpent = expenses.reduce((s, e) => s + Number(e.amount), 0);
-    const totalSaved =
-      goals.reduce((s, g) => s + Number(g.savedAmount), 0);
+    const totalSaved = goals.reduce((s, g) => s + Number(g.savedAmount), 0);
 
     if (totalSpent > 0 && monthlyOverview) {
       const pct =
@@ -2755,7 +2765,7 @@ export class SharedFinanceService {
           merchant: t.merchant,
         },
       });
-      created.push(tx);
+      (created as any[]).push(tx);
     }
 
     await this.prisma.creditCardBill.update({
@@ -2790,7 +2800,7 @@ export class SharedFinanceService {
         },
         include: { user: { select: { id: true, firstName: true, lastName: true } } },
       });
-      created.push(split);
+      (created as any[]).push(split);
     }
 
     await this.prisma.creditCardTransaction.update({
@@ -3109,13 +3119,13 @@ export class SharedFinanceService {
 
   // ─── Trip Cost Forecast ─────────────────────────────────────
 
-  async forecastTripCost(dto: TripForecastDto) {
+  async forecastTripCost(dto: TripForecastDto): Promise<any> {
     return this.tripForecastEngine.forecast(dto);
   }
 
   // ─── Duplicate Detection ────────────────────────────────────
 
-  async checkDuplicateExpense(groupId: string, dto: CreateExpenseDto) {
+  async checkDuplicateExpense(groupId: string, dto: CreateExpenseDto): Promise<any> {
     const existing = await this.prisma.sharedExpense.findMany({
       where: { groupId },
       include: { payer: { select: { id: true, firstName: true, lastName: true } } },
@@ -3132,7 +3142,7 @@ export class SharedFinanceService {
         date: dto.date,
         notes: dto.notes,
       },
-      existing,
+      existing as any,
     );
   }
 
@@ -3221,7 +3231,7 @@ export class SharedFinanceService {
         where: { userId: m.userId, isEarned: true },
         include: { badge: true },
       });
-      memberBadges.push({ userId: m.userId, badges });
+      (memberBadges as any[]).push({ userId: m.userId, badges });
     }
 
     return { memberBadges };
@@ -3294,11 +3304,11 @@ export class SharedFinanceService {
 
     const memberSpending = members.map((m) => {
       const paid = expenses
-        .filter((e) => e.paidBy === m.userId)
-        .reduce((s, e) => s + Number(e.amount), 0);
+        .filter((e: any) => e.paidBy === m.userId)
+        .reduce((s: number, e: any) => s + Number(e.amount), 0);
       const owed = expenses
-        .filter((e) => e.splits?.some((s) => s.userId === m.userId))
-        .reduce((s, e) => s + Number(e.amount), 0);
+        .filter((e: any) => e.splits?.some((s: any) => s.userId === m.userId))
+        .reduce((s: number, e: any) => s + Number(e.amount), 0);
       return {
         userId: m.userId,
         name: `${m.user.firstName} ${m.user.lastName}`.trim(),
@@ -3334,7 +3344,9 @@ export class SharedFinanceService {
         totalExpenses: expenses.length,
         averageExpense: expenses.length > 0 ? totalSpent / expenses.length : 0,
         monthlyAverage:
-          monthlySpending.length > 0 ? totalSpent / Math.max(monthlySpending.length, 1) : 0,
+          (monthlySpending as unknown as any[]).length > 0
+            ? totalSpent / Math.max((monthlySpending as unknown as any[]).length, 1)
+            : 0,
       },
       categoryTrends: Array.from(categoryTrends.entries()).map(([category, data]) => ({
         category,

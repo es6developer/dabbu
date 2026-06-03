@@ -17,12 +17,16 @@ export class DualAuthGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
-    if (isPublic) return true;
+    if (isPublic) {
+      return true;
+    }
 
     const jwtGuard = new (AuthGuard('jwt'))(this.reflector);
     try {
       const canActivate = await jwtGuard.canActivate(context);
-      if (canActivate) return true;
+      if (canActivate) {
+        return true;
+      }
     } catch {
       // JWT validation failed, fall through to temp session check
     }
@@ -32,7 +36,7 @@ export class DualAuthGuard implements CanActivate {
       throw new UnauthorizedException('No valid authentication token');
     }
 
-    const tempUser = await this.prisma.tempUser.findFirst({
+    const tempUser = await (this.prisma as any).tempUser.findFirst({
       where: {
         sessionToken: token,
         isActive: true,
@@ -56,7 +60,9 @@ export class DualAuthGuard implements CanActivate {
 
   private extractBearerToken(request: any): string | null {
     const auth = request.headers?.authorization;
-    if (!auth || !auth.startsWith('Bearer ')) return null;
+    if (!auth || !auth.startsWith('Bearer ')) {
+      return null;
+    }
     return auth.slice(7);
   }
 }

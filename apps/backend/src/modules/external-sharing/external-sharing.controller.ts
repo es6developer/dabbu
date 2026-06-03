@@ -9,7 +9,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { ExternalSharingService } from './external-sharing.service';
+import { ExternalSharingService, TempTokens } from './external-sharing.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { TempGroupAccessGuard } from './guards/temp-group-access.guard';
