@@ -1,15 +1,20 @@
 import React, { useState, useCallback } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { DashboardScreen } from '../screens/home/DashboardScreen';
+import { LinearGradient } from 'expo-linear-gradient';
+import { HomeScreen } from '../screens/home/HomeScreen';
 import { NotificationsScreen } from '../screens/home/NotificationsScreen';
 import { NotificationCenterScreen } from '../screens/home/NotificationCenterScreen';
+import { TransactionsScreen } from '../screens/transactions/TransactionsScreen';
 import { AccountsNavigator } from './AccountsNavigator';
 import { SharedFinanceNavigator } from './SharedFinanceNavigator';
 import { GoalsListScreen } from '../screens/goals/GoalsListScreen';
+import { DocumentVaultScreen } from '../screens/documents/DocumentVaultScreen';
+import { DocumentDetailScreen } from '../screens/documents/DocumentDetailScreen';
+import { BadgeWallScreen } from '../screens/documents/BadgeWallScreen';
 import { RemindersScreen } from '../screens/reminders/RemindersScreen';
 import { ReminderDetailScreen } from '../screens/reminders/ReminderDetailScreen';
 import { CreateReminderScreen } from '../screens/reminders/CreateReminderScreen';
@@ -20,6 +25,7 @@ import { ProfileScreen } from '../screens/settings/ProfileScreen';
 import { SecurityScreen } from '../screens/settings/SecurityScreen';
 import { PremiumScreen } from '../screens/premium/PremiumScreen';
 import { BillingHistoryScreen } from '../screens/premium/BillingHistoryScreen';
+import { ReferralScreen } from '../screens/referral/ReferralScreen';
 import { ThemeScreen } from '../screens/settings/ThemeScreen';
 import { CurrencyScreen } from '../screens/settings/CurrencyScreen';
 import { HelpCenterScreen } from '../screens/settings/HelpCenterScreen';
@@ -31,22 +37,14 @@ import { CustomiseBottomMenuScreen } from '../screens/settings/CustomiseBottomMe
 import { useTheme } from '../theme';
 import { useAuth } from '../store/AuthContext';
 import { api } from '../services/api';
+import { QuickActionSheet } from '../components/ui/QuickActionSheet';
 
 const Tab = createBottomTabNavigator();
 const DashboardStack = createNativeStackNavigator();
 const SettingsStack = createNativeStackNavigator();
+const TransactionsStack = createNativeStackNavigator();
 const RemindersStack = createNativeStackNavigator();
 const SmsStack = createNativeStackNavigator();
-
-const TAB_ICONS: Record<
-  string,
-  { focused: keyof typeof Ionicons.glyphMap; unfocused: keyof typeof Ionicons.glyphMap }
-> = {
-  Dashboard: { focused: 'compass', unfocused: 'compass-outline' },
-  Accounts: { focused: 'receipt', unfocused: 'receipt-outline' },
-  Shared: { focused: 'grid', unfocused: 'grid-outline' },
-  Settings: { focused: 'settings', unfocused: 'settings-outline' },
-};
 
 function DashboardNavigator() {
   const { colors, typography } = useTheme();
@@ -65,7 +63,7 @@ function DashboardNavigator() {
     >
       <DashboardStack.Screen
         name="DashboardMain"
-        component={DashboardScreen}
+        component={HomeScreen}
         options={{ headerShown: false }}
       />
       <DashboardStack.Screen
@@ -91,6 +89,21 @@ function DashboardNavigator() {
       <DashboardStack.Screen
         name="SMS"
         component={SmsNavigator}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
+        name="DocumentVault"
+        component={DocumentVaultScreen}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
+        name="DocumentDetail"
+        component={DocumentDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
+        name="BadgeWall"
+        component={BadgeWallScreen}
         options={{ headerShown: false }}
       />
     </DashboardStack.Navigator>
@@ -157,6 +170,11 @@ function SettingsNavigator() {
         name="Privacy"
         component={PrivacyPolicyScreen}
         options={{ title: 'Privacy Policy' }}
+      />
+      <SettingsStack.Screen
+        name="Referral"
+        component={ReferralScreen}
+        options={{ headerShown: false }}
       />
       <SettingsStack.Screen
         name="Analytics"
@@ -240,138 +258,230 @@ function SmsNavigator() {
   );
 }
 
-interface TabConfig {
-  name: string;
-  component: React.ComponentType<any>;
-  title: string;
-  premium?: boolean;
-  featureKey?: string;
+function TransactionsListWrapper() {
+  const { colors, typography } = useTheme();
+  return (
+    <TransactionsStack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.bg.primary },
+        headerTintColor: colors.text.primary,
+        headerTitleStyle: {
+          fontFamily: typography.calloutBold.fontFamily,
+          fontSize: typography.calloutBold.fontSize,
+          fontWeight: typography.calloutBold.fontWeight,
+        },
+        contentStyle: { backgroundColor: colors.bg.primary },
+      }}
+    >
+      <TransactionsStack.Screen
+        name="TransactionsMain"
+        component={TransactionsScreen}
+        options={{ headerShown: false }}
+      />
+    </TransactionsStack.Navigator>
+  );
 }
 
-const ALL_TABS: TabConfig[] = [
-  { name: 'Dashboard', component: DashboardNavigator, title: 'Dashboard' },
-  { name: 'Accounts', component: AccountsNavigator, title: 'Expenses' },
-  { name: 'Shared', component: SharedFinanceNavigator, title: 'Spaces' },
-  { name: 'Settings', component: SettingsNavigator, title: 'Settings' },
-];
-
 export function MainTabNavigator() {
-  const { colors, isDark, typography } = useTheme();
+  const { colors } = useTheme();
   const { user, accessToken } = useAuth();
-  const [subscription, setSubscription] = useState<any>(null);
-  const [bottomMenuConfig, setBottomMenuConfig] = useState<any[]>([]);
-
-  const loadPreferences = useCallback(() => {
-    if (!accessToken) {
-      return;
-    }
-    api
-      .get<any>('/premium/check')
-      .then((res) => {
-        if (res?.isPremium) {
-          setSubscription({ plan: { price: 1 } });
-        }
-      })
-      .catch(() => {});
-    api
-      .get<any>('/user/preferences')
-      .then((res) => {
-        if (res?.bottomMenuConfig) {
-          setBottomMenuConfig(res.bottomMenuConfig);
-        }
-      })
-      .catch(() => {});
-  }, [accessToken]);
+  const [showActions, setShowActions] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
+  const navigation = useNavigation<any>();
 
   useFocusEffect(
     useCallback(() => {
-      loadPreferences();
-    }, [loadPreferences]),
+      if (!accessToken) return;
+      api.get<any>('/premium/check').then((res) => {
+        if (res?.isPremium) setIsPremium(true);
+      }).catch(() => {});
+    }, [accessToken]),
   );
 
-  const planPrice: number = Number(subscription?.plan?.price || 0);
-  const isPremium = planPrice > 0;
-
-  const getTabOrder = useCallback(() => {
-    if (bottomMenuConfig.length === 0) {
-      return ALL_TABS;
-    }
-    const configMap = new Map(bottomMenuConfig.map((c: any) => [c.id, c]));
-    const configured = ALL_TABS.filter((tab) => {
-      const cfg = configMap.get(tab.name);
-      return cfg ? cfg.visible !== false : true;
-    }).sort((a, b) => {
-      const aCfg = configMap.get(a.name);
-      const bCfg = configMap.get(b.name);
-      return (aCfg?.order ?? 99) - (bCfg?.order ?? 99);
-    });
-    const settingsTab = ALL_TABS.find((t) => t.name === 'Settings');
-    if (settingsTab && !configured.some((t) => t.name === 'Settings')) {
-      configured.push(settingsTab);
-    }
-    return configured;
-  }, [bottomMenuConfig]);
-
-  const visibleTabs = getTabOrder().filter((tab) => {
-    if (tab.premium && !isPremium) {
-      return false;
-    }
-    return true;
-  });
+  const quickActions = [
+    {
+      label: 'Add Expense',
+      icon: 'add-circle-outline' as const,
+      color: '#00A86B',
+      onPress: () => navigation.navigate('Accounts', { screen: 'CreateTransaction' }),
+    },
+    {
+      label: 'Scan Bill',
+      icon: 'scan-outline' as const,
+      color: '#E85D04',
+      onPress: () => navigation.navigate('Accounts', { screen: 'BillScanner' }),
+    },
+    {
+      label: 'New Group',
+      icon: 'people-outline' as const,
+      color: '#5B5FE8',
+      onPress: () => navigation.navigate('Shared', { screen: 'CreateSharedGroup' }),
+    },
+    {
+      label: 'Transfer',
+      icon: 'swap-horizontal-outline' as const,
+      color: '#8A5CF6',
+      onPress: () => navigation.navigate('Shared', { screen: 'WalletTransfer' }),
+    },
+    {
+      label: 'Document',
+      icon: 'folder-open-outline' as const,
+      color: '#F7892C',
+      onPress: () => navigation.navigate('DocumentVault'),
+    },
+    {
+      label: 'Reminder',
+      icon: 'alarm-outline' as const,
+      color: '#0B84A5',
+      onPress: () => navigation.navigate('Reminders', { screen: 'CreateReminder' }),
+    },
+  ];
 
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, size }) => {
-          const icons = TAB_ICONS[route.name];
-          const iconColor = focused ? colors.accent.primary : colors.text.tertiary;
-          return (
-            <Ionicons
-              name={focused ? icons.focused : icons.unfocused}
-              size={focused ? size : size - 2}
-              color={iconColor}
-            />
-          );
-        },
-        tabBarStyle: {
-          backgroundColor: colors.bg.secondary,
-          borderTopWidth: 0,
-          borderCurve: 'continuous',
-          height: 52,
-          paddingBottom: 0,
-          paddingHorizontal: 4,
-          position: 'absolute',
-          left: 12,
-          right: 12,
-          bottom: 12,
-          borderRadius: 16,
-          elevation: 6,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.15,
-          shadowRadius: 12,
-        },
-        tabBarActiveTintColor: colors.accent.primary,
-        tabBarInactiveTintColor: colors.text.tertiary,
-        tabBarLabelStyle: { fontSize: 9, fontWeight: '500' },
-        headerStyle: { backgroundColor: colors.bg.primary },
-        headerTintColor: colors.text.primary,
-        headerTitleStyle: { ...typography.calloutBold },
-      })}
-    >
-      {visibleTabs.map((tab) => (
+    <View style={{ flex: 1 }}>
+      <Tab.Navigator
+        screenOptions={{
+          tabBarStyle: {
+            backgroundColor: colors.bg.secondary,
+            borderTopWidth: 0,
+            borderCurve: 'continuous' as any,
+            height: 60,
+            paddingBottom: 6,
+            paddingTop: 6,
+            paddingHorizontal: 8,
+            position: 'absolute',
+            left: 12,
+            right: 12,
+            bottom: 12,
+            borderRadius: 20,
+            elevation: 6,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.15,
+            shadowRadius: 12,
+          },
+          tabBarActiveTintColor: colors.accent.primary,
+          tabBarInactiveTintColor: colors.text.tertiary,
+          tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
+          headerShown: false,
+        }}
+      >
         <Tab.Screen
-          key={tab.name}
-          name={tab.name}
-          component={tab.component}
+          name="Dashboard"
+          component={DashboardNavigator}
           options={{
-            headerShown: false,
-            title: tab.title,
+            title: 'Home',
+            tabBarIcon: ({ focused, size }) => (
+              <Ionicons
+                name={focused ? 'home' : 'home-outline'}
+                size={size}
+                color={focused ? colors.accent.primary : colors.text.tertiary}
+              />
+            ),
           }}
         />
-      ))}
-    </Tab.Navigator>
+        <Tab.Screen
+          name="Transactions"
+          component={TransactionsListWrapper}
+          options={{
+            title: 'Transactions',
+            tabBarIcon: ({ focused, size }) => (
+              <Ionicons
+                name={focused ? 'swap-horizontal' : 'swap-horizontal-outline'}
+                size={size}
+                color={focused ? colors.accent.primary : colors.text.tertiary}
+              />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="QuickAction"
+          component={View}
+          options={{
+            title: '',
+            tabBarButton: (props) => (
+              <TouchableOpacity
+                {...props}
+                activeOpacity={0.85}
+                style={styles.centerBtn}
+                onPress={() => setShowActions(true)}
+              >
+                <LinearGradient
+                  colors={[colors.accent.primary, colors.accent.secondary]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.centerBtnGradient}
+                >
+                  <Ionicons name="add" size={28} color="#FFF" />
+                </LinearGradient>
+              </TouchableOpacity>
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Shared"
+          component={SharedFinanceNavigator}
+          options={{
+            title: 'Spaces',
+            tabBarIcon: ({ focused, size }) => (
+              <Ionicons
+                name={focused ? 'grid' : 'grid-outline'}
+                size={size}
+                color={focused ? colors.accent.primary : colors.text.tertiary}
+              />
+            ),
+          }}
+        />
+        {/* Hidden navigators for cross-tab navigation */}
+        <Tab.Screen
+          name="Accounts"
+          component={AccountsNavigator}
+          options={{ tabBarButton: () => null }}
+        />
+        <Tab.Screen
+          name="Settings"
+          component={SettingsNavigator}
+          options={{
+            title: 'Profile',
+            tabBarIcon: ({ focused, size }) => (
+              <Ionicons
+                name={focused ? 'person' : 'person-outline'}
+                size={size}
+                color={focused ? colors.accent.primary : colors.text.tertiary}
+              />
+            ),
+          }}
+        />
+      </Tab.Navigator>
+
+      <QuickActionSheet
+        visible={showActions}
+        onClose={() => setShowActions(false)}
+        actions={quickActions}
+      />
+    </View>
   );
 }
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  centerBtn: {
+    top: -16,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 8,
+    shadowColor: '#F7892C',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+  },
+  centerBtnGradient: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

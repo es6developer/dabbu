@@ -41,6 +41,9 @@ import { SharedFinanceModule } from './modules/shared-finance/shared-finance.mod
 import { SettlementsModule } from './modules/settlements/settlements.module';
 import { UserPreferencesModule } from './modules/user-preferences/user-preferences.module';
 import { EmailModule } from './modules/email/email.module';
+import { DocumentsModule } from './modules/documents/documents.module';
+import { GamificationModule } from './modules/gamification/gamification.module';
+import { ReferralModule } from './modules/referral/referral.module';
 
 @Module({
   imports: [
@@ -106,6 +109,9 @@ import { EmailModule } from './modules/email/email.module';
     SettlementsModule,
     UserPreferencesModule,
     EmailModule,
+    DocumentsModule,
+    GamificationModule,
+    ReferralModule,
   ],
   controllers: [HealthController],
   providers: [

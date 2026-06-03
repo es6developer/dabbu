@@ -2,6 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { AnalyticsQueryDto, AnalyticsPeriod } from './dto/analytics-query.dto';
 
+interface TrackEventDto {
+  event: string;
+  category?: string;
+  label?: string;
+  properties?: any;
+  sessionId?: string;
+}
+
 @Injectable()
 export class AnalyticsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -488,5 +496,160 @@ export class AnalyticsService {
 
   private formatDateKey(date: Date): string {
     return new Date(date).toISOString().slice(0, 10);
+  }
+
+  // ─── Event Tracking ────────────────────────────────────
+
+  async track(userId: string | null, dto: TrackEventDto, ip?: string, userAgent?: string) {
+    return this.prisma.analyticsEvent.create({
+      data: {
+        userId,
+        event: dto.event,
+        category: dto.category || null,
+        label: dto.label || null,
+        properties: dto.properties || undefined,
+        sessionId: dto.sessionId || null,
+        ip: ip || null,
+        userAgent: userAgent || null,
+      },
+    });
+  }
+
+  async trackBatch(userId: string | null, events: TrackEventDto[]) {
+    const data = events.map((e) => ({
+      userId,
+      event: e.event,
+      category: e.category || null,
+      label: e.label || null,
+      properties: e.properties || undefined,
+      sessionId: e.sessionId || null,
+    }));
+    await this.prisma.analyticsEvent.createMany({ data });
+  }
+
+  // ─── Retention & Activity ──────────────────────────────
+
+  async getActiveUsers(days = 30) {
+    const since = new Date(Date.now() - days * 86400000);
+    const total = await this.prisma.user.count({ where: { deletedAt: null } });
+    const active = await this.prisma.user.count({
+      where: { lastLoginAt: { gte: since }, deletedAt: null },
+    });
+    return { total, active, rate: total > 0 ? Math.round((active / total) * 100) : 0 };
+  }
+
+  async getRetention(days = 90) {
+    const now = new Date();
+    const cohorts: { period: string; total: number; retained: number; rate: number }[] = [];
+
+    for (let i = 1; i <= 3; i++) {
+      const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
+
+      const total = await this.prisma.user.count({
+        where: { createdAt: { gte: monthStart, lt: monthEnd }, deletedAt: null },
+      });
+
+      const retained = await this.prisma.user.count({
+        where: {
+          createdAt: { gte: monthStart, lt: monthEnd },
+          lastLoginAt: { gte: new Date(Date.now() - days * 86400000) },
+          deletedAt: null,
+        },
+      });
+
+      cohorts.push({
+        period: `${monthStart.toLocaleDateString('en', { month: 'short', year: '2-digit' })}`,
+        total,
+        retained,
+        rate: total > 0 ? Math.round((retained / total) * 100) : 0,
+      });
+    }
+
+    return cohorts;
+  }
+
+  async getFeatureUsage(days = 30) {
+    const since = new Date(Date.now() - days * 86400000);
+    const events = await this.prisma.analyticsEvent.groupBy({
+      by: ['event'],
+      where: { timestamp: { gte: since } },
+      _count: true,
+      orderBy: { _count: { id: 'desc' } },
+    });
+
+    return events.map((e: any) => ({
+      event: e.event,
+      count: e._count,
+      uniqueUsers: 0,
+    }));
+  }
+
+  async getPremiumConversion() {
+    const total = await this.prisma.user.count({ where: { deletedAt: null } });
+    const premium = await this.prisma.subscription.count({
+      where: {
+        status: 'active',
+        currentPeriodEnd: { gte: new Date() },
+        plan: { code: { not: 'FREE' } },
+      },
+    });
+    const trial = await this.prisma.subscription.count({
+      where: {
+        status: 'active',
+        plan: { code: 'FREE' },
+        currentPeriodEnd: { gte: new Date() },
+      },
+    });
+
+    return {
+      totalUsers: total,
+      premiumUsers: premium,
+      freeUsers: trial,
+      conversionRate: total > 0 ? Math.round((premium / total) * 100) : 0,
+    };
+  }
+
+  async getOnboardingCompletion() {
+    const total = await this.prisma.user.count({ where: { deletedAt: null } });
+    const withTransactions = await this.prisma.transaction.groupBy({
+      by: ['userId'],
+      _count: { id: true },
+    });
+    const completed = withTransactions.filter((t) => t._count.id >= 1).length;
+    return {
+      totalUsers: total,
+      completedOnboarding: completed,
+      completionRate: total > 0 ? Math.round((completed / total) * 100) : 0,
+    };
+  }
+
+  async getEventSummary(days = 7) {
+    const since = new Date(Date.now() - days * 86400000);
+    const daily = await this.prisma.analyticsEvent.groupBy({
+      by: ['event'],
+      where: { timestamp: { gte: since } },
+      _count: true,
+      orderBy: { _count: { id: 'desc' } },
+    });
+
+    const totalEvents = daily.reduce((s, e: any) => s + e._count, 0);
+    const uniqueUsers = (
+      await this.prisma.analyticsEvent.findMany({
+        where: { timestamp: { gte: since }, userId: { not: null } },
+        select: { userId: true },
+        distinct: ['userId'],
+      })
+    ).length;
+
+    return {
+      period: `${days}d`,
+      totalEvents,
+      uniqueUsers,
+      events: daily.map((e: any) => ({
+        event: e.event,
+        count: e._count,
+      })),
+    };
   }
 }

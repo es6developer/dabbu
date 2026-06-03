@@ -10,6 +10,7 @@ import { MonthlyComparisonScreen } from '../screens/bills/MonthlyComparisonScree
 import { TransactionDetailScreen } from '../screens/transactions/TransactionDetailScreen';
 import { CreateExpenseGroupScreen } from '../screens/transactions/CreateExpenseGroupScreen';
 import { GroupExpensesScreen } from '../screens/transactions/GroupExpensesScreen';
+import { SubscriptionScreen } from '../screens/subscriptions/SubscriptionScreen';
 import { ExpenseTabNavigator } from './ExpenseTabNavigator';
 
 export function AccountsNavigator() {
@@ -68,6 +69,11 @@ export function AccountsNavigator() {
         name="GroupExpenses"
         component={GroupExpensesScreen}
         options={{ title: 'Group Expenses', headerShown: false }}
+      />
+      <Stack.Screen
+        name="Subscriptions"
+        component={SubscriptionScreen}
+        options={{ title: 'Subscriptions' }}
       />
     </Stack.Navigator>
   );

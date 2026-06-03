@@ -18,6 +18,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { WebView } from 'react-native-webview';
+import { useAnalytics } from '../../hooks/useAnalytics';
 
 const { width } = Dimensions.get('window');
 
@@ -88,6 +89,7 @@ export function PremiumScreen() {
   const navigation = useNavigation<any>();
   const { colors, typography } = useTheme();
   const insets = useSafeAreaInsets();
+  const { trackFeature } = useAnalytics();
   const [selectedPlan, setSelectedPlan] = useState(3);
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState(false);
@@ -173,6 +175,7 @@ export function PremiumScreen() {
 
   const handleSubscribe = async () => {
     const plan = PLANS[selectedPlan];
+    trackFeature('Premium', plan.code);
     setSubscribing(true);
     try {
       const result: any = await api.post('/premium/subscribe', { planCode: plan.code });

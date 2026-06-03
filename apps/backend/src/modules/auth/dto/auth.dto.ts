@@ -12,7 +12,7 @@ export class RegisterDto {
   @IsNotEmpty()
   @MinLength(8)
   @MaxLength(72)
-  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/, {
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/, {
     message: 'Password must contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character',
   })
   password: string;
@@ -35,6 +35,11 @@ export class RegisterDto {
   @IsString()
   @IsOptional()
   phone?: string;
+
+  @ApiPropertyOptional({ example: 'DABBU-A1B2C3D4' })
+  @IsString()
+  @IsOptional()
+  referralCode?: string;
 }
 
 export class LoginDto {

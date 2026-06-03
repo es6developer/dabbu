@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
+import { useAnalytics } from '../../hooks/useAnalytics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
@@ -33,6 +34,7 @@ export function OnboardingScreen() {
   const insets = useSafeAreaInsets();
   const [index, setIndex] = useState(0);
   const flatRef = useRef<FlatList>(null);
+  const { trackFeature } = useAnalytics();
 
   async function markSeen() {
     await AsyncStorage.setItem('hasSeenOnboarding', 'true');
@@ -48,6 +50,7 @@ export function OnboardingScreen() {
       <TouchableOpacity
         style={styles.skip}
         onPress={() => {
+          trackFeature('Onboarding', 'skip');
           markSeen();
           navigation.replace('Login');
         }}
@@ -94,6 +97,7 @@ export function OnboardingScreen() {
             if (index < slides.length - 1) {
               flatRef.current?.scrollToOffset({ offset: width * (index + 1), animated: true });
             } else {
+              trackFeature('Onboarding', 'complete');
               await markSeen();
               navigation.replace('Login');
             }

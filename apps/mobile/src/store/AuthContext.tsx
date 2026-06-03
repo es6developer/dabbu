@@ -13,6 +13,7 @@ import {
   setOnSessionExpiredHandler,
 } from '../services/api';
 import { registerForPushNotifications } from '../services/notifications';
+import { trackEventImmediate } from '../hooks/useAnalytics';
 
 interface User {
   id: string;
@@ -148,6 +149,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       accessToken: tokens.accessToken,
     });
 
+    trackEventImmediate('login', 'auth', 'email').catch(() => {});
     registerForPushNotifications(tokens.accessToken).catch(() => {});
   }
 
@@ -176,6 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       accessToken: tokens.accessToken,
     });
 
+    trackEventImmediate('sign_up', 'auth', 'email').catch(() => {});
     registerForPushNotifications(tokens.accessToken).catch(() => {});
   }
 

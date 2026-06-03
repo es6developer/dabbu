@@ -1,7 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../theme';
-import { SharedFinanceHomeScreen } from '../screens/shared-finance/SharedFinanceHomeScreen';
+import { SharedScreen } from '../screens/shared-finance/SharedScreen';
 import { SharedGroupDetailScreen } from '../screens/shared-finance/SharedGroupDetailScreen';
 import { CreateSharedGroupScreen } from '../screens/shared-finance/CreateSharedGroupScreen';
 import { SharedExpenseFormScreen } from '../screens/shared-finance/SharedExpenseFormScreen';
@@ -37,7 +37,7 @@ export function SharedFinanceNavigator() {
     >
       <Stack.Screen
         name="SharedFinanceHome"
-        component={SharedFinanceHomeScreen}
+        component={SharedScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

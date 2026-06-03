@@ -16,127 +16,127 @@ datasource db {
 // ─── USERS ─────────────────────────────────────────────────
 // Core user accounts with full profile and preferences
 model User {
-  id              String    @id @default(uuid()) @db.VarChar(36)
-  email           String    @unique @db.VarChar(255)
-  password        String    @db.VarChar(255)
-  firstName       String    @db.VarChar(100)
-  lastName        String    @db.VarChar(100)
-  avatarUrl       String?   @db.VarChar(500)
-  phone           String?   @db.VarChar(20)
-  currency        String    @default("USD") @db.VarChar(10)
-  timezone        String    @default("UTC") @db.VarChar(50)
-  locale          String    @default("en") @db.VarChar(10)
-  isActive        Boolean   @default(true)
-  isEmailVerified Boolean   @default(false)
-  isPhoneVerified Boolean   @default(false)
-  role            String    @default("user") @db.VarChar(20)      // user, premium, admin, super_admin
+  id              String  @id @default(uuid()) @db.VarChar(36)
+  email           String  @unique @db.VarChar(255)
+  password        String  @db.VarChar(255)
+  firstName       String  @db.VarChar(100)
+  lastName        String  @db.VarChar(100)
+  avatarUrl       String? @db.VarChar(500)
+  phone           String? @db.VarChar(20)
+  currency        String  @default("USD") @db.VarChar(10)
+  timezone        String  @default("UTC") @db.VarChar(50)
+  locale          String  @default("en") @db.VarChar(10)
+  isActive        Boolean @default(true)
+  isEmailVerified Boolean @default(false)
+  isPhoneVerified Boolean @default(false)
+  role            String  @default("user") @db.VarChar(20) // user, premium, admin, super_admin
 
   // OTP & 2FA
-  otpCode        String?   @db.VarChar(6)
-  otpExpiresAt   DateTime?
-  otpPurpose     String?   @db.VarChar(20)                        // email_verification, password_reset, login
-  otpAttempts    Int       @default(0)
-  twoFactorEnabled Boolean  @default(false)
-  twoFactorSecret String?  @db.VarChar(255)
+  otpCode          String?   @db.VarChar(6)
+  otpExpiresAt     DateTime?
+  otpPurpose       String?   @db.VarChar(20) // email_verification, password_reset, login
+  otpAttempts      Int       @default(0)
+  twoFactorEnabled Boolean   @default(false)
+  twoFactorSecret  String?   @db.VarChar(255)
 
   // Brute force protection
-  loginAttempts  Int       @default(0)
-  lockoutUntil   DateTime?
-  isLocked       Boolean   @default(false)
-  lastLoginAt    DateTime?
+  loginAttempts     Int       @default(0)
+  lockoutUntil      DateTime?
+  isLocked          Boolean   @default(false)
+  lastLoginAt       DateTime?
   lastFailedLoginAt DateTime?
   passwordChangedAt DateTime?
 
   // App lock / PIN
-  appPin         String?   @db.VarChar(255)                       // hashed PIN for app lock
-  biometricEnabled Boolean  @default(false)
+  appPin           String? @db.VarChar(255) // hashed PIN for app lock
+  biometricEnabled Boolean @default(false)
 
   // Payment gateway IDs
-  stripeCustomerId   String?  @db.VarChar(255)
-  razorpayCustomerId String?  @db.VarChar(255)
+  stripeCustomerId   String? @db.VarChar(255)
+  razorpayCustomerId String? @db.VarChar(255)
 
   // Password history (prevent reuse)
-  passwordHistory Json?    @db.Json                               // Array of previous password hashes
+  passwordHistory Json? @db.Json // Array of previous password hashes
 
-  deletedAt       DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   // Shadow / temporary user support
-  status         String   @default("active") @db.VarChar(20)    // active, temporary, merged
-  authProvider   String   @default("email") @db.VarChar(20)     // email, google, apple
-  tempGroupId    String?  @db.VarChar(36)                       // group scoped to for temp users
-  mergedIntoId   String?  @db.VarChar(36)                       // points to full user after merge
-  mergedAt       DateTime?
+  status       String    @default("active") @db.VarChar(20) // active, temporary, merged
+  authProvider String    @default("email") @db.VarChar(20) // email, google, apple
+  tempGroupId  String?   @db.VarChar(36) // group scoped to for temp users
+  mergedIntoId String?   @db.VarChar(36) // points to full user after merge
+  mergedAt     DateTime?
 
   // Dashboard & navigation customization
-  dashboardLayout   Json?   @db.Json    // Array of widget configs [{id, visible, order}]
-  bottomMenuConfig  Json?   @db.Json    // Array of tab configs [{id, visible, order}]
-  preferredPrimaryColor String? @db.VarChar(20)  // User's preferred accent color hex
+  dashboardLayout       Json?   @db.Json // Array of widget configs [{id, visible, order}]
+  bottomMenuConfig      Json?   @db.Json // Array of tab configs [{id, visible, order}]
+  preferredPrimaryColor String? @db.VarChar(20) // User's preferred accent color hex
 
   // Relations
-  sessions           Session[]
-  devices            Device[]
-  reminders          Reminder[]
-  recurringReminders RecurringReminder[]
-  subscription       Subscription?
-  premiumEntitlements PremiumEntitlement[]
-  paymentTransactions PaymentTransaction[]
-  familyMemberships  FamilyMember[]
-  chatParticipants   ChatParticipant[]
-  sentMessages       ChatMessage[]        @relation("MessageSender")
-  transactions       Transaction[]
-  transactionCategories TransactionCategory[]
-  analytics          Analytics[]
-  notifications      Notification[]
-  notificationLogs   NotificationLog[]
-  smsDetections      SmsDetection[]
-  settings           Settings?
-  auditLogs          AuditLog[]
-  accounts           Account[]
-  budgets            Budget[]
-  bills              Bill[]
-  scannedBills       ScannedBill[]
-  goals              Goal[]
-  investments        Investment[]
-  createdTasks       SharedTask[]         @relation("TaskCreator")
-  assignedTasks      SharedTask[]         @relation("TaskAssignee")
-  createdReminders   SharedReminder[]
-  expenseGroups              ExpenseGroup[]
-  expenseGroupMemberships    ExpenseGroupMember[]
-  createdSharedGroups        SharedGroup[]        @relation("GroupCreator")
-  sharedGroupMemberships     SharedGroupMember[]
-  sharedExpenses             SharedExpense[]
-  expenseSplits              ExpenseSplit[]
-  settlementsFrom            Settlement[] @relation("SettlementFrom")
-  settlementsTo              Settlement[] @relation("SettlementTo")
-  salaryProfile              SalaryProfile?
-  coupleProfileAsPartner1    CoupleFinanceProfile[] @relation("CouplePartner1")
-  coupleProfileAsPartner2    CoupleFinanceProfile[] @relation("CouplePartner2")
-  coupleFinanceInvites       CoupleFinanceInvite[]  @relation("InviteSender")
-  receivedCoupleFinanceInvites CoupleFinanceInvite[] @relation("InviteReceiver")
-  tripExpenses               TripExpense[]
-  groupChatMessages          GroupChatMessage[]
-  groupChatReads             GroupChatRead[]
-  householdBills             HouseholdBill[]
-  householdContributions     HouseholdContribution[]
-  sharedGoals                SharedGoal[]
-  sharedGoalContributions    SharedGoalContribution[]
-  reimbursementsFrom         ReimbursementLog[] @relation("ReimbursementFrom")
-  reimbursementsTo           ReimbursementLog[] @relation("ReimbursementTo")
-  groupInvites               GroupInvite[]
-  tempInvites                TempInvite[]
-  memberRemovalLogs          MemberRemovalLog[]
-  sessionRevocations         SessionRevocation[]
+  sessions                     Session[]
+  devices                      Device[]
+  reminders                    Reminder[]
+  recurringReminders           RecurringReminder[]
+  subscription                 Subscription?
+  premiumEntitlements          PremiumEntitlement[]
+  paymentTransactions          PaymentTransaction[]
+  familyMemberships            FamilyMember[]
+  chatParticipants             ChatParticipant[]
+  sentMessages                 ChatMessage[]                @relation("MessageSender")
+  transactions                 Transaction[]
+  transactionCategories        TransactionCategory[]
+  analytics                    Analytics[]
+  notifications                Notification[]
+  notificationLogs             NotificationLog[]
+  smsDetections                SmsDetection[]
+  settings                     Settings?
+  auditLogs                    AuditLog[]
+  accounts                     Account[]
+  budgets                      Budget[]
+  bills                        Bill[]
+  scannedBills                 ScannedBill[]
+  goals                        Goal[]
+  investments                  Investment[]
+  createdTasks                 SharedTask[]                 @relation("TaskCreator")
+  assignedTasks                SharedTask[]                 @relation("TaskAssignee")
+  createdReminders             SharedReminder[]
+  expenseGroups                ExpenseGroup[]
+  expenseGroupMemberships      ExpenseGroupMember[]
+  createdSharedGroups          SharedGroup[]                @relation("GroupCreator")
+  sharedGroupMemberships       SharedGroupMember[]
+  sharedExpenses               SharedExpense[]
+  expenseSplits                ExpenseSplit[]
+  settlementsFrom              Settlement[]                 @relation("SettlementFrom")
+  settlementsTo                Settlement[]                 @relation("SettlementTo")
+  salaryProfile                SalaryProfile?
+  coupleProfileAsPartner1      CoupleFinanceProfile[]       @relation("CouplePartner1")
+  coupleProfileAsPartner2      CoupleFinanceProfile[]       @relation("CouplePartner2")
+  coupleFinanceInvites         CoupleFinanceInvite[]        @relation("InviteSender")
+  receivedCoupleFinanceInvites CoupleFinanceInvite[]        @relation("InviteReceiver")
+  tripExpenses                 TripExpense[]
+  groupChatMessages            GroupChatMessage[]
+  groupChatReads               GroupChatRead[]
+  householdBills               HouseholdBill[]
+  householdContributions       HouseholdContribution[]
+  sharedGoals                  SharedGoal[]
+  sharedGoalContributions      SharedGoalContribution[]
+  reimbursementsFrom           ReimbursementLog[]           @relation("ReimbursementFrom")
+  reimbursementsTo             ReimbursementLog[]           @relation("ReimbursementTo")
+  groupInvites                 GroupInvite[]
+  tempInvites                  TempInvite[]
+  memberRemovalLogs            MemberRemovalLog[]
+  sessionRevocations           SessionRevocation[]
   groupWallets                 GroupWallet[]
   walletTransactionsPerformed  GroupWalletTransaction[]
-  walletTransactionsApproved   GroupWalletTransaction[] @relation("WalletApprover")
+  walletTransactionsApproved   GroupWalletTransaction[]     @relation("WalletApprover")
   walletMemberships            GroupWalletMember[]
   advanceContributionsPaid     AdvanceContribution[]
   advanceAdjustmentsMade       AdvanceAdjustment[]
   advanceContributionHistory   AdvanceContributionHistory[]
-  expenseApprovalsRequested    ExpenseApproval[] @relation("ApprovalRequester")
-  expenseApprovalsApproved     ExpenseApproval[] @relation("ApprovalApprover")
+  expenseApprovalsRequested    ExpenseApproval[]            @relation("ApprovalRequester")
+  expenseApprovalsApproved     ExpenseApproval[]            @relation("ApprovalApprover")
   expenseApprovalChanges       ExpenseApprovalHistory[]
   documentUploads              GroupDocument[]
   documentPermissions          DocumentPermission[]
@@ -145,21 +145,24 @@ model User {
   splitTemplatesCreated        SplitTemplate[]
   creditCardBillsUploaded      CreditCardBill[]
   billSplits                   BillSplit[]
+  userDocuments                UserDocument[]
+  userStreaks                  UserStreak[]
+  analyticsEvents              AnalyticsEvent[]
   cashPoolCustodian            CashPool[]
   cashTransactionsPerformed    CashTransaction[]
   emergencyFundsCreated        EmergencyFund[]
   emergencyContributions       EmergencyContribution[]
   emergencyWithdrawalsMade     EmergencyWithdrawal[]
-  emergencyWithdrawalsApproved EmergencyWithdrawal[] @relation("WithdrawalApprover")
+  emergencyWithdrawalsApproved EmergencyWithdrawal[]        @relation("WithdrawalApprover")
   userBadges                   UserBadge[]
   referralProgramsReferred     ReferralProgram[]
-  referralProgramsReferee      ReferralProgram[] @relation("ReferredUser")
+  referralProgramsReferee      ReferralProgram[]            @relation("ReferredUser")
   exportHistories              ExportHistory[]
   guestProfile                 GuestMember?
   expenseApprovalQueue         ExpenseApprovalQueue[]
   groupActivities              GroupActivity[]
-  payNowLinksFrom              PayNowLink[] @relation("PayFrom")
-  payNowLinksTo                PayNowLink[] @relation("PayTo")
+  payNowLinksFrom              PayNowLink[]                 @relation("PayFrom")
+  payNowLinksTo                PayNowLink[]                 @relation("PayTo")
 
   @@index([email])
   @@index([isActive])
@@ -170,15 +173,15 @@ model User {
 // ─── SESSIONS ──────────────────────────────────────────────
 // User authentication sessions for refresh token management
 model Session {
-  id          String    @id @default(uuid()) @db.VarChar(36)
-  userId      String    @db.VarChar(36)
-  refreshToken String   @db.VarChar(500)
-  userAgent   String?   @db.VarChar(500)
-  ipAddress   String?   @db.VarChar(45)
-  isRevoked   Boolean   @default(false)
-  expiresAt   DateTime
-  createdAt   DateTime  @default(now())
-  revokedAt   DateTime?
+  id           String    @id @default(uuid()) @db.VarChar(36)
+  userId       String    @db.VarChar(36)
+  refreshToken String    @db.VarChar(500)
+  userAgent    String?   @db.VarChar(500)
+  ipAddress    String?   @db.VarChar(45)
+  isRevoked    Boolean   @default(false)
+  expiresAt    DateTime
+  createdAt    DateTime  @default(now())
+  revokedAt    DateTime?
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -193,17 +196,17 @@ model Session {
 // ─── DEVICES ───────────────────────────────────────────────
 // User devices for push notifications and device management
 model Device {
-  id             String    @id @default(uuid()) @db.VarChar(36)
-  userId         String    @db.VarChar(36)
-  deviceId       String    @db.VarChar(255)
-  platform       String?   @db.VarChar(50)    // ios, android, web
-  pushToken      String?   @db.VarChar(500)
-  deviceName     String?   @db.VarChar(255)
-  appVersion     String?   @db.VarChar(20)
-  isActive       Boolean   @default(true)
-  lastUsedAt     DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id         String    @id @default(uuid()) @db.VarChar(36)
+  userId     String    @db.VarChar(36)
+  deviceId   String    @db.VarChar(255)
+  platform   String?   @db.VarChar(50) // ios, android, web
+  pushToken  String?   @db.VarChar(500)
+  deviceName String?   @db.VarChar(255)
+  appVersion String?   @db.VarChar(20)
+  isActive   Boolean   @default(true)
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -217,31 +220,31 @@ model Device {
 // ─── REMINDERS ─────────────────────────────────────────────
 // One-time reminders for bills, tasks, or events
 model Reminder {
-  id          String    @id @default(uuid()) @db.VarChar(36)
-  userId      String    @db.VarChar(36)
-  title       String    @db.VarChar(255)
-  description String?   @db.Text
-  type        String    @default("general") @db.VarChar(50)  // bill, task, event, general
-  remindAt    DateTime
-  dueDate     DateTime?
-  startDate   DateTime?
-  status      String    @default("active") @db.VarChar(20)   // active, completed, cancelled
-  priority    String    @default("medium") @db.VarChar(10)   // low, medium, high, urgent
-  isSent      Boolean   @default(false)
-  sentAt      DateTime?
-  isSnoozed   Boolean   @default(false)
+  id           String    @id @default(uuid()) @db.VarChar(36)
+  userId       String    @db.VarChar(36)
+  title        String    @db.VarChar(255)
+  description  String?   @db.Text
+  type         String    @default("general") @db.VarChar(50) // bill, task, event, general
+  remindAt     DateTime
+  dueDate      DateTime?
+  startDate    DateTime?
+  status       String    @default("active") @db.VarChar(20) // active, completed, cancelled
+  priority     String    @default("medium") @db.VarChar(10) // low, medium, high, urgent
+  isSent       Boolean   @default(false)
+  sentAt       DateTime?
+  isSnoozed    Boolean   @default(false)
   snoozedUntil DateTime?
-  isRecurring Boolean   @default(false)
-  categoryId  String?   @db.VarChar(36)
-  deletedAt   DateTime?
-  metadata    Json?     @db.Json
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  isRecurring  Boolean   @default(false)
+  categoryId   String?   @db.VarChar(36)
+  deletedAt    DateTime?
+  metadata     Json?     @db.Json
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   // Relations
-  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category  TransactionCategory? @relation(fields: [categoryId], references: [id])
-  recurring RecurringReminder[]
+  user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category      TransactionCategory? @relation(fields: [categoryId], references: [id])
+  recurring     RecurringReminder[]
   notifications Notification[]
 
   @@index([userId, remindAt])
@@ -253,30 +256,30 @@ model Reminder {
 // ─── RECURRING REMINDERS ───────────────────────────────────
 // Recurring reminder patterns
 model RecurringReminder {
-  id              String   @id @default(uuid()) @db.VarChar(36)
-  userId          String   @db.VarChar(36)
-  reminderId      String?  @db.VarChar(36)
-  title           String   @db.VarChar(255)
-  description     String?  @db.Text
-  type            String   @default("general") @db.VarChar(50)
-  frequency       String   @db.VarChar(20)
-  interval        Int      @default(1)
+  id              String    @id @default(uuid()) @db.VarChar(36)
+  userId          String    @db.VarChar(36)
+  reminderId      String?   @db.VarChar(36)
+  title           String    @db.VarChar(255)
+  description     String?   @db.Text
+  type            String    @default("general") @db.VarChar(50)
+  frequency       String    @db.VarChar(20)
+  interval        Int       @default(1)
   dayOfMonth      Int?
-  daysOfWeek      String?  // JSON array for multi-day patterns
+  daysOfWeek      String? // JSON array for multi-day patterns
   monthOfYear     Int?
-  time            String?  @db.VarChar(5)
+  time            String?   @db.VarChar(5)
   startDate       DateTime
   endDate         DateTime?
-  occurrences     Int?     // Max number of occurrences
-  count           Int      @default(0)  // How many times it has triggered
-  isActive        Boolean  @default(true)
+  occurrences     Int? // Max number of occurrences
+  count           Int       @default(0) // How many times it has triggered
+  isActive        Boolean   @default(true)
   lastTriggeredAt DateTime?
   nextTriggerAt   DateTime?
-  metadata        Json?    @db.Json
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  metadata        Json?     @db.Json
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   reminder Reminder? @relation(fields: [reminderId], references: [id])
 
   @@unique([reminderId])
@@ -288,14 +291,14 @@ model RecurringReminder {
 // ─── FAMILIES ──────────────────────────────────────────────
 // Family/group sharing accounts
 model Family {
-  id          String    @id @default(uuid()) @db.VarChar(36)
-  name        String    @db.VarChar(255)
-  code        String?   @unique @db.VarChar(20)  // Invite code
-  ownerId     String    @db.VarChar(36)
-  maxMembers  Int       @default(5)
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id         String   @id @default(uuid()) @db.VarChar(36)
+  name       String   @db.VarChar(255)
+  code       String?  @unique @db.VarChar(20) // Invite code
+  ownerId    String   @db.VarChar(36)
+  maxMembers Int      @default(5)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   // Relations
   members   FamilyMember[]
@@ -313,7 +316,7 @@ model FamilyMember {
   id        String   @id @default(uuid()) @db.VarChar(36)
   familyId  String   @db.VarChar(36)
   userId    String   @db.VarChar(36)
-  role      String   @default("member") @db.VarChar(20)  // owner, admin, member, viewer
+  role      String   @default("member") @db.VarChar(20) // owner, admin, member, viewer
   joinedAt  DateTime @default(now())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -331,16 +334,16 @@ model FamilyMember {
 // ─── CHATS ─────────────────────────────────────────────────
 // Chat/conversation threads
 model Chat {
-  id         String   @id @default(uuid()) @db.VarChar(36)
-  title      String?  @db.VarChar(255)
-  type       String   @default("direct") @db.VarChar(20)  // direct, group, family
-  createdBy  String   @db.VarChar(36)
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  title     String?  @db.VarChar(255)
+  type      String   @default("direct") @db.VarChar(20) // direct, group, family
+  createdBy String   @db.VarChar(36)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  messages ChatMessage[]
+  messages     ChatMessage[]
   participants ChatParticipant[]
 
   @@index([createdBy])
@@ -350,13 +353,13 @@ model Chat {
 
 // ─── CHAT PARTICIPANTS ─────────────────────────────────────
 model ChatParticipant {
-  id        String   @id @default(uuid()) @db.VarChar(36)
-  chatId    String   @db.VarChar(36)
-  userId    String   @db.VarChar(36)
-  joinedAt  DateTime @default(now())
+  id        String    @id @default(uuid()) @db.VarChar(36)
+  chatId    String    @db.VarChar(36)
+  userId    String    @db.VarChar(36)
+  joinedAt  DateTime  @default(now())
   leftAt    DateTime?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
 
   // Relations
   chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
@@ -370,26 +373,26 @@ model ChatParticipant {
 // ─── CHAT MESSAGES ─────────────────────────────────────────
 // Individual messages within chats
 model ChatMessage {
-  id        String   @id @default(uuid()) @db.VarChar(36)
-  chatId    String   @db.VarChar(36)
-  senderId  String   @db.VarChar(36)
-  content   String   @db.Text
-  messageType String @default("text") @db.VarChar(20)  // text, image, file, system
-  mediaUrl  String?  @db.VarChar(500)
-  isRead    Boolean  @default(false)
-  readAt    DateTime?
-  isEdited  Boolean  @default(false)
-  editedAt  DateTime?
-  replyToId String?  @db.VarChar(36)
-  metadata  Json?    @db.Json
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String    @id @default(uuid()) @db.VarChar(36)
+  chatId      String    @db.VarChar(36)
+  senderId    String    @db.VarChar(36)
+  content     String    @db.Text
+  messageType String    @default("text") @db.VarChar(20) // text, image, file, system
+  mediaUrl    String?   @db.VarChar(500)
+  isRead      Boolean   @default(false)
+  readAt      DateTime?
+  isEdited    Boolean   @default(false)
+  editedAt    DateTime?
+  replyToId   String?   @db.VarChar(36)
+  metadata    Json?     @db.Json
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   // Relations
-  chat     Chat        @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  sender   User        @relation("MessageSender", fields: [senderId], references: [id])
-  replyTo  ChatMessage? @relation("MessageReply", fields: [replyToId], references: [id])
-  replies  ChatMessage[] @relation("MessageReply")
+  chat    Chat          @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender  User          @relation("MessageSender", fields: [senderId], references: [id])
+  replyTo ChatMessage?  @relation("MessageReply", fields: [replyToId], references: [id])
+  replies ChatMessage[] @relation("MessageReply")
 
   @@index([chatId, createdAt])
   @@index([senderId])
@@ -401,28 +404,28 @@ model ChatMessage {
 // ─── SHARED TASKS ──────────────────────────────────────────
 // Tasks shared within families/groups
 model SharedTask {
-  id          String    @id @default(uuid()) @db.VarChar(36)
-  familyId    String    @db.VarChar(36)
-  createdById String    @db.VarChar(36)
-  assignedToId String?  @db.VarChar(36)
-  title       String    @db.VarChar(255)
-  description String?   @db.Text
-  status      String    @default("pending") @db.VarChar(20)  // pending, in_progress, completed, cancelled
-  priority    String    @default("medium") @db.VarChar(10)   // low, medium, high, urgent
-  dueDate     DateTime? @db.Date
-  completedAt DateTime?
-  completedById String? @db.VarChar(36)
-  isRecurring Boolean   @default(false)
-  frequency   String?   @db.VarChar(20)
-  metadata    Json?     @db.Json
-  deletedAt   DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id            String    @id @default(uuid()) @db.VarChar(36)
+  familyId      String    @db.VarChar(36)
+  createdById   String    @db.VarChar(36)
+  assignedToId  String?   @db.VarChar(36)
+  title         String    @db.VarChar(255)
+  description   String?   @db.Text
+  status        String    @default("pending") @db.VarChar(20) // pending, in_progress, completed, cancelled
+  priority      String    @default("medium") @db.VarChar(10) // low, medium, high, urgent
+  dueDate       DateTime? @db.Date
+  completedAt   DateTime?
+  completedById String?   @db.VarChar(36)
+  isRecurring   Boolean   @default(false)
+  frequency     String?   @db.VarChar(20)
+  metadata      Json?     @db.Json
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   // Relations
-  family    Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  createdBy User   @relation("TaskCreator", fields: [createdById], references: [id])
-  assignedTo User? @relation("TaskAssignee", fields: [assignedToId], references: [id])
+  family     Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  createdBy  User   @relation("TaskCreator", fields: [createdById], references: [id])
+  assignedTo User?  @relation("TaskAssignee", fields: [assignedToId], references: [id])
 
   @@index([familyId, status])
   @@index([assignedToId, status])
@@ -433,18 +436,18 @@ model SharedTask {
 // ─── SHARED REMINDERS ─────────────────────────────────────
 // Reminders shared within families
 model SharedReminder {
-  id          String    @id @default(uuid()) @db.VarChar(36)
-  familyId    String    @db.VarChar(36)
-  createdById String    @db.VarChar(36)
-  title       String    @db.VarChar(255)
-  description String?   @db.Text
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  familyId    String   @db.VarChar(36)
+  createdById String   @db.VarChar(36)
+  title       String   @db.VarChar(255)
+  description String?  @db.Text
   remindAt    DateTime
-  isSent      Boolean   @default(false)
-  isRecurring Boolean   @default(false)
-  frequency   String?   @db.VarChar(20)
-  metadata    Json?     @db.Json
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  isSent      Boolean  @default(false)
+  isRecurring Boolean  @default(false)
+  frequency   String?  @db.VarChar(20)
+  metadata    Json?    @db.Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Relations
   family    Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
@@ -458,27 +461,27 @@ model SharedReminder {
 // ─── ACCOUNTS ──────────────────────────────────────────────
 // Financial accounts (bank, credit card, cash, investment, etc.)
 model Account {
-  id              String   @id @default(uuid()) @db.VarChar(36)
-  userId          String   @db.VarChar(36)
-  name            String   @db.VarChar(255)
-  type            String   @db.VarChar(20)   // checking, savings, credit_card, cash, investment, loan, wallet
-  currency        String   @default("USD") @db.VarChar(10)
-  balance         Decimal  @default(0) @db.Decimal(15, 2)
-  initialBalance  Decimal  @default(0) @db.Decimal(15, 2)
-  creditLimit     Decimal? @db.Decimal(15, 2)
-  color           String?  @db.VarChar(50)
-  icon            String?  @db.VarChar(50)
-  isActive        Boolean  @default(true)
-  isArchived      Boolean  @default(false)
-  isDeleted       Boolean  @default(false)
-  lastSyncedAt    DateTime?
-  description     String?  @db.VarChar(500)
-  institution     String?  @db.VarChar(255)
-  lastFourDigits  String?  @db.VarChar(4)
-  sortOrder       Int      @default(0)
-  deletedAt       DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String    @id @default(uuid()) @db.VarChar(36)
+  userId         String    @db.VarChar(36)
+  name           String    @db.VarChar(255)
+  type           String    @db.VarChar(20) // checking, savings, credit_card, cash, investment, loan, wallet
+  currency       String    @default("USD") @db.VarChar(10)
+  balance        Decimal   @default(0) @db.Decimal(15, 2)
+  initialBalance Decimal   @default(0) @db.Decimal(15, 2)
+  creditLimit    Decimal?  @db.Decimal(15, 2)
+  color          String?   @db.VarChar(50)
+  icon           String?   @db.VarChar(50)
+  isActive       Boolean   @default(true)
+  isArchived     Boolean   @default(false)
+  isDeleted      Boolean   @default(false)
+  lastSyncedAt   DateTime?
+  description    String?   @db.VarChar(500)
+  institution    String?   @db.VarChar(255)
+  lastFourDigits String?   @db.VarChar(4)
+  sortOrder      Int       @default(0)
+  deletedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   // Relations
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -495,22 +498,22 @@ model Account {
 // ─── TRANSACTION CATEGORIES ────────────────────────────────
 // Hierarchical transaction categories
 model TransactionCategory {
-  id              String    @id @default(uuid()) @db.VarChar(36)
-  userId          String    @db.VarChar(36)
-  name            String    @db.VarChar(100)
-  transactionType String    @db.VarChar(10)   // income, expense
-  icon            String?   @db.VarChar(50)
-  color           String?   @db.VarChar(50)
-  parentId        String?   @db.VarChar(36)
-  isDefault       Boolean   @default(false)
-  isActive        Boolean   @default(true)
-  sortOrder       Int       @default(0)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id              String   @id @default(uuid()) @db.VarChar(36)
+  userId          String   @db.VarChar(36)
+  name            String   @db.VarChar(100)
+  transactionType String   @db.VarChar(10) // income, expense
+  icon            String?  @db.VarChar(50)
+  color           String?  @db.VarChar(50)
+  parentId        String?  @db.VarChar(36)
+  isDefault       Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   // Relations
-  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  parent       TransactionCategory? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  user         User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent       TransactionCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
   children     TransactionCategory[] @relation("CategoryHierarchy")
   transactions Transaction[]
   budgets      Budget[]
@@ -527,42 +530,42 @@ model TransactionCategory {
 // ─── TRANSACTIONS ──────────────────────────────────────────
 // Core financial transactions (income, expense, transfers)
 model Transaction {
-  id                 String    @id @default(uuid()) @db.VarChar(36)
-  userId             String    @db.VarChar(36)
-  accountId          String?   @db.VarChar(36)
-  categoryId         String?   @db.VarChar(36)
-  amount             Decimal   @db.Decimal(15, 2)
-  type               String    @db.VarChar(10)    // income, expense, transfer
-  status             String    @default("completed") @db.VarChar(20)  // completed, pending, cancelled
-  date               DateTime  @db.Date
-  description        String?   @db.VarChar(500)
-  notes              String?   @db.Text
-  tags               Json?     @db.Json
-  isRecurring        Boolean   @default(false)
-  recurringId        String?   @db.VarChar(36)
-  recurringFrequency String?   @db.VarChar(20)
-  recurringEndDate   DateTime? @db.Date
-  receiptUrl         String?   @db.VarChar(500)
-  exchangeRate       Decimal?  @db.Decimal(10, 6)
-  originalCurrency   String?   @db.VarChar(10)
-  originalAmount     Decimal?  @db.Decimal(15, 2)
-  transferToAccountId String?  @db.VarChar(36)
-  isReviewed         Boolean   @default(false)
-  isSplit            Boolean   @default(false)
-  parentTransactionId String?  @db.VarChar(36)
-  expenseGroupId     String?   @db.VarChar(36)
-  metadata           Json?     @db.Json
-  deletedAt          DateTime?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  id                  String    @id @default(uuid()) @db.VarChar(36)
+  userId              String    @db.VarChar(36)
+  accountId           String?   @db.VarChar(36)
+  categoryId          String?   @db.VarChar(36)
+  amount              Decimal   @db.Decimal(15, 2)
+  type                String    @db.VarChar(10) // income, expense, transfer
+  status              String    @default("completed") @db.VarChar(20) // completed, pending, cancelled
+  date                DateTime  @db.Date
+  description         String?   @db.VarChar(500)
+  notes               String?   @db.Text
+  tags                Json?     @db.Json
+  isRecurring         Boolean   @default(false)
+  recurringId         String?   @db.VarChar(36)
+  recurringFrequency  String?   @db.VarChar(20)
+  recurringEndDate    DateTime? @db.Date
+  receiptUrl          String?   @db.VarChar(500)
+  exchangeRate        Decimal?  @db.Decimal(10, 6)
+  originalCurrency    String?   @db.VarChar(10)
+  originalAmount      Decimal?  @db.Decimal(15, 2)
+  transferToAccountId String?   @db.VarChar(36)
+  isReviewed          Boolean   @default(false)
+  isSplit             Boolean   @default(false)
+  parentTransactionId String?   @db.VarChar(36)
+  expenseGroupId      String?   @db.VarChar(36)
+  metadata            Json?     @db.Json
+  deletedAt           DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   // Relations
-  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  account       Account?            @relation(fields: [accountId], references: [id])
-  category      TransactionCategory? @relation(fields: [categoryId], references: [id])
-  expenseGroup  ExpenseGroup?       @relation(fields: [expenseGroupId], references: [id])
-  splitTransactions Transaction[]   @relation("SplitTransaction")
-  parentTransaction Transaction?    @relation("SplitTransaction", fields: [parentTransactionId], references: [id])
+  user              User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account           Account?             @relation(fields: [accountId], references: [id])
+  category          TransactionCategory? @relation(fields: [categoryId], references: [id])
+  expenseGroup      ExpenseGroup?        @relation(fields: [expenseGroupId], references: [id])
+  splitTransactions Transaction[]        @relation("SplitTransaction")
+  parentTransaction Transaction?         @relation("SplitTransaction", fields: [parentTransactionId], references: [id])
 
   @@index([userId, date])
   @@index([accountId, date])
@@ -584,18 +587,18 @@ model Budget {
   name       String    @db.VarChar(255)
   amount     Decimal   @db.Decimal(15, 2)
   spent      Decimal   @default(0) @db.Decimal(15, 2)
-  period     String    @default("monthly") @db.VarChar(15)  // monthly, yearly, custom
+  period     String    @default("monthly") @db.VarChar(15) // monthly, yearly, custom
   startDate  DateTime  @db.Date
   endDate    DateTime  @db.Date
   isActive   Boolean   @default(true)
-  notifyAt   Int       @default(80)  // Percentage threshold for notification
+  notifyAt   Int       @default(80) // Percentage threshold for notification
   notes      String?   @db.VarChar(500)
   deletedAt  DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
   // Relations
-  user     User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user     User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   category TransactionCategory? @relation(fields: [categoryId], references: [id])
 
   @@index([userId, isActive])
@@ -628,8 +631,8 @@ model Bill {
   updatedAt    DateTime  @updatedAt
 
   // Relations
-  user     User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  account  Account?            @relation(fields: [accountId], references: [id])
+  user     User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account  Account?             @relation(fields: [accountId], references: [id])
   category TransactionCategory? @relation(fields: [categoryId], references: [id])
 
   @@index([userId, dueDate])
@@ -641,24 +644,24 @@ model Bill {
 // ─── GOALS ─────────────────────────────────────────────────
 // Financial goals with progress tracking
 model Goal {
-  id            String    @id @default(uuid()) @db.VarChar(36)
-  userId        String    @db.VarChar(36)
-  accountId     String?   @db.VarChar(36)
-  name          String    @db.VarChar(255)
-  targetAmount  Decimal   @db.Decimal(15, 2)
-  currentAmount Decimal   @default(0) @db.Decimal(15, 2)
-  deadline      DateTime? @db.Date
-  type          String    @default("savings") @db.VarChar(20)  // savings, investment, debt, custom
-  icon          String?   @db.VarChar(50)
-  color         String?   @db.VarChar(50)
+  id                  String    @id @default(uuid()) @db.VarChar(36)
+  userId              String    @db.VarChar(36)
+  accountId           String?   @db.VarChar(36)
+  name                String    @db.VarChar(255)
+  targetAmount        Decimal   @db.Decimal(15, 2)
+  currentAmount       Decimal   @default(0) @db.Decimal(15, 2)
+  deadline            DateTime? @db.Date
+  type                String    @default("savings") @db.VarChar(20) // savings, investment, debt, custom
+  icon                String?   @db.VarChar(50)
+  color               String?   @db.VarChar(50)
   monthlyContribution Decimal?  @db.Decimal(15, 2)
   isCompleted         Boolean   @default(false)
   completedAt         DateTime? @db.Date
   sortOrder           Int?      @default(0)
   notes               String?   @db.VarChar(500)
-  deletedAt     DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  deletedAt           DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -676,7 +679,7 @@ model Investment {
   userId       String    @db.VarChar(36)
   accountId    String?   @db.VarChar(36)
   name         String    @db.VarChar(255)
-  type         String    @db.VarChar(20)    // stock, crypto, mutual_fund, etf, bond, real_estate, other
+  type         String    @db.VarChar(20) // stock, crypto, mutual_fund, etf, bond, real_estate, other
   symbol       String?   @db.VarChar(20)
   quantity     Decimal   @db.Decimal(15, 6)
   buyPrice     Decimal   @db.Decimal(15, 2)
@@ -698,23 +701,48 @@ model Investment {
   @@map("investments")
 }
 
+// ─── ANALYTICS EVENTS ──────────────────────────────────────
+// Raw event log for product analytics (active users, feature usage, retention)
+model AnalyticsEvent {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  userId    String?  @db.VarChar(36)
+  event     String   @db.VarChar(100)
+  category  String?  @db.VarChar(50)
+  label     String?  @db.VarChar(255)
+  properties Json?   @db.Json
+  sessionId String?  @db.VarChar(100)
+  ip        String?  @db.VarChar(45)
+  userAgent String?  @db.VarChar(500)
+  timestamp DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([event, timestamp])
+  @@index([userId, timestamp])
+  @@index([category, timestamp])
+  @@index([event, category])
+  @@index([timestamp])
+  @@map("analytics_events")
+}
+
 // ─── ANALYTICS ─────────────────────────────────────────────
 // Pre-computed analytics for performance
 model Analytics {
-  id             String   @id @default(uuid()) @db.VarChar(36)
-  userId         String   @db.VarChar(36)
-  period         String   @db.VarChar(15)   // daily, weekly, monthly, yearly
-  periodStart    DateTime @db.Date
-  periodEnd      DateTime @db.Date
-  totalIncome    Decimal  @default(0) @db.Decimal(15, 2)
-  totalExpense   Decimal  @default(0) @db.Decimal(15, 2)
-  netAmount      Decimal  @default(0) @db.Decimal(15, 2)
-  totalAccountsBalance Decimal @default(0) @db.Decimal(15, 2)
-  topCategory    String?  @db.VarChar(100)
-  transactionCount Int    @default(0)
-  metadata       Json?    @db.Json
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                   String   @id @default(uuid()) @db.VarChar(36)
+  userId               String   @db.VarChar(36)
+  period               String   @db.VarChar(15) // daily, weekly, monthly, yearly
+  periodStart          DateTime @db.Date
+  periodEnd            DateTime @db.Date
+  totalIncome          Decimal  @default(0) @db.Decimal(15, 2)
+  totalExpense         Decimal  @default(0) @db.Decimal(15, 2)
+  netAmount            Decimal  @default(0) @db.Decimal(15, 2)
+  totalAccountsBalance Decimal  @default(0) @db.Decimal(15, 2)
+  topCategory          String?  @db.VarChar(100)
+  transactionCount     Int      @default(0)
+  metadata             Json?    @db.Json
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -730,7 +758,7 @@ model Analytics {
 model Notification {
   id        String    @id @default(uuid()) @db.VarChar(36)
   userId    String    @db.VarChar(36)
-  type      String    @db.VarChar(50)   // bill_reminder, budget_alert, goal_milestone, large_transaction, weekly_report, monthly_report, account_alert, reminder_upcoming, reminder_overdue
+  type      String    @db.VarChar(50) // bill_reminder, budget_alert, goal_milestone, large_transaction, weekly_report, monthly_report, account_alert, reminder_upcoming, reminder_overdue
   title     String    @db.VarChar(255)
   message   String    @db.Text
   isRead    Boolean   @default(false)
@@ -740,17 +768,17 @@ model Notification {
   createdAt DateTime  @default(now())
 
   // Smart reminder notification fields
-  reminderId  String?   @db.VarChar(36)
-  billId      String?   @db.VarChar(36)
-  priority    String    @default("medium") @db.VarChar(10)   // low, medium, high, urgent
-  category    String?   @db.VarChar(50)                       // bill, subscription, payment, task, event, goal
-  overdue     Boolean   @default(false)
+  reminderId   String?   @db.VarChar(36)
+  billId       String?   @db.VarChar(36)
+  priority     String    @default("medium") @db.VarChar(10) // low, medium, high, urgent
+  category     String?   @db.VarChar(50) // bill, subscription, payment, task, event, goal
+  overdue      Boolean   @default(false)
   snoozedUntil DateTime?
 
   // Relations
-  user  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  logs  NotificationLog[]
-  reminder Reminder?        @relation(fields: [reminderId], references: [id], onDelete: SetNull)
+  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs     NotificationLog[]
+  reminder Reminder?         @relation(fields: [reminderId], references: [id], onDelete: SetNull)
 
   @@index([userId, isRead])
   @@index([userId, createdAt])
@@ -768,8 +796,8 @@ model NotificationLog {
   id             String    @id @default(uuid()) @db.VarChar(36)
   notificationId String    @db.VarChar(36)
   userId         String    @db.VarChar(36)
-  channel        String    @db.VarChar(20)    // push, email, sms, in_app
-  status         String    @db.VarChar(20)    // sent, delivered, failed, opened
+  channel        String    @db.VarChar(20) // push, email, sms, in_app
+  status         String    @db.VarChar(20) // sent, delivered, failed, opened
   errorMessage   String?   @db.Text
   deliveredAt    DateTime?
   openedAt       DateTime?
@@ -789,21 +817,21 @@ model NotificationLog {
 // ─── SMS DETECTIONS ────────────────────────────────────────
 // SMS-based transaction detection (auto-categorization)
 model SmsDetection {
-  id             String    @id @default(uuid()) @db.VarChar(36)
-  userId         String    @db.VarChar(36)
-  sender         String    @db.VarChar(255)
-  messageBody    String    @db.Text
-  detectedAmount Decimal?  @db.Decimal(15, 2)
-  detectedCurrency String? @db.VarChar(10)
-  detectedType   String?   @db.VarChar(10)    // income, expense
-  confidence     Float?    @db.Float
-  categoryId     String?   @db.VarChar(36)
-  isProcessed    Boolean   @default(false)
-  processedAt    DateTime?
-  transactionId  String?   @db.VarChar(36)
-  rawData        Json?     @db.Json
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id               String    @id @default(uuid()) @db.VarChar(36)
+  userId           String    @db.VarChar(36)
+  sender           String    @db.VarChar(255)
+  messageBody      String    @db.Text
+  detectedAmount   Decimal?  @db.Decimal(15, 2)
+  detectedCurrency String?   @db.VarChar(10)
+  detectedType     String?   @db.VarChar(10) // income, expense
+  confidence       Float?    @db.Float
+  categoryId       String?   @db.VarChar(36)
+  isProcessed      Boolean   @default(false)
+  processedAt      DateTime?
+  transactionId    String?   @db.VarChar(36)
+  rawData          Json?     @db.Json
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -817,25 +845,25 @@ model SmsDetection {
 // ─── SETTINGS ──────────────────────────────────────────────
 // User application settings
 model Settings {
-  id                    String   @id @default(uuid()) @db.VarChar(36)
-  userId                String   @unique @db.VarChar(36)
-  theme                 String   @default("system") @db.VarChar(10)   // light, dark, system
-  weeklyReport          Boolean  @default(true)
-  monthlyReport         Boolean  @default(true)
-  largeTransactionAlert Decimal  @default(1000) @db.Decimal(15, 2)
-  budgetAlertThreshold  Int      @default(80)   // percentage
-  pushNotifications     Boolean  @default(true)
-  emailNotifications    Boolean  @default(true)
-  smsNotifications      Boolean  @default(false)
-  biometricAuth         Boolean  @default(false)
-  autoDetectTransactions Boolean @default(true)
-  defaultCurrency       String   @default("USD") @db.VarChar(10)
-  dateFormat            String   @default("MM/dd/yyyy") @db.VarChar(20)
-  firstDayOfWeek        Int      @default(0)     // 0=Sunday, 1=Monday
-  language              String   @default("en") @db.VarChar(10)
-  metadata              Json?    @db.Json
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  id                     String   @id @default(uuid()) @db.VarChar(36)
+  userId                 String   @unique @db.VarChar(36)
+  theme                  String   @default("system") @db.VarChar(10) // light, dark, system
+  weeklyReport           Boolean  @default(true)
+  monthlyReport          Boolean  @default(true)
+  largeTransactionAlert  Decimal  @default(1000) @db.Decimal(15, 2)
+  budgetAlertThreshold   Int      @default(80) // percentage
+  pushNotifications      Boolean  @default(true)
+  emailNotifications     Boolean  @default(true)
+  smsNotifications       Boolean  @default(false)
+  biometricAuth          Boolean  @default(false)
+  autoDetectTransactions Boolean  @default(true)
+  defaultCurrency        String   @default("USD") @db.VarChar(10)
+  dateFormat             String   @default("MM/dd/yyyy") @db.VarChar(20)
+  firstDayOfWeek         Int      @default(0) // 0=Sunday, 1=Monday
+  language               String   @default("en") @db.VarChar(10)
+  metadata               Json?    @db.Json
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -846,16 +874,16 @@ model Settings {
 // ─── ADMIN USERS ───────────────────────────────────────────
 // Administrative users with elevated privileges
 model AdminUser {
-  id        String    @id @default(uuid()) @db.VarChar(36)
-  email     String    @unique @db.VarChar(255)
-  password  String    @db.VarChar(255)
-  name      String    @db.VarChar(255)
-  role      String    @default("admin") @db.VarChar(20)  // super_admin, admin, support, analyst
-  permissions Json   @db.Json
-  isActive  Boolean   @default(true)
+  id          String    @id @default(uuid()) @db.VarChar(36)
+  email       String    @unique @db.VarChar(255)
+  password    String    @db.VarChar(255)
+  name        String    @db.VarChar(255)
+  role        String    @default("admin") @db.VarChar(20) // super_admin, admin, support, analyst
+  permissions Json      @db.Json
+  isActive    Boolean   @default(true)
   lastLoginAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   // Relations
   auditLogs AuditLog[]
@@ -871,8 +899,8 @@ model AuditLog {
   id          String   @id @default(uuid()) @db.VarChar(36)
   userId      String?  @db.VarChar(36)
   adminId     String?  @db.VarChar(36)
-  action      String   @db.VarChar(100)   // created, updated, deleted, viewed, exported, login, logout
-  entity      String   @db.VarChar(50)    // user, account, transaction, budget, bill, goal, investment, subscription, settings
+  action      String   @db.VarChar(100) // created, updated, deleted, viewed, exported, login, logout
+  entity      String   @db.VarChar(50) // user, account, transaction, budget, bill, goal, investment, subscription, settings
   entityId    String?  @db.VarChar(36)
   description String?  @db.Text
   oldValues   Json?    @db.Json
@@ -896,19 +924,19 @@ model AuditLog {
 // ─── SCANNED BILLS ──────────────────────────────────────────
 // Stores analyzed bills from receipt scanning
 model ScannedBill {
-  id           String   @id @default(uuid()) @db.VarChar(36)
-  userId       String   @db.VarChar(36)
-  merchantName String?  @db.VarChar(255)
-  category     String?  @db.VarChar(100)
-  totalAmount  Decimal? @db.Decimal(12, 2)
-  currency     String   @default("INR") @db.VarChar(10)
+  id           String    @id @default(uuid()) @db.VarChar(36)
+  userId       String    @db.VarChar(36)
+  merchantName String?   @db.VarChar(255)
+  category     String?   @db.VarChar(100)
+  totalAmount  Decimal?  @db.Decimal(12, 2)
+  currency     String    @default("INR") @db.VarChar(10)
   billDate     DateTime?
-  items        Json?    @db.Json
-  notes        String?  @db.Text
-  imageUrl     String?  @db.Text
+  items        Json?     @db.Json
+  notes        String?   @db.Text
+  imageUrl     String?   @db.Text
   confidence   Float?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -930,7 +958,7 @@ model ExpenseGroup {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  user         User                @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  user         User                 @relation(fields: [createdBy], references: [id], onDelete: Cascade)
   members      ExpenseGroupMember[]
   transactions Transaction[]
   tempInvites  TempInvite[]
@@ -940,11 +968,11 @@ model ExpenseGroup {
 }
 
 model ExpenseGroupMember {
-  id         String   @id @default(uuid()) @db.VarChar(36)
-  groupId    String   @db.VarChar(36)
-  userId     String   @db.VarChar(36)
-  role       String   @default("member") @db.VarChar(20) // admin, member
-  addedAt    DateTime @default(now())
+  id      String   @id @default(uuid()) @db.VarChar(36)
+  groupId String   @db.VarChar(36)
+  userId  String   @db.VarChar(36)
+  role    String   @default("member") @db.VarChar(20) // admin, member
+  addedAt DateTime @default(now())
 
   group ExpenseGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   user  User         @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -956,13 +984,13 @@ model ExpenseGroupMember {
 
 // ─── TEMPORARY INVITES (SHADOW USERS) ──────────────────────
 model TempInvite {
-  id        String   @id @default(uuid()) @db.VarChar(36)
-  token     String   @unique @db.VarChar(255)
-  userId    String   @db.VarChar(36)
-  groupId   String   @db.VarChar(36)
+  id        String    @id @default(uuid()) @db.VarChar(36)
+  token     String    @unique @db.VarChar(255)
+  userId    String    @db.VarChar(36)
+  groupId   String    @db.VarChar(36)
   usedAt    DateTime?
   expiresAt DateTime
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   user  User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   group ExpenseGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
@@ -974,12 +1002,12 @@ model TempInvite {
 
 // ─── CURRENCIES ─────────────────────────────────────────────
 model Currency {
-  id       String   @id @default(uuid()) @db.VarChar(36)
-  code     String   @unique @db.VarChar(3)
-  name     String   @db.VarChar(100)
-  symbol   String   @db.VarChar(10)
-  locale   String?  @db.VarChar(10)
-  isActive Boolean  @default(true)
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  code      String   @unique @db.VarChar(3)
+  name      String   @db.VarChar(100)
+  symbol    String   @db.VarChar(10)
+  locale    String?  @db.VarChar(10)
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1005,7 +1033,7 @@ model SharedGroup {
   // ACTIVE → PAUSED → ACTIVE (toggle)
   // ACTIVE → COMPLETED → ARCHIVED → CLOSED (terminal)
   // Any state → CLOSED (admin force-close)
-  status          String   @default("ACTIVE") @db.VarChar(20)
+  status          String    @default("ACTIVE") @db.VarChar(20)
   statusChangedAt DateTime?
   statusChangedBy String?   @db.VarChar(36)
 
@@ -1017,44 +1045,44 @@ model SharedGroup {
   frozenAt    DateTime?
 
   // Settlement lockdown (prevents new entries when finalized)
-  settlementsFinalized Boolean @default(false)
+  settlementsFinalized Boolean   @default(false)
   finalizedAt          DateTime?
 
-  createdBy     String   @db.VarChar(36)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdBy String   @db.VarChar(36)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  creator            User                     @relation("GroupCreator", fields: [createdBy], references: [id], onDelete: Cascade)
-  members            SharedGroupMember[]
-  expenses           SharedExpense[]
-  settlements        Settlement[]
-  invites            GroupInvite[]
-  contributionRules  ContributionRule[]
-  groupMessages      GroupChatMessage[]
-  groupChatReads     GroupChatRead[]
-  sharedGoals        SharedGoal[]
-  householdBills     HouseholdBill[]
-  trip               TripGroup?
-  coupleProfile      CoupleFinanceProfile?
-  lifecycleEvents    GroupLifecycleEvent[]
-  memberRemovalLogs  MemberRemovalLog[]
-  reimbursementLogs  ReimbursementLog[]
-  coupleFinanceInvites CoupleFinanceInvite[]
-  wallets              GroupWallet[]
-  advanceContributions AdvanceContribution[]
-  expenseApprovals     ExpenseApproval[]
-  documents            GroupDocument[]
-  calendar             GroupCalendar?
-  creditCardBills      CreditCardBill[]
-  cashPools            CashPool[]
-  emergencyFunds       EmergencyFund[]
-  netWorthSnapshots    FamilyNetWorthSnapshot[]
-  exports              ExportHistory[]
-  guestMembers         GuestMember[]
+  creator                 User                     @relation("GroupCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  members                 SharedGroupMember[]
+  expenses                SharedExpense[]
+  settlements             Settlement[]
+  invites                 GroupInvite[]
+  contributionRules       ContributionRule[]
+  groupMessages           GroupChatMessage[]
+  groupChatReads          GroupChatRead[]
+  sharedGoals             SharedGoal[]
+  householdBills          HouseholdBill[]
+  trip                    TripGroup?
+  coupleProfile           CoupleFinanceProfile?
+  lifecycleEvents         GroupLifecycleEvent[]
+  memberRemovalLogs       MemberRemovalLog[]
+  reimbursementLogs       ReimbursementLog[]
+  coupleFinanceInvites    CoupleFinanceInvite[]
+  wallets                 GroupWallet[]
+  advanceContributions    AdvanceContribution[]
+  expenseApprovals        ExpenseApproval[]
+  documents               GroupDocument[]
+  calendar                GroupCalendar?
+  creditCardBills         CreditCardBill[]
+  cashPools               CashPool[]
+  emergencyFunds          EmergencyFund[]
+  netWorthSnapshots       FamilyNetWorthSnapshot[]
+  exports                 ExportHistory[]
+  guestMembers            GuestMember[]
   settlementConfirmations SettlementConfirmation[]
-  expenseApprovalQueue ExpenseApprovalQueue[]
-  activities           GroupActivity[]
-  payNowLinks          PayNowLink[]
+  expenseApprovalQueue    ExpenseApprovalQueue[]
+  activities              GroupActivity[]
+  payNowLinks             PayNowLink[]
 
   @@index([createdBy])
   @@index([type])
@@ -1063,19 +1091,19 @@ model SharedGroup {
 }
 
 model SharedGroupMember {
-  id        String   @id @default(uuid()) @db.VarChar(36)
-  groupId   String   @db.VarChar(36)
-  userId    String   @db.VarChar(36)
-  role      String   @default("member") @db.VarChar(20) // admin, member, viewer
+  id      String @id @default(uuid()) @db.VarChar(36)
+  groupId String @db.VarChar(36)
+  userId  String @db.VarChar(36)
+  role    String @default("member") @db.VarChar(20) // admin, member, viewer
 
   // Member lifecycle: active, removed, left, expired
-  isActive     Boolean  @default(true)
-  removedAt    DateTime?
-  removedBy    String?  @db.VarChar(36)
-  removalReason String? @db.VarChar(500)
+  isActive      Boolean   @default(true)
+  removedAt     DateTime?
+  removedBy     String?   @db.VarChar(36)
+  removalReason String?   @db.VarChar(500)
 
-  nickname  String?  @db.VarChar(100)
-  joinedAt  DateTime @default(now())
+  nickname String?  @db.VarChar(100)
+  joinedAt DateTime @default(now())
 
   group SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -1087,26 +1115,26 @@ model SharedGroupMember {
 }
 
 model GroupInvite {
-  id        String   @id @default(uuid()) @db.VarChar(36)
-  groupId   String   @db.VarChar(36)
-  token     String   @unique @db.VarChar(255)
-  email     String?  @db.VarChar(255)
-  invitedBy String   @db.VarChar(36)
+  id        String  @id @default(uuid()) @db.VarChar(36)
+  groupId   String  @db.VarChar(36)
+  token     String  @unique @db.VarChar(255)
+  email     String? @db.VarChar(255)
+  invitedBy String  @db.VarChar(36)
 
   // Invite lifecycle
-  status    String   @default("active") @db.VarChar(20) // active, revoked, expired, used
+  status    String    @default("active") @db.VarChar(20) // active, revoked, expired, used
   revokedAt DateTime?
-  revokedBy String?  @db.VarChar(36)
+  revokedBy String?   @db.VarChar(36)
   usedAt    DateTime?
   expiresAt DateTime
 
   // Guest session expiration
   guestAccessExpiresAt DateTime?
-  temporaryAccessToken String?  @db.VarChar(512)
+  temporaryAccessToken String?   @db.VarChar(512)
 
   createdAt DateTime @default(now())
 
-  group    SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  group   SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   inviter User        @relation(fields: [invitedBy], references: [id], onDelete: Cascade)
 
   @@index([token])
@@ -1116,27 +1144,27 @@ model GroupInvite {
 }
 
 model SharedExpense {
-  id            String   @id @default(uuid()) @db.VarChar(36)
-  groupId       String   @db.VarChar(36)
-  description   String   @db.VarChar(500)
-  amount        Decimal  @db.Decimal(15, 2)
-  paidBy        String   @db.VarChar(36) // userId
-  category      String   @default("Other") @db.VarChar(100)
-  date          DateTime @default(now())
-  splitType     String   @default("equal") @db.VarChar(30) // equal, percentage, exact, shares, weighted, multi_payer
-  currency      String   @default("INR") @db.VarChar(10)
-  notes         String?  @db.Text
-  receiptUrl    String?  @db.Text
-  isReimbursement Boolean @default(false)
-  isRecurring   Boolean  @default(false)
-  recurringFreq String?  @db.VarChar(20)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String   @id @default(uuid()) @db.VarChar(36)
+  groupId         String   @db.VarChar(36)
+  description     String   @db.VarChar(500)
+  amount          Decimal  @db.Decimal(15, 2)
+  paidBy          String   @db.VarChar(36) // userId
+  category        String   @default("Other") @db.VarChar(100)
+  date            DateTime @default(now())
+  splitType       String   @default("equal") @db.VarChar(30) // equal, percentage, exact, shares, weighted, multi_payer
+  currency        String   @default("INR") @db.VarChar(10)
+  notes           String?  @db.Text
+  receiptUrl      String?  @db.Text
+  isReimbursement Boolean  @default(false)
+  isRecurring     Boolean  @default(false)
+  recurringFreq   String?  @db.VarChar(20)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  group    SharedGroup    @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  payer    User           @relation(fields: [paidBy], references: [id])
-  splits   ExpenseSplit[]
-  comments GroupChatMessage[]
+  group             SharedGroup        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  payer             User               @relation(fields: [paidBy], references: [id])
+  splits            ExpenseSplit[]
+  comments          GroupChatMessage[]
   reimbursementLogs ReimbursementLog[]
   expenseApprovals  ExpenseApproval[]
 
@@ -1164,25 +1192,25 @@ model ExpenseSplit {
 }
 
 model Settlement {
-  id          String   @id @default(uuid()) @db.VarChar(36)
-  groupId     String   @db.VarChar(36)
-  fromUserId  String   @db.VarChar(36)
-  toUserId    String   @db.VarChar(36)
-  amount      Decimal  @db.Decimal(15, 2)
-  currency    String   @default("INR") @db.VarChar(10)
-  method      String   @default("cash") @db.VarChar(30) // upi, bank, cash, other
-  status      String   @default("pending") @db.VarChar(20) // pending, completed, verified
-  note        String?  @db.VarChar(500)
-  proofUrl    String?  @db.Text
-  settledAt   DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String    @id @default(uuid()) @db.VarChar(36)
+  groupId    String    @db.VarChar(36)
+  fromUserId String    @db.VarChar(36)
+  toUserId   String    @db.VarChar(36)
+  amount     Decimal   @db.Decimal(15, 2)
+  currency   String    @default("INR") @db.VarChar(10)
+  method     String    @default("cash") @db.VarChar(30) // upi, bank, cash, other
+  status     String    @default("pending") @db.VarChar(20) // pending, completed, verified
+  note       String?   @db.VarChar(500)
+  proofUrl   String?   @db.Text
+  settledAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
-  group     SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  fromUser  User        @relation("SettlementFrom", fields: [fromUserId], references: [id])
-  toUser    User        @relation("SettlementTo", fields: [toUserId], references: [id])
-  confirmation  SettlementConfirmation?
-  payNowLinks   PayNowLink[]
+  group        SharedGroup             @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  fromUser     User                    @relation("SettlementFrom", fields: [fromUserId], references: [id])
+  toUser       User                    @relation("SettlementTo", fields: [toUserId], references: [id])
+  confirmation SettlementConfirmation?
+  payNowLinks  PayNowLink[]
 
   @@index([groupId])
   @@index([fromUserId])
@@ -1194,30 +1222,30 @@ model Settlement {
 // ─── GUEST / EXTERNAL MEMBER ─────────────────────────────
 // Enhanced profile for temp/guest users with payment details
 model GuestMember {
-  id        String   @id @default(uuid()) @db.VarChar(36)
-  userId    String   @unique @db.VarChar(36)
-  groupId   String   @db.VarChar(36)
+  id      String @id @default(uuid()) @db.VarChar(36)
+  userId  String @unique @db.VarChar(36)
+  groupId String @db.VarChar(36)
 
   // Profile
-  name      String   @db.VarChar(255)
-  phone     String?  @db.VarChar(20)
-  email     String?  @db.VarChar(255)
-  avatarUrl String?  @db.VarChar(500)
+  name      String  @db.VarChar(255)
+  phone     String? @db.VarChar(20)
+  email     String? @db.VarChar(255)
+  avatarUrl String? @db.VarChar(500)
 
   // Payment details
-  upiId     String?  @db.VarChar(100)
-  settlementPreference String @default("upi") @db.VarChar(20) // upi, cash, bank, other
+  upiId                String? @db.VarChar(100)
+  settlementPreference String  @default("upi") @db.VarChar(20) // upi, cash, bank, other
 
   // Invite tracking
-  inviteToken   String?  @unique @db.VarChar(255)
-  inviteStatus  String   @default("pending") @db.VarChar(20) // pending, accepted, expired, revoked
-  invitedAt     DateTime @default(now())
-  acceptedAt    DateTime?
-  expiresAt     DateTime
+  inviteToken  String?   @unique @db.VarChar(255)
+  inviteStatus String    @default("pending") @db.VarChar(20) // pending, accepted, expired, revoked
+  invitedAt    DateTime  @default(now())
+  acceptedAt   DateTime?
+  expiresAt    DateTime
 
   // Settlement status
-  totalOwed     Decimal  @default(0) @db.Decimal(15, 2)
-  totalPaid     Decimal  @default(0) @db.Decimal(15, 2)
+  totalOwed Decimal @default(0) @db.Decimal(15, 2)
+  totalPaid Decimal @default(0) @db.Decimal(15, 2)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1235,26 +1263,26 @@ model GuestMember {
 // ─── SETTLEMENT CONFIRMATION ──────────────────────────────
 // Tracks payer confirmations and receiver confirmations
 model SettlementConfirmation {
-  id           String   @id @default(uuid()) @db.VarChar(36)
-  settlementId String   @unique @db.VarChar(36)
-  groupId      String   @db.VarChar(36)
+  id           String @id @default(uuid()) @db.VarChar(36)
+  settlementId String @unique @db.VarChar(36)
+  groupId      String @db.VarChar(36)
 
   // Payer confirms they sent payment
-  payerConfirmed    Boolean  @default(false)
-  payerConfirmedAt  DateTime?
-  payerNote         String?  @db.VarChar(500)
+  payerConfirmed   Boolean   @default(false)
+  payerConfirmedAt DateTime?
+  payerNote        String?   @db.VarChar(500)
 
   // Receiver confirms they received payment
-  receiverConfirmed   Boolean  @default(false)
+  receiverConfirmed   Boolean   @default(false)
   receiverConfirmedAt DateTime?
-  receiverNote        String?  @db.VarChar(500)
-  receiverRejected    Boolean  @default(false)
-  rejectionReason     String?  @db.VarChar(500)
+  receiverNote        String?   @db.VarChar(500)
+  receiverRejected    Boolean   @default(false)
+  rejectionReason     String?   @db.VarChar(500)
 
   // UPI payment tracking
-  upiTransactionId  String?  @db.VarChar(255)
-  upiDeepLink       String?  @db.VarChar(500)
-  paymentMethod     String?  @db.VarChar(30) // gpay, phonepay, paytm, bhim, other
+  upiTransactionId String? @db.VarChar(255)
+  upiDeepLink      String? @db.VarChar(500)
+  paymentMethod    String? @db.VarChar(30) // gpay, phonepay, paytm, bhim, other
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1270,20 +1298,20 @@ model SettlementConfirmation {
 // ─── EXPENSE APPROVAL QUEUE ───────────────────────────────
 // Guest-submitted expenses pending admin approval
 model ExpenseApprovalQueue {
-  id          String   @id @default(uuid()) @db.VarChar(36)
-  groupId     String   @db.VarChar(36)
-  guestId     String   @db.VarChar(36) // userId of guest
-  guestName   String   @db.VarChar(255)
+  id        String @id @default(uuid()) @db.VarChar(36)
+  groupId   String @db.VarChar(36)
+  guestId   String @db.VarChar(36) // userId of guest
+  guestName String @db.VarChar(255)
 
-  description String   @db.VarChar(500)
-  amount      Decimal  @db.Decimal(15, 2)
-  category    String   @default("Other") @db.VarChar(100)
-  paidBy      String   @db.VarChar(36) // userId of who paid
+  description String  @db.VarChar(500)
+  amount      Decimal @db.Decimal(15, 2)
+  category    String  @default("Other") @db.VarChar(100)
+  paidBy      String  @db.VarChar(36) // userId of who paid
 
-  status      String   @default("pending") @db.VarChar(20) // pending, approved, rejected
-  reviewedBy  String?  @db.VarChar(36) // admin userId who reviewed
-  reviewedAt  DateTime?
-  rejectReason String? @db.VarChar(500)
+  status       String    @default("pending") @db.VarChar(20) // pending, approved, rejected
+  reviewedBy   String?   @db.VarChar(36) // admin userId who reviewed
+  reviewedAt   DateTime?
+  rejectReason String?   @db.VarChar(500)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1299,16 +1327,16 @@ model ExpenseApprovalQueue {
 // ─── GROUP ACTIVITY TIMELINE ──────────────────────────────
 // Tracks all actions within a group for transparency
 model GroupActivity {
-  id        String   @id @default(uuid()) @db.VarChar(36)
-  groupId   String   @db.VarChar(36)
-  userId    String   @db.VarChar(36)
-  userName  String   @db.VarChar(255)
+  id       String @id @default(uuid()) @db.VarChar(36)
+  groupId  String @db.VarChar(36)
+  userId   String @db.VarChar(36)
+  userName String @db.VarChar(255)
 
-  action    String   @db.VarChar(50)  // expense_added, member_joined, settlement_requested,
-                                      // settlement_confirmed, guest_added_expense, payment_completed,
-                                      // guest_approved, member_removed, group_created, goal_added
+  action      String @db.VarChar(50) // expense_added, member_joined, settlement_requested,
+  // settlement_confirmed, guest_added_expense, payment_completed,
+  // guest_approved, member_removed, group_created, goal_added
   description String @db.VarChar(500)
-  metadata   Json?   @db.Json        // { expenseId, amount, settlementId, guestName, etc. }
+  metadata    Json?  @db.Json // { expenseId, amount, settlementId, guestName, etc. }
 
   createdAt DateTime @default(now())
 
@@ -1323,22 +1351,22 @@ model GroupActivity {
 // ─── PAY NOW / SHAREABLE SETTLEMENT LINK ──────────────────
 // Shareable links for non-app users to pay
 model PayNowLink {
-  id           String   @id @default(uuid()) @db.VarChar(36)
-  groupId      String   @db.VarChar(36)
-  settlementId String?  @db.VarChar(36)
-  fromUserId   String   @db.VarChar(36)
-  toUserId     String   @db.VarChar(36)
-  amount       Decimal  @db.Decimal(15, 2)
+  id           String  @id @default(uuid()) @db.VarChar(36)
+  groupId      String  @db.VarChar(36)
+  settlementId String? @db.VarChar(36)
+  fromUserId   String  @db.VarChar(36)
+  toUserId     String  @db.VarChar(36)
+  amount       Decimal @db.Decimal(15, 2)
 
-  token        String   @unique @db.VarChar(255)
-  status       String   @default("active") @db.VarChar(20) // active, paid, expired, cancelled
-  paidAt       DateTime?
-  expiresAt    DateTime
+  token     String    @unique @db.VarChar(255)
+  status    String    @default("active") @db.VarChar(20) // active, paid, expired, cancelled
+  paidAt    DateTime?
+  expiresAt DateTime
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  group     SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  group      SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   settlement Settlement? @relation(fields: [settlementId], references: [id])
   fromUser   User        @relation("PayFrom", fields: [fromUserId], references: [id])
   toUser     User        @relation("PayTo", fields: [toUserId], references: [id])
@@ -1350,20 +1378,20 @@ model PayNowLink {
 }
 
 model ReimbursementLog {
-  id           String   @id @default(uuid()) @db.VarChar(36)
-  groupId      String   @db.VarChar(36)
-  expenseId    String?  @db.VarChar(36)
-  fromUserId   String   @db.VarChar(36)
-  toUserId     String   @db.VarChar(36)
-  amount       Decimal  @db.Decimal(15, 2)
-  description  String?  @db.VarChar(500)
-  status       String   @default("pending") @db.VarChar(20)
-  createdAt    DateTime @default(now())
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  groupId     String   @db.VarChar(36)
+  expenseId   String?  @db.VarChar(36)
+  fromUserId  String   @db.VarChar(36)
+  toUserId    String   @db.VarChar(36)
+  amount      Decimal  @db.Decimal(15, 2)
+  description String?  @db.VarChar(500)
+  status      String   @default("pending") @db.VarChar(20)
+  createdAt   DateTime @default(now())
 
-  group     SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  expense   SharedExpense? @relation(fields: [expenseId], references: [id])
-  fromUser  User           @relation("ReimbursementFrom", fields: [fromUserId], references: [id])
-  toUser    User           @relation("ReimbursementTo", fields: [toUserId], references: [id])
+  group    SharedGroup    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  expense  SharedExpense? @relation(fields: [expenseId], references: [id])
+  fromUser User           @relation("ReimbursementFrom", fields: [fromUserId], references: [id])
+  toUser   User           @relation("ReimbursementTo", fields: [toUserId], references: [id])
 
   @@index([groupId])
   @@index([fromUserId])
@@ -1372,11 +1400,11 @@ model ReimbursementLog {
 }
 
 model SalaryProfile {
-  id        String  @id @default(uuid()) @db.VarChar(36)
-  userId    String  @unique @db.VarChar(36)
-  salary    Decimal @db.Decimal(15, 2)
-  currency  String  @default("INR") @db.VarChar(10)
-  frequency String  @default("monthly") @db.VarChar(20)
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  userId    String   @unique @db.VarChar(36)
+  salary    Decimal  @db.Decimal(15, 2)
+  currency  String   @default("INR") @db.VarChar(10)
+  frequency String   @default("monthly") @db.VarChar(20)
   updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -1385,17 +1413,17 @@ model SalaryProfile {
 }
 
 model CoupleFinanceProfile {
-  id              String  @id @default(uuid()) @db.VarChar(36)
-  groupId         String  @unique @db.VarChar(36)
-  partner1Id      String  @db.VarChar(36)
-  partner2Id      String  @db.VarChar(36)
-  sharedBudget    Decimal? @default(0) @db.Decimal(15, 2)
-  savingsGoal     Decimal? @default(0) @db.Decimal(15, 2)
-  splitRatio      String  @default("50:50") @db.VarChar(10)
-  contributionType String @default("equal") @db.VarChar(30) // equal, salary_ratio, custom
-  startDate       DateTime @default(now())
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id               String   @id @default(uuid()) @db.VarChar(36)
+  groupId          String   @unique @db.VarChar(36)
+  partner1Id       String   @db.VarChar(36)
+  partner2Id       String   @db.VarChar(36)
+  sharedBudget     Decimal? @default(0) @db.Decimal(15, 2)
+  savingsGoal      Decimal? @default(0) @db.Decimal(15, 2)
+  splitRatio       String   @default("50:50") @db.VarChar(10)
+  contributionType String   @default("equal") @db.VarChar(30) // equal, salary_ratio, custom
+  startDate        DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   group    SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   partner1 User        @relation("CouplePartner1", fields: [partner1Id], references: [id])
@@ -1422,16 +1450,16 @@ model CoupleFinanceInvite {
 }
 
 model ContributionRule {
-  id               String  @id @default(uuid()) @db.VarChar(36)
-  groupId          String  @db.VarChar(36)
-  name             String  @db.VarChar(100)
-  type             String  @default("equal") @db.VarChar(30) // equal, salary_ratio, fixed, percentage, custom
-  values           Json    @db.Json // { "userId": percentage/fixed amount }
-  isActive         Boolean @default(true)
-  frequency        String  @default("monthly") @db.VarChar(20)
-  autoApply        Boolean @default(false)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  groupId   String   @db.VarChar(36)
+  name      String   @db.VarChar(100)
+  type      String   @default("equal") @db.VarChar(30) // equal, salary_ratio, fixed, percentage, custom
+  values    Json     @db.Json // { "userId": percentage/fixed amount }
+  isActive  Boolean  @default(true)
+  frequency String   @default("monthly") @db.VarChar(20)
+  autoApply Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   group SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
@@ -1440,21 +1468,21 @@ model ContributionRule {
 }
 
 model TripGroup {
-  id            String   @id @default(uuid()) @db.VarChar(36)
-  groupId       String   @unique @db.VarChar(36)
-  destination   String?  @db.VarChar(255)
+  id            String    @id @default(uuid()) @db.VarChar(36)
+  groupId       String    @unique @db.VarChar(36)
+  destination   String?   @db.VarChar(255)
   startDate     DateTime?
   endDate       DateTime?
-  totalBudget   Decimal? @default(0) @db.Decimal(15, 2)
-  totalSpent    Decimal? @default(0) @db.Decimal(15, 2)
+  totalBudget   Decimal?  @default(0) @db.Decimal(15, 2)
+  totalSpent    Decimal?  @default(0) @db.Decimal(15, 2)
   distanceKm    Float?
-  transportMode String?  @db.VarChar(50)
-  notes         String?  @db.Text
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  transportMode String?   @db.VarChar(50)
+  notes         String?   @db.Text
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  group       SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  expenses    TripExpense[]
+  group    SharedGroup   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  expenses TripExpense[]
 
   @@index([groupId])
   @@map("trip_groups")
@@ -1478,20 +1506,20 @@ model TripExpense {
 }
 
 model HouseholdBill {
-  id          String   @id @default(uuid()) @db.VarChar(36)
-  groupId     String   @db.VarChar(36)
-  type        String   @db.VarChar(50) // rent, electricity, water, gas, internet, maid, grocery, other
-  amount      Decimal  @db.Decimal(15, 2)
-  dueDate     DateTime?
-  paidBy      String   @db.VarChar(36)
-  isPaid      Boolean  @default(false)
-  paidAt      DateTime?
-  period      String?  @db.VarChar(20) // month-year like "2026-06"
-  notes       String?  @db.Text
-  createdAt   DateTime @default(now())
+  id        String    @id @default(uuid()) @db.VarChar(36)
+  groupId   String    @db.VarChar(36)
+  type      String    @db.VarChar(50) // rent, electricity, water, gas, internet, maid, grocery, other
+  amount    Decimal   @db.Decimal(15, 2)
+  dueDate   DateTime?
+  paidBy    String    @db.VarChar(36)
+  isPaid    Boolean   @default(false)
+  paidAt    DateTime?
+  period    String?   @db.VarChar(20) // month-year like "2026-06"
+  notes     String?   @db.Text
+  createdAt DateTime  @default(now())
 
-  group SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  payer User        @relation(fields: [paidBy], references: [id])
+  group         SharedGroup             @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  payer         User                    @relation(fields: [paidBy], references: [id])
   contributions HouseholdContribution[]
 
   @@index([groupId, type, period])
@@ -1499,11 +1527,11 @@ model HouseholdBill {
 }
 
 model HouseholdContribution {
-  id        String  @id @default(uuid()) @db.VarChar(36)
-  billId    String  @db.VarChar(36)
-  userId    String  @db.VarChar(36)
-  amount    Decimal @db.Decimal(15, 2)
-  isPaid    Boolean @default(false)
+  id     String  @id @default(uuid()) @db.VarChar(36)
+  billId String  @db.VarChar(36)
+  userId String  @db.VarChar(36)
+  amount Decimal @db.Decimal(15, 2)
+  isPaid Boolean @default(false)
 
   bill HouseholdBill @relation(fields: [billId], references: [id], onDelete: Cascade)
   user User          @relation(fields: [userId], references: [id])
@@ -1513,20 +1541,20 @@ model HouseholdContribution {
 }
 
 model SharedGoal {
-  id          String   @id @default(uuid()) @db.VarChar(36)
-  groupId     String   @db.VarChar(36)
-  name        String   @db.VarChar(255)
-  targetAmount Decimal @db.Decimal(15, 2)
-  savedAmount Decimal  @default(0) @db.Decimal(15, 2)
-  deadline    DateTime?
-  category    String   @default("savings") @db.VarChar(50)
-  notes       String?  @db.Text
-  createdBy   String   @db.VarChar(36)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String    @id @default(uuid()) @db.VarChar(36)
+  groupId      String    @db.VarChar(36)
+  name         String    @db.VarChar(255)
+  targetAmount Decimal   @db.Decimal(15, 2)
+  savedAmount  Decimal   @default(0) @db.Decimal(15, 2)
+  deadline     DateTime?
+  category     String    @default("savings") @db.VarChar(50)
+  notes        String?   @db.Text
+  createdBy    String    @db.VarChar(36)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  group        SharedGroup                @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  creator      User                       @relation(fields: [createdBy], references: [id])
+  group         SharedGroup              @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  creator       User                     @relation(fields: [createdBy], references: [id])
   contributions SharedGoalContribution[]
 
   @@index([groupId])
@@ -1534,11 +1562,11 @@ model SharedGoal {
 }
 
 model SharedGoalContribution {
-  id       String  @id @default(uuid()) @db.VarChar(36)
-  goalId   String  @db.VarChar(36)
-  userId   String  @db.VarChar(36)
-  amount   Decimal @db.Decimal(15, 2)
-  date     DateTime @default(now())
+  id     String   @id @default(uuid()) @db.VarChar(36)
+  goalId String   @db.VarChar(36)
+  userId String   @db.VarChar(36)
+  amount Decimal  @db.Decimal(15, 2)
+  date   DateTime @default(now())
 
   goal SharedGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
   user User       @relation(fields: [userId], references: [id])
@@ -1548,16 +1576,16 @@ model SharedGoalContribution {
 }
 
 model GroupChatMessage {
-  id         String   @id @default(uuid()) @db.VarChar(36)
-  groupId    String   @db.VarChar(36)
-  senderId   String   @db.VarChar(36)
-  expenseId  String?  @db.VarChar(36)
-  type       String   @default("text") @db.VarChar(30) // text, expense, settlement, image, system
-  message    String?  @db.Text
-  imageUrl   String?  @db.Text
-  metadata   Json?    @db.Json
-  isPinned   Boolean  @default(false)
-  createdAt  DateTime @default(now())
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  groupId   String   @db.VarChar(36)
+  senderId  String   @db.VarChar(36)
+  expenseId String?  @db.VarChar(36)
+  type      String   @default("text") @db.VarChar(30) // text, expense, settlement, image, system
+  message   String?  @db.Text
+  imageUrl  String?  @db.Text
+  metadata  Json?    @db.Json
+  isPinned  Boolean  @default(false)
+  createdAt DateTime @default(now())
 
   group   SharedGroup    @relation(fields: [groupId], references: [id], onDelete: Cascade)
   sender  User           @relation(fields: [senderId], references: [id])
@@ -1569,9 +1597,9 @@ model GroupChatMessage {
 }
 
 model GroupChatRead {
-  id        String   @id @default(uuid()) @db.VarChar(36)
-  userId    String   @db.VarChar(36)
-  groupId   String   @db.VarChar(36)
+  id         String   @id @default(uuid()) @db.VarChar(36)
+  userId     String   @db.VarChar(36)
+  groupId    String   @db.VarChar(36)
   lastReadAt DateTime @default(now())
 
   user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -1585,14 +1613,14 @@ model GroupChatRead {
 // Audit trail for every group state change
 
 model GroupLifecycleEvent {
-  id        String   @id @default(uuid()) @db.VarChar(36)
-  groupId   String   @db.VarChar(36)
-  eventType String   @db.VarChar(50) // created, status_changed, member_removed, member_left, invite_revoked, guest_expired, group_frozen, settlements_finalized, report_exported
-  fromStatus String? @db.VarChar(20)
-  toStatus   String? @db.VarChar(20)
-  metadata   Json?   @db.Json // flexible payload: { removedUserId, reason, etc }
-  triggeredBy String  @db.VarChar(36) // userId or 'system'
-  createdAt  DateTime @default(now())
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  groupId     String   @db.VarChar(36)
+  eventType   String   @db.VarChar(50) // created, status_changed, member_removed, member_left, invite_revoked, guest_expired, group_frozen, settlements_finalized, report_exported
+  fromStatus  String?  @db.VarChar(20)
+  toStatus    String?  @db.VarChar(20)
+  metadata    Json?    @db.Json // flexible payload: { removedUserId, reason, etc }
+  triggeredBy String   @db.VarChar(36) // userId or 'system'
+  createdAt   DateTime @default(now())
 
   group SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
@@ -1602,18 +1630,18 @@ model GroupLifecycleEvent {
 }
 
 model MemberRemovalLog {
-  id         String   @id @default(uuid()) @db.VarChar(36)
-  groupId    String   @db.VarChar(36)
-  memberId   String   @db.VarChar(36) // the removed user ID
-  removedBy  String   @db.VarChar(36) // admin who removed
-  reason     String?  @db.VarChar(500)
-  hadOutstandingBalance Boolean @default(false)
-  balanceAtRemoval Decimal? @db.Decimal(15, 2)
-  invalidationToken String? @db.VarChar(512)
-  createdAt  DateTime @default(now())
+  id                    String   @id @default(uuid()) @db.VarChar(36)
+  groupId               String   @db.VarChar(36)
+  memberId              String   @db.VarChar(36) // the removed user ID
+  removedBy             String   @db.VarChar(36) // admin who removed
+  reason                String?  @db.VarChar(500)
+  hadOutstandingBalance Boolean  @default(false)
+  balanceAtRemoval      Decimal? @db.Decimal(15, 2)
+  invalidationToken     String?  @db.VarChar(512)
+  createdAt             DateTime @default(now())
 
-  group SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  remover User      @relation(fields: [removedBy], references: [id])
+  group   SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  remover User        @relation(fields: [removedBy], references: [id])
 
   @@index([groupId, createdAt])
   @@index([memberId])
@@ -1621,15 +1649,15 @@ model MemberRemovalLog {
 }
 
 model SessionRevocation {
-  id         String   @id @default(uuid()) @db.VarChar(36)
-  userId     String   @db.VarChar(36)
-  groupId    String   @db.VarChar(36)
-  tokenJti   String?  @db.VarChar(255) // JWT ID for token-specific invalidation
-  reason     String?  @db.VarChar(200) // member_removed, group_completed, invite_revoked, group_closed, guest_expired
-  revokedAt  DateTime @default(now())
-  expiresAt  DateTime // when this revocation record itself expires
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  userId    String   @db.VarChar(36)
+  groupId   String   @db.VarChar(36)
+  tokenJti  String?  @db.VarChar(255) // JWT ID for token-specific invalidation
+  reason    String?  @db.VarChar(200) // member_removed, group_completed, invite_revoked, group_closed, guest_expired
+  revokedAt DateTime @default(now())
+  expiresAt DateTime // when this revocation record itself expires
 
-  user  User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, groupId])
   @@index([tokenJti])
@@ -1645,20 +1673,20 @@ model SessionRevocation {
 // Group Wallet System
 
 model GroupWallet {
-  id          String   @id @default(uuid()) @db.VarChar(36)
-  groupId     String   @db.VarChar(36)
-  name        String   @db.VarChar(255)
-  description String?  @db.VarChar(500)
-  balance     Decimal  @default(0) @db.Decimal(15, 2)
-  currency    String   @default("INR") @db.VarChar(10)
-  isLocked    Boolean  @default(false)
-  requiresApproval Boolean @default(false)
-  createdBy   String   @db.VarChar(36)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               String   @id @default(uuid()) @db.VarChar(36)
+  groupId          String   @db.VarChar(36)
+  name             String   @db.VarChar(255)
+  description      String?  @db.VarChar(500)
+  balance          Decimal  @default(0) @db.Decimal(15, 2)
+  currency         String   @default("INR") @db.VarChar(10)
+  isLocked         Boolean  @default(false)
+  requiresApproval Boolean  @default(false)
+  createdBy        String   @db.VarChar(36)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  group        SharedGroup          @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  creator      User                 @relation(fields: [createdBy], references: [id])
+  group        SharedGroup              @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  creator      User                     @relation(fields: [createdBy], references: [id])
   transactions GroupWalletTransaction[]
   members      GroupWalletMember[]
 
@@ -1667,19 +1695,19 @@ model GroupWallet {
 }
 
 model GroupWalletTransaction {
-  id          String   @id @default(uuid()) @db.VarChar(36)
-  walletId    String   @db.VarChar(36)
-  type        String   @db.VarChar(30) // contribute, spend, reimburse, transfer_in, transfer_out, withdrawal
-  amount      Decimal  @db.Decimal(15, 2)
-  balanceBefore Decimal @db.Decimal(15, 2)
-  balanceAfter  Decimal @db.Decimal(15, 2)
-  description String?  @db.VarChar(500)
-  referenceId String?  @db.VarChar(36) // expenseId, transferWalletId, etc
-  performedBy String   @db.VarChar(36)
-  status      String   @default("completed") @db.VarChar(20) // pending, approved, rejected, completed, failed
-  approvedBy  String?  @db.VarChar(36)
-  approvedAt  DateTime?
-  createdAt   DateTime @default(now())
+  id            String    @id @default(uuid()) @db.VarChar(36)
+  walletId      String    @db.VarChar(36)
+  type          String    @db.VarChar(30) // contribute, spend, reimburse, transfer_in, transfer_out, withdrawal
+  amount        Decimal   @db.Decimal(15, 2)
+  balanceBefore Decimal   @db.Decimal(15, 2)
+  balanceAfter  Decimal   @db.Decimal(15, 2)
+  description   String?   @db.VarChar(500)
+  referenceId   String?   @db.VarChar(36) // expenseId, transferWalletId, etc
+  performedBy   String    @db.VarChar(36)
+  status        String    @default("completed") @db.VarChar(20) // pending, approved, rejected, completed, failed
+  approvedBy    String?   @db.VarChar(36)
+  approvedAt    DateTime?
+  createdAt     DateTime  @default(now())
 
   wallet    GroupWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
   performer User        @relation(fields: [performedBy], references: [id])
@@ -1690,12 +1718,12 @@ model GroupWalletTransaction {
 }
 
 model GroupWalletMember {
-  id        String  @id @default(uuid()) @db.VarChar(36)
-  walletId  String  @db.VarChar(36)
-  userId    String  @db.VarChar(36)
-  role      String  @default("member") @db.VarChar(20) // admin, member, viewer
-  share     Decimal @default(0) @db.Decimal(15, 2)
-  joinedAt  DateTime @default(now())
+  id       String   @id @default(uuid()) @db.VarChar(36)
+  walletId String   @db.VarChar(36)
+  userId   String   @db.VarChar(36)
+  role     String   @default("member") @db.VarChar(20) // admin, member, viewer
+  share    Decimal  @default(0) @db.Decimal(15, 2)
+  joinedAt DateTime @default(now())
 
   wallet GroupWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
   user   User        @relation(fields: [userId], references: [id])
@@ -1707,21 +1735,21 @@ model GroupWalletMember {
 // ─── Advance Contribution System ──────────────────────────
 
 model AdvanceContribution {
-  id          String   @id @default(uuid()) @db.VarChar(36)
-  groupId     String   @db.VarChar(36)
-  paidBy      String   @db.VarChar(36)
-  description String   @db.VarChar(500)
-  amount      Decimal  @db.Decimal(15, 2)
-  currency    String   @default("INR") @db.VarChar(10)
-  category    String   @default("general") @db.VarChar(50)
-  status      String   @default("active") @db.VarChar(20) // active, partially_settled, settled
+  id          String    @id @default(uuid()) @db.VarChar(36)
+  groupId     String    @db.VarChar(36)
+  paidBy      String    @db.VarChar(36)
+  description String    @db.VarChar(500)
+  amount      Decimal   @db.Decimal(15, 2)
+  currency    String    @default("INR") @db.VarChar(10)
+  category    String    @default("general") @db.VarChar(50)
+  status      String    @default("active") @db.VarChar(20) // active, partially_settled, settled
   dueDate     DateTime?
   settledAt   DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  group         SharedGroup           @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  payer         User                  @relation(fields: [paidBy], references: [id])
+  group         SharedGroup                  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  payer         User                         @relation(fields: [paidBy], references: [id])
   adjustments   AdvanceAdjustment[]
   contributions AdvanceContributionHistory[]
 
@@ -1730,26 +1758,26 @@ model AdvanceContribution {
 }
 
 model AdvanceAdjustment {
-  id              String @id @default(uuid()) @db.VarChar(36)
-  advanceId       String @db.VarChar(36)
-  amount          Decimal @db.Decimal(15, 2)
-  adjustmentType  String @db.VarChar(30) // reimbursement, settlement, partial_payment, write_off
-  description     String? @db.VarChar(500)
-  adjustedBy      String @db.VarChar(36)
-  createdAt       DateTime @default(now())
+  id             String   @id @default(uuid()) @db.VarChar(36)
+  advanceId      String   @db.VarChar(36)
+  amount         Decimal  @db.Decimal(15, 2)
+  adjustmentType String   @db.VarChar(30) // reimbursement, settlement, partial_payment, write_off
+  description    String?  @db.VarChar(500)
+  adjustedBy     String   @db.VarChar(36)
+  createdAt      DateTime @default(now())
 
-  advance AdvanceContribution @relation(fields: [advanceId], references: [id], onDelete: Cascade)
-  adjuster User               @relation(fields: [adjustedBy], references: [id])
+  advance  AdvanceContribution @relation(fields: [advanceId], references: [id], onDelete: Cascade)
+  adjuster User                @relation(fields: [adjustedBy], references: [id])
 
   @@map("advance_adjustments")
 }
 
 model AdvanceContributionHistory {
-  id        String  @id @default(uuid()) @db.VarChar(36)
-  advanceId String  @db.VarChar(36)
-  userId    String  @db.VarChar(36)
-  amount    Decimal @db.Decimal(15, 2)
-  note      String? @db.VarChar(500)
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  advanceId String   @db.VarChar(36)
+  userId    String   @db.VarChar(36)
+  amount    Decimal  @db.Decimal(15, 2)
+  note      String?  @db.VarChar(500)
   createdAt DateTime @default(now())
 
   advance AdvanceContribution @relation(fields: [advanceId], references: [id], onDelete: Cascade)
@@ -1762,21 +1790,21 @@ model AdvanceContributionHistory {
 // ─── Expense Approval Workflow ────────────────────────────
 
 model ExpenseApproval {
-  id         String   @id @default(uuid()) @db.VarChar(36)
-  expenseId  String   @unique @db.VarChar(36)
-  groupId    String   @db.VarChar(36)
-  status     String   @default("pending") @db.VarChar(20) // pending, approved, rejected
-  requestedBy String  @db.VarChar(36)
-  approvedBy String?  @db.VarChar(36)
-  approvedAt DateTime?
-  rejectReason String? @db.VarChar(500)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id           String    @id @default(uuid()) @db.VarChar(36)
+  expenseId    String    @unique @db.VarChar(36)
+  groupId      String    @db.VarChar(36)
+  status       String    @default("pending") @db.VarChar(20) // pending, approved, rejected
+  requestedBy  String    @db.VarChar(36)
+  approvedBy   String?   @db.VarChar(36)
+  approvedAt   DateTime?
+  rejectReason String?   @db.VarChar(500)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  expense  SharedExpense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
-  group    SharedGroup   @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  requester User         @relation("ApprovalRequester", fields: [requestedBy], references: [id])
-  approver  User?        @relation("ApprovalApprover", fields: [approvedBy], references: [id])
+  expense   SharedExpense            @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  group     SharedGroup              @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  requester User                     @relation("ApprovalRequester", fields: [requestedBy], references: [id])
+  approver  User?                    @relation("ApprovalApprover", fields: [approvedBy], references: [id])
   history   ExpenseApprovalHistory[]
 
   @@index([groupId, status])
@@ -1802,25 +1830,25 @@ model ExpenseApprovalHistory {
 // ─── Group Document Vault ─────────────────────────────────
 
 model GroupDocument {
-  id          String   @id @default(uuid()) @db.VarChar(36)
-  groupId     String   @db.VarChar(36)
-  uploadedBy  String   @db.VarChar(36)
-  name        String   @db.VarChar(255)
-  type        String   @db.VarChar(50) // ticket, passport, booking, invoice, receipt, warranty, other
-  category    String   @default("other") @db.VarChar(50)
-  fileUrl     String   @db.Text
-  mimeType    String   @db.VarChar(100)
-  fileSize    Int      @default(0)
-  description String?  @db.VarChar(500)
-  ocrText     String?  @db.Text
-  extractedData Json?  @db.Json
-  expiresAt   DateTime?
-  isArchived  Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String    @id @default(uuid()) @db.VarChar(36)
+  groupId       String    @db.VarChar(36)
+  uploadedBy    String    @db.VarChar(36)
+  name          String    @db.VarChar(255)
+  type          String    @db.VarChar(50) // ticket, passport, booking, invoice, receipt, warranty, other
+  category      String    @default("other") @db.VarChar(50)
+  fileUrl       String    @db.Text
+  mimeType      String    @db.VarChar(100)
+  fileSize      Int       @default(0)
+  description   String?   @db.VarChar(500)
+  ocrText       String?   @db.Text
+  extractedData Json?     @db.Json
+  expiresAt     DateTime?
+  isArchived    Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  group       SharedGroup        @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  uploader    User               @relation(fields: [uploadedBy], references: [id])
+  group       SharedGroup          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  uploader    User                 @relation(fields: [uploadedBy], references: [id])
   permissions DocumentPermission[]
   auditLogs   DocumentAuditLog[]
 
@@ -1830,14 +1858,14 @@ model GroupDocument {
 }
 
 model DocumentPermission {
-  id         String  @id @default(uuid()) @db.VarChar(36)
-  documentId String  @db.VarChar(36)
-  userId     String  @db.VarChar(36)
-  canView    Boolean @default(true)
-  canDownload Boolean @default(false)
-  canShare   Boolean @default(false)
-  canDelete  Boolean @default(false)
-  grantedAt  DateTime @default(now())
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  documentId  String   @db.VarChar(36)
+  userId      String   @db.VarChar(36)
+  canView     Boolean  @default(true)
+  canDownload Boolean  @default(false)
+  canShare    Boolean  @default(false)
+  canDelete   Boolean  @default(false)
+  grantedAt   DateTime @default(now())
 
   document GroupDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
   user     User          @relation(fields: [userId], references: [id])
@@ -1847,15 +1875,15 @@ model DocumentPermission {
 }
 
 model DocumentAuditLog {
-  id         String   @id @default(uuid()) @db.VarChar(36)
-  documentId String   @db.VarChar(36)
-  action     String   @db.VarChar(50) // view, download, share, delete, archive, ocr
-  performedBy String  @db.VarChar(36)
-  metadata   Json?    @db.Json
-  createdAt  DateTime @default(now())
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  documentId  String   @db.VarChar(36)
+  action      String   @db.VarChar(50) // view, download, share, delete, archive, ocr
+  performedBy String   @db.VarChar(36)
+  metadata    Json?    @db.Json
+  createdAt   DateTime @default(now())
 
-  document GroupDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  performer User         @relation(fields: [performedBy], references: [id])
+  document  GroupDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  performer User          @relation(fields: [performedBy], references: [id])
 
   @@index([documentId, createdAt])
   @@map("document_audit_logs")
@@ -1864,33 +1892,33 @@ model DocumentAuditLog {
 // ─── Group Calendar ───────────────────────────────────────
 
 model GroupCalendar {
-  id      String   @id @default(uuid()) @db.VarChar(36)
-  groupId String   @unique @db.VarChar(36)
-  name    String   @default("Group Calendar") @db.VarChar(255)
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  groupId   String   @unique @db.VarChar(36)
+  name      String   @default("Group Calendar") @db.VarChar(255)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  group  SharedGroup    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  group  SharedGroup     @relation(fields: [groupId], references: [id], onDelete: Cascade)
   events CalendarEvent[]
 
   @@map("group_calendars")
 }
 
 model CalendarEvent {
-  id          String   @id @default(uuid()) @db.VarChar(36)
-  calendarId  String   @db.VarChar(36)
-  title       String   @db.VarChar(255)
-  description String?  @db.VarChar(500)
-  eventType   String   @default("custom") @db.VarChar(30) // trip, due_date, birthday, anniversary, bill, reminder, custom
+  id          String    @id @default(uuid()) @db.VarChar(36)
+  calendarId  String    @db.VarChar(36)
+  title       String    @db.VarChar(255)
+  description String?   @db.VarChar(500)
+  eventType   String    @default("custom") @db.VarChar(30) // trip, due_date, birthday, anniversary, bill, reminder, custom
   startDate   DateTime
   endDate     DateTime?
-  allDay      Boolean  @default(false)
-  color       String?  @db.VarChar(20)
-  recurrence  String?  @db.VarChar(50) // daily, weekly, monthly, yearly, none
-  referenceId String?  @db.VarChar(36) // expenseId, billId, etc
-  createdBy   String   @db.VarChar(36)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  allDay      Boolean   @default(false)
+  color       String?   @db.VarChar(20)
+  recurrence  String?   @db.VarChar(50) // daily, weekly, monthly, yearly, none
+  referenceId String?   @db.VarChar(36) // expenseId, billId, etc
+  createdBy   String    @db.VarChar(36)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   calendar GroupCalendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
   creator  User          @relation(fields: [createdBy], references: [id])
@@ -1902,24 +1930,24 @@ model CalendarEvent {
 // ─── Split Templates ──────────────────────────────────────
 
 model SplitTemplate {
-  id             String   @id @default(uuid()) @db.VarChar(36)
-  name           String   @db.VarChar(255)
-  description    String?  @db.VarChar(500)
-  groupType      String   @default("friends") @db.VarChar(50)
-  icon           String   @default("documents") @db.VarChar(50)
-  coverColor     String   @default("#f7892c") @db.VarChar(20)
-  currency       String   @default("INR") @db.VarChar(10)
-  defaultBudget  Decimal? @db.Decimal(15, 2)
-  usageCount     Int      @default(0)
-  isPremium      Boolean  @default(false)
-  isOfficial     Boolean  @default(false)
-  createdBy      String?  @db.VarChar(36)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id            String   @id @default(uuid()) @db.VarChar(36)
+  name          String   @db.VarChar(255)
+  description   String?  @db.VarChar(500)
+  groupType     String   @default("friends") @db.VarChar(50)
+  icon          String   @default("documents") @db.VarChar(50)
+  coverColor    String   @default("#f7892c") @db.VarChar(20)
+  currency      String   @default("INR") @db.VarChar(10)
+  defaultBudget Decimal? @db.Decimal(15, 2)
+  usageCount    Int      @default(0)
+  isPremium     Boolean  @default(false)
+  isOfficial    Boolean  @default(false)
+  createdBy     String?  @db.VarChar(36)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  creator            User?                       @relation(fields: [createdBy], references: [id])
-  categories         TemplateCategory[]
-  contributionRules  TemplateContributionRule[]
+  creator           User?                      @relation(fields: [createdBy], references: [id])
+  categories        TemplateCategory[]
+  contributionRules TemplateContributionRule[]
 
   @@index([groupType])
   @@index([usageCount])
@@ -1927,10 +1955,10 @@ model SplitTemplate {
 }
 
 model TemplateCategory {
-  id          String  @id @default(uuid()) @db.VarChar(36)
-  templateId  String  @db.VarChar(36)
-  name        String  @db.VarChar(100)
-  icon        String  @default("card") @db.VarChar(50)
+  id            String   @id @default(uuid()) @db.VarChar(36)
+  templateId    String   @db.VarChar(36)
+  name          String   @db.VarChar(100)
+  icon          String   @default("card") @db.VarChar(50)
   defaultAmount Decimal? @db.Decimal(15, 2)
 
   template SplitTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
@@ -1955,24 +1983,24 @@ model TemplateContributionRule {
 // ─── Credit Card Bill Split ───────────────────────────────
 
 model CreditCardBill {
-  id            String   @id @default(uuid()) @db.VarChar(36)
-  groupId       String   @db.VarChar(36)
-  uploadedBy    String   @db.VarChar(36)
-  cardHolder    String   @db.VarChar(255)
-  cardType      String?  @db.VarChar(50)
-  lastFour      String?  @db.VarChar(4)
+  id            String    @id @default(uuid()) @db.VarChar(36)
+  groupId       String    @db.VarChar(36)
+  uploadedBy    String    @db.VarChar(36)
+  cardHolder    String    @db.VarChar(255)
+  cardType      String?   @db.VarChar(50)
+  lastFour      String?   @db.VarChar(4)
   statementDate DateTime?
   dueDate       DateTime?
-  totalAmount   Decimal  @db.Decimal(15, 2)
-  currency      String   @default("INR") @db.VarChar(10)
-  fileUrl       String?  @db.Text
-  ocrText       String?  @db.Text
-  status        String   @default("pending") @db.VarChar(20) // pending, parsed, partially_split, fully_split
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  totalAmount   Decimal   @db.Decimal(15, 2)
+  currency      String    @default("INR") @db.VarChar(10)
+  fileUrl       String?   @db.Text
+  ocrText       String?   @db.Text
+  status        String    @default("pending") @db.VarChar(20) // pending, parsed, partially_split, fully_split
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  group        SharedGroup        @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  uploader     User               @relation(fields: [uploadedBy], references: [id])
+  group        SharedGroup             @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  uploader     User                    @relation(fields: [uploadedBy], references: [id])
   transactions CreditCardTransaction[]
   splits       BillSplit[]
 
@@ -1999,14 +2027,14 @@ model CreditCardTransaction {
 }
 
 model BillSplit {
-  id             String   @id @default(uuid()) @db.VarChar(36)
-  billId         String   @db.VarChar(36)
-  transactionId  String   @db.VarChar(36)
-  userId         String   @db.VarChar(36)
-  amount         Decimal  @db.Decimal(15, 2)
-  note           String?  @db.VarChar(500)
-  isPaid         Boolean  @default(false)
-  createdAt      DateTime @default(now())
+  id            String   @id @default(uuid()) @db.VarChar(36)
+  billId        String   @db.VarChar(36)
+  transactionId String   @db.VarChar(36)
+  userId        String   @db.VarChar(36)
+  amount        Decimal  @db.Decimal(15, 2)
+  note          String?  @db.VarChar(500)
+  isPaid        Boolean  @default(false)
+  createdAt     DateTime @default(now())
 
   bill        CreditCardBill        @relation(fields: [billId], references: [id], onDelete: Cascade)
   transaction CreditCardTransaction @relation(fields: [transactionId], references: [id])
@@ -2019,19 +2047,19 @@ model BillSplit {
 // ─── Cash Pool ────────────────────────────────────────────
 
 model CashPool {
-  id          String   @id @default(uuid()) @db.VarChar(36)
-  groupId     String   @db.VarChar(36)
-  name        String   @default("Cash Pool") @db.VarChar(255)
-  totalCash   Decimal  @default(0) @db.Decimal(15, 2)
-  remaining   Decimal  @default(0) @db.Decimal(15, 2)
-  currency    String   @default("INR") @db.VarChar(10)
-  custodian   String   @db.VarChar(36)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  groupId   String   @db.VarChar(36)
+  name      String   @default("Cash Pool") @db.VarChar(255)
+  totalCash Decimal  @default(0) @db.Decimal(15, 2)
+  remaining Decimal  @default(0) @db.Decimal(15, 2)
+  currency  String   @default("INR") @db.VarChar(10)
+  custodian String   @db.VarChar(36)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  group       SharedGroup     @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  custodianRel User           @relation(fields: [custodian], references: [id])
+  group        SharedGroup       @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  custodianRel User              @relation(fields: [custodian], references: [id])
   transactions CashTransaction[]
 
   @@index([groupId, isActive])
@@ -2039,19 +2067,19 @@ model CashPool {
 }
 
 model CashTransaction {
-  id         String   @id @default(uuid()) @db.VarChar(36)
-  poolId     String   @db.VarChar(36)
-  type       String   @db.VarChar(20) // deposit, spend, reconciliation
-  amount     Decimal  @db.Decimal(15, 2)
-  description String? @db.VarChar(500)
-  category   String?  @db.VarChar(50)
-  performedBy String  @db.VarChar(36)
-  balanceBefore Decimal @db.Decimal(15, 2)
-  balanceAfter  Decimal @db.Decimal(15, 2)
-  createdAt  DateTime @default(now())
+  id            String   @id @default(uuid()) @db.VarChar(36)
+  poolId        String   @db.VarChar(36)
+  type          String   @db.VarChar(20) // deposit, spend, reconciliation
+  amount        Decimal  @db.Decimal(15, 2)
+  description   String?  @db.VarChar(500)
+  category      String?  @db.VarChar(50)
+  performedBy   String   @db.VarChar(36)
+  balanceBefore Decimal  @db.Decimal(15, 2)
+  balanceAfter  Decimal  @db.Decimal(15, 2)
+  createdAt     DateTime @default(now())
 
   pool      CashPool @relation(fields: [poolId], references: [id], onDelete: Cascade)
-  performer User        @relation(fields: [performedBy], references: [id])
+  performer User     @relation(fields: [performedBy], references: [id])
 
   @@index([poolId, createdAt])
   @@map("cash_transactions")
@@ -2060,20 +2088,20 @@ model CashTransaction {
 // ─── Emergency Fund ───────────────────────────────────────
 
 model EmergencyFund {
-  id          String   @id @default(uuid()) @db.VarChar(36)
-  groupId     String   @db.VarChar(36)
-  name        String   @default("Emergency Fund") @db.VarChar(255)
-  targetAmount Decimal @db.Decimal(15, 2)
-  savedAmount Decimal  @default(0) @db.Decimal(15, 2)
-  monthlyContribution Decimal @default(0) @db.Decimal(15, 2)
-  currency    String   @default("INR") @db.VarChar(10)
-  isActive    Boolean  @default(true)
-  createdBy   String   @db.VarChar(36)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                  String   @id @default(uuid()) @db.VarChar(36)
+  groupId             String   @db.VarChar(36)
+  name                String   @default("Emergency Fund") @db.VarChar(255)
+  targetAmount        Decimal  @db.Decimal(15, 2)
+  savedAmount         Decimal  @default(0) @db.Decimal(15, 2)
+  monthlyContribution Decimal  @default(0) @db.Decimal(15, 2)
+  currency            String   @default("INR") @db.VarChar(10)
+  isActive            Boolean  @default(true)
+  createdBy           String   @db.VarChar(36)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
-  group         SharedGroup            @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  creator       User                   @relation(fields: [createdBy], references: [id])
+  group         SharedGroup             @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  creator       User                    @relation(fields: [createdBy], references: [id])
   contributions EmergencyContribution[]
   withdrawals   EmergencyWithdrawal[]
 
@@ -2097,19 +2125,19 @@ model EmergencyContribution {
 }
 
 model EmergencyWithdrawal {
-  id          String   @id @default(uuid()) @db.VarChar(36)
-  fundId      String   @db.VarChar(36)
-  withdrawnBy String   @db.VarChar(36)
-  amount      Decimal  @db.Decimal(15, 2)
-  reason      String   @db.VarChar(500)
-  approvedBy  String?  @db.VarChar(36)
-  status      String   @default("pending") @db.VarChar(20) // pending, approved, rejected
-  createdAt   DateTime @default(now())
+  id          String    @id @default(uuid()) @db.VarChar(36)
+  fundId      String    @db.VarChar(36)
+  withdrawnBy String    @db.VarChar(36)
+  amount      Decimal   @db.Decimal(15, 2)
+  reason      String    @db.VarChar(500)
+  approvedBy  String?   @db.VarChar(36)
+  status      String    @default("pending") @db.VarChar(20) // pending, approved, rejected
+  createdAt   DateTime  @default(now())
   approvedAt  DateTime?
 
-  fund      EmergencyFund @relation(fields: [fundId], references: [id], onDelete: Cascade)
-  withdrawer User         @relation(fields: [withdrawnBy], references: [id])
-  approver   User?        @relation("WithdrawalApprover", fields: [approvedBy], references: [id])
+  fund       EmergencyFund @relation(fields: [fundId], references: [id], onDelete: Cascade)
+  withdrawer User          @relation(fields: [withdrawnBy], references: [id])
+  approver   User?         @relation("WithdrawalApprover", fields: [approvedBy], references: [id])
 
   @@index([fundId, status])
   @@map("emergency_withdrawals")
@@ -2118,16 +2146,16 @@ model EmergencyWithdrawal {
 // ─── Gamification & Achievements ──────────────────────────
 
 model Badge {
-  id          String   @id @default(uuid()) @db.VarChar(36)
-  code        String   @unique @db.VarChar(50)
-  name        String   @db.VarChar(100)
-  description String   @db.VarChar(500)
-  icon        String   @default("trophy") @db.VarChar(50)
-  category    String   @default("general") @db.VarChar(30) // settlement, expense, savings, streak, social, premium
-  tier        String   @default("bronze") @db.VarChar(20) // bronze, silver, gold, platinum
-  criteria    Json     @db.Json // { type: 'expense_count', threshold: 100 }
-  rewardPremiumDays Int @default(0)
-  createdAt   DateTime @default(now())
+  id                String   @id @default(uuid()) @db.VarChar(36)
+  code              String   @unique @db.VarChar(50)
+  name              String   @db.VarChar(100)
+  description       String   @db.VarChar(500)
+  icon              String   @default("trophy") @db.VarChar(50)
+  category          String   @default("general") @db.VarChar(30) // settlement, expense, savings, streak, social, premium
+  tier              String   @default("bronze") @db.VarChar(20) // bronze, silver, gold, platinum
+  criteria          Json     @db.Json // { type: 'expense_count', threshold: 100 }
+  rewardPremiumDays Int      @default(0)
+  createdAt         DateTime @default(now())
 
   userBadges UserBadge[]
 
@@ -2136,13 +2164,13 @@ model Badge {
 }
 
 model UserBadge {
-  id        String   @id @default(uuid()) @db.VarChar(36)
-  userId    String   @db.VarChar(36)
-  badgeId   String   @db.VarChar(36)
-  progress  Decimal  @default(0) @db.Decimal(15, 2)
-  isEarned  Boolean  @default(false)
+  id        String    @id @default(uuid()) @db.VarChar(36)
+  userId    String    @db.VarChar(36)
+  badgeId   String    @db.VarChar(36)
+  progress  Decimal   @default(0) @db.Decimal(15, 2)
+  isEarned  Boolean   @default(false)
   earnedAt  DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
@@ -2151,22 +2179,39 @@ model UserBadge {
   @@map("user_badges")
 }
 
+// ─── User Streaks ──────────────────────────────────────────
+model UserStreak {
+  id             String   @id @default(uuid()) @db.VarChar(36)
+  userId         String   @db.VarChar(36)
+  streakType     String   @db.VarChar(20)    // daily, weekly, monthly
+  currentStreak  Int      @default(0)
+  longestStreak  Int      @default(0)
+  lastActivityAt DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, streakType])
+  @@map("user_streaks")
+}
+
 // ─── Referral Program ─────────────────────────────────────
 
 model ReferralProgram {
-  id          String   @id @default(uuid()) @db.VarChar(36)
-  referrerId  String   @db.VarChar(36)
-  refereeEmail String  @db.VarChar(255)
-  refereeId   String?  @db.VarChar(36)
-  code        String   @unique @db.VarChar(50)
-  status      String   @default("pending") @db.VarChar(20) // pending, signed_up, converted, expired
-  rewardDays  Int      @default(30)
-  rewardClaimed Boolean @default(false)
+  id              String    @id @default(uuid()) @db.VarChar(36)
+  referrerId      String    @db.VarChar(36)
+  refereeEmail    String    @db.VarChar(255)
+  refereeId       String?   @db.VarChar(36)
+  code            String    @unique @db.VarChar(50)
+  status          String    @default("pending") @db.VarChar(20) // pending, signed_up, converted, expired
+  rewardDays      Int       @default(30)
+  rewardClaimed   Boolean   @default(false)
   rewardClaimedAt DateTime?
-  createdAt   DateTime @default(now())
-  convertedAt DateTime?
+  createdAt       DateTime  @default(now())
+  convertedAt     DateTime?
 
-  referrer User @relation(fields: [referrerId], references: [id], onDelete: Cascade)
+  referrer User  @relation(fields: [referrerId], references: [id], onDelete: Cascade)
   referee  User? @relation("ReferredUser", fields: [refereeId], references: [id])
 
   @@index([referrerId])
@@ -2177,29 +2222,29 @@ model ReferralProgram {
 // ─── Family Net Worth ─────────────────────────────────────
 
 model FamilyNetWorthSnapshot {
-  id          String   @id @default(uuid()) @db.VarChar(36)
-  groupId     String   @db.VarChar(36)
-  totalAssets Decimal  @db.Decimal(15, 2)
-  totalLiabilities Decimal @db.Decimal(15, 2)
-  netWorth    Decimal  @db.Decimal(15, 2)
-  savingsRatio Decimal  @db.Decimal(5, 2)
-  snapshotDate DateTime @default(now())
-  createdAt   DateTime @default(now())
+  id               String   @id @default(uuid()) @db.VarChar(36)
+  groupId          String   @db.VarChar(36)
+  totalAssets      Decimal  @db.Decimal(15, 2)
+  totalLiabilities Decimal  @db.Decimal(15, 2)
+  netWorth         Decimal  @db.Decimal(15, 2)
+  savingsRatio     Decimal  @db.Decimal(5, 2)
+  snapshotDate     DateTime @default(now())
+  createdAt        DateTime @default(now())
 
-  group  SharedGroup    @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  items  NetWorthItem[]
+  group SharedGroup    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  items NetWorthItem[]
 
   @@index([groupId, snapshotDate])
   @@map("family_net_worth_snapshots")
 }
 
 model NetWorthItem {
-  id         String @id @default(uuid()) @db.VarChar(36)
-  snapshotId String @db.VarChar(36)
-  type       String @db.VarChar(30) // bank, investment, loan, emi, asset, liability, property, vehicle, gold, other
-  name       String @db.VarChar(255)
+  id         String  @id @default(uuid()) @db.VarChar(36)
+  snapshotId String  @db.VarChar(36)
+  type       String  @db.VarChar(30) // bank, investment, loan, emi, asset, liability, property, vehicle, gold, other
+  name       String  @db.VarChar(255)
   amount     Decimal @db.Decimal(15, 2)
-  category   String @db.VarChar(20) // asset or liability
+  category   String  @db.VarChar(20) // asset or liability
 
   snapshot FamilyNetWorthSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
 
@@ -2229,22 +2274,22 @@ model ExportHistory {
 
 // ─── SUBSCRIPTION PLANS ────────────────────────────────────
 model SubscriptionPlan {
-  id            String   @id @default(uuid()) @db.VarChar(36)
-  name          String   @db.VarChar(100)
-  code          String   @unique @db.VarChar(50)
-  description   String?  @db.Text
-  price         Decimal  @db.Decimal(10, 2)
-  currency      String   @default("INR") @db.VarChar(10)
-  interval      String   @db.VarChar(20)
-  intervalCount Int      @default(1)
-  popular       Boolean  @default(false)
-  bestValue     Boolean  @default(false)
-  features      Json     @db.Json
-  isActive      Boolean  @default(true)
-  sortOrder     Int      @default(0)
-  razorpayPlanId String? @db.VarChar(255)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id             String   @id @default(uuid()) @db.VarChar(36)
+  name           String   @db.VarChar(100)
+  code           String   @unique @db.VarChar(50)
+  description    String?  @db.Text
+  price          Decimal  @db.Decimal(10, 2)
+  currency       String   @default("INR") @db.VarChar(10)
+  interval       String   @db.VarChar(20)
+  intervalCount  Int      @default(1)
+  popular        Boolean  @default(false)
+  bestValue      Boolean  @default(false)
+  features       Json     @db.Json
+  isActive       Boolean  @default(true)
+  sortOrder      Int      @default(0)
+  razorpayPlanId String?  @db.VarChar(255)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   subscriptions Subscription[]
 
@@ -2255,24 +2300,24 @@ model SubscriptionPlan {
 
 // ─── SUBSCRIPTIONS ─────────────────────────────────────────
 model Subscription {
-  id              String    @id @default(uuid()) @db.VarChar(36)
-  userId          String    @db.VarChar(36)
-  planId          String    @db.VarChar(36)
-  status          String    @default("active") @db.VarChar(20)
-  currentPeriodStart DateTime
-  currentPeriodEnd   DateTime
-  cancelledAt     DateTime?
-  cancelAtPeriodEnd Boolean  @default(false)
-  razorpaySubscriptionId String? @db.VarChar(255)
-  razorpayOrderId        String? @db.VarChar(255)
-  metadata        Json?     @db.Json
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id                     String    @id @default(uuid()) @db.VarChar(36)
+  userId                 String    @db.VarChar(36)
+  planId                 String    @db.VarChar(36)
+  status                 String    @default("active") @db.VarChar(20)
+  currentPeriodStart     DateTime
+  currentPeriodEnd       DateTime
+  cancelledAt            DateTime?
+  cancelAtPeriodEnd      Boolean   @default(false)
+  razorpaySubscriptionId String?   @db.VarChar(255)
+  razorpayOrderId        String?   @db.VarChar(255)
+  metadata               Json?     @db.Json
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
-  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan           SubscriptionPlan     @relation(fields: [planId], references: [id])
-  payments       PaymentTransaction[]
-  entitlements   PremiumEntitlement[]
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan         SubscriptionPlan     @relation(fields: [planId], references: [id])
+  payments     PaymentTransaction[]
+  entitlements PremiumEntitlement[]
 
   @@unique([userId])
   @@index([planId])
@@ -2315,14 +2360,14 @@ model PaymentTransaction {
 
 // ─── WEBHOOK EVENTS ────────────────────────────────────────
 model WebhookEvent {
-  id            String   @id @default(uuid()) @db.VarChar(36)
-  eventId       String   @db.VarChar(255)
-  eventType     String   @db.VarChar(100)
-  status        String   @default("pending") @db.VarChar(20)
-  payload       Json     @db.Json
-  errorMessage  String?  @db.Text
-  processedAt   DateTime?
-  createdAt     DateTime @default(now())
+  id           String    @id @default(uuid()) @db.VarChar(36)
+  eventId      String    @db.VarChar(255)
+  eventType    String    @db.VarChar(100)
+  status       String    @default("pending") @db.VarChar(20)
+  payload      Json      @db.Json
+  errorMessage String?   @db.Text
+  processedAt  DateTime?
+  createdAt    DateTime  @default(now())
 
   @@unique([eventId])
   @@index([eventType, createdAt])
@@ -2332,12 +2377,12 @@ model WebhookEvent {
 
 // ─── PREMIUM ENTITLEMENTS ──────────────────────────────────
 model PremiumEntitlement {
-  id             String   @id @default(uuid()) @db.VarChar(36)
-  userId         String   @db.VarChar(36)
-  subscriptionId String   @db.VarChar(36)
-  featureKey     String   @db.VarChar(100)
-  enabled        Boolean  @default(true)
-  grantedAt      DateTime @default(now())
+  id             String    @id @default(uuid()) @db.VarChar(36)
+  userId         String    @db.VarChar(36)
+  subscriptionId String    @db.VarChar(36)
+  featureKey     String    @db.VarChar(100)
+  enabled        Boolean   @default(true)
+  grantedAt      DateTime  @default(now())
   expiresAt      DateTime?
 
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -2347,4 +2392,34 @@ model PremiumEntitlement {
   @@index([userId, enabled])
   @@index([subscriptionId])
   @@map("premium_entitlements")
+}
+
+// ─── DOCUMENT VAULT ──────────────────────────────────────────
+// aadhaar, pan, passport, driving_license, insurance, vehicle_rc, warranty, medical
+model UserDocument {
+  id             String    @id @default(uuid()) @db.VarChar(36)
+  userId         String    @db.VarChar(36)
+  name           String    @db.VarChar(255)
+  category       String    @db.VarChar(50)
+  fileUrl        String    @db.Text
+  encryptedPath  String    @db.Text
+  encryptionIv   String    @db.VarChar(64)
+  mimeType       String    @db.VarChar(100)
+  fileSize       Int       @default(0)
+  documentNumber String?   @db.VarChar(100)
+  issuedDate     DateTime? @db.Date
+  expiryDate     DateTime? @db.Date
+  issuer         String?   @db.VarChar(255)
+  notes          String?   @db.Text
+  isArchived     Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, category])
+  @@index([userId, deletedAt])
+  @@index([userId, expiryDate])
+  @@map("user_documents")
 }

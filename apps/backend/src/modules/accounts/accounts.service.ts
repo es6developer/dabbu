@@ -3,6 +3,7 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 import { AccountInsightEngine, SpendingInsight, RecurringPattern } from './engine/account-insight.engine';
 import { FinancialHealthEngine, HealthScoreResult } from './engine/financial-health.engine';
 import { SmartInsightsEngine, SmartInsight } from './engine/smart-insights.engine';
+import { SubscriptionIntelligenceEngine, SubscriptionIntelligence } from './engine/subscription-intelligence.engine';
 
 @Injectable()
 export class AccountsService {
@@ -11,6 +12,7 @@ export class AccountsService {
     private readonly insightEngine: AccountInsightEngine,
     private readonly healthEngine: FinancialHealthEngine,
     private readonly smartInsightsEngine: SmartInsightsEngine,
+    private readonly subscriptionEngine: SubscriptionIntelligenceEngine,
   ) {}
 
   async getAccounts(userId: string): Promise<any[]> {
@@ -130,5 +132,9 @@ export class AccountsService {
 
   async getSmartInsights(userId: string): Promise<SmartInsight[]> {
     return this.smartInsightsEngine.generate(userId);
+  }
+
+  async getSubscriptionIntelligence(userId: string): Promise<SubscriptionIntelligence> {
+    return this.subscriptionEngine.analyze(userId);
   }
 }

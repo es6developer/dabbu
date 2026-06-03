@@ -21,9 +21,60 @@ const WIDGET_META: Record<string, { label: string; icon: string; desc: string }>
     icon: 'flash',
     desc: 'Add Expense, Scan Bill, Split, Reminder',
   },
-  features: { label: 'Features Grid', icon: 'grid', desc: 'App feature shortcuts' },
-  snapshots: { label: 'Snapshot Cards', icon: 'stats-chart', desc: 'Top spend & tasks summary' },
+  financialHealth: {
+    label: 'Financial Health',
+    icon: 'heart-circle',
+    desc: 'Health score, factors, recommendations',
+  },
+  monthlySpending: {
+    label: 'Monthly Spending',
+    icon: 'pie-chart',
+    desc: 'Category breakdown with bars',
+  },
+  savingsProgress: {
+    label: 'Savings Progress',
+    icon: 'wallet',
+    desc: 'Overall savings bar and summary',
+  },
+  goals: {
+    label: 'Goals',
+    icon: 'trophy',
+    desc: 'Individual goal progress cards',
+  },
+  upcomingBills: {
+    label: 'Upcoming Bills',
+    icon: 'receipt',
+    desc: 'Bills due within 15 days',
+  },
+  subscriptions: {
+    label: 'Subscriptions',
+    icon: 'card',
+    desc: 'Monthly/yearly subscription totals',
+  },
+  insights: {
+    label: 'Smart Insights',
+    icon: 'bulb',
+    desc: 'AI-powered spending insights',
+  },
+  gamification: {
+    label: 'Achievements',
+    icon: 'trophy',
+    desc: 'Badges earned and activity streaks',
+  },
+  sharedCircles: {
+    label: 'Shared Circles',
+    icon: 'people',
+    desc: 'Your shared finance groups',
+  },
+  familySummary: {
+    label: 'Family Finance',
+    icon: 'home',
+    desc: 'Couple/family group summaries',
+  },
+  snapshots: { label: 'Snapshot Cards', icon: 'stats-chart', desc: 'Top spend & groups summary' },
+  spaces: { label: 'Spaces', icon: 'layers', desc: 'Expense group spaces' },
   recentActivity: { label: 'Recent Activity', icon: 'time', desc: 'Latest transactions' },
+  features: { label: 'Features Grid', icon: 'grid', desc: 'App feature shortcuts' },
 };
 
 export function CustomiseDashboardScreen() {

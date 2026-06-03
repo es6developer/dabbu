@@ -47,6 +47,12 @@ export class AccountsController {
     return { data: insights };
   }
 
+  @Get('subscriptions')
+  @ApiOperation({ summary: 'Get subscription intelligence report' })
+  async getSubscriptionIntelligence(@CurrentUser('id') userId: string) {
+    return this.accountsService.getSubscriptionIntelligence(userId);
+  }
+
   @Get('recurring')
   @ApiOperation({ summary: 'Get detected recurring payment patterns' })
   async getRecurringPatterns(@CurrentUser('id') userId: string) {

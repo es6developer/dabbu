@@ -29,6 +29,7 @@ const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
     items: [
       { label: 'Profile', icon: 'person-circle', screen: 'Profile' },
       { label: 'Subscription', icon: 'diamond', screen: 'Premium' },
+      { label: 'Refer & Earn', icon: 'gift', screen: 'Referral' },
       { label: 'Security', icon: 'shield-checkmark', screen: 'Security' },
       { label: 'Lock App', icon: 'lock-closed', screen: 'Security', action: 'lock' },
     ],
