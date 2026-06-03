@@ -1,18 +1,24 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 
 @Injectable()
 export class EncryptionService {
+  private readonly logger = new Logger(EncryptionService.name);
   private readonly algorithm = 'aes-256-cbc';
   private readonly key: Buffer;
 
   constructor(private readonly config: ConfigService) {
     const secret = this.config.get<string>('DOCUMENT_ENCRYPTION_KEY');
     if (!secret) {
-      throw new Error('DOCUMENT_ENCRYPTION_KEY environment variable is required');
+      this.logger.warn(
+        'DOCUMENT_ENCRYPTION_KEY not set, using derived fallback key. Set this in production for security.',
+      );
+      const fallback = this.config.get<string>('JWT_SECRET', 'dabbu-fallback-key');
+      this.key = crypto.scryptSync(fallback, 'dabbu-docs-salt', 32);
+    } else {
+      this.key = crypto.scryptSync(secret, 'dabbu-docs-salt', 32);
     }
-    this.key = crypto.scryptSync(secret, 'dabbu-docs-salt', 32);
   }
 
   encrypt(buffer: Buffer): { encrypted: Buffer; iv: string } {
