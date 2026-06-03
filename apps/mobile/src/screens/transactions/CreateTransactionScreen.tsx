@@ -1,14 +1,11 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
-  TextInput,
   StyleSheet,
   TouchableOpacity,
-  ActivityIndicator,
   Animated,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -16,7 +13,15 @@ import { useTheme } from '../../theme';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { DatePickerField } from '../../components/ui/DatePickerField';
 import { PageContainer } from '../../components/ui/PageContainer';
-import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
+import {
+  PremiumActionButton,
+  PremiumAmountInput,
+  PremiumChip,
+  PremiumError,
+  PremiumFormScreen,
+  PremiumInput,
+  premiumFormStyles,
+} from '../../components/ui';
 
 const RECURRING_FREQUENCIES = ['weekly', 'monthly', 'yearly'] as const;
 
@@ -248,227 +253,104 @@ export function CreateTransactionScreen() {
   }
 
   return (
-    <PageContainer noPadding>
-      <KeyboardAvoidingContainer>
-        <View style={styles.container}>
-          <Text style={[styles.title, { color: colors.text.primary }]}>
-            {isEditing ? 'Edit Transaction' : 'New Transaction'}
-          </Text>
-          {error ? (
-            <View style={[styles.errorBox, { backgroundColor: colors.status.errorLight }]}>
-              <Ionicons name="alert-circle" size={16} color={colors.status.error} />
-              <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text>
-            </View>
-          ) : null}
+    <PremiumFormScreen
+      title={isEditing ? 'Edit transaction' : 'New transaction'}
+      subtitle="Capture the amount, category, group, and recurrence details in one clean flow."
+      icon="receipt"
+      accent={[colors.accent.primary, colors.status.warning]}
+    >
+      <PremiumError message={error} />
+      <PremiumAmountInput label="Amount" value={amount} onChangeText={setAmount} placeholder="0" />
 
-          <Text style={[styles.label, { color: colors.text.tertiary }]}>Amount</Text>
-          <View
-            style={[
-              styles.amountRow,
-              { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-            ]}
-          >
-            <Text style={[styles.currencySymbol, { color: colors.text.primary }]}>₹</Text>
-            <TextInput
-              style={[styles.amountInput, { color: colors.text.primary }]}
-              value={amount}
-              onChangeText={setAmount}
-              placeholder="0"
-              placeholderTextColor={colors.text.tertiary}
-              keyboardType="decimal-pad"
-            />
-          </View>
-
-          <Text style={[styles.label, { color: colors.text.tertiary }]}>Description</Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.bg.tertiary,
-                color: colors.text.primary,
-                borderColor: colors.border.subtle,
-              },
-            ]}
+      <PremiumInput
+        label="Description"
+        icon="create-outline"
             value={description}
             onChangeText={setDescription}
             placeholder="What was this for?"
-            placeholderTextColor={colors.text.tertiary}
-          />
+      />
 
-          <Text style={[styles.label, { color: colors.text.tertiary }]}>Category</Text>
-          <View style={styles.chipRow}>
-            {(categories || []).map((cat: any) => (
-              <TouchableOpacity
+      <Text style={[styles.label, { color: colors.text.tertiary }]}>Category</Text>
+      <View style={premiumFormStyles.rowWrap}>
+        {(categories || []).map((cat: any) => (
+          <PremiumChip
                 key={cat.id}
-                style={[
-                  styles.chip,
-                  { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-                  categoryId === cat.id && {
-                    backgroundColor: `${colors.accent.primary}20`,
-                    borderColor: colors.accent.primary,
-                  },
-                ]}
+            label={cat.name}
+            selected={categoryId === cat.id}
                 onPress={() => handleCategorySelect(cat)}
-              >
-                <Text
-                  style={[
-                    styles.chipText,
-                    { color: colors.text.tertiary },
-                    categoryId === cat.id && { color: colors.accent.primary, fontWeight: '600' },
-                  ]}
-                >
-                  {cat.name}
-                </Text>
-              </TouchableOpacity>
+          />
             ))}
           </View>
 
-          <Text style={[styles.label, { color: colors.text.tertiary }]}>Payment Type</Text>
-          <View style={styles.chipRow}>
+      <Text style={[styles.label, { color: colors.text.tertiary }]}>Payment Type</Text>
+      <View style={premiumFormStyles.rowWrap}>
             {PAYMENT_TYPES.map((pt) => (
-              <TouchableOpacity
+          <PremiumChip
                 key={pt}
-                style={[
-                  styles.chip,
-                  { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-                  paymentType === pt && {
-                    backgroundColor: `${colors.accent.primary}20`,
-                    borderColor: colors.accent.primary,
-                  },
-                ]}
+            label={pt}
+            selected={paymentType === pt}
+            icon={
+              pt === 'Cash'
+                ? 'cash-outline'
+                : pt === 'UPI'
+                  ? 'phone-portrait-outline'
+                  : pt === 'Card'
+                    ? 'card-outline'
+                    : 'business-outline'
+            }
                 onPress={() => setPaymentType(paymentType === pt ? '' : pt)}
-              >
-                <Ionicons
-                  name={
-                    pt === 'Cash'
-                      ? 'cash-outline'
-                      : pt === 'UPI'
-                        ? 'phone-portrait-outline'
-                        : pt === 'Card'
-                          ? 'card-outline'
-                          : 'business-outline'
-                  }
-                  size={14}
-                  color={paymentType === pt ? colors.accent.primary : colors.text.tertiary}
-                  style={{ marginRight: 4 }}
-                />
-                <Text
-                  style={[
-                    styles.chipText,
-                    { color: colors.text.tertiary },
-                    paymentType === pt && { color: colors.accent.primary, fontWeight: '600' },
-                  ]}
-                >
-                  {pt}
-                </Text>
-              </TouchableOpacity>
+          />
             ))}
           </View>
 
-          <Text style={[styles.label, { color: colors.text.tertiary }]}>
-            Group (optional — tag this expense to a group)
+      <Text style={[styles.label, { color: colors.text.tertiary }]}>
+            Group (optional - tag this expense to a group)
           </Text>
-          <View style={styles.chipRow}>
-            <TouchableOpacity
-              style={[
-                styles.chip,
-                { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-                !selectedGroupId && {
-                  backgroundColor: `${colors.accent.primary}20`,
-                  borderColor: colors.accent.primary,
-                },
-              ]}
+      <View style={premiumFormStyles.rowWrap}>
+        <PremiumChip
+          label="None"
+          selected={!selectedGroupId}
               onPress={() => {
                 setSelectedGroupId('');
                 setSelectedGroupName('');
               }}
-            >
-              <Text
-                style={[
-                  styles.chipText,
-                  { color: colors.text.tertiary },
-                  !selectedGroupId && { color: colors.accent.primary, fontWeight: '600' },
-                ]}
-              >
-                None
-              </Text>
-            </TouchableOpacity>
+        />
             {(groups || []).map((g: any) => (
-              <TouchableOpacity
+          <PremiumChip
                 key={g.id}
-                style={[
-                  styles.chip,
-                  { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-                  selectedGroupId === g.id && {
-                    backgroundColor: `${colors.accent.primary}20`,
-                    borderColor: colors.accent.primary,
-                  },
-                ]}
+            label={g.name}
+            icon="people-outline"
+            selected={selectedGroupId === g.id}
                 onPress={() => {
                   setSelectedGroupId(g.id);
                   setSelectedGroupName(g.name);
                 }}
-              >
-                <Ionicons
-                  name="people-outline"
-                  size={14}
-                  color={selectedGroupId === g.id ? colors.accent.primary : colors.text.tertiary}
-                />
-                <Text
-                  style={[
-                    styles.chipText,
-                    { color: colors.text.tertiary, marginLeft: 4 },
-                    selectedGroupId === g.id && { color: colors.accent.primary, fontWeight: '600' },
-                  ]}
-                >
-                  {g.name}
-                </Text>
-              </TouchableOpacity>
+          />
             ))}
           </View>
 
           <DatePickerField label="Date" value={date} onChange={setDate} />
 
-          <Text style={[styles.label, { color: colors.text.tertiary }]}>Tags</Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.bg.tertiary,
-                color: colors.text.primary,
-                borderColor: colors.border.subtle,
-              },
-            ]}
+      <PremiumInput
+        label="Tags"
+        icon="pricetag-outline"
             value={tags}
             onChangeText={setTags}
             placeholder="food, travel, office"
-            placeholderTextColor={colors.text.tertiary}
-          />
+      />
 
-          <Text style={[styles.label, { color: colors.text.tertiary }]}>Notes</Text>
-          <TextInput
-            style={[
-              styles.input,
-              styles.notesInput,
-              {
-                backgroundColor: colors.bg.tertiary,
-                color: colors.text.primary,
-                borderColor: colors.border.subtle,
-              },
-            ]}
+      <PremiumInput
+        label="Notes"
+        icon="document-text-outline"
             value={notes}
             onChangeText={setNotes}
             placeholder="Add context, receipt details, or member notes..."
-            placeholderTextColor={colors.text.tertiary}
             multiline
             numberOfLines={4}
-            textAlignVertical="top"
-          />
+      />
 
           <View style={styles.switchRow}>
-            <Text style={[styles.label, { color: colors.text.tertiary, marginTop: 0 }]}>
-              Recurring
-            </Text>
+        <Text style={[styles.label, { color: colors.text.tertiary, marginTop: 0 }]}>Recurring</Text>
             <TouchableOpacity
               style={[
                 styles.recurringToggle,
@@ -501,33 +383,14 @@ export function CreateTransactionScreen() {
               <Text style={[styles.label, { color: colors.text.tertiary, marginBottom: 4 }]}>
                 Frequency
               </Text>
-              <View style={styles.frequencyRow}>
+          <View style={premiumFormStyles.rowWrap}>
                 {RECURRING_FREQUENCIES.map((frequency) => (
-                  <TouchableOpacity
+              <PremiumChip
                     key={frequency}
-                    style={[
-                      styles.freqChip,
-                      { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-                      recurringFrequency === frequency && {
-                        backgroundColor: `${colors.accent.primary}20`,
-                        borderColor: colors.accent.primary,
-                      },
-                    ]}
+                label={frequency.charAt(0).toUpperCase() + frequency.slice(1)}
+                selected={recurringFrequency === frequency}
                     onPress={() => setRecurringFrequency(frequency)}
-                  >
-                    <Text
-                      style={[
-                        styles.freqChipText,
-                        { color: colors.text.tertiary },
-                        recurringFrequency === frequency && {
-                          color: colors.accent.primary,
-                          fontWeight: '600',
-                        },
-                      ]}
-                    >
-                      {frequency.charAt(0).toUpperCase() + frequency.slice(1)}
-                    </Text>
-                  </TouchableOpacity>
+              />
                 ))}
               </View>
               <DatePickerField
@@ -539,26 +402,13 @@ export function CreateTransactionScreen() {
             </View>
           </Animated.View>
 
-          <TouchableOpacity
-            style={[
-              styles.saveBtn,
-              { backgroundColor: colors.accent.primary },
-              saving && { opacity: 0.6 },
-            ]}
-            onPress={handleSave}
-            disabled={saving}
-          >
-            {saving ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.saveBtnText}>
-                {isEditing ? 'Save Changes' : 'Create Transaction'}
-              </Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingContainer>
-    </PageContainer>
+      <PremiumActionButton
+        title={isEditing ? 'Save changes' : 'Create transaction'}
+        onPress={handleSave}
+        loading={saving}
+        icon="checkmark"
+      />
+    </PremiumFormScreen>
   );
 }
 

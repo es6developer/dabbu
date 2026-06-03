@@ -5,7 +5,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { Card } from '../../components/ui/Card';
 
 type OptionType = 'manual' | 'camera' | 'group';
 
@@ -23,7 +22,7 @@ const OPTIONS: OptionCard[] = [
     type: 'manual',
     icon: 'create-outline',
     title: 'Manual Entry',
-    description: 'Enter expense details by hand — amount, category, description.',
+    description: 'Enter expense details by hand - amount, category, description.',
     gradient: ['#00B894', '#00CEC9'],
   },
   {
@@ -59,71 +58,94 @@ export function AddExpenseScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top + 8 }]}>
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={[
-              styles.backBtn,
-              { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' },
-            ]}
-          >
-            <Ionicons name="close" size={22} color={colors.text.primary} />
-          </TouchableOpacity>
-        </View>
-        <Text style={[styles.title, { color: colors.text.primary }]}>Add Expense</Text>
-        <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>
-          Choose how you want to add this expense
-        </Text>
-      </View>
+    <View style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}>
+      <LinearGradient
+        colors={
+          isDark
+            ? ['#11111A', colors.bg.primary, '#0A0A0F']
+            : ['#FFF8F1', colors.bg.primary, '#F8F9FA']
+        }
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      <View style={styles.content}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={[
+            styles.backBtn,
+            {
+              backgroundColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(10,10,15,0.05)',
+              borderColor: colors.border.subtle,
+            },
+          ]}
+        >
+          <Ionicons name="close" size={22} color={colors.text.primary} />
+        </TouchableOpacity>
 
-      <View style={styles.optionsContainer}>
-        {OPTIONS.map((option, i) => (
-            <TouchableOpacity
-              key={option.type}
-              style={[
-                styles.card,
-                { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#f8f9ff' },
-              ]}
-              onPress={() => handleSelect(option.type)}
-              activeOpacity={0.7}
-            >
-              <LinearGradient
-                colors={option.type === 'group' ? [...colors.accent.gradient] : option.gradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.iconWrap}
+        <LinearGradient
+          colors={[colors.accent.primary, isDark ? '#B45309' : '#F97316']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.hero}
+        >
+          <View style={styles.heroIcon}>
+            <Ionicons name="add" size={26} color="#FFFFFF" />
+          </View>
+          <Text style={styles.title}>Add expense</Text>
+          <Text style={styles.subtitle}>Choose the fastest way to capture and organize this spend.</Text>
+        </LinearGradient>
+
+        <View style={styles.optionsContainer}>
+          {OPTIONS.map((option) => (
+              <TouchableOpacity
+                key={option.type}
+                style={[
+                  styles.card,
+                  {
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.045)' : 'rgba(255,255,255,0.84)',
+                    borderColor: colors.border.subtle,
+                  },
+                ]}
+                onPress={() => handleSelect(option.type)}
+                activeOpacity={0.75}
               >
-              <Ionicons name={option.icon} size={26} color="#FFFFFF" />
-            </LinearGradient>
-            <View style={styles.cardContent}>
-              <View style={styles.cardTitleRow}>
-                <Text style={[styles.cardTitle, { color: colors.text.primary }]}>
-                  {option.title}
+                <LinearGradient
+                  colors={option.type === 'group' ? [...colors.accent.gradient] : option.gradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.iconWrap}
+                >
+                <Ionicons name={option.icon} size={25} color="#FFFFFF" />
+              </LinearGradient>
+              <View style={styles.cardContent}>
+                <View style={styles.cardTitleRow}>
+                  <Text style={[styles.cardTitle, { color: colors.text.primary }]}>
+                    {option.title}
+                  </Text>
+                  {option.badge && (
+                    <View style={[styles.badge, { backgroundColor: colors.accent.primary + '20' }]}>
+                      <Text style={[styles.badgeText, { color: colors.accent.primary }]}>
+                        {option.badge}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={[styles.cardDesc, { color: colors.text.tertiary }]}>
+                  {option.description}
                 </Text>
-                {option.badge && (
-                  <View style={[styles.badge, { backgroundColor: colors.accent.primary + '20' }]}>
-                    <Text style={[styles.badgeText, { color: colors.accent.primary }]}>
-                      {option.badge}
-                    </Text>
-                  </View>
-                )}
               </View>
-              <Text style={[styles.cardDesc, { color: colors.text.tertiary }]}>
-                {option.description}
-              </Text>
-            </View>
-            <View
-              style={[
-                styles.chevronWrap,
-                { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)' },
-              ]}
-            >
-              <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
-            </View>
-          </TouchableOpacity>
-        ))}
+              <View
+                style={[
+                  styles.chevronWrap,
+                  { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.035)' },
+                ]}
+              >
+                <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
     </View>
   );
@@ -131,19 +153,41 @@ export function AddExpenseScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { padding: 24, paddingBottom: 8 },
-  headerTop: { marginBottom: 20 },
+  content: { flex: 1, paddingHorizontal: 20, paddingBottom: 40 },
   backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 16,
   },
-  title: { fontSize: 28, fontWeight: '700', marginBottom: 6 },
-  subtitle: { fontSize: 14, lineHeight: 20 },
-  optionsContainer: { padding: 16, gap: 16 },
-  card: { flexDirection: 'row', alignItems: 'center', padding: 20, borderRadius: 20, gap: 16 },
+  hero: {
+    borderRadius: 24,
+    padding: 22,
+    marginBottom: 18,
+  },
+  heroIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  title: { color: '#FFFFFF', fontSize: 29, fontWeight: '800', marginBottom: 7 },
+  subtitle: { color: 'rgba(255,255,255,0.78)', fontSize: 14, lineHeight: 20, fontWeight: '600' },
+  optionsContainer: { gap: 14 },
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    gap: 14,
+  },
   iconWrap: {
     width: 52,
     height: 52,

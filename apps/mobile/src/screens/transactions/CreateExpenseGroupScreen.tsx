@@ -5,27 +5,32 @@ import {
   TextInput,
   StyleSheet,
   TouchableOpacity,
-  ActivityIndicator,
   Alert,
   LayoutAnimation,
   Platform,
   UIManager,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
-import { PageContainer } from '../../components/ui/PageContainer';
-import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
+import {
+  PremiumActionButton,
+  PremiumAmountInput,
+  PremiumChip,
+  PremiumError,
+  PremiumFormScreen,
+  PremiumInput,
+  premiumFormStyles,
+} from '../../components/ui';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
 const ICONS = [
-  'users',
+  'people',
   'home',
   'heart',
   'star',
@@ -41,11 +46,11 @@ const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD'];
 export function CreateExpenseGroupScreen() {
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [icon, setIcon] = useState('users');
+  const [icon, setIcon] = useState('people');
   const [currency, setCurrency] = useState('INR');
   const [monthlyBudget, setMonthlyBudget] = useState('');
   const [memberEmails, setMemberEmails] = useState<string[]>(['']);
@@ -122,158 +127,91 @@ export function CreateExpenseGroupScreen() {
   }
 
   return (
-    <PageContainer noPadding>
-      <KeyboardAvoidingContainer>
-        <View style={styles.container}>
+    <PremiumFormScreen
+      title="New circle"
+      subtitle="Create a polished expense circle for roommates, trips, families, or friends."
+      icon="people"
+      accent={[colors.accent.primary, colors.status.info]}
+    >
+      <PremiumError message={error} />
+      <PremiumInput
+        label="Group name"
+        icon="people-outline"
+        value={name}
+        onChangeText={setName}
+        placeholder="e.g. Roommates, Road Trip"
+      />
+
+      <PremiumInput
+        label="Description"
+        icon="document-text-outline"
+        value={description}
+        onChangeText={setDescription}
+        placeholder="What's this group for?"
+        multiline
+        numberOfLines={3}
+      />
+
+      <Text style={[styles.label, { color: colors.text.tertiary }]}>Choose Icon</Text>
+      <View style={premiumFormStyles.rowWrap}>
+        {ICONS.map((ic) => (
           <TouchableOpacity
-            onPress={() => navigation.goBack()}
+            key={ic}
             style={[
-              styles.backBtn,
-              { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' },
-            ]}
-          >
-            <Ionicons name="close" size={22} color={colors.text.primary} />
-          </TouchableOpacity>
-
-          <LinearGradient
-            colors={[...colors.accent.gradient]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.heroSection}
-          >
-            <Text style={styles.heroTitle}>New Circle</Text>
-            <Text style={styles.heroSub}>Create a group to split expenses together</Text>
-          </LinearGradient>
-
-          {error ? (
-            <View style={[styles.errorBox, { backgroundColor: colors.status.errorLight }]}>
-              <Ionicons name="alert-circle" size={16} color={colors.status.error} />
-              <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text>
-            </View>
-          ) : null}
-
-          <Text style={[styles.label, { color: colors.text.tertiary }]}>Group Name</Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.bg.tertiary,
-                color: colors.text.primary,
-                borderColor: colors.border.subtle,
-              },
-            ]}
-            value={name}
-            onChangeText={setName}
-            placeholder="e.g. Roommates, Road Trip"
-            placeholderTextColor={colors.text.tertiary}
-          />
-
-          <Text style={[styles.label, { color: colors.text.tertiary }]}>
-            Description (optional)
-          </Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.bg.tertiary,
-                color: colors.text.primary,
-                borderColor: colors.border.subtle,
-              },
-            ]}
-            value={description}
-            onChangeText={setDescription}
-            placeholder="What's this group for?"
-            placeholderTextColor={colors.text.tertiary}
-          />
-
-          <Text style={[styles.label, { color: colors.text.tertiary }]}>Choose Icon</Text>
-          <View style={styles.iconRow}>
-            {ICONS.map((ic) => (
-              <TouchableOpacity
-                key={ic}
-                style={[
-                  styles.iconBtn,
-                  { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-                  icon === ic && {
-                    backgroundColor: `${colors.accent.primary}20`,
-                    borderColor: colors.accent.primary,
-                  },
-                ]}
-                onPress={() => setIcon(ic)}
-              >
-                <Ionicons
-                  name={ic as any}
-                  size={22}
-                  color={icon === ic ? colors.accent.primary : colors.text.tertiary}
-                />
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <Text style={[styles.label, { color: colors.text.tertiary }]}>Currency</Text>
-          <View style={styles.currencyRow}>
-            {CURRENCIES.map((c) => (
-              <TouchableOpacity
-                key={c}
-                style={[
-                  styles.currencyChip,
-                  { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-                  currency === c && {
-                    backgroundColor: `${colors.accent.primary}20`,
-                    borderColor: colors.accent.primary,
-                  },
-                ]}
-                onPress={() => setCurrency(c)}
-              >
-                <Text
-                  style={[
-                    styles.currencyText,
-                    { color: currency === c ? colors.accent.primary : colors.text.secondary },
-                  ]}
-                >
-                  {c}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <Text style={[styles.label, { color: colors.text.tertiary }]}>
-            Monthly Budget (optional)
-          </Text>
-          <View
-            style={[
-              styles.inputRow,
+              styles.iconBtn,
               { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+              icon === ic && {
+                backgroundColor: `${colors.accent.primary}20`,
+                borderColor: colors.accent.primary,
+              },
             ]}
+            onPress={() => setIcon(ic)}
           >
-            <Text style={[styles.currencyPrefix, { color: colors.text.tertiary }]}>
-              {currency === 'INR'
-                ? '₹'
-                : currency === 'USD'
-                  ? '$'
-                  : currency === 'EUR'
-                    ? '€'
-                    : currency === 'GBP'
-                      ? '£'
-                      : currency === 'AED'
-                        ? 'د.إ'
-                        : '$'}
-            </Text>
-            <TextInput
-              style={[styles.inputFlex, { color: colors.text.primary }]}
-              value={monthlyBudget}
-              onChangeText={setMonthlyBudget}
-              placeholder="0"
-              placeholderTextColor={colors.text.tertiary}
-              keyboardType="decimal-pad"
+            <Ionicons
+              name={ic as any}
+              size={22}
+              color={icon === ic ? colors.accent.primary : colors.text.tertiary}
             />
-          </View>
+          </TouchableOpacity>
+        ))}
+      </View>
 
-          <View style={styles.memberSection}>
-            <Text style={[styles.label, { color: colors.text.tertiary }]}>
-              Members{' '}
-              <Text style={{ fontWeight: '400', textTransform: 'none' }}>(max 2 on Free)</Text>
-            </Text>
+      <Text style={[styles.label, { color: colors.text.tertiary }]}>Currency</Text>
+      <View style={premiumFormStyles.rowWrap}>
+        {CURRENCIES.map((c) => (
+          <PremiumChip
+            key={c}
+            label={c}
+            selected={currency === c}
+            onPress={() => setCurrency(c)}
+          />
+        ))}
+      </View>
+
+      <PremiumAmountInput
+        label="Monthly budget"
+        symbol={
+          currency === 'INR'
+            ? '₹'
+            : currency === 'USD'
+              ? '$'
+              : currency === 'EUR'
+                ? '€'
+                : currency === 'GBP'
+                  ? '£'
+                  : currency === 'AED'
+                    ? 'د.إ'
+                    : '$'
+        }
+        value={monthlyBudget}
+        onChangeText={setMonthlyBudget}
+        placeholder="0"
+      />
+
+      <View style={styles.memberSection}>
+        <Text style={[styles.label, { color: colors.text.tertiary }]}>
+          Members <Text style={{ fontWeight: '400', textTransform: 'none' }}>(max 2 on Free)</Text>
+        </Text>
 
             {memberEmails.map((email, index) => (
               <View key={index} style={styles.memberRow}>
@@ -334,38 +272,20 @@ export function CreateExpenseGroupScreen() {
                 Add another member
               </Text>
             </TouchableOpacity>
-          </View>
+      </View>
 
-          <View style={[styles.planInfo, { backgroundColor: colors.bg.tertiary }]}>
-            <Ionicons name="shield-outline" size={16} color="#FF6B6B" />
-            <Text style={[styles.planInfoText, { color: colors.text.tertiary }]}>
-              Free plan: 5 groups max · 2 members per group
-            </Text>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}
-            >
-              <Text style={[styles.planUpgrade, { color: colors.accent.primary }]}>Upgrade</Text>
-            </TouchableOpacity>
-          </View>
+      <View style={[styles.planInfo, { backgroundColor: colors.bg.tertiary }]}>
+        <Ionicons name="shield-outline" size={16} color="#FF6B6B" />
+        <Text style={[styles.planInfoText, { color: colors.text.tertiary }]}>
+          Free plan: 5 groups max · 2 members per group
+        </Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}>
+          <Text style={[styles.planUpgrade, { color: colors.accent.primary }]}>Upgrade</Text>
+        </TouchableOpacity>
+      </View>
 
-          <TouchableOpacity
-            style={[
-              styles.saveBtn,
-              { backgroundColor: colors.accent.primary },
-              saving && { opacity: 0.6 },
-            ]}
-            onPress={handleCreate}
-            disabled={saving}
-          >
-            {saving ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.saveBtnText}>Create Group</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingContainer>
-    </PageContainer>
+      <PremiumActionButton title="Create group" onPress={handleCreate} loading={saving} icon="add" />
+    </PremiumFormScreen>
   );
 }
 
@@ -404,7 +324,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
-    paddingHorizontal: 24,
   },
   input: {
     fontSize: 16,
@@ -442,7 +361,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   memberRow: {
-    paddingHorizontal: 24,
     marginBottom: 8,
   },
   memberInputWrap: {
@@ -468,7 +386,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginHorizontal: 24,
     marginTop: 4,
     paddingVertical: 12,
     paddingHorizontal: 14,
@@ -484,7 +401,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginHorizontal: 24,
     marginTop: 20,
     padding: 14,
     borderRadius: 14,

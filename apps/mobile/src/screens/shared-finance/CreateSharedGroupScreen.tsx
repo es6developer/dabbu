@@ -37,7 +37,7 @@ const ICON_OPTIONS = [
   { name: 'business', icon: 'business' },
   { name: 'briefcase', icon: 'briefcase' },
   { name: 'calendar', icon: 'calendar' },
-  { name: 'building', icon: 'building' },
+  { name: 'building', icon: 'business' },
   { name: 'cart', icon: 'cart' },
   { name: 'restaurant', icon: 'restaurant' },
   { name: 'car', icon: 'car' },

@@ -13,6 +13,12 @@ export interface BillScanResult {
   rawText: string;
 }
 
+interface OcrVariant {
+  name: string;
+  buffer: Buffer;
+  psmModes: PSM[];
+}
+
 const CATEGORY_KEYWORDS: { keywords: string[]; category: string }[] = [
   {
     keywords: [
@@ -224,7 +230,7 @@ export class BillScannerService {
     const result = await Promise.race([
       this.runOcr(imageBuffer),
       new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('OCR processing timed out after 90 seconds')), 90_000),
+        setTimeout(() => reject(new Error('OCR processing timed out after 110 seconds')), 110_000),
       ),
     ]);
 
@@ -232,27 +238,7 @@ export class BillScannerService {
   }
 
   private async runOcr(imageBuffer: Buffer): Promise<BillScanResult> {
-    const metadata = await sharp(imageBuffer).metadata();
-    const origWidth = metadata.width || 1000;
-
-    let processedBuffer: Buffer;
-
-    try {
-      let pipeline = sharp(imageBuffer);
-      const targetWidth = Math.min(origWidth, 1600);
-      if (origWidth > targetWidth) {
-        pipeline = pipeline.resize({ width: targetWidth, withoutEnlargement: true });
-      }
-      processedBuffer = (await pipeline
-        .greyscale()
-        .normalise({ lower: 1, upper: 99 })
-        .sharpen(0.8)
-        .toBuffer()) as unknown as Buffer;
-      this.logger.log(`Preprocessed image ${origWidth}→${targetWidth}px (${Math.round(processedBuffer.length / 1024)} KB)`);
-    } catch (err) {
-      this.logger.warn('Preprocessing failed, using original', err);
-      processedBuffer = imageBuffer;
-    }
+    const variants = await this.createOcrVariants(imageBuffer);
 
     let ocrText = '';
 
@@ -264,17 +250,30 @@ export class BillScannerService {
     });
 
     try {
-      await worker.setParameters({ tessedit_pageseg_mode: PSM.AUTO });
-      const { data } = await worker.recognize(processedBuffer);
-      ocrText = data.text.trim();
+      await worker.setParameters({
+        preserve_interword_spaces: '1',
+        user_defined_dpi: '300',
+      });
 
-      const words = ocrText.split(/\s+/).filter((w) => w.length > 0);
-      if (words.length < 8) {
-        await worker.setParameters({ tessedit_pageseg_mode: PSM.SINGLE_BLOCK });
-        const { data: fallback } = await worker.recognize(processedBuffer);
-        const fallbackText = fallback.text.trim();
-        if (fallbackText.length > ocrText.length) {
-          ocrText = fallbackText;
+      let bestScore = -1;
+      for (const variant of variants) {
+        for (const psm of variant.psmModes) {
+          await worker.setParameters({ tessedit_pageseg_mode: psm });
+          const { data } = await worker.recognize(variant.buffer);
+          const candidate = data.text.trim();
+          const score = this.ocrQualityScore(candidate, data.confidence || 0);
+          this.logger.log(
+            `OCR variant=${variant.name} psm=${psm} chars=${candidate.length} confidence=${Math.round(data.confidence || 0)} score=${Math.round(score)}`,
+          );
+
+          if (score > bestScore) {
+            bestScore = score;
+            ocrText = candidate;
+          }
+
+          if (score > 250 && /\b(total|amount|payable|net|grand|paid|rs|inr)\b/i.test(candidate)) {
+            break;
+          }
         }
       }
     } finally {
@@ -292,6 +291,76 @@ export class BillScannerService {
 
     const billResult = this.parseBillText(cleaned);
     return billResult;
+  }
+
+  private async createOcrVariants(imageBuffer: Buffer): Promise<OcrVariant[]> {
+    const metadata = await sharp(imageBuffer).metadata();
+    const origWidth = metadata.width || 1000;
+    const targetWidth = Math.min(Math.max(origWidth, 2200), 3000);
+    const resizeOptions = { width: targetWidth, withoutEnlargement: false };
+
+    try {
+      const base = sharp(imageBuffer).rotate().resize(resizeOptions);
+      const highContrast = await base
+        .clone()
+        .greyscale()
+        .normalise({ lower: 1, upper: 99 })
+        .linear(1.22, -12)
+        .sharpen({ sigma: 1.1, m1: 1.2, m2: 2.0 })
+        .png()
+        .toBuffer();
+
+      const threshold = await base
+        .clone()
+        .greyscale()
+        .normalise({ lower: 1, upper: 99 })
+        .threshold(170)
+        .median(1)
+        .png()
+        .toBuffer();
+
+      const soft = await base
+        .clone()
+        .greyscale()
+        .normalise()
+        .sharpen(0.6)
+        .png()
+        .toBuffer();
+
+      this.logger.log(
+        `Prepared OCR variants ${origWidth}->${targetWidth}px: high=${Math.round(highContrast.length / 1024)}KB threshold=${Math.round(threshold.length / 1024)}KB soft=${Math.round(soft.length / 1024)}KB`,
+      );
+
+      return [
+        { name: 'high-contrast', buffer: highContrast, psmModes: [PSM.AUTO, PSM.SPARSE_TEXT] },
+        { name: 'threshold', buffer: threshold, psmModes: [PSM.SPARSE_TEXT, PSM.SINGLE_BLOCK] },
+        { name: 'soft', buffer: soft, psmModes: [PSM.AUTO] },
+      ];
+    } catch (err) {
+      this.logger.warn('Preprocessing failed, using original image', err);
+      return [{ name: 'original', buffer: imageBuffer, psmModes: [PSM.AUTO, PSM.SPARSE_TEXT] }];
+    }
+  }
+
+  private ocrQualityScore(text: string, confidence: number): number {
+    const normalized = text.trim();
+    if (!normalized) {
+      return 0;
+    }
+
+    const lines = normalized.split('\n').map((l) => l.trim()).filter(Boolean);
+    const amountSignals = (normalized.match(/\b(total|amount|payable|net|grand|paid|balance|rs|inr)\b/gi) || []).length;
+    const numericSignals = (normalized.match(/\d+[,.]?\d*/g) || []).length;
+    const alphaSignals = (normalized.match(/[a-zA-Z]{3,}/g) || []).length;
+
+    return (
+      normalized.length +
+      lines.length * 8 +
+      amountSignals * 35 +
+      numericSignals * 10 +
+      alphaSignals * 5 +
+      Math.max(0, confidence) * 1.5
+    );
   }
 
   private normalizeOcrText(text: string): string {
@@ -328,6 +397,10 @@ export class BillScannerService {
       .map((l) => l.trim())
       .filter(Boolean);
 
+    if (rawLines.length <= 3) {
+      return rawLines.join('\n');
+    }
+
     const scoredLines = rawLines.map((line) => ({
       line,
       score: this.lineReadabilityScore(line),
@@ -346,6 +419,10 @@ export class BillScannerService {
         return ratio > 0.12;
       })
       .map((l) => l.line);
+
+    if (filtered.length < Math.max(4, rawLines.length * 0.35)) {
+      return rawLines.join('\n');
+    }
 
     return filtered.join('\n');
   }
@@ -539,54 +616,61 @@ export class BillScannerService {
 
     for (const label of totalLabels) {
       const regex = new RegExp(
-        `${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*:?\\s*(?:rs\\.?\\s*|inr\\s*|₹\\s*)?([\\d,]+\\.?\\d{0,2})`,
+        `${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*(?:[:=\\-]|rs\\.?|inr|₹)?\\s*(?:rs\\.?\\s*|inr\\s*|₹\\s*)?([\\d,]+(?:\\.\\d{1,2})?)`,
         'i',
       );
       const match = text.match(regex);
       if (match) {
         const val = parseFloat(match[1].replace(/,/g, ''));
         if (!isNaN(val) && val > 0 && val < 9999999 && !this.looksLikePhone(val)) {
-          candidates.push({ value: val, priority: 10, source: 'label' });
+          const priority = /grand|net|payable|due|paid|bill|total amount|amount payable/i.test(label)
+            ? 18
+            : /subtotal|sub total/i.test(label)
+              ? 7
+              : 14;
+          candidates.push({ value: val, priority, source: 'label' });
         }
       }
     }
 
-    for (const line of lines) {
+    for (const [index, line] of lines.entries()) {
       const currencyMatch = line.match(CURRENCY_PATTERN);
       if (currencyMatch) {
         const val = parseFloat(currencyMatch[1].replace(/,/g, ''));
         if (!isNaN(val) && val > 0 && val < 9999999 && !this.looksLikePhone(val)) {
-          const isLast = line === lines[lines.length - 1];
-          const isLastTwo = lines.indexOf(line) >= lines.length - 2;
-          const isLastThird = lines.indexOf(line) >= lines.length * 0.66;
-          const priority = isLast ? 9 : isLastTwo ? 8 : isLastThird ? 6 : 3;
+          const isLast = index === lines.length - 1;
+          const isLastTwo = index >= lines.length - 2;
+          const isLastThird = index >= lines.length * 0.66;
+          const hasTotalLabel = /\b(total|grand|net|payable|due|paid|amount|bill)\b/i.test(line);
+          const priority = hasTotalLabel ? 16 : isLast ? 9 : isLastTwo ? 8 : isLastThird ? 6 : 3;
           candidates.push({ value: val, priority, source: 'currency' });
         }
       }
     }
 
-    for (const line of lines) {
+    for (const [index, line] of lines.entries()) {
       const numbers = line.match(/([\d,]+\.\d{1,2})/g);
       if (numbers) {
         for (const n of numbers) {
           const val = parseFloat(n.replace(/,/g, ''));
           if (!isNaN(val) && val >= 10 && val <= 999999 && !this.looksLikePhone(val)) {
-            const isLast = line === lines[lines.length - 1];
-            const isLastThird = lines.indexOf(line) >= lines.length * 0.66;
-            const priority = isLast ? 5 : isLastThird ? 4 : 1;
+            const isLast = index === lines.length - 1;
+            const isLastThird = index >= lines.length * 0.66;
+            const hasTotalLabel = /\b(total|grand|net|payable|due|paid|amount|bill)\b/i.test(line);
+            const priority = hasTotalLabel ? 13 : isLast ? 5 : isLastThird ? 4 : 1;
             candidates.push({ value: val, priority, source: 'decimal' });
           }
         }
       }
     }
 
-    for (const line of lines) {
+    for (const [index, line] of lines.entries()) {
       const numbers = line.match(/\b(\d{2,6})(?!\.\d)/g);
       if (numbers) {
         for (const n of numbers) {
           const val = parseFloat(n.replace(/,/g, ''));
           if (!isNaN(val) && val >= 10 && val <= 99999 && !this.looksLikePhone(val)) {
-            const isLastThird = lines.indexOf(line) >= lines.length * 0.66;
+            const isLastThird = index >= lines.length * 0.66;
             if (isLastThird) {
               candidates.push({ value: val, priority: 2, source: 'integer' });
             }
@@ -600,7 +684,7 @@ export class BillScannerService {
       const sumFromItems = items.reduce((s, it) => s + (it.quantity || 1) * it.price, 0);
       candidates.push({
         value: Math.round(sumFromItems * 100) / 100,
-        priority: 12,
+        priority: 6,
         source: 'items',
       });
     }

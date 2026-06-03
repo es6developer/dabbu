@@ -154,7 +154,7 @@ export function BillScannerScreen() {
     }
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.8,
+      quality: 1,
       base64: false,
     });
     if (result.canceled || !result.assets?.[0]) {
@@ -172,7 +172,7 @@ export function BillScannerScreen() {
     }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.8,
+      quality: 1,
       base64: false,
     });
     if (result.canceled || !result.assets?.[0]) {

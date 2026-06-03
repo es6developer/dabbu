@@ -5,7 +5,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BaseScreen } from '../../components/ui/BaseScreen';
-import { PageHeader } from '../../components/ui/PageHeader';
 import { useAuth } from '../../store/AuthContext';
 import { useAppLock } from '../../store/LockContext';
 import { spacing } from '../../theme';
@@ -135,30 +134,47 @@ export function SettingsScreen() {
   };
 
   return (
-    <BaseScreen>
+    <BaseScreen noPadding>
+      <LinearGradient
+        colors={
+          isDark
+            ? ['#11111A', colors.bg.primary, '#0A0A0F']
+            : ['#FFF8F1', colors.bg.primary, '#F8F9FA']
+        }
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
       >
         {/* Header */}
-        <View style={styles.header}>
+        <LinearGradient
+          colors={[colors.accent.primary, isDark ? '#B45309' : '#F97316']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.header}
+        >
           <View style={styles.headerRow}>
             <View>
-              <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Settings</Text>
-              <Text style={[styles.headerSub, { color: colors.text.tertiary }]}>
+              <Text style={styles.headerTitle}>Settings</Text>
+              <Text style={styles.headerSub}>
                 Personalise your experience
               </Text>
             </View>
             <TouchableOpacity
+              onPress={() => navigation.goBack()}
               style={[
                 styles.closeBtn,
-                { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' },
+                { backgroundColor: 'rgba(255,255,255,0.18)' },
               ]}
             >
-              <Ionicons name="close" size={20} color={colors.text.secondary} />
+              <Ionicons name="close" size={20} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
-        </View>
+          <Text style={styles.headerMetric}>Secure controls, smarter defaults, premium tools.</Text>
+        </LinearGradient>
 
         {/* Profile Card */}
         <TouchableOpacity
@@ -325,10 +341,33 @@ export function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: { paddingBottom: spacing.sm },
+  header: {
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 8,
+    borderRadius: 24,
+    padding: 20,
+  },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  headerTitle: { ...typographyStyles.appTitle, fontSize: 32, letterSpacing: -0.8 },
-  headerSub: { ...typographyStyles.body, marginTop: 2, fontFamily: 'Inter-Medium' },
+  headerTitle: {
+    ...typographyStyles.appTitle,
+    color: '#FFFFFF',
+    fontSize: 32,
+    letterSpacing: 0,
+  },
+  headerSub: {
+    ...typographyStyles.body,
+    color: 'rgba(255,255,255,0.78)',
+    marginTop: 2,
+    fontFamily: 'Inter-Medium',
+  },
+  headerMetric: {
+    color: 'rgba(255,255,255,0.86)',
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 28,
+  },
   closeBtn: {
     width: 36,
     height: 36,
