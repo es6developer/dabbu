@@ -14,7 +14,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -96,6 +95,7 @@ export function DocumentVaultScreen() {
   );
 
   const pickAndUpload = async () => {
+    const ImagePicker = await import('expo-image-picker');
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
       Alert.alert('Permission Required', 'Camera roll access is needed to upload documents.');
@@ -122,6 +122,7 @@ export function DocumentVaultScreen() {
   };
 
   const uploadFromCamera = async () => {
+    const ImagePicker = await import('expo-image-picker');
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (!perm.granted) {
       Alert.alert('Permission Required', 'Camera access is needed to capture documents.');

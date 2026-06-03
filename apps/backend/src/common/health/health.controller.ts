@@ -1,10 +1,8 @@
-import { Controller, Get, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, HttpCode, HttpStatus, Inject } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Public } from '../decorators';
-import { PrismaClient } from '@prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
 import * as os from 'os';
-
-const prisma = new PrismaClient();
 
 interface HealthStatus {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -25,6 +23,8 @@ export class HealthController {
   private readonly startTime = Date.now();
   private readonly version = process.env.npm_package_version || '1.0.0';
 
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+
   @Get()
   @Public()
   @HttpCode(HttpStatus.OK)
@@ -36,13 +36,11 @@ export class HealthController {
     let dbLatency: number | undefined;
 
     try {
-      await prisma.$queryRaw`SELECT 1`;
+      await this.prisma.$queryRaw`SELECT 1`;
       dbLatency = Date.now() - dbStart;
     } catch (err) {
       dbStatus = 'unhealthy';
       dbError = err instanceof Error ? err.message : 'Database connection failed';
-    } finally {
-      await prisma.$disconnect();
     }
 
     const memUsage = process.memoryUsage();
@@ -74,7 +72,7 @@ export class HealthController {
   @ApiOperation({ summary: 'Readiness check' })
   async readiness(): Promise<{ status: string }> {
     try {
-      await prisma.$queryRaw`SELECT 1`;
+      await this.prisma.$queryRaw`SELECT 1`;
       return { status: 'ready' };
     } catch {
       return { status: 'not ready' };

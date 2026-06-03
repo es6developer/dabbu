@@ -130,12 +130,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.message?.[0] || 'Login failed');
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.message?.[0] || err?.message || 'Login failed');
     }
 
-    const json = await res.json();
-    const { user, tokens } = json.data;
+    const json = await res.json().catch(() => {
+      throw new Error('Invalid response from server');
+    });
+    const data = json?.data;
+    if (!data) throw new Error('Invalid response from server');
+    const { user, tokens } = data;
 
     setAccessToken(tokens.accessToken);
     await storeAuth(tokens.accessToken, user);
@@ -161,12 +165,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.message?.[0] || 'Registration failed');
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.message?.[0] || err?.message || 'Registration failed');
     }
 
-    const json = await res.json();
-    const { user, tokens } = json.data;
+    const json = await res.json().catch(() => {
+      throw new Error('Invalid response from server');
+    });
+    const data = json?.data;
+    if (!data) throw new Error('Invalid response from server');
+    const { user, tokens } = data;
 
     setAccessToken(tokens.accessToken);
     await storeAuth(tokens.accessToken, user);

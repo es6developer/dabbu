@@ -46,6 +46,8 @@ PODS:
     - ReactCommon/turbomodule/core
   - ExpoSecureStore (12.8.1):
     - ExpoModulesCore
+  - ExpoSharing (11.10.0):
+    - ExpoModulesCore
   - EXSplashScreen (0.26.5):
     - ExpoModulesCore
     - glog
@@ -1159,6 +1161,7 @@ DEPENDENCIES:
   - ExpoLocalization (from `../../../node_modules/expo-localization/ios`)
   - ExpoModulesCore (from `../../../node_modules/expo-modules-core`)
   - ExpoSecureStore (from `../../../node_modules/expo-secure-store/ios`)
+  - ExpoSharing (from `../../../node_modules/expo-sharing/ios`)
   - EXSplashScreen (from `../../../node_modules/expo-splash-screen/ios`)
   - FBLazyVector (from `../../../node_modules/react-native/Libraries/FBLazyVector`)
   - FBReactNativeSpec (from `../../../node_modules/react-native/React/FBReactNativeSpec`)
@@ -1269,6 +1272,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/expo-modules-core"
   ExpoSecureStore:
     :path: "../../../node_modules/expo-secure-store/ios"
+  ExpoSharing:
+    :path: "../../../node_modules/expo-sharing/ios"
   EXSplashScreen:
     :path: "../../../node_modules/expo-splash-screen/ios"
   FBLazyVector:
@@ -1407,6 +1412,7 @@ SPEC CHECKSUMS:
   ExpoLocalization: 7423aa1abcc59209dc2ce2b9bb63776a18023a98
   ExpoModulesCore: 43ebd65adf2c0e6ffb0de24a41f8f7de12829331
   ExpoSecureStore: 4cec57fd2c40dcff05ce2186c39afc1af39d213c
+  ExpoSharing: 2537ddc516138bb6d8eb536ff7055e370485f4d1
   EXSplashScreen: 6dba6ef8e5a2ec25cb0cadfc4122f7ac633bb868
   FBLazyVector: fbc4957d9aa695250b55d879c1d86f79d7e69ab4
   FBReactNativeSpec: 396bb4b383339b01795f676aa0192bd394ef6589

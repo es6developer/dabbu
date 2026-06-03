@@ -6,10 +6,12 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   private readonly logger = new Logger(PrismaService.name);
 
   constructor() {
-    const baseUrl = process.env.DATABASE_URL || '';
-    const url = baseUrl.includes('?')
-      ? baseUrl + '&connection_limit=1&pool_timeout=10'
-      : baseUrl + '?connection_limit=1&pool_timeout=10';
+    const baseUrl = process.env.DATABASE_URL;
+    const url = baseUrl
+      ? baseUrl.includes('?')
+        ? baseUrl + '&connection_limit=1&pool_timeout=10'
+        : baseUrl + '?connection_limit=1&pool_timeout=10'
+      : 'mysql://root:@localhost:3306/dabbu?connection_limit=1&pool_timeout=10';
     super({
       log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
       datasourceUrl: url,
@@ -17,8 +19,12 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   }
 
   async onModuleInit(): Promise<void> {
-    await this.$connect();
-    this.logger.log('Database connected successfully');
+    try {
+      await this.$connect();
+      this.logger.log('Database connected successfully');
+    } catch (error) {
+      this.logger.error('Failed to connect to database', (error as Error).message);
+    }
   }
 
   async onModuleDestroy(): Promise<void> {

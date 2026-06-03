@@ -14,8 +14,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { API_URL } from '../../config/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
-import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -138,6 +136,9 @@ export function DocumentDetailScreen() {
   const handleDownload = async () => {
     setDownloading(true);
     try {
+      const FileSystem = await import('expo-file-system');
+      const Sharing = await import('expo-sharing');
+
       if (accessToken) setAccessToken(accessToken);
       const url = `${API_URL}/documents/${id}/download`;
       const fileUri = `${FileSystem.cacheDirectory}${document?.name || 'document'}`;
@@ -146,8 +147,9 @@ export function DocumentDetailScreen() {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
 
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(download.uri);
+      const sharing = Sharing.default || Sharing;
+      if (await sharing.isAvailableAsync()) {
+        await sharing.shareAsync(download.uri);
       } else {
         Alert.alert('Downloaded', `File saved to ${download.uri}`);
       }

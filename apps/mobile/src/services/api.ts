@@ -173,7 +173,9 @@ async function request<T>(
         headers['Authorization'] = `Bearer ${accessToken}`;
         const retryRes = await fetchWithTimeout(path, { ...options, headers }, timeout);
         if (retryRes.ok) {
-          const retryBody = await retryRes.json();
+          const retryBody = await retryRes.json().catch(() => {
+            throw new Error('Invalid server response');
+          });
           const retryData = retryBody?.data ?? retryBody;
           if (canCache) {
             setCached(key, retryData);
