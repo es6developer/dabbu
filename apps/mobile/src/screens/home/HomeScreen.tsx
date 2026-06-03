@@ -57,10 +57,18 @@ function valueFromResult<T>(result: PromiseSettledResult<any>, fallback: T): T {
 }
 
 function listFromResponse(res: any): any[] {
-  if (!res) return [];
-  if (Array.isArray(res)) return res;
-  if (res.data) return Array.isArray(res.data) ? res.data : [];
-  if (res.items) return Array.isArray(res.items) ? res.items : [];
+  if (!res) {
+    return [];
+  }
+  if (Array.isArray(res)) {
+    return res;
+  }
+  if (res.data) {
+    return Array.isArray(res.data) ? res.data : [];
+  }
+  if (res.items) {
+    return Array.isArray(res.items) ? res.items : [];
+  }
   return [];
 }
 
@@ -72,7 +80,9 @@ function moneyFormat(v: number | string | undefined | null): string {
 }
 
 function fmtDate(d: string | null | undefined): string {
-  if (!d) return '';
+  if (!d) {
+    return '';
+  }
   return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 }
 
@@ -111,17 +121,27 @@ export function HomeScreen() {
   const loadPreferences = useCallback(async () => {
     try {
       const res = await api.get<any>('/user/preferences');
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   useEffect(() => {
-    api.get<any>('/premium/check').then((res) => {
-      if (res?.isPremium) setIsPremium(true);
-    }).catch(() => {});
-    api.get<any>('/notifications').then((res) => {
-      const list = listFromResponse(res);
-      setUnreadNotifications(list.filter((n: any) => !n.read).length);
-    }).catch(() => {});
+    api
+      .get<any>('/premium/check')
+      .then((res) => {
+        if (res?.isPremium) {
+          setIsPremium(true);
+        }
+      })
+      .catch(() => {});
+    api
+      .get<any>('/notifications')
+      .then((res) => {
+        const list = listFromResponse(res);
+        setUnreadNotifications(list.filter((n: any) => !n.read).length);
+      })
+      .catch(() => {});
   }, []);
 
   const loadData = useCallback(async () => {
@@ -130,7 +150,9 @@ export function HomeScreen() {
     abortRef.current = controller;
     const signal = controller.signal;
 
-    if (accessToken) setAccessToken(accessToken);
+    if (accessToken) {
+      setAccessToken(accessToken);
+    }
     fadeAnim.setValue(0);
 
     try {
@@ -148,7 +170,9 @@ export function HomeScreen() {
         api.get<any>('/gamification', signal),
       ]);
 
-      if (signal.aborted) return;
+      if (signal.aborted) {
+        return;
+      }
 
       setData({
         accountStats: valueFromResult(results[0], null),
@@ -202,9 +226,12 @@ export function HomeScreen() {
   const totalSavedAll = goalsData.reduce((s: number, g: any) => s + Number(g.currentAmount), 0);
   const goalsOverallPct = totalTarget > 0 ? (totalSavedAll / totalTarget) * 100 : 0;
 
-  const billsData = data.reminders?.filter((r: any) => r.type === 'bill' || r.type === 'subscription') || [];
+  const billsData =
+    data.reminders?.filter((r: any) => r.type === 'bill' || r.type === 'subscription') || [];
   const upcomingBills = billsData.filter((b: any) => {
-    if (!b.dueDate) return false;
+    if (!b.dueDate) {
+      return false;
+    }
     const d = daysUntil(b.dueDate);
     return d >= -1 && d <= 15;
   });
@@ -286,7 +313,10 @@ export function HomeScreen() {
                 key={i}
                 style={[
                   styles.skeletonBlock,
-                  { backgroundColor: colors.skeleton.base, height: i === 1 ? 200 : i === 2 ? 120 : 80 },
+                  {
+                    backgroundColor: colors.skeleton.base,
+                    height: i === 1 ? 200 : i === 2 ? 120 : 80,
+                  },
                 ]}
               />
             ))}
@@ -305,7 +335,10 @@ export function HomeScreen() {
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
-              onRefresh={() => { setRefreshing(true); loadData(); }}
+              onRefresh={() => {
+                setRefreshing(true);
+                loadData();
+              }}
               tintColor={colors.accent.primary}
             />
           }
@@ -332,8 +365,17 @@ export function HomeScreen() {
                   <Text style={styles.avatarText}>{user?.firstName?.[0] || 'U'}</Text>
                 </LinearGradient>
                 <View style={styles.headerGreeting}>
-                  <Text style={styles.greetingText}>Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'}</Text>
-                  <Text style={styles.nameText} numberOfLines={1}>{user?.firstName || 'User'}!</Text>
+                  <Text style={styles.greetingText}>
+                    Good{' '}
+                    {new Date().getHours() < 12
+                      ? 'Morning'
+                      : new Date().getHours() < 18
+                        ? 'Afternoon'
+                        : 'Evening'}
+                  </Text>
+                  <Text style={styles.nameText} numberOfLines={1}>
+                    {user?.firstName || 'User'}!
+                  </Text>
                 </View>
               </TouchableOpacity>
               <View style={styles.headerRight}>
@@ -351,7 +393,9 @@ export function HomeScreen() {
                   <Ionicons name="notifications-outline" size={22} color="#FFF" />
                   {unreadNotifications > 0 && (
                     <View style={styles.notifDot}>
-                      <Text style={styles.notifDotText}>{unreadNotifications > 9 ? '9+' : unreadNotifications}</Text>
+                      <Text style={styles.notifDotText}>
+                        {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                      </Text>
                     </View>
                   )}
                 </TouchableOpacity>
@@ -360,17 +404,27 @@ export function HomeScreen() {
           </LinearGradient>
 
           {/* ─── Financial Overview Card ────────────────── */}
-          <View style={[styles.overviewCard, { backgroundColor: colors.bg.secondary, marginTop: -20 }]}>
+          <View
+            style={[styles.overviewCard, { backgroundColor: colors.bg.secondary, marginTop: -20 }]}
+          >
             <View style={styles.overviewHeader}>
-              <Text style={[styles.overviewLabel, { color: colors.text.tertiary }]}>Available Balance</Text>
-              <View style={[styles.trendBadge, { backgroundColor: savings >= 0 ? '#00B89418' : '#FF6B6B18' }]}>
+              <Text style={[styles.overviewLabel, { color: colors.text.tertiary }]}>
+                Available Balance
+              </Text>
+              <View
+                style={[
+                  styles.trendBadge,
+                  { backgroundColor: savings >= 0 ? '#00B89418' : '#FF6B6B18' },
+                ]}
+              >
                 <Ionicons
                   name={savings >= 0 ? 'trending-up' : 'trending-down'}
                   size={12}
                   color={savings >= 0 ? '#00B894' : '#FF6B6B'}
                 />
                 <Text style={[styles.trendText, { color: savings >= 0 ? '#00B894' : '#FF6B6B' }]}>
-                  {savings >= 0 ? '+' : ''}{moneyFormat(savings)}
+                  {savings >= 0 ? '+' : ''}
+                  {moneyFormat(savings)}
                 </Text>
               </View>
             </View>
@@ -379,12 +433,16 @@ export function HomeScreen() {
             <View style={styles.overviewStats}>
               <View style={styles.overviewStat}>
                 <Text style={[styles.statLabel, { color: colors.text.tertiary }]}>Income</Text>
-                <Text style={[styles.statValue, { color: '#00B894' }]}>{moneyFormat(totalIncome)}</Text>
+                <Text style={[styles.statValue, { color: '#00B894' }]}>
+                  {moneyFormat(totalIncome)}
+                </Text>
               </View>
               <View style={[styles.statDivider, { backgroundColor: colors.border.subtle }]} />
               <View style={styles.overviewStat}>
                 <Text style={[styles.statLabel, { color: colors.text.tertiary }]}>Spent</Text>
-                <Text style={[styles.statValue, { color: '#FF6B6B' }]}>{moneyFormat(totalSpent)}</Text>
+                <Text style={[styles.statValue, { color: '#FF6B6B' }]}>
+                  {moneyFormat(totalSpent)}
+                </Text>
               </View>
               <View style={[styles.statDivider, { backgroundColor: colors.border.subtle }]} />
               <View style={styles.overviewStat}>
@@ -399,7 +457,11 @@ export function HomeScreen() {
               <View
                 style={[
                   styles.overviewBarFill,
-                  { width: `${spendRate}%`, backgroundColor: spendRate > 80 ? '#FF6B6B' : spendRate > 50 ? '#FDCB6E' : '#00B894' },
+                  {
+                    width: `${spendRate}%`,
+                    backgroundColor:
+                      spendRate > 80 ? '#FF6B6B' : spendRate > 50 ? '#FDCB6E' : '#00B894',
+                  },
                 ]}
               />
             </View>
@@ -417,7 +479,9 @@ export function HomeScreen() {
                   onPress={action.onPress}
                 >
                   <Ionicons name={action.icon} size={14} color={action.color} />
-                  <Text style={[styles.chipLabel, { color: colors.text.secondary }]}>{action.label}</Text>
+                  <Text style={[styles.chipLabel, { color: colors.text.secondary }]}>
+                    {action.label}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -435,7 +499,9 @@ export function HomeScreen() {
                   <View style={[styles.cardIcon, { backgroundColor: '#5B5FE818' }]}>
                     <Ionicons name="heart-circle" size={18} color="#5B5FE8" />
                   </View>
-                  <Text style={[styles.cardTitle, { color: colors.text.primary }]}>Financial Health</Text>
+                  <Text style={[styles.cardTitle, { color: colors.text.primary }]}>
+                    Financial Health
+                  </Text>
                 </View>
                 <View style={[styles.healthCircle, { borderColor: data.financialHealth.color }]}>
                   <Text style={[styles.healthScore, { color: data.financialHealth.color }]}>
@@ -447,14 +513,24 @@ export function HomeScreen() {
                 {data.financialHealth.label}
               </Text>
               {data.financialHealth.factors?.slice(0, 3).map((f: any, i: number) => {
-                const barColor = f.status === 'good' ? '#00B894' : f.status === 'fair' ? '#FDCB6E' : '#FF6B6B';
+                const barColor =
+                  f.status === 'good' ? '#00B894' : f.status === 'fair' ? '#FDCB6E' : '#FF6B6B';
                 return (
                   <View key={i} style={styles.factorRow}>
-                    <Text style={[styles.factorName, { color: colors.text.tertiary }]}>{f.name}</Text>
+                    <Text style={[styles.factorName, { color: colors.text.tertiary }]}>
+                      {f.name}
+                    </Text>
                     <View style={[styles.factorBar, { backgroundColor: colors.bg.tertiary }]}>
-                      <View style={[styles.factorFill, { width: `${(f.score / f.maxScore) * 100}%`, backgroundColor: barColor }]} />
+                      <View
+                        style={[
+                          styles.factorFill,
+                          { width: `${(f.score / f.maxScore) * 100}%`, backgroundColor: barColor },
+                        ]}
+                      />
                     </View>
-                    <Text style={[styles.factorScore, { color: barColor }]}>{f.score}/{f.maxScore}</Text>
+                    <Text style={[styles.factorScore, { color: barColor }]}>
+                      {f.score}/{f.maxScore}
+                    </Text>
                   </View>
                 );
               })}
@@ -471,19 +547,38 @@ export function HomeScreen() {
                   </View>
                   <Text style={[styles.cardTitle, { color: colors.text.primary }]}>Insights</Text>
                 </View>
-                <Text style={[styles.cardMeta, { color: colors.text.tertiary }]}>{data.smartInsights.length}</Text>
+                <Text style={[styles.cardMeta, { color: colors.text.tertiary }]}>
+                  {data.smartInsights.length}
+                </Text>
               </View>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={{ marginTop: 8 }}
+              >
                 {data.smartInsights.map((insight: any, i: number) => {
-                  const sevColor = insight.severity === 'critical' ? '#FF6B6B' : insight.severity === 'warning' ? '#FDCB6E' : '#00B894';
+                  const sevColor =
+                    insight.severity === 'critical'
+                      ? '#FF6B6B'
+                      : insight.severity === 'warning'
+                        ? '#FDCB6E'
+                        : '#00B894';
                   return (
                     <TouchableOpacity
                       key={i}
-                      style={[styles.insightCard, { backgroundColor: colors.bg.secondary, borderLeftColor: sevColor }]}
+                      style={[
+                        styles.insightCard,
+                        { backgroundColor: colors.bg.secondary, borderLeftColor: sevColor },
+                      ]}
                       activeOpacity={0.7}
                     >
-                      <Text style={[styles.insightTitle, { color: colors.text.primary }]}>{insight.title}</Text>
-                      <Text style={[styles.insightDesc, { color: colors.text.tertiary }]} numberOfLines={2}>
+                      <Text style={[styles.insightTitle, { color: colors.text.primary }]}>
+                        {insight.title}
+                      </Text>
+                      <Text
+                        style={[styles.insightDesc, { color: colors.text.tertiary }]}
+                        numberOfLines={2}
+                      >
                         {insight.message}
                       </Text>
                       <View style={[styles.insightTag, { backgroundColor: `${sevColor}18` }]}>
@@ -507,22 +602,37 @@ export function HomeScreen() {
                     <View style={[styles.cardIcon, { backgroundColor: '#FDCB6E18' }]}>
                       <Ionicons name="trophy" size={18} color="#FDCB6E" />
                     </View>
-                    <Text style={[styles.cardTitle, { color: colors.text.primary }]}>Active Goals</Text>
+                    <Text style={[styles.cardTitle, { color: colors.text.primary }]}>
+                      Active Goals
+                    </Text>
                   </View>
                   <Ionicons name="chevron-forward" size={14} color={colors.text.tertiary} />
                 </View>
               </TouchableOpacity>
               {goalsData.slice(0, 2).map((goal: any) => {
-                const pctVal = Number(goal.targetAmount) > 0 ? (Number(goal.currentAmount) / Number(goal.targetAmount)) * 100 : 0;
+                const pctVal =
+                  Number(goal.targetAmount) > 0
+                    ? (Number(goal.currentAmount) / Number(goal.targetAmount)) * 100
+                    : 0;
                 return (
                   <View key={goal.id} style={styles.goalRow}>
                     <View style={styles.goalInfo}>
-                      <Text style={[styles.goalName, { color: colors.text.primary }]} numberOfLines={1}>{goal.name}</Text>
+                      <Text
+                        style={[styles.goalName, { color: colors.text.primary }]}
+                        numberOfLines={1}
+                      >
+                        {goal.name}
+                      </Text>
                       <Text style={[styles.goalMeta, { color: colors.text.tertiary }]}>
                         {moneyFormat(goal.currentAmount)} / {moneyFormat(goal.targetAmount)}
                       </Text>
                     </View>
-                    <Text style={[styles.goalPct, { color: pctVal >= 100 ? '#00B894' : colors.accent.primary }]}>
+                    <Text
+                      style={[
+                        styles.goalPct,
+                        { color: pctVal >= 100 ? '#00B894' : colors.accent.primary },
+                      ]}
+                    >
                       {pct(pctVal)}
                     </Text>
                   </View>
@@ -534,16 +644,22 @@ export function HomeScreen() {
           {/* ─── Upcoming Bills & Reminders ────────────── */}
           {upcomingBills.length > 0 && (
             <View style={[styles.card, { backgroundColor: colors.bg.secondary }]}>
-              <TouchableOpacity onPress={() => navigation.navigate('Accounts', { screen: 'BillsList' })}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Accounts', { screen: 'BillsList' })}
+              >
                 <View style={styles.cardHeader}>
                   <View style={styles.cardHeaderLeft}>
                     <View style={[styles.cardIcon, { backgroundColor: '#FF6B6B18' }]}>
                       <Ionicons name="receipt" size={18} color="#FF6B6B" />
                     </View>
-                    <Text style={[styles.cardTitle, { color: colors.text.primary }]}>Upcoming Bills</Text>
+                    <Text style={[styles.cardTitle, { color: colors.text.primary }]}>
+                      Upcoming Bills
+                    </Text>
                   </View>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <Text style={[styles.cardMeta, { color: colors.text.tertiary }]}>{upcomingBills.length}</Text>
+                    <Text style={[styles.cardMeta, { color: colors.text.tertiary }]}>
+                      {upcomingBills.length}
+                    </Text>
                     <Ionicons name="chevron-forward" size={14} color={colors.text.tertiary} />
                   </View>
                 </View>
@@ -552,14 +668,39 @@ export function HomeScreen() {
                 const dDays = daysUntil(bill.dueDate);
                 const isUrgent = dDays <= 2;
                 return (
-                  <View key={bill.id} style={[styles.billRow, { backgroundColor: isUrgent ? '#FF6B6B08' : 'transparent' }]}>
-                    <View style={[styles.billDot, { backgroundColor: isUrgent ? '#FF6B6B' : colors.accent.primary }]} />
+                  <View
+                    key={bill.id}
+                    style={[
+                      styles.billRow,
+                      { backgroundColor: isUrgent ? '#FF6B6B08' : 'transparent' },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.billDot,
+                        { backgroundColor: isUrgent ? '#FF6B6B' : colors.accent.primary },
+                      ]}
+                    />
                     <View style={{ flex: 1 }}>
-                      <Text style={[styles.billName, { color: colors.text.primary }]} numberOfLines={1}>
+                      <Text
+                        style={[styles.billName, { color: colors.text.primary }]}
+                        numberOfLines={1}
+                      >
                         {bill.title || bill.name}
                       </Text>
-                      <Text style={[styles.billDue, { color: isUrgent ? '#FF6B6B' : colors.text.tertiary }]}>
-                        {dDays <= 0 ? 'Overdue' : dDays === 0 ? 'Today' : dDays === 1 ? 'Tomorrow' : `In ${dDays} days`}
+                      <Text
+                        style={[
+                          styles.billDue,
+                          { color: isUrgent ? '#FF6B6B' : colors.text.tertiary },
+                        ]}
+                      >
+                        {dDays <= 0
+                          ? 'Overdue'
+                          : dDays === 0
+                            ? 'Today'
+                            : dDays === 1
+                              ? 'Tomorrow'
+                              : `In ${dDays} days`}
                       </Text>
                     </View>
                     <Text style={[styles.billAmount, { color: colors.text.primary }]}>
@@ -574,22 +715,33 @@ export function HomeScreen() {
           {/* ─── Shared Finance Summary ────────────────── */}
           {sharedGroupsData.length > 0 && (
             <View style={[styles.card, { backgroundColor: colors.bg.secondary }]}>
-              <TouchableOpacity onPress={() => navigation.navigate('Shared', { screen: 'SharedFinanceHome' })}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Shared', { screen: 'SharedFinanceHome' })}
+              >
                 <View style={styles.cardHeader}>
                   <View style={styles.cardHeaderLeft}>
                     <View style={[styles.cardIcon, { backgroundColor: '#5B5FE818' }]}>
                       <Ionicons name="people" size={18} color="#5B5FE8" />
                     </View>
-                    <Text style={[styles.cardTitle, { color: colors.text.primary }]}>Shared Finance</Text>
+                    <Text style={[styles.cardTitle, { color: colors.text.primary }]}>
+                      Shared Finance
+                    </Text>
                   </View>
                   <Ionicons name="chevron-forward" size={14} color={colors.text.tertiary} />
                 </View>
               </TouchableOpacity>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 4 }}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={{ marginTop: 4 }}
+              >
                 {sharedGroupsData.slice(0, 6).map((group: any) => {
                   const typeColors: Record<string, string> = {
-                    couple: '#FF6B9D', family: '#5B5FE8', friends: '#00B894',
-                    trip: '#FDCB6E', roommates: '#F7892C',
+                    couple: '#FF6B9D',
+                    family: '#5B5FE8',
+                    friends: '#00B894',
+                    trip: '#FDCB6E',
+                    roommates: '#F7892C',
                   };
                   const color = typeColors[group.type] || colors.accent.primary;
                   const members = group.members?.length || group._count?.members || 0;
@@ -598,19 +750,35 @@ export function HomeScreen() {
                       key={group.id}
                       style={[styles.sharedCard, { backgroundColor: colors.bg.tertiary }]}
                       activeOpacity={0.7}
-                      onPress={() => navigation.navigate('Shared', {
-                        screen: group.type === 'couple' ? 'CoupleFinance' : group.type === 'family' ? 'FamilyDashboard' : 'SharedGroupDetail',
-                        params: { groupId: group.id },
-                      })}
+                      onPress={() =>
+                        navigation.navigate('Shared', {
+                          screen:
+                            group.type === 'couple'
+                              ? 'CoupleFinance'
+                              : group.type === 'family'
+                                ? 'FamilyDashboard'
+                                : 'SharedGroupDetail',
+                          params: { groupId: group.id },
+                        })
+                      }
                     >
                       <View style={[styles.sharedIcon, { backgroundColor: `${color}18` }]}>
                         <Ionicons
-                          name={group.type === 'couple' ? 'heart' : group.type === 'family' ? 'home' : 'people'}
+                          name={
+                            group.type === 'couple'
+                              ? 'heart'
+                              : group.type === 'family'
+                                ? 'home'
+                                : 'people'
+                          }
                           size={18}
                           color={color}
                         />
                       </View>
-                      <Text style={[styles.sharedName, { color: colors.text.primary }]} numberOfLines={1}>
+                      <Text
+                        style={[styles.sharedName, { color: colors.text.primary }]}
+                        numberOfLines={1}
+                      >
                         {group.name || group.title}
                       </Text>
                       <Text style={[styles.sharedMeta, { color: colors.text.tertiary }]}>
@@ -630,9 +798,13 @@ export function HomeScreen() {
                 <View style={[styles.cardIcon, { backgroundColor: '#00B89418' }]}>
                   <Ionicons name="time" size={18} color="#00B894" />
                 </View>
-                <Text style={[styles.cardTitle, { color: colors.text.primary }]}>Recent Activity</Text>
+                <Text style={[styles.cardTitle, { color: colors.text.primary }]}>
+                  Recent Activity
+                </Text>
               </View>
-              <TouchableOpacity onPress={() => navigation.navigate('Accounts', { screen: 'ExpenseHome' })}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Accounts', { screen: 'ExpenseHome' })}
+              >
                 <Text style={[styles.seeAllText, { color: colors.accent.primary }]}>See all</Text>
               </TouchableOpacity>
             </View>
@@ -649,7 +821,12 @@ export function HomeScreen() {
                     })
                   }
                 >
-                  <View style={[styles.activityIcon, { backgroundColor: Number(tx.amount) > 0 ? '#00B89418' : '#FF6B6B18' }]}>
+                  <View
+                    style={[
+                      styles.activityIcon,
+                      { backgroundColor: Number(tx.amount) > 0 ? '#00B89418' : '#FF6B6B18' },
+                    ]}
+                  >
                     <Ionicons
                       name={Number(tx.amount) > 0 ? 'arrow-down' : 'arrow-up'}
                       size={14}
@@ -657,14 +834,22 @@ export function HomeScreen() {
                     />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.activityName, { color: colors.text.primary }]} numberOfLines={1}>
+                    <Text
+                      style={[styles.activityName, { color: colors.text.primary }]}
+                      numberOfLines={1}
+                    >
                       {tx.description || tx.category || 'Transaction'}
                     </Text>
                     <Text style={[styles.activityDate, { color: colors.text.tertiary }]}>
                       {fmtDate(tx.date || tx.createdAt)}
                     </Text>
                   </View>
-                  <Text style={[styles.activityAmount, { color: Number(tx.amount) > 0 ? '#00B894' : colors.text.primary }]}>
+                  <Text
+                    style={[
+                      styles.activityAmount,
+                      { color: Number(tx.amount) > 0 ? '#00B894' : colors.text.primary },
+                    ]}
+                  >
                     {moneyFormat(Math.abs(Number(tx.amount)))}
                   </Text>
                 </TouchableOpacity>
@@ -672,7 +857,9 @@ export function HomeScreen() {
             ) : (
               <View style={styles.emptyState}>
                 <Ionicons name="receipt-outline" size={32} color={colors.text.tertiary} />
-                <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>No recent transactions</Text>
+                <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
+                  No recent transactions
+                </Text>
                 <TouchableOpacity
                   style={[styles.emptyBtn, { backgroundColor: colors.accent.primary }]}
                   onPress={() => navigation.navigate('Accounts', { screen: 'CreateTransaction' })}
@@ -688,7 +875,14 @@ export function HomeScreen() {
 
       {/* ─── FAB ──────────────────────────────────────── */}
       <TouchableOpacity
-        style={[styles.fab, { backgroundColor: colors.accent.primary, shadowColor: colors.accent.primary }]}
+        style={[
+          styles.fab,
+          {
+            backgroundColor: colors.accent.primary,
+            shadowColor: colors.accent.primary,
+            bottom: insets.bottom + 80,
+          },
+        ]}
         activeOpacity={0.85}
         onPress={() => setShowActions(true)}
       >
@@ -820,12 +1014,25 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   cardHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  cardIcon: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  cardIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   cardTitle: { fontSize: 15, fontWeight: '700' },
   cardMeta: { fontSize: 12, fontWeight: '600' },
 
   // Financial Health
-  healthCircle: { width: 44, height: 44, borderRadius: 22, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
+  healthCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 2.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   healthScore: { fontSize: 16, fontWeight: '800' },
   healthLabel: { fontSize: 13, fontWeight: '700', marginBottom: 10 },
   factorRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
@@ -844,7 +1051,12 @@ const styles = StyleSheet.create({
   },
   insightTitle: { fontSize: 13, fontWeight: '700', marginBottom: 4 },
   insightDesc: { fontSize: 11, lineHeight: 15, marginBottom: 8 },
-  insightTag: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
+  insightTag: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
   insightTagText: { fontSize: 9, fontWeight: '700', textTransform: 'uppercase' },
 
   // Goals
@@ -883,13 +1095,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
-  sharedIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  sharedIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   sharedName: { fontSize: 12, fontWeight: '700', textAlign: 'center' },
   sharedMeta: { fontSize: 10, fontWeight: '500' },
 
   // Recent Activity
   activityRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
-  activityIcon: { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  activityIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   activityName: { fontSize: 13, fontWeight: '600' },
   activityDate: { fontSize: 11, marginTop: 1 },
   activityAmount: { fontSize: 14, fontWeight: '700' },

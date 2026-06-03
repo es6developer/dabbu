@@ -10,11 +10,7 @@ interface FloatingActionButtonProps {
   style?: ViewStyle;
 }
 
-export function FloatingActionButton({
-  onPress,
-  icon = 'add',
-  style,
-}: FloatingActionButtonProps) {
+export function FloatingActionButton({ onPress, icon = 'add', style }: FloatingActionButtonProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 
@@ -25,7 +21,7 @@ export function FloatingActionButton({
         {
           backgroundColor: colors.accent.primary,
           shadowColor: colors.accent.primary,
-          bottom: insets.bottom + 24,
+          bottom: insets.bottom + 80,
         },
         style,
       ]}

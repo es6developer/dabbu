@@ -43,7 +43,9 @@ const CATEGORY_ICONS: Record<string, string> = {
 };
 
 function fmtDate(d: string | null) {
-  if (!d) return null;
+  if (!d) {
+    return null;
+  }
   const date = new Date(d);
   return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
@@ -68,10 +70,15 @@ export function DocumentVaultScreen() {
 
   const loadData = useCallback(
     async (refresh = false) => {
-      if (refresh) setRefreshing(true);
-      else setLoading(true);
+      if (refresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
       try {
-        if (accessToken) setAccessToken(accessToken);
+        if (accessToken) {
+          setAccessToken(accessToken);
+        }
         const [docRes, catRes] = await Promise.all([
           api.get<any[]>('/documents'),
           api.get<any>('/documents/categories'),
@@ -107,7 +114,9 @@ export function DocumentVaultScreen() {
       quality: 0.8,
     });
 
-    if (result.canceled || !result.assets?.length) return;
+    if (result.canceled || !result.assets?.length) {
+      return;
+    }
 
     const asset = result.assets[0];
     const ext = asset.fileName?.split('.').pop() || 'jpg';
@@ -133,7 +142,9 @@ export function DocumentVaultScreen() {
       quality: 0.8,
     });
 
-    if (result.canceled || !result.assets?.length) return;
+    if (result.canceled || !result.assets?.length) {
+      return;
+    }
 
     const asset = result.assets[0];
     navigation.navigate('DocumentDetail', {
@@ -167,7 +178,9 @@ export function DocumentVaultScreen() {
   }
 
   const expiringDocs = documents.filter((d) => {
-    if (!d.expiryDate) return false;
+    if (!d.expiryDate) {
+      return false;
+    }
     const days = dayDiff(d.expiryDate);
     return days >= 0 && days <= 30;
   });
@@ -221,9 +234,7 @@ export function DocumentVaultScreen() {
                       isActive && { borderColor: colors.accent.primary, borderWidth: 1.5 },
                     ]}
                     activeOpacity={0.7}
-                    onPress={() =>
-                      setSelectedCategory(isActive ? null : cat.key)
-                    }
+                    onPress={() => setSelectedCategory(isActive ? null : cat.key)}
                   >
                     <View
                       style={[s.categoryIcon, { backgroundColor: `${colors.accent.primary}18` }]}
@@ -246,9 +257,7 @@ export function DocumentVaultScreen() {
                       </View>
                     )}
                     {categories[cat.key]?.expiring > 0 && (
-                      <View
-                        style={[s.expiryDot, { backgroundColor: colors.status.warning }]}
-                      />
+                      <View style={[s.expiryDot, { backgroundColor: colors.status.warning }]} />
                     )}
                   </TouchableOpacity>
                 );
@@ -287,13 +296,9 @@ export function DocumentVaultScreen() {
             <TouchableOpacity
               style={[s.docCard, { backgroundColor: colors.bg.secondary }]}
               activeOpacity={0.7}
-              onPress={() =>
-                navigation.navigate('DocumentDetail', { id: item.id, mode: 'view' })
-              }
+              onPress={() => navigation.navigate('DocumentDetail', { id: item.id, mode: 'view' })}
             >
-              <View
-                style={[s.docIcon, { backgroundColor: `${colors.accent.primary}18` }]}
-              >
+              <View style={[s.docIcon, { backgroundColor: `${colors.accent.primary}18` }]}>
                 <Ionicons
                   name={(CATEGORY_ICONS[item.category] || 'document') as any}
                   size={18}
@@ -315,7 +320,9 @@ export function DocumentVaultScreen() {
                       { color: isExpiring ? colors.status.warning : colors.text.tertiary },
                     ]}
                   >
-                    {isExpiring ? `Expires in ${days} day${days === 1 ? '' : 's'}` : `Expires ${fmtDate(item.expiryDate)}`}
+                    {isExpiring
+                      ? `Expires in ${days} day${days === 1 ? '' : 's'}`
+                      : `Expires ${fmtDate(item.expiryDate)}`}
                   </Text>
                 )}
               </View>
@@ -336,7 +343,7 @@ export function DocumentVaultScreen() {
         }
       />
 
-      <View style={[s.fabRow, { bottom: insets.bottom + 20 }]}>
+      <View style={[s.fabRow, { bottom: insets.bottom + 80 }]}>
         <TouchableOpacity
           style={[s.fabCamera, { backgroundColor: colors.bg.secondary }]}
           activeOpacity={0.7}
@@ -345,12 +352,18 @@ export function DocumentVaultScreen() {
           <Ionicons name="camera-outline" size={22} color={colors.text.primary} />
         </TouchableOpacity>
         <TouchableOpacity
-          style={[s.fab, { backgroundColor: colors.accent.primary }]}
+          style={[s.fabCamera, { backgroundColor: colors.bg.secondary }]}
           activeOpacity={0.7}
           onPress={pickAndUpload}
         >
-          <Ionicons name="cloud-upload-outline" size={22} color="#FFF" />
-          <Text style={s.fabText}>Upload</Text>
+          <Ionicons name="image-outline" size={22} color={colors.text.primary} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[s.fab, { backgroundColor: colors.accent.primary }]}
+          activeOpacity={0.7}
+          onPress={() => setShowUploadOptions(true)}
+        >
+          <Ionicons name="add" size={24} color="#FFF" />
         </TouchableOpacity>
       </View>
     </View>
@@ -435,7 +448,13 @@ const s = StyleSheet.create({
     marginBottom: 8,
     gap: 12,
   },
-  docIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  docIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   docName: { fontSize: 14, fontWeight: '600' },
   docMeta: { fontSize: 11, marginTop: 2 },
   docExpiry: { fontSize: 11, marginTop: 1, fontWeight: '500' },

@@ -15,8 +15,6 @@ export function AppLockScreen({ onUnlock }: Props) {
   const { colors, isDark } = useTheme();
   const { user, logout } = useAuth();
   const [pin, setPin] = useState<string[]>([]);
-  const [firstPin, setFirstPin] = useState<string>('');
-  const [step, setStep] = useState<'first' | 'second'>('first');
   const [error, setError] = useState('');
   const shakeAnim = useRef(new Animated.Value(0)).current;
   const [storedPin, setStoredPin] = useState<string | null>(null);
@@ -38,7 +36,9 @@ export function AppLockScreen({ onUnlock }: Props) {
   }
 
   function handlePress(digit: string) {
-    if (error) setError('');
+    if (error) {
+      setError('');
+    }
     const next = [...pin, digit];
     setPin(next);
     if (next.length === pinLength) {
@@ -57,22 +57,7 @@ export function AppLockScreen({ onUnlock }: Props) {
       setPin([]);
       return;
     }
-
-    if (step === 'first') {
-      setFirstPin(entered);
-      setStep('second');
-      setPin([]);
-      setError('');
-    } else {
-      onUnlock();
-    }
-  }
-
-  function handleBackToFirst() {
-    setStep('first');
-    setFirstPin('');
-    setPin([]);
-    setError('');
+    onUnlock();
   }
 
   async function handleBiometric() {
@@ -86,8 +71,12 @@ export function AppLockScreen({ onUnlock }: Props) {
         promptMessage: 'Unlock Dabbu',
         fallbackLabel: 'Enter PIN',
       });
-      if (result.success) onUnlock();
-    } catch (_e) { /* ignore */ }
+      if (result.success) {
+        onUnlock();
+      }
+    } catch (_e) {
+      /* ignore */
+    }
   }
 
   function handleForgotPin() {
@@ -97,14 +86,19 @@ export function AppLockScreen({ onUnlock }: Props) {
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Logout', style: 'destructive', onPress: () => logout().catch(() => {}) },
-      ]
+      ],
     );
   }
 
   const isFull = pin.length === pinLength;
 
   return (
-    <LinearGradient colors={isDark ? [colors.bg.secondary, colors.bg.primary] : ['#f8f4f0', colors.bg.primary]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.container}>
+    <LinearGradient
+      colors={isDark ? [colors.bg.secondary, colors.bg.primary] : ['#f8f4f0', colors.bg.primary]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 1 }}
+      style={styles.container}
+    >
       <View style={styles.topSection}>
         <View style={[styles.iconWrap, { backgroundColor: `${colors.accent.primary}18` }]}>
           <Ionicons name="lock-closed" size={32} color={colors.accent.primary} />
@@ -113,14 +107,6 @@ export function AppLockScreen({ onUnlock }: Props) {
         <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>
           {user?.firstName || 'User'} • Enter PIN to unlock
         </Text>
-        <Text style={[styles.stepLabel, { color: colors.accent.primary }]}>
-          {step === 'first' ? 'Enter PIN' : 'Enter PIN again'}
-        </Text>
-        {step === 'second' && (
-          <TouchableOpacity onPress={handleBackToFirst}>
-            <Text style={[styles.backText, { color: colors.text.tertiary }]}>← Back</Text>
-          </TouchableOpacity>
-        )}
       </View>
 
       <View style={styles.dotsWrap}>
@@ -131,23 +117,39 @@ export function AppLockScreen({ onUnlock }: Props) {
               style={[
                 styles.dot,
                 {
-                  backgroundColor: pin[i] ? (isFull ? colors.status.success : colors.accent.primary) : 'transparent',
-                  borderColor: pin[i] ? (isFull ? colors.status.success : colors.accent.primary) : colors.border.subtle,
+                  backgroundColor: pin[i]
+                    ? isFull
+                      ? colors.status.success
+                      : colors.accent.primary
+                    : 'transparent',
+                  borderColor: pin[i]
+                    ? isFull
+                      ? colors.status.success
+                      : colors.accent.primary
+                    : colors.border.subtle,
                 },
               ]}
             />
           ))}
         </Animated.View>
-        {error ? <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text> : null}
-
+        {error ? (
+          <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text>
+        ) : null}
       </View>
 
       <View style={styles.keypad}>
         {['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'].map((key, i) => {
-          if (key === '') return <View key={i} style={styles.keypadKey} />;
+          if (key === '') {
+            return <View key={i} style={styles.keypadKey} />;
+          }
           if (key === 'del') {
             return (
-              <TouchableOpacity key={i} style={styles.keypadKey} onPress={handleDelete} activeOpacity={0.4}>
+              <TouchableOpacity
+                key={i}
+                style={styles.keypadKey}
+                onPress={handleDelete}
+                activeOpacity={0.4}
+              >
                 <Ionicons name="backspace-outline" size={24} color={colors.text.secondary} />
               </TouchableOpacity>
             );
@@ -168,7 +170,9 @@ export function AppLockScreen({ onUnlock }: Props) {
       <View style={styles.bottomSection}>
         <TouchableOpacity style={styles.biometricBtn} onPress={handleBiometric} activeOpacity={0.6}>
           <Ionicons name="finger-print" size={24} color={colors.accent.primary} />
-          <Text style={[styles.biometricText, { color: colors.accent.primary }]}>Unlock with Biometric</Text>
+          <Text style={[styles.biometricText, { color: colors.accent.primary }]}>
+            Unlock with Biometric
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.forgotBtn} onPress={handleForgotPin} activeOpacity={0.6}>
@@ -180,22 +184,46 @@ export function AppLockScreen({ onUnlock }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'space-between', paddingTop: 100, paddingBottom: 50 },
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 100,
+    paddingBottom: 50,
+  },
   topSection: { alignItems: 'center' },
-  iconWrap: { width: 64, height: 64, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+  iconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
   title: { fontSize: 26, fontWeight: '700', marginBottom: 6 },
   subtitle: { fontSize: 14, fontWeight: '500' },
-  stepLabel: { fontSize: 13, fontWeight: '600', marginTop: 12 },
-  backText: { fontSize: 13, fontWeight: '500', marginTop: 6 },
   dotsWrap: { alignItems: 'center', marginVertical: 40 },
   dots: { flexDirection: 'row', gap: 18 },
   dot: { width: 16, height: 16, borderRadius: 8, borderWidth: 2 },
   errorText: { fontSize: 13, marginTop: 16, fontWeight: '500' },
   keypad: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', width: 280, gap: 14 },
-  keypadKey: { width: 80, height: 80, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
+  keypadKey: {
+    width: 80,
+    height: 80,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   keypadText: { fontSize: 28, fontWeight: '500' },
   bottomSection: { alignItems: 'center', gap: 16 },
-  biometricBtn: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12, paddingHorizontal: 24, borderRadius: 14 },
+  biometricBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 14,
+  },
   biometricText: { fontSize: 15, fontWeight: '600' },
   forgotBtn: { paddingVertical: 8, paddingHorizontal: 16 },
   forgotText: { fontSize: 13, fontWeight: '500' },
