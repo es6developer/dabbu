@@ -56,6 +56,9 @@ async function bootstrap() {
 }
 
 module.exports = async (req, res) => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require('reflect-metadata');
+
   try {
     if (!cachedApp) {
       cachedApp = await bootstrap();
