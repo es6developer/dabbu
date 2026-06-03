@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { Public } from '../../common/decorators';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { GroupMemberGuard } from './guards/group-member.guard';
 import { SharedFinanceService } from './shared-finance.service';
@@ -173,8 +174,9 @@ export class SharedFinanceController {
     return this.sf.inviteMember(groupId, userId, dto);
   }
 
+  @Public()
   @Get('invites/:token')
-  @ApiOperation({ summary: 'Validate invite token' })
+  @ApiOperation({ summary: 'Validate invite token (public)' })
   async validateInvite(@Param('token') token: string) {
     return this.sf.validateInvite(token);
   }
