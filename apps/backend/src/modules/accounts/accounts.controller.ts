@@ -34,6 +34,19 @@ export class AccountsController {
     return { data: insights };
   }
 
+  @Get('financial-health')
+  @ApiOperation({ summary: 'Get financial health score' })
+  async getFinancialHealth(@CurrentUser('id') userId: string) {
+    return this.accountsService.getFinancialHealth(userId);
+  }
+
+  @Get('smart-insights')
+  @ApiOperation({ summary: 'Get smart spending insights' })
+  async getSmartInsights(@CurrentUser('id') userId: string) {
+    const insights = await this.accountsService.getSmartInsights(userId);
+    return { data: insights };
+  }
+
   @Get('recurring')
   @ApiOperation({ summary: 'Get detected recurring payment patterns' })
   async getRecurringPatterns(@CurrentUser('id') userId: string) {

@@ -28,6 +28,8 @@ interface DashboardData {
   reminders: any[];
   goals: any[];
   sharedGroups: any[];
+  financialHealth: any | null;
+  smartInsights: any[];
 }
 
 const emptyData: DashboardData = {
@@ -38,6 +40,8 @@ const emptyData: DashboardData = {
   reminders: [],
   goals: [],
   sharedGroups: [],
+  financialHealth: null,
+  smartInsights: [],
 };
 
 const moneyFormat = (value: number) => {
@@ -90,6 +94,8 @@ export function DashboardScreen() {
       setWidgetOrder([
         'balance',
         'quickActions',
+        'financialHealth',
+        'smartInsights',
         'goals',
         'spaces',
         'features',
@@ -110,7 +116,7 @@ export function DashboardScreen() {
     }
 
     try {
-      const [accountStats, txStats, categories, expenseGroups, reminders, goals, sharedGroups] =
+      const [accountStats, txStats, categories, expenseGroups, reminders, goals, sharedGroups, financialHealth, smartInsights] =
         await Promise.allSettled([
           api.get<any>('/accounts/stats', signal),
           api.get<any>('/transactions/stats', signal),
@@ -119,6 +125,8 @@ export function DashboardScreen() {
           api.get<any>('/reminders', signal),
           api.get<any>('/goals', signal),
           api.get<any>('/shared-finance/groups', signal),
+          api.get<any>('/accounts/financial-health', signal),
+          api.get<any>('/accounts/smart-insights', signal),
         ]);
 
       if (signal.aborted) {
@@ -133,6 +141,8 @@ export function DashboardScreen() {
         reminders: listFromResponse(valueFromResult(reminders, [])),
         goals: listFromResponse(valueFromResult(goals, [])),
         sharedGroups: listFromResponse(valueFromResult(sharedGroups, [])),
+        financialHealth: valueFromResult(financialHealth, null),
+        smartInsights: listFromResponse(valueFromResult(smartInsights, [])),
       });
     } finally {
       if (!signal.aborted) {
@@ -436,6 +446,127 @@ export function DashboardScreen() {
                 </Text>
               </TouchableOpacity>
             ))}
+          </View>
+        )}
+
+        {(!widgetOrder.length || widgetOrder.includes('financialHealth')) && data.financialHealth && (
+          <View style={styles.section}>
+            <TouchableOpacity
+              style={[styles.healthCard, { backgroundColor: colors.bg.secondary }]}
+              activeOpacity={0.8}
+              onPress={() => navigation.navigate('GoalsList')}
+            >
+              <View style={styles.healthTop}>
+                <View
+                  style={[
+                    styles.healthScoreCircle,
+                    { borderColor: data.financialHealth.color || colors.accent.primary },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.healthScoreText,
+                      { color: data.financialHealth.color || colors.accent.primary },
+                    ]}
+                  >
+                    {data.financialHealth.score || 0}
+                  </Text>
+                </View>
+                <View style={{ flex: 1, marginLeft: 16 }}>
+                  <Text style={[styles.healthLabel, { color: colors.text.primary }]}>
+                    Financial Health
+                  </Text>
+                  <Text
+                    style={[
+                      styles.healthStatus,
+                      { color: data.financialHealth.color || colors.accent.primary },
+                    ]}
+                  >
+                    {data.financialHealth.label || '--'}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
+              </View>
+              {data.financialHealth.factors && (
+                <View style={styles.healthFactors}>
+                  {data.financialHealth.factors.slice(0, 3).map((f: any, i: number) => (
+                    <View key={i} style={styles.healthFactorRow}>
+                      <View style={styles.healthFactorLeft}>
+                        <Text
+                          style={[styles.healthFactorName, { color: colors.text.secondary }]}
+                          numberOfLines={1}
+                        >
+                          {f.name}
+                        </Text>
+                      </View>
+                      <View style={[styles.healthFactorBar, { backgroundColor: colors.bg.tertiary }]}>
+                        <View
+                          style={[
+                            styles.healthFactorFill,
+                            {
+                              width: `${(f.score / f.maxScore) * 100}%`,
+                              backgroundColor:
+                                f.status === 'good'
+                                  ? '#00C853'
+                                  : f.status === 'fair'
+                                    ? '#FFB300'
+                                    : '#FF5252',
+                            },
+                          ]}
+                        />
+                      </View>
+                      <Text style={[styles.healthFactorScore, { color: colors.text.tertiary }]}>
+                        {f.score}/{f.maxScore}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {(!widgetOrder.length || widgetOrder.includes('smartInsights')) && data.smartInsights.length > 0 && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionLabel, { color: colors.text.primary }]}>Smart Insights</Text>
+            <View style={{ gap: 8 }}>
+              {data.smartInsights.slice(0, 3).map((insight: any, i: number) => {
+                const iconName = insight.icon === 'trending-down' ? 'trending-down' as any
+                  : insight.icon === 'trending-up' ? 'trending-up' as any
+                    : insight.icon === 'alert-circle' ? 'alert-circle' as any
+                      : insight.icon === 'flame' ? 'flame' as any
+                        : insight.icon === 'flag' ? 'flag' as any
+                          : insight.icon === 'card' ? 'card' as any
+                            : insight.icon === 'wallet' ? 'wallet-outline' as any
+                              : 'bulb-outline' as any;
+                const severityColor = insight.severity === 'success' ? colors.status.success
+                  : insight.severity === 'warning' ? colors.status.warning
+                    : insight.severity === 'critical' ? colors.status.error
+                      : colors.status.info;
+                return (
+                  <TouchableOpacity
+                    key={i}
+                    style={[styles.insightCard, { backgroundColor: colors.bg.secondary }]}
+                    activeOpacity={insight.actionable ? 0.7 : 1}
+                  >
+                    <View style={[styles.insightIcon, { backgroundColor: `${severityColor}18` }]}>
+                      <Ionicons name={iconName} size={18} color={severityColor} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.insightTitle, { color: colors.text.primary }]}>
+                        {insight.title}
+                      </Text>
+                      <Text style={[styles.insightDesc, { color: colors.text.tertiary }]}>
+                        {insight.message}
+                      </Text>
+                    </View>
+                    {insight.actionable && (
+                      <Ionicons name="chevron-forward" size={14} color={colors.text.tertiary} />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           </View>
         )}
 
@@ -946,4 +1077,58 @@ const styles = StyleSheet.create({
   spacesPreviewDot: { width: 8, height: 8, borderRadius: 4 },
   spacesPreviewName: { flex: 1, fontSize: 12, fontWeight: '600' },
   spacesPreviewAmount: { fontSize: 11, fontWeight: '600' },
+  healthCard: {
+    borderRadius: 20,
+    padding: 18,
+    marginBottom: 8,
+  },
+  healthTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  healthScoreCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  healthScoreText: { fontSize: 20, fontWeight: '800' },
+  healthLabel: { fontSize: 14, fontWeight: '700' },
+  healthStatus: { fontSize: 13, fontWeight: '600', marginTop: 2 },
+  healthFactors: { marginTop: 14, gap: 8 },
+  healthFactorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  healthFactorLeft: { width: 80 },
+  healthFactorName: { fontSize: 11, fontWeight: '500' },
+  healthFactorBar: {
+    flex: 1,
+    height: 5,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  healthFactorFill: { height: '100%', borderRadius: 3 },
+  healthFactorScore: { fontSize: 10, fontWeight: '600', width: 30, textAlign: 'right' },
+  section: { marginTop: 20, paddingHorizontal: 20 },
+  sectionLabel: { fontSize: 16, fontWeight: '700', marginBottom: 12 },
+  insightCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: 16,
+    gap: 12,
+  },
+  insightIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  insightTitle: { fontSize: 13, fontWeight: '600', marginBottom: 2 },
+  insightDesc: { fontSize: 12, lineHeight: 16 },
 });

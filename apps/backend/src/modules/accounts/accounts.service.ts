@@ -1,12 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { AccountInsightEngine, SpendingInsight, RecurringPattern } from './engine/account-insight.engine';
+import { FinancialHealthEngine, HealthScoreResult } from './engine/financial-health.engine';
+import { SmartInsightsEngine, SmartInsight } from './engine/smart-insights.engine';
 
 @Injectable()
 export class AccountsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly insightEngine: AccountInsightEngine,
+    private readonly healthEngine: FinancialHealthEngine,
+    private readonly smartInsightsEngine: SmartInsightsEngine,
   ) {}
 
   async getAccounts(userId: string): Promise<any[]> {
@@ -118,5 +122,13 @@ export class AccountsService {
       monthlyExpense,
       recentTransactions: recentTxs,
     };
+  }
+
+  async getFinancialHealth(userId: string): Promise<HealthScoreResult> {
+    return this.healthEngine.calculate(userId);
+  }
+
+  async getSmartInsights(userId: string): Promise<SmartInsight[]> {
+    return this.smartInsightsEngine.generate(userId);
   }
 }
