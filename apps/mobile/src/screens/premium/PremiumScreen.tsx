@@ -40,12 +40,12 @@ const PREMIUM_FEATURES = [
   { icon: 'color-palette', label: 'Premium Themes' },
   { icon: 'flask', label: 'Early Access Features' },
   { icon: 'sparkles', label: 'Future AI Features' },
-  { icon: 'wallet', label: 'Subscription Tracking' },
+  { icon: 'wallet', label: 'Subscription Management' },
 ];
 
 const FREE_FEATURES = [
-  'Expense Tracking',
-  'Income Tracking',
+  'Expense Management',
+  'Income Management',
   'Basic Reports',
   'Maximum 5 Groups',
   '10 Members Per Group',
@@ -302,8 +302,8 @@ export function PremiumScreen() {
             <Text style={styles.heroTitle}>Unlock the Full</Text>
             <Text style={styles.heroTitleAccent}>Dabbu Experience</Text>
             <Text style={styles.heroSubtitle}>
-              Premium gives you unlimited access to all features, advanced analytics, and future AI
-              tools.
+Premium gives your family unlimited access to all features, advanced analytics, and future AI
+            tools.
             </Text>
           </LinearGradient>
         </Animated.View>

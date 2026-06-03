@@ -142,7 +142,7 @@ export function RemindersListScreen() {
           <View style={{ paddingHorizontal: spacing.lg }}>
             <PageHeader
               title="Reminders"
-              subtitle="Financial OS"
+              subtitle="Family Finance"
             />
             <FilterSection
               options={FILTER_OPTIONS}

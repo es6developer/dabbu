@@ -195,7 +195,7 @@ export function GoalsListScreen() {
           <Animated.View style={{ opacity: fadeAnim }}>
             <PageHeader
               title="Goals"
-              subtitle="Financial OS"
+              subtitle="Family Finance"
             />
             {goals.length > 0 && (
               <LinearGradient

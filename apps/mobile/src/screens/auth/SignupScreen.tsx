@@ -67,7 +67,7 @@ export function SignupScreen() {
 
           <Text style={[styles.title, { color: colors.text.primary }]}>Create account</Text>
           <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>
-            Start managing your finances
+            Start managing money together with your family and friends
           </Text>
 
           {error ? (

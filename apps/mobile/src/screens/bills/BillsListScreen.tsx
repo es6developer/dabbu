@@ -193,7 +193,7 @@ function EmptyState({ colors, onScan }: { colors: any; onScan: () => void }) {
       </View>
       <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No Bills Yet</Text>
       <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
-        Scan your first receipt or bill to start tracking expenses automatically.
+        Scan your first receipt or bill to start managing expenses automatically.
       </Text>
       <TouchableOpacity
         style={[styles.emptyBtn, { backgroundColor: colors.accent.primary }]}

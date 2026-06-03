@@ -65,7 +65,7 @@ export function LoginScreen() {
             </View>
             <Text style={[styles.title, { color: colors.text.primary }]}>Welcome back</Text>
             <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>
-              Sign in to manage your finances
+              Sign in to manage money together with your people
             </Text>
           </View>
 

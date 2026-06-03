@@ -11,19 +11,19 @@ const { width } = Dimensions.get('window');
 
 const slides = [
   {
-    icon: 'bulb' as const,
-    title: 'Never Miss a Thing',
-    desc: 'Smart reminders for bills, medicines, and everything you tend to forget.',
+    icon: 'people' as const,
+    title: 'Family Finance',
+    desc: 'Track shared expenses, goals, and budgets with your family — all in one place.',
   },
   {
     icon: 'trending-down' as const,
-    title: 'Track Subscriptions',
+    title: 'Shared Subscriptions',
     desc: 'Know exactly where your money goes each month. No more surprise charges.',
   },
   {
-    icon: 'people' as const,
-    title: 'Family Coordination',
-    desc: 'Share reminders, tasks, and finances with your family seamlessly.',
+    icon: 'wallet' as const,
+    title: 'Money Together',
+    desc: 'Plan shared goals, split expenses, and build wealth together with the people who matter.',
   },
 ];
 

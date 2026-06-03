@@ -70,7 +70,7 @@ export async function requestSmsPermission(): Promise<SmsPermissionStatus> {
     const { PermissionsAndroid } = require('react-native');
     const result = await PermissionsAndroid.request(getReadSmsPermission(), {
       title: 'SMS Permission',
-      message: 'Dabbu needs SMS access to detect and track your financial transactions automatically.',
+      message: 'Dabbu needs SMS access to detect and record your financial transactions automatically.',
       buttonPositive: 'Allow',
       buttonNegative: 'Deny',
       buttonNeutral: 'Ask Later',

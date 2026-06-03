@@ -38,7 +38,7 @@ const OPTIONS: OptionCard[] = [
     type: 'group',
     icon: 'people-outline',
     title: 'Create Group',
-    description: 'Create a group to track expenses together with friends & family.',
+    description: 'Create a group to split expenses with friends & family.',
     gradient: ['#6C5CE7', '#A29BFE'],
   },
 ];

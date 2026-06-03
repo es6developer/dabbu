@@ -1,6 +1,7 @@
 {
   "expo": {
-    "name": "Dabbu",
+    "name": "Dabbu - Family Finance",
+    "description": "Family Finance, Shared Expenses & Money Goals – Manage money together with the people who matter.",
     "slug": "dabbu",
     "version": "1.0.0",
     "orientation": "portrait",

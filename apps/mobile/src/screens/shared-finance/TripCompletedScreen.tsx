@@ -96,7 +96,7 @@ export function TripCompletedScreen({ route, navigation }: TripCompletedScreenPr
 
       <View style={styles.conversion}>
         <Text style={[styles.conversionTitle, { color: colors.text.primary }]}>
-          Your next trip deserves smarter finance tracking.
+          Your next trip deserves smarter shared finance.
         </Text>
 
         <View style={styles.perkRow}>
@@ -108,13 +108,13 @@ export function TripCompletedScreen({ route, navigation }: TripCompletedScreenPr
         <View style={styles.perkRow}>
           <Ionicons name="globe-outline" size={20} color={colors.accent.primary} />
           <Text style={[styles.perkText, { color: colors.text.secondary }]}>
-            Track all future trips with Dabbu
+            Manage all future trips with Dabbu
           </Text>
         </View>
         <View style={styles.perkRow}>
           <Ionicons name="people-outline" size={20} color={colors.status.success} />
           <Text style={[styles.perkText, { color: colors.text.secondary }]}>
-            Invite friends for realtime split tracking
+            Invite friends for realtime expense splitting
           </Text>
         </View>
 

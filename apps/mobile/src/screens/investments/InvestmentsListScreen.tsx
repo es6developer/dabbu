@@ -83,7 +83,7 @@ export function InvestmentsListScreen() {
           <View style={styles.empty}>
             <Text style={styles.emptyIcon}>📈</Text>
             <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No investments</Text>
-            <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>Track your mutual funds and stocks</Text>
+            <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>Monitor your mutual funds and stocks</Text>
           </View>
         }
       />

@@ -1061,7 +1061,7 @@ export function SharedGroupDetailScreen() {
               <EmptyState
                 icon="receipt-outline"
                 title="No expenses yet"
-                message="Add your first expense to start tracking"
+                message="Add your first expense to get started"
                 actionLabel="Add Expense"
                 onAction={() =>
                   navigation.navigate('SharedExpenseForm', {

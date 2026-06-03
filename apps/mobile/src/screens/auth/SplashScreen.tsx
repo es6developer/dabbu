@@ -51,7 +51,7 @@ export function SplashScreen() {
 
       <Animated.View style={{ opacity: titleOpacity, transform: [{ translateY: titleTranslateY }], alignItems: 'center' }}>
         <Animated.Text style={[styles.title, { color: colors.text.primary }]}>Dabbu</Animated.Text>
-        <Animated.Text style={[styles.subtitle, { color: colors.text.tertiary }]}>Smart Finance Manager</Animated.Text>
+        <Animated.Text style={[styles.subtitle, { color: colors.text.tertiary }]}>Family Finance, Shared Expenses & Money Goals</Animated.Text>
       </Animated.View>
 
       <Animated.View style={[styles.footer, { opacity: dotsOpacity }]}>

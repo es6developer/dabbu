@@ -655,7 +655,7 @@ export function DashboardScreen() {
                     No transactions yet
                   </Text>
                   <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
-                    Add an expense or scan a bill to start tracking.
+                    Add an expense or scan a bill to manage your family finances.
                   </Text>
                 </View>
               ) : (

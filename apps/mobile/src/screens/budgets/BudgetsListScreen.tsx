@@ -74,7 +74,7 @@ export function BudgetsListScreen() {
           <View style={styles.empty}>
             <Text style={styles.emptyIcon}>🎯</Text>
             <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No budgets</Text>
-            <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>Create a budget to track spending</Text>
+            <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>Create a budget to manage spending together</Text>
           </View>
         }
       />

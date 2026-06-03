@@ -131,7 +131,7 @@ export function CreateSharedGroupScreen() {
             style={s.heroSection}
           >
             <Text style={s.heroTitle}>New Shared Group</Text>
-            <Text style={s.heroSub}>Track expenses together with friends, family, and more</Text>
+            <Text style={s.heroSub}>Split expenses with friends, family, and more</Text>
           </LinearGradient>
 
           {error ? (

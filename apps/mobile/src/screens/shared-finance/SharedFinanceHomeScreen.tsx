@@ -255,7 +255,7 @@ export function SharedFinanceHomeScreen() {
           <Animated.View style={{ opacity: fadeAnim, paddingHorizontal: spacing.lg }}>
             <PageHeader
               title="Your Spaces"
-              subtitle="Financial OS"
+              subtitle="Family Finance"
               rightAction={
                 <TouchableOpacity
                   style={[s.addBtn, { backgroundColor: colors.accent.primary }]}

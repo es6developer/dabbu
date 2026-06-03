@@ -151,7 +151,7 @@ export function RemindersScreen() {
     <BaseScreen>
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
-          <Text style={[styles.eyebrow, { color: colors.text.tertiary }]}>Financial OS</Text>
+          <Text style={[styles.eyebrow, { color: colors.text.tertiary }]}>Family Finance</Text>
           <Text style={[styles.title, { color: colors.text.primary }]}>Reminders</Text>
         </View>
         <View style={styles.headerActions}>

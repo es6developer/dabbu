@@ -142,7 +142,7 @@ export function CreateExpenseGroupScreen() {
             style={styles.heroSection}
           >
             <Text style={styles.heroTitle}>New Circle</Text>
-            <Text style={styles.heroSub}>Create a group to track expenses together</Text>
+            <Text style={styles.heroSub}>Create a group to split expenses together</Text>
           </LinearGradient>
 
           {error ? (
