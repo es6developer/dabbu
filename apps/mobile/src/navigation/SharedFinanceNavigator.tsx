@@ -6,6 +6,7 @@ import { SharedGroupDetailScreen } from '../screens/shared-finance/SharedGroupDe
 import { CreateSharedGroupScreen } from '../screens/shared-finance/CreateSharedGroupScreen';
 import { SharedExpenseFormScreen } from '../screens/shared-finance/SharedExpenseFormScreen';
 import { CoupleFinanceScreen } from '../screens/shared-finance/CoupleFinanceScreen';
+import { FamilyDashboardScreen } from '../screens/shared-finance/FamilyDashboardScreen';
 import { TripDashboardScreen } from '../screens/shared-finance/TripDashboardScreen';
 import { SettlementScreen } from '../screens/shared-finance/SettlementScreen';
 import { GroupChatScreen } from '../screens/shared-finance/GroupChatScreen';
@@ -58,6 +59,11 @@ export function SharedFinanceNavigator() {
         name="CoupleFinance"
         component={CoupleFinanceScreen}
         options={{ title: 'Couple Finance' }}
+      />
+      <Stack.Screen
+        name="FamilyDashboard"
+        component={FamilyDashboardScreen}
+        options={{ title: 'Family Dashboard' }}
       />
       <Stack.Screen
         name="TripDashboard"

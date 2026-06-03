@@ -383,6 +383,27 @@ export function SharedGroupDetailScreen() {
             </View>
           </View>
         )}
+
+        {(type === 'couple' || type === 'family') && (
+          <TouchableOpacity
+            style={[s.typeDashBtn, { backgroundColor: colors.accent.primary }]}
+            onPress={() =>
+              type === 'couple'
+                ? navigation.navigate('CoupleFinance', { groupId, groupName: name })
+                : navigation.navigate('FamilyDashboard', { groupId, groupName: name })
+            }
+          >
+            <Ionicons
+              name={type === 'couple' ? 'heart' : 'home'}
+              size={18}
+              color="#FFF"
+            />
+            <Text style={s.typeDashBtnText}>
+              Open {type === 'couple' ? 'Couple' : 'Family'} Dashboard
+            </Text>
+            <Ionicons name="arrow-forward" size={16} color="#FFF" />
+          </TouchableOpacity>
+        )}
       </View>
     );
   }
@@ -1488,4 +1509,14 @@ const s = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 15,
   },
+  typeDashBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 14,
+    marginTop: 16,
+  },
+  typeDashBtnText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
 });

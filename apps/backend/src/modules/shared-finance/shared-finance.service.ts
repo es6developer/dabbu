@@ -989,6 +989,91 @@ export class SharedFinanceService {
       .filter((e) => new Date(e.date) >= startOfMonth)
       .reduce((s, e) => s + Number(e.amount), 0);
 
+    const [bills, goals] = await Promise.all([
+      this.prisma.householdBill.findMany({
+        where: { groupId },
+        include: { contributions: true },
+        orderBy: { dueDate: 'asc' },
+      }),
+      this.prisma.sharedGoal.findMany({
+        where: { groupId },
+        include: { contributions: true },
+      }),
+    ]);
+
+    const upcomingBills = bills
+      .filter((b) => !b.paidAt)
+      .map((b) => ({
+        id: b.id,
+        type: b.type,
+        amount: Number(b.amount),
+        dueDate: b.dueDate,
+        paidBy: b.paidBy,
+        period: b.period,
+      }));
+
+    const goalsWithProgress = goals.map((g) => ({
+      id: g.id,
+      name: g.name,
+      targetAmount: Number(g.targetAmount),
+      savedAmount: Number(g.savedAmount),
+      deadline: g.deadline,
+      category: g.category,
+      progress: Number(g.targetAmount) > 0
+        ? Math.round((Number(g.savedAmount) / Number(g.targetAmount)) * 100)
+        : 0,
+    }));
+
+    const partner1Paid = expenses
+      .filter((e) => e.paidBy === profile.partner1Id)
+      .reduce((s, e) => s + Number(e.amount), 0);
+    const partner2Paid = expenses
+      .filter((e) => e.paidBy === profile.partner2Id)
+      .reduce((s, e) => s + Number(e.amount), 0);
+
+    const insights: string[] = [];
+    if (monthlyOverview) {
+      const { totalChangePercent, currentMonthTotal, lastMonthTotal } = monthlyOverview;
+      if (lastMonthTotal > 0) {
+        if (totalChangePercent < 0) {
+          insights.push(
+            `You spent ${Math.abs(totalChangePercent).toFixed(0)}% less than last month.`,
+          );
+        } else if (totalChangePercent > 0) {
+          insights.push(
+            `Your spending increased by ${totalChangePercent.toFixed(0)}% compared to last month.`,
+          );
+        }
+      }
+      const topChanged = (monthlyOverview.categoryChanges || [])
+        .filter((c) => c.current > 0)
+        .sort((a, b) => b.change - a.change)[0];
+      if (topChanged) {
+        insights.push(
+          `Your ${topChanged.category.toLowerCase()} spending ${topChanged.change > 0 ? 'increased' : 'decreased'} by ${Math.abs(topChanged.change).toFixed(0)}%.`,
+        );
+      }
+    }
+
+    const onTrackGoal = goalsWithProgress.find((g) => g.progress >= 50);
+    if (onTrackGoal) {
+      insights.push(`You are on track for your ${onTrackGoal.name} goal.`);
+    }
+
+    const totalSpent = expenses.reduce((s, e) => s + Number(e.amount), 0);
+    const totalSaved =
+      goals.reduce((s, g) => s + Number(g.savedAmount), 0);
+
+    if (totalSpent > 0 && monthlyOverview) {
+      const pct =
+        monthlyOverview.lastMonthTotal > 0
+          ? ((totalSpent - monthlyOverview.lastMonthTotal) / monthlyOverview.lastMonthTotal) * 100
+          : 0;
+      if (pct < -5) {
+        insights.push('Great job keeping spending down this month!');
+      }
+    }
+
     return {
       profile,
       balances,
@@ -1002,12 +1087,145 @@ export class SharedFinanceService {
       savingsProgress: profile.savingsGoal
         ? {
             goal: Number(profile.savingsGoal),
-            saved:
-              Number(profile.savingsGoal || 0) -
-              (profile.savingsGoal ? Number(profile.savingsGoal) * 0.3 : 0),
-            percentage: 70,
+            saved: totalSaved,
+            percentage:
+              Number(profile.savingsGoal) > 0
+                ? Math.round((totalSaved / Number(profile.savingsGoal)) * 100)
+                : 0,
           }
         : null,
+      upcomingBills,
+      goals: goalsWithProgress,
+      partnerStats: {
+        partner1: { userId: profile.partner1Id, totalPaid: partner1Paid },
+        partner2: { userId: profile.partner2Id, totalPaid: partner2Paid },
+      },
+      insights,
+    };
+  }
+
+  async getFamilyDashboard(groupId: string) {
+    const group = await this.prisma.sharedGroup.findUnique({
+      where: { id: groupId },
+    });
+    if (!group) {
+      throw new NotFoundException('Group not found');
+    }
+
+    const [expenses, members, goals, bills] = await Promise.all([
+      this.prisma.sharedExpense.findMany({
+        where: { groupId },
+        include: {
+          splits: true,
+          payer: {
+            select: { id: true, firstName: true, lastName: true, avatarUrl: true },
+          },
+        },
+        orderBy: { date: 'desc' },
+      }),
+      this.prisma.sharedGroupMember.findMany({
+        where: { groupId, isActive: true },
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatarUrl: true,
+              email: true,
+            },
+          },
+        },
+      }),
+      this.prisma.sharedGoal.findMany({
+        where: { groupId },
+        include: { contributions: true },
+      }),
+      this.prisma.householdBill.findMany({
+        where: { groupId },
+        orderBy: { dueDate: 'asc' },
+      }),
+    ]);
+
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthlySpending = expenses
+      .filter((e) => new Date(e.date) >= startOfMonth)
+      .reduce((s, e) => s + Number(e.amount), 0);
+
+    const totalSpent = expenses.reduce((s, e) => s + Number(e.amount), 0);
+    const totalSaved = goals.reduce((s, g) => s + Number(g.savedAmount), 0);
+
+    const categoryBreakdown = new Map<string, number>();
+    for (const exp of expenses) {
+      const cat = exp.category || 'Other';
+      categoryBreakdown.set(cat, (categoryBreakdown.get(cat) || 0) + Number(exp.amount));
+    }
+
+    const memberStats = members.map((m) => ({
+      userId: m.userId,
+      name: `${m.user.firstName} ${m.user.lastName}`.trim() || m.user.email,
+      avatarUrl: m.user.avatarUrl,
+      role: m.role,
+      totalPaid: expenses
+        .filter((e) => e.paidBy === m.userId)
+        .reduce((s, e) => s + Number(e.amount), 0),
+      expenseCount: expenses.filter((e) => e.paidBy === m.userId).length,
+    }));
+
+    const upcomingBills = bills
+      .filter((b) => !b.paidAt)
+      .map((b) => ({
+        id: b.id,
+        type: b.type,
+        amount: Number(b.amount),
+        dueDate: b.dueDate,
+        period: b.period,
+      }));
+
+    const goalsWithProgress = goals.map((g) => ({
+      id: g.id,
+      name: g.name,
+      targetAmount: Number(g.targetAmount),
+      savedAmount: Number(g.savedAmount),
+      deadline: g.deadline,
+      category: g.category,
+      progress:
+        Number(g.targetAmount) > 0
+          ? Math.round((Number(g.savedAmount) / Number(g.targetAmount)) * 100)
+          : 0,
+    }));
+
+    const ownerCount = members.filter((m) => m.role === 'admin').length;
+    const adminCount = members.filter((m) => m.role === 'admin').length;
+    const memberCount = members.filter((m) => m.role === 'member').length;
+    const viewerCount = members.filter((m) => m.role === 'viewer').length;
+
+    return {
+      summary: {
+        totalSpent,
+        monthlySpending,
+        monthlyBudget: Number(group.monthlyBudget || 0),
+        budgetRemaining: Number(group.monthlyBudget || 0) - monthlySpending,
+        totalExpenses: expenses.length,
+        memberCount: members.length,
+      },
+      memberStats,
+      roleCounts: {
+        owner: ownerCount,
+        admin: adminCount,
+        member: memberCount,
+        viewer: viewerCount,
+      },
+      goals: goalsWithProgress,
+      goalsTotalSaved: totalSaved,
+      upcomingBills,
+      categoryBreakdown: Array.from(categoryBreakdown.entries()).map(([cat, total]) => ({
+        category: cat,
+        total,
+        percentage: totalSpent > 0 ? Math.round((total / totalSpent) * 100) : 0,
+      })),
+      recentExpenses: expenses.slice(0, 5),
     };
   }
 

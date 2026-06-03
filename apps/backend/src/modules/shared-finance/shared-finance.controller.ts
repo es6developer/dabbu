@@ -374,6 +374,13 @@ export class SharedFinanceController {
     return this.sf.getCoupleDashboard(groupId);
   }
 
+  @Get('groups/:groupId/family-dashboard')
+  @UseGuards(GroupMemberGuard)
+  @ApiOperation({ summary: 'Get family finance dashboard' })
+  async getFamilyDashboard(@Param('groupId') groupId: string) {
+    return this.sf.getFamilyDashboard(groupId);
+  }
+
   @Post('couple/invite')
   @ApiOperation({ summary: 'Send couple finance invite' })
   async sendCoupleInvite(@CurrentUser('id') userId: string, @Body() dto: SendCoupleInviteDto) {
