@@ -214,9 +214,9 @@ export function TransactionsScreen() {
       ) : filtered.length === 0 ? (
         <View style={styles.centerState}>
           <Ionicons name="receipt-outline" size={48} color={colors.text.tertiary} />
-          <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No transactions found</Text>
+          <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>Start tracking</Text>
           <Text style={[styles.emptySub, { color: colors.text.tertiary }]}>
-            {activeFilter !== 'All' ? 'Try changing the filter' : 'Add your first expense to get started'}
+            Add your first transaction to begin your financial journey with Dabbu.
           </Text>
           {activeFilter === 'All' && (
             <TouchableOpacity
@@ -243,6 +243,8 @@ export function TransactionsScreen() {
             />
           }
           ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+          windowSize={10}
+          maxToRenderPerBatch={10}
         />
       )}
     </View>

@@ -116,6 +116,8 @@ export function FamilyChatScreen() {
             No messages yet. Say hello! 👋
           </Text>
         }
+        windowSize={10}
+        maxToRenderPerBatch={10}
       />
 
       <View style={[styles.inputRow, { borderTopColor: colors.border.subtle }]}>

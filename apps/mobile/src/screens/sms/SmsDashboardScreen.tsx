@@ -96,7 +96,7 @@ export function SmsDashboardScreen() {
   async function loadDetections() {
     try {
       const res = await api.get<any>('/sms-detection');
-      const data = Array.isArray(res.data?.data) ? res.data.data : Array.isArray(res.data) ? res.data : [];
+      const data = Array.isArray(res) ? res : [];
       setDetections(data);
     } catch (_e) { }
     finally { setLoading(false); }
@@ -156,7 +156,7 @@ export function SmsDashboardScreen() {
       setTimeout(() => setNewBanner(null), 6000);
 
       const res = await api.get<any>('/sms-detection');
-      const data = Array.isArray(res.data?.data) ? res.data.data : Array.isArray(res.data) ? res.data : [];
+      const data = Array.isArray(res) ? res : [];
       setDetections(data);
       autoCreateFresh(data.filter((d: Detection) => !d.isProcessed));
     } catch (_e) {
@@ -176,7 +176,7 @@ export function SmsDashboardScreen() {
       const result = await syncAndUpload();
       if (result.raw.length === 0) return;
       const res = await api.get<any>('/sms-detection');
-      const data = Array.isArray(res.data?.data) ? res.data.data : Array.isArray(res.data) ? res.data : [];
+      const data = Array.isArray(res) ? res : [];
       setDetections(data);
       autoCreateFresh(data.filter((d: Detection) => !d.isProcessed));
     } catch (_e) { }
@@ -361,9 +361,9 @@ export function SmsDashboardScreen() {
             <View style={[styles.emptyIcon, { backgroundColor: `${colors.accent.primary}15` }]}>
               <Ionicons name="chatbubbles-outline" size={40} color={colors.accent.primary} />
             </View>
-            <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No SMS Detections</Text>
+            <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>Automatically track expenses</Text>
             <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
-              Grant SMS permission and sync to automatically detect financial transactions.
+              Enable SMS sync to automatically detect and categorize financial transactions from your messages. No manual entry needed.
             </Text>
             <TouchableOpacity
               style={[styles.emptyBtn, { backgroundColor: colors.accent.primary }]}
@@ -374,6 +374,8 @@ export function SmsDashboardScreen() {
             </TouchableOpacity>
           </View>
         }
+        windowSize={10}
+        maxToRenderPerBatch={10}
       />
     </View>
   );

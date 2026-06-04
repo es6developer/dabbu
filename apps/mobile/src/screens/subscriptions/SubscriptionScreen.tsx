@@ -36,7 +36,7 @@ export function SubscriptionScreen() {
       try {
         if (accessToken) setAccessToken(accessToken);
         const res = await api.get<any>('/accounts/subscriptions');
-        setData(res?.data || res);
+        setData(res);
       } catch {
         /* noop */
       } finally {

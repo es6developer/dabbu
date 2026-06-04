@@ -24,7 +24,7 @@ export function BudgetDetailScreen() {
   async function loadBudget() {
     try {
       const res = await api.get<any>(`/accounts/budgets/${budgetId}`);
-      setBudget(res.data);
+      setBudget(res);
     } catch (e) { /* ignore */ }
     finally { setLoading(false); }
   }

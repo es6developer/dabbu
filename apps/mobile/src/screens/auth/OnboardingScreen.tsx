@@ -1,5 +1,13 @@
-import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, FlatList, TouchableOpacity } from 'react-native';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Dimensions,
+  FlatList,
+  TouchableOpacity,
+  Animated,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -12,25 +20,110 @@ const { width } = Dimensions.get('window');
 
 const slides = [
   {
-    icon: 'people' as const,
-    title: 'Family Finance',
-    desc: 'Track shared expenses, goals, and budgets with your family — all in one place.',
+    icon: 'receipt-outline',
+    title: 'Expense Tracking',
+    desc: 'Track every expense in seconds. Scan bills, split with friends, and know exactly where your money goes.',
   },
   {
-    icon: 'trending-down' as const,
-    title: 'Shared Subscriptions',
-    desc: 'Know exactly where your money goes each month. No more surprise charges.',
+    icon: 'people-outline',
+    title: 'Shared Finance',
+    desc: 'Create shared spaces for trips, family, or roommates. Split expenses, track balances, and settle up seamlessly.',
   },
   {
-    icon: 'wallet' as const,
-    title: 'Money Together',
-    desc: 'Plan shared goals, split expenses, and build wealth together with the people who matter.',
+    icon: 'trophy-outline',
+    title: 'Goals',
+    desc: 'Set financial goals that matter. Save for a vacation, emergency fund, or your dream home — with progress tracking that keeps you motivated.',
+  },
+  {
+    icon: 'alarm-outline',
+    title: 'Smart Reminders',
+    desc: 'Never miss a bill or payment. Set smart reminders for recurring expenses, subscriptions, and due dates.',
+  },
+  {
+    icon: 'swap-horizontal-outline',
+    title: 'Settlements',
+    desc: 'Settle debts with a tap. UPI integration makes paying back friends and family instant and hassle-free.',
   },
 ];
 
+function SlideContent({
+  item,
+  index: slideIndex,
+  isActive,
+  colors,
+  typography,
+}: {
+  item: (typeof slides)[0];
+  index: number;
+  isActive: boolean;
+  colors: any;
+  typography: any;
+}) {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+
+  useEffect(() => {
+    if (isActive) {
+      fadeAnim.setValue(0);
+      slideAnim.setValue(30);
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [isActive, fadeAnim, slideAnim]);
+
+  const isBrand = slideIndex === 0;
+
+  return (
+    <View style={styles.slide}>
+      <Animated.View
+        style={{
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }],
+          alignItems: 'center',
+        }}
+      >
+        {isBrand && (
+          <Text style={[{ color: colors.accent.primary, ...typography.hero }, styles.brandName]}>
+            Dabbu
+          </Text>
+        )}
+        {isBrand && (
+          <Text style={[{ color: colors.text.tertiary, ...typography.body }, styles.tagline]}>
+            Your financial life, simplified
+          </Text>
+        )}
+        <LinearGradient
+          colors={[colors.accent.primary, colors.accent.secondary]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.iconWrap}
+        >
+          <Ionicons name={item.icon as any} size={40} color="#FFFFFF" />
+        </LinearGradient>
+        <Text style={[{ color: colors.text.primary, ...typography.sectionHeader }, styles.title]}>
+          {item.title}
+        </Text>
+        <Text style={[{ color: colors.text.secondary, ...typography.body }, styles.desc]}>
+          {item.desc}
+        </Text>
+      </Animated.View>
+    </View>
+  );
+}
+
 export function OnboardingScreen() {
   const navigation = useNavigation<any>();
-  const { colors, isDark } = useTheme();
+  const { colors, typography, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const [index, setIndex] = useState(0);
   const flatRef = useRef<FlatList>(null);
@@ -40,110 +133,125 @@ export function OnboardingScreen() {
     await AsyncStorage.setItem('hasSeenOnboarding', 'true');
   }
 
-  return (
-    <LinearGradient
-      colors={isDark ? [colors.bg.secondary, colors.bg.primary] : ['#f8f4f0', colors.bg.primary]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0, y: 1 }}
-      style={[styles.container, { paddingTop: insets.top + 8 }]}
-    >
-      <TouchableOpacity
-        style={styles.skip}
-        onPress={() => {
-          trackFeature('Onboarding', 'skip');
-          markSeen();
-          navigation.replace('Login');
-        }}
-      >
-        <Text style={[styles.skipText, { color: colors.text.tertiary }]}>Skip</Text>
-      </TouchableOpacity>
+  const handleNext = useCallback(async () => {
+    if (index < slides.length - 1) {
+      flatRef.current?.scrollToOffset({ offset: width * (index + 1), animated: true });
+    } else {
+      trackFeature('Onboarding', 'complete');
+      await markSeen();
+      navigation.replace('Login');
+    }
+  }, [index, trackFeature, navigation]);
 
-      <FlatList
-        ref={flatRef}
-        data={slides}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={(e) => setIndex(Math.round(e.nativeEvent.contentOffset.x / width))}
-        renderItem={({ item }) => (
-          <View style={styles.slide}>
-            <View style={[styles.iconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
-              <Ionicons name={item.icon} size={44} color={colors.accent.primary} />
-            </View>
-            <Text style={[styles.title, { color: colors.text.primary }]}>{item.title}</Text>
-            <Text style={[styles.desc, { color: colors.text.secondary }]}>{item.desc}</Text>
-          </View>
-        )}
-        keyExtractor={(_, i) => String(i)}
+  const handleSkip = useCallback(async () => {
+    trackFeature('Onboarding', 'skip');
+    await markSeen();
+    navigation.replace('Login');
+  }, [trackFeature, navigation]);
+
+  const isLast = index === slides.length - 1;
+
+  const renderSlide = useCallback(
+    ({ item, index: i }: { item: (typeof slides)[0]; index: number }) => (
+      <SlideContent
+        item={item}
+        index={i}
+        isActive={i === index}
+        colors={colors}
+        typography={typography}
       />
+    ),
+    [index, colors, typography],
+  );
 
-      <View style={[styles.footer, { backgroundColor: colors.bg.primary }]}>
-        <View style={styles.dots}>
-          {slides.map((_, i) => (
-            <View
-              key={i}
-              style={[
-                styles.dot,
-                { backgroundColor: colors.text.tertiary },
-                i === index && { width: 24, backgroundColor: colors.accent.primary },
-              ]}
-            />
-          ))}
-        </View>
-
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: colors.accent.primary }]}
-          onPress={async () => {
-            if (index < slides.length - 1) {
-              flatRef.current?.scrollToOffset({ offset: width * (index + 1), animated: true });
-            } else {
-              trackFeature('Onboarding', 'complete');
-              await markSeen();
-              navigation.replace('Login');
-            }
-          }}
-        >
-          <Text style={styles.buttonText}>
-            {index === slides.length - 1 ? 'Get Started' : 'Next'}
-          </Text>
-          <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+  return (
+    <View style={styles.root}>
+      <LinearGradient
+        colors={isDark ? [colors.bg.secondary, colors.bg.primary] : ['#f8f4f0', colors.bg.primary]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={[styles.gradient, { paddingTop: insets.top + 8 }]}
+      >
+        <TouchableOpacity style={styles.skip} onPress={handleSkip}>
+          <Text style={[{ color: colors.text.tertiary }, typography.subhead]}>Skip</Text>
         </TouchableOpacity>
 
-        {index < slides.length - 1 && (
+        <FlatList
+          ref={flatRef}
+          data={slides}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={(e) =>
+            setIndex(Math.round(e.nativeEvent.contentOffset.x / width))
+          }
+          renderItem={renderSlide}
+          keyExtractor={(_, i) => String(i)}
+          windowSize={3}
+          maxToRenderPerBatch={3}
+          initialNumToRender={3}
+          getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
+        />
+
+        <View style={[styles.footer, { backgroundColor: colors.bg.primary }]}>
+          <View style={styles.dots}>
+            {slides.map((_, i) => (
+              <View
+                key={i}
+                style={[
+                  styles.dot,
+                  { backgroundColor: colors.text.tertiary },
+                  i === index && { width: 28, backgroundColor: colors.accent.primary },
+                ]}
+              />
+            ))}
+          </View>
+
           <TouchableOpacity
-            style={styles.skipLater}
-            onPress={async () => {
-              await markSeen();
-              navigation.replace('Login');
-            }}
+            style={[styles.button, { backgroundColor: colors.accent.primary }]}
+            onPress={handleNext}
+            activeOpacity={0.85}
           >
-            <Text style={[styles.skipLaterText, { color: colors.text.tertiary }]}>Get started</Text>
+            <Text style={[styles.buttonText, typography.button]}>
+              {isLast ? 'Get Started' : 'Next'}
+            </Text>
+            {!isLast && <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />}
           </TouchableOpacity>
-        )}
-      </View>
-    </LinearGradient>
+
+          {!isLast && (
+            <TouchableOpacity style={styles.getStarted} onPress={handleSkip}>
+              <Text style={[{ color: colors.text.tertiary }, typography.subhead]}>
+                Get started
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: 60 },
-  skip: { alignSelf: 'flex-end', paddingHorizontal: 24, paddingVertical: 8 },
-  skipText: { fontSize: 15 },
-  slide: { width, alignItems: 'center', paddingHorizontal: 40, paddingTop: 80 },
+  root: { flex: 1 },
+  gradient: { flex: 1 },
+  skip: { alignSelf: 'flex-end', paddingHorizontal: 24, paddingVertical: 8, opacity: 0.7 },
+  slide: { width, alignItems: 'center', paddingHorizontal: 32, paddingTop: 40 },
+  brandName: { marginBottom: 4, fontSize: 36 },
+  tagline: { marginBottom: 32 },
   iconWrap: {
-    width: 96,
-    height: 96,
-    borderRadius: 28,
+    width: 88,
+    height: 88,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 28,
+    marginBottom: 24,
   },
-  title: { fontSize: 26, fontWeight: '700', textAlign: 'center', marginBottom: 12 },
-  desc: { fontSize: 15, textAlign: 'center', lineHeight: 22, paddingHorizontal: 20 },
+  title: { fontSize: 22, textAlign: 'center', marginBottom: 10 },
+  desc: { textAlign: 'center', lineHeight: 22, paddingHorizontal: 16 },
   footer: {
     paddingHorizontal: 24,
     paddingTop: 28,
-    paddingBottom: 48,
+    paddingBottom: 40,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
   },
@@ -157,7 +265,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
-  skipLater: { alignItems: 'center', paddingVertical: 12, marginTop: 4 },
-  skipLaterText: { fontSize: 14 },
+  buttonText: { color: '#FFFFFF' },
+  getStarted: { alignItems: 'center', paddingVertical: 12, marginTop: 4 },
 });

@@ -75,7 +75,7 @@ export function SharedExpenseFormScreen() {
   async function loadMembers() {
     try {
       const res = await api.get<any>(`/shared-finance/groups/${groupId}/members`);
-      const data = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+      const data = Array.isArray(res) ? res : [];
       setMembers(data);
       if (!paidBy && data.length > 0) {
         const me = data.find((m: any) => m.userId === currentUser?.id);
@@ -91,7 +91,7 @@ export function SharedExpenseFormScreen() {
   async function loadExpense() {
     try {
       const res = await api.get<any>(`/shared-expenses/${expenseId}`);
-      const e = res?.data || res;
+      const e = res;
       if (e) {
         setDescription(e.description || '');
         setAmount(String(e.amount || ''));
@@ -240,31 +240,29 @@ export function SharedExpenseFormScreen() {
     }
   }
 
+  const maxPreviewValue = Math.max(...splitPreview.map(i => i.value), 0);
+
   return (
     <PageContainer noPadding>
       <KeyboardAvoidingContainer>
-        <View style={[s.container, s.content]}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={[
-              s.backBtn,
-              {
-                backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-              },
-            ]}
-          >
-            <Ionicons name="close" size={22} color={colors.text.primary} />
-          </TouchableOpacity>
-
-          <LinearGradient
-            colors={[...colors.accent.gradientAlt]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={s.heroSection}
-          >
-            <Text style={s.heroTitle}>{edit ? 'Edit Expense' : 'Add Expense'}</Text>
-            <Text style={s.heroSub}>Track shared expenses in this group</Text>
-          </LinearGradient>
+        <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
+          <View style={s.header}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={[
+                s.backBtn,
+                {
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                },
+              ]}
+            >
+              <Ionicons name="close" size={22} color={colors.text.primary} />
+            </TouchableOpacity>
+            <Text style={[s.headerTitle, { color: colors.text.primary }]}>
+              {edit ? 'Edit Expense' : 'Add Expense'}
+            </Text>
+            <View style={s.headerSpacer} />
+          </View>
 
           {error ? (
             <View style={[s.errorBox, { backgroundColor: colors.status.errorLight }]}>
@@ -272,6 +270,18 @@ export function SharedExpenseFormScreen() {
               <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
             </View>
           ) : null}
+
+          <View style={s.amountHero}>
+            <Text style={[s.amountPrefix, { color: colors.text.tertiary }]}>₹</Text>
+            <TextInput
+              style={[s.amountInput, { color: colors.text.primary }]}
+              value={amount}
+              onChangeText={setAmount}
+              placeholder="0"
+              placeholderTextColor={colors.text.tertiary}
+              keyboardType="decimal-pad"
+            />
+          </View>
 
           <Text style={[s.label, { color: colors.text.tertiary }]}>Description</Text>
           <TextInput
@@ -288,24 +298,6 @@ export function SharedExpenseFormScreen() {
             placeholder="Dinner at Kaema"
             placeholderTextColor={colors.text.tertiary}
           />
-
-          <Text style={[s.label, { color: colors.text.tertiary }]}>Amount</Text>
-          <View
-            style={[
-              s.inputRow,
-              { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-            ]}
-          >
-            <Text style={[s.currencyPrefix, { color: colors.text.tertiary }]}>₹</Text>
-            <TextInput
-              style={[s.inputFlex, { color: colors.text.primary }]}
-              value={amount}
-              onChangeText={setAmount}
-              placeholder="0"
-              placeholderTextColor={colors.text.tertiary}
-              keyboardType="decimal-pad"
-            />
-          </View>
 
           <Text style={[s.label, { color: colors.text.tertiary }]}>Paid By</Text>
           <ScrollView
@@ -345,8 +337,6 @@ export function SharedExpenseFormScreen() {
               );
             })}
           </ScrollView>
-
-          <DatePickerField label="Date" value={date} onChange={setDate} placeholder="Select date" />
 
           <Text style={[s.label, { color: colors.text.tertiary }]}>Category</Text>
           <ScrollView
@@ -462,18 +452,31 @@ export function SharedExpenseFormScreen() {
           )}
 
           <Text style={[s.label, { color: colors.text.tertiary }]}>Split Preview</Text>
-          <View style={[s.previewBox, { backgroundColor: colors.bg.secondary }]}>
-            {splitPreview.length > 0 ? (
-              splitPreview.map((item, i) => (
-                <View key={i} style={s.previewRow}>
-                  <Text style={[s.previewName, { color: colors.text.primary }]}>{item.name}</Text>
-                  <Text style={[s.previewValue, { color: colors.text.primary }]}>
-                    {'detail' in item && item.detail
-                      ? `${item.detail} · ₹${Math.round(item.value)}`
-                      : `₹${Math.round(item.value)}`}
-                  </Text>
-                </View>
-              ))
+          <View style={[s.previewCard, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}>
+            {splitPreview.length > 0 && maxPreviewValue > 0 ? (
+              splitPreview.map((item, i) => {
+                const barWidth = (item.value / maxPreviewValue) * 100;
+                return (
+                  <View key={i} style={s.previewItem}>
+                    <View style={s.previewInfo}>
+                      <Text style={[s.previewName, { color: colors.text.primary }]}>{item.name}</Text>
+                      <Text style={[s.previewAmount, { color: colors.text.primary }]}>
+                        {'detail' in item && item.detail
+                          ? `${item.detail} · ₹${Math.round(item.value)}`
+                          : `₹${Math.round(item.value)}`}
+                      </Text>
+                    </View>
+                    <View style={[s.previewBarBg, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}>
+                      <View
+                        style={[
+                          s.previewBarFill,
+                          { width: `${barWidth}%`, backgroundColor: colors.accent.primary },
+                        ]}
+                      />
+                    </View>
+                  </View>
+                );
+              })
             ) : (
               <Text style={[s.previewEmpty, { color: colors.text.tertiary }]}>
                 Enter amount and split details to see preview
@@ -514,51 +517,74 @@ export function SharedExpenseFormScreen() {
               <Text style={s.saveBtnText}>{edit ? 'Update Expense' : 'Save Expense'}</Text>
             )}
           </TouchableOpacity>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingContainer>
     </PageContainer>
   );
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1 },
-  content: { paddingBottom: 60 },
+  scroll: { paddingBottom: 40 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 4,
+  },
   backBtn: {
     width: 38,
     height: 38,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 24,
-    marginTop: 16,
-    marginBottom: 16,
   },
-  heroSection: {
-    marginHorizontal: 24,
-    borderRadius: 20,
-    padding: 24,
-    marginBottom: 24,
+  headerTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '700',
+    textAlign: 'center',
   },
-  heroTitle: { fontSize: 24, fontWeight: '800', color: '#FFF', marginBottom: 4 },
-  heroSub: { fontSize: 14, color: 'rgba(255,255,255,0.7)' },
+  headerSpacer: {
+    width: 38,
+  },
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
     borderRadius: 12,
-    marginHorizontal: 24,
-    marginBottom: 16,
+    marginHorizontal: 20,
+    marginBottom: 12,
     gap: 8,
   },
   errorText: { fontSize: 13, flex: 1 },
+  amountHero: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 24,
+    marginHorizontal: 20,
+  },
+  amountPrefix: {
+    fontSize: 36,
+    fontWeight: '800',
+    marginRight: 4,
+  },
+  amountInput: {
+    fontSize: 42,
+    fontWeight: '800',
+    textAlign: 'center',
+    minWidth: 140,
+    paddingVertical: 0,
+  },
   label: {
     fontSize: 12,
     fontWeight: '600',
     marginBottom: 8,
-    marginTop: 16,
+    marginTop: 20,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
   },
   input: {
     fontSize: 16,
@@ -566,20 +592,10 @@ const s = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 14,
     borderWidth: 1,
-    marginHorizontal: 24,
+    marginHorizontal: 20,
   },
   notesInput: { minHeight: 80, textAlignVertical: 'top' },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 14,
-    borderWidth: 1,
-    marginHorizontal: 24,
-    paddingHorizontal: 16,
-  },
-  currencyPrefix: { fontSize: 18, fontWeight: '700', marginRight: 8 },
-  inputFlex: { flex: 1, fontSize: 16, paddingVertical: 14 },
-  chipRow: { paddingHorizontal: 24, gap: 8, paddingBottom: 4 },
+  chipRow: { paddingHorizontal: 20, gap: 8, paddingBottom: 4 },
   payerChip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -610,7 +626,7 @@ const s = StyleSheet.create({
   splitTypeRow: {
     flexDirection: 'row',
     gap: 8,
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
   },
   splitTypeChip: {
     paddingHorizontal: 16,
@@ -623,7 +639,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     marginBottom: 8,
   },
   splitMemberName: { fontSize: 14, fontWeight: '500', flex: 1 },
@@ -633,29 +649,42 @@ const s = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     paddingHorizontal: 12,
-    width: 120,
+    width: 130,
   },
   splitPrefix: { fontSize: 14, fontWeight: '600', marginRight: 4 },
   splitInput: { flex: 1, fontSize: 14, paddingVertical: 10, textAlign: 'right' },
-  previewBox: {
-    marginHorizontal: 24,
+  previewCard: {
+    marginHorizontal: 20,
     borderRadius: 16,
     padding: 16,
+    borderWidth: 1,
   },
-  previewRow: {
+  previewItem: {
+    marginBottom: 12,
+  },
+  previewInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 6,
+    marginBottom: 6,
   },
   previewName: { fontSize: 14, fontWeight: '500' },
-  previewValue: { fontSize: 14, fontWeight: '700' },
-  previewEmpty: { fontSize: 13, textAlign: 'center' },
+  previewAmount: { fontSize: 14, fontWeight: '700' },
+  previewBarBg: {
+    height: 6,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  previewBarFill: {
+    height: 6,
+    borderRadius: 3,
+  },
+  previewEmpty: { fontSize: 13, textAlign: 'center', paddingVertical: 8 },
   saveBtn: {
     paddingVertical: 16,
     borderRadius: 14,
     alignItems: 'center',
     marginTop: 28,
-    marginHorizontal: 24,
+    marginHorizontal: 20,
   },
   saveBtnText: { color: '#FFF', fontSize: 17, fontWeight: '600' },
 });

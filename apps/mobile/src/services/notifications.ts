@@ -40,6 +40,7 @@ export async function registerForPushNotifications(accessToken: string): Promise
   setAccessToken(accessToken);
 
   if (!Device.isDevice) {
+    console.log('Not a physical device, skipping push registration');
     return;
   }
 
@@ -47,11 +48,18 @@ export async function registerForPushNotifications(accessToken: string): Promise
   let finalStatus = existingStatus;
 
   if (existingStatus !== 'granted') {
-    const { status } = await Notifications.requestPermissionsAsync();
+    const { status } = await Notifications.requestPermissionsAsync({
+      ios: { allowAlert: true, allowBadge: true, allowSound: true },
+    });
     finalStatus = status;
   }
 
   if (finalStatus !== 'granted') {
+    if (Platform.OS === 'ios') {
+      await Notifications.requestPermissionsAsync({
+        ios: { allowAlert: true, allowBadge: true, allowSound: true, allowProvisional: true },
+      });
+    }
     return;
   }
 
@@ -70,8 +78,8 @@ export async function registerForPushNotifications(accessToken: string): Promise
       token: pushToken,
       deviceName: Platform.OS === 'ios' ? 'iPhone' : 'Android',
     });
-  } catch (_e) {
-    // silent
+  } catch (e) {
+    console.warn('Push notification registration failed:', e);
   }
 
   if (Platform.OS === 'android') {
@@ -80,6 +88,54 @@ export async function registerForPushNotifications(accessToken: string): Promise
       importance: Notifications.AndroidImportance.HIGH,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#f7892c',
+    });
+    await Notifications.setNotificationChannelAsync('expenses', {
+      name: 'Expenses',
+      importance: Notifications.AndroidImportance.HIGH,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#f7892c',
+    });
+    await Notifications.setNotificationChannelAsync('shared', {
+      name: 'Shared Finance',
+      importance: Notifications.AndroidImportance.HIGH,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#4A90D9',
+    });
+    await Notifications.setNotificationChannelAsync('goals', {
+      name: 'Goals',
+      importance: Notifications.AndroidImportance.DEFAULT,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#34C759',
+    });
+    await Notifications.setNotificationChannelAsync('emi', {
+      name: 'EMI & Payments',
+      importance: Notifications.AndroidImportance.HIGH,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#FF3B30',
+    });
+    await Notifications.setNotificationChannelAsync('subscriptions', {
+      name: 'Subscriptions',
+      importance: Notifications.AndroidImportance.DEFAULT,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#AF52DE',
+    });
+    await Notifications.setNotificationChannelAsync('settlements', {
+      name: 'Settlements',
+      importance: Notifications.AndroidImportance.HIGH,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#F7892C',
+    });
+    await Notifications.setNotificationChannelAsync('reports', {
+      name: 'Reports & Digests',
+      importance: Notifications.AndroidImportance.LOW,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#8E8E93',
+    });
+    await Notifications.setNotificationChannelAsync('reminders', {
+      name: 'Reminders',
+      importance: Notifications.AndroidImportance.HIGH,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#FF9500',
     });
   }
 }
@@ -94,4 +150,67 @@ export function addNotificationReceivedListener(
   handler: (notification: Notifications.Notification) => void,
 ): Notifications.Subscription {
   return Notifications.addNotificationReceivedListener(handler);
+}
+
+export async function presentLocalNotification(
+  title: string,
+  body: string,
+  data: Record<string, any> = {},
+): Promise<string | undefined> {
+  try {
+    const notificationId = await Notifications.presentNotificationAsync({
+      title,
+      body,
+      data,
+      sound: true,
+    });
+    return notificationId;
+  } catch (e) {
+    console.warn('Failed to present local notification:', e);
+    return undefined;
+  }
+}
+
+export async function scheduleLocalNotification(
+  title: string,
+  body: string,
+  date: Date,
+  data: Record<string, any> = {},
+): Promise<string | undefined> {
+  try {
+    const notificationId = await Notifications.scheduleNotificationAsync({
+      content: {
+        title,
+        body,
+        data,
+        sound: true,
+      },
+      trigger: {
+        date,
+        channelId: data?.channelId || 'default',
+      } as any,
+    });
+    return notificationId;
+  } catch (e) {
+    console.warn('Failed to schedule local notification:', e);
+    return undefined;
+  }
+}
+
+export async function getBadgeCount(): Promise<number> {
+  try {
+    const count = await Notifications.getBadgeCountAsync();
+    return count;
+  } catch (e) {
+    console.warn('Failed to get badge count:', e);
+    return 0;
+  }
+}
+
+export async function setBadgeCount(count: number): Promise<void> {
+  try {
+    await Notifications.setBadgeCountAsync(count);
+  } catch (e) {
+    console.warn('Failed to set badge count:', e);
+  }
 }

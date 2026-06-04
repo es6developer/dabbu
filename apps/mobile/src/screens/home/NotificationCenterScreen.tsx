@@ -81,7 +81,7 @@ export function NotificationCenterScreen() {
       }
 
       const res = await api.get<any>(url);
-      const data = res?.data || res || [];
+      const data = res || [];
       setNotifications(Array.isArray(data) ? data : []);
 
       const unreadRes = await api
@@ -359,6 +359,8 @@ export function NotificationCenterScreen() {
               </TouchableOpacity>
             );
           }}
+          windowSize={10}
+          maxToRenderPerBatch={10}
         />
       </View>
 
@@ -392,6 +394,8 @@ export function NotificationCenterScreen() {
             />
           }
           ListFooterComponent={<View style={{ height: insets.bottom + 100 }} />}
+          windowSize={10}
+          maxToRenderPerBatch={10}
         />
       )}
     </View>

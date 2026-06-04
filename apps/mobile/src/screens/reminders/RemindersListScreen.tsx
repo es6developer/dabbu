@@ -48,7 +48,7 @@ export function RemindersListScreen() {
   async function loadReminders() {
     try {
       const res = await api.get<any>('/reminders');
-      const data = res?.data ?? res;
+      const data = res;
       setReminders(Array.isArray(data) ? data : []);
     } catch (e) {
       /* ignore */
@@ -202,6 +202,8 @@ export function RemindersListScreen() {
             onAction={() => navigation.navigate('CreateReminder')}
           />
         }
+        windowSize={10}
+        maxToRenderPerBatch={10}
       />
 
       <FloatingActionButton

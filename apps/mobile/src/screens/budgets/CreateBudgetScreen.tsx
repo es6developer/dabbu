@@ -41,7 +41,7 @@ export function CreateBudgetScreen() {
   async function loadCategories() {
     try {
       const res = await api.get<any>('/accounts/categories');
-      setCategories(res.data?.map((c: any) => c.name) || res.data || []);
+      setCategories(res?.map((c: any) => c.name) || res || []);
     } catch (_e) {
       /* ignore */
     }

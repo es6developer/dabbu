@@ -56,7 +56,7 @@ export function FamilyDashboardScreen() {
         if (accessToken) setAccessToken(accessToken);
         if (groupId) {
           const res = await api.get<any>(`/shared-finance/groups/${groupId}/family-dashboard`);
-          setData(res?.data || res);
+          setData(res);
         }
       } catch (e: any) {
         if (e.message !== 'Session expired. Please login again.') {

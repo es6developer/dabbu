@@ -341,6 +341,8 @@ export function DocumentVaultScreen() {
             </Text>
           </View>
         }
+        windowSize={10}
+        maxToRenderPerBatch={10}
       />
 
       <View style={[s.fabRow, { bottom: insets.bottom + 80 }]}>

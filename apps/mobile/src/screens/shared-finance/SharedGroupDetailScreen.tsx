@@ -14,6 +14,7 @@ import {
   Modal,
   TextInput,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
@@ -37,9 +38,6 @@ function normalize<T>(res: any): T {
   }
   if (Array.isArray(res)) {
     return res as T;
-  }
-  if (res.data && Array.isArray(res.data)) {
-    return res.data as T;
   }
   return res as T;
 }
@@ -71,6 +69,7 @@ export function SharedGroupDetailScreen() {
   const [addMemberModalVisible, setAddMemberModalVisible] = useState(false);
   const [addMemberEmail, setAddMemberEmail] = useState('');
   const [addMemberLoading, setAddMemberLoading] = useState(false);
+  const [activeStatPage, setActiveStatPage] = useState(0);
 
   const loadData = useCallback(
     async (refresh = false) => {
@@ -197,6 +196,16 @@ export function SharedGroupDetailScreen() {
     };
   }, [expenses, group, members.length]);
 
+  const topCategory = useMemo(() => {
+    const cats: Record<string, number> = {};
+    expenses.forEach(e => {
+      const c = (e.category || 'Other').toLowerCase();
+      cats[c] = (cats[c] || 0) + Number(e.amount || 0);
+    });
+    const entries = Object.entries(cats).sort(([, a], [, b]) => b - a);
+    return entries.length > 0 ? entries[0][0].charAt(0).toUpperCase() + entries[0][0].slice(1) : 'None';
+  }, [expenses]);
+
   const balanceRows = useMemo(() => {
     if (members.length === 0) {
       return [];
@@ -218,6 +227,9 @@ export function SharedGroupDetailScreen() {
       };
     });
   }, [members, stats.totalSpent, expenses]);
+
+  const myBalanceRow = balanceRows.find(r => r.userId === currentUser?.id);
+  const windowWidth = Dimensions.get('window').width;
 
   const activity = useMemo(() => {
     const iconMap: Record<string, string> = {
@@ -257,6 +269,32 @@ export function SharedGroupDetailScreen() {
       .filter((item) => item.date)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [activityData, expenses, members]);
+
+  const groupedActivity = useMemo(() => {
+    const groups: { title: string; data: any[] }[] = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    let currentTitle = '';
+    let currentItems: any[] = [];
+    activity.forEach((item) => {
+      const d = new Date(item.date);
+      d.setHours(0, 0, 0, 0);
+      let title: string;
+      if (d.getTime() === today.getTime()) title = 'Today';
+      else if (d.getTime() === yesterday.getTime()) title = 'Yesterday';
+      else title = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+      if (title !== currentTitle) {
+        if (currentItems.length > 0) groups.push({ title: currentTitle, data: [...currentItems] });
+        currentTitle = title;
+        currentItems = [];
+      }
+      currentItems.push(item);
+    });
+    if (currentItems.length > 0) groups.push({ title: currentTitle, data: currentItems });
+    return groups;
+  }, [activity]);
 
   if (loading) {
     return (
@@ -335,6 +373,26 @@ export function SharedGroupDetailScreen() {
           </Text>
         </View>
 
+        <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Financial Summary</Text>
+        <View style={[s.finSumCard, { backgroundColor: colors.bg.secondary }]}>
+          <View style={[s.finSumRow, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border.subtle }]}>
+            <Text style={[s.finSumLabel, { color: colors.text.tertiary }]}>All-time Total</Text>
+            <Text style={[s.finSumValue, { color: colors.text.primary }]}>{fmt(stats.totalSpent)}</Text>
+          </View>
+          <View style={[s.finSumRow, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border.subtle }]}>
+            <Text style={[s.finSumLabel, { color: colors.text.tertiary }]}>Per Person</Text>
+            <Text style={[s.finSumValue, { color: colors.text.primary }]}>{fmt(Math.round(stats.totalSpent / Math.max(members.length, 1)))}</Text>
+          </View>
+          <View style={[s.finSumRow, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border.subtle }]}>
+            <Text style={[s.finSumLabel, { color: colors.text.tertiary }]}>Per Transaction</Text>
+            <Text style={[s.finSumValue, { color: colors.text.primary }]}>{fmt(Math.round(stats.totalSpent / Math.max(stats.totalTransactions, 1)))}</Text>
+          </View>
+          <View style={[s.finSumRow, { borderBottomWidth: 0 }]}>
+            <Text style={[s.finSumLabel, { color: colors.text.tertiary }]}>Top Category</Text>
+            <Text style={[s.finSumValue, { color: colors.accent.primary }]}>{topCategory}</Text>
+          </View>
+        </View>
+
         <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Category Breakdown</Text>
         <View style={s.chipRow}>
           {['Food', 'Travel', 'Shopping', 'Bills', 'Entertainment'].map((cat) => {
@@ -352,6 +410,57 @@ export function SharedGroupDetailScreen() {
                 <Text style={[s.categoryChipText, { color: colors.accent.primary }]}>
                   {cat} · {fmt(amt)}
                 </Text>
+              </View>
+            );
+          })}
+        </View>
+
+        <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Balances</Text>
+        <View style={[s.finSumCard, { backgroundColor: colors.bg.secondary, padding: 0 }]}>
+          {balanceRows.length === 0 && (
+            <View style={{ padding: 16 }}>
+              <Text style={[s.finSumLabel, { color: colors.text.tertiary }]}>No data yet</Text>
+            </View>
+          )}
+          {balanceRows.map((row, idx) => {
+            const isLast = idx === balanceRows.length - 1;
+            const pct = Math.max(...balanceRows.map(r => Math.abs(r.balance)), 1);
+            const barPct = Math.abs(row.balance) / pct;
+            return (
+              <View key={row.id} style={[s.balChartRow, { borderBottomWidth: isLast ? 0 : StyleSheet.hairlineWidth, borderBottomColor: colors.border.subtle }]}>
+                <Text style={[s.balChartName, { color: colors.text.primary }]} numberOfLines={1}>{row.name}</Text>
+                <View style={s.balChartBarWrap}>
+                  <View style={[s.balChartBarBg, { backgroundColor: colors.bg.tertiary }]}>
+                    <View style={[s.balChartBar, { width: `${barPct * 100}%`, backgroundColor: row.balance >= 0 ? colors.status.success : colors.status.error }]} />
+                  </View>
+                </View>
+                <Text style={[s.balChartAmt, { color: row.balance >= 0 ? colors.status.success : colors.status.error }]}>
+                  {row.balance >= 0 ? '+' : ''}{fmt(Math.round(row.balance))}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+
+        <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Contribution</Text>
+        <View style={[s.finSumCard, { backgroundColor: colors.bg.secondary, padding: 0 }]}>
+          {balanceRows.length === 0 && (
+            <View style={{ padding: 16 }}>
+              <Text style={[s.finSumLabel, { color: colors.text.tertiary }]}>No data yet</Text>
+            </View>
+          )}
+          {balanceRows.map((row, idx) => {
+            const isLast = idx === balanceRows.length - 1;
+            const pct = stats.totalSpent > 0 ? (row.paid / stats.totalSpent * 100) : 0;
+            return (
+              <View key={row.id} style={[s.balChartRow, { borderBottomWidth: isLast ? 0 : StyleSheet.hairlineWidth, borderBottomColor: colors.border.subtle }]}>
+                <Text style={[s.balChartName, { color: colors.text.primary }]} numberOfLines={1}>{row.name}</Text>
+                <View style={s.balChartBarWrap}>
+                  <View style={[s.balChartBarBg, { backgroundColor: colors.bg.tertiary }]}>
+                    <View style={[s.balChartBar, { width: `${Math.min(pct, 100)}%`, backgroundColor: colors.accent.primary }]} />
+                  </View>
+                </View>
+                <Text style={[s.balChartAmt, { color: colors.text.primary }]}>{pct.toFixed(1)}%</Text>
               </View>
             );
           })}
@@ -470,8 +579,8 @@ export function SharedGroupDetailScreen() {
         <View style={s.tabPanel}>
           <EmptyState
             icon="cash-outline"
-            title="No members"
-            message="Add members to see balances"
+            title="Invite your people"
+            message="Add members to start splitting expenses. Shared finance works better together."
           />
         </View>
       );
@@ -526,14 +635,14 @@ export function SharedGroupDetailScreen() {
     );
   }
 
-  function renderMembers() {
+  function renderMembers(balanceRows: any[] = []) {
     if (members.length === 0) {
       return (
         <View style={s.tabPanel}>
           <EmptyState
             icon="people-outline"
-            title="No members"
-            message="Invite members to get started"
+            title="Invite your people"
+            message="Add members to start splitting expenses. Shared finance works better together."
             actionLabel="Invite Members"
             onAction={handleGenerateInvite}
           />
@@ -545,6 +654,7 @@ export function SharedGroupDetailScreen() {
         {members.map((member: any) => {
           const role = member.role || 'member';
           const isMemberCurrentUser = member.userId === currentUser?.id;
+          const row = balanceRows.find(r => r.userId === member.userId);
           return (
             <TouchableOpacity
               key={member.id}
@@ -574,30 +684,54 @@ export function SharedGroupDetailScreen() {
                 </Text>
               </LinearGradient>
               <View style={{ flex: 1 }}>
-                <Text style={[s.memberName, { color: colors.text.primary }]}>
-                  {member.user?.firstName || member.user?.email || member.firstName || 'Member'}
-                  {isMemberCurrentUser ? ' (You)' : ''}
-                </Text>
-              </View>
-              <View
-                style={[
-                  s.roleBadge,
-                  {
-                    backgroundColor:
-                      role === 'admin' ? `${colors.accent.primary}18` : `${colors.text.tertiary}18`,
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    s.roleBadgeText,
-                    {
-                      color: role === 'admin' ? colors.accent.primary : colors.text.tertiary,
-                    },
-                  ]}
-                >
-                  {role === 'admin' ? 'Admin' : 'Member'}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Text style={[s.memberName, { color: colors.text.primary }]}>
+                    {member.user?.firstName || member.user?.email || member.firstName || 'Member'}
+                    {isMemberCurrentUser ? ' (You)' : ''}
+                  </Text>
+                  <View
+                    style={[
+                      s.roleBadge,
+                      {
+                        backgroundColor:
+                          role === 'admin' ? `${colors.accent.primary}18` : `${colors.text.tertiary}18`,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        s.roleBadgeText,
+                        {
+                          color: role === 'admin' ? colors.accent.primary : colors.text.tertiary,
+                        },
+                      ]}
+                    >
+                      {role === 'admin' ? 'Admin' : 'Member'}
+                    </Text>
+                  </View>
+                </View>
+                {row && (
+                  <View style={{ marginTop: 6, gap: 4 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Text style={{ fontSize: 12, color: colors.text.tertiary }}>Paid {fmt(row.paid)}</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        {Math.abs(row.balance) < 1 ? (
+                          <Text style={{ fontSize: 11, fontWeight: '700', color: colors.status.success }}>Settled ✅</Text>
+                        ) : row.balance < 0 ? (
+                          <Text style={{ fontSize: 11, fontWeight: '700', color: colors.status.error }}>Owes {fmt(Math.abs(Math.round(row.balance)))}</Text>
+                        ) : (
+                          <Text style={{ fontSize: 11, fontWeight: '700', color: colors.status.success }}>Gets {fmt(Math.round(row.balance))}</Text>
+                        )}
+                      </View>
+                    </View>
+                    <View style={[s.contBarBg, { backgroundColor: colors.bg.tertiary }]}>
+                      <View style={[s.contBarFill, { width: `${stats.totalSpent > 0 ? Math.min(row.paid / stats.totalSpent * 100, 100) : 0}%`, backgroundColor: colors.accent.primary }]} />
+                    </View>
+                  </View>
+                )}
+                {!row && (
+                  <Text style={{ fontSize: 12, color: colors.text.tertiary, marginTop: 4 }}>No expenses yet</Text>
+                )}
               </View>
             </TouchableOpacity>
           );
@@ -774,7 +908,7 @@ export function SharedGroupDetailScreen() {
       const res = await api.post<any>(`/shared-finance/groups/${groupId}/invites`, {
         email: `invitee-${Date.now()}@temp.dabbu.app`,
       });
-      const token = res?.token || res?.inviteToken || res?.data?.inviteToken;
+      const token = res?.token || res?.inviteToken;
       if (!token) {
         Alert.alert('Error', 'Failed to generate invite link');
         return;
@@ -818,36 +952,54 @@ export function SharedGroupDetailScreen() {
   }
 
   function renderActivity() {
-    if (activity.length === 0) {
+    if (groupedActivity.length === 0) {
       return (
         <View style={s.tabPanel}>
           <EmptyState
             icon="timer-outline"
-            title="No activity yet"
-            message="Expenses and member changes will appear here"
+            title="Track your group's activity"
+            message="Expenses, settlements, and member updates will appear here as your group becomes active."
           />
         </View>
       );
     }
     return (
       <View style={s.tabPanel}>
-        {activity.map((item) => (
-          <View key={item.id} style={s.activityRow}>
-            <View style={[s.activityIcon, { backgroundColor: colors.bg.tertiary }]}>
-              <Ionicons name={item.icon as any} size={16} color={colors.accent.primary} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[s.activityTitle, { color: colors.text.primary }]}>{item.title}</Text>
-              <Text style={[s.activityDetail, { color: colors.text.tertiary }]}>{item.detail}</Text>
-            </View>
-            {item.date && (
-              <Text style={[s.activityDate, { color: colors.text.tertiary }]}>
-                {new Date(item.date).toLocaleDateString('en-IN', {
-                  day: 'numeric',
-                  month: 'short',
-                })}
-              </Text>
-            )}
+        {groupedActivity.map((group) => (
+          <View key={group.title}>
+            <Text style={[s.activitySectionTitle, { color: colors.text.tertiary }]}>{group.title}</Text>
+            {group.data.map((item) => {
+              const typeColor = item.type === 'expense' || item.type === 'expense_added'
+                ? colors.status.info
+                : item.type === 'member' || item.type === 'member_joined'
+                  ? colors.status.success
+                  : item.type?.includes('settlement')
+                    ? colors.status.warning
+                    : item.type === 'payment_completed' || item.type === 'settlement_confirmed'
+                      ? colors.status.success
+                      : colors.accent.primary;
+              return (
+                <View key={item.id} style={[s.activityRow, { borderLeftWidth: 3, borderLeftColor: typeColor, paddingLeft: 10 }]}>
+                  <View style={[s.activityIcon, { backgroundColor: colors.bg.tertiary }]}>
+                    <Ionicons name={item.icon as any} size={16} color={colors.accent.primary} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[s.activityTitle, { color: colors.text.primary }]}>{item.title}</Text>
+                    <Text style={[s.activityDetail, { color: colors.text.tertiary }]}>{item.detail}</Text>
+                  </View>
+                  {item.date && (
+                    <Text style={[s.activityDate, { color: colors.text.tertiary }]}>
+                      {new Date(item.date).toLocaleDateString('en-IN', {
+                        day: 'numeric',
+                        month: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </Text>
+                  )}
+                </View>
+              );
+            })}
           </View>
         ))}
       </View>
@@ -862,6 +1014,7 @@ export function SharedGroupDetailScreen() {
         showsVerticalScrollIndicator={false}
         initialNumToRender={8}
         windowSize={5}
+        maxToRenderPerBatch={10}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -926,36 +1079,54 @@ export function SharedGroupDetailScreen() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={s.statsRow}
-            >
-              <LinearGradient colors={[colors.bg.secondary, colors.bg.tertiary]} style={s.statCard}>
-                <Text style={[s.statLabel, { color: colors.text.tertiary }]}>Total Spent</Text>
-                <Text style={[s.statValue, { color: colors.text.primary }]}>
-                  {fmt(stats.totalSpent)}
-                </Text>
-              </LinearGradient>
-              <LinearGradient colors={[colors.bg.secondary, colors.bg.tertiary]} style={s.statCard}>
-                <Text style={[s.statLabel, { color: colors.text.tertiary }]}>Transactions</Text>
-                <Text style={[s.statValue, { color: colors.text.primary }]}>
-                  {stats.totalTransactions}
-                </Text>
-              </LinearGradient>
-              <LinearGradient colors={[colors.bg.secondary, colors.bg.tertiary]} style={s.statCard}>
-                <Text style={[s.statLabel, { color: colors.text.tertiary }]}>Pending</Text>
-                <Text style={[s.statValue, { color: colors.status.warning }]}>
-                  {stats.pendingSettlements}
-                </Text>
-              </LinearGradient>
-              <LinearGradient colors={[colors.bg.secondary, colors.bg.tertiary]} style={s.statCard}>
-                <Text style={[s.statLabel, { color: colors.text.tertiary }]}>Monthly Avg</Text>
-                <Text style={[s.statValue, { color: colors.text.primary }]}>
-                  {fmt(Math.round(stats.monthlyAverage))}
-                </Text>
-              </LinearGradient>
-            </ScrollView>
+            <View style={{ marginTop: 18 }}>
+              <View style={{ paddingHorizontal: 20 }}>
+                <ScrollView
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  decelerationRate="fast"
+                  onMomentumScrollEnd={(e) => {
+                    const page = Math.round(e.nativeEvent.contentOffset.x / (windowWidth - 40));
+                    setActiveStatPage(page);
+                  }}
+                >
+                  {[
+                    { label: 'Total Spent', value: fmt(stats.totalSpent), color: colors.text.primary },
+                    {
+                      label: myBalanceRow && myBalanceRow.balance >= 0 ? 'You Are Owed' : 'You Owe',
+                      value: myBalanceRow ? (myBalanceRow.balance >= 0 ? fmt(myBalanceRow.balance) : fmt(Math.abs(myBalanceRow.balance))) : fmt(0),
+                      color: myBalanceRow && myBalanceRow.balance >= 0 ? colors.status.success : (myBalanceRow && myBalanceRow.balance < 0 ? colors.status.error : colors.text.primary),
+                    },
+                    { label: 'Settlements Pending', value: String(stats.pendingSettlements), color: colors.status.warning },
+                    { label: 'Active Members', value: String(members.length), color: colors.accent.primary },
+                  ].map((page, idx) => (
+                    <LinearGradient
+                      key={idx}
+                      colors={[colors.bg.secondary, colors.bg.tertiary]}
+                      style={[s.pagerCard, { width: windowWidth - 40 }]}
+                    >
+                      <Text style={[s.pagerLabel, { color: colors.text.tertiary }]}>{page.label}</Text>
+                      <Text style={[s.pagerValue, { color: page.color }]}>{page.value}</Text>
+                    </LinearGradient>
+                  ))}
+                </ScrollView>
+              </View>
+              <View style={s.pagerDots}>
+                {[0, 1, 2, 3].map((i) => (
+                  <View
+                    key={i}
+                    style={[
+                      s.pagerDot,
+                      {
+                        backgroundColor: activeStatPage === i ? colors.accent.primary : colors.text.tertiary,
+                        opacity: activeStatPage === i ? 1 : 0.3,
+                      },
+                    ]}
+                  />
+                ))}
+              </View>
+            </View>
 
             <View style={s.quickActions}>
               <TouchableOpacity
@@ -1055,7 +1226,7 @@ export function SharedGroupDetailScreen() {
 
             {activeTab === 'overview' && renderOverview()}
             {activeTab === 'balances' && renderBalances()}
-            {activeTab === 'members' && renderMembers()}
+            {activeTab === 'members' && renderMembers(balanceRows)}
             {activeTab === 'activity' && renderActivity()}
 
             {activeTab === 'expenses' && expenses.length > 0 && (
@@ -1081,8 +1252,8 @@ export function SharedGroupDetailScreen() {
             <View style={s.tabPanel}>
               <EmptyState
                 icon="receipt-outline"
-                title="No expenses yet"
-                message="Add your first expense to get started"
+                title="Split your first expense"
+                message="Add an expense to get started. Dabbu makes splitting fair and effortless."
                 actionLabel="Add Expense"
                 onAction={() =>
                   navigation.navigate('SharedExpenseForm', {
@@ -1441,6 +1612,14 @@ const s = StyleSheet.create({
   activityTitle: { fontSize: 14, fontWeight: '600' },
   activityDetail: { fontSize: 12, marginTop: 2 },
   activityDate: { fontSize: 11 },
+  activitySectionTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    paddingVertical: 8,
+    marginTop: 4,
+  },
   errText: { fontSize: 16, textAlign: 'center', paddingHorizontal: 24 },
   retry: {
     marginTop: 18,
@@ -1519,4 +1698,91 @@ const s = StyleSheet.create({
     marginTop: 16,
   },
   typeDashBtnText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
+  pagerCard: {
+    padding: 24,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 140,
+  },
+  pagerLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  pagerValue: {
+    fontSize: 32,
+    fontWeight: '800',
+  },
+  pagerDots: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 12,
+  },
+  pagerDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  finSumCard: {
+    borderRadius: 18,
+    padding: 16,
+    gap: 0,
+  },
+  finSumRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  finSumLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  finSumValue: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  balChartRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    gap: 10,
+  },
+  balChartName: {
+    width: 80,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  balChartBarWrap: {
+    flex: 1,
+  },
+  balChartBarBg: {
+    height: 6,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  balChartBar: {
+    height: 6,
+    borderRadius: 3,
+  },
+  balChartAmt: {
+    width: 70,
+    fontSize: 12,
+    fontWeight: '700',
+    textAlign: 'right',
+  },
+  contBarBg: {
+    height: 4,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  contBarFill: {
+    height: 4,
+    borderRadius: 2,
+  },
 });

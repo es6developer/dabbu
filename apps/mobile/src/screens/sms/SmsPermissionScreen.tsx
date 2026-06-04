@@ -85,7 +85,7 @@ export function SmsPermissionScreen() {
         message: manualText.trim(),
         sender: 'Manual',
       });
-      setManualResult(res.data || res);
+      setManualResult(res);
     } catch {
       /* noop */
     }

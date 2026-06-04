@@ -208,6 +208,8 @@ export function GroupWalletScreen() {
                 </Text>
               </TouchableOpacity>
             )}
+            windowSize={10}
+            maxToRenderPerBatch={10}
           />
 
           {/* Create Wallet Modal */}

@@ -41,7 +41,7 @@ export function CreateTaskScreen() {
   async function loadFamilyMembers() {
     try {
       const res = await api.get<any>('/family');
-      const families = Array.isArray(res.data) ? res.data : [];
+      const families = Array.isArray(res) ? res : [];
       const members = families.flatMap((f: any) => f.members || []);
       setFamilyMembers(members);
     } catch (_e) {

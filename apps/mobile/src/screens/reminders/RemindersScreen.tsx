@@ -61,7 +61,7 @@ export function RemindersScreen() {
         api.get<any>('/reminders?status=pending'),
         api.get<any>('/notifications/unread-count').catch(() => ({ count: 0 })),
       ]);
-      const data = res?.data ?? res;
+      const data = res;
       setReminders(Array.isArray(data) ? data : []);
       setUnreadCount(unreadRes?.count || 0);
     } catch (_e) {
@@ -197,6 +197,8 @@ export function RemindersScreen() {
             />
           }
           ListFooterComponent={<View style={{ height: 100 }} />}
+          windowSize={10}
+          maxToRenderPerBatch={10}
         />
       )}
 

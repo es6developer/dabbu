@@ -49,7 +49,7 @@ export function CoupleFinanceScreen() {
         if (accessToken) setAccessToken(accessToken);
         if (groupId) {
           const res = await api.get<any>(`/shared-finance/groups/${groupId}/couple/dashboard`);
-          setData(res?.data || res);
+          setData(res);
         } else {
           setData(null);
         }

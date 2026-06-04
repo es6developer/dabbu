@@ -48,6 +48,11 @@ export class CreateNotificationDto {
   body?: string;
 
   @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  message?: string;
+
+  @ApiPropertyOptional()
   @IsObject()
   @IsOptional()
   data?: Record<string, any>;
@@ -56,6 +61,31 @@ export class CreateNotificationDto {
   @IsDateString()
   @IsOptional()
   scheduledFor?: string;
+
+  @ApiPropertyOptional({ example: 'high' })
+  @IsString()
+  @IsOptional()
+  priority?: string;
+
+  @ApiPropertyOptional({ example: 'bill' })
+  @IsString()
+  @IsOptional()
+  category?: string;
+
+  @ApiPropertyOptional({ example: '123e4567-e89b-12d3-a456-426614174000' })
+  @IsUUID()
+  @IsOptional()
+  reminderId?: string;
+
+  @ApiPropertyOptional({ example: '/bills/123' })
+  @IsString()
+  @IsOptional()
+  actionUrl?: string;
+
+  @ApiPropertyOptional()
+  @IsBoolean()
+  @IsOptional()
+  overdue?: boolean;
 }
 
 export class MarkReadDto {

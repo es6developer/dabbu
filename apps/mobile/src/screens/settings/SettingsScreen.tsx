@@ -44,6 +44,7 @@ const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
     items: [
       { label: 'Theme', icon: 'color-palette', screen: 'Theme' },
       { label: 'Currency', icon: 'cash', screen: 'Currency' },
+      { label: 'Notifications', icon: 'notifications', screen: 'NotificationSettings' },
       { label: 'Customise Dashboard', icon: 'apps', screen: 'CustomiseDashboard' },
       { label: 'Customise Bottom Menu', icon: 'menu', screen: 'CustomiseBottomMenu' },
     ],
@@ -64,6 +65,7 @@ const ROW_ICON_MAP: Record<string, { gradient: [string, string]; icon: IconName 
   Security: { gradient: ['#10B981', '#059669'], icon: 'shield-checkmark' },
   'Lock App': { gradient: ['#EF4444', '#DC2626'], icon: 'lock-closed' },
   'Reports & Analytics': { gradient: ['#8B5CF6', '#6D28D9'], icon: 'stats-chart' },
+  Notifications: { gradient: ['#6366F1', '#8B5CF6'], icon: 'notifications' },
   Theme: { gradient: ['#EC4899', '#DB2777'], icon: 'color-palette' },
   Currency: { gradient: ['#06B6D4', '#0891B2'], icon: 'cash' },
   'Customise Dashboard': { gradient: ['#4F6EF7', '#6C5CE7'], icon: 'apps' },
@@ -114,6 +116,7 @@ export function SettingsScreen() {
       'Contact',
       'Privacy',
       'Analytics',
+      'NotificationSettings',
     ];
     if (!registered.includes(screen)) {
       Alert.alert('Coming Soon', `${screen} settings will be available soon`);

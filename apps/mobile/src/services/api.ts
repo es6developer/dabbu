@@ -21,7 +21,7 @@ export function setOnSessionExpiredHandler(fn: () => void) {
 }
 
 let warmupDone = false;
-export function warmupBackend(): void {
+function warmupBackend(): void {
   if (warmupDone) {
     return;
   }
@@ -244,6 +244,6 @@ export const api = {
     request<T>(path, { method: 'DELETE', ...(signal ? { signal } : {}) }, timeout),
 };
 
-export function clearCache() {
+function clearCache() {
   cache.clear();
 }

@@ -63,9 +63,6 @@ function listFromResponse(res: any): any[] {
   if (Array.isArray(res)) {
     return res;
   }
-  if (res.data) {
-    return Array.isArray(res.data) ? res.data : [];
-  }
   if (res.items) {
     return Array.isArray(res.items) ? res.items : [];
   }
@@ -858,7 +855,10 @@ export function HomeScreen() {
               <View style={styles.emptyState}>
                 <Ionicons name="receipt-outline" size={32} color={colors.text.tertiary} />
                 <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
-                  No recent transactions
+                  Start your financial journey
+                </Text>
+                <Text style={{ color: colors.text.tertiary, fontSize: 13, textAlign: 'center', marginTop: 4, marginBottom: 12 }}>
+                  Track your first expense and discover how Dabbu helps you understand your money better.
                 </Text>
                 <TouchableOpacity
                   style={[styles.emptyBtn, { backgroundColor: colors.accent.primary }]}

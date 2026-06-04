@@ -19,7 +19,7 @@ export function BudgetsListScreen() {
   async function loadBudgets() {
     try {
       const res = await api.get<any>('/accounts/budgets');
-      setBudgets(Array.isArray(res.data) ? res.data : []);
+      setBudgets(Array.isArray(res) ? res : []);
     } catch (e) { /* ignore */ }
     finally { setLoading(false); }
   }
@@ -73,10 +73,12 @@ export function BudgetsListScreen() {
         ListEmptyComponent={
           <View style={styles.empty}>
             <Text style={styles.emptyIcon}>🎯</Text>
-            <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No budgets</Text>
-            <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>Create a budget to manage spending together</Text>
+            <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>Plan your spending</Text>
+            <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>Create a budget to take control of your finances. Know exactly how much you can spend in every category.</Text>
           </View>
         }
+        windowSize={10}
+        maxToRenderPerBatch={10}
       />
     </View>
   );

@@ -23,7 +23,7 @@ export function FamilyDashboardScreen() {
   async function loadFamilies() {
     try {
       const res = await api.get<any>('/family');
-      setFamilies(Array.isArray(res.data) ? res.data : []);
+      setFamilies(Array.isArray(res) ? res : []);
     } catch (e) { /* ignore */ }
     finally { setLoading(false); }
   }
@@ -88,6 +88,8 @@ export function FamilyDashboardScreen() {
             </TouchableOpacity>
           </View>
         }
+        windowSize={10}
+        maxToRenderPerBatch={10}
       />
 
       <TouchableOpacity style={[styles.fab, { backgroundColor: colors.accent.primary, bottom: insets.bottom + 100 }]} onPress={() => navigation.navigate('CreateFamily')}>

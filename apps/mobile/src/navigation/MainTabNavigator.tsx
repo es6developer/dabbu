@@ -12,6 +12,7 @@ import { TransactionsScreen } from '../screens/transactions/TransactionsScreen';
 import { AccountsNavigator } from './AccountsNavigator';
 import { SharedFinanceNavigator } from './SharedFinanceNavigator';
 import { GoalsListScreen } from '../screens/goals/GoalsListScreen';
+import { GoalDetailScreen } from '../screens/goals/GoalDetailScreen';
 import { DocumentVaultScreen } from '../screens/documents/DocumentVaultScreen';
 import { DocumentDetailScreen } from '../screens/documents/DocumentDetailScreen';
 import { BadgeWallScreen } from '../screens/documents/BadgeWallScreen';
@@ -34,6 +35,7 @@ import { PrivacyPolicyScreen } from '../screens/settings/PrivacyPolicyScreen';
 import { AnalyticsScreen } from '../screens/analytics/AnalyticsScreen';
 import { CustomiseDashboardScreen } from '../screens/settings/CustomiseDashboardScreen';
 import { CustomiseBottomMenuScreen } from '../screens/settings/CustomiseBottomMenuScreen';
+import { NotificationSettingsScreen } from '../screens/settings/NotificationSettingsScreen';
 import { useTheme } from '../theme';
 import { useAuth } from '../store/AuthContext';
 import { api } from '../services/api';
@@ -79,6 +81,11 @@ function DashboardNavigator() {
       <DashboardStack.Screen
         name="GoalsList"
         component={GoalsListScreen}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
+        name="GoalDetail"
+        component={GoalDetailScreen}
         options={{ headerShown: false }}
       />
       <DashboardStack.Screen
@@ -189,6 +196,11 @@ function SettingsNavigator() {
       <SettingsStack.Screen
         name="CustomiseBottomMenu"
         component={CustomiseBottomMenuScreen}
+        options={{ headerShown: false }}
+      />
+      <SettingsStack.Screen
+        name="NotificationSettings"
+        component={NotificationSettingsScreen}
         options={{ headerShown: false }}
       />
     </SettingsStack.Navigator>
@@ -384,7 +396,7 @@ export function MainTabNavigator() {
           name="Transactions"
           component={TransactionsListWrapper}
           options={{
-            title: 'Transactions',
+            title: 'Activity',
             tabBarIcon: ({ focused, size }) => (
               <Ionicons
                 name={focused ? 'swap-horizontal' : 'swap-horizontal-outline'}
@@ -422,10 +434,10 @@ export function MainTabNavigator() {
           name="Shared"
           component={SharedFinanceNavigator}
           options={{
-            title: 'Spaces',
+            title: 'Shared',
             tabBarIcon: ({ focused, size }) => (
               <Ionicons
-                name={focused ? 'grid' : 'grid-outline'}
+                name={focused ? 'people' : 'people-outline'}
                 size={size}
                 color={focused ? colors.accent.primary : colors.text.tertiary}
               />

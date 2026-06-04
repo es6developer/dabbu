@@ -128,6 +128,8 @@ export function WalletTransferScreen() {
                   )}
                 </TouchableOpacity>
               )}
+              windowSize={10}
+              maxToRenderPerBatch={10}
             />
           )}
 

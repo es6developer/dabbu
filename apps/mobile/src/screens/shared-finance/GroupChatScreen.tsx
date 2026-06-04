@@ -89,7 +89,7 @@ export function GroupChatScreen() {
         if (ctrl.signal.aborted) {
           return;
         }
-        const data = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+        const data = Array.isArray(res) ? res : [];
         setMessages(data);
       } catch (e: any) {
         if (!ctrl.signal.aborted && !refresh) {
@@ -133,7 +133,7 @@ export function GroupChatScreen() {
       const res = await api.post<any>(`/shared-finance/groups/${groupId}/chat/messages`, {
         text: msgText,
       });
-      const newMsg = res?.data || res;
+      const newMsg = res;
       if (newMsg) {
         setMessages((prev) => [...prev, newMsg]);
         setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
@@ -303,6 +303,7 @@ export function GroupChatScreen() {
         showsVerticalScrollIndicator={false}
         initialNumToRender={20}
         windowSize={10}
+        maxToRenderPerBatch={10}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

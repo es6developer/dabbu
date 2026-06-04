@@ -54,7 +54,7 @@ export function ChatRoomScreen() {
   async function loadMessages() {
     try {
       const res = await api.get<any>(`/chat/${chatId}/messages`);
-      setMessages(res.data?.messages || res.data || []);
+      setMessages(res?.messages || res || []);
     } catch (e) { /* ignore */ }
     finally { setLoading(false); }
   }
@@ -116,6 +116,8 @@ export function ChatRoomScreen() {
             <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>No messages yet</Text>
           </View>
         }
+        windowSize={10}
+        maxToRenderPerBatch={10}
       />
       {typingUsers.length > 0 && (
         <Text style={[styles.typingText, { color: colors.text.tertiary }]}>Someone is typing...</Text>

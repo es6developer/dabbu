@@ -31,7 +31,7 @@ export function AccountsListScreen() {
   async function loadAccounts() {
     try {
       const res = await api.get<any>('/accounts');
-      setAccounts(Array.isArray(res.data) ? res.data : Array.isArray(res.data?.data) ? res.data.data : []);
+      setAccounts(Array.isArray(res) ? res : []);
     } catch (e) { /* ignore */ }
     finally { setLoading(false); }
   }
@@ -94,10 +94,12 @@ export function AccountsListScreen() {
         ListEmptyComponent={
           <View style={styles.empty}>
             <Ionicons name="wallet-outline" size={56} color={colors.text.tertiary} />
-            <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No accounts yet</Text>
-            <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>Add a transaction to create your first account</Text>
+            <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>Your accounts, one place</Text>
+            <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>Link your accounts or add transactions to get a complete view of your finances.</Text>
           </View>
         }
+        windowSize={10}
+        maxToRenderPerBatch={10}
       />
     </View>
   );

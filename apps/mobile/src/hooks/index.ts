@@ -15,7 +15,7 @@ export function useApi<T>(endpoint: string, deps: any[] = []) {
     setError(null);
     try {
       const res: any = await api.get<T>(endpoint);
-      setData(res.data ?? res);
+      setData(res);
     } catch (e: any) {
       setError(e?.message || 'Failed to fetch');
     } finally {

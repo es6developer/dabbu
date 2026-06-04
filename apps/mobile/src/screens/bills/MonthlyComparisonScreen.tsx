@@ -134,8 +134,8 @@ export function MonthlyComparisonScreen() {
       const res = await api.get<any>(
         `/bills/comparison?month1=${month1}&year1=${year1}&month2=${month2}&year2=${year2}`,
       );
-      if (res.success && res.data) {
-        setData(res.data);
+      if (res) {
+        setData(res);
       } else {
         throw new Error('Invalid response');
       }

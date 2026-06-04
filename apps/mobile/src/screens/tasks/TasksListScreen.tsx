@@ -121,6 +121,8 @@ export function TasksListScreen() {
             <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>Create a task for your family</Text>
           </View>
         }
+        windowSize={10}
+        maxToRenderPerBatch={10}
       />
     </View>
   );

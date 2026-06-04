@@ -90,8 +90,8 @@ export function BillDetailScreen() {
   async function fetchBill() {
     try {
       const res = await api.get<any>(`/bills/${billId}`);
-      if (res.success && res.data) {
-        const b = res.data as Bill;
+      if (res) {
+        const b = res as Bill;
         setBill(b);
         setMerchant(b.merchantName || '');
         setCategory(b.category || '');
@@ -151,7 +151,7 @@ export function BillDetailScreen() {
         })),
       };
       const res = await api.patch<any>(`/bills/${billId}`, payload);
-      if (res.success) {
+      if (res) {
         Alert.alert('Saved', 'Bill updated successfully.');
         navigation.goBack();
       } else {

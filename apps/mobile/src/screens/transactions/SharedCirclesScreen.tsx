@@ -59,8 +59,8 @@ export function SharedCirclesScreen() {
         api.get<any>('/transactions', ctrl.signal),
       ]);
       if (ctrl.signal.aborted) return;
-      const g = grpResult.status === 'fulfilled' ? (Array.isArray(grpResult.value) ? grpResult.value : Array.isArray(grpResult.value?.data) ? grpResult.value.data : []) : [];
-      const txData = txResult.status === 'fulfilled' ? (Array.isArray(txResult.value) ? txResult.value : Array.isArray(txResult.value?.data) ? txResult.value.data : []) : [];
+      const g = grpResult.status === 'fulfilled' ? (Array.isArray(grpResult.value) ? grpResult.value : []) : [];
+      const txData = txResult.status === 'fulfilled' ? (Array.isArray(txResult.value) ? txResult.value : []) : [];
       setGroups(g);
       setTransactions(txData);
       Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
@@ -141,6 +141,7 @@ export function SharedCirclesScreen() {
         showsVerticalScrollIndicator={false}
         windowSize={5}
         initialNumToRender={5}
+        maxToRenderPerBatch={10}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} tintColor={colors.accent.primary} />}
         contentContainerStyle={groups.length === 0 ? s.emptyContainer : { paddingBottom: 100 }}
         ListHeaderComponent={

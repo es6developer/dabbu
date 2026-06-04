@@ -22,14 +22,19 @@ export class NotificationService {
     @InjectQueue('notification-queue') private readonly notificationQueue: Queue,
   ) {}
 
-  async create(dto: CreateNotificationDto) {
+  async create(dto: CreateNotificationDto & { priority?: string; category?: string; reminderId?: string; actionUrl?: string; overdue?: boolean }) {
     const notification = await this.prisma.notification.create({
       data: {
         userId: dto.userId,
         type: dto.type,
         title: dto.title,
-        message: dto.body || '',
+        message: dto.message || dto.body || '',
         data: dto.data || undefined,
+        priority: dto.priority || 'medium',
+        category: dto.category || undefined,
+        reminderId: dto.reminderId || undefined,
+        actionUrl: dto.actionUrl || undefined,
+        overdue: dto.overdue || false,
       },
     });
 
@@ -44,7 +49,7 @@ export class NotificationService {
     await this.sendPush(
       dto.userId,
       dto.title,
-      dto.body || '',
+      dto.message || dto.body || '',
       { notificationId: notification.id, type: dto.type },
     );
 

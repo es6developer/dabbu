@@ -37,7 +37,7 @@ export function InviteMemberScreen() {
   async function loadFamily() {
     try {
       const res = await api.get<any>('/family');
-      const data = Array.isArray(res.data) ? res.data[0] : res.data;
+      const data = Array.isArray(res) ? res[0] : res;
       setFamily(data);
       setInviteCode(data?.inviteCode || data?.invitationCode || '');
       setPendingInvites(data?.pendingInvitations || data?.pendingInvites || []);

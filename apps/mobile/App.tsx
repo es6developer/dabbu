@@ -11,8 +11,8 @@ import { RootNavigator } from './src/navigation/RootNavigator';
 import { AuthProvider } from './src/store/AuthContext';
 import { LockProvider } from './src/store/LockContext';
 import { loadFeatures } from './src/config/features';
-import { warmupBackend } from './src/services/api';
 import { addNotificationResponseListener } from './src/services/notifications';
+import { useDeepLinks } from './src/hooks/useDeepLinks';
 
 SplashScreen.preventAutoHideAsync();
 LogBox.ignoreLogs(['Reanimated', 'ViewPropTypes']);
@@ -28,7 +28,7 @@ function ThemedStatusBar() {
   );
 }
 
-function ThemedNavigationContainer({ children, navigationRef }: { children: React.ReactNode; navigationRef: React.RefObject<NavigationContainerRef<any>> }) {
+function ThemedNavigationContainer({ children, navigationRef, linking }: { children: React.ReactNode; navigationRef: React.RefObject<NavigationContainerRef<any>>; linking?: any }) {
   const { isDark, colors } = useTheme();
   const navTheme = React.useMemo(() => {
     const base = isDark ? DarkTheme : DefaultTheme;
@@ -46,7 +46,7 @@ function ThemedNavigationContainer({ children, navigationRef }: { children: Reac
     };
   }, [isDark, colors]);
   return (
-    <NavigationContainer ref={navigationRef} theme={navTheme}>
+    <NavigationContainer ref={navigationRef} theme={navTheme} linking={linking}>
       {children}
     </NavigationContainer>
   );
@@ -56,13 +56,40 @@ export default function App(): React.ReactElement | null {
   const [appIsReady, setAppIsReady] = useState(false);
   const navigationRef = React.useRef<NavigationContainerRef<any>>(null);
 
+  useDeepLinks();
+
+  const linking = {
+    prefixes: ['dabbu://', 'https://dabbu.app'],
+    config: {
+      screens: {
+        Dashboard: {
+          screens: {
+            GoalsList: 'goals',
+            GoalDetail: 'goals/:goalId',
+          },
+        },
+        Shared: {
+          screens: {
+            SharedGroupDetail: 'shared/:groupId',
+            Settlement: 'shared/:groupId/settle',
+          },
+        },
+        Accounts: {
+          screens: {
+            GroupExpenses: 'shared/:groupId/expenses',
+          },
+        },
+      },
+    },
+  };
+
   useEffect(() => {
     const sub = addNotificationResponseListener((response) => {
       const data = response.notification?.request?.content?.data;
       if (data?.groupId) {
         setTimeout(() => {
           navigationRef.current?.navigate('Shared', {
-            screen: 'GroupDetail',
+            screen: 'SharedGroupDetail',
             params: { groupId: data.groupId },
           });
         }, 500);
@@ -81,7 +108,6 @@ export default function App(): React.ReactElement | null {
           'Inter-Bold': require('./src/assets/fonts/Inter-Bold.ttf'),
         });
         loadFeatures();
-        warmupBackend();
       } catch (e) {
         console.warn('Font loading error:', e);
       } finally {
@@ -107,7 +133,7 @@ export default function App(): React.ReactElement | null {
         <ThemeProvider>
           <AuthProvider>
             <LockProvider>
-              <ThemedNavigationContainer navigationRef={navigationRef}>
+              <ThemedNavigationContainer navigationRef={navigationRef} linking={linking}>
                 <ThemedStatusBar />
                 <RootNavigator />
               </ThemedNavigationContainer>

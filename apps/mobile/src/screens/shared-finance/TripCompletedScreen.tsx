@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { CelebrationOverlay } from '../../components/ui/CelebrationOverlay';
 
 interface TripCompletedScreenProps {
   route?: {
@@ -22,6 +23,7 @@ interface TripCompletedScreenProps {
 export function TripCompletedScreen({ route, navigation }: TripCompletedScreenProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const [showCelebration, setShowCelebration] = useState(true);
 
   const {
     groupName = 'Trip',
@@ -36,10 +38,17 @@ export function TripCompletedScreen({ route, navigation }: TripCompletedScreenPr
     `${currency === 'INR' ? '₹' : '$'}${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: colors.bg.primary }]}
-      contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + 32 }}
-    >
+    <View style={{ flex: 1 }}>
+      <CelebrationOverlay
+        visible={showCelebration}
+        onDismiss={() => setShowCelebration(false)}
+        title="Trip Completed!"
+        subtitle="All expenses settled successfully"
+      />
+      <ScrollView
+        style={[styles.container, { backgroundColor: colors.bg.primary }]}
+        contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + 32 }}
+      >
       <View style={styles.hero}>
         <LinearGradient
           colors={[`${colors.status.success}20`, `${colors.status.success}08`]}
@@ -149,6 +158,7 @@ export function TripCompletedScreen({ route, navigation }: TripCompletedScreenPr
         </TouchableOpacity>
       </View>
     </ScrollView>
+    </View>
   );
 }
 

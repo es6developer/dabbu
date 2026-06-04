@@ -244,10 +244,10 @@ export function BillsListScreen() {
     try {
       if (accessToken) setAccessToken(accessToken);
       const res = await api.get<any>('/bills/monthly');
-      if (res.success && Array.isArray(res.data)) {
-        setGroups(res.data);
-        if (res.data.length > 0 && expandedMonths.size === 0) {
-          setExpandedMonths(new Set([`${res.data[0].year}-${res.data[0].month}`]));
+      if (Array.isArray(res)) {
+        setGroups(res);
+        if (res.length > 0 && expandedMonths.size === 0) {
+          setExpandedMonths(new Set([`${res[0].year}-${res[0].month}`]));
         }
       } else {
         setGroups([]);

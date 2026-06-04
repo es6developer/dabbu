@@ -237,26 +237,6 @@ export function SplitTemplatesScreen() {
                     </View>
                   )}
                 </View>
-                {item.categories?.length > 0 && (
-                  <View style={s.catRow}>
-                    {item.categories.slice(0, 4).map((cat: any) => (
-                      <View
-                        key={cat.id}
-                        style={[s.catChip, { backgroundColor: colors.bg.tertiary }]}
-                      >
-                        <Ionicons name={cat.icon as any} size={12} color={colors.text.secondary} />
-                        <Text style={[s.catText, { color: colors.text.secondary }]}>
-                          {cat.name}
-                        </Text>
-                      </View>
-                    ))}
-                    {item.categories.length > 4 && (
-                      <Text style={[s.catMore, { color: colors.text.tertiary }]}>
-                        +{item.categories.length - 4}
-                      </Text>
-                    )}
-                  </View>
-                )}
                 {groupId && (
                   <TouchableOpacity
                     style={[s.applyBtn, { backgroundColor: colors.accent.primary }]}
@@ -275,6 +255,8 @@ export function SplitTemplatesScreen() {
                 )}
               </View>
             )}
+            windowSize={10}
+            maxToRenderPerBatch={10}
           />
 
           {showCreate && (

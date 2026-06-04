@@ -22,7 +22,7 @@ export function ChatListScreen() {
   async function loadChats() {
     try {
       const res = await api.get<any>('/chat');
-      setChats(Array.isArray(res.data) ? res.data : []);
+      setChats(Array.isArray(res) ? res : []);
     } catch (e) { /* ignore */ }
     finally { setLoading(false); }
   }
@@ -95,6 +95,8 @@ export function ChatListScreen() {
             <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>Start a new chat with your family</Text>
           </View>
         }
+        windowSize={10}
+        maxToRenderPerBatch={10}
       />
     </View>
   );

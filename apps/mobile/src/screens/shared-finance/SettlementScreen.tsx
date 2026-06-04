@@ -66,15 +66,15 @@ export function SettlementScreen() {
           api.get<any>(`/settlements/activity/${groupId}?limit=30`),
         ]);
         if (optRes.status === 'fulfilled') {
-          const d = optRes.value?.data || optRes.value;
+          const d = optRes.value;
           setSettlements(Array.isArray(d) ? d : []);
         }
         if (histRes.status === 'fulfilled') {
-          const d = histRes.value?.data || histRes.value;
+          const d = histRes.value;
           setHistory(Array.isArray(d) ? d : []);
         }
         if (actRes.status === 'fulfilled') {
-          const d = actRes.value?.data || actRes.value;
+          const d = actRes.value;
           setActivity(Array.isArray(d) ? d : []);
         }
       } catch (e: any) {
@@ -118,7 +118,7 @@ export function SettlementScreen() {
         setAccessToken(accessToken);
       }
       const res = await api.post<any>('/settlements/pay-now', { settlementId: settlement.id });
-      const data = res?.data || res;
+      const data = res;
       const upiLink = data.upiLink || data.data?.upiLink;
 
       if (!upiLink) {
@@ -200,7 +200,7 @@ export function SettlementScreen() {
   async function checkConfirmation(settlementId: string) {
     try {
       const res = await api.get<any>(`/settlements/confirmation/${settlementId}`);
-      const data = res?.data?.data || res?.data || res;
+      const data = res;
       return data;
     } catch {
       return null;

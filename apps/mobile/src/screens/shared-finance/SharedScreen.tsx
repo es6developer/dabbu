@@ -29,7 +29,6 @@ function moneyFormat(v: number | string | undefined | null): string {
 function listFromResponse(res: any): any[] {
   if (!res) return [];
   if (Array.isArray(res)) return res;
-  if (res.data) return Array.isArray(res.data) ? res.data : [];
   if (res.items) return Array.isArray(res.items) ? res.items : [];
   return [];
 }

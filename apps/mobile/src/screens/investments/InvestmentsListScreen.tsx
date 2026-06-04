@@ -19,7 +19,7 @@ export function InvestmentsListScreen() {
   async function loadInvestments() {
     try {
       const res = await api.get<any>('/accounts/investments');
-      setInvestments(Array.isArray(res.data) ? res.data : []);
+      setInvestments(Array.isArray(res) ? res : []);
     } catch (e) { /* ignore */ }
     finally { setLoading(false); }
   }
@@ -82,10 +82,12 @@ export function InvestmentsListScreen() {
         ListEmptyComponent={
           <View style={styles.empty}>
             <Text style={styles.emptyIcon}>📈</Text>
-            <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No investments</Text>
-            <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>Monitor your mutual funds and stocks</Text>
+            <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>Build your future</Text>
+            <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>Track your mutual funds, stocks, and investments in one place. Every great portfolio starts with a single step.</Text>
           </View>
         }
+        windowSize={10}
+        maxToRenderPerBatch={10}
       />
     </View>
   );

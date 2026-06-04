@@ -604,15 +604,24 @@ export function TransactionsListScreen() {
               <Ionicons name="wallet-outline" size={44} color={colors.accent.primary} />
             </View>
             <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
-              {search || selectedCategory ? 'No matching transactions' : 'No transactions yet'}
+              Track your spending
             </Text>
             <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
-              {search || selectedCategory
-                ? 'Try a different search or filter'
-                : 'Tap + to add your first transaction'}
+              Add your first expense to see where your money goes. Every transaction helps you understand your financial habits better.
             </Text>
+            {!search && !selectedCategory && (
+              <TouchableOpacity
+                style={[styles.emptyBtn, { backgroundColor: colors.accent.primary }]}
+                onPress={() => navigation.navigate('AddExpense')}
+              >
+                <Ionicons name="add" size={18} color="#FFF" />
+                <Text style={styles.emptyBtnText}>Add Transaction</Text>
+              </TouchableOpacity>
+            )}
           </View>
         }
+        windowSize={10}
+        maxToRenderPerBatch={10}
       />
 
     </View>
@@ -776,4 +785,13 @@ const styles = StyleSheet.create({
   },
   emptyTitle: { fontSize: 17, fontWeight: '600' },
   emptyDesc: { fontSize: 13, textAlign: 'center', paddingHorizontal: 40, lineHeight: 18 },
+  emptyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 14,
+  },
+  emptyBtnText: { color: '#FFF', fontSize: 15, fontWeight: '600' },
 });

@@ -1,4 +1,4 @@
-rootProject.name = 'Dabbu'
+rootProject.name = 'Dabbu - Family Finance'
 
 dependencyResolutionManagement {
   versionCatalogs {

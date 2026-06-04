@@ -40,7 +40,7 @@ export function TransactionDetailScreen() {
   async function loadTransaction() {
     try {
       const res = await api.get<any>(`/transactions/${transactionId}`);
-      setTxn(res?.data ?? res);
+      setTxn(res);
     } catch (e) {
       /* ignore */
     } finally {

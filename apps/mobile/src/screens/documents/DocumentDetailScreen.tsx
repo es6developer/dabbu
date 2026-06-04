@@ -69,7 +69,7 @@ export function DocumentDetailScreen() {
     try {
       if (accessToken) setAccessToken(accessToken);
       const res = await api.get<any>(`/documents/${id}`);
-      const doc = res?.data || res;
+      const doc = res;
       setDocument(doc);
       setName(doc.name || '');
       setCategory(doc.category || 'aadhaar');

@@ -47,7 +47,7 @@ export function NotificationsScreen() {
       else setLoading(true);
       if (accessToken) setAccessToken(accessToken);
       const res = await api.get<any>(`/notifications?limit=50`);
-      setNotifications(res?.data || res || []);
+      setNotifications(res || []);
     } catch (_e) {
       // silent
     } finally {
@@ -168,6 +168,8 @@ export function NotificationsScreen() {
             />
           }
           ListFooterComponent={<View style={{ height: insets.bottom + 40 }} />}
+          windowSize={10}
+          maxToRenderPerBatch={10}
         />
       )}
     </View>
