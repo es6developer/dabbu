@@ -2,26 +2,31 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Users, CreditCard,
-  DollarSign, Activity, ArrowUpRight, ArrowDownRight,
+  Users,
+  CreditCard,
+  DollarSign,
+  Activity,
+  ArrowUpRight,
+  ArrowDownRight,
 } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
-import { cn, formatCurrency, formatNumber } from '@/lib/utils';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
-
-function getAuthHeaders() {
-  const token = localStorage.getItem('admin_token');
-  return {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-}
+import { cn, formatNumber } from '@/lib/utils';
+import { getDashboardStats } from '@/lib/api';
 
 const StatCard = ({
-  title, value, change, icon: Icon, trend, subtitle,
+  title,
+  value,
+  change,
+  icon: Icon,
+  trend,
+  subtitle,
 }: {
-  title: string; value: string; change: string; icon: React.ElementType; trend: 'up' | 'down'; subtitle: string;
+  title: string;
+  value: string;
+  change: string;
+  icon: React.ElementType;
+  trend: 'up' | 'down';
+  subtitle: string;
 }) => (
   <div className="rounded-xl border bg-card p-6 hover:shadow-lg transition-shadow">
     <div className="flex items-start justify-between">
@@ -35,7 +40,12 @@ const StatCard = ({
             ) : (
               <ArrowDownRight size={14} className="text-red-500" />
             )}
-            <span className={cn('text-xs font-medium', trend === 'up' ? 'text-emerald-500' : 'text-red-500')}>
+            <span
+              className={cn(
+                'text-xs font-medium',
+                trend === 'up' ? 'text-emerald-500' : 'text-red-500',
+              )}
+            >
               {change}
             </span>
             <span className="text-xs text-muted-foreground ml-1">{subtitle}</span>
@@ -54,18 +64,19 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_URL}/admin/dashboard/stats`, { headers: getAuthHeaders() })
-      .then((r) => r.json())
+    getDashboardStats()
       .then((json) => setStats(json.data))
       .catch(() => setStats(null))
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -1,80 +1,180 @@
 'use client';
 
-import React from 'react';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, LineChart, Line,
-} from 'recharts';
-import { TrendingUp, Users, DollarSign, Activity } from 'lucide-react';
-import { cn, formatCurrency, formatNumber } from '@/lib/utils';
-
-const subscriptionRevenue = [
-  { month: 'Jan', free: 0, basic: 3200, premium: 8400, family: 3600 },
-  { month: 'Feb', free: 0, basic: 3800, premium: 9200, family: 4200 },
-  { month: 'Mar', free: 0, basic: 4100, premium: 10100, family: 4800 },
-  { month: 'Apr', free: 0, basic: 4500, premium: 11200, family: 5400 },
-  { month: 'May', free: 0, basic: 5200, premium: 12800, family: 6200 },
-  { month: 'Jun', free: 0, basic: 5800, premium: 14100, family: 7100 },
-  { month: 'Jul', free: 0, basic: 6100, premium: 15200, family: 7800 },
-  { month: 'Aug', free: 0, basic: 6500, premium: 16800, family: 8500 },
-  { month: 'Sep', free: 0, basic: 7200, premium: 18100, family: 9200 },
-  { month: 'Oct', free: 0, basic: 7800, premium: 19500, family: 9800 },
-  { month: 'Nov', free: 0, basic: 8200, premium: 20800, family: 10400 },
-  { month: 'Dec', free: 0, basic: 8500, premium: 22100, family: 11200 },
-];
-
-const planMetrics = [
-  { name: 'Free', users: 8500, revenue: 0, conversion: '18%', color: 'bg-gray-500' },
-  { name: 'Basic', users: 3200, revenue: 8500, conversion: '27%', color: 'bg-indigo-500' },
-  { name: 'Premium', users: 1800, revenue: 22100, conversion: '42%', color: 'bg-purple-500' },
-  { name: 'Family', users: 800, revenue: 11200, conversion: '35%', color: 'bg-violet-500' },
-];
+import React, { useState, useEffect } from 'react';
+import { CreditCard, Users, Calendar, Loader2 } from 'lucide-react';
+import { listSubscriptions } from '@/lib/api';
+import type { Subscription } from '@/lib/api';
 
 export default function SubscriptionsPage() {
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    loadData();
+  }, [page]);
+
+  async function loadData() {
+    setLoading(true);
+    try {
+      const res = await listSubscriptions(page, 20);
+      setSubscriptions(res.data);
+      setTotalPages(res.meta.totalPages);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function statusColor(status: string) {
+    switch (status) {
+      case 'active':
+        return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400';
+      case 'past_due':
+        return 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400';
+      case 'cancelled':
+      case 'canceled':
+        return 'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400';
+      case 'expired':
+        return 'bg-gray-100 text-gray-700 dark:bg-gray-500/10 dark:text-gray-400';
+      default:
+        return 'bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400';
+    }
+  }
+
+  const activeCount = subscriptions.filter((s) => s.status === 'active').length;
+  const totalRevenue = subscriptions
+    .filter((s) => s.status === 'active')
+    .reduce((sum, s) => sum + Number(s.plan.price), 0);
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Subscriptions</h1>
-        <p className="text-muted-foreground mt-1">Plan performance and subscriber metrics</p>
+        <h1 className="text-2xl font-bold text-foreground">Subscriptions</h1>
+        <p className="text-muted-foreground mt-1">All user subscriptions across plans</p>
       </div>
 
-      {/* Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {planMetrics.map((plan) => (
-          <div key={plan.name} className="rounded-xl border bg-card p-5">
-            <div className="flex items-center gap-3 mb-3">
-              <div className={cn('w-3 h-3 rounded-full', plan.color)} />
-              <span className="font-medium">{plan.name}</span>
-            </div>
-            <p className="text-2xl font-bold">{formatNumber(plan.users)}</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Revenue: {plan.revenue > 0 ? formatCurrency(plan.revenue) : 'N/A'}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Conversion: {plan.conversion}
-            </p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="rounded-xl border bg-card p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <CreditCard className="w-5 h-5 text-indigo-500" />
+            <span className="font-medium">Total</span>
           </div>
-        ))}
-      </div>
-
-      {/* Revenue by Plan */}
-      <div className="rounded-xl border bg-card p-6">
-        <h3 className="font-semibold mb-1">Revenue by Plan</h3>
-        <p className="text-sm text-muted-foreground mb-6">Monthly breakdown</p>
-        <div className="h-[350px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={subscriptionRevenue}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}K`} />
-              <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '12px' }} />
-              <Bar dataKey="basic" name="Basic" stackId="a" fill="#6366F1" radius={[2, 2, 0, 0]} />
-              <Bar dataKey="premium" name="Premium" stackId="a" fill="#8B5CF6" radius={[2, 2, 0, 0]} />
-              <Bar dataKey="family" name="Family" stackId="a" fill="#A78BFA" radius={[2, 2, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <p className="text-2xl font-bold">{subscriptions.length}</p>
+          <p className="text-sm text-muted-foreground mt-1">All subscriptions</p>
+        </div>
+        <div className="rounded-xl border bg-card p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <Users className="w-5 h-5 text-emerald-500" />
+            <span className="font-medium">Active</span>
+          </div>
+          <p className="text-2xl font-bold">{activeCount}</p>
+          <p className="text-sm text-muted-foreground mt-1">Active subscriptions</p>
+        </div>
+        <div className="rounded-xl border bg-card p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <Calendar className="w-5 h-5 text-amber-500" />
+            <span className="font-medium">Monthly Revenue</span>
+          </div>
+          <p className="text-2xl font-bold">₹{totalRevenue.toLocaleString('en-IN')}</p>
+          <p className="text-sm text-muted-foreground mt-1">From active plans</p>
         </div>
       </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        </div>
+      ) : error ? (
+        <div className="flex items-center justify-center h-64 text-destructive">
+          <p>{error}</p>
+        </div>
+      ) : (
+        <>
+          <div className="bg-card rounded-lg border border-border overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">User</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Plan</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">
+                      Status
+                    </th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Price</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">
+                      Period End
+                    </th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">
+                      Created
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {subscriptions.map((sub) => (
+                    <tr
+                      key={sub.id}
+                      className="border-b border-border/50 last:border-0 hover:bg-muted/50"
+                    >
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-foreground">
+                          {sub.user.firstName} {sub.user.lastName}
+                        </div>
+                        <div className="text-xs text-muted-foreground">{sub.user.email}</div>
+                      </td>
+                      <td className="px-4 py-3 text-foreground">{sub.plan.name}</td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusColor(sub.status)}`}
+                        >
+                          {sub.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-foreground">
+                        ₹{Number(sub.plan.price).toLocaleString('en-IN')}/{sub.plan.interval}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {new Date(sub.currentPeriodEnd).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {new Date(sub.createdAt).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {subscriptions.length === 0 && (
+              <div className="text-center py-12 text-muted-foreground">No subscriptions found</div>
+            )}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex justify-center gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                className="px-3 py-1.5 rounded-lg bg-secondary text-foreground text-sm disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <span className="px-3 py-1.5 text-sm text-muted-foreground">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className="px-3 py-1.5 rounded-lg bg-secondary text-foreground text-sm disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

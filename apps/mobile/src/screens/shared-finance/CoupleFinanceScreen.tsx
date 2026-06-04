@@ -42,11 +42,16 @@ export function CoupleFinanceScreen() {
 
   const loadData = useCallback(
     async (refresh = false) => {
-      if (refresh) {setRefreshing(true);}
-      else {setLoading(true);}
+      if (refresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
       setError(null);
       try {
-        if (accessToken) {setAccessToken(accessToken);}
+        if (accessToken) {
+          setAccessToken(accessToken);
+        }
         if (groupId) {
           const res = await api.get<any>(`/shared-finance/groups/${groupId}/couple/dashboard`);
           setData(res);
@@ -78,8 +83,12 @@ export function CoupleFinanceScreen() {
     }
     setSendingInvite(true);
     try {
-      if (accessToken) {setAccessToken(accessToken);}
-      await api.post(`/shared-finance/groups/${groupId}/members`, { email: partnerEmail.trim() });
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      await api.post(`/shared-finance/groups/${groupId}/members/add-by-email`, {
+        email: partnerEmail.trim(),
+      });
       Alert.alert('Partner Added', `${partnerEmail.trim()} has been added to this group`);
       setPartnerEmail('');
       loadData(true);
@@ -142,9 +151,7 @@ export function CoupleFinanceScreen() {
 
         <View style={[s.inviteCard, { backgroundColor: colors.bg.secondary }]}>
           <Ionicons name="person-add-outline" size={24} color={colors.accent.primary} />
-          <Text style={[s.inviteTitle, { color: colors.text.primary }]}>
-            Add your Partner
-          </Text>
+          <Text style={[s.inviteTitle, { color: colors.text.primary }]}>Add your Partner</Text>
           <Text style={[s.inviteDesc, { color: colors.text.tertiary }]}>
             Enter your partner's email to add them to this space immediately
           </Text>
@@ -229,7 +236,6 @@ export function CoupleFinanceScreen() {
         </View>
         <Text style={s.heroRatio}>{ratio}</Text>
         <Text style={s.heroRatioLabel}>Contribution Ratio</Text>
-
       </LinearGradient>
 
       {insights.length > 0 && (
@@ -267,9 +273,7 @@ export function CoupleFinanceScreen() {
             <Ionicons name="cash-outline" size={18} color={colors.accent.primary} />
             <Text style={[s.widgetTitle, { color: colors.text.primary }]}>Our Spending</Text>
           </View>
-          <Text style={[s.widgetAmount, { color: colors.text.primary }]}>
-            {fmt(monthlySpent)}
-          </Text>
+          <Text style={[s.widgetAmount, { color: colors.text.primary }]}>{fmt(monthlySpent)}</Text>
           <Text style={[s.widgetLabel, { color: colors.text.tertiary }]}>this month</Text>
           {monthlyOverview?.lastMonthTotal > 0 && (
             <View style={s.widgetTrend}>
@@ -297,7 +301,9 @@ export function CoupleFinanceScreen() {
             <Ionicons name="wallet-outline" size={18} color={colors.accent.primary} />
             <Text style={[s.widgetTitle, { color: colors.text.primary }]}>Our Savings</Text>
           </View>
-          <Text style={[s.widgetAmount, { color: colors.status.success }]}>{fmt(savingsSaved)}</Text>
+          <Text style={[s.widgetAmount, { color: colors.status.success }]}>
+            {fmt(savingsSaved)}
+          </Text>
           {savingsGoal > 0 ? (
             <>
               <View style={[s.progressBarOuter, { backgroundColor: colors.bg.tertiary }]}>
@@ -332,21 +338,18 @@ export function CoupleFinanceScreen() {
                 <Ionicons name="receipt-outline" size={18} color={colors.status.warning} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[s.billName, { color: colors.text.primary }]}>
-                  {bill.type} bill
-                </Text>
+                <Text style={[s.billName, { color: colors.text.primary }]}>{bill.type} bill</Text>
                 {bill.dueDate && (
                   <Text style={[s.billDue, { color: colors.text.tertiary }]}>
-                    Due {new Date(bill.dueDate).toLocaleDateString('en-IN', {
+                    Due{' '}
+                    {new Date(bill.dueDate).toLocaleDateString('en-IN', {
                       day: 'numeric',
                       month: 'short',
                     })}
                   </Text>
                 )}
               </View>
-              <Text style={[s.billAmount, { color: colors.text.primary }]}>
-                {fmt(bill.amount)}
-              </Text>
+              <Text style={[s.billAmount, { color: colors.text.primary }]}>{fmt(bill.amount)}</Text>
             </View>
           ))}
         </View>

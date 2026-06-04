@@ -7,15 +7,12 @@ let onSessionExpiredFn: (() => void) | null = null;
 export function setAccessToken(token: string | null) {
   accessToken = token;
 }
-
 export function getAccessToken(): string | null {
   return accessToken;
 }
-
 export function setRefreshTokenHandler(fn: () => Promise<boolean>) {
   refreshTokenFn = fn;
 }
-
 export function setOnSessionExpiredHandler(fn: () => void) {
   onSessionExpiredFn = fn;
 }
@@ -37,27 +34,42 @@ function warmupBackend(): void {
 
 const REQUEST_TIMEOUT = 15_000;
 
+const CACHE_TTL: Record<string, number> = {
+  '/accounts': 120_000,
+  '/transactions': 30_000,
+  '/expense-groups': 60_000,
+  '/categories': 120_000,
+  '/bills': 60_000,
+  '/notifications': 30_000,
+  '/preferences': 300_000,
+  '/reminders': 60_000,
+  '/goals': 60_000,
+  '/shared-finance': 60_000,
+  '/premium': 120_000,
+  '/gamification': 300_000,
+  '/settlements': 30_000,
+  '/features': 300_000,
+  '/user': 120_000,
+};
+
 interface CacheEntry {
   data: any;
   createdAt: number;
+  ttl: number;
 }
-
 const cache = new Map<string, CacheEntry>();
-const CACHEABLE_PREFIXES = [
-  '/transactions',
-  '/expense-groups',
-  '/categories',
-  '/bills',
-  '/notifications',
-  '/preferences',
-];
 
 function cacheKey(method: string, path: string): string {
   return `${method}:${path}`;
 }
 
-function shouldCacheGet(path: string): boolean {
-  return CACHEABLE_PREFIXES.some((prefix) => path.startsWith(prefix));
+function ttlForPath(path: string): number {
+  for (const [prefix, ttl] of Object.entries(CACHE_TTL)) {
+    if (path.startsWith(prefix)) {
+      return ttl;
+    }
+  }
+  return 0;
 }
 
 function getCached<T>(key: string): T | null {
@@ -65,30 +77,29 @@ function getCached<T>(key: string): T | null {
   if (!entry) {
     return null;
   }
+  if (Date.now() - entry.createdAt > entry.ttl) {
+    cache.delete(key);
+    return null;
+  }
   return entry.data as T;
 }
 
-function setCached(key: string, data: any): void {
-  if (cache.size > 50) {
+function setCached(key: string, data: any, ttl: number): void {
+  if (cache.size > 100) {
     const firstKey = cache.keys().next().value;
     if (firstKey) {
       cache.delete(firstKey);
     }
   }
-  cache.set(key, { data, createdAt: Date.now() });
+  cache.set(key, { data, createdAt: Date.now(), ttl });
 }
 
 function invalidateCacheForMutation(path: string): void {
-  if (
-    path.startsWith('/transactions') ||
-    path.startsWith('/expense-groups') ||
-    path.startsWith('/categories') ||
-    path.startsWith('/bills') ||
-    path.startsWith('/devices') ||
-    path.startsWith('/preferences') ||
-    path.startsWith('/notifications')
-  ) {
-    cache.clear();
+  for (const prefix of Object.keys(CACHE_TTL)) {
+    if (path.startsWith(prefix)) {
+      cache.clear();
+      return;
+    }
   }
 }
 
@@ -127,8 +138,8 @@ async function request<T>(
   customTimeout?: number,
 ): Promise<T> {
   const key = cacheKey(options.method || 'GET', path);
-
-  const canCache = (!options.method || options.method === 'GET') && shouldCacheGet(path);
+  const ttl = ttlForPath(path);
+  const canCache = ttl > 0 && (!options.method || options.method === 'GET');
 
   if (canCache) {
     const cached = getCached<T>(key);
@@ -142,14 +153,10 @@ async function request<T>(
     typeof FormData !== 'undefined' &&
     (options as any).body instanceof FormData;
 
-  const headers: Record<string, string> = {
-    ...(options.headers as Record<string, string>),
-  };
-
+  const headers: Record<string, string> = { ...(options.headers as Record<string, string>) };
   if (!isFormData) {
     headers['Content-Type'] = 'application/json';
   }
-
   if (accessToken) {
     headers['Authorization'] = `Bearer ${accessToken}`;
   }
@@ -178,9 +185,7 @@ async function request<T>(
           });
           const retryData = retryBody?.data ?? retryBody;
           if (canCache) {
-            setCached(key, retryData);
-          } else if (options.method && options.method !== 'GET') {
-            invalidateCacheForMutation(path);
+            setCached(key, retryData, ttl);
           }
           return retryData as T;
         }
@@ -202,7 +207,7 @@ async function request<T>(
     const data = body?.data ?? body;
 
     if (canCache) {
-      setCached(key, data);
+      setCached(key, data, ttl);
     } else if (options.method && options.method !== 'GET') {
       invalidateCacheForMutation(path);
     }
@@ -244,6 +249,6 @@ export const api = {
     request<T>(path, { method: 'DELETE', ...(signal ? { signal } : {}) }, timeout),
 };
 
-function clearCache() {
+export function clearCache() {
   cache.clear();
 }

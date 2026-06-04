@@ -18,7 +18,6 @@ import { useTheme } from '../../theme';
 import { PageContainer } from '../../components/ui/PageContainer';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 
-
 const GROUP_TYPES = [
   'Friends',
   'Trip',
@@ -90,7 +89,11 @@ export function CreateSharedGroupScreen() {
       const res = await api.post<any>('/shared-finance/groups', payload);
       const newGroupId = res?.id || res?._id;
       if (type === 'Couple' && partnerEmail.trim() && newGroupId) {
-        await api.post(`/shared-finance/groups/${newGroupId}/members`, { email: partnerEmail.trim() }).catch(() => {});
+        await api
+          .post(`/shared-finance/groups/${newGroupId}/members/add-by-email`, {
+            email: partnerEmail.trim(),
+          })
+          .catch(() => {});
       }
       if (newGroupId) {
         navigation.replace('SharedGroupDetail', {

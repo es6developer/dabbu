@@ -1,24 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import {
-  Search, MoreHorizontal, ChevronLeft, ChevronRight, Loader2,
-} from 'lucide-react';
+import { Search, MoreHorizontal, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn, formatDate, timeAgo } from '@/lib/utils';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
-
-function getAuthHeaders() {
-  const token = localStorage.getItem('admin_token');
-  return {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-}
+import { cn, formatDate } from '@/lib/utils';
+import { listUsers, updateUserStatus, deleteUser } from '@/lib/api';
+import type { User } from '@/lib/api';
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -32,16 +22,34 @@ export default function UsersPage() {
   async function loadUsers() {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ page: String(page), limit: String(perPage) });
-      if (search) params.set('search', search);
-      const res = await fetch(`${API_URL}/admin/users?${params}`, { headers: getAuthHeaders() });
-      const json = await res.json();
-      setUsers(json.data?.data ?? []);
-      setTotal(json.data?.meta?.total ?? 0);
+      const res = await listUsers({ search: search || undefined, page, limit: perPage });
+      setUsers(res.data);
+      setTotal(res.meta.total);
     } catch {
       setUsers([]);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function toggleUserStatus(user: User) {
+    try {
+      await updateUserStatus(user.id, !user.isActive);
+      await loadUsers();
+    } catch (e: any) {
+      alert(e.message);
+    }
+  }
+
+  async function handleDelete(user: User) {
+    if (!confirm(`Delete user ${user.email}? This action cannot be undone.`)) {
+      return;
+    }
+    try {
+      await deleteUser(user.id);
+      await loadUsers();
+    } catch (e: any) {
+      alert(e.message);
     }
   }
 
@@ -57,12 +65,18 @@ export default function UsersPage() {
       </div>
 
       <div className="relative max-w-sm">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+        <Search
+          size={16}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+        />
         <input
           type="text"
           placeholder="Search users..."
           value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
           className="w-full h-9 pl-9 pr-4 rounded-lg border bg-background text-sm outline-none focus:ring-1 focus:ring-ring"
         />
       </div>
@@ -78,37 +92,72 @@ export default function UsersPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b bg-muted/50">
-                    <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">User</th>
-                    <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Status</th>
-                    <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Joined</th>
-                    <th className="w-10 px-4 py-3" />
+                    <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">
+                      User
+                    </th>
+                    <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">
+                      Plan
+                    </th>
+                    <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">
+                      Status
+                    </th>
+                    <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">
+                      Joined
+                    </th>
+                    <th className="w-24 px-4 py-3">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((user: any) => (
-                    <tr key={user.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                  {users.map((user: User) => (
+                    <tr
+                      key={user.id}
+                      className="border-b last:border-0 hover:bg-muted/30 transition-colors"
+                    >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-dabbu-500/10 flex items-center justify-center text-xs font-medium text-dabbu-500">
                             {(user.firstName?.[0] || '') + (user.lastName?.[0] || '')}
                           </div>
                           <div>
-                            <p className="text-sm font-medium">{user.firstName} {user.lastName}</p>
+                            <p className="text-sm font-medium">
+                              {user.firstName} {user.lastName}
+                            </p>
                             <p className="text-xs text-muted-foreground">{user.email}</p>
                           </div>
                         </div>
                       </td>
+                      <td className="px-4 py-3 text-sm text-muted-foreground">
+                        {user.subscription?.plan?.name || 'None'}
+                      </td>
                       <td className="px-4 py-3">
-                        <span className={cn(
-                          'text-xs px-2 py-0.5 rounded-full font-medium',
-                          user.isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-gray-500/10 text-gray-400',
-                        )}>
+                        <span
+                          className={cn(
+                            'text-xs px-2 py-0.5 rounded-full font-medium',
+                            user.isActive
+                              ? 'bg-emerald-500/10 text-emerald-500'
+                              : 'bg-gray-500/10 text-gray-400',
+                          )}
+                        >
                           {user.isActive ? 'active' : 'inactive'}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-muted-foreground">{formatDate(user.createdAt)}</td>
+                      <td className="px-4 py-3 text-sm text-muted-foreground">
+                        {formatDate(user.createdAt)}
+                      </td>
                       <td className="px-4 py-3">
-                        <Button variant="ghost" size="icon"><MoreHorizontal size={14} /></Button>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="sm" onClick={() => toggleUserStatus(user)}>
+                            {user.isActive ? 'Deactivate' : 'Activate'}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(user)}
+                            className="text-red-400 hover:text-red-300"
+                          >
+                            Delete
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -117,12 +166,24 @@ export default function UsersPage() {
             </div>
 
             <div className="flex items-center justify-between px-4 py-3 border-t">
-              <p className="text-sm text-muted-foreground">Page {page} of {totalPages || 1}</p>
+              <p className="text-sm text-muted-foreground">
+                Page {page} of {totalPages || 1}
+              </p>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page <= 1}
+                  onClick={() => setPage(page - 1)}
+                >
                   <ChevronLeft size={14} />
                 </Button>
-                <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page >= totalPages}
+                  onClick={() => setPage(page + 1)}
+                >
                   <ChevronRight size={14} />
                 </Button>
               </div>

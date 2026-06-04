@@ -5,9 +5,19 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
-  LayoutDashboard, Users, CreditCard, TrendingUp,
-  TrendingDown, Settings, Flag, LifeBuoy,
-  Send, LogOut, ChevronLeft, BarChart3, Package,
+  LayoutDashboard,
+  Users,
+  CreditCard,
+  TrendingUp,
+  TrendingDown,
+  Settings,
+  Flag,
+  LifeBuoy,
+  Send,
+  LogOut,
+  ChevronLeft,
+  BarChart3,
+  Package,
 } from 'lucide-react';
 
 interface NavItem {
@@ -20,6 +30,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: <LayoutDashboard size={18} /> },
   { label: 'Users', href: '/users', icon: <Users size={18} /> },
+  { label: 'Families', href: '/families', icon: <Users size={18} /> },
   { label: 'Subscriptions', href: '/subscriptions', icon: <CreditCard size={18} /> },
   { label: 'Plans', href: '/plans', icon: <Package size={18} /> },
   { label: 'Revenue', href: '/revenue', icon: <BarChart3 size={18} /> },
@@ -93,10 +104,16 @@ export function Sidebar() {
           onClick={() => setCollapsed(!collapsed)}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-muted transition-colors"
         >
-          <ChevronLeft size={18} className={cn('transition-transform', collapsed && 'rotate-180')} />
+          <ChevronLeft
+            size={18}
+            className={cn('transition-transform', collapsed && 'rotate-180')}
+          />
           {!collapsed && <span>Collapse</span>}
         </button>
-        <button onClick={handleSignOut} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-400 hover:bg-red-500/10 transition-colors mt-1">
+        <button
+          onClick={handleSignOut}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-400 hover:bg-red-500/10 transition-colors mt-1"
+        >
           <LogOut size={18} />
           {!collapsed && <span>Sign Out</span>}
         </button>

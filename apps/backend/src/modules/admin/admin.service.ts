@@ -18,6 +18,9 @@ import {
   UpdateUserStatusDto,
   BroadcastNotificationDto,
   ListAuditLogsQueryDto,
+  CreatePlanDto,
+  UpdatePlanDto,
+  CreateFeatureFlagDto,
 } from './dto';
 
 @Injectable()
@@ -423,6 +426,173 @@ export class AdminService {
     };
   }
 
+  async listPlans() {
+    return this.prisma.subscriptionPlan.findMany({
+      orderBy: { sortOrder: 'asc' },
+    });
+  }
+
+  async getPlan(id: string) {
+    const plan = await this.prisma.subscriptionPlan.findUnique({ where: { id } });
+    if (!plan) {
+      throw new NotFoundException('Plan not found');
+    }
+    return plan;
+  }
+
+  async createPlan(dto: CreatePlanDto, adminId: string) {
+    const code = dto.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_|_$/g, '');
+    const plan = await this.prisma.subscriptionPlan.create({
+      data: {
+        name: dto.name,
+        code,
+        description: dto.description,
+        price: dto.price,
+        currency: dto.currency || 'INR',
+        interval: dto.interval || 'monthly',
+        features: dto.features || {},
+        isActive: dto.isActive ?? true,
+        sortOrder: dto.sortOrder ?? 0,
+      },
+    });
+
+    await this.createAuditLog({
+      adminId,
+      action: 'created',
+      entity: 'plan',
+      entityId: plan.id,
+      description: `Created plan: ${plan.name} (₹${dto.price})`,
+      ipAddress: null,
+    });
+
+    return plan;
+  }
+
+  async updatePlan(id: string, dto: UpdatePlanDto, adminId: string) {
+    const existing = await this.prisma.subscriptionPlan.findUnique({ where: { id } });
+    if (!existing) {
+      throw new NotFoundException('Plan not found');
+    }
+
+    const plan = await this.prisma.subscriptionPlan.update({
+      where: { id },
+      data: {
+        ...(dto.name !== undefined && { name: dto.name }),
+        ...(dto.description !== undefined && { description: dto.description }),
+        ...(dto.price !== undefined && { price: dto.price }),
+        ...(dto.currency !== undefined && { currency: dto.currency }),
+        ...(dto.interval !== undefined && { interval: dto.interval }),
+        ...(dto.features !== undefined && { features: dto.features }),
+        ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+        ...(dto.sortOrder !== undefined && { sortOrder: dto.sortOrder }),
+      },
+    });
+
+    await this.createAuditLog({
+      adminId,
+      action: 'updated',
+      entity: 'plan',
+      entityId: id,
+      description: `Updated plan: ${plan.name}`,
+      ipAddress: null,
+    });
+
+    return plan;
+  }
+
+  async deletePlan(id: string, adminId: string) {
+    const plan = await this.prisma.subscriptionPlan.findUnique({ where: { id } });
+    if (!plan) {
+      throw new NotFoundException('Plan not found');
+    }
+
+    await this.prisma.subscriptionPlan.delete({ where: { id } });
+
+    await this.createAuditLog({
+      adminId,
+      action: 'deleted',
+      entity: 'plan',
+      entityId: id,
+      description: `Deleted plan: ${plan.name}`,
+      ipAddress: null,
+    });
+
+    return { message: 'Plan deleted successfully' };
+  }
+
+  async listFeatureFlags() {
+    return this.prisma.featureFlag.findMany({
+      orderBy: { name: 'asc' },
+    });
+  }
+
+  async toggleFeatureFlag(id: string, isEnabled: boolean, adminId: string) {
+    const flag = await this.prisma.featureFlag.findUnique({ where: { id } });
+    if (!flag) {
+      throw new NotFoundException('Feature flag not found');
+    }
+
+    const updated = await this.prisma.featureFlag.update({
+      where: { id },
+      data: { isEnabled },
+    });
+
+    await this.createAuditLog({
+      adminId,
+      action: 'updated',
+      entity: 'feature_flag',
+      entityId: id,
+      description: `${isEnabled ? 'Enabled' : 'Disabled'} feature flag: ${flag.name}`,
+      ipAddress: null,
+    });
+
+    return updated;
+  }
+
+  async createFeatureFlag(dto: CreateFeatureFlagDto, adminId: string) {
+    const flag = await this.prisma.featureFlag.create({
+      data: {
+        name: dto.name,
+        description: dto.description,
+        isEnabled: dto.isEnabled ?? false,
+      },
+    });
+
+    await this.createAuditLog({
+      adminId,
+      action: 'created',
+      entity: 'feature_flag',
+      entityId: flag.id,
+      description: `Created feature flag: ${flag.name}`,
+      ipAddress: null,
+    });
+
+    return flag;
+  }
+
+  async listSubscriptions(page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
+    const [subscriptions, total] = await Promise.all([
+      this.prisma.subscription.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: { select: { id: true, email: true, firstName: true, lastName: true } },
+          plan: { select: { id: true, name: true, price: true, interval: true } },
+        },
+      }),
+      this.prisma.subscription.count(),
+    ]);
+    return {
+      data: subscriptions,
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
   async broadcastNotification(dto: BroadcastNotificationDto, adminId: string) {
     const users = await this.prisma.user.findMany({
       where: { isActive: true, deletedAt: null },
@@ -462,6 +632,37 @@ export class AdminService {
       sentCount,
       failedCount: users.length - sentCount,
     };
+  }
+
+  async getConfig() {
+    let config = await this.prisma.appConfiguration.findFirst();
+    if (!config) {
+      config = await this.prisma.appConfiguration.create({ data: {} });
+    }
+    return config;
+  }
+
+  async updateConfig(dto: Record<string, any>, adminId: string) {
+    let config = await this.prisma.appConfiguration.findFirst();
+    if (!config) {
+      config = await this.prisma.appConfiguration.create({ data: {} });
+    }
+
+    const updated = await this.prisma.appConfiguration.update({
+      where: { id: config.id },
+      data: dto,
+    });
+
+    await this.createAuditLog({
+      adminId,
+      action: 'updated',
+      entity: 'app_configuration',
+      entityId: config.id,
+      description: 'Updated app configuration',
+      ipAddress: null,
+    });
+
+    return updated;
   }
 
   private async createAuditLog(data: {

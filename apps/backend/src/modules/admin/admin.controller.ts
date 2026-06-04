@@ -22,6 +22,9 @@ import {
   UpdateUserStatusDto,
   BroadcastNotificationDto,
   ListAuditLogsQueryDto,
+  CreatePlanDto,
+  UpdatePlanDto,
+  CreateFeatureFlagDto,
 } from './dto';
 
 @ApiTags('Admin')
@@ -147,5 +150,133 @@ export class AdminController {
   ) {
     const result = await this.adminService.broadcastNotification(dto, adminId);
     return { data: result };
+  }
+
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @Get('configuration')
+  @ApiOperation({ summary: 'Get app configuration' })
+  async getConfig() {
+    const config = await this.adminService.getConfig();
+    return { data: config };
+  }
+
+  @UseGuards(AdminGuard)
+  @Roles('super_admin', 'admin')
+  @ApiBearerAuth()
+  @Patch('configuration')
+  @ApiOperation({ summary: 'Update app configuration' })
+  async updateConfig(@Body() dto: Record<string, any>, @CurrentAdmin('id') adminId: string) {
+    const config = await this.adminService.updateConfig(dto, adminId);
+    return { data: config };
+  }
+
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @Get('plans')
+  @ApiOperation({ summary: 'List all subscription plans' })
+  async listPlans() {
+    const plans = await this.adminService.listPlans();
+    return { data: plans };
+  }
+
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @Get('plans/:id')
+  @ApiOperation({ summary: 'Get a subscription plan' })
+  async getPlan(@Param('id') id: string) {
+    const plan = await this.adminService.getPlan(id);
+    return { data: plan };
+  }
+
+  @UseGuards(AdminGuard)
+  @Roles('super_admin', 'admin')
+  @ApiBearerAuth()
+  @Post('plans')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Create a subscription plan' })
+  async createPlan(@Body() dto: CreatePlanDto, @CurrentAdmin('id') adminId: string) {
+    const plan = await this.adminService.createPlan(dto, adminId);
+    return { data: plan };
+  }
+
+  @UseGuards(AdminGuard)
+  @Roles('super_admin', 'admin')
+  @ApiBearerAuth()
+  @Patch('plans/:id')
+  @ApiOperation({ summary: 'Update a subscription plan' })
+  async updatePlan(
+    @Param('id') id: string,
+    @Body() dto: UpdatePlanDto,
+    @CurrentAdmin('id') adminId: string,
+  ) {
+    const plan = await this.adminService.updatePlan(id, dto, adminId);
+    return { data: plan };
+  }
+
+  @UseGuards(AdminGuard)
+  @Roles('super_admin')
+  @ApiBearerAuth()
+  @Delete('plans/:id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete a subscription plan' })
+  async deletePlan(@Param('id') id: string, @CurrentAdmin('id') adminId: string) {
+    const result = await this.adminService.deletePlan(id, adminId);
+    return { data: result };
+  }
+
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @Get('feature-flags')
+  @ApiOperation({ summary: 'List all feature flags' })
+  async listFeatureFlags() {
+    const flags = await this.adminService.listFeatureFlags();
+    return { data: flags };
+  }
+
+  @UseGuards(AdminGuard)
+  @Roles('super_admin', 'admin')
+  @ApiBearerAuth()
+  @Post('feature-flags')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Create a feature flag' })
+  async createFeatureFlag(@Body() dto: CreateFeatureFlagDto, @CurrentAdmin('id') adminId: string) {
+    const flag = await this.adminService.createFeatureFlag(dto, adminId);
+    return { data: flag };
+  }
+
+  @UseGuards(AdminGuard)
+  @Roles('super_admin', 'admin')
+  @ApiBearerAuth()
+  @Patch('feature-flags/:id')
+  @ApiOperation({ summary: 'Toggle a feature flag' })
+  async toggleFeatureFlag(
+    @Param('id') id: string,
+    @Body() dto: { isEnabled: boolean },
+    @CurrentAdmin('id') adminId: string,
+  ) {
+    const flag = await this.adminService.toggleFeatureFlag(id, dto.isEnabled, adminId);
+    return { data: flag };
+  }
+
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @Get('subscriptions')
+  @ApiOperation({ summary: 'List all subscriptions' })
+  async listSubscriptions(@Query('page') page?: number, @Query('limit') limit?: number) {
+    const result = await this.adminService.listSubscriptions(page, limit);
+    return result;
+  }
+
+  @Get('maintenance')
+  @ApiOperation({ summary: 'Public maintenance mode status check' })
+  async getMaintenanceStatus() {
+    const config = await this.adminService.getConfig();
+    return {
+      data: {
+        maintenanceMode: config.maintenanceMode,
+        maintenanceMessage: config.maintenanceMessage,
+      },
+    };
   }
 }
