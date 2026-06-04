@@ -335,6 +335,38 @@ export class SharedFinanceService {
       .sendGroupInviteEmail(user.email, memberName, group?.name || 'a group', inviterName)
       .catch(() => {});
 
+    // Auto-create CoupleFinanceProfile when 2nd member joins a couple group
+    const groupInfo = await this.prisma.sharedGroup.findUnique({
+      where: { id: groupId },
+      select: { type: true },
+    });
+    if (groupInfo?.type === 'couple') {
+      const memberCount = await this.prisma.sharedGroupMember.count({
+        where: { groupId, isActive: true },
+      });
+      if (memberCount >= 2) {
+        const existingProfile = await this.prisma.coupleFinanceProfile.findUnique({
+          where: { groupId },
+        });
+        if (!existingProfile) {
+          const members = await this.prisma.sharedGroupMember.findMany({
+            where: { groupId, isActive: true },
+            select: { userId: true },
+            orderBy: { createdAt: 'asc' },
+          });
+          await this.prisma.coupleFinanceProfile.create({
+            data: {
+              groupId,
+              partner1Id: members[0].userId,
+              partner2Id: members[1].userId,
+              splitRatio: '50:50',
+              contributionType: 'equal',
+            },
+          });
+        }
+      }
+    }
+
     return member;
   }
 

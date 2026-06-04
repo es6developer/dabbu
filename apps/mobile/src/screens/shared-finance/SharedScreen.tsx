@@ -16,6 +16,7 @@ import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { SkeletonCard } from '../../components/ui/AnimatedSkeleton';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -117,7 +118,7 @@ export function SharedScreen() {
         {loading ? (
           <View style={{ paddingHorizontal: 16, gap: 12, marginTop: 8 }}>
             {[1, 2, 3].map((i) => (
-              <View key={i} style={[styles.skeletonCard, { backgroundColor: colors.skeleton.base, height: i === 1 ? 160 : 100 }]} />
+              <SkeletonCard key={i} style={{ height: i === 1 ? 160 : 100 }} />
             ))}
           </View>
         ) : groups.length === 0 && expenseGroups.length === 0 ? (

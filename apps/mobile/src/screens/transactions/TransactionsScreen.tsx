@@ -16,6 +16,8 @@ import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { LoadingScreen } from '../../components/ui/LoadingScreen';
+import { SkeletonCard } from '../../components/ui/AnimatedSkeleton';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -206,9 +208,11 @@ export function TransactionsScreen() {
 
       {/* List */}
       {loading ? (
-        <View style={styles.centerState}>
+        <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
           {[1, 2, 3, 4, 5].map((i) => (
-            <View key={i} style={[styles.skeletonRow, { backgroundColor: colors.skeleton.base }]} />
+            <View key={i} style={{ marginBottom: 8 }}>
+              <SkeletonCard />
+            </View>
           ))}
         </View>
       ) : filtered.length === 0 ? (
@@ -301,5 +305,5 @@ const styles = StyleSheet.create({
   },
   addBtnText: { color: '#FFF', fontSize: 14, fontWeight: '600' },
 
-  skeletonRow: { height: 60, borderRadius: 16, marginBottom: 8, marginHorizontal: 16 },
+
 });

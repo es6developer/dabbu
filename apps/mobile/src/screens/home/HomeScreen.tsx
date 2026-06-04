@@ -19,6 +19,7 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { QuickActionSheet } from '../../components/ui/QuickActionSheet';
+import { LoadingScreen, DashboardSkeleton } from '../../components/ui/LoadingScreen';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -301,26 +302,7 @@ export function HomeScreen() {
   ];
 
   if (loading) {
-    return (
-      <View style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
-        <ScrollView contentContainerStyle={{ paddingTop: insets.top + 16, paddingHorizontal: 20 }}>
-          <View style={{ gap: 12, marginTop: 60 }}>
-            {[1, 2, 3, 4].map((i) => (
-              <View
-                key={i}
-                style={[
-                  styles.skeletonBlock,
-                  {
-                    backgroundColor: colors.skeleton.base,
-                    height: i === 1 ? 200 : i === 2 ? 120 : 80,
-                  },
-                ]}
-              />
-            ))}
-          </View>
-        </ScrollView>
-      </View>
-    );
+    return <LoadingScreen skeleton={<DashboardSkeleton />} />;
   }
 
   return (
@@ -900,7 +882,6 @@ export function HomeScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  skeletonBlock: { borderRadius: 16, marginBottom: 4 },
 
   // Welcome Header
   headerTop: {
