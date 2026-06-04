@@ -121,7 +121,7 @@ export function CelebrationOverlay({
     });
   };
 
-  if (!visible) return null;
+  if (!visible) {return null;}
 
   return (
     <TouchableWithoutFeedback onPress={handleDismiss}>

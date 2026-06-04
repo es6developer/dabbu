@@ -205,8 +205,8 @@ export function TransactionsListScreen() {
       list = list.filter((t) => t.expenseGroupId === selectedGroupId);
     }
     list.sort((a, b) => {
-      if (sortBy === 'highest') return Number(b.amount || 0) - Number(a.amount || 0);
-      if (sortBy === 'lowest') return Number(a.amount || 0) - Number(b.amount || 0);
+      if (sortBy === 'highest') {return Number(b.amount || 0) - Number(a.amount || 0);}
+      if (sortBy === 'lowest') {return Number(a.amount || 0) - Number(b.amount || 0);}
       const ad = new Date(a.date || a.createdAt).getTime();
       const bd = new Date(b.date || b.createdAt).getTime();
       return sortBy === 'oldest' ? ad - bd : bd - ad;

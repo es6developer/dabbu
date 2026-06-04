@@ -1,9 +1,8 @@
-import { Platform, NativeModules, Linking, Alert } from 'react-native';
+import { Platform, NativeModules, Linking, Alert, PermissionsAndroid } from 'react-native';
 import type { SmsMessage } from './sms-parser';
 
 function getReadSmsPermission() {
   try {
-    const { PermissionsAndroid } = require('react-native');
     return PermissionsAndroid.PERMISSIONS.READ_SMS;
   } catch (_e) {
     return null;
@@ -22,7 +21,7 @@ interface SmsNativeModule {
 
 function getSmsModule(): SmsNativeModule | null {
   const mod = NativeModules.Sms as SmsNativeModule | undefined;
-  if (!mod || typeof mod.list !== 'function') return null;
+  if (!mod || typeof mod.list !== 'function') {return null;}
   return mod;
 }
 
@@ -31,7 +30,7 @@ export function isSmsModuleAvailable(): boolean {
 }
 
 export function getAndroidApiLevel(): number {
-  if (Platform.OS !== 'android') return 0;
+  if (Platform.OS !== 'android') {return 0;}
   return Platform.Version as number;
 }
 
@@ -46,15 +45,14 @@ export function isPermissionBlockedByOs(): boolean {
 }
 
 export async function checkSmsPermission(): Promise<SmsPermissionStatus> {
-  if (Platform.OS === 'web') return 'unavailable';
-  if (Platform.OS !== 'android') return 'unavailable';
+  if (Platform.OS === 'web') {return 'unavailable';}
+  if (Platform.OS !== 'android') {return 'unavailable';}
 
-  if (!isSmsModuleAvailable()) return 'unavailable';
+  if (!isSmsModuleAvailable()) {return 'unavailable';}
 
   try {
-    const { PermissionsAndroid } = require('react-native');
     const granted = await PermissionsAndroid.check(getReadSmsPermission());
-    if (granted) return 'granted';
+    if (granted) {return 'granted';}
 
     return 'denied';
   } catch (_e) {
@@ -63,11 +61,10 @@ export async function checkSmsPermission(): Promise<SmsPermissionStatus> {
 }
 
 export async function requestSmsPermission(): Promise<SmsPermissionStatus> {
-  if (Platform.OS !== 'android') return 'unavailable';
-  if (!isSmsModuleAvailable()) return 'unavailable';
+  if (Platform.OS !== 'android') {return 'unavailable';}
+  if (!isSmsModuleAvailable()) {return 'unavailable';}
 
   try {
-    const { PermissionsAndroid } = require('react-native');
     const result = await PermissionsAndroid.request(getReadSmsPermission(), {
       title: 'SMS Permission',
       message: 'Dabbu needs SMS access to detect and record your financial transactions automatically.',
@@ -156,13 +153,13 @@ export function showPermissionGuidance(permissionStatus: SmsPermissionStatus): v
 }
 
 export async function readSmsSince(timestamp?: number): Promise<SmsMessage[]> {
-  if (Platform.OS === 'web' || Platform.OS !== 'android') return [];
+  if (Platform.OS === 'web' || Platform.OS !== 'android') {return [];}
 
   const module = getSmsModule();
-  if (!module) return [];
+  if (!module) {return [];}
 
   const permission = await checkSmsPermission();
-  if (permission !== 'granted') return [];
+  if (permission !== 'granted') {return [];}
 
   return new Promise<SmsMessage[]>((resolve) => {
     try {
@@ -231,7 +228,7 @@ export function getAndroidPermissionExplanation(level: number): string {
 
 export async function ensureSmsPermission(): Promise<SmsPermissionStatus> {
   const current = await checkSmsPermission();
-  if (current === 'granted') return 'granted';
+  if (current === 'granted') {return 'granted';}
 
   const requested = await requestSmsPermission();
   return requested;

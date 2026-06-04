@@ -65,10 +65,10 @@ export function useConversionEngine({ tempUserId, enabled = true }: UseConversio
   }, []);
 
   const fetchBanners = useCallback(async () => {
-    if (!tempUserId || !enabled) return;
+    if (!tempUserId || !enabled) {return;}
 
     const now = Date.now();
-    if (now - lastFetchRef.current < 10000) return;
+    if (now - lastFetchRef.current < 10000) {return;}
     lastFetchRef.current = now;
 
     setState(prev => ({ ...prev, loading: true, error: null }));
@@ -87,7 +87,7 @@ export function useConversionEngine({ tempUserId, enabled = true }: UseConversio
   }, [tempUserId, enabled]);
 
   const fetchEvaluation = useCallback(async () => {
-    if (!tempUserId || !enabled) return;
+    if (!tempUserId || !enabled) {return;}
 
     try {
       const evaluation = await evaluateConversion(tempUserId);
@@ -104,7 +104,7 @@ export function useConversionEngine({ tempUserId, enabled = true }: UseConversio
     bannerId?: string,
     source?: string,
   ) => {
-    if (!tempUserId) return;
+    if (!tempUserId) {return;}
     try {
       await logOnboardingEvent({ eventType, bannerId, source, tempUserId });
     } catch (_e) {
@@ -137,7 +137,7 @@ export function useConversionEngine({ tempUserId, enabled = true }: UseConversio
   }, [loadDismissedBanners, fetchBanners, fetchEvaluation]);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {return;}
     const interval = setInterval(() => {
       fetchBanners();
       fetchEvaluation();

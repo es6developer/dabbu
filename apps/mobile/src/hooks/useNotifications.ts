@@ -40,41 +40,41 @@ export function useNotifications() {
 
   const fetchUnreadCount = useCallback(async () => {
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {setAccessToken(accessToken);}
       const res = await api.get<{ count: number }>('/notifications/unread-count');
       setUnreadCount(res?.count ?? 0);
-    } catch {}
+    } catch (_e) { void _e; }
   }, [accessToken]);
 
   const handleNotificationData = useCallback((data: NotificationData) => {
-    if (!data?.type) return;
+    if (!data?.type) {return;}
 
     switch (data.type) {
       case 'expense':
       case 'shared_finance':
-        if (data.groupId) navigation.navigate('Shared', {
+        if (data.groupId) {navigation.navigate('Shared', {
           screen: 'SharedGroupDetail',
           params: { groupId: data.groupId },
-        });
+        });}
         break;
       case 'goal':
-        if (data.goalId) navigation.navigate('Dashboard', {
+        if (data.goalId) {navigation.navigate('Dashboard', {
           screen: 'GoalDetail',
           params: { goalId: data.goalId },
-        });
+        });}
         break;
       case 'settlement':
-        if (data.groupId) navigation.navigate('Shared', {
+        if (data.groupId) {navigation.navigate('Shared', {
           screen: 'Settlement',
           params: { groupId: data.groupId },
-        });
+        });}
         break;
       case 'reminder':
       case 'emi':
-        if (data.reminderId) navigation.navigate('Dashboard', {
+        if (data.reminderId) {navigation.navigate('Dashboard', {
           screen: 'ReminderDetail',
           params: { reminderId: data.reminderId },
-        });
+        });}
         break;
       case 'subscription':
         navigation.navigate('Dashboard', { screen: 'Subscriptions' });

@@ -49,11 +49,11 @@ export function FamilyDashboardScreen() {
 
   const loadData = useCallback(
     async (refresh = false) => {
-      if (refresh) setRefreshing(true);
-      else setLoading(true);
+      if (refresh) {setRefreshing(true);}
+      else {setLoading(true);}
       setError(null);
       try {
-        if (accessToken) setAccessToken(accessToken);
+        if (accessToken) {setAccessToken(accessToken);}
         if (groupId) {
           const res = await api.get<any>(`/shared-finance/groups/${groupId}/family-dashboard`);
           setData(res);

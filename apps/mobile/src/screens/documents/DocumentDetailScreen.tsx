@@ -30,7 +30,7 @@ const CATEGORIES = [
 ];
 
 function fmtDate(d: string | null) {
-  if (!d) return '';
+  if (!d) {return '';}
   return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
@@ -67,7 +67,7 @@ export function DocumentDetailScreen() {
 
   const loadDocument = async () => {
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {setAccessToken(accessToken);}
       const res = await api.get<any>(`/documents/${id}`);
       const doc = res;
       setDocument(doc);
@@ -93,7 +93,7 @@ export function DocumentDetailScreen() {
     }
     setSaving(true);
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {setAccessToken(accessToken);}
 
       if (isUpload) {
         const formData = new FormData();
@@ -104,11 +104,11 @@ export function DocumentDetailScreen() {
         } as any);
         formData.append('name', name.trim());
         formData.append('category', category);
-        if (documentNumber) formData.append('documentNumber', documentNumber);
-        if (issuedDate) formData.append('issuedDate', new Date(issuedDate).toISOString());
-        if (expiryDate) formData.append('expiryDate', new Date(expiryDate).toISOString());
-        if (issuer) formData.append('issuer', issuer);
-        if (notes) formData.append('notes', notes);
+        if (documentNumber) {formData.append('documentNumber', documentNumber);}
+        if (issuedDate) {formData.append('issuedDate', new Date(issuedDate).toISOString());}
+        if (expiryDate) {formData.append('expiryDate', new Date(expiryDate).toISOString());}
+        if (issuer) {formData.append('issuer', issuer);}
+        if (notes) {formData.append('notes', notes);}
 
         await api.post('/documents/upload', formData);
         Alert.alert('Uploaded', 'Document uploaded successfully', [
@@ -139,7 +139,7 @@ export function DocumentDetailScreen() {
       const FileSystem = await import('expo-file-system');
       const Sharing = await import('expo-sharing');
 
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {setAccessToken(accessToken);}
       const url = `${API_URL}/documents/${id}/download`;
       const fileUri = `${FileSystem.cacheDirectory}${document?.name || 'document'}`;
 
@@ -168,7 +168,7 @@ export function DocumentDetailScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
-            if (accessToken) setAccessToken(accessToken);
+            if (accessToken) {setAccessToken(accessToken);}
             await api.delete(`/documents/${id}`);
             navigation.goBack();
           } catch {

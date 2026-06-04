@@ -282,17 +282,17 @@ export function SharedGroupDetailScreen() {
       const d = new Date(item.date);
       d.setHours(0, 0, 0, 0);
       let title: string;
-      if (d.getTime() === today.getTime()) title = 'Today';
-      else if (d.getTime() === yesterday.getTime()) title = 'Yesterday';
-      else title = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+      if (d.getTime() === today.getTime()) {title = 'Today';}
+      else if (d.getTime() === yesterday.getTime()) {title = 'Yesterday';}
+      else {title = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });}
       if (title !== currentTitle) {
-        if (currentItems.length > 0) groups.push({ title: currentTitle, data: [...currentItems] });
+        if (currentItems.length > 0) {groups.push({ title: currentTitle, data: [...currentItems] });}
         currentTitle = title;
         currentItems = [];
       }
       currentItems.push(item);
     });
-    if (currentItems.length > 0) groups.push({ title: currentTitle, data: currentItems });
+    if (currentItems.length > 0) {groups.push({ title: currentTitle, data: currentItems });}
     return groups;
   }, [activity]);
 

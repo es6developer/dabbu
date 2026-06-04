@@ -34,7 +34,7 @@ export function useDeepLinks() {
   const processingRef = useRef(false);
 
   const parseURL = useCallback((url: string): ParsedDeepLink | null => {
-    if (!url) return null;
+    if (!url) {return null;}
 
     const parsed = Linking.parse(url);
     const path = parsed.path || parsed.hostname || '';
@@ -82,7 +82,7 @@ export function useDeepLinks() {
   }, []);
 
   const handleDeepLink = useCallback(async (url: string) => {
-    if (processingRef.current) return;
+    if (processingRef.current) {return;}
     processingRef.current = true;
 
     try {

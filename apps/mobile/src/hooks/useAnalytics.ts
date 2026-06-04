@@ -6,20 +6,20 @@ const SESSION_ID = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 8)}
 const BATCH_SIZE = 10;
 const FLUSH_INTERVAL = 30000;
 
-let eventQueue: any[] = [];
+const eventQueue: any[] = [];
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
 let currentToken: string | null = null;
 
 function setToken(token: string | null) {
   currentToken = token;
-  if (token) setAccessToken(token);
+  if (token) {setAccessToken(token);}
 }
 
 async function flush() {
-  if (eventQueue.length === 0) return;
+  if (eventQueue.length === 0) {return;}
   const batch = eventQueue.splice(0, BATCH_SIZE);
   try {
-    if (currentToken) setAccessToken(currentToken);
+    if (currentToken) {setAccessToken(currentToken);}
     await api.post('/analytics/track/batch', { events: batch });
   } catch {
     eventQueue.unshift(...batch);
@@ -27,7 +27,7 @@ async function flush() {
 }
 
 function scheduleFlush() {
-  if (flushTimer) clearTimeout(flushTimer);
+  if (flushTimer) {clearTimeout(flushTimer);}
   flushTimer = setTimeout(() => {
     flush();
     scheduleFlush();
@@ -45,7 +45,7 @@ function enqueue(event: string, category?: string, label?: string, properties?: 
 
 export function useAnalytics() {
   const { accessToken } = useAuth();
-  if (accessToken) setToken(accessToken);
+  if (accessToken) {setToken(accessToken);}
 
   const track = useCallback(
     (event: string, category?: string, label?: string, properties?: any) => {

@@ -65,7 +65,7 @@ export function QuickActionSheet({ visible, onClose, actions }: QuickActionSheet
     }
   }, [visible, fadeAnim, slideAnim]);
 
-  if (!visible) return null;
+  if (!visible) {return null;}
 
   return (
     <TouchableWithoutFeedback onPress={onClose}>

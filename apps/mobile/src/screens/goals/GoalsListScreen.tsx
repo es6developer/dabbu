@@ -59,17 +59,17 @@ function fmt(v: number) {
 }
 
 function daysRemaining(dateStr: string | null): number | null {
-  if (!dateStr) return null;
+  if (!dateStr) {return null;}
   const diff = new Date(dateStr).getTime() - Date.now();
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 }
 
 function getMotivationalTagline(pct: number): string {
-  if (pct >= 100) return 'Goal complete! Amazing work!';
-  if (pct >= 75) return 'So close! The final stretch!';
-  if (pct >= 50) return 'Halfway there! Keep crushing it!';
-  if (pct >= 25) return 'Quarter way there! You\'ve got this';
-  if (pct > 0) return 'Building momentum \u2014 keep going!';
+  if (pct >= 100) {return 'Goal complete! Amazing work!';}
+  if (pct >= 75) {return 'So close! The final stretch!';}
+  if (pct >= 50) {return 'Halfway there! Keep crushing it!';}
+  if (pct >= 25) {return 'Quarter way there! You\'ve got this';}
+  if (pct > 0) {return 'Building momentum \u2014 keep going!';}
   return 'Every journey begins with a single step';
 }
 
@@ -80,7 +80,7 @@ function getEstimatedCompletion(
   deadline: string | null,
 ): string {
   const remaining = target - saved;
-  if (remaining <= 0) return 'Goal achieved!';
+  if (remaining <= 0) {return 'Goal achieved!';}
   if (monthlyContribution > 0) {
     const monthsRemaining = Math.ceil(remaining / monthlyContribution);
     const estDate = new Date();
@@ -796,15 +796,15 @@ function CreateGoalModal({
     }
     setCreating(true);
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {setAccessToken(accessToken);}
       const payload: any = {
         name: name.trim(),
         targetAmount: targetNum,
         type,
       };
-      if (deadline.trim()) payload.deadline = deadline.trim();
-      if (monthly.trim()) payload.monthlyContribution = parseFloat(monthly);
-      if (notes.trim()) payload.notes = notes.trim();
+      if (deadline.trim()) {payload.deadline = deadline.trim();}
+      if (monthly.trim()) {payload.monthlyContribution = parseFloat(monthly);}
+      if (notes.trim()) {payload.notes = notes.trim();}
       await api.post('/goals', payload);
       onClose();
       onCreated();
@@ -1060,7 +1060,7 @@ export function GoalsListScreen() {
     setShowCreate(true);
   };
 
-  if (loading) return <GoalsSkeleton />;
+  if (loading) {return <GoalsSkeleton />;}
 
   return (
     <>

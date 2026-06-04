@@ -52,7 +52,7 @@ const CATEGORY_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
 };
 
 function getCatIcon(name: string | undefined | null): keyof typeof Ionicons.glyphMap {
-  if (!name) return 'ellipse';
+  if (!name) {return 'ellipse';}
   return CATEGORY_ICONS[name] || 'ellipse';
 }
 
@@ -73,11 +73,11 @@ export function SmsDashboardScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {setAccessToken(accessToken);}
       loadDetections();
       const poll = setInterval(loadDetections, 5000);
       const liveSync = setInterval(() => {
-        if (!syncLockRef.current) liveReadSync();
+        if (!syncLockRef.current) {liveReadSync();}
       }, 45000);
       return () => { clearInterval(poll); clearInterval(liveSync); };
     }, [accessToken])
@@ -98,12 +98,12 @@ export function SmsDashboardScreen() {
       const res = await api.get<any>('/sms-detection');
       const data = Array.isArray(res) ? res : [];
       setDetections(data);
-    } catch (_e) { }
+    } catch (_e) { /* ignore */ }
     finally { setLoading(false); }
   }
 
   async function autoCreateFresh(pending: Detection[]) {
-    if (creatingRef.current || pending.length === 0) return;
+    if (creatingRef.current || pending.length === 0) {return;}
     creatingRef.current = true;
     setAutoCreating(true);
     const cutoff = Date.now() - 120000;
@@ -114,7 +114,7 @@ export function SmsDashboardScreen() {
           message: d.messageBody,
           sender: d.sender,
         });
-      } catch (_e) { }
+      } catch (_e) { /* ignore */ }
     }
     if (fresh.length > 0) {
       await loadDetections();
@@ -170,21 +170,21 @@ export function SmsDashboardScreen() {
     syncLockRef.current = true;
     try {
       const moduleOk = isSmsModuleAvailable();
-      if (!moduleOk) return;
+      if (!moduleOk) {return;}
       const permission = await checkSmsPermission();
-      if (permission !== 'granted') return;
+      if (permission !== 'granted') {return;}
       const result = await syncAndUpload();
-      if (result.raw.length === 0) return;
+      if (result.raw.length === 0) {return;}
       const res = await api.get<any>('/sms-detection');
       const data = Array.isArray(res) ? res : [];
       setDetections(data);
       autoCreateFresh(data.filter((d: Detection) => !d.isProcessed));
-    } catch (_e) { }
+    } catch (_e) { void _e; }
     finally { syncLockRef.current = false; }
   }
 
   function formatCurrency(val: number | null): string {
-    if (val == null) return '';
+    if (val === null || val === undefined) {return '';}
     const prefix = val >= 0 ? '₹' : '-₹';
     return prefix + Math.abs(val).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
@@ -201,8 +201,8 @@ export function SmsDashboardScreen() {
   };
 
   const filtered = detections.filter(d => {
-    if (filter === 'categorized') return !!d.category?.name;
-    if (filter === 'uncategorized') return !d.category?.name;
+    if (filter === 'categorized') {return !!d.category?.name;}
+    if (filter === 'uncategorized') {return !d.category?.name;}
     return true;
   });
 
@@ -244,7 +244,7 @@ export function SmsDashboardScreen() {
             </Text>
           </View>
           <View style={styles.rightCol}>
-            {item.detectedAmount != null && (
+            {item.detectedAmount !== null && item.detectedAmount !== undefined && (
               <Text style={[styles.amount, { color: isIncome ? colors.status.success : colors.status.error }]}>
                 {isIncome ? '+' : '-'}{formatCurrency(item.detectedAmount)}
               </Text>
@@ -272,7 +272,7 @@ export function SmsDashboardScreen() {
               </View>
             </View>
           )}
-          {item.confidence != null && (
+          {item.confidence !== null && item.confidence !== undefined && (
             <Text style={[styles.conf, { color: colors.text.tertiary }]}>
               {Math.round(item.confidence * 100)}% match
             </Text>

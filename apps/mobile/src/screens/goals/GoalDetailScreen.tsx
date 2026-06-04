@@ -45,17 +45,17 @@ function fmt(v: number) {
 }
 
 function daysRemaining(dateStr: string | null): number | null {
-  if (!dateStr) return null;
+  if (!dateStr) {return null;}
   const diff = new Date(dateStr).getTime() - Date.now();
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 
 function getMotivationalTagline(pct: number): string {
-  if (pct >= 100) return 'Goal complete! Amazing work!';
-  if (pct >= 75) return 'So close! The final stretch!';
-  if (pct >= 50) return 'Halfway there! Keep crushing it!';
-  if (pct >= 25) return 'Quarter way there! You\'ve got this';
-  if (pct > 0) return 'Building momentum — keep going!';
+  if (pct >= 100) {return 'Goal complete! Amazing work!';}
+  if (pct >= 75) {return 'So close! The final stretch!';}
+  if (pct >= 50) {return 'Halfway there! Keep crushing it!';}
+  if (pct >= 25) {return 'Quarter way there! You\'ve got this';}
+  if (pct > 0) {return 'Building momentum — keep going!';}
   return 'Every journey begins with a single step';
 }
 
@@ -339,7 +339,7 @@ export function GoalDetailScreen() {
 
   const loadGoal = useCallback(async () => {
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {setAccessToken(accessToken);}
       const res = await api.get<any>(`/goals/${goalId}`);
       setGoal(res);
     } catch {
@@ -408,7 +408,7 @@ export function GoalDetailScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              if (accessToken) setAccessToken(accessToken);
+              if (accessToken) {setAccessToken(accessToken);}
               await api.delete(`/goals/${goalId}`);
               navigation.goBack();
             } catch {
@@ -423,7 +423,7 @@ export function GoalDetailScreen() {
   const handleContribute = async (amount: number) => {
     setContributing(true);
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {setAccessToken(accessToken);}
       const updated = await api.post<any>(`/goals/${goalId}/contribute`, { amount });
       setGoal(updated);
       setShowContribute(false);
@@ -434,8 +434,8 @@ export function GoalDetailScreen() {
     }
   };
 
-  if (loading) return <GoalDetailSkeleton />;
-  if (!goal) return null;
+  if (loading) {return <GoalDetailSkeleton />;}
+  if (!goal) {return null;}
 
   return (
     <BaseScreen noPadding>

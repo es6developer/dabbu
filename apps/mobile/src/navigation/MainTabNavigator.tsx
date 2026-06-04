@@ -303,9 +303,9 @@ export function MainTabNavigator() {
 
   useFocusEffect(
     useCallback(() => {
-      if (!accessToken) return;
+      if (!accessToken) {return;}
       api.get<any>('/premium/check').then((res) => {
-        if (res?.isPremium) setIsPremium(true);
+        if (res?.isPremium) {setIsPremium(true);}
       }).catch(() => {});
     }, [accessToken]),
   );

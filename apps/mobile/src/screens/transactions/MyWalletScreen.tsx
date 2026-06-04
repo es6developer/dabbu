@@ -47,17 +47,17 @@ function groupByDate(tx: any[]) {
     const d = new Date(t.date || t.createdAt);
     const ds = d.toDateString();
     let key: string;
-    if (ds === today) key = 'Today';
-    else if (ds === yStr) key = 'Yesterday';
-    else if (d.getMonth() === thisMonth && d.getFullYear() === thisYear) key = 'This Month';
-    else key = d.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+    if (ds === today) {key = 'Today';}
+    else if (ds === yStr) {key = 'Yesterday';}
+    else if (d.getMonth() === thisMonth && d.getFullYear() === thisYear) {key = 'This Month';}
+    else {key = d.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });}
     (groups[key] ||= []).push(t);
   }
   const order = ['Today', 'Yesterday', 'This Month'];
   return Object.entries(groups).sort(([a], [b]) => {
     const ai = order.indexOf(a), bi = order.indexOf(b);
-    if (ai !== -1 && bi !== -1) return ai - bi;
-    if (ai !== -1) return -1; if (bi !== -1) return 1;
+    if (ai !== -1 && bi !== -1) {return ai - bi;}
+    if (ai !== -1) {return -1;} if (bi !== -1) {return 1;}
     return b.localeCompare(a);
   }).map(([title, data]) => ({ title, data }));
 }
@@ -84,22 +84,22 @@ export function MyWalletScreen() {
     const ctrl = new AbortController();
     abortRef.current = ctrl;
 
-    if (refresh) setRefreshing(true);
-    else setLoading(true);
+    if (refresh) {setRefreshing(true);}
+    else {setLoading(true);}
 
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {setAccessToken(accessToken);}
       const [txRes, statsRes] = await Promise.all([
         api.get<any>('/transactions', ctrl.signal),
         api.get<any>('/transactions/stats', ctrl.signal),
       ]);
-      if (ctrl.signal.aborted) return;
+      if (ctrl.signal.aborted) {return;}
       const txData = Array.isArray(txRes) ? txRes : Array.isArray(txRes?.data) ? txRes.data : [];
       setTransactions(txData.filter((t: any) => !t.expenseGroupId));
-      if (statsRes?.summary) setSummary({
+      if (statsRes?.summary) {setSummary({
         totalIncome: Number(statsRes.summary.totalIncome) || 0,
         totalExpense: Number(statsRes.summary.totalExpense) || 0,
-      });
+      });}
       Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
     } catch (e) { /* ignore */ }
     finally { if (!ctrl.signal.aborted) { setLoading(false); setRefreshing(false); } }
@@ -112,7 +112,7 @@ export function MyWalletScreen() {
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: async () => {
         try {
-          if (accessToken) setAccessToken(accessToken);
+          if (accessToken) {setAccessToken(accessToken);}
           await api.delete(`/transactions/${id}`);
           setTransactions(p => p.filter(t => t.id !== id));
         } catch (e: any) { Alert.alert('Error', e.message); }
@@ -132,7 +132,7 @@ export function MyWalletScreen() {
       const q = search.toLowerCase();
       list = list.filter(t => (t.description||'').toLowerCase().includes(q) || (t.category?.name||t.category||'').toLowerCase().includes(q));
     }
-    if (selectedCategory) list = list.filter(t => (t.category?.name || t.category) === selectedCategory);
+    if (selectedCategory) {list = list.filter(t => (t.category?.name || t.category) === selectedCategory);}
     return groupByDate(list);
   }, [transactions, search, selectedCategory]);
 

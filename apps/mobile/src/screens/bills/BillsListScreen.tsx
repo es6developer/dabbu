@@ -139,7 +139,7 @@ function BillCard({ bill, colors, onPress }: { bill: BillItem; colors: any; onPr
 }
 
 function ComparisonCard({ groups, colors, onCompare }: { groups: MonthlyGroup[]; colors: any; onCompare: (g1: MonthlyGroup, g2: MonthlyGroup) => void }) {
-  if (groups.length < 2) return null;
+  if (groups.length < 2) {return null;}
 
   const latest = groups[0];
   const previous = groups[1];
@@ -242,7 +242,7 @@ export function BillsListScreen() {
 
   const loadBills = useCallback(async () => {
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {setAccessToken(accessToken);}
       const res = await api.get<any>('/bills/monthly');
       if (Array.isArray(res)) {
         setGroups(res);
@@ -271,8 +271,8 @@ export function BillsListScreen() {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpandedMonths((prev) => {
       const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
+      if (next.has(key)) {next.delete(key);}
+      else {next.add(key);}
       return next;
     });
   }

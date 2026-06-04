@@ -43,8 +43,8 @@ export const Button: React.FC<ButtonProps> = ({
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const handlePress = useCallback(() => {
-    if (disabled || loading) return;
-    if (haptic) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (disabled || loading) {return;}
+    if (haptic) {Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);}
     onPress();
   }, [disabled, loading, haptic, onPress]);
 

@@ -73,15 +73,15 @@ const SECTIONS = [
 function getRelativeTime(dateStr: string): string {
   const now = Date.now();
   const d = new Date(dateStr).getTime();
-  if (isNaN(d)) return '';
+  if (isNaN(d)) {return '';}
   const diff = now - d;
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) {return 'just now';}
+  if (mins < 60) {return `${mins}m ago`;}
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) {return `${hours}h ago`;}
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
+  if (days < 7) {return `${days}d ago`;}
   return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 }
 
@@ -201,11 +201,11 @@ export function GroupExpensesScreen() {
     const map: Record<string, { total: number; count: number; latest: any }> = {};
     for (const tx of transactions) {
       const gid = tx.expenseGroupId;
-      if (!gid) continue;
-      if (!map[gid]) map[gid] = { total: 0, count: 0, latest: null };
+      if (!gid) {continue;}
+      if (!map[gid]) {map[gid] = { total: 0, count: 0, latest: null };}
       map[gid].total += Number(tx.amount);
       map[gid].count += 1;
-      if (!map[gid].latest || new Date(tx.date) > new Date(map[gid].latest.date)) map[gid].latest = tx;
+      if (!map[gid].latest || new Date(tx.date) > new Date(map[gid].latest.date)) {map[gid].latest = tx;}
     }
     return map;
   }, [transactions]);
@@ -234,7 +234,7 @@ export function GroupExpensesScreen() {
   const memberMap = useMemo(() => {
     const m: Record<string, any> = {};
     members.forEach((mem: any) => {
-      if (mem?.userId) m[mem.userId] = mem.user || mem;
+      if (mem?.userId) {m[mem.userId] = mem.user || mem;}
     });
     return m;
   }, [members]);
@@ -272,7 +272,7 @@ export function GroupExpensesScreen() {
     }
     setSavingGroup(true);
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {setAccessToken(accessToken);}
       await api.patch(`/expense-groups/${groupId}`, {
         name: editName.trim(),
         description: editDescription.trim(),
@@ -289,10 +289,10 @@ export function GroupExpensesScreen() {
   }
 
   async function addMember() {
-    if (!inviteEmail.trim()) return;
+    if (!inviteEmail.trim()) {return;}
     setSavingGroup(true);
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {setAccessToken(accessToken);}
       await api.post(`/expense-groups/${groupId}/members`, { email: inviteEmail.trim() });
       setInviteEmail('');
       await loadData(true);
@@ -314,7 +314,7 @@ export function GroupExpensesScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              if (accessToken) setAccessToken(accessToken);
+              if (accessToken) {setAccessToken(accessToken);}
               await api.delete(`/expense-groups/${groupId}/members/${member.id}`);
               await loadData(true);
             } catch (e: any) {
@@ -328,7 +328,7 @@ export function GroupExpensesScreen() {
 
   async function changeMemberRole(member: any, role: 'admin' | 'member') {
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {setAccessToken(accessToken);}
       await api.patch(`/expense-groups/${groupId}/members/${member.id}/role`, { role });
       await loadData(true);
     } catch (e: any) {
@@ -347,7 +347,7 @@ export function GroupExpensesScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              if (accessToken) setAccessToken(accessToken);
+              if (accessToken) {setAccessToken(accessToken);}
               await api.post(`/expense-groups/${groupId}/leave`);
               navigation.goBack();
             } catch (e: any) {

@@ -42,11 +42,11 @@ export function CoupleFinanceScreen() {
 
   const loadData = useCallback(
     async (refresh = false) => {
-      if (refresh) setRefreshing(true);
-      else setLoading(true);
+      if (refresh) {setRefreshing(true);}
+      else {setLoading(true);}
       setError(null);
       try {
-        if (accessToken) setAccessToken(accessToken);
+        if (accessToken) {setAccessToken(accessToken);}
         if (groupId) {
           const res = await api.get<any>(`/shared-finance/groups/${groupId}/couple/dashboard`);
           setData(res);
@@ -78,7 +78,7 @@ export function CoupleFinanceScreen() {
     }
     setSendingInvite(true);
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {setAccessToken(accessToken);}
       await api.post('/shared-finance/couple/invite', { receiverEmail: partnerEmail.trim() });
       Alert.alert('Invite Sent', `Invitation sent to ${partnerEmail.trim()}`);
       setPartnerEmail('');

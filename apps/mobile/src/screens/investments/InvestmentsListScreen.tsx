@@ -12,7 +12,7 @@ export function InvestmentsListScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (accessToken) setAccessToken(accessToken);
+    if (accessToken) {setAccessToken(accessToken);}
     loadInvestments();
   }, [accessToken]);
 

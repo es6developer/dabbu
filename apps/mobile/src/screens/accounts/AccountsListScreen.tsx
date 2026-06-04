@@ -24,7 +24,7 @@ export function AccountsListScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    if (accessToken) setAccessToken(accessToken);
+    if (accessToken) {setAccessToken(accessToken);}
     loadAccounts();
   }, [accessToken]);
 
@@ -38,11 +38,11 @@ export function AccountsListScreen() {
 
   const total = accounts.reduce((s, a) => s + Number(a.balance || 0), 0);
 
-  if (loading) return (
+  if (loading) {return (
     <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}>
       <ActivityIndicator color={colors.accent.primary} size="large" />
     </View>
-  );
+  );}
 
   const formatCurrency = (val: number) => '₹' + val.toLocaleString('en-IN');
 

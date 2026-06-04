@@ -73,7 +73,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const isDark = themeMode === 'system' ? deviceScheme === 'dark' : themeMode === 'dark';
   const theme = isDark ? darkTheme : lightTheme;
 
-  if (!loaded) return null;
+  if (!loaded) {return null;}
 
   return (
     <ThemeContext.Provider value={{ theme, themeMode, setThemeMode }}>

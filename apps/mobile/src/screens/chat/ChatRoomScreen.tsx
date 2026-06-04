@@ -21,7 +21,7 @@ export function ChatRoomScreen() {
   const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
-    if (!accessToken || !chatId) return;
+    if (!accessToken || !chatId) {return;}
     setAccessToken(accessToken);
     loadMessages();
     const socket = connectChat(accessToken);
@@ -36,7 +36,7 @@ export function ChatRoomScreen() {
     socket.on('typing:update', (data: any) => {
       if (data.userId !== user?.id) {
         setTypingUsers((prev) => {
-          if (data.isTyping) return prev.includes(data.userId) ? prev : [...prev, data.userId];
+          if (data.isTyping) {return prev.includes(data.userId) ? prev : [...prev, data.userId];}
           return prev.filter((id) => id !== data.userId);
         });
       }
@@ -61,7 +61,7 @@ export function ChatRoomScreen() {
 
   async function handleSend() {
     const text = input.trim();
-    if (!text) return;
+    if (!text) {return;}
     setSending(true);
     setInput('');
     stopTyping(chatId);
@@ -71,15 +71,15 @@ export function ChatRoomScreen() {
 
   function handleInputChange(text: string) {
     setInput(text);
-    if (text.trim()) startTyping(chatId);
-    else stopTyping(chatId);
+    if (text.trim()) {startTyping(chatId);}
+    else {stopTyping(chatId);}
   }
 
-  if (loading) return (
+  if (loading) {return (
     <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}>
       <ActivityIndicator color={colors.accent.primary} size="large" />
     </View>
-  );
+  );}
 
   return (
     <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg.primary }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>

@@ -45,7 +45,7 @@ export function useApi<T = any>(
     }));
 
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {setAccessToken(accessToken);}
       const data = await fetcher(ctrl.signal);
       if (!ctrl.signal.aborted) {
         setState({ data, loading: false, refreshing: false, error: null });
@@ -64,7 +64,7 @@ export function useApi<T = any>(
 
   useFocusEffect(
     useCallback(() => {
-      if (autoFetch) execute();
+      if (autoFetch) {execute();}
       return () => abortRef.current?.abort();
     }, [execute, autoFetch]),
   );

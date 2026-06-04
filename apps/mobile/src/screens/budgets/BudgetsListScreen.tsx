@@ -12,7 +12,7 @@ export function BudgetsListScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (accessToken) setAccessToken(accessToken);
+    if (accessToken) {setAccessToken(accessToken);}
     loadBudgets();
   }, [accessToken]);
 
@@ -25,8 +25,8 @@ export function BudgetsListScreen() {
   }
 
   function getBarColor(pct: number) {
-    if (pct > 90) return colors.status.error;
-    if (pct > 70) return colors.status.warning;
+    if (pct > 90) {return colors.status.error;}
+    if (pct > 70) {return colors.status.warning;}
     return colors.status.success;
   }
 

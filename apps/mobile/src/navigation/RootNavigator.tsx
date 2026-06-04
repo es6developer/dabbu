@@ -12,7 +12,7 @@ export function RootNavigator(): React.ReactElement | null {
   const [phase, setPhase] = useState<'loading' | 'auth' | 'lock' | 'app'>('loading');
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading) {return;}
     if (!isAuthenticated) { setPhase('auth'); return; }
     if (isLocked) { setPhase('lock'); return; }
     Promise.all([
@@ -24,7 +24,7 @@ export function RootNavigator(): React.ReactElement | null {
   }, [isAuthenticated, isLoading, isLocked]);
 
   useEffect(() => {
-    if (isLocked) setPhase('lock');
+    if (isLocked) {setPhase('lock');}
   }, [isLocked]);
 
   function handleUnlock() {
@@ -32,8 +32,8 @@ export function RootNavigator(): React.ReactElement | null {
     setPhase('app');
   }
 
-  if (phase === 'loading' || isLoading) return null;
-  if (phase === 'auth') return <AuthNavigator key="unauth" />;
-  if (phase === 'lock') return <AppLockScreen onUnlock={handleUnlock} />;
+  if (phase === 'loading' || isLoading) {return null;}
+  if (phase === 'auth') {return <AuthNavigator key="unauth" />;}
+  if (phase === 'lock') {return <AppLockScreen onUnlock={handleUnlock} />;}
   return <MainTabNavigator key="auth" />;
 }

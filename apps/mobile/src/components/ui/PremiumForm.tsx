@@ -227,7 +227,7 @@ export function PremiumChip({ label, selected, icon, onPress }: PremiumChipProps
 
 export function PremiumError({ message }: { message?: string }) {
   const { colors } = useTheme();
-  if (!message) return null;
+  if (!message) {return null;}
 
   return (
     <View style={[styles.errorBox, { backgroundColor: colors.status.errorLight }]}>

@@ -138,7 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('Invalid response from server');
     });
     const data = json?.data;
-    if (!data) throw new Error('Invalid response from server');
+    if (!data) {throw new Error('Invalid response from server');}
     const { user, tokens } = data;
 
     setAccessToken(tokens.accessToken);
@@ -173,7 +173,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('Invalid response from server');
     });
     const data = json?.data;
-    if (!data) throw new Error('Invalid response from server');
+    if (!data) {throw new Error('Invalid response from server');}
     const { user, tokens } = data;
 
     setAccessToken(tokens.accessToken);

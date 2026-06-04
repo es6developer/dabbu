@@ -16,7 +16,7 @@ export function AnalyticsScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    if (accessToken) setAccessToken(accessToken);
+    if (accessToken) {setAccessToken(accessToken);}
     loadData();
   }, [accessToken]);
 
@@ -42,11 +42,11 @@ export function AnalyticsScreen() {
     setRefreshing(false);
   }, []);
 
-  if (loading) return (
+  if (loading) {return (
     <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}>
       <ActivityIndicator color={colors.accent.primary} size="large" />
     </View>
-  );
+  );}
 
   const totalExpense = stats?.totalExpense || 0;
   const totalIncome = stats?.totalIncome || 0;

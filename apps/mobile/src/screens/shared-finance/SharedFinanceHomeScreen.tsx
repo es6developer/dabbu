@@ -40,8 +40,8 @@ function fmt(v: number) {
 }
 
 function fmtCompact(v: number) {
-  if (v >= 100000) return '₹' + (v / 100000).toFixed(1) + 'L';
-  if (v >= 1000) return '₹' + (v / 1000).toFixed(1) + 'K';
+  if (v >= 100000) {return '₹' + (v / 100000).toFixed(1) + 'L';}
+  if (v >= 1000) {return '₹' + (v / 1000).toFixed(1) + 'K';}
   return '₹' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 }
 
@@ -56,16 +56,16 @@ function deriveGroupBalance(group: any, currentUserId?: string) {
     if (m.balance !== undefined) {
       const bal = Number(m.balance);
       if (m.userId === currentUserId) {
-        if (bal < 0) iOwe += Math.abs(bal);
-        else owedToMe += bal;
+        if (bal < 0) {iOwe += Math.abs(bal);}
+        else {owedToMe += bal;}
       }
       return;
     }
     const paid = expenses.filter((e: any) => e.paidBy === m.userId).reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
     const bal = paid - share;
     if (m.userId === currentUserId) {
-      if (bal < 0) iOwe += Math.abs(bal);
-      else owedToMe += bal;
+      if (bal < 0) {iOwe += Math.abs(bal);}
+      else {owedToMe += bal;}
     }
   });
 
@@ -86,7 +86,7 @@ function computeFinancialSummary(groups: any[], currentUserId?: string) {
     const { owedToMe, iOwe, isSettled } = deriveGroupBalance(g, currentUserId);
     totalOwedToMe += owedToMe;
     totalIOwe += iOwe;
-    if (!isSettled) pendingSettlements++;
+    if (!isSettled) {pendingSettlements++;}
   });
   return { totalOwedToMe, totalIOwe, pendingSettlements, activeGroups: groups.length };
 }
@@ -304,14 +304,14 @@ export function SharedFinanceHomeScreen() {
     abortRef.current?.abort();
     const ctrl = new AbortController();
     abortRef.current = ctrl;
-    if (refresh) setRefreshing(true); else setLoading(true);
+    if (refresh) {setRefreshing(true);} else {setLoading(true);}
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {setAccessToken(accessToken);}
       const [groupsRes, goalsRes] = await Promise.allSettled([
         api.get<any>('/shared-finance/groups', ctrl.signal),
         api.get<any>('/goals', ctrl.signal),
       ]);
-      if (ctrl.signal.aborted) return;
+      if (ctrl.signal.aborted) {return;}
       const groupsData = groupsRes.status === 'fulfilled'
         ? Array.isArray(groupsRes.value) ? groupsRes.value : Array.isArray(groupsRes.value?.data) ? groupsRes.value.data : []
         : [];
@@ -321,7 +321,7 @@ export function SharedFinanceHomeScreen() {
       setGroups(groupsData);
       setGoals(goalsData);
       const currentIds = new Set(groupsData.map((g: any) => g.id));
-      Object.keys(cardAnims.current).forEach((id) => { if (!currentIds.has(id)) delete cardAnims.current[id]; });
+      Object.keys(cardAnims.current).forEach((id) => { if (!currentIds.has(id)) {delete cardAnims.current[id];} });
       groupsData.forEach((g: any, i: number) => {
         if (!cardAnims.current[g.id]) {
           const v = new Animated.Value(0);
@@ -350,7 +350,7 @@ export function SharedFinanceHomeScreen() {
   const filtered = useMemo(() => {
     let list = [...groups];
     if (search.trim()) { const q = search.toLowerCase(); list = list.filter((g) => g.name?.toLowerCase().includes(q) || g.description?.toLowerCase().includes(q)); }
-    if (typeFilter !== 'all') list = list.filter((g) => g.type === typeFilter);
+    if (typeFilter !== 'all') {list = list.filter((g) => g.type === typeFilter);}
     return list;
   }, [groups, search, typeFilter]);
 
@@ -360,7 +360,7 @@ export function SharedFinanceHomeScreen() {
       {
         text: 'Delete', style: 'destructive', onPress: async () => {
           try {
-            if (accessToken) setAccessToken(accessToken);
+            if (accessToken) {setAccessToken(accessToken);}
             await api.delete(`/shared-finance/groups/${group.id}`);
             setGroups((prev) => prev.filter((g) => g.id !== group.id));
           } catch (e: any) { Alert.alert('Error', e.message || 'Failed to delete space'); }

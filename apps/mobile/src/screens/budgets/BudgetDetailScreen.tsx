@@ -17,7 +17,7 @@ export function BudgetDetailScreen() {
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    if (accessToken) setAccessToken(accessToken);
+    if (accessToken) {setAccessToken(accessToken);}
     loadBudget();
   }, [budgetId]);
 
@@ -35,7 +35,7 @@ export function BudgetDetailScreen() {
       { text: 'Delete', style: 'destructive', onPress: async () => {
         setDeleting(true);
         try {
-          if (accessToken) setAccessToken(accessToken);
+          if (accessToken) {setAccessToken(accessToken);}
           await api.delete(`/accounts/budgets/${budgetId}`);
           navigation.goBack();
         } catch (e: any) {
@@ -56,7 +56,7 @@ export function BudgetDetailScreen() {
       </View>
     );
   }
-  if (!budget) return <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}><Text style={[styles.errorText, { color: colors.status.error }]}>Budget not found</Text></View>;
+  if (!budget) {return <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}><Text style={[styles.errorText, { color: colors.status.error }]}>Budget not found</Text></View>;}
 
   const spent = Number(budget.spent || budget._sum?.amount || 0);
   const limit = Number(budget.limit || budget.amount || 0);

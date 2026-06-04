@@ -45,10 +45,10 @@ export function BadgeWallScreen() {
 
   const loadData = useCallback(
     async (refresh = false) => {
-      if (refresh) setRefreshing(true);
-      else setLoading(true);
+      if (refresh) {setRefreshing(true);}
+      else {setLoading(true);}
       try {
-        if (accessToken) setAccessToken(accessToken);
+        if (accessToken) {setAccessToken(accessToken);}
         const [gamRes, checkRes] = await Promise.all([
           api.get<any>('/gamification'),
           api.post<any>('/gamification/check'),

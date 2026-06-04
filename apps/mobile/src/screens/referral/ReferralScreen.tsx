@@ -34,10 +34,10 @@ export function ReferralScreen() {
 
   const loadData = useCallback(
     async (refresh = false) => {
-      if (refresh) setRefreshing(true);
-      else setLoading(true);
+      if (refresh) {setRefreshing(true);}
+      else {setLoading(true);}
       try {
-        if (accessToken) setAccessToken(accessToken);
+        if (accessToken) {setAccessToken(accessToken);}
         const [codeRes, referralsRes, statsRes] = await Promise.all([
           api.get<any>('/referral/code'),
           api.get<any>('/referral'),
@@ -80,7 +80,7 @@ export function ReferralScreen() {
     }
     setSending(true);
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {setAccessToken(accessToken);}
       await api.post('/referral/invite', { refereeEmail: inviteEmail.trim() });
       Alert.alert('Invite Sent', `${inviteEmail} has been invited to Dabbu`);
       setInviteEmail('');
@@ -98,7 +98,7 @@ export function ReferralScreen() {
       return;
     }
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {setAccessToken(accessToken);}
       const res = await api.post<any>('/referral/claim-all');
       Alert.alert(
         'Rewards Claimed!',

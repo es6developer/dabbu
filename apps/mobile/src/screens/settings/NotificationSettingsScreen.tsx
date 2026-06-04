@@ -211,7 +211,7 @@ export function NotificationSettingsScreen() {
 
   const handleToggle = useCallback(
     async (key: ToggleKey, value: boolean) => {
-      if (!toggles) return;
+      if (!toggles) {return;}
       const updated = { ...toggles, [key]: value };
       setToggles(updated);
       setSaving(true);

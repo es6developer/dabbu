@@ -31,10 +31,10 @@ export function SubscriptionScreen() {
 
   const loadData = useCallback(
     async (refresh = false) => {
-      if (refresh) setRefreshing(true);
-      else setLoading(true);
+      if (refresh) {setRefreshing(true);}
+      else {setLoading(true);}
       try {
-        if (accessToken) setAccessToken(accessToken);
+        if (accessToken) {setAccessToken(accessToken);}
         const res = await api.get<any>('/accounts/subscriptions');
         setData(res);
       } catch {

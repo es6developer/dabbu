@@ -76,7 +76,7 @@ class OfflineStorage {
 
   async dequeue(id: string): Promise<OfflineQueueItem | null> {
     const idx = this.state.pendingQueue.findIndex(i => i.id === id);
-    if (idx === -1) return null;
+    if (idx === -1) {return null;}
     const [item] = this.state.pendingQueue.splice(idx, 1);
     this.state.pendingQueue = [...this.state.pendingQueue];
     await this.persist();

@@ -27,13 +27,13 @@ function moneyFormat(v: number | string | undefined | null): string {
 }
 
 function fmtDate(d: string | null | undefined): string {
-  if (!d) return '';
+  if (!d) {return '';}
   const date = new Date(d);
   const today = new Date();
   const diff = Math.ceil((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-  if (diff === 0) return 'Today';
-  if (diff === 1) return 'Yesterday';
-  if (diff < 7) return `${diff} days ago`;
+  if (diff === 0) {return 'Today';}
+  if (diff === 1) {return 'Yesterday';}
+  if (diff < 7) {return `${diff} days ago`;}
   return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 }
 
@@ -54,7 +54,7 @@ export function TransactionsScreen() {
   const [showFilters, setShowFilters] = useState(false);
 
   const loadData = useCallback(async () => {
-    if (accessToken) setAccessToken(accessToken);
+    if (accessToken) {setAccessToken(accessToken);}
     try {
       const res = await api.get<any>('/transactions/stats');
       const txs = res?.recentTransactions || [];
@@ -73,9 +73,9 @@ export function TransactionsScreen() {
   );
 
   const filtered = transactions.filter((tx) => {
-    if (activeFilter === 'All') return true;
-    if (activeFilter === 'Income') return Number(tx.amount) > 0;
-    if (activeFilter === 'Expense') return Number(tx.amount) <= 0;
+    if (activeFilter === 'All') {return true;}
+    if (activeFilter === 'Income') {return Number(tx.amount) > 0;}
+    if (activeFilter === 'Expense') {return Number(tx.amount) <= 0;}
     return true;
   });
 

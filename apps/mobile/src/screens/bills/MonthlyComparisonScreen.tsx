@@ -78,7 +78,7 @@ function ItemRow({ name, price, colors }: { name: string; price?: number; colors
       </View>
       <View style={styles.itemInfo}>
         <Text style={[styles.itemName, { color: colors.text.primary }]}>{name}</Text>
-        {price != null ? <Text style={[styles.itemSubtitle, { color: colors.text.tertiary }]}>{formatCurrency(price)}</Text> : null}
+        {price !== null ? <Text style={[styles.itemSubtitle, { color: colors.text.tertiary }]}>{formatCurrency(price)}</Text> : null}
       </View>
     </View>
   );
@@ -125,7 +125,7 @@ export function MonthlyComparisonScreen() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (accessToken) setAccessToken(accessToken);
+    if (accessToken) {setAccessToken(accessToken);}
     fetchComparison();
   }, [accessToken]);
 

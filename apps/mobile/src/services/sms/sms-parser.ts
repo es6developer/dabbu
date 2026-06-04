@@ -99,10 +99,10 @@ export function parseSmsTransaction(msg: SmsMessage): ParsedTransaction | null {
   const bank = bankMatch?.bank || 'Unknown';
 
   const amountMatch = text.match(/(?:rs|inr|\.)\s*([\d,]+\.?\d*)/i) || text.match(/([\d,]+\.?\d{0,2})/);
-  if (!amountMatch) return null;
+  if (!amountMatch) {return null;}
 
   const amount = parseFloat(amountMatch[1].replace(/,/g, ''));
-  if (isNaN(amount) || amount <= 0) return null;
+  if (isNaN(amount) || amount <= 0) {return null;}
 
   const isDebit = /(?:spent|debited|paid|withdrawn|emi)/i.test(text);
   const isCredit = /(?:credited|received|deposited|cashback|refund|salary)/i.test(text);
@@ -141,25 +141,25 @@ export function categorizeTransaction(amount: number, merchant: string): string 
   const mediumAmount = amount >= 100 && amount < 1000;
   const highAmount = amount >= 1000 && amount < 10000;
 
-  if (merchant === 'Food Delivery' || merchant === 'Dining') return 'food';
-  if (merchant === 'Grocery') return 'groceries';
-  if (merchant === 'Transport' || merchant === 'Fuel') return 'transport';
-  if (merchant === 'Entertainment') return 'entertainment';
-  if (merchant === 'Healthcare' || merchant === 'Fitness') return 'health';
-  if (merchant === 'Online Shopping' || merchant === 'Retail Shopping' || merchant === 'Card Swipe') return 'shopping';
-  if (merchant === 'Rent') return 'housing';
-  if (merchant === 'Salary') return 'income';
-  if (merchant === 'Investment') return 'investment';
-  if (merchant === 'Utility Bill' || merchant === 'Mobile Recharge') return 'utilities';
-  if (merchant === 'Education') return 'education';
-  if (merchant === 'Insurance') return 'insurance';
-  if (merchant === 'Bank Transfer') return 'transfer';
-  if (merchant === 'EMI Payment') return 'financial';
-  if (merchant === 'Pet Care') return 'pets';
-  if (merchant === 'Travel & Hotel') return 'travel';
+  if (merchant === 'Food Delivery' || merchant === 'Dining') {return 'food';}
+  if (merchant === 'Grocery') {return 'groceries';}
+  if (merchant === 'Transport' || merchant === 'Fuel') {return 'transport';}
+  if (merchant === 'Entertainment') {return 'entertainment';}
+  if (merchant === 'Healthcare' || merchant === 'Fitness') {return 'health';}
+  if (merchant === 'Online Shopping' || merchant === 'Retail Shopping' || merchant === 'Card Swipe') {return 'shopping';}
+  if (merchant === 'Rent') {return 'housing';}
+  if (merchant === 'Salary') {return 'income';}
+  if (merchant === 'Investment') {return 'investment';}
+  if (merchant === 'Utility Bill' || merchant === 'Mobile Recharge') {return 'utilities';}
+  if (merchant === 'Education') {return 'education';}
+  if (merchant === 'Insurance') {return 'insurance';}
+  if (merchant === 'Bank Transfer') {return 'transfer';}
+  if (merchant === 'EMI Payment') {return 'financial';}
+  if (merchant === 'Pet Care') {return 'pets';}
+  if (merchant === 'Travel & Hotel') {return 'travel';}
 
-  if (lowAmount) return 'miscellaneous';
-  if (mediumAmount) return 'shopping';
-  if (highAmount) return 'utilities';
+  if (lowAmount) {return 'miscellaneous';}
+  if (mediumAmount) {return 'shopping';}
+  if (highAmount) {return 'utilities';}
   return 'transfer';
 }

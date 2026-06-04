@@ -10,7 +10,7 @@ export function useApi<T>(endpoint: string, deps: any[] = []) {
   const [error, setError] = useState<string | null>(null);
 
   const fetch = useCallback(async () => {
-    if (accessToken) setAccessToken(accessToken);
+    if (accessToken) {setAccessToken(accessToken);}
     setLoading(true);
     setError(null);
     try {
@@ -50,7 +50,7 @@ export function useAppState() {
 export function useEffectOnce(cb: () => void | (() => void)) {
   const ran = useRef(false);
   useEffect(() => {
-    if (ran.current) return;
+    if (ran.current) {return;}
     ran.current = true;
     return cb();
   }, []);
@@ -60,7 +60,7 @@ export function useInterval(cb: () => void, ms: number | null) {
   const saved = useRef(cb);
   useEffect(() => { saved.current = cb; }, [cb]);
   useEffect(() => {
-    if (ms === null) return;
+    if (ms === null) {return;}
     const id = setInterval(() => saved.current(), ms);
     return () => clearInterval(id);
   }, [ms]);

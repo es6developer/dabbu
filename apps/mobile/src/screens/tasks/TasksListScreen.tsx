@@ -14,7 +14,7 @@ export function TasksListScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    if (accessToken) setAccessToken(accessToken);
+    if (accessToken) {setAccessToken(accessToken);}
     loadData();
   }, [accessToken]);
 
@@ -38,7 +38,7 @@ export function TasksListScreen() {
 
   async function handleToggleComplete(taskId: string, completed: boolean) {
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {setAccessToken(accessToken);}
       await api.patch(`/family/tasks/${taskId}`, { completed: !completed });
       setTasks((prev) => prev.map((t) => t.id === taskId ? { ...t, completed: !completed } : t));
     } catch (e: any) {

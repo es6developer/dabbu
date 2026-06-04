@@ -27,9 +27,9 @@ function moneyFormat(v: number | string | undefined | null): string {
 }
 
 function listFromResponse(res: any): any[] {
-  if (!res) return [];
-  if (Array.isArray(res)) return res;
-  if (res.items) return Array.isArray(res.items) ? res.items : [];
+  if (!res) {return [];}
+  if (Array.isArray(res)) {return res;}
+  if (res.items) {return Array.isArray(res.items) ? res.items : [];}
   return [];
 }
 
@@ -46,7 +46,7 @@ export function SharedScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = useCallback(async () => {
-    if (accessToken) setAccessToken(accessToken);
+    if (accessToken) {setAccessToken(accessToken);}
     try {
       const [sharedRes, expenseRes] = await Promise.allSettled([
         api.get<any>('/shared-finance/groups'),

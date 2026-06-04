@@ -16,7 +16,7 @@ export function FamilyDashboardScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (accessToken) setAccessToken(accessToken);
+    if (accessToken) {setAccessToken(accessToken);}
     loadFamilies();
   }, [accessToken]);
 
@@ -28,11 +28,11 @@ export function FamilyDashboardScreen() {
     finally { setLoading(false); }
   }
 
-  if (loading) return (
+  if (loading) {return (
     <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}>
       <ActivityIndicator color={colors.accent.primary} size="large" />
     </View>
-  );
+  );}
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>

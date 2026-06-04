@@ -51,14 +51,14 @@ export function SharedCirclesScreen() {
     abortRef.current?.abort();
     const ctrl = new AbortController();
     abortRef.current = ctrl;
-    if (refresh) setRefreshing(true); else setLoading(true);
+    if (refresh) {setRefreshing(true);} else {setLoading(true);}
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {setAccessToken(accessToken);}
       const [grpResult, txResult] = await Promise.allSettled([
         api.get<any>('/expense-groups', ctrl.signal),
         api.get<any>('/transactions', ctrl.signal),
       ]);
-      if (ctrl.signal.aborted) return;
+      if (ctrl.signal.aborted) {return;}
       const g = grpResult.status === 'fulfilled' ? (Array.isArray(grpResult.value) ? grpResult.value : []) : [];
       const txData = txResult.status === 'fulfilled' ? (Array.isArray(txResult.value) ? txResult.value : []) : [];
       setGroups(g);
@@ -76,11 +76,11 @@ export function SharedCirclesScreen() {
     const map: Record<string, { total: number; count: number; latest: any }> = {};
     for (const tx of transactions) {
       const gid = tx.expenseGroupId;
-      if (!gid) continue;
-      if (!map[gid]) map[gid] = { total: 0, count: 0, latest: null };
+      if (!gid) {continue;}
+      if (!map[gid]) {map[gid] = { total: 0, count: 0, latest: null };}
       map[gid].total += Number(tx.amount);
       map[gid].count += 1;
-      if (!map[gid].latest || new Date(tx.date) > new Date(map[gid].latest.date)) map[gid].latest = tx;
+      if (!map[gid].latest || new Date(tx.date) > new Date(map[gid].latest.date)) {map[gid].latest = tx;}
     }
     return map;
   }, [transactions]);
@@ -88,8 +88,8 @@ export function SharedCirclesScreen() {
   const filtered = useMemo(() => {
     let list = [...groups];
     if (search.trim()) { const q = search.toLowerCase(); list = list.filter(g => g.name?.toLowerCase().includes(q)); }
-    if (sortBy === 'recent') list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    else if (sortBy === 'active') list.sort((a, b) => (groupExpenses[b.id]?.count || 0) - (groupExpenses[a.id]?.count || 0));
+    if (sortBy === 'recent') {list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());}
+    else if (sortBy === 'active') {list.sort((a, b) => (groupExpenses[b.id]?.count || 0) - (groupExpenses[a.id]?.count || 0));}
     return list;
   }, [groups, search, sortBy, groupExpenses]);
 
@@ -109,7 +109,7 @@ export function SharedCirclesScreen() {
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: async () => {
         try {
-          if (accessToken) setAccessToken(accessToken);
+          if (accessToken) {setAccessToken(accessToken);}
           await api.delete(`/expense-groups/${id}`);
           setGroups(p => p.filter(g => g.id !== id));
         } catch (e: any) { Alert.alert('Error', e.message); }

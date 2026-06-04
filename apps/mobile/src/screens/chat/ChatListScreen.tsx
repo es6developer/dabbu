@@ -15,7 +15,7 @@ export function ChatListScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    if (accessToken) setAccessToken(accessToken);
+    if (accessToken) {setAccessToken(accessToken);}
     loadChats();
   }, [accessToken]);
 
@@ -34,7 +34,7 @@ export function ChatListScreen() {
   }, []);
 
   function getChatTitle(chat: any): string {
-    if (chat.title) return chat.title;
+    if (chat.title) {return chat.title;}
     if (chat.type === 'direct') {
       const other = chat.participants?.find((p: any) => p.userId !== user?.id);
       const name = other ? `${other.user?.firstName || ''} ${other.user?.lastName || ''}`.trim() : '';
@@ -45,16 +45,16 @@ export function ChatListScreen() {
 
   function getLastMessage(chat: any): string {
     const lastMsg = chat.messages?.[0];
-    if (!lastMsg) return 'No messages yet';
+    if (!lastMsg) {return 'No messages yet';}
     const prefix = lastMsg.senderId === user?.id ? 'You: ' : '';
     return `${prefix}${lastMsg.content || ''}`;
   }
 
-  if (loading) return (
+  if (loading) {return (
     <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}>
       <ActivityIndicator color={colors.accent.primary} size="large" />
     </View>
-  );
+  );}
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
