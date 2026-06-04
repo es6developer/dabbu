@@ -4,13 +4,15 @@ import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import { api, setAccessToken } from './api';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
+try {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    }),
+  });
+} catch (_e) { void _e; }
 
 let deviceId: string | null = null;
 

@@ -20,6 +20,8 @@ export function RootNavigator(): React.ReactElement | null {
       SecureStore.getItemAsync('appLockEnabled'),
     ]).then(([pin, enabled]) => {
       setPhase(pin && enabled === 'true' ? 'lock' : 'app');
+    }).catch(() => {
+      setPhase('app');
     });
   }, [isAuthenticated, isLoading, isLocked]);
 

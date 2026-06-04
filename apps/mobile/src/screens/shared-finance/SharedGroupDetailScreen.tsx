@@ -28,6 +28,18 @@ import { EmptyState } from './components/EmptyState';
 
 const TABS = ['overview', 'expenses', 'balances', 'members', 'activity'] as const;
 
+const TYPE_THEMES: Record<string, { gradient: [string, string]; chipColor: string; icon: string }> = {
+  friends: { gradient: ['#4F6EF7', '#7C8FF8'], chipColor: '#4F6EF7', icon: 'people' },
+  trip: { gradient: ['#00B894', '#00D9A6'], chipColor: '#00B894', icon: 'airplane' },
+  family: { gradient: ['#E85D04', '#FF8A3C'], chipColor: '#E85D04', icon: 'home' },
+  couple: { gradient: ['#FF6B9D', '#FF8FB3'], chipColor: '#FF6B9D', icon: 'heart' },
+  roommates: { gradient: ['#6C5CE7', '#A29BFE'], chipColor: '#6C5CE7', icon: 'business' },
+  office: { gradient: ['#247BA0', '#4A9FC7'], chipColor: '#247BA0', icon: 'briefcase' },
+  event: { gradient: ['#D64550', '#FF6B6B'], chipColor: '#D64550', icon: 'calendar' },
+  apartment: { gradient: ['#8A5CF6', '#B794F4'], chipColor: '#8A5CF6', icon: 'building' },
+  default: { gradient: ['#4F6EF7', '#7C8FF8'], chipColor: '#4F6EF7', icon: 'people' },
+};
+
 function fmt(v: number) {
   return '₹' + Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 }
@@ -139,24 +151,8 @@ export function SharedGroupDetailScreen() {
 
   const members: any[] = Array.isArray(group?.members) ? group.members : [];
   const type = group?.type || 'default';
-  const typeIcon =
-    type === 'friends'
-      ? 'people'
-      : type === 'trip'
-        ? 'airplane'
-        : type === 'family'
-          ? 'home'
-          : type === 'couple'
-            ? 'heart'
-            : type === 'roommates'
-              ? 'business'
-              : type === 'office'
-                ? 'briefcase'
-                : type === 'event'
-                  ? 'calendar'
-                  : type === 'apartment'
-                    ? 'building'
-                    : 'people';
+  const theme = TYPE_THEMES[type] || TYPE_THEMES.default;
+  const typeIcon = theme.icon;
   const name = group?.name || routeGroupName || 'Group';
   const currentMember = members.find((m: any) => m.userId === currentUser?.id);
   const isAdmin = currentMember?.role === 'admin' || group?.createdBy === currentUser?.id;
@@ -252,7 +248,7 @@ export function SharedGroupDetailScreen() {
     const expenseActivity = expenses.slice(0, 20).map((tx) => ({
       id: tx.id,
       title: 'Expense added',
-      detail: `${tx.description || tx.category || 'Expense'} · ${fmt(Number(tx.amount || 0))}`,
+      detail: `${tx.description || tx.category?.name || tx.category || 'Expense'} · ${fmt(Number(tx.amount || 0))}`,
       date: tx.createdAt || tx.date,
       icon: 'receipt-outline' as const,
       type: 'expense' as const,
@@ -1036,8 +1032,8 @@ export function SharedGroupDetailScreen() {
               >
                 <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
               </TouchableOpacity>
-              <LinearGradient colors={[...colors.accent.gradient]} style={s.avatar}>
-                <Ionicons name={typeIcon as any} size={24} color="#FFF" />
+              <LinearGradient colors={theme.gradient} style={s.avatar}>
+                <Ionicons name={theme.icon as any} size={24} color="#FFF" />
               </LinearGradient>
               <View style={{ flex: 1 }}>
                 <Text style={[s.groupName, { color: colors.text.primary }]} numberOfLines={1}>
@@ -1047,8 +1043,8 @@ export function SharedGroupDetailScreen() {
                   <Text style={[s.groupMeta, { color: colors.text.tertiary }]}>
                     {members.length} member{members.length !== 1 ? 's' : ''}
                   </Text>
-                  <View style={[s.typeBadge, { backgroundColor: `${colors.accent.primary}20` }]}>
-                    <Text style={[s.typeBadgeText, { color: colors.accent.primary }]}>
+                  <View style={[s.typeBadge, { backgroundColor: `${theme.chipColor}20` }]}>
+                    <Text style={[s.typeBadgeText, { color: theme.chipColor }]}>
                       {type.charAt(0).toUpperCase() + type.slice(1)}
                     </Text>
                   </View>

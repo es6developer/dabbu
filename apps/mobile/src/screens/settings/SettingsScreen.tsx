@@ -43,7 +43,6 @@ const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
     title: 'Preferences',
     items: [
       { label: 'Theme', icon: 'color-palette', screen: 'Theme' },
-      { label: 'Currency', icon: 'cash', screen: 'Currency' },
       { label: 'Notifications', icon: 'notifications', screen: 'NotificationSettings' },
       { label: 'Customise Dashboard', icon: 'apps', screen: 'CustomiseDashboard' },
       { label: 'Customise Bottom Menu', icon: 'menu', screen: 'CustomiseBottomMenu' },
@@ -67,7 +66,6 @@ const ROW_ICON_MAP: Record<string, { gradient: [string, string]; icon: IconName 
   'Reports & Analytics': { gradient: ['#8B5CF6', '#6D28D9'], icon: 'stats-chart' },
   Notifications: { gradient: ['#6366F1', '#8B5CF6'], icon: 'notifications' },
   Theme: { gradient: ['#EC4899', '#DB2777'], icon: 'color-palette' },
-  Currency: { gradient: ['#06B6D4', '#0891B2'], icon: 'cash' },
   'Customise Dashboard': { gradient: ['#4F6EF7', '#6C5CE7'], icon: 'apps' },
   'Customise Bottom Menu': { gradient: ['#00B894', '#00A86B'], icon: 'menu' },
   'Help Center': { gradient: ['#6366F1', '#4F46E5'], icon: 'help-circle' },
@@ -109,7 +107,6 @@ export function SettingsScreen() {
       'Security',
       'Premium',
       'Theme',
-      'Currency',
       'CustomiseDashboard',
       'CustomiseBottomMenu',
       'Help',

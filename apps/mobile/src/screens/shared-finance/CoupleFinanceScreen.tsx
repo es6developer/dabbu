@@ -71,7 +71,7 @@ export function CoupleFinanceScreen() {
     }, [loadData]),
   );
 
-  async function sendInvite() {
+  async function addPartner() {
     if (!partnerEmail.trim()) {
       Alert.alert('Email required', "Enter your partner's email");
       return;
@@ -79,15 +79,31 @@ export function CoupleFinanceScreen() {
     setSendingInvite(true);
     try {
       if (accessToken) {setAccessToken(accessToken);}
-      await api.post('/shared-finance/couple/invite', { receiverEmail: partnerEmail.trim() });
-      Alert.alert('Invite Sent', `Invitation sent to ${partnerEmail.trim()}`);
+      await api.post(`/shared-finance/groups/${groupId}/members`, { email: partnerEmail.trim() });
+      Alert.alert('Partner Added', `${partnerEmail.trim()} has been added to this group`);
       setPartnerEmail('');
+      loadData(true);
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to send invite');
+      Alert.alert('Error', e.message || 'Failed to add partner');
     } finally {
       setSendingInvite(false);
     }
   }
+
+  const TYPE_GRADIENTS: Record<string, [string, string]> = {
+    couple: ['#FF6B9D', '#c44a7c'],
+    family: ['#2D6A4F', '#1B4332'],
+    friends: ['#4F6EF7', '#7C8FF8'],
+    trip: ['#00B894', '#00D9A6'],
+    roommates: ['#6C5CE7', '#A29BFE'],
+    office: ['#247BA0', '#4A9FC7'],
+    event: ['#D64550', '#FF6B6B'],
+    apartment: ['#8A5CF6', '#B794F4'],
+  };
+
+  const group = data?.group || {};
+  const gType = group?.type || 'couple';
+  const themeGradient = TYPE_GRADIENTS[gType] || TYPE_GRADIENTS.couple;
 
   if (loading) {
     return (
@@ -116,21 +132,21 @@ export function CoupleFinanceScreen() {
           <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
         </TouchableOpacity>
 
-        <LinearGradient colors={['#FF6B9D', '#c44a7c']} style={s.heroEmpty}>
+        <LinearGradient colors={themeGradient} style={s.heroEmpty}>
           <View style={s.heartIconWrap}>
             <Ionicons name="heart-circle" size={64} color="#FFF" />
           </View>
-          <Text style={s.heroTitle}>Couple Finance</Text>
-          <Text style={s.heroSub}>Track shared expenses, savings, and goals together</Text>
+          <Text style={s.heroTitle}>Connect with your Partner</Text>
+          <Text style={s.heroSub}>Add your partner by email to start sharing finances</Text>
         </LinearGradient>
 
         <View style={[s.inviteCard, { backgroundColor: colors.bg.secondary }]}>
-          <Ionicons name="link-outline" size={24} color={colors.accent.primary} />
+          <Ionicons name="person-add-outline" size={24} color={colors.accent.primary} />
           <Text style={[s.inviteTitle, { color: colors.text.primary }]}>
-            Connect with your Partner
+            Add your Partner
           </Text>
           <Text style={[s.inviteDesc, { color: colors.text.tertiary }]}>
-            Send an invite to your partner to start sharing finances
+            Enter your partner's email to add them to this space immediately
           </Text>
           <View
             style={[
@@ -149,23 +165,16 @@ export function CoupleFinanceScreen() {
             />
             <TouchableOpacity
               style={[s.sendBtn, { backgroundColor: colors.accent.primary }]}
-              onPress={sendInvite}
+              onPress={addPartner}
               disabled={sendingInvite}
             >
               {sendingInvite ? (
                 <ActivityIndicator size="small" color="#FFF" />
               ) : (
-                <Text style={s.sendBtnText}>Send</Text>
+                <Text style={s.sendBtnText}>Add</Text>
               )}
             </TouchableOpacity>
           </View>
-        </View>
-
-        <View style={[s.infoCard, { backgroundColor: colors.bg.tertiary }]}>
-          <Ionicons name="shield-checkmark-outline" size={20} color={colors.status.info} />
-          <Text style={[s.infoText, { color: colors.text.tertiary }]}>
-            Your data is encrypted and private. Only you and your partner can see this information.
-          </Text>
         </View>
       </ScrollView>
     );
@@ -178,8 +187,6 @@ export function CoupleFinanceScreen() {
   const partner2Name = partner2?.firstName || partner2?.email || 'Partner';
   const ratio = profile.splitRatio || '50:50';
   const monthlySpent = data.sharedBudget?.spent || 0;
-  const monthlyBudget = data.sharedBudget?.budget || 0;
-  const budgetUsed = monthlyBudget > 0 ? (monthlySpent / monthlyBudget) * 100 : 0;
   const savingsGoal = data.savingsProgress?.goal || 0;
   const savingsSaved = data.savingsProgress?.saved || 0;
   const savingsPct = data.savingsProgress?.percentage || 0;
@@ -210,7 +217,7 @@ export function CoupleFinanceScreen() {
         </TouchableOpacity>
       </View>
 
-      <LinearGradient colors={['#FF6B9D', '#c44a7c']} style={s.heroSection}>
+      <LinearGradient colors={themeGradient} style={s.heroSection}>
         <View style={s.heroPartners}>
           <View style={s.partnerAvatar}>
             <Text style={s.partnerInit}>{partner1Name[0]?.toUpperCase() || '?'}</Text>
@@ -223,12 +230,6 @@ export function CoupleFinanceScreen() {
         <Text style={s.heroRatio}>{ratio}</Text>
         <Text style={s.heroRatioLabel}>Contribution Ratio</Text>
 
-        <View style={s.budgetBarOuter}>
-          <View style={[s.budgetBarFill, { width: `${Math.min(budgetUsed, 100)}%` }]} />
-        </View>
-        <Text style={s.budgetBarLabel}>
-          Shared Budget: {fmt(monthlySpent)} / {fmt(monthlyBudget)}
-        </Text>
       </LinearGradient>
 
       {insights.length > 0 && (
@@ -468,16 +469,7 @@ const s = StyleSheet.create({
   },
   partnerInit: { color: '#FFF', fontSize: 20, fontWeight: '700' },
   heroRatio: { fontSize: 32, fontWeight: '800', color: '#FFF', letterSpacing: 2 },
-  heroRatioLabel: { fontSize: 13, color: 'rgba(255,255,255,0.7)', marginTop: 4, marginBottom: 16 },
-  budgetBarOuter: {
-    width: '100%',
-    height: 8,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  budgetBarFill: { height: '100%', backgroundColor: '#FFF', borderRadius: 4 },
-  budgetBarLabel: { fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 8 },
+  heroRatioLabel: { fontSize: 13, color: 'rgba(255,255,255,0.7)', marginTop: 4, marginBottom: 8 },
 
   insightsSection: { paddingHorizontal: 20, marginTop: 16, gap: 8 },
   insightCard: {

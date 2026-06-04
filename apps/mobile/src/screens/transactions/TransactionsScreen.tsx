@@ -123,11 +123,11 @@ export function TransactionsScreen() {
         </View>
         <View style={{ flex: 1 }}>
           <Text style={[styles.txName, { color: colors.text.primary }]} numberOfLines={1}>
-            {item.description || item.category || 'Transaction'}
+            {item.description || item.category?.name || item.category || 'Transaction'}
           </Text>
           <Text style={[styles.txDate, { color: colors.text.tertiary }]}>
             {fmtDate(item.date || item.createdAt)}
-            {item.category ? ` · ${item.category}` : ''}
+            {item.category ? ` · ${item.category?.name || item.category}` : ''}
           </Text>
         </View>
         <Text style={[styles.txAmount, { color: isIncome ? '#00B894' : colors.text.primary }]}>

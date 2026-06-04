@@ -18,6 +18,7 @@ import { useTheme } from '../../theme';
 import { PageContainer } from '../../components/ui/PageContainer';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 
+
 const GROUP_TYPES = [
   'Friends',
   'Trip',
@@ -48,8 +49,6 @@ const ICON_OPTIONS = [
   { name: 'musical-notes', icon: 'musical-notes' },
 ];
 
-const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD'];
-
 export function CreateSharedGroupScreen() {
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
@@ -58,15 +57,15 @@ export function CreateSharedGroupScreen() {
   const [name, setName] = useState('');
   const [type, setType] = useState('Friends');
   const [description, setDescription] = useState('');
-  const [currency, setCurrency] = useState('INR');
   const [icon, setIcon] = useState('people');
-  const [monthlyBudget, setMonthlyBudget] = useState('');
+  const [partnerEmail, setPartnerEmail] = useState('');
   const [upiId, setUpiId] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   const upiTypes = ['Friends', 'Trip', 'Roommates', 'Event'];
   const showUpiInput = upiTypes.includes(type);
+  const showPartnerInput = type === 'Couple';
 
   async function handleCreate() {
     if (!name.trim()) {
@@ -83,16 +82,16 @@ export function CreateSharedGroupScreen() {
         name: name.trim(),
         type: type.toLowerCase(),
         icon,
-        currency,
+        currency: 'INR',
       };
       if (description.trim()) {
         payload.description = description.trim();
       }
-      if (monthlyBudget.trim()) {
-        payload.monthlyBudget = Number(monthlyBudget);
-      }
       const res = await api.post<any>('/shared-finance/groups', payload);
       const newGroupId = res?.id || res?._id;
+      if (type === 'Couple' && partnerEmail.trim() && newGroupId) {
+        await api.post(`/shared-finance/groups/${newGroupId}/members`, { email: partnerEmail.trim() }).catch(() => {});
+      }
       if (newGroupId) {
         navigation.replace('SharedGroupDetail', {
           groupId: newGroupId,
@@ -207,34 +206,27 @@ export function CreateSharedGroupScreen() {
             multiline
           />
 
-          <Text style={[s.label, { color: colors.text.tertiary }]}>Currency</Text>
-          <View style={s.currencyRow}>
-            {CURRENCIES.map((c) => (
-              <TouchableOpacity
-                key={c}
+          {showPartnerInput && (
+            <>
+              <Text style={[s.label, { color: colors.text.tertiary }]}>Partner Email</Text>
+              <TextInput
                 style={[
-                  s.currencyChip,
-                  { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-                  currency === c && {
-                    backgroundColor: `${colors.accent.primary}20`,
-                    borderColor: colors.accent.primary,
+                  s.input,
+                  {
+                    backgroundColor: colors.bg.tertiary,
+                    color: colors.text.primary,
+                    borderColor: colors.border.subtle,
                   },
                 ]}
-                onPress={() => setCurrency(c)}
-              >
-                <Text
-                  style={[
-                    s.currencyText,
-                    {
-                      color: currency === c ? colors.accent.primary : colors.text.secondary,
-                    },
-                  ]}
-                >
-                  {c}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+                value={partnerEmail}
+                onChangeText={setPartnerEmail}
+                placeholder="partner@email.com"
+                placeholderTextColor={colors.text.tertiary}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </>
+          )}
 
           <Text style={[s.label, { color: colors.text.tertiary }]}>Icon</Text>
           <View style={s.iconGrid}>
@@ -258,36 +250,6 @@ export function CreateSharedGroupScreen() {
                 />
               </TouchableOpacity>
             ))}
-          </View>
-
-          <Text style={[s.label, { color: colors.text.tertiary }]}>Monthly Budget (optional)</Text>
-          <View
-            style={[
-              s.inputRow,
-              { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-            ]}
-          >
-            <Text style={[s.currencyPrefix, { color: colors.text.tertiary }]}>
-              {currency === 'INR'
-                ? '₹'
-                : currency === 'USD'
-                  ? '$'
-                  : currency === 'EUR'
-                    ? '€'
-                    : currency === 'GBP'
-                      ? '£'
-                      : currency === 'AED'
-                        ? 'د.إ'
-                        : '$'}
-            </Text>
-            <TextInput
-              style={[s.inputFlex, { color: colors.text.primary }]}
-              value={monthlyBudget}
-              onChangeText={setMonthlyBudget}
-              placeholder="0"
-              placeholderTextColor={colors.text.tertiary}
-              keyboardType="decimal-pad"
-            />
           </View>
 
           {showUpiInput && (
@@ -393,16 +355,6 @@ const s = StyleSheet.create({
     borderWidth: 1,
     marginHorizontal: 24,
   },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 14,
-    borderWidth: 1,
-    marginHorizontal: 24,
-    paddingHorizontal: 16,
-  },
-  currencyPrefix: { fontSize: 18, fontWeight: '700', marginRight: 8 },
-  inputFlex: { flex: 1, fontSize: 16, paddingVertical: 14 },
   typeRow: { paddingHorizontal: 24, gap: 8, paddingBottom: 4 },
   typeChip: {
     paddingHorizontal: 18,
@@ -412,19 +364,6 @@ const s = StyleSheet.create({
     marginRight: 8,
   },
   typeChipText: { fontSize: 14, fontWeight: '600' },
-  currencyRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    paddingHorizontal: 24,
-  },
-  currencyChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  currencyText: { fontSize: 14, fontWeight: '600' },
   iconGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',

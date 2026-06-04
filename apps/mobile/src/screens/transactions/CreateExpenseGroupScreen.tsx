@@ -17,8 +17,6 @@ import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import {
   PremiumActionButton,
-  PremiumAmountInput,
-  PremiumChip,
   PremiumError,
   PremiumFormScreen,
   PremiumInput,
@@ -41,7 +39,7 @@ const ICONS = [
   'car',
   'fitness',
 ];
-const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD'];
+
 
 export function CreateExpenseGroupScreen() {
   const navigation = useNavigation<any>();
@@ -51,8 +49,6 @@ export function CreateExpenseGroupScreen() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [icon, setIcon] = useState('people');
-  const [currency, setCurrency] = useState('INR');
-  const [monthlyBudget, setMonthlyBudget] = useState('');
   const [memberEmails, setMemberEmails] = useState<string[]>(['']);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -96,12 +92,9 @@ export function CreateExpenseGroupScreen() {
       setAccessToken(accessToken);
     }
     try {
-      const payload: any = { name: name.trim(), icon, currency };
+      const payload: any = { name: name.trim(), icon, currency: 'INR' };
       if (description.trim()) {
         payload.description = description.trim();
-      }
-      if (monthlyBudget.trim()) {
-        payload.monthlyBudget = Number(monthlyBudget);
       }
       if (validEmails.length > 0) {
         payload.memberEmails = validEmails;
@@ -175,38 +168,6 @@ export function CreateExpenseGroupScreen() {
           </TouchableOpacity>
         ))}
       </View>
-
-      <Text style={[styles.label, { color: colors.text.tertiary }]}>Currency</Text>
-      <View style={premiumFormStyles.rowWrap}>
-        {CURRENCIES.map((c) => (
-          <PremiumChip
-            key={c}
-            label={c}
-            selected={currency === c}
-            onPress={() => setCurrency(c)}
-          />
-        ))}
-      </View>
-
-      <PremiumAmountInput
-        label="Monthly budget"
-        symbol={
-          currency === 'INR'
-            ? '₹'
-            : currency === 'USD'
-              ? '$'
-              : currency === 'EUR'
-                ? '€'
-                : currency === 'GBP'
-                  ? '£'
-                  : currency === 'AED'
-                    ? 'د.إ'
-                    : '$'
-        }
-        value={monthlyBudget}
-        onChangeText={setMonthlyBudget}
-        placeholder="0"
-      />
 
       <View style={styles.memberSection}>
         <Text style={[styles.label, { color: colors.text.tertiary }]}>

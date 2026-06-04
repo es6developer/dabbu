@@ -835,7 +835,7 @@ export function HomeScreen() {
                       style={[styles.activityName, { color: colors.text.primary }]}
                       numberOfLines={1}
                     >
-                      {tx.description || tx.category || 'Transaction'}
+                      {tx.description || tx.category?.name || tx.category || 'Transaction'}
                     </Text>
                     <Text style={[styles.activityDate, { color: colors.text.tertiary }]}>
                       {fmtDate(tx.date || tx.createdAt)}

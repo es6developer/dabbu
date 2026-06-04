@@ -82,8 +82,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function loadStoredAuth() {
     try {
       const storage = getStorage();
-      const token = await storage.getItem('accessToken');
-      const userData = await storage.getItem('userData');
+      const timeout = (ms: number) => new Promise<null>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms));
+      const token = await Promise.race([storage.getItem('accessToken'), timeout(5000)]) as string | null;
+      const userData = await Promise.race([storage.getItem('userData'), timeout(5000)]) as string | null;
 
       if (token && userData) {
         const parsedUser = JSON.parse(userData);
@@ -123,11 +124,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function login(email: string, password: string) {
-    const res = await fetch(`${API_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    let res: Response;
+    try {
+      res = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+        signal: controller.signal,
+      });
+    } catch (_e) {
+      clearTimeout(timeout);
+      throw new Error('Connection timed out. Please check your internet connection and try again.');
+    }
+    clearTimeout(timeout);
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -158,11 +169,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function register(email: string, password: string, firstName: string, lastName: string) {
-    const res = await fetch(`${API_URL}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, firstName, lastName }),
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    let res: Response;
+    try {
+      res = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, firstName, lastName }),
+        signal: controller.signal,
+      });
+    } catch (_e) {
+      clearTimeout(timeout);
+      throw new Error('Connection timed out. Please check your internet connection and try again.');
+    }
+    clearTimeout(timeout);
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));

@@ -78,7 +78,7 @@ function ItemRow({ name, price, colors }: { name: string; price?: number; colors
       </View>
       <View style={styles.itemInfo}>
         <Text style={[styles.itemName, { color: colors.text.primary }]}>{name}</Text>
-        {price !== null ? <Text style={[styles.itemSubtitle, { color: colors.text.tertiary }]}>{formatCurrency(price)}</Text> : null}
+        {price !== undefined ? <Text style={[styles.itemSubtitle, { color: colors.text.tertiary }]}>{formatCurrency(price)}</Text> : null}
       </View>
     </View>
   );

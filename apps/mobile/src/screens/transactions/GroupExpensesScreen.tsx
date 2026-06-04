@@ -103,7 +103,7 @@ export function GroupExpensesScreen() {
   const [savingGroup, setSavingGroup] = useState(false);
   const [editName, setEditName] = useState('');
   const [editDescription, setEditDescription] = useState('');
-  const [editBudget, setEditBudget] = useState('');
+
   const [inviteEmail, setInviteEmail] = useState('');
   const [editIcon, setEditIcon] = useState('users');
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -146,7 +146,7 @@ export function GroupExpensesScreen() {
           if (gData) {
             setEditName(gData.name || '');
             setEditDescription(gData.description || '');
-            setEditBudget(gData.monthlyBudget ? String(gData.monthlyBudget) : '');
+
             setEditIcon(gData.icon || 'users');
           }
         } else {
@@ -247,22 +247,14 @@ export function GroupExpensesScreen() {
       const d = new Date(t.date || t.createdAt);
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     });
-    const te = transactions
-      .filter((t) => t.type === 'expense')
-      .reduce((s, t) => s + Number(t.amount || 0), 0);
-    const ti = transactions
-      .filter((t) => t.type === 'income')
-      .reduce((s, t) => s + Number(t.amount || 0), 0);
     const ms = monthly
       .filter((t) => t.type === 'expense')
       .reduce((s, t) => s + Number(t.amount || 0), 0);
-    const budget = Number(group?.monthlyBudget || 0);
     return {
-      totalExpense: te,
-      totalIncome: ti,
+      totalExpense: ms,
+      totalCount: monthly.filter((t) => t.type === 'expense').length,
       monthlySpending: ms,
-      budgetRemaining: budget > 0 ? budget - ms : null,
-      totalCount: transactions.length,
+      monthlyAverage: (transactions.length > 0 ? transactions.reduce((s, t) => s + Number(t.amount || 0), 0) / transactions.length : 0) * 30,
     };
   }, [transactions, group]);
 
@@ -277,7 +269,7 @@ export function GroupExpensesScreen() {
         name: editName.trim(),
         description: editDescription.trim(),
         icon: editIcon,
-        monthlyBudget: editBudget.trim() ? Number(editBudget) : null,
+
       });
       await loadData(true);
       setSettingsOpen(false);
@@ -507,22 +499,6 @@ export function GroupExpensesScreen() {
                 <Text style={s.statLabel}>Monthly</Text>
                 <Text style={s.statVal}>{fmt(stats.monthlySpending)}</Text>
               </LinearGradient>
-              {stats.budgetRemaining !== null && (
-                <LinearGradient colors={[colors.bg.secondary, colors.bg.tertiary]} style={s.statCard}>
-                  <Text style={s.statLabel}>Budget Left</Text>
-                  <Text
-                    style={[
-                      s.statVal,
-                      {
-                        color:
-                          stats.budgetRemaining >= 0 ? colors.status.success : colors.status.error,
-                      },
-                    ]}
-                  >
-                    {fmt(Math.abs(stats.budgetRemaining))}
-                  </Text>
-                </LinearGradient>
-              )}
             </View>
 
             {members.length > 0 && (
@@ -684,24 +660,6 @@ export function GroupExpensesScreen() {
                     },
                   ]}
                   placeholder="Trip, home, office..."
-                  placeholderTextColor={colors.text.tertiary}
-                />
-                <Text style={[s.inputLabel, { color: colors.text.tertiary }]}>Monthly Budget</Text>
-                <TextInput
-                  value={editBudget}
-                  onChangeText={setEditBudget}
-                  editable={isAdmin}
-                  keyboardType="decimal-pad"
-                  style={[
-                    s.input,
-                    {
-                      backgroundColor: isAdmin ? colors.bg.tertiary : colors.bg.secondary,
-                      color: colors.text.primary,
-                      borderColor: colors.border.subtle,
-                      opacity: isAdmin ? 1 : 0.6,
-                    },
-                  ]}
-                  placeholder="0"
                   placeholderTextColor={colors.text.tertiary}
                 />
                 <TouchableOpacity
@@ -889,9 +847,7 @@ export function GroupExpensesScreen() {
 
                 {section.groups.map((item) => {
                   const ed = groupExpenses[item.id] || { total: 0, count: 0, latest: null };
-                  const budgetLeft = item.monthlyBudget
-                    ? item.monthlyBudget - ed.total
-                    : null;
+
                   return (
                     <View key={item.id} style={s.cardWrap}>
                       <TouchableOpacity
@@ -1002,36 +958,6 @@ export function GroupExpensesScreen() {
                               </Text>
                             </View>
                           </View>
-
-                          {budgetLeft !== null && (
-                            <View
-                              style={[
-                                s.budgetRow,
-                                {
-                                  backgroundColor: isDark
-                                    ? 'rgba(255,255,255,0.04)'
-                                    : 'rgba(0,0,0,0.03)',
-                                },
-                              ]}
-                            >
-                              <Text style={[s.budgetLabel, { color: colors.text.tertiary }]}>
-                                Budget Left
-                              </Text>
-                              <Text
-                                style={[
-                                  s.budgetVal,
-                                  {
-                                    color:
-                                      budgetLeft >= 0
-                                        ? colors.status.success
-                                        : colors.status.error,
-                                  },
-                                ]}
-                              >
-                                {fmt(Math.abs(budgetLeft))}
-                              </Text>
-                            </View>
-                          )}
 
                           {ed.latest && (
                             <>

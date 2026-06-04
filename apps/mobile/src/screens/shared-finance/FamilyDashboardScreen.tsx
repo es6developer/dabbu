@@ -122,8 +122,6 @@ export function FamilyDashboardScreen() {
   const upcomingBills = data?.upcomingBills || [];
   const categoryBreakdown = data?.categoryBreakdown || [];
   const totalMonthlySpending = summary.monthlySpending || 0;
-  const monthlyBudget = summary.monthlyBudget || 0;
-  const budgetUsed = monthlyBudget > 0 ? (totalMonthlySpending / monthlyBudget) * 100 : 0;
 
   return (
     <ScrollView
@@ -159,11 +157,8 @@ export function FamilyDashboardScreen() {
           <View style={s.heroMetaDot} />
           <Text style={s.heroMetaText}>{summary.totalExpenses || 0} expenses</Text>
         </View>
-        <View style={[s.budgetBarOuter, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-          <View style={[s.budgetBarFill, { width: `${Math.min(budgetUsed, 100)}%` }]} />
-        </View>
         <Text style={s.heroSub}>
-          Spent {fmt(totalMonthlySpending)} / {fmt(monthlyBudget)} this month
+          {fmt(totalMonthlySpending)} spent this month
         </Text>
       </LinearGradient>
 

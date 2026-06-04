@@ -45,8 +45,8 @@ export function FormField({
           style={[
             styles.input,
             { color: colors.text.primary },
-            prefix && styles.inputWithPrefix,
-            suffix && styles.inputWithSuffix,
+            prefix ? styles.inputWithPrefix : undefined,
+            suffix ? styles.inputWithSuffix : undefined,
           ]}
           {...inputProps}
         />

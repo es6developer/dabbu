@@ -28,7 +28,6 @@ import { PremiumScreen } from '../screens/premium/PremiumScreen';
 import { BillingHistoryScreen } from '../screens/premium/BillingHistoryScreen';
 import { ReferralScreen } from '../screens/referral/ReferralScreen';
 import { ThemeScreen } from '../screens/settings/ThemeScreen';
-import { CurrencyScreen } from '../screens/settings/CurrencyScreen';
 import { HelpCenterScreen } from '../screens/settings/HelpCenterScreen';
 import { ContactUsScreen } from '../screens/settings/ContactUsScreen';
 import { PrivacyPolicyScreen } from '../screens/settings/PrivacyPolicyScreen';
@@ -158,11 +157,6 @@ function SettingsNavigator() {
         options={{ headerShown: false }}
       />
       <SettingsStack.Screen name="Theme" component={ThemeScreen} options={{ title: 'Theme' }} />
-      <SettingsStack.Screen
-        name="Currency"
-        component={CurrencyScreen}
-        options={{ title: 'Currency' }}
-      />
       <SettingsStack.Screen
         name="Help"
         component={HelpCenterScreen}

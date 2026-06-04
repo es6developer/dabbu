@@ -1,11 +1,12 @@
 import { Platform, NativeModules, Linking, Alert, PermissionsAndroid } from 'react-native';
+import type { Permission } from 'react-native';
 import type { SmsMessage } from './sms-parser';
 
-function getReadSmsPermission() {
+function getReadSmsPermission(): Permission | undefined {
   try {
     return PermissionsAndroid.PERMISSIONS.READ_SMS;
   } catch (_e) {
-    return null;
+    return undefined;
   }
 }
 
@@ -51,13 +52,13 @@ export async function checkSmsPermission(): Promise<SmsPermissionStatus> {
   if (!isSmsModuleAvailable()) {return 'unavailable';}
 
   try {
-    const granted = await PermissionsAndroid.check(getReadSmsPermission());
+    const perm = getReadSmsPermission();
+    if (!perm) {return 'unavailable';}
+    const granted = await PermissionsAndroid.check(perm);
     if (granted) {return 'granted';}
 
     return 'denied';
-  } catch (_e) {
-    return 'unavailable';
-  }
+  } catch (_e) { void _e; return 'unavailable'; }
 }
 
 export async function requestSmsPermission(): Promise<SmsPermissionStatus> {
@@ -65,7 +66,9 @@ export async function requestSmsPermission(): Promise<SmsPermissionStatus> {
   if (!isSmsModuleAvailable()) {return 'unavailable';}
 
   try {
-    const result = await PermissionsAndroid.request(getReadSmsPermission(), {
+    const perm = getReadSmsPermission();
+    if (!perm) {return 'unavailable';}
+    const result = await PermissionsAndroid.request(perm, {
       title: 'SMS Permission',
       message: 'Dabbu needs SMS access to detect and record your financial transactions automatically.',
       buttonPositive: 'Allow',
