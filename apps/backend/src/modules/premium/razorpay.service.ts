@@ -1,21 +1,26 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import axios from 'axios';
-import * as crypto from 'crypto';
+import Razorpay from 'razorpay';
+import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class RazorpayService {
-  private readonly keyId: string;
-  private readonly keySecret: string;
+  private readonly razorpay: Razorpay;
   private readonly webhookSecret: string;
+  private readonly logger = new Logger(RazorpayService.name);
 
   constructor() {
-    this.keyId = process.env.RAZORPAY_KEY_ID || '';
-    this.keySecret = process.env.RAZORPAY_KEY_SECRET || '';
+    const keyId = process.env.RAZORPAY_KEY_ID || '';
+    const keySecret = process.env.RAZORPAY_KEY_SECRET || '';
     this.webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || '';
-  }
 
-  private authHeader(): string {
-    return `Basic ${Buffer.from(`${this.keyId}:${this.keySecret}`).toString('base64')}`;
+    if (!keyId || !keySecret) {
+      this.logger.error('RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET is not set!');
+    }
+
+    this.razorpay = new Razorpay({
+      key_id: keyId,
+      key_secret: keySecret,
+    });
   }
 
   async createPlan(params: {
@@ -26,31 +31,22 @@ export class RazorpayService {
     description?: string;
   }) {
     try {
-      const response = await axios.post(
-        'https://api.razorpay.com/v1/plans',
-        {
-          period: params.period,
-          interval: params.interval,
-          item: {
-            name: params.name,
-            description: params.description || params.name,
-            amount: params.amount,
-            currency: 'INR',
-          },
-          notes: { plan_code: params.name },
+      const plan: any = await this.razorpay.plans.create({
+        period: params.period as 'daily' | 'weekly' | 'monthly' | 'yearly',
+        interval: params.interval,
+        item: {
+          name: params.name,
+          description: params.description || params.name,
+          amount: params.amount,
+          currency: 'INR',
         },
-        {
-          headers: {
-            Authorization: this.authHeader(),
-            'Content-Type': 'application/json',
-          },
-        },
-      );
-      return response.data;
+        notes: { plan_code: params.name },
+      });
+      return plan as any;
     } catch (err: any) {
-      throw new InternalServerErrorException(
-        err.response?.data?.error?.description || 'Failed to create Razorpay plan',
-      );
+      const desc = err?.error?.description || err?.message || 'Failed to create Razorpay plan';
+      this.logger.error(`createPlan failed: ${desc}`, err?.stack);
+      throw new InternalServerErrorException(desc);
     }
   }
 
@@ -84,29 +80,19 @@ export class RazorpayService {
           },
         ];
       }
-      const response = await axios.post('https://api.razorpay.com/v1/subscriptions', body, {
-        headers: {
-          Authorization: this.authHeader(),
-          'Content-Type': 'application/json',
-        },
-      });
-      return response.data;
+      const subscription: any = await this.razorpay.subscriptions.create(body);
+      return subscription as any;
     } catch (err: any) {
-      throw new InternalServerErrorException(
-        err.response?.data?.error?.description || 'Failed to create Razorpay subscription',
-      );
+      const desc = err?.error?.description || err?.message || 'Failed to create Razorpay subscription';
+      this.logger.error(`createSubscription failed: ${desc}`, err?.stack);
+      throw new InternalServerErrorException(desc);
     }
   }
 
   async fetchSubscription(subscriptionId: string) {
     try {
-      const response = await axios.get(
-        `https://api.razorpay.com/v1/subscriptions/${subscriptionId}`,
-        {
-          headers: { Authorization: this.authHeader() },
-        },
-      );
-      return response.data;
+      const subscription: any = await this.razorpay.subscriptions.fetch(subscriptionId);
+      return subscription as any;
     } catch {
       return null;
     }
@@ -114,11 +100,11 @@ export class RazorpayService {
 
   verifyWebhookSignature(body: string, signature: string): boolean {
     if (!this.webhookSecret) {
+      this.logger.warn('Webhook secret not configured, skipping signature verification');
       return false;
     }
-    const expected = crypto.createHmac('sha256', this.webhookSecret).update(body).digest('hex');
     try {
-      return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+      return Razorpay.validateWebhookSignature(body, signature, this.webhookSecret);
     } catch {
       return false;
     }
