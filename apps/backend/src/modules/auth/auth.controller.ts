@@ -3,7 +3,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { RegisterDto, LoginDto, RefreshTokenDto, ForgotPasswordDto, ResetPasswordDto } from './dto/auth.dto';
+import { RegisterDto, LoginDto, RefreshTokenDto, ForgotPasswordDto, ResetPasswordDto, GoogleAuthDto } from './dto/auth.dto';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -46,6 +46,14 @@ export class AuthController {
   @ApiOperation({ summary: 'Reset password with token' })
   async resetPassword(@Body() dto: ResetPasswordDto) {
     const result = await this.authService.resetPassword(dto.token, dto.password);
+    return { data: result };
+  }
+
+  @Post('google')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Login or register with Google Sign-In' })
+  async googleAuth(@Body() dto: GoogleAuthDto) {
+    const result = await this.authService.googleAuth(dto);
     return { data: result };
   }
 

@@ -20,17 +20,16 @@ export function ProfileScreen() {
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
   const [phone, setPhone] = useState('');
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [saving, setSaving] = useState(false);
-  const [changingPassword, setChangingPassword] = useState(false);
   const [error, setError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
 
   async function handleSaveProfile() {
     if (!firstName.trim()) {
       setError('First name is required');
+      return;
+    }
+    if (!phone.trim()) {
+      setError('Phone number is required');
       return;
     }
     setError('');
@@ -39,50 +38,16 @@ export function ProfileScreen() {
       setAccessToken(accessToken);
     }
     try {
-      await api.patch('/auth/profile', {
+      await api.patch('/users/profile', {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        phone: phone.trim() || undefined,
+        phone: phone.trim(),
       });
       Alert.alert('Success', 'Profile updated successfully');
     } catch (e: any) {
       setError(e.message || 'Failed to update profile');
     } finally {
       setSaving(false);
-    }
-  }
-
-  async function handleChangePassword() {
-    if (!currentPassword) {
-      setPasswordError('Current password is required');
-      return;
-    }
-    if (!newPassword || newPassword.length < 6) {
-      setPasswordError('New password must be at least 6 characters');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setPasswordError('Passwords do not match');
-      return;
-    }
-    setPasswordError('');
-    setChangingPassword(true);
-    if (accessToken) {
-      setAccessToken(accessToken);
-    }
-    try {
-      await api.patch('/auth/profile', {
-        currentPassword,
-        newPassword,
-      });
-      Alert.alert('Success', 'Password changed successfully');
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-    } catch (e: any) {
-      setPasswordError(e.message || 'Failed to change password');
-    } finally {
-      setChangingPassword(false);
     }
   }
 
@@ -188,7 +153,7 @@ export function ProfileScreen() {
               editable={false}
             />
 
-            <Text style={[styles.label, { color: colors.text.secondary }]}>Phone</Text>
+            <Text style={[styles.label, { color: colors.text.secondary }]}>Phone number</Text>
             <TextInput
               style={[
                 styles.input,
@@ -200,10 +165,13 @@ export function ProfileScreen() {
               ]}
               value={phone}
               onChangeText={setPhone}
-              placeholder="Phone number"
+              placeholder="Required - helps friends find you"
               placeholderTextColor={colors.text.tertiary}
               keyboardType="phone-pad"
             />
+            <Text style={[styles.helper, { color: colors.text.tertiary }]}>
+              Friends can find you via contact sync. Your number is never shared.
+            </Text>
 
             <TouchableOpacity
               style={[
@@ -218,95 +186,6 @@ export function ProfileScreen() {
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
                 <Text style={styles.saveBtnText}>Save Changes</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-
-          <View
-            style={[
-              styles.card,
-              { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
-            ]}
-          >
-            <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
-              Change Password
-            </Text>
-            {passwordError ? (
-              <View style={[styles.errorBox, { backgroundColor: `${colors.status.error}18` }]}>
-                <Text style={[styles.errorText, { color: colors.status.error }]}>
-                  {passwordError}
-                </Text>
-              </View>
-            ) : null}
-
-            <Text style={[styles.label, { color: colors.text.secondary }]}>Current Password</Text>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.bg.tertiary,
-                  color: colors.text.primary,
-                  borderColor: colors.border.subtle,
-                },
-              ]}
-              value={currentPassword}
-              onChangeText={setCurrentPassword}
-              placeholder="Current password"
-              placeholderTextColor={colors.text.tertiary}
-              secureTextEntry
-            />
-
-            <Text style={[styles.label, { color: colors.text.secondary }]}>New Password</Text>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.bg.tertiary,
-                  color: colors.text.primary,
-                  borderColor: colors.border.subtle,
-                },
-              ]}
-              value={newPassword}
-              onChangeText={setNewPassword}
-              placeholder="New password (min 6 chars)"
-              placeholderTextColor={colors.text.tertiary}
-              secureTextEntry
-            />
-
-            <Text style={[styles.label, { color: colors.text.secondary }]}>
-              Confirm New Password
-            </Text>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.bg.tertiary,
-                  color: colors.text.primary,
-                  borderColor: colors.border.subtle,
-                },
-              ]}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              placeholder="Confirm new password"
-              placeholderTextColor={colors.text.tertiary}
-              secureTextEntry
-            />
-
-            <TouchableOpacity
-              style={[
-                styles.passwordBtn,
-                { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-                changingPassword && { opacity: 0.6 },
-              ]}
-              onPress={handleChangePassword}
-              disabled={changingPassword}
-            >
-              {changingPassword ? (
-                <ActivityIndicator color={colors.text.primary} />
-              ) : (
-                <Text style={[styles.passwordBtnText, { color: colors.text.primary }]}>
-                  Update Password
-                </Text>
               )}
             </TouchableOpacity>
           </View>
@@ -373,14 +252,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontFamily: 'Inter-SemiBold',
   },
-  passwordBtn: {
-    paddingVertical: 16,
-    borderRadius: 14,
-    alignItems: 'center',
-    marginTop: 24,
-    borderWidth: 1,
-  },
-  passwordBtnText: { ...typographyStyles.cardTitle },
+  helper: { fontSize: 11, fontWeight: '500', marginTop: 4, marginBottom: 4, lineHeight: 16 },
   dangerSection: { padding: 20, borderRadius: 16, borderWidth: 1 },
   dangerTitle: { ...typographyStyles.cardTitle, fontFamily: 'Inter-Bold', marginBottom: 8 },
   dangerDesc: { ...typographyStyles.subhead, marginBottom: 16 },

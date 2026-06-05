@@ -44,6 +44,8 @@ import { EmailModule } from './modules/email/email.module';
 import { DocumentsModule } from './modules/documents/documents.module';
 import { GamificationModule } from './modules/gamification/gamification.module';
 import { ReferralModule } from './modules/referral/referral.module';
+import { UsersModule } from './modules/users/users.module';
+import { FriendsModule } from './modules/friends/friends.module';
 
 @Module({
   imports: [
@@ -112,6 +114,8 @@ import { ReferralModule } from './modules/referral/referral.module';
     DocumentsModule,
     GamificationModule,
     ReferralModule,
+    UsersModule,
+    FriendsModule,
   ],
   controllers: [HealthController],
   providers: [

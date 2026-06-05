@@ -1,0 +1,35 @@
+import { Controller, Get, Post, Body, Patch, UseGuards, Query } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { UsersService } from './users.service';
+import { SearchUsersDto, UpdateProfileDto, SyncContactsDto } from './dto/users.dto';
+
+@ApiTags('Users')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@Controller('users')
+export class UsersController {
+  constructor(private readonly usersService: UsersService) {}
+
+  @Get('search')
+  @ApiOperation({ summary: 'Search users by name, email, or phone' })
+  async search(@Query() dto: SearchUsersDto, @CurrentUser('id') userId: string) {
+    const users = await this.usersService.search(dto.query, userId);
+    return { data: users };
+  }
+
+  @Patch('profile')
+  @ApiOperation({ summary: 'Update own profile (name, phone)' })
+  async updateProfile(@CurrentUser('id') userId: string, @Body() dto: UpdateProfileDto) {
+    const user = await this.usersService.updateProfile(userId, dto);
+    return { data: user };
+  }
+
+  @Post('contacts/sync')
+  @ApiOperation({ summary: 'Sync hashed contacts to find registered users' })
+  async syncContacts(@CurrentUser('id') userId: string, @Body() dto: SyncContactsDto) {
+    const result = await this.usersService.syncContacts(userId, dto.hashes);
+    return { data: result };
+  }
+}

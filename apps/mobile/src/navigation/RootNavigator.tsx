@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { AuthNavigator } from './AuthNavigator';
 import { MainTabNavigator } from './MainTabNavigator';
+import { ProfileSetupScreen } from '../screens/auth/ProfileSetupScreen';
 import { AppLockScreen } from '../screens/auth/AppLockScreen';
 import MaintenanceScreen from '../screens/auth/MaintenanceScreen';
 import { useAuth } from '../store/AuthContext';
@@ -9,9 +10,9 @@ import { useAppLock } from '../store/LockContext';
 import { API_URL } from '../config/api';
 
 export function RootNavigator(): React.ReactElement | null {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, isNewUser } = useAuth();
   const { isLocked, unlockApp } = useAppLock();
-  const [phase, setPhase] = useState<'loading' | 'maintenance' | 'auth' | 'lock' | 'app'>(
+  const [phase, setPhase] = useState<'loading' | 'maintenance' | 'auth' | 'lock' | 'setup' | 'app'>(
     'loading',
   );
   const [maintenanceMessage, setMaintenanceMessage] = useState<string | undefined>();
@@ -46,6 +47,10 @@ export function RootNavigator(): React.ReactElement | null {
         setPhase('lock');
         return;
       }
+      if (isNewUser) {
+        setPhase('setup');
+        return;
+      }
       Promise.all([SecureStore.getItemAsync('appPin'), SecureStore.getItemAsync('appLockEnabled')])
         .then(([pin, enabled]) => {
           setPhase(pin && enabled === 'true' ? 'lock' : 'app');
@@ -72,6 +77,9 @@ export function RootNavigator(): React.ReactElement | null {
   }
   if (phase === 'lock') {
     return <AppLockScreen onUnlock={handleUnlock} />;
+  }
+  if (phase === 'setup') {
+    return <ProfileSetupScreen />;
   }
   return <MainTabNavigator key="auth" />;
 }

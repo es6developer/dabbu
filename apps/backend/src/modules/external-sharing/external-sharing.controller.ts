@@ -2,13 +2,16 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
+  Delete,
   Body,
   Param,
+  Query,
   UseGuards,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { ExternalSharingService, TempTokens } from './external-sharing.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -64,5 +67,73 @@ export class ExternalSharingController {
   async convertUser(@CurrentUser('id') userId: string, @Body() dto: ConvertTempUserDto) {
     await this.service.convertTempToFullUser(dto.tempUserId, userId);
     return { data: { message: 'Account merged successfully' } };
+  }
+
+  // ─── Lifecycle endpoints ──────────────────────────────────
+
+  @Get('lifecycle/groups/:groupId/status')
+  @ApiOperation({ summary: 'Check group lifecycle access status' })
+  async checkGroupStatus(
+    @Param('groupId') groupId: string,
+    @CurrentUser('id') userId?: string,
+  ) {
+    const result = await this.service.getGroupLifecycleStatus(groupId, userId);
+    return { data: result };
+  }
+
+  @Get('lifecycle/groups/:groupId/membership')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Check member access status for current user' })
+  async checkMembership(
+    @Param('groupId') groupId: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    const result = await this.service.getMemberAccessStatus(groupId, userId);
+    return { data: result };
+  }
+
+  @Get('lifecycle/groups/:groupId/members/:tempUserId')
+  @ApiOperation({ summary: 'Check member access for a specific user' })
+  async checkSpecificMember(
+    @Param('groupId') groupId: string,
+    @Param('tempUserId') tempUserId: string,
+  ) {
+    const result = await this.service.getMemberAccessStatus(groupId, tempUserId);
+    return { data: result };
+  }
+
+  @Get('lifecycle/groups/:groupId/events')
+  @ApiOperation({ summary: 'Get lifecycle events for a group' })
+  async getLifecycleEvents(@Param('groupId') groupId: string) {
+    const result = await this.service.getLifecycleEvents(groupId);
+    return { data: result };
+  }
+
+  @Delete('lifecycle/groups/:groupId/members/:tempId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Remove a temporary member from a group' })
+  @ApiQuery({ name: 'reason', required: false })
+  async removeTempMember(
+    @Param('groupId') groupId: string,
+    @Param('tempId') tempId: string,
+    @Query('reason') reason: string,
+  ) {
+    await this.service.removeTempMember(groupId, tempId, reason);
+    return { data: { success: true } };
+  }
+
+  @Patch('lifecycle/groups/:groupId/status')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update group lifecycle status' })
+  async updateGroupStatus(
+    @Param('groupId') groupId: string,
+    @Body('status') status: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    const result = await this.service.updateGroupStatus(groupId, status, userId);
+    return { data: { success: true, status: result.status } };
   }
 }

@@ -1002,7 +1002,6 @@ model ExpenseGroup {
   user         User                 @relation(fields: [createdBy], references: [id], onDelete: Cascade)
   members      ExpenseGroupMember[]
   transactions Transaction[]
-  tempInvites  TempInvite[]
 
   @@index([createdBy])
   @@map("expense_groups")
@@ -1033,8 +1032,8 @@ model TempInvite {
   expiresAt DateTime
   createdAt DateTime  @default(now())
 
-  user  User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  group ExpenseGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@index([token])
   @@index([userId])
@@ -1124,6 +1123,7 @@ model SharedGroup {
   expenseApprovalQueue    ExpenseApprovalQueue[]
   activities              GroupActivity[]
   payNowLinks             PayNowLink[]
+  tempInvites             TempInvite[]
 
   @@index([createdBy])
   @@index([type])

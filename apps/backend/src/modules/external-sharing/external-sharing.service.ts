@@ -4,6 +4,7 @@ import {
   ConflictException,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -30,7 +31,7 @@ export class ExternalSharingService {
   async inviteExternalMember(
     dto: InviteExternalMemberDto,
   ): Promise<{ inviteToken: string; tempUserId: string }> {
-    const group = await this.prisma.expenseGroup.findUnique({ where: { id: dto.groupId } });
+    const group = await this.prisma.sharedGroup.findUnique({ where: { id: dto.groupId } });
     if (!group) {
       throw new NotFoundException('Group not found');
     }
@@ -39,13 +40,13 @@ export class ExternalSharingService {
 
     if (tempUser) {
       if (tempUser.status === 'active') {
-        const alreadyMember = await this.prisma.expenseGroupMember.findUnique({
+        const alreadyMember = await this.prisma.sharedGroupMember.findUnique({
           where: { groupId_userId: { groupId: dto.groupId, userId: tempUser.id } },
         });
         if (alreadyMember) {
           throw new ConflictException('User is already a member of this group');
         }
-        await this.prisma.expenseGroupMember.create({
+        await this.prisma.sharedGroupMember.create({
           data: { groupId: dto.groupId, userId: tempUser.id, role: 'member' },
         });
         return { inviteToken: '', tempUserId: tempUser.id };
@@ -70,7 +71,7 @@ export class ExternalSharingService {
       });
     }
 
-    await this.prisma.expenseGroupMember.create({
+    await this.prisma.sharedGroupMember.create({
       data: { groupId: dto.groupId, userId: tempUser.id, role: 'member' },
     });
 
@@ -113,7 +114,7 @@ export class ExternalSharingService {
         },
       });
 
-      await this.prisma.expenseGroupMember.create({
+      await this.prisma.sharedGroupMember.create({
         data: { groupId, userId: user.id, role: 'member' },
       });
     }
@@ -125,11 +126,11 @@ export class ExternalSharingService {
     }
 
     if (user.status === 'temporary' && user.tempGroupId !== groupId) {
-      const membership = await this.prisma.expenseGroupMember.findUnique({
+      const membership = await this.prisma.sharedGroupMember.findUnique({
         where: { groupId_userId: { groupId, userId: user.id } },
       });
       if (!membership) {
-        await this.prisma.expenseGroupMember.create({
+        await this.prisma.sharedGroupMember.create({
           data: { groupId, userId: user.id, role: 'member' },
         });
       }
@@ -188,16 +189,16 @@ export class ExternalSharingService {
     }
 
     await this.prisma.$transaction(async (tx) => {
-      const tempMemberships = await tx.expenseGroupMember.findMany({
+      const tempMemberships = await tx.sharedGroupMember.findMany({
         where: { userId: tempUserId },
       });
 
       for (const membership of tempMemberships) {
-        const existing = await tx.expenseGroupMember.findUnique({
+        const existing = await tx.sharedGroupMember.findUnique({
           where: { groupId_userId: { groupId: membership.groupId, userId: fullUserId } },
         });
         if (!existing) {
-          await tx.expenseGroupMember.create({
+          await tx.sharedGroupMember.create({
             data: {
               groupId: membership.groupId,
               userId: fullUserId,
@@ -212,7 +213,7 @@ export class ExternalSharingService {
         data: { userId: fullUserId },
       });
 
-      await tx.expenseGroupMember.deleteMany({ where: { userId: tempUserId } });
+      await tx.sharedGroupMember.deleteMany({ where: { userId: tempUserId } });
 
       await tx.user.update({
         where: { id: tempUserId },
@@ -226,6 +227,124 @@ export class ExternalSharingService {
     });
 
     this.logger.log(`Temporary user ${tempUserId} merged into full user ${fullUserId}`);
+  }
+
+  async getGroupLifecycleStatus(groupId: string, userId?: string): Promise<any> {
+    const group = await this.prisma.sharedGroup.findUnique({
+      where: { id: groupId },
+    });
+    if (!group) {
+      return { groupId, status: 'CLOSED', hasAccess: false, revocationReason: 'group_closed' };
+    }
+
+    const member = userId
+      ? await this.prisma.sharedGroupMember.findUnique({
+          where: { groupId_userId: { groupId, userId } },
+        })
+      : null;
+
+    const hasAccess = member?.isActive ?? false;
+
+    return {
+      groupId,
+      status: group.status,
+      hasAccess,
+      revocationReason: hasAccess ? undefined : (member ? 'member_removed' : 'invite_expired'),
+      data: {
+        groupName: group.name,
+        groupType: group.type,
+        totalSpent: Number(group.totalSpent || 0),
+        memberCount: await this.prisma.sharedGroupMember.count({
+          where: { groupId, isActive: true },
+        }),
+      },
+    };
+  }
+
+  async getMemberAccessStatus(groupId: string, userId: string): Promise<any> {
+    const group = await this.prisma.sharedGroup.findUnique({
+      where: { id: groupId },
+      select: { status: true },
+    });
+    if (!group) {
+      return { isMember: false, restrictions: ['group_not_found'] };
+    }
+
+    const member = await this.prisma.sharedGroupMember.findUnique({
+      where: { groupId_userId: { groupId, userId } },
+    });
+
+    if (!member || !member.isActive) {
+      return { isMember: false, restrictions: ['no_access'] };
+    }
+
+    return { isMember: true, role: member.role, restrictions: [] };
+  }
+
+  async getLifecycleEvents(groupId: string): Promise<any[]> {
+    return this.prisma.groupLifecycleEvent.findMany({
+      where: { groupId },
+      orderBy: { createdAt: 'asc' },
+    });
+  }
+
+  async removeTempMember(groupId: string, tempUserId: string, reason: string): Promise<void> {
+    const member = await this.prisma.sharedGroupMember.findUnique({
+      where: { groupId_userId: { groupId, userId: tempUserId } },
+    });
+    if (!member) {
+      throw new NotFoundException('Member not found');
+    }
+
+    await this.prisma.sharedGroupMember.update({
+      where: { id: member.id },
+      data: {
+        isActive: false,
+        removedAt: new Date(),
+        removalReason: reason,
+      },
+    });
+
+    await this.prisma.sessionRevocation.create({
+      data: {
+        userId: tempUserId,
+        groupId,
+        reason: reason || 'member_removed',
+        revokedAt: new Date(),
+        expiresAt: new Date(Date.now() + 90 * 86400000),
+      },
+    });
+  }
+
+  async updateGroupStatus(groupId: string, newStatus: string, userId: string): Promise<any> {
+    const group = await this.prisma.sharedGroup.findUnique({ where: { id: groupId } });
+    if (!group) {
+      throw new NotFoundException('Group not found');
+    }
+
+    const now = new Date();
+    const updateData: any = {
+      status: newStatus,
+      statusChangedAt: now,
+      statusChangedBy: userId,
+    };
+
+    switch (newStatus) {
+      case 'PAUSED':
+        updateData.pausedAt = now;
+        break;
+      case 'COMPLETED':
+        updateData.completedAt = now;
+        break;
+      case 'ARCHIVED':
+        updateData.archivedAt = now;
+        break;
+      case 'CLOSED':
+        updateData.closedAt = now;
+        break;
+    }
+
+    return this.prisma.sharedGroup.update({ where: { id: groupId }, data: updateData });
   }
 
   private async generateTempTokens(

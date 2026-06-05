@@ -1,15 +1,18 @@
-const PRIMARY = '#EA580C';
-const PRIMARY_LIGHT = '#FED7AA';
-const PRIMARY_DARK = '#C2410C';
-const BG = '#F8FAFC';
-const CARD = '#FFFFFF';
-const TEXT = '#1E293B';
-const TEXT_MUTED = '#64748B';
-const BORDER = '#E2E8F0';
+const ACCENT = '#F97316';
+const ACCENT_DARK = '#EA580C';
+const ACCENT_LIGHT = '#FFEDD5';
+const BG = '#0F172A';
+const CARD = '#1E293B';
+const CARD_BORDER = '#334155';
+const TEXT = '#F1F5F9';
+const TEXT_MUTED = '#94A3B8';
+const SUCCESS = '#22C55E';
+const ERROR = '#EF4444';
+const WARNING = '#F59E0B';
 
 function baseTemplate(content: string): string {
   return `<!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,11 +21,10 @@ function baseTemplate(content: string): string {
   <style type="text/css">
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: ${BG}; color: ${TEXT}; }
-    a { color: ${PRIMARY}; text-decoration: none; }
+    a { color: ${ACCENT}; text-decoration: none; }
     @media only screen and (max-width: 600px) {
       .container { width: 100% !important; }
-      .content { padding: 24px 20px !important; }
-      .logo-text { font-size: 24px !important; }
+      .content { padding: 28px 20px !important; }
     }
   </style>
 </head>
@@ -35,15 +37,15 @@ function baseTemplate(content: string): string {
             <td align="center" style="padding-bottom:32px;">
               <table cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td style="background:linear-gradient(135deg,${PRIMARY},${PRIMARY_DARK});border-radius:10px;padding:10px 24px;">
-                    <span style="font-size:22px;font-weight:800;color:#FFFFFF;letter-spacing:-0.5px;">Dabbu</span>
+                  <td style="background:linear-gradient(135deg,${ACCENT},${ACCENT_DARK});border-radius:12px;padding:12px 28px;">
+                    <span style="font-size:24px;font-weight:800;color:#FFFFFF;letter-spacing:-0.5px;">dabbu</span>
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
           <tr>
-            <td class="content" style="background-color:${CARD};border-radius:12px;padding:40px 40px 32px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);">
+            <td class="content" style="background-color:${CARD};border:1px solid ${CARD_BORDER};border-radius:16px;padding:40px 40px 36px;">
               ${content}
             </td>
           </tr>
@@ -51,33 +53,26 @@ function baseTemplate(content: string): string {
             <td style="padding-top:32px;">
               <table width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td align="center" style="padding-bottom:8px;">
-                    <span style="font-size:13px;color:${TEXT_MUTED};">
-                      &copy; ${new Date().getFullYear()} Dabbu. All rights reserved.
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <td align="center" style="padding-bottom:4px;">
+                  <td align="center" style="padding-bottom:12px;">
                     <table cellpadding="0" cellspacing="0" border="0">
                       <tr>
-                        <td style="padding:0 8px;">
-                          <a href="{{privacyUrl}}" style="font-size:13px;color:${TEXT_MUTED};text-decoration:underline;">Privacy Policy</a>
+                        <td style="padding:0 10px;">
+                          <a href="https://dabbu.app" style="font-size:13px;color:${TEXT_MUTED};text-decoration:none;">Website</a>
                         </td>
-                        <td style="padding:0 8px;">
-                          <a href="{{termsUrl}}" style="font-size:13px;color:${TEXT_MUTED};text-decoration:underline;">Terms of Service</a>
+                        <td style="padding:0 10px;">
+                          <a href="mailto:support@dabbu.app" style="font-size:13px;color:${TEXT_MUTED};text-decoration:none;">Support</a>
                         </td>
-                        <td style="padding:0 8px;">
-                          <a href="mailto:support@dabbu.app" style="font-size:13px;color:${TEXT_MUTED};text-decoration:underline;">Support</a>
+                        <td style="padding:0 10px;">
+                          <a href="{{privacyUrl}}" style="font-size:13px;color:${TEXT_MUTED};text-decoration:none;">Privacy</a>
                         </td>
                       </tr>
                     </table>
                   </td>
                 </tr>
                 <tr>
-                  <td align="center" style="padding-top:8px;">
+                  <td align="center" style="padding-top:4px;">
                     <span style="font-size:12px;color:${TEXT_MUTED};line-height:18px;">
-                      Made with &hearts; in India
+                      &copy; ${new Date().getFullYear()} Dabbu. All rights reserved.
                     </span>
                   </td>
                 </tr>
@@ -93,17 +88,27 @@ function baseTemplate(content: string): string {
 }
 
 function button(href: string, text: string): string {
-  return `<table cellpadding="0" cellspacing="0" border="0" style="margin:24px auto;">
+  return `<table cellpadding="0" cellspacing="0" border="0" style="margin:28px auto 0;">
     <tr>
-      <td align="center" style="background:linear-gradient(135deg,${PRIMARY},${PRIMARY_DARK});border-radius:8px;">
-        <a href="${href}" target="_blank" style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:600;color:#FFFFFF;text-decoration:none;line-height:20px;letter-spacing:0.3px;">${text}</a>
+      <td align="center" style="background:linear-gradient(135deg,${ACCENT},${ACCENT_DARK});border-radius:10px;">
+        <a href="${href}" target="_blank" style="display:inline-block;padding:14px 36px;font-size:15px;font-weight:600;color:#FFFFFF;text-decoration:none;line-height:20px;letter-spacing:0.3px;">${text}</a>
+      </td>
+    </tr>
+  </table>`;
+}
+
+function secondaryButton(href: string, text: string): string {
+  return `<table cellpadding="0" cellspacing="0" border="0" style="margin:12px auto 0;">
+    <tr>
+      <td align="center" style="border:1.5px solid ${CARD_BORDER};border-radius:10px;">
+        <a href="${href}" target="_blank" style="display:inline-block;padding:12px 36px;font-size:14px;font-weight:500;color:${TEXT_MUTED};text-decoration:none;line-height:20px;">${text}</a>
       </td>
     </tr>
   </table>`;
 }
 
 function divider(): string {
-  return `<hr style="border:none;border-top:1px solid ${BORDER};margin:24px 0;" />`;
+  return `<hr style="border:none;border-top:1px solid ${CARD_BORDER};margin:28px 0;" />`;
 }
 
 function featureList(items: string[]): string {
@@ -112,37 +117,39 @@ function featureList(items: string[]): string {
       (item) =>
         `<tr>
       <td style="padding:6px 0;font-size:14px;color:${TEXT};">
-        <span style="color:${PRIMARY};font-weight:700;margin-right:8px;">&#10003;</span>${item}
+        <span style="display:inline-block;width:18px;height:18px;line-height:18px;text-align:center;border-radius:50%;background:${ACCENT_LIGHT};color:${ACCENT_DARK};font-size:11px;font-weight:700;margin-right:10px;">&#10003;</span>${item}
       </td>
     </tr>`,
     )
     .join('');
-  return `<table cellpadding="0" cellspacing="0" border="0">${rows}</table>`;
+  return `<table cellpadding="0" cellspacing="0" border="0" style="margin:16px 0 8px;">${rows}</table>`;
 }
 
 export function welcomeEmail(name: string, dashboardUrl: string): string {
   return baseTemplate(`
-    <h1 style="font-size:24px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
-      Welcome to Dabbu, ${name}! 🎉
-    </h1>
-    <p style="font-size:15px;color:${TEXT_MUTED};line-height:1.6;margin:0 0 20px;">
-      We're thrilled to have you on board. Dabbu helps you track expenses, manage budgets, 
-      and take control of your finances — all in one place.
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:48px;line-height:1;margin-bottom:16px;">&#127881;</div>
+      <h1 style="font-size:26px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
+        Welcome to Dabbu!
+      </h1>
+      <p style="font-size:15px;color:${TEXT_MUTED};line-height:1.6;margin:0;">
+        Hey ${name}, we're thrilled to have you on board.
+      </p>
+    </div>
+    <p style="font-size:14px;color:${TEXT_MUTED};line-height:1.7;margin:0 0 20px;">
+      Dabbu helps you track expenses, manage budgets, and take control of your finances — 
+      all in one place. Here's what you can do right away:
     </p>
-    ${divider()}
-    <h2 style="font-size:16px;font-weight:600;color:${TEXT};margin:0 0 16px;">What you can do with Dabbu:</h2>
     ${featureList([
       'Track income & expenses effortlessly',
       'Create and manage budgets',
-      'Scan receipts with OCR',
-      'Share expenses with family & groups',
-      'Get AI-powered insights',
+      'Share expenses with family & friends',
       'Set financial goals',
+      'Get AI-powered insights',
     ])}
     ${button(dashboardUrl, 'Go to Dashboard')}
-    <p style="font-size:14px;color:${TEXT_MUTED};line-height:1.6;margin:16px 0 0;">
-      If you have any questions, just reply to this email or reach out to 
-      <a href="mailto:support@dabbu.app" style="color:${PRIMARY};font-weight:500;">support@dabbu.app</a>.
+    <p style="font-size:13px;color:${TEXT_MUTED};line-height:1.6;margin:20px 0 0;text-align:center;">
+      Questions? <a href="mailto:support@dabbu.app" style="color:${ACCENT};font-weight:500;">We're here to help</a>
     </p>
   `);
 }
@@ -153,46 +160,60 @@ export function forgotPasswordEmail(
   expiresInMinutes: number,
 ): string {
   return baseTemplate(`
-    <h1 style="font-size:24px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
-      Reset Your Password
-    </h1>
-    <p style="font-size:15px;color:${TEXT_MUTED};line-height:1.6;margin:0 0 20px;">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="width:56px;height:56px;border-radius:50%;background:${ACCENT_LIGHT};margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:24px;">&#128274;</span>
+      </div>
+      <h1 style="font-size:24px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
+        Reset Your Password
+      </h1>
+    </div>
+    <p style="font-size:15px;color:${TEXT_MUTED};line-height:1.7;margin:0 0 8px;">
       Hi ${name}, we received a request to reset your Dabbu account password. 
-      Click the button below to create a new password.
+      Click the button below to create a new one.
     </p>
     ${button(resetUrl, 'Reset Password')}
-    <p style="font-size:14px;color:${TEXT_MUTED};line-height:1.6;margin:16px 0 0;">
-      This link expires in <strong>${expiresInMinutes} minutes</strong>. If you didn't request 
-      this, you can safely ignore this email.
+    <p style="font-size:13px;color:${TEXT_MUTED};line-height:1.6;margin:16px 0 0;text-align:center;">
+      This link expires in <strong style="color:${WARNING};">${expiresInMinutes} minutes</strong>.
+      If you didn't request this, you can safely ignore this email.
     </p>
     ${divider()}
-    <p style="font-size:13px;color:${TEXT_MUTED};line-height:1.5;margin:0;">
-      <strong>Security notice:</strong> Never share this link with anyone. Dabbu will 
-      never ask for your password or reset link via email or phone.
-    </p>
+    <table cellpadding="0" cellspacing="0" border="0" style="background:rgba(239,68,68,0.1);border-radius:10px;padding:16px;margin:0;">
+      <tr>
+        <td style="font-size:13px;color:${ERROR};line-height:1.5;">
+          <strong>&#9888; Security notice:</strong> Never share this link with anyone. 
+          Dabbu will never ask for your password or reset link via email or phone.
+        </td>
+      </tr>
+    </table>
   `);
 }
 
 export function passwordChangedEmail(name: string, timestamp: string): string {
   return baseTemplate(`
-    <h1 style="font-size:24px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
-      Password Changed Successfully
-    </h1>
-    <p style="font-size:15px;color:${TEXT_MUTED};line-height:1.6;margin:0 0 20px;">
-      Hi ${name}, your Dabbu account password was changed on <strong>${timestamp}</strong>.
-    </p>
-    <table cellpadding="0" cellspacing="0" border="0" style="background-color:#FEF2F2;border-radius:8px;padding:16px;margin:20px 0;">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="width:56px;height:56px;border-radius:50%;background:rgba(34,197,94,0.15);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:24px;">&#9989;</span>
+      </div>
+      <h1 style="font-size:24px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
+        Password Changed
+      </h1>
+      <p style="font-size:14px;color:${TEXT_MUTED};line-height:1.6;margin:0;">
+        Your Dabbu account password was changed on <strong style="color:${TEXT};">${timestamp}</strong>.
+      </p>
+    </div>
+    <table cellpadding="0" cellspacing="0" border="0" style="background:rgba(239,68,68,0.1);border-radius:10px;padding:16px;margin:0 0 20px;">
       <tr>
-        <td style="font-size:14px;color:#991B1B;line-height:1.5;">
+        <td style="font-size:14px;color:${ERROR};line-height:1.5;">
           <strong>&#9888; Didn't do this?</strong> If you didn't change your password, 
-          please <a href="mailto:support@dabbu.app" style="color:${PRIMARY};font-weight:600;">contact support</a> 
+          please <a href="mailto:support@dabbu.app" style="color:${ACCENT};font-weight:600;">contact support</a> 
           immediately to secure your account.
         </td>
       </tr>
     </table>
-    ${button('https://web-omega-snowy-80.vercel.app/login', 'Go to Login')}
-    <p style="font-size:13px;color:${TEXT_MUTED};line-height:1.5;margin:16px 0 0;">
-      This is an automated security notification. No action is needed if you made this change.
+    ${secondaryButton('https://web-omega-snowy-80.vercel.app/login', 'Go to Login')}
+    <p style="font-size:12px;color:${TEXT_MUTED};line-height:1.5;margin:16px 0 0;text-align:center;">
+      This is an automated security notification. No action needed if you made this change.
     </p>
   `);
 }
@@ -206,23 +227,25 @@ export function premiumActivatedEmail(
   manageUrl: string,
 ): string {
   return baseTemplate(`
-    <h1 style="font-size:24px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
-      Welcome to Dabbu Premium! 🚀
-    </h1>
-    <p style="font-size:15px;color:${TEXT_MUTED};line-height:1.6;margin:0 0 20px;">
-      Congratulations ${name}! You're now on the <strong>${planName}</strong> plan. 
-      Your premium features are active and ready to use.
-    </p>
-    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:linear-gradient(135deg,#FEF7EE,#FFEDD5);border-radius:8px;padding:16px;margin:20px 0;">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:48px;line-height:1;margin-bottom:12px;">&#128640;</div>
+      <h1 style="font-size:24px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
+        Welcome to Premium!
+      </h1>
+      <p style="font-size:15px;color:${TEXT_MUTED};line-height:1.6;margin:0;">
+        You're now on the <strong style="color:${ACCENT};">${planName}</strong> plan.
+      </p>
+    </div>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:linear-gradient(135deg,rgba(249,115,22,0.1),rgba(234,88,12,0.05));border:1px solid ${CARD_BORDER};border-radius:12px;padding:18px;margin:0 0 24px;">
       <tr>
-        <td style="font-size:14px;color:${TEXT};line-height:1.8;">
-          <strong style="color:${PRIMARY};">Plan:</strong> ${planName}<br />
-          <strong style="color:${PRIMARY};">Billing:</strong> ${billingCycle}<br />
-          <strong style="color:${PRIMARY};">Started:</strong> ${startDate}
+        <td style="font-size:14px;color:${TEXT_MUTED};line-height:2;">
+          <strong style="color:${ACCENT};">Plan:</strong> ${planName}<br />
+          <strong style="color:${ACCENT};">Billing:</strong> ${billingCycle}<br />
+          <strong style="color:${ACCENT};">Started:</strong> ${startDate}
         </td>
       </tr>
     </table>
-    <h2 style="font-size:16px;font-weight:600;color:${TEXT};margin:0 0 12px;">Premium Features Unlocked:</h2>
+    <h2 style="font-size:16px;font-weight:600;color:${TEXT};margin:0 0 4px;">What's included:</h2>
     ${featureList(features)}
     ${button(manageUrl, 'Manage Subscription')}
   `);
@@ -236,19 +259,23 @@ export function premiumRenewedEmail(
   manageUrl: string,
 ): string {
   return baseTemplate(`
-    <h1 style="font-size:24px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
-      Premium Subscription Renewed
-    </h1>
-    <p style="font-size:15px;color:${TEXT_MUTED};line-height:1.6;margin:0 0 20px;">
-      Hi ${name}, your Dabbu Premium subscription has been successfully renewed.
-      All your premium features are active.
-    </p>
-    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:linear-gradient(135deg,#FEF7EE,#FFEDD5);border-radius:8px;padding:16px;margin:20px 0;">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="width:56px;height:56px;border-radius:50%;background:rgba(34,197,94,0.15);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:24px;">&#128176;</span>
+      </div>
+      <h1 style="font-size:24px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
+        Renewed Successfully
+      </h1>
+      <p style="font-size:14px;color:${TEXT_MUTED};line-height:1.6;margin:0;">
+        Your Dabbu Premium has been renewed. All features are active.
+      </p>
+    </div>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:linear-gradient(135deg,rgba(34,197,94,0.08),rgba(34,197,94,0.02));border:1px solid ${CARD_BORDER};border-radius:12px;padding:18px;margin:0 0 24px;">
       <tr>
-        <td style="font-size:14px;color:${TEXT};line-height:1.8;">
-          <strong style="color:${PRIMARY};">Renewal Date:</strong> ${renewalDate}<br />
-          <strong style="color:${PRIMARY};">Next Billing:</strong> ${nextBillingDate}<br />
-          <strong style="color:${PRIMARY};">Amount Charged:</strong> ${amount}
+        <td style="font-size:14px;color:${TEXT_MUTED};line-height:2;">
+          <strong style="color:${SUCCESS};">Renewed:</strong> ${renewalDate}<br />
+          <strong style="color:${SUCCESS};">Next Billing:</strong> ${nextBillingDate}<br />
+          <strong style="color:${SUCCESS};">Amount:</strong> ${amount}
         </td>
       </tr>
     </table>
@@ -263,23 +290,28 @@ export function premiumExpiryReminderEmail(
   renewUrl: string,
 ): string {
   return baseTemplate(`
-    <h1 style="font-size:24px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
-      Your Premium Plan Is Expiring Soon
-    </h1>
-    <p style="font-size:15px;color:${TEXT_MUTED};line-height:1.6;margin:0 0 20px;">
-      Hi ${name}, your Dabbu Premium subscription will expire in <strong>${daysRemaining} day${daysRemaining === 1 ? '' : 's'}</strong> 
-      on <strong>${expiryDate}</strong>.
-    </p>
-    <table cellpadding="0" cellspacing="0" border="0" style="background-color:#FEF2F2;border-radius:8px;padding:16px;margin:20px 0;">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="width:56px;height:56px;border-radius:50%;background:rgba(245,158,11,0.15);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:24px;">&#9200;</span>
+      </div>
+      <h1 style="font-size:24px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
+        Premium Expiring Soon
+      </h1>
+      <p style="font-size:15px;color:${TEXT_MUTED};line-height:1.6;margin:0;">
+        Your plan ends in <strong style="color:${WARNING};">${daysRemaining} day${daysRemaining === 1 ? '' : 's'}</strong>
+        on <strong style="color:${TEXT};">${expiryDate}</strong>.
+      </p>
+    </div>
+    <table cellpadding="0" cellspacing="0" border="0" style="background:rgba(239,68,68,0.1);border-radius:10px;padding:16px;margin:0 0 20px;">
       <tr>
-        <td style="font-size:14px;color:#991B1B;line-height:1.5;">
+        <td style="font-size:14px;color:${ERROR};line-height:1.5;">
           After expiry, you'll lose access to premium features including unlimited groups, 
-          advanced analytics, OCR scanning, and more.
+          advanced analytics, and more.
         </td>
       </tr>
     </table>
     ${button(renewUrl, 'Renew Premium')}
-    <p style="font-size:13px;color:${TEXT_MUTED};line-height:1.5;margin:16px 0 0;">
+    <p style="font-size:12px;color:${TEXT_MUTED};line-height:1.5;margin:12px 0 0;text-align:center;">
       No action needed if you've already renewed.
     </p>
   `);
@@ -292,26 +324,31 @@ export function groupInviteEmail(
   groupUrl: string,
 ): string {
   return baseTemplate(`
-    <h1 style="font-size:24px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
-      You've been added to a group
-    </h1>
-    <p style="font-size:15px;color:${TEXT_MUTED};line-height:1.6;margin:0 0 20px;">
-      Hi ${name}, <strong>${inviterName}</strong> added you to <strong>${groupName}</strong> 
-      on Dabbu. You can now track shared expenses, split bills, and settle up together.
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="width:56px;height:56px;border-radius:50%;background:${ACCENT_LIGHT};margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:24px;">&#128101;</span>
+      </div>
+      <h1 style="font-size:24px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
+        You've Been Added!
+      </h1>
+      <p style="font-size:15px;color:${TEXT_MUTED};line-height:1.7;margin:0;">
+        <strong style="color:${TEXT};">${inviterName}</strong> added you to 
+        <strong style="color:${ACCENT};">${groupName}</strong> on Dabbu.
+      </p>
+    </div>
+    <p style="font-size:14px;color:${TEXT_MUTED};line-height:1.7;margin:0 0 0;text-align:center;">
+      You can now track shared expenses, split bills, and settle up together — all from one place.
     </p>
-    <table cellpadding="0" cellspacing="0" border="0" style="margin:24px auto;">
+    ${button(groupUrl, 'Open Group')}
+    <table cellpadding="0" cellspacing="0" border="0" style="background:rgba(249,115,22,0.08);border-radius:10px;padding:14px 18px;margin:20px 0 0;">
       <tr>
-        <td align="center" style="background:linear-gradient(135deg,${PRIMARY},${PRIMARY_DARK});border-radius:8px;">
-          <a href="${groupUrl}" target="_blank" style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:600;color:#FFFFFF;text-decoration:none;line-height:20px;letter-spacing:0.3px;">Open Group</a>
+        <td style="font-size:13px;color:${TEXT_MUTED};line-height:1.6;text-align:center;">
+          Add expenses, see what others are spending, and settle up — right from the group.
         </td>
       </tr>
     </table>
-    <div style="${divider()}"></div>
-    <p style="font-size:13px;color:${TEXT_MUTED};line-height:1.5;margin:0;">
-      You can add expenses, see what others are spending, and settle up — all from the group.
-    </p>
-    <p style="font-size:13px;color:${TEXT_MUTED};line-height:1.5;margin:16px 0 0;">
-      Need help? <a href="mailto:support@dabbu.app" style="color:${PRIMARY};font-weight:500;">Contact support</a>
+    <p style="font-size:12px;color:${TEXT_MUTED};line-height:1.5;margin:16px 0 0;text-align:center;">
+      Need help? <a href="mailto:support@dabbu.app" style="color:${ACCENT};font-weight:500;">Contact support</a>
     </p>
   `);
 }
@@ -324,35 +361,40 @@ export function paymentFailedEmail(
   updatePaymentUrl: string,
 ): string {
   return baseTemplate(`
-    <h1 style="font-size:24px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
-      Action Required: Payment Failed
-    </h1>
-    <p style="font-size:15px;color:${TEXT_MUTED};line-height:1.6;margin:0 0 20px;">
-      Hi ${name}, we were unable to process the payment for your <strong>${planName}</strong> 
-      subscription of <strong>${amount}</strong>.
-    </p>
-    <table cellpadding="0" cellspacing="0" border="0" style="background-color:#FEF2F2;border-radius:8px;padding:16px;margin:20px 0;">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="width:56px;height:56px;border-radius:50%;background:rgba(239,68,68,0.15);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:24px;">&#9888;</span>
+      </div>
+      <h1 style="font-size:24px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
+        Payment Failed
+      </h1>
+      <p style="font-size:15px;color:${TEXT_MUTED};line-height:1.7;margin:0;">
+        Hi ${name}, we couldn't process <strong style="color:${TEXT};">${amount}</strong> 
+        for your <strong style="color:${ACCENT};">${planName}</strong> plan.
+      </p>
+    </div>
+    <table cellpadding="0" cellspacing="0" border="0" style="background:rgba(239,68,68,0.08);border-radius:10px;padding:16px;margin:0 0 24px;">
       <tr>
-        <td style="font-size:14px;color:#991B1B;line-height:1.5;">
+        <td style="font-size:14px;color:${ERROR};line-height:1.5;">
           <strong>&#9888; What happened?</strong> Your payment method was declined. 
-          Your premium features will remain active for now, but please update your 
-          payment method to avoid interruption.
+          Your premium features are still active for now — update your payment method 
+          to avoid any interruption.
         </td>
       </tr>
     </table>
-    <table cellpadding="0" cellspacing="0" border="0" style="margin:24px auto 0;">
+    <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
       <tr>
-        <td align="center" style="background:linear-gradient(135deg,${PRIMARY},${PRIMARY_DARK});border-radius:8px;">
+        <td align="center" style="background:linear-gradient(135deg,${ACCENT},${ACCENT_DARK});border-radius:10px;">
           <a href="${retryUrl}" target="_blank" style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:600;color:#FFFFFF;text-decoration:none;line-height:20px;letter-spacing:0.3px;">Retry Payment</a>
         </td>
         <td width="12"></td>
-        <td align="center" style="border:2px solid ${PRIMARY};border-radius:8px;">
-          <a href="${updatePaymentUrl}" target="_blank" style="display:inline-block;padding:12px 28px;font-size:15px;font-weight:600;color:${PRIMARY};text-decoration:none;line-height:20px;letter-spacing:0.3px;">Update Payment Method</a>
+        <td align="center" style="border:1.5px solid ${CARD_BORDER};border-radius:10px;">
+          <a href="${updatePaymentUrl}" target="_blank" style="display:inline-block;padding:12px 28px;font-size:14px;font-weight:500;color:${TEXT_MUTED};text-decoration:none;line-height:20px;">Update Card</a>
         </td>
       </tr>
     </table>
-    <p style="font-size:13px;color:${TEXT_MUTED};line-height:1.5;margin:20px 0 0;">
-      Need help? <a href="mailto:support@dabbu.app" style="color:${PRIMARY};font-weight:500;">Contact support</a>
+    <p style="font-size:12px;color:${TEXT_MUTED};line-height:1.5;margin:20px 0 0;text-align:center;">
+      Need help? <a href="mailto:support@dabbu.app" style="color:${ACCENT};font-weight:500;">Contact support</a>
     </p>
   `);
 }

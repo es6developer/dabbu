@@ -213,9 +213,9 @@ export function HomeScreen() {
     }, [loadData]),
   );
 
-  const balance = data.accountStats?.availableBalance ?? data.accountStats?.totalBalance ?? 0;
-  const totalIncome = data.accountStats?.totalIncome ?? 0;
-  const totalSpent = data.transactionStats?.totalExpenses ?? 0;
+  const balance = data.accountStats?.totalBalance ?? 0;
+  const totalIncome = data.accountStats?.monthlyIncome ?? 0;
+  const totalSpent = data.transactionStats?.summary?.totalExpense ?? 0;
   const savings = totalIncome - totalSpent;
   const spendRate = totalIncome > 0 ? Math.min((totalSpent / totalIncome) * 100, 100) : 0;
 
@@ -471,12 +471,12 @@ export function HomeScreen() {
             <TouchableOpacity
               style={[styles.card, { backgroundColor: colors.bg.secondary }]}
               activeOpacity={0.7}
-              onPress={() => {}}
+              onPress={() => navigation.navigate('Settings', { screen: 'Analytics' })}
             >
               <View style={styles.cardHeader}>
                 <View style={styles.cardHeaderLeft}>
-                  <View style={[styles.cardIcon, { backgroundColor: '#5B5FE818' }]}>
-                    <Ionicons name="heart-circle" size={18} color="#5B5FE8" />
+                  <View style={[styles.cardIcon, { backgroundColor: data.financialHealth.color + '18' }]}>
+                    <Ionicons name="heart-circle" size={18} color={data.financialHealth.color} />
                   </View>
                   <Text style={[styles.cardTitle, { color: colors.text.primary }]}>
                     Financial Health
@@ -491,7 +491,7 @@ export function HomeScreen() {
               <Text style={[styles.healthLabel, { color: data.financialHealth.color }]}>
                 {data.financialHealth.label}
               </Text>
-              {data.financialHealth.factors?.slice(0, 3).map((f: any, i: number) => {
+              {data.financialHealth.factors?.map((f: any, i: number) => {
                 const barColor =
                   f.status === 'good' ? '#00B894' : f.status === 'fair' ? '#FDCB6E' : '#FF6B6B';
                 return (
@@ -513,6 +513,20 @@ export function HomeScreen() {
                   </View>
                 );
               })}
+              {data.financialHealth.recommendations?.length > 0 && (
+                <>
+                  <View style={[styles.healthDivider, { backgroundColor: colors.border.subtle }]} />
+                  <Text style={[styles.healthRecTitle, { color: colors.text.primary }]}>
+                    Recommendations
+                  </Text>
+                  {data.financialHealth.recommendations.slice(0, 2).map((rec: string, i: number) => (
+                    <View key={i} style={styles.recRow}>
+                      <Ionicons name="bulb-outline" size={14} color={data.financialHealth.color} />
+                      <Text style={[styles.recText, { color: colors.text.secondary }]}>{rec}</Text>
+                    </View>
+                  ))}
+                </>
+              )}
             </TouchableOpacity>
           )}
 
@@ -1021,6 +1035,11 @@ const styles = StyleSheet.create({
   factorBar: { flex: 1, height: 5, borderRadius: 3, overflow: 'hidden' },
   factorFill: { height: '100%', borderRadius: 3 },
   factorScore: { fontSize: 10, fontWeight: '600', width: 30, textAlign: 'right' },
+
+  healthDivider: { height: 1, marginVertical: 12 },
+  healthRecTitle: { fontSize: 13, fontWeight: '700', marginBottom: 8 },
+  recRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginBottom: 6 },
+  recText: { fontSize: 12, lineHeight: 17, flex: 1 },
 
   // Insights
   insightCard: {

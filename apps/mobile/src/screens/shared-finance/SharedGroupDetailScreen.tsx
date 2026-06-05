@@ -166,7 +166,7 @@ export function SharedGroupDetailScreen() {
     const totalAmount = expenses.reduce((s, t) => s + Number(t.amount || 0), 0);
     const monthlyAmount = monthly.reduce((s, t) => s + Number(t.amount || 0), 0);
     const pendingSettlements =
-      (group?.pendingSettlements ?? members.length > 1) ? members.length - 1 : 0;
+      group?.pendingSettlements ?? (members.length > 1 ? members.length - 1 : 0);
     const count = expenses.length;
     const monthlyAvg =
       count > 0
@@ -203,26 +203,41 @@ export function SharedGroupDetailScreen() {
   }, [expenses]);
 
   const balanceRows = useMemo(() => {
-    if (members.length === 0) {
-      return [];
+    if (members.length === 0) return [];
+    const entries = new Map<string, { paid: number; owes: number }>();
+    for (const m of members) {
+      entries.set(m.userId, { paid: 0, owes: 0 });
     }
-    const total = stats.totalSpent;
-    const share = total / Math.max(members.length, 1);
+    for (const expense of expenses) {
+      if (!expense.splits || !Array.isArray(expense.splits)) continue;
+      const payerId = expense.paidBy;
+      if (!entries.has(payerId)) entries.set(payerId, { paid: 0, owes: 0 });
+      for (const split of expense.splits) {
+        const splitUserId = split.userId;
+        if (!entries.has(splitUserId)) entries.set(splitUserId, { paid: 0, owes: 0 });
+        const splitAmount = Number(split.amount) || 0;
+        if (splitUserId === payerId) {
+          entries.get(payerId)!.paid += splitAmount;
+        } else {
+          entries.get(payerId)!.paid += splitAmount;
+          entries.get(splitUserId)!.owes += splitAmount;
+        }
+      }
+    }
     return members.map((member: any) => {
-      const paid = expenses
-        .filter((tx) => tx.paidBy === member.userId)
-        .reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
+      const e = entries.get(member.userId) || { paid: 0, owes: 0 };
       return {
         id: member.id,
         userId: member.userId,
         name: member.user?.firstName || member.user?.email || 'Member',
-        paid,
-        balance: paid - share,
+        paid: e.paid,
+        owes: e.owes,
+        balance: e.paid - e.owes,
         email: member.user?.email,
         upiId: member.user?.upiId || member.user?.email,
       };
     });
-  }, [members, stats.totalSpent, expenses]);
+  }, [members, expenses]);
 
   const myBalanceRow = balanceRows.find(r => r.userId === currentUser?.id);
   const windowWidth = Dimensions.get('window').width;
@@ -732,37 +747,41 @@ export function SharedGroupDetailScreen() {
             </TouchableOpacity>
           );
         })}
-        <View style={{ flexDirection: 'row', gap: 10 }}>
-          <TouchableOpacity
-            style={[s.inviteBtn, { backgroundColor: colors.accent.primary, flex: 1 }]}
-            onPress={() => setAddMemberModalVisible(true)}
-          >
-            <Ionicons name="person-add-outline" size={18} color="#FFF" />
-            <Text style={s.inviteBtnText}>Add Member</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[s.inviteBtn, { backgroundColor: colors.bg.tertiary, flex: 1 }]}
-            onPress={handleGenerateInvite}
-            disabled={inviteLoading}
-          >
-            <Ionicons
-              name={inviteLoading ? 'hourglass-outline' : 'share-outline'}
-              size={18}
-              color={colors.text.primary}
-            />
-            <Text style={[s.inviteBtnText, { color: colors.text.primary }]}>
-              {inviteLoading ? 'Generating...' : 'Invite Link'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-        {inviteToken && (
-          <TouchableOpacity
-            style={[s.viewLinkBtn, { borderColor: colors.border.default }]}
-            onPress={() => setInviteModalVisible(true)}
-          >
-            <Ionicons name="link-outline" size={16} color={colors.accent.primary} />
-            <Text style={[s.viewLinkText, { color: colors.accent.primary }]}>View invite link</Text>
-          </TouchableOpacity>
+        {type !== 'couple' && (
+          <>
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <TouchableOpacity
+                style={[s.inviteBtn, { backgroundColor: colors.accent.primary, flex: 1 }]}
+                onPress={() => setAddMemberModalVisible(true)}
+              >
+                <Ionicons name="person-add-outline" size={18} color="#FFF" />
+                <Text style={s.inviteBtnText}>Add Member</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[s.inviteBtn, { backgroundColor: colors.bg.tertiary, flex: 1 }]}
+                onPress={handleGenerateInvite}
+                disabled={inviteLoading}
+              >
+                <Ionicons
+                  name={inviteLoading ? 'hourglass-outline' : 'share-outline'}
+                  size={18}
+                  color={colors.text.primary}
+                />
+                <Text style={[s.inviteBtnText, { color: colors.text.primary }]}>
+                  {inviteLoading ? 'Generating...' : 'Invite Link'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {inviteToken && (
+              <TouchableOpacity
+                style={[s.viewLinkBtn, { borderColor: colors.border.default }]}
+                onPress={() => setInviteModalVisible(true)}
+              >
+                <Ionicons name="link-outline" size={16} color={colors.accent.primary} />
+                <Text style={[s.viewLinkText, { color: colors.accent.primary }]}>View invite link</Text>
+              </TouchableOpacity>
+            )}
+          </>
         )}
 
         <Modal
@@ -1062,17 +1081,19 @@ export function SharedGroupDetailScreen() {
                   <Ionicons name="settings-outline" size={20} color={colors.text.primary} />
                 </TouchableOpacity>
               )}
-              <TouchableOpacity
-                style={[s.iconBtn, { backgroundColor: colors.bg.glassLight }]}
-                onPress={handleGenerateInvite}
-                disabled={inviteLoading}
-              >
-                <Ionicons
-                  name={inviteLoading ? 'hourglass-outline' : 'share-outline'}
-                  size={20}
-                  color={colors.text.primary}
-                />
-              </TouchableOpacity>
+              {type !== 'couple' && (
+                <TouchableOpacity
+                  style={[s.iconBtn, { backgroundColor: colors.bg.glassLight }]}
+                  onPress={handleGenerateInvite}
+                  disabled={inviteLoading}
+                >
+                  <Ionicons
+                    name={inviteLoading ? 'hourglass-outline' : 'share-outline'}
+                    size={20}
+                    color={colors.text.primary}
+                  />
+                </TouchableOpacity>
+              )}
             </View>
 
             <View style={{ marginTop: 18 }}>

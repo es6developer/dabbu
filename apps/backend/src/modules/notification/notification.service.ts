@@ -46,7 +46,7 @@ export class NotificationService {
       }
     }
 
-    await this.sendPush(
+    await this._sendPushToDevices(
       dto.userId,
       dto.title,
       dto.message || dto.body || '',
@@ -143,25 +143,59 @@ export class NotificationService {
     body: string,
     data?: Record<string, any>,
   ): Promise<void> {
+    const notificationType = data?.type as string || 'system';
+
+    const notification = await this.prisma.notification.create({
+      data: {
+        userId,
+        type: notificationType,
+        title,
+        message: body,
+        data: data || undefined,
+      },
+    });
+
+    await this._sendPushToDevices(userId, title, body, { ...data, notificationId: notification.id });
+  }
+
+  private async _sendPushToDevices(
+    userId: string,
+    title: string,
+    body: string,
+    data?: Record<string, any>,
+  ): Promise<void> {
     const devices = await this.prisma.device.findMany({
       where: { userId, isActive: true, pushToken: { not: null } },
     });
 
     if (devices.length === 0) {
-      this.logger.warn(`No active devices found for user ${userId}`);
+      this.logger.warn(`No active devices for user ${userId}`);
       return;
     }
 
-    const notificationType = data?.type as string || 'system';
-
     for (const device of devices) {
-      await this.sendToDevice(
-        device,
-        title,
-        body,
-        data,
-        notificationType,
-      );
+      try {
+        const payload = this.fcmService.buildPayload(
+          title,
+          body,
+          data,
+          device.platform || undefined,
+        );
+        const result = await this.fcmService.sendPush(device.pushToken, payload);
+        if (result.success) {
+          this.logger.log(`Push sent to device ${device.id} for user ${userId}`);
+        } else if (result.error === 'INVALID_TOKEN') {
+          await this.prisma.device.update({
+            where: { id: device.id },
+            data: { isActive: false },
+          });
+          this.logger.warn(`Deactivated device ${device.id} — invalid push token`);
+        } else {
+          this.logger.error(`Push failed for device ${device.id}: ${result.error}`);
+        }
+      } catch (err: any) {
+        this.logger.error(`Push send error for device ${device.id}: ${err.message}`);
+      }
     }
   }
 

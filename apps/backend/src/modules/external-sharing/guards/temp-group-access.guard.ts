@@ -21,7 +21,7 @@ export class TempGroupAccessGuard implements CanActivate {
       return true;
     }
 
-    const membership = await this.prisma.expenseGroupMember.findUnique({
+    const membership = await this.prisma.sharedGroupMember.findUnique({
       where: { groupId_userId: { groupId, userId: user.id } },
     });
 

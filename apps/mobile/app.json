@@ -20,6 +20,7 @@
       "infoPlist": {
         "NSFaceIDUsageDescription": "Use Face ID to unlock Dabbu and authenticate payments",
         "NSCameraUsageDescription": "Scan receipts and documents",
+        "NSContactsUsageDescription": "Dabbu accesses your contacts to help find friends who are already using the app, making it easy to connect and share expenses.",
         "UIBackgroundModes": ["remote-notification"],
         "NSNotificationUsageDescription": "Dabbu sends notifications for expense updates, payment reminders, and shared finance activity.",
         "NSLocalNotificationUsageDescription": "Dabbu uses local notifications for reminders and alerts."
@@ -32,7 +33,7 @@
         "backgroundColor": "#0A0A0F"
       },
       "package": "app.dabbu.mobile",
-      "permissions": ["USE_BIOMETRIC", "CAMERA", "RECEIVE_SMS", "READ_SMS", "POST_NOTIFICATIONS", "RECEIVE_BOOT_COMPLETED"]
+      "permissions": ["USE_BIOMETRIC", "CAMERA", "RECEIVE_SMS", "READ_SMS", "POST_NOTIFICATIONS", "RECEIVE_BOOT_COMPLETED", "READ_CONTACTS"]
     },
     "web": {
       "favicon": "./src/assets/favicon.png"
@@ -41,11 +42,13 @@
       "expo-secure-store",
       "expo-local-authentication",
       "expo-notifications",
-      "expo-font"
+      "expo-font",
+      "expo-contacts"
     ],
     "extra": {
       "apiUrl": "http://localhost:4000/api/v1",
       "environment": "development",
+      "googleClientId": "1031730335520-04qfis58v1a073l8pa9ta4blabkeuce8.apps.googleusercontent.com",
       "eas": {
         "projectId": "dabbu-notifications"
       }

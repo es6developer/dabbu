@@ -341,6 +341,12 @@ export function MainTabNavigator() {
       color: '#0B84A5',
       onPress: () => navigation.navigate('Reminders', { screen: 'CreateReminder' }),
     },
+    {
+      label: 'Add Goal',
+      icon: 'trophy-outline' as const,
+      color: '#FDCB6E',
+      onPress: () => navigation.navigate('Dashboard', { screen: 'GoalsList' }),
+    },
   ];
 
   return (

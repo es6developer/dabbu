@@ -11,7 +11,7 @@ import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { EmailService } from '../email/email.service';
-import { RegisterDto, LoginDto, RefreshTokenDto } from './dto/auth.dto';
+import { RegisterDto, LoginDto, RefreshTokenDto, GoogleAuthDto } from './dto/auth.dto';
 import { JwtPayload, TokenPair } from './interfaces/jwt-payload.interface';
 
 @Injectable()
@@ -175,6 +175,102 @@ export class AuthService {
       where: { userId, isRevoked: false },
       data: { isRevoked: true, revokedAt: new Date() },
     });
+  }
+
+  async googleAuth(dto: GoogleAuthDto): Promise<{ user: any; tokens: TokenPair; isNewUser: boolean }> {
+    const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${dto.idToken}`);
+    if (!response.ok) {
+      throw new UnauthorizedException('Invalid Google token');
+    }
+    const payload = await response.json() as any;
+    const googleEmail = payload.email;
+    const googleName = payload.name || '';
+    const googleAvatar = payload.picture;
+    const googleSub = payload.sub;
+
+    if (!googleEmail) {
+      throw new UnauthorizedException('Google account has no email');
+    }
+
+    let user = await this.prisma.user.findUnique({ where: { email: googleEmail } });
+
+    let isNewUser = false;
+
+    if (user) {
+      if (user.authProvider === 'email' && !user.password) {
+        throw new UnauthorizedException('Account exists with email/password. Please login with email.');
+      }
+      if (user.status !== 'active') {
+        throw new UnauthorizedException('Account is not active');
+      }
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          authProvider: 'google',
+          avatarUrl: googleAvatar || user.avatarUrl,
+          isEmailVerified: true,
+          lastLoginAt: new Date(),
+        },
+      });
+    } else {
+      const nameParts = googleName.split(' ').filter(Boolean);
+      const firstName = nameParts[0] || 'User';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      user = await this.prisma.user.create({
+        data: {
+          email: googleEmail,
+          password: crypto.randomBytes(32).toString('hex'),
+          firstName,
+          lastName,
+          avatarUrl: googleAvatar,
+          authProvider: 'google',
+          isEmailVerified: true,
+          role: 'user',
+          settings: {
+            create: {
+              emailNotifications: true,
+              pushNotifications: true,
+              smsNotifications: false,
+              weeklyReport: true,
+              monthlyReport: true,
+              theme: 'dark',
+              autoDetectTransactions: true,
+              budgetAlertThreshold: 80,
+              defaultCurrency: 'INR',
+              dateFormat: 'DD/MM/yyyy',
+              firstDayOfWeek: 1,
+              language: 'en',
+            },
+          },
+          subscription: {
+            create: {
+              planId:
+                (
+                  await this.prisma.subscriptionPlan.findFirst({
+                    where: { isActive: true },
+                    orderBy: { sortOrder: 'asc' },
+                  })
+                )?.id || '',
+              status: 'active',
+              currentPeriodStart: new Date(),
+              currentPeriodEnd: new Date(Date.now() + 365 * 86400000),
+            },
+          },
+        },
+        include: {
+          settings: true,
+          subscription: { include: { plan: true } },
+        },
+      });
+      isNewUser = true;
+    }
+
+    const tokens = await this.generateTokens(user.id, user.email);
+    await this.createSession(user.id, tokens.refreshToken);
+
+    const { password, ...userWithoutPassword } = user;
+    return { user: userWithoutPassword, tokens, isNewUser };
   }
 
   async getProfile(userId: string): Promise<any> {

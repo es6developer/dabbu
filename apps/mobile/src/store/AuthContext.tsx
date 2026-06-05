@@ -29,13 +29,16 @@ interface AuthState {
   isLoading: boolean;
   user: User | null;
   accessToken: string | null;
+  isNewUser: boolean;
 }
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
+  googleLogin: (idToken: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<boolean>;
+  completeProfileSetup: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -67,13 +70,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading: true,
     user: null,
     accessToken: null,
+    isNewUser: false,
   });
 
   useEffect(() => {
     setRefreshTokenHandler(refreshToken);
     setOnSessionExpiredHandler(() => {
       clearAuth().then(() => {
-        setState({ isAuthenticated: false, isLoading: false, user: null, accessToken: null });
+        setState({ isAuthenticated: false, isLoading: false, user: null, accessToken: null, isNewUser: false });
       });
     });
     loadStoredAuth();
@@ -94,6 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           isLoading: false,
           user: parsedUser,
           accessToken: token,
+          isNewUser: false,
         });
 
         registerForPushNotifications(token).catch(() => {});
@@ -162,6 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading: false,
       user,
       accessToken: tokens.accessToken,
+      isNewUser: false,
     });
 
     trackEventImmediate('login', 'auth', 'email').catch(() => {});
@@ -205,9 +211,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading: false,
       user,
       accessToken: tokens.accessToken,
+      isNewUser: false,
     });
 
     trackEventImmediate('sign_up', 'auth', 'email').catch(() => {});
+    registerForPushNotifications(tokens.accessToken).catch(() => {});
+  }
+
+  async function googleLogin(idToken: string) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    let res: Response;
+    try {
+      res = await fetch(`${API_URL}/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+        signal: controller.signal,
+      });
+    } catch (_e) {
+      clearTimeout(timeout);
+      throw new Error('Connection timed out. Please check your internet connection and try again.');
+    }
+    clearTimeout(timeout);
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.message?.[0] || err?.message || 'Google sign-in failed');
+    }
+
+    const json = await res.json().catch(() => {
+      throw new Error('Invalid response from server');
+    });
+    const data = json?.data;
+    if (!data) { throw new Error('Invalid response from server'); }
+    const { user, tokens, isNewUser } = data;
+
+    setAccessToken(tokens.accessToken);
+    await storeAuth(tokens.accessToken, user);
+    const storage = getStorage();
+    await storage.setItem('refreshToken', tokens.refreshToken);
+
+    setState({
+      isAuthenticated: true,
+      isLoading: false,
+      user,
+      accessToken: tokens.accessToken,
+      isNewUser: !!isNewUser,
+    });
+
+    trackEventImmediate(isNewUser ? 'sign_up' : 'login', 'auth', 'google').catch(() => {});
     registerForPushNotifications(tokens.accessToken).catch(() => {});
   }
 
@@ -237,7 +290,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (_e) {
       /* ignore */
     }
-    setState({ isAuthenticated: false, isLoading: false, user: null, accessToken: null });
+    setState({ isAuthenticated: false, isLoading: false, user: null, accessToken: null, isNewUser: false });
   }
 
   async function refreshToken(): Promise<boolean> {
@@ -271,8 +324,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  function completeProfileSetup() {
+    setState((prev) => ({ ...prev, isNewUser: false }));
+  }
+
   return (
-    <AuthContext.Provider value={{ ...state, login, register, logout, refreshToken }}>
+    <AuthContext.Provider value={{ ...state, login, register, googleLogin, logout, refreshToken, completeProfileSetup }}>
       {children}
     </AuthContext.Provider>
   );

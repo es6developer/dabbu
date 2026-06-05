@@ -743,6 +743,7 @@ export function GoalDetailScreen() {
             backgroundColor: colors.bg.secondary,
             borderTopColor: colors.border.subtle,
             paddingBottom: insets.bottom + sp.lg,
+            bottom: 84,
             opacity: fadeAnim,
           },
         ]}

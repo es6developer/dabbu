@@ -102,6 +102,13 @@ export class VerifyOtpDto {
   purpose: string;
 }
 
+export class GoogleAuthDto {
+  @ApiProperty({ description: 'Google ID token from Google Sign-In' })
+  @IsString()
+  @IsNotEmpty()
+  idToken: string;
+}
+
 export class ChangePasswordDto {
   @ApiProperty()
   @IsString()
