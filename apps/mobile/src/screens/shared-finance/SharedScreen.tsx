@@ -28,9 +28,15 @@ function moneyFormat(v: number | string | undefined | null): string {
 }
 
 function listFromResponse(res: any): any[] {
-  if (!res) {return [];}
-  if (Array.isArray(res)) {return res;}
-  if (res.items) {return Array.isArray(res.items) ? res.items : [];}
+  if (!res) {
+    return [];
+  }
+  if (Array.isArray(res)) {
+    return res;
+  }
+  if (res.items) {
+    return Array.isArray(res.items) ? res.items : [];
+  }
   return [];
 }
 
@@ -47,7 +53,9 @@ export function SharedScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = useCallback(async () => {
-    if (accessToken) {setAccessToken(accessToken);}
+    if (accessToken) {
+      setAccessToken(accessToken);
+    }
     try {
       const [sharedRes, expenseRes] = await Promise.allSettled([
         api.get<any>('/shared-finance/groups'),
@@ -59,7 +67,9 @@ export function SharedScreen() {
       if (expenseRes.status === 'fulfilled') {
         setExpenseGroups(listFromResponse(expenseRes.value));
       }
-    } catch { /* ignore */ } finally {
+    } catch {
+      /* ignore */
+    } finally {
       setLoading(false);
       setRefreshing(false);
     }
@@ -76,9 +86,14 @@ export function SharedScreen() {
   const otherGroups = groups.filter((g) => g.type !== 'couple' && g.type !== 'family');
 
   const typeColors: Record<string, string> = {
-    couple: '#FF6B9D', family: '#5B5FE8', friends: '#00B894',
-    trip: '#FDCB6E', roommates: '#F7892C', apartment: '#8A5CF6',
-    office: '#6366F1', event: '#FF6B6B',
+    couple: '#FF6B9D',
+    family: '#5B5FE8',
+    friends: '#00B894',
+    trip: '#FDCB6E',
+    roommates: '#F7892C',
+    apartment: '#8A5CF6',
+    office: '#6366F1',
+    event: '#FF6B6B',
   };
 
   return (
@@ -89,7 +104,10 @@ export function SharedScreen() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => { setRefreshing(true); loadData(); }}
+            onRefresh={() => {
+              setRefreshing(true);
+              loadData();
+            }}
             tintColor={colors.accent.primary}
           />
         }
@@ -131,7 +149,9 @@ export function SharedScreen() {
             >
               <Ionicons name="people" size={32} color="#FFF" />
             </LinearGradient>
-            <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No shared spaces yet</Text>
+            <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
+              No shared spaces yet
+            </Text>
             <Text style={[styles.emptySub, { color: colors.text.tertiary }]}>
               Create a shared group to split expenses with friends, family, or roommates
             </Text>
@@ -148,7 +168,9 @@ export function SharedScreen() {
             {/* Couple & Family Cards */}
             {coupleFamilyGroups.length > 0 && (
               <View style={{ paddingHorizontal: 16, marginTop: 8 }}>
-                <Text style={[styles.sectionLabel, { color: colors.text.tertiary }]}>Family & Couple</Text>
+                <Text style={[styles.sectionLabel, { color: colors.text.tertiary }]}>
+                  Family & Couple
+                </Text>
                 <View style={{ gap: 10, marginTop: 8 }}>
                   {coupleFamilyGroups.map((group) => {
                     const color = group.type === 'couple' ? '#FF6B9D' : '#5B5FE8';
@@ -183,7 +205,8 @@ export function SharedScreen() {
                             {group.name || group.title}
                           </Text>
                           <Text style={[styles.groupType, { color: colors.text.tertiary }]}>
-                            {group.type === 'couple' ? 'Couple' : 'Family'} · {memberCount} member{memberCount !== 1 ? 's' : ''}
+                            {group.type === 'couple' ? 'Couple' : 'Family'} · {memberCount} member
+                            {memberCount !== 1 ? 's' : ''}
                           </Text>
                         </View>
                         <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
@@ -198,7 +221,11 @@ export function SharedScreen() {
             {otherGroups.length > 0 && (
               <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
                 <Text style={[styles.sectionLabel, { color: colors.text.tertiary }]}>Groups</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={{ marginTop: 8 }}
+                >
                   {otherGroups.map((group) => {
                     const color = typeColors[group.type] || colors.accent.primary;
                     const memberCount = group.members?.length || group._count?.members || 0;
@@ -209,13 +236,19 @@ export function SharedScreen() {
                         activeOpacity={0.7}
                         onPress={() => {
                           trackFeature('Shared', 'open_group');
-                          navigation.navigate('Shared', { screen: 'SharedGroupDetail', params: { groupId: group.id } });
+                          navigation.navigate('Shared', {
+                            screen: 'SharedGroupDetail',
+                            params: { groupId: group.id },
+                          });
                         }}
                       >
                         <View style={[styles.horizIcon, { backgroundColor: `${color}18` }]}>
                           <Ionicons name="people" size={22} color={color} />
                         </View>
-                        <Text style={[styles.horizName, { color: colors.text.primary }]} numberOfLines={1}>
+                        <Text
+                          style={[styles.horizName, { color: colors.text.primary }]}
+                          numberOfLines={1}
+                        >
                           {group.name || group.title}
                         </Text>
                         <Text style={[styles.horizMeta, { color: colors.text.tertiary }]}>
@@ -234,7 +267,9 @@ export function SharedScreen() {
             {/* Expense Spaces */}
             {expenseGroups.length > 0 && (
               <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
-                <Text style={[styles.sectionLabel, { color: colors.text.tertiary }]}>Expense Spaces</Text>
+                <Text style={[styles.sectionLabel, { color: colors.text.tertiary }]}>
+                  Expense Spaces
+                </Text>
                 <View style={{ gap: 10, marginTop: 8 }}>
                   {expenseGroups.slice(0, 5).map((space) => {
                     const color = typeColors[space.type] || colors.accent.primary;
@@ -243,13 +278,20 @@ export function SharedScreen() {
                         key={space.id}
                         style={[styles.groupCard, { backgroundColor: colors.bg.secondary }]}
                         activeOpacity={0.7}
-                        onPress={() => navigation.navigate('Accounts', { screen: 'GroupExpenses', params: { groupId: space.id } })}
+                        onPress={() =>
+                          navigation.navigate('Accounts', {
+                            screen: 'GroupExpenses',
+                            params: { groupId: space.id },
+                          })
+                        }
                       >
                         <View style={[styles.spaceIcon, { backgroundColor: `${color}18` }]}>
                           <Ionicons name="layers" size={20} color={color} />
                         </View>
                         <View style={{ flex: 1 }}>
-                          <Text style={[styles.groupName, { color: colors.text.primary }]}>{space.name}</Text>
+                          <Text style={[styles.groupName, { color: colors.text.primary }]}>
+                            {space.name}
+                          </Text>
                           <Text style={[styles.groupType, { color: colors.text.tertiary }]}>
                             {moneyFormat(space.totalAmount || space.balance || 0)}
                           </Text>
@@ -280,19 +322,6 @@ export function SharedScreen() {
               <TouchableOpacity
                 style={[styles.quickAction, { backgroundColor: colors.bg.secondary }]}
                 onPress={() => {
-                  trackFeature('Shared', 'chat');
-                  navigation.navigate('Shared', { screen: 'GroupChat' });
-                }}
-              >
-                <View style={[styles.qaIcon, { backgroundColor: '#74B9FF18' }]}>
-                  <Ionicons name="chatbubbles" size={20} color="#74B9FF" />
-                </View>
-                <Text style={[styles.qaText, { color: colors.text.primary }]}>Group Chat</Text>
-                <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.quickAction, { backgroundColor: colors.bg.secondary }]}
-                onPress={() => {
                   trackFeature('Shared', 'wallet');
                   navigation.navigate('Shared', { screen: 'GroupWallet' });
                 }}
@@ -317,7 +346,14 @@ const styles = StyleSheet.create({
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   headerTitle: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5 },
   headerSub: { fontSize: 13, fontWeight: '500', marginTop: 2 },
-  createBtn: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
+  createBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
 
   sectionLabel: { fontSize: 13, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
 
@@ -346,13 +382,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  horizIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  horizIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   horizName: { fontSize: 13, fontWeight: '700', textAlign: 'center' },
   horizMeta: { fontSize: 11, fontWeight: '500' },
   horizTag: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
   horizTagText: { fontSize: 10, fontWeight: '700', textTransform: 'capitalize' },
 
-  spaceIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  spaceIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 
   quickAction: {
     flexDirection: 'row',
@@ -361,12 +409,32 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     gap: 12,
   },
-  qaIcon: { width: 38, height: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  qaIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   qaText: { flex: 1, fontSize: 14, fontWeight: '600' },
 
   skeletonCard: { borderRadius: 18, marginBottom: 4 },
-  emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32, paddingTop: 60, gap: 10 },
-  emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    paddingTop: 60,
+    gap: 10,
+  },
+  emptyIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
   emptyTitle: { fontSize: 18, fontWeight: '700' },
   emptySub: { fontSize: 13, textAlign: 'center', lineHeight: 18 },
   emptyBtn: {

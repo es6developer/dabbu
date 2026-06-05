@@ -691,7 +691,7 @@ model Goal {
   targetAmount        Decimal   @db.Decimal(15, 2)
   currentAmount       Decimal   @default(0) @db.Decimal(15, 2)
   deadline            DateTime? @db.Date
-  type                String    @default("savings") @db.VarChar(20) // savings, investment, debt, custom
+  type                String    @default("custom") @db.VarChar(20) // emergency, vacation, education, home, car, wedding, retirement, custom
   icon                String?   @db.VarChar(50)
   color               String?   @db.VarChar(50)
   monthlyContribution Decimal?  @db.Decimal(15, 2)

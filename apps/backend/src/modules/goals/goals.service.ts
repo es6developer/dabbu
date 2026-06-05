@@ -13,7 +13,7 @@ export class GoalsService {
         userId,
         name: dto.name,
         targetAmount: dto.targetAmount,
-        type: dto.type || 'savings',
+        type: dto.type || 'custom',
         deadline: dto.deadline ? new Date(dto.deadline) : null,
         icon: dto.icon || null,
         color: dto.color || null,

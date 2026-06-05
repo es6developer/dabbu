@@ -23,10 +23,22 @@ export class CreateGoalDto {
   @Min(1)
   targetAmount: number;
 
-  @ApiPropertyOptional({ example: 'savings' })
+  @ApiPropertyOptional({ example: 'emergency' })
   @IsOptional()
   @IsString()
-  @IsIn(['savings', 'investment', 'debt', 'custom'])
+  @IsIn([
+    'emergency',
+    'vacation',
+    'education',
+    'home',
+    'car',
+    'wedding',
+    'retirement',
+    'custom',
+    'savings',
+    'investment',
+    'debt',
+  ])
   type?: string;
 
   @ApiPropertyOptional({ example: '2026-12-31' })
