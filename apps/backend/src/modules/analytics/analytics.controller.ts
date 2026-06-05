@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Body, Query, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, UseGuards, Req, Res, Param } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { AnalyticsService } from './analytics.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -12,6 +12,8 @@ import {
   CashFlowQueryDto,
   NetWorthQueryDto,
   BudgetAnalyticsQueryDto,
+  ReportQueryDto,
+  ExportQueryDto,
 } from './dto/analytics-query.dto';
 
 @ApiTags('Analytics')
@@ -98,6 +100,80 @@ export class AnalyticsController {
   async getInsights(@CurrentUser('id') userId: string) {
     const data = await this.analyticsService.getInsights(userId);
     return { data };
+  }
+
+  // ─── Report Endpoints ────────────────────────────────────
+
+  @Get('reports/expense')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get expense report' })
+  async getExpenseReport(@CurrentUser('id') userId: string, @Query() query: ReportQueryDto) {
+    return { data: await this.analyticsService.getExpenseReport(userId, query) };
+  }
+
+  @Get('reports/income')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get income report' })
+  async getIncomeReport(@CurrentUser('id') userId: string, @Query() query: ReportQueryDto) {
+    return { data: await this.analyticsService.getIncomeReport(userId, query) };
+  }
+
+  @Get('reports/savings')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get savings report' })
+  async getSavingsReport(@CurrentUser('id') userId: string, @Query() query: ReportQueryDto) {
+    return { data: await this.analyticsService.getSavingsReport(userId, query) };
+  }
+
+  @Get('reports/member')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get member report' })
+  async getMemberReport(@CurrentUser('id') userId: string, @Query() query: ReportQueryDto) {
+    return { data: await this.analyticsService.getMemberReport(userId, query) };
+  }
+
+  @Get('reports/group/:groupId')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get group report' })
+  async getGroupReport(@CurrentUser('id') userId: string, @Param('groupId') groupId: string) {
+    return { data: await this.analyticsService.getGroupReport(userId, groupId) };
+  }
+
+  // ─── Export Endpoints ────────────────────────────────────
+
+  @Post('export/pdf')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Export report as PDF' })
+  async exportPdf(
+    @CurrentUser('id') userId: string,
+    @Body() body: ExportQueryDto & { reportType: string },
+    @Res() res: Response,
+  ) {
+    const buffer = await this.analyticsService.exportPdf(userId, body, body.reportType);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="dabbu-${body.reportType}-report.pdf"`);
+    res.send(buffer);
+  }
+
+  @Post('export/excel')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Export report as Excel' })
+  async exportExcel(
+    @CurrentUser('id') userId: string,
+    @Body() body: ExportQueryDto & { reportType: string },
+    @Res() res: Response,
+  ) {
+    const buffer = await this.analyticsService.exportExcel(userId, body, body.reportType);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="dabbu-${body.reportType}-report.xlsx"`);
+    res.send(buffer);
   }
 
   // ─── Event Tracking ─────────────────────────────────────

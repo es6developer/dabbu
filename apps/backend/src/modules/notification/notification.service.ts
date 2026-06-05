@@ -181,7 +181,7 @@ export class NotificationService {
           data,
           device.platform || undefined,
         );
-        const result = await this.fcmService.sendPush(device.pushToken, payload);
+        const result = await this.fcmService.sendPush(device.pushToken!, payload);
         if (result.success) {
           this.logger.log(`Push sent to device ${device.id} for user ${userId}`);
         } else if (result.error === 'INVALID_TOKEN') {
@@ -238,7 +238,7 @@ export class NotificationService {
         device.platform || undefined,
       );
 
-      const result = await this.fcmService.sendPush(device.pushToken, payload);
+      const result = await this.fcmService.sendPush(device.pushToken!, payload);
 
       if (result.success) {
         await this._updateLogStatus(log.id, 'sent');

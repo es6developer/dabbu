@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
-import { AnalyticsQueryDto, AnalyticsPeriod } from './dto/analytics-query.dto';
+import { AnalyticsQueryDto, AnalyticsPeriod, ReportQueryDto, ExportQueryDto } from './dto/analytics-query.dto';
 
 interface TrackEventDto {
   event: string;
@@ -405,6 +405,396 @@ export class AnalyticsService {
     }
 
     return insights;
+  }
+
+  // ─── Report Methods ─────────────────────────────────────
+
+  async getExpenseReport(userId: string, query: ReportQueryDto) {
+    const { startDate, endDate } = this.resolveDateRange(query);
+    const whereBase: any = {
+      userId,
+      type: 'expense',
+      date: { gte: startDate, lte: endDate },
+      deletedAt: null,
+    };
+    if (query.groupId) whereBase.expenseGroupId = query.groupId;
+
+    const [totalResult, categoryData, monthlyTrend] = await Promise.all([
+      this.prisma.transaction.aggregate({
+        where: whereBase,
+        _sum: { amount: true },
+        _count: true,
+        _avg: { amount: true },
+      }),
+      this.getCategoryBreakdown(userId, query),
+      this.getSpendingTrend(userId, query),
+    ]);
+
+    const totalExpense = totalResult._sum.amount?.toNumber() ?? 0;
+    const topCategory = categoryData.length > 0 ? categoryData[0] : null;
+
+    return {
+      totalExpense,
+      transactionCount: totalResult._count,
+      averageTransaction: Math.round((totalResult._avg.amount?.toNumber() ?? 0) * 100) / 100,
+      topCategory,
+      categories: categoryData,
+      monthlyTrend,
+      period: { startDate: startDate.toISOString(), endDate: endDate.toISOString() },
+    };
+  }
+
+  async getIncomeReport(userId: string, query: ReportQueryDto) {
+    const { startDate, endDate } = this.resolveDateRange(query);
+    const whereBase: any = {
+      userId,
+      type: 'income',
+      date: { gte: startDate, lte: endDate },
+      deletedAt: null,
+    };
+    if (query.groupId) whereBase.expenseGroupId = query.groupId;
+
+    const [totalResult, monthlyTrend] = await Promise.all([
+      this.prisma.transaction.aggregate({
+        where: whereBase,
+        _sum: { amount: true },
+        _count: true,
+      }),
+      this.getCashFlow(userId, query),
+    ]);
+
+    const totalIncome = totalResult._sum.amount?.toNumber() ?? 0;
+
+    const incomeByCategory = await this.prisma.transaction.findMany({
+      where: whereBase,
+      include: { category: true },
+    });
+    const catMap = new Map<string, number>();
+    for (const t of incomeByCategory) {
+      const name = t.category?.name || 'Uncategorized';
+      catMap.set(name, (catMap.get(name) || 0) + t.amount.toNumber());
+    }
+    const sources = Array.from(catMap.entries())
+      .map(([name, amount]) => ({ name, amount: Math.round(amount * 100) / 100 }))
+      .sort((a, b) => b.amount - a.amount);
+
+    return {
+      totalIncome,
+      transactionCount: totalResult._count,
+      sources,
+      monthlyTrend,
+      period: { startDate: startDate.toISOString(), endDate: endDate.toISOString() },
+    };
+  }
+
+  async getSavingsReport(userId: string, query: ReportQueryDto) {
+    const { startDate, endDate } = this.resolveDateRange(query);
+    const cashFlow = await this.getCashFlow(userId, query);
+
+    let totalIncome = 0;
+    let totalExpense = 0;
+    for (const m of cashFlow) {
+      totalIncome += m.income;
+      totalExpense += m.expense;
+    }
+    const totalSavings = totalIncome - totalExpense;
+    const savingsRate = totalIncome > 0 ? (totalSavings / totalIncome) * 100 : 0;
+
+    const savingsTrend = cashFlow.map((m) => ({
+      period: m.period,
+      income: m.income,
+      expense: m.expense,
+      savings: m.net,
+      savingsRate: m.income > 0 ? Math.round((m.net / m.income) * 10000) / 100 : 0,
+    }));
+
+    return {
+      totalIncome: Math.round(totalIncome * 100) / 100,
+      totalExpense: Math.round(totalExpense * 100) / 100,
+      totalSavings: Math.round(totalSavings * 100) / 100,
+      savingsRate: Math.round(savingsRate * 100) / 100,
+      savingsTrend,
+      period: { startDate: startDate.toISOString(), endDate: endDate.toISOString() },
+    };
+  }
+
+  async getMemberReport(userId: string, query: ReportQueryDto) {
+    const { startDate, endDate } = this.resolveDateRange(query);
+    const { groupId, memberId } = query;
+
+    if (!groupId) {
+      return this._buildPersonalMemberReport(userId, startDate, endDate);
+    }
+
+    const groupMemberIds = await this.prisma.sharedGroupMember.findMany({
+      where: { groupId },
+      select: { userId: true },
+    });
+    const uids = groupMemberIds.map((m) => m.userId);
+    const targetUids = memberId ? [memberId] : uids;
+
+    const members = await this.prisma.user.findMany({
+      where: { id: { in: targetUids }, deletedAt: null },
+      select: { id: true, firstName: true, lastName: true, email: true },
+    });
+
+    const memberData = await Promise.all(
+      members.map(async (member) => {
+        const [expenseAgg, incomeAgg, txCount] = await Promise.all([
+          this.prisma.transaction.aggregate({
+            where: { userId: member.id, type: 'expense', date: { gte: startDate, lte: endDate }, deletedAt: null },
+            _sum: { amount: true },
+          }),
+          this.prisma.transaction.aggregate({
+            where: { userId: member.id, type: 'income', date: { gte: startDate, lte: endDate }, deletedAt: null },
+            _sum: { amount: true },
+          }),
+          this.prisma.transaction.count({
+            where: { userId: member.id, date: { gte: startDate, lte: endDate }, deletedAt: null },
+          }),
+        ]);
+        return {
+          id: member.id,
+          name: `${member.firstName} ${member.lastName}`.trim() || member.email,
+          totalExpense: expenseAgg._sum.amount?.toNumber() ?? 0,
+          totalIncome: incomeAgg._sum.amount?.toNumber() ?? 0,
+          transactionCount: txCount,
+        };
+      }),
+    );
+
+    const groupTotal = memberData.reduce((s, m) => s + m.totalExpense, 0);
+    return {
+      members: memberData.map((m) => ({
+        ...m,
+        contributionPercentage: groupTotal > 0 ? Math.round((m.totalExpense / groupTotal) * 10000) / 100 : 0,
+      })),
+      groupTotal,
+      period: { startDate: startDate.toISOString(), endDate: endDate.toISOString() },
+    };
+  }
+
+  private async _buildPersonalMemberReport(userId: string, startDate: Date, endDate: Date) {
+    const [expenseAgg, incomeAgg, txCount, categories] = await Promise.all([
+      this.prisma.transaction.aggregate({
+        where: { userId, type: 'expense', date: { gte: startDate, lte: endDate }, deletedAt: null },
+        _sum: { amount: true },
+      }),
+      this.prisma.transaction.aggregate({
+        where: { userId, type: 'income', date: { gte: startDate, lte: endDate }, deletedAt: null },
+        _sum: { amount: true },
+      }),
+      this.prisma.transaction.count({
+        where: { userId, date: { gte: startDate, lte: endDate }, deletedAt: null },
+      }),
+      this.getCategoryBreakdown(userId, { startDate: startDate.toISOString(), endDate: endDate.toISOString() } as any),
+    ]);
+    return {
+      members: [{
+        id: userId,
+        name: 'You',
+        totalExpense: expenseAgg._sum.amount?.toNumber() ?? 0,
+        totalIncome: incomeAgg._sum.amount?.toNumber() ?? 0,
+        transactionCount: txCount,
+        contributionPercentage: 100,
+      }],
+      categories,
+      groupTotal: expenseAgg._sum.amount?.toNumber() ?? 0,
+      period: { startDate: startDate.toISOString(), endDate: endDate.toISOString() },
+    };
+  }
+
+  async getGroupReport(userId: string, groupId: string) {
+    const group = await this.prisma.sharedGroup.findUnique({
+      where: { id: groupId },
+      include: {
+        members: {
+          include: { user: { select: { id: true, firstName: true, lastName: true, email: true } } },
+        },
+      },
+    });
+    if (!group) throw new NotFoundException('Group not found');
+
+    const memberIds = group.members.map((m) => m.userId);
+    if (!memberIds.includes(userId)) throw new ForbiddenException('Not a member of this group');
+
+    const [expenseAgg, txCount] = await Promise.all([
+      this.prisma.transaction.aggregate({
+        where: { userId: { in: memberIds }, expenseGroupId: groupId, deletedAt: null },
+        _sum: { amount: true },
+      }),
+      this.prisma.transaction.count({
+        where: { userId: { in: memberIds }, expenseGroupId: groupId, deletedAt: null },
+      }),
+    ]);
+
+    const memberExpenses = await Promise.all(
+      group.members.map(async (m) => {
+        const agg = await this.prisma.transaction.aggregate({
+          where: { userId: m.userId, expenseGroupId: groupId, type: 'expense', deletedAt: null },
+          _sum: { amount: true },
+        });
+        return {
+          id: m.userId,
+          name: `${m.user.firstName} ${m.user.lastName}`.trim() || m.user.email,
+          totalExpense: agg._sum.amount?.toNumber() ?? 0,
+        };
+      }),
+    );
+
+    const groupTotal = expenseAgg._sum.amount?.toNumber() ?? 0;
+    return {
+      groupId: group.id,
+      groupName: group.name,
+      groupType: group.type,
+      totalExpense: groupTotal,
+      transactionCount: txCount,
+      activeMembers: group.members.filter((m) => m.isActive).length,
+      totalMembers: group.members.length,
+      memberExpenses: memberExpenses.map((m) => ({
+        ...m,
+        percentage: groupTotal > 0 ? Math.round((m.totalExpense / groupTotal) * 10000) / 100 : 0,
+      })),
+    };
+  }
+
+  // ─── Export Methods ──────────────────────────────────────
+
+  async exportPdf(userId: string, query: ExportQueryDto, reportType: string): Promise<Buffer> {
+    const PDFDocument = require('pdfkit');
+    const doc = new PDFDocument({ margin: 50, size: 'A4' });
+    const buffers: Buffer[] = [];
+    doc.on('data', (chunk: Buffer) => buffers.push(chunk));
+
+    return new Promise<Buffer>((resolve, reject) => {
+      doc.on('end', () => resolve(Buffer.concat(buffers)));
+      doc.on('error', reject);
+
+      const { startDate, endDate } = this.resolveDateRange(query as AnalyticsQueryDto);
+      const dateRangeStr = `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`;
+
+      // Header
+      doc.fontSize(24).font('Helvetica-Bold').fillColor('#F7892C').text('Dabbu', { align: 'center' });
+      doc.fontSize(10).font('Helvetica').fillColor('#666').text('Smart Family Finance', { align: 'center' });
+      doc.moveDown(0.5);
+      doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor('#E0E0E0').stroke();
+      doc.moveDown(0.5);
+
+      // Title
+      doc.fontSize(18).font('Helvetica-Bold').fillColor('#333').text(`${reportType} Report`, { align: 'center' });
+      doc.moveDown(0.3);
+      doc.fontSize(10).font('Helvetica').fillColor('#666').text(`Generated: ${new Date().toLocaleDateString()}`, { align: 'center' });
+      doc.fontSize(10).font('Helvetica').fillColor('#666').text(`Period: ${dateRangeStr}`, { align: 'center' });
+      if (query.groupId) {
+        doc.fontSize(10).font('Helvetica').fillColor('#666').text(`Group ID: ${query.groupId}`, { align: 'center' });
+      }
+      doc.moveDown(1);
+
+      // Summary section
+      doc.fontSize(14).font('Helvetica-Bold').fillColor('#333').text('Summary', { underline: true });
+      doc.moveDown(0.5);
+
+      doc.fontSize(10).font('Helvetica').fillColor('#333');
+      doc.text(`Report Type: ${reportType}`);
+      doc.text(`Date Range: ${dateRangeStr}`);
+      doc.text(`Generated: ${new Date().toLocaleString()}`);
+      doc.moveDown(1);
+
+      // Footer
+      doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor('#E0E0E0').stroke();
+      doc.moveDown(0.5);
+      doc.fontSize(8).font('Helvetica').fillColor('#999').text('Dabbu - Smart Family Finance', { align: 'center' });
+      doc.fontSize(8).font('Helvetica').fillColor('#999').text('This is a computer-generated report.', { align: 'center' });
+
+      doc.end();
+    });
+  }
+
+  async exportExcel(userId: string, query: ExportQueryDto, reportType: string): Promise<Buffer> {
+    const ExcelJS = require('exceljs');
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'Dabbu';
+    wb.created = new Date();
+
+    // Summary sheet
+    const summary = wb.addWorksheet('Summary');
+    summary.columns = [
+      { header: 'Metric', key: 'metric', width: 25 },
+      { header: 'Value', key: 'value', width: 20 },
+      { header: 'Period', key: 'period', width: 20 },
+    ];
+    summary.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    summary.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF7892C' } };
+    summary.addRow({ metric: 'Report Type', value: reportType });
+    summary.addRow({ metric: 'Generated', value: new Date().toLocaleString() });
+    summary.addRow({ metric: 'Group ID', value: query.groupId || 'All accounts' });
+    summary.addRow({ metric: 'Start Date', value: query.startDate || 'N/A' });
+    summary.addRow({ metric: 'End Date', value: query.endDate || 'N/A' });
+
+    // Transactions sheet
+    const txSheet = wb.addWorksheet('Transactions');
+    txSheet.columns = [
+      { header: 'Date', key: 'date', width: 14 },
+      { header: 'Type', key: 'type', width: 12 },
+      { header: 'Category', key: 'category', width: 18 },
+      { header: 'Amount', key: 'amount', width: 16 },
+      { header: 'Description', key: 'description', width: 40 },
+    ];
+    txSheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    txSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF7892C' } };
+
+    const { startDate, endDate } = this.resolveDateRange(query as AnalyticsQueryDto);
+    const transactions = await this.prisma.transaction.findMany({
+      where: { userId, date: { gte: startDate, lte: endDate }, deletedAt: null },
+      include: { category: true },
+      orderBy: { date: 'desc' },
+      take: 500,
+    });
+    for (const t of transactions) {
+      txSheet.addRow({
+        date: t.date.toISOString().slice(0, 10),
+        type: t.type,
+        category: t.category?.name || '',
+        amount: t.amount.toNumber(),
+        description: t.description || '',
+      });
+    }
+
+    // Categories sheet
+    const catSheet = wb.addWorksheet('Categories');
+    catSheet.columns = [
+      { header: 'Category', key: 'category', width: 20 },
+      { header: 'Amount', key: 'amount', width: 16 },
+      { header: 'Count', key: 'count', width: 10 },
+      { header: 'Percentage', key: 'percentage', width: 14 },
+    ];
+    catSheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    catSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF7892C' } };
+
+    const catData = await this.getCategoryBreakdown(userId, query as AnalyticsQueryDto);
+    for (const c of catData) {
+      catSheet.addRow({ category: c.name, amount: c.amount, count: 0, percentage: `${c.percentage}%` });
+    }
+
+    // Members sheet
+    const memSheet = wb.addWorksheet('Members');
+    memSheet.columns = [
+      { header: 'Name', key: 'name', width: 25 },
+      { header: 'Expenses', key: 'expenses', width: 16 },
+      { header: 'Income', key: 'income', width: 16 },
+      { header: 'Transactions', key: 'transactions', width: 14 },
+    ];
+    memSheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    memSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF7892C' } };
+
+    try {
+      const memberReport = await this.getMemberReport(userId, query as any);
+      for (const m of memberReport.members) {
+        memSheet.addRow({ name: m.name, expenses: m.totalExpense, income: m.totalIncome, transactions: m.transactionCount });
+      }
+    } catch {}
+
+    return wb.xlsx.writeBuffer() as Promise<Buffer>;
   }
 
   async getCategorySummary(userId: string, startDate?: string, endDate?: string) {

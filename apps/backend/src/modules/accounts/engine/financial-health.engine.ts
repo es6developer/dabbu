@@ -211,14 +211,14 @@ export class FinancialHealthEngine {
     if (totalScore >= 80) {
       label = 'Excellent';
       color = '#00C853';
-    } else if (totalScore >= 65) {
+    } else if (totalScore >= 60) {
       label = 'Good';
       color = '#69F0AE';
-    } else if (totalScore >= 45) {
-      label = 'Needs Attention';
+    } else if (totalScore >= 40) {
+      label = 'Fair';
       color = '#FFB300';
     } else {
-      label = 'Risk Zone';
+      label = 'Needs Attention';
       color = '#FF5252';
     }
 

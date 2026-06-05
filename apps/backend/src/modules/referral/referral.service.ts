@@ -1,5 +1,6 @@
 import { Injectable, Logger, BadRequestException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { NotificationService } from '../notification/notification.service';
 import * as crypto from 'crypto';
 
 const REFERRER_REWARD = 100;
@@ -10,7 +11,10 @@ const MIN_ACTIVITY_DAYS = 3;
 export class ReferralService {
   private readonly logger = new Logger(ReferralService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationService: NotificationService,
+  ) {}
 
   private generateCode(): string {
     return crypto.randomBytes(4).toString('hex').toUpperCase();
@@ -104,7 +108,7 @@ export class ReferralService {
       return existing;
     }
 
-    return this.prisma.referralProgram.create({
+    const referral = await this.prisma.referralProgram.create({
       data: {
         referrerId: referrer.id,
         refereeEmail: '',
@@ -117,6 +121,15 @@ export class ReferralService {
         refereeRewardAmount: REFEREE_REWARD,
       },
     });
+
+    this.notificationService.sendPush(
+      referrer.id,
+      'Referral Link Clicked',
+      'Someone clicked your referral link!',
+      { type: 'referral_link_clicked', referralId: referral.id },
+    ).catch(() => {});
+
+    return referral;
   }
 
   async trackInstall(dto: { code: string; deviceId?: string }) {
@@ -181,6 +194,13 @@ export class ReferralService {
           refereeRewardAmount: REFEREE_REWARD,
         },
       });
+
+      this.notificationService.sendPush(
+        referrer.id,
+        'Friend Joined! 🎉',
+        `${referee.firstName || 'Someone'} signed up using your referral code!`,
+        { type: 'referral_signup', referralId: referral.id, refereeId: dto.userId },
+      ).catch(() => {});
     } else {
       const fraudCheck = await this.runFraudCheck(
         dto.userId,
@@ -207,6 +227,13 @@ export class ReferralService {
           ipAddress: dto.ipAddress ?? referral.ipAddress,
         },
       });
+
+      this.notificationService.sendPush(
+        referrer.id,
+        'Friend Joined! 🎉',
+        `${referee.firstName || 'Someone'} signed up using your referral code!`,
+        { type: 'referral_signup', referralId: referral.id, refereeId: dto.userId },
+      ).catch(() => {});
     }
 
     return referral;
@@ -227,7 +254,7 @@ export class ReferralService {
         data: { status: 'converted', convertedAt: new Date() },
       });
 
-      await tx.referralReward.create({
+      const referrerReward = await tx.referralReward.create({
         data: {
           userId: referral.referrerId,
           referralId,
@@ -239,7 +266,7 @@ export class ReferralService {
         },
       });
 
-      await tx.referralReward.create({
+      const refereeReward = await tx.referralReward.create({
         data: {
           userId: referral.refereeId!,
           referralId,
@@ -261,17 +288,45 @@ export class ReferralService {
         },
       });
 
-      return ref;
+      return { ref, referrerReward, refereeReward };
     });
 
-    return updated;
+    this.notificationService.sendPush(
+      referral.referrerId,
+      'Reward Credited! 🎉',
+      `You earned ₹${referral.referrerRewardAmount} referral bonus!`,
+      { type: 'referral_reward_credited', referralId, rewardId: updated.referrerReward.id, amount: Number(referral.referrerRewardAmount) },
+    ).catch(() => {});
+
+    if (referral.refereeId) {
+      this.notificationService.sendPush(
+        referral.refereeId,
+        'Welcome Bonus! 🎉',
+        `You received ₹${referral.refereeRewardAmount} welcome bonus for joining!`,
+        { type: 'referral_reward_credited', referralId, rewardId: updated.refereeReward.id, amount: Number(referral.refereeRewardAmount) },
+      ).catch(() => {});
+    }
+
+    return updated.ref;
   }
 
   async rejectReferral(referralId: string, reason: string) {
-    return this.prisma.referralProgram.update({
+    const referral = await this.prisma.referralProgram.findUnique({ where: { id: referralId } });
+    const result = await this.prisma.referralProgram.update({
       where: { id: referralId },
       data: { status: 'rejected', rejectReason: reason, rejectedAt: new Date() },
     });
+
+    if (referral) {
+      this.notificationService.sendPush(
+        referral.referrerId,
+        'Referral Rejected',
+        `Your referral was rejected: ${reason}`,
+        { type: 'referral_rejected', referralId },
+      ).catch(() => {});
+    }
+
+    return result;
   }
 
   async getUserReferrals(userId: string) {
@@ -356,18 +411,27 @@ export class ReferralService {
     }
   }
 
-  async claimReward(userId: string, referralId: string) {
-    const reward = await this.prisma.referralReward.findFirst({
-      where: { id: referralId, userId, status: 'pending' },
+  async claimReward(userId: string, rewardId: string) {
+    const reward = await this.prisma.referralReward.findUnique({
+      where: { id: rewardId },
     });
     if (!reward) {
       throw new BadRequestException('No claimable reward found');
     }
 
-    return this.prisma.referralReward.update({
+    const updated = await this.prisma.referralReward.update({
       where: { id: reward.id },
       data: { status: 'approved', paidAt: new Date() },
     });
+
+    this.notificationService.sendPush(
+      userId,
+      'Reward Claimed! 🎉',
+      `Your reward of ₹${Number(reward.amount)} has been claimed!`,
+      { type: 'referral_reward_claimed', rewardId: reward.id, amount: Number(reward.amount) },
+    ).catch(() => {});
+
+    return updated;
   }
 
   async claimAllRewards(userId: string) {
@@ -375,6 +439,16 @@ export class ReferralService {
       where: { userId, status: 'pending' },
       data: { status: 'approved', paidAt: new Date() },
     });
+
+    if (result.count > 0) {
+      this.notificationService.sendPush(
+        userId,
+        'Rewards Claimed! 🎉',
+        `All ${result.count} reward${result.count > 1 ? 's' : ''} have been claimed!`,
+        { type: 'referral_reward_claimed', count: result.count },
+      ).catch(() => {});
+    }
+
     return { claimed: result.count };
   }
 }

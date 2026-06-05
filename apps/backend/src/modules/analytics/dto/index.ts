@@ -6,5 +6,7 @@ export {
   CashFlowQueryDto,
   NetWorthQueryDto,
   BudgetAnalyticsQueryDto,
+  ReportQueryDto,
+  ExportQueryDto,
   AnalyticsPeriod,
 } from './analytics-query.dto';

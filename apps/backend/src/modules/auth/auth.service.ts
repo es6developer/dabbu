@@ -85,16 +85,6 @@ export class AuthService {
       },
     });
 
-    if (dto.referralCode) {
-      try {
-        const { ReferralService } = await import('../referral/referral.service');
-        const referralService = new ReferralService(this.prisma);
-        await referralService.processReferralSignup(user.id, dto.referralCode);
-      } catch {
-        /* Silently ignore invalid referral codes */
-      }
-    }
-
     const tokens = await this.generateTokens(user.id, user.email);
     await this.createSession(user.id, tokens.refreshToken);
 
