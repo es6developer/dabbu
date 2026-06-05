@@ -17,7 +17,7 @@ import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { PageContainer } from '../../components/ui/PageContainer';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
-import { useGoogleAuth, getGoogleIdToken } from '../../services/google-auth';
+import { useGoogleAuth, getGoogleIdToken, getGoogleError } from '../../services/google-auth';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
@@ -48,8 +48,11 @@ export function LoginScreen() {
       const idToken = getGoogleIdToken(response);
       if (idToken) {
         handleGoogleLogin(idToken);
-      } else if (response.type === 'error') {
-        setError('Google sign-in was cancelled or failed');
+      } else {
+        const errMsg = getGoogleError(response);
+        if (errMsg) {
+          setError(errMsg);
+        }
         setLoading(false);
       }
     }
@@ -250,6 +253,8 @@ export function LoginScreen() {
                   onChangeText={setEmail}
                   autoCapitalize="none"
                   keyboardType="email-address"
+                  textContentType="emailAddress"
+                  autoComplete="email"
                 />
                 <View
                   style={[
@@ -267,6 +272,8 @@ export function LoginScreen() {
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry={!showPw}
+                    textContentType="password"
+                    autoComplete="password"
                   />
                   <TouchableOpacity onPress={() => setShowPw(!showPw)} style={styles.eye}>
                     <Ionicons

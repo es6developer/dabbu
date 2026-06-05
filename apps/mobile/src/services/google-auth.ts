@@ -34,3 +34,13 @@ export function getGoogleIdToken(response: any): string | null {
   }
   return null;
 }
+
+export function getGoogleError(response: any): string | null {
+  if (!response) {
+    return null;
+  }
+  if (response.type === 'error') {
+    return response.params?.error || response.error || 'Google sign-in was cancelled or failed';
+  }
+  return null;
+}
