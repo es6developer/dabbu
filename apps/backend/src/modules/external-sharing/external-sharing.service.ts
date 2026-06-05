@@ -382,18 +382,20 @@ export class ExternalSharingService {
     picture?: string;
   } | null> {
     try {
-      const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`);
-      if (!response.ok) {
+      const client = new OAuth2Client();
+      const ticket = await client.verifyIdToken({ idToken });
+      const payload = ticket.getPayload();
+      if (!payload) {
         return null;
       }
-      const data = await response.json();
       return {
-        email: data.email,
-        given_name: data.given_name,
-        family_name: data.family_name,
-        picture: data.picture,
+        email: payload.email || '',
+        given_name: payload.given_name,
+        family_name: payload.family_name,
+        picture: payload.picture,
       };
-    } catch {
+    } catch (err) {
+      this.logger.error('Google token verification failed', err);
       return null;
     }
   }

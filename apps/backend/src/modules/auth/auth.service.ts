@@ -178,6 +178,29 @@ export class AuthService {
   }
 
   async guestLogin(): Promise<{ user: any; tokens: TokenPair }> {
+    let freePlan = await this.prisma.subscriptionPlan.findFirst({
+      where: { isActive: true },
+      orderBy: { sortOrder: 'asc' },
+    });
+    if (!freePlan) {
+      freePlan = await this.prisma.subscriptionPlan.create({
+        data: {
+          name: 'Free',
+          code: 'free',
+          description: 'Free plan for guest users',
+          price: 0,
+          currency: 'INR',
+          interval: 'year',
+          intervalCount: 1,
+          popular: false,
+          bestValue: false,
+          features: [],
+          isActive: true,
+          sortOrder: 0,
+        },
+      });
+    }
+
     const guestId = crypto.randomUUID();
     const user = await this.prisma.user.create({
       data: {
@@ -208,13 +231,7 @@ export class AuthService {
         },
         subscription: {
           create: {
-            planId:
-              (
-                await this.prisma.subscriptionPlan.findFirst({
-                  where: { isActive: true },
-                  orderBy: { sortOrder: 'asc' },
-                })
-              )?.id || '',
+            planId: freePlan.id,
             status: 'active',
             currentPeriodStart: new Date(),
             currentPeriodEnd: new Date(Date.now() + 365 * 86400000),
@@ -309,20 +326,17 @@ export class AuthService {
               language: 'en',
             },
           },
-          subscription: {
-            create: {
-              planId:
-                (
-                  await this.prisma.subscriptionPlan.findFirst({
-                    where: { isActive: true },
-                    orderBy: { sortOrder: 'asc' },
-                  })
-                )?.id || '',
-              status: 'active',
-              currentPeriodStart: new Date(),
-              currentPeriodEnd: new Date(Date.now() + 365 * 86400000),
-            },
+        subscription: {
+          create: {
+            planId: (await this.prisma.subscriptionPlan.findFirst({
+              where: { isActive: true },
+              orderBy: { sortOrder: 'asc' },
+            }))?.id || '00000000-0000-0000-0000-000000000000',
+            status: 'active',
+            currentPeriodStart: new Date(),
+            currentPeriodEnd: new Date(Date.now() + 365 * 86400000),
           },
+        },
         },
         include: {
           settings: true,
