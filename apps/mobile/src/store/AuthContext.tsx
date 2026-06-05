@@ -283,21 +283,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function guestLogin() {
-    const guestUser: User = {
-      id: `guest-${Date.now()}`,
-      email: '',
-      firstName: 'Guest',
-      lastName: '',
-      role: 'guest',
-    };
-    await storeAuth('guest-token', guestUser);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    let res: Response;
+    try {
+      res = await fetch(`${API_URL}/auth/guest`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+      });
+    } catch (_e) {
+      clearTimeout(timeout);
+      throw new Error('Connection timed out. Please check your internet connection and try again.');
+    }
+    clearTimeout(timeout);
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.message?.[0] || err?.message || 'Guest login failed');
+    }
+
+    const json = await res.json().catch(() => {
+      throw new Error('Invalid response from server');
+    });
+    const data = json?.data;
+    if (!data) {
+      throw new Error('Invalid response from server');
+    }
+    const { user, tokens } = data;
+
+    setAccessToken(tokens.accessToken);
+    await storeAuth(tokens.accessToken, user);
+    const storage = getStorage();
+    await storage.setItem('refreshToken', tokens.refreshToken);
+
     setState({
       isAuthenticated: true,
       isLoading: false,
-      user: guestUser,
-      accessToken: 'guest-token',
+      user,
+      accessToken: tokens.accessToken,
       isNewUser: false,
     });
+
+    registerForPushNotifications(tokens.accessToken).catch(() => {});
   }
 
   async function logout() {

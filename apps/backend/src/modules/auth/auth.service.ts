@@ -177,6 +177,64 @@ export class AuthService {
     });
   }
 
+  async guestLogin(): Promise<{ user: any; tokens: TokenPair }> {
+    const guestId = crypto.randomUUID();
+    const user = await this.prisma.user.create({
+      data: {
+        email: `guest-${guestId}@dabbu.app`,
+        password: '',
+        firstName: 'Guest',
+        lastName: '',
+        role: 'user',
+        status: 'temporary',
+        authProvider: 'guest',
+        referralCode: crypto.randomBytes(4).toString('hex').toUpperCase(),
+        isEmailVerified: false,
+        settings: {
+          create: {
+            emailNotifications: false,
+            pushNotifications: true,
+            smsNotifications: false,
+            weeklyReport: false,
+            monthlyReport: false,
+            theme: 'dark',
+            autoDetectTransactions: false,
+            budgetAlertThreshold: 80,
+            defaultCurrency: 'INR',
+            dateFormat: 'DD/MM/yyyy',
+            firstDayOfWeek: 1,
+            language: 'en',
+          },
+        },
+        subscription: {
+          create: {
+            planId:
+              (
+                await this.prisma.subscriptionPlan.findFirst({
+                  where: { isActive: true },
+                  orderBy: { sortOrder: 'asc' },
+                })
+              )?.id || '',
+            status: 'active',
+            currentPeriodStart: new Date(),
+            currentPeriodEnd: new Date(Date.now() + 365 * 86400000),
+          },
+        },
+      },
+      include: {
+        settings: true,
+        subscription: { include: { plan: true } },
+      },
+    });
+
+    const tokens = await this.generateTokens(user.id, user.email);
+    await this.createSession(user.id, tokens.refreshToken);
+
+    const { password, ...userWithoutPassword } = user;
+
+    return { user: userWithoutPassword, tokens };
+  }
+
   async googleAuth(
     dto: GoogleAuthDto,
   ): Promise<{ user: any; tokens: TokenPair; isNewUser: boolean }> {

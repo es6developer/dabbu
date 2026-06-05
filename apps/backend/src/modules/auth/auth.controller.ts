@@ -49,6 +49,14 @@ export class AuthController {
     return { data: result };
   }
 
+  @Post('guest')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Continue as guest (temporary user)' })
+  async guestLogin() {
+    const result = await this.authService.guestLogin();
+    return { data: result };
+  }
+
   @Post('google')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login or register with Google Sign-In' })
