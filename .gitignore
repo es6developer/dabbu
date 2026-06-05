@@ -60,3 +60,4 @@ apps/admin/.next/
 .sentryclirc
 .github/workflows/
 .vercel
+*.keystore
