@@ -14,9 +14,9 @@ export class UsersService {
         status: 'active',
         id: { not: excludeUserId },
         OR: [
-          { email: { contains: query, mode: 'insensitive' } },
-          { firstName: { contains: query, mode: 'insensitive' } },
-          { lastName: { contains: query, mode: 'insensitive' } },
+          { email: { contains: query } },
+          { firstName: { contains: query } },
+          { lastName: { contains: query } },
           ...(query.includes('@') ? [] : [{ phone: { contains: query } }]),
         ],
       },
@@ -33,7 +33,10 @@ export class UsersService {
     return users;
   }
 
-  async updateProfile(userId: string, data: { firstName?: string; lastName?: string; phone?: string }) {
+  async updateProfile(
+    userId: string,
+    data: { firstName?: string; lastName?: string; phone?: string },
+  ) {
     const user = await this.prisma.user.update({
       where: { id: userId },
       data,

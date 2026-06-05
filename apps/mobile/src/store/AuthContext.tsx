@@ -36,6 +36,7 @@ interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
   googleLogin: (idToken: string) => Promise<void>;
+  guestLogin: () => Promise<void>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<boolean>;
   completeProfileSetup: () => void;
@@ -77,7 +78,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRefreshTokenHandler(refreshToken);
     setOnSessionExpiredHandler(() => {
       clearAuth().then(() => {
-        setState({ isAuthenticated: false, isLoading: false, user: null, accessToken: null, isNewUser: false });
+        setState({
+          isAuthenticated: false,
+          isLoading: false,
+          user: null,
+          accessToken: null,
+          isNewUser: false,
+        });
       });
     });
     loadStoredAuth();
@@ -86,9 +93,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function loadStoredAuth() {
     try {
       const storage = getStorage();
-      const timeout = (ms: number) => new Promise<null>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms));
-      const token = await Promise.race([storage.getItem('accessToken'), timeout(5000)]) as string | null;
-      const userData = await Promise.race([storage.getItem('userData'), timeout(5000)]) as string | null;
+      const timeout = (ms: number) =>
+        new Promise<null>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms));
+      const token = (await Promise.race([storage.getItem('accessToken'), timeout(5000)])) as
+        | string
+        | null;
+      const userData = (await Promise.race([storage.getItem('userData'), timeout(5000)])) as
+        | string
+        | null;
 
       if (token && userData) {
         const parsedUser = JSON.parse(userData);
@@ -154,7 +166,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('Invalid response from server');
     });
     const data = json?.data;
-    if (!data) {throw new Error('Invalid response from server');}
+    if (!data) {
+      throw new Error('Invalid response from server');
+    }
     const { user, tokens } = data;
 
     setAccessToken(tokens.accessToken);
@@ -200,7 +214,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('Invalid response from server');
     });
     const data = json?.data;
-    if (!data) {throw new Error('Invalid response from server');}
+    if (!data) {
+      throw new Error('Invalid response from server');
+    }
     const { user, tokens } = data;
 
     setAccessToken(tokens.accessToken);
@@ -244,7 +260,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('Invalid response from server');
     });
     const data = json?.data;
-    if (!data) { throw new Error('Invalid response from server'); }
+    if (!data) {
+      throw new Error('Invalid response from server');
+    }
     const { user, tokens, isNewUser } = data;
 
     setAccessToken(tokens.accessToken);
@@ -262,6 +280,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     trackEventImmediate(isNewUser ? 'sign_up' : 'login', 'auth', 'google').catch(() => {});
     registerForPushNotifications(tokens.accessToken).catch(() => {});
+  }
+
+  async function guestLogin() {
+    const guestUser: User = {
+      id: `guest-${Date.now()}`,
+      email: '',
+      firstName: 'Guest',
+      lastName: '',
+      role: 'guest',
+    };
+    await storeAuth('guest-token', guestUser);
+    setState({
+      isAuthenticated: true,
+      isLoading: false,
+      user: guestUser,
+      accessToken: 'guest-token',
+      isNewUser: false,
+    });
   }
 
   async function logout() {
@@ -290,7 +326,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (_e) {
       /* ignore */
     }
-    setState({ isAuthenticated: false, isLoading: false, user: null, accessToken: null, isNewUser: false });
+    setState({
+      isAuthenticated: false,
+      isLoading: false,
+      user: null,
+      accessToken: null,
+      isNewUser: false,
+    });
   }
 
   async function refreshToken(): Promise<boolean> {
@@ -329,7 +371,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ ...state, login, register, googleLogin, logout, refreshToken, completeProfileSetup }}>
+    <AuthContext.Provider
+      value={{
+        ...state,
+        login,
+        register,
+        googleLogin,
+        guestLogin,
+        logout,
+        refreshToken,
+        completeProfileSetup,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

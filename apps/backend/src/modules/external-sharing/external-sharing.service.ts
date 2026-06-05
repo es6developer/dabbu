@@ -9,6 +9,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
+import { OAuth2Client } from 'google-auth-library';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { InviteExternalMemberDto } from './dto/external-sharing.dto';
 
@@ -249,7 +250,7 @@ export class ExternalSharingService {
       groupId,
       status: group.status,
       hasAccess,
-      revocationReason: hasAccess ? undefined : (member ? 'member_removed' : 'invite_expired'),
+      revocationReason: hasAccess ? undefined : member ? 'member_removed' : 'invite_expired',
       data: {
         groupName: group.name,
         groupType: group.type,

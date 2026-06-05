@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'https://backend-ochre-delta-80.vercel.app/api/v1';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -50,9 +51,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} className="space-y-4">
           {error && (
-            <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
-              {error}
-            </div>
+            <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>
           )}
 
           <div>

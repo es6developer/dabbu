@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
+import { OAuth2Client } from 'google-auth-library';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import { RegisterDto, LoginDto, RefreshTokenDto, GoogleAuthDto } from './dto/auth.dto';
@@ -177,12 +178,17 @@ export class AuthService {
     });
   }
 
-  async googleAuth(dto: GoogleAuthDto): Promise<{ user: any; tokens: TokenPair; isNewUser: boolean }> {
-    const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${dto.idToken}`);
-    if (!response.ok) {
+  async googleAuth(
+    dto: GoogleAuthDto,
+  ): Promise<{ user: any; tokens: TokenPair; isNewUser: boolean }> {
+    const client = new OAuth2Client();
+    let ticket;
+    try {
+      ticket = await client.verifyIdToken({ idToken: dto.idToken });
+    } catch {
       throw new UnauthorizedException('Invalid Google token');
     }
-    const payload = await response.json() as any;
+    const payload = ticket.getPayload()!;
     const googleEmail = payload.email;
     const googleName = payload.name || '';
     const googleAvatar = payload.picture;
@@ -198,7 +204,9 @@ export class AuthService {
 
     if (user) {
       if (user.authProvider === 'email' && !user.password) {
-        throw new UnauthorizedException('Account exists with email/password. Please login with email.');
+        throw new UnauthorizedException(
+          'Account exists with email/password. Please login with email.',
+        );
       }
       if (user.status !== 'active') {
         throw new UnauthorizedException('Account is not active');
