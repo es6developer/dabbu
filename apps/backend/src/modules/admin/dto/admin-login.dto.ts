@@ -1,5 +1,14 @@
 import {
-  IsString, IsEmail, IsNotEmpty, MinLength, MaxLength, IsOptional, IsEnum, IsInt, Min, IsBoolean,
+  IsString,
+  IsEmail,
+  IsNotEmpty,
+  MinLength,
+  MaxLength,
+  IsOptional,
+  IsEnum,
+  IsInt,
+  Min,
+  IsBoolean,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -332,6 +341,104 @@ export class UpdatePlanDto {
   @Min(0)
   @IsOptional()
   sortOrder?: number;
+}
+
+export class ListTicketsQueryDto {
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  status?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  priority?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  category?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  search?: string;
+
+  @ApiPropertyOptional({ default: 1 })
+  @IsInt()
+  @Min(1)
+  @IsOptional()
+  page?: number;
+
+  @ApiPropertyOptional({ default: 20 })
+  @IsInt()
+  @Min(1)
+  @IsOptional()
+  limit?: number;
+}
+
+export class CreateTicketDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
+  subject: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  message: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  email?: string;
+
+  @ApiPropertyOptional({ enum: ['general', 'technical', 'billing', 'feature', 'bug'] })
+  @IsString()
+  @IsOptional()
+  category?: string;
+
+  @ApiPropertyOptional({ enum: ['low', 'medium', 'high', 'urgent'] })
+  @IsString()
+  @IsOptional()
+  priority?: string;
+}
+
+export class UpdateTicketDto {
+  @ApiPropertyOptional({ enum: ['open', 'in_progress', 'resolved', 'closed'] })
+  @IsString()
+  @IsOptional()
+  status?: string;
+
+  @ApiPropertyOptional({ enum: ['low', 'medium', 'high', 'urgent'] })
+  @IsString()
+  @IsOptional()
+  priority?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  adminNotes?: string;
+}
+
+export class ListAdminsQueryDto {
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  search?: string;
+
+  @ApiPropertyOptional({ default: 1 })
+  @IsInt()
+  @Min(1)
+  @IsOptional()
+  page?: number;
+
+  @ApiPropertyOptional({ default: 20 })
+  @IsInt()
+  @Min(1)
+  @IsOptional()
+  limit?: number;
 }
 
 export interface SystemStatsResponse {

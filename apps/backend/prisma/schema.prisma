@@ -13,6 +13,40 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─── FRIENDS ───────────────────────────────────────────────
+// Social graph: bidirectional friendship connections
+model Friend {
+  id        String    @id @default(uuid()) @db.VarChar(36)
+  userId    String    @db.VarChar(36)
+  friendId  String    @db.VarChar(36)
+  status    String    @default("pending") @db.VarChar(20) // pending, accepted, blocked
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user   User @relation("UserFriends", fields: [userId], references: [id], onDelete: Cascade)
+  friend User @relation("FriendOf", fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, friendId])
+  @@index([userId, status])
+  @@index([friendId, status])
+  @@map("friends")
+}
+
+// ─── CONTACT_HASHES ──────────────────────────────────────────
+// Hashed phone numbers for privacy-preserving contact matching
+model ContactHash {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  userId    String   @db.VarChar(36)
+  hash      String   @db.VarChar(64) // SHA-256 hash of normalized phone
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, hash])
+  @@index([hash])
+  @@map("contact_hashes")
+}
+
 // ─── USERS ─────────────────────────────────────────────────
 // Core user accounts with full profile and preferences
 model User {
@@ -163,6 +197,12 @@ model User {
   groupActivities              GroupActivity[]
   payNowLinksFrom              PayNowLink[]                 @relation("PayFrom")
   payNowLinksTo                PayNowLink[]                 @relation("PayTo")
+
+  // Friends & Contacts
+  friendsInitiated             Friend[]                     @relation("UserFriends")
+  friendsAdded                 Friend[]                     @relation("FriendOf")
+  contactHashes                ContactHash[]
+  supportTickets               SupportTicket[]
 
   @@index([email])
   @@index([isActive])
@@ -887,6 +927,7 @@ model AdminUser {
 
   // Relations
   auditLogs AuditLog[]
+  supportTickets SupportTicket[] @relation("AssignedTickets")
 
   @@index([email])
   @@index([role])
@@ -2460,4 +2501,30 @@ model UserDocument {
   @@index([userId, deletedAt])
   @@index([userId, expiryDate])
   @@map("user_documents")
+}
+
+// ─── SUPPORT TICKETS ──────────────────────────────────────────
+model SupportTicket {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  subject   String   @db.VarChar(255)
+  message   String   @db.Text
+  userId    String?  @db.VarChar(36)
+  email     String?  @db.VarChar(255)
+  status    String   @default("open") @db.VarChar(20) // open, in_progress, resolved, closed
+  priority  String   @default("medium") @db.VarChar(20) // low, medium, high, urgent
+  category  String   @default("general") @db.VarChar(50) // general, technical, billing, feature, bug
+  assignedToId String? @db.VarChar(36)
+  adminNotes String? @db.Text
+  resolvedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  assignedTo AdminUser? @relation("AssignedTickets", fields: [assignedToId], references: [id])
+  user       User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([priority])
+  @@index([assignedToId])
+  @@index([userId])
+  @@map("support_tickets")
 }

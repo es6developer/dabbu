@@ -131,7 +131,7 @@ export class SettlementEngine {
           if (splitUserId === payerId) {
             payerEntry.paid += splitAmount;
           } else {
-            payerEntry.owes -= splitAmount;
+            payerEntry.paid += splitAmount;
             splitEntry.owes += splitAmount;
 
             if (split.isPaid) {

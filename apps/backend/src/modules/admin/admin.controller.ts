@@ -25,6 +25,10 @@ import {
   CreatePlanDto,
   UpdatePlanDto,
   CreateFeatureFlagDto,
+  ListTicketsQueryDto,
+  CreateTicketDto,
+  UpdateTicketDto,
+  ListAdminsQueryDto,
 } from './dto';
 
 @ApiTags('Admin')
@@ -266,6 +270,67 @@ export class AdminController {
   async listSubscriptions(@Query('page') page?: number, @Query('limit') limit?: number) {
     const result = await this.adminService.listSubscriptions(page, limit);
     return result;
+  }
+
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @Get('tickets')
+  @ApiOperation({ summary: 'List support tickets' })
+  async listTickets(@Query() query: ListTicketsQueryDto) {
+    return this.adminService.listTickets(query);
+  }
+
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @Get('tickets/:id')
+  @ApiOperation({ summary: 'Get ticket detail' })
+  async getTicketDetail(@Param('id') id: string) {
+    const ticket = await this.adminService.getTicketDetail(id);
+    return { data: ticket };
+  }
+
+  @UseGuards(AdminGuard)
+  @Roles('super_admin', 'admin', 'support')
+  @ApiBearerAuth()
+  @Patch('tickets/:id')
+  @ApiOperation({ summary: 'Update ticket status/priority/notes' })
+  async updateTicket(
+    @Param('id') id: string,
+    @Body() dto: UpdateTicketDto,
+    @CurrentAdmin('id') adminId: string,
+  ) {
+    const ticket = await this.adminService.updateTicket(id, dto, adminId);
+    return { data: ticket };
+  }
+
+  @UseGuards(AdminGuard)
+  @Roles('super_admin', 'admin')
+  @ApiBearerAuth()
+  @Post('tickets/:id/assign')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Assign ticket to self' })
+  async assignTicket(@Param('id') id: string, @CurrentAdmin('id') adminId: string) {
+    const ticket = await this.adminService.assignTicket(id, adminId, adminId);
+    return { data: ticket };
+  }
+
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @Get('admins')
+  @ApiOperation({ summary: 'List admin users' })
+  async listAdmins(@Query() query: ListAdminsQueryDto) {
+    return this.adminService.listAdmins(query);
+  }
+
+  @UseGuards(AdminGuard)
+  @Roles('super_admin')
+  @ApiBearerAuth()
+  @Delete('admins/:id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Deactivate an admin (super_admin only)' })
+  async deleteAdmin(@Param('id') id: string, @CurrentAdmin('id') adminId: string) {
+    const result = await this.adminService.deleteAdmin(id, adminId);
+    return { data: result };
   }
 
   @Get('maintenance')

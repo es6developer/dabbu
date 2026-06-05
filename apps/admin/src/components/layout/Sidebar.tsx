@@ -18,6 +18,7 @@ import {
   ChevronLeft,
   BarChart3,
   Package,
+  Shield,
 } from 'lucide-react';
 
 interface NavItem {
@@ -38,6 +39,7 @@ const navItems: NavItem[] = [
   { label: 'Feature Flags', href: '/feature-flags', icon: <Flag size={18} /> },
   { label: 'Notifications', href: '/notifications', icon: <Send size={18} /> },
   { label: 'Support', href: '/support', icon: <LifeBuoy size={18} /> },
+  { label: 'Admins', href: '/admins', icon: <Shield size={18} /> },
   { label: 'Logs', href: '/logs', icon: <BarChart3 size={18} /> },
   { label: 'Settings', href: '/settings', icon: <Settings size={18} /> },
 ];

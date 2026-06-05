@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Search, MoreHorizontal, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn, formatDate } from '@/lib/utils';
@@ -120,7 +121,12 @@ export default function UsersPage() {
                           </div>
                           <div>
                             <p className="text-sm font-medium">
-                              {user.firstName} {user.lastName}
+                              <Link
+                                href={`/users/${user.id}`}
+                                className="hover:text-indigo-400 transition-colors"
+                              >
+                                {user.firstName} {user.lastName}
+                              </Link>
                             </p>
                             <p className="text-xs text-muted-foreground">{user.email}</p>
                           </div>

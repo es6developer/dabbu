@@ -320,3 +320,107 @@ export function updateAppConfig(data: Partial<AppConfig>) {
     body: JSON.stringify(data),
   });
 }
+
+// ─── Support Tickets ────────────────────────────────────────
+
+export interface SupportTicket {
+  id: string;
+  subject: string;
+  message: string;
+  status: string;
+  priority: string;
+  category: string;
+  email?: string;
+  adminNotes?: string | null;
+  resolvedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  assignedTo: { id: string; name: string; email: string } | null;
+  user: { id: string; firstName: string; lastName: string; email: string } | null;
+}
+
+export function listTickets(params?: {
+  status?: string;
+  priority?: string;
+  category?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+}) {
+  const qs = new URLSearchParams();
+  if (params?.status) {
+    qs.set('status', params.status);
+  }
+  if (params?.priority) {
+    qs.set('priority', params.priority);
+  }
+  if (params?.category) {
+    qs.set('category', params.category);
+  }
+  if (params?.search) {
+    qs.set('search', params.search);
+  }
+  if (params?.page) {
+    qs.set('page', String(params.page));
+  }
+  if (params?.limit) {
+    qs.set('limit', String(params.limit));
+  }
+  const q = qs.toString();
+  return request<PaginatedResponse<SupportTicket>>(`/admin/tickets${q ? `?${q}` : ''}`);
+}
+
+export function getTicketDetail(id: string) {
+  return request<{ data: SupportTicket }>(`/admin/tickets/${id}`);
+}
+
+export function updateTicket(
+  id: string,
+  data: {
+    status?: string;
+    priority?: string;
+    adminNotes?: string;
+  },
+) {
+  return request<{ data: SupportTicket }>(`/admin/tickets/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
+export function assignTicket(id: string) {
+  return request<{ data: SupportTicket }>(`/admin/tickets/${id}/assign`, {
+    method: 'POST',
+  });
+}
+
+// ─── Admin Users ────────────────────────────────────────────
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  isActive: boolean;
+  lastLoginAt: string | null;
+  createdAt: string;
+}
+
+export function listAdmins(params?: { search?: string; page?: number; limit?: number }) {
+  const qs = new URLSearchParams();
+  if (params?.search) {
+    qs.set('search', params.search);
+  }
+  if (params?.page) {
+    qs.set('page', String(params.page));
+  }
+  if (params?.limit) {
+    qs.set('limit', String(params.limit));
+  }
+  const q = qs.toString();
+  return request<PaginatedResponse<AdminUser>>(`/admin/admins${q ? `?${q}` : ''}`);
+}
+
+export function deleteAdmin(id: string) {
+  return request<{ data: { message: string } }>(`/admin/admins/${id}`, { method: 'DELETE' });
+}

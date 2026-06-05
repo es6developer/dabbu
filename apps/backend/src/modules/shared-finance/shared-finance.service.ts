@@ -250,6 +250,19 @@ export class SharedFinanceService {
       throw new NotFoundException('User not found');
     }
 
+    const groupInfo = await this.prisma.sharedGroup.findUnique({
+      where: { id: groupId },
+      select: { type: true },
+    });
+    if (groupInfo?.type === 'couple') {
+      const memberCount = await this.prisma.sharedGroupMember.count({
+        where: { groupId, isActive: true },
+      });
+      if (memberCount >= 2) {
+        throw new BadRequestException('Couple space can only have 2 members');
+      }
+    }
+
     const member = await this.prisma.sharedGroupMember.create({
       data: { groupId, userId: targetUserId, role: 'member' },
       include: {
@@ -268,12 +281,48 @@ export class SharedFinanceService {
       where: { id: groupId },
       select: { name: true },
     });
+    const memberName = user.firstName || user.email;
     this.notificationService
       .sendPush(targetUserId, 'Added to Group', `You were added to "${group?.name || 'a group'}"`, {
         type: 'member_added',
         groupId,
       })
-      .catch(() => {});
+      .catch((err) => this.logger.error(`Push failed for added member: ${err.message}`));
+
+    this.notificationService
+      .sendPush(
+        adminId,
+        'Member Added',
+        `${memberName} was added to "${group?.name || 'a group'}"`,
+        {
+          type: 'member_added',
+          groupId,
+        },
+      )
+      .catch((err) => this.logger.error(`Push failed for admin: ${err.message}`));
+
+    // Auto-create CoupleFinanceProfile when 2nd member joins a couple group
+    if (groupInfo?.type === 'couple') {
+      const existingProfile = await this.prisma.coupleFinanceProfile.findUnique({
+        where: { groupId },
+      });
+      if (!existingProfile) {
+        const members = await this.prisma.sharedGroupMember.findMany({
+          where: { groupId, isActive: true },
+          select: { userId: true },
+          orderBy: { joinedAt: 'asc' },
+        });
+        await this.prisma.coupleFinanceProfile.create({
+          data: {
+            groupId,
+            partner1Id: members[0].userId,
+            partner2Id: members[1].userId,
+            splitRatio: '50:50',
+            contributionType: 'equal',
+          },
+        });
+      }
+    }
 
     return member;
   }
@@ -298,6 +347,19 @@ export class SharedFinanceService {
       throw new BadRequestException(`${email} is already a member`);
     }
 
+    const groupInfo = await this.prisma.sharedGroup.findUnique({
+      where: { id: groupId },
+      select: { type: true },
+    });
+    if (groupInfo?.type === 'couple') {
+      const memberCount = await this.prisma.sharedGroupMember.count({
+        where: { groupId, isActive: true },
+      });
+      if (memberCount >= 2) {
+        throw new BadRequestException('Couple space can only have 2 members');
+      }
+    }
+
     const member = await this.prisma.sharedGroupMember.create({
       data: { groupId, userId: user.id, role: role || 'member' },
       include: {
@@ -316,12 +378,25 @@ export class SharedFinanceService {
       where: { id: groupId },
       select: { name: true },
     });
+    const memberName = user.firstName || user.email;
     this.notificationService
       .sendPush(user.id, 'Added to Group', `You were added to "${group?.name || 'a group'}"`, {
         type: 'member_added',
         groupId,
       })
-      .catch(() => {});
+      .catch((err) => this.logger.error(`Push failed for added member: ${err.message}`));
+
+    this.notificationService
+      .sendPush(
+        adminId,
+        'Member Added',
+        `${memberName} was added to "${group?.name || 'a group'}"`,
+        {
+          type: 'member_added',
+          groupId,
+        },
+      )
+      .catch((err) => this.logger.error(`Push failed for admin: ${err.message}`));
 
     const adminUser = await this.prisma.user.findUnique({
       where: { id: adminId },
@@ -330,40 +405,30 @@ export class SharedFinanceService {
     const inviterName = adminUser
       ? `${adminUser.firstName || ''} ${adminUser.lastName || ''}`.trim() || 'An admin'
       : 'An admin';
-    const memberName = user.firstName || user.email;
     this.emailService
       .sendGroupInviteEmail(user.email, memberName, group?.name || 'a group', inviterName)
-      .catch(() => {});
+      .catch((err) => this.logger.error(`Failed to send group invite email: ${err.message}`));
 
     // Auto-create CoupleFinanceProfile when 2nd member joins a couple group
-    const groupInfo = await this.prisma.sharedGroup.findUnique({
-      where: { id: groupId },
-      select: { type: true },
-    });
     if (groupInfo?.type === 'couple') {
-      const memberCount = await this.prisma.sharedGroupMember.count({
-        where: { groupId, isActive: true },
+      const existingProfile = await this.prisma.coupleFinanceProfile.findUnique({
+        where: { groupId },
       });
-      if (memberCount >= 2) {
-        const existingProfile = await this.prisma.coupleFinanceProfile.findUnique({
-          where: { groupId },
+      if (!existingProfile) {
+        const members = await this.prisma.sharedGroupMember.findMany({
+          where: { groupId, isActive: true },
+          select: { userId: true },
+          orderBy: { joinedAt: 'asc' },
         });
-        if (!existingProfile) {
-          const members = await this.prisma.sharedGroupMember.findMany({
-            where: { groupId, isActive: true },
-            select: { userId: true },
-            orderBy: { createdAt: 'asc' },
-          });
-          await this.prisma.coupleFinanceProfile.create({
-            data: {
-              groupId,
-              partner1Id: members[0].userId,
-              partner2Id: members[1].userId,
-              splitRatio: '50:50',
-              contributionType: 'equal',
-            },
-          });
-        }
+        await this.prisma.coupleFinanceProfile.create({
+          data: {
+            groupId,
+            partner1Id: members[0].userId,
+            partner2Id: members[1].userId,
+            splitRatio: '50:50',
+            contributionType: 'equal',
+          },
+        });
       }
     }
 
@@ -975,7 +1040,7 @@ export class SharedFinanceService {
   }
 
   async getCoupleDashboard(groupId: string) {
-    const profile = await this.prisma.coupleFinanceProfile.findUnique({
+    let profile = await this.prisma.coupleFinanceProfile.findUnique({
       where: { groupId },
       include: {
         partner1: {
@@ -1000,8 +1065,48 @@ export class SharedFinanceService {
         },
       },
     });
+
     if (!profile) {
-      throw new NotFoundException('Couple profile not found');
+      const members = await this.prisma.sharedGroupMember.findMany({
+        where: { groupId, isActive: true },
+        select: { userId: true },
+        orderBy: { joinedAt: 'asc' },
+      });
+      if (members.length >= 2) {
+        profile = await this.prisma.coupleFinanceProfile.create({
+          data: {
+            groupId,
+            partner1Id: members[0].userId,
+            partner2Id: members[1].userId,
+            splitRatio: '50:50',
+            contributionType: 'equal',
+          },
+          include: {
+            partner1: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatarUrl: true,
+                email: true,
+                salaryProfile: true,
+              },
+            },
+            partner2: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatarUrl: true,
+                email: true,
+                salaryProfile: true,
+              },
+            },
+          },
+        });
+      } else {
+        throw new NotFoundException('Couple profile not found');
+      }
     }
 
     const expenses = await this.prisma.sharedExpense.findMany({

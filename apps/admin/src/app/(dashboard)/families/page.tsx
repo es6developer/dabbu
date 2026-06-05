@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users, Trash2, Loader2, Search } from 'lucide-react';
+import Link from 'next/link';
+import { Users, Trash2, Loader2, Search, ExternalLink } from 'lucide-react';
 import { listFamilies, deleteFamily } from '@/lib/api';
 import type { Family } from '@/lib/api';
 
@@ -95,45 +96,50 @@ export default function FamiliesPage() {
           </div>
         ) : (
           filtered.map((family) => (
-            <div key={family.id} className="bg-card rounded-lg border border-border p-5">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h3 className="font-semibold text-foreground">{family.name}</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5 capitalize">
-                    {family.type || 'shared'} group
-                  </p>
-                </div>
-                <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <Users className="w-3 h-3" />
-                  {family._count?.members || family.members?.length || 0}
-                </span>
-              </div>
-              <div className="space-y-1">
-                {(family.members || []).slice(0, 5).map((m) => (
-                  <div key={m.id} className="flex items-center gap-2 text-sm">
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                    <span className="text-foreground">
-                      {m.user.firstName} {m.user.lastName}
-                    </span>
-                    <span className="text-muted-foreground text-xs">{m.user.email}</span>
-                    <span className="text-muted-foreground text-xs ml-auto capitalize">
-                      {m.role}
-                    </span>
+            <Link key={family.id} href={`/families/${family.id}`} className="block">
+              <div className="bg-card rounded-lg border border-border p-5 hover:border-indigo-500/50 transition-colors">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <h3 className="font-semibold text-foreground">{family.name}</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5 capitalize">
+                      {family.type || 'shared'} group
+                    </p>
                   </div>
-                ))}
+                  <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <Users className="w-3 h-3" />
+                    {family._count?.members || family.members?.length || 0}
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  {(family.members || []).slice(0, 5).map((m) => (
+                    <div key={m.id} className="flex items-center gap-2 text-sm">
+                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                      <span className="text-foreground">
+                        {m.user.firstName} {m.user.lastName}
+                      </span>
+                      <span className="text-muted-foreground text-xs">{m.user.email}</span>
+                      <span className="text-muted-foreground text-xs ml-auto capitalize">
+                        {m.role}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border">
+                  <span className="text-xs text-muted-foreground">
+                    Created {new Date(family.createdAt).toLocaleDateString()}
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleDelete(family.id);
+                    }}
+                    className="ml-auto p-1.5 text-red-400 hover:text-red-300 rounded-lg hover:bg-red-500/10 transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border">
-                <span className="text-xs text-muted-foreground">
-                  Created {new Date(family.createdAt).toLocaleDateString()}
-                </span>
-                <button
-                  onClick={() => handleDelete(family.id)}
-                  className="ml-auto p-1.5 text-red-400 hover:text-red-300 rounded-lg hover:bg-red-500/10 transition-colors"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
+            </Link>
           ))
         )}
       </div>

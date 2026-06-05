@@ -3,6 +3,7 @@ import {
   UnauthorizedException,
   ConflictException,
   NotFoundException,
+  BadRequestException,
   Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -21,6 +22,9 @@ import {
   CreatePlanDto,
   UpdatePlanDto,
   CreateFeatureFlagDto,
+  ListTicketsQueryDto,
+  UpdateTicketDto,
+  ListAdminsQueryDto,
 } from './dto';
 
 @Injectable()
@@ -662,6 +666,169 @@ export class AdminService {
       ipAddress: null,
     });
 
+    return updated;
+  }
+
+  async listTickets(query: ListTicketsQueryDto) {
+    const { status, priority, category, search, page = 1, limit = 20 } = query;
+    const skip = (page - 1) * limit;
+    const where: any = {};
+    if (status) {
+      where.status = status;
+    }
+    if (priority) {
+      where.priority = priority;
+    }
+    if (category) {
+      where.category = category;
+    }
+    if (search) {
+      where.OR = [{ subject: { contains: search } }, { email: { contains: search } }];
+    }
+    const [tickets, total] = await Promise.all([
+      this.prisma.supportTicket.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          assignedTo: { select: { id: true, name: true, email: true } },
+          user: { select: { id: true, firstName: true, lastName: true, email: true } },
+        },
+      }),
+      this.prisma.supportTicket.count({ where }),
+    ]);
+    return {
+      data: tickets,
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
+  async getTicketDetail(id: string) {
+    const ticket = await this.prisma.supportTicket.findUnique({
+      where: { id },
+      include: {
+        assignedTo: { select: { id: true, name: true, email: true } },
+        user: { select: { id: true, firstName: true, lastName: true, email: true } },
+      },
+    });
+    if (!ticket) {
+      throw new NotFoundException('Ticket not found');
+    }
+    return ticket;
+  }
+
+  async updateTicket(id: string, dto: UpdateTicketDto, adminId: string) {
+    const ticket = await this.prisma.supportTicket.findUnique({ where: { id } });
+    if (!ticket) {
+      throw new NotFoundException('Ticket not found');
+    }
+
+    const data: any = {};
+    if (dto.status) {
+      data.status = dto.status;
+    }
+    if (dto.priority) {
+      data.priority = dto.priority;
+    }
+    if (dto.adminNotes !== undefined) {
+      data.adminNotes = dto.adminNotes;
+    }
+    if (dto.status === 'resolved' || dto.status === 'closed') {
+      data.resolvedAt = new Date();
+    }
+
+    const updated = await this.prisma.supportTicket.update({ where: { id }, data });
+
+    await this.createAuditLog({
+      adminId,
+      action: 'updated',
+      entity: 'support_ticket',
+      entityId: id,
+      description: `Updated ticket #${id.slice(0, 8)}: ${dto.status ? `status=${dto.status}` : ''} ${dto.priority ? `priority=${dto.priority}` : ''}`,
+      ipAddress: null,
+    });
+
+    return updated;
+  }
+
+  async assignTicket(id: string, adminId: string, currentAdminId: string) {
+    const ticket = await this.prisma.supportTicket.findUnique({ where: { id } });
+    if (!ticket) {
+      throw new NotFoundException('Ticket not found');
+    }
+
+    const updated = await this.prisma.supportTicket.update({
+      where: { id },
+      data: {
+        assignedToId: adminId,
+        status: ticket.status === 'open' ? 'in_progress' : ticket.status,
+      },
+    });
+
+    await this.createAuditLog({
+      adminId: currentAdminId,
+      action: 'updated',
+      entity: 'support_ticket',
+      entityId: id,
+      description: `Assigned ticket #${id.slice(0, 8)} to admin ${adminId}`,
+      ipAddress: null,
+    });
+
+    return updated;
+  }
+
+  async listAdmins(query: ListAdminsQueryDto) {
+    const { search, page = 1, limit = 20 } = query;
+    const skip = (page - 1) * limit;
+    const where: any = {};
+    if (search) {
+      where.OR = [{ name: { contains: search } }, { email: { contains: search } }];
+    }
+    const [admins, total] = await Promise.all([
+      this.prisma.adminUser.findMany({
+        where,
+        skip,
+        take: limit,
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          isActive: true,
+          lastLoginAt: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.adminUser.count({ where }),
+    ]);
+    return {
+      data: admins,
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
+  async deleteAdmin(id: string, currentAdminId: string) {
+    if (id === currentAdminId) {
+      throw new BadRequestException('Cannot delete yourself');
+    }
+    const admin = await this.prisma.adminUser.findUnique({ where: { id } });
+    if (!admin) {
+      throw new NotFoundException('Admin not found');
+    }
+    const updated = await this.prisma.adminUser.update({
+      where: { id },
+      data: { isActive: false },
+    });
+    await this.createAuditLog({
+      adminId: currentAdminId,
+      action: 'deleted',
+      entity: 'admin_user',
+      entityId: id,
+      description: `Deactivated admin: ${admin.name} (${admin.email})`,
+      ipAddress: null,
+    });
     return updated;
   }
 
