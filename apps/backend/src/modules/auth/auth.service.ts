@@ -12,6 +12,7 @@ import * as crypto from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { EmailService } from '../email/email.service';
+import { ReferralService } from '../referral/referral.service';
 import { RegisterDto, LoginDto, RefreshTokenDto, GoogleAuthDto } from './dto/auth.dto';
 import { JwtPayload, TokenPair } from './interfaces/jwt-payload.interface';
 
@@ -26,6 +27,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly emailService: EmailService,
+    private readonly referralService: ReferralService,
   ) {}
 
   async register(dto: RegisterDto): Promise<{ user: any; tokens: TokenPair }> {
@@ -44,6 +46,7 @@ export class AuthService {
         lastName: dto.lastName,
         phone: dto.phone || null,
         role: 'user',
+        referralCode: crypto.randomBytes(4).toString('hex').toUpperCase(),
         isEmailVerified: false,
         settings: {
           create: {
@@ -96,6 +99,12 @@ export class AuthService {
     await this.createSession(user.id, tokens.refreshToken);
 
     const { password, ...userWithoutPassword } = user;
+
+    if (dto.referralCode) {
+      this.referralService.processReferralSignup(user.id, dto.referralCode).catch((err) => {
+        this.logger.warn(`Failed to process referral for ${user.id}: ${err.message}`);
+      });
+    }
 
     await this.emailService.sendWelcomeEmail(user.email, user.firstName);
 
@@ -233,6 +242,7 @@ export class AuthService {
           lastName,
           avatarUrl: googleAvatar,
           authProvider: 'google',
+          referralCode: crypto.randomBytes(4).toString('hex').toUpperCase(),
           isEmailVerified: true,
           role: 'user',
           settings: {
@@ -276,6 +286,12 @@ export class AuthService {
 
     const tokens = await this.generateTokens(user.id, user.email);
     await this.createSession(user.id, tokens.refreshToken);
+
+    if (isNewUser && dto.referralCode) {
+      this.referralService.processReferralSignup(user.id, dto.referralCode).catch((err) => {
+        this.logger.warn(`Failed to process referral for ${user.id}: ${err.message}`);
+      });
+    }
 
     const { password, ...userWithoutPassword } = user;
     return { user: userWithoutPassword, tokens, isNewUser };

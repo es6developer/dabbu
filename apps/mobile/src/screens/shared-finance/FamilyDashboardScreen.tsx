@@ -49,11 +49,16 @@ export function FamilyDashboardScreen() {
 
   const loadData = useCallback(
     async (refresh = false) => {
-      if (refresh) {setRefreshing(true);}
-      else {setLoading(true);}
+      if (refresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
       setError(null);
       try {
-        if (accessToken) {setAccessToken(accessToken);}
+        if (accessToken) {
+          setAccessToken(accessToken);
+        }
         if (groupId) {
           const res = await api.get<any>(`/shared-finance/groups/${groupId}/family-dashboard`);
           setData(res);
@@ -124,202 +129,228 @@ export function FamilyDashboardScreen() {
   const totalMonthlySpending = summary.monthlySpending || 0;
 
   return (
-    <ScrollView
-      style={[s.screen, { backgroundColor: colors.bg.primary }]}
-      contentContainerStyle={{ paddingBottom: 40 }}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={() => loadData(true)}
-          tintColor={colors.accent.primary}
-        />
-      }
-    >
-      <View style={{ paddingTop: insets.top + 8, paddingHorizontal: 20 }}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={[s.backBtn, { backgroundColor: colors.bg.glassLight }]}
-        >
-          <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
-        </TouchableOpacity>
-      </View>
-
-      <LinearGradient
-        colors={['#2D6A4F', '#1B4332']}
-        style={s.heroSection}
+    <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
+      <ScrollView
+        style={s.screen}
+        contentContainerStyle={{ paddingBottom: 80 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => loadData(true)}
+            tintColor={colors.accent.primary}
+          />
+        }
       >
-        <View style={s.heroIconWrap}>
-          <Ionicons name="people" size={28} color="#FFF" />
+        <View style={{ paddingTop: insets.top + 8, paddingHorizontal: 20 }}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={[s.backBtn, { backgroundColor: colors.bg.glassLight }]}
+          >
+            <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
+          </TouchableOpacity>
         </View>
-        <Text style={s.heroTitle}>{groupName}</Text>
-        <View style={s.heroMeta}>
-          <Text style={s.heroMetaText}>{summary.memberCount || 0} members</Text>
-          <View style={s.heroMetaDot} />
-          <Text style={s.heroMetaText}>{summary.totalExpenses || 0} expenses</Text>
-        </View>
-        <Text style={s.heroSub}>
-          {fmt(totalMonthlySpending)} spent this month
-        </Text>
-      </LinearGradient>
 
-      <View style={s.widgetsGrid}>
-        <View style={[s.widgetCard, { backgroundColor: colors.bg.secondary }]}>
-          <View style={s.widgetHeader}>
-            <Ionicons name="cash-outline" size={18} color={colors.accent.primary} />
-            <Text style={[s.widgetTitle, { color: colors.text.primary }]}>Family Spending</Text>
+        <LinearGradient colors={['#2D6A4F', '#1B4332']} style={s.heroSection}>
+          <View style={s.heroIconWrap}>
+            <Ionicons name="people" size={28} color="#FFF" />
           </View>
-          <Text style={[s.widgetAmount, { color: colors.text.primary }]}>
-            {fmt(totalMonthlySpending)}
-          </Text>
-          <Text style={[s.widgetLabel, { color: colors.text.tertiary }]}>this month</Text>
-        </View>
-
-        <View style={[s.widgetCard, { backgroundColor: colors.bg.secondary }]}>
-          <View style={s.widgetHeader}>
-            <Ionicons name="wallet-outline" size={18} color={colors.status.success} />
-            <Text style={[s.widgetTitle, { color: colors.text.primary }]}>Family Savings</Text>
+          <Text style={s.heroTitle}>{groupName}</Text>
+          <View style={s.heroMeta}>
+            <Text style={s.heroMetaText}>{summary.memberCount || 0} members</Text>
+            <View style={s.heroMetaDot} />
+            <Text style={s.heroMetaText}>{summary.totalExpenses || 0} expenses</Text>
           </View>
-          <Text style={[s.widgetAmount, { color: colors.status.success }]}>
-            {fmt(data?.goalsTotalSaved || 0)}
-          </Text>
-          <Text style={[s.widgetLabel, { color: colors.text.tertiary }]}>total saved</Text>
-        </View>
-      </View>
+          <Text style={s.heroSub}>{fmt(totalMonthlySpending)} spent this month</Text>
+        </LinearGradient>
 
-      {memberStats.length > 0 && (
-        <View style={s.section}>
-          <View style={s.sectionHeader}>
-            <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Family Members</Text>
-            <View style={s.roleChips}>
-              {roleCounts.admin > 0 && (
-                <View style={[s.roleChip, { backgroundColor: `${ROLE_COLORS.admin}18` }]}>
-                  <Text style={[s.roleChipText, { color: ROLE_COLORS.admin }]}>
-                    {roleCounts.admin} Admin
-                  </Text>
-                </View>
-              )}
-              {roleCounts.member > 0 && (
-                <View style={[s.roleChip, { backgroundColor: `${ROLE_COLORS.member}18` }]}>
-                  <Text style={[s.roleChipText, { color: ROLE_COLORS.member }]}>
-                    {roleCounts.member} Member
-                  </Text>
-                </View>
-              )}
-              {roleCounts.viewer > 0 && (
-                <View style={[s.roleChip, { backgroundColor: `${ROLE_COLORS.viewer}18` }]}>
-                  <Text style={[s.roleChipText, { color: ROLE_COLORS.viewer }]}>
-                    {roleCounts.viewer} Viewer
-                  </Text>
-                </View>
-              )}
+        <View style={s.widgetsGrid}>
+          <View style={[s.widgetCard, { backgroundColor: colors.bg.secondary }]}>
+            <View style={s.widgetHeader}>
+              <Ionicons name="cash-outline" size={18} color={colors.accent.primary} />
+              <Text style={[s.widgetTitle, { color: colors.text.primary }]}>Family Spending</Text>
             </View>
+            <Text style={[s.widgetAmount, { color: colors.text.primary }]}>
+              {fmt(totalMonthlySpending)}
+            </Text>
+            <Text style={[s.widgetLabel, { color: colors.text.tertiary }]}>this month</Text>
           </View>
-          {memberStats.map((member: any, i: number) => (
-            <View key={member.userId || i} style={[s.memberCard, { backgroundColor: colors.bg.secondary }]}>
-              <View style={[s.memberAvatar, { backgroundColor: `${ROLE_COLORS[member.role] || '#666'}20` }]}>
-                <Text style={[s.memberInit, { color: ROLE_COLORS[member.role] || '#666' }]}>
-                  {(member.name || '?')[0]?.toUpperCase()}
-                </Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <View style={s.memberNameRow}>
-                  <Text style={[s.memberName, { color: colors.text.primary }]}>{member.name}</Text>
-                  <Ionicons
-                    name={(ROLE_ICONS[member.role] || 'person') as any}
-                    size={12}
-                    color={ROLE_COLORS[member.role] || '#666'}
-                  />
-                </View>
-                <Text style={[s.memberMeta, { color: colors.text.tertiary }]}>
-                  Paid {fmt(member.totalPaid)} · {member.expenseCount} expenses
-                </Text>
-              </View>
-            </View>
-          ))}
-        </View>
-      )}
 
-      {upcomingBills.length > 0 && (
-        <View style={s.section}>
-          <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Upcoming Payments</Text>
-          {upcomingBills.map((bill: any, i: number) => (
-            <View key={bill.id || i} style={[s.billCard, { backgroundColor: colors.bg.secondary }]}>
-              <View style={[s.billIcon, { backgroundColor: `${colors.status.warning}18` }]}>
-                <Ionicons name="receipt-outline" size={16} color={colors.status.warning} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[s.billName, { color: colors.text.primary }]}>{bill.type}</Text>
-                {bill.dueDate && (
-                  <Text style={[s.billDue, { color: colors.text.tertiary }]}>
-                    Due {new Date(bill.dueDate).toLocaleDateString('en-IN', {
-                      day: 'numeric',
-                      month: 'short',
-                    })}
-                  </Text>
+          <View style={[s.widgetCard, { backgroundColor: colors.bg.secondary }]}>
+            <View style={s.widgetHeader}>
+              <Ionicons name="wallet-outline" size={18} color={colors.status.success} />
+              <Text style={[s.widgetTitle, { color: colors.text.primary }]}>Family Savings</Text>
+            </View>
+            <Text style={[s.widgetAmount, { color: colors.status.success }]}>
+              {fmt(data?.goalsTotalSaved || 0)}
+            </Text>
+            <Text style={[s.widgetLabel, { color: colors.text.tertiary }]}>total saved</Text>
+          </View>
+        </View>
+
+        {memberStats.length > 0 && (
+          <View style={s.section}>
+            <View style={s.sectionHeader}>
+              <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Family Members</Text>
+              <View style={s.roleChips}>
+                {roleCounts.admin > 0 && (
+                  <View style={[s.roleChip, { backgroundColor: `${ROLE_COLORS.admin}18` }]}>
+                    <Text style={[s.roleChipText, { color: ROLE_COLORS.admin }]}>
+                      {roleCounts.admin} Admin
+                    </Text>
+                  </View>
+                )}
+                {roleCounts.member > 0 && (
+                  <View style={[s.roleChip, { backgroundColor: `${ROLE_COLORS.member}18` }]}>
+                    <Text style={[s.roleChipText, { color: ROLE_COLORS.member }]}>
+                      {roleCounts.member} Member
+                    </Text>
+                  </View>
+                )}
+                {roleCounts.viewer > 0 && (
+                  <View style={[s.roleChip, { backgroundColor: `${ROLE_COLORS.viewer}18` }]}>
+                    <Text style={[s.roleChipText, { color: ROLE_COLORS.viewer }]}>
+                      {roleCounts.viewer} Viewer
+                    </Text>
+                  </View>
                 )}
               </View>
-              <Text style={[s.billAmount, { color: colors.text.primary }]}>{fmt(bill.amount)}</Text>
             </View>
-          ))}
-        </View>
-      )}
-
-      {goals.length > 0 && (
-        <View style={s.section}>
-          <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Goal Progress</Text>
-          {goals.map((goal: any, i: number) => (
-            <View key={goal.id || i} style={[s.goalCard, { backgroundColor: colors.bg.secondary }]}>
-              <View style={s.goalTop}>
-                <Ionicons name="flag-outline" size={20} color={colors.accent.primary} />
-                <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={[s.goalName, { color: colors.text.primary }]}>{goal.name}</Text>
-                  <Text style={[s.goalTarget, { color: colors.text.tertiary }]}>
-                    {fmt(goal.savedAmount)} / {fmt(goal.targetAmount)}
+            {memberStats.map((member: any, i: number) => (
+              <View
+                key={member.userId || i}
+                style={[s.memberCard, { backgroundColor: colors.bg.secondary }]}
+              >
+                <View
+                  style={[
+                    s.memberAvatar,
+                    { backgroundColor: `${ROLE_COLORS[member.role] || '#666'}20` },
+                  ]}
+                >
+                  <Text style={[s.memberInit, { color: ROLE_COLORS[member.role] || '#666' }]}>
+                    {(member.name || '?')[0]?.toUpperCase()}
                   </Text>
                 </View>
-                <Text style={[s.goalPct, { color: colors.accent.primary }]}>
-                  {goal.progress}%
+                <View style={{ flex: 1 }}>
+                  <View style={s.memberNameRow}>
+                    <Text style={[s.memberName, { color: colors.text.primary }]}>
+                      {member.name}
+                    </Text>
+                    <Ionicons
+                      name={(ROLE_ICONS[member.role] || 'person') as any}
+                      size={12}
+                      color={ROLE_COLORS[member.role] || '#666'}
+                    />
+                  </View>
+                  <Text style={[s.memberMeta, { color: colors.text.tertiary }]}>
+                    Paid {fmt(member.totalPaid)} · {member.expenseCount} expenses
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {upcomingBills.length > 0 && (
+          <View style={s.section}>
+            <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Upcoming Payments</Text>
+            {upcomingBills.map((bill: any, i: number) => (
+              <View
+                key={bill.id || i}
+                style={[s.billCard, { backgroundColor: colors.bg.secondary }]}
+              >
+                <View style={[s.billIcon, { backgroundColor: `${colors.status.warning}18` }]}>
+                  <Ionicons name="receipt-outline" size={16} color={colors.status.warning} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[s.billName, { color: colors.text.primary }]}>{bill.type}</Text>
+                  {bill.dueDate && (
+                    <Text style={[s.billDue, { color: colors.text.tertiary }]}>
+                      Due{' '}
+                      {new Date(bill.dueDate).toLocaleDateString('en-IN', {
+                        day: 'numeric',
+                        month: 'short',
+                      })}
+                    </Text>
+                  )}
+                </View>
+                <Text style={[s.billAmount, { color: colors.text.primary }]}>
+                  {fmt(bill.amount)}
                 </Text>
               </View>
-              <View style={[s.goalBarOuter, { backgroundColor: colors.bg.tertiary }]}>
-                <View
-                  style={[
-                    s.goalBarFill,
-                    {
-                      width: `${Math.min(goal.progress, 100)}%`,
-                      backgroundColor: colors.accent.primary,
-                    },
-                  ]}
-                />
-              </View>
-            </View>
-          ))}
-        </View>
-      )}
+            ))}
+          </View>
+        )}
 
-      {categoryBreakdown.length > 0 && (
-        <View style={s.section}>
-          <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Spending by Category</Text>
-          {categoryBreakdown.map((cat: any, i: number) => (
-            <View key={cat.category || i} style={s.catRow}>
-              <Text style={[s.catName, { color: colors.text.primary }]}>{cat.category}</Text>
-              <View style={[s.catBarOuter, { backgroundColor: colors.bg.tertiary }]}>
-                <View
-                  style={[
-                    s.catBarFill,
-                    {
-                      width: `${cat.percentage}%`,
-                      backgroundColor: colors.accent.primary,
-                    },
-                  ]}
-                />
+        {goals.length > 0 && (
+          <View style={s.section}>
+            <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Goal Progress</Text>
+            {goals.map((goal: any, i: number) => (
+              <View
+                key={goal.id || i}
+                style={[s.goalCard, { backgroundColor: colors.bg.secondary }]}
+              >
+                <View style={s.goalTop}>
+                  <Ionicons name="flag-outline" size={20} color={colors.accent.primary} />
+                  <View style={{ flex: 1, marginLeft: 12 }}>
+                    <Text style={[s.goalName, { color: colors.text.primary }]}>{goal.name}</Text>
+                    <Text style={[s.goalTarget, { color: colors.text.tertiary }]}>
+                      {fmt(goal.savedAmount)} / {fmt(goal.targetAmount)}
+                    </Text>
+                  </View>
+                  <Text style={[s.goalPct, { color: colors.accent.primary }]}>
+                    {goal.progress}%
+                  </Text>
+                </View>
+                <View style={[s.goalBarOuter, { backgroundColor: colors.bg.tertiary }]}>
+                  <View
+                    style={[
+                      s.goalBarFill,
+                      {
+                        width: `${Math.min(goal.progress, 100)}%`,
+                        backgroundColor: colors.accent.primary,
+                      },
+                    ]}
+                  />
+                </View>
               </View>
-              <Text style={[s.catValue, { color: colors.text.tertiary }]}>{fmt(cat.total)}</Text>
-            </View>
-          ))}
-        </View>
-      )}
-    </ScrollView>
+            ))}
+          </View>
+        )}
+
+        {categoryBreakdown.length > 0 && (
+          <View style={s.section}>
+            <Text style={[s.sectionTitle, { color: colors.text.primary }]}>
+              Spending by Category
+            </Text>
+            {categoryBreakdown.map((cat: any, i: number) => (
+              <View key={cat.category || i} style={s.catRow}>
+                <Text style={[s.catName, { color: colors.text.primary }]}>{cat.category}</Text>
+                <View style={[s.catBarOuter, { backgroundColor: colors.bg.tertiary }]}>
+                  <View
+                    style={[
+                      s.catBarFill,
+                      {
+                        width: `${cat.percentage}%`,
+                        backgroundColor: colors.accent.primary,
+                      },
+                    ]}
+                  />
+                </View>
+                <Text style={[s.catValue, { color: colors.text.tertiary }]}>{fmt(cat.total)}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+      </ScrollView>
+
+      <TouchableOpacity
+        style={[s.fab, { backgroundColor: colors.accent.primary }]}
+        activeOpacity={0.85}
+        onPress={() => navigation.navigate('SharedExpenseForm', { groupId })}
+      >
+        <Ionicons name="add" size={26} color="#FFF" />
+      </TouchableOpacity>
+    </View>
   );
 }
 
@@ -419,7 +450,13 @@ const s = StyleSheet.create({
     marginBottom: 8,
     gap: 12,
   },
-  billIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  billIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   billName: { fontSize: 14, fontWeight: '600' },
   billDue: { fontSize: 11, marginTop: 2 },
   billAmount: { fontSize: 15, fontWeight: '700' },
@@ -444,5 +481,20 @@ const s = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 12,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
 });

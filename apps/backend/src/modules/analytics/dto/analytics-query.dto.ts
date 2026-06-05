@@ -46,3 +46,37 @@ export class CashFlowQueryDto extends AnalyticsQueryDto {}
 export class NetWorthQueryDto extends AnalyticsQueryDto {}
 
 export class BudgetAnalyticsQueryDto extends AnalyticsQueryDto {}
+
+export class ReportQueryDto extends AnalyticsQueryDto {
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  groupId?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  memberId?: string;
+}
+
+export class ExportQueryDto {
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  groupId?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  memberId?: string;
+
+  @ApiPropertyOptional()
+  @IsDateString()
+  @IsOptional()
+  startDate?: string;
+
+  @ApiPropertyOptional()
+  @IsDateString()
+  @IsOptional()
+  endDate?: string;
+}

@@ -1,4 +1,12 @@
-import { IsString, IsEmail, IsNotEmpty, MinLength, MaxLength, IsOptional, Matches } from 'class-validator';
+import {
+  IsString,
+  IsEmail,
+  IsNotEmpty,
+  MinLength,
+  MaxLength,
+  IsOptional,
+  Matches,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class RegisterDto {
@@ -13,7 +21,8 @@ export class RegisterDto {
   @MinLength(8)
   @MaxLength(72)
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/, {
-    message: 'Password must contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character',
+    message:
+      'Password must contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character',
   })
   password: string;
 
@@ -107,6 +116,11 @@ export class GoogleAuthDto {
   @IsString()
   @IsNotEmpty()
   idToken: string;
+
+  @ApiPropertyOptional({ description: 'Referral code if user came via referral link' })
+  @IsString()
+  @IsOptional()
+  referralCode?: string;
 }
 
 export class ChangePasswordDto {

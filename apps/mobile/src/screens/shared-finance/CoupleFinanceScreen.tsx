@@ -204,244 +204,266 @@ export function CoupleFinanceScreen() {
   const comparison = monthlyOverview?.totalChangePercent || 0;
 
   return (
-    <ScrollView
-      style={[s.screen, { backgroundColor: colors.bg.primary }]}
-      contentContainerStyle={{ paddingBottom: 40 }}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={() => loadData(true)}
-          tintColor={colors.accent.primary}
-        />
-      }
-    >
-      <View style={{ paddingTop: insets.top + 8, paddingHorizontal: 20 }}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={[s.backBtn, { backgroundColor: colors.bg.glassLight }]}
-        >
-          <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
-        </TouchableOpacity>
-      </View>
-
-      <LinearGradient colors={themeGradient} style={s.heroSection}>
-        <View style={s.heroPartners}>
-          <View style={s.partnerAvatar}>
-            <Text style={s.partnerInit}>{partner1Name[0]?.toUpperCase() || '?'}</Text>
-          </View>
-          <Ionicons name="heart" size={20} color="#FFF" style={{ marginHorizontal: 8 }} />
-          <View style={[s.partnerAvatar, { backgroundColor: 'rgba(255,255,255,0.3)' }]}>
-            <Text style={s.partnerInit}>{partner2Name[0]?.toUpperCase() || '?'}</Text>
-          </View>
+    <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
+      <ScrollView
+        style={s.screen}
+        contentContainerStyle={{ paddingBottom: 80 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => loadData(true)}
+            tintColor={colors.accent.primary}
+          />
+        }
+      >
+        <View style={{ paddingTop: insets.top + 8, paddingHorizontal: 20 }}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={[s.backBtn, { backgroundColor: colors.bg.glassLight }]}
+          >
+            <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
+          </TouchableOpacity>
         </View>
-        <Text style={s.heroRatio}>{ratio}</Text>
-        <Text style={s.heroRatioLabel}>Contribution Ratio</Text>
-      </LinearGradient>
 
-      {insights.length > 0 && (
-        <View style={s.insightsSection}>
-          {insights.map((insight: string, i: number) => {
-            const isPositive =
-              insight.includes('less') || insight.includes('Great') || insight.includes('on track');
-            return (
-              <View
-                key={i}
-                style={[
-                  s.insightCard,
-                  {
-                    backgroundColor: isPositive
-                      ? `${colors.status.success}12`
-                      : `${colors.status.warning}12`,
-                  },
-                ]}
-              >
+        <LinearGradient colors={themeGradient} style={s.heroSection}>
+          <View style={s.heroPartners}>
+            <View style={s.partnerAvatar}>
+              <Text style={s.partnerInit}>{partner1Name[0]?.toUpperCase() || '?'}</Text>
+            </View>
+            <Ionicons name="heart" size={20} color="#FFF" style={{ marginHorizontal: 8 }} />
+            <View style={[s.partnerAvatar, { backgroundColor: 'rgba(255,255,255,0.3)' }]}>
+              <Text style={s.partnerInit}>{partner2Name[0]?.toUpperCase() || '?'}</Text>
+            </View>
+          </View>
+          <Text style={s.heroRatio}>{ratio}</Text>
+          <Text style={s.heroRatioLabel}>Contribution Ratio</Text>
+        </LinearGradient>
+
+        {insights.length > 0 && (
+          <View style={s.insightsSection}>
+            {insights.map((insight: string, i: number) => {
+              const isPositive =
+                insight.includes('less') ||
+                insight.includes('Great') ||
+                insight.includes('on track');
+              return (
+                <View
+                  key={i}
+                  style={[
+                    s.insightCard,
+                    {
+                      backgroundColor: isPositive
+                        ? `${colors.status.success}12`
+                        : `${colors.status.warning}12`,
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name={isPositive ? 'bulb-outline' : 'trending-up-outline'}
+                    size={18}
+                    color={isPositive ? colors.status.success : colors.status.warning}
+                  />
+                  <Text style={[s.insightText, { color: colors.text.primary }]}>{insight}</Text>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        <View style={s.widgetsGrid}>
+          <View style={[s.widgetCard, { backgroundColor: colors.bg.secondary }]}>
+            <View style={s.widgetHeader}>
+              <Ionicons name="cash-outline" size={18} color={colors.accent.primary} />
+              <Text style={[s.widgetTitle, { color: colors.text.primary }]}>Our Spending</Text>
+            </View>
+            <Text style={[s.widgetAmount, { color: colors.text.primary }]}>
+              {fmt(monthlySpent)}
+            </Text>
+            <Text style={[s.widgetLabel, { color: colors.text.tertiary }]}>this month</Text>
+            {monthlyOverview?.lastMonthTotal > 0 && (
+              <View style={s.widgetTrend}>
                 <Ionicons
-                  name={isPositive ? 'bulb-outline' : 'trending-up-outline'}
-                  size={18}
-                  color={isPositive ? colors.status.success : colors.status.warning}
+                  name={comparison <= 0 ? 'trending-down' : 'trending-up'}
+                  size={14}
+                  color={comparison <= 0 ? colors.status.success : colors.status.error}
                 />
-                <Text style={[s.insightText, { color: colors.text.primary }]}>{insight}</Text>
+                <Text
+                  style={[
+                    s.trendText,
+                    {
+                      color: comparison <= 0 ? colors.status.success : colors.status.error,
+                    },
+                  ]}
+                >
+                  {Math.abs(comparison).toFixed(0)}% vs last month
+                </Text>
               </View>
-            );
-          })}
-        </View>
-      )}
-
-      <View style={s.widgetsGrid}>
-        <View style={[s.widgetCard, { backgroundColor: colors.bg.secondary }]}>
-          <View style={s.widgetHeader}>
-            <Ionicons name="cash-outline" size={18} color={colors.accent.primary} />
-            <Text style={[s.widgetTitle, { color: colors.text.primary }]}>Our Spending</Text>
+            )}
           </View>
-          <Text style={[s.widgetAmount, { color: colors.text.primary }]}>{fmt(monthlySpent)}</Text>
-          <Text style={[s.widgetLabel, { color: colors.text.tertiary }]}>this month</Text>
-          {monthlyOverview?.lastMonthTotal > 0 && (
-            <View style={s.widgetTrend}>
-              <Ionicons
-                name={comparison <= 0 ? 'trending-down' : 'trending-up'}
-                size={14}
-                color={comparison <= 0 ? colors.status.success : colors.status.error}
-              />
+
+          <View style={[s.widgetCard, { backgroundColor: colors.bg.secondary }]}>
+            <View style={s.widgetHeader}>
+              <Ionicons name="wallet-outline" size={18} color={colors.accent.primary} />
+              <Text style={[s.widgetTitle, { color: colors.text.primary }]}>Our Savings</Text>
+            </View>
+            <Text style={[s.widgetAmount, { color: colors.status.success }]}>
+              {fmt(savingsSaved)}
+            </Text>
+            {savingsGoal > 0 ? (
+              <>
+                <View style={[s.progressBarOuter, { backgroundColor: colors.bg.tertiary }]}>
+                  <View
+                    style={[
+                      s.progressBarFill,
+                      {
+                        width: `${Math.min(savingsPct, 100)}%`,
+                        backgroundColor: colors.accent.primary,
+                      },
+                    ]}
+                  />
+                </View>
+                <Text style={[s.widgetLabel, { color: colors.text.tertiary }]}>
+                  {savingsPct}% of {fmt(savingsGoal)} goal
+                </Text>
+              </>
+            ) : (
+              <Text style={[s.widgetLabel, { color: colors.text.tertiary }]}>
+                Set a savings goal to track progress
+              </Text>
+            )}
+          </View>
+        </View>
+
+        {upcomingBills.length > 0 && (
+          <View style={s.section}>
+            <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Upcoming Bills</Text>
+            {upcomingBills.map((bill: any, i: number) => (
+              <View
+                key={bill.id || i}
+                style={[s.billCard, { backgroundColor: colors.bg.secondary }]}
+              >
+                <View style={[s.billIcon, { backgroundColor: `${colors.status.warning}18` }]}>
+                  <Ionicons name="receipt-outline" size={18} color={colors.status.warning} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[s.billName, { color: colors.text.primary }]}>{bill.type} bill</Text>
+                  {bill.dueDate && (
+                    <Text style={[s.billDue, { color: colors.text.tertiary }]}>
+                      Due{' '}
+                      {new Date(bill.dueDate).toLocaleDateString('en-IN', {
+                        day: 'numeric',
+                        month: 'short',
+                      })}
+                    </Text>
+                  )}
+                </View>
+                <Text style={[s.billAmount, { color: colors.text.primary }]}>
+                  {fmt(bill.amount)}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {goals.length > 0 && (
+          <View style={s.section}>
+            <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Shared Goals</Text>
+            {goals.map((goal: any, i: number) => (
+              <View
+                key={goal.id || i}
+                style={[s.goalCard, { backgroundColor: colors.bg.secondary }]}
+              >
+                <View style={s.goalTop}>
+                  <Ionicons name="flag-outline" size={20} color={colors.accent.primary} />
+                  <View style={{ flex: 1, marginLeft: 12 }}>
+                    <Text style={[s.goalName, { color: colors.text.primary }]}>{goal.name}</Text>
+                    <Text style={[s.goalTarget, { color: colors.text.tertiary }]}>
+                      Target: {fmt(goal.targetAmount || 0)}
+                    </Text>
+                  </View>
+                </View>
+                <View style={[s.goalBarOuter, { backgroundColor: colors.bg.tertiary }]}>
+                  <View
+                    style={[
+                      s.goalBarFill,
+                      {
+                        width: `${Math.min(goal.progress, 100)}%`,
+                        backgroundColor: colors.accent.primary,
+                      },
+                    ]}
+                  />
+                </View>
+                <Text style={[s.goalProgress, { color: colors.text.tertiary }]}>
+                  {fmt(goal.savedAmount || 0)} saved ({goal.progress}%)
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {monthlyOverview && (
+          <View style={[s.comparisonCard, { backgroundColor: colors.bg.secondary }]}>
+            <View style={s.comparisonHeader}>
+              <Ionicons name="trending-up-outline" size={20} color={colors.text.primary} />
+              <Text style={[s.comparisonTitle, { color: colors.text.primary }]}>
+                Monthly Comparison
+              </Text>
+            </View>
+            <View style={s.comparisonRow}>
+              <Text style={[s.comparisonLabel, { color: colors.text.tertiary }]}>This month</Text>
+              <Text style={[s.comparisonValue, { color: colors.text.primary }]}>
+                {fmt(monthlyOverview.currentMonthTotal || 0)}
+              </Text>
+            </View>
+            <View style={s.comparisonRow}>
+              <Text style={[s.comparisonLabel, { color: colors.text.tertiary }]}>Last month</Text>
+              <Text style={[s.comparisonValue, { color: colors.text.primary }]}>
+                {fmt(monthlyOverview.lastMonthTotal || 0)}
+              </Text>
+            </View>
+            <View style={s.comparisonRow}>
+              <Text style={[s.comparisonLabel, { color: colors.text.tertiary }]}>Change</Text>
               <Text
                 style={[
-                  s.trendText,
+                  s.comparisonValue,
                   {
-                    color: comparison <= 0 ? colors.status.success : colors.status.error,
+                    color:
+                      (monthlyOverview.totalChange || 0) <= 0
+                        ? colors.status.success
+                        : colors.status.error,
                   },
                 ]}
               >
-                {Math.abs(comparison).toFixed(0)}% vs last month
+                {(monthlyOverview.totalChange || 0) <= 0 ? '' : '+'}
+                {fmt(monthlyOverview.totalChange || 0)}
               </Text>
             </View>
-          )}
-        </View>
-
-        <View style={[s.widgetCard, { backgroundColor: colors.bg.secondary }]}>
-          <View style={s.widgetHeader}>
-            <Ionicons name="wallet-outline" size={18} color={colors.accent.primary} />
-            <Text style={[s.widgetTitle, { color: colors.text.primary }]}>Our Savings</Text>
           </View>
-          <Text style={[s.widgetAmount, { color: colors.status.success }]}>
-            {fmt(savingsSaved)}
-          </Text>
-          {savingsGoal > 0 ? (
-            <>
-              <View style={[s.progressBarOuter, { backgroundColor: colors.bg.tertiary }]}>
-                <View
-                  style={[
-                    s.progressBarFill,
-                    {
-                      width: `${Math.min(savingsPct, 100)}%`,
-                      backgroundColor: colors.accent.primary,
-                    },
-                  ]}
-                />
-              </View>
-              <Text style={[s.widgetLabel, { color: colors.text.tertiary }]}>
-                {savingsPct}% of {fmt(savingsGoal)} goal
+        )}
+
+        {data.salarySuggestion && (
+          <View style={[s.suggestionCard, { backgroundColor: `${colors.accent.primary}12` }]}>
+            <Ionicons name="calculator-outline" size={20} color={colors.accent.primary} />
+            <View style={{ flex: 1 }}>
+              <Text style={[s.suggestionTitle, { color: colors.text.primary }]}>
+                Salary-Based Split
               </Text>
-            </>
-          ) : (
-            <Text style={[s.widgetLabel, { color: colors.text.tertiary }]}>
-              Set a savings goal to track progress
-            </Text>
-          )}
-        </View>
-      </View>
-
-      {upcomingBills.length > 0 && (
-        <View style={s.section}>
-          <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Upcoming Bills</Text>
-          {upcomingBills.map((bill: any, i: number) => (
-            <View key={bill.id || i} style={[s.billCard, { backgroundColor: colors.bg.secondary }]}>
-              <View style={[s.billIcon, { backgroundColor: `${colors.status.warning}18` }]}>
-                <Ionicons name="receipt-outline" size={18} color={colors.status.warning} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[s.billName, { color: colors.text.primary }]}>{bill.type} bill</Text>
-                {bill.dueDate && (
-                  <Text style={[s.billDue, { color: colors.text.tertiary }]}>
-                    Due{' '}
-                    {new Date(bill.dueDate).toLocaleDateString('en-IN', {
-                      day: 'numeric',
-                      month: 'short',
-                    })}
-                  </Text>
-                )}
-              </View>
-              <Text style={[s.billAmount, { color: colors.text.primary }]}>{fmt(bill.amount)}</Text>
-            </View>
-          ))}
-        </View>
-      )}
-
-      {goals.length > 0 && (
-        <View style={s.section}>
-          <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Shared Goals</Text>
-          {goals.map((goal: any, i: number) => (
-            <View key={goal.id || i} style={[s.goalCard, { backgroundColor: colors.bg.secondary }]}>
-              <View style={s.goalTop}>
-                <Ionicons name="flag-outline" size={20} color={colors.accent.primary} />
-                <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={[s.goalName, { color: colors.text.primary }]}>{goal.name}</Text>
-                  <Text style={[s.goalTarget, { color: colors.text.tertiary }]}>
-                    Target: {fmt(goal.targetAmount || 0)}
-                  </Text>
-                </View>
-              </View>
-              <View style={[s.goalBarOuter, { backgroundColor: colors.bg.tertiary }]}>
-                <View
-                  style={[
-                    s.goalBarFill,
-                    {
-                      width: `${Math.min(goal.progress, 100)}%`,
-                      backgroundColor: colors.accent.primary,
-                    },
-                  ]}
-                />
-              </View>
-              <Text style={[s.goalProgress, { color: colors.text.tertiary }]}>
-                {fmt(goal.savedAmount || 0)} saved ({goal.progress}%)
+              <Text style={[s.suggestionDesc, { color: colors.text.tertiary }]}>
+                Recommended split: {data.salarySuggestion.mine}:{data.salarySuggestion.partner}
               </Text>
             </View>
-          ))}
-        </View>
-      )}
+          </View>
+        )}
+      </ScrollView>
 
-      {monthlyOverview && (
-        <View style={[s.comparisonCard, { backgroundColor: colors.bg.secondary }]}>
-          <View style={s.comparisonHeader}>
-            <Ionicons name="trending-up-outline" size={20} color={colors.text.primary} />
-            <Text style={[s.comparisonTitle, { color: colors.text.primary }]}>
-              Monthly Comparison
-            </Text>
-          </View>
-          <View style={s.comparisonRow}>
-            <Text style={[s.comparisonLabel, { color: colors.text.tertiary }]}>This month</Text>
-            <Text style={[s.comparisonValue, { color: colors.text.primary }]}>
-              {fmt(monthlyOverview.currentMonthTotal || 0)}
-            </Text>
-          </View>
-          <View style={s.comparisonRow}>
-            <Text style={[s.comparisonLabel, { color: colors.text.tertiary }]}>Last month</Text>
-            <Text style={[s.comparisonValue, { color: colors.text.primary }]}>
-              {fmt(monthlyOverview.lastMonthTotal || 0)}
-            </Text>
-          </View>
-          <View style={s.comparisonRow}>
-            <Text style={[s.comparisonLabel, { color: colors.text.tertiary }]}>Change</Text>
-            <Text
-              style={[
-                s.comparisonValue,
-                {
-                  color:
-                    (monthlyOverview.totalChange || 0) <= 0
-                      ? colors.status.success
-                      : colors.status.error,
-                },
-              ]}
-            >
-              {(monthlyOverview.totalChange || 0) <= 0 ? '' : '+'}
-              {fmt(monthlyOverview.totalChange || 0)}
-            </Text>
-          </View>
-        </View>
-      )}
-
-      {data.salarySuggestion && (
-        <View style={[s.suggestionCard, { backgroundColor: `${colors.accent.primary}12` }]}>
-          <Ionicons name="calculator-outline" size={20} color={colors.accent.primary} />
-          <View style={{ flex: 1 }}>
-            <Text style={[s.suggestionTitle, { color: colors.text.primary }]}>
-              Salary-Based Split
-            </Text>
-            <Text style={[s.suggestionDesc, { color: colors.text.tertiary }]}>
-              Recommended split: {data.salarySuggestion.mine}:{data.salarySuggestion.partner}
-            </Text>
-          </View>
-        </View>
-      )}
-    </ScrollView>
+      <TouchableOpacity
+        style={[s.fab, { backgroundColor: colors.accent.primary }]}
+        activeOpacity={0.85}
+        onPress={() => navigation.navigate('SharedExpenseForm', { groupId })}
+      >
+        <Ionicons name="add" size={26} color="#FFF" />
+      </TouchableOpacity>
+    </View>
   );
 }
 
@@ -620,4 +642,19 @@ const s = StyleSheet.create({
     borderRadius: 14,
   },
   infoText: { flex: 1, fontSize: 12, lineHeight: 18 },
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
 });

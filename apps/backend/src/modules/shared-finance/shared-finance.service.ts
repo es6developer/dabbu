@@ -21,46 +21,7 @@ import {
   UpdateGroupDto,
   InviteMemberDto,
   CreateExpenseDto,
-  UpdateExpenseDto,
-  ExpenseSplitDto,
-  CreateSettlementDto,
-  CompleteSettlementDto,
-  CreateCoupleProfileDto,
-  SendCoupleInviteDto,
-  CreateTripDto,
-  AddTripExpenseDto,
-  CreateHouseholdBillDto,
-  HouseShareDto,
-  CreateContributionRuleDto,
-  CreateSharedGoalDto,
-  ContributeToGoalDto,
-  SendMessageDto,
-  UpdateSalaryProfileDto,
-  TransitionStatusDto,
-  CreateWalletDto,
-  ContributeToWalletDto,
-  SpendFromWalletDto,
-  TransferWalletDto,
-  CreateAdvanceContributionDto,
-  ContributeToAdvanceDto,
-  AdjustAdvanceDto,
-  RequestApprovalDto,
-  ApproveExpenseDto,
-  UploadDocumentDto,
-  UpdateDocumentPermissionDto,
-  CreateCalendarEventDto,
-  CreateSplitTemplateDto,
-  CreateFromTemplateDto,
-  UploadCreditCardBillDto,
-  SplitTransactionDto,
-  CreateCashPoolDto,
-  CashPoolTransactionDto,
-  CreateEmergencyFundDto,
-  ContributeToEmergencyFundDto,
-  WithdrawFromEmergencyFundDto,
-  CreateNetWorthSnapshotDto,
-  ExportDataDto,
-  CreateReferralDto,
+  UpdateSplitDto,
   TripForecastDto,
 } from './dto/shared-finance.dto';
 
@@ -3372,44 +3333,6 @@ export class SharedFinanceService {
     }
 
     return { memberBadges };
-  }
-
-  // ─── Referral Program ──────────────────────────────────────
-
-  async createReferral(userId: string, dto: CreateReferralDto) {
-    const code = 'DABBU-' + crypto.randomBytes(4).toString('hex').toUpperCase();
-
-    const referral = await this.prisma.referralProgram.create({
-      data: {
-        referrerId: userId,
-        refereeEmail: dto.refereeEmail,
-        code,
-        rewardDays: 30,
-      },
-    });
-
-    return referral;
-  }
-
-  async getUserReferrals(userId: string) {
-    return this.prisma.referralProgram.findMany({
-      where: { referrerId: userId },
-      orderBy: { createdAt: 'desc' },
-    });
-  }
-
-  async getReferralStats(userId: string) {
-    const referrals = await this.prisma.referralProgram.findMany({
-      where: { referrerId: userId },
-    });
-
-    return {
-      total: referrals.length,
-      pending: referrals.filter((r) => r.status === 'pending').length,
-      converted: referrals.filter((r) => r.status === 'converted').length,
-      signedUp: referrals.filter((r) => r.status === 'signed_up').length,
-      rewardDays: referrals.filter((r) => r.rewardClaimed).reduce((s, r) => s + r.rewardDays, 0),
-    };
   }
 
   // ─── Analytics ─────────────────────────────────────────────

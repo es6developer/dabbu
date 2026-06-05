@@ -57,6 +57,7 @@ model User {
   lastName        String  @db.VarChar(100)
   avatarUrl       String? @db.VarChar(500)
   phone           String? @db.VarChar(20)
+  referralCode    String? @unique @db.VarChar(20)
   currency        String  @default("USD") @db.VarChar(10)
   timezone        String  @default("UTC") @db.VarChar(50)
   locale          String  @default("en") @db.VarChar(10)
@@ -203,6 +204,7 @@ model User {
   friendsAdded                 Friend[]                     @relation("FriendOf")
   contactHashes                ContactHash[]
   supportTickets               SupportTicket[]
+  referralRewards              ReferralReward[]
 
   @@index([email])
   @@index([isActive])
@@ -2240,24 +2242,58 @@ model UserStreak {
 // ─── Referral Program ─────────────────────────────────────
 
 model ReferralProgram {
-  id              String    @id @default(uuid()) @db.VarChar(36)
-  referrerId      String    @db.VarChar(36)
-  refereeEmail    String    @db.VarChar(255)
-  refereeId       String?   @db.VarChar(36)
-  code            String    @unique @db.VarChar(50)
-  status          String    @default("pending") @db.VarChar(20) // pending, signed_up, converted, expired
-  rewardDays      Int       @default(30)
-  rewardClaimed   Boolean   @default(false)
-  rewardClaimedAt DateTime?
-  createdAt       DateTime  @default(now())
-  convertedAt     DateTime?
+  id                   String    @id @default(uuid()) @db.VarChar(36)
+  referrerId           String    @db.VarChar(36)
+  refereeEmail         String    @db.VarChar(255)
+  refereeId            String?   @db.VarChar(36)
+  code                 String    @unique @db.VarChar(50)
+  status               String    @default("pending") @db.VarChar(20) // pending, signed_up, converted, rejected
+  referrerRewardAmount Decimal   @default(0) @db.Decimal(10, 2)
+  referrerRewardPaid   Boolean   @default(false)
+  referrerRewardPaidAt DateTime?
+  refereeRewardAmount  Decimal   @default(0) @db.Decimal(10, 2)
+  refereeRewardPaid    Boolean   @default(false)
+  refereeRewardPaidAt  DateTime?
+  deviceId             String?   @db.VarChar(255)
+  ipAddress            String?   @db.VarChar(45)
+  linkClickedAt        DateTime?
+  appInstalledAt       DateTime?
+  signedUpAt           DateTime?
+  convertedAt          DateTime?
+  rejectedAt           DateTime?
+  rejectReason         String?   @db.VarChar(255)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   referrer User  @relation(fields: [referrerId], references: [id], onDelete: Cascade)
   referee  User? @relation("ReferredUser", fields: [refereeId], references: [id])
+  rewards  ReferralReward[]
 
   @@index([referrerId])
   @@index([code])
+  @@index([refereeId])
   @@map("referral_programs")
+}
+
+// ─── Referral Rewards ─────────────────────────────────────
+
+model ReferralReward {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  userId      String   @db.VarChar(36)
+  referralId  String   @db.VarChar(36)
+  type        String   @db.VarChar(20) // referrer_bonus, referee_welcome
+  amount      Decimal  @db.Decimal(10, 2)
+  status      String   @default("pending") @db.VarChar(20) // pending, approved, rejected
+  description String?  @db.VarChar(255)
+  paidAt      DateTime?
+  createdAt   DateTime @default(now())
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  referral ReferralProgram  @relation(fields: [referralId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([referralId])
+  @@map("referral_rewards")
 }
 
 // ─── Family Net Worth ─────────────────────────────────────
