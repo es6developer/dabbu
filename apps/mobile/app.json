@@ -49,6 +49,7 @@
       "apiUrl": "http://localhost:4000/api/v1",
       "environment": "development",
       "googleClientId": "1031730335520-04qfis58v1a073l8pa9ta4blabkeuce8.apps.googleusercontent.com",
+      "androidGoogleClientId": "1031730335520-04qfis58v1a073l8pa9ta4blabkeuce8.apps.googleusercontent.com",
       "eas": {
         "projectId": "dabbu-notifications"
       }

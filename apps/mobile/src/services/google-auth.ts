@@ -9,7 +9,7 @@ const extra = (Constants.expoConfig as any)?.extra || {};
 const googleClientId = extra.googleClientId || '';
 
 const iosClientId = googleClientId;
-const androidClientId = googleClientId;
+const androidClientId = extra.androidGoogleClientId || googleClientId;
 const webClientId = googleClientId;
 
 export function useGoogleAuth() {
