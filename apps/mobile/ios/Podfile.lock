@@ -8,6 +8,8 @@ PODS:
     - ReactCommon/turbomodule/core
   - EXConstants (15.4.6):
     - ExpoModulesCore
+  - EXContacts (12.8.2):
+    - ExpoModulesCore
   - EXFont (11.10.3):
     - ExpoModulesCore
   - EXImageLoader (4.6.0):
@@ -47,6 +49,8 @@ PODS:
   - ExpoSecureStore (12.8.1):
     - ExpoModulesCore
   - ExpoSharing (11.10.0):
+    - ExpoModulesCore
+  - ExpoWebBrowser (12.8.2):
     - ExpoModulesCore
   - EXSplashScreen (0.26.5):
     - ExpoModulesCore
@@ -1145,6 +1149,7 @@ DEPENDENCIES:
   - EXApplication (from `../../../node_modules/expo-application/ios`)
   - EXAV (from `../../../node_modules/expo-av/ios`)
   - EXConstants (from `../../../node_modules/expo-constants/ios`)
+  - EXContacts (from `../../../node_modules/expo-contacts/ios`)
   - EXFont (from `../../../node_modules/expo-font/ios`)
   - EXImageLoader (from `../../../node_modules/expo-image-loader/ios`)
   - EXNotifications (from `../../../node_modules/expo-notifications/ios`)
@@ -1162,6 +1167,7 @@ DEPENDENCIES:
   - ExpoModulesCore (from `../../../node_modules/expo-modules-core`)
   - ExpoSecureStore (from `../../../node_modules/expo-secure-store/ios`)
   - ExpoSharing (from `../../../node_modules/expo-sharing/ios`)
+  - ExpoWebBrowser (from `../../../node_modules/expo-web-browser/ios`)
   - EXSplashScreen (from `../../../node_modules/expo-splash-screen/ios`)
   - FBLazyVector (from `../../../node_modules/react-native/Libraries/FBLazyVector`)
   - FBReactNativeSpec (from `../../../node_modules/react-native/React/FBReactNativeSpec`)
@@ -1240,6 +1246,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/expo-av/ios"
   EXConstants:
     :path: "../../../node_modules/expo-constants/ios"
+  EXContacts:
+    :path: "../../../node_modules/expo-contacts/ios"
   EXFont:
     :path: "../../../node_modules/expo-font/ios"
   EXImageLoader:
@@ -1274,6 +1282,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/expo-secure-store/ios"
   ExpoSharing:
     :path: "../../../node_modules/expo-sharing/ios"
+  ExpoWebBrowser:
+    :path: "../../../node_modules/expo-web-browser/ios"
   EXSplashScreen:
     :path: "../../../node_modules/expo-splash-screen/ios"
   FBLazyVector:
@@ -1396,6 +1406,7 @@ SPEC CHECKSUMS:
   EXApplication: d62cd534090692cbf538ea15f69f829b517a40b1
   EXAV: e160fec51bf6bc41c3b6f7e4c72ea9fd36860cd6
   EXConstants: c82ef9280044accc91fb6082047afdc9a408f61a
+  EXContacts: 64cef1f6e7e92d2ed1a3d00b16f4f5ff61614eee
   EXFont: 64e653a110eee050ad80dfcd676c4bada0a1ff92
   EXImageLoader: ba2506b443b9656e93167c104406a2c265924823
   EXNotifications: 9fd42ca3c5998ae93a2ac869ed9a47467c433219
@@ -1413,6 +1424,7 @@ SPEC CHECKSUMS:
   ExpoModulesCore: 43ebd65adf2c0e6ffb0de24a41f8f7de12829331
   ExpoSecureStore: 4cec57fd2c40dcff05ce2186c39afc1af39d213c
   ExpoSharing: 2537ddc516138bb6d8eb536ff7055e370485f4d1
+  ExpoWebBrowser: c5d027f58a0b2c1926c86ce3596c94490a639fa2
   EXSplashScreen: 6dba6ef8e5a2ec25cb0cadfc4122f7ac633bb868
   FBLazyVector: fbc4957d9aa695250b55d879c1d86f79d7e69ab4
   FBReactNativeSpec: 396bb4b383339b01795f676aa0192bd394ef6589
