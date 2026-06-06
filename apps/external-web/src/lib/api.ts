@@ -1,5 +1,4 @@
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'https://backend-ochre-delta-80.vercel.app/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dabbu-zmkh.onrender.com/api/v1';
 
 interface ApiResponse<T> {
   data?: T;
