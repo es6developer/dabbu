@@ -1,6 +1,5 @@
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
-import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -9,7 +8,10 @@ const extra = (Constants.expoConfig as any)?.extra || {};
 const googleClientId = extra.googleClientId || '';
 
 const iosClientId = googleClientId;
-const androidClientId = extra.androidGoogleClientId || googleClientId;
+const androidClientId =
+  __DEV__ && extra.androidDebugGoogleClientId
+    ? extra.androidDebugGoogleClientId
+    : extra.androidGoogleClientId || googleClientId;
 const webClientId = googleClientId;
 
 export function useGoogleAuth() {
