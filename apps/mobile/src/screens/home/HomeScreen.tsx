@@ -273,7 +273,7 @@ export function HomeScreen() {
       color: '#00A86B',
       onPress: () => {
         trackFeature('Expense', 'add');
-        navigation.navigate('Accounts', { screen: 'CreateTransaction' });
+        navigation.navigate('Expense', { screen: 'CreateTransaction' });
       },
     },
     {
@@ -282,7 +282,7 @@ export function HomeScreen() {
       color: '#E85D04',
       onPress: () => {
         trackFeature('Bill', 'scan');
-        navigation.navigate('Accounts', { screen: 'BillScanner' });
+        navigation.navigate('Expense', { screen: 'BillScanner' });
       },
     },
     {
@@ -291,7 +291,7 @@ export function HomeScreen() {
       color: '#5B5FE8',
       onPress: () => {
         trackFeature('Split', 'create');
-        navigation.navigate('Shared', { screen: 'CreateSharedGroup' });
+        navigation.navigate('Spaces', { screen: 'CreateSharedGroup' });
       },
     },
     {
@@ -300,7 +300,7 @@ export function HomeScreen() {
       color: '#8A5CF6',
       onPress: () => {
         trackFeature('Transfer', 'open');
-        navigation.navigate('Shared', { screen: 'WalletTransfer' });
+        navigation.navigate('Spaces', { screen: 'WalletTransfer' });
       },
     },
     {
@@ -694,7 +694,7 @@ export function HomeScreen() {
           {upcomingBills.length > 0 && (
             <View style={[styles.card, { backgroundColor: colors.bg.secondary }]}>
               <TouchableOpacity
-                onPress={() => navigation.navigate('Accounts', { screen: 'BillsList' })}
+                onPress={() => navigation.navigate('Expense', { screen: 'BillsList' })}
               >
                 <View style={styles.cardHeader}>
                   <View style={styles.cardHeaderLeft}>
@@ -765,7 +765,7 @@ export function HomeScreen() {
           {sharedGroupsData.length > 0 && (
             <View style={[styles.card, { backgroundColor: colors.bg.secondary }]}>
               <TouchableOpacity
-                onPress={() => navigation.navigate('Shared', { screen: 'SharedFinanceHome' })}
+                onPress={() => navigation.navigate('Spaces', { screen: 'SharedFinanceHome' })}
               >
                 <View style={styles.cardHeader}>
                   <View style={styles.cardHeaderLeft}>
@@ -800,7 +800,7 @@ export function HomeScreen() {
                       style={[styles.sharedCard, { backgroundColor: colors.bg.tertiary }]}
                       activeOpacity={0.7}
                       onPress={() =>
-                        navigation.navigate('Shared', {
+                        navigation.navigate('Spaces', {
                           screen:
                             group.type === 'couple'
                               ? 'CoupleFinance'
@@ -852,7 +852,7 @@ export function HomeScreen() {
                 </Text>
               </View>
               <TouchableOpacity
-                onPress={() => navigation.navigate('Accounts', { screen: 'ExpenseHome' })}
+                onPress={() => navigation.navigate('Expense', { screen: 'ExpenseHome' })}
               >
                 <Text style={[styles.seeAllText, { color: colors.accent.primary }]}>See all</Text>
               </TouchableOpacity>
@@ -864,7 +864,7 @@ export function HomeScreen() {
                   style={styles.activityRow}
                   activeOpacity={0.7}
                   onPress={() =>
-                    navigation.navigate('Accounts', {
+                    navigation.navigate('Expense', {
                       screen: 'TransactionDetail',
                       params: { transactionId: tx.id },
                     })
@@ -923,7 +923,7 @@ export function HomeScreen() {
                 </Text>
                 <TouchableOpacity
                   style={[styles.emptyBtn, { backgroundColor: colors.accent.primary }]}
-                  onPress={() => navigation.navigate('Accounts', { screen: 'CreateTransaction' })}
+                  onPress={() => navigation.navigate('Expense', { screen: 'CreateTransaction' })}
                 >
                   <Ionicons name="add" size={16} color="#FFF" />
                   <Text style={styles.emptyBtnText}>Add your first expense</Text>

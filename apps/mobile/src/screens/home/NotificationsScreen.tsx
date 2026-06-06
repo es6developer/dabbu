@@ -43,9 +43,14 @@ export function NotificationsScreen() {
 
   async function loadNotifications(isRefresh = false) {
     try {
-      if (isRefresh) {setRefreshing(true);}
-      else {setLoading(true);}
-      if (accessToken) {setAccessToken(accessToken);}
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
       const res = await api.get<any>(`/notifications?limit=50`);
       setNotifications(res || []);
     } catch (_e) {
@@ -58,11 +63,11 @@ export function NotificationsScreen() {
 
   async function handleMarkRead(id: string) {
     try {
-      if (accessToken) {setAccessToken(accessToken);}
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
       await api.patch(`/notifications/${id}/read`, {});
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
-      );
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
     } catch (_e) {
       // silent
     }
@@ -70,7 +75,9 @@ export function NotificationsScreen() {
 
   async function handleMarkAllRead() {
     try {
-      if (accessToken) {setAccessToken(accessToken);}
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
       await api.patch(`/notifications/read-all`, {});
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     } catch (_e) {
@@ -81,7 +88,7 @@ export function NotificationsScreen() {
   function handleNotificationPress(item: NotificationItem) {
     handleMarkRead(item.id);
     if (item.data?.groupId) {
-      navigation.navigate('Accounts', {
+      navigation.navigate('Expense', {
         screen: 'GroupExpenses',
         params: { groupId: item.data.groupId },
       });
@@ -114,10 +121,7 @@ export function NotificationsScreen() {
           >
             {item.title}
           </Text>
-          <Text
-            style={[styles.notifMessage, { color: colors.text.secondary }]}
-            numberOfLines={2}
-          >
+          <Text style={[styles.notifMessage, { color: colors.text.secondary }]} numberOfLines={2}>
             {item.message}
           </Text>
           <Text style={[styles.notifTime, { color: colors.text.tertiary }]}>
@@ -181,12 +185,20 @@ function formatTime(dateStr: string): string {
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const mins = Math.floor(diffMs / 60000);
-  if (mins < 1) {return 'Just now';}
-  if (mins < 60) {return `${mins}m ago`;}
+  if (mins < 1) {
+    return 'Just now';
+  }
+  if (mins < 60) {
+    return `${mins}m ago`;
+  }
   const hours = Math.floor(mins / 60);
-  if (hours < 24) {return `${hours}h ago`;}
+  if (hours < 24) {
+    return `${hours}h ago`;
+  }
   const days = Math.floor(hours / 24);
-  if (days < 7) {return `${days}d ago`;}
+  if (days < 7) {
+    return `${days}d ago`;
+  }
   return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 }
 

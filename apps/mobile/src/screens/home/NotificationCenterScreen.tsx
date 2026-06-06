@@ -157,7 +157,7 @@ export function NotificationCenterScreen() {
         params: { reminderId: item.data.reminderId },
       });
     } else if (item.data?.groupId) {
-      navigation.navigate('Accounts', {
+      navigation.navigate('Expense', {
         screen: 'GroupExpenses',
         params: { groupId: item.data.groupId },
       });

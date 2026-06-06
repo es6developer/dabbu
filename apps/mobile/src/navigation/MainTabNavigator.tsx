@@ -8,7 +8,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { HomeScreen } from '../screens/home/HomeScreen';
 import { NotificationsScreen } from '../screens/home/NotificationsScreen';
 import { NotificationCenterScreen } from '../screens/home/NotificationCenterScreen';
-import { TransactionsScreen } from '../screens/transactions/TransactionsScreen';
 import { AccountsNavigator } from './AccountsNavigator';
 import { SharedFinanceNavigator } from './SharedFinanceNavigator';
 import { GoalsListScreen } from '../screens/goals/GoalsListScreen';
@@ -44,7 +43,6 @@ import { QuickActionSheet } from '../components/ui/QuickActionSheet';
 const Tab = createBottomTabNavigator();
 const DashboardStack = createNativeStackNavigator();
 const SettingsStack = createNativeStackNavigator();
-const TransactionsStack = createNativeStackNavigator();
 const RemindersStack = createNativeStackNavigator();
 const SmsStack = createNativeStackNavigator();
 
@@ -266,30 +264,6 @@ function SmsNavigator() {
   );
 }
 
-function TransactionsListWrapper() {
-  const { colors, typography } = useTheme();
-  return (
-    <TransactionsStack.Navigator
-      screenOptions={{
-        headerStyle: { backgroundColor: colors.bg.primary },
-        headerTintColor: colors.text.primary,
-        headerTitleStyle: {
-          fontFamily: typography.calloutBold.fontFamily,
-          fontSize: typography.calloutBold.fontSize,
-          fontWeight: typography.calloutBold.fontWeight,
-        },
-        contentStyle: { backgroundColor: colors.bg.primary },
-      }}
-    >
-      <TransactionsStack.Screen
-        name="TransactionsMain"
-        component={TransactionsScreen}
-        options={{ headerShown: false }}
-      />
-    </TransactionsStack.Navigator>
-  );
-}
-
 export function MainTabNavigator() {
   const { colors } = useTheme();
   const { user, accessToken } = useAuth();
@@ -318,25 +292,25 @@ export function MainTabNavigator() {
       label: 'Add Expense',
       icon: 'add-circle-outline' as const,
       color: '#00A86B',
-      onPress: () => navigation.navigate('Accounts', { screen: 'CreateTransaction' }),
+      onPress: () => navigation.navigate('Expense', { screen: 'CreateTransaction' }),
     },
     {
       label: 'Scan Bill',
       icon: 'scan-outline' as const,
       color: '#E85D04',
-      onPress: () => navigation.navigate('Accounts', { screen: 'BillScanner' }),
+      onPress: () => navigation.navigate('Expense', { screen: 'BillScanner' }),
     },
     {
       label: 'New Group',
       icon: 'people-outline' as const,
       color: '#5B5FE8',
-      onPress: () => navigation.navigate('Shared', { screen: 'CreateSharedGroup' }),
+      onPress: () => navigation.navigate('Spaces', { screen: 'CreateSharedGroup' }),
     },
     {
       label: 'Transfer',
       icon: 'swap-horizontal-outline' as const,
       color: '#8A5CF6',
-      onPress: () => navigation.navigate('Shared', { screen: 'WalletTransfer' }),
+      onPress: () => navigation.navigate('Spaces', { screen: 'WalletTransfer' }),
     },
     {
       label: 'Document',
@@ -402,13 +376,13 @@ export function MainTabNavigator() {
           }}
         />
         <Tab.Screen
-          name="Transactions"
-          component={TransactionsListWrapper}
+          name="Expense"
+          component={AccountsNavigator}
           options={{
-            title: 'Activity',
+            title: 'Expense',
             tabBarIcon: ({ focused, size }) => (
               <Ionicons
-                name={focused ? 'swap-horizontal' : 'swap-horizontal-outline'}
+                name={focused ? 'wallet' : 'wallet-outline'}
                 size={size}
                 color={focused ? colors.accent.primary : colors.text.tertiary}
               />
@@ -440,10 +414,10 @@ export function MainTabNavigator() {
           }}
         />
         <Tab.Screen
-          name="Shared"
+          name="Spaces"
           component={SharedFinanceNavigator}
           options={{
-            title: 'Shared',
+            title: 'Spaces',
             tabBarIcon: ({ focused, size }) => (
               <Ionicons
                 name={focused ? 'people' : 'people-outline'}
@@ -452,12 +426,6 @@ export function MainTabNavigator() {
               />
             ),
           }}
-        />
-        {/* Hidden navigators for cross-tab navigation */}
-        <Tab.Screen
-          name="Accounts"
-          component={AccountsNavigator}
-          options={{ tabBarButton: () => null }}
         />
         <Tab.Screen
           name="Settings"

@@ -116,7 +116,7 @@ export function SharedScreen() {
               style={[styles.createBtn, { backgroundColor: colors.accent.primary }]}
               onPress={() => {
                 trackFeature('Shared', 'create');
-                navigation.navigate('Shared', { screen: 'CreateSharedGroup' });
+                navigation.navigate('Spaces', { screen: 'CreateSharedGroup' });
               }}
             >
               <Ionicons name="add" size={20} color="#FFF" />
@@ -148,7 +148,7 @@ export function SharedScreen() {
             </Text>
             <TouchableOpacity
               style={[styles.emptyBtn, { backgroundColor: colors.accent.primary }]}
-              onPress={() => navigation.navigate('Shared', { screen: 'CreateSharedGroup' })}
+              onPress={() => navigation.navigate('Spaces', { screen: 'CreateSharedGroup' })}
             >
               <Ionicons name="add" size={18} color="#FFF" />
               <Text style={styles.emptyBtnText}>Create your first space</Text>
@@ -173,7 +173,7 @@ export function SharedScreen() {
                         activeOpacity={0.7}
                         onPress={() => {
                           trackFeature('Shared', 'open_group');
-                          navigation.navigate('Shared', {
+                          navigation.navigate('Spaces', {
                             screen: group.type === 'couple' ? 'CoupleFinance' : 'FamilyDashboard',
                             params: { groupId: group.id },
                           });
@@ -227,7 +227,7 @@ export function SharedScreen() {
                         activeOpacity={0.7}
                         onPress={() => {
                           trackFeature('Shared', 'open_group');
-                          navigation.navigate('Shared', {
+                          navigation.navigate('Spaces', {
                             screen: 'SharedGroupDetail',
                             params: { groupId: group.id },
                           });
@@ -261,7 +261,7 @@ export function SharedScreen() {
                 style={[styles.quickAction, { backgroundColor: colors.bg.secondary }]}
                 onPress={() => {
                   trackFeature('Shared', 'settlement');
-                  navigation.navigate('Shared', { screen: 'Settlement' });
+                  navigation.navigate('Spaces', { screen: 'Settlement' });
                 }}
               >
                 <View style={[styles.qaIcon, { backgroundColor: '#00B89418' }]}>
@@ -274,7 +274,7 @@ export function SharedScreen() {
                 style={[styles.quickAction, { backgroundColor: colors.bg.secondary }]}
                 onPress={() => {
                   trackFeature('Shared', 'wallet');
-                  navigation.navigate('Shared', { screen: 'GroupWallet' });
+                  navigation.navigate('Spaces', { screen: 'GroupWallet' });
                 }}
               >
                 <View style={[styles.qaIcon, { backgroundColor: '#FDCB6E18' }]}>

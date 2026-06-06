@@ -29,13 +29,21 @@ function moneyFormat(v: number | string | undefined | null): string {
 }
 
 function fmtDate(d: string | null | undefined): string {
-  if (!d) {return '';}
+  if (!d) {
+    return '';
+  }
   const date = new Date(d);
   const today = new Date();
   const diff = Math.ceil((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-  if (diff === 0) {return 'Today';}
-  if (diff === 1) {return 'Yesterday';}
-  if (diff < 7) {return `${diff} days ago`;}
+  if (diff === 0) {
+    return 'Today';
+  }
+  if (diff === 1) {
+    return 'Yesterday';
+  }
+  if (diff < 7) {
+    return `${diff} days ago`;
+  }
   return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 }
 
@@ -56,12 +64,16 @@ export function TransactionsScreen() {
   const [showFilters, setShowFilters] = useState(false);
 
   const loadData = useCallback(async () => {
-    if (accessToken) {setAccessToken(accessToken);}
+    if (accessToken) {
+      setAccessToken(accessToken);
+    }
     try {
       const res = await api.get<any>('/transactions/stats');
       const txs = res?.recentTransactions || [];
       setTransactions(txs);
-    } catch { /* ignore */ } finally {
+    } catch {
+      /* ignore */
+    } finally {
       setLoading(false);
       setRefreshing(false);
     }
@@ -75,15 +87,25 @@ export function TransactionsScreen() {
   );
 
   const filtered = transactions.filter((tx) => {
-    if (activeFilter === 'All') {return true;}
-    if (activeFilter === 'Income') {return Number(tx.amount) > 0;}
-    if (activeFilter === 'Expense') {return Number(tx.amount) <= 0;}
+    if (activeFilter === 'All') {
+      return true;
+    }
+    if (activeFilter === 'Income') {
+      return Number(tx.amount) > 0;
+    }
+    if (activeFilter === 'Expense') {
+      return Number(tx.amount) <= 0;
+    }
     return true;
   });
 
   const totalFiltered = filtered.reduce((s, tx) => s + Number(tx.amount), 0);
-  const incomeTotal = filtered.filter((tx) => Number(tx.amount) > 0).reduce((s, tx) => s + Number(tx.amount), 0);
-  const expenseTotal = Math.abs(filtered.filter((tx) => Number(tx.amount) <= 0).reduce((s, tx) => s + Number(tx.amount), 0));
+  const incomeTotal = filtered
+    .filter((tx) => Number(tx.amount) > 0)
+    .reduce((s, tx) => s + Number(tx.amount), 0);
+  const expenseTotal = Math.abs(
+    filtered.filter((tx) => Number(tx.amount) <= 0).reduce((s, tx) => s + Number(tx.amount), 0),
+  );
 
   const handleDelete = (tx: any) => {
     Alert.alert('Delete Transaction', 'Are you sure?', [
@@ -96,7 +118,9 @@ export function TransactionsScreen() {
             await api.delete(`/transactions/${tx.id}`);
             setTransactions((prev) => prev.filter((t) => t.id !== tx.id));
             trackFeature('Transaction', 'delete');
-          } catch { /* ignore */ }
+          } catch {
+            /* ignore */
+          }
         },
       },
     ]);
@@ -109,7 +133,7 @@ export function TransactionsScreen() {
         style={[styles.txRow, { backgroundColor: colors.bg.secondary }]}
         activeOpacity={0.7}
         onPress={() =>
-          navigation.navigate('Accounts', {
+          navigation.navigate('Expense', {
             screen: 'TransactionDetail',
             params: { transactionId: item.id },
           })
@@ -133,7 +157,8 @@ export function TransactionsScreen() {
           </Text>
         </View>
         <Text style={[styles.txAmount, { color: isIncome ? '#00B894' : colors.text.primary }]}>
-          {isIncome ? '+' : '-'}{moneyFormat(Math.abs(Number(item.amount)))}
+          {isIncome ? '+' : '-'}
+          {moneyFormat(Math.abs(Number(item.amount)))}
         </Text>
       </TouchableOpacity>
     );
@@ -162,17 +187,23 @@ export function TransactionsScreen() {
         <View style={[styles.summaryBar, { backgroundColor: colors.bg.secondary }]}>
           <View style={styles.summaryItem}>
             <Text style={[styles.summaryLabel, { color: colors.text.tertiary }]}>Income</Text>
-            <Text style={[styles.summaryValue, { color: '#00B894' }]}>{moneyFormat(incomeTotal)}</Text>
+            <Text style={[styles.summaryValue, { color: '#00B894' }]}>
+              {moneyFormat(incomeTotal)}
+            </Text>
           </View>
           <View style={[styles.summaryDivider, { backgroundColor: colors.border.subtle }]} />
           <View style={styles.summaryItem}>
             <Text style={[styles.summaryLabel, { color: colors.text.tertiary }]}>Expenses</Text>
-            <Text style={[styles.summaryValue, { color: '#FF6B6B' }]}>{moneyFormat(expenseTotal)}</Text>
+            <Text style={[styles.summaryValue, { color: '#FF6B6B' }]}>
+              {moneyFormat(expenseTotal)}
+            </Text>
           </View>
           <View style={[styles.summaryDivider, { backgroundColor: colors.border.subtle }]} />
           <View style={styles.summaryItem}>
             <Text style={[styles.summaryLabel, { color: colors.text.tertiary }]}>Net</Text>
-            <Text style={[styles.summaryValue, { color: totalFiltered >= 0 ? '#00B894' : '#FF6B6B' }]}>
+            <Text
+              style={[styles.summaryValue, { color: totalFiltered >= 0 ? '#00B894' : '#FF6B6B' }]}
+            >
               {moneyFormat(totalFiltered)}
             </Text>
           </View>
@@ -187,7 +218,8 @@ export function TransactionsScreen() {
                 style={[
                   styles.filterChip,
                   {
-                    backgroundColor: activeFilter === opt ? colors.accent.primary : colors.bg.tertiary,
+                    backgroundColor:
+                      activeFilter === opt ? colors.accent.primary : colors.bg.tertiary,
                   },
                 ]}
                 onPress={() => setActiveFilter(opt)}
@@ -225,7 +257,7 @@ export function TransactionsScreen() {
           {activeFilter === 'All' && (
             <TouchableOpacity
               style={[styles.addBtn, { backgroundColor: colors.accent.primary }]}
-              onPress={() => navigation.navigate('Accounts', { screen: 'CreateTransaction' })}
+              onPress={() => navigation.navigate('Expense', { screen: 'CreateTransaction' })}
             >
               <Ionicons name="add" size={18} color="#FFF" />
               <Text style={styles.addBtnText}>Add Transaction</Text>
@@ -242,7 +274,10 @@ export function TransactionsScreen() {
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
-              onRefresh={() => { setRefreshing(true); loadData(); }}
+              onRefresh={() => {
+                setRefreshing(true);
+                loadData();
+              }}
               tintColor={colors.accent.primary}
             />
           }
@@ -261,7 +296,14 @@ const styles = StyleSheet.create({
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   headerTitle: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5 },
   headerSub: { fontSize: 13, fontWeight: '500', marginTop: 2 },
-  filterToggle: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
+  filterToggle: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
 
   summaryBar: {
     flexDirection: 'row',
@@ -286,12 +328,24 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 16,
   },
-  txIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  txIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   txName: { fontSize: 14, fontWeight: '600' },
   txDate: { fontSize: 11, marginTop: 1 },
   txAmount: { fontSize: 15, fontWeight: '700' },
 
-  centerState: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32, gap: 8 },
+  centerState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    gap: 8,
+  },
   emptyTitle: { fontSize: 17, fontWeight: '700', marginTop: 8 },
   emptySub: { fontSize: 13, textAlign: 'center', lineHeight: 18 },
   addBtn: {
@@ -304,6 +358,4 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   addBtnText: { color: '#FFF', fontSize: 14, fontWeight: '600' },
-
-
 });
