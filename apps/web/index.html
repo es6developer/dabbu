@@ -1,413 +1,282 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Dabbu — Premium mobile finance control center. Track expenses, manage budgets, split bills, and master your money." />
-  <meta name="theme-color" content="#f7892c" />
-  <title>Dabbu | Know Where Your Money Goes</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Manrope:wght@700;800;900&display=swap" rel="stylesheet" />
+  <meta charset="UTF-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dabbu — Know Where Your Money Goes</title>
+  <meta name="description" content="Dabbu is a personal finance control center. Track expenses, manage budgets, split bills, and master your money with your family and friends.">
+  <meta name="robots" content="index,follow">
+  <link rel="canonical" href="https://dabbu.app">
+  <meta property="og:title" content="Dabbu — Know Where Your Money Goes">
+  <meta property="og:description" content="Track expenses, manage budgets, split bills, and master your money — together with the people who matter.">
+  <meta name="theme-color" content="#f7892c">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { sans: ["Inter", "system-ui", "sans-serif"], display: ["Manrope", "Inter", "sans-serif"] },
-          colors: { brand: "#f7892c", paper: "#e9eef0", ink: "#394049", medium: "#3b4355", muted: "#767a79", night: "#090b10" },
-          boxShadow: { premium: "0 28px 90px rgba(0,0,0,.40)", glow: "0 0 90px rgba(247,137,44,.30)" }
-        }
-      }
+          fontFamily: { display: ['Poppins', 'Inter', 'system-ui', 'sans-serif'], sans: ['Inter', 'system-ui', 'sans-serif'] },
+          colors: { brand: { 50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa', 300: '#fdba74', 400: '#fb923c', 500: '#f97316', 600: '#ea580c', 700: '#c2410c', DEFAULT: '#f7892c' }, ink: '#11231a', muted: '#5c6b63' },
+        },
+      },
     };
   </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
-    :root { color-scheme: dark; --brand: 247 137 44; }
-    * { box-sizing: border-box; }
+    :root {
+      --brand-anchor-offset: 84px; --brand: #f7892c; --brand-deep: #c2410c;
+      --brand-soft: #fff7ed; --brand-mist: rgba(247,137,44,0.12); --brand-line: rgba(247,137,44,0.22);
+      --ink: #11231a; --muted: #5c6b63; --line: rgba(17,35,26,0.08);
+    }
     html { scroll-behavior: smooth; }
-    body {
-      margin: 0; overflow-x: hidden;
-      color: #f7fafc;
-      background: #090b10;
-      font-family: Inter, system-ui, sans-serif;
-    }
-    body::before {
-      content: ""; position: fixed; inset: 0; pointer-events: none; z-index: -1;
-      background-image:
-        linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
-      background-size: 64px 64px;
-      mask-image: linear-gradient(to bottom, rgba(0,0,0,.8), transparent 70%);
-    }
-    .container { width: min(1180px, calc(100% - 2.5rem)); margin-inline: auto; }
-    .section-pad { padding: 6rem 0; }
-    @media (max-width: 767px) { .section-pad { padding: 4rem 0; } }
-    .brand-logo { width: 40px; height: 40px; object-fit: contain; }
-
-    .glass {
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.1);
-      backdrop-filter: blur(16px);
-    }
-    .glass-hover { transition: all .4s cubic-bezier(.2,.8,.2,1); }
-    .glass-hover:hover {
-      border-color: rgba(247,137,44,.35);
-      box-shadow: 0 20px 60px rgba(247,137,44,.12);
-      transform: translateY(-4px);
-    }
-
-    .reveal {
-      opacity: 0; transform: translateY(24px);
-      transition: opacity .7s ease, transform .7s cubic-bezier(.2,.8,.2,1);
-      transition-delay: var(--delay, 0ms);
-    }
-    .reveal.visible { opacity: 1; transform: translateY(0); }
-
-    .reveal-left {
-      opacity: 0; transform: translateX(-30px);
-      transition: opacity .7s ease, transform .7s cubic-bezier(.2,.8,.2,1);
-      transition-delay: var(--delay, 0ms);
-    }
-    .reveal-left.visible { opacity: 1; transform: translateX(0); }
-
-    .reveal-right {
-      opacity: 0; transform: translateX(30px);
-      transition: opacity .7s ease, transform .7s cubic-bezier(.2,.8,.2,1);
-      transition-delay: var(--delay, 0ms);
-    }
-    .reveal-right.visible { opacity: 1; transform: translateX(0); }
-
-    .reveal-scale {
-      opacity: 0; transform: scale(0.92);
-      transition: opacity .6s ease, transform .6s cubic-bezier(.2,.8,.2,1);
-      transition-delay: var(--delay, 0ms);
-    }
-    .reveal-scale.visible { opacity: 1; transform: scale(1); }
-
-    .badge {
-      display: inline-flex; align-items: center; gap: 6px;
-      font-size: .75rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
-      color: #f7892c;
-      background: rgba(247,137,44,.1);
-      border: 1px solid rgba(247,137,44,.2);
-      padding: .35rem 1rem; border-radius: 999px;
-    }
-
-    .btn-primary {
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      background: linear-gradient(135deg, #ff9a39, #f7892c 55%, #d96a10);
-      color: #090b10; font-weight: 800; font-size: .875rem;
-      border-radius: 999px; padding: .75rem 1.75rem;
-      box-shadow: 0 12px 40px rgba(247,137,44,.3), inset 0 1px 0 rgba(255,255,255,.45);
-      transition: all .25s ease;
-    }
-    .btn-primary:hover { transform: scale(1.04); box-shadow: 0 16px 50px rgba(247,137,44,.4); }
-    .btn-secondary {
+    .marketing-anchor-section { scroll-margin-top: var(--brand-anchor-offset); }
+    .marketing-nav { background: rgba(255,255,255,0.94); border-bottom: 1px solid var(--line); }
+    .marketing-button { transition: transform 180ms ease, box-shadow 180ms ease; }
+    .marketing-button:hover { transform: translateY(-1px); }
+    .marketing-logo-mark { box-shadow: 0 6px 14px rgba(247,137,44,0.2); }
+    .marketing-menu-button {
       display: inline-flex; align-items: center; justify-content: center;
-      background: rgba(255,255,255,.07); color: #fff; font-weight: 700; font-size: .875rem;
-      border: 1px solid rgba(255,255,255,.12); border-radius: 999px; padding: .75rem 1.75rem;
-      transition: all .25s ease;
+      width: 2.9rem; height: 2.9rem; border-radius: 9999px;
+      border: 1px solid var(--line); background: rgba(255,255,255,0.88);
+      color: var(--ink); transition: all 180ms ease;
     }
-    .btn-secondary:hover { background: rgba(255,255,255,.12); }
+    .marketing-menu-button:hover { border-color: rgba(17,35,26,0.22); background: white; }
+    .marketing-nav-backdrop { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.3s ease, visibility 0.3s ease; }
+    .marketing-nav-backdrop.is-open { opacity: 1; visibility: visible; pointer-events: auto; }
+    .marketing-nav-drawer { transform: translateX(100%); pointer-events: none; transition: transform 0.32s cubic-bezier(0.32,0.72,0,1); }
+    .marketing-nav-drawer.is-open { transform: translateX(0); pointer-events: auto; }
+    .marketing-menu-link { display: block; border-radius: 0.75rem; padding: 0.75rem 0.9rem; color: var(--ink); transition: background-color 180ms ease, color 180ms ease; }
+    .marketing-menu-link:hover { background: var(--brand-mist); color: var(--brand-deep); }
+    details[data-mobile-nav-products][open] summary .nav-mobile-chevron { transform: rotate(180deg); }
 
-    .gradient-text {
-      background: linear-gradient(135deg, #fff 0%, #fff4e9 40%, #f7892c 100%);
-      -webkit-background-clip: text; background-clip: text; color: transparent;
+    /* ─── Hero ─── */
+    .hero-section { position: relative; overflow: hidden; padding-top: 8.25rem; padding-bottom: 4rem; isolation: isolate; }
+    @media (min-width: 768px) { .hero-section { min-height: calc(100vh - 80px); padding-top: 10rem; padding-bottom: 5rem; } }
+    .marketing-hero {
+      position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      background: linear-gradient(180deg, rgba(247,137,44,0.98) 0%, rgba(247,137,44,0.96) 28%, rgba(247,137,44,0.9) 58%, rgba(251,180,100,0.68) 86%, rgba(251,180,100,0.7) 100%);
     }
-    .gradient-text-alt {
-      background: linear-gradient(135deg, #f7892c, #ff6b35, #f7892c);
-      background-size: 200% auto;
-      -webkit-background-clip: text; background-clip: text; color: transparent;
-      animation: shimmerText 3s ease-in-out infinite;
+    .marketing-hero::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(194,65,12,0.12)); mask-image: linear-gradient(180deg, rgba(0,0,0,0.85), transparent 90%); z-index: 1; }
+    .hero-title { color: white; font-family: 'Poppins', sans-serif; text-shadow: 0 10px 26px rgba(15,23,42,0.12); }
+    .hero-copy-chip {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 2.5rem; padding: 0.45rem 0.78rem; border-radius: 9999px;
+      background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.18);
+      color: rgba(255,255,255,0.96); font-size: 0.79rem; font-weight: 600;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 8px 18px rgba(15,23,42,0.08);
+      backdrop-filter: blur(10px); white-space: nowrap;
     }
-    @keyframes shimmerText {
-      0%, 100% { background-position: 0% center; }
-      50% { background-position: 100% center; }
-    }
+    .gradient-text { background: linear-gradient(135deg, #fff 0%, #fff4e9 40%, #f7892c 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .hero-primary-button { background: #020617; color: white; box-shadow: 0 14px 34px rgba(2,6,23,0.2); }
+    .hero-primary-button:hover { background: #111827; }
+    .hero-secondary-button { background: white; color: #020617; box-shadow: 0 10px 30px rgba(15,23,42,0.14); }
+    .hero-secondary-button:hover { background: #f8fafc; }
+    @media (max-width: 767px) { .hero-copy-desktop { display: none; } .hero-copy-mobile { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin-top: 1.5rem; } }
+    @media (min-width: 768px) { .hero-copy-mobile { display: none; } .hero-copy-desktop { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; margin-top: 1.75rem; } }
 
+    /* ─── Phone mock ─── */
     .phone-mock {
-      width: min(280px, 72vw);
-      aspect-ratio: 9/19;
-      border-radius: 36px;
-      padding: 8px;
+      width: min(280px, 72vw); aspect-ratio: 9/19; border-radius: 36px; padding: 8px;
       background: linear-gradient(160deg, #5a6980, #0b0d13 40%, #f7892c);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.15), 0 30px 80px rgba(0,0,0,.5), 0 0 70px rgba(247,137,44,.15);
-      position: relative;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.15), 0 30px 80px rgba(0,0,0,0.3);
+      position: relative; margin: 0 auto;
     }
-    .phone-mock::before {
-      content: ""; position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-      width: 80px; height: 22px; border-radius: 0 0 16px 16px; background: #05070b; z-index: 5;
-    }
-    .phone-screen {
-      position: relative; height: 100%; overflow: hidden; border-radius: 28px;
-      border: 1px solid rgba(255,255,255,.08);
-      background: radial-gradient(circle at 80% 0%, rgba(247,137,44,.35), transparent 40%),
-                  linear-gradient(180deg, #171d28, #07090e);
-      transition: opacity .5s ease;
-    }
+    .phone-mock::before { content: ''; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 80px; height: 22px; border-radius: 0 0 16px 16px; background: #05070b; z-index: 5; }
+    .phone-screen { position: relative; height: 100%; overflow: hidden; border-radius: 28px; border: 1px solid rgba(255,255,255,0.08); background: radial-gradient(circle at 80% 0%, rgba(247,137,44,0.35), transparent 40%), linear-gradient(180deg, #171d28, #07090e); color: white; }
     .phone-float { animation: phoneFloat 7s ease-in-out infinite; }
-    @keyframes phoneFloat {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-16px); }
-    }
-    .phone-rotate {
-      animation: phoneRotate 20s ease-in-out infinite;
-    }
-    @keyframes phoneRotate {
-      0%, 100% { transform: perspective(800px) rotateY(-3deg) rotateX(2deg); }
-      50% { transform: perspective(800px) rotateY(3deg) rotateX(-2deg); }
-    }
+    @keyframes phoneFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-16px); } }
+    @media (max-width: 767px) { .phone-mock { width: min(220px, 65vw); border-radius: 30px; } .phone-mock::before { width: 64px; height: 18px; } .phone-screen { border-radius: 22px; } }
 
-    .particle {
-      position: absolute; width: 3px; height: 3px;
-      border-radius: 50%; background: rgba(247,137,44,.5);
-      animation: particleRise 12s linear infinite; opacity: 0;
-    }
-    @keyframes particleRise {
-      0% { transform: translateY(80px); opacity: 0; }
-      15% { opacity: .6; }
-      100% { transform: translateY(-500px); opacity: 0; }
-    }
+    /* ─── Cards ─── */
+    .product-card { position: relative; overflow: hidden; border: 1px solid var(--line); background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,250,243,0.98)); box-shadow: 0 22px 60px rgba(15,23,42,0.08); transition: all 0.35s ease; }
+    .product-card:hover { transform: translateY(-4px); box-shadow: 0 28px 70px rgba(15,23,42,0.12); }
+    .stat-card { position: relative; overflow: hidden; border: 1px solid var(--line); background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,247,237,0.96)); box-shadow: 0 22px 54px rgba(15,23,42,0.08); }
+    .stat-card::before { content: ''; position: absolute; top: -2.75rem; right: -1.75rem; width: 8rem; height: 8rem; border-radius: 9999px; background: radial-gradient(circle, rgba(247,137,44,0.16) 0%, rgba(247,137,44,0) 72%); pointer-events: none; }
+    .stat-value { color: var(--brand-deep); letter-spacing: -0.04em; }
 
-    .glow-orb {
-      position: absolute; border-radius: 999px; filter: blur(60px);
-      opacity: .35; pointer-events: none;
-      animation: orbDrift 16s ease-in-out infinite;
-    }
-    @keyframes orbDrift {
-      0%, 100% { transform: translate3d(0,0,0) scale(1); }
-      50% { transform: translate3d(20px,-20px,0) scale(1.05); }
-    }
+    /* ─── Platform ─── */
+    .platform-section { position: relative; background: linear-gradient(180deg, rgba(247,137,44,0.98), rgba(234,88,12,0.92)); overflow: hidden; }
+    .platform-section::after { content: ''; position: absolute; z-index: 2; inset: auto -8% -7rem auto; width: 22rem; height: 22rem; border-radius: 9999px; background: radial-gradient(circle, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 72%); pointer-events: none; }
+    .platform-section > .content-wrap { position: relative; z-index: 3; }
+    .segment-card { position: relative; border: 1px solid var(--line); background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,247,237,0.96)); box-shadow: 0 20px 48px rgba(15,23,42,0.06); overflow: hidden; transition: all 0.3s ease; }
+    .segment-card:hover { transform: translateY(-3px); box-shadow: 0 24px 56px rgba(15,23,42,0.1); }
+    .segment-card::before { content: ''; position: absolute; top: -2rem; right: -2rem; width: 8rem; height: 8rem; border-radius: 9999px; background: radial-gradient(circle, rgba(247,137,44,0.14) 0%, rgba(247,137,44,0) 72%); pointer-events: none; }
+    .segment-divider { width: 54%; height: 1px; background: var(--brand-line); }
+    .showcase-card { display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--line); border-radius: 2rem; background: rgba(255,255,255,0.98); box-shadow: 0 20px 48px rgba(15,23,42,0.06), 0 2px 10px rgba(15,23,42,0.03); }
+    .showcase-media { position: relative; overflow: hidden; width: 100%; min-height: 20rem; background: linear-gradient(135deg, #fff7ed, #fff); }
+    @media (min-width: 1024px) { .showcase-card { display: grid; grid-template-columns: minmax(0,1.12fr) minmax(320px,0.88fr); align-items: start; } .showcase-media { display: flex; align-items: flex-end; justify-content: center; min-height: 0; background: transparent; } }
 
-    .glow-orb-slow {
-      position: absolute; border-radius: 999px; filter: blur(80px);
-      opacity: .2; pointer-events: none;
-      animation: orbDriftSlow 24s ease-in-out infinite;
-    }
-    @keyframes orbDriftSlow {
-      0%, 100% { transform: translate3d(0,0,0) scale(1); }
-      33% { transform: translate3d(30px,10px,0) scale(1.1); }
-      66% { transform: translate3d(-20px,-15px,0) scale(0.9); }
-    }
+    /* ─── How it works steps ─── */
+    .step-card { position: relative; border: 1px solid var(--line); background: rgba(255,255,255,0.98); border-radius: 1rem; padding: 1.5rem; transition: all 0.3s ease; }
+    .step-card:hover { border-color: var(--brand-line); box-shadow: 0 20px 48px var(--brand-mist); transform: translateY(-2px); }
+    .step-line { position: absolute; left: 2rem; top: 4.5rem; bottom: -2.5rem; width: 2px; background: linear-gradient(to bottom, var(--brand-line), rgba(247,137,44,0.05)); }
 
-    .marquee-track {
-      display: flex; width: max-content;
-      animation: marquee 35s linear infinite;
-    }
-    .marquee-track:hover { animation-play-state: paused; }
-    @keyframes marquee { to { transform: translateX(-50%); } }
+    /* ─── Comparison ─── */
+    .compare-grid { display: grid; grid-template-columns: 1.2fr 0.9fr 0.9fr; }
+    .compare-header { padding: 1rem; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; background: rgba(247,137,44,0.06); }
 
-    .pricing-card { transition: all .35s cubic-bezier(.2,.8,.2,1); }
-    .pricing-card:hover { transform: translateY(-6px); }
-    .pricing-card.premium {
-      border-color: rgba(247,137,44,.4);
-      box-shadow: 0 0 60px rgba(247,137,44,.12), inset 0 0 60px rgba(247,137,44,.04);
-    }
+    /* ─── Animations ─── */
+    .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2,0.8,0.2,1); }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-left { opacity: 0; transform: translateX(-30px); transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2,0.8,0.2,1); }
+    .reveal-left.visible { opacity: 1; transform: translateX(0); }
+    .reveal-right { opacity: 0; transform: translateX(30px); transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2,0.8,0.2,1); }
+    .reveal-right.visible { opacity: 1; transform: translateX(0); }
+    .reveal-scale { opacity: 0; transform: scale(0.92); transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.2,0.8,0.2,1); }
+    .reveal-scale.visible { opacity: 1; transform: scale(1); }
+    .reveal-delay-100 { transition-delay: 100ms; }
+    .reveal-delay-200 { transition-delay: 200ms; }
+    .reveal-delay-300 { transition-delay: 300ms; }
 
-    .faq-item button[aria-expanded="true"] .faq-icon { transform: rotate(45deg); }
-    .faq-icon { transition: transform .35s ease; }
+    .marketing-input { border: 1px solid var(--line) !important; border-radius: 1rem; padding: 0.95rem 1rem; background: rgba(255,255,255,0.94); }
+    .marketing-input:focus { outline: none; border-color: var(--brand) !important; box-shadow: 0 0 0 4px var(--brand-mist); }
 
-    .backtop { opacity: 0; transform: translateY(12px); pointer-events: none; transition: all .35s ease; }
-    .backtop.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
-
-    .feature-card {
-      position: relative;
-      overflow: hidden;
-    }
-    .feature-card::after {
-      content: '';
-      position: absolute;
-      top: 0; left: -100%;
-      width: 100%; height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(247,137,44,.06), transparent);
-      transition: left .6s ease;
-    }
-    .feature-card:hover::after { left: 100%; }
-
-    .step-line {
-      position: absolute; left: 19px; top: 50px; bottom: -30px;
-      width: 2px; background: linear-gradient(to bottom, rgba(247,137,44,.4), rgba(247,137,44,.05));
-    }
-
-    .showcase-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: rgba(255,255,255,.15);
-      cursor: pointer;
-      transition: all .3s ease;
-    }
-    .showcase-dot.active { background: #f7892c; width: 28px; border-radius: 4px; }
-
-    .typewriter { overflow: hidden; white-space: nowrap; border-right: 3px solid #f7892c; animation: typewriter 2s steps(20) forwards, blink .8s step-end infinite; width: 0; }
-    @keyframes typewriter { to { width: 100%; } }
-    @keyframes blink { 50% { border-color: transparent; } }
-
-    .counter-value { display: inline-block; }
-
-    .rainbow-border {
-      position: relative;
-    }
-    .rainbow-border::before {
-      content: '';
-      position: absolute; inset: -1px;
-      border-radius: inherit;
-      background: linear-gradient(135deg, #f7892c, #ff6b35, #f7892c, #ff9a39);
-      background-size: 300% 300%;
-      animation: rainbowMove 4s ease-in-out infinite;
-      z-index: -1;
-      opacity: .3;
-    }
-    @keyframes rainbowMove {
-      0%, 100% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-    }
+    .pricing-card { transition: all 0.25s ease; }
+    .pricing-card:hover { transform: translateY(-4px); }
+    .pricing-card.featured { border-color: var(--brand-line); background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,247,237,0.96)); }
 
     .bg-shimmer {
-      background: linear-gradient(90deg,
-        transparent 0%,
-        rgba(247,137,44,.03) 25%,
-        rgba(247,137,44,.06) 50%,
-        rgba(247,137,44,.03) 75%,
-        transparent 100%);
-      background-size: 200% 100%;
-      animation: shimmerBg 8s ease-in-out infinite;
+      background: linear-gradient(90deg, transparent 0%, rgba(247,137,44,0.03) 25%, rgba(247,137,44,0.06) 50%, rgba(247,137,44,0.03) 75%, transparent 100%);
+      background-size: 200% 100%; animation: shimmerBg 8s ease-in-out infinite;
     }
-    @keyframes shimmerBg {
-      0%, 100% { background-position: 0% 0%; }
-      50% { background-position: 100% 0%; }
-    }
+    @keyframes shimmerBg { 0%,100% { background-position: 0% 0%; } 50% { background-position: 100% 0%; } }
 
-    @media (max-width: 767px) {
-      .desktop-only { display: none !important; }
-      .phone-mock { width: min(220px, 65vw); border-radius: 30px; }
-      .phone-mock::before { width: 64px; height: 18px; }
-      .phone-screen { border-radius: 22px; }
-    }
-    @media (min-width: 768px) { .mobile-only { display: none !important; } }
+    .glow-orb { position: absolute; border-radius: 999px; filter: blur(60px); opacity: 0.35; pointer-events: none; animation: orbDrift 16s ease-in-out infinite; }
+    @keyframes orbDrift { 0%,100% { transform: translate3d(0,0,0) scale(1); } 50% { transform: translate3d(20px,-20px,0) scale(1.05); } }
   </style>
 </head>
 <body>
 
-<header class="fixed inset-x-0 top-0 z-50 transition-all duration-300" id="header">
-  <nav class="container flex items-center justify-between py-4">
-    <a href="#" class="flex items-center gap-2.5 group">
-      <div class="relative">
-        <img class="brand-logo relative z-10" src="logo.png" alt="Dabbu" />
-        <div class="absolute inset-0 bg-brand/20 blur-xl rounded-full group-hover:bg-brand/30 transition-all duration-500"></div>
+<div class="min-h-screen bg-white text-ink font-sans">
+  <!-- ─── NAV ─────────────────────────────────────────── -->
+  <div class="marketing-nav sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-4 px-6 py-4">
+      <a href="#" class="flex items-center gap-3">
+        <div class="marketing-logo-mark flex h-12 w-12 items-center justify-center rounded-md bg-brand text-2xl font-bold text-white font-display">D</div>
+        <div>
+          <p class="text-xl font-semibold tracking-tight text-ink font-display">Dabbu</p>
+          <p class="hidden text-xs font-light lowercase tracking-[0.06em] text-muted sm:block">Know where your money goes</p>
+        </div>
+      </a>
+      <div class="hidden items-center gap-8 text-sm font-medium text-muted lg:flex">
+        <a href="features.html" class="hover:text-ink transition">Features</a>
+        <a href="#how" class="hover:text-ink transition">How it Works</a>
+        <a href="#platform" class="hover:text-ink transition">Platform</a>
+        <a href="#pricing" class="hover:text-ink transition">Pricing</a>
+        <a href="#contact" class="hover:text-ink transition">Contact</a>
       </div>
-      <span class="font-display text-xl font-extrabold tracking-tight text-white">Dabbu</span>
-    </a>
-    <div class="hidden items-center gap-8 text-sm font-semibold text-white/60 md:flex">
-      <a class="transition hover:text-white relative after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-brand after:transition-all after:duration-300 hover:after:w-full" href="#features">Features</a>
-      <a class="transition hover:text-white relative after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-brand after:transition-all after:duration-300 hover:after:w-full" href="#pricing">Pricing</a>
-      <a class="transition hover:text-white relative after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-brand after:transition-all after:duration-300 hover:after:w-full" href="#faq">FAQ</a>
-      <a class="transition hover:text-white relative after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-brand after:transition-all after:duration-300 hover:after:w-full" href="privacy.html">Privacy</a>
-      <a class="transition hover:text-white relative after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-brand after:transition-all after:duration-300 hover:after:w-full" href="terms.html">Terms</a>
-      <a class="transition hover:text-white relative after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-brand after:transition-all after:duration-300 hover:after:w-full" href="contact.html">Contact</a>
+      <div class="flex items-center gap-3">
+        <a href="#contact" class="marketing-button hidden rounded-full bg-black px-5 py-2.5 text-sm font-semibold text-white shadow-lg lg:inline-flex hover:bg-gray-900">Get Dabbu</a>
+        <button type="button" class="marketing-menu-button" data-nav-toggle aria-label="Open menu"><i class="fa-solid fa-bars text-sm"></i></button>
+      </div>
     </div>
-    <div class="hidden items-center gap-3 md:flex">
-      <a href="#cta" class="btn-primary text-xs px-5 py-2.5 pulse-glow-hover">Get Started</a>
-    </div>
-    <button id="menuBtn" class="flex h-10 w-10 items-center justify-center rounded-full border border-white/12 text-white md:hidden" aria-label="Menu">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-    </button>
-  </nav>
-  <div id="mobileMenu" class="container hidden rounded-2xl border border-white/10 bg-[#090b10]/95 p-2 shadow-premium backdrop-blur md:hidden">
-    <a class="block rounded-xl px-4 py-3 text-sm text-white/80 hover:bg-white/10" href="#features">Features</a>
-    <a class="block rounded-xl px-4 py-3 text-sm text-white/80 hover:bg-white/10" href="#pricing">Pricing</a>
-    <a class="block rounded-xl px-4 py-3 text-sm text-white/80 hover:bg-white/10" href="#faq">FAQ</a>
-    <a class="block rounded-xl px-4 py-3 text-sm text-white/80 hover:bg-white/10" href="privacy.html">Privacy</a>
-    <a class="block rounded-xl px-4 py-3 text-sm text-white/80 hover:bg-white/10" href="terms.html">Terms</a>
-    <a class="block rounded-xl px-4 py-3 text-sm text-white/80 hover:bg-white/10" href="contact.html">Contact</a>
   </div>
-</header>
 
-<main>
-  <!-- ─── HERO ──────────────────────────────────────── -->
-  <section id="hero" class="relative min-h-screen flex items-center overflow-hidden pt-28 pb-16">
-    <div id="particles" class="absolute inset-0"></div>
-    <div class="glow-orb left-[4%] top-[15%] h-80 w-80 bg-brand/30" style="animation-delay:-2s"></div>
-    <div class="glow-orb right-[6%] top-[20%] h-96 w-96 bg-white/10" style="animation-delay:-6s"></div>
-    <div class="glow-orb-slow left-[30%] top-[40%] h-64 w-64 bg-brand/20" style="animation-delay:-10s"></div>
-    <div class="container relative z-10">
-      <div class="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
-        <div class="text-center lg:text-left">
-          <div class="reveal mx-auto mb-5 inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-white/[.07] px-4 py-2 text-xs font-bold text-white/80 backdrop-blur lg:mx-0">
-            <span class="flex h-5 w-5 items-center justify-center">
-              <svg viewBox="0 0 24 24" fill="none" class="w-4 h-4"><path d="M12 2l3 7h7l-5.5 4.3 2.2 7L12 16.5 5.3 20.3l2.2-7L2 9h7l3-7Z" fill="#f7892c"/></svg>
-            </span>
+  <!-- Mobile drawer -->
+  <div class="marketing-nav-backdrop fixed inset-0 z-[100] bg-slate-900/45" data-nav-backdrop></div>
+  <div class="marketing-nav-drawer fixed inset-y-0 right-0 z-[110] flex h-[100dvh] w-full max-w-sm flex-col border-l border-[rgba(17,35,26,0.08)] bg-[rgba(255,255,255,0.98)] shadow-2xl" data-nav-menu role="dialog" aria-modal="true">
+    <div class="flex items-center justify-between border-b border-[rgba(17,35,26,0.08)] px-4 py-3">
+      <h2 class="text-base font-semibold text-ink font-display">Dabbu</h2>
+      <button type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-full text-ink hover:bg-[rgba(247,137,44,0.1)]" data-nav-close><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <div class="flex flex-col overflow-y-auto p-4">
+      <a href="#contact" class="mb-5 inline-flex w-full items-center justify-center rounded-full bg-black px-5 py-3.5 text-sm font-semibold text-white shadow-lg">Get Dabbu</a>
+      <div class="flex flex-col gap-1">
+        <a href="features.html" class="marketing-menu-link" data-nav-close>Features</a>
+        <a href="#how" class="marketing-menu-link" data-nav-close>How it Works</a>
+        <a href="#platform" class="marketing-menu-link" data-nav-close>Platform</a>
+        <a href="#pricing" class="marketing-menu-link" data-nav-close>Pricing</a>
+        <a href="#contact" class="marketing-menu-link" data-nav-close>Contact</a>
+        <a href="privacy.html" class="marketing-menu-link" data-nav-close>Privacy</a>
+        <a href="terms.html" class="marketing-menu-link" data-nav-close>Terms</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── HERO ─────────────────────────────────────────── -->
+  <section class="hero-section" id="hero">
+    <div class="marketing-hero"></div>
+    <div class="relative z-[2] px-6">
+      <div class="max-w-6xl mx-auto">
+        <div class="text-center">
+          <div class="reveal inline-flex items-center justify-center rounded-full bg-white/10 px-4 py-2.5 text-[0.95rem] font-semibold tracking-tight text-white/90 ring-1 ring-white/20 backdrop-blur sm:text-[1.05rem]">
             Know Where Your Money Goes
           </div>
-          <h1 class="reveal font-display text-5xl font-extrabold leading-[.92] tracking-tight sm:text-6xl lg:text-7xl xl:text-8xl" style="--delay:80ms">
-            <span class="gradient-text">Take Control</span><br />of Every <span class="gradient-text-alt">Rupee</span>.
+
+          <h1 class="reveal hero-title mt-4 text-[2.05rem] font-semibold leading-[1.02] md:text-[3.4rem] xl:text-[3.6rem] font-display max-w-4xl mx-auto">
+            Take control of every <span class="gradient-text">rupee</span> — spend, save &amp; share smarter.
           </h1>
-          <p class="reveal mx-auto mt-5 max-w-lg text-base leading-7 text-white/60 sm:text-lg lg:mx-0" style="--delay:160ms">
+
+          <p class="reveal mt-4 text-base text-white/80 max-w-2xl mx-auto leading-relaxed">
             Dabbu turns daily spending into a clear operating system for budgets, trends, subscriptions, shared expenses, and better financial discipline.
           </p>
-          <div class="reveal mt-8 flex flex-col items-center gap-3 sm:flex-row lg:justify-start" style="--delay:240ms">
-            <a href="#cta" class="btn-primary group">
-              <span>Download App</span>
-              <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </a>
-            <a href="#pricing" class="btn-secondary">See Pricing</a>
+
+          <div class="hero-copy-desktop reveal">
+            <span class="hero-copy-chip">Expense Tracking</span>
+            <span class="hero-copy-chip">Budget Planning</span>
+            <span class="hero-copy-chip">Split Expenses</span>
+            <span class="hero-copy-chip">OCR Scanner</span>
+            <span class="hero-copy-chip">Shared Groups</span>
+            <span class="hero-copy-chip">Analytics</span>
+            <span class="hero-copy-chip">Reminders</span>
+            <span class="hero-copy-chip">Goals</span>
           </div>
-          <div class="reveal mt-10 flex items-center gap-8 lg:justify-start justify-center" style="--delay:320ms">
-            <div><p class="text-2xl font-black"><span class="counter" data-target="82000" data-prefix="₹">₹0</span><span class="text-brand">+</span></p><p class="text-xs text-white/40">Tracked per user</p></div>
-            <div class="w-px h-8 bg-white/10"></div>
-            <div><p class="text-2xl font-black"><span class="counter" data-target="10000">0</span><span class="text-brand">+</span></p><p class="text-xs text-white/40">Expenses logged</p></div>
-            <div class="w-px h-8 bg-white/10"></div>
-            <div><p class="text-2xl font-black"><span class="counter" data-target="5000">0</span><span class="text-brand">+</span></p><p class="text-xs text-white/40">Active users</p></div>
+          <div class="hero-copy-mobile reveal">
+            <span class="hero-copy-chip text-xs">Expense Tracking</span>
+            <span class="hero-copy-chip text-xs">Budget Planning</span>
+            <span class="hero-copy-chip text-xs">Split Expenses</span>
+            <span class="hero-copy-chip text-xs">Shared Groups</span>
+          </div>
+
+          <div class="reveal mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <a href="#contact" class="hero-primary-button marketing-button inline-flex items-center justify-center gap-2 rounded-md px-6 py-[13px] text-base font-medium">
+              Get Started Free <i class="fa-solid fa-arrow-right ml-1"></i>
+            </a>
+            <a href="features.html" class="hero-secondary-button marketing-button inline-flex items-center justify-center gap-2 rounded-md px-6 py-[13px] text-base font-medium">
+              Explore Features
+            </a>
+          </div>
+
+          <div class="reveal mt-8 flex items-center justify-center gap-8 text-white/80">
+            <div><p class="text-2xl font-black"><span class="counter" data-target="82000" data-prefix="₹">₹0</span><span class="text-white">+</span></p><p class="text-xs text-white/50">Tracked per user</p></div>
+            <div class="w-px h-8 bg-white/20"></div>
+            <div><p class="text-2xl font-black"><span class="counter" data-target="10000">0</span><span class="text-white">+</span></p><p class="text-xs text-white/50">Expenses logged</p></div>
+            <div class="w-px h-8 bg-white/20"></div>
+            <div><p class="text-2xl font-black"><span class="counter" data-target="5000">0</span><span class="text-white">+</span></p><p class="text-xs text-white/50">Active users</p></div>
           </div>
         </div>
-        <div class="relative flex justify-center lg:justify-end">
-          <div class="phone-mock phone-float relative" id="heroPhone">
-            <div class="phone-screen p-5" id="heroPhoneScreen">
+
+        <div class="reveal mt-12 flex justify-center">
+          <div class="phone-mock phone-float">
+            <div class="phone-screen p-5">
               <div class="mt-8 flex items-center justify-between">
-                <div>
-                  <p class="text-xs font-semibold text-white/45">Total Balance</p>
-                  <p class="mt-0.5 text-3xl font-black text-white" id="heroBalance">₹82,450</p>
-                </div>
-                <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand/20">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2l3 7h7l-5.5 4.3 2.2 7L12 16.5 5.3 20.3l2.2-7L2 9h7l3-7Z" fill="#f7892c"/></svg>
-                </div>
+                <div><p class="text-xs font-semibold text-white/45">Total Balance</p><p class="mt-0.5 text-3xl font-black text-white">₹82,450</p></div>
+                <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand/20"><span class="text-brand text-lg">★</span></div>
               </div>
               <div class="mt-4 rounded-2xl bg-white/[.08] p-4">
                 <div class="flex items-center justify-between">
                   <span class="text-xs font-bold text-white/50">Monthly Budget</span>
-                  <span class="rounded-full bg-brand px-2.5 py-0.5 text-[10px] font-black text-night" id="heroBudget">72%</span>
+                  <span class="rounded-full bg-brand px-2.5 py-0.5 text-[10px] font-black text-white">72%</span>
                 </div>
-                <div class="mt-3 h-2.5 rounded-full bg-white/10">
-                  <div class="h-2.5 rounded-full bg-gradient-to-r from-brand to-medium transition-all duration-1000" id="heroBar" style="width:72%"></div>
-                </div>
+                <div class="mt-3 h-2.5 rounded-full bg-white/10"><div class="h-2.5 rounded-full bg-brand" style="width:72%"></div></div>
                 <div class="mt-4 grid grid-cols-2 gap-2">
-                  <div class="rounded-xl bg-white p-3 text-ink">
-                    <p class="text-[10px] font-bold text-muted">Spent</p>
-                    <p class="font-black" id="heroSpent">₹28,900</p>
-                  </div>
-                  <div class="rounded-xl bg-white p-3 text-ink">
-                    <p class="text-[10px] font-bold text-muted">Left</p>
-                    <p class="font-black" id="heroLeft">₹11,100</p>
-                  </div>
+                  <div class="rounded-xl bg-white/10 p-3"><p class="text-[10px] font-bold text-white/60">Spent</p><p class="font-black text-white">₹28,900</p></div>
+                  <div class="rounded-xl bg-white/10 p-3"><p class="text-[10px] font-bold text-white/60">Left</p><p class="font-black text-white">₹11,100</p></div>
                 </div>
               </div>
               <div class="mt-3 space-y-2">
                 <div class="flex items-center gap-3 rounded-xl bg-white/[.06] p-2.5">
-                  <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand/20">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 10h16M7 15h10M8 3v4m8-4v4M5 7h14v14H5V7Z" stroke="#f7892c" stroke-width="2" stroke-linecap="round"/></svg>
-                  </span>
-                  <div class="flex-1 min-w-0">
-                    <p class="truncate text-sm font-bold text-white">Cafe & Snacks</p>
-                    <p class="text-[10px] text-white/40">Today</p>
-                  </div>
+                  <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand/20 text-brand text-xs">☕</span>
+                  <div class="flex-1 min-w-0"><p class="truncate text-sm font-bold text-white">Cafe &amp; Snacks</p><p class="text-[10px] text-white/40">Today</p></div>
                   <p class="text-sm font-bold text-white">-₹240</p>
                 </div>
                 <div class="flex items-center gap-3 rounded-xl bg-white/[.06] p-2.5">
-                  <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 19V5m12 14V5M6 12h12" stroke="#e9eef0" stroke-width="2" stroke-linecap="round"/></svg>
-                  </span>
-                  <div class="flex-1 min-w-0">
-                    <p class="truncate text-sm font-bold text-white">Transport</p>
-                    <p class="text-[10px] text-white/40">Yesterday</p>
-                  </div>
+                  <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-white/60 text-xs">🚗</span>
+                  <div class="flex-1 min-w-0"><p class="truncate text-sm font-bold text-white">Transport</p><p class="text-[10px] text-white/40">Yesterday</p></div>
                   <p class="text-sm font-bold text-white">-₹620</p>
                 </div>
               </div>
@@ -419,27 +288,27 @@
   </section>
 
   <!-- ─── STATS ─────────────────────────────────────── -->
-  <section class="section-pad bg-white/[.015]">
-    <div class="container">
+  <section class="relative z-[4] -mt-6 px-6 pb-16">
+    <div class="max-w-6xl mx-auto">
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="reveal-scale glass rounded-2xl p-6 text-center glass-hover">
-          <div class="text-4xl font-black"><span class="counter" data-target="10000" data-suffix="+">0</span></div>
-          <p class="mt-2 text-sm text-white/50">Expenses Tracked</p>
+        <div class="reveal-scale stat-card rounded-2xl p-6 text-center">
+          <div class="stat-value text-4xl font-black"><span class="counter" data-target="10000" data-suffix="+">0</span></div>
+          <p class="mt-2 text-sm text-muted">Expenses Tracked</p>
           <div class="mt-3 h-1 rounded-full bg-white/10"><div class="h-1 w-3/4 rounded-full bg-brand/50"></div></div>
         </div>
-        <div class="reveal-scale glass rounded-2xl p-6 text-center glass-hover" style="--delay:90ms">
-          <div class="text-4xl font-black"><span class="counter" data-target="1" data-prefix="₹" data-suffix=" Cr+">₹0</span></div>
-          <p class="mt-2 text-sm text-white/50">Managed</p>
+        <div class="reveal-scale stat-card rounded-2xl p-6 text-center" style="transition-delay:90ms">
+          <div class="stat-value text-4xl font-black"><span class="counter" data-target="1" data-prefix="₹" data-suffix=" Cr+">₹0</span></div>
+          <p class="mt-2 text-sm text-muted">Managed</p>
           <div class="mt-3 h-1 rounded-full bg-white/10"><div class="h-1 w-4/5 rounded-full bg-brand/50"></div></div>
         </div>
-        <div class="reveal-scale glass rounded-2xl p-6 text-center glass-hover" style="--delay:180ms">
-          <div class="text-4xl font-black"><span class="counter" data-target="5000" data-suffix="+">0</span></div>
-          <p class="mt-2 text-sm text-white/50">Users</p>
+        <div class="reveal-scale stat-card rounded-2xl p-6 text-center" style="transition-delay:180ms">
+          <div class="stat-value text-4xl font-black"><span class="counter" data-target="5000" data-suffix="+">0</span></div>
+          <p class="mt-2 text-sm text-muted">Users</p>
           <div class="mt-3 h-1 rounded-full bg-white/10"><div class="h-1 w-4/6 rounded-full bg-brand/50"></div></div>
         </div>
-        <div class="reveal-scale glass rounded-2xl p-6 text-center glass-hover" style="--delay:270ms">
-          <div class="text-4xl font-black"><span class="counter" data-target="99.9" data-suffix="%">0</span></div>
-          <p class="mt-2 text-sm text-white/50">Uptime</p>
+        <div class="reveal-scale stat-card rounded-2xl p-6 text-center" style="transition-delay:270ms">
+          <div class="stat-value text-4xl font-black"><span class="counter" data-target="99.9" data-suffix="%">0</span></div>
+          <p class="mt-2 text-sm text-muted">Uptime</p>
           <div class="mt-3 h-1 rounded-full bg-white/10"><div class="h-1 w-full rounded-full bg-green-400/50"></div></div>
         </div>
       </div>
@@ -447,455 +316,582 @@
   </section>
 
   <!-- ─── PROBLEM ───────────────────────────────────── -->
-  <section id="problem" class="section-pad">
-    <div class="container max-w-5xl">
+  <section class="px-6 py-20 bg-gray-50/30">
+    <div class="max-w-5xl mx-auto">
       <div class="text-center mb-14">
-        <div class="reveal badge mx-auto mb-4">The hidden leak</div>
-        <h2 class="reveal font-display text-3xl font-extrabold tracking-tight sm:text-5xl" style="--delay:80ms">Most People Don't Know Where Their Money Goes</h2>
-        <p class="reveal mt-4 text-white/50 max-w-lg mx-auto" style="--delay:160ms">Small leaks add up. Dabbu makes every rupee visible.</p>
+        <div class="reveal inline-flex items-center gap-2 rounded-full bg-brand-mist px-4 py-1.5 text-xs font-semibold text-brand-deep mb-4">The hidden leak</div>
+        <h2 class="reveal font-display text-3xl font-bold tracking-tight sm:text-5xl text-ink">Most People Don't Know Where Their Money Goes</h2>
+        <p class="reveal mt-4 text-muted max-w-lg mx-auto">Small leaks add up. Dabbu makes every rupee visible.</p>
       </div>
       <div class="grid gap-4 sm:grid-cols-2">
-        <div class="reveal glass rounded-2xl p-6 glass-hover feature-card" style="--delay:0ms">
+        <div class="reveal product-card rounded-2xl p-6">
           <div class="flex items-center gap-3 mb-3">
-            <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/20 text-brand">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 1v22M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            </span>
+            <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-mist text-brand-deep text-sm"><i class="fa-solid fa-chart-simple"></i></span>
             <span class="text-xs font-black text-brand tracking-widest">01</span>
           </div>
-          <h3 class="text-lg font-bold">Untracked Spending</h3>
-          <p class="mt-2 text-sm text-white/50 leading-relaxed">Small daily expenses become invisible until the month-end shock arrives.</p>
+          <h3 class="text-lg font-bold text-ink">Untracked Spending</h3>
+          <p class="mt-2 text-sm text-muted leading-relaxed">Small daily expenses become invisible until the month-end shock arrives.</p>
         </div>
-        <div class="reveal glass rounded-2xl p-6 glass-hover feature-card" style="--delay:90ms">
+        <div class="reveal product-card rounded-2xl p-6" style="transition-delay:90ms">
           <div class="flex items-center gap-3 mb-3">
-            <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/20 text-brand">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M9 12h6M4 6v14h16V6M8 3v6m8-6v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            </span>
+            <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-mist text-brand-deep text-sm"><i class="fa-solid fa-calendar"></i></span>
             <span class="text-xs font-black text-brand tracking-widest">02</span>
           </div>
-          <h3 class="text-lg font-bold">Budget Overruns</h3>
-          <p class="mt-2 text-sm text-white/50 leading-relaxed">Budgets fail when progress is buried across memory and statements.</p>
+          <h3 class="text-lg font-bold text-ink">Budget Overruns</h3>
+          <p class="mt-2 text-sm text-muted leading-relaxed">Budgets fail when progress is buried across memory and statements.</p>
         </div>
-        <div class="reveal glass rounded-2xl p-6 glass-hover feature-card" style="--delay:180ms">
+        <div class="reveal product-card rounded-2xl p-6" style="transition-delay:180ms">
           <div class="flex items-center gap-3 mb-3">
-            <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/20 text-brand">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            </span>
+            <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-mist text-brand-deep text-sm"><i class="fa-solid fa-clock"></i></span>
             <span class="text-xs font-black text-brand tracking-widest">03</span>
           </div>
-          <h3 class="text-lg font-bold">Forgotten Subscriptions</h3>
-          <p class="mt-2 text-sm text-white/50 leading-relaxed">Recurring charges quietly stack up and drain cash from your plans.</p>
+          <h3 class="text-lg font-bold text-ink">Forgotten Subscriptions</h3>
+          <p class="mt-2 text-sm text-muted leading-relaxed">Recurring charges quietly stack up and drain cash from your plans.</p>
         </div>
-        <div class="reveal glass rounded-2xl p-6 glass-hover feature-card" style="--delay:270ms">
+        <div class="reveal product-card rounded-2xl p-6" style="transition-delay:270ms">
           <div class="flex items-center gap-3 mb-3">
-            <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/20 text-brand">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            </span>
+            <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-mist text-brand-deep text-sm"><i class="fa-solid fa-chart-pie"></i></span>
             <span class="text-xs font-black text-brand tracking-widest">04</span>
           </div>
-          <h3 class="text-lg font-bold">Lack of Insights</h3>
-          <p class="mt-2 text-sm text-white/50 leading-relaxed">Without clear trends, it is hard to improve habits with confidence.</p>
+          <h3 class="text-lg font-bold text-ink">Lack of Insights</h3>
+          <p class="mt-2 text-sm text-muted leading-relaxed">Without clear trends, it is hard to improve habits with confidence.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ─── FEATURES ──────────────────────────────────── -->
-  <section id="features" class="section-pad bg-white/[.015]">
-    <div class="container">
+  <!-- ─── PRODUCTS / FEATURES ────────────────────────── -->
+  <section id="features" class="marketing-anchor-section px-6 py-20">
+    <div class="max-w-6xl mx-auto">
       <div class="text-center mb-14">
-        <div class="reveal badge mx-auto mb-4">Built for discipline</div>
-        <h2 class="reveal font-display text-3xl font-extrabold tracking-tight sm:text-5xl" style="--delay:80ms">A premium control center for <span class="gradient-text-alt">personal finance</span>.</h2>
-        <p class="reveal mt-4 text-white/50 max-w-lg mx-auto" style="--delay:160ms">Fast capture, useful reports, and calm planning tools in one polished mobile experience.</p>
+        <div class="reveal inline-flex items-center gap-2 rounded-full bg-brand-mist px-4 py-1.5 text-xs font-semibold text-brand-deep mb-4">Core Features</div>
+        <h2 class="reveal font-display text-3xl font-bold tracking-tight sm:text-5xl text-ink">Built around <span class="text-brand">your money</span>.</h2>
+        <p class="reveal mt-4 text-muted max-w-lg mx-auto">Everything you need to track, plan, and master your finances — together with the people who matter.</p>
       </div>
-      <div id="featureGrid" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"></div>
-    </div>
-  </section>
-
-  <!-- ─── SHOWCASE ──────────────────────────────────── -->
-  <section id="showcase" class="section-pad overflow-hidden">
-    <div class="container">
-      <div class="text-center mb-14">
-        <div class="reveal badge mx-auto mb-4">App showcase</div>
-        <h2 class="reveal font-display text-3xl font-extrabold tracking-tight sm:text-5xl" style="--delay:80ms">Every screen designed for <span class="gradient-text-alt">clarity</span>.</h2>
-        <p class="reveal mt-4 text-white/50 max-w-lg mx-auto" style="--delay:160ms">Six focused screens. One clean money system.</p>
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="reveal-scale product-card rounded-2xl p-6">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-mist text-brand-deep mb-4"><i class="fa-solid fa-wallet"></i></div>
+          <h3 class="text-lg font-bold text-ink">Expense Tracking</h3>
+          <p class="text-sm text-muted mt-2">Capture every spend with clean categories. Log in seconds, see where your money goes at a glance.</p>
+        </div>
+        <div class="reveal-scale product-card rounded-2xl p-6" style="transition-delay:60ms">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-mist text-brand-deep mb-4"><i class="fa-solid fa-camera"></i></div>
+          <h3 class="text-lg font-bold text-ink">OCR Bill Scanner</h3>
+          <p class="text-sm text-muted mt-2">Snap a receipt — Dabbu auto-extracts amount, date, merchant &amp; items using AI-powered OCR.</p>
+        </div>
+        <div class="reveal-scale product-card rounded-2xl p-6" style="transition-delay:120ms">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-mist text-brand-deep mb-4"><i class="fa-solid fa-chart-line"></i></div>
+          <h3 class="text-lg font-bold text-ink">Budget Planning</h3>
+          <p class="text-sm text-muted mt-2">Plan monthly limits without spreadsheet clutter. Watch progress update in real time.</p>
+        </div>
+        <div class="reveal-scale product-card rounded-2xl p-6" style="transition-delay:60ms">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-mist text-brand-deep mb-4"><i class="fa-solid fa-people-group"></i></div>
+          <h3 class="text-lg font-bold text-ink">Split Expenses</h3>
+          <p class="text-sm text-muted mt-2">Share costs with friends, family, or roommates. Track who owes what and settle up instantly.</p>
+        </div>
+        <div class="reveal-scale product-card rounded-2xl p-6" style="transition-delay:120ms">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-mist text-brand-deep mb-4"><i class="fa-solid fa-layer-group"></i></div>
+          <h3 class="text-lg font-bold text-ink">Shared Spaces</h3>
+          <p class="text-sm text-muted mt-2">Create dedicated spaces for trips, roommates, family, couple &amp; more. Keep group finances organized.</p>
+        </div>
+        <div class="reveal-scale product-card rounded-2xl p-6" style="transition-delay:180ms">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-mist text-brand-deep mb-4"><i class="fa-solid fa-bell"></i></div>
+          <h3 class="text-lg font-bold text-ink">Smart Reminders</h3>
+          <p class="text-sm text-muted mt-2">Never miss a bill or subscription payment with recurring reminders, snooze controls &amp; alerts.</p>
+        </div>
       </div>
-      <div id="showcaseGrid" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"></div>
     </div>
   </section>
 
   <!-- ─── HOW IT WORKS ──────────────────────────────── -->
-  <section id="how" class="section-pad bg-white/[.015]">
-    <div class="container max-w-4xl">
+  <section id="how" class="marketing-anchor-section px-6 py-20 bg-gray-50/30">
+    <div class="max-w-4xl mx-auto">
       <div class="text-center mb-14">
-        <div class="reveal badge mx-auto mb-4">How it works</div>
-        <h2 class="reveal font-display text-3xl font-extrabold tracking-tight sm:text-5xl" style="--delay:80ms">A better money habit in <span class="gradient-text-alt">five moves</span>.</h2>
+        <div class="reveal inline-flex items-center gap-2 rounded-full bg-brand-mist px-4 py-1.5 text-xs font-semibold text-brand-deep mb-4">How it Works</div>
+        <h2 class="reveal font-display text-3xl font-bold tracking-tight sm:text-5xl text-ink">A better money habit in <span class="text-brand">five moves</span>.</h2>
       </div>
-      <div class="space-y-6 relative" id="stepsContainer">
-        <div class="reveal-left glass rounded-2xl p-6 flex items-start gap-5 relative glass-hover" style="--delay:0ms">
-          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand text-night text-sm font-black relative z-10">1</span>
-          <div><h3 class="font-bold text-lg">Scan Bills</h3><p class="mt-1 text-sm text-white/50">Snap a receipt with your camera — Dabbu auto-extracts amount, date, merchant, and items using OCR.</p></div>
+      <div class="space-y-5 relative">
+        <div class="reveal-left step-card flex items-start gap-5 relative">
+          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand text-white text-sm font-black relative z-10">1</span>
+          <div><h3 class="font-bold text-lg text-ink">Scan Bills</h3><p class="mt-1 text-sm text-muted">Snap a receipt with your camera — Dabbu auto-extracts amount, date, merchant, and items using OCR.</p></div>
           <div class="step-line"></div>
         </div>
-        <div class="reveal-right glass rounded-2xl p-6 flex items-start gap-5 relative glass-hover" style="--delay:90ms">
-          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand text-night text-sm font-black relative z-10">2</span>
-          <div><h3 class="font-bold text-lg">Track Expenses</h3><p class="mt-1 text-sm text-white/50">Log spending in seconds with categories that match real life. See where your money goes at a glance.</p></div>
+        <div class="reveal-right step-card flex items-start gap-5 relative" style="transition-delay:90ms">
+          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand text-white text-sm font-black relative z-10">2</span>
+          <div><h3 class="font-bold text-lg text-ink">Track Expenses</h3><p class="mt-1 text-sm text-muted">Log spending in seconds with categories that match real life. See where your money goes at a glance.</p></div>
           <div class="step-line"></div>
         </div>
-        <div class="reveal-left glass rounded-2xl p-6 flex items-start gap-5 relative glass-hover" style="--delay:180ms">
-          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand text-night text-sm font-black relative z-10">3</span>
-          <div><h3 class="font-bold text-lg">Set Budgets</h3><p class="mt-1 text-sm text-white/50">Create monthly limits and watch progress update in real time without spreadsheet fatigue.</p></div>
+        <div class="reveal-left step-card flex items-start gap-5 relative" style="transition-delay:180ms">
+          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand text-white text-sm font-black relative z-10">3</span>
+          <div><h3 class="font-bold text-lg text-ink">Set Budgets</h3><p class="mt-1 text-sm text-muted">Create monthly limits and watch progress update in real time without spreadsheet fatigue.</p></div>
           <div class="step-line"></div>
         </div>
-        <div class="reveal-right glass rounded-2xl p-6 flex items-start gap-5 relative glass-hover" style="--delay:270ms">
-          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand text-night text-sm font-black relative z-10">4</span>
-          <div><h3 class="font-bold text-lg">Split with Friends</h3><p class="mt-1 text-sm text-white/50">Share group expenses, track who owes what, and settle up — no awkward math required.</p></div>
+        <div class="reveal-right step-card flex items-start gap-5 relative" style="transition-delay:270ms">
+          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand text-white text-sm font-black relative z-10">4</span>
+          <div><h3 class="font-bold text-lg text-ink">Split with Friends</h3><p class="mt-1 text-sm text-muted">Share group expenses, track who owes what, and settle up — no awkward math required.</p></div>
           <div class="step-line"></div>
         </div>
-        <div class="reveal-left glass rounded-2xl p-6 flex items-start gap-5 relative glass-hover" style="--delay:360ms">
-          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand text-night text-sm font-black relative z-10">5</span>
-          <div><h3 class="font-bold text-lg">Set Reminders</h3><p class="mt-1 text-sm text-white/50">Never miss a bill or subscription payment with smart recurring reminders and snooze controls.</p></div>
+        <div class="reveal-left step-card flex items-start gap-5 relative" style="transition-delay:360ms">
+          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand text-white text-sm font-black relative z-10">5</span>
+          <div><h3 class="font-bold text-lg text-ink">Set Reminders</h3><p class="mt-1 text-sm text-muted">Never miss a bill or subscription payment with smart recurring reminders and snooze controls.</p></div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ─── PRICING ───────────────────────────────────── -->
-  <section id="pricing" class="section-pad">
-    <div class="container max-w-5xl">
-      <div class="text-center mb-14">
-        <div class="reveal badge mx-auto mb-4">Pricing</div>
-        <h2 class="reveal font-display text-3xl font-extrabold tracking-tight sm:text-5xl" style="--delay:80ms">Start free. <span class="gradient-text-alt">Upgrade</span> when you need more.</h2>
-      </div>
-      <div class="grid gap-6 lg:grid-cols-2">
-        <div class="reveal glass rounded-2xl p-7 pricing-card">
-          <p class="text-xs font-black uppercase tracking-wider text-white/45">Free</p>
-          <div class="mt-3 flex items-end gap-1.5"><span class="text-4xl font-black text-white">₹0</span><span class="pb-1 text-sm text-white/40">/forever</span></div>
-          <p class="mt-2 text-sm text-white/50">Everything you need to start tracking your money.</p>
-          <ul class="mt-6 space-y-2.5 text-sm">
-            <li class="flex items-start gap-3"><svg class="mt-0.5 h-4 w-4 shrink-0 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Expense tracking</li>
-            <li class="flex items-start gap-3"><svg class="mt-0.5 h-4 w-4 shrink-0 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Basic reports</li>
-            <li class="flex items-start gap-3 text-white/35"><svg class="mt-0.5 h-4 w-4 shrink-0 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg> Can't customise tabs & dashboard <span class="text-[10px] font-bold uppercase text-brand ml-auto">Premium</span></li>
-            <li class="flex items-start gap-3 text-white/35"><svg class="mt-0.5 h-4 w-4 shrink-0 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg> Max 5 groups (split + expense) <span class="text-[10px] font-bold uppercase text-brand ml-auto">Limit</span></li>
-            <li class="flex items-start gap-3 text-white/35"><svg class="mt-0.5 h-4 w-4 shrink-0 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg> Can't join more than 10 groups <span class="text-[10px] font-bold uppercase text-brand ml-auto">Limit</span></li>
-            <li class="flex items-start gap-3 text-white/35"><svg class="mt-0.5 h-4 w-4 shrink-0 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg> Only 5 OCR scans / month <span class="text-[10px] font-bold uppercase text-brand ml-auto">Limit</span></li>
-            <li class="flex items-start gap-3 text-white/35"><svg class="mt-0.5 h-4 w-4 shrink-0 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg> Max 10 members per group <span class="text-[10px] font-bold uppercase text-brand ml-auto">Limit</span></li>
-            <li class="flex items-start gap-3 text-white/35"><svg class="mt-0.5 h-4 w-4 shrink-0 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg> Max 10 reminders <span class="text-[10px] font-bold uppercase text-brand ml-auto">Limit</span></li>
-          </ul>
-          <a href="#cta" class="btn-secondary mt-8 w-full">Get Started Free</a>
+  <!-- ─── PLATFORM ───────────────────────────────────── -->
+  <section id="platform" class="marketing-anchor-section platform-section px-6 py-20">
+    <div class="content-wrap max-w-6xl mx-auto text-center">
+      <div class="reveal inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-xs font-semibold text-white mb-4">Platform</div>
+      <h2 class="reveal font-display text-3xl font-bold tracking-tight sm:text-5xl text-white">Built for <span class="text-white/90">everyone</span>.</h2>
+      <p class="reveal mt-4 text-white/80 max-w-xl mx-auto">Whether you're tracking solo or sharing with a group, Dabbu adapts to your financial life.</p>
+
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-12 text-left">
+        <div class="reveal-scale segment-card rounded-2xl p-6">
+          <h3 class="text-lg font-bold text-ink">Individuals</h3>
+          <p class="text-sm text-muted mt-2">Track personal spending, set budgets, and build better money habits with clear daily visibility.</p>
+          <div class="segment-divider mt-4"></div>
+          <p class="text-xs font-semibold text-brand-deep mt-3"><i class="fa-solid fa-check mr-1"></i> Know where every rupee goes.</p>
         </div>
-        <div class="reveal glass rounded-2xl p-7 pricing-card premium border-brand/30 bg-white/[.03] relative" style="--delay:120ms">
-          <span class="absolute -top-2.5 right-6 rounded-full bg-brand px-3 py-1 text-[10px] font-black text-night">Most Popular</span>
-          <p class="text-xs font-black uppercase tracking-wider text-brand">Premium</p>
-          <p class="mt-1 text-xs text-white/40">Unlock everything Dabbu has to offer.</p>
-          <div class="mt-4 grid grid-cols-2 gap-3">
-            <div class="bg-white/[.05] rounded-xl p-3"><span class="text-2xl font-black">₹89</span><span class="text-xs text-white/40">/mo</span></div>
-            <div class="bg-white/[.05] rounded-xl p-3"><span class="text-2xl font-black">₹219</span><span class="text-xs text-white/40">/qtr</span></div>
-            <div class="bg-white/[.05] rounded-xl p-3"><span class="text-2xl font-black">₹389</span><span class="text-xs text-white/40">/6mo</span></div>
-            <div class="bg-white/[.05] rounded-xl p-3 border border-brand/20"><span class="text-2xl font-black">₹699</span><span class="text-xs text-white/40">/yr <span class="text-brand font-bold ml-1">Best</span></span></div>
+        <div class="reveal-scale segment-card rounded-2xl p-6" style="transition-delay:90ms">
+          <h3 class="text-lg font-bold text-ink">Couples</h3>
+          <p class="text-sm text-muted mt-2">Manage shared household expenses, track joint goals, and keep your finances transparent.</p>
+          <div class="segment-divider mt-4"></div>
+          <p class="text-xs font-semibold text-brand-deep mt-3"><i class="fa-solid fa-check mr-1"></i> Build financial trust together.</p>
+        </div>
+        <div class="reveal-scale segment-card rounded-2xl p-6" style="transition-delay:180ms">
+          <h3 class="text-lg font-bold text-ink">Roommates</h3>
+          <p class="text-sm text-muted mt-2">Split rent, utilities, and groceries. Track who paid what and settle up without awkward math.</p>
+          <div class="segment-divider mt-4"></div>
+          <p class="text-xs font-semibold text-brand-deep mt-3"><i class="fa-solid fa-check mr-1"></i> No more tracking on fridge notes.</p>
+        </div>
+        <div class="reveal-scale segment-card rounded-2xl p-6" style="transition-delay:90ms">
+          <h3 class="text-lg font-bold text-ink">Friends &amp; Groups</h3>
+          <p class="text-sm text-muted mt-2">Create groups for trips, events, and outings. Share expenses and settle up seamlessly.</p>
+          <div class="segment-divider mt-4"></div>
+          <p class="text-xs font-semibold text-brand-deep mt-3"><i class="fa-solid fa-check mr-1"></i> Travel, dine, and split with ease.</p>
+        </div>
+        <div class="reveal-scale segment-card rounded-2xl p-6" style="transition-delay:180ms">
+          <h3 class="text-lg font-bold text-ink">Families</h3>
+          <p class="text-sm text-muted mt-2">Manage household budgets, track kids' expenses, and plan family financial goals together.</p>
+          <div class="segment-divider mt-4"></div>
+          <p class="text-xs font-semibold text-brand-deep mt-3"><i class="fa-solid fa-check mr-1"></i> One app for the whole family.</p>
+        </div>
+        <div class="reveal-scale segment-card rounded-2xl p-6" style="transition-delay:270ms">
+          <h3 class="text-lg font-bold text-ink">Freelancers</h3>
+          <p class="text-sm text-muted mt-2">Track business expenses, separate personal and professional finances, and simplify tax filing.</p>
+          <div class="segment-divider mt-4"></div>
+          <p class="text-xs font-semibold text-brand-deep mt-3"><i class="fa-solid fa-check mr-1"></i> Keep work &amp; life finances clean.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SHOWCASE ──────────────────────────────────── -->
+  <section class="px-6 py-20">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-14">
+        <div class="reveal inline-flex items-center gap-2 rounded-full bg-brand-mist px-4 py-1.5 text-xs font-semibold text-brand-deep mb-4">Showcase</div>
+        <h2 class="reveal font-display text-3xl font-bold tracking-tight sm:text-5xl text-ink">Optimized for <span class="text-brand">mobile</span>.</h2>
+      </div>
+
+      <div class="reveal showcase-card rounded-2xl mb-6">
+        <div class="p-6 lg:p-8">
+          <h3 class="font-display text-xl font-bold text-ink">Dashboard built for daily money clarity.</h3>
+          <p class="text-sm text-muted mt-2">See your balance, budget progress, recent transactions, and spending trends — all on one screen designed for quick glances.</p>
+        </div>
+        <div class="showcase-media p-6 flex items-center justify-center">
+          <div class="phone-mock" style="width:min(200px,50vw);animation:none">
+            <div class="phone-screen p-4">
+              <div class="mt-6"><p class="text-xs text-white/45">Total Balance</p><p class="text-2xl font-black text-white">₹82,450</p></div>
+              <div class="mt-3 rounded-xl bg-white/[.08] p-3">
+                <div class="flex justify-between text-xs"><span class="text-white/50">Budget</span><span class="text-brand font-bold">72%</span></div>
+                <div class="mt-2 h-2 rounded-full bg-white/10"><div class="h-2 rounded-full bg-brand" style="width:72%"></div></div>
+              </div>
+            </div>
           </div>
-          <ul class="mt-5 space-y-2.5 text-sm">
-            <li class="flex items-start gap-3"><svg class="mt-0.5 h-4 w-4 shrink-0 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Customise tabs & dashboard</li>
-            <li class="flex items-start gap-3"><svg class="mt-0.5 h-4 w-4 shrink-0 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Create unlimited groups (split + expense)</li>
-            <li class="flex items-start gap-3"><svg class="mt-0.5 h-4 w-4 shrink-0 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Add unlimited members to groups</li>
-            <li class="flex items-start gap-3"><svg class="mt-0.5 h-4 w-4 shrink-0 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Delete expense & split groups</li>
-            <li class="flex items-start gap-3"><svg class="mt-0.5 h-4 w-4 shrink-0 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Unlimited OCR scans</li>
-            <li class="flex items-start gap-3"><svg class="mt-0.5 h-4 w-4 shrink-0 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Subscription tracking</li>
-            <li class="flex items-start gap-3"><svg class="mt-0.5 h-4 w-4 shrink-0 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Advanced analytics & insights</li>
-            <li class="flex items-start gap-3"><svg class="mt-0.5 h-4 w-4 shrink-0 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Unlimited reminders</li>
-            <li class="flex items-start gap-3"><svg class="mt-0.5 h-4 w-4 shrink-0 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Future AI features</li>
-          </ul>
-          <a href="#cta" class="btn-primary mt-8 w-full">Go Premium</a>
+        </div>
+      </div>
+
+      <div class="reveal showcase-card rounded-2xl" style="transition-delay:120ms">
+        <div class="p-6 lg:p-8">
+          <h3 class="font-display text-xl font-bold text-ink">Shared spaces for group finances.</h3>
+          <p class="text-sm text-muted mt-2">Create expense groups, track shared spending, and manage settlements — from couple mode to large trip groups.</p>
+        </div>
+        <div class="showcase-media p-6 flex items-center justify-center">
+          <div class="phone-mock" style="width:min(200px,50vw);animation:none">
+            <div class="phone-screen p-4 flex flex-col justify-center items-center text-center">
+              <div class="w-12 h-12 rounded-xl bg-brand/20 flex items-center justify-center text-brand text-lg mb-3"><i class="fa-solid fa-users"></i></div>
+              <p class="text-sm font-bold text-white">Goa Trip 2025</p>
+              <p class="text-xs text-white/50 mt-1">4 members · ₹12,400</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
   <!-- ─── TESTIMONIALS ──────────────────────────────── -->
-  <section class="section-pad overflow-hidden bg-white/[.015]">
-    <div class="container mb-12">
-      <div class="text-center">
-        <div class="reveal badge mx-auto mb-4">Testimonials</div>
-        <h2 class="reveal font-display text-3xl font-extrabold tracking-tight sm:text-5xl" style="--delay:80ms">Loved by <span class="gradient-text-alt">early users</span>.</h2>
+  <section class="px-6 py-20 bg-gray-50/30">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-14">
+        <div class="reveal inline-flex items-center gap-2 rounded-full bg-brand-mist px-4 py-1.5 text-xs font-semibold text-brand-deep mb-4">Testimonials</div>
+        <h2 class="reveal font-display text-3xl font-bold tracking-tight sm:text-5xl text-ink">Loved by <span class="text-brand">early users</span>.</h2>
+        <p class="reveal mt-4 text-muted max-w-lg mx-auto">Here's what people are saying about Dabbu.</p>
+      </div>
+
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="reveal-scale bg-white rounded-2xl border border-[rgba(17,35,26,0.06)] p-6 shadow-sm hover:shadow-md transition-all duration-300">
+          <div class="flex items-center gap-1 text-brand text-xs mb-4">
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+          </div>
+          <p class="text-sm text-muted leading-relaxed">"Dabbu completely changed how I track my spending. The shared expenses with my roommates are finally organized. No more awkward 'Who paid last time?' conversations."</p>
+          <div class="mt-5 flex items-center gap-3 pt-4 border-t border-[rgba(17,35,26,0.06)]">
+            <div class="h-10 w-10 rounded-full bg-brand-mist flex items-center justify-center text-brand font-bold text-sm">R</div>
+            <div>
+              <p class="text-sm font-bold text-ink">Rahul Sharma</p>
+              <p class="text-xs text-muted">Bangalore · 3 months</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="reveal-scale bg-white rounded-2xl border border-[rgba(17,35,26,0.06)] p-6 shadow-sm hover:shadow-md transition-all duration-300" style="transition-delay:60ms">
+          <div class="flex items-center gap-1 text-brand text-xs mb-4">
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+          </div>
+          <p class="text-sm text-muted leading-relaxed">"The OCR scanner is a lifesaver. I just snap receipts and everything is logged automatically. No more hoarding paper bills or manual data entry."</p>
+          <div class="mt-5 flex items-center gap-3 pt-4 border-t border-[rgba(17,35,26,0.06)]">
+            <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm">P</div>
+            <div>
+              <p class="text-sm font-bold text-ink">Priya Patel</p>
+              <p class="text-xs text-muted">Mumbai · 2 months</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="reveal-scale bg-white rounded-2xl border border-[rgba(17,35,26,0.06)] p-6 shadow-sm hover:shadow-md transition-all duration-300" style="transition-delay:120ms">
+          <div class="flex items-center gap-1 text-brand text-xs mb-4">
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-alt"></i>
+          </div>
+          <p class="text-sm text-muted leading-relaxed">"My wife and I use the couple mode. Finally, a finance app that works for both of us. We can see our shared expenses, set joint goals, and stay on the same page."</p>
+          <div class="mt-5 flex items-center gap-3 pt-4 border-t border-[rgba(17,35,26,0.06)]">
+            <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold text-sm">A</div>
+            <div>
+              <p class="text-sm font-bold text-ink">Arjun Kapoor</p>
+              <p class="text-xs text-muted">Delhi · 1 month</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="reveal-scale bg-white rounded-2xl border border-[rgba(17,35,26,0.06)] p-6 shadow-sm hover:shadow-md transition-all duration-300" style="transition-delay:180ms">
+          <div class="flex items-center gap-1 text-brand text-xs mb-4">
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+          </div>
+          <p class="text-sm text-muted leading-relaxed">"I was spending way too much on subscriptions. Dabbu helped me identify and cancel 4 unused ones. Saved over ₹2,000 a month — that's ₹24,000 a year!"</p>
+          <div class="mt-5 flex items-center gap-3 pt-4 border-t border-[rgba(17,35,26,0.06)]">
+            <div class="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-sm">N</div>
+            <div>
+              <p class="text-sm font-bold text-ink">Neha Gupta</p>
+              <p class="text-xs text-muted">Pune · 2 weeks</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="reveal mt-8 text-center">
+        <div class="inline-flex items-center gap-6 bg-white rounded-full px-6 py-3 border border-[rgba(17,35,26,0.06)] shadow-sm">
+          <div class="flex items-center gap-1">
+            <i class="fa-solid fa-star text-brand"></i>
+            <i class="fa-solid fa-star text-brand"></i>
+            <i class="fa-solid fa-star text-brand"></i>
+            <i class="fa-solid fa-star text-brand"></i>
+            <i class="fa-solid fa-star text-brand"></i>
+            <span class="ml-2 text-sm font-bold text-ink">4.8</span>
+          </div>
+          <span class="text-xs text-muted">Average rating from early users</span>
+        </div>
       </div>
     </div>
-    <div class="flex overflow-hidden"><div id="testimonialTrack" class="marquee-track gap-5 px-5"></div></div>
   </section>
 
   <!-- ─── COMPARISON ────────────────────────────────── -->
-  <section class="section-pad">
-    <div class="container max-w-4xl">
+  <section class="px-6 py-20">
+    <div class="max-w-4xl mx-auto">
       <div class="text-center mb-14">
-        <div class="reveal badge mx-auto mb-4">Why Dabbu</div>
-        <h2 class="reveal font-display text-3xl font-extrabold tracking-tight sm:text-5xl" style="--delay:80ms">Modern tracking beats <span class="gradient-text-alt">traditional</span> tracking.</h2>
+        <div class="reveal inline-flex items-center gap-2 rounded-full bg-brand-mist px-4 py-1.5 text-xs font-semibold text-brand-deep mb-4">Why Dabbu</div>
+        <h2 class="reveal font-display text-3xl font-bold tracking-tight sm:text-5xl text-ink">Modern tracking beats <span class="text-brand">traditional</span> tracking.</h2>
       </div>
-      <div class="reveal-scale overflow-hidden rounded-2xl border border-white/10 bg-white/[.03]">
-        <div class="grid grid-cols-3 bg-white/[.06] p-4 text-xs font-black text-white"><span>Advantage</span><span class="text-center text-brand">Dabbu</span><span class="text-center text-white/40">Traditional</span></div>
-        <div id="compareRows" class="divide-y divide-white/10"></div>
+      <div class="reveal-scale overflow-hidden rounded-2xl border border-[rgba(17,35,26,0.08)] bg-white shadow-sm">
+        <div class="compare-header grid grid-cols-3 p-4 text-xs font-black text-ink">
+          <span>Advantage</span>
+          <span class="text-center text-brand">Dabbu</span>
+          <span class="text-center text-muted">Traditional</span>
+        </div>
+        <div class="divide-y divide-[rgba(17,35,26,0.06)]">
+          <div class="grid grid-cols-3 p-4 text-sm"><span class="font-medium text-ink">Data Entry</span><span class="text-center text-green-600"><i class="fa-solid fa-check mr-1"></i>Auto via OCR</span><span class="text-center text-muted"><i class="fa-solid fa-xmark mr-1"></i>Manual</span></div>
+          <div class="grid grid-cols-3 p-4 text-sm"><span class="font-medium text-ink">Budget Tracking</span><span class="text-center text-green-600"><i class="fa-solid fa-check mr-1"></i>Real-time</span><span class="text-center text-muted"><i class="fa-solid fa-xmark mr-1"></i>Spreadsheets</span></div>
+          <div class="grid grid-cols-3 p-4 text-sm"><span class="font-medium text-ink">Group Expenses</span><span class="text-center text-green-600"><i class="fa-solid fa-check mr-1"></i>Built-in</span><span class="text-center text-muted"><i class="fa-solid fa-xmark mr-1"></i>Split apps</span></div>
+          <div class="grid grid-cols-3 p-4 text-sm"><span class="font-medium text-ink">Notifications</span><span class="text-center text-green-600"><i class="fa-solid fa-check mr-1"></i>Smart alerts</span><span class="text-center text-muted"><i class="fa-solid fa-xmark mr-1"></i>None</span></div>
+          <div class="grid grid-cols-3 p-4 text-sm"><span class="font-medium text-ink">Reports</span><span class="text-center text-green-600"><i class="fa-solid fa-check mr-1"></i>Visual charts</span><span class="text-center text-muted"><i class="fa-solid fa-xmark mr-1"></i>Manual</span></div>
+          <div class="grid grid-cols-3 p-4 text-sm"><span class="font-medium text-ink">Collaboration</span><span class="text-center text-green-600"><i class="fa-solid fa-check mr-1"></i>Shared spaces</span><span class="text-center text-muted"><i class="fa-solid fa-xmark mr-1"></i>Separate apps</span></div>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- ─── SECURITY ──────────────────────────────────── -->
-  <section class="section-pad bg-white/[.015]">
-    <div class="container">
+  <!-- ─── PRICING ────────────────────────────────────── -->
+  <section id="pricing" class="marketing-anchor-section px-6 py-20 bg-gray-50/30">
+    <div class="max-w-4xl mx-auto">
       <div class="text-center mb-14">
-        <div class="reveal badge mx-auto mb-4">Security</div>
-        <h2 class="reveal font-display text-3xl font-extrabold tracking-tight sm:text-5xl" style="--delay:80ms">Your Financial Data <span class="gradient-text-alt">Stays Yours</span>.</h2>
-        <p class="reveal mt-4 text-white/50 max-w-lg mx-auto" style="--delay:160ms">Dabbu is designed around trust, privacy, and clear control from day one.</p>
+        <div class="reveal inline-flex items-center gap-2 rounded-full bg-brand-mist px-4 py-1.5 text-xs font-semibold text-brand-deep mb-4">Pricing</div>
+        <h2 class="reveal font-display text-3xl font-bold tracking-tight sm:text-5xl text-ink">Start free. <span class="text-brand">Upgrade</span> when you need more.</h2>
       </div>
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="reveal glass rounded-2xl p-6 text-center glass-hover feature-card">
-          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-brand/15 mx-auto mb-4">
-            <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-          </div>
-          <h3 class="font-bold">Secure Authentication</h3>
-          <p class="mt-2 text-sm text-white/50">Protected sign-in flows keep account access controlled.</p>
+
+      <div class="grid gap-6 lg:grid-cols-2">
+        <div class="reveal pricing-card rounded-2xl border border-[rgba(17,35,26,0.08)] bg-white p-8 shadow-sm">
+          <p class="text-xs font-bold uppercase tracking-wider text-muted">Free</p>
+          <div class="mt-3 flex items-end gap-1.5"><span class="text-4xl font-black text-ink">₹0</span><span class="pb-1 text-sm text-muted">/forever</span></div>
+          <p class="mt-2 text-sm text-muted">Everything you need to start tracking your money.</p>
+          <ul class="mt-6 space-y-3 text-sm">
+            <li class="flex items-start gap-3"><i class="fa-solid fa-check mt-0.5 text-green-500"></i> Expense tracking &amp; basic reports</li>
+            <li class="flex items-start gap-3 text-muted/50"><i class="fa-solid fa-xmark mt-0.5 text-muted/30"></i> Customise tabs &amp; dashboard <span class="text-[10px] font-bold uppercase text-brand ml-auto">Premium</span></li>
+            <li class="flex items-start gap-3 text-muted/50"><i class="fa-solid fa-xmark mt-0.5 text-muted/30"></i> Max 5 groups <span class="text-[10px] font-bold uppercase text-brand ml-auto">Limit</span></li>
+            <li class="flex items-start gap-3 text-muted/50"><i class="fa-solid fa-xmark mt-0.5 text-muted/30"></i> Max 10 group members <span class="text-[10px] font-bold uppercase text-brand ml-auto">Limit</span></li>
+            <li class="flex items-start gap-3 text-muted/50"><i class="fa-solid fa-xmark mt-0.5 text-muted/30"></i> 5 OCR scans / month <span class="text-[10px] font-bold uppercase text-brand ml-auto">Limit</span></li>
+          </ul>
+          <a href="#contact" class="marketing-button mt-8 inline-flex w-full items-center justify-center rounded-full border border-[rgba(17,35,26,0.12)] bg-white px-5 py-3 text-sm font-semibold text-ink shadow-sm hover:bg-gray-50">Get Started Free</a>
         </div>
-        <div class="reveal glass rounded-2xl p-6 text-center glass-hover feature-card" style="--delay:90ms">
-          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-brand/15 mx-auto mb-4">
-            <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3"/></svg>
+
+        <div class="reveal pricing-card featured rounded-2xl border-2 border-brand/20 p-8 shadow-md relative" style="transition-delay:120ms">
+          <span class="absolute -top-2.5 right-6 rounded-full bg-brand px-3 py-1 text-[10px] font-black text-white">Most Popular</span>
+          <p class="text-xs font-bold uppercase tracking-wider text-brand">Premium</p>
+          <p class="mt-1 text-xs text-muted">Unlock everything Dabbu has to offer.</p>
+          <div class="mt-4 grid grid-cols-2 gap-3">
+            <div class="bg-brand-mist rounded-xl p-3"><span class="text-2xl font-black text-ink">₹89</span><span class="text-xs text-muted">/mo</span></div>
+            <div class="bg-brand-mist rounded-xl p-3"><span class="text-2xl font-black text-ink">₹219</span><span class="text-xs text-muted">/qtr</span></div>
+            <div class="bg-brand-mist rounded-xl p-3"><span class="text-2xl font-black text-ink">₹389</span><span class="text-xs text-muted">/6mo</span></div>
+            <div class="bg-brand-mist rounded-xl p-3 border border-brand/20"><span class="text-2xl font-black text-ink">₹699</span><span class="text-xs text-muted">/yr <span class="text-brand font-bold ml-1">Best</span></span></div>
           </div>
-          <h3 class="font-bold">Encrypted Storage</h3>
-          <p class="mt-2 text-sm text-white/50">Sensitive information is treated with modern encryption practices.</p>
-        </div>
-        <div class="reveal glass rounded-2xl p-6 text-center glass-hover feature-card" style="--delay:180ms">
-          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-brand/15 mx-auto mb-4">
-            <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-          </div>
-          <h3 class="font-bold">Privacy First</h3>
-          <p class="mt-2 text-sm text-white/50">Your personal finance habits should stay personal.</p>
-        </div>
-        <div class="reveal glass rounded-2xl p-6 text-center glass-hover feature-card" style="--delay:270ms">
-          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-brand/15 mx-auto mb-4">
-            <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-          </div>
-          <h3 class="font-bold">No Data Selling</h3>
-          <p class="mt-2 text-sm text-white/50">Dabbu is built as a product, not a data marketplace.</p>
+          <ul class="mt-5 space-y-3 text-sm">
+            <li class="flex items-start gap-3"><i class="fa-solid fa-check mt-0.5 text-green-500"></i> Unlock all features</li>
+            <li class="flex items-start gap-3"><i class="fa-solid fa-check mt-0.5 text-green-500"></i> Customise tabs &amp; dashboard</li>
+            <li class="flex items-start gap-3"><i class="fa-solid fa-check mt-0.5 text-green-500"></i> Unlimited groups &amp; members</li>
+            <li class="flex items-start gap-3"><i class="fa-solid fa-check mt-0.5 text-green-500"></i> Unlimited OCR scans</li>
+            <li class="flex items-start gap-3"><i class="fa-solid fa-check mt-0.5 text-green-500"></i> Subscription tracking</li>
+            <li class="flex items-start gap-3"><i class="fa-solid fa-check mt-0.5 text-green-500"></i> Advanced analytics &amp; insights</li>
+            <li class="flex items-start gap-3"><i class="fa-solid fa-check mt-0.5 text-green-500"></i> Future AI features</li>
+          </ul>
+          <a href="#contact" class="marketing-button mt-8 inline-flex w-full items-center justify-center rounded-full bg-brand px-5 py-3 text-sm font-semibold text-white shadow-lg">Go Premium</a>
         </div>
       </div>
     </div>
   </section>
 
   <!-- ─── FAQ ───────────────────────────────────────── -->
-  <section id="faq" class="section-pad">
-    <div class="container max-w-3xl">
+  <section class="px-6 py-20">
+    <div class="max-w-3xl mx-auto">
       <div class="text-center mb-12">
-        <div class="reveal badge mx-auto mb-4">FAQ</div>
-        <h2 class="reveal font-display text-3xl font-extrabold tracking-tight sm:text-5xl" style="--delay:80ms">Questions before you <span class="gradient-text-alt">start</span>?</h2>
+        <div class="reveal inline-flex items-center gap-2 rounded-full bg-brand-mist px-4 py-1.5 text-xs font-semibold text-brand-deep mb-4">FAQ</div>
+        <h2 class="reveal font-display text-3xl font-bold tracking-tight sm:text-5xl text-ink">Questions before you <span class="text-brand">start</span>?</h2>
       </div>
-      <div id="faqList" class="space-y-3"></div>
+      <div class="space-y-3" id="faqList">
+        <div class="reveal product-card rounded-xl p-5" data-faq>
+          <button class="flex w-full items-center justify-between text-left" onclick="toggleFaq(this)">
+            <span class="font-semibold text-ink text-sm">Is Dabbu really free?</span>
+            <i class="fa-solid fa-plus text-muted text-xs transition-transform duration-300"></i>
+          </button>
+          <div class="mt-3 text-sm text-muted hidden">Yes! The Free plan includes expense tracking, basic reports, and up to 5 groups. Upgrade to Premium anytime.</div>
+        </div>
+        <div class="reveal product-card rounded-xl p-5" data-faq>
+          <button class="flex w-full items-center justify-between text-left" onclick="toggleFaq(this)">
+            <span class="font-semibold text-ink text-sm">Can I share expenses with my partner?</span>
+            <i class="fa-solid fa-plus text-muted text-xs transition-transform duration-300"></i>
+          </button>
+          <div class="mt-3 text-sm text-muted hidden">Absolutely! Use our couple mode or create shared groups to split, track, and manage expenses together.</div>
+        </div>
+        <div class="reveal product-card rounded-xl p-5" data-faq>
+          <button class="flex w-full items-center justify-between text-left" onclick="toggleFaq(this)">
+            <span class="font-semibold text-ink text-sm">How does the OCR scanner work?</span>
+            <i class="fa-solid fa-plus text-muted text-xs transition-transform duration-300"></i>
+          </button>
+          <div class="mt-3 text-sm text-muted hidden">Just snap a photo of any receipt. Dabbu uses AI to automatically extract the amount, date, merchant, and line items.</div>
+        </div>
+        <div class="reveal product-card rounded-xl p-5" data-faq>
+          <button class="flex w-full items-center justify-between text-left" onclick="toggleFaq(this)">
+            <span class="font-semibold text-ink text-sm">Is my financial data secure?</span>
+            <i class="fa-solid fa-plus text-muted text-xs transition-transform duration-300"></i>
+          </button>
+          <div class="mt-3 text-sm text-muted hidden">Yes. We use encrypted storage, secure authentication, and never sell your data. Your privacy is our priority.</div>
+        </div>
+        <div class="reveal product-card rounded-xl p-5" data-faq>
+          <button class="flex w-full items-center justify-between text-left" onclick="toggleFaq(this)">
+            <span class="font-semibold text-ink text-sm">Can I cancel my Premium subscription?</span>
+            <i class="fa-solid fa-plus text-muted text-xs transition-transform duration-300"></i>
+          </button>
+          <div class="mt-3 text-sm text-muted hidden">Yes, anytime. You'll continue to have Premium access until the end of your billing period, then revert to Free.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SECURITY ──────────────────────────────────── -->
+  <section class="px-6 py-20 bg-gray-50/30">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-14">
+        <div class="reveal inline-flex items-center gap-2 rounded-full bg-brand-mist px-4 py-1.5 text-xs font-semibold text-brand-deep mb-4">Security</div>
+        <h2 class="reveal font-display text-3xl font-bold tracking-tight sm:text-5xl text-ink">Your Financial Data <span class="text-brand">Stays Yours</span>.</h2>
+        <p class="reveal mt-4 text-muted max-w-lg mx-auto">Dabbu is designed around trust, privacy, and clear control from day one.</p>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="reveal-scale product-card rounded-2xl p-6 text-center">
+          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-mist mx-auto mb-4 text-brand-deep"><i class="fa-solid fa-lock"></i></div>
+          <h3 class="font-bold text-ink">Secure Authentication</h3>
+          <p class="mt-2 text-sm text-muted">Protected sign-in flows keep account access controlled.</p>
+        </div>
+        <div class="reveal-scale product-card rounded-2xl p-6 text-center" style="transition-delay:90ms">
+          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-mist mx-auto mb-4 text-brand-deep"><i class="fa-solid fa-shield-halved"></i></div>
+          <h3 class="font-bold text-ink">Encrypted Storage</h3>
+          <p class="mt-2 text-sm text-muted">Sensitive information is treated with modern encryption practices.</p>
+        </div>
+        <div class="reveal-scale product-card rounded-2xl p-6 text-center" style="transition-delay:180ms">
+          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-mist mx-auto mb-4 text-brand-deep"><i class="fa-solid fa-user-secret"></i></div>
+          <h3 class="font-bold text-ink">Privacy First</h3>
+          <p class="mt-2 text-sm text-muted">Your personal finance habits should stay personal.</p>
+        </div>
+        <div class="reveal-scale product-card rounded-2xl p-6 text-center" style="transition-delay:270ms">
+          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-mist mx-auto mb-4 text-brand-deep"><i class="fa-solid fa-hand"></i></div>
+          <h3 class="font-bold text-ink">No Data Selling</h3>
+          <p class="mt-2 text-sm text-muted">Dabbu is built as a product, not a data marketplace.</p>
+        </div>
+      </div>
     </div>
   </section>
 
   <!-- ─── CTA ───────────────────────────────────────── -->
-  <section id="cta" class="section-pad px-4">
-    <div class="container max-w-4xl relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-brand/20 via-brand/5 to-transparent p-10 text-center sm:p-16">
-      <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_0%,rgba(247,137,44,.2),transparent_50%)]"></div>
+  <section id="contact" class="marketing-anchor-section px-6 py-20">
+    <div class="max-w-4xl mx-auto relative overflow-hidden rounded-2xl border border-brand/10 bg-gradient-to-br from-brand/10 via-brand/5 to-transparent p-10 text-center sm:p-16">
       <div class="absolute inset-0 bg-shimmer"></div>
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_0%,rgba(247,137,44,0.15),transparent_50%)]"></div>
       <div class="relative">
         <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand/20">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M12 2l3 7h7l-5.5 4.3 2.2 7L12 16.5 5.3 20.3l2.2-7L2 9h7l3-7Z" fill="#f7892c"/></svg>
+          <span class="text-brand text-2xl">★</span>
         </div>
-        <h2 class="reveal font-display text-3xl font-extrabold tracking-tight sm:text-5xl" style="--delay:80ms">Start Managing Money <span class="gradient-text-alt">Smarter</span>.</h2>
-        <p class="reveal mt-4 text-white/50 max-w-md mx-auto" style="--delay:160ms">Build a money routine that feels clear, fast, and sustainable.</p>
-        <div class="reveal mt-8 flex flex-col justify-center gap-3 sm:flex-row" style="--delay:240ms">
-          <a class="btn-primary group" href="#">
-            <span>Download App</span>
-            <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h2 class="reveal font-display text-3xl font-bold tracking-tight sm:text-5xl text-ink">Ready to take <span class="text-brand">control</span>?</h2>
+        <p class="reveal mt-4 text-muted max-w-md mx-auto">Start managing your money smarter. Build a money routine that feels clear, fast, and sustainable.</p>
+        <div class="reveal mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+          <a href="#" class="marketing-button inline-flex items-center justify-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-semibold text-white shadow-lg hover:bg-gray-900">
+            Download App <i class="fa-solid fa-arrow-right"></i>
           </a>
-          <a class="btn-secondary" href="#">Get Started Free</a>
+          <a href="#" class="marketing-button inline-flex items-center justify-center gap-2 rounded-full border border-[rgba(17,35,26,0.12)] px-6 py-3 text-sm font-semibold text-ink shadow-sm hover:bg-gray-50">
+            Get Started Free
+          </a>
         </div>
       </div>
     </div>
   </section>
-</main>
 
-<footer class="border-t border-white/10 py-10">
-  <div class="container flex flex-col justify-between gap-6 md:flex-row md:items-center">
-    <div class="flex items-center gap-3">
-      <img class="brand-logo" src="logo.png" alt="Dabbu" />
-      <span class="font-display text-lg font-extrabold text-white">Dabbu</span>
-      <span class="text-sm text-white/30 ml-2">Know Where Your Money Goes.</span>
+  <!-- ─── FOOTER ───────────────────────────────────────── -->
+  <footer class="border-t border-[rgba(17,35,26,0.08)] py-10 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col justify-between gap-6 md:flex-row md:items-center">
+      <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-md bg-brand text-base font-bold text-white font-display">D</div>
+        <span class="font-display text-lg font-bold text-ink">Dabbu</span>
+        <span class="text-sm text-muted ml-2">Know Where Your Money Goes.</span>
+      </div>
+      <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted">
+        <a href="features.html" class="hover:text-ink transition">Features</a>
+        <a href="#pricing" class="hover:text-ink transition">Pricing</a>
+        <a href="privacy.html" class="hover:text-ink transition">Privacy</a>
+        <a href="terms.html" class="hover:text-ink transition">Terms</a>
+        <a href="contact.html" class="hover:text-ink transition">Contact</a>
+      </div>
     </div>
-    <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/40">
-      <a href="#features" class="hover:text-white transition">Features</a>
-      <a href="#pricing" class="hover:text-white transition">Pricing</a>
-      <a href="privacy.html" class="hover:text-white transition">Privacy</a>
-      <a href="terms.html" class="hover:text-white transition">Terms</a>
-      <a href="contact.html" class="hover:text-white transition">Contact</a>
-    </div>
-  </div>
-</footer>
-
-<button id="backTop" class="backtop fixed bottom-5 right-5 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-brand text-night shadow-lg" aria-label="Back to top">
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="m18 15-6-6-6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-</button>
+  </footer>
+</div>
 
 <script>
-const iconPaths = [
-  "M17 9V7a5 5 0 0 0-10 0v2M5 9h14l-1 11H6L5 9Z",
-  "M12 3v18m5-13a4 4 0 0 0-4-2H9.5a2.5 2.5 0 0 0 0 5H14a2.5 2.5 0 0 1 0 5H9a4 4 0 0 1-4-2",
-  "M4 19V5m0 14h16M8 16V9m4 7V7m4 9v-5",
-  "M20 12a8 8 0 1 1-2.34-5.66M20 4v6h-6",
-  "M8 3h8l4 4v14H4V3h4Zm8 0v5h4",
-  "M4 14s2-5 6-5 4 7 10 1M4 20h16",
-  "M4 16l5-5 4 4 7-9M20 6v6h-6",
-  "M12 2l3 7h7l-5.5 4.3 2.2 7L12 16.5 5.3 20.3l2.2-7L2 9h7l3-7Z",
-  "M18 18H8a5 5 0 1 1 .9-9.9A7 7 0 0 1 22 11a4 4 0 0 1-4 7Z",
-  "M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16Zm10 2-4.3-4.3",
-  "M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9zM15 13a3 3 0 11-6 0 3 3 0 016 0z",
-  "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-];
-const features = ["Expense Tracking", "OCR Bill Scanner", "Budget Planning", "Spaces & Workspaces", "Financial Reports", "Smart Analytics", "Split Expenses", "Reminders & Snooze", "Goals & Targets", "Fast Search", "Share via Invite", "Subscription Tracking"];
-const descriptions = ["Capture every spend with clean categories.", "Snap a receipt — Dabbu auto-extracts amount, date & merchant.", "Plan limits without spreadsheet clutter.", "Create dedicated spaces for trips, roommates, family & more.", "Readable summaries for monthly decisions.", "Spot trends, spikes, and better choices.", "Share costs with friends and settle up instantly.", "Never miss a payment with smart recurring reminders.", "Set savings targets and track progress as a team.", "Find old entries with instant filtering.", "Invite anyone via email or link — even without an account.", "Find recurring payments before they bite."];
-features.forEach((name, index) => {
-  document.getElementById("featureGrid").insertAdjacentHTML("beforeend",
-    `<article class="reveal glass rounded-xl p-4 glass-hover feature-card" style="--delay:${(index % 5) * 70}ms"><div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-brand/15 text-brand"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="${iconPaths[index]}" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3 class="font-bold text-sm">${name}</h3><p class="mt-1.5 text-xs leading-relaxed text-white/50">${descriptions[index]}</p></article>`
-  );
-});
+  // Mobile nav
+  const toggle = document.querySelector('[data-nav-toggle]');
+  const close = document.querySelector('[data-nav-close]');
+  const backdrop = document.querySelector('[data-nav-backdrop]');
+  const menu = document.querySelector('[data-nav-menu]');
 
-function phoneMarkup(label, variant) {
-  const blocks = variant % 3 === 0
-    ? `<div class="mt-4 space-y-1.5">${[72,48,86,61].map(w => `<div class="h-2 rounded-full bg-white/10"><div class="h-2 rounded-full bg-gradient-to-r from-brand to-paper" style="width:${w}%"></div></div>`).join("")}</div>`
-    : variant % 3 === 1
-    ? `<div class="mt-4 grid grid-cols-2 gap-1.5">${["Food","Rent","Travel","Fun"].map((x,i)=>`<div class="rounded-xl bg-white/[.07] p-2.5"><p class="text-[10px] text-white/40">${x}</p><p class="mt-0.5 font-bold text-white text-sm">₹${[4200,18000,2800,1900][i]}</p></div>`).join("")}</div>`
-    : `<div class="mt-4 flex h-24 items-end gap-1.5">${[45,80,55,95,68,76].map((h,i)=>`<span class="flex-1 rounded-t-lg ${i%2?'bg-paper/40':'bg-brand'}" style="height:${h}%"></span>`).join("")}</div>`;
-  return `<div class="reveal flex flex-col items-center" style="--delay:${variant * 100}ms"><div class="phone-mock scale-[.82] transition duration-500 hover:scale-[.88]"><div class="phone-screen p-3.5"><p class="mt-8 text-[10px] font-black uppercase tracking-wider text-white/40">${label}</p><h3 class="mt-1 text-xl font-black text-white">${label === "Premium" ? "Dabbu Plus" : label}</h3>${blocks}<div class="mt-4 rounded-2xl bg-paper p-3 text-ink"><p class="text-[10px] font-bold text-muted">Insight</p><p class="mt-0.5 font-black text-sm">${["₹82k tracked","Receipt scanned","₹4.2k settled","Budget 72% safe","3 due today","Unlock insights"][variant]}</p></div></div></div><p class="mt-1 text-center text-xs font-bold text-white/50">${label}</p></div>`;
-}
-["Dashboard", "Scan Bill", "Groups", "Budgets", "Reminders", "Premium"].forEach((label, i) => document.getElementById("showcaseGrid").insertAdjacentHTML("beforeend", phoneMarkup(label, i)));
+  function openMenu() { menu.classList.add('is-open'); backdrop.classList.add('is-open'); document.body.style.overflow = 'hidden'; }
+  function closeMenu() { menu.classList.remove('is-open'); backdrop.classList.remove('is-open'); document.body.style.overflow = ''; }
+  if (toggle) toggle.addEventListener('click', openMenu);
+  if (close) close.addEventListener('click', closeMenu);
+  if (backdrop) backdrop.addEventListener('click', closeMenu);
+  document.querySelectorAll('[data-nav-close]').forEach(el => { el.addEventListener('click', closeMenu); });
 
-const testimonials = [
-  ["Aarav M.", "Dabbu made my monthly spending obvious in the first week. The app feels sharp, fast, and genuinely premium."],
-  ["Neha S.", "I finally know which subscriptions are worth keeping. The reports are simple enough to use every Sunday."],
-  ["Rohan K.", "Budgeting used to feel like homework. Dabbu makes it feel like checking a dashboard I actually trust."],
-  ["Isha P.", "The trend view helped me reduce food delivery without feeling restricted. Clean, practical, and beautiful."],
-  ["Kabir D.", "It is the first expense app I did not abandon after two days. Adding entries is ridiculously quick."]
-];
-[...testimonials, ...testimonials].forEach(([name, quote]) => document.getElementById("testimonialTrack").insertAdjacentHTML("beforeend",
-  `<article class="glass w-[300px] shrink-0 rounded-2xl p-5"><div class="mb-3 flex gap-0.5 text-sm text-brand">★★★★★</div><p class="text-sm leading-relaxed text-white/70">"${quote}"</p><p class="mt-4 text-xs font-bold text-white">${name}</p></article>`
-));
-
-["OCR Bill Scanning", "Group Expense Splitting", "Smart Reminders", "Spending Insights", "Mobile First", "Easy Reports", "Modern Experience"].forEach((advantage) => {
-  document.getElementById("compareRows").insertAdjacentHTML("beforeend",
-    `<div class="grid grid-cols-3 p-4 text-sm text-white/50 reveal" style="--delay:${Math.random()*200}ms"><span class="font-bold text-white">${advantage}</span><span class="text-center text-brand font-bold">✓ Included</span><span class="text-center text-white/30">Manual</span></div>`
-  );
-});
-
-const faqs = [
-  ["Is Dabbu free?", "Yes. Dabbu includes free expense tracking, OCR bill scanning, budgets, and basic reports. Premium unlocks deeper analytics and advanced tools."],
-  ["Is Premium worth it?", "Premium is designed for users who want stronger insights, unlimited categories, subscription tracking, and upcoming AI-powered features."],
-  ["Is my data secure?", "Dabbu is designed with secure authentication, encrypted storage practices, privacy-first product decisions, and no data selling."],
-  ["Can I export reports?", "Exportable reports are planned for users who need clean monthly summaries for personal reviews or accountant-ready records."],
-  ["Will cloud backup be available?", "Yes. Cloud sync and backup are part of Dabbu's roadmap so your finance data can stay available across devices."]
-];
-faqs.forEach(([q, a]) => document.getElementById("faqList").insertAdjacentHTML("beforeend",
-  `<div class="faq-item reveal glass rounded-xl overflow-hidden"><button class="flex w-full items-center justify-between gap-4 p-4 text-left font-bold text-sm" aria-expanded="false"><span>${q}</span><span class="faq-icon text-lg text-brand shrink-0">+</span></button><div class="faq-panel max-h-0 overflow-hidden transition-all duration-300"><p class="px-4 pb-4 text-sm leading-relaxed text-white/50">${a}</p></div></div>`
-));
-document.querySelectorAll(".faq-item button").forEach((button) => {
-  button.addEventListener("click", () => {
-    const item = button.closest(".faq-item");
-    const panel = item.querySelector(".faq-panel");
-    const open = button.getAttribute("aria-expanded") === "true";
-    document.querySelectorAll(".faq-item").forEach((other) => {
-      other.querySelector("button").setAttribute("aria-expanded", "false");
-      other.querySelector(".faq-panel").style.maxHeight = "0px";
-      other.querySelector(".faq-icon").textContent = "+";
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
     });
-    if (!open) {
-      button.setAttribute("aria-expanded", "true");
-      panel.style.maxHeight = panel.scrollHeight + "px";
-      item.querySelector(".faq-icon").textContent = "×";
-    }
+  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+  document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale').forEach(el => {
+    observer.observe(el);
   });
-});
 
-const revealObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add("visible");
-      revealObserver.unobserve(entry.target);
-    }
+  // Animated counters
+  function animateCounters() {
+    document.querySelectorAll('.counter').forEach(el => {
+      const target = parseFloat(el.dataset.target);
+      const prefix = el.dataset.prefix || '';
+      const suffix = el.dataset.suffix || '';
+      const duration = 2000;
+      const step = Math.max(1, target / 60);
+      let current = 0;
+      const increment = setInterval(() => {
+        current += step;
+        if (current >= target) {
+          current = target;
+          clearInterval(increment);
+        }
+        const formatted = target % 1 === 0 ? Math.floor(current) : current.toFixed(1);
+        el.textContent = prefix + formatted + suffix;
+      }, duration / 60);
+    });
+  }
+
+  // Trigger counters on scroll
+  const counterObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        animateCounters();
+        counterObserver.disconnect();
+      }
+    });
+  }, { threshold: 0.3 });
+
+  document.querySelectorAll('.counter').forEach(el => {
+    const parent = el.closest('.stat-card') || el.parentElement;
+    if (parent) counterObserver.observe(parent);
   });
-}, { threshold: .12 });
-document.querySelectorAll(".reveal, .reveal-left, .reveal-right, .reveal-scale").forEach(el => revealObserver.observe(el));
 
-const counterObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (!entry.isIntersecting || entry.target.dataset.done) return;
-    entry.target.dataset.done = "true";
-    const target = Number(entry.target.dataset.target);
-    const prefix = entry.target.dataset.prefix || "";
-    const suffix = entry.target.dataset.suffix || "";
-    const start = performance.now();
-    const duration = 1500;
-    function tick(now) {
-      const progress = Math.min((now - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const value = target * eased;
-      entry.target.textContent = `${prefix}${target % 1 ? value.toFixed(1) : Math.floor(value).toLocaleString("en-IN")}${suffix}`;
-      if (progress < 1) requestAnimationFrame(tick);
+  // FAQ toggle
+  function toggleFaq(btn) {
+    const content = btn.nextElementSibling;
+    const icon = btn.querySelector('.fa-plus');
+    const isHidden = content.classList.contains('hidden');
+    document.querySelectorAll('[data-faq] .hidden').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('[data-faq] .fa-plus').forEach(i => i.style.transform = 'rotate(0deg)');
+    if (isHidden) {
+      content.classList.remove('hidden');
+      icon.style.transform = 'rotate(45deg)';
     }
-    requestAnimationFrame(tick);
+  }
+
+  // Header shadow
+  const header = document.querySelector('.marketing-nav');
+  window.addEventListener('scroll', () => {
+    header.style.boxShadow = window.scrollY > 80 ? '0 1px 4px rgba(0,0,0,0.06)' : 'none';
   });
-}, { threshold: .45 });
-document.querySelectorAll(".counter").forEach(el => counterObserver.observe(el));
-
-const heroData = [
-  { balance: "₹82,450", budget: "72%", bar: "72%", spent: "₹28,900", left: "₹11,100" },
-  { balance: "₹1,24,800", budget: "45%", bar: "45%", spent: "₹18,200", left: "₹34,600" },
-  { balance: "₹56,300", budget: "91%", bar: "91%", spent: "₹42,100", left: "₹4,200" },
-  { balance: "₹2,10,500", budget: "38%", bar: "38%", spent: "₹22,800", left: "₹45,700" },
-];
-let heroIndex = 0;
-setInterval(() => {
-  heroIndex = (heroIndex + 1) % heroData.length;
-  const d = heroData[heroIndex];
-  const screen = document.getElementById("heroPhoneScreen");
-  screen.style.opacity = "0";
-  setTimeout(() => {
-    document.getElementById("heroBalance").textContent = d.balance;
-    document.getElementById("heroBudget").textContent = d.budget;
-    document.getElementById("heroBar").style.width = d.bar;
-    document.getElementById("heroSpent").textContent = d.spent;
-    document.getElementById("heroLeft").textContent = d.left;
-    screen.style.opacity = "1";
-  }, 300);
-}, 4000);
-
-const header = document.getElementById("header");
-const backTop = document.getElementById("backTop");
-function onScroll() {
-  header.classList.toggle("bg-[#090b10]/80", window.scrollY > 20);
-  header.classList.toggle("backdrop-blur-lg", window.scrollY > 20);
-  header.classList.toggle("border-b", window.scrollY > 20);
-  header.classList.toggle("border-white/5", window.scrollY > 20);
-  backTop.classList.toggle("show", window.scrollY > 500);
-}
-window.addEventListener("scroll", onScroll, { passive: true });
-onScroll();
-
-const particles = document.getElementById("particles");
-for (let i = 0; i < 30; i++) {
-  const p = document.createElement("span");
-  p.className = "particle";
-  p.style.left = `${Math.random() * 100}%`;
-  p.style.bottom = `${Math.random() * 30}%`;
-  p.style.animationDelay = `${Math.random() * 10}s`;
-  p.style.animationDuration = `${8 + Math.random() * 8}s`;
-  particles.appendChild(p);
-}
-
-const menuBtn = document.getElementById("menuBtn");
-const mobileMenu = document.getElementById("mobileMenu");
-menuBtn.addEventListener("click", () => {
-  const open = mobileMenu.classList.toggle("hidden") === false;
-  menuBtn.setAttribute("aria-expanded", String(open));
-});
-mobileMenu.querySelectorAll("a").forEach(link => link.addEventListener("click", () => {
-  mobileMenu.classList.add("hidden");
-  menuBtn.setAttribute("aria-expanded", "false");
-}));
-backTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 </script>
+
 </body>
 </html>
