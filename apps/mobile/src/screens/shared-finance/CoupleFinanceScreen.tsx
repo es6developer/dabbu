@@ -38,6 +38,8 @@ export function CoupleFinanceScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [partnerEmail, setPartnerEmail] = useState('');
+  const [partnerPhone, setPartnerPhone] = useState('');
+  const [partnerMode, setPartnerMode] = useState<'email' | 'phone'>('email');
   const [sendingInvite, setSendingInvite] = useState(false);
 
   const loadData = useCallback(
@@ -77,8 +79,12 @@ export function CoupleFinanceScreen() {
   );
 
   async function addPartner() {
-    if (!partnerEmail.trim()) {
+    if (partnerMode === 'email' && !partnerEmail.trim()) {
       Alert.alert('Email required', "Enter your partner's email");
+      return;
+    }
+    if (partnerMode === 'phone' && !partnerPhone.trim()) {
+      Alert.alert('Phone required', "Enter your partner's phone number");
       return;
     }
     setSendingInvite(true);
@@ -86,11 +92,19 @@ export function CoupleFinanceScreen() {
       if (accessToken) {
         setAccessToken(accessToken);
       }
-      await api.post(`/shared-finance/groups/${groupId}/members/add-by-email`, {
-        email: partnerEmail.trim(),
-      });
-      Alert.alert('Partner Added', `${partnerEmail.trim()} has been added to this group`);
-      setPartnerEmail('');
+      if (partnerMode === 'email') {
+        await api.post(`/shared-finance/groups/${groupId}/members/add-by-email`, {
+          email: partnerEmail.trim(),
+        });
+        Alert.alert('Partner Added', `${partnerEmail.trim()} has been added to this group`);
+        setPartnerEmail('');
+      } else {
+        await api.post(`/shared-finance/groups/${groupId}/members/add-by-phone`, {
+          phone: `+91${partnerPhone.trim()}`,
+        });
+        Alert.alert('Partner Added', `Partner with phone +91${partnerPhone.trim()} has been added`);
+        setPartnerPhone('');
+      }
       loadData(true);
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to add partner');
@@ -157,35 +171,80 @@ export function CoupleFinanceScreen() {
           <Ionicons name="person-add-outline" size={24} color={colors.accent.primary} />
           <Text style={[s.inviteTitle, { color: colors.text.primary }]}>Add your Partner</Text>
           <Text style={[s.inviteDesc, { color: colors.text.tertiary }]}>
-            Enter your partner's email to add them to this space immediately
+            Enter your partner's email or phone to add them to this space immediately
           </Text>
-          <View
-            style={[
-              s.inviteInputRow,
-              { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-            ]}
-          >
-            <TextInput
-              style={[s.inviteInput, { color: colors.text.primary }]}
-              value={partnerEmail}
-              onChangeText={setPartnerEmail}
-              placeholder="partner@email.com"
-              placeholderTextColor={colors.text.tertiary}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
+          <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
             <TouchableOpacity
-              style={[s.sendBtn, { backgroundColor: colors.accent.primary }]}
-              onPress={addPartner}
-              disabled={sendingInvite}
+              style={[s.modeChip, partnerMode === 'email' && { backgroundColor: colors.accent.primary }]}
+              onPress={() => setPartnerMode('email')}
             >
-              {sendingInvite ? (
-                <ActivityIndicator size="small" color="#FFF" />
-              ) : (
-                <Text style={s.sendBtnText}>Add</Text>
-              )}
+              <Text style={{ color: partnerMode === 'email' ? '#FFF' : colors.text.secondary, fontSize: 13, fontWeight: '600' }}>Email</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[s.modeChip, partnerMode === 'phone' && { backgroundColor: colors.accent.primary }]}
+              onPress={() => setPartnerMode('phone')}
+            >
+              <Text style={{ color: partnerMode === 'phone' ? '#FFF' : colors.text.secondary, fontSize: 13, fontWeight: '600' }}>Phone</Text>
             </TouchableOpacity>
           </View>
+          {partnerMode === 'email' ? (
+            <View
+              style={[
+                s.inviteInputRow,
+                { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+              ]}
+            >
+              <TextInput
+                style={[s.inviteInput, { color: colors.text.primary }]}
+                value={partnerEmail}
+                onChangeText={setPartnerEmail}
+                placeholder="partner@email.com"
+                placeholderTextColor={colors.text.tertiary}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+              <TouchableOpacity
+                style={[s.sendBtn, { backgroundColor: colors.accent.primary }]}
+                onPress={addPartner}
+                disabled={sendingInvite}
+              >
+                {sendingInvite ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  <Text style={s.sendBtnText}>Add</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View
+              style={[
+                s.inviteInputRow,
+                { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+              ]}
+            >
+              <Text style={{ color: colors.text.secondary, fontSize: 16, marginLeft: 4 }}>+91</Text>
+              <TextInput
+                style={[s.inviteInput, { color: colors.text.primary }]}
+                value={partnerPhone}
+                onChangeText={(t) => setPartnerPhone(t.replace(/[^0-9]/g, '').slice(0, 10))}
+                placeholder="9876543210"
+                placeholderTextColor={colors.text.tertiary}
+                keyboardType="phone-pad"
+                maxLength={10}
+              />
+              <TouchableOpacity
+                style={[s.sendBtn, { backgroundColor: colors.accent.primary }]}
+                onPress={addPartner}
+                disabled={sendingInvite}
+              >
+                {sendingInvite ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  <Text style={s.sendBtnText}>Add</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </ScrollView>
     );
@@ -651,4 +710,9 @@ const s = StyleSheet.create({
     borderRadius: 14,
   },
   infoText: { flex: 1, fontSize: 12, lineHeight: 18 },
+  modeChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
 });

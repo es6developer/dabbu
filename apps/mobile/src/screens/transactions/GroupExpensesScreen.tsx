@@ -241,22 +241,55 @@ export function GroupExpensesScreen() {
 
   const name = group?.name || routeGroupName || 'Group';
 
+  const [aiInsights, setAiInsights] = useState<any>(null);
+  const [loadingAi, setLoadingAi] = useState(false);
+
   const stats = useMemo(() => {
     const now = new Date();
     const monthly = transactions.filter((t) => {
       const d = new Date(t.date || t.createdAt);
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     });
-    const ms = monthly
+    const totalIncome = monthly
+      .filter((t) => t.type === 'income')
+      .reduce((s, t) => s + Number(t.amount || 0), 0);
+    const totalExpense = monthly
       .filter((t) => t.type === 'expense')
       .reduce((s, t) => s + Number(t.amount || 0), 0);
     return {
-      totalExpense: ms,
+      totalIncome,
+      totalExpense,
+      remaining: totalIncome - totalExpense,
       totalCount: monthly.filter((t) => t.type === 'expense').length,
-      monthlySpending: ms,
+      incomeCount: monthly.filter((t) => t.type === 'income').length,
+      monthlySpending: totalExpense,
       monthlyAverage: (transactions.length > 0 ? transactions.reduce((s, t) => s + Number(t.amount || 0), 0) / transactions.length : 0) * 30,
     };
   }, [transactions, group]);
+
+  async function loadAiInsights() {
+    if (loadingAi || aiInsights) return;
+    setLoadingAi(true);
+    try {
+      if (accessToken) setAccessToken(accessToken);
+      const res = await api.post<any>('/ai/narrative', {
+        section: 'shared',
+        data: {
+          groupName: group?.name,
+          totalIncome: stats.totalIncome,
+          totalExpense: stats.totalExpense,
+          remaining: stats.remaining,
+          transactionCount: transactions.length,
+          memberCount: members.length,
+        },
+      });
+      setAiInsights(res?.narrative || res?.data?.narrative || null);
+    } catch (e) {
+      // silently fail
+    } finally {
+      setLoadingAi(false);
+    }
+  }
 
   async function saveGroupSettings() {
     if (!editName.trim()) {
@@ -468,16 +501,37 @@ export function GroupExpensesScreen() {
                   {members.length} member{members.length !== 1 ? 's' : ''}
                 </Text>
               </View>
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate('CreateTransaction', {
-                    prefill: { groupId, groupName: name, returnTo: 'GroupExpenses' },
-                  })
-                }
-                style={[s.iconBtn, { backgroundColor: colors.accent.primary }]}
-              >
-                <Ionicons name="add" size={22} color="#FFF" />
-              </TouchableOpacity>
+              {group?.isExpired ? (
+                <TouchableOpacity
+                  onPress={() => handleExport()}
+                  style={[s.iconBtn, { backgroundColor: colors.accent.primary }]}
+                >
+                  <Ionicons name="download-outline" size={20} color="#FFF" />
+                </TouchableOpacity>
+              ) : (
+                <>
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate('CreateTransaction', {
+                        prefill: { groupId, groupName: name, returnTo: 'GroupExpenses', type: 'income' },
+                      })
+                    }
+                    style={[s.iconBtn, { backgroundColor: '#00B894' }]}
+                  >
+                    <Ionicons name="trending-up" size={20} color="#FFF" />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate('CreateTransaction', {
+                        prefill: { groupId, groupName: name, returnTo: 'GroupExpenses' },
+                      })
+                    }
+                    style={[s.iconBtn, { backgroundColor: colors.accent.primary }]}
+                  >
+                    <Ionicons name="cart" size={20} color="#FFF" />
+                  </TouchableOpacity>
+                </>
+              )}
               <TouchableOpacity
                 onPress={() => setSettingsOpen(true)}
                 style={[s.iconBtn, { backgroundColor: colors.bg.tertiary }]}
@@ -488,18 +542,25 @@ export function GroupExpensesScreen() {
 
             <View style={s.grid}>
               <LinearGradient colors={[colors.bg.secondary, colors.bg.tertiary]} style={s.statCard}>
-                <Text style={s.statLabel}>Total</Text>
-                <Text style={s.statVal}>{fmt(stats.totalExpense)}</Text>
+                <Text style={s.statLabel}>Income</Text>
+                <Text style={[s.statVal, { color: '#00B894' }]}>{fmt(stats.totalIncome)}</Text>
               </LinearGradient>
               <LinearGradient colors={[colors.bg.secondary, colors.bg.tertiary]} style={s.statCard}>
-                <Text style={s.statLabel}>Txns</Text>
-                <Text style={s.statVal}>{stats.totalCount}</Text>
+                <Text style={s.statLabel}>Expenses</Text>
+                <Text style={[s.statVal, { color: '#FF6B6B' }]}>{fmt(stats.totalExpense)}</Text>
               </LinearGradient>
               <LinearGradient colors={[colors.bg.secondary, colors.bg.tertiary]} style={s.statCard}>
-                <Text style={s.statLabel}>Monthly</Text>
-                <Text style={s.statVal}>{fmt(stats.monthlySpending)}</Text>
+                <Text style={s.statLabel}>Left</Text>
+                <Text style={[s.statVal, { color: stats.remaining >= 0 ? '#00B894' : '#FF6B6B' }]}>
+                  {fmt(Math.abs(stats.remaining))}
+                </Text>
               </LinearGradient>
             </View>
+            {stats.totalIncome > 0 && (
+              <View style={[s.budgetBar, { backgroundColor: colors.bg.tertiary }]}>
+                <View style={[s.budgetFill, { width: `${Math.min((stats.totalExpense / stats.totalIncome) * 100, 100)}%`, backgroundColor: stats.remaining >= 0 ? '#00B894' : '#FF6B6B' }]} />
+              </View>
+            )}
 
             {members.length > 0 && (
               <View style={s.memberSection}>
@@ -531,19 +592,81 @@ export function GroupExpensesScreen() {
               </View>
             )}
 
-            <Text
-              style={[
-                s.secTitle,
-                {
-                  color: colors.text.tertiary,
-                  paddingHorizontal: 20,
-                  paddingTop: 20,
-                  paddingBottom: 8,
-                },
-              ]}
-            >
-              Expenses {transactions.length > 0 ? `· ${transactions.length}` : ''}
-            </Text>
+            {group?.isExpired && (
+              <View style={[s.expiredBanner, { backgroundColor: `${colors.status.warning}20`, borderColor: colors.status.warning }]}>
+                <Ionicons name="lock-closed" size={16} color={colors.status.warning} />
+                <Text style={[s.expiredBannerText, { color: colors.text.secondary }]}>
+                  This circle expired on {new Date(group.expiresAt).toLocaleDateString('en-IN')}. It is now read-only.
+                </Text>
+              </View>
+            )}
+
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 8 }}>
+              <Text style={[s.secTitle, { color: colors.text.tertiary, flex: 1 }]}>
+                Transactions {transactions.length > 0 ? `· ${transactions.length}` : ''}
+              </Text>
+              {group?.isExpired ? (
+                <TouchableOpacity
+                  onPress={() => handleExport()}
+                  style={[s.addTinyBtn, { backgroundColor: colors.accent.primary }]}
+                >
+                  <Ionicons name="download-outline" size={14} color="#FFF" />
+                  <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '700' }}>Export</Text>
+                </TouchableOpacity>
+              ) : (
+                <>
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate('CreateTransaction', {
+                        prefill: { groupId, groupName: name, returnTo: 'GroupExpenses', type: 'income' },
+                      })
+                    }
+                    style={[s.addTinyBtn, { backgroundColor: '#00B894' }]}
+                  >
+                    <Ionicons name="add" size={14} color="#FFF" />
+                    <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '700' }}>Income</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate('CreateTransaction', {
+                        prefill: { groupId, groupName: name, returnTo: 'GroupExpenses' },
+                      })
+                    }
+                    style={[s.addTinyBtn, { backgroundColor: colors.accent.primary, marginLeft: 6 }]}
+                  >
+                    <Ionicons name="add" size={14} color="#FFF" />
+                    <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '700' }}>Expense</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
+
+            {transactions.length > 3 && aiInsights === null && !loadingAi && (
+              <TouchableOpacity
+                onPress={loadAiInsights}
+                style={[s.aiBanner, { backgroundColor: `${colors.accent.primary}12`, borderColor: `${colors.accent.primary}30` }]}
+              >
+                <Ionicons name="sparkles" size={16} color={colors.accent.primary} />
+                <Text style={[s.aiBannerText, { color: colors.accent.primary }]}>View AI Insights</Text>
+                <Ionicons name="chevron-forward" size={14} color={colors.accent.primary} />
+              </TouchableOpacity>
+            )}
+            {loadingAi && (
+              <View style={{ paddingHorizontal: 20, paddingVertical: 12 }}>
+                <ActivityIndicator size="small" color={colors.accent.primary} />
+              </View>
+            )}
+            {aiInsights && (
+              <View style={[s.aiCard, { backgroundColor: colors.bg.secondary, borderColor: `${colors.accent.primary}30` }]}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                  <Ionicons name="sparkles" size={16} color={colors.accent.primary} />
+                  <Text style={[s.aiCardTitle, { color: colors.accent.primary }]}>AI Insights</Text>
+                </View>
+                <Text style={[s.aiCardBody, { color: colors.text.secondary }]}>
+                  {typeof aiInsights === 'string' ? aiInsights : aiInsights?.summary || JSON.stringify(aiInsights)}
+                </Text>
+              </View>
+            )}
 
             {transactions.map((item: any) => {
               const isIncome = item.type === 'income';
@@ -1146,6 +1269,42 @@ const s = StyleSheet.create({
     letterSpacing: 0.5,
   },
   statVal: { fontSize: 18, fontWeight: '700', color: '#FFF', marginTop: 8 },
+  budgetBar: {
+    marginHorizontal: 20,
+    marginTop: 10,
+    height: 6,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  budgetFill: { height: '100%', borderRadius: 3 },
+  aiBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginHorizontal: 20,
+    marginBottom: 8,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  aiBannerText: { fontSize: 13, fontWeight: '600', flex: 1 },
+  aiCard: {
+    marginHorizontal: 20,
+    marginBottom: 12,
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  aiCardTitle: { fontSize: 13, fontWeight: '700' },
+  aiCardBody: { fontSize: 13, lineHeight: 20 },
+  addTinyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
   memberSection: { marginTop: 18, paddingHorizontal: 20 },
   secTitle: {
     fontSize: 13,

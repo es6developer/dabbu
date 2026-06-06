@@ -425,6 +425,113 @@ export class SharedFinanceService {
     return member;
   }
 
+  async addMemberByPhone(
+    groupId: string,
+    phone: string,
+    role: string | undefined,
+    adminId: string,
+  ) {
+    await this.verifyAdmin(groupId, adminId);
+
+    const user = await this.prisma.user.findFirst({ where: { phone, isActive: true, status: 'active' } });
+    if (!user) {
+      throw new NotFoundException(`No user found with phone ${phone}. They need to sign up first.`);
+    }
+
+    const existing = await this.prisma.sharedGroupMember.findUnique({
+      where: { groupId_userId: { groupId, userId: user.id } },
+    });
+    if (existing) {
+      throw new BadRequestException(`User with phone ${phone} is already a member`);
+    }
+
+    const groupInfo = await this.prisma.sharedGroup.findUnique({
+      where: { id: groupId },
+      select: { type: true },
+    });
+    if (groupInfo?.type === 'couple') {
+      const memberCount = await this.prisma.sharedGroupMember.count({
+        where: { groupId, isActive: true },
+      });
+      if (memberCount >= 2) {
+        throw new BadRequestException('Couple space can only have 2 members');
+      }
+    }
+
+    const member = await this.prisma.sharedGroupMember.create({
+      data: { groupId, userId: user.id, role: role || 'member' },
+      include: {
+        user: {
+          select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true, phone: true },
+        },
+      },
+    });
+
+    await this.prisma.sharedGroup.update({
+      where: { id: groupId },
+      data: { totalSpent: undefined },
+    });
+
+    const group = await this.prisma.sharedGroup.findUnique({
+      where: { id: groupId },
+      select: { name: true },
+    });
+    const memberName = user.firstName || user.phone || user.email;
+    this.notificationService
+      .sendPush(user.id, 'Added to Group', `You were added to "${group?.name || 'a group'}"`, {
+        type: 'member_added',
+        groupId,
+      })
+      .catch((err) => this.logger.error(`Push failed for added member: ${err.message}`));
+
+    this.notificationService
+      .sendPush(
+        adminId,
+        'Member Added',
+        `${memberName} was added to "${group?.name || 'a group'}"`,
+        {
+          type: 'member_added',
+          groupId,
+        },
+      )
+      .catch((err) => this.logger.error(`Push failed for admin: ${err.message}`));
+
+    const adminUser = await this.prisma.user.findUnique({
+      where: { id: adminId },
+      select: { firstName: true, lastName: true },
+    });
+    const inviterName = adminUser
+      ? `${adminUser.firstName || ''} ${adminUser.lastName || ''}`.trim() || 'An admin'
+      : 'An admin';
+    this.emailService
+      .sendGroupInviteEmail(user.email, memberName, group?.name || 'a group', inviterName)
+      .catch((err) => this.logger.error(`Failed to send group invite email: ${err.message}`));
+
+    if (groupInfo?.type === 'couple') {
+      const existingProfile = await this.prisma.coupleFinanceProfile.findUnique({
+        where: { groupId },
+      });
+      if (!existingProfile) {
+        const members = await this.prisma.sharedGroupMember.findMany({
+          where: { groupId, isActive: true },
+          select: { userId: true },
+          orderBy: { joinedAt: 'asc' },
+        });
+        await this.prisma.coupleFinanceProfile.create({
+          data: {
+            groupId,
+            partner1Id: members[0].userId,
+            partner2Id: members[1].userId,
+            splitRatio: '50:50',
+            contributionType: 'equal',
+          },
+        });
+      }
+    }
+
+    return member;
+  }
+
   async removeMember(groupId: string, memberId: string, adminId: string) {
     await this.verifyAdmin(groupId, adminId);
 

@@ -22,6 +22,7 @@ import {
   UpdateGroupDto,
   AddMemberDto,
   AddMemberByEmailDto,
+  AddMemberByPhoneDto,
   InviteMemberDto,
   CreateExpenseDto,
   UpdateExpenseDto,
@@ -136,6 +137,17 @@ export class SharedFinanceController {
     @CurrentUser('id') adminId: string,
   ) {
     return this.sf.addMemberByEmail(groupId, dto.email, dto.role, adminId);
+  }
+
+  @Post('groups/:groupId/members/add-by-phone')
+  @UseGuards(GroupMemberGuard)
+  @ApiOperation({ summary: 'Add member by phone number (admin only) — immediately adds them to group' })
+  async addMemberByPhone(
+    @Param('groupId') groupId: string,
+    @Body() dto: AddMemberByPhoneDto,
+    @CurrentUser('id') adminId: string,
+  ) {
+    return this.sf.addMemberByPhone(groupId, dto.phone, dto.role, adminId);
   }
 
   @Get('groups/:groupId/members')

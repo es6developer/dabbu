@@ -124,24 +124,14 @@ export function TransactionDetailScreen() {
         <DetailRow
           colors={colors}
           label="Date"
-          value={new Date(txn.date || txn.createdAt).toLocaleDateString('en-IN', {
+          value={new Date(txn.date || txn.createdAt).toLocaleString('en-IN', {
             day: 'numeric',
             month: 'long',
             year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
           })}
         />
-        {txn.tags?.length > 0 && (
-          <View style={[styles.detailRow, { borderBottomColor: colors.border.subtle }]}>
-            <Text style={[styles.detailLabel, { color: colors.text.secondary }]}>Tags</Text>
-            <View style={styles.tagsRow}>
-              {txn.tags.map((tag: string, i: number) => (
-                <View key={i} style={[styles.tag, { backgroundColor: colors.bg.card }]}>
-                  <Text style={[styles.tagText, { color: colors.text.tertiary }]}>{tag}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
         <DetailRow
           colors={colors}
           label="Status"
@@ -175,7 +165,6 @@ export function TransactionDetailScreen() {
             description: txn.description,
             categoryName: txn.category?.name,
             date: new Date(txn.date || txn.createdAt).toISOString().split('T')[0],
-            tags: txn.tags || [],
             groupId: txn.expenseGroupId,
           } })}
         >
@@ -256,9 +245,6 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'right',
   },
-  tagsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, justifyContent: 'flex-end', flex: 1 },
-  tag: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
-  tagText: { ...typographyStyles.caption1 },
   actions: { flexDirection: 'row', padding: 16, gap: 12, marginBottom: 40 },
   actionBtn: {
     flex: 1,

@@ -80,6 +80,8 @@ export function SharedGroupDetailScreen() {
   const [savingSettings, setSavingSettings] = useState(false);
   const [addMemberModalVisible, setAddMemberModalVisible] = useState(false);
   const [addMemberEmail, setAddMemberEmail] = useState('');
+  const [addMemberPhone, setAddMemberPhone] = useState('');
+  const [addMemberMode, setAddMemberMode] = useState<'email' | 'phone'>('email');
   const [addMemberLoading, setAddMemberLoading] = useState(false);
   const [activeStatPage, setActiveStatPage] = useState(0);
 
@@ -944,20 +946,28 @@ export function SharedGroupDetailScreen() {
   }
 
   async function handleAddMember() {
-    if (!groupId || !addMemberEmail.trim()) {
-      return;
-    }
+    if (!groupId) return;
+    if (addMemberMode === 'email' && !addMemberEmail.trim()) return;
+    if (addMemberMode === 'phone' && !addMemberPhone.trim()) return;
     setAddMemberLoading(true);
     try {
       if (accessToken) {
         setAccessToken(accessToken);
       }
-      await api.post<any>(`/shared-finance/groups/${groupId}/members/add-by-email`, {
-        email: addMemberEmail.trim(),
-      });
+      if (addMemberMode === 'email') {
+        await api.post<any>(`/shared-finance/groups/${groupId}/members/add-by-email`, {
+          email: addMemberEmail.trim(),
+        });
+        Alert.alert('Member Added', `${addMemberEmail.trim()} has been added to the group.`);
+      } else {
+        await api.post<any>(`/shared-finance/groups/${groupId}/members/add-by-phone`, {
+          phone: `+91${addMemberPhone.trim()}`,
+        });
+        Alert.alert('Member Added', `Member with phone +91${addMemberPhone.trim()} has been added to the group.`);
+      }
       setAddMemberModalVisible(false);
       setAddMemberEmail('');
-      Alert.alert('Member Added', `${addMemberEmail.trim()} has been added to the group. They can see the group when they log in.`);
+      setAddMemberPhone('');
       loadData(true);
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to add member');
@@ -1378,34 +1388,75 @@ export function SharedGroupDetailScreen() {
         >
           <View style={[s.modalContent, { backgroundColor: colors.bg.secondary }]}>
             <Text style={[s.modalTitle, { color: colors.text.primary }]}>Add Member</Text>
-            <Text style={[s.modalDesc, { color: colors.text.tertiary }]}>
-              Enter their email to generate an invite link
-            </Text>
 
-            <Text style={[s.fieldLabel, { color: colors.text.secondary }]}>Email Address</Text>
-            <TextInput
-              style={[
-                s.textInput,
-                {
-                  backgroundColor: colors.bg.tertiary,
-                  color: colors.text.primary,
-                  borderColor: colors.border.subtle,
-                },
-              ]}
-              value={addMemberEmail}
-              onChangeText={setAddMemberEmail}
-              placeholder="friend@email.com"
-              placeholderTextColor={colors.text.tertiary}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoFocus
-            />
+            <View style={{ flexDirection: 'row', marginBottom: 14, gap: 8 }}>
+              <TouchableOpacity
+                style={[s.tabChip, addMemberMode === 'email' && { backgroundColor: colors.accent.primary }]}
+                onPress={() => setAddMemberMode('email')}
+              >
+                <Text style={{ color: addMemberMode === 'email' ? '#FFF' : colors.text.secondary, fontSize: 13, fontWeight: '600' }}>Email</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[s.tabChip, addMemberMode === 'phone' && { backgroundColor: colors.accent.primary }]}
+                onPress={() => setAddMemberMode('phone')}
+              >
+                <Text style={{ color: addMemberMode === 'phone' ? '#FFF' : colors.text.secondary, fontSize: 13, fontWeight: '600' }}>Phone</Text>
+              </TouchableOpacity>
+            </View>
+
+            {addMemberMode === 'email' ? (
+              <>
+                <Text style={[s.fieldLabel, { color: colors.text.secondary }]}>Email Address</Text>
+                <TextInput
+                  style={[
+                    s.textInput,
+                    {
+                      backgroundColor: colors.bg.tertiary,
+                      color: colors.text.primary,
+                      borderColor: colors.border.subtle,
+                    },
+                  ]}
+                  value={addMemberEmail}
+                  onChangeText={setAddMemberEmail}
+                  placeholder="friend@email.com"
+                  placeholderTextColor={colors.text.tertiary}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoFocus={addMemberMode === 'email'}
+                />
+              </>
+            ) : (
+              <>
+                <Text style={[s.fieldLabel, { color: colors.text.secondary }]}>Phone Number</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={{ color: colors.text.secondary, fontSize: 16 }}>+91</Text>
+                  <TextInput
+                    style={[
+                      s.textInput,
+                      {
+                        backgroundColor: colors.bg.tertiary,
+                        color: colors.text.primary,
+                        borderColor: colors.border.subtle,
+                        flex: 1,
+                      },
+                    ]}
+                    value={addMemberPhone}
+                    onChangeText={(t) => setAddMemberPhone(t.replace(/[^0-9]/g, '').slice(0, 10))}
+                    placeholder="9876543210"
+                    placeholderTextColor={colors.text.tertiary}
+                    keyboardType="phone-pad"
+                    maxLength={10}
+                    autoFocus={addMemberMode === 'phone'}
+                  />
+                </View>
+              </>
+            )}
 
             <View style={s.modalActions}>
               <TouchableOpacity
                 style={[s.modalBtn, { backgroundColor: colors.accent.primary }]}
                 onPress={handleAddMember}
-                disabled={addMemberLoading || !addMemberEmail.trim()}
+                disabled={addMemberLoading || (addMemberMode === 'email' ? !addMemberEmail.trim() : !addMemberPhone.trim())}
               >
                 {addMemberLoading ? (
                   <ActivityIndicator size="small" color="#FFF" />
@@ -1801,5 +1852,10 @@ const s = StyleSheet.create({
   contBarFill: {
     height: 4,
     borderRadius: 2,
+  },
+  tabChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 16,
   },
 });

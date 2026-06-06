@@ -12,7 +12,12 @@
           "package_name": "app.dabbu.mobile"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "407187036002-f25f6fvjurlbqrf1u5vckkob2or1n9mg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCVUH7agY1SjqhynNhT67TGoJoNI_GB29c"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "407187036002-f25f6fvjurlbqrf1u5vckkob2or1n9mg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

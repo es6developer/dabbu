@@ -8,6 +8,7 @@ export class CreateExpenseGroupDto {
   @ApiPropertyOptional({ default: 'INR' }) @IsOptional() @IsString() currency?: string;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) monthlyBudget?: number;
   @ApiPropertyOptional() @IsOptional() @IsArray() @IsString({ each: true }) memberEmails?: string[];
+  @ApiPropertyOptional() @IsOptional() @IsArray() @IsString({ each: true }) memberPhones?: string[];
 }
 
 export class UpdateExpenseGroupDto {
@@ -20,6 +21,12 @@ export class UpdateExpenseGroupDto {
 
 export class AddMemberDto {
   @ApiProperty() @IsString() email: string;
+}
+
+export class AddMemberByPhoneDto {
+  @ApiProperty({ example: '+919876543210' })
+  @IsString()
+  phone: string;
 }
 
 export class UpdateMemberRoleDto {

@@ -55,6 +55,17 @@ export class ExpenseGroupsService {
     return { ...PLAN_LIMITS.free, tier: 'free' };
   }
 
+  private addExpiryInfo(group: any) {
+    const createdAt = group.createdAt ? new Date(group.createdAt) : new Date();
+    const expiresAt = new Date(createdAt);
+    expiresAt.setMonth(expiresAt.getMonth() + 1);
+    return {
+      ...group,
+      expiresAt: expiresAt.toISOString(),
+      isExpired: new Date() > expiresAt,
+    };
+  }
+
   async create(userId: string, dto: CreateExpenseGroupDto) {
     const plan = await this.getUserPlan(userId);
 
@@ -96,6 +107,23 @@ export class ExpenseGroupsService {
       }
     }
 
+    if (dto.memberPhones?.length) {
+      const users = await this.prisma.user.findMany({
+        where: { phone: { in: dto.memberPhones }, isActive: true },
+      });
+      for (const u of users) {
+        if (u.id !== userId) {
+          const currentMembers = data.members.create.length;
+          if (currentMembers >= plan.maxMembersPerGroup) {
+            throw new BadRequestException(
+              `Free plan allows max ${plan.maxMembersPerGroup} members per group. Upgrade to Premium for up to ${PLAN_LIMITS.premium.maxMembersPerGroup} members or Gold for unlimited.`,
+            );
+          }
+          data.members.create.push({ userId: u.id, role: 'member' });
+        }
+      }
+    }
+
     const group = await this.prisma.expenseGroup.create({
       data,
       include: {
@@ -110,7 +138,7 @@ export class ExpenseGroupsService {
     });
 
     this.logger.log(`Expense group created: ${group.name}`);
-    return { data: group };
+    return { data: this.addExpiryInfo(group) };
   }
 
   async findAll(userId: string) {
@@ -127,7 +155,7 @@ export class ExpenseGroupsService {
       orderBy: { addedAt: 'desc' },
     });
     const groups = memberships.map((m) => ({
-      ...m.group,
+      ...this.addExpiryInfo(m.group),
       _plan: {
         tier: plan.tier,
         maxGroups: plan.maxGroups,
@@ -158,7 +186,7 @@ export class ExpenseGroupsService {
     this.validateMember(group, userId);
     return {
       data: {
-        ...group,
+        ...this.addExpiryInfo(group),
         _plan: {
           tier: plan.tier,
           maxGroups: plan.maxGroups,
@@ -227,6 +255,49 @@ export class ExpenseGroupsService {
       include: {
         user: {
           select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true },
+        },
+      },
+    });
+
+    await this.notifyMemberAdded(userId, user.id, group.name, id).catch((error) => {
+      this.logger.warn(`Failed to notify added group member: ${error.message}`);
+    });
+
+    return { data: member };
+  }
+
+  async addMemberByPhone(id: string, userId: string, phone: string) {
+    const group = await this.findGroupOrThrow(id);
+    this.validateAdmin(group, userId);
+
+    const plan = await this.getUserPlan(userId);
+
+    const memberCount = await this.prisma.expenseGroupMember.count({ where: { groupId: id } });
+    if (memberCount >= plan.maxMembersPerGroup) {
+      throw new BadRequestException(
+        `Plan allows max ${plan.maxMembersPerGroup} members per group. Upgrade to Premium for up to ${PLAN_LIMITS.premium.maxMembersPerGroup} members or Gold for unlimited.`,
+      );
+    }
+
+    const user = await this.prisma.user.findFirst({
+      where: { phone, isActive: true },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found with this phone number');
+    }
+
+    const existing = await this.prisma.expenseGroupMember.findUnique({
+      where: { groupId_userId: { groupId: id, userId: user.id } },
+    });
+    if (existing) {
+      throw new ConflictException('User is already a member');
+    }
+
+    const member = await this.prisma.expenseGroupMember.create({
+      data: { groupId: id, userId: user.id, role: 'member' },
+      include: {
+        user: {
+          select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true, phone: true },
         },
       },
     });

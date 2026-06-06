@@ -28,6 +28,7 @@ interface PremiumFormScreenProps {
   closeIcon?: IconName;
   onClose?: () => void;
   contentStyle?: ViewStyle;
+  hideClose?: boolean;
 }
 
 export function PremiumFormScreen({
@@ -40,6 +41,7 @@ export function PremiumFormScreen({
   closeIcon = 'close',
   onClose,
   contentStyle,
+  hideClose,
 }: PremiumFormScreenProps) {
   const navigation = useNavigation<any>();
   const { colors, isDark } = useTheme();
@@ -59,19 +61,21 @@ export function PremiumFormScreen({
           style={StyleSheet.absoluteFill}
         />
         <View style={[styles.content, contentStyle]}>
-          <TouchableOpacity
-            onPress={onClose || (() => navigation.goBack())}
-            style={[
-              styles.closeButton,
-              {
-                backgroundColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(10,10,15,0.05)',
-                borderColor: colors.border.subtle,
-              },
-            ]}
-            activeOpacity={0.75}
-          >
-            <Ionicons name={closeIcon} size={21} color={colors.text.primary} />
-          </TouchableOpacity>
+          {!hideClose && (
+            <TouchableOpacity
+              onPress={onClose || (() => navigation.goBack())}
+              style={[
+                styles.closeButton,
+                {
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(10,10,15,0.05)',
+                  borderColor: colors.border.subtle,
+                },
+              ]}
+              activeOpacity={0.75}
+            >
+              <Ionicons name={closeIcon} size={21} color={colors.text.primary} />
+            </TouchableOpacity>
+          )}
 
           <LinearGradient
             colors={[gradient[0], gradient[1]]}

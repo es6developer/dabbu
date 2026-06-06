@@ -58,6 +58,7 @@ export function CreateSharedGroupScreen() {
   const [description, setDescription] = useState('');
   const [icon, setIcon] = useState('people');
   const [partnerEmail, setPartnerEmail] = useState('');
+  const [partnerPhone, setPartnerPhone] = useState('');
   const [upiId, setUpiId] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -88,12 +89,20 @@ export function CreateSharedGroupScreen() {
       }
       const res = await api.post<any>('/shared-finance/groups', payload);
       const newGroupId = res?.id || res?._id;
-      if (type === 'Couple' && partnerEmail.trim() && newGroupId) {
-        await api
-          .post(`/shared-finance/groups/${newGroupId}/members/add-by-email`, {
-            email: partnerEmail.trim(),
-          })
-          .catch(() => {});
+      if (type === 'Couple' && newGroupId) {
+        if (partnerEmail.trim()) {
+          await api
+            .post(`/shared-finance/groups/${newGroupId}/members/add-by-email`, {
+              email: partnerEmail.trim(),
+            })
+            .catch(() => {});
+        } else if (partnerPhone.trim()) {
+          await api
+            .post(`/shared-finance/groups/${newGroupId}/members/add-by-phone`, {
+              phone: `+91${partnerPhone.trim()}`,
+            })
+            .catch(() => {});
+        }
       }
       if (newGroupId) {
         navigation.replace('SharedGroupDetail', {
@@ -228,6 +237,27 @@ export function CreateSharedGroupScreen() {
                 keyboardType="email-address"
                 autoCapitalize="none"
               />
+              <Text style={[s.label, { color: colors.text.tertiary, marginTop: 8 }]}>Or Partner Phone</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Text style={{ color: colors.text.secondary, fontSize: 16 }}>+91</Text>
+                <TextInput
+                  style={[
+                    s.input,
+                    {
+                      backgroundColor: colors.bg.tertiary,
+                      color: colors.text.primary,
+                      borderColor: colors.border.subtle,
+                      flex: 1,
+                    },
+                  ]}
+                  value={partnerPhone}
+                  onChangeText={(t) => setPartnerPhone(t.replace(/[^0-9]/g, '').slice(0, 10))}
+                  placeholder="9876543210"
+                  placeholderTextColor={colors.text.tertiary}
+                  keyboardType="phone-pad"
+                  maxLength={10}
+                />
+              </View>
             </>
           )}
 
