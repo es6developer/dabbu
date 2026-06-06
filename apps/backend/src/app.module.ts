@@ -10,6 +10,7 @@ import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
 import mailConfig from './config/mail.config';
+import aiConfig from './modules/ai/ai.config';
 
 // Database
 import { DatabaseModule } from './database/database.module';
@@ -46,13 +47,14 @@ import { GamificationModule } from './modules/gamification/gamification.module';
 import { ReferralModule } from './modules/referral/referral.module';
 import { UsersModule } from './modules/users/users.module';
 import { FriendsModule } from './modules/friends/friends.module';
+import { AiModule } from './modules/ai/ai.module';
 
 @Module({
   imports: [
     // ─── Configuration ─────────────────────────────
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, databaseConfig, jwtConfig, mailConfig],
+      load: [appConfig, databaseConfig, jwtConfig, mailConfig, aiConfig],
       envFilePath: ['.env', '.env.local'],
     }),
 
@@ -107,6 +109,7 @@ import { FriendsModule } from './modules/friends/friends.module';
     ExpenseGroupsModule,
     CurrencyModule,
     GoalsModule,
+    AiModule,
     SharedFinanceModule,
     SettlementsModule,
     UserPreferencesModule,

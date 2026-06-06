@@ -51,8 +51,11 @@ function fmtDate(d: string | null) {
 }
 
 function dayDiff(d: string) {
-  const diff = new Date(d).getTime() - Date.now();
-  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  const now = new Date();
+  const then = new Date(d);
+  const nowLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const thenLocal = new Date(then.getFullYear(), then.getMonth(), then.getDate());
+  return Math.ceil((thenLocal.getTime() - nowLocal.getTime()) / (1000 * 60 * 60 * 24));
 }
 
 export function DocumentVaultScreen() {
@@ -102,32 +105,30 @@ export function DocumentVaultScreen() {
   );
 
   const pickAndUpload = async () => {
-    const ImagePicker = await import('expo-image-picker');
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) {
-      Alert.alert('Permission Required', 'Camera roll access is needed to upload documents.');
-      return;
+    const DocumentPicker = await import('expo-document-picker');
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['image/*', 'application/pdf'],
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled || !result.assets?.length) {
+        return;
+      }
+
+      const asset = result.assets[0];
+      const ext = asset.name?.split('.').pop() || 'pdf';
+      const mimeType = asset.mimeType || `application/${ext === 'pdf' ? 'pdf' : 'octet-stream'}`;
+
+      navigation.navigate('DocumentDetail', {
+        mode: 'upload',
+        uri: asset.uri,
+        mimeType,
+        fileName: asset.name || `document.${ext}`,
+      });
+    } catch {
+      Alert.alert('Error', 'Failed to pick document');
     }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.8,
-    });
-
-    if (result.canceled || !result.assets?.length) {
-      return;
-    }
-
-    const asset = result.assets[0];
-    const ext = asset.fileName?.split('.').pop() || 'jpg';
-    const mimeType = `image/${ext === 'png' ? 'png' : 'jpeg'}`;
-
-    navigation.navigate('DocumentDetail', {
-      mode: 'upload',
-      uri: asset.uri,
-      mimeType,
-      fileName: asset.fileName || `document.${ext}`,
-    });
   };
 
   const uploadFromCamera = async () => {
@@ -292,6 +293,8 @@ export function DocumentVaultScreen() {
         renderItem={({ item }) => {
           const days = item.expiryDate ? dayDiff(item.expiryDate) : null;
           const isExpiring = days !== null && days >= 0 && days <= 30;
+          const isExpired = days !== null && days < 0;
+          const ext = (item.mimeType || '').split('/')[1] || '';
           return (
             <TouchableOpacity
               style={[s.docCard, { backgroundColor: colors.bg.secondary }]}
@@ -300,7 +303,11 @@ export function DocumentVaultScreen() {
             >
               <View style={[s.docIcon, { backgroundColor: `${colors.accent.primary}18` }]}>
                 <Ionicons
-                  name={(CATEGORY_ICONS[item.category] || 'document') as any}
+                  name={
+                    ext === 'pdf'
+                      ? 'document'
+                      : ((CATEGORY_ICONS[item.category] || 'document') as any)
+                  }
                   size={18}
                   color={colors.accent.primary}
                 />
@@ -312,17 +319,26 @@ export function DocumentVaultScreen() {
                 <Text style={[s.docMeta, { color: colors.text.tertiary }]}>
                   {CATEGORIES.find((c) => c.key === item.category)?.label || item.category}
                   {item.issuedDate ? ` · Issued ${fmtDate(item.issuedDate)}` : ''}
+                  {ext ? ` · ${ext.toUpperCase()}` : ''}
                 </Text>
                 {item.expiryDate && (
                   <Text
                     style={[
                       s.docExpiry,
-                      { color: isExpiring ? colors.status.warning : colors.text.tertiary },
+                      {
+                        color: isExpired
+                          ? colors.status.error
+                          : isExpiring
+                            ? colors.status.warning
+                            : colors.text.tertiary,
+                      },
                     ]}
                   >
-                    {isExpiring
-                      ? `Expires in ${days} day${days === 1 ? '' : 's'}`
-                      : `Expires ${fmtDate(item.expiryDate)}`}
+                    {isExpired
+                      ? `Expired ${fmtDate(item.expiryDate)}`
+                      : isExpiring
+                        ? `Expires in ${days} day${days === 1 ? '' : 's'}`
+                        : `Expires ${fmtDate(item.expiryDate)}`}
                   </Text>
                 )}
               </View>
@@ -358,7 +374,7 @@ export function DocumentVaultScreen() {
           activeOpacity={0.7}
           onPress={pickAndUpload}
         >
-          <Ionicons name="image-outline" size={22} color={colors.text.primary} />
+          <Ionicons name="document-outline" size={22} color={colors.text.primary} />
         </TouchableOpacity>
         <TouchableOpacity
           style={[s.fab, { backgroundColor: colors.accent.primary }]}

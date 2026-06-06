@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -124,80 +125,101 @@ export function HomeScreen() {
     }
   }, []);
 
-  useEffect(() => {
-    api
-      .get<any>('/premium/check')
-      .then((res) => {
-        if (res?.isPremium) {
-          setIsPremium(true);
+  const loadData = useCallback(
+    async (isRefresh = false) => {
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+      const signal = controller.signal;
+
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+
+      // Hydrate from cache instantly on non-refresh loads
+      if (!isRefresh) {
+        try {
+          const cached = await AsyncStorage.getItem('dashboard_cache');
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            setData(parsed);
+            fadeAnim.setValue(1);
+            setLoading(false);
+          }
+        } catch {
+          /* ignore cache read error */
         }
-      })
-      .catch(() => {});
-    api
-      .get<any>('/notifications')
-      .then((res) => {
-        const list = listFromResponse(res);
-        setUnreadNotifications(list.filter((n: any) => !n.read).length);
-      })
-      .catch(() => {});
-  }, []);
-
-  const loadData = useCallback(async () => {
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-    const signal = controller.signal;
-
-    if (accessToken) {
-      setAccessToken(accessToken);
-    }
-    fadeAnim.setValue(0);
-
-    try {
-      const results = await Promise.allSettled([
-        api.get<any>('/accounts/stats', signal),
-        api.get<any>('/transactions/stats', signal),
-        api.get<any>('/transactions/categories-summary?months=1', signal),
-        api.get<any>('/expense-groups', signal),
-        api.get<any>('/reminders', signal),
-        api.get<any>('/goals', signal),
-        api.get<any>('/shared-finance/groups', signal),
-        api.get<any>('/accounts/financial-health', signal),
-        api.get<any>('/accounts/smart-insights', signal),
-        api.get<any>('/accounts/subscriptions', signal),
-        api.get<any>('/gamification', signal),
-      ]);
-
-      if (signal.aborted) {
-        return;
       }
 
-      setData({
-        accountStats: valueFromResult(results[0], null),
-        transactionStats: valueFromResult(results[1], null),
-        categories: listFromResponse(valueFromResult(results[2], [])),
-        expenseGroups: listFromResponse(valueFromResult(results[3], [])),
-        reminders: listFromResponse(valueFromResult(results[4], [])),
-        goals: listFromResponse(valueFromResult(results[5], [])),
-        sharedGroups: listFromResponse(valueFromResult(results[6], [])),
-        financialHealth: valueFromResult(results[7], null),
-        smartInsights: listFromResponse(valueFromResult(results[8], [])),
-        subscriptionIntel: valueFromResult(results[9], null),
-        gamification: valueFromResult(results[10], null),
-      });
+      try {
+        const results = await Promise.allSettled([
+          api.get<any>('/accounts/stats', signal),
+          api.get<any>('/transactions/stats', signal),
+          api.get<any>('/transactions/categories-summary?months=1', signal),
+          api.get<any>('/expense-groups', signal),
+          api.get<any>('/reminders', signal),
+          api.get<any>('/goals', signal),
+          api.get<any>('/shared-finance/groups', signal),
+          api.get<any>('/accounts/financial-health', signal),
+          api.get<any>('/accounts/smart-insights', signal),
+          api.get<any>('/accounts/ai-insights', signal),
+          api.get<any>('/accounts/subscriptions', signal),
+          api.get<any>('/gamification', signal),
+          api.get<any>('/premium/check', signal),
+          api.get<any>('/notifications', signal),
+        ]);
 
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 320,
-        useNativeDriver: true,
-      }).start();
-    } finally {
-      if (!signal.aborted) {
-        setLoading(false);
-        setRefreshing(false);
+        if (signal.aborted) {
+          return;
+        }
+
+        const ruleInsights = listFromResponse(valueFromResult(results[8], []));
+        const aiInsights = listFromResponse(valueFromResult(results[9], []));
+
+        const freshData = {
+          accountStats: valueFromResult(results[0], null),
+          transactionStats: valueFromResult(results[1], null),
+          categories: listFromResponse(valueFromResult(results[2], [])),
+          expenseGroups: listFromResponse(valueFromResult(results[3], [])),
+          reminders: listFromResponse(valueFromResult(results[4], [])),
+          goals: listFromResponse(valueFromResult(results[5], [])),
+          sharedGroups: listFromResponse(valueFromResult(results[6], [])),
+          financialHealth: valueFromResult(results[7], null),
+          smartInsights: [
+            ...ruleInsights.map((i: any) => ({ ...i, source: 'rule' })),
+            ...aiInsights,
+          ].sort((a: any, b: any) => {
+            const order: Record<string, number> = { critical: 0, warning: 1, info: 2, success: 3 };
+            return (order[a.severity] ?? 2) - (order[b.severity] ?? 2);
+          }),
+          subscriptionIntel: valueFromResult(results[10], null),
+          gamification: valueFromResult(results[11], null),
+        };
+
+        const premiumRes = valueFromResult<any>(results[12], null);
+        setIsPremium(premiumRes?.isPremium ?? false);
+
+        const notifRes = listFromResponse(valueFromResult(results[13], []));
+        setUnreadNotifications(notifRes.filter((n: any) => !n.read).length);
+
+        setData(freshData);
+
+        AsyncStorage.setItem('dashboard_cache', JSON.stringify(freshData)).catch(() => {});
+
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 320,
+          useNativeDriver: true,
+        }).start();
+      } finally {
+        if (!signal.aborted) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
-    }
-  }, [accessToken, fadeAnim]);
+    },
+    [accessToken, fadeAnim],
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -316,7 +338,7 @@ export function HomeScreen() {
               refreshing={refreshing}
               onRefresh={() => {
                 setRefreshing(true);
-                loadData();
+                loadData(true);
               }}
               tintColor={colors.accent.primary}
             />
@@ -475,7 +497,12 @@ export function HomeScreen() {
             >
               <View style={styles.cardHeader}>
                 <View style={styles.cardHeaderLeft}>
-                  <View style={[styles.cardIcon, { backgroundColor: data.financialHealth.color + '18' }]}>
+                  <View
+                    style={[
+                      styles.cardIcon,
+                      { backgroundColor: data.financialHealth.color + '18' },
+                    ]}
+                  >
                     <Ionicons name="heart-circle" size={18} color={data.financialHealth.color} />
                   </View>
                   <Text style={[styles.cardTitle, { color: colors.text.primary }]}>
@@ -519,12 +546,20 @@ export function HomeScreen() {
                   <Text style={[styles.healthRecTitle, { color: colors.text.primary }]}>
                     Recommendations
                   </Text>
-                  {data.financialHealth.recommendations.slice(0, 2).map((rec: string, i: number) => (
-                    <View key={i} style={styles.recRow}>
-                      <Ionicons name="bulb-outline" size={14} color={data.financialHealth.color} />
-                      <Text style={[styles.recText, { color: colors.text.secondary }]}>{rec}</Text>
-                    </View>
-                  ))}
+                  {data.financialHealth.recommendations
+                    .slice(0, 2)
+                    .map((rec: string, i: number) => (
+                      <View key={i} style={styles.recRow}>
+                        <Ionicons
+                          name="bulb-outline"
+                          size={14}
+                          color={data.financialHealth.color}
+                        />
+                        <Text style={[styles.recText, { color: colors.text.secondary }]}>
+                          {rec}
+                        </Text>
+                      </View>
+                    ))}
                 </>
               )}
             </TouchableOpacity>
@@ -540,9 +575,13 @@ export function HomeScreen() {
                   </View>
                   <Text style={[styles.cardTitle, { color: colors.text.primary }]}>Insights</Text>
                 </View>
-                <Text style={[styles.cardMeta, { color: colors.text.tertiary }]}>
-                  {data.smartInsights.length}
-                </Text>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('AiInsights')}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                >
+                  <Ionicons name="sparkles" size={12} color="#8B5CF6" />
+                  <Text style={[styles.cardMeta, { color: '#8B5CF6' }]}>AI</Text>
+                </TouchableOpacity>
               </View>
               <ScrollView
                 horizontal
@@ -556,6 +595,7 @@ export function HomeScreen() {
                       : insight.severity === 'warning'
                         ? '#FDCB6E'
                         : '#00B894';
+                  const isAi = insight.source === 'ai';
                   return (
                     <TouchableOpacity
                       key={i}
@@ -565,9 +605,25 @@ export function HomeScreen() {
                       ]}
                       activeOpacity={0.7}
                     >
-                      <Text style={[styles.insightTitle, { color: colors.text.primary }]}>
-                        {insight.title}
-                      </Text>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          alignItems: 'flex-start',
+                        }}
+                      >
+                        <Text
+                          style={[styles.insightTitle, { color: colors.text.primary, flex: 1 }]}
+                        >
+                          {insight.title}
+                        </Text>
+                        {isAi && (
+                          <View style={[styles.aiBadge, { backgroundColor: '#8B5CF618' }]}>
+                            <Ionicons name="sparkles" size={10} color="#8B5CF6" />
+                            <Text style={styles.aiBadgeText}>AI</Text>
+                          </View>
+                        )}
+                      </View>
                       <Text
                         style={[styles.insightDesc, { color: colors.text.tertiary }]}
                         numberOfLines={2}
@@ -853,8 +909,17 @@ export function HomeScreen() {
                 <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
                   Start your financial journey
                 </Text>
-                <Text style={{ color: colors.text.tertiary, fontSize: 13, textAlign: 'center', marginTop: 4, marginBottom: 12 }}>
-                  Track your first expense and discover how Dabbu helps you understand your money better.
+                <Text
+                  style={{
+                    color: colors.text.tertiary,
+                    fontSize: 13,
+                    textAlign: 'center',
+                    marginTop: 4,
+                    marginBottom: 12,
+                  }}
+                >
+                  Track your first expense and discover how Dabbu helps you understand your money
+                  better.
                 </Text>
                 <TouchableOpacity
                   style={[styles.emptyBtn, { backgroundColor: colors.accent.primary }]}
@@ -1130,6 +1195,18 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   emptyBtnText: { color: '#FFF', fontSize: 13, fontWeight: '600' },
+
+  // AI Badge
+  aiBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    marginLeft: 6,
+  },
+  aiBadgeText: { fontSize: 9, fontWeight: '700', color: '#8B5CF6', letterSpacing: 0.5 },
 
   // FAB
   fab: {

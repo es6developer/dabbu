@@ -141,12 +141,25 @@ export function FamilyDashboardScreen() {
           />
         }
       >
-        <View style={{ paddingTop: insets.top + 8, paddingHorizontal: 20 }}>
+        <View
+          style={{
+            paddingTop: insets.top + 8,
+            paddingHorizontal: 20,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+          }}
+        >
           <TouchableOpacity
             onPress={() => navigation.goBack()}
             style={[s.backBtn, { backgroundColor: colors.bg.glassLight }]}
           >
             <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('SharedExpenseForm', { groupId })}
+            style={[s.backBtn, { backgroundColor: colors.bg.glassLight }]}
+          >
+            <Ionicons name="add" size={22} color={colors.accent.primary} />
           </TouchableOpacity>
         </View>
 
@@ -342,14 +355,6 @@ export function FamilyDashboardScreen() {
           </View>
         )}
       </ScrollView>
-
-      <TouchableOpacity
-        style={[s.fab, { backgroundColor: colors.accent.primary }]}
-        activeOpacity={0.85}
-        onPress={() => navigation.navigate('SharedExpenseForm', { groupId })}
-      >
-        <Ionicons name="add" size={26} color="#FFF" />
-      </TouchableOpacity>
     </View>
   );
 }
@@ -481,20 +486,5 @@ const s = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 12,
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 24,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
   },
 });

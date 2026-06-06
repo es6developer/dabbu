@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { createWorker, PSM, OEM } from 'tesseract.js';
 import sharp from 'sharp';
 
@@ -218,8 +218,27 @@ const CURRENCY_PATTERN =
   /(?:rs\.?\s*|inr\s*|₹\s*|\$\s*|total\s*:?\s*(?:rs\.?\s*|inr\s*|₹\s*)?)(\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?|\d+\.?\d{0,2})/i;
 
 @Injectable()
-export class BillScannerService {
+export class BillScannerService implements OnModuleInit {
   private readonly logger = new Logger(BillScannerService.name);
+  private trainedDataLoaded = false;
+
+  async onModuleInit() {
+    try {
+      this.logger.log('Pre-loading tesseract.js language data...');
+      const worker = await createWorker('eng', OEM.LSTM_ONLY, {
+        logger: () => {},
+        cachePath: '/tmp',
+        cacheMethod: 'readWrite',
+      });
+      await worker.terminate();
+      this.trainedDataLoaded = true;
+      this.logger.log('Tesseract language data loaded successfully');
+    } catch (err: any) {
+      this.logger.warn(
+        `Failed to pre-load tesseract data (will retry on first scan): ${err.message}`,
+      );
+    }
+  }
 
   async scanBill(base64Image: string, _mimeType: string = 'image/jpeg'): Promise<BillScanResult> {
     const imageData = base64Image.startsWith('data:') ? base64Image.split(',')[1] : base64Image;
@@ -227,29 +246,82 @@ export class BillScannerService {
 
     this.logger.log(`Scanning bill image (${Math.round(imageBuffer.length / 1024)} KB)`);
 
-    const result = await Promise.race([
-      this.runOcr(imageBuffer),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('OCR processing timed out after 110 seconds')), 110_000),
-      ),
-    ]);
+    try {
+      const result = await Promise.race([
+        this.runOcr(imageBuffer),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('OCR processing timed out')), 110_000),
+        ),
+      ]);
+      return result;
+    } catch (err: any) {
+      this.logger.error(`Bill scan failed: ${err.message}`);
+      return {
+        amount: 0,
+        merchant: '',
+        date: '',
+        description: '',
+        category: 'Other',
+        items: [],
+        confidence: 0,
+        rawText: err.message,
+      };
+    }
+  }
 
-    return result;
+  async checkHealth(): Promise<{
+    ok: boolean;
+    workerOk: boolean;
+    sharpOk: boolean;
+    preloaded: boolean;
+    message: string;
+  }> {
+    const health = {
+      ok: false,
+      workerOk: false,
+      sharpOk: false,
+      preloaded: this.trainedDataLoaded,
+      message: '',
+    };
+    try {
+      await sharp(
+        Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64'),
+      ).metadata();
+      health.sharpOk = true;
+    } catch (e: any) {
+      health.message = `sharp failed: ${e.message}`;
+      return health;
+    }
+    try {
+      const worker = await createWorker('eng', OEM.LSTM_ONLY, {
+        logger: () => {},
+        cachePath: '/tmp',
+        cacheMethod: 'readWrite',
+      });
+      await worker.terminate();
+      health.workerOk = true;
+      health.ok = true;
+      health.message = 'OCR ready';
+      health.preloaded = this.trainedDataLoaded;
+    } catch (e: any) {
+      health.message = `tesseract worker init failed: ${e.message}`;
+    }
+    return health;
   }
 
   private async runOcr(imageBuffer: Buffer): Promise<BillScanResult> {
     const variants = await this.createOcrVariants(imageBuffer);
 
     let ocrText = '';
-
-    const worker = await createWorker('eng', OEM.LSTM_ONLY, {
-      logger: () => {},
-      cachePath: '/tmp',
-      cacheMethod: 'readWrite',
-      corePath: undefined,
-    });
+    let worker: any = null;
 
     try {
+      worker = await createWorker('eng', OEM.LSTM_ONLY, {
+        logger: () => {},
+        cachePath: '/tmp',
+        cacheMethod: 'readWrite',
+      });
+
       await worker.setParameters({
         preserve_interword_spaces: '1',
         user_defined_dpi: '300',
@@ -276,8 +348,17 @@ export class BillScannerService {
           }
         }
       }
+    } catch (err: any) {
+      this.logger.error(`OCR processing error: ${err.message}`);
+      throw err;
     } finally {
-      await worker.terminate();
+      if (worker) {
+        try {
+          await worker.terminate();
+        } catch {
+          /* worker terminate may fail if already terminated */
+        }
+      }
     }
 
     if (!ocrText) {
@@ -319,13 +400,7 @@ export class BillScannerService {
         .png()
         .toBuffer();
 
-      const soft = await base
-        .clone()
-        .greyscale()
-        .normalise()
-        .sharpen(0.6)
-        .png()
-        .toBuffer();
+      const soft = await base.clone().greyscale().normalise().sharpen(0.6).png().toBuffer();
 
       this.logger.log(
         `Prepared OCR variants ${origWidth}->${targetWidth}px: high=${Math.round(highContrast.length / 1024)}KB threshold=${Math.round(threshold.length / 1024)}KB soft=${Math.round(soft.length / 1024)}KB`,
@@ -348,8 +423,13 @@ export class BillScannerService {
       return 0;
     }
 
-    const lines = normalized.split('\n').map((l) => l.trim()).filter(Boolean);
-    const amountSignals = (normalized.match(/\b(total|amount|payable|net|grand|paid|balance|rs|inr)\b/gi) || []).length;
+    const lines = normalized
+      .split('\n')
+      .map((l) => l.trim())
+      .filter(Boolean);
+    const amountSignals = (
+      normalized.match(/\b(total|amount|payable|net|grand|paid|balance|rs|inr)\b/gi) || []
+    ).length;
     const numericSignals = (normalized.match(/\d+[,.]?\d*/g) || []).length;
     const alphaSignals = (normalized.match(/[a-zA-Z]{3,}/g) || []).length;
 
@@ -623,7 +703,9 @@ export class BillScannerService {
       if (match) {
         const val = parseFloat(match[1].replace(/,/g, ''));
         if (!isNaN(val) && val > 0 && val < 9999999 && !this.looksLikePhone(val)) {
-          const priority = /grand|net|payable|due|paid|bill|total amount|amount payable/i.test(label)
+          const priority = /grand|net|payable|due|paid|bill|total amount|amount payable/i.test(
+            label,
+          )
             ? 18
             : /subtotal|sub total/i.test(label)
               ? 7

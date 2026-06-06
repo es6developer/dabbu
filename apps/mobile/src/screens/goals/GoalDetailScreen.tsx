@@ -10,6 +10,8 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -45,17 +47,29 @@ function fmt(v: number) {
 }
 
 function daysRemaining(dateStr: string | null): number | null {
-  if (!dateStr) {return null;}
+  if (!dateStr) {
+    return null;
+  }
   const diff = new Date(dateStr).getTime() - Date.now();
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 
 function getMotivationalTagline(pct: number): string {
-  if (pct >= 100) {return 'Goal complete! Amazing work!';}
-  if (pct >= 75) {return 'So close! The final stretch!';}
-  if (pct >= 50) {return 'Halfway there! Keep crushing it!';}
-  if (pct >= 25) {return 'Quarter way there! You\'ve got this';}
-  if (pct > 0) {return 'Building momentum — keep going!';}
+  if (pct >= 100) {
+    return 'Goal complete! Amazing work!';
+  }
+  if (pct >= 75) {
+    return 'So close! The final stretch!';
+  }
+  if (pct >= 50) {
+    return 'Halfway there! Keep crushing it!';
+  }
+  if (pct >= 25) {
+    return "Quarter way there! You've got this";
+  }
+  if (pct > 0) {
+    return 'Building momentum — keep going!';
+  }
   return 'Every journey begins with a single step';
 }
 
@@ -216,81 +230,98 @@ function QuickContributeModal({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={onClose}>
-        <TouchableOpacity activeOpacity={1} onPress={() => {}}>
-          <Animated.View
-            style={[
-              s.modalContent,
-              {
-                backgroundColor: colors.bg.secondary,
-                transform: [
-                  {
-                    translateY: slideAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [300, 0],
-                    }),
-                  },
-                ],
-              },
-            ]}
-          >
-            <View style={s.modalHandle}>
-              <View style={[s.handleBar, { backgroundColor: colors.border.default }]} />
-            </View>
-            <Text style={[typography.h3, { color: colors.text.primary }]}>Add to {goalName}</Text>
-            <View
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 0}
+      >
+        <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={onClose}>
+          <TouchableOpacity activeOpacity={1} onPress={() => {}}>
+            <Animated.View
               style={[
-                s.amountRow,
+                s.modalContent,
                 {
-                  backgroundColor: colors.bg.tertiary,
-                  borderColor: colors.border.subtle,
-                  marginTop: 20,
+                  backgroundColor: colors.bg.secondary,
+                  transform: [
+                    {
+                      translateY: slideAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [300, 0],
+                      }),
+                    },
+                  ],
                 },
               ]}
             >
-              <Text style={[typography.h2, { color: colors.text.secondary }]}>₹</Text>
-              <TextInput
-                style={[s.amountInput, { color: colors.text.primary }]}
-                value={amount}
-                onChangeText={setAmount}
-                placeholder="500"
-                placeholderTextColor={colors.text.tertiary}
-                keyboardType="number-pad"
-                autoFocus
-              />
-            </View>
-            <View style={s.quickAmountRow}>
-              {quickAmounts.map((qa) => (
-                <TouchableOpacity
-                  key={qa}
-                  style={[s.quickChip, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle }]}
-                  onPress={() => setAmount(String(qa))}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[typography.callout, { color: colors.text.secondary, fontWeight: '600' }]}>
-                    {fmt(qa)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            <TouchableOpacity
-              style={[s.primaryBtn, { backgroundColor: colors.accent.primary, borderRadius: 14 }]}
-              onPress={handleSubmit}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="add-circle" size={20} color="#FFF" />
-              <Text style={[typography.button, { color: '#FFF' }]}>Add Amount</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[s.secondaryBtn, { backgroundColor: colors.bg.tertiary, borderRadius: 14, marginTop: 10 }]}
-              onPress={onClose}
-              activeOpacity={0.7}
-            >
-              <Text style={[typography.button, { color: colors.text.secondary }]}>Cancel</Text>
-            </TouchableOpacity>
-          </Animated.View>
+              <View style={s.modalHandle}>
+                <View style={[s.handleBar, { backgroundColor: colors.border.default }]} />
+              </View>
+              <Text style={[typography.h3, { color: colors.text.primary }]}>Add to {goalName}</Text>
+              <View
+                style={[
+                  s.amountRow,
+                  {
+                    backgroundColor: colors.bg.tertiary,
+                    borderColor: colors.border.subtle,
+                    marginTop: 20,
+                  },
+                ]}
+              >
+                <Text style={[typography.h2, { color: colors.text.secondary }]}>₹</Text>
+                <TextInput
+                  style={[s.amountInput, { color: colors.text.primary }]}
+                  value={amount}
+                  onChangeText={setAmount}
+                  placeholder="500"
+                  placeholderTextColor={colors.text.tertiary}
+                  keyboardType="number-pad"
+                  autoFocus
+                />
+              </View>
+              <View style={s.quickAmountRow}>
+                {quickAmounts.map((qa) => (
+                  <TouchableOpacity
+                    key={qa}
+                    style={[
+                      s.quickChip,
+                      { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+                    ]}
+                    onPress={() => setAmount(String(qa))}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        typography.callout,
+                        { color: colors.text.secondary, fontWeight: '600' },
+                      ]}
+                    >
+                      {fmt(qa)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <TouchableOpacity
+                style={[s.primaryBtn, { backgroundColor: colors.accent.primary, borderRadius: 14 }]}
+                onPress={handleSubmit}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="add-circle" size={20} color="#FFF" />
+                <Text style={[typography.button, { color: '#FFF' }]}>Add Amount</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  s.secondaryBtn,
+                  { backgroundColor: colors.bg.tertiary, borderRadius: 14, marginTop: 10 },
+                ]}
+                onPress={onClose}
+                activeOpacity={0.7}
+              >
+                <Text style={[typography.button, { color: colors.text.secondary }]}>Cancel</Text>
+              </TouchableOpacity>
+            </Animated.View>
+          </TouchableOpacity>
         </TouchableOpacity>
-      </TouchableOpacity>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -339,7 +370,9 @@ export function GoalDetailScreen() {
 
   const loadGoal = useCallback(async () => {
     try {
-      if (accessToken) {setAccessToken(accessToken);}
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
       const res = await api.get<any>(`/goals/${goalId}`);
       setGoal(res);
     } catch {
@@ -383,12 +416,14 @@ export function GoalDetailScreen() {
   const estMonths = monthlyContrib > 0 ? Math.ceil(remaining / monthlyContrib) : 0;
   const estDate = new Date();
   estDate.setMonth(estDate.getMonth() + estMonths);
-  const estLabel = monthlyContrib > 0
-    ? `Est. completion: ${estDate.toLocaleString('en-US', { month: 'long', year: 'numeric' })}`
-    : null;
-  const suggestedMonthly = deadline && remaining > 0 && daysLeft && daysLeft > 0
-    ? Math.ceil(remaining / (daysLeft / 30))
-    : 0;
+  const estLabel =
+    monthlyContrib > 0
+      ? `Est. completion: ${estDate.toLocaleString('en-US', { month: 'long', year: 'numeric' })}`
+      : null;
+  const suggestedMonthly =
+    deadline && remaining > 0 && daysLeft && daysLeft > 0
+      ? Math.ceil(remaining / (daysLeft / 30))
+      : 0;
 
   const milestoneDates: Record<number, string | null> = {};
   if (goal?.milestoneDates) {
@@ -408,7 +443,9 @@ export function GoalDetailScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              if (accessToken) {setAccessToken(accessToken);}
+              if (accessToken) {
+                setAccessToken(accessToken);
+              }
               await api.delete(`/goals/${goalId}`);
               navigation.goBack();
             } catch {
@@ -423,7 +460,9 @@ export function GoalDetailScreen() {
   const handleContribute = async (amount: number) => {
     setContributing(true);
     try {
-      if (accessToken) {setAccessToken(accessToken);}
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
       const updated = await api.post<any>(`/goals/${goalId}/contribute`, { amount });
       setGoal(updated);
       setShowContribute(false);
@@ -434,8 +473,12 @@ export function GoalDetailScreen() {
     }
   };
 
-  if (loading) {return <GoalDetailSkeleton />;}
-  if (!goal) {return null;}
+  if (loading) {
+    return <GoalDetailSkeleton />;
+  }
+  if (!goal) {
+    return null;
+  }
 
   return (
     <BaseScreen noPadding>
@@ -471,11 +514,14 @@ export function GoalDetailScreen() {
               <View style={[s.goalIconCircle, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
                 <Ionicons name={(config.icon || 'trophy') as any} size={36} color="#FFF" />
               </View>
-              <Text style={[typography.h1, { color: '#FFF', marginTop: sp.md }]}>
-                {goal.name}
-              </Text>
+              <Text style={[typography.h1, { color: '#FFF', marginTop: sp.md }]}>{goal.name}</Text>
               <View style={[s.typeBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-                <Text style={[typography.footnote, { color: '#FFF', fontWeight: '700', textTransform: 'capitalize' }]}>
+                <Text
+                  style={[
+                    typography.footnote,
+                    { color: '#FFF', fontWeight: '700', textTransform: 'capitalize' },
+                  ]}
+                >
                   {goal.type || 'custom'}
                 </Text>
               </View>
@@ -508,7 +554,13 @@ export function GoalDetailScreen() {
             },
           ]}
         >
-          <ProgressRing size={160} progress={pct} strokeWidth={10} color={config.color} trackColor={colors.bg.tertiary}>
+          <ProgressRing
+            size={160}
+            progress={pct}
+            strokeWidth={10}
+            color={config.color}
+            trackColor={colors.bg.tertiary}
+          >
             <Text style={[typography.dashboardMetric, { color: config.color, fontSize: 32 }]}>
               {Math.round(pct)}%
             </Text>
@@ -535,7 +587,12 @@ export function GoalDetailScreen() {
             },
           ]}
         >
-          <View style={[s.statCard, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}>
+          <View
+            style={[
+              s.statCard,
+              { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+            ]}
+          >
             <View style={[s.statIconWrap, { backgroundColor: colors.status.successLight }]}>
               <Ionicons name="wallet-outline" size={18} color={colors.status.success} />
             </View>
@@ -544,7 +601,12 @@ export function GoalDetailScreen() {
             </Text>
             <Text style={[typography.caption, { color: colors.text.tertiary }]}>Saved</Text>
           </View>
-          <View style={[s.statCard, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}>
+          <View
+            style={[
+              s.statCard,
+              { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+            ]}
+          >
             <View style={[s.statIconWrap, { backgroundColor: colors.status.warningLight }]}>
               <Ionicons name="trending-up-outline" size={18} color={colors.status.warning} />
             </View>
@@ -553,7 +615,12 @@ export function GoalDetailScreen() {
             </Text>
             <Text style={[typography.caption, { color: colors.text.tertiary }]}>Remaining</Text>
           </View>
-          <View style={[s.statCard, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}>
+          <View
+            style={[
+              s.statCard,
+              { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+            ]}
+          >
             <View style={[s.statIconWrap, { backgroundColor: colors.status.infoLight }]}>
               <Ionicons name="repeat-outline" size={18} color={colors.status.info} />
             </View>
@@ -591,24 +658,41 @@ export function GoalDetailScreen() {
             <View style={{ flex: 1 }}>
               {estLabel ? (
                 <>
-                  <Text style={[typography.callout, { color: colors.text.primary, fontWeight: '600' }]}>
+                  <Text
+                    style={[typography.callout, { color: colors.text.primary, fontWeight: '600' }]}
+                  >
                     {estLabel}
                   </Text>
-                  <Text style={[typography.footnote, { color: colors.text.tertiary, marginTop: 2 }]}>
-                    {estMonths === 1 ? '1 month' : `${estMonths} months`} at {fmt(monthlyContrib)}/mo
+                  <Text
+                    style={[typography.footnote, { color: colors.text.tertiary, marginTop: 2 }]}
+                  >
+                    {estMonths === 1 ? '1 month' : `${estMonths} months`} at {fmt(monthlyContrib)}
+                    /mo
                   </Text>
                 </>
               ) : suggestedMonthly > 0 ? (
                 <>
-                  <Text style={[typography.callout, { color: colors.text.primary, fontWeight: '600' }]}>
+                  <Text
+                    style={[typography.callout, { color: colors.text.primary, fontWeight: '600' }]}
+                  >
                     Save {fmt(suggestedMonthly)}/month
                   </Text>
-                  <Text style={[typography.footnote, { color: colors.text.tertiary, marginTop: 2 }]}>
-                    to finish by {deadline ? new Date(deadline).toLocaleString('en-US', { month: 'long', year: 'numeric' }) : 'target date'}
+                  <Text
+                    style={[typography.footnote, { color: colors.text.tertiary, marginTop: 2 }]}
+                  >
+                    to finish by{' '}
+                    {deadline
+                      ? new Date(deadline).toLocaleString('en-US', {
+                          month: 'long',
+                          year: 'numeric',
+                        })
+                      : 'target date'}
                   </Text>
                 </>
               ) : (
-                <Text style={[typography.callout, { color: colors.text.primary, fontWeight: '600' }]}>
+                <Text
+                  style={[typography.callout, { color: colors.text.primary, fontWeight: '600' }]}
+                >
                   Set a monthly contribution to track
                 </Text>
               )}
@@ -618,7 +702,12 @@ export function GoalDetailScreen() {
                 style={[
                   s.daysBadge,
                   {
-                    backgroundColor: daysLeft <= 0 ? colors.status.errorLight : daysLeft <= 30 ? colors.status.warningLight : colors.status.successLight,
+                    backgroundColor:
+                      daysLeft <= 0
+                        ? colors.status.errorLight
+                        : daysLeft <= 30
+                          ? colors.status.warningLight
+                          : colors.status.successLight,
                   },
                 ]}
               >
@@ -627,7 +716,12 @@ export function GoalDetailScreen() {
                     typography.footnote,
                     {
                       fontWeight: '700',
-                      color: daysLeft <= 0 ? colors.status.error : daysLeft <= 30 ? colors.status.warning : colors.status.success,
+                      color:
+                        daysLeft <= 0
+                          ? colors.status.error
+                          : daysLeft <= 30
+                            ? colors.status.warning
+                            : colors.status.success,
                     },
                   ]}
                 >
@@ -683,13 +777,25 @@ export function GoalDetailScreen() {
                       )}
                     </View>
                     <View style={s.timelineLabel}>
-                      <Text style={[typography.callout, { color: reached ? config.color : colors.text.secondary, fontWeight: '600' }]}>
+                      <Text
+                        style={[
+                          typography.callout,
+                          {
+                            color: reached ? config.color : colors.text.secondary,
+                            fontWeight: '600',
+                          },
+                        ]}
+                      >
                         {m}%
                       </Text>
-                      <Text style={[typography.caption, { color: colors.text.tertiary, marginTop: 1 }]}>
+                      <Text
+                        style={[typography.caption, { color: colors.text.tertiary, marginTop: 1 }]}
+                      >
                         {reached
                           ? milestoneDates[m] || 'Reached'
-                          : m === 100 ? 'Goal complete' : 'In progress'}
+                          : m === 100
+                            ? 'Goal complete'
+                            : 'In progress'}
                       </Text>
                     </View>
                   </View>

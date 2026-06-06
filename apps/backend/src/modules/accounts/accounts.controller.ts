@@ -1,6 +1,4 @@
-import {
-  Controller, Get, Patch, Delete, Body, Param, UseGuards, Query,
-} from '@nestjs/common';
+import { Controller, Get, Patch, Delete, Body, Param, UseGuards, Query } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { AccountsService } from './accounts.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -47,6 +45,13 @@ export class AccountsController {
     return { data: insights };
   }
 
+  @Get('ai-insights')
+  @ApiOperation({ summary: 'Get AI-enhanced spending insights across all sections' })
+  async getAiInsights(@CurrentUser('id') userId: string) {
+    const insights = await this.accountsService.getAiSmartInsights(userId);
+    return { data: insights };
+  }
+
   @Get('subscriptions')
   @ApiOperation({ summary: 'Get subscription intelligence report' })
   async getSubscriptionIntelligence(@CurrentUser('id') userId: string) {
@@ -62,10 +67,7 @@ export class AccountsController {
 
   @Get('trends')
   @ApiOperation({ summary: 'Get monthly income/expense trends' })
-  async getMonthlyTrends(
-    @CurrentUser('id') userId: string,
-    @Query('months') months?: number,
-  ) {
+  async getMonthlyTrends(@CurrentUser('id') userId: string, @Query('months') months?: number) {
     const trends = await this.accountsService.getMonthlyTrends(userId, months || 6);
     return { data: trends };
   }

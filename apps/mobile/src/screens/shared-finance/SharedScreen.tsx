@@ -48,7 +48,6 @@ export function SharedScreen() {
   const { trackScreen, trackFeature } = useAnalytics();
 
   const [groups, setGroups] = useState<any[]>([]);
-  const [expenseGroups, setExpenseGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -57,16 +56,8 @@ export function SharedScreen() {
       setAccessToken(accessToken);
     }
     try {
-      const [sharedRes, expenseRes] = await Promise.allSettled([
-        api.get<any>('/shared-finance/groups'),
-        api.get<any>('/expense-groups'),
-      ]);
-      if (sharedRes.status === 'fulfilled') {
-        setGroups(listFromResponse(sharedRes.value));
-      }
-      if (expenseRes.status === 'fulfilled') {
-        setExpenseGroups(listFromResponse(expenseRes.value));
-      }
+      const sharedRes = await api.get<any>('/shared-finance/groups');
+      setGroups(listFromResponse(sharedRes));
     } catch {
       /* ignore */
     } finally {
@@ -139,7 +130,7 @@ export function SharedScreen() {
               <SkeletonCard key={i} style={{ height: i === 1 ? 160 : 100 }} />
             ))}
           </View>
-        ) : groups.length === 0 && expenseGroups.length === 0 ? (
+        ) : groups.length === 0 ? (
           <View style={styles.emptyState}>
             <LinearGradient
               colors={['#5B5FE8', '#8B5CF6']}
@@ -261,46 +252,6 @@ export function SharedScreen() {
                     );
                   })}
                 </ScrollView>
-              </View>
-            )}
-
-            {/* Expense Spaces */}
-            {expenseGroups.length > 0 && (
-              <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
-                <Text style={[styles.sectionLabel, { color: colors.text.tertiary }]}>
-                  Expense Spaces
-                </Text>
-                <View style={{ gap: 10, marginTop: 8 }}>
-                  {expenseGroups.slice(0, 5).map((space) => {
-                    const color = typeColors[space.type] || colors.accent.primary;
-                    return (
-                      <TouchableOpacity
-                        key={space.id}
-                        style={[styles.groupCard, { backgroundColor: colors.bg.secondary }]}
-                        activeOpacity={0.7}
-                        onPress={() =>
-                          navigation.navigate('Accounts', {
-                            screen: 'GroupExpenses',
-                            params: { groupId: space.id },
-                          })
-                        }
-                      >
-                        <View style={[styles.spaceIcon, { backgroundColor: `${color}18` }]}>
-                          <Ionicons name="layers" size={20} color={color} />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                          <Text style={[styles.groupName, { color: colors.text.primary }]}>
-                            {space.name}
-                          </Text>
-                          <Text style={[styles.groupType, { color: colors.text.tertiary }]}>
-                            {moneyFormat(space.totalAmount || space.balance || 0)}
-                          </Text>
-                        </View>
-                        <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
               </View>
             )}
 

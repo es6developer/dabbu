@@ -33,6 +33,7 @@
     "expo-contacts": "~12.8.2",
     "expo-crypto": "~12.8.0",
     "expo-device": "~5.9.4",
+    "expo-document-picker": "56.0.4",
     "expo-file-system": "~16.0.9",
     "expo-font": "~11.10.0",
     "expo-haptics": "~12.8.0",

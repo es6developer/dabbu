@@ -205,17 +205,26 @@ export function BillScannerScreen() {
       form.append('file', { uri, name: fileName, type: mimeType });
 
       const res = await api.post<any>('/transactions/scan-bill', form as any, undefined, 120_000);
-      if (res && res.amount) {
+      if (res && res.rawText && res.rawText !== 'NO TEXT EXTRACTED') {
+        navigation.navigate('CreateTransaction', {
+          prefill: {
+            amount: res.amount || 0,
+            description: res.merchant || res.description || '',
+            categoryName: res.category || 'Other',
+            date: res.date || new Date().toISOString().split('T')[0],
+          },
+        });
+      } else if (res && res.amount > 0) {
         navigation.navigate('CreateTransaction', {
           prefill: {
             amount: res.amount,
-            description: res.merchant || res.description,
-            categoryName: res.category,
+            description: res.merchant || res.description || '',
+            categoryName: res.category || 'Other',
             date: res.date || new Date().toISOString().split('T')[0],
           },
         });
       } else {
-        throw new Error('Invalid response from server');
+        throw new Error('Could not read the bill. Please try a clearer photo.');
       }
     } catch (e: any) {
       const msg = e.message || 'Could not scan the bill.';

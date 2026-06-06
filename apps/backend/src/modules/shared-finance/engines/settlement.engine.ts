@@ -108,6 +108,7 @@ export class SettlementEngine {
 
     for (const expense of expenses) {
       const payerId = expense.paidBy;
+      const expenseAmount = Number(expense.amount) || 0;
       allUserIds.add(payerId);
 
       if (!balanceMap.has(payerId)) {
@@ -115,6 +116,7 @@ export class SettlementEngine {
       }
 
       const payerEntry = balanceMap.get(payerId)!;
+      payerEntry.paid += expenseAmount;
 
       if (expense.splits && Array.isArray(expense.splits)) {
         for (const split of expense.splits) {
@@ -128,21 +130,13 @@ export class SettlementEngine {
           const splitAmount = Number(split.amount) || 0;
           const splitEntry = balanceMap.get(splitUserId)!;
 
-          if (splitUserId === payerId) {
-            payerEntry.paid += splitAmount;
-          } else {
-            payerEntry.paid += splitAmount;
-            splitEntry.owes += splitAmount;
+          splitEntry.owes += splitAmount;
 
-            if (split.isPaid) {
-              const currentDebt = payerEntry.debts.get(splitUserId) || 0;
-              payerEntry.debts.set(splitUserId, currentDebt + splitAmount);
-            }
+          if (split.isPaid) {
+            const currentDebt = payerEntry.debts.get(splitUserId) || 0;
+            payerEntry.debts.set(splitUserId, currentDebt + splitAmount);
           }
         }
-      } else {
-        const amount = Number(expense.amount) || 0;
-        payerEntry.paid += amount;
       }
     }
 

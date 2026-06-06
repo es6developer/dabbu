@@ -1,9 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
-import { AccountInsightEngine, SpendingInsight, RecurringPattern } from './engine/account-insight.engine';
+import {
+  AccountInsightEngine,
+  SpendingInsight,
+  RecurringPattern,
+} from './engine/account-insight.engine';
 import { FinancialHealthEngine, HealthScoreResult } from './engine/financial-health.engine';
 import { SmartInsightsEngine, SmartInsight } from './engine/smart-insights.engine';
-import { SubscriptionIntelligenceEngine, SubscriptionIntelligence } from './engine/subscription-intelligence.engine';
+import {
+  SubscriptionIntelligenceEngine,
+  SubscriptionIntelligence,
+} from './engine/subscription-intelligence.engine';
+import { AiService } from '../ai/ai.service';
 
 @Injectable()
 export class AccountsService {
@@ -13,6 +21,7 @@ export class AccountsService {
     private readonly healthEngine: FinancialHealthEngine,
     private readonly smartInsightsEngine: SmartInsightsEngine,
     private readonly subscriptionEngine: SubscriptionIntelligenceEngine,
+    private readonly aiService: AiService,
   ) {}
 
   async getAccounts(userId: string): Promise<any[]> {
@@ -37,15 +46,23 @@ export class AccountsService {
       },
     });
 
-    if (!account) throw new NotFoundException('Account not found');
+    if (!account) {
+      throw new NotFoundException('Account not found');
+    }
     return account;
   }
 
-  async updateAccount(userId: string, accountId: string, data: { name?: string; type?: string; currency?: string; isActive?: boolean }) {
+  async updateAccount(
+    userId: string,
+    accountId: string,
+    data: { name?: string; type?: string; currency?: string; isActive?: boolean },
+  ) {
     const account = await this.prisma.account.findFirst({
       where: { id: accountId, userId, isDeleted: false },
     });
-    if (!account) throw new NotFoundException('Account not found');
+    if (!account) {
+      throw new NotFoundException('Account not found');
+    }
 
     return this.prisma.account.update({
       where: { id: accountId },
@@ -57,7 +74,9 @@ export class AccountsService {
     const account = await this.prisma.account.findFirst({
       where: { id: accountId, userId, isDeleted: false },
     });
-    if (!account) throw new NotFoundException('Account not found');
+    if (!account) {
+      throw new NotFoundException('Account not found');
+    }
 
     await this.prisma.account.update({
       where: { id: accountId },
@@ -132,6 +151,33 @@ export class AccountsService {
 
   async getSmartInsights(userId: string): Promise<SmartInsight[]> {
     return this.smartInsightsEngine.generate(userId);
+  }
+
+  async getAiSmartInsights(userId: string): Promise<any[]> {
+    const ruleInsights = await this.smartInsightsEngine.generate(userId);
+    const health = await this.healthEngine.calculate(userId);
+    const stats = await this.getAccountStats(userId);
+
+    const aiInsights = await this.aiService.generateInsights('dashboard', {
+      ruleInsights,
+      health: {
+        score: health?.score,
+        label: health?.label,
+        factors: health?.factors,
+      },
+      stats: {
+        monthlyIncome: stats.monthlyIncome,
+        monthlyExpense: stats.monthlyExpense,
+        totalBalance: stats.totalBalance,
+      },
+    });
+
+    const merged = [...ruleInsights.map((i) => ({ ...i, source: 'rule' })), ...aiInsights];
+
+    return merged.sort((a, b) => {
+      const order = { critical: 0, warning: 1, info: 2, success: 3 };
+      return (order[a.severity] ?? 2) - (order[b.severity] ?? 2);
+    });
   }
 
   async getSubscriptionIntelligence(userId: string): Promise<SubscriptionIntelligence> {

@@ -1,6 +1,18 @@
 import {
-  Controller, Get, Post, Patch, Delete, Body, Param, Query,
-  UseGuards, HttpCode, HttpStatus, UploadedFile, UseInterceptors, BadRequestException,
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+  UploadedFile,
+  UseInterceptors,
+  BadRequestException,
 } from '@nestjs/common';
 import * as multer from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -9,9 +21,7 @@ import { TransactionsService } from './transactions.service';
 import { BillScannerService } from './services/bill-scanner.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import {
-  CreateTransactionDto, UpdateTransactionDto, TransactionFilterDto,
-} from './dto';
+import { CreateTransactionDto, UpdateTransactionDto, TransactionFilterDto } from './dto';
 
 @ApiTags('Transactions')
 @ApiBearerAuth()
@@ -55,10 +65,7 @@ export class TransactionsController {
 
   @Get('monthly-summary')
   @ApiOperation({ summary: 'Get monthly income vs expense summary' })
-  async getMonthlySummary(
-    @CurrentUser('id') userId: string,
-    @Query('months') months?: number,
-  ) {
+  async getMonthlySummary(@CurrentUser('id') userId: string, @Query('months') months?: number) {
     return this.transactionsService.getMonthlySummary(userId, months || 12);
   }
 
@@ -122,38 +129,49 @@ export class TransactionsController {
   }
 
   @Post('scan-bill')
-  @UseInterceptors(FileInterceptor('file', { storage: multer.memoryStorage(), limits: { fileSize: 10_000_000 } }))
+  @UseInterceptors(
+    FileInterceptor('file', { storage: multer.memoryStorage(), limits: { fileSize: 10_000_000 } }),
+  )
   @HttpCode(HttpStatus.OK)
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Scan a bill/receipt image and extract transaction data using AI' })
-  async scanBill(
-    @Body() body: { image?: string; mimeType?: string },
-    @UploadedFile() file?: any,
-  ) {
-    // Support both JSON base64 uploads (legacy) and multipart file uploads
-    if (file) {
-      // multer memory storage may provide buffer; otherwise read from path
-      let base64: string | null = null;
-      if (file.buffer) {
-        base64 = file.buffer.toString('base64');
-      } else if (file.path) {
-        const fs = await import('fs');
-        const b = await fs.promises.readFile(file.path);
-        base64 = b.toString('base64');
+  async scanBill(@Body() body: { image?: string; mimeType?: string }, @UploadedFile() file?: any) {
+    try {
+      // Support both JSON base64 uploads (legacy) and multipart file uploads
+      if (file) {
+        let base64: string | null = null;
+        if (file.buffer) {
+          base64 = file.buffer.toString('base64');
+        } else if (file.path) {
+          const fs = await import('fs');
+          const b = await fs.promises.readFile(file.path);
+          base64 = b.toString('base64');
+        }
+        if (!base64) {
+          throw new BadRequestException('Failed to read uploaded file');
+        }
+        const mime = file.mimetype || body.mimeType || 'image/jpeg';
+        const result = await this.billScanner.scanBill(base64, mime);
+        return { data: result };
       }
-      if (!base64) {
-        throw new BadRequestException('Failed to read uploaded file');
+
+      if (!body || !body.image) {
+        throw new BadRequestException('No image provided');
       }
-      const mime = file.mimetype || body.mimeType || 'image/jpeg';
-      const result = await this.billScanner.scanBill(base64, mime);
+
+      const result = await this.billScanner.scanBill(body.image, body.mimeType);
       return { data: result };
+    } catch (err: any) {
+      if (err instanceof BadRequestException) {
+        throw err;
+      }
+      throw new BadRequestException(err.message || 'Failed to scan bill');
     }
+  }
 
-    if (!body || !body.image) {
-      throw new BadRequestException('No image provided');
-    }
-
-    const result = await this.billScanner.scanBill(body.image, body.mimeType);
-    return { data: result };
+  @Get('ocr-health')
+  @ApiOperation({ summary: 'Check OCR service health' })
+  async ocrHealth() {
+    return this.billScanner.checkHealth();
   }
 }

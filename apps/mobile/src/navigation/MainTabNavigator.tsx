@@ -16,6 +16,7 @@ import { GoalDetailScreen } from '../screens/goals/GoalDetailScreen';
 import { DocumentVaultScreen } from '../screens/documents/DocumentVaultScreen';
 import { DocumentDetailScreen } from '../screens/documents/DocumentDetailScreen';
 import { BadgeWallScreen } from '../screens/documents/BadgeWallScreen';
+import { AiInsightsScreen } from '../screens/ai/AiInsightsScreen';
 import { RemindersScreen } from '../screens/reminders/RemindersScreen';
 import { ReminderDetailScreen } from '../screens/reminders/ReminderDetailScreen';
 import { CreateReminderScreen } from '../screens/reminders/CreateReminderScreen';
@@ -92,11 +93,7 @@ function DashboardNavigator() {
         component={RemindersNavigator}
         options={{ headerShown: false }}
       />
-      <DashboardStack.Screen
-        name="SMS"
-        component={SmsNavigator}
-        options={{ headerShown: false }}
-      />
+      <DashboardStack.Screen name="SMS" component={SmsNavigator} options={{ headerShown: false }} />
       <DashboardStack.Screen
         name="DocumentVault"
         component={DocumentVaultScreen}
@@ -110,6 +107,11 @@ function DashboardNavigator() {
       <DashboardStack.Screen
         name="BadgeWall"
         component={BadgeWallScreen}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
+        name="AiInsights"
+        component={AiInsightsScreen}
         options={{ headerShown: false }}
       />
     </DashboardStack.Navigator>
@@ -297,10 +299,17 @@ export function MainTabNavigator() {
 
   useFocusEffect(
     useCallback(() => {
-      if (!accessToken) {return;}
-      api.get<any>('/premium/check').then((res) => {
-        if (res?.isPremium) {setIsPremium(true);}
-      }).catch(() => {});
+      if (!accessToken) {
+        return;
+      }
+      api
+        .get<any>('/premium/check')
+        .then((res) => {
+          if (res?.isPremium) {
+            setIsPremium(true);
+          }
+        })
+        .catch(() => {});
     }, [accessToken]),
   );
 
