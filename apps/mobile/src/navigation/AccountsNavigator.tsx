@@ -63,7 +63,7 @@ export function AccountsNavigator() {
       <Stack.Screen
         name="CreateExpenseGroup"
         component={CreateExpenseGroupScreen}
-        options={{ title: 'Create Expense Group', headerShown: false }}
+        options={{ title: 'Create Circle', headerShown: false }}
       />
       <Stack.Screen
         name="GroupExpenses"

@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,9 +9,11 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  ScrollView,
+  Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
@@ -40,6 +42,7 @@ const ICONS = [
   'fitness',
 ];
 
+const COUNTRY_CODE = '+91';
 
 export function CreateExpenseGroupScreen() {
   const navigation = useNavigation<any>();
@@ -49,41 +52,86 @@ export function CreateExpenseGroupScreen() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [icon, setIcon] = useState('people');
-  const [memberEmails, setMemberEmails] = useState<string[]>(['']);
+  const [members, setMembers] = useState<string[]>(['']);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [pullRecurring, setPullRecurring] = useState(false);
+  const [recurringTx, setRecurringTx] = useState<any[]>([]);
+  const [selectedRecurring, setSelectedRecurring] = useState<Set<string>>(new Set());
+  const [loadingRecurring, setLoadingRecurring] = useState(false);
   const inputsRef = useRef<(TextInput | null)[]>([]);
 
-  const updateEmail = useCallback((index: number, value: string) => {
-    setMemberEmails((prev) => {
+  const updateMember = useCallback((index: number, value: string) => {
+    const digits = value.replace(/[^0-9]/g, '');
+    setMembers((prev) => {
       const next = [...prev];
-      next[index] = value;
+      next[index] = digits;
       return next;
     });
   }, []);
 
   const addRow = useCallback(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setMemberEmails((prev) => [...prev, '']);
+    setMembers((prev) => [...prev, '']);
     setTimeout(() => inputsRef.current[inputsRef.current.length - 1]?.focus(), 150);
   }, []);
 
   const removeRow = useCallback((index: number) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setMemberEmails((prev) => prev.filter((_, i) => i !== index));
+    setMembers((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
-  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const isValidPhone = (phone: string) => phone.length === 10;
+
+  useEffect(() => {
+    if (pullRecurring && recurringTx.length === 0 && !loadingRecurring) {
+      loadRecurringTransactions();
+    }
+  }, [pullRecurring]);
+
+  async function loadRecurringTransactions() {
+    setLoadingRecurring(true);
+    try {
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      const now = new Date();
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+      const res = await api.get<any>(
+        `/transactions?startDate=${lastMonth.toISOString()}&endDate=${lastMonthEnd.toISOString()}&recurring=true`,
+      );
+      const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+      setRecurringTx(list);
+      setSelectedRecurring(new Set(list.map((t: any) => t.id)));
+    } catch (e) {
+      // silently fail
+    } finally {
+      setLoadingRecurring(false);
+    }
+  }
+
+  function toggleRecurring(id: string) {
+    setSelectedRecurring((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
 
   async function handleCreate() {
     if (!name.trim()) {
-      setError('Group name is required');
+      setError('Circle name is required');
       return;
     }
-    const validEmails = memberEmails.map((e) => e.trim()).filter(Boolean);
-    const invalid = validEmails.filter((e) => !isValidEmail(e));
+    const validPhones = members.map((m) => m.trim()).filter(Boolean);
+    const invalid = validPhones.filter((p) => !isValidPhone(p));
     if (invalid.length > 0) {
-      setError(`Invalid email${invalid.length > 1 ? 's' : ''}: ${invalid.join(', ')}`);
+      setError(`Invalid phone number${invalid.length > 1 ? 's' : ''}: ${invalid.join(', ')}`);
       return;
     }
     setError('');
@@ -96,8 +144,11 @@ export function CreateExpenseGroupScreen() {
       if (description.trim()) {
         payload.description = description.trim();
       }
-      if (validEmails.length > 0) {
-        payload.memberEmails = validEmails;
+      if (validPhones.length > 0) {
+        payload.memberPhones = validPhones.map((p) => `${COUNTRY_CODE}${p}`);
+      }
+      if (pullRecurring && selectedRecurring.size > 0) {
+        payload.importRecurringIds = Array.from(selectedRecurring);
       }
       await api.post('/expense-groups', payload);
       navigation.navigate('ExpenseHome', { screen: 'SharedCircles' });
@@ -112,7 +163,7 @@ export function CreateExpenseGroupScreen() {
           { text: 'Cancel', style: 'cancel' },
         ]);
       } else {
-        setError(msg || 'Failed to create group');
+        setError(msg || 'Failed to create circle');
       }
     } finally {
       setSaving(false);
@@ -121,163 +172,196 @@ export function CreateExpenseGroupScreen() {
 
   return (
     <PremiumFormScreen
-      title="New circle"
+      title="New Circle"
       subtitle="Create a polished expense circle for roommates, trips, families, or friends."
       icon="people"
       accent={[colors.accent.primary, colors.status.info]}
     >
       <PremiumError message={error} />
-      <PremiumInput
-        label="Group name"
-        icon="people-outline"
-        value={name}
-        onChangeText={setName}
-        placeholder="e.g. Roommates, Road Trip"
-      />
+      <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 400 }}>
+        <PremiumInput
+          label="Circle name"
+          icon="people-outline"
+          value={name}
+          onChangeText={setName}
+          placeholder="e.g. Roommates, Road Trip"
+          required
+        />
 
-      <PremiumInput
-        label="Description"
-        icon="document-text-outline"
-        value={description}
-        onChangeText={setDescription}
-        placeholder="What's this group for?"
-        multiline
-        numberOfLines={3}
-      />
+        <PremiumInput
+          label="Description"
+          icon="document-text-outline"
+          value={description}
+          onChangeText={setDescription}
+          placeholder="What's this circle for?"
+          multiline
+          numberOfLines={3}
+        />
 
-      <Text style={[styles.label, { color: colors.text.tertiary }]}>Choose Icon</Text>
-      <View style={premiumFormStyles.rowWrap}>
-        {ICONS.map((ic) => (
-          <TouchableOpacity
-            key={ic}
-            style={[
-              styles.iconBtn,
-              { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-              icon === ic && {
-                backgroundColor: `${colors.accent.primary}20`,
-                borderColor: colors.accent.primary,
-              },
-            ]}
-            onPress={() => setIcon(ic)}
-          >
-            <Ionicons
-              name={ic as any}
-              size={22}
-              color={icon === ic ? colors.accent.primary : colors.text.tertiary}
-            />
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <View style={styles.memberSection}>
-        <Text style={[styles.label, { color: colors.text.tertiary }]}>
-          Members <Text style={{ fontWeight: '400', textTransform: 'none' }}>(max 2 on Free)</Text>
-        </Text>
-
-            {memberEmails.map((email, index) => (
-              <View key={index} style={styles.memberRow}>
-                <View
-                  style={[
-                    styles.memberInputWrap,
-                    {
-                      backgroundColor: colors.bg.tertiary,
-                      borderColor: colors.border.subtle,
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name="person-outline"
-                    size={16}
-                    color={colors.text.tertiary}
-                    style={styles.memberIcon}
-                  />
-                  <TextInput
-                    ref={(ref) => {
-                      inputsRef.current[index] = ref;
-                    }}
-                    style={[
-                      styles.memberInput,
-                      { color: colors.text.primary },
-                      !email.trim() && index === memberEmails.length - 1 ? { minWidth: 120 } : null,
-                    ]}
-                    value={email}
-                    onChangeText={(v) => updateEmail(index, v)}
-                    placeholder={index === 0 ? 'john@email.com' : 'jane@email.com'}
-                    placeholderTextColor={colors.text.tertiary}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    returnKeyType={index === memberEmails.length - 1 ? 'done' : 'next'}
-                    onSubmitEditing={() => {
-                      if (index === memberEmails.length - 1) {
-                        addRow();
-                      } else {
-                        inputsRef.current[index + 1]?.focus();
-                      }
-                    }}
-                  />
-                  {email.trim() && (
-                    <TouchableOpacity
-                      onPress={() => removeRow(index)}
-                      style={styles.memberRemoveBtn}
-                    >
-                      <Ionicons name="close-circle" size={18} color={colors.status.error} />
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </View>
-            ))}
-
-            <TouchableOpacity style={styles.addMemberBtn} onPress={addRow} activeOpacity={0.7}>
-              <Ionicons name="add-circle-outline" size={18} color={colors.accent.primary} />
-              <Text style={[styles.addMemberText, { color: colors.accent.primary }]}>
-                Add another member
-              </Text>
+        <Text style={[styles.label, { color: colors.text.tertiary }]}>Choose Icon</Text>
+        <View style={premiumFormStyles.rowWrap}>
+          {ICONS.map((ic) => (
+            <TouchableOpacity
+              key={ic}
+              style={[
+                styles.iconBtn,
+                { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+                icon === ic && {
+                  backgroundColor: `${colors.accent.primary}20`,
+                  borderColor: colors.accent.primary,
+                },
+              ]}
+              onPress={() => setIcon(ic)}
+            >
+              <Ionicons
+                name={ic as any}
+                size={22}
+                color={icon === ic ? colors.accent.primary : colors.text.tertiary}
+              />
             </TouchableOpacity>
-      </View>
+          ))}
+        </View>
+
+        <View style={styles.memberSection}>
+          <Text style={[styles.label, { color: colors.text.tertiary }]}>
+            Members{' '}
+            <Text style={{ fontWeight: '400', textTransform: 'none' }}>(max 2 on Free)</Text>
+          </Text>
+
+          {members.map((phone, index) => (
+            <View key={index} style={styles.memberRow}>
+              <View
+                style={[
+                  styles.memberInputWrap,
+                  { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+                ]}
+              >
+                <Text style={[styles.countryCode, { color: colors.text.tertiary }]}>
+                  {COUNTRY_CODE}
+                </Text>
+                <TextInput
+                  ref={(ref) => {
+                    inputsRef.current[index] = ref;
+                  }}
+                  style={[styles.memberInput, { color: colors.text.primary }]}
+                  value={phone}
+                  onChangeText={(v) => updateMember(index, v)}
+                  placeholder="9876543210"
+                  placeholderTextColor={colors.text.tertiary}
+                  keyboardType="phone-pad"
+                  maxLength={10}
+                  returnKeyType="done"
+                  onSubmitEditing={() => {
+                    if (index === members.length - 1) {
+                      addRow();
+                    } else {
+                      inputsRef.current[index + 1]?.focus();
+                    }
+                  }}
+                />
+                {phone.trim() && (
+                  <TouchableOpacity onPress={() => removeRow(index)} style={styles.memberRemoveBtn}>
+                    <Ionicons name="close-circle" size={18} color={colors.status.error} />
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          ))}
+
+          <TouchableOpacity style={styles.addMemberBtn} onPress={addRow} activeOpacity={0.7}>
+            <Ionicons name="add-circle-outline" size={18} color={colors.accent.primary} />
+            <Text style={[styles.addMemberText, { color: colors.accent.primary }]}>
+              Add another member
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View
+          style={[
+            styles.recurringCard,
+            { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+          ]}
+        >
+          <View style={styles.recurringHeader}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.recurringTitle, { color: colors.text.primary }]}>
+                Pull recurring from last month?
+              </Text>
+              <Text style={[styles.recurringSub, { color: colors.text.tertiary }]}>
+                Import last month's recurring expenses into this circle
+              </Text>
+            </View>
+            <Switch
+              value={pullRecurring}
+              onValueChange={setPullRecurring}
+              trackColor={{ false: colors.border.subtle, true: colors.accent.primary }}
+              thumbColor="#FFF"
+            />
+          </View>
+          {pullRecurring && (
+            <View style={styles.recurringList}>
+              {loadingRecurring ? (
+                <Text style={[styles.recurringLoading, { color: colors.text.tertiary }]}>
+                  Loading recurring transactions...
+                </Text>
+              ) : recurringTx.length === 0 ? (
+                <Text style={[styles.recurringEmpty, { color: colors.text.tertiary }]}>
+                  No recurring transactions found from last month
+                </Text>
+              ) : (
+                recurringTx.map((tx) => (
+                  <TouchableOpacity
+                    key={tx.id}
+                    style={styles.recurringItem}
+                    onPress={() => toggleRecurring(tx.id)}
+                  >
+                    <Ionicons
+                      name={selectedRecurring.has(tx.id) ? 'checkbox' : 'square-outline'}
+                      size={20}
+                      color={
+                        selectedRecurring.has(tx.id) ? colors.accent.primary : colors.text.tertiary
+                      }
+                    />
+                    <View style={{ flex: 1, marginLeft: 8 }}>
+                      <Text style={[styles.recurringItemText, { color: colors.text.primary }]}>
+                        {tx.description || 'Transaction'}
+                      </Text>
+                      <Text style={[styles.recurringItemSub, { color: colors.text.tertiary }]}>
+                        ₹{Number(tx.amount).toLocaleString('en-IN')} ·{' '}
+                        {tx.category?.name || tx.category || 'Other'}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))
+              )}
+            </View>
+          )}
+        </View>
+      </ScrollView>
 
       <View style={[styles.planInfo, { backgroundColor: colors.bg.tertiary }]}>
         <Ionicons name="shield-outline" size={16} color="#FF6B6B" />
         <Text style={[styles.planInfoText, { color: colors.text.tertiary }]}>
-          Free plan: 5 groups max · 2 members per group
+          Free plan: 5 circles max · 2 members per circle
         </Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}
+        >
           <Text style={[styles.planUpgrade, { color: colors.accent.primary }]}>Upgrade</Text>
         </TouchableOpacity>
       </View>
 
-      <PremiumActionButton title="Create group" onPress={handleCreate} loading={saving} icon="add" />
+      <PremiumActionButton
+        title="Create circle"
+        onPress={handleCreate}
+        loading={saving}
+        icon="add"
+      />
     </PremiumFormScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  content: { paddingBottom: 96 },
-  backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 24,
-    marginTop: 8,
-    marginBottom: 16,
-  },
-
-  heroSection: { marginHorizontal: 24, borderRadius: 20, padding: 24, marginBottom: 24 },
-  heroTitle: { fontSize: 24, fontWeight: '800', color: '#FFF', marginBottom: 4 },
-  heroSub: { fontSize: 14, color: 'rgba(255,255,255,0.7)' },
-
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 12,
-    marginHorizontal: 24,
-    marginBottom: 16,
-    gap: 8,
-  },
-  errorText: { fontSize: 13, flex: 1 },
   label: {
     fontSize: 12,
     fontWeight: '600',
@@ -286,25 +370,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.8,
   },
-  input: {
-    fontSize: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-    marginHorizontal: 24,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 14,
-    borderWidth: 1,
-    marginHorizontal: 24,
-    paddingHorizontal: 16,
-  },
-  currencyPrefix: { fontSize: 18, fontWeight: '700', marginRight: 8 },
-  inputFlex: { flex: 1, fontSize: 16, paddingVertical: 14 },
-  iconRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 24 },
   iconBtn: {
     width: 46,
     height: 46,
@@ -313,17 +378,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
   },
-
-  currencyRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 24 },
-  currencyChip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, borderWidth: 1 },
-  currencyText: { fontSize: 14, fontWeight: '600' },
-
-  memberSection: {
-    marginTop: 8,
-  },
-  memberRow: {
-    marginBottom: 8,
-  },
+  memberSection: { marginTop: 8 },
+  memberRow: { marginBottom: 8 },
   memberInputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -331,18 +387,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingRight: 8,
   },
-  memberIcon: {
+  countryCode: {
+    fontSize: 16,
+    fontWeight: '600',
     paddingLeft: 14,
+    paddingRight: 4,
   },
   memberInput: {
     flex: 1,
     fontSize: 16,
-    paddingHorizontal: 10,
+    paddingHorizontal: 6,
     paddingVertical: 14,
   },
-  memberRemoveBtn: {
-    padding: 4,
-  },
+  memberRemoveBtn: { padding: 4 },
   addMemberBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -354,10 +411,31 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'transparent',
   },
-  addMemberText: {
-    fontSize: 14,
-    fontWeight: '600',
+  addMemberText: { fontSize: 14, fontWeight: '600' },
+  recurringCard: {
+    marginTop: 16,
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 14,
   },
+  recurringHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  recurringTitle: { fontSize: 15, fontWeight: '600' },
+  recurringSub: { fontSize: 12, marginTop: 2 },
+  recurringList: { marginTop: 12, gap: 8 },
+  recurringLoading: { fontSize: 13, textAlign: 'center', paddingVertical: 12 },
+  recurringEmpty: { fontSize: 13, textAlign: 'center', paddingVertical: 12 },
+  recurringItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+  },
+  recurringItemText: { fontSize: 14, fontWeight: '500' },
+  recurringItemSub: { fontSize: 12, marginTop: 1 },
   planInfo: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -368,13 +446,4 @@ const styles = StyleSheet.create({
   },
   planInfoText: { flex: 1, fontSize: 12 },
   planUpgrade: { fontSize: 13, fontWeight: '700' },
-
-  saveBtn: {
-    paddingVertical: 16,
-    borderRadius: 14,
-    alignItems: 'center',
-    marginTop: 20,
-    marginHorizontal: 24,
-  },
-  saveBtnText: { color: '#fff', fontSize: 17, fontWeight: '600' },
 });

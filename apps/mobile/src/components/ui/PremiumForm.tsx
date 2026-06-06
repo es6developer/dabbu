@@ -74,10 +74,7 @@ export function PremiumFormScreen({
           </TouchableOpacity>
 
           <LinearGradient
-            colors={[
-              gradient[0],
-              gradient[1],
-            ]}
+            colors={[gradient[0], gradient[1]]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.hero}
@@ -117,14 +114,26 @@ interface PremiumInputProps extends TextInputProps {
   icon?: IconName;
   right?: ReactNode;
   multiline?: boolean;
+  required?: boolean;
 }
 
-export function PremiumInput({ label, icon, right, style, multiline, ...props }: PremiumInputProps) {
+export function PremiumInput({
+  label,
+  icon,
+  right,
+  style,
+  multiline,
+  required,
+  ...props
+}: PremiumInputProps) {
   const { colors } = useTheme();
 
   return (
     <View style={styles.fieldBlock}>
-      <Text style={[styles.label, { color: colors.text.tertiary }]}>{label}</Text>
+      <Text style={[styles.label, { color: colors.text.tertiary }]}>
+        {label}
+        {required && <Text style={{ color: '#FF6B6B', marginLeft: 4 }}> *</Text>}
+      </Text>
       <View
         style={[
           styles.inputShell,
@@ -158,7 +167,12 @@ interface PremiumAmountInputProps extends TextInputProps {
   symbol?: string;
 }
 
-export function PremiumAmountInput({ label, symbol = '₹', style, ...props }: PremiumAmountInputProps) {
+export function PremiumAmountInput({
+  label,
+  symbol = '₹',
+  style,
+  ...props
+}: PremiumAmountInputProps) {
   const { colors } = useTheme();
 
   return (
@@ -227,7 +241,9 @@ export function PremiumChip({ label, selected, icon, onPress }: PremiumChipProps
 
 export function PremiumError({ message }: { message?: string }) {
   const { colors } = useTheme();
-  if (!message) {return null;}
+  if (!message) {
+    return null;
+  }
 
   return (
     <View style={[styles.errorBox, { backgroundColor: colors.status.errorLight }]}>
@@ -261,7 +277,12 @@ export function PremiumActionButton({
       onPress={onPress}
       disabled={disabled || loading}
       activeOpacity={0.78}
-      style={[styles.actionButton, { backgroundColor: colors.accent.primary }, (disabled || loading) && { opacity: 0.65 }, style]}
+      style={[
+        styles.actionButton,
+        { backgroundColor: colors.accent.primary },
+        (disabled || loading) && { opacity: 0.65 },
+        style,
+      ]}
     >
       {loading ? (
         <ActivityIndicator color="#FFFFFF" />
