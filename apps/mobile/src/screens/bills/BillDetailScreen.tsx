@@ -10,6 +10,7 @@ import {
   Alert,
   Platform,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../../theme';
@@ -52,13 +53,15 @@ interface Bill {
 }
 
 function getConfidenceColor(score: number, colors: any): string {
-  if (score >= 0.7) {
-    return colors.status.success;
-  }
-  if (score >= 0.4) {
-    return colors.status.warning;
-  }
+  if (score >= 0.7) return colors.status.success;
+  if (score >= 0.4) return colors.status.warning;
   return colors.status.error;
+}
+
+function getConfidenceLabel(score: number): string {
+  if (score >= 0.7) return 'High Confidence';
+  if (score >= 0.4) return 'Medium Confidence';
+  return 'Low Confidence';
 }
 
 export function BillDetailScreen() {
@@ -202,46 +205,35 @@ export function BillDetailScreen() {
   return (
     <PageContainer noPadding>
       <KeyboardAvoidingContainer>
-        <View style={styles.container}>
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <LinearGradient colors={[...colors.accent.gradient]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.headerGradient}>
+            <View style={styles.headerContent}>
+              <Text style={styles.headerTitle}>Bill Details</Text>
+              <Text style={styles.headerSub}>Review and edit your bill information</Text>
+            </View>
+          </LinearGradient>
+
           {bill && (
-            <View
-              style={[
-                styles.confidenceBadge,
-                { backgroundColor: `${getConfidenceColor(bill.confidence, colors)}22` },
-              ]}
-            >
-              <Ionicons
-                name="shield-checkmark"
-                size={14}
-                color={getConfidenceColor(bill.confidence, colors)}
-              />
-              <Text
-                style={[
-                  styles.confidenceText,
-                  { color: getConfidenceColor(bill.confidence, colors) },
-                ]}
-              >
-                AI Confidence: {Math.round(bill.confidence * 100)}%
-              </Text>
+            <View style={[styles.confidenceBadge, { backgroundColor: `${getConfidenceColor(bill.confidence, colors)}18` }]}>
+              <View style={[styles.shieldWrap, { backgroundColor: `${getConfidenceColor(bill.confidence, colors)}25` }]}>
+                <Ionicons name="shield-checkmark" size={16} color={getConfidenceColor(bill.confidence, colors)} />
+              </View>
+              <View style={styles.confidenceInfo}>
+                <Text style={[styles.confidenceLabel, { color: getConfidenceColor(bill.confidence, colors) }]}>
+                  {getConfidenceLabel(bill.confidence)}
+                </Text>
+                <Text style={[styles.confidencePct, { color: colors.text.tertiary }]}>
+                  {Math.round(bill.confidence * 100)}% match
+                </Text>
+              </View>
             </View>
           )}
 
-          <View
-            style={[
-              styles.card,
-              { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
-            ]}
-          >
+          <View style={[styles.card, { backgroundColor: colors.bg.glassLight, borderColor: colors.border.subtle }]}>
+            <View style={styles.cardGlow} />
             <Text style={[styles.fieldLabel, { color: colors.text.tertiary }]}>Merchant</Text>
             <TextInput
-              style={[
-                styles.textInput,
-                {
-                  color: colors.text.primary,
-                  borderColor: colors.border.subtle,
-                  backgroundColor: colors.bg.tertiary,
-                },
-              ]}
+              style={[styles.textInput, { color: colors.text.primary, borderColor: colors.border.subtle, backgroundColor: colors.bg.tertiary }]}
               value={merchant}
               onChangeText={setMerchant}
               placeholder="Merchant name"
@@ -249,37 +241,22 @@ export function BillDetailScreen() {
             />
           </View>
 
-          <View
-            style={[
-              styles.card,
-              { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
-            ]}
-          >
+          <View style={[styles.card, { backgroundColor: colors.bg.glassLight, borderColor: colors.border.subtle }]}>
+            <View style={styles.cardGlow} />
             <Text style={[styles.fieldLabel, { color: colors.text.tertiary }]}>Category</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.categoryScroll}
-            >
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll} contentContainerStyle={styles.categoryContent}>
               {CATEGORIES.map((cat) => (
                 <TouchableOpacity
                   key={cat}
                   style={[
                     styles.categoryChip,
-                    {
-                      backgroundColor:
-                        category === cat ? `${colors.accent.primary}22` : colors.bg.tertiary,
-                      borderColor: category === cat ? colors.accent.primary : colors.border.subtle,
-                    },
+                    category === cat
+                      ? { backgroundColor: `${colors.accent.primary}20`, borderColor: colors.accent.primary }
+                      : { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
                   ]}
                   onPress={() => setCategory(cat)}
                 >
-                  <Text
-                    style={[
-                      styles.categoryChipText,
-                      { color: category === cat ? colors.accent.primary : colors.text.secondary },
-                    ]}
-                  >
+                  <Text style={[styles.categoryChipText, { color: category === cat ? colors.accent.primary : colors.text.secondary }]}>
                     {cat}
                   </Text>
                 </TouchableOpacity>
@@ -287,28 +264,17 @@ export function BillDetailScreen() {
             </ScrollView>
           </View>
 
-          <View
-            style={[
-              styles.card,
-              { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
-            ]}
-          >
+          <View style={[styles.card, { backgroundColor: colors.bg.glassLight, borderColor: colors.border.subtle }]}>
+            <View style={styles.cardGlow} />
             <DatePickerField label="Date" value={date} onChange={setDate} />
           </View>
 
-          <View
-            style={[
-              styles.card,
-              { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
-            ]}
-          >
+          <View style={[styles.card, { backgroundColor: colors.bg.glassLight, borderColor: colors.border.subtle }]}>
+            <View style={styles.cardGlow} />
             <View style={styles.sectionHeader}>
               <Text style={[styles.fieldLabel, { color: colors.text.tertiary }]}>Items</Text>
-              <TouchableOpacity
-                onPress={addItem}
-                style={[styles.addItemBtn, { backgroundColor: `${colors.accent.primary}15` }]}
-              >
-                <Ionicons name="add" size={18} color={colors.accent.primary} />
+              <TouchableOpacity onPress={addItem} style={[styles.addItemBtn, { backgroundColor: `${colors.accent.primary}15` }]}>
+                <Ionicons name="add" size={16} color={colors.accent.primary} />
                 <Text style={[styles.addItemText, { color: colors.accent.primary }]}>Add Item</Text>
               </TouchableOpacity>
             </View>
@@ -317,14 +283,7 @@ export function BillDetailScreen() {
               <View key={index} style={[styles.itemRow, { borderColor: colors.border.subtle }]}>
                 <View style={styles.itemFields}>
                   <TextInput
-                    style={[
-                      styles.itemNameInput,
-                      {
-                        color: colors.text.primary,
-                        borderColor: colors.border.subtle,
-                        backgroundColor: colors.bg.tertiary,
-                      },
-                    ]}
+                    style={[styles.itemNameInput, { color: colors.text.primary, borderColor: colors.border.subtle, backgroundColor: colors.bg.tertiary }]}
                     value={item.name}
                     onChangeText={(v) => updateItem(index, 'name', v)}
                     placeholder="Item name"
@@ -332,14 +291,7 @@ export function BillDetailScreen() {
                   />
                   <View style={styles.itemNumericRow}>
                     <TextInput
-                      style={[
-                        styles.itemNumericInput,
-                        {
-                          color: colors.text.primary,
-                          borderColor: colors.border.subtle,
-                          backgroundColor: colors.bg.tertiary,
-                        },
-                      ]}
+                      style={[styles.itemNumericInput, { color: colors.text.primary, borderColor: colors.border.subtle, backgroundColor: colors.bg.tertiary }]}
                       value={String(item.quantity)}
                       onChangeText={(v) => updateItem(index, 'quantity', v)}
                       keyboardType="numeric"
@@ -347,14 +299,7 @@ export function BillDetailScreen() {
                       placeholderTextColor={colors.text.tertiary}
                     />
                     <TextInput
-                      style={[
-                        styles.itemNumericInput,
-                        {
-                          color: colors.text.primary,
-                          borderColor: colors.border.subtle,
-                          backgroundColor: colors.bg.tertiary,
-                        },
-                      ]}
+                      style={[styles.itemNumericInput, { color: colors.text.primary, borderColor: colors.border.subtle, backgroundColor: colors.bg.tertiary }]}
                       value={String(item.price)}
                       onChangeText={(v) => updateItem(index, 'price', v)}
                       keyboardType="numeric"
@@ -383,22 +328,11 @@ export function BillDetailScreen() {
             )}
           </View>
 
-          <View
-            style={[
-              styles.card,
-              { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
-            ]}
-          >
+          <View style={[styles.card, { backgroundColor: colors.bg.glassLight, borderColor: colors.border.subtle }]}>
+            <View style={styles.cardGlow} />
             <Text style={[styles.fieldLabel, { color: colors.text.tertiary }]}>Notes</Text>
             <TextInput
-              style={[
-                styles.textArea,
-                {
-                  color: colors.text.primary,
-                  borderColor: colors.border.subtle,
-                  backgroundColor: colors.bg.tertiary,
-                },
-              ]}
+              style={[styles.textArea, { color: colors.text.primary, borderColor: colors.border.subtle, backgroundColor: colors.bg.tertiary }]}
               value={notes}
               onChangeText={setNotes}
               placeholder="Add notes..."
@@ -411,104 +345,126 @@ export function BillDetailScreen() {
 
           {bill?.rawText ? (
             <TouchableOpacity
-              style={[
-                styles.card,
-                { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
-              ]}
+              style={[styles.card, { backgroundColor: colors.bg.glassLight, borderColor: colors.border.subtle }]}
               onPress={() => setShowOcr(!showOcr)}
+              activeOpacity={0.7}
             >
+              <View style={styles.cardGlow} />
               <View style={styles.ocrHeader}>
-                <Ionicons name="document-text-outline" size={18} color={colors.text.secondary} />
-                <Text style={[styles.ocrTitle, { color: colors.text.secondary }]}>
-                  Raw OCR Text
-                </Text>
-                <Ionicons
-                  name={showOcr ? 'chevron-up' : 'chevron-down'}
-                  size={16}
-                  color={colors.text.tertiary}
-                />
+                <View style={[styles.ocrIconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
+                  <Ionicons name="document-text-outline" size={16} color={colors.accent.primary} />
+                </View>
+                <Text style={[styles.ocrTitle, { color: colors.text.secondary }]}>Raw OCR Text</Text>
+                <Ionicons name={showOcr ? 'chevron-up' : 'chevron-down'} size={16} color={colors.text.tertiary} />
               </View>
               {showOcr && (
-                <Text
-                  style={[
-                    styles.ocrText,
-                    { color: colors.text.tertiary, borderTopColor: colors.border.subtle },
-                  ]}
-                >
+                <Text style={[styles.ocrText, { color: colors.text.tertiary, borderTopColor: colors.border.subtle }]}>
                   {bill.rawText}
                 </Text>
               )}
             </TouchableOpacity>
           ) : null}
 
-          <TouchableOpacity
-            style={[
-              styles.saveBtn,
-              { backgroundColor: colors.status.success, opacity: saving ? 0.6 : 1 },
-            ]}
-            onPress={handleSave}
-            disabled={saving}
-          >
-            {saving ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <>
-                <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
-                <Text style={styles.saveBtnText}>Save Changes</Text>
-              </>
-            )}
-          </TouchableOpacity>
+          <View style={styles.buttonGroup}>
+            <TouchableOpacity
+              style={styles.saveBtnWrap}
+              onPress={handleSave}
+              disabled={saving}
+              activeOpacity={0.85}
+            >
+              <LinearGradient colors={[...colors.accent.gradient]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.saveBtn}>
+                {saving ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <>
+                    <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
+                    <Text style={styles.saveBtnText}>Save Changes</Text>
+                  </>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[
-              styles.deleteBtn,
-              { borderColor: colors.status.error, opacity: deleting ? 0.6 : 1 },
-            ]}
-            onPress={confirmDelete}
-            disabled={deleting}
-          >
-            {deleting ? (
-              <ActivityIndicator size="small" color={colors.status.error} />
-            ) : (
-              <>
-                <Ionicons name="trash-outline" size={20} color={colors.status.error} />
-                <Text style={[styles.deleteBtnText, { color: colors.status.error }]}>
-                  Delete Bill
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              style={[styles.deleteBtn, { borderColor: colors.status.error, opacity: deleting ? 0.6 : 1 }]}
+              onPress={confirmDelete}
+              disabled={deleting}
+              activeOpacity={0.7}
+            >
+              {deleting ? (
+                <ActivityIndicator size="small" color={colors.status.error} />
+              ) : (
+                <>
+                  <Ionicons name="trash-outline" size={20} color={colors.status.error} />
+                  <Text style={[styles.deleteBtnText, { color: colors.status.error }]}>Delete Bill</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
       </KeyboardAvoidingContainer>
     </PageContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  content: { padding: 16 },
+  scroll: { flex: 1 },
+  scrollContent: { paddingBottom: 40 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  headerGradient: {
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingBottom: 32,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+  },
+  headerContent: {},
+  headerTitle: { fontSize: 28, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.5 },
+  headerSub: { fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.7)', marginTop: 4 },
   confidenceBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 10,
-    marginBottom: 16,
+    gap: 12,
+    marginHorizontal: 16,
+    marginTop: -20,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 16,
   },
-  confidenceText: { fontSize: 12, fontWeight: '600' },
-  card: { borderRadius: 20, borderWidth: 1, padding: 16, marginBottom: 14 },
+  shieldWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  confidenceInfo: {},
+  confidenceLabel: { fontSize: 13, fontWeight: '700' },
+  confidencePct: { fontSize: 11, fontWeight: '500', marginTop: 1 },
+  card: {
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 18,
+    marginHorizontal: 16,
+    marginBottom: 14,
+    overflow: 'hidden',
+  },
+  cardGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
   fieldLabel: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
     marginBottom: 8,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   textInput: {
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
     paddingHorizontal: 14,
     paddingVertical: 12,
@@ -516,18 +472,19 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   textArea: {
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 14,
     minHeight: 80,
   },
-  categoryScroll: { flexDirection: 'row', marginBottom: 4 },
+  categoryScroll: { marginBottom: 4 },
+  categoryContent: { paddingRight: 8 },
   categoryChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 12,
     borderWidth: 1,
     marginRight: 8,
   },
@@ -536,17 +493,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   addItemBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 10,
   },
-  addItemText: { fontSize: 13, fontWeight: '600' },
+  addItemText: { fontSize: 13, fontWeight: '700' },
   itemRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -557,20 +514,20 @@ const styles = StyleSheet.create({
   },
   itemFields: { flex: 1 },
   itemNameInput: {
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 9,
     fontSize: 14,
     marginBottom: 6,
   },
   itemNumericRow: { flexDirection: 'row', gap: 8 },
   itemNumericInput: {
     flex: 1,
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 9,
     fontSize: 14,
   },
   removeItem: { padding: 8, marginTop: 4 },
@@ -578,21 +535,33 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 12,
-    marginTop: 4,
+    paddingTop: 14,
+    marginTop: 6,
     borderTopWidth: 1,
   },
   totalLabel: { fontSize: 14, fontWeight: '600' },
-  totalValue: { fontSize: 18, fontWeight: '700' },
-  ocrHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  totalValue: { fontSize: 20, fontWeight: '800' },
+  ocrHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  ocrIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   ocrTitle: { fontSize: 14, fontWeight: '600', flex: 1 },
   ocrText: {
     fontSize: 12,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     lineHeight: 18,
-    paddingTop: 12,
+    paddingTop: 14,
     marginTop: 12,
     borderTopWidth: 1,
+  },
+  buttonGroup: { paddingHorizontal: 16, marginTop: 6, paddingBottom: 20 },
+  saveBtnWrap: {
+    borderRadius: 16,
+    overflow: 'hidden',
   },
   saveBtn: {
     flexDirection: 'row',
@@ -600,8 +569,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 10,
     paddingVertical: 16,
-    borderRadius: 16,
-    marginTop: 8,
   },
   saveBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
   deleteBtn: {
@@ -611,8 +578,8 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingVertical: 14,
     borderRadius: 16,
-    borderWidth: 1,
+    borderWidth: 1.5,
     marginTop: 12,
   },
-  deleteBtnText: { fontSize: 14, fontWeight: '600' },
+  deleteBtnText: { fontSize: 14, fontWeight: '700' },
 });

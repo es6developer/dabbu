@@ -11,9 +11,10 @@ import {
   UIManager,
   ScrollView,
   Switch,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
@@ -48,6 +49,11 @@ export function CreateExpenseGroupScreen() {
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
   const { colors } = useTheme();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
+  }, []);
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -249,7 +255,7 @@ export function CreateExpenseGroupScreen() {
                 styles.iconBtn,
                 { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
                 icon === ic && {
-                  backgroundColor: `${colors.accent.primary}20`,
+                  backgroundColor: `${colors.accent.primary}25`,
                   borderColor: colors.accent.primary,
                 },
               ]}
@@ -271,7 +277,7 @@ export function CreateExpenseGroupScreen() {
           </Text>
 
           {members.map((phone, index) => (
-            <View key={index} style={styles.memberRow}>
+            <Animated.View key={index} style={styles.memberRow}>
               <View
                 style={[
                   styles.memberInputWrap,
@@ -316,7 +322,7 @@ export function CreateExpenseGroupScreen() {
                       onPress={() => selectUser(index, user)}
                     >
                       <View style={[styles.suggestionAvatar, { backgroundColor: `${colors.accent.primary}20` }]}>
-                        <Text style={{ color: colors.accent.primary, fontSize: 13, fontWeight: '700' }}>
+                        <Text style={{ color: colors.accent.primary, fontSize: 13, fontWeight: '800' }}>
                           {user.firstName?.[0] || user.phone?.[0] || '?'}
                         </Text>
                       </View>
@@ -335,7 +341,7 @@ export function CreateExpenseGroupScreen() {
                   ))}
                 </View>
               )}
-            </View>
+            </Animated.View>
           ))}
 
           <TouchableOpacity style={styles.addMemberBtn} onPress={addRow} activeOpacity={0.7}>
@@ -409,7 +415,7 @@ export function CreateExpenseGroupScreen() {
         </View>
       </ScrollView>
 
-      <View style={[styles.planInfo, { backgroundColor: colors.bg.tertiary }]}>
+      <View style={[styles.planInfo, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle }]}>
         <Ionicons name="shield-outline" size={16} color="#FF6B6B" />
         <Text style={[styles.planInfoText, { color: colors.text.tertiary }]}>
           Free plan: 5 circles max · 2 members per circle
@@ -434,7 +440,7 @@ export function CreateExpenseGroupScreen() {
 const styles = StyleSheet.create({
   label: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '800',
     marginBottom: 8,
     marginTop: 16,
     textTransform: 'uppercase',
@@ -443,7 +449,7 @@ const styles = StyleSheet.create({
   iconBtn: {
     width: 46,
     height: 46,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -459,7 +465,7 @@ const styles = StyleSheet.create({
   },
   countryCode: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     paddingLeft: 14,
     paddingRight: 4,
   },
@@ -467,6 +473,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     paddingHorizontal: 6,
+    fontWeight: '600',
     paddingVertical: 14,
   },
   memberRemoveBtn: { padding: 4 },
@@ -481,10 +488,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'transparent',
   },
-  addMemberText: { fontSize: 14, fontWeight: '600' },
+  addMemberText: { fontSize: 14, fontWeight: '800' },
   recurringCard: {
     marginTop: 16,
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
     padding: 14,
   },
@@ -493,32 +500,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
-  recurringTitle: { fontSize: 15, fontWeight: '600' },
-  recurringSub: { fontSize: 12, marginTop: 2 },
+  recurringTitle: { fontSize: 15, fontWeight: '700' },
+  recurringSub: { fontSize: 12, marginTop: 2, fontWeight: '500' },
   recurringList: { marginTop: 12, gap: 8 },
-  recurringLoading: { fontSize: 13, textAlign: 'center', paddingVertical: 12 },
-  recurringEmpty: { fontSize: 13, textAlign: 'center', paddingVertical: 12 },
+  recurringLoading: { fontSize: 13, textAlign: 'center', paddingVertical: 12, fontWeight: '500' },
+  recurringEmpty: { fontSize: 13, textAlign: 'center', paddingVertical: 12, fontWeight: '500' },
   recurringItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 8,
     paddingHorizontal: 4,
   },
-  recurringItemText: { fontSize: 14, fontWeight: '500' },
-  recurringItemSub: { fontSize: 12, marginTop: 1 },
+  recurringItemText: { fontSize: 14, fontWeight: '600' },
+  recurringItemSub: { fontSize: 12, marginTop: 1, fontWeight: '500' },
   planInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     marginTop: 20,
     padding: 14,
-    borderRadius: 14,
+    borderRadius: 16,
+    borderWidth: 1,
   },
-  planInfoText: { flex: 1, fontSize: 12 },
-  planUpgrade: { fontSize: 13, fontWeight: '700' },
+  planInfoText: { flex: 1, fontSize: 12, fontWeight: '500' },
+  planUpgrade: { fontSize: 13, fontWeight: '800' },
   suggestions: {
     marginTop: 4,
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
     overflow: 'hidden',
   },
@@ -537,6 +545,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  suggestionName: { fontSize: 14, fontWeight: '600' },
-  suggestionEmail: { fontSize: 11, marginTop: 1 },
+  suggestionName: { fontSize: 14, fontWeight: '700' },
+  suggestionEmail: { fontSize: 11, marginTop: 1, fontWeight: '500' },
 });

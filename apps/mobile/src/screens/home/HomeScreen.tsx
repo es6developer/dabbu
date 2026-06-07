@@ -29,6 +29,7 @@ type IconName = keyof typeof Ionicons.glyphMap;
 interface DashboardData {
   accountStats: any | null;
   transactionStats: any | null;
+  recentTransactions: any[];
   categories: any[];
   expenseGroups: any[];
   reminders: any[];
@@ -43,6 +44,7 @@ interface DashboardData {
 const emptyData: DashboardData = {
   accountStats: null,
   transactionStats: null,
+  recentTransactions: [],
   categories: [],
   expenseGroups: [],
   reminders: [],
@@ -156,6 +158,7 @@ export function HomeScreen() {
         const results = await Promise.allSettled([
           api.get<any>('/accounts/stats', signal),
           api.get<any>('/transactions/stats?months=1', signal),
+          api.get<any>('/transactions/recent?limit=5', signal),
           api.get<any>('/transactions/categories-summary?months=1', signal),
           api.get<any>('/expense-groups', signal),
           api.get<any>('/reminders', signal),
@@ -180,12 +183,13 @@ export function HomeScreen() {
         const freshData = {
           accountStats: valueFromResult(results[0], null),
           transactionStats: valueFromResult(results[1], null),
-          categories: listFromResponse(valueFromResult(results[2], [])),
-          expenseGroups: listFromResponse(valueFromResult(results[3], [])),
-          reminders: listFromResponse(valueFromResult(results[4], [])),
-          goals: listFromResponse(valueFromResult(results[5], [])),
-          sharedGroups: listFromResponse(valueFromResult(results[6], [])),
-          financialHealth: valueFromResult(results[7], null),
+          recentTransactions: listFromResponse(valueFromResult(results[2], [])),
+          categories: listFromResponse(valueFromResult(results[3], [])),
+          expenseGroups: listFromResponse(valueFromResult(results[4], [])),
+          reminders: listFromResponse(valueFromResult(results[5], [])),
+          goals: listFromResponse(valueFromResult(results[6], [])),
+          sharedGroups: listFromResponse(valueFromResult(results[7], [])),
+          financialHealth: valueFromResult(results[8], null),
           smartInsights: [
             ...ruleInsights.map((i: any) => ({ ...i, source: 'rule' })),
             ...aiInsights,
@@ -193,8 +197,8 @@ export function HomeScreen() {
             const order: Record<string, number> = { critical: 0, warning: 1, info: 2, success: 3 };
             return (order[a.severity] ?? 2) - (order[b.severity] ?? 2);
           }),
-          subscriptionIntel: valueFromResult(results[10], null),
-          gamification: valueFromResult(results[11], null),
+          subscriptionIntel: valueFromResult(results[11], null),
+          gamification: valueFromResult(results[12], null),
         };
 
         const premiumRes = valueFromResult<any>(results[12], null);
@@ -243,7 +247,7 @@ export function HomeScreen() {
   const savings = totalIncome - totalSpent;
   const spendRate = totalIncome > 0 ? Math.min((totalSpent / totalIncome) * 100, 100) : 0;
 
-  const goalsData = data.goals || [];
+  const goalsData = (data.goals || []).filter((g: any) => !g.isCompleted);
   const totalTarget = goalsData.reduce((s: number, g: any) => s + Number(g.targetAmount), 0);
   const totalSavedAll = goalsData.reduce((s: number, g: any) => s + Number(g.currentAmount), 0);
   const goalsOverallPct = totalTarget > 0 ? (totalSavedAll / totalTarget) * 100 : 0;
@@ -905,8 +909,8 @@ export function HomeScreen() {
                 <Text style={[styles.seeAllText, { color: colors.accent.primary }]}>See all</Text>
               </TouchableOpacity>
             </View>
-            {data.transactionStats?.recentTransactions?.length > 0 ? (
-              data.transactionStats.recentTransactions.slice(0, 5).map((tx: any) => (
+            {data.recentTransactions?.length > 0 ? (
+              data.recentTransactions.map((tx: any) => (
                 <TouchableOpacity
                   key={tx.id}
                   style={styles.activityRow}

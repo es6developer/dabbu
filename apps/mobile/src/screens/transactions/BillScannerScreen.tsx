@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,9 +9,11 @@ import {
   Alert,
   ScrollView,
   Dimensions,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Rect, Line } from 'react-native-svg';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -36,8 +38,21 @@ interface BillData {
 
 function ScanFrame() {
   const { colors, isDark } = useTheme();
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 0.85, duration: 1200, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1200, useNativeDriver: true }),
+      ]),
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, []);
+
   return (
-    <View style={styles.frameContainer}>
+    <Animated.View style={[styles.frameContainer, { opacity: pulseAnim }]}>
       <Svg
         width={FRAME_SIZE}
         height={FRAME_SIZE * 0.7}
@@ -56,79 +71,39 @@ function ScanFrame() {
           fill={isDark ? 'rgba(247,137,44,0.06)' : 'rgba(247,137,44,0.04)'}
         />
         <Line
-          x1="28"
-          y1="2"
-          x2="28"
-          y2={CORNER_LENGTH + 2}
-          stroke={colors.accent.primary}
-          strokeWidth="3"
-          strokeLinecap="round"
+          x1="28" y1="2" x2="28" y2={CORNER_LENGTH + 2}
+          stroke={colors.accent.primary} strokeWidth="3" strokeLinecap="round"
         />
         <Line
-          x1="2"
-          y1="28"
-          x2={CORNER_LENGTH + 2}
-          y2="28"
-          stroke={colors.accent.primary}
-          strokeWidth="3"
-          strokeLinecap="round"
+          x1="2" y1="28" x2={CORNER_LENGTH + 2} y2="28"
+          stroke={colors.accent.primary} strokeWidth="3" strokeLinecap="round"
         />
         <Line
-          x1={FRAME_SIZE - 28}
-          y1="2"
-          x2={FRAME_SIZE - 28}
-          y2={CORNER_LENGTH + 2}
-          stroke={colors.accent.primary}
-          strokeWidth="3"
-          strokeLinecap="round"
+          x1={FRAME_SIZE - 28} y1="2" x2={FRAME_SIZE - 28} y2={CORNER_LENGTH + 2}
+          stroke={colors.accent.primary} strokeWidth="3" strokeLinecap="round"
         />
         <Line
-          x1={FRAME_SIZE - 2}
-          y1="28"
-          x2={FRAME_SIZE - CORNER_LENGTH - 2}
-          y2="28"
-          stroke={colors.accent.primary}
-          strokeWidth="3"
-          strokeLinecap="round"
+          x1={FRAME_SIZE - 2} y1="28" x2={FRAME_SIZE - CORNER_LENGTH - 2} y2="28"
+          stroke={colors.accent.primary} strokeWidth="3" strokeLinecap="round"
         />
         <Line
-          x1="28"
-          y1={FRAME_SIZE * 0.7 - 2}
-          x2="28"
-          y2={FRAME_SIZE * 0.7 - CORNER_LENGTH - 2}
-          stroke={colors.accent.primary}
-          strokeWidth="3"
-          strokeLinecap="round"
+          x1="28" y1={FRAME_SIZE * 0.7 - 2} x2="28" y2={FRAME_SIZE * 0.7 - CORNER_LENGTH - 2}
+          stroke={colors.accent.primary} strokeWidth="3" strokeLinecap="round"
         />
         <Line
-          x1="2"
-          y1={FRAME_SIZE * 0.7 - 28}
-          x2={CORNER_LENGTH + 2}
-          y2={FRAME_SIZE * 0.7 - 28}
-          stroke={colors.accent.primary}
-          strokeWidth="3"
-          strokeLinecap="round"
+          x1="2" y1={FRAME_SIZE * 0.7 - 28} x2={CORNER_LENGTH + 2} y2={FRAME_SIZE * 0.7 - 28}
+          stroke={colors.accent.primary} strokeWidth="3" strokeLinecap="round"
         />
         <Line
-          x1={FRAME_SIZE - 28}
-          y1={FRAME_SIZE * 0.7 - 2}
-          x2={FRAME_SIZE - 28}
-          y2={FRAME_SIZE * 0.7 - CORNER_LENGTH - 2}
-          stroke={colors.accent.primary}
-          strokeWidth="3"
-          strokeLinecap="round"
+          x1={FRAME_SIZE - 28} y1={FRAME_SIZE * 0.7 - 2} x2={FRAME_SIZE - 28} y2={FRAME_SIZE * 0.7 - CORNER_LENGTH - 2}
+          stroke={colors.accent.primary} strokeWidth="3" strokeLinecap="round"
         />
         <Line
-          x1={FRAME_SIZE - 2}
-          y1={FRAME_SIZE * 0.7 - 28}
-          x2={FRAME_SIZE - CORNER_LENGTH - 2}
-          y2={FRAME_SIZE * 0.7 - 28}
-          stroke={colors.accent.primary}
-          strokeWidth="3"
-          strokeLinecap="round"
+          x1={FRAME_SIZE - 2} y1={FRAME_SIZE * 0.7 - 28} x2={FRAME_SIZE - CORNER_LENGTH - 2} y2={FRAME_SIZE * 0.7 - 28}
+          stroke={colors.accent.primary} strokeWidth="3" strokeLinecap="round"
         />
       </Svg>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -136,6 +111,15 @@ export function BillScannerScreen() {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
+    ]).start();
+  }, []);
 
   const [scanState, setScanState] = useState<ScanState>('idle');
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -259,129 +243,140 @@ export function BillScannerScreen() {
   }
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: colors.bg.primary }]}
-      contentContainerStyle={{ ...styles.content, paddingTop: insets.top + 8 }}
-    >
-      {scanState === 'idle' && (
-        <>
-          <View style={[styles.iconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
-            <Ionicons name="camera" size={44} color={colors.accent.primary} />
-          </View>
-          <Text style={[styles.title, { color: colors.text.primary }]}>Scan a Bill</Text>
-          <Text style={[styles.desc, { color: colors.text.tertiary }]}>
-            Position the bill within the frame and capture
-          </Text>
-
-          <ScanFrame />
-
-          <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: colors.accent.primary }]}
-            onPress={openCamera}
-          >
-            <Ionicons name="camera" size={20} color="#FFFFFF" />
-            <Text style={styles.actionBtnText}>Open Camera</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.secondaryBtn, { borderColor: colors.border.subtle }]}
-            onPress={pickFromGallery}
-          >
-            <Ionicons name="images-outline" size={20} color={colors.accent.primary} />
-            <Text style={[styles.actionBtnText, { color: colors.accent.primary }]}>
-              Choose from Gallery
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.viewBillsBtn,
-              { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#f8f9ff' },
-            ]}
-            onPress={() => navigation.navigate('BillsList')}
-          >
-            <Ionicons name="receipt-outline" size={18} color={colors.accent.primary} />
-            <Text style={[styles.viewBillsText, { color: colors.accent.primary }]}>
-              View Scanned Bills
-            </Text>
-          </TouchableOpacity>
-        </>
-      )}
-
-      {scanState === 'scanning' && (
-        <View style={styles.centerContent}>
-          {imageUri && (
-            <Image source={{ uri: imageUri }} style={styles.preview} resizeMode="contain" />
-          )}
-          <ActivityIndicator color={colors.accent.primary} size="large" style={{ marginTop: 20 }} />
-          <Text style={[styles.scanningText, { color: colors.text.secondary }]}>
-            {elapsed > 15 ? 'Still analyzing... taking longer than expected' : 'Analyzing bill...'}
-          </Text>
-          {elapsed > 5 && (
-            <Text style={[styles.elapsedText, { color: colors.text.tertiary }]}>
-              {elapsed}s elapsed
-            </Text>
-          )}
-          {elapsed > 20 && (
-            <TouchableOpacity
-              style={[
-                styles.actionBtn,
-                {
-                  backgroundColor: colors.bg.secondary,
-                  borderWidth: 1,
-                  borderColor: colors.border.subtle,
-                  marginTop: 16,
-                },
-              ]}
-              onPress={handleRetry}
-            >
-              <Ionicons name="close" size={20} color={colors.text.primary} />
-              <Text style={[styles.actionBtnText, { color: colors.text.primary }]}>Cancel</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      )}
-
-      {scanState === 'error' && (
-        <View style={styles.centerContent}>
-          <Ionicons name="alert-circle" size={56} color={colors.status.error} />
-          <Text style={[styles.errorTitle, { color: colors.text.primary }]}>Scan Failed</Text>
-          <Text style={[styles.errorDesc, { color: colors.text.tertiary }]}>{errorMessage}</Text>
-          <View style={{ gap: 12, width: '100%' }}>
-            <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: colors.accent.primary }]}
-              onPress={handleRetry}
-            >
-              <Ionicons name="refresh" size={20} color="#FFFFFF" />
-              <Text style={styles.actionBtnText}>Try Again</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.actionBtn,
-                {
-                  backgroundColor: 'transparent',
-                  borderWidth: 1,
-                  borderColor: colors.border.default,
-                },
-              ]}
-              onPress={() => navigation.navigate('CreateTransaction' as any)}
-            >
-              <Ionicons name="create-outline" size={20} color={colors.text.secondary} />
-              <Text style={[styles.actionBtnText, { color: colors.text.secondary }]}>
-                Enter Manually
+    <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
+      <LinearGradient
+        colors={['#1A1A3E', '#12121A']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      <ScrollView
+        contentContainerStyle={{ ...styles.content, paddingTop: insets.top + 8 }}
+      >
+        <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }], alignItems: 'center', width: '100%' }}>
+          {scanState === 'idle' && (
+            <>
+              <View style={[styles.iconWrap, { backgroundColor: 'rgba(247,137,44,0.15)' }]}>
+                <Ionicons name="camera" size={44} color={colors.accent.primary} />
+              </View>
+              <Text style={[styles.title, { color: colors.text.primary }]}>Scan a Bill</Text>
+              <Text style={[styles.desc, { color: colors.text.tertiary }]}>
+                Position the bill within the frame and capture
               </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-    </ScrollView>
+
+              <ScanFrame />
+
+              <LinearGradient
+                colors={[...colors.accent.gradient]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.actionBtn}
+              >
+                <TouchableOpacity
+                  style={styles.actionBtnInner}
+                  onPress={openCamera}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="camera" size={20} color="#FFFFFF" />
+                  <Text style={styles.actionBtnText}>Open Camera</Text>
+                </TouchableOpacity>
+              </LinearGradient>
+
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.secondaryBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.1)', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)' }]}
+                onPress={pickFromGallery}
+              >
+                <Ionicons name="images-outline" size={20} color={colors.accent.primary} />
+                <Text style={[styles.actionBtnText, { color: colors.accent.primary }]}>
+                  Choose from Gallery
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.viewBillsBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.08)' }]}
+                onPress={() => navigation.navigate('BillsList')}
+              >
+                <Ionicons name="receipt-outline" size={18} color={colors.accent.primary} />
+                <Text style={[styles.viewBillsText, { color: colors.accent.primary }]}>
+                  View Scanned Bills
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+          {scanState === 'scanning' && (
+            <View style={styles.centerContent}>
+              {imageUri && (
+                <Image source={{ uri: imageUri }} style={styles.preview} resizeMode="contain" />
+              )}
+              <View style={[styles.scanningCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.12)', borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.2)' }]}>
+                <ActivityIndicator color={colors.accent.primary} size="large" />
+                <Text style={[styles.scanningText, { color: colors.text.secondary, marginTop: 16 }]}>
+                  {elapsed > 15 ? 'Still analyzing... taking longer than expected' : 'Analyzing bill...'}
+                </Text>
+                {elapsed > 5 && (
+                  <Text style={[styles.elapsedText, { color: colors.text.tertiary }]}>
+                    {elapsed}s elapsed
+                  </Text>
+                )}
+                {elapsed > 20 && (
+                  <TouchableOpacity
+                    style={[styles.cancelBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.15)', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)' }]}
+                    onPress={handleRetry}
+                  >
+                    <Ionicons name="close" size={20} color="#FFFFFF" />
+                    <Text style={styles.cancelBtnText}>Cancel</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          )}
+
+          {scanState === 'error' && (
+            <View style={styles.centerContent}>
+              <View style={[styles.errorCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.12)', borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.2)' }]}>
+                <Ionicons name="alert-circle" size={56} color={colors.status.error} />
+                <Text style={[styles.errorTitle, { color: colors.text.primary }]}>Scan Failed</Text>
+                <Text style={[styles.errorDesc, { color: colors.text.tertiary }]}>{errorMessage}</Text>
+                <View style={{ gap: 12, width: '100%', marginTop: 8 }}>
+                  <LinearGradient
+                    colors={[...colors.accent.gradient]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.actionBtn}
+                  >
+                    <TouchableOpacity
+                      style={styles.actionBtnInner}
+                      onPress={handleRetry}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="refresh" size={20} color="#FFFFFF" />
+                      <Text style={styles.actionBtnText}>Try Again</Text>
+                    </TouchableOpacity>
+                  </LinearGradient>
+                  <TouchableOpacity
+                    style={[styles.actionBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.3)' }]}
+                    onPress={() => navigation.navigate('CreateTransaction' as any)}
+                  >
+                    <Ionicons name="create-outline" size={20} color={colors.text.secondary} />
+                    <Text style={[styles.actionBtnText, { color: colors.text.secondary }]}>
+                      Enter Manually
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          )}
+        </Animated.View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 24, paddingBottom: 120, alignItems: 'center' },
-  centerContent: { alignItems: 'center', justifyContent: 'center', paddingVertical: 40 },
+  centerContent: { alignItems: 'center', justifyContent: 'center', paddingVertical: 20, width: '100%' },
   iconWrap: {
     width: 88,
     height: 88,
@@ -391,28 +386,31 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     marginTop: 10,
   },
-  title: { fontSize: 26, fontWeight: '700', marginBottom: 6, textAlign: 'center' },
+  title: { fontSize: 28, fontWeight: '800', marginBottom: 6, textAlign: 'center' },
   desc: {
     fontSize: 14,
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 24,
     paddingHorizontal: 16,
+    fontWeight: '500',
   },
   frameContainer: { marginBottom: 28 },
   actionBtn: {
+    borderRadius: 16,
+    width: '100%',
+    marginBottom: 12,
+  },
+  actionBtnInner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     paddingVertical: 16,
     paddingHorizontal: 28,
-    borderRadius: 16,
-    width: '100%',
     justifyContent: 'center',
-    marginBottom: 12,
   },
-  secondaryBtn: { backgroundColor: 'transparent', borderWidth: 1 },
-  actionBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+  secondaryBtn: { borderWidth: 1 },
+  actionBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '800' },
   viewBillsBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -422,10 +420,35 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginTop: 8,
   },
-  viewBillsText: { fontSize: 14, fontWeight: '600' },
+  viewBillsText: { fontSize: 14, fontWeight: '700' },
   preview: { width: '100%', height: 200, borderRadius: 16, marginBottom: 16 },
-  scanningText: { fontSize: 15, marginTop: 12, fontWeight: '500' },
-  elapsedText: { fontSize: 13, marginTop: 4 },
-  errorTitle: { fontSize: 20, fontWeight: '700', marginTop: 16, marginBottom: 8 },
-  errorDesc: { fontSize: 14, textAlign: 'center', marginBottom: 24, paddingHorizontal: 32 },
+  scanningCard: {
+    width: '100%',
+    alignItems: 'center',
+    padding: 32,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  scanningText: { fontSize: 15, fontWeight: '600' },
+  elapsedText: { fontSize: 13, marginTop: 4, fontWeight: '500' },
+  cancelBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 14,
+    borderWidth: 1,
+    marginTop: 16,
+  },
+  cancelBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
+  errorCard: {
+    width: '100%',
+    alignItems: 'center',
+    padding: 32,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  errorTitle: { fontSize: 20, fontWeight: '800', marginTop: 16, marginBottom: 8 },
+  errorDesc: { fontSize: 14, textAlign: 'center', paddingHorizontal: 32, fontWeight: '500' },
 });

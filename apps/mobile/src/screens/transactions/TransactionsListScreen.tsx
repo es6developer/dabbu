@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   Alert,
   Dimensions,
   ScrollView,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -102,6 +103,35 @@ export function TransactionsListScreen() {
   const { accessToken } = useAuth();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
+
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+  const searchAnim = useRef(new Animated.Value(48)).current;
+  const [searchExpanded, setSearchExpanded] = useState(false);
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  const toggleSearch = useCallback(() => {
+    setSearchExpanded((prev) => !prev);
+    Animated.timing(searchAnim, {
+      toValue: searchExpanded ? 48 : 120,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  }, [searchExpanded]);
 
   const [transactions, setTransactions] = useState<any[]>([]);
   const [groups, setGroups] = useState<any[]>([]);
@@ -257,7 +287,7 @@ export function TransactionsListScreen() {
             {item.description || categoryName}
           </Text>
           <Text style={[styles.cardDate, { color: colors.text.tertiary }]}>
-          {timeStr} · {categoryName}
+            {timeStr} · {categoryName}
           </Text>
         </View>
         <Text style={[styles.cardAmount, { color: isIncome ? '#00B894' : '#FF6B6B' }]}>
@@ -279,6 +309,8 @@ export function TransactionsListScreen() {
             refreshing={refreshing}
             onRefresh={onRefresh}
             tintColor={colors.accent.primary}
+            colors={[colors.accent.primary]}
+            progressBackgroundColor={colors.bg.secondary}
           />
         }
         contentContainerStyle={
@@ -287,30 +319,46 @@ export function TransactionsListScreen() {
             : styles.listContent
         }
         ListHeaderComponent={
-          <View>
-            {/* ── HEADER ── */}
-            <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-              <View>
-                <Text style={[styles.greeting, { color: colors.text.tertiary }]}>
-                  {new Date().getHours() < 12
-                    ? 'Good morning'
-                    : new Date().getHours() < 18
-                      ? 'Good afternoon'
-                      : 'Good evening'}
-                </Text>
-                <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Dashboard</Text>
-              </View>
-              <TouchableOpacity
-                style={[styles.avatar, { backgroundColor: `${colors.accent.primary}25` }]}
-                onPress={() => navigation.navigate('AddExpense')}
-              >
-                <Ionicons name="add" size={22} color={colors.accent.primary} />
-              </TouchableOpacity>
-            </View>
-
-            {/* ── BALANCE CARD ── */}
+          <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
             <LinearGradient
-              colors={['#1a1a2e', '#16213e', '#0f3460']}
+              colors={
+                isDark
+                  ? ['#0A0A0F', '#12121A']
+                  : ['#1a1a2e', '#16213e']
+              }
+              style={[styles.headerGradient, { paddingTop: insets.top + 16 }]}
+            >
+              <View style={styles.headerRow}>
+                <View>
+                  <Text style={styles.greetingLabel}>
+                    {new Date().getHours() < 12
+                      ? 'Good morning'
+                      : new Date().getHours() < 18
+                        ? 'Good afternoon'
+                        : 'Good evening'}
+                  </Text>
+                  <Text style={styles.greetingName}>Dashboard</Text>
+                </View>
+                <TouchableOpacity
+                  style={[styles.headerAvatarRing, { borderColor: colors.accent.primary }]}
+                  onPress={() => navigation.navigate('AddExpense')}
+                >
+                  <LinearGradient
+                    colors={[...colors.accent.gradient]}
+                    style={styles.headerAvatar}
+                  >
+                    <Ionicons name="add" size={24} color="#FFF" />
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </LinearGradient>
+
+            <LinearGradient
+              colors={
+                isDark
+                  ? ['#1a1a2e', '#16213e', '#0f3460']
+                  : ['#1a1a2e', '#16213e', '#0f3460']
+              }
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.balanceCard}
@@ -318,35 +366,22 @@ export function TransactionsListScreen() {
               <Text style={styles.balanceLabel}>Total Balance</Text>
               <Text style={styles.balanceAmount}>{formatCurrency(remaining)}</Text>
               <View style={styles.balanceBar}>
-                <View style={[styles.balanceBarItem, { flex: expensePct || 1 }]}>
+                <View style={styles.balanceBarItem}>
                   <View style={styles.balanceBarLabel}>
                     <View style={[styles.balanceDot, { backgroundColor: '#FF6B6B' }]} />
                     <Text style={styles.balanceBarText}>Expense {expensePct}%</Text>
                   </View>
                   <View style={styles.balanceBarTrack}>
-                    <View
-                      style={[
-                        styles.balanceBarFill,
-                        { width: `${Math.min(expensePct, 100)}%`, backgroundColor: '#FF6B6B' },
-                      ]}
-                    />
+                    <View style={[styles.balanceBarFill, { width: `${Math.min(expensePct, 100)}%`, backgroundColor: '#FF6B6B' }]} />
                   </View>
                 </View>
-                <View style={[styles.balanceBarItem, { flex: 100 - expensePct || 1 }]}>
+                <View style={styles.balanceBarItem}>
                   <View style={styles.balanceBarLabel}>
                     <View style={[styles.balanceDot, { backgroundColor: '#00B894' }]} />
-                    <Text style={styles.balanceBarText}>Saved {100 - expensePct}%</Text>
+                    <Text style={styles.balanceBarText}>Saved {savingsPct}%</Text>
                   </View>
                   <View style={styles.balanceBarTrack}>
-                    <View
-                      style={[
-                        styles.balanceBarFill,
-                        {
-                          width: `${Math.min(100 - expensePct, 100)}%`,
-                          backgroundColor: '#00B894',
-                        },
-                      ]}
-                    />
+                    <View style={[styles.balanceBarFill, { width: `${Math.min(savingsPct, 100)}%`, backgroundColor: '#00B894' }]} />
                   </View>
                 </View>
               </View>
@@ -365,12 +400,11 @@ export function TransactionsListScreen() {
               </View>
             </LinearGradient>
 
-            {/* ── QUICK ACTIONS ── */}
             <View style={styles.quickActions}>
               {QUICK_ACTIONS.map((action) => (
                 <TouchableOpacity
                   key={action.label}
-                  style={[styles.quickAction, { backgroundColor: colors.bg.tertiary }]}
+                  style={[styles.quickAction, { backgroundColor: colors.bg.glass, borderColor: colors.border.subtle }]}
                   onPress={() => navigation.navigate(action.screen)}
                   activeOpacity={0.7}
                 >
@@ -384,7 +418,6 @@ export function TransactionsListScreen() {
               ))}
             </View>
 
-            {/* ── GROUPS CAROUSEL ── */}
             {groups.length > 0 && (
               <View style={styles.groupsSection}>
                 <View style={styles.sectionHeaderRow}>
@@ -432,23 +465,29 @@ export function TransactionsListScreen() {
               </View>
             )}
 
-            {/* ── SEARCH + FILTER ── */}
             <View style={styles.searchRow}>
-              <View style={[styles.searchBar, { backgroundColor: colors.bg.tertiary }]}>
+              <Animated.View style={[styles.searchBar, { backgroundColor: colors.bg.tertiary, width: searchAnim }]}>
                 <Ionicons name="search-outline" size={18} color={colors.text.tertiary} />
-                <TextInput
-                  style={[styles.searchInput, { color: colors.text.primary }]}
-                  value={search}
-                  onChangeText={setSearch}
-                  placeholder="Search transactions"
-                  placeholderTextColor={colors.text.tertiary}
-                />
+                {searchExpanded && (
+                  <TextInput
+                    style={[styles.searchInput, { color: colors.text.primary }]}
+                    value={search}
+                    onChangeText={setSearch}
+                    placeholder="Search transactions"
+                    placeholderTextColor={colors.text.tertiary}
+                    autoFocus
+                  />
+                )}
                 {search ? (
-                  <TouchableOpacity onPress={() => setSearch('')}>
+                  <TouchableOpacity onPress={() => { setSearch(''); toggleSearch(); }}>
                     <Ionicons name="close-circle" size={18} color={colors.text.tertiary} />
                   </TouchableOpacity>
-                ) : null}
-              </View>
+                ) : (
+                  <TouchableOpacity onPress={toggleSearch}>
+                    <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
+                  </TouchableOpacity>
+                )}
+              </Animated.View>
             </View>
 
             {categories.length > 0 && (
@@ -484,7 +523,7 @@ export function TransactionsListScreen() {
                     style={[
                       styles.filterChip,
                       selectedCategory === cat
-                        ? styles.filterChipActive
+                        ? styles.filterChipActiveGradient
                         : {
                             backgroundColor: colors.bg.tertiary,
                             borderColor: colors.border.subtle,
@@ -523,7 +562,7 @@ export function TransactionsListScreen() {
                   style={[
                     styles.filterChip,
                     sortBy === option
-                      ? styles.filterChipActive
+                      ? styles.filterChipActiveGradient
                       : { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
                   ]}
                   onPress={() => setSortBy(option)}
@@ -550,7 +589,7 @@ export function TransactionsListScreen() {
                   style={[
                     styles.filterChip,
                     selectedGroupId === group.id
-                      ? styles.filterChipActive
+                      ? styles.filterChipActiveGradient
                       : { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
                   ]}
                   onPress={() => setSelectedGroupId(selectedGroupId === group.id ? '' : group.id)}
@@ -586,7 +625,7 @@ export function TransactionsListScreen() {
             >
               Recent Transactions
             </Text>
-          </View>
+          </Animated.View>
         }
         renderItem={({ item: section }) => (
           <View>
@@ -600,9 +639,12 @@ export function TransactionsListScreen() {
         )}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <View style={[styles.emptyIconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
-              <Ionicons name="wallet-outline" size={44} color={colors.accent.primary} />
-            </View>
+            <LinearGradient
+              colors={[...colors.accent.gradient]}
+              style={styles.emptyIconWrap}
+            >
+              <Ionicons name="wallet-outline" size={44} color="#FFF" />
+            </LinearGradient>
             <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
               Track your spending
             </Text>
@@ -623,7 +665,6 @@ export function TransactionsListScreen() {
         windowSize={10}
         maxToRenderPerBatch={10}
       />
-
     </View>
   );
 }
@@ -634,26 +675,55 @@ const styles = StyleSheet.create({
   listContent: { paddingBottom: 100 },
   emptyContainer: { flexGrow: 1 },
 
-  // ── Header ──
-  header: {
+  headerGradient: {
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+  },
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingBottom: 16,
   },
-  greeting: { fontSize: 13, fontWeight: '500', marginBottom: 4 },
-  headerTitle: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5 },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  greetingLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.6)',
+    marginBottom: 4,
+  },
+  greetingName: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.5,
+  },
+  headerAvatarRing: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerAvatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
-  // ── Balance Card ──
-  balanceCard: { marginHorizontal: 24, borderRadius: 24, padding: 24, gap: 16, marginBottom: 20 },
+  balanceCard: {
+    marginHorizontal: 24,
+    borderRadius: 28,
+    padding: 24,
+    gap: 16,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 24,
+    elevation: 12,
+  },
   balanceLabel: {
     fontSize: 13,
     fontWeight: '500',
@@ -661,38 +731,43 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.8,
   },
-  balanceAmount: { fontSize: 36, fontWeight: '800', color: '#FFF', letterSpacing: -1 },
-  balanceBar: { gap: 8 },
-  balanceBarItem: { gap: 4 },
+  balanceAmount: { fontSize: 38, fontWeight: '800', color: '#FFF', letterSpacing: -1 },
+  balanceBar: { gap: 10 },
+  balanceBarItem: { gap: 6 },
   balanceBarLabel: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   balanceDot: { width: 8, height: 8, borderRadius: 4 },
   balanceBarText: { fontSize: 11, color: 'rgba(255,255,255,0.6)' },
-  balanceBarTrack: { height: 4, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 2 },
-  balanceBarFill: { height: '100%', borderRadius: 2 },
+  balanceBarTrack: { height: 6, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 3 },
+  balanceBarFill: { height: '100%', borderRadius: 3 },
   balanceRow: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 14,
-    padding: 14,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 16,
+    padding: 16,
   },
   balanceRowItem: { flex: 1, alignItems: 'center', gap: 2 },
-  balanceRowDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.12)' },
-  balanceRowValue: { fontSize: 16, fontWeight: '700', color: '#FFF' },
+  balanceRowDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.1)' },
+  balanceRowValue: { fontSize: 17, fontWeight: '700', color: '#FFF' },
   balanceRowLabel: { fontSize: 11, color: 'rgba(255,255,255,0.5)' },
 
-  // ── Quick Actions ──
   quickActions: { flexDirection: 'row', paddingHorizontal: 24, gap: 12, marginBottom: 20 },
-  quickAction: { flex: 1, alignItems: 'center', padding: 14, borderRadius: 16, gap: 8 },
+  quickAction: {
+    flex: 1,
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 20,
+    gap: 10,
+    borderWidth: 1,
+  },
   quickActionIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+    width: 46,
+    height: 46,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
   quickActionLabel: { fontSize: 12, fontWeight: '600' },
 
-  // ── Groups ──
   groupsSection: { marginBottom: 20 },
   sectionHeaderRow: {
     flexDirection: 'row',
@@ -704,30 +779,29 @@ const styles = StyleSheet.create({
   sectionHeaderTitle: { fontSize: 18, fontWeight: '700' },
   sectionHeaderAction: { fontSize: 13, fontWeight: '600' },
   groupsScroll: { paddingHorizontal: 24, gap: 12 },
-  groupCard: { padding: 16, borderRadius: 20, width: 130, alignItems: 'center', gap: 8 },
+  groupCard: { padding: 16, borderRadius: 22, width: 130, alignItems: 'center', gap: 10 },
   groupAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
+    width: 52,
+    height: 52,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  groupAvatarText: { color: '#FFF', fontSize: 20, fontWeight: '700' },
+  groupAvatarText: { color: '#FFF', fontSize: 22, fontWeight: '700' },
   groupName: { fontSize: 13, fontWeight: '600', textAlign: 'center' },
   groupMemberCount: { fontSize: 11, textAlign: 'center' },
 
-  // ── Search ──
-  searchRow: { paddingHorizontal: 24, marginBottom: 8 },
+  searchRow: { paddingHorizontal: 24, marginBottom: 8, alignItems: 'flex-end' },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     borderRadius: 16,
     height: 48,
+    alignSelf: 'flex-end',
   },
   searchInput: { flex: 1, fontSize: 15, marginLeft: 10 },
 
-  // ── Filter Chips ──
   filterRow: { marginBottom: 8 },
   filterContent: { paddingHorizontal: 24, gap: 8 },
   filterChip: {
@@ -739,10 +813,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   filterChipActive: { backgroundColor: '#f7892c', borderColor: '#f7892c' },
+  filterChipActiveGradient: { backgroundColor: '#f7892c', borderColor: '#f7892c' },
   filterChipText: { fontSize: 13, fontWeight: '500' },
   filterChipTextActive: { color: '#FFF' },
 
-  // ── Section Labels ──
   sectionLabel: {
     fontSize: 11,
     fontWeight: '600',
@@ -752,7 +826,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
 
-  // ── Transaction Cards ──
   card: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -762,9 +835,9 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
   cardIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+    width: 46,
+    height: 46,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 14,
@@ -774,7 +847,6 @@ const styles = StyleSheet.create({
   cardDate: { fontSize: 12, marginTop: 3, opacity: 0.6 },
   cardAmount: { fontSize: 17, fontWeight: '700', marginLeft: 8 },
 
-  // ── Empty ──
   empty: { alignItems: 'center', gap: 12, paddingTop: 40 },
   emptyIconWrap: {
     width: 80,

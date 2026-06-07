@@ -230,6 +230,16 @@ export class TransactionsService {
     };
   }
 
+  async getRecent(userId: string, limit: number) {
+    const transactions = await this.prisma.transaction.findMany({
+      where: { userId, deletedAt: null },
+      include: { category: true },
+      orderBy: { date: 'desc' },
+      take: limit,
+    });
+    return { data: transactions };
+  }
+
   async getCategorySummary(userId: string, startDate?: string, endDate?: string, expenseGroupId?: string) {
     const where: any = { deletedAt: null, type: 'expense' };
     if (expenseGroupId) {

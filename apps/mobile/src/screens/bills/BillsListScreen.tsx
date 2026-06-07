@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  ActivityIndicator, RefreshControl, Animated, LayoutAnimation,
+  RefreshControl, Animated, LayoutAnimation,
   Platform, UIManager,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
@@ -109,17 +110,22 @@ function AccordionSection({
 
 function BillCard({ bill, colors, onPress }: { bill: BillItem; colors: any; onPress: () => void }) {
   return (
-    <TouchableOpacity style={[styles.billCard, { borderColor: colors.border.subtle }]} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity style={[styles.billCard, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle }]} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.billCardLeft}>
-        <View style={[styles.categoryDot, { backgroundColor: `${colors.accent.primary}22` }]}>
-          <Ionicons name="receipt" size={14} color={colors.accent.primary} />
-        </View>
+        <LinearGradient
+          colors={[...colors.accent.gradient]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.categoryDot}
+        >
+          <Ionicons name="receipt" size={14} color="#FFFFFF" />
+        </LinearGradient>
         <View style={styles.billCardInfo}>
           <Text style={[styles.billMerchant, { color: colors.text.primary }]} numberOfLines={1}>
             {bill.merchant}
           </Text>
           <View style={styles.billCardMeta}>
-            <View style={[styles.categoryBadge, { backgroundColor: `${colors.accent.primary}15` }]}>
+            <View style={[styles.categoryBadge, { backgroundColor: `${colors.accent.primary}18` }]}>
               <Text style={[styles.categoryBadgeText, { color: colors.accent.primary }]}>{bill.category}</Text>
             </View>
             {bill.itemCount > 0 && (
@@ -188,20 +194,33 @@ function ComparisonCard({ groups, colors, onCompare }: { groups: MonthlyGroup[];
 function EmptyState({ colors, onScan }: { colors: any; onScan: () => void }) {
   return (
     <View style={styles.emptyContainer}>
-      <View style={[styles.emptyIconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
-        <Ionicons name="receipt-outline" size={56} color={colors.accent.primary} />
-      </View>
+      <LinearGradient
+        colors={[...colors.accent.gradient]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.emptyIconWrap}
+      >
+        <Ionicons name="receipt-outline" size={56} color="#FFFFFF" />
+      </LinearGradient>
       <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No Bills Yet</Text>
       <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
         Scan your first receipt or bill to start managing expenses automatically.
       </Text>
-      <TouchableOpacity
-        style={[styles.emptyBtn, { backgroundColor: colors.accent.primary }]}
-        onPress={onScan}
+      <LinearGradient
+        colors={[...colors.accent.gradient]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.emptyBtn}
       >
-        <Ionicons name="camera" size={20} color="#FFFFFF" />
-        <Text style={styles.emptyBtnText}>Scan Your First Bill</Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.emptyBtnInner}
+          onPress={onScan}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="camera" size={20} color="#FFFFFF" />
+          <Text style={styles.emptyBtnText}>Scan Your First Bill</Text>
+        </TouchableOpacity>
+      </LinearGradient>
     </View>
   );
 }
@@ -233,6 +252,11 @@ export function BillsListScreen() {
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
   const insets = useSafeAreaInsets();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
+  }, []);
 
   const [groups, setGroups] = useState<MonthlyGroup[]>([]);
   const [loading, setLoading] = useState(true);
@@ -308,149 +332,194 @@ export function BillsListScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
+      <LinearGradient
+        colors={['#1A1A3E', '#12121A']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <View style={[styles.headerContent, { paddingTop: insets.top + 12 }]}>
+          <Text style={styles.headerTitle}>Bills</Text>
+          <TouchableOpacity style={styles.headerBtn}>
+            <Ionicons name="options-outline" size={22} color="rgba(255,255,255,0.7)" />
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent.primary} />
         }
       >
-        {error && groups.length === 0 ? (
-          <View style={styles.errorContainer}>
-            <Ionicons name="cloud-offline-outline" size={56} color={colors.status.error} />
-            <Text style={[styles.errorTitle, { color: colors.text.primary }]}>Failed to Load</Text>
-            <Text style={[styles.errorDesc, { color: colors.text.tertiary }]}>{error}</Text>
-            <TouchableOpacity
-              style={[styles.emptyBtn, { backgroundColor: colors.accent.primary }]}
-              onPress={() => { setLoading(true); loadBills(); }}
-            >
-              <Ionicons name="refresh" size={20} color="#FFFFFF" />
-              <Text style={styles.emptyBtnText}>Try Again</Text>
-            </TouchableOpacity>
-          </View>
-        ) : groups.length === 0 ? (
-          <EmptyState colors={colors} onScan={() => navigation.navigate('BillScanner')} />
-        ) : (
-          <>
-            <View style={styles.summaryBar}>
-              <View style={styles.summaryItem}>
-                <Text style={[styles.summaryLabel, { color: colors.text.tertiary }]}>Total Spent</Text>
-                <Text style={[styles.summaryValue, { color: colors.text.primary }]}>{formatCurrency(totalSpent)}</Text>
-              </View>
-              <View style={[styles.summaryDivider, { backgroundColor: colors.border.subtle }]} />
-              <View style={styles.summaryItem}>
-                <Text style={[styles.summaryLabel, { color: colors.text.tertiary }]}>Bills</Text>
-                <Text style={[styles.summaryValue, { color: colors.text.primary }]}>{totalBills}</Text>
-              </View>
+        <Animated.View style={{ opacity: fadeAnim }}>
+          {error && groups.length === 0 ? (
+            <View style={styles.errorContainer}>
+              <Ionicons name="cloud-offline-outline" size={56} color={colors.status.error} />
+              <Text style={[styles.errorTitle, { color: colors.text.primary }]}>Failed to Load</Text>
+              <Text style={[styles.errorDesc, { color: colors.text.tertiary }]}>{error}</Text>
+              <TouchableOpacity
+                style={[styles.emptyBtn, { backgroundColor: colors.accent.primary }]}
+                onPress={() => { setLoading(true); loadBills(); }}
+              >
+                <Ionicons name="refresh" size={20} color="#FFFFFF" />
+                <Text style={styles.emptyBtnText}>Try Again</Text>
+              </TouchableOpacity>
             </View>
+          ) : groups.length === 0 ? (
+            <EmptyState colors={colors} onScan={() => navigation.navigate('BillScanner')} />
+          ) : (
+            <>
+              <View style={[styles.summaryBar, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}>
+                <View style={styles.summaryItem}>
+                  <Text style={[styles.summaryLabel, { color: colors.text.tertiary }]}>Total Spent</Text>
+                  <Text style={[styles.summaryValue, { color: colors.text.primary }]}>{formatCurrency(totalSpent)}</Text>
+                </View>
+                <View style={[styles.summaryDivider, { backgroundColor: colors.border.subtle }]} />
+                <View style={styles.summaryItem}>
+                  <Text style={[styles.summaryLabel, { color: colors.text.tertiary }]}>Bills</Text>
+                  <Text style={[styles.summaryValue, { color: colors.text.primary }]}>{totalBills}</Text>
+                </View>
+              </View>
 
-            <ComparisonCard groups={groups} colors={colors} onCompare={handleCompare} />
+              <ComparisonCard groups={groups} colors={colors} onCompare={handleCompare} />
 
-            {groups.map((group) => {
-              const key = `${group.year}-${group.month}`;
-              return (
-                <AccordionSection
-                  key={key}
-                  group={group}
-                  expanded={expandedMonths.has(key)}
-                  onToggle={() => toggleMonth(key)}
-                  colors={colors}
-                  onBillPress={handleBillPress}
-                />
-              );
-            })}
-          </>
-        )}
+              {groups.map((group) => {
+                const key = `${group.year}-${group.month}`;
+                return (
+                  <AccordionSection
+                    key={key}
+                    group={group}
+                    expanded={expandedMonths.has(key)}
+                    onToggle={() => toggleMonth(key)}
+                    colors={colors}
+                    onBillPress={handleBillPress}
+                  />
+                );
+              })}
+            </>
+          )}
+        </Animated.View>
       </ScrollView>
 
-      <TouchableOpacity
-        style={[styles.fab, { backgroundColor: colors.accent.primary, bottom: insets.bottom + 100 }]}
-        onPress={() => navigation.navigate('BillScanner')}
-        activeOpacity={0.8}
+      <LinearGradient
+        colors={[...colors.accent.gradient]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.fab, { bottom: insets.bottom + 100 }]}
       >
-        <Ionicons name="camera" size={24} color="#FFFFFF" />
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.fabInner}
+          onPress={() => navigation.navigate('BillScanner')}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="camera" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+      </LinearGradient>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  headerGradient: {
+    paddingBottom: 16,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+  },
+  headerTitle: { color: '#FFFFFF', fontSize: 28, fontWeight: '800' },
+  headerBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   scrollContent: { padding: 16, paddingBottom: 100 },
   summaryBar: {
     flexDirection: 'row', alignItems: 'center',
-    borderRadius: 20, padding: 20, marginBottom: 16,
+    borderRadius: 22, padding: 22, marginBottom: 16,
+    borderWidth: 1,
   },
   summaryItem: { flex: 1, alignItems: 'center' },
-  summaryLabel: { fontSize: 12, fontWeight: '500', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 },
-  summaryValue: { fontSize: 22, fontWeight: '700' },
+  summaryLabel: { fontSize: 12, fontWeight: '700', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 },
+  summaryValue: { fontSize: 24, fontWeight: '800' },
   summaryDivider: { width: 1, height: 36, marginHorizontal: 16 },
   comparisonCard: {
-    borderRadius: 20, borderWidth: 1, padding: 16, marginBottom: 16,
+    borderRadius: 22, borderWidth: 1, padding: 18, marginBottom: 16,
   },
   comparisonHeader: {
     flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12,
   },
-  comparisonTitle: { fontSize: 14, fontWeight: '600', flex: 1 },
+  comparisonTitle: { fontSize: 14, fontWeight: '700', flex: 1 },
   comparisonBody: {
     flexDirection: 'row', alignItems: 'center', marginBottom: 12,
   },
   comparisonCol: { flex: 1, alignItems: 'center' },
-  comparisonLabel: { fontSize: 11, fontWeight: '500', marginBottom: 4, textTransform: 'uppercase' },
-  comparisonAmount: { fontSize: 18, fontWeight: '700' },
+  comparisonLabel: { fontSize: 11, fontWeight: '700', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 },
+  comparisonAmount: { fontSize: 20, fontWeight: '800' },
   comparisonDivider: { width: 1, height: 32, marginHorizontal: 12 },
   comparisonFooter: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 6, paddingTop: 10, borderTopWidth: 1,
   },
-  comparisonFooterText: { fontSize: 12, fontWeight: '600' },
+  comparisonFooterText: { fontSize: 12, fontWeight: '700' },
   monthSection: {
-    borderRadius: 20, borderWidth: 1, marginBottom: 12, overflow: 'hidden',
+    borderRadius: 22, borderWidth: 1, marginBottom: 12, overflow: 'hidden',
   },
   monthHeader: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    padding: 16,
+    padding: 18,
   },
   monthHeaderLeft: { flex: 1 },
-  monthName: { fontSize: 17, fontWeight: '700', marginBottom: 4 },
+  monthName: { fontSize: 18, fontWeight: '800', marginBottom: 4 },
   monthMeta: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  monthTotal: { fontSize: 15, fontWeight: '600' },
-  monthCount: { fontSize: 13 },
+  monthTotal: { fontSize: 16, fontWeight: '700' },
+  monthCount: { fontSize: 13, fontWeight: '500' },
   monthBills: { paddingHorizontal: 16, paddingBottom: 8 },
   billCard: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingVertical: 12, paddingHorizontal: 12, borderRadius: 14, borderWidth: 1,
-    marginBottom: 8,
+    paddingVertical: 14, paddingHorizontal: 14, borderRadius: 16, borderWidth: 1,
+    marginBottom: 10,
   },
-  billCardLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: 10 },
-  categoryDot: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  billCardLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: 12 },
+  categoryDot: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   billCardInfo: { flex: 1 },
-  billMerchant: { fontSize: 14, fontWeight: '600', marginBottom: 4 },
+  billMerchant: { fontSize: 15, fontWeight: '700', marginBottom: 4 },
   billCardMeta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  categoryBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
-  categoryBadgeText: { fontSize: 11, fontWeight: '600' },
-  billItems: { fontSize: 11 },
+  categoryBadge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 8 },
+  categoryBadgeText: { fontSize: 11, fontWeight: '700' },
+  billItems: { fontSize: 11, fontWeight: '500' },
   billCardRight: { alignItems: 'flex-end', marginLeft: 12 },
-  billAmount: { fontSize: 15, fontWeight: '700', marginBottom: 2 },
-  billDate: { fontSize: 11 },
+  billAmount: { fontSize: 16, fontWeight: '800', marginBottom: 2 },
+  billDate: { fontSize: 11, fontWeight: '500' },
   emptyContainer: { flex: 1, alignItems: 'center', paddingVertical: 60, paddingHorizontal: 32 },
   emptyIconWrap: { width: 120, height: 120, borderRadius: 60, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
-  emptyTitle: { fontSize: 22, fontWeight: '700', marginBottom: 8 },
-  emptyDesc: { fontSize: 14, textAlign: 'center', lineHeight: 22, marginBottom: 32 },
-  emptyBtn: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 14, paddingHorizontal: 28, borderRadius: 16 },
-  emptyBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '600' },
+  emptyTitle: { fontSize: 24, fontWeight: '800', marginBottom: 8 },
+  emptyDesc: { fontSize: 14, textAlign: 'center', lineHeight: 22, marginBottom: 32, fontWeight: '500' },
+  emptyBtn: { borderRadius: 16, width: '100%' },
+  emptyBtnInner: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 16, paddingHorizontal: 28, justifyContent: 'center' },
+  emptyBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '800' },
   loadingContainer: { padding: 16, paddingTop: 40 },
-  shimmerCard: { borderRadius: 20, borderWidth: 1, padding: 16, marginBottom: 12 },
+  shimmerCard: { borderRadius: 22, borderWidth: 1, padding: 16, marginBottom: 12 },
   shimmerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   shimmerCircle: { width: 40, height: 40, borderRadius: 12 },
   shimmerLine: { height: 12, borderRadius: 6 },
   errorContainer: { flex: 1, alignItems: 'center', paddingVertical: 40, paddingHorizontal: 32 },
-  errorTitle: { fontSize: 20, fontWeight: '700', marginTop: 16, marginBottom: 8 },
-  errorDesc: { fontSize: 14, textAlign: 'center', marginBottom: 24 },
+  errorTitle: { fontSize: 20, fontWeight: '800', marginTop: 16, marginBottom: 8 },
+  errorDesc: { fontSize: 14, textAlign: 'center', marginBottom: 24, fontWeight: '500' },
   fab: {
     position: 'absolute', right: 20,
     width: 56, height: 56, borderRadius: 28,
-    alignItems: 'center', justifyContent: 'center',
     elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3, shadowRadius: 8,
+  },
+  fabInner: {
+    width: 56, height: 56, borderRadius: 28,
+    alignItems: 'center', justifyContent: 'center',
   },
 });

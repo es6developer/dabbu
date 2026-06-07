@@ -23,7 +23,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Skeleton, SkeletonCard } from '../../components/ui/AnimatedSkeleton';
 
 function fmt(v: number) {
-  return '₹' + Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+  return '\u20B9' + Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 }
 
 function normalize<T>(res: any): T {
@@ -291,8 +291,8 @@ export function GroupExpensesScreen() {
         },
       });
       setAiInsights(res?.narrative || res?.data?.narrative || null);
-    } catch (e) {
-      // silently fail
+    } catch (e: any) {
+      console.warn('AI insights unavailable:', e.message);
     } finally {
       setLoadingAi(false);
     }
@@ -585,17 +585,17 @@ export function GroupExpensesScreen() {
             </View>
 
             <View style={s.grid}>
-              <LinearGradient colors={[colors.bg.secondary, colors.bg.tertiary]} style={s.statCard}>
+              <LinearGradient colors={[...colors.accent.gradient]} style={s.statCard}>
                 <Text style={s.statLabel}>Income</Text>
-                <Text style={[s.statVal, { color: '#00B894' }]}>{fmt(stats.totalIncome)}</Text>
+                <Text style={[s.statVal, { color: '#FFF' }]}>{fmt(stats.totalIncome)}</Text>
               </LinearGradient>
-              <LinearGradient colors={[colors.bg.secondary, colors.bg.tertiary]} style={s.statCard}>
+              <LinearGradient colors={[...colors.accent.gradient]} style={s.statCard}>
                 <Text style={s.statLabel}>Expenses</Text>
-                <Text style={[s.statVal, { color: '#FF6B6B' }]}>{fmt(stats.totalExpense)}</Text>
+                <Text style={[s.statVal, { color: '#FFF' }]}>{fmt(stats.totalExpense)}</Text>
               </LinearGradient>
-              <LinearGradient colors={[colors.bg.secondary, colors.bg.tertiary]} style={s.statCard}>
+              <LinearGradient colors={[...colors.accent.gradient]} style={s.statCard}>
                 <Text style={s.statLabel}>Left</Text>
-                <Text style={[s.statVal, { color: stats.remaining >= 0 ? '#00B894' : '#FF6B6B' }]}>
+                <Text style={[s.statVal, { color: '#FFF' }]}>
                   {fmt(Math.abs(stats.remaining))}
                 </Text>
               </LinearGradient>
@@ -672,7 +672,7 @@ export function GroupExpensesScreen() {
 
             <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 8 }}>
               <Text style={[s.secTitle, { color: colors.text.tertiary, flex: 1 }]}>
-                Transactions {transactions.length > 0 ? `· ${transactions.length}` : ''}
+                Transactions {transactions.length > 0 ? `\u00B7 ${transactions.length}` : ''}
               </Text>
               {group?.isExpired ? (
                 <TouchableOpacity
@@ -726,7 +726,12 @@ export function GroupExpensesScreen() {
               </View>
             )}
             {aiInsights && (
-              <View style={[s.aiCard, { backgroundColor: colors.bg.secondary, borderColor: `${colors.accent.primary}30` }]}>
+              <LinearGradient
+                colors={[`${colors.accent.primary}18`, `${colors.accent.secondary}10`]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[s.aiCard, { borderColor: `${colors.accent.primary}30` }]}
+              >
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                   <Ionicons name="sparkles" size={16} color={colors.accent.primary} />
                   <Text style={[s.aiCardTitle, { color: colors.accent.primary }]}>AI Insights</Text>
@@ -734,7 +739,7 @@ export function GroupExpensesScreen() {
                 <Text style={[s.aiCardBody, { color: colors.text.secondary }]}>
                   {typeof aiInsights === 'string' ? aiInsights : aiInsights?.summary || JSON.stringify(aiInsights)}
                 </Text>
-              </View>
+              </LinearGradient>
             )}
 
             {transactions.map((item: any) => {
@@ -1032,7 +1037,12 @@ export function GroupExpensesScreen() {
             </View>
           </View>
 
-          <View style={[s.planBar, { backgroundColor: colors.bg.tertiary }]}>
+          <LinearGradient
+            colors={[colors.bg.tertiary, colors.bg.secondary]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={s.planBar}
+          >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Ionicons
                 name={planInfo.tier === 'free' ? 'shield-outline' : 'shield-checkmark'}
@@ -1050,7 +1060,7 @@ export function GroupExpensesScreen() {
                 <Text style={[s.planAction, { color: colors.accent.primary }]}>Upgrade</Text>
               </TouchableOpacity>
             )}
-          </View>
+          </LinearGradient>
 
           {sectionedGroups.length === 0 ? (
             <View style={s.emptyHub}>
@@ -1077,26 +1087,27 @@ export function GroupExpensesScreen() {
               <View key={section.key} style={s.section}>
                 <View style={s.sectionHeader}>
                   <View style={s.sectionHeaderLeft}>
-                    <View
-                      style={[
-                        s.sectionIconWrap,
-                        { backgroundColor: `${colors.accent.primary}18` },
-                      ]}
+                    <LinearGradient
+                      colors={[...colors.accent.gradient]}
+                      style={s.sectionIconWrap}
                     >
                       <Ionicons
                         name={section.icon as any}
                         size={16}
-                        color={colors.accent.primary}
+                        color="#FFF"
                       />
-                    </View>
+                    </LinearGradient>
                     <Text style={[s.sectionLabel, { color: colors.text.primary }]}>
                       {section.label}
                     </Text>
-                    <View style={[s.sectionCount, { backgroundColor: colors.bg.tertiary }]}>
-                      <Text style={[s.sectionCountText, { color: colors.text.secondary }]}>
+                    <LinearGradient
+                      colors={[...colors.accent.gradient]}
+                      style={s.sectionCount}
+                    >
+                      <Text style={s.sectionCountText}>
                         {section.groups.length}
                       </Text>
-                    </View>
+                    </LinearGradient>
                   </View>
                 </View>
 
@@ -1115,7 +1126,7 @@ export function GroupExpensesScreen() {
                         }
                       >
                         <LinearGradient
-                          colors={[colors.bg.secondary, colors.bg.tertiary]}
+                          colors={[colors.bg.secondary, colors.bg.elevated || colors.bg.tertiary]}
                           start={{ x: 0, y: 0 }}
                           end={{ x: 1, y: 1 }}
                           style={s.card}
@@ -1160,58 +1171,28 @@ export function GroupExpensesScreen() {
                           <View style={[s.cardDivider, { backgroundColor: colors.border.subtle }]} />
 
                           <View style={s.statsRow}>
-                            <View
-                              style={[
-                                s.stat,
-                                {
-                                  backgroundColor: isDark
-                                    ? 'rgba(255,255,255,0.06)'
-                                    : 'rgba(0,0,0,0.04)',
-                                },
-                              ]}
+                            <LinearGradient
+                              colors={[`${colors.accent.primary}15`, `${colors.accent.secondary}08`]}
+                              start={{ x: 0, y: 0 }}
+                              end={{ x: 1, y: 1 }}
+                              style={s.stat}
                             >
-                              <Text
-                                style={[
-                                  s.statLabel,
-                                  {
-                                    color: isDark
-                                      ? 'rgba(255,255,255,0.4)'
-                                      : colors.text.secondary,
-                                  },
-                                ]}
-                              >
-                                Total
-                              </Text>
-                              <Text style={[s.statVal, { color: colors.text.primary }]}>
+                              <Text style={s.statLabel}>Total</Text>
+                              <Text style={[s.statVal, { color: colors.text.primary, marginTop: 4 }]}>
                                 {fmt(ed.total)}
                               </Text>
-                            </View>
-                            <View
-                              style={[
-                                s.stat,
-                                {
-                                  backgroundColor: isDark
-                                    ? 'rgba(255,255,255,0.06)'
-                                    : 'rgba(0,0,0,0.04)',
-                                },
-                              ]}
+                            </LinearGradient>
+                            <LinearGradient
+                              colors={[`${colors.accent.primary}15`, `${colors.accent.secondary}08`]}
+                              start={{ x: 0, y: 0 }}
+                              end={{ x: 1, y: 1 }}
+                              style={s.stat}
                             >
-                              <Text
-                                style={[
-                                  s.statLabel,
-                                  {
-                                    color: isDark
-                                      ? 'rgba(255,255,255,0.4)'
-                                      : colors.text.secondary,
-                                  },
-                                ]}
-                              >
-                                Txns
-                              </Text>
-                              <Text style={[s.statVal, { color: colors.text.primary }]}>
+                              <Text style={s.statLabel}>Txns</Text>
+                              <Text style={[s.statVal, { color: colors.text.primary, marginTop: 4 }]}>
                                 {ed.count}
                               </Text>
-                            </View>
+                            </LinearGradient>
                           </View>
 
                           {ed.latest && (
@@ -1223,16 +1204,15 @@ export function GroupExpensesScreen() {
                                 ]}
                               />
                               <View style={s.latestRow}>
-                                <Ionicons
-                                  name="time-outline"
-                                  size={13}
-                                  color={colors.text.tertiary}
+                                <LinearGradient
+                                  colors={[...colors.accent.gradient]}
+                                  style={s.latestDot}
                                 />
                                 <Text
-                                  style={[s.latestText, { color: colors.text.tertiary }]}
+                                  style={[s.latestText, { color: colors.text.secondary }]}
                                   numberOfLines={1}
                                 >
-                                  {ed.latest.description || 'Expense'} ·{' '}
+                                  {ed.latest.description || 'Expense'} \u00B7{' '}
                                   {fmt(Number(ed.latest.amount))}
                                 </Text>
                                 <Text
@@ -1347,7 +1327,12 @@ export function GroupExpensesScreen() {
         onPress={handleCreateGroup}
         activeOpacity={0.8}
       >
-        <Ionicons name="add" size={24} color="#FFF" />
+        <LinearGradient
+          colors={[...colors.accent.gradient]}
+          style={s.fabGradient}
+        >
+          <Ionicons name="add" size={24} color="#FFF" />
+        </LinearGradient>
       </TouchableOpacity>
     </View>
   );
@@ -1576,7 +1561,7 @@ const s = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 8,
   },
-  sectionCountText: { fontSize: 12, fontWeight: '700' },
+  sectionCountText: { fontSize: 12, fontWeight: '700', color: '#FFF' },
 
   cardWrap: { marginHorizontal: 24, marginBottom: 12 },
   card: { borderRadius: 20, padding: 16 },
@@ -1611,7 +1596,12 @@ const s = StyleSheet.create({
   latestRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
+  },
+  latestDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   latestText: { flex: 1, fontSize: 13 },
   latestTime: { fontSize: 11, fontWeight: '500' },
@@ -1643,6 +1633,14 @@ const s = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
+    overflow: 'hidden',
+  },
+  fabGradient: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   emptyHub: { alignItems: 'center', gap: 12, paddingTop: 80 },

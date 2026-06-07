@@ -53,6 +53,12 @@ export class TransactionsController {
     return this.transactionsService.getStats(userId, months || 12);
   }
 
+  @Get('recent')
+  @ApiOperation({ summary: 'Get recent transactions without time limit' })
+  async getRecent(@CurrentUser('id') userId: string, @Query('limit') limit?: number) {
+    return this.transactionsService.getRecent(userId, limit || 5);
+  }
+
   @Get('categories-summary')
   @ApiOperation({ summary: 'Get spending by category' })
   async getCategorySummary(
