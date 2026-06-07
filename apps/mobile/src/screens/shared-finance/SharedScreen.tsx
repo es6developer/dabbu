@@ -1,11 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,7 +11,7 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { SkeletonCard } from '../../components/ui/AnimatedSkeleton';
 
-function moneyFormat(v: number | string | undefined | null): string {
+function fmt(v: number | string | undefined | null): string {
   const n = typeof v === 'string' ? parseFloat(v) : Number(v ?? 0);
   return `₹${n.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 }
@@ -49,6 +44,7 @@ export function SharedScreen() {
   const [groups, setGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const loadData = useCallback(async () => {
     if (accessToken) setAccessToken(accessToken);
@@ -61,87 +57,117 @@ export function SharedScreen() {
 
   useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
 
+  useEffect(() => {
+    if (!loading) {
+      Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
+    }
+  }, [loading]);
+
   const premiumGroups = groups.filter((g: any) => g.type === 'couple' || g.type === 'family');
   const otherGroups = groups.filter((g: any) => g.type !== 'couple' && g.type !== 'family');
 
   return (
-    <View style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
+    <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadData(); }} tintColor="#6C3EF4" />}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadData(); }} tintColor="#6C3EF4" />
+        }
       >
         <LinearGradient
-          colors={['#6C3EF4', '#8B5CF6']}
+          colors={['#1A1A3E', '#12121A']}
           start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          style={{ paddingTop: insets.top + 16, paddingBottom: 32, paddingHorizontal: 20 }}
+          style={{ paddingTop: insets.top + 16, paddingBottom: 28, paddingHorizontal: 20, borderBottomLeftRadius: 32, borderBottomRightRadius: 32 }}
         >
-          <View style={styles.headerRow}>
+          <View style={s.headerRow}>
             <View>
-              <Text style={styles.headerTitle}>Spaces</Text>
-              <Text style={styles.headerSub}>{groups.length} shared group{groups.length !== 1 ? 's' : ''}</Text>
+              <Text style={s.headerLabel}>Shared Spaces</Text>
+              <Text style={s.headerTitle}>Spaces</Text>
             </View>
-            <TouchableOpacity
-              style={styles.createBtn}
-              onPress={() => navigation.navigate('CreateSharedGroup')}
-            >
-              <Ionicons name="add" size={22} color="#FFF" />
+            <TouchableOpacity style={s.createBtn} onPress={() => navigation.navigate('CreateSharedGroup')} activeOpacity={0.8}>
+              <Ionicons name="add" size={24} color="#FFF" />
             </TouchableOpacity>
           </View>
+          {groups.length > 0 && (
+            <View style={s.headerStats}>
+              <View style={s.headerStat}>
+                <Text style={s.headerStatVal}>{groups.length}</Text>
+                <Text style={s.headerStatLabel}>Spaces</Text>
+              </View>
+              <View style={[s.headerStatDivider, { backgroundColor: 'rgba(255,255,255,0.15)' }]} />
+              <View style={s.headerStat}>
+                <Text style={s.headerStatVal}>{groups.reduce((s, g) => s + (g.members?.length || g._count?.members || 0), 0)}</Text>
+                <Text style={s.headerStatLabel}>Members</Text>
+              </View>
+              <View style={[s.headerStatDivider, { backgroundColor: 'rgba(255,255,255,0.15)' }]} />
+              <View style={s.headerStat}>
+                <Text style={s.headerStatVal}>{groups.reduce((s, g) => s + (g.expenses?.length || 0), 0)}</Text>
+                <Text style={s.headerStatLabel}>Expenses</Text>
+              </View>
+            </View>
+          )}
         </LinearGradient>
 
         {loading ? (
-          <View style={{ paddingHorizontal: 20, gap: 12, marginTop: 8 }}>
+          <View style={{ paddingHorizontal: 20, gap: 12, marginTop: 16 }}>
             {[1, 2, 3].map((i) => <SkeletonCard key={i} style={{ height: i === 1 ? 160 : 100 }} />)}
           </View>
         ) : groups.length === 0 ? (
-          <View style={styles.emptyState}>
-            <LinearGradient colors={['#6C3EF4', '#8B5CF6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.emptyIcon}>
-              <Ionicons name="people" size={32} color="#FFF" />
-            </LinearGradient>
-            <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No shared spaces yet</Text>
-            <Text style={[styles.emptySub, { color: colors.text.tertiary }]}>Create a shared group to split expenses with friends, family, or roommates</Text>
-            <TouchableOpacity style={styles.emptyBtn} onPress={() => navigation.navigate('CreateSharedGroup')}>
-              <Ionicons name="add" size={18} color="#FFF" />
-              <Text style={styles.emptyBtnText}>Create your first space</Text>
-            </TouchableOpacity>
+          <View style={s.emptyWrap}>
+            <Animated.View style={{ opacity: fadeAnim, alignItems: 'center' }}>
+              <LinearGradient colors={['#6C3EF4', '#8B5CF6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.emptyIcon}>
+                <Ionicons name="people" size={36} color="#FFF" />
+              </LinearGradient>
+              <Text style={[s.emptyTitle, { color: colors.text.primary }]}>No shared spaces yet</Text>
+              <Text style={[s.emptySub, { color: colors.text.tertiary }]}>
+                Create a shared group to split expenses with friends, family, or roommates
+              </Text>
+              <TouchableOpacity style={s.emptyBtn} onPress={() => navigation.navigate('CreateSharedGroup')} activeOpacity={0.85}>
+                <Ionicons name="add" size={18} color="#FFF" />
+                <Text style={s.emptyBtnText}>Create your first space</Text>
+              </TouchableOpacity>
+            </Animated.View>
           </View>
         ) : (
-          <>
+          <Animated.View style={{ opacity: fadeAnim }}>
             {premiumGroups.length > 0 && (
               <View style={{ marginTop: 16 }}>
-                <View style={styles.sectionHeader}>
-                  <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Premium Spaces</Text>
-                  <TouchableOpacity>
-                    <Text style={styles.seeAll}>See all</Text>
-                  </TouchableOpacity>
+                <View style={s.secHeader}>
+                  <View style={s.secHeaderLeft}>
+                    <View style={[s.secHeaderDot, { backgroundColor: '#6C3EF4' }]} />
+                    <Text style={[s.secTitle, { color: colors.text.primary }]}>Premium Spaces</Text>
+                  </View>
+                  <Text style={[s.secCount, { color: colors.text.tertiary }]}>{premiumGroups.length}</Text>
                 </View>
                 <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
+                  horizontal showsHorizontalScrollIndicator={false}
                   contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
                 >
                   {premiumGroups.map((group: any) => {
                     const cfg = TYPE_CONFIG[group.type] || TYPE_CONFIG.default;
-                    const memberCount = group.members?.length || group._count?.members || 0;
-                    const totalExpenses = (group.expenses || []).reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
-                    const destScreen = group.type === 'couple' ? 'CoupleFinance' : 'FamilyDashboard';
-
+                    const mc = group.members?.length || group._count?.members || 0;
+                    const te = (group.expenses || []).reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
+                    const ds = group.type === 'couple' ? 'CoupleFinance' : 'FamilyDashboard';
                     return (
                       <TouchableOpacity
-                        key={group.id}
-                        style={[styles.gridCard, { backgroundColor: colors.bg.card }]}
-                        activeOpacity={0.7}
-                        onPress={() => navigation.navigate(destScreen, { groupId: group.id, groupName: group.name })}
+                        key={group.id} activeOpacity={0.7}
+                        style={[s.premiumCard, { backgroundColor: colors.bg.secondary }]}
+                        onPress={() => navigation.navigate(ds, { groupId: group.id, groupName: group.name })}
                       >
-                        <LinearGradient colors={cfg.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.gridGradient}>
+                        <LinearGradient colors={cfg.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.premiumIcon}>
                           <Ionicons name={cfg.icon as any} size={28} color="#FFF" />
                         </LinearGradient>
-                        <Text style={[styles.gridName, { color: colors.text.primary }]} numberOfLines={1}>{group.name || group.title}</Text>
-                        <Text style={[styles.gridMeta, { color: colors.text.tertiary }]}>{memberCount} member{memberCount !== 1 ? 's' : ''}</Text>
-                        {totalExpenses > 0 && (
-                          <Text style={[styles.gridAmount, { color: colors.text.primary }]}>{moneyFormat(totalExpenses)}</Text>
-                        )}
+                        <Text style={[s.premiumName, { color: colors.text.primary }]} numberOfLines={1}>{group.name || group.title}</Text>
+                        <View style={[s.typeBadge, { backgroundColor: `${cfg.color}20` }]}>
+                          <Text style={[s.typeBadgeText, { color: cfg.color }]}>{cfg.label}</Text>
+                        </View>
+                        <View style={s.premiumMeta}>
+                          <Text style={[s.premiumMetaText, { color: colors.text.tertiary }]}>
+                            <Ionicons name="people-outline" size={11} color={colors.text.tertiary} /> {mc}
+                          </Text>
+                          {te > 0 && <Text style={[s.premiumAmount, { color: colors.text.primary }]}>{fmt(te)}</Text>}
+                        </View>
                       </TouchableOpacity>
                     );
                   })}
@@ -151,38 +177,42 @@ export function SharedScreen() {
 
             {otherGroups.length > 0 && (
               <View style={{ marginTop: premiumGroups.length > 0 ? 24 : 16 }}>
-                <View style={styles.sectionHeader}>
-                  <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Other Spaces</Text>
-                  <Text style={[styles.sectionCount, { color: colors.text.tertiary }]}>{otherGroups.length} group{otherGroups.length !== 1 ? 's' : ''}</Text>
+                <View style={s.secHeader}>
+                  <View style={s.secHeaderLeft}>
+                    <View style={[s.secHeaderDot, { backgroundColor: '#8B5CF6' }]} />
+                    <Text style={[s.secTitle, { color: colors.text.primary }]}>All Spaces</Text>
+                  </View>
+                  <Text style={[s.secCount, { color: colors.text.tertiary }]}>{otherGroups.length}</Text>
                 </View>
-                <View style={{ paddingHorizontal: 20, paddingTop: 8, gap: 10 }}>
+                <View style={{ paddingHorizontal: 20, gap: 10 }}>
                   {otherGroups.map((group: any) => {
                     const cfg = TYPE_CONFIG[group.type] || TYPE_CONFIG.default;
-                    const memberCount = group.members?.length || group._count?.members || 0;
-                    const totalExpenses = (group.expenses || []).reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
-
+                    const mc = group.members?.length || group._count?.members || 0;
+                    const te = (group.expenses || []).reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
                     return (
                       <TouchableOpacity
-                        key={group.id}
-                        style={[styles.listCard, { backgroundColor: colors.bg.card }]}
-                        activeOpacity={0.7}
+                        key={group.id} activeOpacity={0.7}
+                        style={[s.listCard, { backgroundColor: colors.bg.secondary }]}
                         onPress={() => navigation.navigate('SharedGroupDetail', { groupId: group.id, groupName: group.name })}
                       >
-                        <LinearGradient colors={cfg.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.listIcon}>
+                        <LinearGradient colors={cfg.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.listIcon}>
                           <Ionicons name={cfg.icon as any} size={20} color="#FFF" />
                         </LinearGradient>
                         <View style={{ flex: 1 }}>
-                          <Text style={[styles.listName, { color: colors.text.primary }]} numberOfLines={1}>{group.name || group.title}</Text>
-                          <Text style={[styles.listMeta, { color: colors.text.tertiary }]}>
-                            {cfg.label} · {memberCount} member{memberCount !== 1 ? 's' : ''}
-                          </Text>
+                          <View style={s.listTop}>
+                            <Text style={[s.listName, { color: colors.text.primary }]} numberOfLines={1}>{group.name || group.title}</Text>
+                            <View style={[s.listTypeBadge, { backgroundColor: `${cfg.color}18` }]}>
+                              <Text style={[s.listTypeText, { color: cfg.color }]}>{cfg.label}</Text>
+                            </View>
+                          </View>
+                          <View style={s.listBottom}>
+                            <Text style={[s.listMeta, { color: colors.text.tertiary }]}>
+                              <Ionicons name="people-outline" size={11} color={colors.text.tertiary} /> {mc} member{mc !== 1 ? 's' : ''}
+                            </Text>
+                            {te > 0 && <Text style={[s.listAmount, { color: colors.text.primary }]}>{fmt(te)}</Text>}
+                          </View>
                         </View>
-                        <View style={{ alignItems: 'flex-end' }}>
-                          {totalExpenses > 0 && (
-                            <Text style={[styles.listAmount, { color: colors.text.primary }]}>{moneyFormat(totalExpenses)}</Text>
-                          )}
-                          <Ionicons name="chevron-forward" size={14} color={colors.text.tertiary} />
-                        </View>
+                        <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
                       </TouchableOpacity>
                     );
                   })}
@@ -190,90 +220,137 @@ export function SharedScreen() {
               </View>
             )}
 
-            <View style={{ paddingHorizontal: 20, gap: 10, marginTop: 24 }}>
-              <View style={styles.sectionHeader}>
-                <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Quick Actions</Text>
+            <View style={{ paddingHorizontal: 20, marginTop: 24 }}>
+              <View style={s.secHeader}>
+                <View style={s.secHeaderLeft}>
+                  <View style={[s.secHeaderDot, { backgroundColor: '#34C759' }]} />
+                  <Text style={[s.secTitle, { color: colors.text.primary }]}>Quick Actions</Text>
+                </View>
               </View>
-              <TouchableOpacity style={[styles.quickAction, { backgroundColor: colors.bg.card }]} onPress={() => navigation.navigate('Settlement')}>
-                <View style={[styles.qaIcon, { backgroundColor: '#34C75915' }]}>
-                  <Ionicons name="swap-horizontal" size={20} color="#34C759" />
-                </View>
-                <Text style={[styles.qaText, { color: colors.text.primary }]}>Settlements</Text>
-                <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.quickAction, { backgroundColor: colors.bg.card }]} onPress={() => navigation.navigate('GroupWallet')}>
-                <View style={[styles.qaIcon, { backgroundColor: '#F3D28F15' }]}>
-                  <Ionicons name="wallet" size={20} color="#F3D28F" />
-                </View>
-                <Text style={[styles.qaText, { color: colors.text.primary }]}>Group Wallets</Text>
-                <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.quickAction, { backgroundColor: colors.bg.card }]} onPress={() => navigation.navigate('SplitTemplates')}>
-                <View style={[styles.qaIcon, { backgroundColor: '#8B5CF615' }]}>
-                  <Ionicons name="copy-outline" size={20} color="#8B5CF6" />
-                </View>
-                <Text style={[styles.qaText, { color: colors.text.primary }]}>Split Templates</Text>
-                <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
-              </TouchableOpacity>
+              <View style={{ gap: 10, marginTop: 4 }}>
+                <TouchableOpacity
+                  style={[s.quickAction, { backgroundColor: colors.bg.secondary }]}
+                  onPress={() => navigation.navigate('Settlement')}
+                  activeOpacity={0.7}
+                >
+                  <View style={[s.qaIcon, { backgroundColor: '#34C75915' }]}>
+                    <Ionicons name="swap-horizontal" size={20} color="#34C759" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[s.qaLabel, { color: colors.text.primary }]}>Settlements</Text>
+                    <Text style={[s.qaSub, { color: colors.text.tertiary }]}>Settle up balances with members</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[s.quickAction, { backgroundColor: colors.bg.secondary }]}
+                  onPress={() => navigation.navigate('GroupWallet')}
+                  activeOpacity={0.7}
+                >
+                  <View style={[s.qaIcon, { backgroundColor: '#F3D28F15' }]}>
+                    <Ionicons name="wallet" size={20} color="#F3D28F" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[s.qaLabel, { color: colors.text.primary }]}>Group Wallets</Text>
+                    <Text style={[s.qaSub, { color: colors.text.tertiary }]}>Manage shared funds and transfers</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[s.quickAction, { backgroundColor: colors.bg.secondary }]}
+                  onPress={() => navigation.navigate('SplitTemplates')}
+                  activeOpacity={0.7}
+                >
+                  <View style={[s.qaIcon, { backgroundColor: '#8B5CF615' }]}>
+                    <Ionicons name="copy-outline" size={20} color="#8B5CF6" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[s.qaLabel, { color: colors.text.primary }]}>Split Templates</Text>
+                    <Text style={[s.qaSub, { color: colors.text.tertiary }]}>Save and reuse split configurations</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
+                </TouchableOpacity>
+              </View>
             </View>
 
             <TouchableOpacity
-              style={[styles.createSpaceCard, { backgroundColor: colors.bg.card, borderColor: colors.border.default }]}
+              style={[s.createCard, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}
               onPress={() => navigation.navigate('CreateSharedGroup')}
               activeOpacity={0.7}
             >
-              <LinearGradient colors={['#6C3EF4', '#8B5CF6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.createSpaceIcon}>
-                <Ionicons name="add" size={22} color="#FFF" />
+              <LinearGradient colors={['#6C3EF4', '#8B5CF6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.createIcon}>
+                <Ionicons name="add" size={24} color="#FFF" />
               </LinearGradient>
-              <Text style={[styles.createSpaceText, { color: colors.text.primary }]}>Create New Space</Text>
-              <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+              <View style={{ flex: 1 }}>
+                <Text style={[s.createLabel, { color: colors.text.primary }]}>Create New Space</Text>
+                <Text style={[s.createSub, { color: colors.text.tertiary }]}>Start a new shared group with your people</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
             </TouchableOpacity>
-          </>
+          </Animated.View>
         )}
       </ScrollView>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   screen: { flex: 1 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  headerTitle: { color: '#FFF', fontSize: 28, fontWeight: '800', letterSpacing: -0.5 },
-  headerSub: { color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: '500', marginTop: 2 },
-  createBtn: { width: 42, height: 42, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', marginTop: 4 },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 4 },
-  sectionTitle: { fontSize: 17, fontWeight: '700', letterSpacing: -0.2 },
-  seeAll: { fontSize: 13, fontWeight: '600', color: '#6C3EF4' },
-  sectionCount: { fontSize: 12, fontWeight: '500' },
-  emptyState: { alignItems: 'center', paddingHorizontal: 32, paddingTop: 60, gap: 10 },
-  emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
-  emptyTitle: { fontSize: 18, fontWeight: '700' },
-  emptySub: { fontSize: 13, textAlign: 'center', lineHeight: 18 },
-  emptyBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#6C3EF4', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 14, marginTop: 8 },
-  emptyBtnText: { color: '#FFF', fontSize: 14, fontWeight: '600' },
-  gridCard: {
-    width: 160, borderRadius: 20, padding: 16, gap: 8,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 4,
+  headerLabel: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 2 },
+  headerTitle: { color: '#FFF', fontSize: 30, fontWeight: '800', letterSpacing: -0.5 },
+  createBtn: { width: 44, height: 44, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center', marginTop: 4 },
+  headerStats: { flexDirection: 'row', alignItems: 'center', marginTop: 16, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 16, padding: 14 },
+  headerStat: { flex: 1, alignItems: 'center' },
+  headerStatDivider: { width: 1, height: 28 },
+  headerStatVal: { color: '#FFF', fontSize: 18, fontWeight: '800' },
+  headerStatLabel: { color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '500', marginTop: 1 },
+  secHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginBottom: 12 },
+  secHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  secHeaderDot: { width: 8, height: 8, borderRadius: 4 },
+  secTitle: { fontSize: 17, fontWeight: '700', letterSpacing: -0.2 },
+  secCount: { fontSize: 13, fontWeight: '600' },
+  emptyWrap: { alignItems: 'center', paddingHorizontal: 32, paddingTop: 60, gap: 10 },
+  emptyIcon: { width: 80, height: 80, borderRadius: 28, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+  emptyTitle: { fontSize: 20, fontWeight: '700' },
+  emptySub: { fontSize: 14, textAlign: 'center', lineHeight: 20 },
+  emptyBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#6C3EF4', paddingHorizontal: 24, paddingVertical: 14, borderRadius: 16, marginTop: 12 },
+  emptyBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+  premiumCard: {
+    width: 170, borderRadius: 24, padding: 16, gap: 8,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12, elevation: 4,
   },
-  gridGradient: { width: 52, height: 52, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  gridName: { fontSize: 14, fontWeight: '700' },
-  gridMeta: { fontSize: 11, fontWeight: '500' },
-  gridAmount: { fontSize: 16, fontWeight: '800', marginTop: 4 },
+  premiumIcon: { width: 52, height: 52, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  premiumName: { fontSize: 15, fontWeight: '700' },
+  typeBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, alignSelf: 'flex-start' },
+  typeBadgeText: { fontSize: 10, fontWeight: '700', letterSpacing: 0.3 },
+  premiumMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 },
+  premiumMetaText: { fontSize: 12, fontWeight: '500' },
+  premiumAmount: { fontSize: 16, fontWeight: '800' },
   listCard: {
-    flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 18, gap: 12,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
+    flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 20, gap: 12,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
   },
-  listIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  listName: { fontSize: 14, fontWeight: '700' },
-  listMeta: { fontSize: 11, fontWeight: '500', marginTop: 1 },
-  listAmount: { fontSize: 13, fontWeight: '700' },
-  quickAction: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 18, gap: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 6, elevation: 1 },
-  qaIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  qaText: { flex: 1, fontSize: 14, fontWeight: '600' },
-  createSpaceCard: {
-    flexDirection: 'row', alignItems: 'center', marginHorizontal: 20, marginTop: 14,
+  listIcon: { width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  listTop: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  listName: { fontSize: 15, fontWeight: '700', flex: 1 },
+  listTypeBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
+  listTypeText: { fontSize: 10, fontWeight: '700', letterSpacing: 0.3 },
+  listBottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 },
+  listMeta: { fontSize: 12, fontWeight: '500' },
+  listAmount: { fontSize: 14, fontWeight: '700' },
+  quickAction: {
+    flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 20, gap: 12,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 6, elevation: 1,
+  },
+  qaIcon: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  qaLabel: { fontSize: 15, fontWeight: '700' },
+  qaSub: { fontSize: 12, fontWeight: '500', marginTop: 1 },
+  createCard: {
+    flexDirection: 'row', alignItems: 'center', marginHorizontal: 20, marginTop: 20,
     padding: 16, borderRadius: 20, borderWidth: 1.5, borderStyle: 'dashed', gap: 12,
   },
-  createSpaceIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  createSpaceText: { flex: 1, fontSize: 15, fontWeight: '700' },
+  createIcon: { width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  createLabel: { fontSize: 16, fontWeight: '700' },
+  createSub: { fontSize: 12, fontWeight: '500', marginTop: 1 },
 });
