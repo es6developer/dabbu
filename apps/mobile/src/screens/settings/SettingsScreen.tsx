@@ -179,9 +179,11 @@ export function SettingsScreen() {
                       activeOpacity={0.6}
                     >
                       <LinearGradient colors={meta?.gradient || ['#6C3EF4', '#8B5CF6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.rowIcon}>
-                        <Ionicons name={(meta?.icon as any) || item.icon} size={16} color="#FFF" />
+                        <Ionicons name={(meta?.icon as any) || item.icon} size={18} color="#FFF" />
                       </LinearGradient>
-                      <Text style={[s.rowLabel, { color: colors.text.primary }]}>{item.label}</Text>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[s.rowLabel, { color: colors.text.primary }]}>{item.label}</Text>
+                      </View>
                       <View style={s.rowRight}>
                         {item.premium && !isPremium && (
                           <View style={s.premiumBadge}>
@@ -189,7 +191,9 @@ export function SettingsScreen() {
                             <Text style={s.premiumLabel}>Premium</Text>
                           </View>
                         )}
-                        <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+                        <View style={s.chevronBox}>
+                          <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+                        </View>
                       </View>
                     </TouchableOpacity>
                   );
@@ -212,7 +216,9 @@ export function SettingsScreen() {
               <Ionicons name="log-out-outline" size={20} color="#FF4D4F" />
             </View>
             <Text style={s.logoutText}>Sign Out</Text>
-            <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+            <View style={s.chevronBox}>
+              <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+            </View>
           </TouchableOpacity>
 
           <Text style={[s.version, { color: colors.text.tertiary }]}>Dabbu v1.0.0</Text>
@@ -270,11 +276,15 @@ const s = StyleSheet.create({
     paddingVertical: 15, paddingHorizontal: 16,
   },
   rowIcon: {
-    width: 38, height: 38, borderRadius: 12,
+    width: 44, height: 32, borderRadius: 10,
     alignItems: 'center', justifyContent: 'center', marginRight: 14,
   },
   rowLabel: { flex: 1, fontSize: 15, fontWeight: '600' },
   rowRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  chevronBox: {
+    width: 24, height: 24, borderRadius: 8,
+    backgroundColor: 'rgba(0,0,0,0.03)', alignItems: 'center', justifyContent: 'center',
+  },
   premiumBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 3,
     paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6, backgroundColor: '#6C3EF410',

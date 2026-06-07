@@ -1286,3 +1286,79 @@ export class TripForecastResponseDto {
   totalEstimatedCost: number;
   breakdown: { category: string; estimatedCost: number; percentage: number }[];
 }
+
+// ─── Couple Finance DTOs ──────────────────────────────────────────
+
+export class CreateCoupleIncomeDto {
+  @ApiProperty({ example: 50000 })
+  @IsNumber()
+  @Min(0)
+  amount: number;
+
+  @ApiProperty({ example: 'Monthly Salary' })
+  @IsString()
+  @IsNotEmpty()
+  source: string;
+
+  @ApiPropertyOptional({ example: 'salary', default: 'salary' })
+  @IsString()
+  @IsOptional()
+  type?: string;
+
+  @ApiPropertyOptional({ example: '2026-06-01' })
+  @IsDateString()
+  @IsOptional()
+  date?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  assignedTo?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  notes?: string;
+}
+
+export class CoupleSavingsContributeDto {
+  @ApiProperty({ example: 5000 })
+  @IsNumber()
+  @Min(1)
+  amount: number;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  notes?: string;
+}
+
+export class UpdateGroupSettingsDto {
+  @ApiPropertyOptional()
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  monthlyBudget?: number;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  splitRatio?: string;
+
+  @ApiPropertyOptional()
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  savingsGoal?: number;
+
+  @ApiPropertyOptional()
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  savingsContribution?: number;
+
+  @ApiPropertyOptional()
+  @IsObject()
+  @IsOptional()
+  notificationPreferences?: Record<string, boolean>;
+}

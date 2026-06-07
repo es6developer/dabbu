@@ -52,6 +52,9 @@ import {
   CreateNetWorthSnapshotDto,
   ExportDataDto,
   TripForecastDto,
+  CreateCoupleIncomeDto,
+  CoupleSavingsContributeDto,
+  UpdateGroupSettingsDto,
 } from './dto/shared-finance.dto';
 
 @Injectable()
@@ -3772,6 +3775,505 @@ export class SharedFinanceService {
       percentage: null,
       shares: null,
     }));
+  }
+
+  // ─── Couple Incomes ──────────────────────────────────────────
+
+  async getCoupleIncomes(groupId: string) {
+    const profile = await this.getCoupleProfileOrThrow(groupId);
+    const incomes = await this.prisma.coupleFinanceIncome.findMany({
+      where: { groupId },
+      orderBy: { date: 'desc' },
+      include: {
+        creator: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    const totalMonthlyIncome = incomes
+      .filter((i) => {
+        const d = new Date(i.date);
+        const now = new Date();
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      })
+      .reduce((s, i) => s + Number(i.amount), 0);
+
+    const partner1Incomes = incomes
+      .filter((i) => i.assignedTo === profile.partner1Id || (!i.assignedTo && i.type === 'salary'))
+      .reduce((s, i) => s + Number(i.amount), 0);
+
+    const partner2Incomes = incomes
+      .filter((i) => i.assignedTo === profile.partner2Id)
+      .reduce((s, i) => s + Number(i.amount), 0);
+
+    return {
+      incomes: incomes.map((i) => ({ ...i, amount: Number(i.amount) })),
+      summary: {
+        totalMonthly: totalMonthlyIncome,
+        partner1Total: partner1Incomes,
+        partner2Total: partner2Incomes,
+      },
+    };
+  }
+
+  async createCoupleIncome(groupId: string, userId: string, dto: CreateCoupleIncomeDto) {
+    await this.getCoupleProfileOrThrow(groupId);
+
+    const income = await this.prisma.coupleFinanceIncome.create({
+      data: {
+        groupId,
+        amount: dto.amount,
+        source: dto.source,
+        type: dto.type || 'salary',
+        assignedTo: dto.assignedTo || null,
+        date: dto.date ? new Date(dto.date) : new Date(),
+        notes: dto.notes,
+        createdBy: userId,
+      },
+      include: {
+        creator: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    return { ...income, amount: Number(income.amount) };
+  }
+
+  // ─── Couple Budgets ──────────────────────────────────────────
+
+  async getCoupleBudgets(groupId: string) {
+    const profile = await this.getCoupleProfileOrThrow(groupId);
+    const now = new Date();
+    const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+    const expenses = await this.prisma.sharedExpense.findMany({
+      where: { groupId },
+      orderBy: { date: 'desc' },
+    });
+
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthlyExpenses = expenses.filter((e) => new Date(e.date) >= startOfMonth);
+    const totalSpent = monthlyExpenses.reduce((s, e) => s + Number(e.amount), 0);
+    const totalBudget = Number(profile.sharedBudget || 0);
+
+    const categoryMap = new Map<string, number>();
+    for (const exp of monthlyExpenses) {
+      const cat = exp.category || 'Other';
+      categoryMap.set(cat, (categoryMap.get(cat) || 0) + Number(exp.amount));
+    }
+
+    const categoryBudgets = await this.prisma.coupleBudgetCategory.findMany({
+      where: { groupId, period },
+    });
+
+    const categories = Array.from(categoryMap.entries()).map(([category, spent]) => {
+      const budgetRow = categoryBudgets.find((cb) => cb.category === category);
+      const budget = budgetRow ? Number(budgetRow.budgetAmount) : Math.round(totalBudget / Math.max(categoryMap.size, 1));
+      return {
+        category,
+        budget,
+        spent: Math.round(spent),
+        percentage: budget > 0 ? Math.round((spent / budget) * 100) : 0,
+        status: budget > 0
+          ? (spent / budget) > 0.9 ? 'Exceeded' : (spent / budget) > 0.7 ? 'Warning' : 'Normal'
+          : 'Normal',
+      };
+    });
+
+    return {
+      currentMonth: {
+        period,
+        totalBudget,
+        totalSpent: Math.round(totalSpent),
+        remaining: Math.max(totalBudget - Math.round(totalSpent), 0),
+        percentage: totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0,
+      },
+      categories,
+    };
+  }
+
+  // ─── Couple Savings ──────────────────────────────────────────
+
+  async getCoupleSavings(groupId: string) {
+    const profile = await this.getCoupleProfileOrThrow(groupId);
+
+    const savingsEntries = await this.prisma.coupleFinanceSaving.findMany({
+      where: { groupId },
+      orderBy: { date: 'desc' },
+      include: {
+        contributor: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    const goal = Number(profile.savingsGoal || 0);
+    const totalSaved = savingsEntries.reduce((s, e) => s + Number(e.amount), 0);
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const thisMonthSaved = savingsEntries
+      .filter((e) => e.date >= startOfMonth)
+      .reduce((s, e) => s + Number(e.amount), 0);
+
+    const partner1Id = profile.partner1Id;
+    const partner1Contributed = savingsEntries
+      .filter((e) => e.contributedBy === partner1Id)
+      .reduce((s, e) => s + Number(e.amount), 0);
+    const partner2Contributed = savingsEntries
+      .filter((e) => e.contributedBy === profile.partner2Id)
+      .reduce((s, e) => s + Number(e.amount), 0);
+
+    return {
+      goal: {
+        targetAmount: goal,
+        savedAmount: totalSaved,
+        percentage: goal > 0 ? Math.round((totalSaved / goal) * 100) : 0,
+      },
+      partners: {
+        partner1: {
+          name: `${profile.partner1.firstName || ''} ${profile.partner1.lastName || ''}`.trim() || 'Partner 1',
+          contributed: partner1Contributed,
+        },
+        partner2: {
+          name: `${profile.partner2.firstName || ''} ${profile.partner2.lastName || ''}`.trim() || 'Partner 2',
+          contributed: partner2Contributed,
+        },
+      },
+      contributions: savingsEntries.map((e) => ({
+        id: e.id,
+        amount: Number(e.amount),
+        date: e.date,
+        notes: e.notes,
+        contributor: e.contributor,
+      })),
+      stats: {
+        totalSaved,
+        thisMonthSaved,
+        remaining: Math.max(goal - totalSaved, 0),
+      },
+    };
+  }
+
+  async contributeToCoupleSavings(groupId: string, userId: string, dto: CoupleSavingsContributeDto) {
+    await this.getCoupleProfileOrThrow(groupId);
+
+    const saving = await this.prisma.coupleFinanceSaving.create({
+      data: {
+        groupId,
+        amount: dto.amount,
+        contributedBy: userId,
+        notes: dto.notes,
+      },
+      include: {
+        contributor: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    return { ...saving, amount: Number(saving.amount) };
+  }
+
+  // ─── Couple Settlements ──────────────────────────────────────
+
+  async getCoupleSettlements(groupId: string) {
+    const profile = await this.getCoupleProfileOrThrow(groupId);
+
+    const expenses = await this.prisma.sharedExpense.findMany({
+      where: { groupId },
+      include: { splits: true },
+      orderBy: { date: 'desc' },
+    });
+
+    const settlements = await this.prisma.settlement.findMany({
+      where: { groupId },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        fromUser: { select: { id: true, firstName: true, lastName: true } },
+        toUser: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    const balances = this.settlementEngine.calculateBalances(expenses, [
+      { userId: profile.partner1Id, user: profile.partner1 },
+      { userId: profile.partner2Id, user: profile.partner2 },
+    ]);
+
+    const partner1Balance = balances.find((b) => b.userId === profile.partner1Id);
+    const partner2Balance = balances.find((b) => b.userId === profile.partner2Id);
+
+    let owes: 'partner1' | 'partner2' | null = null;
+    let netAmount = 0;
+    if (partner1Balance && partner2Balance) {
+      const diff = partner1Balance.balance - partner2Balance.balance;
+      if (diff > 0) {
+        owes = 'partner2';
+        netAmount = Math.abs(diff);
+      } else if (diff < 0) {
+        owes = 'partner1';
+        netAmount = Math.abs(diff);
+      }
+    }
+
+    const outstanding = expenses
+      .filter((e) => {
+        const hasUnsettledSplit = e.splits?.some((s) => !s.isPaid && s.userId !== e.paidBy);
+        return hasUnsettledSplit;
+      })
+      .map((e) => ({
+        id: e.id,
+        description: e.description,
+        amount: Number(e.amount),
+        paidBy: e.paidBy,
+        date: e.date,
+      }));
+
+    return {
+      balance: {
+        owes,
+        netAmount,
+        partner1Balance: partner1Balance?.balance || 0,
+        partner2Balance: partner2Balance?.balance || 0,
+      },
+      settlements: settlements.map((s) => ({
+        id: s.id,
+        fromUserId: s.fromUserId,
+        toUserId: s.toUserId,
+        amount: Number(s.amount),
+        status: s.status,
+        method: s.method,
+        date: s.createdAt,
+        fromUser: s.fromUser,
+        toUser: s.toUser,
+      })),
+      outstanding,
+    };
+  }
+
+  async coupleSettleUp(groupId: string, userId: string) {
+    const profile = await this.getCoupleProfileOrThrow(groupId);
+    const partnerId = profile.partner1Id === userId ? profile.partner2Id : profile.partner1Id;
+
+    const expenses = await this.prisma.sharedExpense.findMany({
+      where: { groupId },
+      include: { splits: true },
+    });
+
+    const balances = this.settlementEngine.calculateBalances(expenses, [
+      { userId: profile.partner1Id, user: profile.partner1 },
+      { userId: profile.partner2Id, user: profile.partner2 },
+    ]);
+
+    const currentBalance = balances.find((b) => b.userId === userId);
+    if (!currentBalance || currentBalance.balance >= 0) {
+      throw new BadRequestException('You have no outstanding balance to settle');
+    }
+
+    const amount = Math.abs(currentBalance.balance);
+    const fromUserId = currentBalance.userId;
+    const toUserId = partnerId;
+
+    const settlement = await this.prisma.settlement.create({
+      data: {
+        groupId,
+        fromUserId,
+        toUserId,
+        amount,
+        method: 'couple_settle_up',
+        status: 'completed',
+        settledAt: new Date(),
+      },
+      include: {
+        fromUser: { select: { id: true, firstName: true, lastName: true } },
+        toUser: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    await this.prisma.expenseSplit.updateMany({
+      where: {
+        expense: { groupId },
+        user: { id: fromUserId },
+        isPaid: false,
+      },
+      data: { isPaid: true },
+    });
+
+    return { ...settlement, amount: Number(settlement.amount) };
+  }
+
+  // ─── Couple Reports ──────────────────────────────────────────
+
+  async getCoupleReports(groupId: string, period: string) {
+    const profile = await this.getCoupleProfileOrThrow(groupId);
+
+    const now = new Date();
+    let startDate: Date;
+    switch (period) {
+      case 'yearly':
+        startDate = new Date(now.getFullYear(), 0, 1);
+        break;
+      case 'quarterly':
+        startDate = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
+        break;
+      default:
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+
+    const expenses = await this.prisma.sharedExpense.findMany({
+      where: {
+        groupId,
+        date: { gte: startDate },
+      },
+      orderBy: { date: 'desc' },
+    });
+
+    const incomes = await this.prisma.coupleFinanceIncome.findMany({
+      where: {
+        groupId,
+        date: { gte: startDate },
+      },
+    });
+
+    const savings = await this.prisma.coupleFinanceSaving.findMany({
+      where: {
+        groupId,
+        date: { gte: startDate },
+      },
+    });
+
+    const totalIncome = incomes.reduce((s, i) => s + Number(i.amount), 0);
+    const totalExpense = expenses.reduce((s, e) => s + Number(e.amount), 0);
+    const totalSaved = savings.reduce((s, e) => s + Number(e.amount), 0);
+
+    const categoryBreakdown = new Map<string, number>();
+    for (const exp of expenses) {
+      const cat = exp.category || 'Other';
+      categoryBreakdown.set(cat, (categoryBreakdown.get(cat) || 0) + Number(exp.amount));
+    }
+
+    const sortedCategories = Array.from(categoryBreakdown.entries())
+      .map(([category, amount]) => ({ category, amount: Math.round(amount) }))
+      .sort((a, b) => b.amount - a.amount);
+
+    const partner1Paid = expenses
+      .filter((e) => e.paidBy === profile.partner1Id)
+      .reduce((s, e) => s + Number(e.amount), 0);
+    const partner2Paid = expenses
+      .filter((e) => e.paidBy === profile.partner2Id)
+      .reduce((s, e) => s + Number(e.amount), 0);
+
+    const budget = Number(profile.sharedBudget || 0);
+    const budgetSpent = Math.round(totalExpense);
+    let budgetStatus = 'On Track';
+    if (budget > 0) {
+      const pct = budgetSpent / budget;
+      budgetStatus = pct > 1 ? 'Over Budget' : pct > 0.85 ? 'At Risk' : 'On Track';
+    }
+
+    return {
+      period,
+      totalIncome: Math.round(totalIncome),
+      totalExpense: budgetSpent,
+      netSavings: Math.round(totalIncome - totalExpense),
+      categoryBreakdown: sortedCategories,
+      partnerContribution: {
+        partner1Name: `${profile.partner1.firstName || ''} ${profile.partner1.lastName || ''}`.trim() || 'Partner 1',
+        partner1Amount: Math.round(partner1Paid),
+        partner2Name: `${profile.partner2.firstName || ''} ${profile.partner2.lastName || ''}`.trim() || 'Partner 2',
+        partner2Amount: Math.round(partner2Paid),
+        totalExpense: budgetSpent,
+      },
+      budgetStatus: {
+        status: budgetStatus,
+        spent: budgetSpent,
+        budget: Math.round(budget),
+        percentage: budget > 0 ? Math.round((budgetSpent / budget) * 100) : 0,
+      },
+      totalSaved: Math.round(totalSaved),
+      expenseCount: expenses.length,
+      incomeCount: incomes.length,
+    };
+  }
+
+  // ─── Group Settings ──────────────────────────────────────────
+
+  async getGroupSettings(groupId: string) {
+    const profile = await this.prisma.coupleFinanceProfile.findUnique({
+      where: { groupId },
+      include: {
+        partner1: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+        partner2: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+      },
+    });
+    if (!profile) {
+      throw new NotFoundException('Couple profile not found');
+    }
+
+    const notificationPrefsRaw = await this.prisma.groupSetting.findUnique({
+      where: { groupId },
+    });
+
+    return {
+      monthlyBudget: Number(profile.sharedBudget || 0),
+      splitRatio: profile.splitRatio,
+      savingsGoal: Number(profile.savingsGoal || 0),
+      contributionType: profile.contributionType,
+      notificationPreferences: notificationPrefsRaw?.notificationPreferences || {
+        newExpenses: true,
+        budgetAlerts: true,
+        billReminders: true,
+        goalProgress: true,
+      },
+      profile: {
+        partner1: profile.partner1,
+        partner2: profile.partner2,
+        startDate: profile.startDate,
+      },
+    };
+  }
+
+  async updateGroupSettings(groupId: string, userId: string, dto: UpdateGroupSettingsDto) {
+    const profile = await this.getCoupleProfileOrThrow(groupId);
+
+    const updateData: any = {};
+    if (dto.monthlyBudget !== undefined) updateData.sharedBudget = dto.monthlyBudget;
+    if (dto.splitRatio !== undefined) updateData.splitRatio = dto.splitRatio;
+    if (dto.savingsGoal !== undefined) updateData.savingsGoal = dto.savingsGoal;
+
+    if (Object.keys(updateData).length > 0) {
+      await this.prisma.coupleFinanceProfile.update({
+        where: { groupId },
+        data: updateData,
+      });
+    }
+
+    if (dto.notificationPreferences) {
+      await this.prisma.groupSetting.upsert({
+        where: { groupId },
+        create: { groupId, notificationPreferences: dto.notificationPreferences },
+        update: { notificationPreferences: dto.notificationPreferences },
+      });
+    }
+
+    return { message: 'Settings updated successfully' };
+  }
+
+  // ─── Helpers ──────────────────────────────────────────────────
+
+  private async getCoupleProfileOrThrow(groupId: string) {
+    const profile = await this.prisma.coupleFinanceProfile.findUnique({
+      where: { groupId },
+      include: {
+        partner1: {
+          select: {
+            id: true, firstName: true, lastName: true, avatarUrl: true, email: true,
+          },
+        },
+        partner2: {
+          select: {
+            id: true, firstName: true, lastName: true, avatarUrl: true, email: true,
+          },
+        },
+      },
+    });
+    if (!profile) {
+      throw new NotFoundException('Couple profile not found. Create a couple group first.');
+    }
+    return profile;
   }
 
   private async updateGroupTotalSpent(groupId: string) {

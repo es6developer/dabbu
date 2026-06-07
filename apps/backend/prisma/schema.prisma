@@ -16,12 +16,12 @@ datasource db {
 // ─── FRIENDS ───────────────────────────────────────────────
 // Social graph: bidirectional friendship connections
 model Friend {
-  id        String    @id @default(uuid()) @db.VarChar(36)
-  userId    String    @db.VarChar(36)
-  friendId  String    @db.VarChar(36)
-  status    String    @default("pending") @db.VarChar(20) // pending, accepted, blocked
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  userId    String   @db.VarChar(36)
+  friendId  String   @db.VarChar(36)
+  status    String   @default("pending") @db.VarChar(20) // pending, accepted, blocked
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   user   User @relation("UserFriends", fields: [userId], references: [id], onDelete: Cascade)
   friend User @relation("FriendOf", fields: [friendId], references: [id], onDelete: Cascade)
@@ -200,11 +200,13 @@ model User {
   payNowLinksTo                PayNowLink[]                 @relation("PayTo")
 
   // Friends & Contacts
-  friendsInitiated             Friend[]                     @relation("UserFriends")
-  friendsAdded                 Friend[]                     @relation("FriendOf")
-  contactHashes                ContactHash[]
-  supportTickets               SupportTicket[]
-  referralRewards              ReferralReward[]
+  friendsInitiated    Friend[]              @relation("UserFriends")
+  friendsAdded        Friend[]              @relation("FriendOf")
+  contactHashes       ContactHash[]
+  supportTickets      SupportTicket[]
+  referralRewards     ReferralReward[]
+  CoupleFinanceIncome CoupleFinanceIncome[]
+  CoupleFinanceSaving CoupleFinanceSaving[]
 
   @@index([email])
   @@index([isActive])
@@ -746,17 +748,17 @@ model Investment {
 // ─── ANALYTICS EVENTS ──────────────────────────────────────
 // Raw event log for product analytics (active users, feature usage, retention)
 model AnalyticsEvent {
-  id        String   @id @default(uuid()) @db.VarChar(36)
-  userId    String?  @db.VarChar(36)
-  event     String   @db.VarChar(100)
-  category  String?  @db.VarChar(50)
-  label     String?  @db.VarChar(255)
-  properties Json?   @db.Json
-  sessionId String?  @db.VarChar(100)
-  ip        String?  @db.VarChar(45)
-  userAgent String?  @db.VarChar(500)
-  timestamp DateTime @default(now())
-  createdAt DateTime @default(now())
+  id         String   @id @default(uuid()) @db.VarChar(36)
+  userId     String?  @db.VarChar(36)
+  event      String   @db.VarChar(100)
+  category   String?  @db.VarChar(50)
+  label      String?  @db.VarChar(255)
+  properties Json?    @db.Json
+  sessionId  String?  @db.VarChar(100)
+  ip         String?  @db.VarChar(45)
+  userAgent  String?  @db.VarChar(500)
+  timestamp  DateTime @default(now())
+  createdAt  DateTime @default(now())
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
@@ -928,7 +930,7 @@ model AdminUser {
   updatedAt   DateTime  @updatedAt
 
   // Relations
-  auditLogs AuditLog[]
+  auditLogs      AuditLog[]
   supportTickets SupportTicket[] @relation("AssignedTickets")
 
   @@index([email])
@@ -1126,6 +1128,10 @@ model SharedGroup {
   activities              GroupActivity[]
   payNowLinks             PayNowLink[]
   tempInvites             TempInvite[]
+  coupleIncomes           CoupleFinanceIncome[]
+  coupleSavings           CoupleFinanceSaving[]
+  budgetCategories        CoupleBudgetCategory[]
+  groupSetting            GroupSetting?
 
   @@index([createdBy])
   @@index([type])
@@ -1492,6 +1498,57 @@ model CoupleFinanceInvite {
   @@map("couple_finance_invites")
 }
 
+model CoupleFinanceIncome {
+  id         String   @id @default(uuid()) @db.VarChar(36)
+  groupId    String   @db.VarChar(36)
+  amount     Decimal  @db.Decimal(15, 2)
+  source     String   @db.VarChar(255)
+  type       String   @default("salary") @db.VarChar(30)
+  assignedTo String?  @db.VarChar(36)
+  date       DateTime @default(now())
+  notes      String?  @db.Text
+  createdBy  String   @db.VarChar(36)
+  createdAt  DateTime @default(now())
+
+  group   SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  creator User        @relation(fields: [createdBy], references: [id])
+
+  @@index([groupId])
+  @@map("couple_finance_incomes")
+}
+
+model CoupleFinanceSaving {
+  id            String   @id @default(uuid()) @db.VarChar(36)
+  groupId       String   @db.VarChar(36)
+  amount        Decimal  @db.Decimal(15, 2)
+  contributedBy String   @db.VarChar(36)
+  date          DateTime @default(now())
+  notes         String?  @db.Text
+  createdAt     DateTime @default(now())
+
+  group       SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  contributor User        @relation(fields: [contributedBy], references: [id])
+
+  @@index([groupId])
+  @@map("couple_finance_savings")
+}
+
+model CoupleBudgetCategory {
+  id           String   @id @default(uuid()) @db.VarChar(36)
+  groupId      String   @db.VarChar(36)
+  category     String   @db.VarChar(50)
+  budgetAmount Decimal  @db.Decimal(15, 2)
+  spentAmount  Decimal  @default(0) @db.Decimal(15, 2)
+  period       String   @db.VarChar(20)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  group SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, category, period])
+  @@map("couple_budget_categories")
+}
+
 model ContributionRule {
   id        String   @id @default(uuid()) @db.VarChar(36)
   groupId   String   @db.VarChar(36)
@@ -1616,6 +1673,18 @@ model SharedGoalContribution {
 
   @@index([goalId])
   @@map("shared_goal_contributions")
+}
+
+model GroupSetting {
+  id                      String   @id @default(uuid()) @db.VarChar(36)
+  groupId                 String   @unique @db.VarChar(36)
+  notificationPreferences Json?    @db.Json
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  group SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@map("group_settings")
 }
 
 model GroupChatMessage {
@@ -2224,14 +2293,14 @@ model UserBadge {
 
 // ─── User Streaks ──────────────────────────────────────────
 model UserStreak {
-  id             String   @id @default(uuid()) @db.VarChar(36)
-  userId         String   @db.VarChar(36)
-  streakType     String   @db.VarChar(20)    // daily, weekly, monthly
-  currentStreak  Int      @default(0)
-  longestStreak  Int      @default(0)
+  id             String    @id @default(uuid()) @db.VarChar(36)
+  userId         String    @db.VarChar(36)
+  streakType     String    @db.VarChar(20) // daily, weekly, monthly
+  currentStreak  Int       @default(0)
+  longestStreak  Int       @default(0)
   lastActivityAt DateTime?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -2265,8 +2334,8 @@ model ReferralProgram {
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
-  referrer User  @relation(fields: [referrerId], references: [id], onDelete: Cascade)
-  referee  User? @relation("ReferredUser", fields: [refereeId], references: [id])
+  referrer User             @relation(fields: [referrerId], references: [id], onDelete: Cascade)
+  referee  User?            @relation("ReferredUser", fields: [refereeId], references: [id])
   rewards  ReferralReward[]
 
   @@index([referrerId])
@@ -2278,18 +2347,18 @@ model ReferralProgram {
 // ─── Referral Rewards ─────────────────────────────────────
 
 model ReferralReward {
-  id          String   @id @default(uuid()) @db.VarChar(36)
-  userId      String   @db.VarChar(36)
-  referralId  String   @db.VarChar(36)
-  type        String   @db.VarChar(20) // referrer_bonus, referee_welcome
-  amount      Decimal  @db.Decimal(10, 2)
-  status      String   @default("pending") @db.VarChar(20) // pending, approved, rejected
-  description String?  @db.VarChar(255)
+  id          String    @id @default(uuid()) @db.VarChar(36)
+  userId      String    @db.VarChar(36)
+  referralId  String    @db.VarChar(36)
+  type        String    @db.VarChar(20) // referrer_bonus, referee_welcome
+  amount      Decimal   @db.Decimal(10, 2)
+  status      String    @default("pending") @db.VarChar(20) // pending, approved, rejected
+  description String?   @db.VarChar(255)
   paidAt      DateTime?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
 
-  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  referral ReferralProgram  @relation(fields: [referralId], references: [id], onDelete: Cascade)
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  referral ReferralProgram @relation(fields: [referralId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([referralId])
@@ -2377,37 +2446,37 @@ model SubscriptionPlan {
 
 // ─── APP CONFIGURATION ───────────────────────────────────
 model AppConfiguration {
-  id                String   @id @default(uuid()) @db.VarChar(36)
-  maintenanceMode   Boolean  @default(false)
-  maintenanceMessage String? @db.Text
-  appName           String   @default("Dabbu") @db.VarChar(100)
-  supportEmail      String   @default("support@dabbu.app") @db.VarChar(255)
-  enableSignups     Boolean  @default(true)
-  enableApiAccess   Boolean  @default(false)
-  newUserDefaultPlan String  @default("free") @db.VarChar(50)
-  trialDurationDays Int      @default(14) @db.SmallInt
-  maxLoginAttempts  Int      @default(5) @db.SmallInt
-  sessionTimeout    Int      @default(60) @db.SmallInt
-  defaultCurrency   String   @default("INR") @db.VarChar(10)
-  timezone          String   @default("UTC") @db.VarChar(50)
-  language          String   @default("en") @db.VarChar(10)
-  otpEnabled        Boolean  @default(true)
-  emailNotifications Boolean @default(true)
-  pushNotifications  Boolean @default(true)
-  smsNotifications   Boolean @default(false)
-  updatedAt         DateTime @updatedAt
+  id                 String   @id @default(uuid()) @db.VarChar(36)
+  maintenanceMode    Boolean  @default(false)
+  maintenanceMessage String?  @db.Text
+  appName            String   @default("Dabbu") @db.VarChar(100)
+  supportEmail       String   @default("support@dabbu.app") @db.VarChar(255)
+  enableSignups      Boolean  @default(true)
+  enableApiAccess    Boolean  @default(false)
+  newUserDefaultPlan String   @default("free") @db.VarChar(50)
+  trialDurationDays  Int      @default(14) @db.SmallInt
+  maxLoginAttempts   Int      @default(5) @db.SmallInt
+  sessionTimeout     Int      @default(60) @db.SmallInt
+  defaultCurrency    String   @default("INR") @db.VarChar(10)
+  timezone           String   @default("UTC") @db.VarChar(50)
+  language           String   @default("en") @db.VarChar(10)
+  otpEnabled         Boolean  @default(true)
+  emailNotifications Boolean  @default(true)
+  pushNotifications  Boolean  @default(true)
+  smsNotifications   Boolean  @default(false)
+  updatedAt          DateTime @updatedAt
 
   @@map("app_configuration")
 }
 
 // ─── FEATURE FLAGS ────────────────────────────────────────
 model FeatureFlag {
-  id          String    @id @default(uuid()) @db.VarChar(36)
-  name        String    @unique @db.VarChar(100)
-  description String?   @db.Text
-  isEnabled   Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  name        String   @unique @db.VarChar(100)
+  description String?  @db.Text
+  isEnabled   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([name])
   @@map("feature_flags")
@@ -2541,19 +2610,19 @@ model UserDocument {
 
 // ─── SUPPORT TICKETS ──────────────────────────────────────────
 model SupportTicket {
-  id        String   @id @default(uuid()) @db.VarChar(36)
-  subject   String   @db.VarChar(255)
-  message   String   @db.Text
-  userId    String?  @db.VarChar(36)
-  email     String?  @db.VarChar(255)
-  status    String   @default("open") @db.VarChar(20) // open, in_progress, resolved, closed
-  priority  String   @default("medium") @db.VarChar(20) // low, medium, high, urgent
-  category  String   @default("general") @db.VarChar(50) // general, technical, billing, feature, bug
-  assignedToId String? @db.VarChar(36)
-  adminNotes String? @db.Text
-  resolvedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id           String    @id @default(uuid()) @db.VarChar(36)
+  subject      String    @db.VarChar(255)
+  message      String    @db.Text
+  userId       String?   @db.VarChar(36)
+  email        String?   @db.VarChar(255)
+  status       String    @default("open") @db.VarChar(20) // open, in_progress, resolved, closed
+  priority     String    @default("medium") @db.VarChar(20) // low, medium, high, urgent
+  category     String    @default("general") @db.VarChar(50) // general, technical, billing, feature, bug
+  assignedToId String?   @db.VarChar(36)
+  adminNotes   String?   @db.Text
+  resolvedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   assignedTo AdminUser? @relation("AssignedTickets", fields: [assignedToId], references: [id])
   user       User?      @relation(fields: [userId], references: [id], onDelete: SetNull)

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl,
+  View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -10,6 +10,10 @@ import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 
+const { width } = Dimensions.get('window');
+const CARD_GAP = 12;
+const CARD_W = (width - 40 - CARD_GAP) / 2;
+
 function fmt(v: number) {
   return `₹${(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 }
@@ -18,9 +22,17 @@ function daysSince(date: string): number {
   return Math.floor((Date.now() - new Date(date).getTime()) / (1000 * 60 * 60 * 24));
 }
 
-function fmtDate(d: string): string {
-  return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-}
+const sections = [
+  { key: 'CoupleIncome', icon: 'trending-up-outline', label: 'Income', desc: 'Add & manage income', gradient: ['#34C759', '#30D158'] as [string, string] },
+  { key: 'CoupleExpenses', icon: 'cart-outline', label: 'Expenses', desc: 'Personal, shared & split', gradient: ['#FF4D4F', '#FF6B6B'] as [string, string] },
+  { key: 'CoupleBudgets', icon: 'wallet-outline', label: 'Budgets', desc: 'Monthly budget tracking', gradient: ['#6C3EF4', '#8B5CF6'] as [string, string] },
+  { key: 'CoupleSavings', icon: 'save-outline', label: 'Savings', desc: 'Save together', gradient: ['#F3D28F', '#F5DBA8'] as [string, string] },
+  { key: 'CoupleGoals', icon: 'trophy-outline', label: 'Goals', desc: 'Shared wishlist & goals', gradient: ['#F59E0B', '#FBBF24'] as [string, string] },
+  { key: 'CoupleBills', icon: 'calendar-outline', label: 'Bills', desc: 'Upcoming & recurring', gradient: ['#60A5FA', '#93C5FD'] as [string, string] },
+  { key: 'CoupleSettlements', icon: 'cash-outline', label: 'Settlements', desc: 'Balances & settle up', gradient: ['#8B5CF6', '#A78BFA'] as [string, string] },
+  { key: 'CoupleReports', icon: 'stats-chart-outline', label: 'Reports', desc: 'Spending insights', gradient: ['#EC4899', '#F472B6'] as [string, string] },
+  { key: 'CoupleSettings', icon: 'settings-outline', label: 'Settings', desc: 'Preferences & profile', gradient: ['#6B7280', '#9CA3AF'] as [string, string] },
+];
 
 export function CoupleSpaceScreen() {
   const navigation = useNavigation<any>();
@@ -39,13 +51,11 @@ export function CoupleSpaceScreen() {
       const coupleGroup = Array.isArray(groups)
         ? groups.find((g: any) => g.type === 'couple' && g.status === 'ACTIVE')
         : null;
-
       if (!coupleGroup) {
         setError('No couple space found. Create a couple group to get started.');
         setCoupleData(null);
         return;
       }
-
       const dashboard = await api.get<any>(`/shared-finance/groups/${coupleGroup.id}/couple/dashboard`);
       setCoupleData({ ...(dashboard || {}), group: coupleGroup });
       setError('');
@@ -64,11 +74,9 @@ export function CoupleSpaceScreen() {
   const p1 = coupleData?.profile?.partner1;
   const p2 = coupleData?.profile?.partner2;
   const group = coupleData?.group;
-  const sharedBudget = coupleData?.sharedBudget;
+  const partnerStats = coupleData?.partnerStats;
   const savingsProgress = coupleData?.savingsProgress;
   const goals = coupleData?.goals || [];
-  const upcomingBills = coupleData?.upcomingBills || [];
-  const partnerStats = coupleData?.partnerStats;
 
   const partner1Name = p1?.firstName || 'Partner 1';
   const partner2Name = p2?.firstName || 'Partner 2';
@@ -81,6 +89,7 @@ export function CoupleSpaceScreen() {
     ? new Date(group.createdAt).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })
     : '';
 
+  const sharedBudget = coupleData?.sharedBudget;
   const budgetUsed = sharedBudget?.spent ?? 0;
   const budgetTotal = sharedBudget?.budget ?? 0;
   const budgetPct = budgetTotal > 0 ? Math.round((budgetUsed / budgetTotal) * 100) : 0;
@@ -131,8 +140,8 @@ export function CoupleSpaceScreen() {
               <Ionicons name="arrow-back" size={22} color="#FFF" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Couple Space</Text>
-            <TouchableOpacity style={styles.backBtn}>
-              <Ionicons name="ellipsis-horizontal" size={20} color="#FFF" />
+            <TouchableOpacity onPress={() => navigation.navigate('CoupleSettings')} style={styles.backBtn}>
+              <Ionicons name="settings-outline" size={20} color="#FFF" />
             </TouchableOpacity>
           </View>
           <View style={styles.coupleInfo}>
@@ -161,35 +170,25 @@ export function CoupleSpaceScreen() {
               </View>
             </View>
             <Text style={styles.heroAmount}>{fmt(totalPaid)}</Text>
-            <TouchableOpacity style={styles.heroBtn} activeOpacity={0.8}>
-              <Text style={styles.heroBtnText}>Start a Split</Text>
+            <TouchableOpacity
+              style={styles.heroBtn}
+              activeOpacity={0.8}
+              onPress={() => navigation.navigate('CoupleExpenses')}
+            >
+              <Text style={styles.heroBtnText}>View Expenses</Text>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.statsRow}>
-            <LinearGradient
-              colors={['#5D38B510', '#7A52D108']}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              style={[styles.statCard, { borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}
-            >
-              <Ionicons name="wallet-outline" size={20} color="#5D38B5" />
-              <Text style={[styles.statLabel, { color: colors.text.tertiary }]}>Shared</Text>
-              <Text style={[styles.statValue, { color: colors.text.primary }]}>{fmt(totalPaid)}</Text>
-            </LinearGradient>
-            <LinearGradient
-              colors={['#5D38B510', '#7A52D108']}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              style={[styles.statCard, { borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}
-            >
-              <Ionicons name="calendar-outline" size={20} color="#5D38B5" />
-              <Text style={[styles.statLabel, { color: colors.text.tertiary }]}>Days</Text>
-              <Text style={[styles.statValue, { color: isDark ? '#FFEBB4' : '#5D38B5' }]}>{daysTogether}</Text>
-            </LinearGradient>
-          </View>
-
           {budgetTotal > 0 && (
-            <View style={[styles.card, { backgroundColor: colors.bg.card, shadowColor: isDark ? '#000' : 'rgba(0,0,0,0.06)' }]}>
-              <Text style={[styles.cardTitle, { color: colors.text.primary }]}>Monthly Budget</Text>
+            <TouchableOpacity
+              style={[styles.card, { backgroundColor: colors.bg.card }]}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('CoupleBudgets')}
+            >
+              <View style={styles.cardHeader}>
+                <Text style={[styles.cardTitle, { color: colors.text.primary }]}>Monthly Budget</Text>
+                <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+              </View>
               <View style={styles.budgetRow}>
                 <Text style={[styles.budgetAmount, { color: colors.text.primary }]}>{fmt(budgetTotal)}</Text>
                 <Text style={[styles.budgetLabel, { color: colors.text.tertiary }]}> / month</Text>
@@ -200,16 +199,18 @@ export function CoupleSpaceScreen() {
               <Text style={[styles.progressLabel, { color: colors.text.tertiary }]}>
                 {fmt(budgetUsed)} used ({budgetPct}%)
               </Text>
-            </View>
+            </TouchableOpacity>
           )}
 
           {savingsTarget > 0 && (
-            <View style={[styles.card, { backgroundColor: colors.bg.card, shadowColor: isDark ? '#000' : 'rgba(0,0,0,0.06)' }]}>
+            <TouchableOpacity
+              style={[styles.card, { backgroundColor: colors.bg.card }]}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('CoupleSavings')}
+            >
               <View style={styles.cardHeader}>
                 <Text style={[styles.cardTitle, { color: colors.text.primary }]}>Savings Goal</Text>
-                <TouchableOpacity>
-                  <Text style={[styles.cardAction, { color: '#5D38B5' }]}>Edit</Text>
-                </TouchableOpacity>
+                <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
               </View>
               <Text style={[styles.goalAmount, { color: colors.text.primary }]}>{fmt(savingsAmount)}</Text>
               <Text style={[styles.goalTarget, { color: colors.text.tertiary }]}>of {fmt(savingsTarget)} target</Text>
@@ -217,37 +218,42 @@ export function CoupleSpaceScreen() {
                 <View style={[styles.progressFill, { width: `${Math.min(savingsPct, 100)}%`, backgroundColor: '#F3D28F' }]} />
               </View>
               <Text style={[styles.progressLabel, { color: colors.text.tertiary }]}>{savingsPct}% completed</Text>
-            </View>
+            </TouchableOpacity>
           )}
 
+          <Text style={[styles.sectionLabel, { color: colors.text.primary }]}>All Modules</Text>
+
+          <View style={styles.sectionGrid}>
+            {sections.map((sec) => (
+              <TouchableOpacity
+                key={sec.key}
+                activeOpacity={0.7}
+                style={[styles.moduleCard, { backgroundColor: colors.bg.card, borderColor: colors.border.default }]}
+                onPress={() => navigation.navigate(sec.key)}
+              >
+                <LinearGradient colors={sec.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.moduleIconWrap}>
+                  <Ionicons name={sec.icon as any} size={20} color="#FFF" />
+                </LinearGradient>
+                <Text style={[styles.moduleLabel, { color: colors.text.primary }]}>{sec.label}</Text>
+                <Text style={[styles.moduleDesc, { color: colors.text.tertiary }]}>{sec.desc}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
           {goals.length > 0 && (
-            <View style={[styles.card, { backgroundColor: colors.bg.card, shadowColor: isDark ? '#000' : 'rgba(0,0,0,0.06)' }]}>
+            <View style={[styles.card, { backgroundColor: colors.bg.card }]}>
               <View style={styles.cardHeader}>
                 <Text style={[styles.cardTitle, { color: colors.text.primary }]}>Shared Wishlist</Text>
-                <TouchableOpacity>
-                  <Text style={[styles.cardAction, { color: '#5D38B5' }]}>Add</Text>
+                <TouchableOpacity onPress={() => navigation.navigate('CoupleGoals')}>
+                  <Text style={[styles.cardAction, { color: '#5D38B5' }]}>View All</Text>
                 </TouchableOpacity>
               </View>
-              {goals.map((item: any, i: number) => (
+              {goals.slice(0, 3).map((item: any, i: number) => (
                 <View key={i} style={styles.wishlistItem}>
                   <View style={styles.wishlistDot}>
                     <Ionicons name="gift-outline" size={14} color="#FFF" />
                   </View>
                   <Text style={[styles.wishlistText, { color: colors.text.primary }]}>{item.name}</Text>
-                </View>
-              ))}
-            </View>
-          )}
-
-          {upcomingBills.length > 0 && (
-            <View style={[styles.card, { backgroundColor: colors.bg.card, shadowColor: isDark ? '#000' : 'rgba(0,0,0,0.06)' }]}>
-              <Text style={[styles.cardTitle, { color: colors.text.primary }]}>Upcoming Bills</Text>
-              {upcomingBills.map((bill: any, i: number) => (
-                <View key={i} style={styles.billRow}>
-                  <View style={[styles.billDot, { backgroundColor: '#FF4D4F' }]} />
-                  <Text style={[styles.billName, { color: colors.text.primary }]}>{bill.type || bill.name}</Text>
-                  <Text style={[styles.billAmount, { color: colors.text.primary }]}>{fmt(bill.amount)}</Text>
-                  <Text style={[styles.billDate, { color: colors.text.tertiary }]}>{fmtDate(bill.dueDate)}</Text>
                 </View>
               ))}
             </View>
@@ -289,11 +295,6 @@ const styles = StyleSheet.create({
   },
   heroBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
 
-  statsRow: { flexDirection: 'row', gap: 12, marginTop: 4 },
-  statCard: { flex: 1, padding: 16, borderRadius: 18, borderWidth: 1, gap: 6, alignItems: 'center' },
-  statLabel: { fontSize: 11, fontWeight: '500' },
-  statValue: { fontSize: 20, fontWeight: '800' },
-
   card: { borderRadius: 20, padding: 18, gap: 8, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 2 },
   cardTitle: { fontSize: 15, fontWeight: '700' },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -306,17 +307,23 @@ const styles = StyleSheet.create({
   progressLabel: { fontSize: 11, fontWeight: '500', marginTop: 4 },
   goalAmount: { fontSize: 24, fontWeight: '800' },
   goalTarget: { fontSize: 12, fontWeight: '500' },
+
+  sectionLabel: { fontSize: 18, fontWeight: '800', marginTop: 8, marginBottom: -4 },
+  sectionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: CARD_GAP },
+  moduleCard: {
+    width: CARD_W, borderRadius: 20, padding: 16, gap: 8,
+    borderWidth: 1, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 2,
+  },
+  moduleIconWrap: { width: 40, height: 40, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  moduleLabel: { fontSize: 14, fontWeight: '700' },
+  moduleDesc: { fontSize: 11, fontWeight: '500', lineHeight: 15 },
+
   wishlistItem: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6 },
   wishlistDot: {
     width: 28, height: 28, borderRadius: 10, backgroundColor: '#5D38B5',
     alignItems: 'center', justifyContent: 'center',
   },
   wishlistText: { fontSize: 13, fontWeight: '600' },
-  billRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, gap: 8 },
-  billDot: { width: 6, height: 6, borderRadius: 3 },
-  billName: { fontSize: 13, fontWeight: '600', flex: 1 },
-  billAmount: { fontSize: 14, fontWeight: '700' },
-  billDate: { fontSize: 12, fontWeight: '500', width: 55, textAlign: 'right' },
   emptyTitle: { fontSize: 18, fontWeight: '700' },
   emptyDesc: { fontSize: 14 },
 });

@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
   notifDot: { position: 'absolute', top: 0, right: 0, backgroundColor: '#FF4D4F', borderRadius: 8, minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
   notifDotText: { color: '#FFF', fontSize: 9, fontWeight: '700' },
 
-  balanceWrap: { marginHorizontal: 16, marginTop: -28 },
+  balanceWrap: { marginHorizontal: 16, marginTop: 12 },
   balanceCard: { borderRadius: 24, padding: 22, shadowColor: '#6C3EF4', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 24, elevation: 12 },
   balanceTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   balanceLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: '500', letterSpacing: 0.3 },

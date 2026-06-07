@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   ScrollView,
+  TextInput,
   Platform,
   KeyboardAvoidingView,
+  Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -30,13 +33,6 @@ const CATEGORIES = [
   { name: 'Entertainment', icon: 'film-outline', color: '#8B5CF6' },
   { name: 'Medical', icon: 'medkit-outline', color: '#FF4D4F' },
   { name: 'Education', icon: 'school-outline', color: '#6366F1' },
-];
-
-const NUMPAD_KEYS = [
-  ['1', '2', '3'],
-  ['4', '5', '6'],
-  ['7', '8', '9'],
-  ['', '0', 'backspace'],
 ];
 
 type PrefillParams = {
@@ -71,6 +67,7 @@ export function CreateTransactionScreen() {
   const [category, setCategory] = useState(editingTransaction?.category?.name || prefill?.categoryName || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const inputRef = useRef<TextInput>(null);
   const [loadingMeta, setLoadingMeta] = useState(true);
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState(editingTransaction?.expenseGroupId || prefill?.groupId || '');
@@ -97,20 +94,6 @@ export function CreateTransactionScreen() {
     } finally {
       setLoadingMeta(false);
     }
-  }
-
-  function handleNumpadPress(key: string) {
-    if (key === 'backspace') {
-      setAmount(prev => prev.slice(0, -1));
-      return;
-    }
-    if (key === '.' && amount.includes('.')) return;
-    setAmount(prev => prev + key);
-  }
-
-  function formatAmount(val: string): string {
-    const num = parseFloat(val) || 0;
-    return num.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 0 });
   }
 
   async function handleSave() {
@@ -161,10 +144,6 @@ export function CreateTransactionScreen() {
     );
   }
 
-  const displayAmount = amount ? formatAmount(amount) : '0';
-  const amountNum = parseFloat(amount) || 0;
-  const dispText = amountNum > 0 ? `₹${displayAmount}` : '₹0';
-
   return (
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
       <KeyboardAvoidingView
@@ -173,128 +152,138 @@ export function CreateTransactionScreen() {
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 280 }}
+          contentContainerStyle={{ paddingBottom: 40 }}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
         >
-          <View style={[s.amountSection, { backgroundColor: colors.bg.card }]}>
-            <View style={s.amountTop}>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={s.closeBtn}>
-                <Ionicons name="close" size={22} color={colors.text.secondary} />
-              </TouchableOpacity>
-              <Text style={[s.amtTitle, { color: colors.text.primary }]}>
-                {isEditing ? 'Edit' : type === 'income' ? 'Add Income' : 'Add Expense'}
-              </Text>
-              <View style={{ width: 34 }} />
-            </View>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View>
+              <View style={[s.amountSection, { backgroundColor: colors.bg.card }]}>
+                <View style={s.amountTop}>
+                  <TouchableOpacity onPress={() => {
+                    Keyboard.dismiss();
+                    navigation.goBack();
+                  }} style={s.closeBtn}>
+                    <Ionicons name="close" size={22} color={colors.text.secondary} />
+                  </TouchableOpacity>
+                  <Text style={[s.amtTitle, { color: colors.text.primary }]}>
+                    {isEditing ? 'Edit' : type === 'income' ? 'Add Income' : 'Add Expense'}
+                  </Text>
+                  <TouchableOpacity onPress={() => {
+                    inputRef.current?.focus();
+                  }} style={s.keyboardBtn}>
+                    <Ionicons name="keypad-outline" size={20} color={colors.accent.primary} />
+                  </TouchableOpacity>
+                </View>
 
-            <View style={[s.segmentRow, { backgroundColor: colors.bg.tertiary }]}>
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => { setType('expense'); setError(''); }}
-                style={[s.segmentBtn, type === 'expense' && { backgroundColor: '#5D38B5' }]}
-              >
-                <Ionicons name="cart-outline" size={14} color={type === 'expense' ? '#FFF' : colors.text.secondary} />
-                <Text style={[s.segmentText, { color: type === 'expense' ? '#FFF' : colors.text.secondary }]}>Expenses</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => { setType('income'); setError(''); }}
-                style={[s.segmentBtn, type === 'income' && { backgroundColor: '#34C759' }]}
-              >
-                <Ionicons name="trending-up" size={14} color={type === 'income' ? '#FFF' : colors.text.secondary} />
-                <Text style={[s.segmentText, { color: type === 'income' ? '#FFF' : colors.text.secondary }]}>Income</Text>
-              </TouchableOpacity>
-            </View>
+                <View style={[s.segmentRow, { backgroundColor: colors.bg.tertiary }]}>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => { setType('expense'); setError(''); }}
+                    style={[s.segmentBtn, type === 'expense' && { backgroundColor: '#5D38B5' }]}
+                  >
+                    <Ionicons name="cart-outline" size={14} color={type === 'expense' ? '#FFF' : colors.text.secondary} />
+                    <Text style={[s.segmentText, { color: type === 'expense' ? '#FFF' : colors.text.secondary }]}>Expenses</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => { setType('income'); setError(''); }}
+                    style={[s.segmentBtn, type === 'income' && { backgroundColor: '#34C759' }]}
+                  >
+                    <Ionicons name="trending-up" size={14} color={type === 'income' ? '#FFF' : colors.text.secondary} />
+                    <Text style={[s.segmentText, { color: type === 'income' ? '#FFF' : colors.text.secondary }]}>Income</Text>
+                  </TouchableOpacity>
+                </View>
 
-            <View style={s.amountDisplay}>
-              <Text style={[s.amountText, { color: colors.text.primary }]}>{dispText}</Text>
-              <Text style={[s.amountHint, { color: colors.text.tertiary }]}>
-                {type === 'expense' ? 'How much did you spend?' : 'How much did you receive?'}
-              </Text>
-            </View>
+                <View style={s.amountDisplay}>
+                  <View style={s.amountInputRow}>
+                    <Text style={[s.amountCurrency, { color: colors.text.primary }]}>₹</Text>
+                    <TextInput
+                      ref={inputRef}
+                      style={[s.amountInput, { color: colors.text.primary }]}
+                      value={amount}
+                      onChangeText={(text) => {
+                        const cleaned = text.replace(/[^0-9.]/g, '');
+                        const dotCount = cleaned.split('.').length - 1;
+                        if (dotCount > 1) return;
+                        setAmount(cleaned);
+                        setError('');
+                      }}
+                      keyboardType="decimal-pad"
+                      placeholder="0"
+                      placeholderTextColor={colors.text.tertiary}
+                      returnKeyType="done"
+                      onSubmitEditing={() => Keyboard.dismiss()}
+                    />
+                  </View>
+                  <Text style={[s.amountHint, { color: colors.text.tertiary }]}>
+                    {type === 'expense' ? 'How much did you spend?' : 'How much did you receive?'}
+                  </Text>
+                </View>
 
-            {error ? (
-              <View style={[s.errorBox, { backgroundColor: `${colors.status.error}15` }]}>
-                <Ionicons name="alert-circle" size={14} color={colors.status.error} />
-                <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
+                {error ? (
+                  <View style={[s.errorBox, { backgroundColor: `${colors.status.error}15` }]}>
+                    <Ionicons name="alert-circle" size={14} color={colors.status.error} />
+                    <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
+                  </View>
+                ) : null}
               </View>
-            ) : null}
-          </View>
 
-          <View style={s.categorySection}>
-            <Text style={[s.sectionLabel, { color: colors.text.primary }]}>Category</Text>
-            <View style={s.categoryGrid}>
-              {CATEGORIES.map((cat, i) => {
-                const selected = category === cat.name;
-                return (
-                  <TouchableOpacity
-                    key={i}
-                    activeOpacity={0.7}
-                    style={[
-                      s.categoryCard,
-                      {
-                        backgroundColor: selected ? `${cat.color}15` : colors.bg.card,
-                        borderColor: selected ? cat.color : colors.border.subtle,
-                      },
-                    ]}
-                    onPress={() => setCategory(selected ? '' : cat.name)}
+              <View style={s.categorySection}>
+                <Text style={[s.sectionLabel, { color: colors.text.primary }]}>Category</Text>
+                <View style={s.categoryGrid}>
+                  {CATEGORIES.map((cat, i) => {
+                    const selected = category === cat.name;
+                    return (
+                      <TouchableOpacity
+                        key={i}
+                        activeOpacity={0.7}
+                        style={[
+                          s.categoryCard,
+                          {
+                            backgroundColor: selected ? `${cat.color}15` : colors.bg.card,
+                            borderColor: selected ? cat.color : colors.border.subtle,
+                          },
+                        ]}
+                        onPress={() => setCategory(selected ? '' : cat.name)}
+                      >
+                        <View style={[s.catIcon, { backgroundColor: selected ? cat.color : `${cat.color}12` }]}>
+                          <Ionicons name={cat.icon as any} size={20} color={selected ? '#FFF' : cat.color} />
+                        </View>
+                        <Text
+                          style={[s.catName, { color: selected ? colors.text.primary : colors.text.secondary }]}
+                          numberOfLines={1}
+                        >
+                          {cat.name}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              <View style={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 40 }}>
+                <TouchableOpacity
+                  style={[s.addBtn, { opacity: saving ? 0.7 : 1 }]}
+                  onPress={handleSave}
+                  disabled={saving}
+                  activeOpacity={0.85}
+                >
+                  <LinearGradient
+                    colors={type === 'income' ? ['#00B894', '#00A381'] : ['#5D38B5', '#7A52D1']}
+                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                    style={s.addBtnGrad}
                   >
-                    <View style={[s.catIcon, { backgroundColor: selected ? cat.color : `${cat.color}12` }]}>
-                      <Ionicons name={cat.icon as any} size={20} color={selected ? '#FFF' : cat.color} />
-                    </View>
-                    <Text
-                      style={[s.catName, { color: selected ? colors.text.primary : colors.text.secondary }]}
-                      numberOfLines={1}
-                    >
-                      {cat.name}
+                    <Ionicons name="add-circle" size={18} color="#FFF" />
+                    <Text style={s.addBtnText}>
+                      {saving ? 'Saving...' : isEditing ? 'Update' : type === 'income' ? 'Add Income' : 'Add Expense'}
                     </Text>
-                  </TouchableOpacity>
-                );
-              })}
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          </TouchableWithoutFeedback>
         </ScrollView>
-
-        <View style={[s.numpad, { backgroundColor: colors.bg.card, borderTopColor: colors.border.subtle }]}>
-          {NUMPAD_KEYS.map((row, ri) => (
-            <View key={ri} style={s.numpadRow}>
-              {row.map((key) => {
-                if (key === '') return <View key="empty" style={s.numpadKey} />;
-                return (
-                  <TouchableOpacity
-                    key={key}
-                    style={s.numpadKey}
-                    onPress={() => handleNumpadPress(key)}
-                    activeOpacity={0.5}
-                  >
-                    {key === 'backspace' ? (
-                      <Ionicons name="backspace-outline" size={24} color={colors.text.secondary} />
-                    ) : (
-                      <Text style={[s.numpadKeyText, { color: colors.text.primary }]}>{key}</Text>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          ))}
-          <TouchableOpacity
-            style={[s.addBtn, { opacity: saving ? 0.7 : 1 }]}
-            onPress={handleSave}
-            disabled={saving}
-            activeOpacity={0.85}
-          >
-            <LinearGradient
-              colors={type === 'income' ? ['#00B894', '#00A381'] : ['#5D38B5', '#7A52D1']}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              style={s.addBtnGrad}
-            >
-              <Ionicons name="add-circle" size={18} color="#FFF" />
-              <Text style={s.addBtnText}>
-                {saving ? 'Saving...' : isEditing ? 'Update' : type === 'income' ? 'Add Income' : 'Add Expense'}
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
       </KeyboardAvoidingView>
     </View>
   );
@@ -314,7 +303,9 @@ const s = StyleSheet.create({
   segmentText: { fontSize: 13, fontWeight: '700' },
 
   amountDisplay: { alignItems: 'center', gap: 6, marginBottom: 8 },
-  amountText: { fontSize: 40, fontWeight: '800', letterSpacing: -1 },
+  amountInputRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
+  amountCurrency: { fontSize: 36, fontWeight: '800' },
+  amountInput: { fontSize: 40, fontWeight: '800', letterSpacing: -1, textAlign: 'center', minWidth: 120, paddingVertical: 0 },
   amountHint: { fontSize: 13, fontWeight: '500' },
 
   errorBox: { flexDirection: 'row', alignItems: 'center', gap: 6, padding: 10, borderRadius: 10, marginTop: 8 },

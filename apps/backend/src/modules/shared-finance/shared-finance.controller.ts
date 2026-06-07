@@ -67,6 +67,9 @@ import {
   CreateReferralDto,
   TripForecastDto,
   ApproveWalletTransactionDto,
+  CreateCoupleIncomeDto,
+  CoupleSavingsContributeDto,
+  UpdateGroupSettingsDto,
 } from './dto/shared-finance.dto';
 
 @ApiTags('Shared Finance')
@@ -419,6 +422,107 @@ export class SharedFinanceController {
   @ApiOperation({ summary: 'Calculate recommended split ratio' })
   calculateRecommendedSplit(@Body('salary1') salary1: number, @Body('salary2') salary2: number) {
     return this.sf.calculateRecommendedSplit(salary1, salary2);
+  }
+
+  // ─── Couple Incomes ──────────────────────────────────────────
+
+  @Get('groups/:groupId/couple/incomes')
+  @UseGuards(GroupMemberGuard)
+  @ApiOperation({ summary: 'Get couple incomes' })
+  async getCoupleIncomes(@Param('groupId') groupId: string) {
+    return this.sf.getCoupleIncomes(groupId);
+  }
+
+  @Post('groups/:groupId/couple/incomes')
+  @UseGuards(GroupMemberGuard)
+  @ApiOperation({ summary: 'Create couple income' })
+  async createCoupleIncome(
+    @Param('groupId') groupId: string,
+    @CurrentUser('id') userId: string,
+    @Body() dto: CreateCoupleIncomeDto,
+  ) {
+    return this.sf.createCoupleIncome(groupId, userId, dto);
+  }
+
+  // ─── Couple Budgets ──────────────────────────────────────────
+
+  @Get('groups/:groupId/couple/budgets')
+  @UseGuards(GroupMemberGuard)
+  @ApiOperation({ summary: 'Get couple budgets' })
+  async getCoupleBudgets(@Param('groupId') groupId: string) {
+    return this.sf.getCoupleBudgets(groupId);
+  }
+
+  // ─── Couple Savings ──────────────────────────────────────────
+
+  @Get('groups/:groupId/couple/savings')
+  @UseGuards(GroupMemberGuard)
+  @ApiOperation({ summary: 'Get couple savings' })
+  async getCoupleSavings(@Param('groupId') groupId: string) {
+    return this.sf.getCoupleSavings(groupId);
+  }
+
+  @Post('groups/:groupId/couple/savings/contribute')
+  @UseGuards(GroupMemberGuard)
+  @ApiOperation({ summary: 'Contribute to couple savings' })
+  async contributeToCoupleSavings(
+    @Param('groupId') groupId: string,
+    @CurrentUser('id') userId: string,
+    @Body() dto: CoupleSavingsContributeDto,
+  ) {
+    return this.sf.contributeToCoupleSavings(groupId, userId, dto);
+  }
+
+  // ─── Couple Settlements ──────────────────────────────────────
+
+  @Get('groups/:groupId/couple/settlements')
+  @UseGuards(GroupMemberGuard)
+  @ApiOperation({ summary: 'Get couple settlements' })
+  async getCoupleSettlements(@Param('groupId') groupId: string) {
+    return this.sf.getCoupleSettlements(groupId);
+  }
+
+  @Post('groups/:groupId/couple/settle-up')
+  @UseGuards(GroupMemberGuard)
+  @ApiOperation({ summary: 'Settle up between couple partners' })
+  async coupleSettleUp(
+    @Param('groupId') groupId: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.sf.coupleSettleUp(groupId, userId);
+  }
+
+  // ─── Couple Reports ──────────────────────────────────────────
+
+  @Get('groups/:groupId/couple/reports')
+  @UseGuards(GroupMemberGuard)
+  @ApiOperation({ summary: 'Get couple reports' })
+  @ApiQuery({ name: 'period', required: false })
+  async getCoupleReports(
+    @Param('groupId') groupId: string,
+    @Query('period') period?: string,
+  ) {
+    return this.sf.getCoupleReports(groupId, period || 'monthly');
+  }
+
+  // ─── Group Settings ──────────────────────────────────────────
+
+  @Get('groups/:groupId/settings')
+  @UseGuards(GroupMemberGuard)
+  @ApiOperation({ summary: 'Get group settings' })
+  async getGroupSettings(@Param('groupId') groupId: string) {
+    return this.sf.getGroupSettings(groupId);
+  }
+
+  @Patch('groups/:groupId/settings')
+  @UseGuards(GroupMemberGuard)
+  @ApiOperation({ summary: 'Update group settings' })
+  async updateGroupSettings(
+    @Param('groupId') groupId: string,
+    @CurrentUser('id') userId: string,
+    @Body() dto: UpdateGroupSettingsDto,
+  ) {
+    return this.sf.updateGroupSettings(groupId, userId, dto);
   }
 
   // ─── Trip Management ───────────────────────────────────────

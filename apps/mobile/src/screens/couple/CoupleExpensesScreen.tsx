@@ -1,0 +1,327 @@
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Animated, Dimensions,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../../theme';
+import { api } from '../../services/api';
+import { LoadingScreen } from '../../components/ui/LoadingScreen';
+
+const { width } = Dimensions.get('window');
+
+const CATEGORY_MAP: Record<string, { icon: string; color: string }> = {
+  Food: { icon: 'fast-food-outline', color: '#FF6B6B' },
+  Groceries: { icon: 'cart-outline', color: '#34C759' },
+  Travel: { icon: 'airplane-outline', color: '#60A5FA' },
+  Gym: { icon: 'fitness-outline', color: '#A78BFA' },
+  Water: { icon: 'water-outline', color: '#38BDF8' },
+  Internet: { icon: 'wifi-outline', color: '#38BDF8' },
+  Rent: { icon: 'home-outline', color: '#FB923C' },
+  Bills: { icon: 'receipt-outline', color: '#F59E0B' },
+  Shopping: { icon: 'bag-outline', color: '#F472B6' },
+  Entertainment: { icon: 'film-outline', color: '#8B5CF6' },
+  Medical: { icon: 'medkit-outline', color: '#FF4D4F' },
+  Education: { icon: 'school-outline', color: '#6366F1' },
+};
+
+const DEFAULT_CAT = { icon: 'ellipse-outline', color: '#9CA3AF' };
+
+function fmt(v: number) {
+  return `₹${(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+}
+
+function fmtDate(dateStr: string) {
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diff = Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
+  if (diff === 0) return 'Today';
+  if (diff === 1) return 'Yesterday';
+  if (diff < 7) return `${diff}d ago`;
+  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+}
+
+export function CoupleExpensesScreen() {
+  const navigation = useNavigation<any>();
+  const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
+
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [activeTab, setActiveTab] = useState<'personal' | 'shared' | 'split'>('personal');
+  const [expenses, setExpenses] = useState<any[]>([]);
+  const [coupleData, setCoupleData] = useState<any>(null);
+  const [error, setError] = useState('');
+  const fabAnim = useRef(new Animated.Value(0)).current;
+
+  const tabs = [
+    { key: 'personal' as const, label: 'Personal', icon: 'person-outline' },
+    { key: 'shared' as const, label: 'Shared', icon: 'people-outline' },
+    { key: 'split' as const, label: 'Split', icon: 'git-branch-outline' },
+  ];
+
+  useEffect(() => {
+    Animated.spring(fabAnim, { toValue: 1, tension: 60, friction: 10, useNativeDriver: true }).start();
+  }, []);
+
+  const fetchData = useCallback(async (isRefresh = false) => {
+    if (!isRefresh) setLoading(true);
+    try {
+      const groups: any[] = await api.get('/shared-finance/groups');
+      const coupleGroup = Array.isArray(groups)
+        ? groups.find((g: any) => g.type === 'couple' && g.status === 'ACTIVE')
+        : null;
+      if (!coupleGroup) {
+        setError('No couple space found.');
+        setCoupleData(null);
+        setExpenses([]);
+        return;
+      }
+      const [dashboard, expenseList] = await Promise.all([
+        api.get<any>(`/shared-finance/groups/${coupleGroup.id}/couple/dashboard`),
+        api.get<any[]>(`/shared-finance/groups/${coupleGroup.id}/expenses`),
+      ]);
+      setCoupleData({ ...(dashboard || {}), group: coupleGroup });
+      setExpenses(Array.isArray(expenseList) ? expenseList : []);
+      setError('');
+    } catch (e: any) {
+      setError(e?.message || 'Failed to load expenses');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  const filteredExpenses = expenses.filter((e) => {
+    if (activeTab === 'personal') return e.type === 'personal' || (!e.type && !e.splitType);
+    if (activeTab === 'shared') return e.type === 'shared' || e.splitType === 'shared';
+    if (activeTab === 'split') return e.splitType === 'split' || e.type === 'split';
+    return true;
+  });
+
+  const totalExpenses = filteredExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+  const partner1Name = coupleData?.profile?.partner1?.firstName || 'Partner 1';
+  const partner2Name = coupleData?.profile?.partner2?.firstName || 'Partner 2';
+  const groupId = coupleData?.group?.id;
+
+  function renderExpenseRow(item: any) {
+    const catInfo = CATEGORY_MAP[item.category?.name || item.category] || DEFAULT_CAT;
+    const isOwn = item.paidBy === 'me' || !item.paidBy || item.paidBy === coupleData?.profile?.partner1?.id;
+    const paidByName = isOwn ? 'You' : partner1Name === 'Partner 1' ? partner2Name : partner1Name;
+    const showPaidBy = activeTab !== 'personal';
+
+    return (
+      <TouchableOpacity
+        key={item.id || Math.random().toString()}
+        activeOpacity={0.7}
+        style={[styles.expenseRow, { backgroundColor: colors.bg.card }]}
+        onPress={() => navigation.navigate('TransactionDetail', { transactionId: item.id })}
+      >
+        <View style={[styles.catIconCircle, { backgroundColor: `${catInfo.color}18` }]}>
+          <Ionicons name={catInfo.icon as any} size={20} color={catInfo.color} />
+        </View>
+        <View style={styles.expenseInfo}>
+          <View style={styles.expenseTop}>
+            <Text style={[styles.expenseDesc, { color: colors.text.primary }]} numberOfLines={1}>
+              {item.description || item.category?.name || 'Expense'}
+            </Text>
+            <Text style={[styles.expenseAmount, { color: colors.text.primary }]}>{fmt(item.amount)}</Text>
+          </View>
+          <View style={styles.expenseBottom}>
+            <Text style={[styles.expenseDate, { color: colors.text.tertiary }]}>{fmtDate(item.date || item.createdAt)}</Text>
+            <View style={styles.expenseBadges}>
+              {item.category?.name ? (
+                <View style={[styles.categoryBadge, { backgroundColor: `${catInfo.color}15` }]}>
+                  <Text style={[styles.categoryBadgeText, { color: catInfo.color }]}>{item.category.name}</Text>
+                </View>
+              ) : null}
+              {showPaidBy ? (
+                <View style={[styles.paidByChip, { backgroundColor: colors.bg.tertiary }]}>
+                  <Ionicons name="person-outline" size={10} color={colors.text.secondary} />
+                  <Text style={[styles.paidByText, { color: colors.text.secondary }]}>{paidByName}</Text>
+                </View>
+              ) : null}
+            </View>
+          </View>
+        </View>
+        {item.splitType === 'split' && item.shares ? (
+          <View style={[styles.splitIndicator, { borderLeftColor: colors.border.subtle }]}>
+            <Text style={[styles.splitPct, { color: colors.brand.primary }]}>
+              {Math.round(item.shares.partner1?.percentage || item.shares.percentage || 50)}%
+            </Text>
+            <Text style={[styles.splitLabel, { color: colors.text.tertiary }]}>your share</Text>
+          </View>
+        ) : null}
+      </TouchableOpacity>
+    );
+  }
+
+  if (loading) return <LoadingScreen />;
+
+  return (
+    <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchData(true); }} tintColor="#6C3EF4" />
+        }
+      >
+        <LinearGradient
+          colors={['#6C3EF4', '#8B5CF6']}
+          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          style={{ paddingTop: insets.top + 12, paddingBottom: 24, paddingHorizontal: 20 }}
+        >
+          <View style={styles.headerRow}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+              <Ionicons name="arrow-back" size={22} color="#FFF" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Expenses</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('CreateTransaction', { prefill: { groupId, groupName: 'Couple', returnTo: 'CoupleExpenses', type: 'expense' } })}
+              style={styles.backBtn}
+            >
+              <Ionicons name="add" size={22} color="#FFF" />
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
+
+        <View style={styles.tabSection}>
+          <View style={[styles.segmentRow, { backgroundColor: colors.bg.tertiary }]}>
+            {tabs.map((tab) => {
+              const active = activeTab === tab.key;
+              return (
+                <TouchableOpacity
+                  key={tab.key}
+                  activeOpacity={0.8}
+                  onPress={() => setActiveTab(tab.key)}
+                  style={[styles.segmentBtn, active && { backgroundColor: '#6C3EF4' }]}
+                >
+                  <Ionicons name={tab.icon as any} size={14} color={active ? '#FFF' : colors.text.secondary} />
+                  <Text style={[styles.segmentText, { color: active ? '#FFF' : colors.text.secondary }]}>{tab.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        <View style={{ paddingHorizontal: 20, paddingTop: 16 }}>
+          <View style={[styles.summaryCard, { backgroundColor: '#FFEBB4' }]}>
+            <View style={styles.summaryTop}>
+              <Text style={styles.summaryLabel}>{activeTab === 'personal' ? 'Your Expenses' : activeTab === 'shared' ? 'Shared Expenses' : 'Split Expenses'}</Text>
+              <View style={styles.countBadge}>
+                <Text style={styles.countBadgeText}>{filteredExpenses.length} items</Text>
+              </View>
+            </View>
+            <Text style={styles.summaryAmount}>{fmt(totalExpenses)}</Text>
+            <Text style={styles.summarySub}>Total for this period</Text>
+          </View>
+
+          {error && !filteredExpenses.length ? (
+            <View style={styles.emptyWrap}>
+              <Ionicons name="receipt-outline" size={48} color={colors.text.tertiary} />
+              <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>No expenses yet</Text>
+              <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>{error}</Text>
+            </View>
+          ) : !filteredExpenses.length ? (
+            <View style={styles.emptyWrap}>
+              <Ionicons name="receipt-outline" size={48} color={colors.text.tertiary} />
+              <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>No {activeTab} expenses</Text>
+              <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>Tap + to add one</Text>
+            </View>
+          ) : (
+            <View style={styles.expenseList}>
+              {filteredExpenses.map(renderExpenseRow)}
+            </View>
+          )}
+        </View>
+      </ScrollView>
+
+      <Animated.View
+        style={[
+          styles.fab,
+          {
+            opacity: fabAnim,
+            transform: [{ scale: fabAnim }],
+            bottom: insets.bottom + 24,
+          },
+        ]}
+      >
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => navigation.navigate('CreateTransaction', { prefill: { groupId, groupName: 'Couple', returnTo: 'CoupleExpenses', type: 'expense' } })}
+        >
+          <LinearGradient
+            colors={['#6C3EF4', '#8B5CF6']}
+            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            style={styles.fabGrad}
+          >
+            <Ionicons name="add" size={26} color="#FFF" />
+          </LinearGradient>
+        </TouchableOpacity>
+      </Animated.View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: { flex: 1 },
+
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  backBtn: { width: 34, height: 34, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
+  headerTitle: { color: '#FFF', fontSize: 17, fontWeight: '700' },
+
+  tabSection: { paddingHorizontal: 20, paddingTop: 16 },
+  segmentRow: { flexDirection: 'row', borderRadius: 12, padding: 3 },
+  segmentBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: 10 },
+  segmentText: { fontSize: 13, fontWeight: '700' },
+
+  summaryCard: {
+    borderRadius: 24, padding: 22,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.12, shadowRadius: 16, elevation: 6,
+  },
+  summaryTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  summaryLabel: { fontSize: 12, fontWeight: '600', color: '#5D38B5', letterSpacing: 0.3 },
+  countBadge: { backgroundColor: 'rgba(93,56,181,0.12)', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 8 },
+  countBadgeText: { fontSize: 11, fontWeight: '700', color: '#5D38B5' },
+  summaryAmount: { fontSize: 32, fontWeight: '800', color: '#5D38B5', letterSpacing: -1, marginBottom: 2 },
+  summarySub: { fontSize: 12, fontWeight: '500', color: 'rgba(93,56,181,0.6)' },
+
+  expenseList: { gap: 10, paddingTop: 16 },
+  expenseRow: {
+    flexDirection: 'row', alignItems: 'center', borderRadius: 18, padding: 14, gap: 12,
+    shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 2,
+  },
+  catIconCircle: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  expenseInfo: { flex: 1, gap: 6 },
+  expenseTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  expenseDesc: { fontSize: 14, fontWeight: '600', flex: 1, marginRight: 8 },
+  expenseAmount: { fontSize: 16, fontWeight: '800' },
+  expenseBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  expenseDate: { fontSize: 11, fontWeight: '500' },
+  expenseBadges: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  categoryBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
+  categoryBadgeText: { fontSize: 10, fontWeight: '700' },
+  paidByChip: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
+  paidByText: { fontSize: 10, fontWeight: '600' },
+  splitIndicator: {
+    borderLeftWidth: 1, paddingLeft: 10, alignItems: 'center',
+  },
+  splitPct: { fontSize: 14, fontWeight: '800' },
+  splitLabel: { fontSize: 9, fontWeight: '500', marginTop: 1 },
+
+  emptyWrap: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60, gap: 8 },
+  emptyTitle: { fontSize: 16, fontWeight: '700' },
+  emptyDesc: { fontSize: 13, fontWeight: '500' },
+
+  fab: { position: 'absolute', right: 24 },
+  fabGrad: {
+    width: 56, height: 56, borderRadius: 28,
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#6C3EF4', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 8,
+  },
+});
