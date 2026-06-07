@@ -1,12 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-  Dimensions,
+  View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,8 +11,6 @@ import { useAuth } from '../../store/AuthContext';
 import { useAppLock } from '../../store/LockContext';
 import { api, setAccessToken, getAccessToken } from '../../services/api';
 
-const { width: SCREEN_W } = Dimensions.get('window');
-
 type IconName = keyof typeof Ionicons.glyphMap;
 
 interface SectionItem {
@@ -27,7 +19,6 @@ interface SectionItem {
   screen: string;
   premium?: boolean;
   action?: 'lock';
-  badge?: string;
 }
 
 const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
@@ -88,10 +79,12 @@ export function SettingsScreen() {
   const { lockApp } = useAppLock();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   const [subscription, setSubscription] = useState<any>(null);
 
   useEffect(() => {
     loadSubscription();
+    Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
   }, []);
 
   async function loadSubscription() {
@@ -99,18 +92,13 @@ export function SettingsScreen() {
       setAccessToken(getAccessToken());
       const res = await api.get<any>('/premium/current');
       setSubscription(res);
-    } catch {
-      setSubscription(null);
-    }
+    } catch { setSubscription(null); }
   }
 
   const isPremium = !!subscription && subscription.status === 'active';
 
   const handleNav = (screen: string, premium?: boolean, action?: 'lock') => {
-    if (action === 'lock') {
-      lockApp();
-      return;
-    }
+    if (action === 'lock') { lockApp(); return; }
     const registered = [
       'Profile', 'Security', 'Premium', 'Theme', 'CustomiseDashboard',
       'CustomiseBottomMenu', 'Help', 'Contact', 'Privacy', 'Analytics',
@@ -121,14 +109,10 @@ export function SettingsScreen() {
       return;
     }
     if (premium && !isPremium) {
-      Alert.alert(
-        'Premium Feature',
-        'This feature is available on Premium plan. Upgrade to access it.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'View Plans', onPress: () => navigation.navigate('Subscription') },
-        ],
-      );
+      Alert.alert('Premium Feature', 'This feature is available on Premium plan. Upgrade to access it.', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'View Plans', onPress: () => navigation.navigate('Subscription') },
+      ]);
       return;
     }
     navigation.navigate(screen);
@@ -136,133 +120,103 @@ export function SettingsScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
-      >
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}>
         <LinearGradient
-          colors={['#6C3EF4', '#8B5CF6']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[s.hero, { paddingTop: insets.top + 20 }]}
+          colors={['#1A1A3E', '#12121A']}
+          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          style={[s.hero, { paddingTop: insets.top + 16 }]}
         >
-          <TouchableOpacity
-            style={s.heroBack}
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.7}
-          >
+          <TouchableOpacity style={s.heroBack} onPress={() => navigation.goBack()} activeOpacity={0.7}>
             <Ionicons name="chevron-back" size={22} color="#FFF" />
           </TouchableOpacity>
-          <Text style={s.heroTitle}>Settings</Text>
-          <Text style={s.heroSub}>Personalise your experience</Text>
-          <View style={s.heroGlow} />
+          <TouchableOpacity onPress={() => handleNav('Profile')} activeOpacity={0.8} style={s.heroProfile}>
+            <LinearGradient colors={['#6C3EF4', '#8B5CF6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.heroAvatar}>
+              <Text style={s.heroAvatarText}>{user?.firstName?.[0] || 'U'}</Text>
+            </LinearGradient>
+            <View style={{ flex: 1 }}>
+              <Text style={s.heroName} numberOfLines={1}>{user?.firstName || 'User'} {user?.lastName || ''}</Text>
+              <Text style={s.heroEmail} numberOfLines={1}>{user?.email || 'No email'}</Text>
+            </View>
+            <View style={[s.heroPlanBadge, { backgroundColor: isPremium ? '#F3D28F20' : 'rgba(255,255,255,0.1)' }]}>
+              <Ionicons name={isPremium ? 'diamond' : 'person-outline'} size={12} color={isPremium ? '#F3D28F' : 'rgba(255,255,255,0.6)'} />
+              <Text style={[s.heroPlanText, { color: isPremium ? '#F3D28F' : 'rgba(255,255,255,0.6)' }]}>
+                {isPremium ? 'Premium' : 'Free'}
+              </Text>
+            </View>
+          </TouchableOpacity>
         </LinearGradient>
 
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => handleNav('Profile')}
-          style={s.profileWrap}
-        >
-          <View style={[s.profileCard, { backgroundColor: colors.bg.card }]}>
-            <LinearGradient
-              colors={['#6C3EF4', '#8B5CF6']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={s.avatar}
+        <Animated.View style={{ opacity: fadeAnim }}>
+          {!isPremium && (
+            <TouchableOpacity
+              style={s.upgradeBanner}
+              onPress={() => navigation.navigate('Premium')}
+              activeOpacity={0.85}
             >
-              <Text style={s.avatarText}>{user?.firstName?.[0] || 'U'}</Text>
-            </LinearGradient>
-            <View style={s.profileBody}>
-              <Text style={[s.name, { color: colors.text.primary }]} numberOfLines={1}>
-                {user?.firstName || 'User'} {user?.lastName || ''}
-              </Text>
-              <Text style={[s.email, { color: colors.text.tertiary }]} numberOfLines={1}>
-                {user?.email || 'No email'}
-              </Text>
-              <View style={[s.planBadge, { backgroundColor: isPremium ? '#6C3EF415' : '#F0F0F0' }]}>
-                <View style={[s.planDot, { backgroundColor: isPremium ? '#6C3EF4' : '#9CA3AF' }]} />
-                <Text style={[s.planLabel, { color: isPremium ? '#6C3EF4' : '#9CA3AF' }]}>
-                  {isPremium ? 'Premium' : 'Free'}
-                </Text>
+              <LinearGradient colors={['#F3D28F', '#D4A84B']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.upgradeGrad}>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.upgradeTitle}>Upgrade to Premium</Text>
+                  <Text style={s.upgradeSub}>Unlock reports, analytics & more</Text>
+                </View>
+                <View style={s.upgradeArrow}>
+                  <Ionicons name="arrow-forward" size={18} color="#FFF" />
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
+
+          {SECTIONS.map((section, i) => (
+            <View key={i} style={s.section}>
+              <Text style={[s.secTitle, { color: colors.text.tertiary }]}>{section.title}</Text>
+              <View style={[s.secCard, { backgroundColor: colors.bg.secondary }]}>
+                {section.items.map((item, j) => {
+                  const meta = ROW_META[item.label];
+                  return (
+                    <TouchableOpacity
+                      key={j}
+                      style={[s.row, j < section.items.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border.subtle }]}
+                      onPress={() => handleNav(item.screen, item.premium, item.action)}
+                      activeOpacity={0.6}
+                    >
+                      <LinearGradient colors={meta?.gradient || ['#6C3EF4', '#8B5CF6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.rowIcon}>
+                        <Ionicons name={(meta?.icon as any) || item.icon} size={16} color="#FFF" />
+                      </LinearGradient>
+                      <Text style={[s.rowLabel, { color: colors.text.primary }]}>{item.label}</Text>
+                      <View style={s.rowRight}>
+                        {item.premium && !isPremium && (
+                          <View style={s.premiumBadge}>
+                            <Ionicons name="lock-closed" size={9} color="#6C3EF4" />
+                            <Text style={s.premiumLabel}>Premium</Text>
+                          </View>
+                        )}
+                        <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             </View>
-            <View style={s.chevronWrap}>
-              <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
+          ))}
+
+          <TouchableOpacity
+            style={[s.logoutRow, { backgroundColor: colors.bg.secondary }]}
+            onPress={() => {
+              Alert.alert('Logout', 'Are you sure you want to logout?', [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Logout', style: 'destructive', onPress: () => logout().catch(() => {}) },
+              ]);
+            }}
+            activeOpacity={0.6}
+          >
+            <View style={s.logoutIcon}>
+              <Ionicons name="log-out-outline" size={20} color="#FF4D4F" />
             </View>
-          </View>
-        </TouchableOpacity>
+            <Text style={s.logoutText}>Sign Out</Text>
+            <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+          </TouchableOpacity>
 
-        {SECTIONS.map((section, i) => (
-          <View key={i} style={s.section}>
-            <Text style={[s.sectionTitle, { color: colors.text.tertiary }]}>
-              {section.title}
-            </Text>
-            <View style={[s.sectionCard, { backgroundColor: colors.bg.card }]}>
-              {section.items.map((item, j) => {
-                const meta = ROW_META[item.label];
-                return (
-                  <TouchableOpacity
-                    key={j}
-                    style={[
-                      s.row,
-                      j < section.items.length - 1 && s.rowBorder,
-                    ]}
-                    onPress={() => handleNav(item.screen, item.premium, item.action)}
-                    activeOpacity={0.6}
-                  >
-                    <LinearGradient
-                      colors={meta?.gradient || ['#6C3EF4', '#8B5CF6']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={s.rowIcon}
-                    >
-                      <Ionicons
-                        name={(meta?.icon as any) || item.icon}
-                        size={16}
-                        color="#FFF"
-                      />
-                    </LinearGradient>
-                    <Text style={[s.rowLabel, { color: colors.text.primary }]}>
-                      {item.label}
-                    </Text>
-                    <View style={s.rowRight}>
-                      {item.premium && !isPremium && (
-                        <View style={s.premiumBadge}>
-                          <Ionicons name="lock-closed" size={9} color="#6C3EF4" />
-                          <Text style={s.premiumLabel}>Premium</Text>
-                        </View>
-                      )}
-                      <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
-        ))}
-
-        <TouchableOpacity
-          style={[s.logoutRow, { backgroundColor: colors.bg.card }]}
-          onPress={() => {
-            Alert.alert('Logout', 'Are you sure you want to logout?', [
-              { text: 'Cancel', style: 'cancel' },
-              {
-                text: 'Logout',
-                style: 'destructive',
-                onPress: () => logout().catch(() => {}),
-              },
-            ]);
-          }}
-          activeOpacity={0.6}
-        >
-          <View style={s.logoutIcon}>
-            <Ionicons name="log-out-outline" size={18} color="#FF4D4F" />
-          </View>
-          <Text style={s.logoutText}>Sign Out</Text>
-          <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
-        </TouchableOpacity>
-
-        <Text style={[s.version, { color: colors.text.tertiary }]}>Dabbu v1.0.0</Text>
+          <Text style={[s.version, { color: colors.text.tertiary }]}>Dabbu v1.0.0</Text>
+        </Animated.View>
       </ScrollView>
     </View>
   );
@@ -270,163 +224,72 @@ export function SettingsScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-
   hero: {
     paddingHorizontal: 20,
-    paddingBottom: 48,
+    paddingBottom: 20,
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
     overflow: 'hidden',
   },
   heroBack: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
+    width: 40, height: 40, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center', justifyContent: 'center', marginBottom: 16,
   },
-  heroTitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: -0.5,
+  heroProfile: {
+    flexDirection: 'row', alignItems: 'center', gap: 14,
+    backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 20, padding: 14,
   },
-  heroSub: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.75)',
-    marginTop: 4,
+  heroAvatar: {
+    width: 52, height: 52, borderRadius: 18, alignItems: 'center', justifyContent: 'center',
   },
-  heroGlow: {
-    position: 'absolute',
-    top: -60,
-    right: -40,
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    backgroundColor: 'rgba(243,210,143,0.15)',
+  heroAvatarText: { color: '#FFF', fontSize: 22, fontWeight: '800' },
+  heroName: { color: '#FFF', fontSize: 18, fontWeight: '700' },
+  heroEmail: { color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: '500', marginTop: 1 },
+  heroPlanBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20,
   },
+  heroPlanText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.3 },
 
-  profileWrap: {
-    paddingHorizontal: 20,
-    marginTop: -24,
-    marginBottom: 28,
+  upgradeBanner: { marginHorizontal: 20, marginTop: 20, marginBottom: 24, borderRadius: 20, overflow: 'hidden' },
+  upgradeGrad: {
+    flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12,
   },
-  profileCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: 20,
-    shadowColor: '#6C3EF4',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    elevation: 6,
-  },
-  avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: { color: '#FFFFFF', fontSize: 20, fontWeight: '800' },
-  profileBody: { flex: 1, marginLeft: 14 },
-  name: { fontSize: 17, fontWeight: '700' },
-  email: { fontSize: 13, fontWeight: '500', marginTop: 2 },
-  planBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 20,
-    gap: 5,
-    marginTop: 6,
-  },
-  planDot: { width: 5, height: 5, borderRadius: 3 },
-  planLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 0.3 },
-  chevronWrap: { marginLeft: 8 },
+  upgradeTitle: { color: '#FFF', fontSize: 16, fontWeight: '800' },
+  upgradeSub: { color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '500', marginTop: 2 },
+  upgradeArrow: { width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
 
   section: { marginBottom: 20, paddingHorizontal: 20 },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    marginBottom: 10,
-    marginLeft: 4,
+  secTitle: {
+    fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase',
+    marginBottom: 10, marginLeft: 4,
   },
-  sectionCard: {
-    borderRadius: 20,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-
+  secCard: { borderRadius: 20, overflow: 'hidden' },
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 15,
-    paddingHorizontal: 16,
-  },
-  rowBorder: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#F0F0F0',
+    flexDirection: 'row', alignItems: 'center',
+    paddingVertical: 15, paddingHorizontal: 16,
   },
   rowIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 14,
+    width: 38, height: 38, borderRadius: 12,
+    alignItems: 'center', justifyContent: 'center', marginRight: 14,
   },
   rowLabel: { flex: 1, fontSize: 15, fontWeight: '600' },
   rowRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   premiumBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: 6,
-    backgroundColor: '#6C3EF410',
+    flexDirection: 'row', alignItems: 'center', gap: 3,
+    paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6, backgroundColor: '#6C3EF410',
   },
   premiumLabel: { fontSize: 10, fontWeight: '700', color: '#6C3EF4' },
 
   logoutRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: 20,
-    padding: 16,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+    flexDirection: 'row', alignItems: 'center',
+    marginHorizontal: 20, padding: 16, borderRadius: 20,
   },
   logoutIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: '#FF4D4F12',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 14,
+    width: 38, height: 38, borderRadius: 12,
+    backgroundColor: '#FF4D4F12', alignItems: 'center', justifyContent: 'center', marginRight: 14,
   },
-  logoutText: { flex: 1, fontSize: 15, fontWeight: '600', color: '#FF4D4F' },
+  logoutText: { flex: 1, fontSize: 15, fontWeight: '700', color: '#FF4D4F' },
 
-  version: {
-    textAlign: 'center',
-    fontSize: 12,
-    fontWeight: '500',
-    marginTop: 24,
-  },
+  version: { textAlign: 'center', fontSize: 12, fontWeight: '500', marginTop: 24 },
 });
