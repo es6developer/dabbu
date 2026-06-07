@@ -5,8 +5,10 @@ import {
   TextInput,
   StyleSheet,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   ActivityIndicator,
   ScrollView,
+  Keyboard,
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,8 +21,18 @@ import { useTheme } from '../../theme';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 
 const CATEGORIES = [
-  'Food', 'Travel', 'Shopping', 'Bills', 'Entertainment',
-  'Groceries', 'Transport', 'Healthcare', 'Education', 'Rent', 'Utilities', 'Other',
+  { name: 'Food', icon: 'fast-food-outline', color: '#FF6B6B' },
+  { name: 'Travel', icon: 'airplane-outline', color: '#60A5FA' },
+  { name: 'Shopping', icon: 'bag-outline', color: '#F472B6' },
+  { name: 'Bills', icon: 'receipt-outline', color: '#F59E0B' },
+  { name: 'Entertainment', icon: 'film-outline', color: '#8B5CF6' },
+  { name: 'Groceries', icon: 'cart-outline', color: '#34C759' },
+  { name: 'Transport', icon: 'car-outline', color: '#38BDF8' },
+  { name: 'Healthcare', icon: 'medkit-outline', color: '#FF4D4F' },
+  { name: 'Education', icon: 'school-outline', color: '#6366F1' },
+  { name: 'Rent', icon: 'home-outline', color: '#FB923C' },
+  { name: 'Utilities', icon: 'flash-outline', color: '#FBBF24' },
+  { name: 'Other', icon: 'ellipsis-horizontal-outline', color: '#9CA3AF' },
 ];
 
 const SPLIT_TYPES = [
@@ -147,87 +159,142 @@ export function SharedExpenseFormScreen() {
   }
 
   const maxPreviewValue = Math.max(...splitPreview.map(i => i.value), 0);
-  const fmtAmount = amount ? `₹${parseFloat(amount || '0').toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '₹0.00';
 
   return (
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
       <KeyboardAvoidingContainer>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
           <LinearGradient
-            colors={['#6C3EF4', '#8B5CF6']}
+            colors={['#1A1A3E', '#12121A']}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
             style={{ paddingTop: insets.top + 12, paddingBottom: 24, paddingHorizontal: 20 }}
           >
             <View style={styles.headerRow}>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                <Ionicons name="close" size={24} color="#FFF" />
+              <TouchableOpacity onPress={() => {
+                Keyboard.dismiss();
+                navigation.goBack();
+              }} style={styles.backBtn}>
+                <Ionicons name="close" size={22} color="#FFF" />
               </TouchableOpacity>
               <Text style={styles.headerTitle}>{edit ? 'Edit Expense' : 'Add Expense'}</Text>
               <View style={{ width: 32 }} />
             </View>
-            <Text style={styles.headerSub}>Split with {members.length} member{members.length !== 1 ? 's' : ''}</Text>
+            <View style={styles.headerBadge}>
+              <Ionicons name="people" size={14} color="rgba(255,255,255,0.7)" />
+              <Text style={styles.headerSub}>Split with {members.length} member{members.length !== 1 ? 's' : ''}</Text>
+            </View>
           </LinearGradient>
 
-          <View style={{ padding: 20, gap: 16 }}>
+          <View style={{ padding: 20, gap: 20 }}>
             {error ? (
-              <View style={[styles.errorBox, { backgroundColor: '#FF4D4F12' }]}>
-                <Ionicons name="alert-circle" size={16} color="#FF4D4F" />
-                <Text style={[styles.errorText, { color: '#FF4D4F' }]}>{error}</Text>
+              <View style={[styles.errorBox, { backgroundColor: `${colors.status.error}15` }]}>
+                <Ionicons name="alert-circle" size={16} color={colors.status.error} />
+                <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text>
               </View>
             ) : null}
 
-            <TouchableOpacity onPress={() => inputRef.current?.focus()} style={styles.amountSection}>
-              <Text style={styles.amountDisplay}>{fmtAmount}</Text>
-              <Text style={[styles.amountHint, { color: colors.text.tertiary }]}>Tap to edit amount</Text>
-              <TextInput ref={inputRef} style={styles.amountInput} value={amount} onChangeText={setAmount} keyboardType="decimal-pad" autoFocus />
-            </TouchableOpacity>
+            {/* Amount Card */}
+            <View style={[styles.glassCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
+              <TouchableWithoutFeedback onPress={() => inputRef.current?.focus()}>
+                <View style={styles.amountSection}>
+                  <View style={styles.amountRow}>
+                    <Text style={[styles.amountCurrency, { color: colors.text.primary }]}>₹</Text>
+                    <TextInput
+                      ref={inputRef}
+                      style={[styles.amountInput, { color: colors.text.primary }]}
+                      value={amount}
+                      onChangeText={(text) => {
+                        const cleaned = text.replace(/[^0-9.]/g, '');
+                        const dotCount = cleaned.split('.').length - 1;
+                        if (dotCount > 1) return;
+                        setAmount(cleaned);
+                        setError('');
+                      }}
+                      keyboardType="decimal-pad"
+                      placeholder="0"
+                      placeholderTextColor={colors.text.tertiary}
+                      returnKeyType="done"
+                      onSubmitEditing={() => Keyboard.dismiss()}
+                    />
+                  </View>
+                  <View style={[styles.amountUnderline, { backgroundColor: colors.border.subtle }]}>
+                    <View style={[styles.amountUnderlineActive, { width: amount ? `${Math.min(Number(amount) / 100 * 100, 100)}%` : '0%', backgroundColor: '#6C3EF4' }]} />
+                  </View>
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
 
-            <View>
-              <Text style={[styles.label, { color: colors.text.secondary }]}>Description</Text>
+            {/* Description Card */}
+            <View style={[styles.glassCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
+              <Text style={[styles.cardLabel, { color: colors.text.tertiary }]}>Description</Text>
               <TextInput
-                style={[styles.input, { backgroundColor: colors.bg.card, color: colors.text.primary, borderColor: colors.border.subtle }]}
+                style={[styles.input, { color: colors.text.primary }]}
                 value={description} onChangeText={setDescription} placeholder="What was this for?" placeholderTextColor={colors.text.tertiary}
               />
             </View>
 
-            <View>
-              <Text style={[styles.label, { color: colors.text.secondary }]}>Paid By</Text>
+            {/* Paid By Card */}
+            <View style={[styles.glassCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
+              <Text style={[styles.cardLabel, { color: colors.text.tertiary }]}>Paid By</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
                 {members.map((m: any) => {
                   const selected = paidBy === m.userId;
+                  const initial = (m.user?.firstName?.[0] || '?').toUpperCase();
+                  const name = m.user?.firstName || m.user?.email || 'Member';
                   return (
                     <TouchableOpacity
                       key={m.userId}
                       style={[styles.payerChip, { borderColor: selected ? '#6C3EF4' : colors.border.subtle, backgroundColor: selected ? '#6C3EF415' : colors.bg.card }]}
                       onPress={() => setPaidBy(m.userId)}
                     >
-                      <LinearGradient colors={['#6C3EF4', '#8B5CF6']} style={styles.payerDot}>
-                        <Text style={styles.payerInit}>{(m.user?.firstName?.[0] || '?').toUpperCase()}</Text>
+                      <LinearGradient colors={selected ? ['#6C3EF4', '#8B5CF6'] : ['#4A4A6A', '#3A3A5A']} style={styles.payerDot}>
+                        <Text style={styles.payerInit}>{initial}</Text>
                       </LinearGradient>
-                      <Text style={[styles.payerName, { color: selected ? '#6C3EF4' : colors.text.secondary }]}>{m.user?.firstName || m.user?.email || 'Member'}</Text>
+                      <Text style={[styles.payerName, { color: selected ? '#6C3EF4' : colors.text.secondary }]}>{name}</Text>
+                      {selected && <Ionicons name="checkmark-circle" size={14} color="#6C3EF4" />}
                     </TouchableOpacity>
                   );
                 })}
               </ScrollView>
             </View>
 
+            {/* Category Grid */}
             <View>
-              <Text style={[styles.label, { color: colors.text.secondary }]}>Category</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
-                {CATEGORIES.map((cat) => (
-                  <TouchableOpacity
-                    key={cat}
-                    style={[styles.catChip, { borderColor: category === cat ? '#6C3EF4' : colors.border.subtle, backgroundColor: category === cat ? '#6C3EF415' : colors.bg.card }]}
-                    onPress={() => setCategory(cat)}
-                  >
-                    <Text style={[styles.catChipText, { color: category === cat ? '#6C3EF4' : colors.text.secondary }]}>{cat}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+              <Text style={[styles.sectionLabel, { color: colors.text.primary }]}>Category</Text>
+              <View style={styles.categoryGrid}>
+                {CATEGORIES.map((cat, i) => {
+                  const selected = category === cat.name;
+                  return (
+                    <TouchableOpacity
+                      key={i}
+                      activeOpacity={0.7}
+                      style={[
+                        styles.categoryCard,
+                        {
+                          backgroundColor: selected ? `${cat.color}15` : colors.bg.card,
+                          borderColor: selected ? cat.color : colors.border.subtle,
+                        },
+                      ]}
+                      onPress={() => setCategory(selected ? '' : cat.name)}
+                    >
+                      <View style={[styles.catIcon, { backgroundColor: selected ? cat.color : `${cat.color}12` }]}>
+                        <Ionicons name={cat.icon as any} size={20} color={selected ? '#FFF' : cat.color} />
+                      </View>
+                      <Text
+                        style={[styles.catName, { color: selected ? colors.text.primary : colors.text.secondary }]}
+                        numberOfLines={1}
+                      >
+                        {cat.name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             </View>
 
+            {/* Split Method */}
             <View>
-              <Text style={[styles.label, { color: colors.text.secondary }]}>Split Method</Text>
+              <Text style={[styles.sectionLabel, { color: colors.text.primary }]}>Split Method</Text>
               <View style={styles.splitTypeRow}>
                 {SPLIT_TYPES.map((st) => {
                   const active = splitType === st.key;
@@ -245,16 +312,17 @@ export function SharedExpenseFormScreen() {
               </View>
             </View>
 
+            {/* Member Split Inputs */}
             {(splitType === 'percentage' || splitType === 'exact' || splitType === 'shares') && (
-              <View>
-                <Text style={[styles.label, { color: colors.text.secondary }]}>
-                  {splitType === 'percentage' ? 'Percentages per member' : splitType === 'exact' ? 'Exact amounts per member' : 'Shares per member'}
+              <View style={[styles.glassCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
+                <Text style={[styles.cardLabel, { color: colors.text.tertiary }]}>
+                  {splitType === 'percentage' ? 'Percentages' : splitType === 'exact' ? 'Exact Amounts' : 'Shares'}
                 </Text>
                 {members.map((m: any) => {
                   const mName = m.user?.firstName || m.user?.email || 'Member';
                   const val = splitType === 'shares' ? sharesCount[m.id] || '' : splitValues[m.id] || '';
                   return (
-                    <View key={m.id} style={[styles.splitMemberRow, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
+                    <View key={m.id} style={[styles.splitMemberRow, { borderBottomColor: colors.border.subtle }]}>
                       <LinearGradient colors={['#6C3EF4', '#8B5CF6']} style={styles.splitMemberDot}>
                         <Text style={styles.splitMemberInit}>{(mName[0] || '?').toUpperCase()}</Text>
                       </LinearGradient>
@@ -276,41 +344,49 @@ export function SharedExpenseFormScreen() {
               </View>
             )}
 
-            <View>
-              <Text style={[styles.label, { color: colors.text.secondary }]}>Split Preview</Text>
-              <View style={[styles.previewCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
-                {splitPreview.length > 0 && maxPreviewValue > 0 ? (
-                  splitPreview.map((item, i) => {
-                    const barWidth = (item.value / maxPreviewValue) * 100;
-                    return (
-                      <View key={i} style={styles.previewItem}>
-                        <View style={styles.previewInfo}>
-                          <Text style={[styles.previewName, { color: colors.text.primary }]}>{item.name}</Text>
-                          <Text style={[styles.previewAmount, { color: colors.text.primary }]}>
-                            {'detail' in item && item.detail ? `${item.detail} · ₹${Math.round(item.value)}` : `₹${Math.round(item.value)}`}
-                          </Text>
-                        </View>
-                        <View style={[styles.previewBarBg, { backgroundColor: colors.bg.tertiary }]}>
-                          <View style={[styles.previewBarFill, { width: `${barWidth}%`, backgroundColor: '#6C3EF4' }]} />
-                        </View>
+            {/* Split Preview */}
+            <View style={[styles.glassCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
+              <Text style={[styles.cardLabel, { color: colors.text.tertiary }]}>Split Preview</Text>
+              {splitPreview.length > 0 && maxPreviewValue > 0 ? (
+                splitPreview.map((item, i) => {
+                  const barWidth = (item.value / maxPreviewValue) * 100;
+                  return (
+                    <View key={i} style={styles.previewItem}>
+                      <View style={styles.previewInfo}>
+                        <Text style={[styles.previewName, { color: colors.text.primary }]}>{item.name}</Text>
+                      <Text style={[styles.previewAmount, { color: colors.text.primary }]}>
+                          {'detail' in item && item.detail ? `${item.detail} · ₹${Math.round(item.value)}` : `₹${Math.round(item.value)}`}
+                        </Text>
                       </View>
-                    );
-                  })
-                ) : (
-                  <Text style={[styles.previewEmpty, { color: colors.text.tertiary }]}>Enter amount and split details to see preview</Text>
-                )}
-              </View>
+                      <View style={[styles.previewBarBg, { backgroundColor: colors.bg.tertiary }]}>
+                        <View style={[styles.previewBarFill, { width: `${barWidth}%` }]} />
+                      </View>
+                    </View>
+                  );
+                })
+              ) : (
+                <View style={styles.previewEmptyWrap}>
+                  <Ionicons name="calculator-outline" size={24} color={colors.text.tertiary} />
+                  <Text style={[styles.previewEmpty, { color: colors.text.tertiary }]}>Enter amount to see split preview</Text>
+                </View>
+              )}
             </View>
 
-            <View>
-              <Text style={[styles.label, { color: colors.text.secondary }]}>Notes (optional)</Text>
+            {/* Notes */}
+            <View style={[styles.glassCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
+              <Text style={[styles.cardLabel, { color: colors.text.tertiary }]}>Notes (optional)</Text>
               <TextInput
-                style={[styles.input, styles.notesInput, { backgroundColor: colors.bg.card, color: colors.text.primary, borderColor: colors.border.subtle }]}
+                style={[styles.notesInput, { color: colors.text.primary }]}
                 value={notes} onChangeText={setNotes} placeholder="Any additional notes..." placeholderTextColor={colors.text.tertiary} multiline
               />
             </View>
 
-            <LinearGradient colors={['#6C3EF4', '#8B5CF6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.saveBtn, saving && { opacity: 0.6 }]}>
+            {/* Save Button */}
+            <LinearGradient
+              colors={['#6C3EF4', '#8B5CF6']}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              style={[styles.saveBtn, saving && { opacity: 0.6 }]}
+            >
               <TouchableOpacity onPress={handleSave} disabled={saving} activeOpacity={0.85} style={styles.saveBtnInner}>
                 {saving ? <ActivityIndicator color="#FFF" /> : (
                   <>
@@ -329,44 +405,64 @@ export function SharedExpenseFormScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
-  backBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  backBtn: { width: 34, height: 34, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' },
   headerTitle: { color: '#FFF', fontSize: 18, fontWeight: '700' },
-  headerSub: { color: 'rgba(255,255,255,0.6)', fontSize: 13, marginTop: 4 },
+  headerBadge: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  headerSub: { color: 'rgba(255,255,255,0.6)', fontSize: 13 },
   errorBox: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 14, gap: 8 },
   errorText: { fontSize: 13, flex: 1 },
-  amountSection: { alignItems: 'center', paddingVertical: 16, gap: 4 },
-  amountDisplay: { fontSize: 40, fontWeight: '800', color: '#6C3EF4', letterSpacing: -2 },
-  amountHint: { fontSize: 12, fontWeight: '500' },
-  amountInput: { position: 'absolute', width: 1, height: 1, opacity: 0 },
-  label: { fontSize: 13, fontWeight: '600', marginBottom: 8 },
-  input: { fontSize: 15, paddingHorizontal: 16, paddingVertical: 14, borderRadius: 14, borderWidth: 1 },
-  notesInput: { minHeight: 80, textAlignVertical: 'top' },
+
+  glassCard: { borderRadius: 16, padding: 16, borderWidth: 1, marginBottom: 0 },
+
+  amountSection: { alignItems: 'center', paddingVertical: 8, gap: 4 },
+  amountRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
+  amountCurrency: { fontSize: 36, fontWeight: '800' },
+  amountInput: { fontSize: 40, fontWeight: '800', letterSpacing: -1, textAlign: 'center', minWidth: 120, paddingVertical: 0 },
+  amountUnderline: { height: 3, borderRadius: 2, width: '60%', marginTop: 4 },
+  amountUnderlineActive: { height: 3, borderRadius: 2 },
+
+  cardLabel: { fontSize: 12, fontWeight: '600', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
+  input: { fontSize: 16, paddingVertical: 4, paddingHorizontal: 0 },
+
+  sectionLabel: { fontSize: 15, fontWeight: '700', marginBottom: 12 },
+  categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  categoryCard: {
+    width: '23%', alignItems: 'center', gap: 6, borderRadius: 16, borderWidth: 1,
+    paddingVertical: 14, paddingHorizontal: 4,
+  },
+  catIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  catName: { fontSize: 10, fontWeight: '600', textAlign: 'center' },
+
   chipRow: { gap: 8, paddingBottom: 4 },
-  payerChip: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, borderWidth: 1, marginRight: 8 },
+  payerChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, borderWidth: 1, marginRight: 8 },
   payerDot: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
   payerInit: { color: '#FFF', fontSize: 11, fontWeight: '700' },
   payerName: { fontSize: 13, fontWeight: '600' },
-  catChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 16, borderWidth: 1, marginRight: 8 },
-  catChipText: { fontSize: 13, fontWeight: '600' },
+
   splitTypeRow: { flexDirection: 'row', gap: 8 },
   splitTypeCard: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 14, borderWidth: 1 },
-  splitTypeText: { fontSize: 13, fontWeight: '600' },
-  splitMemberRow: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, borderRadius: 14, borderWidth: 1, marginBottom: 8 },
+  splitTypeText: { fontSize: 12, fontWeight: '600' },
+
+  splitMemberRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth },
   splitMemberDot: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   splitMemberInit: { color: '#FFF', fontSize: 11, fontWeight: '700' },
   splitMemberName: { fontSize: 14, fontWeight: '500', flex: 1 },
   splitInputWrap: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, borderWidth: 1, paddingHorizontal: 12, width: 100 },
   splitPrefix: { fontSize: 13, fontWeight: '600', marginRight: 2 },
   splitInput: { flex: 1, fontSize: 13, paddingVertical: 8, textAlign: 'right' },
-  previewCard: { borderRadius: 16, padding: 16, borderWidth: 1 },
+
   previewItem: { marginBottom: 12 },
   previewInfo: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
   previewName: { fontSize: 14, fontWeight: '500' },
   previewAmount: { fontSize: 14, fontWeight: '700' },
   previewBarBg: { height: 6, borderRadius: 3, overflow: 'hidden' },
-  previewBarFill: { height: 6, borderRadius: 3 },
-  previewEmpty: { fontSize: 13, textAlign: 'center', paddingVertical: 8 },
+  previewBarFill: { height: 6, borderRadius: 3, backgroundColor: '#6C3EF4' },
+  previewEmptyWrap: { alignItems: 'center', gap: 8, paddingVertical: 12 },
+  previewEmpty: { fontSize: 13, textAlign: 'center' },
+
+  notesInput: { fontSize: 15, paddingVertical: 4, paddingHorizontal: 0, minHeight: 60, textAlignVertical: 'top' },
+
   saveBtn: { borderRadius: 16, overflow: 'hidden', marginTop: 4 },
   saveBtnInner: { flexDirection: 'row', paddingVertical: 16, alignItems: 'center', justifyContent: 'center', gap: 8 },
   saveBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
