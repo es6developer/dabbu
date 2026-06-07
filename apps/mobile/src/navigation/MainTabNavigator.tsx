@@ -36,7 +36,7 @@ import { CustomiseDashboardScreen } from '../screens/settings/CustomiseDashboard
 import { CustomiseBottomMenuScreen } from '../screens/settings/CustomiseBottomMenuScreen';
 import { NotificationSettingsScreen } from '../screens/settings/NotificationSettingsScreen';
 import { ReportsScreen } from '../screens/reports/ReportsScreen';
-import { CoupleSpaceScreen } from '../screens/couple/CoupleSpaceScreen';
+import { CoupleSpaceNavigator } from './CoupleSpaceNavigator';
 import { CirclesNavigator } from './CirclesNavigator';
 import { CategorySelectionScreen } from '../screens/expense/CategorySelectionScreen';
 import { AddExpenseScreen } from '../screens/expense/AddExpenseScreen';
@@ -194,7 +194,7 @@ function SettingsNavigator() {
       />
       <SettingsStack.Screen
         name="CoupleSpace"
-        component={CoupleSpaceScreen}
+        component={CoupleSpaceNavigator}
         options={{ headerShown: false }}
       />
       <SettingsStack.Screen
@@ -459,8 +459,17 @@ function GlossyTabBar({ state, descriptors, navigation, colors, isDark, onCenter
                 target: route.key,
                 canPreventDefault: true,
               });
-              if (!isFocused && !event.defaultPrevented) {
-                navigation.navigate(route.name);
+              if (event.defaultPrevented) return;
+              const homeScreens: Record<string, string> = {
+                Dashboard: 'DashboardMain',
+                Expense: 'ExpenseHome',
+                Spaces: 'SharedFinanceHome',
+                Settings: 'SettingsMain',
+              };
+              if (isFocused) {
+                navigation.navigate(route.name, { screen: homeScreens[route.name] || route.name });
+              } else {
+                navigation.navigate(route.name, { screen: homeScreens[route.name] || route.name });
               }
             };
 
