@@ -4,12 +4,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../theme';
 import { SplashScreen } from '../screens/auth/SplashScreen';
-import { OnboardingScreen } from '../screens/auth/OnboardingScreen';
+import { OnboardingScreen } from '../screens/onboarding/OnboardingScreen';
 import { LoginScreen } from '../screens/auth/LoginScreen';
 import { SignupScreen } from '../screens/auth/SignupScreen';
 import { ForgotPasswordScreen } from '../screens/auth/ForgotPasswordScreen';
 import { OtpVerificationScreen } from '../screens/auth/OtpVerificationScreen';
 import { BiometricSetupScreen } from '../screens/auth/BiometricSetupScreen';
+import { PrivacyPolicyScreen } from '../screens/settings/PrivacyPolicyScreen';
 
 export type AuthStackParamList = {
   Splash: undefined;
@@ -19,6 +20,7 @@ export type AuthStackParamList = {
   ForgotPassword: undefined;
   OtpVerification: { email: string; purpose: 'email_verification' | 'password_reset' | 'login' };
   BiometricSetup: undefined;
+  Privacy: undefined;
 };
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
@@ -53,6 +55,7 @@ export function AuthNavigator(): React.ReactElement {
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="OtpVerification" component={OtpVerificationScreen} />
       <Stack.Screen name="BiometricSetup" component={BiometricSetupScreen} />
+      <Stack.Screen name="Privacy" component={PrivacyPolicyScreen} />
     </Stack.Navigator>
   );
 }

@@ -17,7 +17,7 @@ import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 
 const CATEGORY_COLORS: Record<string, string[]> = {
-  Food: ['#FF6B35', '#F7931E'],
+  Food: ['#6C3EF4', '#8B5CF6'],
   Travel: ['#4A90D9', '#357ABD'],
   Shopping: ['#E056A0', '#C94D8B'],
   Medical: ['#00B894', '#00A381'],
@@ -105,7 +105,7 @@ export function TransactionDetailScreen() {
   const sign = isCredit ? '+' : '-';
   const fmt = (val: number) => '₹' + val.toLocaleString('en-IN');
   const cat = txn.category?.name || txn.category || 'Other';
-  const catColors = CATEGORY_COLORS[cat] || ['#F7892C', '#F9A44A'];
+  const catColors = CATEGORY_COLORS[cat] || ['#6C3EF4', '#8B5CF6'];
 
   return (
     <View style={[s.container, { backgroundColor: colors.bg.primary }]}>

@@ -42,7 +42,7 @@ const GROUP_COLORS: Record<string, string[]> = {
   briefcase: ['#00B894', '#55EFC4'],
   cart: ['#E17055', '#FAB1A0'],
   airplane: ['#4A90D9', '#74B9FF'],
-  restaurant: ['#F7892C', '#F9A44A'],
+  restaurant: ['#6C3EF4', '#8B5CF6'],
   car: ['#636E72', '#B2BEC3'],
   fitness: ['#00CEC9', '#81ECEC'],
 };
@@ -71,7 +71,7 @@ function timeAgo(d: string) {
 }
 
 function getGroupColors(icon: string) {
-  return GROUP_COLORS[icon] || ['#F7892C', '#F9A44A'];
+  return GROUP_COLORS[icon] || ['#6C3EF4', '#8B5CF6'];
 }
 
 export function SharedCirclesScreen() {
@@ -487,8 +487,8 @@ export function SharedCirclesScreen() {
         }}
         ListEmptyComponent={
           <View style={s.empty}>
-            <LinearGradient colors={['#F7892C20', '#FF6B6B18']} style={s.emptyIcon}>
-              <Ionicons name="people" size={44} color="#F7892C" />
+            <LinearGradient colors={['#6C3EF420', '#8B5CF618']} style={s.emptyIcon}>
+              <Ionicons name="people" size={44} color="#6C3EF4" />
             </LinearGradient>
             <Text style={[s.emptyTitle, { color: colors.text.primary }]}>
               {search ? 'No circles found' : 'No circles yet'}
@@ -560,7 +560,7 @@ const s = StyleSheet.create({
   searchInput: { flex: 1, fontSize: 14, marginLeft: 10 },
   filterRow: { flexDirection: 'row', paddingHorizontal: 20, gap: 8, marginBottom: 16 },
   filterChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 22, borderWidth: 1 },
-  filterChipActive: { backgroundColor: '#F7892C', borderColor: '#F7892C' },
+  filterChipActive: { backgroundColor: '#6C3EF4', borderColor: '#6C3EF4' },
   filterText: { fontSize: 12, fontWeight: '600' },
   cardOuter: { marginHorizontal: 16, marginBottom: 12 },
   card: { borderRadius: 24, padding: 20, gap: 14 },

@@ -300,8 +300,8 @@ export function CreateTransactionScreen() {
     );
   }
 
-  const accent = type === 'income' ? ['#00B894', '#00A381'] : ['#FF6B35', '#F7931E'];
-  const accentColor = type === 'income' ? colors.status.success : '#FF6B35';
+  const accent = type === 'income' ? ['#00B894', '#00A381'] : ['#6C3EF4', '#8B5CF6'];
+  const accentColor = type === 'income' ? colors.status.success : '#6C3EF4';
 
   return (
     <KeyboardAvoidingView
@@ -678,7 +678,7 @@ const s = StyleSheet.create({
     height: 38,
     borderRadius: 12,
   },
-  heroSwitchActive: { backgroundColor: '#FF6B35' },
+  heroSwitchActive: { backgroundColor: '#6C3EF4' },
   heroSwitchActiveIncome: { backgroundColor: '#00B894' },
   heroSwitchLabel: { fontSize: 13, fontWeight: '700', color: 'rgba(255,255,255,0.5)' },
 

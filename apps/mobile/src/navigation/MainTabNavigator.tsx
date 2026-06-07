@@ -35,6 +35,11 @@ import { AnalyticsScreen } from '../screens/analytics/AnalyticsScreen';
 import { CustomiseDashboardScreen } from '../screens/settings/CustomiseDashboardScreen';
 import { CustomiseBottomMenuScreen } from '../screens/settings/CustomiseBottomMenuScreen';
 import { NotificationSettingsScreen } from '../screens/settings/NotificationSettingsScreen';
+import { ReportsScreen } from '../screens/reports/ReportsScreen';
+import { CoupleSpaceScreen } from '../screens/couple/CoupleSpaceScreen';
+import { CirclesNavigator } from './CirclesNavigator';
+import { CategorySelectionScreen } from '../screens/expense/CategorySelectionScreen';
+import { AddExpenseScreen } from '../screens/expense/AddExpenseScreen';
 import { useTheme } from '../theme';
 import { useAuth } from '../store/AuthContext';
 import { api } from '../services/api';
@@ -180,7 +185,17 @@ function SettingsNavigator() {
       <SettingsStack.Screen
         name="Analytics"
         component={AnalyticsScreen}
-        options={{ title: 'Reports' }}
+        options={{ title: 'Analytics' }}
+      />
+      <SettingsStack.Screen
+        name="Reports"
+        component={ReportsScreen}
+        options={{ headerShown: false }}
+      />
+      <SettingsStack.Screen
+        name="CoupleSpace"
+        component={CoupleSpaceScreen}
+        options={{ headerShown: false }}
       />
       <SettingsStack.Screen
         name="CustomiseDashboard"
@@ -292,43 +307,43 @@ export function MainTabNavigator() {
     {
       label: 'Add Expense',
       icon: 'add-circle-outline' as const,
-      color: '#00A86B',
-      onPress: () => navigation.navigate('Expense', { screen: 'CreateTransaction' }),
+      color: '#6C3EF4',
+      onPress: () => navigation.navigate('Expense', { screen: 'CategorySelection' }),
     },
     {
-      label: 'Scan Bill',
-      icon: 'scan-outline' as const,
-      color: '#E85D04',
-      onPress: () => navigation.navigate('Expense', { screen: 'BillScanner' }),
-    },
-    {
-      label: 'New Group',
+      label: 'Create Circle',
       icon: 'people-outline' as const,
-      color: '#5B5FE8',
-      onPress: () => navigation.navigate('Spaces', { screen: 'CreateSharedGroup' }),
+      color: '#8B5CF6',
+      onPress: () => navigation.navigate('Circles', { screen: 'CreateCircle' }),
     },
     {
-      label: 'Transfer',
+      label: 'Split Payment',
       icon: 'swap-horizontal-outline' as const,
-      color: '#8A5CF6',
-      onPress: () => navigation.navigate('Spaces', { screen: 'WalletTransfer' }),
+      color: '#34C759',
+      onPress: () => navigation.navigate('Circles', { screen: 'SplitExpense' }),
     },
     {
-      label: 'Document',
-      icon: 'folder-open-outline' as const,
-      color: '#F7892C',
-      onPress: () => navigation.navigate('DocumentVault'),
+      label: 'Reports',
+      icon: 'stats-chart-outline' as const,
+      color: '#F3D28F',
+      onPress: () => navigation.navigate('Settings', { screen: 'Reports' }),
     },
     {
-      label: 'Reminder',
-      icon: 'alarm-outline' as const,
-      color: '#0B84A5',
-      onPress: () => navigation.navigate('Reminders', { screen: 'CreateReminder' }),
+      label: 'Couple Space',
+      icon: 'heart-outline' as const,
+      color: '#FF6B9D',
+      onPress: () => navigation.navigate('Settings', { screen: 'CoupleSpace' }),
+    },
+    {
+      label: 'Settle Up',
+      icon: 'cash-outline' as const,
+      color: '#34C759',
+      onPress: () => navigation.navigate('Circles', { screen: 'Settlement' }),
     },
     {
       label: 'Add Goal',
       icon: 'trophy-outline' as const,
-      color: '#FDCB6E',
+      color: '#F59E0B',
       onPress: () => navigation.navigate('Dashboard', { screen: 'GoalsList' }),
     },
   ];
@@ -360,7 +375,7 @@ export function MainTabNavigator() {
           name="Expense"
           component={AccountsNavigator}
           options={{
-            tabBarLabel: 'Expense',
+            tabBarLabel: 'Expenses',
             tabBarIcon: ({ focused, color, size }) => (
               <Ionicons name={focused ? 'wallet' : 'wallet-outline'} size={22} color={color} />
             ),
@@ -380,7 +395,7 @@ export function MainTabNavigator() {
           options={{
             tabBarLabel: 'Spaces',
             tabBarIcon: ({ focused, color, size }) => (
-              <Ionicons name={focused ? 'people' : 'people-outline'} size={22} color={color} />
+              <Ionicons name={focused ? 'grid' : 'grid-outline'} size={22} color={color} />
             ),
           }}
         />
@@ -542,7 +557,7 @@ const tabStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 4,
-    shadowColor: '#F7892C',
+    shadowColor: '#6C3EF4',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.35,
     shadowRadius: 6,

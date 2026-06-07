@@ -54,7 +54,7 @@ export function PremiumFormScreen({
           colors={
             isDark
               ? ['#11111A', colors.bg.primary, '#0A0A0F']
-              : ['#FFF8F1', colors.bg.primary, '#F8F9FA']
+              : ['#F5F0FF', colors.bg.primary, '#FAF8FF']
           }
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}

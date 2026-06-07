@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'Dabbu Admin',
   description: 'Dabbu Personal Finance Manager - Admin Panel',
-  icons: { icon: '/favicon.ico' },
+  icons: { icon: '/favicon.png' },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

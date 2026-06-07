@@ -8,7 +8,6 @@ import {
   RefreshControl,
   Animated,
   Dimensions,
-  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -18,88 +17,43 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
-import { useAnalytics } from '../../hooks/useAnalytics';
-import { QuickActionSheet } from '../../components/ui/QuickActionSheet';
-import { LoadingScreen, DashboardSkeleton } from '../../components/ui/LoadingScreen';
+import { BalanceCard } from '../../components/ui/BalanceCard';
+import { QuickActions } from '../../components/ui/QuickActions';
+import { TransactionCard } from '../../components/ui/TransactionCard';
+import { LoadingScreen } from '../../components/ui/LoadingScreen';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
-type IconName = keyof typeof Ionicons.glyphMap;
-
 interface DashboardData {
-  accountStats: any | null;
-  transactionStats: any | null;
+  totalBalance: number;
+  monthlySpending: number;
+  monthlyBudget: number;
   recentTransactions: any[];
   categories: any[];
-  expenseGroups: any[];
+  sharedGroups: any[];
   reminders: any[];
   goals: any[];
-  sharedGroups: any[];
-  financialHealth: any | null;
-  smartInsights: any[];
-  subscriptionIntel: any | null;
-  gamification: any | null;
 }
 
 const emptyData: DashboardData = {
-  accountStats: null,
-  transactionStats: null,
+  totalBalance: 0,
+  monthlySpending: 0,
+  monthlyBudget: 0,
   recentTransactions: [],
   categories: [],
-  expenseGroups: [],
+  sharedGroups: [],
   reminders: [],
   goals: [],
-  sharedGroups: [],
-  financialHealth: null,
-  smartInsights: [],
-  subscriptionIntel: null,
-  gamification: null,
 };
 
-function valueFromResult<T>(result: PromiseSettledResult<any>, fallback: T): T {
-  return result.status === 'fulfilled' ? (result.value?.data ?? result.value) : fallback;
+function fmt(v: number) {
+  const n = v || 0;
+  return `₹${n.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 }
 
-function listFromResponse(res: any): any[] {
-  if (!res) {
-    return [];
-  }
-  if (Array.isArray(res)) {
-    return res;
-  }
-  if (res.items) {
-    return Array.isArray(res.items) ? res.items : [];
-  }
-  return [];
-}
-
-function moneyFormat(v: number | string | undefined | null): string {
-  const n = typeof v === 'string' ? parseFloat(v) : Number(v ?? 0);
-  return n < 0
-    ? `-₹${Math.abs(n).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
-    : `₹${n.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
-}
-
-function fmtDate(d: string | null | undefined): string {
-  if (!d) {
-    return '';
-  }
+function fdate(d: string | null | undefined): string {
+  if (!d) return '';
   return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-}
-
-function pct(v: number): string {
-  return `${Math.round(v)}%`;
-}
-
-function daysUntil(d: string): number {
-  return Math.ceil((new Date(d).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-}
-
-interface QuickActionItem {
-  label: string;
-  icon: IconName;
-  color: string;
-  onPress: () => void;
 }
 
 export function HomeScreen() {
@@ -107,1199 +61,207 @@ export function HomeScreen() {
   const navigation = useNavigation<any>();
   const { colors, isDark } = useTheme();
   const { user, accessToken } = useAuth();
-  const { trackScreen, trackFeature } = useAnalytics();
 
   const [data, setData] = useState<DashboardData>(emptyData);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [showActions, setShowActions] = useState(false);
-  const [isPremium, setIsPremium] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
-
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const abortRef = useRef<AbortController | null>(null);
 
-  const loadPreferences = useCallback(async () => {
-    try {
-      const res = await api.get<any>('/user/preferences');
-    } catch {
-      /* ignore */
-    }
-  }, []);
+  const loadData = useCallback(async (isRefresh = false) => {
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    if (accessToken) setAccessToken(accessToken);
 
-  const loadData = useCallback(
-    async (isRefresh = false) => {
-      abortRef.current?.abort();
-      const controller = new AbortController();
-      abortRef.current = controller;
-      const signal = controller.signal;
-
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
-
-      // Hydrate from cache instantly on non-refresh loads
-      if (!isRefresh) {
-        try {
-          const cacheKey = `dashboard_cache_${user?.id || 'anon'}`;
-          const cached = await AsyncStorage.getItem(cacheKey);
-          if (cached) {
-            const parsed = JSON.parse(cached);
-            setData(parsed);
-            fadeAnim.setValue(1);
-            setLoading(false);
-          }
-        } catch {
-          /* ignore cache read error */
-        }
-      }
-
+    if (!isRefresh) {
       try {
-        const results = await Promise.allSettled([
-          api.get<any>('/accounts/stats', signal),
-          api.get<any>('/transactions/stats?months=1', signal),
-          api.get<any>('/transactions/recent?limit=5', signal),
-          api.get<any>('/transactions/categories-summary?months=1', signal),
-          api.get<any>('/expense-groups', signal),
-          api.get<any>('/reminders', signal),
-          api.get<any>('/goals', signal),
-          api.get<any>('/shared-finance/groups', signal),
-          api.get<any>('/accounts/financial-health', signal),
-          api.get<any>('/accounts/smart-insights', signal),
-          api.get<any>('/accounts/ai-insights', signal),
-          api.get<any>('/accounts/subscriptions', signal),
-          api.get<any>('/gamification', signal),
-          api.get<any>('/premium/check', signal),
-          api.get<any>('/notifications', signal),
-        ]);
-
-        if (signal.aborted) {
-          return;
-        }
-
-        const ruleInsights = listFromResponse(valueFromResult(results[8], []));
-        const aiInsights = listFromResponse(valueFromResult(results[9], []));
-
-        const freshData = {
-          accountStats: valueFromResult(results[0], null),
-          transactionStats: valueFromResult(results[1], null),
-          recentTransactions: listFromResponse(valueFromResult(results[2], [])),
-          categories: listFromResponse(valueFromResult(results[3], [])),
-          expenseGroups: listFromResponse(valueFromResult(results[4], [])),
-          reminders: listFromResponse(valueFromResult(results[5], [])),
-          goals: listFromResponse(valueFromResult(results[6], [])),
-          sharedGroups: listFromResponse(valueFromResult(results[7], [])),
-          financialHealth: valueFromResult(results[8], null),
-          smartInsights: [
-            ...ruleInsights.map((i: any) => ({ ...i, source: 'rule' })),
-            ...aiInsights,
-          ].sort((a: any, b: any) => {
-            const order: Record<string, number> = { critical: 0, warning: 1, info: 2, success: 3 };
-            return (order[a.severity] ?? 2) - (order[b.severity] ?? 2);
-          }),
-          subscriptionIntel: valueFromResult(results[11], null),
-          gamification: valueFromResult(results[12], null),
-        };
-
-        const premiumRes = valueFromResult<any>(results[12], null);
-        setIsPremium(premiumRes?.isPremium ?? false);
-
-        const notifRes = listFromResponse(valueFromResult(results[13], []));
-        setUnreadNotifications(notifRes.filter((n: any) => !n.read).length);
-
-        setData(freshData);
-
-        const cacheKey = `dashboard_cache_${user?.id || 'anon'}`;
-        AsyncStorage.setItem(cacheKey, JSON.stringify(freshData)).catch(() => {});
-
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 320,
-          useNativeDriver: true,
-        }).start();
-      } finally {
-        if (!signal.aborted) {
-          setLoading(false);
-          setRefreshing(false);
-        }
-      }
-    },
-    [accessToken, fadeAnim],
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      loadPreferences();
-    }, [loadPreferences]),
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      loadData();
-      trackScreen('Home');
-      return () => abortRef.current?.abort();
-    }, [loadData]),
-  );
-
-  const balance = data.accountStats?.totalBalance ?? 0;
-  const totalIncome = data.accountStats?.monthlyIncome ?? 0;
-  const totalSpent = data.transactionStats?.summary?.totalExpense ?? 0;
-  const savings = totalIncome - totalSpent;
-  const spendRate = totalIncome > 0 ? Math.min((totalSpent / totalIncome) * 100, 100) : 0;
-
-  const goalsData = (data.goals || []).filter((g: any) => !g.isCompleted);
-  const totalTarget = goalsData.reduce((s: number, g: any) => s + Number(g.targetAmount), 0);
-  const totalSavedAll = goalsData.reduce((s: number, g: any) => s + Number(g.currentAmount), 0);
-  const goalsOverallPct = totalTarget > 0 ? (totalSavedAll / totalTarget) * 100 : 0;
-
-  const billsData =
-    data.reminders?.filter((r: any) => r.type === 'bill' || r.type === 'subscription') || [];
-  const upcomingBills = billsData.filter((b: any) => {
-    if (!b.dueDate) {
-      return false;
+        const cached = await AsyncStorage.getItem(`home_cache_${user?.id || 'anon'}`);
+        if (cached) { setData(JSON.parse(cached)); fadeAnim.setValue(1); setLoading(false); }
+      } catch {}
     }
-    const d = daysUntil(b.dueDate);
-    return d >= -1 && d <= 15;
-  });
 
-  const sharedGroupsData = data.sharedGroups || [];
-  const coupleFamilyGroups = sharedGroupsData.filter(
-    (g: any) => g.type === 'couple' || g.type === 'family',
-  );
+    try {
+      const results = await Promise.allSettled([
+        api.get<any>('/accounts/stats', ctrl.signal),
+        api.get<any>('/transactions/recent?limit=5', ctrl.signal),
+        api.get<any>('/transactions/categories-summary?months=1', ctrl.signal),
+        api.get<any>('/shared-finance/groups', ctrl.signal),
+        api.get<any>('/notifications', ctrl.signal),
+      ]);
+      if (ctrl.signal.aborted) return;
 
-  const gamification = data.gamification;
-  const badges = gamification?.badges || [];
-  const earnedBadges = badges.filter((b: any) => b.isEarned);
-  const streaks = gamification?.streaks || [];
+      const accountStats: any = results[0].status === 'fulfilled' ? results[0].value?.data || results[0].value : {};
+      const transactions: any[] = results[1].status === 'fulfilled' ? (Array.isArray(results[1].value) ? results[1].value : results[1].value?.data || []) : [];
+      const categories: any[] = results[2].status === 'fulfilled' ? (Array.isArray(results[2].value) ? results[2].value : results[2].value?.data || []) : [];
+      const groups: any[] = results[3].status === 'fulfilled' ? (Array.isArray(results[3].value) ? results[3].value : results[3].value?.data || []) : [];
+      const notifRes: any[] = results[4].status === 'fulfilled' ? (Array.isArray(results[4].value) ? results[4].value : results[4].value?.data || []) : [];
 
-  const quickActions: QuickActionItem[] = [
-    {
-      label: 'Add Expense',
-      icon: 'add-circle-outline',
-      color: '#00A86B',
-      onPress: () => {
-        trackFeature('Expense', 'add');
-        navigation.navigate('Expense', { screen: 'CreateTransaction' });
-      },
-    },
-    {
-      label: 'Scan Bill',
-      icon: 'scan-outline',
-      color: '#E85D04',
-      onPress: () => {
-        trackFeature('Bill', 'scan');
-        navigation.navigate('Expense', { screen: 'BillScanner' });
-      },
-    },
-    {
-      label: 'New Group',
-      icon: 'people-outline',
-      color: '#5B5FE8',
-      onPress: () => {
-        trackFeature('Split', 'create');
-        navigation.navigate('Spaces', { screen: 'CreateSharedGroup' });
-      },
-    },
-    {
-      label: 'Transfer',
-      icon: 'swap-horizontal-outline',
-      color: '#8A5CF6',
-      onPress: () => {
-        trackFeature('Transfer', 'open');
-        navigation.navigate('Spaces', { screen: 'WalletTransfer' });
-      },
-    },
-    {
-      label: 'Document',
-      icon: 'folder-open-outline',
-      color: '#F7892C',
-      onPress: () => {
-        trackFeature('Documents', 'upload');
-        navigation.navigate('DocumentVault');
-      },
-    },
-    {
-      label: 'Reminder',
-      icon: 'alarm-outline',
-      color: '#0B84A5',
-      onPress: () => {
-        trackFeature('Reminder', 'create');
-        navigation.navigate('Reminders', { screen: 'CreateReminder' });
-      },
-    },
+      const fresh: DashboardData = {
+        totalBalance: accountStats?.totalBalance ?? 0,
+        monthlySpending: accountStats?.monthlySpending ?? accountStats?.monthlyExpense ?? 0,
+        monthlyBudget: accountStats?.monthlyBudget ?? accountStats?.monthlyIncome ?? 0,
+        recentTransactions: transactions,
+        categories,
+        sharedGroups: groups,
+        reminders: [],
+        goals: [],
+      };
+
+      setUnreadNotifications(notifRes.filter((n: any) => !n.read).length);
+      setData(fresh);
+      AsyncStorage.setItem(`home_cache_${user?.id || 'anon'}`, JSON.stringify(fresh)).catch(() => {});
+      Animated.timing(fadeAnim, { toValue: 1, duration: 320, useNativeDriver: true }).start();
+    } finally {
+      if (!ctrl.signal.aborted) { setLoading(false); setRefreshing(false); }
+    }
+  }, [accessToken, fadeAnim, user?.id]);
+
+  useFocusEffect(useCallback(() => { loadData(); return () => abortRef.current?.abort(); }, [loadData]));
+
+  const quickActions = [
+    { label: 'Add Expense', icon: 'add-circle-outline' as const, color: '#6C3EF4', onPress: () => navigation.navigate('Expense', { screen: 'CategorySelection' }) },
+    { label: 'Create Circle', icon: 'people-outline' as const, color: '#8B5CF6', onPress: () => navigation.navigate('Spaces', { screen: 'CreateCircle' }) },
+    { label: 'Split Payment', icon: 'swap-horizontal-outline' as const, color: '#34C759', onPress: () => navigation.navigate('Spaces', { screen: 'SplitExpense' }) },
+    { label: 'Reports', icon: 'stats-chart-outline' as const, color: '#F3D28F', onPress: () => navigation.navigate('Settings', { screen: 'Reports' }) },
   ];
 
-  if (loading) {
-    return <LoadingScreen skeleton={<DashboardSkeleton />} />;
-  }
+  if (loading) return <LoadingScreen />;
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
       <Animated.View style={[styles.screen, { opacity: fadeAnim }]}>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 100 }}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={() => {
-                setRefreshing(true);
-                loadData(true);
-              }}
-              tintColor={colors.accent.primary}
-            />
-          }
+          contentContainerStyle={{ paddingBottom: 120 }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadData(true); }} tintColor="#6C3EF4" />}
         >
-          {/* ─── Welcome Header ─────────────────────────── */}
           <LinearGradient
-            colors={isDark ? ['#1A0A2E', '#2D1B4E'] : ['#F7892C', '#F9A44A']}
+            colors={['#6C3EF4', '#8B5CF6']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={{ paddingTop: insets.top + 16, paddingBottom: 32, paddingHorizontal: 20 }}
+            style={{ paddingTop: insets.top + 16, paddingBottom: 48, paddingHorizontal: 20 }}
           >
-            <View style={styles.headerTop}>
-              <TouchableOpacity
-                style={styles.headerAvatar}
-                onPress={() => navigation.navigate('Settings', { screen: 'Profile' })}
-                activeOpacity={0.8}
-              >
-                <LinearGradient
-                  colors={['#6366F1', '#8B5CF6']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.avatarCircle}
-                >
+            <View style={styles.headerRow}>
+              <TouchableOpacity style={styles.avatarRow} onPress={() => navigation.navigate('Settings', { screen: 'Profile' })} activeOpacity={0.8}>
+                <View style={styles.avatar}>
                   <Text style={styles.avatarText}>{user?.firstName?.[0] || 'U'}</Text>
-                </LinearGradient>
-                <View style={styles.headerGreeting}>
-                  <Text style={styles.greetingText}>
-                    Good{' '}
-                    {new Date().getHours() < 12
-                      ? 'Morning'
-                      : new Date().getHours() < 18
-                        ? 'Afternoon'
-                        : 'Evening'}
-                  </Text>
-                  <Text style={styles.nameText} numberOfLines={1}>
-                    {user?.firstName || 'User'}!
-                  </Text>
+                </View>
+                <View>
+                  <Text style={styles.greeting}>Hello {user?.firstName || 'User'} 👋</Text>
+                  <Text style={styles.headerSubtitle}>Manage your money smarter</Text>
                 </View>
               </TouchableOpacity>
-              <View style={styles.headerRight}>
-                {isPremium && (
-                  <View style={styles.premiumBadge}>
-                    <Ionicons name="diamond" size={10} color="#F7892C" />
-                    <Text style={styles.premiumBadgeText}>PRO</Text>
-                  </View>
+              <TouchableOpacity onPress={() => navigation.navigate('Notifications')} style={styles.notifBtn}>
+                <Ionicons name="notifications-outline" size={24} color="#FFF" />
+                {unreadNotifications > 0 && (
+                  <View style={styles.notifDot}><Text style={styles.notifDotText}>{unreadNotifications > 9 ? '9+' : unreadNotifications}</Text></View>
                 )}
-                <TouchableOpacity
-                  style={styles.notifBtn}
-                  onPress={() => navigation.navigate('Notifications')}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="notifications-outline" size={22} color="#FFF" />
-                  {unreadNotifications > 0 && (
-                    <View style={styles.notifDot}>
-                      <Text style={styles.notifDotText}>
-                        {unreadNotifications > 9 ? '9+' : unreadNotifications}
-                      </Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              </View>
+              </TouchableOpacity>
             </View>
           </LinearGradient>
 
-          {/* ─── Financial Overview Card ────────────────── */}
-          <View
-            style={[styles.overviewCard, { backgroundColor: colors.bg.secondary, marginTop: -20 }]}
-          >
-            <View style={styles.overviewHeader}>
-              <Text style={[styles.overviewLabel, { color: colors.text.tertiary }]}>
-                Available Balance
-              </Text>
-              <View
-                style={[
-                  styles.trendBadge,
-                  { backgroundColor: savings >= 0 ? '#00B89418' : '#FF6B6B18' },
-                ]}
-              >
-                <Ionicons
-                  name={savings >= 0 ? 'trending-up' : 'trending-down'}
-                  size={12}
-                  color={savings >= 0 ? '#00B894' : '#FF6B6B'}
-                />
-                <Text style={[styles.trendText, { color: savings >= 0 ? '#00B894' : '#FF6B6B' }]}>
-                  {savings >= 0 ? '+' : ''}
-                  {moneyFormat(savings)}
-                </Text>
-              </View>
-            </View>
-            <Text style={styles.balanceAmount}>{moneyFormat(balance)}</Text>
+          <BalanceCard
+            totalBalance={data.totalBalance}
+            monthlySpending={data.monthlySpending}
+            monthlyBudget={data.monthlyBudget}
+          />
 
-            <View style={styles.overviewStats}>
-              <View style={styles.overviewStat}>
-                <Text style={[styles.statLabel, { color: colors.text.tertiary }]}>Income</Text>
-                <Text style={[styles.statValue, { color: '#00B894' }]}>
-                  {moneyFormat(totalIncome)}
-                </Text>
-              </View>
-              <View style={[styles.statDivider, { backgroundColor: colors.border.subtle }]} />
-              <View style={styles.overviewStat}>
-                <Text style={[styles.statLabel, { color: colors.text.tertiary }]}>Spent</Text>
-                <Text style={[styles.statValue, { color: '#FF6B6B' }]}>
-                  {moneyFormat(totalSpent)}
-                </Text>
-              </View>
-              <View style={[styles.statDivider, { backgroundColor: colors.border.subtle }]} />
-              <View style={styles.overviewStat}>
-                <Text style={[styles.statLabel, { color: colors.text.tertiary }]}>Savings</Text>
-                <Text style={[styles.statValue, { color: savings >= 0 ? '#00B894' : '#FF6B6B' }]}>
-                  {moneyFormat(Math.abs(savings))}
-                </Text>
-              </View>
-            </View>
+          <QuickActions actions={quickActions} />
 
-            <View style={[styles.overviewBar, { backgroundColor: colors.bg.tertiary }]}>
-              <View
-                style={[
-                  styles.overviewBarFill,
-                  {
-                    width: `${spendRate}%`,
-                    backgroundColor:
-                      spendRate > 80 ? '#FF6B6B' : spendRate > 50 ? '#FDCB6E' : '#00B894',
-                  },
-                ]}
-              />
-            </View>
-            <Text style={[styles.overviewBarLabel, { color: colors.text.tertiary }]}>
-              {pct(spendRate)} of income spent this month
-            </Text>
-
-            {/* Quick action chips */}
-            <View style={styles.chipRow}>
-              {quickActions.slice(0, 4).map((action, i) => (
-                <TouchableOpacity
-                  key={i}
-                  style={[styles.chip, { backgroundColor: colors.bg.tertiary }]}
-                  activeOpacity={0.7}
-                  onPress={action.onPress}
-                >
-                  <Ionicons name={action.icon} size={14} color={action.color} />
-                  <Text style={[styles.chipLabel, { color: colors.text.secondary }]}>
-                    {action.label}
-                  </Text>
+          {data.categories.length > 0 && (
+            <View style={styles.spendingSection}>
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Spending by Category</Text>
+                <TouchableOpacity onPress={() => navigation.navigate('Settings', { screen: 'Reports' })}>
+                  <Text style={[styles.seeAll, { color: '#6C3EF4' }]}>See all</Text>
                 </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          {/* ─── Financial Health ──────────────────────── */}
-          {data.financialHealth && (
-            <TouchableOpacity
-              style={[styles.card, { backgroundColor: colors.bg.secondary }]}
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate('Settings', { screen: 'Analytics' })}
-            >
-              <View style={styles.cardHeader}>
-                <View style={styles.cardHeaderLeft}>
-                  <View
-                    style={[
-                      styles.cardIcon,
-                      { backgroundColor: (data.financialHealth.label !== 'No Data' ? data.financialHealth.color : '#6366F1') + '18' },
-                    ]}
-                  >
-                    <Ionicons
-                      name="heart-circle"
-                      size={18}
-                      color={data.financialHealth.label !== 'No Data' ? data.financialHealth.color : '#6366F1'}
-                    />
-                  </View>
-                  <Text style={[styles.cardTitle, { color: colors.text.primary }]}>
-                    Financial Health
-                  </Text>
-                  {isPremium && (
-                    <View style={[styles.premiumMiniBadge, { backgroundColor: '#F7892C18' }]}>
-                      <Ionicons name="diamond" size={9} color="#F7892C" />
-                      <Text style={styles.premiumMiniText}>PRO</Text>
-                    </View>
-                  )}
-                </View>
-                {data.financialHealth.label !== 'No Data' && (
-                  <View style={[styles.healthCircle, { borderColor: data.financialHealth.color }]}>
-                    <Text style={[styles.healthScore, { color: data.financialHealth.color }]}>
-                      {data.financialHealth.score}
-                    </Text>
-                  </View>
-                )}
               </View>
-              {data.financialHealth.label !== 'No Data' ? (
-                <>
-                  <Text style={[styles.healthLabel, { color: data.financialHealth.color }]}>
-                    {data.financialHealth.label}
-                  </Text>
-                  {data.financialHealth.factors?.map((f: any, i: number) => {
-                    const barColor =
-                      f.status === 'good' ? '#00B894' : f.status === 'fair' ? '#FDCB6E' : '#FF6B6B';
-                    return (
-                      <View key={i} style={styles.factorRow}>
-                        <Text style={[styles.factorName, { color: colors.text.tertiary }]}>
-                          {f.name}
-                        </Text>
-                        <View style={[styles.factorBar, { backgroundColor: colors.bg.tertiary }]}>
-                          <View
-                            style={[
-                              styles.factorFill,
-                              { width: `${(f.score / f.maxScore) * 100}%`, backgroundColor: barColor },
-                            ]}
-                          />
-                        </View>
-                        <Text style={[styles.factorScore, { color: barColor }]}>
-                          {f.score}/{f.maxScore}
-                        </Text>
-                      </View>
-                    );
-                  })}
-                  {data.financialHealth.recommendations?.length > 0 && (
-                    <>
-                      <View style={[styles.healthDivider, { backgroundColor: colors.border.subtle }]} />
-                      <Text style={[styles.healthRecTitle, { color: colors.text.primary }]}>
-                        Recommendations
-                      </Text>
-                      {data.financialHealth.recommendations
-                        .slice(0, 2)
-                        .map((rec: string, i: number) => (
-                          <View key={i} style={styles.recRow}>
-                            <Ionicons
-                              name="bulb-outline"
-                              size={14}
-                              color={data.financialHealth.color}
-                            />
-                            <Text style={[styles.recText, { color: colors.text.secondary }]}>
-                              {rec}
-                            </Text>
-                          </View>
-                        ))}
-                    </>
-                  )}
-                </>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}>
+                {data.categories.slice(0, 8).map((cat: any, i: number) => {
+                  const catColors: Record<string, string> = {
+                    Food: '#FF6B6B', Travel: '#60A5FA', Shopping: '#A78BFA',
+                    Bills: '#F59E0B', Fuel: '#34C759', Medical: '#FF4D4F',
+                    Entertainment: '#8B5CF6', Groceries: '#F3D28F',
+                  };
+                  const cc = catColors[cat.category || cat.name] || '#6C3EF4';
+                  return (
+                    <View key={i} style={[styles.catPill, { backgroundColor: `${cc}15`, borderColor: `${cc}30` }]}>
+                      <View style={[styles.catDot, { backgroundColor: cc }]} />
+                      <Text style={[styles.catLabel, { color: colors.text.primary }]}>{cat.category || cat.name}</Text>
+                      <Text style={[styles.catAmount, { color: cc }]}>₹{Math.round(cat.amount || cat.total || 0).toLocaleString('en-IN')}</Text>
+                    </View>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          )}
+
+          <View style={styles.recentSection}>
+            <View style={[styles.sectionHeader, { paddingHorizontal: 20 }]}>
+              <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Recent Activity</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Expense', { screen: 'ExpenseHome' })}>
+                <Text style={[styles.seeAll, { color: '#6C3EF4' }]}>See all</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={{ paddingHorizontal: 20, marginTop: 4 }}>
+              {data.recentTransactions.length > 0 ? (
+                data.recentTransactions.map((tx: any) => (
+                  <TransactionCard
+                    key={tx.id}
+                    name={tx.description || tx.category?.name || tx.category || 'Transaction'}
+                    amount={tx.amount ? -Math.abs(Number(tx.amount)) : 0}
+                    category={tx.category?.name || tx.category || 'General'}
+                    date={fdate(tx.date || tx.createdAt)}
+                    onPress={() => navigation.navigate('Expense', { screen: 'TransactionDetail', params: { transactionId: tx.id } })}
+                  />
+                ))
               ) : (
-                <View style={styles.healthEmpty}>
-                  <Ionicons name="analytics-outline" size={28} color={colors.text.tertiary} />
-                  <Text style={[styles.healthEmptyTitle, { color: colors.text.secondary }]}>
-                    Start tracking your finances
-                  </Text>
-                  <Text style={[styles.healthEmptySub, { color: colors.text.tertiary }]}>
-                    Add accounts, expenses, and goals to see your financial health score
-                  </Text>
-                  <View style={styles.healthEmptyActions}>
-                    <TouchableOpacity
-                      style={[styles.healthEmptyBtn, { backgroundColor: colors.accent.primary }]}
-                      onPress={() => navigation.navigate('Expense', { screen: 'CreateTransaction' })}
-                      activeOpacity={0.8}
-                    >
-                      <Ionicons name="add" size={14} color="#FFF" />
-                      <Text style={styles.healthEmptyBtnText}>Add Expense</Text>
-                    </TouchableOpacity>
-                    {!isPremium && (
-                      <TouchableOpacity
-                        style={[styles.healthEmptyBtn, { backgroundColor: '#8B5CF6' }]}
-                        onPress={() => navigation.navigate('Premium')}
-                        activeOpacity={0.8}
-                      >
-                        <Ionicons name="diamond" size={14} color="#FFF" />
-                        <Text style={styles.healthEmptyBtnText}>Go Premium</Text>
-                      </TouchableOpacity>
-                    )}
+                <View style={styles.emptyState}>
+                  <View style={[styles.emptyIcon, { backgroundColor: '#6C3EF415' }]}>
+                    <Ionicons name="receipt-outline" size={32} color="#6C3EF4" />
                   </View>
+                  <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>No activity yet</Text>
+                  <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>Add your first expense to see activity here</Text>
+                  <TouchableOpacity style={[styles.emptyBtn, { backgroundColor: '#6C3EF4' }]} onPress={() => navigation.navigate('Expense', { screen: 'CategorySelection' })}>
+                    <Ionicons name="add" size={16} color="#FFF" />
+                    <Text style={styles.emptyBtnText}>Add Expense</Text>
+                  </TouchableOpacity>
                 </View>
               )}
-            </TouchableOpacity>
-          )}
-
-          {/* ─── Smart Insights (horizontal scroll) ────── */}
-          {data.smartInsights.length > 0 && (
-            <View style={{ paddingLeft: 16, marginTop: 12 }}>
-              <View style={styles.cardHeader}>
-                <View style={styles.cardHeaderLeft}>
-                  <View style={[styles.cardIcon, { backgroundColor: '#74B9FF18' }]}>
-                    <Ionicons name="bulb" size={18} color="#74B9FF" />
-                  </View>
-                  <Text style={[styles.cardTitle, { color: colors.text.primary }]}>Insights</Text>
-                </View>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('AiInsights')}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
-                >
-                  <Ionicons name="sparkles" size={12} color="#8B5CF6" />
-                  <Text style={[styles.cardMeta, { color: '#8B5CF6' }]}>AI</Text>
-                </TouchableOpacity>
-              </View>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={{ marginTop: 8 }}
-              >
-                {data.smartInsights.map((insight: any, i: number) => {
-                  const sevColor =
-                    insight.severity === 'critical'
-                      ? '#FF6B6B'
-                      : insight.severity === 'warning'
-                        ? '#FDCB6E'
-                        : '#00B894';
-                  const isAi = insight.source === 'ai';
-                  return (
-                    <TouchableOpacity
-                      key={i}
-                      style={[
-                        styles.insightCard,
-                        { backgroundColor: colors.bg.secondary, borderLeftColor: sevColor },
-                      ]}
-                      activeOpacity={0.7}
-                    >
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                          alignItems: 'flex-start',
-                        }}
-                      >
-                        <Text
-                          style={[styles.insightTitle, { color: colors.text.primary, flex: 1 }]}
-                        >
-                          {insight.title}
-                        </Text>
-                        {isAi && (
-                          <View style={[styles.aiBadge, { backgroundColor: '#8B5CF618' }]}>
-                            <Ionicons name="sparkles" size={10} color="#8B5CF6" />
-                            <Text style={styles.aiBadgeText}>AI</Text>
-                          </View>
-                        )}
-                      </View>
-                      <Text
-                        style={[styles.insightDesc, { color: colors.text.tertiary }]}
-                        numberOfLines={2}
-                      >
-                        {insight.message}
-                      </Text>
-                      <View style={[styles.insightTag, { backgroundColor: `${sevColor}18` }]}>
-                        <Text style={[styles.insightTagText, { color: sevColor }]}>
-                          {insight.severity || 'info'}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
             </View>
-          )}
-
-          {/* ─── Active Goals ──────────────────────────── */}
-          {goalsData.length > 0 && (
-            <View style={[styles.card, { backgroundColor: colors.bg.secondary }]}>
-              <TouchableOpacity onPress={() => navigation.navigate('GoalsList')}>
-                <View style={styles.cardHeader}>
-                  <View style={styles.cardHeaderLeft}>
-                    <View style={[styles.cardIcon, { backgroundColor: '#FDCB6E18' }]}>
-                      <Ionicons name="trophy" size={18} color="#FDCB6E" />
-                    </View>
-                    <Text style={[styles.cardTitle, { color: colors.text.primary }]}>
-                      Active Goals
-                    </Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={14} color={colors.text.tertiary} />
-                </View>
-              </TouchableOpacity>
-              {goalsData.slice(0, 2).map((goal: any) => {
-                const pctVal =
-                  Number(goal.targetAmount) > 0
-                    ? (Number(goal.currentAmount) / Number(goal.targetAmount)) * 100
-                    : 0;
-                return (
-                  <View key={goal.id} style={styles.goalRow}>
-                    <View style={styles.goalInfo}>
-                      <Text
-                        style={[styles.goalName, { color: colors.text.primary }]}
-                        numberOfLines={1}
-                      >
-                        {goal.name}
-                      </Text>
-                      <Text style={[styles.goalMeta, { color: colors.text.tertiary }]}>
-                        {moneyFormat(goal.currentAmount)} / {moneyFormat(goal.targetAmount)}
-                      </Text>
-                    </View>
-                    <Text
-                      style={[
-                        styles.goalPct,
-                        { color: pctVal >= 100 ? '#00B894' : colors.accent.primary },
-                      ]}
-                    >
-                      {pct(pctVal)}
-                    </Text>
-                  </View>
-                );
-              })}
-            </View>
-          )}
-
-          {/* ─── Upcoming Bills & Reminders ────────────── */}
-          {upcomingBills.length > 0 && (
-            <View style={[styles.card, { backgroundColor: colors.bg.secondary }]}>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Expense', { screen: 'BillsList' })}
-              >
-                <View style={styles.cardHeader}>
-                  <View style={styles.cardHeaderLeft}>
-                    <View style={[styles.cardIcon, { backgroundColor: '#FF6B6B18' }]}>
-                      <Ionicons name="receipt" size={18} color="#FF6B6B" />
-                    </View>
-                    <Text style={[styles.cardTitle, { color: colors.text.primary }]}>
-                      Upcoming Bills
-                    </Text>
-                  </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <Text style={[styles.cardMeta, { color: colors.text.tertiary }]}>
-                      {upcomingBills.length}
-                    </Text>
-                    <Ionicons name="chevron-forward" size={14} color={colors.text.tertiary} />
-                  </View>
-                </View>
-              </TouchableOpacity>
-              {upcomingBills.slice(0, 3).map((bill: any) => {
-                const dDays = daysUntil(bill.dueDate);
-                const isUrgent = dDays <= 2;
-                return (
-                  <View
-                    key={bill.id}
-                    style={[
-                      styles.billRow,
-                      { backgroundColor: isUrgent ? '#FF6B6B08' : 'transparent' },
-                    ]}
-                  >
-                    <View
-                      style={[
-                        styles.billDot,
-                        { backgroundColor: isUrgent ? '#FF6B6B' : colors.accent.primary },
-                      ]}
-                    />
-                    <View style={{ flex: 1 }}>
-                      <Text
-                        style={[styles.billName, { color: colors.text.primary }]}
-                        numberOfLines={1}
-                      >
-                        {bill.title || bill.name}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.billDue,
-                          { color: isUrgent ? '#FF6B6B' : colors.text.tertiary },
-                        ]}
-                      >
-                        {dDays <= 0
-                          ? 'Overdue'
-                          : dDays === 0
-                            ? 'Today'
-                            : dDays === 1
-                              ? 'Tomorrow'
-                              : `In ${dDays} days`}
-                      </Text>
-                    </View>
-                    <Text style={[styles.billAmount, { color: colors.text.primary }]}>
-                      {moneyFormat(bill.amount)}
-                    </Text>
-                  </View>
-                );
-              })}
-            </View>
-          )}
-
-          {/* ─── Shared Finance Summary ────────────────── */}
-          {sharedGroupsData.length > 0 && (
-            <View style={[styles.card, { backgroundColor: colors.bg.secondary }]}>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Spaces', { screen: 'SharedFinanceHome' })}
-              >
-                <View style={styles.cardHeader}>
-                  <View style={styles.cardHeaderLeft}>
-                    <View style={[styles.cardIcon, { backgroundColor: '#5B5FE818' }]}>
-                      <Ionicons name="people" size={18} color="#5B5FE8" />
-                    </View>
-                    <Text style={[styles.cardTitle, { color: colors.text.primary }]}>
-                      Shared Finance
-                    </Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={14} color={colors.text.tertiary} />
-                </View>
-              </TouchableOpacity>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={{ marginTop: 4 }}
-              >
-                {sharedGroupsData.slice(0, 6).map((group: any) => {
-                  const typeColors: Record<string, string> = {
-                    couple: '#FF6B9D',
-                    family: '#5B5FE8',
-                    friends: '#00B894',
-                    trip: '#FDCB6E',
-                    roommates: '#F7892C',
-                  };
-                  const color = typeColors[group.type] || colors.accent.primary;
-                  const members = group.members?.length || group._count?.members || 0;
-                  return (
-                    <TouchableOpacity
-                      key={group.id}
-                      style={[styles.sharedCard, { backgroundColor: colors.bg.tertiary }]}
-                      activeOpacity={0.7}
-                      onPress={() =>
-                        navigation.navigate('Spaces', {
-                          screen:
-                            group.type === 'couple'
-                              ? 'CoupleFinance'
-                              : group.type === 'family'
-                                ? 'FamilyDashboard'
-                                : 'SharedGroupDetail',
-                          params: { groupId: group.id },
-                        })
-                      }
-                    >
-                      <View style={[styles.sharedIcon, { backgroundColor: `${color}18` }]}>
-                        <Ionicons
-                          name={
-                            group.type === 'couple'
-                              ? 'heart'
-                              : group.type === 'family'
-                                ? 'home'
-                                : 'people'
-                          }
-                          size={18}
-                          color={color}
-                        />
-                      </View>
-                      <Text
-                        style={[styles.sharedName, { color: colors.text.primary }]}
-                        numberOfLines={1}
-                      >
-                        {group.name || group.title}
-                      </Text>
-                      <Text style={[styles.sharedMeta, { color: colors.text.tertiary }]}>
-                        {members} {members === 1 ? 'member' : 'members'}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </View>
-          )}
-
-          {/* ─── Recent Activity ───────────────────────── */}
-          <View style={[styles.card, { backgroundColor: colors.bg.secondary }]}>
-            <View style={styles.cardHeader}>
-              <View style={styles.cardHeaderLeft}>
-                <View style={[styles.cardIcon, { backgroundColor: '#00B89418' }]}>
-                  <Ionicons name="time" size={18} color="#00B894" />
-                </View>
-                <Text style={[styles.cardTitle, { color: colors.text.primary }]}>
-                  Recent Activity
-                </Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Expense', { screen: 'ExpenseHome' })}
-              >
-                <Text style={[styles.seeAllText, { color: colors.accent.primary }]}>See all</Text>
-              </TouchableOpacity>
-            </View>
-            {data.recentTransactions?.length > 0 ? (
-              data.recentTransactions.map((tx: any) => (
-                <TouchableOpacity
-                  key={tx.id}
-                  style={styles.activityRow}
-                  activeOpacity={0.7}
-                  onPress={() =>
-                    navigation.navigate('Expense', {
-                      screen: 'TransactionDetail',
-                      params: { transactionId: tx.id },
-                    })
-                  }
-                >
-                  <View
-                    style={[
-                      styles.activityIcon,
-                      { backgroundColor: Number(tx.amount) > 0 ? '#00B89418' : '#FF6B6B18' },
-                    ]}
-                  >
-                    <Ionicons
-                      name={Number(tx.amount) > 0 ? 'arrow-down' : 'arrow-up'}
-                      size={14}
-                      color={Number(tx.amount) > 0 ? '#00B894' : '#FF6B6B'}
-                    />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text
-                      style={[styles.activityName, { color: colors.text.primary }]}
-                      numberOfLines={1}
-                    >
-                      {tx.description || tx.category?.name || tx.category || 'Transaction'}
-                    </Text>
-                    <Text style={[styles.activityDate, { color: colors.text.tertiary }]}>
-                      {fmtDate(tx.date || tx.createdAt)}
-                    </Text>
-                  </View>
-                  <Text
-                    style={[
-                      styles.activityAmount,
-                      { color: Number(tx.amount) > 0 ? '#00B894' : colors.text.primary },
-                    ]}
-                  >
-                    {moneyFormat(Math.abs(Number(tx.amount)))}
-                  </Text>
-                </TouchableOpacity>
-              ))
-            ) : (
-              <View style={styles.emptyState}>
-                <Ionicons name="receipt-outline" size={32} color={colors.text.tertiary} />
-                <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
-                  Start your financial journey
-                </Text>
-                <Text
-                  style={{
-                    color: colors.text.tertiary,
-                    fontSize: 13,
-                    textAlign: 'center',
-                    marginTop: 4,
-                    marginBottom: 12,
-                  }}
-                >
-                  Track your first expense and discover how Dabbu helps you understand your money
-                  better.
-                </Text>
-                <TouchableOpacity
-                  style={[styles.emptyBtn, { backgroundColor: colors.accent.primary }]}
-                  onPress={() => navigation.navigate('Expense', { screen: 'CreateTransaction' })}
-                >
-                  <Ionicons name="add" size={16} color="#FFF" />
-                  <Text style={styles.emptyBtnText}>Add your first expense</Text>
-                </TouchableOpacity>
-              </View>
-            )}
           </View>
         </ScrollView>
       </Animated.View>
-
-      {/* ─── FAB ──────────────────────────────────────── */}
-      <TouchableOpacity
-        style={[
-          styles.fab,
-          {
-            backgroundColor: colors.accent.primary,
-            shadowColor: colors.accent.primary,
-            bottom: insets.bottom + 80,
-          },
-        ]}
-        activeOpacity={0.85}
-        onPress={() => setShowActions(true)}
-      >
-        <Ionicons name="add" size={28} color="#FFF" />
-      </TouchableOpacity>
-
-      <QuickActionSheet
-        visible={showActions}
-        onClose={() => setShowActions(false)}
-        actions={quickActions}
-      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-
-  // Welcome Header
-  headerTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerAvatar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  avatarCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  avatarRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  avatar: { width: 44, height: 44, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
   avatarText: { color: '#FFF', fontSize: 18, fontWeight: '800' },
-  headerGreeting: { gap: 1 },
-  greetingText: { color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '500' },
-  nameText: { color: '#FFF', fontSize: 20, fontWeight: '800' },
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  premiumBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  premiumBadgeText: { color: '#FFF', fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
+  greeting: { color: '#FFF', fontSize: 20, fontWeight: '800' },
+  headerSubtitle: { color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: '500', marginTop: 1 },
   notifBtn: { position: 'relative', padding: 4 },
-  notifDot: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    backgroundColor: '#FF6B6B',
-    borderRadius: 8,
-    minWidth: 16,
-    height: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 3,
-  },
+  notifDot: { position: 'absolute', top: 0, right: 0, backgroundColor: '#FF4D4F', borderRadius: 8, minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
   notifDotText: { color: '#FFF', fontSize: 9, fontWeight: '700' },
-
-  // Financial Overview Card
-  overviewCard: {
-    marginHorizontal: 16,
-    borderRadius: 24,
-    padding: 20,
-    marginBottom: 4,
-  },
-  overviewHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  overviewLabel: { fontSize: 12, fontWeight: '500' },
-  trendBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  trendText: { fontSize: 11, fontWeight: '700' },
-  balanceAmount: { fontSize: 36, fontWeight: '800', color: '#FFF', marginBottom: 16 },
-  overviewStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 12,
-  },
-  overviewStat: { flex: 1 },
-  statLabel: { fontSize: 11, fontWeight: '500', marginBottom: 2 },
-  statValue: { fontSize: 16, fontWeight: '700' },
-  statDivider: { width: 1, height: 32 },
-  overviewBar: { height: 4, borderRadius: 2, overflow: 'hidden', marginBottom: 6 },
-  overviewBarFill: { height: '100%', borderRadius: 2 },
-  overviewBarLabel: { fontSize: 10, fontWeight: '500', marginBottom: 12 },
-
-  // Action Chips
-  chipRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 10,
-  },
-  chipLabel: { fontSize: 11, fontWeight: '600' },
-
-  // Cards
-  card: {
-    marginHorizontal: 16,
-    marginTop: 12,
-    borderRadius: 20,
-    padding: 18,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  cardHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  cardIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cardTitle: { fontSize: 15, fontWeight: '700' },
-  cardMeta: { fontSize: 12, fontWeight: '600' },
-
-  // Financial Health
-  healthCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 2.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  healthScore: { fontSize: 16, fontWeight: '800' },
-  healthLabel: { fontSize: 13, fontWeight: '700', marginBottom: 10 },
-  factorRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
-  factorName: { width: 80, fontSize: 11, fontWeight: '500' },
-  factorBar: { flex: 1, height: 5, borderRadius: 3, overflow: 'hidden' },
-  factorFill: { height: '100%', borderRadius: 3 },
-  factorScore: { fontSize: 10, fontWeight: '600', width: 30, textAlign: 'right' },
-
-  healthDivider: { height: 1, marginVertical: 12 },
-  healthRecTitle: { fontSize: 13, fontWeight: '700', marginBottom: 8 },
-  recRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginBottom: 6 },
-  recText: { fontSize: 12, lineHeight: 17, flex: 1 },
-
-  // Insights
-  insightCard: {
-    width: SCREEN_WIDTH * 0.65,
-    padding: 14,
-    borderRadius: 16,
-    marginRight: 10,
-    borderLeftWidth: 3,
-  },
-  insightTitle: { fontSize: 13, fontWeight: '700', marginBottom: 4 },
-  insightDesc: { fontSize: 11, lineHeight: 15, marginBottom: 8 },
-  insightTag: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  insightTagText: { fontSize: 9, fontWeight: '700', textTransform: 'uppercase' },
-
-  // Goals
-  goalRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    gap: 8,
-  },
-  goalInfo: { flex: 1 },
-  goalName: { fontSize: 13, fontWeight: '600' },
-  goalMeta: { fontSize: 11, marginTop: 1 },
-  goalPct: { fontSize: 14, fontWeight: '800' },
-
-  // Bills
-  billRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    borderRadius: 10,
-    marginBottom: 2,
-  },
-  billDot: { width: 6, height: 6, borderRadius: 3 },
-  billName: { fontSize: 13, fontWeight: '600' },
-  billDue: { fontSize: 11, marginTop: 1 },
-  billAmount: { fontSize: 14, fontWeight: '700' },
-
-  // Shared Finance
-  sharedCard: {
-    width: 140,
-    padding: 14,
-    borderRadius: 16,
-    marginRight: 10,
-    alignItems: 'center',
-    gap: 6,
-  },
-  sharedIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sharedName: { fontSize: 12, fontWeight: '700', textAlign: 'center' },
-  sharedMeta: { fontSize: 10, fontWeight: '500' },
-
-  // Recent Activity
-  activityRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
-  activityIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  activityName: { fontSize: 13, fontWeight: '600' },
-  activityDate: { fontSize: 11, marginTop: 1 },
-  activityAmount: { fontSize: 14, fontWeight: '700' },
-  seeAllText: { fontSize: 13, fontWeight: '600' },
-  emptyState: { alignItems: 'center', paddingVertical: 24, gap: 8 },
-  emptyText: { fontSize: 13 },
-  emptyBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
-    marginTop: 4,
-  },
-  emptyBtnText: { color: '#FFF', fontSize: 13, fontWeight: '600' },
-
-  // AI Badge
-  aiBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
-    marginLeft: 6,
-  },
-  aiBadgeText: { fontSize: 9, fontWeight: '700', color: '#8B5CF6', letterSpacing: 0.5 },
-
-  // Premium mini badge
-  premiumMiniBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  premiumMiniText: { fontSize: 9, fontWeight: '800', color: '#F7892C', letterSpacing: 0.5 },
-
-  // Health empty state
-  healthEmpty: { alignItems: 'center', paddingVertical: 16, gap: 8 },
-  healthEmptyTitle: { fontSize: 14, fontWeight: '600' },
-  healthEmptySub: { fontSize: 12, lineHeight: 17, textAlign: 'center', paddingHorizontal: 20 },
-  healthEmptyActions: { flexDirection: 'row', gap: 8, marginTop: 4 },
-  healthEmptyBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
-  },
-  healthEmptyBtnText: { color: '#FFF', fontSize: 12, fontWeight: '600' },
-
-  // FAB
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    zIndex: 100,
-  },
+  spendingSection: { marginTop: 24 },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  sectionTitle: { fontSize: 17, fontWeight: '700', letterSpacing: -0.2 },
+  seeAll: { fontSize: 13, fontWeight: '600' },
+  catPill: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14, borderWidth: 1 },
+  catDot: { width: 8, height: 8, borderRadius: 4 },
+  catLabel: { fontSize: 12, fontWeight: '600' },
+  catAmount: { fontSize: 11, fontWeight: '700' },
+  recentSection: { marginTop: 24 },
+  emptyState: { alignItems: 'center', paddingVertical: 32, gap: 10 },
+  emptyIcon: { width: 64, height: 64, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  emptyTitle: { fontSize: 15, fontWeight: '600' },
+  emptyDesc: { fontSize: 13, textAlign: 'center', paddingHorizontal: 40, lineHeight: 18 },
+  emptyBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 18, paddingVertical: 11, borderRadius: 14, marginTop: 4 },
+  emptyBtnText: { color: '#FFF', fontSize: 14, fontWeight: '600' },
 });

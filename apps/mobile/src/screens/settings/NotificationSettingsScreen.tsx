@@ -57,7 +57,7 @@ const SECTIONS: Section[] = [
         label: 'Goal Alerts',
         description: 'Progress updates on your financial goals',
         icon: 'trophy-outline',
-        gradient: ['#F59E0B', '#F97316'],
+        gradient: ['#6C3EF4', '#4A1FCC'],
       },
       {
         key: 'emiReminders',
@@ -98,7 +98,7 @@ const SECTIONS: Section[] = [
         label: 'Monthly Reports',
         description: 'Comprehensive monthly financial report',
         icon: 'document-text-outline',
-        gradient: ['#F7892C', '#E0701E'],
+        gradient: ['#8B5CF6', '#6D28D9'],
       },
     ],
   },
@@ -235,16 +235,16 @@ export function NotificationSettingsScreen() {
     return (
       <BaseScreen noPadding>
         <LinearGradient
-          colors={
-            isDark
-              ? ['#11111A', colors.bg.primary, '#0A0A0F']
-              : ['#FFF8F1', colors.bg.primary, '#F8F9FA']
-          }
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        />
-        <View style={{ padding: spacing.lg, paddingTop: insets.top + 60, gap: 20 }}>
+        colors={
+          isDark
+            ? ['#11111A', colors.bg.primary, '#0A0A0F']
+            : ['#F5F0FF', colors.bg.primary, '#FAF8FF']
+        }
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      <View style={{ padding: spacing.lg, paddingTop: insets.top + 60, gap: 20 }}>
           <Skeleton width={160} height={22} />
           <Skeleton width="100%" height={90} borderRadius={16} />
           <Skeleton width="100%" height={90} borderRadius={16} />
@@ -261,7 +261,7 @@ export function NotificationSettingsScreen() {
         colors={
           isDark
             ? ['#11111A', colors.bg.primary, '#0A0A0F']
-            : ['#FFF8F1', colors.bg.primary, '#F8F9FA']
+            : ['#F5F0FF', colors.bg.primary, '#FAF8FF']
         }
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
@@ -272,7 +272,7 @@ export function NotificationSettingsScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
       >
         <LinearGradient
-          colors={[colors.accent.primary, isDark ? '#B45309' : '#F97316']}
+          colors={[colors.accent.primary, isDark ? '#4A1FCC' : '#8B5CF6']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.header}

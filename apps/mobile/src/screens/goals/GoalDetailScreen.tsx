@@ -33,7 +33,7 @@ const GOAL_CONFIGS: Record<string, GoalConfig> = {
   emergency: { icon: 'shield-checkmark', gradient: ['#FF6B6B', '#ee5a24'], color: '#FF6B6B' },
   vacation: { icon: 'airplane', gradient: ['#00B894', '#00a381'], color: '#00B894' },
   education: { icon: 'school', gradient: ['#4F6EF7', '#3d5ae0'], color: '#4F6EF7' },
-  home: { icon: 'home', gradient: ['#F7892C', '#E0701E'], color: '#F7892C' },
+  home: { icon: 'home', gradient: ['#6C3EF4', '#8B5CF6'], color: '#6C3EF4' },
   car: { icon: 'car-sport', gradient: ['#6C5CE7', '#5a4bd1'], color: '#6C5CE7' },
   wedding: { icon: 'heart', gradient: ['#FF6B9D', '#e0557e'], color: '#FF6B9D' },
   retirement: { icon: 'umbrella', gradient: ['#247BA0', '#1a6080'], color: '#247BA0' },

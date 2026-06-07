@@ -60,7 +60,7 @@ const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
 
 const ROW_ICON_MAP: Record<string, { gradient: [string, string]; icon: IconName }> = {
   Profile: { gradient: ['#6366F1', '#8B5CF6'], icon: 'person' },
-  Subscription: { gradient: ['#F59E0B', '#F97316'], icon: 'diamond' },
+  Subscription: { gradient: ['#6C3EF4', '#8B5CF6'], icon: 'diamond' },
   Security: { gradient: ['#10B981', '#059669'], icon: 'shield-checkmark' },
   'Lock App': { gradient: ['#EF4444', '#DC2626'], icon: 'lock-closed' },
   'Reports & Analytics': { gradient: ['#8B5CF6', '#6D28D9'], icon: 'stats-chart' },
@@ -139,7 +139,7 @@ export function SettingsScreen() {
         colors={
           isDark
             ? ['#11111A', colors.bg.primary, '#0A0A0F']
-            : ['#FFF8F1', colors.bg.primary, '#F8F9FA']
+            : ['#F5F0FF', colors.bg.primary, '#FAF8FF']
         }
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
@@ -151,7 +151,7 @@ export function SettingsScreen() {
       >
         {/* Header */}
         <LinearGradient
-          colors={[colors.accent.primary, isDark ? '#B45309' : '#F97316']}
+          colors={[colors.accent.primary, isDark ? '#4A1FCC' : '#8B5CF6']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.header}

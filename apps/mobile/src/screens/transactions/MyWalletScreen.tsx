@@ -41,7 +41,7 @@ const CATEGORY_ICONS: Record<string, string> = {
   Transfer: 'swap-horizontal-outline',
 };
 const CATEGORY_COLORS: Record<string, string[]> = {
-  Food: ['#FF6B35', '#F7931E'],
+  Food: ['#6C3EF4', '#8B5CF6'],
   Travel: ['#4A90D9', '#357ABD'],
   Shopping: ['#E056A0', '#C94D8B'],
   Medical: ['#00B894', '#00A381'],
@@ -61,7 +61,7 @@ function getCategoryIcon(cat: string) {
   return CATEGORY_ICONS[cat] || 'ellipse-outline';
 }
 function getCategoryColors(cat: string) {
-  return CATEGORY_COLORS[cat] || ['#F7892C', '#F9A44A'];
+  return CATEGORY_COLORS[cat] || ['#6C3EF4', '#8B5CF6'];
 }
 function fmt(v: number) {
   return '₹' + v.toLocaleString('en-IN', { maximumFractionDigits: 0 });
@@ -112,7 +112,7 @@ function groupByDate(tx: any[]) {
 
 const PREMIUM_CATEGORIES = [
   { icon: 'add-circle', label: 'Add', color: '#00B894', screen: 'AddExpense' },
-  { icon: 'scan', label: 'Scan', color: '#F7892C', screen: 'BillScanner' },
+  { icon: 'scan', label: 'Scan', color: '#8B5CF6', screen: 'BillScanner' },
   { icon: 'receipt', label: 'Bills', color: '#4A90D9', screen: 'BillsList' },
   { icon: 'trending-up', label: 'Analytics', color: '#6C5CE7', screen: 'Analytics' },
 ];
@@ -424,7 +424,7 @@ export function MyWalletScreen() {
                     value: insight.dailyAvg,
                     label: 'Daily Avg',
                   },
-                  { icon: 'fast-food', color: '#F7892C', value: insight.foodTotal, label: 'Food' },
+                  { icon: 'fast-food', color: '#8B5CF6', value: insight.foodTotal, label: 'Food' },
                 ].map((c, i) => (
                   <LinearGradient
                     key={i}
@@ -570,8 +570,8 @@ export function MyWalletScreen() {
         )}
         ListEmptyComponent={
           <View style={s.empty}>
-            <LinearGradient colors={['#F7892C20', '#FF6B6B15']} style={s.emptyIcon}>
-              <Ionicons name="wallet-outline" size={44} color="#F7892C" />
+            <LinearGradient colors={['#6C3EF420', '#8B5CF615']} style={s.emptyIcon}>
+              <Ionicons name="wallet-outline" size={44} color="#6C3EF4" />
             </LinearGradient>
             <Text style={[s.emptyTitle, { color: colors.text.primary }]}>
               {search || selectedCategory ? 'No matching transactions' : 'No transactions yet'}
@@ -685,7 +685,7 @@ const s = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 1,
   },
-  chipActive: { backgroundColor: '#F7892C', borderColor: '#F7892C' },
+  chipActive: { backgroundColor: '#6C3EF4', borderColor: '#6C3EF4' },
   chipText: { fontSize: 12, fontWeight: '600' },
   sectionTitle: {
     fontSize: 18,

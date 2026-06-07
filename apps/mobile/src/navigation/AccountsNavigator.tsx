@@ -13,6 +13,8 @@ import { GroupExpensesScreen } from '../screens/transactions/GroupExpensesScreen
 import { SubscriptionScreen } from '../screens/subscriptions/SubscriptionScreen';
 import { AnalyticsScreen } from '../screens/analytics/AnalyticsScreen';
 import { ExpenseTabNavigator } from './ExpenseTabNavigator';
+import { CategorySelectionScreen } from '../screens/expense/CategorySelectionScreen';
+import { AddExpenseScreen as NewAddExpenseScreen } from '../screens/expense/AddExpenseScreen';
 
 export function AccountsNavigator() {
   const Stack = createNativeStackNavigator();
@@ -31,9 +33,19 @@ export function AccountsNavigator() {
         options={{ headerShown: false }}
       />
       <Stack.Screen
+        name="CategorySelection"
+        component={CategorySelectionScreen}
+        options={{ headerShown: false, presentation: 'modal' }}
+      />
+      <Stack.Screen
         name="AddExpense"
         component={AddExpenseScreen}
         options={{ title: 'Add Expense', headerShown: false }}
+      />
+      <Stack.Screen
+        name="NewAddExpense"
+        component={NewAddExpenseScreen}
+        options={{ title: 'Add Expense', headerShown: false, presentation: 'modal' }}
       />
       <Stack.Screen
         name="BillScanner"
