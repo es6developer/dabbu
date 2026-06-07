@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -435,21 +435,21 @@ function GlossyTabBar({ state, descriptors, navigation, colors, isDark, onCenter
 
             if (route.name === 'QuickAction') {
               return (
-                <TouchableOpacity
-                  key={route.key}
-                  activeOpacity={0.8}
-                  style={tabStyles.centerWrap}
-                  onPress={onCenterPress}
-                >
-                  <LinearGradient
-                    colors={[colors.accent.primary, colors.accent.secondary]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={tabStyles.centerBtn}
+          <TouchableOpacity
+                    key={route.key}
+                    activeOpacity={0.8}
+                    style={tabStyles.centerWrap}
+                    onPress={onCenterPress}
                   >
-                    <Ionicons name="add" size={26} color="#FFF" />
-                  </LinearGradient>
-                </TouchableOpacity>
+                    <LinearGradient
+                      colors={['#6C3EF4', '#8B5CF6']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={tabStyles.centerBtn}
+                    >
+                      <Ionicons name="add" size={28} color="#FFF" />
+                    </LinearGradient>
+                  </TouchableOpacity>
               );
             }
 
@@ -549,17 +549,18 @@ const tabStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 2,
+    marginTop: -16,
   },
   centerBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 4,
+    elevation: 8,
     shadowColor: '#6C3EF4',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.35,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
   },
 });

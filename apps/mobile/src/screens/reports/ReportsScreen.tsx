@@ -146,7 +146,7 @@ export function ReportsScreen() {
                     <View style={[styles.catDot, { backgroundColor: cat.color }]} />
                     <Text style={[styles.catName, { color: colors.text.primary }]}>{cat.name}</Text>
                   </View>
-                  <View style={styles.catBarOuter}>
+                  <View style={[styles.catBarOuter, { backgroundColor: colors.bg.tertiary }]}>
                     <View style={[styles.catBar, { width: `${cat.pct}%`, backgroundColor: cat.color }]} />
                   </View>
                   <Text style={[styles.catAmount, { color: colors.text.secondary }]}>{fmt(cat.amount)}</Text>
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   backBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
   headerTitle: { color: '#FFF', fontSize: 18, fontWeight: '700' },
   metricsRow: { flexDirection: 'row', gap: 12 },
-  metricCard: { flex: 1, padding: 16, borderRadius: 18, borderWidth: 1, gap: 6 },
+  metricCard: { flex: 1, padding: 16, borderRadius: 18, borderWidth: 1, gap: 6, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 },
   metricLabel: { fontSize: 12, fontWeight: '500' },
   metricValue: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
   sectionCard: { borderRadius: 20, padding: 18, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1 },
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   catInfo: { flexDirection: 'row', alignItems: 'center', gap: 6, width: 80 },
   catDot: { width: 8, height: 8, borderRadius: 4 },
   catName: { fontSize: 12, fontWeight: '600' },
-  catBarOuter: { flex: 1, height: 6, backgroundColor: '#F0F0F0', borderRadius: 3, overflow: 'hidden' },
+  catBarOuter: { flex: 1, height: 6, borderRadius: 3, overflow: 'hidden' },
   catBar: { height: '100%', borderRadius: 3 },
   catAmount: { fontSize: 12, fontWeight: '700', width: 60, textAlign: 'right' },
 });

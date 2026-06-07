@@ -15,6 +15,8 @@ import { AnalyticsScreen } from '../screens/analytics/AnalyticsScreen';
 import { ExpenseTabNavigator } from './ExpenseTabNavigator';
 import { CategorySelectionScreen } from '../screens/expense/CategorySelectionScreen';
 import { AddExpenseScreen as NewAddExpenseScreen } from '../screens/expense/AddExpenseScreen';
+import { SharedExpenseFormScreen } from '../screens/shared-finance/SharedExpenseFormScreen';
+import { SettlementScreen } from '../screens/shared-finance/SettlementScreen';
 
 export function AccountsNavigator() {
   const Stack = createNativeStackNavigator();
@@ -94,6 +96,16 @@ export function AccountsNavigator() {
         name="Analytics"
         component={AnalyticsScreen}
         options={{ title: 'Reports & Analytics' }}
+      />
+      <Stack.Screen
+        name="SharedExpenseForm"
+        component={SharedExpenseFormScreen}
+        options={{ title: 'Split Expense', presentation: 'modal' }}
+      />
+      <Stack.Screen
+        name="Settlement"
+        component={SettlementScreen}
+        options={{ title: 'Settle Up', presentation: 'modal' }}
       />
     </Stack.Navigator>
   );

@@ -466,6 +466,25 @@ export function SharedGroupDetailScreen() {
     finally { setSavingSettings(false); }
   }
 
+  async function handleSettleUp() {
+    Alert.alert('Settle Up', 'Are you sure you want to settle up all balances in this group?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Yes, Settle Up', style: 'default',
+        onPress: async () => {
+          try {
+            if (accessToken) setAccessToken(accessToken);
+            await api.post(`/shared-finance/groups/${groupId}/settle`, {});
+            Alert.alert('Settled Up!', 'All balances in this group have been settled.');
+            loadData(true);
+          } catch (e: any) {
+            Alert.alert('Error', e.message || 'Failed to settle up');
+          }
+        },
+      },
+    ]);
+  }
+
   async function handleGenerateInvite() {
     if (!groupId) return;
     setInviteLoading(true);
@@ -545,7 +564,7 @@ export function SharedGroupDetailScreen() {
                 <Ionicons name="add-circle-outline" size={18} color="#FFF" />
                 <Text style={s.quickActionText}>Add Expense</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[s.quickAction, { backgroundColor: '#34C759' }]} onPress={() => navigation.navigate('Settlement', { groupId })}>
+               <TouchableOpacity style={[s.quickAction, { backgroundColor: '#34C759' }]} onPress={handleSettleUp}>
                 <Ionicons name="swap-horizontal-outline" size={18} color="#FFF" />
                 <Text style={s.quickActionText}>Settle Up</Text>
               </TouchableOpacity>

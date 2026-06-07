@@ -13,8 +13,15 @@ import { PageContainer } from '../../components/ui/PageContainer';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 
 const GROUP_TYPES = [
-  'Friends', 'Trip', 'Family', 'Couple', 'Roommates', 'Office', 'Event', 'Apartment',
-] as const;
+  { key: 'friends', label: 'Friends', icon: 'people', color: '#34C759' },
+  { key: 'trip', label: 'Trip', icon: 'airplane', color: '#F3D28F' },
+  { key: 'family', label: 'Family', icon: 'home', color: '#6C3EF4' },
+  { key: 'couple', label: 'Couple', icon: 'heart', color: '#FF6B9D' },
+  { key: 'roommates', label: 'Roommates', icon: 'business', color: '#4F6EF7' },
+  { key: 'office', label: 'Office', icon: 'briefcase', color: '#6366F1' },
+  { key: 'event', label: 'Event', icon: 'calendar', color: '#FF6B6B' },
+  { key: 'apartment', label: 'Apartment', icon: 'home', color: '#8A5CF6' },
+];
 
 export function CreateSharedGroupScreen() {
   const navigation = useNavigation<any>();
@@ -22,13 +29,14 @@ export function CreateSharedGroupScreen() {
   const { colors } = useTheme();
 
   const [name, setName] = useState('');
-  const [type, setType] = useState('Friends');
+  const [type, setType] = useState('friends');
   const [description, setDescription] = useState('');
   const [partnerPhone, setPartnerPhone] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  const showPartnerInput = type === 'Couple';
+  const showPartnerInput = type === 'couple';
+  const selType = GROUP_TYPES.find(t => t.key === type) || GROUP_TYPES[0];
 
   async function handleCreate() {
     if (!name.trim()) { setError('Group name is required'); return; }
@@ -40,7 +48,7 @@ export function CreateSharedGroupScreen() {
         description: description.trim(), currency: 'INR',
       });
       const newGroupId = res?.id || res?._id;
-      if (type === 'Couple' && newGroupId && partnerPhone.trim()) {
+      if (type === 'couple' && newGroupId && partnerPhone.trim()) {
         await api.post(`/shared-finance/groups/${newGroupId}/members/add-by-phone`, {
           phone: `+91${partnerPhone.trim()}`,
         }).catch(() => {});
@@ -74,7 +82,7 @@ export function CreateSharedGroupScreen() {
             <Text style={styles.headerSub}>Split expenses with friends, family, and more</Text>
           </LinearGradient>
 
-          <View style={{ padding: 20 }}>
+          <View style={{ padding: 20, gap: 20 }}>
             {error ? (
               <View style={[styles.errorBox, { backgroundColor: '#FF4D4F12' }]}>
                 <Ionicons name="alert-circle" size={16} color="#FF4D4F" />
@@ -82,39 +90,56 @@ export function CreateSharedGroupScreen() {
               </View>
             ) : null}
 
-            <Text style={[styles.label, { color: colors.text.secondary }]}>Space Name</Text>
-            <TextInput
-              style={[styles.input, { backgroundColor: colors.bg.card, color: colors.text.primary, borderColor: colors.border.subtle }]}
-              value={name} onChangeText={setName}
-              placeholder="e.g. Goa Trip 2025"
-              placeholderTextColor={colors.text.tertiary}
-            />
+            <View>
+              <Text style={[styles.label, { color: colors.text.secondary }]}>Space Name</Text>
+              <TextInput
+                style={[styles.input, { backgroundColor: colors.bg.card, color: colors.text.primary, borderColor: colors.border.subtle }]}
+                value={name} onChangeText={setName}
+                placeholder="e.g. Goa Trip 2025"
+                placeholderTextColor={colors.text.tertiary}
+              />
+            </View>
 
-            <Text style={[styles.label, { color: colors.text.secondary, marginTop: 16 }]}>Type</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.typeRow}>
-              {GROUP_TYPES.map((t) => (
-                <TouchableOpacity
-                  key={t}
-                  style={[styles.typeChip, { borderColor: type === t ? '#6C3EF4' : colors.border.subtle, backgroundColor: type === t ? '#6C3EF415' : colors.bg.card }]}
-                  onPress={() => setType(t)}
-                >
-                  <Text style={[styles.typeChipText, { color: type === t ? '#6C3EF4' : colors.text.secondary }]}>{t}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+            <View>
+              <Text style={[styles.label, { color: colors.text.secondary }]}>Type</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.typeRow}>
+                {GROUP_TYPES.map((t) => {
+                  const active = type === t.key;
+                  return (
+                    <TouchableOpacity
+                      key={t.key}
+                      style={[
+                        styles.typeChip,
+                        {
+                          borderColor: active ? t.color : colors.border.subtle,
+                          backgroundColor: active ? `${t.color}20` : colors.bg.card,
+                        },
+                      ]}
+                      onPress={() => setType(t.key)}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name={t.icon as any} size={16} color={active ? t.color : colors.text.tertiary} />
+                      <Text style={[styles.typeChipText, { color: active ? t.color : colors.text.secondary }]}>{t.label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
 
-            <Text style={[styles.label, { color: colors.text.secondary, marginTop: 16 }]}>Description (optional)</Text>
-            <TextInput
-              style={[styles.input, styles.textArea, { backgroundColor: colors.bg.card, color: colors.text.primary, borderColor: colors.border.subtle }]}
-              value={description} onChangeText={setDescription}
-              placeholder="What's this space for?"
-              placeholderTextColor={colors.text.tertiary}
-              multiline
-            />
+            <View>
+              <Text style={[styles.label, { color: colors.text.secondary }]}>Description (optional)</Text>
+              <TextInput
+                style={[styles.input, styles.textArea, { backgroundColor: colors.bg.card, color: colors.text.primary, borderColor: colors.border.subtle }]}
+                value={description} onChangeText={setDescription}
+                placeholder="What's this space for?"
+                placeholderTextColor={colors.text.tertiary}
+                multiline
+              />
+            </View>
 
             {showPartnerInput && (
-              <>
-                <Text style={[styles.label, { color: colors.text.secondary, marginTop: 16 }]}>Partner Phone</Text>
+              <View>
+                <Text style={[styles.label, { color: colors.text.secondary }]}>Partner Phone</Text>
                 <View style={[styles.phoneRow, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
                   <Text style={[styles.countryCode, { color: colors.text.secondary }]}>+91</Text>
                   <TextInput
@@ -125,22 +150,26 @@ export function CreateSharedGroupScreen() {
                     keyboardType="phone-pad" maxLength={10}
                   />
                 </View>
-              </>
+              </View>
             )}
 
-            <TouchableOpacity
+            <LinearGradient
+              colors={['#6C3EF4', '#8B5CF6']}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
               style={[styles.saveBtn, saving && { opacity: 0.6 }]}
-              onPress={handleCreate} disabled={saving} activeOpacity={0.85}
             >
-              <LinearGradient colors={['#6C3EF4', '#8B5CF6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.saveBtnGrad}>
+              <TouchableOpacity
+                onPress={handleCreate} disabled={saving} activeOpacity={0.85}
+                style={styles.saveBtnInner}
+              >
                 {saving ? <ActivityIndicator color="#FFF" /> : (
                   <>
                     <Ionicons name="people" size={18} color="#FFF" />
                     <Text style={styles.saveBtnText}>Create Space</Text>
                   </>
                 )}
-              </LinearGradient>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            </LinearGradient>
           </View>
         </ScrollView>
       </KeyboardAvoidingContainer>
@@ -149,22 +178,22 @@ export function CreateSharedGroupScreen() {
 }
 
 const styles = StyleSheet.create({
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
   backBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
   headerTitle: { color: '#FFF', fontSize: 18, fontWeight: '700' },
   headerSub: { color: 'rgba(255,255,255,0.6)', fontSize: 13 },
-  errorBox: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 14, marginBottom: 16, gap: 8 },
+  errorBox: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 14, gap: 8 },
   errorText: { fontSize: 13, flex: 1 },
   label: { fontSize: 13, fontWeight: '600', marginBottom: 8 },
   input: { fontSize: 15, paddingHorizontal: 16, paddingVertical: 14, borderRadius: 14, borderWidth: 1 },
   textArea: { minHeight: 80, textAlignVertical: 'top' },
   typeRow: { gap: 8, paddingBottom: 4 },
-  typeChip: { paddingHorizontal: 18, paddingVertical: 10, borderRadius: 20, borderWidth: 1, marginRight: 8 },
-  typeChipText: { fontSize: 14, fontWeight: '600' },
+  typeChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, borderWidth: 1, marginRight: 8 },
+  typeChipText: { fontSize: 13, fontWeight: '600' },
   phoneRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, borderWidth: 1, paddingLeft: 14 },
   countryCode: { fontSize: 15, fontWeight: '600', marginRight: 8 },
   phoneInput: { flex: 1, fontSize: 15, paddingVertical: 14 },
-  saveBtn: { borderRadius: 16, overflow: 'hidden', marginTop: 28 },
-  saveBtnGrad: { flexDirection: 'row', paddingVertical: 16, alignItems: 'center', justifyContent: 'center', gap: 8 },
+  saveBtn: { borderRadius: 16, overflow: 'hidden', marginTop: 4 },
+  saveBtnInner: { flexDirection: 'row', paddingVertical: 16, alignItems: 'center', justifyContent: 'center', gap: 8 },
   saveBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 });

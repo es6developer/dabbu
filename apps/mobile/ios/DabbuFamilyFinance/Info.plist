@@ -29,7 +29,6 @@
 			<array>
 				<string>dabbu</string>
 				<string>app.dabbu.mobile</string>
-				<string>com.googleusercontent.apps.1031730335520-04qfis58v1a073l8pa9ta4blabkeuce8</string>
 			</array>
 		</dict>
 	</array>
@@ -46,6 +45,8 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>Scan receipts and documents</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Dabbu accesses your contacts to help find friends who are already using the app, making it easy to connect and share expenses.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Use Face ID to unlock Dabbu and authenticate payments</string>
 	<key>NSLocalNotificationUsageDescription</key>
@@ -56,10 +57,6 @@
 	<string>Dabbu sends notifications for expense updates, payment reminders, and shared finance activity.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Allow $(PRODUCT_NAME) to access your photos</string>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>remote-notification</string>
-	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>SplashScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>

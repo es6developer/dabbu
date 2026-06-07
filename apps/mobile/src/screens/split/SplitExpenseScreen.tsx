@@ -23,7 +23,7 @@ const MEMBERS = [
 
 export function SplitExpenseScreen() {
   const navigation = useNavigation<any>();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
 
   const [expenseName, setExpenseName] = useState('');
@@ -54,77 +54,91 @@ export function SplitExpenseScreen() {
       <KeyboardAvoidingContainer>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
           <LinearGradient
-            colors={['#6C3EF4', '#8B5CF6']}
+            colors={['#5D38B5', '#7A52D1']}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-            style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}
+            style={{ paddingTop: insets.top + 12, paddingBottom: 20, paddingHorizontal: 20 }}
           >
             <View style={styles.headerRow}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                <Ionicons name="close" size={24} color="#FFF" />
+                <Ionicons name="arrow-back" size={22} color="#FFF" />
               </TouchableOpacity>
-              <Text style={styles.headerTitle}>Create Split</Text>
+              <Text style={styles.headerTitle}>Split Bill</Text>
               <View style={{ width: 32 }} />
             </View>
           </LinearGradient>
 
-          <View style={{ padding: 20 }}>
-            <Text style={[styles.label, { color: colors.text.secondary }]}>Expense Name</Text>
-            <TextInput
-              style={[styles.input, { backgroundColor: colors.bg.card, color: colors.text.primary, borderColor: colors.border.subtle }]}
-              placeholder="e.g. Dinner at restaurant"
-              placeholderTextColor={colors.text.tertiary}
-              value={expenseName}
-              onChangeText={setExpenseName}
-            />
-
-            <Text style={[styles.label, { color: colors.text.secondary, marginTop: 16 }]}>Amount</Text>
-            <View style={[styles.amountRow, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
-              <Text style={[styles.currency, { color: colors.text.primary }]}>₹</Text>
+          <View style={{ padding: 20, gap: 16 }}>
+            <View style={[styles.summaryCard, { backgroundColor: colors.bg.card, shadowColor: isDark ? '#000' : 'rgba(0,0,0,0.06)' }]}>
+              <Text style={[styles.label, { color: colors.text.secondary }]}>Split Name</Text>
               <TextInput
-                style={[styles.amountInput, { color: colors.text.primary }]}
-                placeholder="0"
+                style={[styles.nameInput, { color: colors.text.primary }]}
+                placeholder="Dinner Split"
                 placeholderTextColor={colors.text.tertiary}
-                value={amount}
-                onChangeText={setAmount}
-                keyboardType="decimal-pad"
+                value={expenseName}
+                onChangeText={setExpenseName}
               />
+              <View style={[styles.divider, { backgroundColor: colors.border.subtle }]} />
+              <Text style={[styles.label, { color: colors.text.secondary }]}>Total Amount</Text>
+              <Text style={[styles.totalAmount, { color: colors.text.primary }]}>₹{totalAmount.toLocaleString('en-IN')}</Text>
             </View>
 
-            <Text style={[styles.label, { color: colors.text.secondary, marginTop: 16 }]}>Members</Text>
-            <View style={styles.memberRow}>
-              {MEMBERS.map((m) => (
-                <TouchableOpacity
-                  key={m.id}
-                  style={[styles.memberChip, { borderColor: selectedMembers.includes(m.id) ? '#6C3EF4' : colors.border.subtle, backgroundColor: selectedMembers.includes(m.id) ? '#6C3EF415' : colors.bg.card }]}
-                  onPress={() => toggleMember(m.id)}
-                >
-                  <View style={[styles.memberAvatar, { backgroundColor: selectedMembers.includes(m.id) ? '#6C3EF4' : colors.text.tertiary }]}>
-                    <Text style={styles.memberAvatarText}>{m.name[0]}</Text>
-                  </View>
-                  <Text style={[styles.memberName, { color: selectedMembers.includes(m.id) ? '#6C3EF4' : colors.text.secondary }]}>{m.name}</Text>
-                  {selectedMembers.includes(m.id) && <Ionicons name="checkmark-circle" size={16} color="#6C3EF4" />}
-                </TouchableOpacity>
-              ))}
+            <View style={[styles.card, { backgroundColor: colors.bg.card, shadowColor: isDark ? '#000' : 'rgba(0,0,0,0.06)' }]}>
+              <Text style={[styles.cardTitle, { color: colors.text.primary }]}>Members</Text>
+              <View style={styles.memberRow}>
+                {MEMBERS.map((m) => (
+                  <TouchableOpacity
+                    key={m.id}
+                    style={[styles.memberChip, { borderColor: selectedMembers.includes(m.id) ? '#5D38B5' : colors.border.subtle, backgroundColor: selectedMembers.includes(m.id) ? '#5D38B510' : 'transparent' }]}
+                    onPress={() => toggleMember(m.id)}
+                  >
+                    <View style={[styles.memberAvatar, { backgroundColor: selectedMembers.includes(m.id) ? '#5D38B5' : colors.text.tertiary }]}>
+                      <Text style={styles.memberAvatarText}>{m.name[0]}</Text>
+                    </View>
+                    <Text style={[styles.memberName, { color: selectedMembers.includes(m.id) ? '#5D38B5' : colors.text.secondary }]}>{m.name}</Text>
+                    {selectedMembers.includes(m.id) && <Ionicons name="checkmark-circle" size={16} color="#5D38B5" />}
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
 
-            <Text style={[styles.label, { color: colors.text.secondary, marginTop: 16 }]}>Split Method</Text>
-            <View style={styles.methodGrid}>
+            <Text style={[styles.sectionLabel, { color: colors.text.primary }]}>Split Mode</Text>
+            <View style={styles.methodRow}>
               {SPLIT_METHODS.map((m) => (
                 <TouchableOpacity
                   key={m.key}
-                  style={[styles.methodCard, { borderColor: splitMethod === m.key ? '#6C3EF4' : colors.border.subtle, backgroundColor: splitMethod === m.key ? '#6C3EF4' : colors.bg.card }]}
+                  style={[styles.methodCard, { borderColor: splitMethod === m.key ? '#5D38B5' : colors.border.subtle, backgroundColor: splitMethod === m.key ? '#5D38B5' : colors.bg.card }]}
                   onPress={() => setSplitMethod(m.key)}
                 >
-                  <Ionicons name={m.icon as any} size={22} color={splitMethod === m.key ? '#FFF' : colors.text.secondary} />
+                  <Ionicons name={m.icon as any} size={24} color={splitMethod === m.key ? '#FFF' : colors.text.secondary} />
                   <Text style={[styles.methodLabel, { color: splitMethod === m.key ? '#FFF' : colors.text.primary }]}>{m.label}</Text>
                   <Text style={[styles.methodDesc, { color: splitMethod === m.key ? 'rgba(255,255,255,0.7)' : colors.text.tertiary }]}>{m.desc}</Text>
                 </TouchableOpacity>
               ))}
             </View>
 
+            <View style={[styles.card, { backgroundColor: colors.bg.card, shadowColor: isDark ? '#000' : 'rgba(0,0,0,0.06)' }]}>
+              <View style={styles.paidRow}>
+                <Ionicons name="person-outline" size={18} color={colors.text.secondary} />
+                <Text style={[styles.paidLabel, { color: colors.text.secondary }]}>Paid By</Text>
+                <TouchableOpacity style={[styles.paidValue, { backgroundColor: colors.bg.tertiary }]}>
+                  <Text style={[styles.paidText, { color: colors.text.primary }]}>You</Text>
+                  <Ionicons name="chevron-down" size={14} color={colors.text.tertiary} />
+                </TouchableOpacity>
+              </View>
+              <View style={[styles.divider, { backgroundColor: colors.border.subtle }]} />
+              <View style={styles.paidRow}>
+                <Ionicons name="receipt-outline" size={18} color={colors.text.secondary} />
+                <Text style={[styles.paidLabel, { color: colors.text.secondary }]}>Tax (Optional)</Text>
+                <TouchableOpacity style={[styles.paidValue, { backgroundColor: colors.bg.tertiary }]}>
+                  <Text style={[styles.paidText, { color: colors.text.tertiary }]}>None</Text>
+                  <Ionicons name="chevron-down" size={14} color={colors.text.tertiary} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
             {totalAmount > 0 && activeMembers.length > 0 && (
-              <View style={{ marginTop: 20 }}>
-                <Text style={[styles.label, { color: colors.text.secondary }]}>Split Preview</Text>
+              <View>
+                <Text style={[styles.sectionLabel, { color: colors.text.primary }]}>Split Preview</Text>
                 <SplitSummaryCard
                   totalAmount={totalAmount}
                   members={activeMembers.map(m => ({
@@ -136,18 +150,14 @@ export function SplitExpenseScreen() {
               </View>
             )}
 
-            <TouchableOpacity
-              style={[styles.createBtn]}
-              onPress={handleCreateSplit}
-              activeOpacity={0.85}
-            >
+            <TouchableOpacity style={styles.createBtn} onPress={handleCreateSplit} activeOpacity={0.85}>
               <LinearGradient
-                colors={['#6C3EF4', '#8B5CF6']}
+                colors={['#5D38B5', '#7A52D1']}
                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
                 style={styles.createBtnGrad}
               >
                 <Ionicons name="swap-horizontal" size={18} color="#FFF" />
-                <Text style={styles.createBtnText}>Create Split</Text>
+                <Text style={styles.createBtnText}>Confirm Split</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -160,23 +170,37 @@ export function SplitExpenseScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  backBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { color: '#FFF', fontSize: 18, fontWeight: '700' },
-  label: { fontSize: 13, fontWeight: '600', marginBottom: 8 },
-  input: { fontSize: 15, paddingHorizontal: 16, paddingVertical: 14, borderRadius: 14, borderWidth: 1 },
-  amountRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, borderWidth: 1, paddingHorizontal: 16 },
-  currency: { fontSize: 22, fontWeight: '700', marginRight: 8 },
-  amountInput: { flex: 1, fontSize: 24, fontWeight: '700', paddingVertical: 14 },
-  memberRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  memberChip: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 14, borderWidth: 1 },
+  backBtn: { width: 34, height: 34, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
+  headerTitle: { color: '#FFF', fontSize: 17, fontWeight: '700' },
+
+  summaryCard: { borderRadius: 20, padding: 18, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 2 },
+  label: { fontSize: 11, fontWeight: '600', letterSpacing: 0.3, marginBottom: 6 },
+  nameInput: { fontSize: 16, fontWeight: '600', paddingVertical: 4 },
+  divider: { height: StyleSheet.hairlineWidth, marginVertical: 12 },
+  totalAmount: { fontSize: 32, fontWeight: '800', letterSpacing: -1 },
+
+  card: { borderRadius: 20, padding: 18, gap: 10, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 2 },
+  cardTitle: { fontSize: 14, fontWeight: '700' },
+
+  memberRow: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
+  memberChip: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, borderWidth: 1 },
   memberAvatar: { width: 28, height: 28, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   memberAvatarText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
   memberName: { fontSize: 13, fontWeight: '600' },
-  methodGrid: { gap: 10 },
-  methodCard: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderRadius: 16, borderWidth: 1 },
-  methodLabel: { fontSize: 15, fontWeight: '700', flex: 1 },
-  methodDesc: { fontSize: 11, fontWeight: '500' },
-  createBtn: { borderRadius: 16, overflow: 'hidden', marginTop: 24 },
+
+  sectionLabel: { fontSize: 15, fontWeight: '700', marginTop: 4 },
+
+  methodRow: { flexDirection: 'row', gap: 10 },
+  methodCard: { flex: 1, alignItems: 'center', gap: 6, padding: 16, borderRadius: 18, borderWidth: 1, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 },
+  methodLabel: { fontSize: 13, fontWeight: '700', textAlign: 'center' },
+  methodDesc: { fontSize: 10, fontWeight: '500', textAlign: 'center', lineHeight: 14 },
+
+  paidRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  paidLabel: { fontSize: 13, fontWeight: '500', flex: 1 },
+  paidValue: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10 },
+  paidText: { fontSize: 13, fontWeight: '600' },
+
+  createBtn: { borderRadius: 16, overflow: 'hidden', marginTop: 4 },
   createBtnGrad: { flexDirection: 'row', paddingVertical: 16, alignItems: 'center', justifyContent: 'center', gap: 8 },
   createBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 });

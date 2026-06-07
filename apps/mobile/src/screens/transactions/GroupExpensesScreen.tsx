@@ -1115,7 +1115,19 @@ export function GroupExpensesScreen() {
                   const ed = groupExpenses[item.id] || { total: 0, count: 0, latest: null };
 
                   return (
-                    <View key={item.id} style={s.cardWrap}>
+                    <View
+                      key={item.id}
+                      style={[
+                        s.cardWrap,
+                        {
+                          shadowColor: isDark ? '#000' : colors.border.subtle,
+                          shadowOffset: { width: 0, height: 4 },
+                          shadowOpacity: 0.15,
+                          shadowRadius: 10,
+                          elevation: 4,
+                        },
+                      ]}
+                    >
                       <TouchableOpacity
                         activeOpacity={0.7}
                         onPress={() =>
@@ -1126,7 +1138,7 @@ export function GroupExpensesScreen() {
                         }
                       >
                         <LinearGradient
-                          colors={[colors.bg.secondary, colors.bg.elevated || colors.bg.tertiary]}
+                          colors={[colors.bg.card, colors.bg.elevated || colors.bg.tertiary]}
                           start={{ x: 0, y: 0 }}
                           end={{ x: 1, y: 1 }}
                           style={s.card}
@@ -1250,12 +1262,9 @@ export function GroupExpensesScreen() {
                             <TouchableOpacity
                               style={[s.quickAction, { backgroundColor: colors.bg.tertiary }]}
                               onPress={() =>
-                                navigation.navigate('CreateTransaction', {
-                                  prefill: {
-                                    groupId: item.id,
-                                    groupName: item.name,
-                                    returnTo: 'GroupExpenses',
-                                  },
+                                navigation.navigate('SharedExpenseForm', {
+                                  groupId: item.id,
+                                  edit: false,
                                 })
                               }
                             >
@@ -1293,7 +1302,7 @@ export function GroupExpensesScreen() {
                             <TouchableOpacity
                               style={[s.quickAction, { backgroundColor: colors.bg.tertiary }]}
                               onPress={() =>
-                                navigation.navigate('GroupExpenses', {
+                                navigation.navigate('Settlement', {
                                   groupId: item.id,
                                   groupName: item.name,
                                 })
@@ -1564,7 +1573,7 @@ const s = StyleSheet.create({
   sectionCountText: { fontSize: 12, fontWeight: '700', color: '#FFF' },
 
   cardWrap: { marginHorizontal: 24, marginBottom: 12 },
-  card: { borderRadius: 20, padding: 16 },
+  card: { borderRadius: 20, padding: 16, overflow: 'hidden' },
   cardTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   cardAvatar: {
     width: 48,

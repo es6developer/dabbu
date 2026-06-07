@@ -1,15 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  Dimensions,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BaseScreen } from '../../components/ui/BaseScreen';
+import { useTheme } from '../../theme';
 import { useAuth } from '../../store/AuthContext';
 import { useAppLock } from '../../store/LockContext';
-import { spacing } from '../../theme';
-import { useTheme, typography as typographyStyles } from '../../theme';
 import { api, setAccessToken, getAccessToken } from '../../services/api';
+
+const { width: SCREEN_W } = Dimensions.get('window');
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -58,17 +66,18 @@ const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
   },
 ];
 
-const ROW_ICON_MAP: Record<string, { gradient: [string, string]; icon: IconName }> = {
-  Profile: { gradient: ['#6366F1', '#8B5CF6'], icon: 'person' },
-  Subscription: { gradient: ['#6C3EF4', '#8B5CF6'], icon: 'diamond' },
-  Security: { gradient: ['#10B981', '#059669'], icon: 'shield-checkmark' },
-  'Lock App': { gradient: ['#EF4444', '#DC2626'], icon: 'lock-closed' },
+const ROW_META: Record<string, { gradient: [string, string]; icon: IconName }> = {
+  Profile: { gradient: ['#6C3EF4', '#8B5CF6'], icon: 'person' },
+  Subscription: { gradient: ['#F3D28F', '#D4A84B'], icon: 'diamond' },
+  'Refer & Earn': { gradient: ['#FF4D4F', '#FF6B6B'], icon: 'gift' },
+  Security: { gradient: ['#34C759', '#059669'], icon: 'shield-checkmark' },
+  'Lock App': { gradient: ['#6C3EF4', '#5B2ED6'], icon: 'lock-closed' },
   'Reports & Analytics': { gradient: ['#8B5CF6', '#6D28D9'], icon: 'stats-chart' },
-  Notifications: { gradient: ['#6366F1', '#8B5CF6'], icon: 'notifications' },
-  Theme: { gradient: ['#EC4899', '#DB2777'], icon: 'color-palette' },
+  Theme: { gradient: ['#EC4899', '#BE185D'], icon: 'color-palette' },
+  Notifications: { gradient: ['#6C3EF4', '#8B5CF6'], icon: 'notifications' },
   'Customise Dashboard': { gradient: ['#4F6EF7', '#6C5CE7'], icon: 'apps' },
-  'Customise Bottom Menu': { gradient: ['#00B894', '#00A86B'], icon: 'menu' },
-  'Help Center': { gradient: ['#6366F1', '#4F46E5'], icon: 'help-circle' },
+  'Customise Bottom Menu': { gradient: ['#34C759', '#00A86B'], icon: 'menu' },
+  'Help Center': { gradient: ['#6C3EF4', '#5B2ED6'], icon: 'help-circle' },
   'Contact Us': { gradient: ['#14B8A6', '#0D9488'], icon: 'chatbubble-ellipses' },
   'Privacy Policy': { gradient: ['#78716C', '#57534E'], icon: 'document-text' },
 };
@@ -77,7 +86,7 @@ export function SettingsScreen() {
   const navigation = useNavigation<any>();
   const { user, logout } = useAuth();
   const { lockApp } = useAppLock();
-  const { colors, isDark, typography } = useTheme();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const [subscription, setSubscription] = useState<any>(null);
 
@@ -90,7 +99,7 @@ export function SettingsScreen() {
       setAccessToken(getAccessToken());
       const res = await api.get<any>('/premium/current');
       setSubscription(res);
-    } catch (_e) {
+    } catch {
       setSubscription(null);
     }
   }
@@ -103,16 +112,8 @@ export function SettingsScreen() {
       return;
     }
     const registered = [
-      'Profile',
-      'Security',
-      'Premium',
-      'Theme',
-      'CustomiseDashboard',
-      'CustomiseBottomMenu',
-      'Help',
-      'Contact',
-      'Privacy',
-      'Analytics',
+      'Profile', 'Security', 'Premium', 'Theme', 'CustomiseDashboard',
+      'CustomiseBottomMenu', 'Help', 'Contact', 'Privacy', 'Analytics',
       'NotificationSettings',
     ];
     if (!registered.includes(screen)) {
@@ -134,171 +135,104 @@ export function SettingsScreen() {
   };
 
   return (
-    <BaseScreen noPadding>
-      <LinearGradient
-        colors={
-          isDark
-            ? ['#11111A', colors.bg.primary, '#0A0A0F']
-            : ['#F5F0FF', colors.bg.primary, '#FAF8FF']
-        }
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
+    <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
       >
-        {/* Header */}
         <LinearGradient
-          colors={[colors.accent.primary, isDark ? '#4A1FCC' : '#8B5CF6']}
+          colors={['#6C3EF4', '#8B5CF6']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={styles.header}
+          style={[s.hero, { paddingTop: insets.top + 20 }]}
         >
-          <View style={styles.headerRow}>
-            <View>
-              <Text style={styles.headerTitle}>Settings</Text>
-              <Text style={styles.headerSub}>
-                Personalise your experience
-              </Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              style={[
-                styles.closeBtn,
-                { backgroundColor: 'rgba(255,255,255,0.18)' },
-              ]}
-            >
-              <Ionicons name="close" size={20} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.headerMetric}>Secure controls, smarter defaults, premium tools.</Text>
+          <TouchableOpacity
+            style={s.heroBack}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="chevron-back" size={22} color="#FFF" />
+          </TouchableOpacity>
+          <Text style={s.heroTitle}>Settings</Text>
+          <Text style={s.heroSub}>Personalise your experience</Text>
+          <View style={s.heroGlow} />
         </LinearGradient>
 
-        {/* Profile Card */}
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => handleNav('Profile')}
-          style={styles.profileWrap}
+          style={s.profileWrap}
         >
-          <LinearGradient
-            colors={
-              isDark
-                ? ['rgba(99,102,241,0.2)', 'rgba(139,92,246,0.08)']
-                : ['rgba(99,102,241,0.12)', 'rgba(139,92,246,0.04)']
-            }
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[
-              styles.profileCard,
-              { borderColor: isDark ? 'rgba(99,102,241,0.25)' : 'rgba(99,102,241,0.15)' },
-            ]}
-          >
-            <View style={styles.profileLeft}>
-              <LinearGradient
-                colors={['#6366F1', '#8B5CF6']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.avatar}
-              >
-                <Text style={styles.avatarText}>{user?.firstName?.[0] || 'U'}</Text>
-              </LinearGradient>
-              <View style={styles.profileInfo}>
-                <Text style={[styles.name, { color: colors.text.primary }]}>
-                  {user?.firstName || 'User'} {user?.lastName || ''}
+          <View style={[s.profileCard, { backgroundColor: colors.bg.card }]}>
+            <LinearGradient
+              colors={['#6C3EF4', '#8B5CF6']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={s.avatar}
+            >
+              <Text style={s.avatarText}>{user?.firstName?.[0] || 'U'}</Text>
+            </LinearGradient>
+            <View style={s.profileBody}>
+              <Text style={[s.name, { color: colors.text.primary }]} numberOfLines={1}>
+                {user?.firstName || 'User'} {user?.lastName || ''}
+              </Text>
+              <Text style={[s.email, { color: colors.text.tertiary }]} numberOfLines={1}>
+                {user?.email || 'No email'}
+              </Text>
+              <View style={[s.planBadge, { backgroundColor: isPremium ? '#6C3EF415' : '#F0F0F0' }]}>
+                <View style={[s.planDot, { backgroundColor: isPremium ? '#6C3EF4' : '#9CA3AF' }]} />
+                <Text style={[s.planLabel, { color: isPremium ? '#6C3EF4' : '#9CA3AF' }]}>
+                  {isPremium ? 'Premium' : 'Free'}
                 </Text>
-                <Text style={[styles.email, { color: colors.text.tertiary }]} numberOfLines={1}>
-                  {user?.email || ''}
-                </Text>
-                <View
-                  style={[
-                    styles.planBadge,
-                    {
-                      backgroundColor: isPremium
-                        ? `${colors.accent.primary}18`
-                        : `${colors.text.tertiary}18`,
-                    },
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.planDot,
-                      { backgroundColor: isPremium ? colors.accent.primary : colors.text.tertiary },
-                    ]}
-                  />
-                  <Text
-                    style={[
-                      styles.planLabel,
-                      { color: isPremium ? colors.accent.primary : colors.text.tertiary },
-                    ]}
-                  >
-                    {isPremium ? 'Premium Plan' : 'Free Plan'}
-                  </Text>
-                </View>
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
-          </LinearGradient>
+            <View style={s.chevronWrap}>
+              <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
+            </View>
+          </View>
         </TouchableOpacity>
 
-        {/* Sections */}
         {SECTIONS.map((section, i) => (
-          <View key={i} style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text.tertiary }]}>
+          <View key={i} style={s.section}>
+            <Text style={[s.sectionTitle, { color: colors.text.tertiary }]}>
               {section.title}
             </Text>
-            <View
-              style={[
-                styles.sectionCard,
-                { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
-              ]}
-            >
+            <View style={[s.sectionCard, { backgroundColor: colors.bg.card }]}>
               {section.items.map((item, j) => {
-                const iconStyle = ROW_ICON_MAP[item.label];
+                const meta = ROW_META[item.label];
                 return (
                   <TouchableOpacity
                     key={j}
                     style={[
-                      styles.row,
-                      j < section.items.length - 1 && {
-                        borderBottomWidth: StyleSheet.hairlineWidth,
-                        borderBottomColor: colors.border.subtle,
-                      },
+                      s.row,
+                      j < section.items.length - 1 && s.rowBorder,
                     ]}
                     onPress={() => handleNav(item.screen, item.premium, item.action)}
-                    activeOpacity={0.5}
+                    activeOpacity={0.6}
                   >
                     <LinearGradient
-                      colors={iconStyle?.gradient || ['#6366F1', '#8B5CF6']}
+                      colors={meta?.gradient || ['#6C3EF4', '#8B5CF6']}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 1 }}
-                      style={styles.rowIcon}
+                      style={s.rowIcon}
                     >
                       <Ionicons
-                        name={(iconStyle?.icon as any) || item.icon}
+                        name={(meta?.icon as any) || item.icon}
                         size={16}
-                        color="#fff"
+                        color="#FFF"
                       />
                     </LinearGradient>
-                    <Text style={[styles.rowLabel, { color: colors.text.primary }]}>
+                    <Text style={[s.rowLabel, { color: colors.text.primary }]}>
                       {item.label}
                     </Text>
-                    <View style={styles.rowRight}>
+                    <View style={s.rowRight}>
                       {item.premium && !isPremium && (
-                        <View
-                          style={[
-                            styles.premiumBadge,
-                            { backgroundColor: colors.accent.primary + '15' },
-                          ]}
-                        >
-                          <Ionicons name="lock-closed" size={9} color={colors.accent.primary} />
-                          <Text style={[styles.premiumLabel, { color: colors.accent.primary }]}>
-                            Premium
-                          </Text>
+                        <View style={s.premiumBadge}>
+                          <Ionicons name="lock-closed" size={9} color="#6C3EF4" />
+                          <Text style={s.premiumLabel}>Premium</Text>
                         </View>
                       )}
-                      <Ionicons name="chevron-forward" size={15} color={colors.text.tertiary} />
+                      <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
                     </View>
                   </TouchableOpacity>
                 );
@@ -307,85 +241,90 @@ export function SettingsScreen() {
           </View>
         ))}
 
-        {/* Logout */}
         <TouchableOpacity
-          style={[
-            styles.logoutRow,
-            { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
-          ]}
+          style={[s.logoutRow, { backgroundColor: colors.bg.card }]}
           onPress={() => {
             Alert.alert('Logout', 'Are you sure you want to logout?', [
               { text: 'Cancel', style: 'cancel' },
               {
                 text: 'Logout',
                 style: 'destructive',
-                onPress: () => {
-                  logout().catch(() => {});
-                },
+                onPress: () => logout().catch(() => {}),
               },
             ]);
           }}
-          activeOpacity={0.5}
+          activeOpacity={0.6}
         >
-          <View style={[styles.logoutIcon, { backgroundColor: colors.status.error + '15' }]}>
-            <Ionicons name="log-out-outline" size={18} color={colors.status.error} />
+          <View style={s.logoutIcon}>
+            <Ionicons name="log-out-outline" size={18} color="#FF4D4F" />
           </View>
-          <Text style={[styles.logoutText, { color: colors.status.error }]}>Sign Out</Text>
+          <Text style={s.logoutText}>Sign Out</Text>
+          <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
         </TouchableOpacity>
 
-        {/* Version */}
-        <Text style={[styles.version, { color: colors.text.tertiary }]}>Dabbu v1.0.0</Text>
+        <Text style={[s.version, { color: colors.text.tertiary }]}>Dabbu v1.0.0</Text>
       </ScrollView>
-    </BaseScreen>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  header: {
-    marginHorizontal: 16,
-    marginTop: 8,
-    marginBottom: 8,
-    borderRadius: 24,
-    padding: 20,
+const s = StyleSheet.create({
+  root: { flex: 1 },
+
+  hero: {
+    paddingHorizontal: 20,
+    paddingBottom: 48,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    overflow: 'hidden',
   },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  headerTitle: {
-    ...typographyStyles.appTitle,
-    color: '#FFFFFF',
-    fontSize: 32,
-    letterSpacing: 0,
-  },
-  headerSub: {
-    ...typographyStyles.body,
-    color: 'rgba(255,255,255,0.78)',
-    marginTop: 2,
-    fontFamily: 'Inter-Medium',
-  },
-  headerMetric: {
-    color: 'rgba(255,255,255,0.86)',
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 13,
-    lineHeight: 19,
-    marginTop: 28,
-  },
-  closeBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+  heroBack: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 16,
+  },
+  heroTitle: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.5,
+  },
+  heroSub: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.75)',
     marginTop: 4,
   },
+  heroGlow: {
+    position: 'absolute',
+    top: -60,
+    right: -40,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: 'rgba(243,210,143,0.15)',
+  },
 
-  profileWrap: { marginHorizontal: 16, marginTop: 20, marginBottom: 28 },
+  profileWrap: {
+    paddingHorizontal: 20,
+    marginTop: -24,
+    marginBottom: 28,
+  },
   profileCard: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
     borderRadius: 20,
-    borderWidth: 1,
+    shadowColor: '#6C3EF4',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 6,
   },
-  profileLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   avatar: {
     width: 52,
     height: 52,
@@ -393,10 +332,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: { color: '#fff', fontFamily: 'Inter-Bold', fontSize: 20 },
-  profileInfo: { marginLeft: 14, flex: 1 },
-  name: { ...typographyStyles.body, fontSize: 17, fontFamily: 'Inter-SemiBold' },
-  email: { ...typographyStyles.footnote, marginTop: 1, fontFamily: 'Inter-Medium' },
+  avatarText: { color: '#FFFFFF', fontSize: 20, fontWeight: '800' },
+  profileBody: { flex: 1, marginLeft: 14 },
+  name: { fontSize: 17, fontWeight: '700' },
+  email: { fontSize: 13, fontWeight: '500', marginTop: 2 },
   planBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -405,69 +344,89 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 20,
     gap: 5,
-    marginTop: 5,
+    marginTop: 6,
   },
   planDot: { width: 5, height: 5, borderRadius: 3 },
-  planLabel: { fontFamily: 'Inter-Bold', fontSize: 10, letterSpacing: 0.3 },
+  planLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 0.3 },
+  chevronWrap: { marginLeft: 8 },
 
-  section: { marginBottom: 16, paddingHorizontal: 16 },
+  section: { marginBottom: 20, paddingHorizontal: 20 },
   sectionTitle: {
-    ...typographyStyles.footnote,
-    fontFamily: 'Inter-SemiBold',
-    letterSpacing: 0.5,
-    marginBottom: 8,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginBottom: 10,
     marginLeft: 4,
   },
-  sectionCard: { borderRadius: 16, borderWidth: 1, overflow: 'hidden' },
+  sectionCard: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
 
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 13,
-    paddingHorizontal: 14,
+    paddingVertical: 15,
+    paddingHorizontal: 16,
+  },
+  rowBorder: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#F0F0F0',
   },
   rowIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 9,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 14,
   },
-  rowLabel: { flex: 1, ...typographyStyles.body, fontFamily: 'Inter-SemiBold' },
-  rowRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  rowLabel: { flex: 1, fontSize: 15, fontWeight: '600' },
+  rowRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   premiumBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    paddingHorizontal: 6,
+    paddingHorizontal: 7,
     paddingVertical: 3,
     borderRadius: 6,
+    backgroundColor: '#6C3EF410',
   },
-  premiumLabel: { fontFamily: 'Inter-Bold', fontSize: 10 },
+  premiumLabel: { fontSize: 10, fontWeight: '700', color: '#6C3EF4' },
 
   logoutRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 16,
+    marginHorizontal: 20,
     padding: 16,
-    borderRadius: 16,
-    borderWidth: 1,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   logoutIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 9,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#FF4D4F12',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 14,
   },
-  logoutText: { ...typographyStyles.body, fontFamily: 'Inter-SemiBold' },
+  logoutText: { flex: 1, fontSize: 15, fontWeight: '600', color: '#FF4D4F' },
 
   version: {
     textAlign: 'center',
-    ...typographyStyles.footnote,
-    fontFamily: 'Inter-Medium',
+    fontSize: 12,
+    fontWeight: '500',
     marginTop: 24,
   },
 });

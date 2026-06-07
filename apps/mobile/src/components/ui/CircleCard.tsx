@@ -28,7 +28,7 @@ const TYPE_CONFIG: Record<string, { icon: string; gradient: [string, string] }> 
 };
 
 export function CircleCard({ name, membersCount, totalExpenses, yourBalance, type, onPress, onLongPress }: CircleCardProps) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const cfg = TYPE_CONFIG[type] || TYPE_CONFIG.default;
   const isPositive = yourBalance >= 0;
 
@@ -37,46 +37,51 @@ export function CircleCard({ name, membersCount, totalExpenses, yourBalance, typ
       activeOpacity={0.7}
       onPress={onPress}
       onLongPress={onLongPress}
-      style={[styles.outer, { borderColor: colors.border.subtle }]}
+      style={[
+        styles.outer,
+        {
+          backgroundColor: colors.bg.card,
+          borderColor: colors.border.default,
+          shadowColor: isDark ? '#000000' : colors.border.subtle,
+        },
+      ]}
     >
-      <View style={[styles.card, { backgroundColor: colors.bg.card }]}>
-        <LinearGradient colors={cfg.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.cover}>
-          <View style={styles.coverOverlay}>
-            <View style={styles.coverTop}>
-              <View style={styles.typeBadge}>
-                <Ionicons name={cfg.icon as any} size={12} color="#FFF" />
-                <Text style={styles.typeLabel}>{type}</Text>
-              </View>
+      <LinearGradient colors={cfg.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.cover}>
+        <View style={styles.coverOverlay}>
+          <View style={styles.coverTop}>
+            <View style={styles.typeBadge}>
+              <Ionicons name={cfg.icon as any} size={12} color="#FFF" />
+              <Text style={styles.typeLabel}>{type}</Text>
             </View>
-            <Text style={styles.coverName} numberOfLines={1}>{name}</Text>
           </View>
-        </LinearGradient>
+          <Text style={styles.coverName} numberOfLines={1}>{name}</Text>
+        </View>
+      </LinearGradient>
 
-        <View style={styles.body}>
-          <View style={styles.statsRow}>
-            <View style={styles.stat}>
-              <Text style={[styles.statLabel, { color: colors.text.tertiary }]}>Members</Text>
-              <Text style={[styles.statValue, { color: colors.text.primary }]}>{membersCount}</Text>
-            </View>
-            <View style={styles.stat}>
-              <Text style={[styles.statLabel, { color: colors.text.tertiary }]}>Expenses</Text>
-              <Text style={[styles.statValue, { color: colors.text.primary }]}>{fmt(totalExpenses)}</Text>
-            </View>
+      <View style={styles.body}>
+        <View style={styles.statsRow}>
+          <View style={styles.stat}>
+            <Text style={[styles.statLabel, { color: colors.text.tertiary }]}>Members</Text>
+            <Text style={[styles.statValue, { color: colors.text.primary }]}>{membersCount}</Text>
           </View>
+          <View style={styles.stat}>
+            <Text style={[styles.statLabel, { color: colors.text.tertiary }]}>Expenses</Text>
+            <Text style={[styles.statValue, { color: colors.text.primary }]}>{fmt(totalExpenses)}</Text>
+          </View>
+        </View>
 
-          <View style={[styles.balanceRow, { backgroundColor: isPositive ? '#34C75910' : '#FF4D4F10' }]}>
-            <Ionicons
-              name={isPositive ? 'arrow-down' : 'arrow-up'}
-              size={12}
-              color={isPositive ? '#34C759' : '#FF4D4F'}
-            />
-            <Text style={[styles.balanceLabel, { color: colors.text.tertiary }]}>
-              Your balance
-            </Text>
-            <Text style={[styles.balanceValue, { color: isPositive ? '#34C759' : '#FF4D4F' }]}>
-              {isPositive ? '+' : '-'}{fmt(Math.abs(yourBalance))}
-            </Text>
-          </View>
+        <View style={[styles.balanceRow, { backgroundColor: isPositive ? colors.status.successLight : colors.status.errorLight }]}>
+          <Ionicons
+            name={isPositive ? 'arrow-down' : 'arrow-up'}
+            size={12}
+            color={isPositive ? colors.status.success : colors.status.error}
+          />
+          <Text style={[styles.balanceLabel, { color: colors.text.secondary }]}>
+            Your balance
+          </Text>
+          <Text style={[styles.balanceValue, { color: isPositive ? colors.status.success : colors.status.error }]}>
+            {isPositive ? '+' : '-'}{fmt(Math.abs(yourBalance))}
+          </Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -90,10 +95,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     overflow: 'hidden',
-  },
-  card: {
-    borderRadius: 20,
-    overflow: 'hidden',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 4,
   },
   cover: {
     height: 90,

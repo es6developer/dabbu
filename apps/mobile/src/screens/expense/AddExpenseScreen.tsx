@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert,
 } from 'react-native';
@@ -22,6 +22,7 @@ export function AddExpenseScreen() {
   const [category, setCategory] = useState(initialCategory);
   const [notes, setNotes] = useState('');
   const [activeTab, setActiveTab] = useState<'expense' | 'income'>('expense');
+  const inputRef = useRef<TextInput>(null);
 
   async function handleSave() {
     if (!amount || parseFloat(amount) <= 0) {
@@ -32,10 +33,12 @@ export function AddExpenseScreen() {
     navigation.goBack();
   }
 
+  const fmtAmount = amount ? `₹${parseFloat(amount || '0').toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '₹0.00';
+
   return (
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
       <KeyboardAvoidingContainer>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
           <LinearGradient
             colors={['#6C3EF4', '#8B5CF6']}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
@@ -57,7 +60,7 @@ export function AddExpenseScreen() {
               style={[styles.tab, activeTab === 'expense' && styles.tabActive]}
               onPress={() => setActiveTab('expense')}
             >
-              <Text style={[styles.tabText, { color: activeTab === 'expense' ? '#6C3EF4' : colors.text.tertiary }]}>Expense</Text>
+              <Text style={[styles.tabText, { color: activeTab === 'expense' ? '#6C3EF4' : colors.text.tertiary }]}>Expenses</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.tab, activeTab === 'income' && styles.tabActive]}
@@ -67,18 +70,18 @@ export function AddExpenseScreen() {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.amountSection}>
-            <Text style={[styles.currencyLabel, { color: colors.text.secondary }]}>₹</Text>
+          <TouchableOpacity onPress={() => inputRef.current?.focus()} style={styles.amountSection}>
+            <Text style={styles.amountDisplay}>{fmtAmount}</Text>
+            <Text style={[styles.amountHint, { color: colors.text.tertiary }]}>Tap to edit amount</Text>
             <TextInput
-              style={[styles.amountInput, { color: colors.text.primary }]}
-              placeholder="0.00"
-              placeholderTextColor={colors.text.tertiary}
+              ref={inputRef}
+              style={styles.amountInput}
               value={amount}
               onChangeText={setAmount}
               keyboardType="decimal-pad"
               autoFocus
             />
-          </View>
+          </TouchableOpacity>
 
           <View style={{ paddingHorizontal: 20 }}>
             <View style={styles.chipRow}>
@@ -123,6 +126,7 @@ export function AddExpenseScreen() {
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
               style={styles.saveBtnGrad}
             >
+              <Ionicons name="checkmark-circle" size={18} color="#FFF" />
               <Text style={styles.saveBtnText}>Save Expense</Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -142,11 +146,12 @@ const styles = StyleSheet.create({
   tab: { flex: 1, paddingVertical: 10, borderRadius: 12, alignItems: 'center', backgroundColor: 'transparent' },
   tabActive: { backgroundColor: '#6C3EF415' },
   tabText: { fontSize: 14, fontWeight: '600' },
-  amountSection: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 20, gap: 4 },
-  currencyLabel: { fontSize: 32, fontWeight: '700', marginTop: -8 },
-  amountInput: { fontSize: 48, fontWeight: '800', textAlign: 'center', minWidth: 200, letterSpacing: -2 },
+  amountSection: { alignItems: 'center', paddingVertical: 24, gap: 4 },
+  amountDisplay: { fontSize: 44, fontWeight: '800', color: '#6C3EF4', letterSpacing: -2 },
+  amountHint: { fontSize: 12, fontWeight: '500' },
+  amountInput: { position: 'absolute', width: 1, height: 1, opacity: 0 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-  chip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12, borderWidth: 1 },
+  chip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 14, borderWidth: 1 },
   chipText: { fontSize: 13, fontWeight: '600' },
   notesRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, marginBottom: 12 },
   notesInput: { flex: 1, fontSize: 15, paddingVertical: 14 },
@@ -154,8 +159,8 @@ const styles = StyleSheet.create({
   billBtnText: { fontSize: 14, fontWeight: '500' },
   dateBtn: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: 14, borderWidth: 1, marginBottom: 12 },
   dateBtnText: { fontSize: 14, fontWeight: '500' },
-  bottomBar: { padding: 16, paddingBottom: 32 },
+  bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 16, paddingBottom: 32 },
   saveBtn: { borderRadius: 16, overflow: 'hidden' },
-  saveBtnGrad: { paddingVertical: 16, alignItems: 'center', justifyContent: 'center' },
+  saveBtnGrad: { flexDirection: 'row', paddingVertical: 16, alignItems: 'center', justifyContent: 'center', gap: 8 },
   saveBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 });

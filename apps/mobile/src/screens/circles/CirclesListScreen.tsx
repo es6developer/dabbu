@@ -13,7 +13,6 @@ import { BaseScreen } from '../../components/ui/BaseScreen';
 import { CircleCard } from '../../components/ui/CircleCard';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
-import { FloatingActionButton } from '../../components/ui/FloatingActionButton';
 
 const H_PADDING = 16;
 
@@ -24,7 +23,7 @@ function fmt(v: number) {
 export function CirclesListScreen() {
   const navigation = useNavigation<any>();
   const { accessToken, user } = useAuth();
-  const { colors, typography } = useTheme();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
 
   const [groups, setGroups] = useState<any[]>([]);
@@ -104,53 +103,97 @@ export function CirclesListScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} tintColor="#6C3EF4" />}
         contentContainerStyle={groups.length === 0 ? { flexGrow: 1 } : { paddingBottom: insets.bottom + 100 }}
         ListHeaderComponent={
-          <View style={{ paddingHorizontal: H_PADDING, paddingTop: 8 }}>
-            <Text style={[typography.caption2, { color: colors.text.tertiary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 2 }]}>
-              Circles
-            </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text style={[typography.sectionHeader, { color: colors.text.primary, flex: 1 }]}>Your Circles</Text>
-              <TouchableOpacity
-                style={[styles.addBtn, { backgroundColor: '#6C3EF4' }]}
-                onPress={() => navigation.navigate('CreateCircle')}
-              >
-                <Ionicons name="add" size={22} color="#FFF" />
-              </TouchableOpacity>
-            </View>
+          <View>
+            <LinearGradient
+              colors={['#6C3EF4', '#8B5CF6']}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              style={{ paddingTop: insets.top + 12, paddingBottom: 32, paddingHorizontal: 20 }}
+            >
+              <View style={styles.headerRow}>
+                <View>
+                  <Text style={styles.headerTitle}>Circles</Text>
+                  <Text style={styles.headerSub}>{groups.length} circle{groups.length !== 1 ? 's' : ''}</Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.addBtn}
+                  onPress={() => navigation.navigate('CreateCircle')}
+                >
+                  <Ionicons name="add" size={22} color="#FFF" />
+                </TouchableOpacity>
+              </View>
+            </LinearGradient>
 
             {(totalOwed.owed > 0 || totalOwed.iOwe > 0) && (
-              <LinearGradient
-                colors={['#6C3EF415', '#8B5CF608']}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                style={[styles.summaryCard, { borderColor: colors.border.subtle }]}
-              >
-                <View style={styles.summaryRow}>
-                  <View style={styles.summaryItem}>
-                    <Text style={[styles.summaryLabel, { color: colors.text.tertiary }]}>You're owed</Text>
-                    <Text style={[styles.summaryValue, { color: '#34C759' }]}>{fmt(totalOwed.owed)}</Text>
+              <View style={{ paddingHorizontal: H_PADDING, marginTop: -20 }}>
+                <LinearGradient
+                  colors={['#6C3EF4', '#8B5CF6', '#F3D28F']}
+                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                  style={styles.summaryCard}
+                >
+                  <View style={styles.summaryRow}>
+                    <View style={styles.summaryItem}>
+                      <Text style={styles.summaryLabel}>You're owed</Text>
+                      <Text style={[styles.summaryValue, { color: '#34C759' }]}>{fmt(totalOwed.owed)}</Text>
+                    </View>
+                    <View style={styles.summaryDivider} />
+                    <View style={styles.summaryItem}>
+                      <Text style={styles.summaryLabel}>You owe</Text>
+                      <Text style={[styles.summaryValue, { color: '#FF4D4F' }]}>{fmt(totalOwed.iOwe)}</Text>
+                    </View>
                   </View>
-                  <View style={[styles.summaryDivider, { backgroundColor: colors.border.subtle }]} />
-                  <View style={styles.summaryItem}>
-                    <Text style={[styles.summaryLabel, { color: colors.text.tertiary }]}>You owe</Text>
-                    <Text style={[styles.summaryValue, { color: '#FF4D4F' }]}>{fmt(totalOwed.iOwe)}</Text>
+                  <View style={styles.summaryQuickActions}>
+                    <TouchableOpacity
+                      style={styles.settleBtn}
+                      onPress={() => navigation.navigate('Settlement')}
+                    >
+                      <Ionicons name="swap-horizontal" size={12} color="#FFF" />
+                      <Text style={styles.settleBtnText}>Settle Up</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.splitBtn}
+                      onPress={() => navigation.navigate('SplitExpense')}
+                    >
+                      <Ionicons name="add-circle" size={12} color="#6C3EF4" />
+                      <Text style={styles.splitBtnText}>Split</Text>
+                    </TouchableOpacity>
                   </View>
-                </View>
-              </LinearGradient>
+                </LinearGradient>
+              </View>
             )}
           </View>
         }
-        renderItem={({ item }) => (
-          <CircleCard
-            name={item.name}
-            membersCount={item.members?.length || item._count?.members || 0}
-            totalExpenses={(item.expenses || []).reduce((s: number, e: any) => s + Number(e.amount || 0), 0)}
-            yourBalance={item.members?.find((m: any) => m.userId === user?.id)?.balance || 0}
-            type={item.type || 'default'}
-            onPress={() => navigation.navigate('SharedGroupDetail', { groupId: item.id, groupName: item.name })}
-          />
-        )}
+        renderItem={({ item, index }) => {
+          const anim = cardAnims.current[item.id] || new Animated.Value(1);
+          return (
+            <Animated.View style={{ transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }], opacity: anim }}>
+              <CircleCard
+                name={item.name}
+                membersCount={item.members?.length || item._count?.members || 0}
+                totalExpenses={(item.expenses || []).reduce((s: number, e: any) => s + Number(e.amount || 0), 0)}
+                yourBalance={item.members?.find((m: any) => m.userId === user?.id)?.balance || 0}
+                type={item.type || 'default'}
+                onPress={() => navigation.navigate('SharedGroupDetail', { groupId: item.id, groupName: item.name })}
+              />
+            </Animated.View>
+          );
+        }}
+        ListFooterComponent={
+          groups.length > 0 ? (
+            <TouchableOpacity
+              style={[styles.createCard, { backgroundColor: colors.bg.card, borderColor: colors.border.default }]}
+              onPress={() => navigation.navigate('CreateCircle')}
+              activeOpacity={0.7}
+            >
+              <LinearGradient colors={['#6C3EF4', '#8B5CF6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.createCardIcon}>
+                <Ionicons name="add" size={24} color="#FFF" />
+              </LinearGradient>
+              <Text style={[styles.createCardText, { color: colors.text.primary }]}>Create New Circle</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+            </TouchableOpacity>
+          ) : null
+        }
         ListEmptyComponent={
-          <View style={{ paddingHorizontal: H_PADDING, paddingTop: 32 }}>
+          <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: H_PADDING }}>
             <EmptyState
               icon="grid-outline"
               title="No circles yet"
@@ -161,32 +204,49 @@ export function CirclesListScreen() {
           </View>
         }
       />
-      <FloatingActionButton onPress={() => navigation.navigate('CreateCircle')} icon="add" />
+      <TouchableOpacity
+        style={[styles.fab, { shadowColor: isDark ? '#000' : '#6C3EF4' }]}
+        onPress={() => navigation.navigate('CreateCircle')}
+        activeOpacity={0.85}
+      >
+        <LinearGradient colors={['#6C3EF4', '#8B5CF6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.fabGrad}>
+          <Ionicons name="add" size={28} color="#FFF" />
+        </LinearGradient>
+      </TouchableOpacity>
     </BaseScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  addBtn: {
-    width: 40, height: 40, borderRadius: 12,
-    alignItems: 'center', justifyContent: 'center',
-  },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  headerTitle: { color: '#FFF', fontSize: 28, fontWeight: '800', letterSpacing: -0.5 },
+  headerSub: { color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: '500', marginTop: 2 },
+  addBtn: { width: 42, height: 42, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', marginTop: 4 },
   summaryCard: {
-    borderRadius: 16, borderWidth: 1, padding: 16, marginTop: 12, marginBottom: 16,
+    borderRadius: 20, padding: 18,
+    shadowColor: '#6C3EF4', shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25, shadowRadius: 16, elevation: 8,
   },
-  summaryRow: {
-    flexDirection: 'row', alignItems: 'center',
+  summaryRow: { flexDirection: 'row', alignItems: 'center' },
+  summaryItem: { flex: 1, alignItems: 'center', gap: 4 },
+  summaryLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: '500' },
+  summaryValue: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
+  summaryDivider: { width: 1, height: 36, backgroundColor: 'rgba(255,255,255,0.2)', marginHorizontal: 12 },
+  summaryQuickActions: { flexDirection: 'row', gap: 8, marginTop: 12, justifyContent: 'center' },
+  settleBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#34C759', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 10 },
+  settleBtnText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
+  splitBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#FFF', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 10 },
+  splitBtnText: { color: '#6C3EF4', fontSize: 12, fontWeight: '700' },
+  createCard: {
+    flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginTop: 4, marginBottom: 8,
+    padding: 16, borderRadius: 20, borderWidth: 1, gap: 12,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1,
   },
-  summaryItem: {
-    flex: 1, alignItems: 'center', gap: 4,
+  createCardIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  createCardText: { flex: 1, fontSize: 15, fontWeight: '700' },
+  fab: {
+    position: 'absolute', right: 24, bottom: 100, width: 58, height: 58, borderRadius: 29,
+    shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 10, zIndex: 100,
   },
-  summaryLabel: {
-    fontSize: 11, fontWeight: '500',
-  },
-  summaryValue: {
-    fontSize: 20, fontWeight: '800', letterSpacing: -0.5,
-  },
-  summaryDivider: {
-    width: 1, height: 36, marginHorizontal: 12,
-  },
+  fabGrad: { flex: 1, borderRadius: 29, alignItems: 'center', justifyContent: 'center' },
 });

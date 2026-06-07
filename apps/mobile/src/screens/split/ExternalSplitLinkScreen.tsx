@@ -12,7 +12,7 @@ import { createInviteLink } from '../../services/external-sharing';
 export function ExternalSplitLinkScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
 
   const groupId = route.params?.groupId;
@@ -84,12 +84,12 @@ export function ExternalSplitLinkScreen() {
             </View>
           ) : (
             <>
-              <View style={[styles.linkCard, { backgroundColor: '#6C3EF410', borderColor: '#6C3EF420' }]}>
+              <View style={[styles.linkCard, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.default }]}>
                 <View style={styles.linkHeader}>
-                  <Ionicons name="globe-outline" size={16} color="#6C3EF4" />
-                  <Text style={[styles.linkLabel, { color: '#6C3EF4' }]}>Public Link</Text>
+                  <Ionicons name="globe-outline" size={16} color={colors.accent.primary} />
+                  <Text style={[styles.linkLabel, { color: colors.accent.primary }]}>Public Link</Text>
                 </View>
-                <Text style={styles.linkText} selectable>{link}</Text>
+                <Text style={[styles.linkText, { color: colors.accent.primary }]} selectable>{link}</Text>
               </View>
 
               {error ? (
@@ -134,18 +134,18 @@ const styles = StyleSheet.create({
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   backBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
   headerTitle: { color: '#FFF', fontSize: 18, fontWeight: '700' },
-  card: { borderRadius: 20, padding: 24, alignItems: 'center', gap: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1 },
+  card: { borderRadius: 20, padding: 24, alignItems: 'center', gap: 12, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 2 },
   iconWrap: { width: 64, height: 64, borderRadius: 20, backgroundColor: '#6C3EF415', alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 20, fontWeight: '700', textAlign: 'center' },
   desc: { fontSize: 14, textAlign: 'center', lineHeight: 20, paddingHorizontal: 8 },
   linkCard: { borderRadius: 16, borderWidth: 1, padding: 16, gap: 8 },
   linkHeader: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   linkLabel: { fontSize: 12, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase' },
-  linkText: { fontSize: 16, fontWeight: '600', color: '#6C3EF4', letterSpacing: 0.3 },
+  linkText: { fontSize: 16, fontWeight: '600', letterSpacing: 0.3 },
   shareBtn: { borderRadius: 16, overflow: 'hidden' },
   shareBtnGrad: { flexDirection: 'row', paddingVertical: 16, alignItems: 'center', justifyContent: 'center', gap: 8 },
   shareBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  infoCard: { borderRadius: 20, padding: 18, gap: 12 },
+  infoCard: { borderRadius: 20, padding: 18, gap: 12, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1 },
   infoTitle: { fontSize: 16, fontWeight: '700', marginBottom: 4 },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   infoText: { fontSize: 13, fontWeight: '500', flex: 1, lineHeight: 18 },
