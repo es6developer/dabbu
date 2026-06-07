@@ -10,6 +10,7 @@ import {
   ListNotificationsQueryDto,
   UpdateDeviceTokenDto,
   UpdateNotificationPreferencesDto,
+  TestPushDto,
 } from './dto/create-notification.dto';
 
 @ApiTags('Notifications')
@@ -111,6 +112,16 @@ export class NotificationController {
       dto.token,
       dto.deviceName,
     );
+  }
+
+  @Post('devices/test-push')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Send a test push notification to all your devices' })
+  async testPush(
+    @CurrentUser('id') userId: string,
+    @Body() dto: TestPushDto,
+  ) {
+    return this.notificationService.testPush(userId, dto.title, dto.body);
   }
 
   @Delete('devices/:id')

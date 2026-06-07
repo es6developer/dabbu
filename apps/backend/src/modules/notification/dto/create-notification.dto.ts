@@ -145,6 +145,20 @@ export class UpdateDeviceTokenDto {
   deviceId: string;
 }
 
+export class TestPushDto {
+  @ApiPropertyOptional({ example: 'Test Notification' })
+  @IsString()
+  @IsOptional()
+  @MaxLength(255)
+  title?: string;
+
+  @ApiPropertyOptional({ example: 'This is a test push notification from Dabbu' })
+  @IsString()
+  @IsOptional()
+  @MaxLength(500)
+  body?: string;
+}
+
 export class UpdateNotificationPreferencesDto {
   @ApiPropertyOptional()
   @IsBoolean()

@@ -169,19 +169,23 @@ export function PremiumInput({
 interface PremiumAmountInputProps extends TextInputProps {
   label: string;
   symbol?: string;
+  required?: boolean;
 }
 
 export function PremiumAmountInput({
   label,
   symbol = '₹',
   style,
+  required,
   ...props
 }: PremiumAmountInputProps) {
   const { colors } = useTheme();
 
   return (
     <View style={styles.fieldBlock}>
-      <Text style={[styles.label, { color: colors.text.tertiary }]}>{label}</Text>
+      <Text style={[styles.label, { color: colors.text.tertiary }]}>
+        {label}{required && <Text style={{ color: '#FF6B6B' }}> *</Text>}
+      </Text>
       <View
         style={[
           styles.amountShell,

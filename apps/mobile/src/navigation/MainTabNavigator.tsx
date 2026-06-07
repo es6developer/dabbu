@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -265,7 +265,8 @@ function SmsNavigator() {
 }
 
 export function MainTabNavigator() {
-  const { colors } = useTheme();
+  const theme = useTheme();
+  const { colors } = theme;
   const { user, accessToken } = useAuth();
   const [showActions, setShowActions] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
@@ -332,46 +333,26 @@ export function MainTabNavigator() {
     },
   ];
 
+  const isDark = theme.isDark;
+
   return (
     <View style={{ flex: 1 }}>
       <Tab.Navigator
+        tabBar={(props) => <GlossyTabBar {...props} colors={colors} isDark={isDark} onCenterPress={() => setShowActions(true)} />}
         screenOptions={{
-          tabBarStyle: {
-            backgroundColor: colors.bg.secondary,
-            borderTopWidth: 0,
-            borderCurve: 'continuous' as any,
-            height: 60,
-            paddingBottom: 6,
-            paddingTop: 6,
-            paddingHorizontal: 8,
-            position: 'absolute',
-            left: 12,
-            right: 12,
-            bottom: 12,
-            borderRadius: 20,
-            elevation: 6,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.15,
-            shadowRadius: 12,
-          },
+          headerShown: false,
+          tabBarShowLabel: true,
           tabBarActiveTintColor: colors.accent.primary,
           tabBarInactiveTintColor: colors.text.tertiary,
-          tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
-          headerShown: false,
         }}
       >
         <Tab.Screen
           name="Dashboard"
           component={DashboardNavigator}
           options={{
-            title: 'Home',
-            tabBarIcon: ({ focused, size }) => (
-              <Ionicons
-                name={focused ? 'home' : 'home-outline'}
-                size={size}
-                color={focused ? colors.accent.primary : colors.text.tertiary}
-              />
+            tabBarLabel: 'Home',
+            tabBarIcon: ({ focused, color, size }) => (
+              <Ionicons name={focused ? 'home' : 'home-outline'} size={22} color={color} />
             ),
           }}
         />
@@ -379,13 +360,9 @@ export function MainTabNavigator() {
           name="Expense"
           component={AccountsNavigator}
           options={{
-            title: 'Expense',
-            tabBarIcon: ({ focused, size }) => (
-              <Ionicons
-                name={focused ? 'wallet' : 'wallet-outline'}
-                size={size}
-                color={focused ? colors.accent.primary : colors.text.tertiary}
-              />
+            tabBarLabel: 'Expense',
+            tabBarIcon: ({ focused, color, size }) => (
+              <Ionicons name={focused ? 'wallet' : 'wallet-outline'} size={22} color={color} />
             ),
           }}
         />
@@ -393,37 +370,17 @@ export function MainTabNavigator() {
           name="QuickAction"
           component={View}
           options={{
-            title: '',
-            tabBarButton: (props) => (
-              <TouchableOpacity
-                {...props}
-                activeOpacity={0.85}
-                style={styles.centerBtn}
-                onPress={() => setShowActions(true)}
-              >
-                <LinearGradient
-                  colors={[colors.accent.primary, colors.accent.secondary]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.centerBtnGradient}
-                >
-                  <Ionicons name="add" size={28} color="#FFF" />
-                </LinearGradient>
-              </TouchableOpacity>
-            ),
+            tabBarLabel: '',
+            tabBarIcon: () => null,
           }}
         />
         <Tab.Screen
           name="Spaces"
           component={SharedFinanceNavigator}
           options={{
-            title: 'Spaces',
-            tabBarIcon: ({ focused, size }) => (
-              <Ionicons
-                name={focused ? 'people' : 'people-outline'}
-                size={size}
-                color={focused ? colors.accent.primary : colors.text.tertiary}
-              />
+            tabBarLabel: 'Spaces',
+            tabBarIcon: ({ focused, color, size }) => (
+              <Ionicons name={focused ? 'people' : 'people-outline'} size={22} color={color} />
             ),
           }}
         />
@@ -431,13 +388,9 @@ export function MainTabNavigator() {
           name="Settings"
           component={SettingsNavigator}
           options={{
-            title: 'Profile',
-            tabBarIcon: ({ focused, size }) => (
-              <Ionicons
-                name={focused ? 'person' : 'person-outline'}
-                size={size}
-                color={focused ? colors.accent.primary : colors.text.tertiary}
-              />
+            tabBarLabel: 'Profile',
+            tabBarIcon: ({ focused, color, size }) => (
+              <Ionicons name={focused ? 'person' : 'person-outline'} size={22} color={color} />
             ),
           }}
         />
@@ -452,25 +405,146 @@ export function MainTabNavigator() {
   );
 }
 
-const styles = StyleSheet.create({
-  centerBtn: {
-    top: -16,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 8,
-    shadowColor: '#F7892C',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
+function GlossyTabBar({ state, descriptors, navigation, colors, isDark, onCenterPress }: any) {
+  const routes = state.routes.filter((r: any) => r.name !== 'QuickAction');
+  const centerIndex = state.routes.findIndex((r: any) => r.name === 'QuickAction');
+
+  return (
+    <View style={tabStyles.outerWrapper}>
+      <View style={[tabStyles.blur, { backgroundColor: colors.bg.secondary }]}>
+        <View style={[tabStyles.innerRow, { borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}>
+          {state.routes.map((route: any, index: number) => {
+            const descriptor = descriptors[route.key];
+            const { options } = descriptor;
+            const isFocused = state.index === index;
+
+            if (route.name === 'QuickAction') {
+              return (
+                <TouchableOpacity
+                  key={route.key}
+                  activeOpacity={0.8}
+                  style={tabStyles.centerWrap}
+                  onPress={onCenterPress}
+                >
+                  <LinearGradient
+                    colors={[colors.accent.primary, colors.accent.secondary]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={tabStyles.centerBtn}
+                  >
+                    <Ionicons name="add" size={26} color="#FFF" />
+                  </LinearGradient>
+                </TouchableOpacity>
+              );
+            }
+
+            const onPress = () => {
+              const event = navigation.emit({
+                type: 'tabPress',
+                target: route.key,
+                canPreventDefault: true,
+              });
+              if (!isFocused && !event.defaultPrevented) {
+                navigation.navigate(route.name);
+              }
+            };
+
+            const icon = options.tabBarIcon
+              ? options.tabBarIcon({
+                  focused: isFocused,
+                  color: isFocused ? colors.accent.primary : colors.text.tertiary,
+                  size: 22,
+                })
+              : null;
+
+            return (
+              <TouchableOpacity
+                key={route.key}
+                activeOpacity={0.7}
+                style={tabStyles.tabItem}
+                onPress={onPress}
+              >
+                <View style={[tabStyles.iconWrap, isFocused && { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)' }]}>
+                  {icon}
+                </View>
+                <Text style={[tabStyles.label, { color: isFocused ? colors.accent.primary : colors.text.tertiary }]}>
+                  {options.tabBarLabel || route.name}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+    </View>
+  );
+}
+
+const tabStyles = StyleSheet.create({
+  outerWrapper: {
+    position: 'absolute',
+    left: 10,
+    right: 10,
+    bottom: Platform.OS === 'ios' ? 18 : 10,
+    borderRadius: 22,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.18,
+        shadowRadius: 16,
+      },
+      android: {
+        elevation: 10,
+      },
+    }),
   },
-  centerBtnGradient: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+  blur: {
+    borderRadius: 22,
+    overflow: 'hidden',
+  },
+  innerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  tabItem: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 2,
+  },
+  iconWrap: {
+    width: 40,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 1,
+  },
+  label: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.2,
+  },
+  centerWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 2,
+  },
+  centerBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+    shadowColor: '#F7892C',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
   },
 });

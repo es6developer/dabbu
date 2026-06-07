@@ -199,6 +199,58 @@ export class NotificationService {
     }
   }
 
+  async testPush(userId: string, title?: string, body?: string) {
+    const devices = await this.prisma.device.findMany({
+      where: { userId, isActive: true, pushToken: { not: null } },
+      select: { id: true, platform: true, pushToken: true, deviceName: true },
+    });
+
+    if (devices.length === 0) {
+      return {
+        success: false,
+        message: 'No active devices with push tokens found for your account.',
+        devices: [],
+      };
+    }
+
+    const results: Array<{ deviceId: string; platform: string | null; deviceName: string | null; pushToken: string; success: boolean; error: string | null }> = [];
+    for (const device of devices) {
+      try {
+        const payload = this.fcmService.buildPayload(
+          title || 'Test Notification',
+          body || 'This is a test push notification from Dabbu',
+          { type: 'test_push', timestamp: new Date().toISOString() },
+          device.platform || undefined,
+        );
+        const result = await this.fcmService.sendPush(device.pushToken!, payload);
+        results.push({
+          deviceId: device.id,
+          platform: device.platform,
+          deviceName: device.deviceName,
+          pushToken: device.pushToken?.substring(0, 30) + '...',
+          success: result.success,
+          error: result.error || null,
+        });
+      } catch (err: any) {
+        results.push({
+          deviceId: device.id,
+          platform: device.platform,
+          deviceName: device.deviceName,
+          pushToken: device.pushToken?.substring(0, 30) + '...',
+          success: false,
+          error: err.message,
+        });
+      }
+    }
+
+    const successCount = results.filter((r) => r.success).length;
+    return {
+      success: successCount > 0,
+      message: `Sent to ${devices.length} device(s): ${successCount} succeeded, ${devices.length - successCount} failed.`,
+      devices: results,
+    };
+  }
+
   async sendToDevice(
     device: {
       id: string;

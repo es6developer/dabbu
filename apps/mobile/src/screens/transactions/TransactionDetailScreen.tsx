@@ -153,7 +153,7 @@ export function TransactionDetailScreen() {
       <View style={styles.actions}>
         <TouchableOpacity
           style={[styles.actionBtn, { backgroundColor: colors.bg.tertiary }]}
-          onPress={() => navigation.navigate('CreateTransaction', { transaction: txn })}
+          onPress={() => navigation.push('CreateTransaction', { transaction: txn })}
         >
           <Ionicons name="create-outline" size={18} color={colors.text.primary} />
           <Text style={[styles.actionBtnText, { color: colors.text.primary }]}>Edit</Text>

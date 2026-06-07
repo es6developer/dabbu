@@ -41,7 +41,13 @@ export class TransactionsService {
   }
 
   async findAll(userId: string, filter: TransactionFilterDto) {
-    const where: any = { userId, deletedAt: null };
+    const where: any = { deletedAt: null };
+
+    if (filter.expenseGroupId) {
+      where.expenseGroupId = filter.expenseGroupId;
+    } else {
+      where.userId = userId;
+    }
 
     if (filter.type) {
       where.type = filter.type;
@@ -51,9 +57,6 @@ export class TransactionsService {
     }
     if (filter.accountId) {
       where.accountId = filter.accountId;
-    }
-    if (filter.expenseGroupId) {
-      where.expenseGroupId = filter.expenseGroupId;
     }
     if (filter.startDate) {
       where.date = { ...where.date, gte: new Date(filter.startDate) };
@@ -101,10 +104,10 @@ export class TransactionsService {
 
   async findOne(userId: string, id: string) {
     const tx = await this.prisma.transaction.findFirst({
-      where: { id, userId, deletedAt: null },
+      where: { id, deletedAt: null },
       include: { category: true },
     });
-    if (!tx) {
+    if (!tx || (tx.userId !== userId && !tx.expenseGroupId)) {
       throw new NotFoundException('Transaction not found');
     }
     return { data: tx };
@@ -227,8 +230,13 @@ export class TransactionsService {
     };
   }
 
-  async getCategorySummary(userId: string, startDate?: string, endDate?: string) {
-    const where: any = { userId, deletedAt: null, type: 'expense' };
+  async getCategorySummary(userId: string, startDate?: string, endDate?: string, expenseGroupId?: string) {
+    const where: any = { deletedAt: null, type: 'expense' };
+    if (expenseGroupId) {
+      where.expenseGroupId = expenseGroupId;
+    } else {
+      where.userId = userId;
+    }
     if (startDate) {
       where.date = { ...where.date, gte: new Date(startDate) };
     }

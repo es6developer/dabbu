@@ -59,8 +59,9 @@ export class TransactionsController {
     @CurrentUser('id') userId: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
+    @Query('expenseGroupId') expenseGroupId?: string,
   ) {
-    return this.transactionsService.getCategorySummary(userId, startDate, endDate);
+    return this.transactionsService.getCategorySummary(userId, startDate, endDate, expenseGroupId);
   }
 
   @Get('monthly-summary')

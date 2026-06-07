@@ -79,9 +79,10 @@ export function SharedGroupDetailScreen() {
   const [editDescription, setEditDescription] = useState('');
   const [savingSettings, setSavingSettings] = useState(false);
   const [addMemberModalVisible, setAddMemberModalVisible] = useState(false);
-  const [addMemberEmail, setAddMemberEmail] = useState('');
   const [addMemberPhone, setAddMemberPhone] = useState('');
-  const [addMemberMode, setAddMemberMode] = useState<'email' | 'phone'>('email');
+  const [addMemberSearchResults, setAddMemberSearchResults] = useState<any[]>([]);
+  const [addMemberRecent, setAddMemberRecent] = useState<any[]>([]);
+  const addMemberSearchRef = useRef<NodeJS.Timeout>();
   const [addMemberLoading, setAddMemberLoading] = useState(false);
   const [activeStatPage, setActiveStatPage] = useState(0);
 
@@ -754,7 +755,21 @@ export function SharedGroupDetailScreen() {
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <TouchableOpacity
                 style={[s.inviteBtn, { backgroundColor: colors.accent.primary, flex: 1 }]}
-                onPress={() => setAddMemberModalVisible(true)}
+                onPress={async () => {
+                  setAddMemberModalVisible(true);
+                  try {
+                    const res = await api.get<any>('/expense-groups');
+                    const groups = Array.isArray(res) ? res : res?.data || [];
+                    const seen = new Map<string, any>();
+                    for (const g of groups) {
+                      for (const m of g.members || []) {
+                        const u = m.user || m;
+                        if (u.id && !seen.has(u.id)) seen.set(u.id, u);
+                      }
+                    }
+                    setAddMemberRecent(Array.from(seen.values()));
+                  } catch {}
+                }}
               >
                 <Ionicons name="person-add-outline" size={18} color="#FFF" />
                 <Text style={s.inviteBtnText}>Add Member</Text>
@@ -945,29 +960,19 @@ export function SharedGroupDetailScreen() {
     }
   }
 
-  async function handleAddMember() {
-    if (!groupId) return;
-    if (addMemberMode === 'email' && !addMemberEmail.trim()) return;
-    if (addMemberMode === 'phone' && !addMemberPhone.trim()) return;
+  async function handleAddMember(phone?: string) {
+    const num = phone || addMemberPhone;
+    if (!groupId || !num.trim()) return;
     setAddMemberLoading(true);
     try {
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
-      if (addMemberMode === 'email') {
-        await api.post<any>(`/shared-finance/groups/${groupId}/members/add-by-email`, {
-          email: addMemberEmail.trim(),
-        });
-        Alert.alert('Member Added', `${addMemberEmail.trim()} has been added to the group.`);
-      } else {
-        await api.post<any>(`/shared-finance/groups/${groupId}/members/add-by-phone`, {
-          phone: `+91${addMemberPhone.trim()}`,
-        });
-        Alert.alert('Member Added', `Member with phone +91${addMemberPhone.trim()} has been added to the group.`);
-      }
+      if (accessToken) setAccessToken(accessToken);
+      await api.post<any>(`/shared-finance/groups/${groupId}/members/add-by-phone`, {
+        phone: `+91${num.trim()}`,
+      });
+      Alert.alert('Member Added', `Member with phone +91${num.trim()} has been added.`);
       setAddMemberModalVisible(false);
-      setAddMemberEmail('');
       setAddMemberPhone('');
+      setAddMemberSearchResults([]);
       loadData(true);
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to add member');
@@ -1389,81 +1394,96 @@ export function SharedGroupDetailScreen() {
           <View style={[s.modalContent, { backgroundColor: colors.bg.secondary }]}>
             <Text style={[s.modalTitle, { color: colors.text.primary }]}>Add Member</Text>
 
-            <View style={{ flexDirection: 'row', marginBottom: 14, gap: 8 }}>
-              <TouchableOpacity
-                style={[s.tabChip, addMemberMode === 'email' && { backgroundColor: colors.accent.primary }]}
-                onPress={() => setAddMemberMode('email')}
-              >
-                <Text style={{ color: addMemberMode === 'email' ? '#FFF' : colors.text.secondary, fontSize: 13, fontWeight: '600' }}>Email</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[s.tabChip, addMemberMode === 'phone' && { backgroundColor: colors.accent.primary }]}
-                onPress={() => setAddMemberMode('phone')}
-              >
-                <Text style={{ color: addMemberMode === 'phone' ? '#FFF' : colors.text.secondary, fontSize: 13, fontWeight: '600' }}>Phone</Text>
-              </TouchableOpacity>
+            <Text style={[s.fieldLabel, { color: colors.text.secondary }]}>Phone Number</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={{ color: colors.text.secondary, fontSize: 16 }}>+91</Text>
+              <TextInput
+                style={[
+                  s.textInput,
+                  {
+                    backgroundColor: colors.bg.tertiary,
+                    color: colors.text.primary,
+                    borderColor: colors.border.subtle,
+                    flex: 1,
+                  },
+                ]}
+                value={addMemberPhone}
+                onChangeText={(t) => {
+                  const digits = t.replace(/[^0-9]/g, '').slice(0, 10);
+                  setAddMemberPhone(digits);
+                  if (addMemberSearchRef.current) clearTimeout(addMemberSearchRef.current);
+                  if (digits.length >= 3) {
+                    addMemberSearchRef.current = setTimeout(async () => {
+                      try {
+                        const res = await api.get<any>(`/users/search?query=+91${digits}`);
+                        setAddMemberSearchResults(Array.isArray(res) ? res : res?.data || []);
+                      } catch { setAddMemberSearchResults([]); }
+                    }, 400);
+                  } else {
+                    setAddMemberSearchResults([]);
+                  }
+                }}
+                placeholder="9876543210"
+                placeholderTextColor={colors.text.tertiary}
+                keyboardType="phone-pad"
+                maxLength={10}
+                autoFocus
+              />
             </View>
 
-            {addMemberMode === 'email' ? (
-              <>
-                <Text style={[s.fieldLabel, { color: colors.text.secondary }]}>Email Address</Text>
-                <TextInput
-                  style={[
-                    s.textInput,
-                    {
-                      backgroundColor: colors.bg.tertiary,
-                      color: colors.text.primary,
-                      borderColor: colors.border.subtle,
-                    },
-                  ]}
-                  value={addMemberEmail}
-                  onChangeText={setAddMemberEmail}
-                  placeholder="friend@email.com"
-                  placeholderTextColor={colors.text.tertiary}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoFocus={addMemberMode === 'email'}
-                />
-              </>
-            ) : (
-              <>
-                <Text style={[s.fieldLabel, { color: colors.text.secondary }]}>Phone Number</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Text style={{ color: colors.text.secondary, fontSize: 16 }}>+91</Text>
-                  <TextInput
-                    style={[
-                      s.textInput,
-                      {
-                        backgroundColor: colors.bg.tertiary,
-                        color: colors.text.primary,
-                        borderColor: colors.border.subtle,
-                        flex: 1,
-                      },
-                    ]}
-                    value={addMemberPhone}
-                    onChangeText={(t) => setAddMemberPhone(t.replace(/[^0-9]/g, '').slice(0, 10))}
-                    placeholder="9876543210"
-                    placeholderTextColor={colors.text.tertiary}
-                    keyboardType="phone-pad"
-                    maxLength={10}
-                    autoFocus={addMemberMode === 'phone'}
-                  />
+            {addMemberSearchResults.length > 0 && (
+              <View style={[s.suggestions, { backgroundColor: colors.bg.tertiary, marginTop: 8 }]}>
+                {addMemberSearchResults.map((user: any) => (
+                  <TouchableOpacity
+                    key={user.id}
+                    style={[s.suggestionRow, { borderBottomColor: colors.border.subtle }]}
+                    onPress={() => handleAddMember((user.phone || '').replace('+91', ''))}
+                  >
+                    <View style={[s.suggestionAvatar, { backgroundColor: `${colors.accent.primary}20` }]}>
+                      <Text style={{ color: colors.accent.primary, fontSize: 11, fontWeight: '700' }}>
+                        {user.firstName?.[0] || user.phone?.[0] || '?'}
+                      </Text>
+                    </View>
+                    <Text style={{ flex: 1, fontSize: 13, color: colors.text.primary }}>
+                      {(user.phone || '').replace('+91', '')} - {user.firstName || ''} {user.lastName || ''}
+                    </Text>
+                    <Ionicons name="add-circle" size={20} color={colors.accent.primary} />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
+            {addMemberPhone.length === 0 && addMemberRecent.length > 0 && (
+              <View style={{ marginTop: 12 }}>
+                <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Recent Contacts</Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                  {addMemberRecent.slice(0, 8).map((user: any) => (
+                    <TouchableOpacity
+                      key={user.id}
+                      style={[s.tabChip, { backgroundColor: colors.bg.tertiary }]}
+                      onPress={() => handleAddMember((user.phone || '').replace('+91', ''))}
+                    >
+                      <Text style={{ fontSize: 12, color: colors.text.primary }}>
+                        {user.firstName || user.phone?.replace('+91', '')}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
                 </View>
-              </>
+              </View>
             )}
 
             <View style={s.modalActions}>
               <TouchableOpacity
                 style={[s.modalBtn, { backgroundColor: colors.accent.primary }]}
-                onPress={handleAddMember}
-                disabled={addMemberLoading || (addMemberMode === 'email' ? !addMemberEmail.trim() : !addMemberPhone.trim())}
+                onPress={() => handleAddMember()}
+                disabled={addMemberLoading || !addMemberPhone.trim()}
               >
                 {addMemberLoading ? (
                   <ActivityIndicator size="small" color="#FFF" />
                 ) : (
                   <>
                     <Ionicons name="send" size={18} color="#FFF" />
-                    <Text style={s.modalBtnText}> Send Invite</Text>
+                    <Text style={s.modalBtnText}> Add Member</Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -1853,9 +1873,23 @@ const s = StyleSheet.create({
     height: 4,
     borderRadius: 2,
   },
-  tabChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 16,
+  suggestions: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  suggestionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  suggestionAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

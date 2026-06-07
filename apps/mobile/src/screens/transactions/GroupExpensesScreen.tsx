@@ -100,12 +100,16 @@ export function GroupExpensesScreen() {
   const [error, setError] = useState<string | null>(null);
   const [group, setGroup] = useState<any>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [membersOpen, setMembersOpen] = useState(false);
   const [savingGroup, setSavingGroup] = useState(false);
   const [editName, setEditName] = useState('');
   const [editDescription, setEditDescription] = useState('');
 
-  const [inviteEmail, setInviteEmail] = useState('');
+  const [invitePhone, setInvitePhone] = useState('');
+  const [inviteSearchResults, setInviteSearchResults] = useState<any[]>([]);
+  const inviteSearchRef = useRef<NodeJS.Timeout>();
   const [editIcon, setEditIcon] = useState('users');
+  const [categoryBreakdown, setCategoryBreakdown] = useState<any[]>([]);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const abortRef = useRef<AbortController | null>(null);
 
@@ -127,9 +131,10 @@ export function GroupExpensesScreen() {
         }
 
         if (groupId) {
-          const [txRes, grpRes] = await Promise.allSettled([
+          const [txRes, grpRes, catRes] = await Promise.allSettled([
             api.get<any>(`/transactions?expenseGroupId=${groupId}`, ctrl.signal),
             api.get<any>(`/expense-groups/${groupId}`, ctrl.signal),
+            api.get<any>(`/transactions/categories-summary?expenseGroupId=${groupId}`, ctrl.signal),
           ]);
           if (ctrl.signal.aborted) {
             return;
@@ -137,12 +142,14 @@ export function GroupExpensesScreen() {
 
           const txData = normalize<any[]>(txRes.status === 'fulfilled' ? txRes.value : null);
           const gData = grpRes.status === 'fulfilled' ? normalize<any>(grpRes.value) : null;
+          const catData = catRes.status === 'fulfilled' ? normalize<any[]>(catRes.value) : [];
           if (txRes.status === 'rejected' && grpRes.status === 'rejected') {
             throw new Error('Unable to load');
           }
 
           setTransactions(Array.isArray(txData) ? txData : []);
           setGroup(gData);
+          setCategoryBreakdown(Array.isArray(catData) ? catData : []);
           if (gData) {
             setEditName(gData.name || '');
             setEditDescription(gData.description || '');
@@ -313,13 +320,30 @@ export function GroupExpensesScreen() {
     }
   }
 
-  async function addMember() {
-    if (!inviteEmail.trim()) {return;}
+  async function handleExport() {
+    try {
+      if (accessToken) setAccessToken(accessToken);
+      const res = await api.post<any>(`/shared-finance/groups/${groupId}/export`, {});
+      const url = res?.fileUrl || res?.data?.fileUrl;
+      if (url) {
+        Alert.alert('Report Ready', `Download link: ${url}`);
+      } else {
+        Alert.alert('Export queued', 'Your report will be emailed to you.');
+      }
+    } catch (e: any) {
+      Alert.alert('Export failed', e.message || 'Try again');
+    }
+  }
+
+  async function addMember(phone?: string) {
+    const num = phone || invitePhone;
+    if (!num.trim()) {return;}
     setSavingGroup(true);
     try {
       if (accessToken) {setAccessToken(accessToken);}
-      await api.post(`/expense-groups/${groupId}/members`, { email: inviteEmail.trim() });
-      setInviteEmail('');
+      await api.post(`/expense-groups/${groupId}/members/add-by-phone`, { phone: `+91${num.trim()}` });
+      setInvitePhone('');
+      setInviteSearchResults([]);
       await loadData(true);
     } catch (e: any) {
       Alert.alert('Unable to add member', e.message || 'Try again');
@@ -501,12 +525,22 @@ export function GroupExpensesScreen() {
                   {members.length} member{members.length !== 1 ? 's' : ''}
                 </Text>
               </View>
+              <TouchableOpacity
+                onPress={() => setSettingsOpen(true)}
+                style={[s.iconBtn, { backgroundColor: colors.bg.tertiary }]}
+              >
+                <Ionicons name="settings-outline" size={20} color={colors.text.primary} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={s.actionBar}>
               {group?.isExpired ? (
                 <TouchableOpacity
                   onPress={() => handleExport()}
-                  style={[s.iconBtn, { backgroundColor: colors.accent.primary }]}
+                  style={[s.actionBtn, { backgroundColor: colors.accent.primary }]}
                 >
-                  <Ionicons name="download-outline" size={20} color="#FFF" />
+                  <Ionicons name="download-outline" size={22} color="#FFF" />
+                  <Text style={s.actionLabel}>Export</Text>
                 </TouchableOpacity>
               ) : (
                 <>
@@ -516,9 +550,10 @@ export function GroupExpensesScreen() {
                         prefill: { groupId, groupName: name, returnTo: 'GroupExpenses', type: 'income' },
                       })
                     }
-                    style={[s.iconBtn, { backgroundColor: '#00B894' }]}
+                    style={[s.actionBtn, { backgroundColor: '#00B894' }]}
                   >
-                    <Ionicons name="trending-up" size={20} color="#FFF" />
+                    <Ionicons name="trending-up" size={22} color="#FFF" />
+                    <Text style={s.actionLabel}>Income</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() =>
@@ -526,17 +561,26 @@ export function GroupExpensesScreen() {
                         prefill: { groupId, groupName: name, returnTo: 'GroupExpenses' },
                       })
                     }
-                    style={[s.iconBtn, { backgroundColor: colors.accent.primary }]}
+                    style={[s.actionBtn, { backgroundColor: colors.accent.primary }]}
                   >
-                    <Ionicons name="cart" size={20} color="#FFF" />
+                    <Ionicons name="cart" size={22} color="#FFF" />
+                    <Text style={s.actionLabel}>Expense</Text>
                   </TouchableOpacity>
                 </>
               )}
               <TouchableOpacity
-                onPress={() => setSettingsOpen(true)}
-                style={[s.iconBtn, { backgroundColor: colors.bg.tertiary }]}
+                onPress={() => navigation.navigate('Analytics')}
+                style={[s.actionBtn, { backgroundColor: colors.bg.tertiary }]}
               >
-                <Ionicons name="settings-outline" size={20} color={colors.text.primary} />
+                <Ionicons name="bar-chart" size={22} color={colors.text.primary} />
+                <Text style={[s.actionLabel, { color: colors.text.primary }]}>Analytics</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setMembersOpen(true)}
+                style={[s.actionBtn, { backgroundColor: colors.bg.tertiary }]}
+              >
+                <Ionicons name="people" size={22} color={colors.text.primary} />
+                <Text style={[s.actionLabel, { color: colors.text.primary }]}>Members</Text>
               </TouchableOpacity>
             </View>
 
@@ -559,6 +603,31 @@ export function GroupExpensesScreen() {
             {stats.totalIncome > 0 && (
               <View style={[s.budgetBar, { backgroundColor: colors.bg.tertiary }]}>
                 <View style={[s.budgetFill, { width: `${Math.min((stats.totalExpense / stats.totalIncome) * 100, 100)}%`, backgroundColor: stats.remaining >= 0 ? '#00B894' : '#FF6B6B' }]} />
+              </View>
+            )}
+
+            {categoryBreakdown.length > 0 && (
+              <View style={{ marginTop: 18, paddingHorizontal: 20 }}>
+                <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Spending Summary</Text>
+                <View style={{ marginTop: 8, gap: 8 }}>
+                  {categoryBreakdown.slice(0, 5).map((cat: any, i: number) => {
+                    const pct = stats.totalExpense > 0 ? ((cat.amount || 0) / stats.totalExpense * 100) : 0;
+                    return (
+                      <View key={cat.category || i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <View style={{ flex: 1 }}>
+                          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                            <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.primary }}>{cat.category || cat.name}</Text>
+                            <Text style={{ fontSize: 13, color: colors.text.secondary }}>{fmt(cat.amount || 0)}</Text>
+                          </View>
+                          <View style={[s.budgetBar, { marginTop: 4, backgroundColor: colors.bg.tertiary }]}>
+                            <View style={[s.budgetFill, { width: `${pct}%`, backgroundColor: colors.accent.primary }]} />
+                          </View>
+                        </View>
+                        <Text style={{ fontSize: 11, color: colors.text.tertiary, width: 36, textAlign: 'right' }}>{pct.toFixed(0)}%</Text>
+                      </View>
+                    );
+                  })}
+                </View>
               </View>
             )}
 
@@ -805,24 +874,87 @@ export function GroupExpensesScreen() {
                   </Text>
                 )}
 
-                <Text style={[s.sheetSubTitle, { color: colors.text.primary }]}>Members</Text>
+                <Text style={[s.sheetSubTitle, { color: colors.text.tertiary }]}>
+                  Manage members via the Members button above
+                </Text>
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+
+        <Modal
+          visible={membersOpen}
+          animationType="slide"
+          transparent
+          onRequestClose={() => setMembersOpen(false)}
+        >
+          <View style={s.modalBackdrop}>
+            <View
+              style={[
+                s.sheet,
+                { backgroundColor: colors.bg.primary, paddingBottom: insets.bottom + 18 },
+              ]}
+            >
+              <View style={s.sheetHandle} />
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={s.sheetHeader}>
+                  <Text style={[s.sheetTitle, { color: colors.text.primary }]}>Members</Text>
+                  <TouchableOpacity
+                    onPress={() => setMembersOpen(false)}
+                    style={[s.sheetClose, { backgroundColor: colors.bg.tertiary }]}
+                  >
+                    <Ionicons name="close" size={20} color={colors.text.primary} />
+                  </TouchableOpacity>
+                </View>
+                <Text style={[s.sheetSubTitle, { color: colors.text.primary }]}>Add Member</Text>
                 <View style={[s.addMemberBox, { backgroundColor: colors.bg.tertiary }]}>
+                  <Text style={{ color: colors.text.secondary, fontSize: 14, marginLeft: 4 }}>+91</Text>
                   <TextInput
-                    value={inviteEmail}
-                    onChangeText={setInviteEmail}
+                    value={invitePhone}
+                    onChangeText={(t) => {
+                      const digits = t.replace(/[^0-9]/g, '').slice(0, 10);
+                      setInvitePhone(digits);
+                      if (inviteSearchRef.current) clearTimeout(inviteSearchRef.current);
+                      if (digits.length >= 3) {
+                        inviteSearchRef.current = setTimeout(async () => {
+                          try {
+                            const res = await api.get<any>(`/users/search?query=+91${digits}`);
+                            setInviteSearchResults(Array.isArray(res) ? res : res?.data || []);
+                          } catch { setInviteSearchResults([]); }
+                        }, 400);
+                      } else { setInviteSearchResults([]); }
+                    }}
                     autoCapitalize="none"
-                    keyboardType="email-address"
+                    keyboardType="phone-pad"
                     style={[s.memberInput, { color: colors.text.primary }]}
-                    placeholder="member@email.com"
+                    placeholder="9876543210"
                     placeholderTextColor={colors.text.tertiary}
+                    maxLength={10}
                   />
                   <TouchableOpacity
-                    onPress={addMember}
+                    onPress={() => addMember()}
                     style={[s.memberAddBtn, { backgroundColor: colors.accent.primary }]}
                   >
                     <Ionicons name="person-add-outline" size={18} color="#FFF" />
                   </TouchableOpacity>
                 </View>
+                {inviteSearchResults.length > 0 && (
+                  <View style={[s.suggestionsBox, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}>
+                    {inviteSearchResults.map((user: any) => (
+                      <TouchableOpacity
+                        key={user.id}
+                        style={[s.suggestionRow, { borderBottomColor: colors.border.subtle }]}
+                        onPress={() => addMember((user.phone || '').replace('+91', ''))}
+                      >
+                        <Text style={{ flex: 1, fontSize: 13, color: colors.text.primary }}>
+                          {(user.phone || '').replace('+91', '')} - {user.firstName || ''} {user.lastName || ''}
+                        </Text>
+                        <Ionicons name="add-circle" size={18} color={colors.accent.primary} />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+                <Text style={[s.sheetSubTitle, { color: colors.text.primary }]}>All Members</Text>
                 {members.map((member: any) => (
                   <View
                     key={member.id}
@@ -830,7 +962,7 @@ export function GroupExpensesScreen() {
                   >
                     <View style={{ flex: 1 }}>
                       <Text style={[s.memberManageName, { color: colors.text.primary }]}>
-                        {member.user?.firstName || member.user?.email || 'Member'}
+                        {member.user?.firstName || member.user?.phone || 'Member'}
                       </Text>
                       <Text style={[s.memberManageRole, { color: colors.text.tertiary }]}>
                         {member.role || 'member'}
@@ -1249,6 +1381,22 @@ const s = StyleSheet.create({
   },
   name: { fontSize: 20, fontWeight: '700' },
   memberCount: { fontSize: 12, marginTop: 2 },
+  actionBar: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    gap: 10,
+  },
+  actionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    height: 44,
+    borderRadius: 14,
+  },
+  actionLabel: { fontSize: 13, fontWeight: '700', color: '#FFF' },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -1297,6 +1445,17 @@ const s = StyleSheet.create({
   },
   aiCardTitle: { fontSize: 13, fontWeight: '700' },
   aiCardBody: { fontSize: 13, lineHeight: 20 },
+  expiredBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 20,
+    marginTop: 12,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  expiredBannerText: { fontSize: 12, lineHeight: 18, flex: 1 },
   addTinyBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1603,4 +1762,17 @@ const s = StyleSheet.create({
   },
   dangerText: { fontSize: 14, fontWeight: '800' },
   restrictedNote: { fontSize: 12, textAlign: 'center', marginTop: 8, fontStyle: 'italic' },
+  suggestionsBox: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    marginBottom: 10,
+  },
+  suggestionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
 });

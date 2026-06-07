@@ -57,7 +57,6 @@ export function CreateSharedGroupScreen() {
   const [type, setType] = useState('Friends');
   const [description, setDescription] = useState('');
   const [icon, setIcon] = useState('people');
-  const [partnerEmail, setPartnerEmail] = useState('');
   const [partnerPhone, setPartnerPhone] = useState('');
   const [upiId, setUpiId] = useState('');
   const [saving, setSaving] = useState(false);
@@ -89,20 +88,12 @@ export function CreateSharedGroupScreen() {
       }
       const res = await api.post<any>('/shared-finance/groups', payload);
       const newGroupId = res?.id || res?._id;
-      if (type === 'Couple' && newGroupId) {
-        if (partnerEmail.trim()) {
-          await api
-            .post(`/shared-finance/groups/${newGroupId}/members/add-by-email`, {
-              email: partnerEmail.trim(),
-            })
-            .catch(() => {});
-        } else if (partnerPhone.trim()) {
-          await api
-            .post(`/shared-finance/groups/${newGroupId}/members/add-by-phone`, {
-              phone: `+91${partnerPhone.trim()}`,
-            })
-            .catch(() => {});
-        }
+      if (type === 'Couple' && newGroupId && partnerPhone.trim()) {
+        await api
+          .post(`/shared-finance/groups/${newGroupId}/members/add-by-phone`, {
+            phone: `+91${partnerPhone.trim()}`,
+          })
+          .catch(() => {});
       }
       if (newGroupId) {
         navigation.replace('SharedGroupDetail', {
@@ -220,24 +211,7 @@ export function CreateSharedGroupScreen() {
 
           {showPartnerInput && (
             <>
-              <Text style={[s.label, { color: colors.text.tertiary }]}>Partner Email</Text>
-              <TextInput
-                style={[
-                  s.input,
-                  {
-                    backgroundColor: colors.bg.tertiary,
-                    color: colors.text.primary,
-                    borderColor: colors.border.subtle,
-                  },
-                ]}
-                value={partnerEmail}
-                onChangeText={setPartnerEmail}
-                placeholder="partner@email.com"
-                placeholderTextColor={colors.text.tertiary}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-              <Text style={[s.label, { color: colors.text.tertiary, marginTop: 8 }]}>Or Partner Phone</Text>
+              <Text style={[s.label, { color: colors.text.tertiary }]}>Partner Phone</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <Text style={{ color: colors.text.secondary, fontSize: 16 }}>+91</Text>
                 <TextInput

@@ -11,6 +11,7 @@ import { TransactionDetailScreen } from '../screens/transactions/TransactionDeta
 import { CreateExpenseGroupScreen } from '../screens/transactions/CreateExpenseGroupScreen';
 import { GroupExpensesScreen } from '../screens/transactions/GroupExpensesScreen';
 import { SubscriptionScreen } from '../screens/subscriptions/SubscriptionScreen';
+import { AnalyticsScreen } from '../screens/analytics/AnalyticsScreen';
 import { ExpenseTabNavigator } from './ExpenseTabNavigator';
 
 export function AccountsNavigator() {
@@ -42,7 +43,9 @@ export function AccountsNavigator() {
       <Stack.Screen
         name="CreateTransaction"
         component={CreateTransactionScreen}
-        options={{ title: 'New Transaction' }}
+        options={({ route }: any) => ({
+          title: route.params?.transaction?.id ? 'Edit Transaction' : 'New Transaction',
+        })}
       />
       <Stack.Screen name="BillsList" component={BillsListScreen} options={{ title: 'My Bills' }} />
       <Stack.Screen
@@ -74,6 +77,11 @@ export function AccountsNavigator() {
         name="Subscriptions"
         component={SubscriptionScreen}
         options={{ title: 'Subscriptions' }}
+      />
+      <Stack.Screen
+        name="Analytics"
+        component={AnalyticsScreen}
+        options={{ title: 'Reports & Analytics' }}
       />
     </Stack.Navigator>
   );

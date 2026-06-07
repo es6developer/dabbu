@@ -256,12 +256,20 @@ export function SharedCirclesScreen() {
                 <Text style={[s.subtitle, { color: colors.text.tertiary }]}>Shared Circles</Text>
                 <Text style={[s.title, { color: colors.text.primary }]}>Circles</Text>
               </View>
-              <TouchableOpacity
-                style={[s.addBtn, { backgroundColor: colors.accent.primary }]}
-                onPress={handleCreateGroup}
-              >
-                <Ionicons name="add" size={22} color="#FFF" />
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <TouchableOpacity
+                  style={[s.addBtn, { backgroundColor: colors.bg.tertiary }]}
+                  onPress={() => navigation.navigate('Analytics')}
+                >
+                  <Ionicons name="bar-chart" size={20} color={colors.text.primary} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[s.addBtn, { backgroundColor: colors.accent.primary }]}
+                  onPress={handleCreateGroup}
+                >
+                  <Ionicons name="add" size={22} color="#FFF" />
+                </TouchableOpacity>
+              </View>
             </View>
 
             <View style={[s.planBar, { backgroundColor: colors.bg.tertiary }]}>

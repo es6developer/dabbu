@@ -60,6 +60,8 @@ export function CreateExpenseGroupScreen() {
   const [selectedRecurring, setSelectedRecurring] = useState<Set<string>>(new Set());
   const [loadingRecurring, setLoadingRecurring] = useState(false);
   const inputsRef = useRef<(TextInput | null)[]>([]);
+  const searchTimeoutRef = useRef<{[key: number]: NodeJS.Timeout}>({});
+  const [searchResults, setSearchResults] = useState<{[key: number]: any[]}>({});
 
   const updateMember = useCallback((index: number, value: string) => {
     const digits = value.replace(/[^0-9]/g, '');
@@ -68,6 +70,26 @@ export function CreateExpenseGroupScreen() {
       next[index] = digits;
       return next;
     });
+    if (searchTimeoutRef.current[index]) {
+      clearTimeout(searchTimeoutRef.current[index]);
+    }
+    if (digits.length >= 3) {
+      searchTimeoutRef.current[index] = setTimeout(async () => {
+        try {
+          const res = await api.get<any>(`/users/search?query=${COUNTRY_CODE}${digits}`);
+          const users = Array.isArray(res) ? res : res?.data || [];
+          setSearchResults((prev) => ({ ...prev, [index]: users }));
+        } catch {
+          setSearchResults((prev) => ({ ...prev, [index]: [] }));
+        }
+      }, 400);
+    } else {
+      setSearchResults((prev) => {
+        const next = { ...prev };
+        delete next[index];
+        return next;
+      });
+    }
   }, []);
 
   const addRow = useCallback(() => {
@@ -80,6 +102,26 @@ export function CreateExpenseGroupScreen() {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setMembers((prev) => prev.filter((_, i) => i !== index));
   }, []);
+
+  const selectUser = useCallback((index: number, user: any) => {
+    const phone = (user.phone || '').replace(COUNTRY_CODE, '').replace(/[^0-9]/g, '').slice(0, 10);
+    setMembers((prev) => {
+      const next = [...prev];
+      next[index] = phone;
+      return next;
+    });
+    setSearchResults((prev) => {
+      const next = { ...prev };
+      delete next[index];
+      return next;
+    });
+    const nextIndex = index + 1;
+    if (nextIndex >= members.length) {
+      addRow();
+    } else {
+      setTimeout(() => inputsRef.current[nextIndex]?.focus(), 150);
+    }
+  }, [members.length]);
 
   const isValidPhone = (phone: string) => phone.length === 10;
 
@@ -265,6 +307,34 @@ export function CreateExpenseGroupScreen() {
                   </TouchableOpacity>
                 )}
               </View>
+              {searchResults[index]?.length > 0 && (
+                <View style={[styles.suggestions, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}>
+                  {searchResults[index].map((user: any) => (
+                    <TouchableOpacity
+                      key={user.id}
+                      style={[styles.suggestionRow, { borderBottomColor: colors.border.subtle }]}
+                      onPress={() => selectUser(index, user)}
+                    >
+                      <View style={[styles.suggestionAvatar, { backgroundColor: `${colors.accent.primary}20` }]}>
+                        <Text style={{ color: colors.accent.primary, fontSize: 13, fontWeight: '700' }}>
+                          {user.firstName?.[0] || user.phone?.[0] || '?'}
+                        </Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.suggestionName, { color: colors.text.primary }]}>
+                          {user.phone || ''} - {user.firstName || ''} {user.lastName || ''}
+                        </Text>
+                        {user.email && (
+                          <Text style={[styles.suggestionEmail, { color: colors.text.tertiary }]}>
+                            {user.email}
+                          </Text>
+                        )}
+                      </View>
+                      <Ionicons name="add-circle" size={20} color={colors.accent.primary} />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
             </View>
           ))}
 
@@ -446,4 +516,27 @@ const styles = StyleSheet.create({
   },
   planInfoText: { flex: 1, fontSize: 12 },
   planUpgrade: { fontSize: 13, fontWeight: '700' },
+  suggestions: {
+    marginTop: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  suggestionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  suggestionAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  suggestionName: { fontSize: 14, fontWeight: '600' },
+  suggestionEmail: { fontSize: 11, marginTop: 1 },
 });
