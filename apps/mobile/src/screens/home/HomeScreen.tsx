@@ -139,7 +139,8 @@ export function HomeScreen() {
       // Hydrate from cache instantly on non-refresh loads
       if (!isRefresh) {
         try {
-          const cached = await AsyncStorage.getItem('dashboard_cache');
+          const cacheKey = `dashboard_cache_${user?.id || 'anon'}`;
+          const cached = await AsyncStorage.getItem(cacheKey);
           if (cached) {
             const parsed = JSON.parse(cached);
             setData(parsed);
@@ -154,7 +155,7 @@ export function HomeScreen() {
       try {
         const results = await Promise.allSettled([
           api.get<any>('/accounts/stats', signal),
-          api.get<any>('/transactions/stats', signal),
+          api.get<any>('/transactions/stats?months=1', signal),
           api.get<any>('/transactions/categories-summary?months=1', signal),
           api.get<any>('/expense-groups', signal),
           api.get<any>('/reminders', signal),
@@ -204,7 +205,8 @@ export function HomeScreen() {
 
         setData(freshData);
 
-        AsyncStorage.setItem('dashboard_cache', JSON.stringify(freshData)).catch(() => {});
+        const cacheKey = `dashboard_cache_${user?.id || 'anon'}`;
+        AsyncStorage.setItem(cacheKey, JSON.stringify(freshData)).catch(() => {});
 
         Animated.timing(fadeAnim, {
           toValue: 1,
@@ -500,67 +502,113 @@ export function HomeScreen() {
                   <View
                     style={[
                       styles.cardIcon,
-                      { backgroundColor: data.financialHealth.color + '18' },
+                      { backgroundColor: (data.financialHealth.label !== 'No Data' ? data.financialHealth.color : '#6366F1') + '18' },
                     ]}
                   >
-                    <Ionicons name="heart-circle" size={18} color={data.financialHealth.color} />
+                    <Ionicons
+                      name="heart-circle"
+                      size={18}
+                      color={data.financialHealth.label !== 'No Data' ? data.financialHealth.color : '#6366F1'}
+                    />
                   </View>
                   <Text style={[styles.cardTitle, { color: colors.text.primary }]}>
                     Financial Health
                   </Text>
-                </View>
-                <View style={[styles.healthCircle, { borderColor: data.financialHealth.color }]}>
-                  <Text style={[styles.healthScore, { color: data.financialHealth.color }]}>
-                    {data.financialHealth.score}
-                  </Text>
-                </View>
-              </View>
-              <Text style={[styles.healthLabel, { color: data.financialHealth.color }]}>
-                {data.financialHealth.label}
-              </Text>
-              {data.financialHealth.factors?.map((f: any, i: number) => {
-                const barColor =
-                  f.status === 'good' ? '#00B894' : f.status === 'fair' ? '#FDCB6E' : '#FF6B6B';
-                return (
-                  <View key={i} style={styles.factorRow}>
-                    <Text style={[styles.factorName, { color: colors.text.tertiary }]}>
-                      {f.name}
-                    </Text>
-                    <View style={[styles.factorBar, { backgroundColor: colors.bg.tertiary }]}>
-                      <View
-                        style={[
-                          styles.factorFill,
-                          { width: `${(f.score / f.maxScore) * 100}%`, backgroundColor: barColor },
-                        ]}
-                      />
+                  {isPremium && (
+                    <View style={[styles.premiumMiniBadge, { backgroundColor: '#F7892C18' }]}>
+                      <Ionicons name="diamond" size={9} color="#F7892C" />
+                      <Text style={styles.premiumMiniText}>PRO</Text>
                     </View>
-                    <Text style={[styles.factorScore, { color: barColor }]}>
-                      {f.score}/{f.maxScore}
+                  )}
+                </View>
+                {data.financialHealth.label !== 'No Data' && (
+                  <View style={[styles.healthCircle, { borderColor: data.financialHealth.color }]}>
+                    <Text style={[styles.healthScore, { color: data.financialHealth.color }]}>
+                      {data.financialHealth.score}
                     </Text>
                   </View>
-                );
-              })}
-              {data.financialHealth.recommendations?.length > 0 && (
+                )}
+              </View>
+              {data.financialHealth.label !== 'No Data' ? (
                 <>
-                  <View style={[styles.healthDivider, { backgroundColor: colors.border.subtle }]} />
-                  <Text style={[styles.healthRecTitle, { color: colors.text.primary }]}>
-                    Recommendations
+                  <Text style={[styles.healthLabel, { color: data.financialHealth.color }]}>
+                    {data.financialHealth.label}
                   </Text>
-                  {data.financialHealth.recommendations
-                    .slice(0, 2)
-                    .map((rec: string, i: number) => (
-                      <View key={i} style={styles.recRow}>
-                        <Ionicons
-                          name="bulb-outline"
-                          size={14}
-                          color={data.financialHealth.color}
-                        />
-                        <Text style={[styles.recText, { color: colors.text.secondary }]}>
-                          {rec}
+                  {data.financialHealth.factors?.map((f: any, i: number) => {
+                    const barColor =
+                      f.status === 'good' ? '#00B894' : f.status === 'fair' ? '#FDCB6E' : '#FF6B6B';
+                    return (
+                      <View key={i} style={styles.factorRow}>
+                        <Text style={[styles.factorName, { color: colors.text.tertiary }]}>
+                          {f.name}
+                        </Text>
+                        <View style={[styles.factorBar, { backgroundColor: colors.bg.tertiary }]}>
+                          <View
+                            style={[
+                              styles.factorFill,
+                              { width: `${(f.score / f.maxScore) * 100}%`, backgroundColor: barColor },
+                            ]}
+                          />
+                        </View>
+                        <Text style={[styles.factorScore, { color: barColor }]}>
+                          {f.score}/{f.maxScore}
                         </Text>
                       </View>
-                    ))}
+                    );
+                  })}
+                  {data.financialHealth.recommendations?.length > 0 && (
+                    <>
+                      <View style={[styles.healthDivider, { backgroundColor: colors.border.subtle }]} />
+                      <Text style={[styles.healthRecTitle, { color: colors.text.primary }]}>
+                        Recommendations
+                      </Text>
+                      {data.financialHealth.recommendations
+                        .slice(0, 2)
+                        .map((rec: string, i: number) => (
+                          <View key={i} style={styles.recRow}>
+                            <Ionicons
+                              name="bulb-outline"
+                              size={14}
+                              color={data.financialHealth.color}
+                            />
+                            <Text style={[styles.recText, { color: colors.text.secondary }]}>
+                              {rec}
+                            </Text>
+                          </View>
+                        ))}
+                    </>
+                  )}
                 </>
+              ) : (
+                <View style={styles.healthEmpty}>
+                  <Ionicons name="analytics-outline" size={28} color={colors.text.tertiary} />
+                  <Text style={[styles.healthEmptyTitle, { color: colors.text.secondary }]}>
+                    Start tracking your finances
+                  </Text>
+                  <Text style={[styles.healthEmptySub, { color: colors.text.tertiary }]}>
+                    Add accounts, expenses, and goals to see your financial health score
+                  </Text>
+                  <View style={styles.healthEmptyActions}>
+                    <TouchableOpacity
+                      style={[styles.healthEmptyBtn, { backgroundColor: colors.accent.primary }]}
+                      onPress={() => navigation.navigate('Expense', { screen: 'CreateTransaction' })}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="add" size={14} color="#FFF" />
+                      <Text style={styles.healthEmptyBtnText}>Add Expense</Text>
+                    </TouchableOpacity>
+                    {!isPremium && (
+                      <TouchableOpacity
+                        style={[styles.healthEmptyBtn, { backgroundColor: '#8B5CF6' }]}
+                        onPress={() => navigation.navigate('Premium')}
+                        activeOpacity={0.8}
+                      >
+                        <Ionicons name="diamond" size={14} color="#FFF" />
+                        <Text style={styles.healthEmptyBtnText}>Go Premium</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
               )}
             </TouchableOpacity>
           )}
@@ -1207,6 +1255,32 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   aiBadgeText: { fontSize: 9, fontWeight: '700', color: '#8B5CF6', letterSpacing: 0.5 },
+
+  // Premium mini badge
+  premiumMiniBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  premiumMiniText: { fontSize: 9, fontWeight: '800', color: '#F7892C', letterSpacing: 0.5 },
+
+  // Health empty state
+  healthEmpty: { alignItems: 'center', paddingVertical: 16, gap: 8 },
+  healthEmptyTitle: { fontSize: 14, fontWeight: '600' },
+  healthEmptySub: { fontSize: 12, lineHeight: 17, textAlign: 'center', paddingHorizontal: 20 },
+  healthEmptyActions: { flexDirection: 'row', gap: 8, marginTop: 4 },
+  healthEmptyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  healthEmptyBtnText: { color: '#FFF', fontSize: 12, fontWeight: '600' },
 
   // FAB
   fab: {

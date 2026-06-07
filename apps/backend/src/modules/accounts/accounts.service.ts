@@ -113,17 +113,23 @@ export class AccountsService {
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-    const monthTxs = await this.prisma.transaction.findMany({
-      where: {
-        userId,
-        deletedAt: null,
-        date: { gte: monthStart, lte: monthEnd },
-      },
-    });
+    const [monthTxs, salaryProfile] = await Promise.all([
+      this.prisma.transaction.findMany({
+        where: {
+          userId,
+          deletedAt: null,
+          date: { gte: monthStart, lte: monthEnd },
+        },
+      }),
+      this.prisma.salaryProfile.findUnique({ where: { userId } }),
+    ]);
 
-    const monthlyIncome = monthTxs
+    const txIncome = monthTxs
       .filter((t) => t.type === 'income')
       .reduce((s, t) => s + Number(t.amount), 0);
+    const salaryIncome = Number(salaryProfile?.salary || 0);
+    const monthlyIncome = Math.max(txIncome, salaryIncome);
+
     const monthlyExpense = monthTxs
       .filter((t) => t.type === 'expense')
       .reduce((s, t) => s + Number(t.amount), 0);

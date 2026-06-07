@@ -19,6 +19,8 @@ PODS:
     - ExpoModulesCore
   - Expo (50.0.21):
     - ExpoModulesCore
+  - ExpoBlur (12.9.2):
+    - ExpoModulesCore
   - ExpoClipboard (5.0.1):
     - ExpoModulesCore
   - ExpoCrypto (12.8.1):
@@ -1158,6 +1160,7 @@ DEPENDENCIES:
   - EXImageLoader (from `../../../node_modules/expo-image-loader/ios`)
   - EXNotifications (from `../../../node_modules/expo-notifications/ios`)
   - Expo (from `../../../node_modules/expo`)
+  - ExpoBlur (from `../../../node_modules/expo-blur/ios`)
   - ExpoClipboard (from `../../../node_modules/expo-clipboard/ios`)
   - ExpoCrypto (from `../../../node_modules/expo-crypto/ios`)
   - ExpoDevice (from `../../../node_modules/expo-device/ios`)
@@ -1262,6 +1265,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/expo-notifications/ios"
   Expo:
     :path: "../../../node_modules/expo"
+  ExpoBlur:
+    :path: "../../../node_modules/expo-blur/ios"
   ExpoClipboard:
     :path: "../../../node_modules/expo-clipboard/ios"
   ExpoCrypto:
@@ -1421,6 +1426,7 @@ SPEC CHECKSUMS:
   EXImageLoader: ba2506b443b9656e93167c104406a2c265924823
   EXNotifications: 9fd42ca3c5998ae93a2ac869ed9a47467c433219
   Expo: 1b33cb8ab60cff9abf805ed6020af3d1846e457c
+  ExpoBlur: 3a9548a738624968836926f4aa1e18fa22155640
   ExpoClipboard: 24cc2b881ab6ca2e5b431b1f6d9d4a302adbf9d0
   ExpoCrypto: 9be8806e896380cb18e5d3d2c13a89ce2f36946a
   ExpoDevice: fc21b9193d704f3759c1ede1b383fcdb0370b46a

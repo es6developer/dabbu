@@ -46,6 +46,34 @@ export class FinancialHealthEngine {
         }),
       ]);
 
+    const hasNoData =
+      transactions.length === 0 &&
+      bills.length === 0 &&
+      reminders.length === 0 &&
+      goals.length === 0 &&
+      allTransactions.length === 0 &&
+      !salaryProfile;
+
+    if (hasNoData) {
+      return {
+        score: 0,
+        label: 'No Data',
+        color: '#6366F1',
+        factors: [
+          { name: 'Savings', score: 0, maxScore: 20, status: 'poor', detail: 'No transactions yet' },
+          { name: 'Commitments', score: 0, maxScore: 20, status: 'poor', detail: 'No recurring payments tracked' },
+          { name: 'EMI Load', score: 0, maxScore: 15, status: 'poor', detail: 'No EMI data' },
+          { name: 'Expense Growth', score: 0, maxScore: 15, status: 'poor', detail: 'Not enough data' },
+          { name: 'Goal Completion', score: 0, maxScore: 15, status: 'poor', detail: 'No goals set' },
+          { name: 'Subscription Burden', score: 0, maxScore: 15, status: 'poor', detail: 'Not tracked yet' },
+        ],
+        recommendations: [
+          'Start by adding your first expense to track your spending.',
+          'Set up a salary profile to calculate your savings ratio.',
+        ],
+      };
+    }
+
     const monthlyIncome = Number(salaryProfile?.salary || 0);
     const monthlyExpenses = transactions
       .filter((t) => t.type === 'expense')

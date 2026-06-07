@@ -11,6 +11,7 @@ import {
   setAccessToken,
   setRefreshTokenHandler,
   setOnSessionExpiredHandler,
+  clearCache,
 } from '../services/api';
 import { registerForPushNotifications } from '../services/notifications';
 import { trackEventImmediate } from '../hooks/useAnalytics';
@@ -347,6 +348,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     await clearAuth();
+    clearCache();
     try {
       await SecureStore.deleteItemAsync('appPin');
       await SecureStore.deleteItemAsync('appLockEnabled');

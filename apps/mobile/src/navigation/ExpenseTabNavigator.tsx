@@ -8,167 +8,109 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../theme';
 import { MyWalletScreen } from '../screens/transactions/MyWalletScreen';
 import { SharedCirclesScreen } from '../screens/transactions/SharedCirclesScreen';
 
 const SEGMENTS = ['My Wallet', 'Shared Circles'];
-const SCREEN_WIDTH = Dimensions.get('window').width;
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const TAB_W = (SCREEN_WIDTH - 48) / 2;
 
 export function ExpenseTabNavigator() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const [active, setActive] = useState(1);
-  const slideAnim = useRef(new Animated.Value(1)).current;
-  const fadeAnim = useRef(new Animated.Value(1)).current;
   const [screen, setScreen] = useState<'MyWallet' | 'SharedCircles'>('SharedCircles');
+  const slideAnim = useRef(new Animated.Value(1)).current;
+  const contentFade = useRef(new Animated.Value(1)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const switchTo = useCallback(
     (index: number) => {
       if (index === active) return;
       const next = index === 0 ? 'MyWallet' as const : 'SharedCircles' as const;
-      fadeAnim.setValue(1);
       Animated.parallel([
-        Animated.timing(slideAnim, {
+        Animated.spring(slideAnim, {
           toValue: index,
-          duration: 250,
+          tension: 80,
+          friction: 12,
           useNativeDriver: false,
         }),
         Animated.sequence([
-          Animated.timing(fadeAnim, {
-            toValue: 0,
-            duration: 100,
-            useNativeDriver: false,
-          }),
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 180,
-            useNativeDriver: false,
-          }),
+          Animated.timing(contentFade, { toValue: 0, duration: 80, useNativeDriver: true }),
+          Animated.timing(contentFade, { toValue: 1, duration: 200, useNativeDriver: true }),
+        ]),
+        Animated.sequence([
+          Animated.timing(scaleAnim, { toValue: 0.96, duration: 80, useNativeDriver: true }),
+          Animated.spring(scaleAnim, { toValue: 1, tension: 100, friction: 8, useNativeDriver: true }),
         ]),
       ]).start();
-      setTimeout(() => {
-        setScreen(next);
-        setActive(index);
-      }, 80);
+      setTimeout(() => { setScreen(next); setActive(index); }, 60);
     },
-    [active, slideAnim, fadeAnim],
+    [active, slideAnim, contentFade, scaleAnim],
   );
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg.primary }}>
-      <View style={{ flex: 1 }}>
+      <Animated.View style={{ flex: 1, opacity: contentFade, transform: [{ scale: scaleAnim }] }}>
         {screen === 'MyWallet' ? <MyWalletScreen /> : <SharedCirclesScreen />}
-      </View>
-      <SegmentedControl
-        segments={SEGMENTS}
-        active={active}
-        onSelect={switchTo}
-        colors={colors}
-      />
-    </View>
-  );
-}
-
-function SegmentedControl({
-  segments,
-  active,
-  onSelect,
-  colors,
-}: {
-  segments: string[];
-  active: number;
-  onSelect: (i: number) => void;
-  colors: any;
-}) {
-  const offset = useRef(new Animated.Value(active * 2)).current;
-
-  React.useEffect(() => {
-    Animated.spring(offset, {
-      toValue: active * 2,
-      useNativeDriver: false,
-      tension: 100,
-      friction: 10,
-    }).start();
-  }, [active, offset]);
-
-  return (
-    <View style={[segStyles.wrapper, { backgroundColor: colors.bg.tertiary }]}>
-      <View style={segStyles.inner}>
-        <Animated.View
-          style={[
-            segStyles.slider,
-            {
-              backgroundColor: colors.bg.primary,
-              transform: [
-                {
-                  translateX: offset.interpolate({
-                    inputRange: [0, 2],
-                    outputRange: [0, (SCREEN_WIDTH - 48) / 2],
+      </Animated.View>
+      <View style={[s.segWrapper, { backgroundColor: isDark ? 'rgba(26,26,38,0.95)' : 'rgba(240,240,245,0.95)' }]}>
+        <View style={s.segInner}>
+          <Animated.View
+            style={[
+              s.segSlider,
+              {
+                transform: [{
+                  translateX: slideAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [2, TAB_W + 2],
                   }),
-                },
-              ],
-            },
-          ]}
-        />
-        {segments.map((label, i) => (
-          <TouchableOpacity
-            key={label}
-            style={segStyles.segment}
-            onPress={() => onSelect(i)}
-            activeOpacity={0.7}
+                }],
+              },
+            ]}
           >
-            <Text
-              style={[
-                segStyles.label,
-                {
-                  color: i === active ? colors.accent.primary : colors.text.tertiary,
-                  fontWeight: i === active ? '700' : '500',
-                },
-              ]}
-            >
-              {label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+            <LinearGradient colors={colors.accent.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.segGradient} />
+          </Animated.View>
+          {SEGMENTS.map((label, i) => (
+            <TouchableOpacity key={label} style={s.segBtn} onPress={() => switchTo(i)} activeOpacity={0.7}>
+              <Text style={[s.segLabel, { color: i === active ? '#FFF' : colors.text.tertiary, fontWeight: i === active ? '700' : '500' }]}>
+                {label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
     </View>
   );
 }
 
-const segStyles = StyleSheet.create({
-  wrapper: {
+const s = StyleSheet.create({
+  segWrapper: {
     marginHorizontal: 12,
     marginBottom: Platform.OS === 'ios' ? 80 : 72,
-    borderRadius: 14,
+    borderRadius: 16,
     padding: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
-  inner: {
+  segInner: {
     flexDirection: 'row',
-    borderRadius: 12,
+    borderRadius: 14,
     overflow: 'hidden',
     position: 'relative',
-    height: 40,
+    height: 44,
   },
-  slider: {
+  segSlider: {
     position: 'absolute',
     top: 2,
     bottom: 2,
-    left: 2,
-    width: '50%',
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    left: 0,
+    width: TAB_W,
+    borderRadius: 12,
+    overflow: 'hidden',
   },
-  segment: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1,
-  },
-  label: {
-    fontSize: 14,
-  },
+  segGradient: { flex: 1, borderRadius: 12 },
+  segBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', zIndex: 1 },
+  segLabel: { fontSize: 14, letterSpacing: 0.3 },
 });
