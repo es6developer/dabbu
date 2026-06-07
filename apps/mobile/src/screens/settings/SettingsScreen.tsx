@@ -36,6 +36,7 @@ const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
     title: 'Financial Tools',
     items: [
       { label: 'Reports & Analytics', icon: 'stats-chart', screen: 'Analytics', premium: true },
+      { label: 'Couple Space', icon: 'heart', screen: 'CoupleSpace' },
     ],
   },
   {
@@ -64,6 +65,7 @@ const ROW_META: Record<string, { gradient: [string, string]; icon: IconName }> =
   Security: { gradient: ['#34C759', '#059669'], icon: 'shield-checkmark' },
   'Lock App': { gradient: ['#6C3EF4', '#5B2ED6'], icon: 'lock-closed' },
   'Reports & Analytics': { gradient: ['#8B5CF6', '#6D28D9'], icon: 'stats-chart' },
+  'Couple Space': { gradient: ['#FF4D6A', '#FF6B8A'], icon: 'heart' },
   Theme: { gradient: ['#EC4899', '#BE185D'], icon: 'color-palette' },
   Notifications: { gradient: ['#6C3EF4', '#8B5CF6'], icon: 'notifications' },
   'Customise Dashboard': { gradient: ['#4F6EF7', '#6C5CE7'], icon: 'apps' },
@@ -122,7 +124,7 @@ export function SettingsScreen() {
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}>
         <LinearGradient
-          colors={['#1A1A3E', '#12121A']}
+          colors={['#6C3EF4', '#8B5CF6']}
           start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
           style={[s.hero, { paddingTop: insets.top + 16 }]}
         >
@@ -257,7 +259,7 @@ const s = StyleSheet.create({
   },
   heroPlanText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.3 },
 
-  upgradeBanner: { marginHorizontal: 20, marginTop: 20, marginBottom: 24, borderRadius: 20, overflow: 'hidden' },
+  upgradeBanner: { marginHorizontal: 20, marginTop: 16, marginBottom: 20, borderRadius: 20, overflow: 'hidden' },
   upgradeGrad: {
     flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12,
   },

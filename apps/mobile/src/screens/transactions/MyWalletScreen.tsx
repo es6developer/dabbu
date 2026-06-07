@@ -20,48 +20,13 @@ import { useAuth } from '../../store/AuthContext';
 import { Skeleton, SkeletonList } from '../../components/ui/AnimatedSkeleton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
+import { getCategoryIcon, getCategoryGradient } from '../../config/categoryIcons';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_W = (SCREEN_WIDTH - 56) / 3;
 
-const CATEGORY_ICONS: Record<string, string> = {
-  Food: 'fast-food-outline',
-  Travel: 'airplane-outline',
-  Shopping: 'cart-outline',
-  Medical: 'medkit-outline',
-  Fuel: 'flame-outline',
-  Rent: 'home-outline',
-  EMI: 'card-outline',
-  Bills: 'receipt-outline',
-  Entertainment: 'tv-outline',
-  Education: 'school-outline',
-  Grocery: 'basket-outline',
-  Investment: 'trending-up-outline',
-  Salary: 'cash-outline',
-  Transfer: 'swap-horizontal-outline',
-};
-const CATEGORY_COLORS: Record<string, string[]> = {
-  Food: ['#6C3EF4', '#8B5CF6'],
-  Travel: ['#4A90D9', '#357ABD'],
-  Shopping: ['#E056A0', '#C94D8B'],
-  Medical: ['#00B894', '#00A381'],
-  Fuel: ['#FDCB6E', '#F0A830'],
-  Rent: ['#6C5CE7', '#5A4BD1'],
-  EMI: ['#E17055', '#D63031'],
-  Bills: ['#0984E3', '#0768B8'],
-  Entertainment: ['#A29BFE', '#817CE8'],
-  Education: ['#55EFC4', '#00CEC9'],
-  Grocery: ['#81ECEC', '#00CEC9'],
-  Investment: ['#74B9FF', '#4D96FF'],
-  Salary: ['#00B894', '#00A381'],
-  Transfer: ['#DFE6E9', '#B2BEC3'],
-};
-
-function getCategoryIcon(cat: string) {
-  return CATEGORY_ICONS[cat] || 'ellipse-outline';
-}
 function getCategoryColors(cat: string) {
-  return CATEGORY_COLORS[cat] || ['#6C3EF4', '#8B5CF6'];
+  return getCategoryGradient(cat, ['#6C3EF4', '#8B5CF6']);
 }
 function fmt(v: number) {
   return '₹' + v.toLocaleString('en-IN', { maximumFractionDigits: 0 });

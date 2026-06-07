@@ -15,31 +15,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
-
-const CATEGORY_ICONS: Record<string, string> = {
-  Food: 'fast-food', Travel: 'airplane', Shopping: 'cart',
-  Medical: 'medkit', Fuel: 'flame', Rent: 'home',
-  EMI: 'card', Bills: 'receipt', Entertainment: 'tv',
-  Education: 'school', Grocery: 'basket', Investment: 'trending-up',
-  Salary: 'cash', Transfer: 'swap-horizontal',
-};
-
-const CATEGORY_COLORS: Record<string, [string, string]> = {
-  Food: ['#6C3EF4', '#8B5CF6'], Travel: ['#4A90D9', '#357ABD'],
-  Shopping: ['#E056A0', '#C94D8B'], Medical: ['#00B894', '#00A381'],
-  Fuel: ['#F59E0B', '#F3D28F'], Rent: ['#6C5CE7', '#5A4BD1'],
-  EMI: ['#E17055', '#D63031'], Bills: ['#0984E3', '#0768B8'],
-  Entertainment: ['#A29BFE', '#817CE8'], Education: ['#55EFC4', '#00CEC9'],
-  Grocery: ['#81ECEC', '#00CEC9'], Investment: ['#74B9FF', '#4D96FF'],
-  Salary: ['#00B894', '#00A381'], Transfer: ['#DFE6E9', '#B2BEC3'],
-};
+import { getCategoryIcon, getCategoryGradient } from '../../config/categoryIcons';
 
 function getIcon(cat: string): string {
-  return CATEGORY_ICONS[cat] || 'ellipse';
+  return getCategoryIcon(cat, 'ellipse');
 }
 
 function getCatColors(cat: string): [string, string] {
-  return CATEGORY_COLORS[cat] || ['#6C3EF4', '#8B5CF6'];
+  return getCategoryGradient(cat, ['#6C3EF4', '#8B5CF6']);
 }
 
 export function TransactionDetailScreen() {

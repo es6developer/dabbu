@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
+import { getCategoryIcon } from '../../config/categoryIcons';
 
 interface TransactionCardProps {
   name: string;

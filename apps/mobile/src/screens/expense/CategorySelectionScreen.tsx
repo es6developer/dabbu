@@ -7,21 +7,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
+import { CATEGORY_ICONS, getCategoryColor } from '../../config/categoryIcons';
 
-const CATEGORIES = [
-  { name: 'Food', icon: 'fast-food-outline', color: '#FF6B6B' },
-  { name: 'Groceries', icon: 'cart-outline', color: '#34C759' },
-  { name: 'Travel', icon: 'airplane-outline', color: '#60A5FA' },
-  { name: 'Gym', icon: 'fitness-outline', color: '#A78BFA' },
-  { name: 'Water', icon: 'water-outline', color: '#38BDF8' },
-  { name: 'Internet', icon: 'wifi-outline', color: '#38BDF8' },
-  { name: 'Rent', icon: 'home-outline', color: '#FB923C' },
-  { name: 'Bills', icon: 'receipt-outline', color: '#F59E0B' },
-  { name: 'Shopping', icon: 'bag-outline', color: '#F472B6' },
-  { name: 'Entertainment', icon: 'film-outline', color: '#8B5CF6' },
-  { name: 'Medical', icon: 'medkit-outline', color: '#FF4D4F' },
-  { name: 'Education', icon: 'school-outline', color: '#6366F1' },
-];
+const CATEGORY_NAMES = ['Food', 'Groceries', 'Travel', 'Gym', 'Water', 'Internet', 'Rent', 'Bills', 'Shopping', 'Entertainment', 'Medical', 'Education'];
+const CATEGORIES = CATEGORY_NAMES.map((name) => ({ name, icon: CATEGORY_ICONS[name], color: getCategoryColor(name) }));
 
 export function CategorySelectionScreen() {
   const navigation = useNavigation<any>();

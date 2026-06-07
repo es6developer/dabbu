@@ -20,29 +20,9 @@ import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { getCategoryIcon } from '../../config/categoryIcons';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-const CATEGORY_ICONS: Record<string, string> = {
-  Food: 'fast-food-outline',
-  Travel: 'airplane-outline',
-  Shopping: 'cart-outline',
-  Medical: 'medkit-outline',
-  Fuel: 'flame-outline',
-  Rent: 'home-outline',
-  EMI: 'card-outline',
-  Bills: 'receipt-outline',
-  Entertainment: 'tv-outline',
-  Education: 'school-outline',
-  Grocery: 'basket-outline',
-  Investment: 'trending-up-outline',
-  Salary: 'cash-outline',
-  Transfer: 'swap-horizontal-outline',
-};
-
-function getCategoryIcon(cat: string): string {
-  return CATEGORY_ICONS[cat] || 'ellipse-outline';
-}
 
 function groupByDate(transactions: any[]): { title: string; data: any[] }[] {
   const groups: Record<string, any[]> = {};
