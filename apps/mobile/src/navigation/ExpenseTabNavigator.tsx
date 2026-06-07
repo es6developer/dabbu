@@ -27,8 +27,10 @@ export function ExpenseTabNavigator() {
 
   const switchTo = useCallback(
     (index: number) => {
-      if (index === active) return;
-      const next = index === 0 ? 'MyWallet' as const : 'SharedCircles' as const;
+      if (index === active) {
+        return;
+      }
+      const next = index === 0 ? ('MyWallet' as const) : ('SharedCircles' as const);
       Animated.parallel([
         Animated.spring(slideAnim, {
           toValue: index,
@@ -42,10 +44,18 @@ export function ExpenseTabNavigator() {
         ]),
         Animated.sequence([
           Animated.timing(scaleAnim, { toValue: 0.96, duration: 80, useNativeDriver: true }),
-          Animated.spring(scaleAnim, { toValue: 1, tension: 100, friction: 8, useNativeDriver: true }),
+          Animated.spring(scaleAnim, {
+            toValue: 1,
+            tension: 100,
+            friction: 8,
+            useNativeDriver: true,
+          }),
         ]),
       ]).start();
-      setTimeout(() => { setScreen(next); setActive(index); }, 60);
+      setTimeout(() => {
+        setScreen(next);
+        setActive(index);
+      }, 60);
     },
     [active, slideAnim, contentFade, scaleAnim],
   );
@@ -55,26 +65,51 @@ export function ExpenseTabNavigator() {
       <Animated.View style={{ flex: 1, opacity: contentFade, transform: [{ scale: scaleAnim }] }}>
         {screen === 'MyWallet' ? <MyWalletScreen /> : <SharedCirclesScreen />}
       </Animated.View>
-      <View style={[s.segWrapper, { backgroundColor: isDark ? 'rgba(26,26,38,0.95)' : 'rgba(240,240,245,0.95)' }]}>
+      <View
+        style={[
+          s.segWrapper,
+          { backgroundColor: isDark ? 'rgba(26,26,38,0.95)' : 'rgba(240,240,245,0.95)' },
+        ]}
+      >
         <View style={s.segInner}>
           <Animated.View
             style={[
               s.segSlider,
               {
-                transform: [{
-                  translateX: slideAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [2, TAB_W + 2],
-                  }),
-                }],
+                transform: [
+                  {
+                    translateX: slideAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [2, TAB_W + 2],
+                    }),
+                  },
+                ],
               },
             ]}
           >
-            <LinearGradient colors={colors.accent.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.segGradient} />
+            <LinearGradient
+              colors={[...colors.accent.gradient]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={s.segGradient}
+            />
           </Animated.View>
           {SEGMENTS.map((label, i) => (
-            <TouchableOpacity key={label} style={s.segBtn} onPress={() => switchTo(i)} activeOpacity={0.7}>
-              <Text style={[s.segLabel, { color: i === active ? '#FFF' : colors.text.tertiary, fontWeight: i === active ? '700' : '500' }]}>
+            <TouchableOpacity
+              key={label}
+              style={s.segBtn}
+              onPress={() => switchTo(i)}
+              activeOpacity={0.7}
+            >
+              <Text
+                style={[
+                  s.segLabel,
+                  {
+                    color: i === active ? '#FFF' : colors.text.tertiary,
+                    fontWeight: i === active ? '700' : '500',
+                  },
+                ]}
+              >
                 {label}
               </Text>
             </TouchableOpacity>
