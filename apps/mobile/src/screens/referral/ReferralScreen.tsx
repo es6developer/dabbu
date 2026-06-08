@@ -42,7 +42,7 @@ function Confetti({ show }: { show: boolean }) {
       key: i,
       x: new Animated.Value(Math.random() * SCREEN_W),
       y: new Animated.Value(-20),
-      color: ['#FF6B6B', '#FDCB6E', '#00B894', '#74B9FF', '#F5DBA0', '#FD79A8'][i % 6],
+      color: ['#FF6B6B', '#FDCB6E', '#00B894', '#74B9FF', '#14B8A6', '#FD79A8'][i % 6],
       size: 6 + Math.random() * 8,
       rotation: new Animated.Value(0),
       delay: Math.random() * 500,
@@ -165,7 +165,7 @@ function ShareSheet({
     {
       label: 'Copy Link',
       icon: 'link',
-      color: '#F3D28F',
+      color: '#14B8A6',
       action: () => {
         Share.share({ message }).catch(() => {});
       },
@@ -339,7 +339,9 @@ export function ReferralScreen() {
         }
       >
         {/* Hero */}
-        <View style={[styles.hero, { paddingTop: insets.top + 16, backgroundColor: '#1A1835' }]}>
+        <View
+          style={[styles.hero, { paddingTop: insets.top + 16, backgroundColor: colors.bg.primary }]}
+        >
           <Text style={styles.heroEyebrow}>REFER & EARN</Text>
           <Text style={styles.heroTitle}>Invite Friends, Earn Rewards</Text>
           <Text style={styles.heroSub}>
@@ -357,7 +359,7 @@ export function ReferralScreen() {
             <Text style={styles.codeText}>{referralCode || 'LOADING...'}</Text>
             <View style={styles.codeShare}>
               <Ionicons name="share-outline" size={16} color="#FFF" />
-              <Text style={styles.codeShareText}>Share</Text>
+              <Text style={[styles.codeShareText, { color: colors.text.primary }]}>Share</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -519,7 +521,9 @@ export function ReferralScreen() {
               activeOpacity={0.8}
             >
               <Ionicons name="share-outline" size={18} color="#FFF" />
-              <Text style={styles.emptyBtnText}>Share Your Code</Text>
+              <Text style={[styles.emptyBtnText, { color: colors.text.primary }]}>
+                Share Your Code
+              </Text>
             </TouchableOpacity>
           </Animated.View>
         )}
@@ -543,7 +547,9 @@ export function ReferralScreen() {
             activeOpacity={0.85}
           >
             <Ionicons name="share-social" size={20} color="#FFF" />
-            <Text style={styles.shareBtnText}>Share Referral Code</Text>
+            <Text style={[styles.shareBtnText, { color: colors.text.primary }]}>
+              Share Referral Code
+            </Text>
           </TouchableOpacity>
         </View>
       )}
@@ -596,7 +602,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 10,
   },
-  codeShareText: { fontSize: 13, fontWeight: '700', color: '#1A1835' },
+  codeShareText: { fontSize: 13, fontWeight: '700' },
   statsCard: {
     marginHorizontal: 16,
     marginTop: -24,
@@ -683,7 +689,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginTop: 8,
   },
-  emptyBtnText: { color: '#1A1835', fontSize: 15, fontWeight: '700' },
+  emptyBtnText: { fontSize: 15, fontWeight: '700' },
   bottomBar: {
     position: 'absolute',
     bottom: 0,
@@ -701,7 +707,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 16,
   },
-  shareBtnText: { color: '#1A1835', fontSize: 16, fontWeight: '700' },
+  shareBtnText: { fontSize: 16, fontWeight: '700' },
   shareSheet: {
     position: 'absolute',
     bottom: 0,

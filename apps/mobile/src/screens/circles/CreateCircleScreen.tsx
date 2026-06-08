@@ -21,7 +21,7 @@ const CIRCLE_TYPES = [
   { key: 'family', label: 'Family', icon: 'home', color: '#F97316' },
   { key: 'friends', label: 'Friends', icon: 'people', color: '#34C759' },
   { key: 'roommates', label: 'Roommates', icon: 'business', color: '#4F6EF7' },
-  { key: 'trip', label: 'Trip', icon: 'airplane', color: '#F3D28F' },
+  { key: 'trip', label: 'Trip', icon: 'airplane', color: '#14B8A6' },
 ];
 
 export function CreateCircleScreen() {
@@ -229,7 +229,9 @@ export function CreateCircleScreen() {
                 style={styles.createBtnInner}
               >
                 <Ionicons name="people" size={18} color="#FFF" />
-                <Text style={styles.createBtnText}>Create Circle</Text>
+                <Text style={[styles.createBtnText, { color: colors.text.primary }]}>
+                  Create Circle
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -323,5 +325,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  createBtnText: { color: '#1A1835', fontSize: 16, fontWeight: '700' },
+  createBtnText: { fontSize: 16, fontWeight: '700' },
 });

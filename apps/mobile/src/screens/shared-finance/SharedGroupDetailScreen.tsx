@@ -41,10 +41,10 @@ const TYPE_THEMES: Record<string, { gradient: [string, string]; chipColor: strin
       icon: 'home',
     },
     couple: { gradient: ['#FF6B9D', '#FF8FB3'], chipColor: '#FF6B9D', icon: 'heart' },
-    roommates: { gradient: ['#F3D28F', '#F5DBA0'], chipColor: '#F3D28F', icon: 'business' },
+    roommates: { gradient: ['#14B8A6', '#14B8A6'], chipColor: '#14B8A6', icon: 'business' },
     office: { gradient: ['#247BA0', '#4A9FC7'], chipColor: '#247BA0', icon: 'briefcase' },
     event: { gradient: ['#D64550', '#FF6B6B'], chipColor: '#D64550', icon: 'calendar' },
-    apartment: { gradient: ['#F3D28F', '#F5DBA0'], chipColor: '#F3D28F', icon: 'building' },
+    apartment: { gradient: ['#14B8A6', '#14B8A6'], chipColor: '#14B8A6', icon: 'building' },
     default: {
       gradient: [palette.brand.primary, palette.brand.hover],
       chipColor: palette.brand.primary,
@@ -1079,7 +1079,7 @@ export function SharedGroupDetailScreen() {
                 paddingTop: insets.top + 8,
                 paddingBottom: 24,
                 paddingHorizontal: 20,
-                backgroundColor: '#F3D28F',
+                backgroundColor: '#14B8A6',
               }}
             >
               <View style={s.headerRow}>

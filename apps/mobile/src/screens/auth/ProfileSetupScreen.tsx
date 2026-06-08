@@ -172,7 +172,7 @@ export function ProfileSetupScreen() {
                 {saving ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <Text style={styles.saveBtnText}>Continue</Text>
+                  <Text style={[styles.saveBtnText, { color: colors.text.primary }]}>Continue</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -213,5 +213,5 @@ const styles = StyleSheet.create({
   input: { fontSize: 15, padding: 15, borderRadius: 14, marginBottom: 14, borderWidth: 1 },
   half: { width: '48%' },
   saveBtn: { paddingVertical: 16, borderRadius: 14, alignItems: 'center', marginTop: 8 },
-  saveBtnText: { color: '#1A1835', fontSize: 16, fontWeight: '600' },
+  saveBtnText: { fontSize: 16, fontWeight: '600' },
 });

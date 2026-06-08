@@ -162,7 +162,9 @@ export function InviteMemberScreen() {
                   style={[styles.shareBtn, { backgroundColor: colors.accent.primary }]}
                   onPress={handleShareCode}
                 >
-                  <Text style={styles.shareBtnText}>📤 Share Invite</Text>
+                  <Text style={[styles.shareBtnText, { color: colors.text.primary }]}>
+                    📤 Share Invite
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[
@@ -235,7 +237,9 @@ export function InviteMemberScreen() {
               {joining ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text style={styles.joinBtnText}>Join Family</Text>
+                <Text style={[styles.joinBtnText, { color: colors.text.primary }]}>
+                  Join Family
+                </Text>
               )}
             </TouchableOpacity>
           </View>
@@ -308,7 +312,7 @@ const styles = StyleSheet.create({
   copyHint: { fontSize: 12 },
   shareRow: { flexDirection: 'row', gap: 12 },
   shareBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
-  shareBtnText: { color: '#1A1835', fontSize: 15, fontWeight: '600' },
+  shareBtnText: { fontSize: 15, fontWeight: '600' },
   copyBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: 'center', borderWidth: 1 },
   copyBtnText: { fontSize: 15, fontWeight: '600' },
   noFamilyCard: {
@@ -330,7 +334,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   joinBtn: { paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
-  joinBtnText: { color: '#1A1835', fontSize: 17, fontWeight: '600' },
+  joinBtnText: { fontSize: 17, fontWeight: '600' },
   inviteRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

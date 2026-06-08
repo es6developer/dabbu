@@ -38,7 +38,7 @@ const OPTIONS: OptionCard[] = [
     icon: 'people-outline',
     title: 'Create Group',
     description: 'Create a group to split expenses with friends & family.',
-    gradient: ['#F3D28F', '#F5DBA0'],
+    gradient: ['#14B8A6', '#14B8A6'],
   },
 ];
 
@@ -88,7 +88,7 @@ export function AddExpenseScreen() {
           <Ionicons name="close" size={22} color="#FFFFFF" />
         </TouchableOpacity>
 
-        <View style={[styles.hero, { backgroundColor: '#1A1835' }]}>
+        <View style={[styles.hero, { backgroundColor: colors.bg.primary }]}>
           <View style={styles.heroIcon}>
             <Ionicons name="add" size={28} color="#FFFFFF" />
           </View>

@@ -192,7 +192,9 @@ export function SmsPermissionScreen() {
                   disabled={!moduleAvailable}
                 >
                   <Ionicons name="shield-checkmark" size={20} color="#FFFFFF" />
-                  <Text style={styles.primaryBtnText}>Grant SMS Permission</Text>
+                  <Text style={[styles.primaryBtnText, { color: colors.text.primary }]}>
+                    Grant SMS Permission
+                  </Text>
                 </TouchableOpacity>
 
                 {permStatus === 'never_ask_again' && (
@@ -355,7 +357,9 @@ export function SmsPermissionScreen() {
                 ) : (
                   <>
                     <Ionicons name="document-text" size={18} color="#FFFFFF" />
-                    <Text style={styles.primaryBtnText}>Parse SMS</Text>
+                    <Text style={[styles.primaryBtnText, { color: colors.text.primary }]}>
+                      Parse SMS
+                    </Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -572,7 +576,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 16,
   },
-  primaryBtnText: { color: '#1A1835', fontSize: 15, fontWeight: '600' },
+  primaryBtnText: { fontSize: 15, fontWeight: '600' },
   infoCard: { borderRadius: 16, borderWidth: 1, padding: 16, gap: 10 },
   infoText: { fontSize: 13, lineHeight: 18 },
   smallBtn: {

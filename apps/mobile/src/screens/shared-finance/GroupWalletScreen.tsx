@@ -251,7 +251,7 @@ export function GroupWalletScreen() {
                     onPress={createWallet}
                     style={[styles.confirmBtn, { backgroundColor: colors.accent.primary }]}
                   >
-                    <Text style={styles.confirmText}>Create</Text>
+                    <Text style={[styles.confirmText, { color: colors.text.primary }]}>Create</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -293,7 +293,7 @@ export function GroupWalletScreen() {
                     onPress={contribute}
                     style={[styles.confirmBtn, { backgroundColor: colors.status.success }]}
                   >
-                    <Text style={styles.confirmText}>Add</Text>
+                    <Text style={[styles.confirmText, { color: colors.text.primary }]}>Add</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -346,7 +346,7 @@ export function GroupWalletScreen() {
                     onPress={spend}
                     style={[styles.confirmBtn, { backgroundColor: colors.status.error }]}
                   >
-                    <Text style={styles.confirmText}>Spend</Text>
+                    <Text style={[styles.confirmText, { color: colors.text.primary }]}>Spend</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -421,5 +421,5 @@ const styles = StyleSheet.create({
   cancelBtn: { paddingHorizontal: 20, paddingVertical: 12 },
   cancelText: { fontSize: 15, fontWeight: '600' },
   confirmBtn: { paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 },
-  confirmText: { color: '#1A1835', fontSize: 15, fontWeight: '700' },
+  confirmText: { fontSize: 15, fontWeight: '700' },
 });

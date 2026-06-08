@@ -111,7 +111,7 @@ export function AppLockScreen({ onUnlock }: Props) {
 
       <View style={styles.topSection}>
         <View style={styles.iconRing}>
-          <Ionicons name="lock-closed" size={28} color="#F3D28F" />
+          <Ionicons name="lock-closed" size={28} color="#14B8A6" />
         </View>
         <Text style={styles.title}>Welcome back</Text>
         <Text style={styles.subtitle}>{user?.firstName || 'User'} · Enter PIN</Text>
@@ -125,8 +125,8 @@ export function AppLockScreen({ onUnlock }: Props) {
               style={[
                 styles.dot,
                 {
-                  backgroundColor: pin[i] ? '#F3D28F' : 'transparent',
-                  borderColor: pin[i] ? '#F3D28F' : 'rgba(255,255,255,0.12)',
+                  backgroundColor: pin[i] ? '#14B8A6' : 'transparent',
+                  borderColor: pin[i] ? '#14B8A6' : 'rgba(255,255,255,0.12)',
                   transform: pin[i] ? [{ scale: 1 }] : [{ scale: 0.85 }],
                 },
               ]}
@@ -173,7 +173,7 @@ export function AppLockScreen({ onUnlock }: Props) {
 
       <View style={styles.bottomSection}>
         <TouchableOpacity style={styles.biometricBtn} onPress={handleBiometric} activeOpacity={0.7}>
-          <Ionicons name="finger-print" size={22} color="#F3D28F" />
+          <Ionicons name="finger-print" size={22} color="#14B8A6" />
           <Text style={styles.biometricText}>Use Biometric</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={handleForgotPin} activeOpacity={0.6}>
@@ -213,11 +213,11 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 24,
-    backgroundColor: 'rgba(255,107,0,0.12)',
+    backgroundColor: 'rgba(20,184,166,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,107,0,0.2)',
+    borderColor: 'rgba(20,184,166,0.2)',
     marginBottom: 24,
   },
   title: {
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#F3D28F',
+    backgroundColor: '#14B8A6',
     borderRadius: 2,
   },
   errorText: {
@@ -301,10 +301,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 14,
-    backgroundColor: 'rgba(255,107,0,0.1)',
+    backgroundColor: 'rgba(20,184,166,0.1)',
   },
   biometricText: {
-    color: '#F3D28F',
+    color: '#14B8A6',
     fontSize: 15,
     fontWeight: '600',
   },

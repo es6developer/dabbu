@@ -199,7 +199,7 @@ export function OnboardingScreen() {
             onPress={handleNext}
             activeOpacity={0.85}
           >
-            <Text style={[styles.buttonText, typography.button]}>
+            <Text style={[styles.buttonText, typography.button, { color: colors.text.primary }]}>
               {isLast ? 'Get Started' : 'Next'}
             </Text>
             {!isLast && <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />}
@@ -250,6 +250,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  buttonText: { color: '#1A1835' },
+  buttonText: {},
   getStarted: { alignItems: 'center', paddingVertical: 12, marginTop: 4 },
 });

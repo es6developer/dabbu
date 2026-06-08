@@ -40,10 +40,10 @@ const GOAL_CONFIGS: Record<string, GoalConfig> = {
   vacation: { icon: 'airplane', color: '#00B894' },
   education: { icon: 'school', color: '#4F6EF7' },
   home: { icon: 'home', color: '#F97316' },
-  car: { icon: 'car-sport', color: '#F3D28F' },
+  car: { icon: 'car-sport', color: '#14B8A6' },
   wedding: { icon: 'heart', color: '#FF6B9D' },
   retirement: { icon: 'umbrella', color: '#247BA0' },
-  custom: { icon: 'trophy', color: '#F3D28F' },
+  custom: { icon: 'trophy', color: '#14B8A6' },
 };
 
 const SUGGESTED_GOALS = [

@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Dimensions, Alert,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  RefreshControl,
+  Dimensions,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -40,42 +47,52 @@ export function CoupleReportsScreen() {
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState('');
 
-  const periodQuery = period === 'This Month' ? 'month' : period === 'This Quarter' ? 'quarter' : 'year';
+  const periodQuery =
+    period === 'This Month' ? 'month' : period === 'This Quarter' ? 'quarter' : 'year';
 
-  const fetchReports = useCallback(async (isRefresh = false) => {
-    if (!isRefresh) setLoading(true);
-    try {
-      const groups: any[] = await api.get('/shared-finance/groups');
-      const coupleGroup = Array.isArray(groups)
-        ? groups.find((g: any) => g.type === 'couple' && g.status === 'ACTIVE')
-        : null;
-      if (!coupleGroup) {
-        setError('No couple space found.');
-        setData(null);
-        return;
+  const fetchReports = useCallback(
+    async (isRefresh = false) => {
+      if (!isRefresh) {
+        setLoading(true);
       }
-      const reports = await api.get<any>(`/shared-finance/groups/${coupleGroup.id}/couple/reports?period=${periodQuery}`);
-      setData(reports || {});
-      setError('');
-    } catch (e: any) {
-      setError(e?.message || 'Failed to load reports');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [periodQuery]);
+      try {
+        const groups: any[] = await api.get('/shared-finance/groups');
+        const coupleGroup = Array.isArray(groups)
+          ? groups.find((g: any) => g.type === 'couple' && g.status === 'ACTIVE')
+          : null;
+        if (!coupleGroup) {
+          setError('No couple space found.');
+          setData(null);
+          return;
+        }
+        const reports = await api.get<any>(
+          `/shared-finance/groups/${coupleGroup.id}/couple/reports?period=${periodQuery}`,
+        );
+        setData(reports || {});
+        setError('');
+      } catch (e: any) {
+        setError(e?.message || 'Failed to load reports');
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [periodQuery],
+  );
 
-  useEffect(() => { fetchReports(); }, [fetchReports]);
+  useEffect(() => {
+    fetchReports();
+  }, [fetchReports]);
 
   const summaryCards = useMemo(() => {
     const d = data || {};
     const totalIncome = d.totalIncome ?? 0;
     const totalExpense = d.totalExpense ?? 0;
-    const netSavings = d.netSavings ?? (totalIncome - totalExpense);
+    const netSavings = d.netSavings ?? totalIncome - totalExpense;
     return [
       { label: 'Total Income', amount: totalIncome, icon: 'trending-up-outline', color: '#34C759' },
       { label: 'Total Expenses', amount: totalExpense, icon: 'cart-outline', color: '#FF4D4F' },
-      { label: 'Net Savings', amount: netSavings, icon: 'save-outline', color: '#F3D28F' },
+      { label: 'Net Savings', amount: netSavings, icon: 'save-outline', color: '#14B8A6' },
     ] as const;
   }, [data]);
 
@@ -83,7 +100,9 @@ export function CoupleReportsScreen() {
 
   const categoryData = useMemo(() => {
     const cats = data?.categoryBreakdown || [];
-    if (!Array.isArray(cats)) return [];
+    if (!Array.isArray(cats)) {
+      return [];
+    }
     const total = cats.reduce((s: number, c: any) => s + (c.amount || 0), 0) || 1;
     return cats.map((c: any) => ({
       name: c.name || 'Uncategorized',
@@ -98,24 +117,55 @@ export function CoupleReportsScreen() {
     const p1 = { name: p.partner1Name || 'Partner 1', amount: p.partner1Amount ?? 0 };
     const p2 = { name: p.partner2Name || 'Partner 2', amount: p.partner2Amount ?? 0 };
     const total = p1.amount + p2.amount || 1;
-    return { p1, p2, p1Pct: Math.round((p1.amount / total) * 100), p2Pct: Math.round((p2.amount / total) * 100) };
+    return {
+      p1,
+      p2,
+      p1Pct: Math.round((p1.amount / total) * 100),
+      p2Pct: Math.round((p2.amount / total) * 100),
+    };
   }, [data]);
 
   const budgetStatus = data?.budgetStatus || { status: 'On Track', spent: 0, budget: 0 };
-  const budgetPct = budgetStatus.budget > 0 ? Math.round((budgetStatus.spent / budgetStatus.budget) * 100) : 0;
-  const statusColor = budgetStatus.status === 'On Track' ? '#34C759' : budgetStatus.status === 'Over Budget' ? '#FF4D4F' : '#F3D28F';
-  const statusIcon = budgetStatus.status === 'On Track' ? 'checkmark-circle' : budgetStatus.status === 'Over Budget' ? 'alert-circle' : 'trending-down';
+  const budgetPct =
+    budgetStatus.budget > 0 ? Math.round((budgetStatus.spent / budgetStatus.budget) * 100) : 0;
+  const statusColor =
+    budgetStatus.status === 'On Track'
+      ? '#34C759'
+      : budgetStatus.status === 'Over Budget'
+        ? '#FF4D4F'
+        : '#14B8A6';
+  const statusIcon =
+    budgetStatus.status === 'On Track'
+      ? 'checkmark-circle'
+      : budgetStatus.status === 'Over Budget'
+        ? 'alert-circle'
+        : 'trending-down';
 
-  if (loading) return <LoadingScreen />;
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   if (error && !data) {
     return (
       <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
-        <ScrollView contentContainerStyle={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+        <ScrollView
+          contentContainerStyle={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 20,
+          }}
+        >
           <View
-            
-             
-            style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20, position: 'absolute', top: 0, left: 0, right: 0 }}
+            style={{
+              paddingTop: insets.top + 12,
+              paddingBottom: 28,
+              paddingHorizontal: 20,
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+            }}
           >
             <View style={styles.headerRow}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
@@ -126,8 +176,12 @@ export function CoupleReportsScreen() {
             </View>
           </View>
           <Ionicons name="stats-chart-outline" size={48} color={colors.accent.primary} />
-          <Text style={[styles.emptyTitle, { color: colors.text.secondary, marginTop: 12 }]}>No Data</Text>
-          <Text style={[styles.emptyDesc, { color: colors.text.tertiary, textAlign: 'center' }]}>{error}</Text>
+          <Text style={[styles.emptyTitle, { color: colors.text.secondary, marginTop: 12 }]}>
+            No Data
+          </Text>
+          <Text style={[styles.emptyDesc, { color: colors.text.tertiary, textAlign: 'center' }]}>
+            {error}
+          </Text>
         </ScrollView>
       </View>
     );
@@ -138,26 +192,39 @@ export function CoupleReportsScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchReports(true); }} tintColor={colors.accent.primary} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => {
+              setRefreshing(true);
+              fetchReports(true);
+            }}
+            tintColor={colors.accent.primary}
+          />
+        }
       >
-        <View
-          
-           
-          style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}
-        >
+        <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
               <Ionicons name="arrow-back" size={22} color="#FFF" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Reports</Text>
-            <TouchableOpacity onPress={() => Alert.alert('Coming Soon', 'Export feature will be available soon.')} style={styles.backBtn}>
+            <TouchableOpacity
+              onPress={() => Alert.alert('Coming Soon', 'Export feature will be available soon.')}
+              style={styles.backBtn}
+            >
               <Ionicons name="download-outline" size={20} color="#FFF" />
             </TouchableOpacity>
           </View>
         </View>
 
         <View style={{ paddingHorizontal: 20, paddingTop: 12, gap: 12 }}>
-          <View style={[styles.periodRow, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}>
+          <View
+            style={[
+              styles.periodRow,
+              { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+            ]}
+          >
             {PERIODS.map((p) => (
               <TouchableOpacity
                 key={p}
@@ -165,107 +232,191 @@ export function CoupleReportsScreen() {
                 style={[styles.periodTab, { width: TAB_W }, period === p && styles.periodTabActive]}
                 onPress={() => setPeriod(p)}
               >
-                <Text style={[styles.periodText, { color: colors.text.tertiary }, period === p && { color: colors.accent.primary, fontWeight: '700' }]}>
+                <Text
+                  style={[
+                    styles.periodText,
+                    { color: colors.text.tertiary },
+                    period === p && { color: colors.accent.primary, fontWeight: '700' },
+                  ]}
+                >
                   {p}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }} style={{ marginHorizontal: -20, paddingHorizontal: 20 }}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 10 }}
+            style={{ marginHorizontal: -20, paddingHorizontal: 20 }}
+          >
             {summaryCards.map((card, i) => (
-              <View
-                key={i}
-                
-                 
-                style={[styles.summaryCard, { borderColor: colors.border.subtle }]}
-              >
+              <View key={i} style={[styles.summaryCard, { borderColor: colors.border.subtle }]}>
                 <View style={[styles.summaryIcon, { backgroundColor: `${card.color}15` }]}>
                   <Ionicons name={card.icon as any} size={20} color={card.color} />
                 </View>
-                <Text style={[styles.summaryLabel, { color: colors.text.tertiary }]}>{card.label}</Text>
-                <Text style={[styles.summaryAmount, { color: card.color }]}>{fmt(card.amount)}</Text>
+                <Text style={[styles.summaryLabel, { color: colors.text.tertiary }]}>
+                  {card.label}
+                </Text>
+                <Text style={[styles.summaryAmount, { color: card.color }]}>
+                  {fmt(card.amount)}
+                </Text>
               </View>
             ))}
           </ScrollView>
 
           <View style={[styles.sectionCard, { backgroundColor: colors.bg.card }]}>
-            <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Income vs Expenses</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+              Income vs Expenses
+            </Text>
             <View style={styles.incomeExpenseRow}>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.ieLabel, { color: colors.text.tertiary }]}>Income</Text>
                 <View style={[styles.ieBarOuter, { backgroundColor: colors.bg.tertiary }]}>
-                  <View style={[styles.ieBar, { width: `${(summaryCards[0]?.amount / maxAmount) * 100}%`, backgroundColor: '#34C759' }]} />
+                  <View
+                    style={[
+                      styles.ieBar,
+                      {
+                        width: `${(summaryCards[0]?.amount / maxAmount) * 100}%`,
+                        backgroundColor: '#34C759',
+                      },
+                    ]}
+                  />
                 </View>
-                <Text style={[styles.ieAmount, { color: '#34C759' }]}>{fmt(summaryCards[0]?.amount || 0)}</Text>
+                <Text style={[styles.ieAmount, { color: '#34C759' }]}>
+                  {fmt(summaryCards[0]?.amount || 0)}
+                </Text>
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.ieLabel, { color: colors.text.tertiary }]}>Expenses</Text>
                 <View style={[styles.ieBarOuter, { backgroundColor: colors.bg.tertiary }]}>
-                  <View style={[styles.ieBar, { width: `${(summaryCards[1]?.amount / maxAmount) * 100}%`, backgroundColor: '#FF4D4F' }]} />
+                  <View
+                    style={[
+                      styles.ieBar,
+                      {
+                        width: `${(summaryCards[1]?.amount / maxAmount) * 100}%`,
+                        backgroundColor: '#FF4D4F',
+                      },
+                    ]}
+                  />
                 </View>
-                <Text style={[styles.ieAmount, { color: '#FF4D4F' }]}>{fmt(summaryCards[1]?.amount || 0)}</Text>
+                <Text style={[styles.ieAmount, { color: '#FF4D4F' }]}>
+                  {fmt(summaryCards[1]?.amount || 0)}
+                </Text>
               </View>
             </View>
           </View>
 
           {categoryData.length > 0 && (
             <View style={[styles.sectionCard, { backgroundColor: colors.bg.card }]}>
-              <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Top Spending Categories</Text>
-              {categoryData.slice(0, 6).map((cat: { name: string; amount: number; color: string; pct: number }, i: number) => (
-                <View key={i} style={styles.catRow}>
-                  <View style={styles.catLeft}>
-                    <View style={[styles.catDot, { backgroundColor: cat.color }]} />
-                    <Text style={[styles.catName, { color: colors.text.primary }]}>{cat.name}</Text>
-                  </View>
-                  <View style={styles.catRight}>
-                    <View style={[styles.catBarOuter, { backgroundColor: colors.bg.tertiary }]}>
-                      <View style={[styles.catBarFill, { width: `${cat.pct}%`, backgroundColor: cat.color }]} />
+              <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+                Top Spending Categories
+              </Text>
+              {categoryData
+                .slice(0, 6)
+                .map(
+                  (
+                    cat: { name: string; amount: number; color: string; pct: number },
+                    i: number,
+                  ) => (
+                    <View key={i} style={styles.catRow}>
+                      <View style={styles.catLeft}>
+                        <View style={[styles.catDot, { backgroundColor: cat.color }]} />
+                        <Text style={[styles.catName, { color: colors.text.primary }]}>
+                          {cat.name}
+                        </Text>
+                      </View>
+                      <View style={styles.catRight}>
+                        <View style={[styles.catBarOuter, { backgroundColor: colors.bg.tertiary }]}>
+                          <View
+                            style={[
+                              styles.catBarFill,
+                              { width: `${cat.pct}%`, backgroundColor: cat.color },
+                            ]}
+                          />
+                        </View>
+                        <Text style={[styles.catAmt, { color: colors.text.secondary }]}>
+                          {fmt(cat.amount)}
+                        </Text>
+                      </View>
                     </View>
-                    <Text style={[styles.catAmt, { color: colors.text.secondary }]}>{fmt(cat.amount)}</Text>
-                  </View>
-                </View>
-              ))}
+                  ),
+                )}
             </View>
           )}
 
           <View style={[styles.sectionCard, { backgroundColor: colors.bg.card }]}>
-            <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Partner Contribution</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+              Partner Contribution
+            </Text>
             <View style={styles.partnerRow}>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.partnerName, { color: colors.text.secondary }]}>{partnerData.p1.name}</Text>
+                <Text style={[styles.partnerName, { color: colors.text.secondary }]}>
+                  {partnerData.p1.name}
+                </Text>
                 <View style={[styles.partnerBarOuter, { backgroundColor: colors.bg.tertiary }]}>
-                  <View style={[styles.partnerBar, { width: `${partnerData.p1Pct}%`, backgroundColor: colors.accent.primary }]} />
+                  <View
+                    style={[
+                      styles.partnerBar,
+                      { width: `${partnerData.p1Pct}%`, backgroundColor: colors.accent.primary },
+                    ]}
+                  />
                 </View>
-                <Text style={[styles.partnerAmount, { color: colors.text.primary }]}>{fmt(partnerData.p1.amount)}</Text>
+                <Text style={[styles.partnerAmount, { color: colors.text.primary }]}>
+                  {fmt(partnerData.p1.amount)}
+                </Text>
               </View>
-              <Ionicons name="heart" size={18} color="#F3D28F" style={{ marginHorizontal: 8, marginTop: 8 }} />
+              <Ionicons
+                name="heart"
+                size={18}
+                color="#14B8A6"
+                style={{ marginHorizontal: 8, marginTop: 8 }}
+              />
               <View style={{ flex: 1, alignItems: 'flex-end' }}>
-                <Text style={[styles.partnerName, { color: colors.text.secondary, textAlign: 'right' }]}>{partnerData.p2.name}</Text>
+                <Text
+                  style={[styles.partnerName, { color: colors.text.secondary, textAlign: 'right' }]}
+                >
+                  {partnerData.p2.name}
+                </Text>
                 <View style={[styles.partnerBarOuter, { backgroundColor: colors.bg.tertiary }]}>
-                  <View style={[styles.partnerBar, { width: `${partnerData.p2Pct}%`, backgroundColor: colors.accent.primary }]} />
+                  <View
+                    style={[
+                      styles.partnerBar,
+                      { width: `${partnerData.p2Pct}%`, backgroundColor: colors.accent.primary },
+                    ]}
+                  />
                 </View>
-                <Text style={[styles.partnerAmount, { color: colors.text.primary, textAlign: 'right' }]}>{fmt(partnerData.p2.amount)}</Text>
+                <Text
+                  style={[styles.partnerAmount, { color: colors.text.primary, textAlign: 'right' }]}
+                >
+                  {fmt(partnerData.p2.amount)}
+                </Text>
               </View>
             </View>
           </View>
 
-          <View
-            
-             
-            style={[styles.budgetCard, { borderColor: colors.border.subtle }]}
-          >
+          <View style={[styles.budgetCard, { borderColor: colors.border.subtle }]}>
             <View style={styles.budgetTop}>
               <View style={styles.budgetLabelRow}>
                 <Ionicons name={statusIcon as any} size={18} color={statusColor} />
-                <Text style={[styles.budgetTitle, { color: colors.text.primary }]}>Budget Performance</Text>
+                <Text style={[styles.budgetTitle, { color: colors.text.primary }]}>
+                  Budget Performance
+                </Text>
               </View>
               <View style={[styles.statusBadge, { backgroundColor: `${statusColor}20` }]}>
-                <Text style={[styles.statusText, { color: statusColor }]}>{budgetStatus.status}</Text>
+                <Text style={[styles.statusText, { color: statusColor }]}>
+                  {budgetStatus.status}
+                </Text>
               </View>
             </View>
             <View style={[styles.budgetBarOuter, { backgroundColor: colors.bg.tertiary }]}>
-              <View style={[styles.budgetBarFill, { width: `${Math.min(budgetPct, 100)}%`, backgroundColor: statusColor }]} />
+              <View
+                style={[
+                  styles.budgetBarFill,
+                  { width: `${Math.min(budgetPct, 100)}%`, backgroundColor: statusColor },
+                ]}
+              />
             </View>
             <View style={styles.budgetMeta}>
               <Text style={[styles.budgetMetaText, { color: colors.text.tertiary }]}>
@@ -277,8 +428,13 @@ export function CoupleReportsScreen() {
 
           <TouchableOpacity
             activeOpacity={0.7}
-            style={[styles.exportBtn, { backgroundColor: colors.bg.card, borderColor: colors.border.default }]}
-            onPress={() => Alert.alert('Coming Soon', 'Export reports as PDF or CSV will be available soon.')}
+            style={[
+              styles.exportBtn,
+              { backgroundColor: colors.bg.card, borderColor: colors.border.default },
+            ]}
+            onPress={() =>
+              Alert.alert('Coming Soon', 'Export reports as PDF or CSV will be available soon.')
+            }
           >
             <Ionicons name="download-outline" size={20} color={colors.accent.primary} />
             <Text style={styles.exportText}>Export Report</Text>
@@ -293,26 +449,67 @@ export function CoupleReportsScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  backBtn: { width: 34, height: 34, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
+  backBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   headerTitle: { color: '#FFF', fontSize: 17, fontWeight: '700' },
 
   periodRow: {
-    flexDirection: 'row', borderRadius: 14, padding: 4, borderWidth: 1,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 1,
+    flexDirection: 'row',
+    borderRadius: 14,
+    padding: 4,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
   },
-  periodTab: { paddingVertical: 10, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  periodTab: {
+    paddingVertical: 10,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   periodTabActive: { backgroundColor: '#FFF' },
   periodText: { fontSize: 13, fontWeight: '600' },
 
   summaryCard: {
-    width: 150, padding: 16, borderRadius: 18, borderWidth: 1, gap: 8,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 1,
+    width: 150,
+    padding: 16,
+    borderRadius: 18,
+    borderWidth: 1,
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
   },
-  summaryIcon: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  summaryIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   summaryLabel: { fontSize: 11, fontWeight: '500' },
   summaryAmount: { fontSize: 20, fontWeight: '800', letterSpacing: -0.5 },
 
-  sectionCard: { borderRadius: 20, padding: 18, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1 },
+  sectionCard: {
+    borderRadius: 20,
+    padding: 18,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 1,
+  },
   sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 14 },
 
   incomeExpenseRow: { flexDirection: 'row', gap: 16 },
@@ -321,7 +518,12 @@ const styles = StyleSheet.create({
   ieBar: { height: '100%', borderRadius: 5, minWidth: 4 },
   ieAmount: { fontSize: 14, fontWeight: '700', marginTop: 6 },
 
-  catRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+  catRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
   catLeft: { flexDirection: 'row', alignItems: 'center', gap: 6, width: 90 },
   catDot: { width: 8, height: 8, borderRadius: 4 },
   catName: { fontSize: 12, fontWeight: '600' },
@@ -336,7 +538,17 @@ const styles = StyleSheet.create({
   partnerBar: { height: '100%', borderRadius: 4, minWidth: 4 },
   partnerAmount: { fontSize: 15, fontWeight: '700', marginTop: 6 },
 
-  budgetCard: { borderRadius: 20, padding: 18, borderWidth: 1, gap: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1 },
+  budgetCard: {
+    borderRadius: 20,
+    padding: 18,
+    borderWidth: 1,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 1,
+  },
   budgetTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   budgetLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   budgetTitle: { fontSize: 15, fontWeight: '700' },
@@ -349,8 +561,14 @@ const styles = StyleSheet.create({
   budgetPct: { fontSize: 14, fontWeight: '800' },
 
   exportBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    paddingVertical: 16, borderRadius: 18, borderWidth: 1, marginTop: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 16,
+    borderRadius: 18,
+    borderWidth: 1,
+    marginTop: 4,
   },
   exportText: { fontSize: 15, fontWeight: '600', color: '#F97316' },
 

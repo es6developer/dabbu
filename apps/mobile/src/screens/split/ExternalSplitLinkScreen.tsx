@@ -65,7 +65,7 @@ export function ExternalSplitLinkScreen() {
             paddingTop: insets.top + 12,
             paddingBottom: 28,
             paddingHorizontal: 20,
-            backgroundColor: '#1A1835',
+            backgroundColor: colors.bg.primary,
           }}
         >
           <View style={styles.headerRow}>
@@ -122,7 +122,9 @@ export function ExternalSplitLinkScreen() {
               <TouchableOpacity style={styles.shareBtn} onPress={handleShare} activeOpacity={0.85}>
                 <View style={styles.shareBtnGrad}>
                   <Ionicons name="share-outline" size={18} color="#FFF" />
-                  <Text style={styles.shareBtnText}>Share Link</Text>
+                  <Text style={[styles.shareBtnText, { color: colors.text.primary }]}>
+                    Share Link
+                  </Text>
                 </View>
               </TouchableOpacity>
             </>
@@ -198,7 +200,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  shareBtnText: { color: '#1A1835', fontSize: 16, fontWeight: '700' },
+  shareBtnText: { fontSize: 16, fontWeight: '700' },
   infoCard: {
     borderRadius: 20,
     padding: 18,

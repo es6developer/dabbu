@@ -14,13 +14,13 @@ import {
 
 const GROUP_TYPES = [
   { key: 'friends', label: 'Friends', icon: 'people', color: '#34C759' },
-  { key: 'trip', label: 'Trip', icon: 'airplane', color: '#F3D28F' },
-  { key: 'family', label: 'Family', icon: 'home', color: '#F3D28F' },
+  { key: 'trip', label: 'Trip', icon: 'airplane', color: '#14B8A6' },
+  { key: 'family', label: 'Family', icon: 'home', color: '#14B8A6' },
   { key: 'couple', label: 'Couple', icon: 'heart', color: '#FF6B9D' },
   { key: 'roommates', label: 'Roommates', icon: 'business', color: '#4F6EF7' },
-  { key: 'office', label: 'Office', icon: 'briefcase', color: '#F3D28F' },
+  { key: 'office', label: 'Office', icon: 'briefcase', color: '#14B8A6' },
   { key: 'event', label: 'Event', icon: 'calendar', color: '#FF6B6B' },
-  { key: 'apartment', label: 'Apartment', icon: 'home', color: '#F3D28F' },
+  { key: 'apartment', label: 'Apartment', icon: 'home', color: '#14B8A6' },
 ];
 
 export function CreateSharedGroupScreen() {

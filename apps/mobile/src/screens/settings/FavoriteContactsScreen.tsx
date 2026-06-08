@@ -21,7 +21,7 @@ import { useTheme } from '../../theme';
 export function FavoriteContactsScreen() {
   const navigation = useNavigation<any>();
   const { favorites, loading, refresh } = useFavorites();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -187,9 +187,7 @@ export function FavoriteContactsScreen() {
                     )}
                   </View>
                   {favoriteIds.has(user.id) ? (
-                    <View
-                      style={[styles.actionBtn, { backgroundColor: colors.accent.primary + '25' }]}
-                    >
+                    <View style={[styles.actionBtn, { backgroundColor: colors.brand.light }]}>
                       <Ionicons name="star" size={16} color={colors.brand.primary} />
                     </View>
                   ) : (
@@ -399,7 +397,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },

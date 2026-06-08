@@ -15,7 +15,7 @@ function getTypeConfig(primary: string): Record<string, { icon: string; color: s
     friends: { icon: 'people', color: primary },
     couple: { icon: 'heart', color: '#FF6B9D' },
     family: { icon: 'home', color: '#34C759' },
-    trip: { icon: 'airplane', color: '#F3D28F' },
+    trip: { icon: 'airplane', color: '#14B8A6' },
     business: { icon: 'briefcase', color: '#F59E0B' },
   };
 }
@@ -122,7 +122,7 @@ export function SettlementScreen() {
             paddingTop: insets.top + 12,
             paddingBottom: 28,
             paddingHorizontal: 20,
-            backgroundColor: '#1A1835',
+            backgroundColor: colors.bg.primary,
           }}
         >
           <View style={styles.headerRow}>
@@ -240,7 +240,7 @@ export function SettlementScreen() {
                                 style={[
                                   styles.payBtn,
                                   {
-                                    backgroundColor: '#F3D28F',
+                                    backgroundColor: '#14B8A6',
                                     borderWidth: 1,
                                     borderColor: colors.border.default,
                                   },
@@ -250,7 +250,7 @@ export function SettlementScreen() {
                                   navigation.navigate('SharedGroupDetail', { groupId: g.id })
                                 }
                               >
-                                <Text style={styles.payBtnText}>
+                                <Text style={[styles.payBtnText, { color: colors.text.primary }]}>
                                   {owes ? 'Pay Now' : 'Request'}
                                 </Text>
                               </TouchableOpacity>
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  payBtnText: { color: '#1A1835', fontSize: 12, fontWeight: '700' },
+  payBtnText: { fontSize: 12, fontWeight: '700' },
   emptyState: { alignItems: 'center', paddingVertical: 40, gap: 8 },
   emptyIcon: {
     width: 72,

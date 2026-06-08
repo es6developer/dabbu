@@ -10,15 +10,22 @@ interface MetricCardProps {
   icon: keyof typeof Ionicons.glyphMap;
   trend?: { value: string; positive: boolean };
   color?: string;
+  cardBg?: string;
   onPress?: () => void;
 }
 
-export function MetricCard({ label, value, icon, trend, color, onPress }: MetricCardProps) {
+export function MetricCard({ label, value, icon, trend, color, cardBg, onPress }: MetricCardProps) {
   const { colors } = useTheme();
   const accentColor = color || colors.accent.primary;
 
   return (
-    <FinCard onPress={onPress} style={{ flex: 1 }} padding={20} elevation="sm" radius={22}>
+    <FinCard
+      onPress={onPress}
+      style={{ flex: 1, ...(cardBg ? { backgroundColor: cardBg } : {}) }}
+      padding={20}
+      elevation="sm"
+      radius={22}
+    >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 }}>
         <View
           style={{

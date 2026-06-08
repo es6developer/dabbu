@@ -111,7 +111,7 @@ export function PhoneScreen() {
               {saving ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.saveBtnText}>Continue</Text>
+                <Text style={[styles.saveBtnText, { color: colors.text.primary }]}>Continue</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -141,5 +141,5 @@ const styles = StyleSheet.create({
   label: { fontSize: 13, fontWeight: '600', marginBottom: 6 },
   input: { fontSize: 16, padding: 16, borderRadius: 14, marginBottom: 16, borderWidth: 1 },
   saveBtn: { paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
-  saveBtnText: { color: '#1A1835', fontSize: 16, fontWeight: '600' },
+  saveBtnText: { fontSize: 16, fontWeight: '600' },
 });

@@ -21,7 +21,7 @@ const SEVERITY_COLORS: Record<string, { bg: string; text: string; icon: string }
   critical: { bg: 'rgba(255, 69, 69, 0.12)', text: '#FF4545', icon: 'warning' },
   warning: { bg: 'rgba(255, 159, 10, 0.12)', text: '#FF9F0A', icon: 'alert-circle' },
   success: { bg: 'rgba(39, 211, 118, 0.12)', text: '#27D376', icon: 'checkmark-circle' },
-  info: { bg: 'rgba(243, 210, 143, 0.12)', text: '#F3D28F', icon: 'bulb' },
+  info: { bg: 'rgba(20, 184, 166, 0.12)', text: '#14B8A6', icon: 'bulb' },
 };
 
 function NarrativePill({ icon, label, color }: { icon: string; label: string; color: string }) {

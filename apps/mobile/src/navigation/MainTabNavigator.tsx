@@ -320,7 +320,7 @@ export function MainTabNavigator() {
     {
       label: 'Reports',
       icon: 'stats-chart-outline' as const,
-      color: '#F3D28F',
+      color: '#14B8A6',
       onPress: () => navigation.navigate('Settings', { screen: 'Reports' }),
     },
     {

@@ -31,7 +31,7 @@ function getSlides(primary: string): Array<{
     },
     {
       icon: 'stats-chart-outline',
-      gradient: ['#F3D28F', '#FFB347'] as [string, string],
+      gradient: ['#14B8A6', '#FFB347'] as [string, string],
       title: 'Track Every Rupee',
       desc: 'Monitor groceries, rent, travel, subscriptions and more in real-time.',
     },

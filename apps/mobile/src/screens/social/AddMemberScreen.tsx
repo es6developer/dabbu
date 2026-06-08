@@ -308,7 +308,7 @@ export function AddMemberScreen() {
                 </Text>
               </View>
               {isFavorite(item.id) ? (
-                <View style={[styles.actionBtn, { backgroundColor: 'rgba(255,107,0,0.12)' }]}>
+                <View style={[styles.actionBtn, { backgroundColor: 'rgba(20,184,166,0.12)' }]}>
                   <Ionicons name="star" size={14} color={colors.accent.primary} />
                 </View>
               ) : (
@@ -557,7 +557,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  favAvatarSelected: { borderWidth: 2, borderColor: '#F3D28F' },
+  favAvatarSelected: { borderWidth: 2, borderColor: '#14B8A6' },
   favAvatarText: { fontSize: 18, fontWeight: '700', color: '#FFF' },
   favName: { fontSize: 11, fontWeight: '500', color: '#FFF', textAlign: 'center' },
 
@@ -644,10 +644,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255,107,0,0.3)',
+    borderColor: 'rgba(20,184,166,0.3)',
     marginTop: 8,
   },
-  inviteBtnText: { fontSize: 14, fontWeight: '700', color: '#F3D28F' },
+  inviteBtnText: { fontSize: 14, fontWeight: '700', color: '#14B8A6' },
 
   syncBanner: {
     flexDirection: 'row',

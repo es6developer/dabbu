@@ -14,7 +14,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../../theme';
-import { shadows } from '../../theme/design';
+import { fabShadow } from '../../theme/design';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
@@ -280,7 +280,12 @@ export function HomeScreen() {
 
         {/* Total Balance Card */}
         <View style={{ paddingHorizontal: 24, marginTop: 8 }}>
-          <FinCard radius={28} elevation="lg" padding={28}>
+          <FinCard
+            radius={28}
+            elevation="lg"
+            padding={28}
+            style={{ backgroundColor: colors.card.balance }}
+          >
             <Text style={[styles.balanceLabel, { color: colors.text.tertiary }]}>
               Total Balance
             </Text>
@@ -352,6 +357,7 @@ export function HomeScreen() {
             label="Monthly Budget"
             value={fmt(data.monthlyBudget)}
             icon="wallet"
+            cardBg={colors.card.budget}
             onPress={() => navigation.navigate('Budgets')}
           />
           <View style={{ width: CARD_GAP }} />
@@ -360,6 +366,7 @@ export function HomeScreen() {
             value={fmt(savings)}
             icon="save-outline"
             color={colors.status.success}
+            cardBg={colors.card.savings}
             trend={{
               value: `${savingsRate.toFixed(0)}%`,
               positive: savingsRate >= 15,
@@ -370,7 +377,12 @@ export function HomeScreen() {
 
         {/* Budget Progress */}
         <View style={{ paddingHorizontal: 24, marginTop: 16 }}>
-          <FinCard radius={22} elevation="sm" padding={22}>
+          <FinCard
+            radius={22}
+            elevation="sm"
+            padding={22}
+            style={{ backgroundColor: colors.card.budget }}
+          >
             <View style={styles.sectionHeaderRow}>
               <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
                 Budget Progress
@@ -514,7 +526,12 @@ export function HomeScreen() {
               })}
             </View>
           ) : (
-            <FinCard radius={22} elevation="sm" padding={28}>
+            <FinCard
+              radius={22}
+              elevation="sm"
+              padding={28}
+              style={{ backgroundColor: colors.card.budget }}
+            >
               <View style={{ alignItems: 'center', gap: 8 }}>
                 <Ionicons name="receipt-outline" size={36} color={colors.text.tertiary} />
                 <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
@@ -584,7 +601,7 @@ export function HomeScreen() {
 
       {/* FAB */}
       <TouchableOpacity
-        style={[styles.fab, { backgroundColor: colors.accent.primary }]}
+        style={[styles.fab, { backgroundColor: colors.accent.primary }, fabShadow]}
         activeOpacity={0.85}
         onPress={() => navigation.navigate('AddExpense')}
       >
@@ -732,6 +749,5 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    ...shadows.lg,
   },
 });

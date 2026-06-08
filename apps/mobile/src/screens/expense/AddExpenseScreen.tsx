@@ -56,7 +56,7 @@ export function AddExpenseScreen() {
               </TouchableOpacity>
               <Text style={styles.headerTitle}>Add Expense</Text>
               <TouchableOpacity onPress={handleSave}>
-                <Text style={styles.saveText}>Save</Text>
+                <Text style={[styles.saveText, { color: colors.text.primary }]}>Save</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -181,7 +181,7 @@ export function AddExpenseScreen() {
           <TouchableOpacity style={styles.saveBtn} onPress={handleSave} activeOpacity={0.85}>
             <View style={styles.saveBtnGrad}>
               <Ionicons name="checkmark-circle" size={18} color="#FFF" />
-              <Text style={styles.saveBtnText}>Save Expense</Text>
+              <Text style={[styles.saveBtnText, { color: colors.text.primary }]}>Save Expense</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: { color: '#FFF', fontSize: 18, fontWeight: '700' },
-  saveText: { color: '#1A1835', fontSize: 15, fontWeight: '700' },
+  saveText: { fontSize: 15, fontWeight: '700' },
   tabRow: { flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 16, gap: 8 },
   tab: {
     flex: 1,
@@ -260,5 +260,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  saveBtnText: { color: '#1A1835', fontSize: 16, fontWeight: '700' },
+  saveBtnText: { fontSize: 16, fontWeight: '700' },
 });

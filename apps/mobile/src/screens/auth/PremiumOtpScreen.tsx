@@ -170,8 +170,8 @@ export function PremiumOtpScreen() {
                 style={[
                   styles.otpInput,
                   {
-                    borderColor: otp[i] ? '#F3D28F' : error ? '#FF4545' : 'rgba(255,255,255,0.08)',
-                    backgroundColor: otp[i] ? 'rgba(255,107,0,0.08)' : '#1C1C1E',
+                    borderColor: otp[i] ? '#14B8A6' : error ? '#FF4545' : 'rgba(255,255,255,0.08)',
+                    backgroundColor: otp[i] ? 'rgba(20,184,166,0.08)' : '#1C1C1E',
                   },
                 ]}
                 value={digit}
@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   emailHighlight: {
-    color: '#F3D28F',
+    color: '#14B8A6',
     fontFamily: 'Inter-SemiBold',
   },
   errorBox: {
@@ -296,13 +296,13 @@ const styles = StyleSheet.create({
   },
   verifyButton: {
     height: 52,
-    backgroundColor: '#F3D28F',
+    backgroundColor: '#14B8A6',
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   verifyButtonText: {
-    color: '#1A1835',
+    color: '#0F172A',
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
   },
@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
   },
   resendText: {
-    color: '#F3D28F',
+    color: '#14B8A6',
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
   },

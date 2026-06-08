@@ -173,7 +173,7 @@ export function CustomiseBottomMenuScreen() {
           {saving ? (
             <ActivityIndicator size="small" color="#FFF" />
           ) : (
-            <Text style={styles.saveText}>Save Menu Layout</Text>
+            <Text style={[styles.saveText, { color: colors.text.primary }]}>Save Menu Layout</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -232,5 +232,5 @@ const styles = StyleSheet.create({
   eyeBtn: { padding: 8 },
   footer: { paddingHorizontal: 20, paddingTop: 12 },
   saveBtn: { height: 50, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  saveText: { color: '#1A1835', fontSize: 16, fontWeight: '700' },
+  saveText: { fontSize: 16, fontWeight: '700' },
 });

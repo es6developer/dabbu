@@ -145,7 +145,7 @@ export function FamilyChatScreen() {
           onPress={sendMessage}
           disabled={!text.trim()}
         >
-          <Text style={styles.sendText}>Send</Text>
+          <Text style={[styles.sendText, { color: colors.text.primary }]}>Send</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -180,5 +180,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   sendBtn: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 22, marginLeft: 8 },
-  sendText: { color: '#1A1835', fontWeight: '600' },
+  sendText: { fontWeight: '600' },
 });

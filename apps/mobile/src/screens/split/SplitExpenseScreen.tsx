@@ -89,7 +89,7 @@ export function SplitExpenseScreen() {
               paddingTop: insets.top + 12,
               paddingBottom: 20,
               paddingHorizontal: 20,
-              backgroundColor: '#1A1835',
+              backgroundColor: colors.bg.primary,
             }}
           >
             <View style={styles.headerRow}>
@@ -320,7 +320,9 @@ export function SplitExpenseScreen() {
               activeOpacity={0.85}
             >
               <Ionicons name="swap-horizontal" size={18} color="#FFF" />
-              <Text style={styles.createBtnText}>Confirm Split</Text>
+              <Text style={[styles.createBtnText, { color: colors.text.primary }]}>
+                Confirm Split
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -429,5 +431,5 @@ const styles = StyleSheet.create({
     marginTop: 4,
     overflow: 'hidden',
   },
-  createBtnText: { color: '#1A1835', fontSize: 16, fontWeight: '700' },
+  createBtnText: { fontSize: 16, fontWeight: '700' },
 });

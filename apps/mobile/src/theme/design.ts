@@ -55,6 +55,14 @@ export const shadows = {
   } as ViewStyle,
 };
 
+export const fabShadow = {
+  shadowColor: 'rgba(79, 70, 229, 0.25)',
+  shadowOffset: { width: 0, height: 6 },
+  shadowOpacity: 1,
+  shadowRadius: 20,
+  elevation: 6,
+} as ViewStyle;
+
 export const cardStyle = {
   borderRadius: borderRadius.lg,
   padding: spacing['2xl'],

@@ -1,7 +1,18 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl,
-  Modal, TextInput, KeyboardAvoidingView, Platform, Dimensions, FlatList, Alert,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  RefreshControl,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  Dimensions,
+  FlatList,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -55,7 +66,9 @@ export function CoupleGoalsScreen() {
   const [submitting, setSubmitting] = useState(false);
 
   const fetchGoals = useCallback(async (isRefresh = false) => {
-    if (!isRefresh) setLoading(true);
+    if (!isRefresh) {
+      setLoading(true);
+    }
     try {
       const groups: any[] = await api.get('/shared-finance/groups');
       const coupleGroup = Array.isArray(groups)
@@ -78,24 +91,32 @@ export function CoupleGoalsScreen() {
     }
   }, []);
 
-  useEffect(() => { fetchGoals(); }, [fetchGoals]);
+  useEffect(() => {
+    fetchGoals();
+  }, [fetchGoals]);
 
   const handleAddGoal = async () => {
-    if (!formName.trim()) return;
+    if (!formName.trim()) {
+      return;
+    }
     setSubmitting(true);
     try {
       const groups: any[] = await api.get('/shared-finance/groups');
       const coupleGroup = Array.isArray(groups)
         ? groups.find((g: any) => g.type === 'couple' && g.status === 'ACTIVE')
         : null;
-      if (!coupleGroup) return;
+      if (!coupleGroup) {
+        return;
+      }
       const payload: any = {
         name: formName.trim(),
         targetAmount: parseFloat(formTarget) || 0,
         icon: formIcon,
         notes: formNotes.trim(),
       };
-      if (formDate.trim()) payload.targetDate = formDate.trim();
+      if (formDate.trim()) {
+        payload.targetDate = formDate.trim();
+      }
       await api.post(`/shared-finance/groups/${coupleGroup.id}/goals`, payload);
       setAddModalVisible(false);
       resetForm();
@@ -108,14 +129,18 @@ export function CoupleGoalsScreen() {
   };
 
   const handleAddContribution = async () => {
-    if (!selectedGoal || !formAmount.trim()) return;
+    if (!selectedGoal || !formAmount.trim()) {
+      return;
+    }
     setSubmitting(true);
     try {
       const groups: any[] = await api.get('/shared-finance/groups');
       const coupleGroup = Array.isArray(groups)
         ? groups.find((g: any) => g.type === 'couple' && g.status === 'ACTIVE')
         : null;
-      if (!coupleGroup) return;
+      if (!coupleGroup) {
+        return;
+      }
       await api.post(`/shared-finance/goals/${selectedGoal.id}/contribute`, {
         amount: parseFloat(formAmount) || 0,
       });
@@ -145,7 +170,9 @@ export function CoupleGoalsScreen() {
     setContributionModalVisible(true);
   };
 
-  if (loading) return <LoadingScreen />;
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
@@ -157,24 +184,25 @@ export function CoupleGoalsScreen() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => { setRefreshing(true); fetchGoals(true); }}
+            onRefresh={() => {
+              setRefreshing(true);
+              fetchGoals(true);
+            }}
             tintColor={colors.accent.primary}
           />
         }
         ListHeaderComponent={
-          <View
-            
-            
-            
-            style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}
-          >
+          <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
             <View style={styles.headerRow}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                 <Ionicons name="arrow-back" size={22} color="#FFF" />
               </TouchableOpacity>
               <Text style={styles.headerTitle}>Shared Goals</Text>
               <TouchableOpacity
-                onPress={() => { resetForm(); setAddModalVisible(true); }}
+                onPress={() => {
+                  resetForm();
+                  setAddModalVisible(true);
+                }}
                 style={styles.backBtn}
               >
                 <Ionicons name="add" size={24} color="#FFF" />
@@ -189,12 +217,7 @@ export function CoupleGoalsScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <View
-              
-              
-              
-              style={styles.emptyIllustration}
-            >
+            <View style={styles.emptyIllustration}>
               <Ionicons name="gift-outline" size={56} color={colors.accent.primary} />
             </View>
             <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
@@ -206,7 +229,10 @@ export function CoupleGoalsScreen() {
             <TouchableOpacity
               style={styles.emptyBtn}
               activeOpacity={0.8}
-              onPress={() => { resetForm(); setAddModalVisible(true); }}
+              onPress={() => {
+                resetForm();
+                setAddModalVisible(true);
+              }}
             >
               <Ionicons name="add-circle" size={20} color="#FFF" />
               <Text style={styles.emptyBtnText}>Create Goal</Text>
@@ -214,34 +240,46 @@ export function CoupleGoalsScreen() {
           </View>
         }
         renderItem={({ item }) => {
-          const pct = item.targetAmount > 0
-            ? Math.min(Math.round((item.savedAmount / item.targetAmount) * 100), 100)
-            : 0;
+          const pct =
+            item.targetAmount > 0
+              ? Math.min(Math.round((item.savedAmount / item.targetAmount) * 100), 100)
+              : 0;
           const hasDate = !!item.targetDate;
           const dateStr = hasDate
-            ? new Date(item.targetDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+            ? new Date(item.targetDate).toLocaleDateString('en-IN', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+              })
             : '';
           const partners = item.contributions?.partners || [];
           const p1 = partners[0];
           const p2 = partners[1];
-          const p1Pct = item.savedAmount > 0 && p1?.amount
-            ? Math.round((p1.amount / item.savedAmount) * 100) : 0;
-          const p2Pct = item.savedAmount > 0 && p2?.amount
-            ? Math.round((p2.amount / item.savedAmount) * 100) : 0;
+          const p1Pct =
+            item.savedAmount > 0 && p1?.amount
+              ? Math.round((p1.amount / item.savedAmount) * 100)
+              : 0;
+          const p2Pct =
+            item.savedAmount > 0 && p2?.amount
+              ? Math.round((p2.amount / item.savedAmount) * 100)
+              : 0;
 
           return (
-            <View style={[styles.goalCard, { backgroundColor: colors.bg.card, borderColor: colors.border.default }]}>
+            <View
+              style={[
+                styles.goalCard,
+                { backgroundColor: colors.bg.card, borderColor: colors.border.default },
+              ]}
+            >
               <View style={styles.goalTopRow}>
-                <View
-                  
-                  
-                  
-                  style={styles.goalIconWrap}
-                >
+                <View style={styles.goalIconWrap}>
                   <Ionicons name={(item.icon || 'gift') as any} size={22} color="#FFF" />
                 </View>
                 <View style={styles.goalTitleWrap}>
-                  <Text style={[styles.goalTitle, { color: colors.text.primary }]} numberOfLines={1}>
+                  <Text
+                    style={[styles.goalTitle, { color: colors.text.primary }]}
+                    numberOfLines={1}
+                  >
                     {item.name}
                   </Text>
                   <Text style={[styles.goalSubtitle, { color: colors.text.tertiary }]}>
@@ -252,8 +290,12 @@ export function CoupleGoalsScreen() {
 
               <View style={styles.goalAmountRow}>
                 <View>
-                  <Text style={[styles.goalSaved, { color: colors.text.primary }]}>{fmt(item.savedAmount)}</Text>
-                  <Text style={[styles.goalSavedLabel, { color: colors.text.tertiary }]}>saved</Text>
+                  <Text style={[styles.goalSaved, { color: colors.text.primary }]}>
+                    {fmt(item.savedAmount)}
+                  </Text>
+                  <Text style={[styles.goalSavedLabel, { color: colors.text.tertiary }]}>
+                    saved
+                  </Text>
                 </View>
                 <View style={styles.goalPctBadge}>
                   <Text style={styles.goalPctText}>{pct}%</Text>
@@ -276,16 +318,24 @@ export function CoupleGoalsScreen() {
                   <View style={styles.partnerChips}>
                     {p1 && (
                       <View style={[styles.partnerChip, { backgroundColor: colors.bg.tertiary }]}>
-                        <View style={[styles.partnerDot, { backgroundColor: colors.accent.primary }]} />
-                        <Text style={[styles.partnerChipText, { color: colors.text.secondary }]} numberOfLines={1}>
+                        <View
+                          style={[styles.partnerDot, { backgroundColor: colors.accent.primary }]}
+                        />
+                        <Text
+                          style={[styles.partnerChipText, { color: colors.text.secondary }]}
+                          numberOfLines={1}
+                        >
                           {p1.name || 'Partner 1'} {p1Pct > 0 ? `(${p1Pct}%)` : ''}
                         </Text>
                       </View>
                     )}
                     {p2 && (
                       <View style={[styles.partnerChip, { backgroundColor: colors.bg.tertiary }]}>
-                        <View style={[styles.partnerDot, { backgroundColor: '#F3D28F' }]} />
-                        <Text style={[styles.partnerChipText, { color: colors.text.secondary }]} numberOfLines={1}>
+                        <View style={[styles.partnerDot, { backgroundColor: '#14B8A6' }]} />
+                        <Text
+                          style={[styles.partnerChipText, { color: colors.text.secondary }]}
+                          numberOfLines={1}
+                        >
                           {p2.name || 'Partner 2'} {p2Pct > 0 ? `(${p2Pct}%)` : ''}
                         </Text>
                       </View>
@@ -328,16 +378,32 @@ export function CoupleGoalsScreen() {
 
             <Text style={[styles.inputLabel, { color: colors.text.secondary }]}>Goal Name</Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.bg.secondary, color: colors.text.primary, borderColor: colors.border.default }]}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.bg.secondary,
+                  color: colors.text.primary,
+                  borderColor: colors.border.default,
+                },
+              ]}
               placeholder="e.g. Bali Trip"
               placeholderTextColor={colors.text.tertiary}
               value={formName}
               onChangeText={setFormName}
             />
 
-            <Text style={[styles.inputLabel, { color: colors.text.secondary }]}>Target Amount (₹)</Text>
+            <Text style={[styles.inputLabel, { color: colors.text.secondary }]}>
+              Target Amount (₹)
+            </Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.bg.secondary, color: colors.text.primary, borderColor: colors.border.default }]}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.bg.secondary,
+                  color: colors.text.primary,
+                  borderColor: colors.border.default,
+                },
+              ]}
               placeholder="e.g. 500000"
               placeholderTextColor={colors.text.tertiary}
               value={formTarget}
@@ -345,9 +411,18 @@ export function CoupleGoalsScreen() {
               keyboardType="decimal-pad"
             />
 
-            <Text style={[styles.inputLabel, { color: colors.text.secondary }]}>Target Date (optional)</Text>
+            <Text style={[styles.inputLabel, { color: colors.text.secondary }]}>
+              Target Date (optional)
+            </Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.bg.secondary, color: colors.text.primary, borderColor: colors.border.default }]}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.bg.secondary,
+                  color: colors.text.primary,
+                  borderColor: colors.border.default,
+                },
+              ]}
               placeholder="YYYY-MM-DD"
               placeholderTextColor={colors.text.tertiary}
               value={formDate}
@@ -355,18 +430,15 @@ export function CoupleGoalsScreen() {
             />
 
             <Text style={[styles.inputLabel, { color: colors.text.secondary }]}>Icon</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.iconPicker}
-            >
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.iconPicker}>
               {GOAL_ICONS.map((g) => (
                 <TouchableOpacity
                   key={g.key}
                   style={[
                     styles.iconItem,
                     {
-                      backgroundColor: formIcon === g.key ? `${colors.accent.primary}15` : colors.bg.tertiary,
+                      backgroundColor:
+                        formIcon === g.key ? `${colors.accent.primary}15` : colors.bg.tertiary,
                       borderColor: formIcon === g.key ? colors.accent.primary : 'transparent',
                     },
                   ]}
@@ -389,9 +461,19 @@ export function CoupleGoalsScreen() {
               ))}
             </ScrollView>
 
-            <Text style={[styles.inputLabel, { color: colors.text.secondary }]}>Notes (optional)</Text>
+            <Text style={[styles.inputLabel, { color: colors.text.secondary }]}>
+              Notes (optional)
+            </Text>
             <TextInput
-              style={[styles.input, styles.inputMultiline, { backgroundColor: colors.bg.secondary, color: colors.text.primary, borderColor: colors.border.default }]}
+              style={[
+                styles.input,
+                styles.inputMultiline,
+                {
+                  backgroundColor: colors.bg.secondary,
+                  color: colors.text.primary,
+                  borderColor: colors.border.default,
+                },
+              ]}
               placeholder="Any notes about this goal..."
               placeholderTextColor={colors.text.tertiary}
               value={formNotes}
@@ -404,10 +486,15 @@ export function CoupleGoalsScreen() {
                 style={[styles.modalCancelBtn, { borderColor: colors.border.default }]}
                 onPress={() => setAddModalVisible(false)}
               >
-                <Text style={[styles.modalCancelText, { color: colors.text.secondary }]}>Cancel</Text>
+                <Text style={[styles.modalCancelText, { color: colors.text.secondary }]}>
+                  Cancel
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalSubmitBtn, { opacity: submitting || !formName.trim() ? 0.5 : 1 }]}
+                style={[
+                  styles.modalSubmitBtn,
+                  { opacity: submitting || !formName.trim() ? 0.5 : 1 },
+                ]}
                 onPress={handleAddGoal}
                 disabled={submitting || !formName.trim()}
               >
@@ -443,7 +530,14 @@ export function CoupleGoalsScreen() {
 
             <Text style={[styles.inputLabel, { color: colors.text.secondary }]}>Amount (₹)</Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.bg.secondary, color: colors.text.primary, borderColor: colors.border.default }]}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.bg.secondary,
+                  color: colors.text.primary,
+                  borderColor: colors.border.default,
+                },
+              ]}
               placeholder="e.g. 5000"
               placeholderTextColor={colors.text.tertiary}
               value={formAmount}
@@ -455,18 +549,24 @@ export function CoupleGoalsScreen() {
             <View style={styles.modalActions}>
               <TouchableOpacity
                 style={[styles.modalCancelBtn, { borderColor: colors.border.default }]}
-                onPress={() => { setContributionModalVisible(false); setSelectedGoal(null); }}
+                onPress={() => {
+                  setContributionModalVisible(false);
+                  setSelectedGoal(null);
+                }}
               >
-                <Text style={[styles.modalCancelText, { color: colors.text.secondary }]}>Cancel</Text>
+                <Text style={[styles.modalCancelText, { color: colors.text.secondary }]}>
+                  Cancel
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalSubmitBtn, { opacity: submitting || !formAmount.trim() ? 0.5 : 1 }]}
+                style={[
+                  styles.modalSubmitBtn,
+                  { opacity: submitting || !formAmount.trim() ? 0.5 : 1 },
+                ]}
                 onPress={handleAddContribution}
                 disabled={submitting || !formAmount.trim()}
               >
-                <Text style={styles.modalSubmitText}>
-                  {submitting ? 'Adding...' : 'Add'}
-                </Text>
+                <Text style={styles.modalSubmitText}>{submitting ? 'Adding...' : 'Add'}</Text>
               </TouchableOpacity>
             </View>
           </View>

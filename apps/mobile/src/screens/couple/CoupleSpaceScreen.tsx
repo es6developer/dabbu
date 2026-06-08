@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
   /* Error Panel */
   errorPanel: {
     flex: 1,
-    backgroundColor: '#F3D28F',
+    backgroundColor: '#14B8A6',
     paddingHorizontal: 20,
   },
   errorContent: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
@@ -530,7 +530,7 @@ const styles = StyleSheet.create({
 
   /* Header */
   headerWrap: {
-    backgroundColor: '#F3D28F',
+    backgroundColor: '#14B8A6',
     paddingBottom: 28,
     paddingHorizontal: 20,
     borderBottomLeftRadius: 24,

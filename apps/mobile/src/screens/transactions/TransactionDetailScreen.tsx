@@ -23,11 +23,11 @@ function getDetailColors(primary: string): Record<string, [string, string]> {
     Travel: ['#4A90D9', '#357ABD'],
     Shopping: ['#E056A0', '#C94D8B'],
     Medical: ['#00B894', '#00A381'],
-    Fuel: ['#F59E0B', '#F3D28F'],
-    Rent: ['#F3D28F', '#E8C47A'],
+    Fuel: ['#F59E0B', '#14B8A6'],
+    Rent: ['#14B8A6', '#E8C47A'],
     EMI: ['#E17055', '#D63031'],
     Bills: ['#0984E3', '#0768B8'],
-    Entertainment: ['#F5DBA0', '#E8C47A'],
+    Entertainment: ['#14B8A6', '#E8C47A'],
     Education: ['#55EFC4', '#00CEC9'],
     Grocery: ['#81ECEC', '#00CEC9'],
     Investment: ['#74B9FF', '#4D96FF'],
@@ -120,7 +120,7 @@ export function TransactionDetailScreen() {
 
   return (
     <View style={[s.container, { backgroundColor: colors.bg.primary }]}>
-      <View style={[s.hero, { paddingTop: insets.top + 8, backgroundColor: '#1A1835' }]}>
+      <View style={[s.hero, { paddingTop: insets.top + 8, backgroundColor: colors.bg.primary }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
           <View style={s.backBtnInner}>
             <Ionicons name="chevron-back" size={22} color="#FFF" />

@@ -92,7 +92,7 @@ export function SplashScreen({ onFinish }: SplashScreenProps) {
   });
 
   return (
-    <View style={[styles.root, { backgroundColor: '#1A1835' }]}>
+    <View style={[styles.root, { backgroundColor: '#0F172A' }]}>
       <Animated.View style={[styles.inner, { opacity: rootOpacity }]}>
         {/* Language nodes */}
         {LANG_NODES.map((node, i) => {
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   native: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#F3D28F',
+    color: '#14B8A6',
     marginBottom: 1,
   },
   english: {
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     height: 130,
     borderRadius: 65,
     borderWidth: 3,
-    borderColor: '#F3D28F',
+    borderColor: '#14B8A6',
     borderTopColor: 'transparent',
     borderRightColor: 'transparent',
   },
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(243,210,143,0.08)',
+    backgroundColor: 'rgba(20,184,166,0.08)',
   },
   iconImage: {
     width: 90,
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     bottom: 80,
     fontSize: 28,
     fontWeight: '700',
-    color: '#F3D28F',
+    color: '#14B8A6',
     letterSpacing: -0.3,
   },
 });

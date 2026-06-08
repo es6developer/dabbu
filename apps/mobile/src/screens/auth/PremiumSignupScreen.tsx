@@ -48,14 +48,14 @@ function InputField({
     <View
       style={[
         styles.inputContainer,
-        { borderColor: focused ? '#F3D28F' : 'rgba(255,255,255,0.06)' },
+        { borderColor: focused ? '#14B8A6' : 'rgba(255,255,255,0.06)' },
       ]}
     >
       {icon ? (
         <Ionicons
           name={icon}
           size={18}
-          color={focused ? '#F3D28F' : '#636366'}
+          color={focused ? '#14B8A6' : '#636366'}
           style={styles.inputIcon}
         />
       ) : null}
@@ -351,19 +351,19 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     height: 52,
-    backgroundColor: '#F3D28F',
+    backgroundColor: '#14B8A6',
     borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 4,
-    shadowColor: '#F3D28F',
+    shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.35,
     shadowRadius: 12,
     elevation: 8,
   },
   primaryButtonText: {
-    color: '#1A1835',
+    color: '#0F172A',
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
   },
@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
   },
   footerLink: {
-    color: '#F3D28F',
+    color: '#14B8A6',
     fontSize: 13,
     fontFamily: 'Inter-SemiBold',
   },

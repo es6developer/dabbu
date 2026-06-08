@@ -63,22 +63,22 @@ function timeAgo(dateStr: string): string {
 
 const TYPE_CONFIG: Record<string, { icon: string; label: string; color: string }> = {
   couple: { icon: 'heart', label: 'Couple', color: '#FF6B9D' },
-  family: { icon: 'home', label: 'Family', color: '#F3D28F' },
+  family: { icon: 'home', label: 'Family', color: '#14B8A6' },
   friends: { icon: 'people', label: 'Friends', color: '#34C759' },
   trip: { icon: 'airplane', label: 'Trip', color: '#60A5FA' },
   roommates: { icon: 'business', label: 'Roommates', color: '#818CF8' },
-  apartment: { icon: 'home', label: 'Apartment', color: '#F3D28F' },
+  apartment: { icon: 'home', label: 'Apartment', color: '#14B8A6' },
   office: { icon: 'briefcase', label: 'Office', color: '#818CF8' },
   event: { icon: 'calendar', label: 'Event', color: '#FF6B6B' },
-  default: { icon: 'people', label: 'Group', color: '#F3D28F' },
+  default: { icon: 'people', label: 'Group', color: '#14B8A6' },
 };
 
 const ALL_TYPES = ['all', 'couple', 'family', 'friends', 'trip', 'roommates', 'other'] as const;
 
 const FILTER_COLORS: Record<string, string> = {
-  all: '#F3D28F',
+  all: '#14B8A6',
   couple: '#FF6B9D',
-  family: '#F3D28F',
+  family: '#14B8A6',
   friends: '#34C759',
   trip: '#60A5FA',
   roommates: '#818CF8',
@@ -339,7 +339,7 @@ export function SharedScreen() {
               setRefreshing(true);
               loadData(true);
             }}
-            tintColor="#F3D28F"
+            tintColor="#14B8A6"
           />
         }
       >
@@ -356,7 +356,7 @@ export function SharedScreen() {
                 onPress={() => navigation.navigate('SplitTemplates')}
                 activeOpacity={0.8}
               >
-                <Ionicons name="layers-outline" size={20} color="#F3D28F" />
+                <Ionicons name="layers-outline" size={20} color="#14B8A6" />
               </TouchableOpacity>
               <TouchableOpacity
                 style={s.createBtn}
@@ -486,8 +486,8 @@ export function SharedScreen() {
             {/* Empty State */}
             {groups.length === 0 && (
               <View style={s.emptyWrap}>
-                <View style={[s.emptyIcon, { backgroundColor: 'rgba(255,107,0,0.12)' }]}>
-                  <Ionicons name="layers-outline" size={36} color="#F3D28F" />
+                <View style={[s.emptyIcon, { backgroundColor: 'rgba(20,184,166,0.12)' }]}>
+                  <Ionicons name="layers-outline" size={36} color="#14B8A6" />
                 </View>
                 <Text style={[s.emptyTitle, { color: colors.text.primary }]}>
                   No shared spaces yet
@@ -596,9 +596,9 @@ const s = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 14,
-    backgroundColor: 'rgba(255,107,0,0.12)',
+    backgroundColor: 'rgba(20,184,166,0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(255,107,0,0.2)',
+    borderColor: 'rgba(20,184,166,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -606,10 +606,10 @@ const s = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 14,
-    backgroundColor: '#F3D28F',
+    backgroundColor: '#14B8A6',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#F3D28F',
+    shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.35,
     shadowRadius: 10,
@@ -720,7 +720,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#F3D28F',
+    backgroundColor: '#14B8A6',
     paddingHorizontal: 22,
     paddingVertical: 13,
     borderRadius: 14,

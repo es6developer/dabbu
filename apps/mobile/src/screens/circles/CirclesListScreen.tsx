@@ -193,7 +193,9 @@ export function CirclesListScreen() {
                       onPress={() => navigation.navigate('Settlement')}
                     >
                       <Ionicons name="swap-horizontal" size={12} color="#FFF" />
-                      <Text style={styles.settleBtnText}>Settle Up</Text>
+                      <Text style={[styles.settleBtnText, { color: colors.text.primary }]}>
+                        Settle Up
+                      </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.splitBtn}
@@ -317,7 +319,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     borderRadius: 10,
   },
-  settleBtnText: { color: '#1A1835', fontSize: 12, fontWeight: '700' },
+  settleBtnText: { fontSize: 12, fontWeight: '700' },
   splitBtn: {
     flexDirection: 'row',
     alignItems: 'center',

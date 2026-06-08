@@ -114,7 +114,7 @@ export function QuickActionSheet({ actions, activeItem, visible, onClose }: Quic
                     s.bubble,
                     {
                       backgroundColor: isActive
-                        ? 'rgba(243, 210, 143, 0.15)'
+                        ? 'rgba(20, 184, 166, 0.15)'
                         : isDark
                           ? '#2C2C2E'
                           : '#F2F2F7',
@@ -125,7 +125,7 @@ export function QuickActionSheet({ actions, activeItem, visible, onClose }: Quic
                   <Ionicons
                     name={action.icon as keyof typeof Ionicons.glyphMap}
                     size={24}
-                    color={isActive ? '#F3D28F' : isDark ? '#FFFFFF' : '#1C1C1E'}
+                    color={isActive ? '#14B8A6' : isDark ? '#FFFFFF' : '#1C1C1E'}
                   />
                 </Animated.View>
                 <Text style={[s.label, { color: isDark ? '#8E8E93' : '#636366' }]}>

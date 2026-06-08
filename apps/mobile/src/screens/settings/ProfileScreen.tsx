@@ -308,7 +308,9 @@ export function ProfileScreen() {
             ) : (
               <>
                 <Ionicons name="checkmark-circle" size={18} color="#FFFFFF" />
-                <Text style={styles.saveBtnText}>Save Changes</Text>
+                <Text style={[styles.saveBtnText, { color: colors.text.primary }]}>
+                  Save Changes
+                </Text>
               </>
             )}
           </TouchableOpacity>
@@ -424,5 +426,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
-  saveBtnText: { color: '#1A1835', fontSize: 16, fontWeight: '700' },
+  saveBtnText: { fontSize: 16, fontWeight: '700' },
 });

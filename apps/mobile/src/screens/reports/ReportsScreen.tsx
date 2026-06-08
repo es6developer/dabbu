@@ -30,19 +30,19 @@ const CAT_COLORS: Record<string, string> = {
   Food: '#FF6B6B',
   Rent: '#60A5FA',
   Travel: '#34C759',
-  Shopping: '#F3D28F',
+  Shopping: '#14B8A6',
   Bills: '#F59E0B',
   Fuel: '#FF4D4F',
   Medical: '#FF4D4F',
-  Entertainment: '#F3D28F',
-  Groceries: '#F3D28F',
+  Entertainment: '#14B8A6',
+  Groceries: '#14B8A6',
   Utilities: '#60A5FA',
   Transport: '#34C759',
-  Education: '#F3D28F',
+  Education: '#14B8A6',
   Healthcare: '#FF4D4F',
   Insurance: '#F59E0B',
   Salary: '#34C759',
-  Investment: '#F3D28F',
+  Investment: '#14B8A6',
 };
 
 export function ReportsScreen() {
@@ -133,7 +133,7 @@ export function ReportsScreen() {
           <View style={styles.metricsRow}>
             <View style={[styles.metricCard, { borderColor: colors.border.subtle }]}>
               <Text style={[styles.metricLabel, { color: colors.text.tertiary }]}>Savings</Text>
-              <Text style={[styles.metricValue, { color: '#F3D28F' }]}>{fmt(savings)}</Text>
+              <Text style={[styles.metricValue, { color: '#14B8A6' }]}>{fmt(savings)}</Text>
             </View>
             <View style={[styles.metricCard, { borderColor: colors.border.subtle }]}>
               <Text style={[styles.metricLabel, { color: colors.text.tertiary }]}>Expense</Text>

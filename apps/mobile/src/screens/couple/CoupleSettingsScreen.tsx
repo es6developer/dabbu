@@ -187,7 +187,9 @@ export function CoupleSettingsScreen() {
           />
         }
       >
-        <View style={[styles.hero, { paddingTop: insets.top + 12, backgroundColor: '#1A1835' }]}>
+        <View
+          style={[styles.hero, { paddingTop: insets.top + 12, backgroundColor: colors.bg.primary }]}
+        >
           <TouchableOpacity
             style={styles.backBtn}
             onPress={() => navigation.goBack()}
@@ -390,7 +392,7 @@ const styles = StyleSheet.create({
     width: 160,
     height: 160,
     borderRadius: 80,
-    backgroundColor: 'rgba(243,210,143,0.15)',
+    backgroundColor: 'rgba(20,184,166,0.15)',
   },
 
   profileSection: {

@@ -389,7 +389,9 @@ export function SecurityScreen() {
                   {savingPin ? (
                     <ActivityIndicator color="#FFFFFF" />
                   ) : (
-                    <Text style={styles.pinSaveBtnText}>Save PIN</Text>
+                    <Text style={[styles.pinSaveBtnText, { color: colors.text.primary }]}>
+                      Save PIN
+                    </Text>
                   )}
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -475,7 +477,9 @@ export function SecurityScreen() {
                   {savingPin ? (
                     <ActivityIndicator color="#FFFFFF" />
                   ) : (
-                    <Text style={styles.pinSaveBtnText}>Change PIN</Text>
+                    <Text style={[styles.pinSaveBtnText, { color: colors.text.primary }]}>
+                      Change PIN
+                    </Text>
                   )}
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -651,7 +655,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   pinSaveBtn: { paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
-  pinSaveBtnText: { color: '#1A1835', fontSize: 15, fontWeight: '600' },
+  pinSaveBtnText: { fontSize: 15, fontWeight: '600' },
   emptyText: { fontSize: 14, fontStyle: 'italic' },
   sessionRow: {
     flexDirection: 'row',

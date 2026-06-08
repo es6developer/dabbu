@@ -230,7 +230,7 @@ export function FamilySettingsScreen() {
               {saving ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text style={styles.saveBtnText}>Save</Text>
+                <Text style={[styles.saveBtnText, { color: colors.text.primary }]}>Save</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -306,7 +306,9 @@ export function FamilySettingsScreen() {
                 style={[styles.deleteFamilyBtn, { backgroundColor: colors.status.error }]}
                 onPress={handleDeleteFamily}
               >
-                <Text style={styles.deleteFamilyBtnText}>Delete Family</Text>
+                <Text style={[styles.deleteFamilyBtnText, { color: colors.text.primary }]}>
+                  Delete Family
+                </Text>
               </TouchableOpacity>
             )}
           </View>
@@ -335,7 +337,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   saveBtn: { paddingVertical: 14, borderRadius: 14, alignItems: 'center' },
-  saveBtnText: { color: '#1A1835', fontSize: 15, fontWeight: '600' },
+  saveBtnText: { fontSize: 15, fontWeight: '600' },
   memberRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -361,5 +363,5 @@ const styles = StyleSheet.create({
   leaveBtn: { paddingVertical: 16, borderRadius: 14, alignItems: 'center', borderWidth: 1 },
   leaveBtnText: { fontSize: 16, fontWeight: '600' },
   deleteFamilyBtn: { paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
-  deleteFamilyBtnText: { color: '#1A1835', fontSize: 16, fontWeight: '600' },
+  deleteFamilyBtnText: { fontSize: 16, fontWeight: '600' },
 });

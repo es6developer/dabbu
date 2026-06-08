@@ -150,7 +150,7 @@ export function CategorySelectionScreen() {
                 style={[styles.sheetBtn, { backgroundColor: colors.accent.primary }]}
                 onPress={handleCustomAdd}
               >
-                <Text style={[styles.sheetBtnText, { color: '#1A1835' }]}>Add</Text>
+                <Text style={[styles.sheetBtnText, { color: colors.text.primary }]}>Add</Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>

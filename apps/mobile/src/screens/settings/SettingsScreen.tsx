@@ -158,7 +158,7 @@ export function SettingsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
       >
-        <View style={[s.hero, { paddingTop: insets.top + 16, backgroundColor: '#1A1835' }]}>
+        <View style={[s.hero, { paddingTop: insets.top + 16, backgroundColor: colors.bg.primary }]}>
           <View
             style={{
               flexDirection: 'row',
@@ -205,16 +205,16 @@ export function SettingsScreen() {
             <View
               style={[
                 s.heroPlanBadge,
-                { backgroundColor: isPremium ? '#F3D28F20' : 'rgba(255,255,255,0.1)' },
+                { backgroundColor: isPremium ? 'rgba(20,184,166,0.13)' : 'rgba(255,255,255,0.1)' },
               ]}
             >
               <Ionicons
                 name={isPremium ? 'diamond' : 'person-outline'}
                 size={12}
-                color={isPremium ? '#F3D28F' : 'rgba(255,255,255,0.6)'}
+                color={isPremium ? '#14B8A6' : 'rgba(255,255,255,0.6)'}
               />
               <Text
-                style={[s.heroPlanText, { color: isPremium ? '#F3D28F' : 'rgba(255,255,255,0.6)' }]}
+                style={[s.heroPlanText, { color: isPremium ? '#14B8A6' : 'rgba(255,255,255,0.6)' }]}
               >
                 {isPremium ? 'Premium' : 'Free'}
               </Text>
@@ -227,20 +227,20 @@ export function SettingsScreen() {
             <TouchableOpacity
               style={[
                 s.upgradeBanner,
-                { backgroundColor: '#1A1835', borderColor: 'rgba(243, 210, 143, 0.2)' },
+                { backgroundColor: colors.bg.primary, borderColor: 'rgba(20, 184, 166, 0.2)' },
               ]}
               onPress={() => navigation.navigate('Premium')}
               activeOpacity={0.85}
             >
               <View style={s.upgradeGrad}>
                 <View style={{ flex: 1 }}>
-                  <Text style={[s.upgradeTitle, { color: '#F3D28F' }]}>Upgrade to Premium</Text>
-                  <Text style={[s.upgradeSub, { color: 'rgba(243, 210, 143, 0.7)' }]}>
+                  <Text style={[s.upgradeTitle, { color: '#14B8A6' }]}>Upgrade to Premium</Text>
+                  <Text style={[s.upgradeSub, { color: 'rgba(20, 184, 166, 0.7)' }]}>
                     Unlock reports, analytics & more
                   </Text>
                 </View>
-                <View style={[s.upgradeArrow, { backgroundColor: 'rgba(243, 210, 143, 0.15)' }]}>
-                  <Ionicons name="arrow-forward" size={18} color="#F3D28F" />
+                <View style={[s.upgradeArrow, { backgroundColor: 'rgba(20, 184, 166, 0.15)' }]}>
+                  <Ionicons name="arrow-forward" size={18} color="#14B8A6" />
                 </View>
               </View>
             </TouchableOpacity>

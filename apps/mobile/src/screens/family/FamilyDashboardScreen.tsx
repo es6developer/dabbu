@@ -119,7 +119,9 @@ export function FamilyDashboardScreen() {
               onPress={() => navigation.navigate('CreateFamily')}
             >
               <Ionicons name="add" size={18} color="#FFFFFF" />
-              <Text style={styles.emptyBtnText}>Create Family</Text>
+              <Text style={[styles.emptyBtnText, { color: colors.text.primary }]}>
+                Create Family
+              </Text>
             </TouchableOpacity>
           </View>
         }
@@ -182,5 +184,5 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginTop: 8,
   },
-  emptyBtnText: { color: '#1A1835', fontSize: 15, fontWeight: '600' },
+  emptyBtnText: { fontSize: 15, fontWeight: '600' },
 });

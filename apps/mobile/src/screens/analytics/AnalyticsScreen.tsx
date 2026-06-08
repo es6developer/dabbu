@@ -213,7 +213,7 @@ export function AnalyticsScreen() {
     amount: c.amount || 0,
     color:
       c.color ||
-      [colors.accent.primary, '#00B894', '#FF6B6B', '#FDCB6E', '#74B9FF', '#F5DBA0'][i % 6],
+      [colors.accent.primary, '#00B894', '#FF6B6B', '#FDCB6E', '#74B9FF', '#14B8A6'][i % 6],
     legendFontColor: colors.text.secondary,
     legendFontSize: 12,
   }));

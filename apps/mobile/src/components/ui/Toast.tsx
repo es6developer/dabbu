@@ -28,13 +28,13 @@ const bgMap: Record<ToastType, string> = {
 const borderMap: Record<ToastType, string> = {
   error: 'rgba(255, 69, 69, 0.2)',
   success: 'rgba(52, 199, 89, 0.2)',
-  info: 'rgba(243, 210, 143, 0.2)',
+  info: 'rgba(20, 184, 166, 0.2)',
 };
 
 const colorMap: Record<ToastType, string> = {
   error: '#FF4545',
   success: '#34C759',
-  info: '#F3D28F',
+  info: '#14B8A6',
 };
 
 export function Toast({ visible, message, type = 'error', onDismiss }: ToastProps) {

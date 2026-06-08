@@ -243,7 +243,7 @@ export function SmsDashboardScreen() {
     const catColors: Record<string, string> = {
       'Food & Dining': '#FF6B6B',
       Groceries: '#00B894',
-      Shopping: '#F3D28F',
+      Shopping: '#14B8A6',
       Transportation: '#FDCB6E',
       Entertainment: '#E17055',
       'Bills & Utilities': '#636E72',
@@ -251,13 +251,13 @@ export function SmsDashboardScreen() {
       Income: '#00B894',
       Subscriptions: '#F39C12',
       'Health & Medical': '#E74C3C',
-      Education: '#F3D28F',
+      Education: '#14B8A6',
       Travel: '#1ABC9C',
       Financial: '#34495E',
       Transfers: '#2D3436',
       Refunds: '#00CEC9',
       Pets: '#FD79A8',
-      Clothing: '#F5DBA0',
+      Clothing: '#14B8A6',
       'Other Income': '#55EFC4',
       'Other Expenses': '#636E72',
     };
@@ -451,7 +451,9 @@ export function SmsDashboardScreen() {
               onPress={() => navigation.navigate('SmsPermission')}
             >
               <Ionicons name="settings-outline" size={16} color="#FFFFFF" />
-              <Text style={styles.emptyBtnText}>Set Up SMS Sync</Text>
+              <Text style={[styles.emptyBtnText, { color: colors.text.primary }]}>
+                Set Up SMS Sync
+              </Text>
             </TouchableOpacity>
           </View>
         }
@@ -559,5 +561,5 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginTop: 8,
   },
-  emptyBtnText: { color: '#1A1835', fontSize: 14, fontWeight: '600' },
+  emptyBtnText: { fontSize: 14, fontWeight: '600' },
 });

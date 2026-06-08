@@ -47,7 +47,7 @@ export function BiometricSetupScreen() {
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Enable Biometrics</Text>
+          <Text style={[styles.buttonText, { color: colors.text.primary }]}>Enable Biometrics</Text>
         )}
       </TouchableOpacity>
 
@@ -77,6 +77,6 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 16,
   },
-  buttonText: { color: '#1A1835', fontSize: 17, fontWeight: '600' },
+  buttonText: { fontSize: 17, fontWeight: '600' },
   skip: { fontSize: 16 },
 });
