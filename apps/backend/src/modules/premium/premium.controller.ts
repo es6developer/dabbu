@@ -44,11 +44,8 @@ export class PremiumController {
     // 2. Create local subscription with 'incomplete' status (payment pending)
     const sub = await this.premiumService.createSubscription(userId, planCode, 'incomplete');
 
-    // 3. Get plan details for addon amount
+    // 3. Get plan details for total_count calculation
     const plan = await this.prisma.subscriptionPlan.findUnique({ where: { id: sub.planId } });
-    const addonAmount = plan ? Number(plan.price) * 100 : undefined;
-
-    // 4. Determine safe total_count per plan interval (keep end_time before year 2100)
     const intervalMonths: Record<string, number> = {
       monthly: 1,
       quarterly: 3,
@@ -59,14 +56,13 @@ export class PremiumController {
     const maxSafeCycles = Math.floor(((2100 - new Date().getFullYear()) * 12) / monthsPerCycle);
     const totalCount = Math.min(maxSafeCycles, 120);
 
-    // 5. Create Razorpay subscription with auto-pay (total_count for auto-renew, addon for first charge)
+    // 4. Create Razorpay subscription with auto-pay (no addon — avoids double-charging first payment)
     const razorpaySub = await this.razorpayService.createSubscription({
       planId: razorpayPlanId,
       totalCount,
       customerEmail: req.user.email,
       customerContact: req.user.phone,
       notes: { userId, subscriptionId: sub.id, planCode },
-      addonAmount,
     });
 
     // 6. Store Razorpay subscription ID on local subscription
