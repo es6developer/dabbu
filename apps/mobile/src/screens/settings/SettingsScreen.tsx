@@ -87,7 +87,7 @@ function getRowMeta(): Record<string, { icon: IconName }> {
 
 export function SettingsScreen() {
   const navigation = useNavigation<any>();
-  const { user, logout } = useAuth();
+  const { user, logout, refreshPremiumStatus } = useAuth();
   const { lockApp } = useAppLock();
   const { colors, isDark } = useTheme();
   const ROW_META = useMemo(() => getRowMeta(), []);
@@ -109,6 +109,7 @@ export function SettingsScreen() {
     } catch {
       setSubscription(null);
     }
+    refreshPremiumStatus();
   }
 
   const isPremium = !!subscription && subscription.status === 'active';

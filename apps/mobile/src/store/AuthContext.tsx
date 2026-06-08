@@ -275,6 +275,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           accessToken: null,
           isNewUser: false,
           needsPhone: false,
+          isPremium: false,
         });
       });
     });

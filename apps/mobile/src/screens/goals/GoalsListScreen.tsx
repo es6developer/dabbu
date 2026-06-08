@@ -1085,6 +1085,21 @@ export function GoalsListScreen() {
     setShowCreate(true);
   };
 
+  const keyExtractor = useCallback((g: any) => g.id, []);
+
+  const renderItem = useCallback(
+    ({ item, index }: { item: any; index: number }) => (
+      <GoalCard
+        item={item}
+        index={index}
+        onNavigate={() =>
+          navigation.navigate('GoalDetail', { goalId: item.id, goalName: item.name })
+        }
+      />
+    ),
+    [navigation],
+  );
+
   if (loading) {
     return <GoalsSkeleton />;
   }
@@ -1094,7 +1109,7 @@ export function GoalsListScreen() {
       <BaseScreen noPadding>
         <FlatList
           data={goals}
-          keyExtractor={(g) => g.id}
+          keyExtractor={keyExtractor}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -1134,15 +1149,7 @@ export function GoalsListScreen() {
               )}
             </Animated.View>
           }
-          renderItem={({ item, index }) => (
-            <GoalCard
-              item={item}
-              index={index}
-              onNavigate={() =>
-                navigation.navigate('GoalDetail', { goalId: item.id, goalName: item.name })
-              }
-            />
-          )}
+          renderItem={renderItem}
           ListEmptyComponent={
             <GoalsEmptyState
               onCreatePress={openCreate}
@@ -1151,7 +1158,9 @@ export function GoalsListScreen() {
           }
           windowSize={10}
           maxToRenderPerBatch={10}
+          initialNumToRender={10}
           showsVerticalScrollIndicator={false}
+          removeClippedSubviews
         />
       </BaseScreen>
 

@@ -165,6 +165,8 @@ export function TransactionsScreen() {
     );
   };
 
+  const keyExtractor = useCallback((item: any) => item.id, []);
+
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
       {/* Header */}
@@ -270,7 +272,7 @@ export function TransactionsScreen() {
       ) : (
         <FlatList
           data={filtered}
-          keyExtractor={(item) => item.id}
+          keyExtractor={keyExtractor}
           renderItem={renderItem}
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: insets.bottom + 80 }}
           showsVerticalScrollIndicator={false}
@@ -287,6 +289,8 @@ export function TransactionsScreen() {
           ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
           windowSize={10}
           maxToRenderPerBatch={10}
+          initialNumToRender={10}
+          removeClippedSubviews
         />
       )}
     </View>

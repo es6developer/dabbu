@@ -97,6 +97,8 @@ export function NotificationsScreen() {
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
+  const keyExtractor = useCallback((item: NotificationItem) => item.id, []);
+
   function renderItem({ item }: { item: NotificationItem }) {
     return (
       <TouchableOpacity
@@ -162,7 +164,7 @@ export function NotificationsScreen() {
         <FlatList
           data={notifications}
           renderItem={renderItem}
-          keyExtractor={(item) => item.id}
+          keyExtractor={keyExtractor}
           contentContainerStyle={styles.list}
           refreshControl={
             <RefreshControl
@@ -174,6 +176,8 @@ export function NotificationsScreen() {
           ListFooterComponent={<View style={{ height: insets.bottom + 40 }} />}
           windowSize={10}
           maxToRenderPerBatch={10}
+          initialNumToRender={10}
+          removeClippedSubviews
         />
       )}
     </View>

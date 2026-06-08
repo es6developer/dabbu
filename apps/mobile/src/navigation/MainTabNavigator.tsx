@@ -1,8 +1,8 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { HomeScreen } from '../screens/home/HomeScreen';
 import { NotificationsScreen } from '../screens/home/NotificationsScreen';
@@ -43,7 +43,6 @@ import { AddExpenseScreen } from '../screens/expense/AddExpenseScreen';
 import { useTheme } from '../theme';
 import { useAuth } from '../store/AuthContext';
 import { usePreferences } from '../store/PreferencesContext';
-import { api } from '../services/api';
 import { QuickActionSheet } from '../components/ui/QuickActionSheet';
 
 const Tab = createBottomTabNavigator();
@@ -292,29 +291,12 @@ function SmsNavigator() {
 export function MainTabNavigator() {
   const theme = useTheme();
   const { colors } = theme;
-  const { user, accessToken } = useAuth();
+  const { user, accessToken, isPremium } = useAuth();
   const { getTabVisibility } = usePreferences();
   const [showActions, setShowActions] = useState(false);
-  const [isPremium, setIsPremium] = useState(false);
   const navigation = useNavigation<any>();
 
   const qaVisible = getTabVisibility('QuickAction');
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!accessToken) {
-        return;
-      }
-      api
-        .get<any>('/premium/check')
-        .then((res) => {
-          if (res?.isPremium) {
-            setIsPremium(true);
-          }
-        })
-        .catch(() => {});
-    }, [accessToken]),
-  );
 
   const quickActions = [
     {

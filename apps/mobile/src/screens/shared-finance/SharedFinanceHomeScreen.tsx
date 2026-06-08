@@ -589,15 +589,35 @@ export function SharedFinanceHomeScreen() {
     );
   }
 
+  const keyExtractor = useCallback((item: any) => item.id, []);
+
+  const renderItem = useCallback(
+    ({ item }: { item: any }) => (
+      <GroupCard
+        group={item}
+        currentUserId={user?.id}
+        colors={colors}
+        typography={typography}
+        anim={cardAnims.current[item.id] ?? new Animated.Value(1)}
+        onPress={() =>
+          navigation.navigate('SharedGroupDetail', { groupId: item.id, groupName: item.name })
+        }
+        onLongPress={() => handleDelete(item)}
+      />
+    ),
+    [user?.id, colors, typography, navigation, handleDelete],
+  );
+
   return (
     <BaseScreen noPadding>
       <FlatList
         data={filtered}
-        keyExtractor={(item) => item.id}
+        keyExtractor={keyExtractor}
         showsVerticalScrollIndicator={false}
-        windowSize={5}
-        initialNumToRender={5}
+        windowSize={10}
+        initialNumToRender={10}
         maxToRenderPerBatch={10}
+        removeClippedSubviews
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
           useNativeDriver: false,
         })}
@@ -796,19 +816,7 @@ export function SharedFinanceHomeScreen() {
             </View>
           </Animated.View>
         }
-        renderItem={({ item }) => (
-          <GroupCard
-            group={item}
-            currentUserId={user?.id}
-            colors={colors}
-            typography={typography}
-            anim={cardAnims.current[item.id] ?? new Animated.Value(1)}
-            onPress={() =>
-              navigation.navigate('SharedGroupDetail', { groupId: item.id, groupName: item.name })
-            }
-            onLongPress={() => handleDelete(item)}
-          />
-        )}
+        renderItem={renderItem}
         ListEmptyComponent={
           <View style={{ paddingHorizontal: H_PADDING, marginTop: 32 }}>
             <EmptyState

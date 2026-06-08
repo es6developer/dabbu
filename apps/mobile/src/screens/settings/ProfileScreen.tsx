@@ -52,7 +52,7 @@ export function ProfileScreen() {
           setLastName(data.lastName || '');
         }
         if (data.phone) {
-          setPhone(data.phone);
+          setPhone(data.phone.replace(/^\+91/, ''));
         }
         if (data.email) {
           setEmail(data.email);
@@ -60,7 +60,7 @@ export function ProfileScreen() {
       }
     } catch {
       if (user?.phone) {
-        setPhone(user.phone);
+        setPhone(user.phone.replace(/^\+91/, ''));
       }
     } finally {
       setLoading(false);
@@ -78,10 +78,12 @@ export function ProfileScreen() {
       setAccessToken(accessToken);
     }
     try {
+      const cleanedPhone = phone.trim().replace(/[^0-9]/g, '');
+      const fullPhone = cleanedPhone.startsWith('91') ? `+${cleanedPhone}` : `+91${cleanedPhone}`;
       await api.patch('/users/profile', {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        phone: phone.trim(),
+        phone: fullPhone,
       });
       Alert.alert('Success', 'Profile updated successfully');
     } catch (e: any) {

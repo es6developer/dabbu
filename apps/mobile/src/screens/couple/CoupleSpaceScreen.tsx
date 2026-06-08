@@ -16,6 +16,7 @@ import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
+import { UpgradeBanner } from '../../components/ui/UpgradeBanner';
 
 const { width } = Dimensions.get('window');
 const CARD_GAP = 10;
@@ -277,6 +278,8 @@ export function CoupleSpaceScreen() {
             )}
           </View>
         </View>
+
+        <UpgradeBanner message="Couple Space analytics & insights with Premium" />
 
         {/* ─── Content ─── */}
         <View style={{ paddingHorizontal: 20, paddingTop: 20, gap: 16 }}>

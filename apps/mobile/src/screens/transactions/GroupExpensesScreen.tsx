@@ -22,6 +22,7 @@ import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Skeleton, SkeletonCard } from '../../components/ui/AnimatedSkeleton';
 import { AiInsightCard } from '../../components/ui/AiInsightCard';
+import { UpgradeBanner } from '../../components/ui/UpgradeBanner';
 
 function fmt(v: number) {
   return '\u20B9' + Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
@@ -711,6 +712,7 @@ export function GroupExpensesScreen() {
                 </Text>
               </View>
             </View>
+            <UpgradeBanner message="Unlock premium analytics & AI insights for this group" />
             {stats.totalIncome > 0 && (
               <View style={[s.budgetBar, { backgroundColor: colors.bg.tertiary }]}>
                 <View
@@ -1183,6 +1185,8 @@ export function GroupExpensesScreen() {
               </Text>
             </View>
           </View>
+
+          <UpgradeBanner message="Remove limits - unlimited spaces & members" />
 
           <View style={[s.planBar, { backgroundColor: colors.bg.secondary }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>

@@ -1,7 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl,
-  Modal, TextInput, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, Dimensions,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  RefreshControl,
+  Modal,
+  TextInput,
+  Alert,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -9,6 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
+import { UpgradeBanner } from '../../components/ui/UpgradeBanner';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
@@ -48,7 +60,13 @@ export function CoupleIncomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [incomes, setIncomes] = useState<IncomeEntry[]>([]);
   const [categories, setCategories] = useState<IncomeCategory[]>([]);
-  const [groupInfo, setGroupInfo] = useState<{ id: string; partner1Id: string; partner2Id: string; partner1Name: string; partner2Name: string } | null>(null);
+  const [groupInfo, setGroupInfo] = useState<{
+    id: string;
+    partner1Id: string;
+    partner2Id: string;
+    partner1Name: string;
+    partner2Name: string;
+  } | null>(null);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [source, setSource] = useState('');
@@ -59,7 +77,9 @@ export function CoupleIncomeScreen() {
   const [submitting, setSubmitting] = useState(false);
 
   const fetchData = useCallback(async (isRefresh = false) => {
-    if (!isRefresh) setLoading(true);
+    if (!isRefresh) {
+      setLoading(true);
+    }
     try {
       const groups: any[] = await api.get('/shared-finance/groups');
       const coupleGroup = Array.isArray(groups)
@@ -73,20 +93,32 @@ export function CoupleIncomeScreen() {
       const groupId = coupleGroup.id;
       const dashboard = await api.get<any>(`/shared-finance/groups/${groupId}/couple/dashboard`);
       const profile = dashboard?.profile;
-      let p1Name = 'Partner 1', p2Name = 'Partner 2', p1Id = 'p1', p2Id = 'p2';
+      let p1Name = 'Partner 1',
+        p2Name = 'Partner 2',
+        p1Id = 'p1',
+        p2Id = 'p2';
       if (profile) {
         p1Name = profile.partner1?.firstName || profile.partner1?.email || 'Partner 1';
         p2Name = profile.partner2?.firstName || profile.partner2?.email || 'Partner 2';
         p1Id = profile.partner1?.id || 'p1';
         p2Id = profile.partner2?.id || 'p2';
       }
-      setGroupInfo({ id: groupId, partner1Id: p1Id, partner2Id: p2Id, partner1Name: p1Name, partner2Name: p2Name });
+      setGroupInfo({
+        id: groupId,
+        partner1Id: p1Id,
+        partner2Id: p2Id,
+        partner1Name: p1Name,
+        partner2Name: p2Name,
+      });
 
       const catData = await api.get<any[]>('/categories?type=income');
-      if (Array.isArray(catData)) setCategories(catData);
+      if (Array.isArray(catData)) {
+        setCategories(catData);
+      }
 
       const incomeResp = await api.get<any>(`/shared-finance/groups/${groupId}/couple/incomes`);
-      const incomeList: IncomeEntry[] = incomeResp?.incomes || (Array.isArray(incomeResp) ? incomeResp : []);
+      const incomeList: IncomeEntry[] =
+        incomeResp?.incomes || (Array.isArray(incomeResp) ? incomeResp : []);
       setIncomes(incomeList);
     } catch (e: any) {
       if (e.message !== 'Session expired. Please login again.') {
@@ -98,25 +130,45 @@ export function CoupleIncomeScreen() {
     }
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   async function handleAddIncome() {
-    if (!source.trim()) { Alert.alert('Missing', 'Please enter a source'); return; }
+    if (!source.trim()) {
+      Alert.alert('Missing', 'Please enter a source');
+      return;
+    }
     const amt = parseFloat(amount);
-    if (!amt || amt <= 0) { Alert.alert('Invalid', 'Please enter a valid amount'); return; }
-    if (!date) { Alert.alert('Missing', 'Please select a date'); return; }
-    if (!selectedPartner) { Alert.alert('Missing', 'Please assign to a partner'); return; }
-    if (!groupInfo) { Alert.alert('Error', 'No couple group found'); return; }
+    if (!amt || amt <= 0) {
+      Alert.alert('Invalid', 'Please enter a valid amount');
+      return;
+    }
+    if (!date) {
+      Alert.alert('Missing', 'Please select a date');
+      return;
+    }
+    if (!selectedPartner) {
+      Alert.alert('Missing', 'Please assign to a partner');
+      return;
+    }
+    if (!groupInfo) {
+      Alert.alert('Error', 'No couple group found');
+      return;
+    }
 
     setSubmitting(true);
     try {
-      const newIncome = await api.post<any>(`/shared-finance/groups/${groupInfo.id}/couple/incomes`, {
-        source: source.trim(),
-        amount: amt,
-        date,
-        categoryId: selectedCategory?.id || null,
-        assignedTo: selectedPartner,
-      });
+      const newIncome = await api.post<any>(
+        `/shared-finance/groups/${groupInfo.id}/couple/incomes`,
+        {
+          source: source.trim(),
+          amount: amt,
+          date,
+          categoryId: selectedCategory?.id || null,
+          assignedTo: selectedPartner,
+        },
+      );
       if (newIncome) {
         setIncomes((prev) => [newIncome, ...prev]);
       }
@@ -138,10 +190,16 @@ export function CoupleIncomeScreen() {
   }
 
   const totalIncome = incomes.reduce((sum, i) => sum + i.amount, 0);
-  const p1Income = incomes.filter((i) => i.assignedTo === groupInfo?.partner1Id).reduce((sum, i) => sum + i.amount, 0);
-  const p2Income = incomes.filter((i) => i.assignedTo === groupInfo?.partner2Id).reduce((sum, i) => sum + i.amount, 0);
+  const p1Income = incomes
+    .filter((i) => i.assignedTo === groupInfo?.partner1Id)
+    .reduce((sum, i) => sum + i.amount, 0);
+  const p2Income = incomes
+    .filter((i) => i.assignedTo === groupInfo?.partner2Id)
+    .reduce((sum, i) => sum + i.amount, 0);
 
-  if (loading) return <LoadingScreen />;
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
@@ -151,13 +209,21 @@ export function CoupleIncomeScreen() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => { setRefreshing(true); fetchData(true); }}
+            onRefresh={() => {
+              setRefreshing(true);
+              fetchData(true);
+            }}
             tintColor={colors.accent.primary}
           />
         }
       >
         <View
-          style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20, backgroundColor: colors.accent.primary }}
+          style={{
+            paddingTop: insets.top + 12,
+            paddingBottom: 28,
+            paddingHorizontal: 20,
+            backgroundColor: colors.accent.primary,
+          }}
         >
           <View style={styles.headerRow}>
             <TouchableOpacity
@@ -178,18 +244,24 @@ export function CoupleIncomeScreen() {
             <View style={styles.summaryRow}>
               <View style={styles.summaryItem}>
                 <View style={[styles.summaryDot, { backgroundColor: colors.accent.primary }]} />
-                <Text style={styles.summaryPartnerLabel}>{groupInfo?.partner1Name || 'Partner 1'}</Text>
+                <Text style={styles.summaryPartnerLabel}>
+                  {groupInfo?.partner1Name || 'Partner 1'}
+                </Text>
                 <Text style={styles.summaryPartnerAmount}>{fmt(p1Income)}</Text>
               </View>
               <View style={styles.summaryDivider} />
               <View style={styles.summaryItem}>
                 <View style={[styles.summaryDot, { backgroundColor: colors.accent.primary }]} />
-                <Text style={styles.summaryPartnerLabel}>{groupInfo?.partner2Name || 'Partner 2'}</Text>
+                <Text style={styles.summaryPartnerLabel}>
+                  {groupInfo?.partner2Name || 'Partner 2'}
+                </Text>
                 <Text style={styles.summaryPartnerAmount}>{fmt(p2Income)}</Text>
               </View>
             </View>
           </View>
         </View>
+
+        <UpgradeBanner message="Premium analytics, reports & AI insights for couple finance" />
 
         <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
           <TouchableOpacity
@@ -227,16 +299,33 @@ export function CoupleIncomeScreen() {
                     <Ionicons name={iconName as any} size={20} color={catColor} />
                   </View>
                   <View style={styles.incomeInfo}>
-                    <Text style={[styles.incomeSource, { color: colors.text.primary }]}>{item.source}</Text>
-                    {cat ? <Text style={[styles.incomeCategoryLabel, { color: catColor }]}>{cat.name}</Text> : null}
-                    <Text style={[styles.incomeDate, { color: colors.text.tertiary }]}>{fmtDate(item.date)}</Text>
+                    <Text style={[styles.incomeSource, { color: colors.text.primary }]}>
+                      {item.source}
+                    </Text>
+                    {cat ? (
+                      <Text style={[styles.incomeCategoryLabel, { color: catColor }]}>
+                        {cat.name}
+                      </Text>
+                    ) : null}
+                    <Text style={[styles.incomeDate, { color: colors.text.tertiary }]}>
+                      {fmtDate(item.date)}
+                    </Text>
                   </View>
                   <View style={styles.incomeRight}>
-                    <Text style={[styles.incomeAmount, { color: colors.status.success }]}>+{fmt(item.amount)}</Text>
+                    <Text style={[styles.incomeAmount, { color: colors.status.success }]}>
+                      +{fmt(item.amount)}
+                    </Text>
                     {groupInfo && (
-                      <View style={[styles.partnerChip, { backgroundColor: `${colors.accent.primary}18` }]}>
+                      <View
+                        style={[
+                          styles.partnerChip,
+                          { backgroundColor: `${colors.accent.primary}18` },
+                        ]}
+                      >
                         <Text style={[styles.partnerChipText, { color: colors.accent.primary }]}>
-                          {item.assignedTo === groupInfo.partner1Id ? groupInfo.partner1Name : groupInfo.partner2Name}
+                          {item.assignedTo === groupInfo.partner1Id
+                            ? groupInfo.partner1Name
+                            : groupInfo.partner2Name}
                         </Text>
                       </View>
                     )}
@@ -269,7 +358,14 @@ export function CoupleIncomeScreen() {
 
             <Text style={[styles.inputLabel, { color: colors.text.secondary }]}>Source</Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.bg.tertiary, color: colors.text.primary, borderColor: colors.border.default }]}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.bg.tertiary,
+                  color: colors.text.primary,
+                  borderColor: colors.border.default,
+                },
+              ]}
               value={source}
               onChangeText={setSource}
               placeholder="e.g. Salary, Freelance"
@@ -278,7 +374,14 @@ export function CoupleIncomeScreen() {
 
             <Text style={[styles.inputLabel, { color: colors.text.secondary }]}>Amount</Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.bg.tertiary, color: colors.text.primary, borderColor: colors.border.default }]}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.bg.tertiary,
+                  color: colors.text.primary,
+                  borderColor: colors.border.default,
+                },
+              ]}
               value={amount}
               onChangeText={(t) => setAmount(t.replace(/[^0-9.]/g, ''))}
               placeholder="0"
@@ -288,7 +391,14 @@ export function CoupleIncomeScreen() {
 
             <Text style={[styles.inputLabel, { color: colors.text.secondary }]}>Date</Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.bg.tertiary, color: colors.text.primary, borderColor: colors.border.default }]}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.bg.tertiary,
+                  color: colors.text.primary,
+                  borderColor: colors.border.default,
+                },
+              ]}
               value={date}
               onChangeText={setDate}
               placeholder="YYYY-MM-DD"
@@ -340,29 +450,78 @@ export function CoupleIncomeScreen() {
                   <TouchableOpacity
                     style={[
                       styles.segmentBtn,
-                      { backgroundColor: selectedPartner === groupInfo.partner1Id ? colors.accent.primary : colors.bg.tertiary },
+                      {
+                        backgroundColor:
+                          selectedPartner === groupInfo.partner1Id
+                            ? colors.accent.primary
+                            : colors.bg.tertiary,
+                      },
                     ]}
                     onPress={() => setSelectedPartner(groupInfo.partner1Id)}
                   >
-                    <Ionicons name="person-outline" size={16} color={selectedPartner === groupInfo.partner1Id ? '#FFF' : colors.text.secondary} />
-                    <Text style={[styles.segmentText, { color: selectedPartner === groupInfo.partner1Id ? '#FFF' : colors.text.secondary }]}>{groupInfo.partner1Name}</Text>
+                    <Ionicons
+                      name="person-outline"
+                      size={16}
+                      color={
+                        selectedPartner === groupInfo.partner1Id ? '#FFF' : colors.text.secondary
+                      }
+                    />
+                    <Text
+                      style={[
+                        styles.segmentText,
+                        {
+                          color:
+                            selectedPartner === groupInfo.partner1Id
+                              ? '#FFF'
+                              : colors.text.secondary,
+                        },
+                      ]}
+                    >
+                      {groupInfo.partner1Name}
+                    </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[
                       styles.segmentBtn,
-                      { backgroundColor: selectedPartner === groupInfo.partner2Id ? colors.accent.primary : colors.bg.tertiary },
+                      {
+                        backgroundColor:
+                          selectedPartner === groupInfo.partner2Id
+                            ? colors.accent.primary
+                            : colors.bg.tertiary,
+                      },
                     ]}
                     onPress={() => setSelectedPartner(groupInfo.partner2Id)}
                   >
-                    <Ionicons name="person-outline" size={16} color={selectedPartner === groupInfo.partner2Id ? '#FFF' : colors.text.secondary} />
-                    <Text style={[styles.segmentText, { color: selectedPartner === groupInfo.partner2Id ? '#FFF' : colors.text.secondary }]}>{groupInfo.partner2Name}</Text>
+                    <Ionicons
+                      name="person-outline"
+                      size={16}
+                      color={
+                        selectedPartner === groupInfo.partner2Id ? '#FFF' : colors.text.secondary
+                      }
+                    />
+                    <Text
+                      style={[
+                        styles.segmentText,
+                        {
+                          color:
+                            selectedPartner === groupInfo.partner2Id
+                              ? '#FFF'
+                              : colors.text.secondary,
+                        },
+                      ]}
+                    >
+                      {groupInfo.partner2Name}
+                    </Text>
                   </TouchableOpacity>
                 </>
               )}
             </View>
 
             <TouchableOpacity
-              style={[styles.submitBtn, { backgroundColor: colors.accent.primary, opacity: submitting ? 0.7 : 1 }]}
+              style={[
+                styles.submitBtn,
+                { backgroundColor: colors.accent.primary, opacity: submitting ? 0.7 : 1 },
+              ]}
               onPress={handleAddIncome}
               disabled={submitting}
             >
@@ -383,37 +542,79 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   backBtn: {
-    width: 34, height: 34, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center', justifyContent: 'center',
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: { color: '#FFF', fontSize: 17, fontWeight: '700' },
 
   summaryCard: {
-    borderRadius: 24, padding: 22,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.12, shadowRadius: 16, elevation: 6,
+    borderRadius: 24,
+    padding: 22,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 6,
   },
   summaryTotalLabel: { fontSize: 12, fontWeight: '600', color: '#F97316', letterSpacing: 0.3 },
-  summaryTotalAmount: { fontSize: 32, fontWeight: '800', color: '#F97316', letterSpacing: -1, marginTop: 4, marginBottom: 18 },
+  summaryTotalAmount: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#F97316',
+    letterSpacing: -1,
+    marginTop: 4,
+    marginBottom: 18,
+  },
   summaryRow: { flexDirection: 'row', alignItems: 'center' },
   summaryItem: { flex: 1, alignItems: 'center', gap: 4 },
   summaryDot: { width: 8, height: 8, borderRadius: 4 },
   summaryPartnerLabel: { fontSize: 11, fontWeight: '600', color: '#F97316', marginTop: 2 },
   summaryPartnerAmount: { fontSize: 16, fontWeight: '800', color: '#F97316' },
-  summaryDivider: { width: 1, height: 36, backgroundColor: 'rgba(93,56,181,0.15)', marginHorizontal: 12 },
+  summaryDivider: {
+    width: 1,
+    height: 36,
+    backgroundColor: 'rgba(93,56,181,0.15)',
+    marginHorizontal: 12,
+  },
 
   addBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    backgroundColor: '#F97316', paddingVertical: 16, borderRadius: 18,
-    shadowColor: '#F97316', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#F97316',
+    paddingVertical: 16,
+    borderRadius: 18,
+    shadowColor: '#F97316',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 4,
   },
   addBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 
   incomeCard: {
-    flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 20, gap: 14,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 20,
+    gap: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 2,
   },
   incomeIconWrap: {
-    width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center',
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   incomeInfo: { flex: 1, gap: 2 },
   incomeSource: { fontSize: 15, fontWeight: '700' },
@@ -428,43 +629,74 @@ const styles = StyleSheet.create({
   emptySubtext: { fontSize: 13, marginTop: 4 },
 
   modalOverlay: {
-    flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)',
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContent: {
-    borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 24, gap: 12,
-    shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 10,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+    gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
   },
   modalHandle: {
-    width: 40, height: 4, borderRadius: 2, backgroundColor: 'rgba(0,0,0,0.15)',
-    alignSelf: 'center', marginBottom: 4,
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(0,0,0,0.15)',
+    alignSelf: 'center',
+    marginBottom: 4,
   },
   modalTitle: { fontSize: 20, fontWeight: '800', marginBottom: 8 },
 
   inputLabel: { fontSize: 12, fontWeight: '600', marginTop: 4 },
   input: {
-    borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15,
-    borderWidth: 1, fontWeight: '500',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 15,
+    borderWidth: 1,
+    fontWeight: '500',
   },
   segmentRow: { flexDirection: 'row', gap: 10 },
   segmentBtn: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 6, paddingVertical: 12, borderRadius: 14,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    borderRadius: 14,
   },
   segmentText: { fontSize: 13, fontWeight: '700' },
 
   categoryGrid: {
-    flexDirection: 'row', flexWrap: 'wrap', gap: 8,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
   },
   categoryChip: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 14,
     borderWidth: 1,
   },
   categoryChipText: { fontSize: 13, fontWeight: '600' },
 
   submitBtn: {
-    paddingVertical: 16, borderRadius: 16, alignItems: 'center', justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 12,
   },
   submitBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },

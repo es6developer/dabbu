@@ -19,6 +19,7 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { UpgradeBanner } from '../../components/ui/UpgradeBanner';
 import { getCategoryIcon } from '../../config/categoryIcons';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -214,8 +215,12 @@ export function TransactionsListScreen() {
       list = list.filter((t) => t.expenseGroupId === selectedGroupId);
     }
     list.sort((a, b) => {
-      if (sortBy === 'highest') {return Number(b.amount || 0) - Number(a.amount || 0);}
-      if (sortBy === 'lowest') {return Number(a.amount || 0) - Number(b.amount || 0);}
+      if (sortBy === 'highest') {
+        return Number(b.amount || 0) - Number(a.amount || 0);
+      }
+      if (sortBy === 'lowest') {
+        return Number(a.amount || 0) - Number(b.amount || 0);
+      }
       const ad = new Date(a.date || a.createdAt).getTime();
       const bd = new Date(b.date || b.createdAt).getTime();
       return sortBy === 'oldest' ? ad - bd : bd - ad;
@@ -294,7 +299,12 @@ export function TransactionsListScreen() {
         }
         ListHeaderComponent={
           <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
-            <View style={[styles.headerGradient, { paddingTop: insets.top + 16, backgroundColor: colors.bg.secondary }]}>
+            <View
+              style={[
+                styles.headerGradient,
+                { paddingTop: insets.top + 16, backgroundColor: colors.bg.secondary },
+              ]}
+            >
               <View style={styles.headerRow}>
                 <View>
                   <Text style={styles.greetingLabel}>
@@ -327,7 +337,12 @@ export function TransactionsListScreen() {
                     <Text style={styles.balanceBarText}>Expense {expensePct}%</Text>
                   </View>
                   <View style={styles.balanceBarTrack}>
-                    <View style={[styles.balanceBarFill, { width: `${Math.min(expensePct, 100)}%`, backgroundColor: '#FF6B6B' }]} />
+                    <View
+                      style={[
+                        styles.balanceBarFill,
+                        { width: `${Math.min(expensePct, 100)}%`, backgroundColor: '#FF6B6B' },
+                      ]}
+                    />
                   </View>
                 </View>
                 <View style={styles.balanceBarItem}>
@@ -336,7 +351,12 @@ export function TransactionsListScreen() {
                     <Text style={styles.balanceBarText}>Saved {savingsPct}%</Text>
                   </View>
                   <View style={styles.balanceBarTrack}>
-                    <View style={[styles.balanceBarFill, { width: `${Math.min(savingsPct, 100)}%`, backgroundColor: '#00B894' }]} />
+                    <View
+                      style={[
+                        styles.balanceBarFill,
+                        { width: `${Math.min(savingsPct, 100)}%`, backgroundColor: '#00B894' },
+                      ]}
+                    />
                   </View>
                 </View>
               </View>
@@ -359,7 +379,10 @@ export function TransactionsListScreen() {
               {QUICK_ACTIONS.map((action) => (
                 <TouchableOpacity
                   key={action.label}
-                  style={[styles.quickAction, { backgroundColor: colors.bg.glass, borderColor: colors.border.subtle }]}
+                  style={[
+                    styles.quickAction,
+                    { backgroundColor: colors.bg.glass, borderColor: colors.border.subtle },
+                  ]}
                   onPress={() => navigation.navigate(action.screen)}
                   activeOpacity={0.7}
                 >
@@ -372,6 +395,8 @@ export function TransactionsListScreen() {
                 </TouchableOpacity>
               ))}
             </View>
+
+            <UpgradeBanner message="Unlimited groups, members & premium insights" />
 
             {groups.length > 0 && (
               <View style={styles.groupsSection}>
@@ -399,7 +424,9 @@ export function TransactionsListScreen() {
                       }
                       activeOpacity={0.7}
                     >
-                      <View style={[styles.groupAvatar, { backgroundColor: colors.accent.primary }]}>
+                      <View
+                        style={[styles.groupAvatar, { backgroundColor: colors.accent.primary }]}
+                      >
                         <Text style={styles.groupAvatarText}>
                           {(g.name || 'G')[0].toUpperCase()}
                         </Text>
@@ -421,7 +448,12 @@ export function TransactionsListScreen() {
             )}
 
             <View style={styles.searchRow}>
-              <Animated.View style={[styles.searchBar, { backgroundColor: colors.bg.tertiary, width: searchAnim }]}>
+              <Animated.View
+                style={[
+                  styles.searchBar,
+                  { backgroundColor: colors.bg.tertiary, width: searchAnim },
+                ]}
+              >
                 <Ionicons name="search-outline" size={18} color={colors.text.tertiary} />
                 {searchExpanded && (
                   <TextInput
@@ -434,7 +466,12 @@ export function TransactionsListScreen() {
                   />
                 )}
                 {search ? (
-                  <TouchableOpacity onPress={() => { setSearch(''); toggleSearch(); }}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setSearch('');
+                      toggleSearch();
+                    }}
+                  >
                     <Ionicons name="close-circle" size={18} color={colors.text.tertiary} />
                   </TouchableOpacity>
                 ) : (
@@ -601,7 +638,8 @@ export function TransactionsListScreen() {
               Track your spending
             </Text>
             <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
-              Add your first expense to see where your money goes. Every transaction helps you understand your financial habits better.
+              Add your first expense to see where your money goes. Every transaction helps you
+              understand your financial habits better.
             </Text>
             {!search && !selectedCategory && (
               <TouchableOpacity

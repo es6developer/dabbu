@@ -33,7 +33,7 @@ export function ProfileSetupScreen() {
       setError('Phone number is required');
       return;
     }
-    const phoneDigits = phone.replace(/[^0-9+]/g, '');
+    const phoneDigits = phone.replace(/[^0-9]/g, '');
     if (phoneDigits.length < 8) {
       setError('Please enter a valid phone number');
       return;
@@ -43,6 +43,7 @@ export function ProfileSetupScreen() {
     setError('');
     try {
       const token = getAccessToken();
+      const fullPhone = phoneDigits.startsWith('91') ? `+${phoneDigits}` : `+91${phoneDigits}`;
       const res = await fetch(`${API_URL}/users/profile`, {
         method: 'PATCH',
         headers: {
@@ -52,7 +53,7 @@ export function ProfileSetupScreen() {
         body: JSON.stringify({
           firstName: firstName.trim() || undefined,
           lastName: lastName.trim() || undefined,
-          phone: phoneDigits,
+          phone: fullPhone,
         }),
       });
 
@@ -78,10 +79,7 @@ export function ProfileSetupScreen() {
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          <ScrollView
-            contentContainerStyle={styles.scroll}
-            keyboardShouldPersistTaps="handled"
-          >
+          <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
             <View style={styles.brand}>
               <Image
                 source={require('../../../assets/logo.png')}
@@ -103,17 +101,41 @@ export function ProfileSetupScreen() {
               </View>
             ) : null}
 
-            <View style={[styles.card, { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.7)', borderColor: colors.border.subtle }]}>
+            <View
+              style={[
+                styles.card,
+                {
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.7)',
+                  borderColor: colors.border.subtle,
+                },
+              ]}
+            >
               <View style={styles.row}>
                 <TextInput
-                  style={[styles.input, styles.half, { backgroundColor: colors.bg.tertiary, color: colors.text.primary, borderColor: colors.border.subtle }]}
+                  style={[
+                    styles.input,
+                    styles.half,
+                    {
+                      backgroundColor: colors.bg.tertiary,
+                      color: colors.text.primary,
+                      borderColor: colors.border.subtle,
+                    },
+                  ]}
                   placeholder="First name"
                   placeholderTextColor={colors.text.tertiary}
                   value={firstName}
                   onChangeText={setFirstName}
                 />
                 <TextInput
-                  style={[styles.input, styles.half, { backgroundColor: colors.bg.tertiary, color: colors.text.primary, borderColor: colors.border.subtle }]}
+                  style={[
+                    styles.input,
+                    styles.half,
+                    {
+                      backgroundColor: colors.bg.tertiary,
+                      color: colors.text.primary,
+                      borderColor: colors.border.subtle,
+                    },
+                  ]}
                   placeholder="Last name"
                   placeholderTextColor={colors.text.tertiary}
                   value={lastName}
@@ -123,7 +145,14 @@ export function ProfileSetupScreen() {
 
               <Text style={[styles.label, { color: colors.text.secondary }]}>Phone number *</Text>
               <TextInput
-                style={[styles.input, { backgroundColor: colors.bg.tertiary, color: colors.text.primary, borderColor: colors.border.subtle }]}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.bg.tertiary,
+                    color: colors.text.primary,
+                    borderColor: colors.border.subtle,
+                  },
+                ]}
                 placeholder="+1 (555) 123-4567"
                 placeholderTextColor={colors.text.tertiary}
                 value={phone}
@@ -132,7 +161,11 @@ export function ProfileSetupScreen() {
               />
 
               <TouchableOpacity
-                style={[styles.saveBtn, { backgroundColor: colors.accent.primary }, saving && { opacity: 0.6 }]}
+                style={[
+                  styles.saveBtn,
+                  { backgroundColor: colors.accent.primary },
+                  saving && { opacity: 0.6 },
+                ]}
                 onPress={handleSave}
                 disabled={saving}
               >
