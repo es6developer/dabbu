@@ -255,29 +255,6 @@ export function MyWalletScreen() {
     [scrollY],
   );
 
-  if (loading) {
-    return (
-      <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
-        <View style={[s.header, { paddingTop: insets.top + 8 }]}>
-          <View>
-            <Skeleton width={90} height={12} />
-            <Skeleton width={130} height={26} style={{ marginTop: 4 }} />
-          </View>
-          <Skeleton width={42} height={42} borderRadius={12} />
-        </View>
-        <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
-          <Skeleton width="100%" height={200} borderRadius={28} />
-        </View>
-        <View style={{ flexDirection: 'row', paddingHorizontal: 20, gap: 10 }}>
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} width={(SCREEN_WIDTH - 70) / 4} height={80} borderRadius={18} />
-          ))}
-        </View>
-        <SkeletonList count={5} />
-      </View>
-    );
-  }
-
   const keyExtractorCallback = useCallback((item: any) => item.title, []);
 
   const renderItemCallback = useCallback(
@@ -324,6 +301,29 @@ export function MyWalletScreen() {
     ),
     [colors, navigation, handleDelete],
   );
+
+  if (loading) {
+    return (
+      <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
+        <View style={[s.header, { paddingTop: insets.top + 8 }]}>
+          <View>
+            <Skeleton width={90} height={12} />
+            <Skeleton width={130} height={26} style={{ marginTop: 4 }} />
+          </View>
+          <Skeleton width={42} height={42} borderRadius={12} />
+        </View>
+        <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <Skeleton width="100%" height={200} borderRadius={28} />
+        </View>
+        <View style={{ flexDirection: 'row', paddingHorizontal: 20, gap: 10 }}>
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} width={(SCREEN_WIDTH - 70) / 4} height={80} borderRadius={18} />
+          ))}
+        </View>
+        <SkeletonList count={5} />
+      </View>
+    );
+  }
 
   return (
     <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
