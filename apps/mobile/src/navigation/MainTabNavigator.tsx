@@ -398,11 +398,11 @@ export function MainTabNavigator() {
           }}
         />
         <Tab.Screen
-          name="QuickAction"
-          component={View}
+          name="Circles"
+          component={CirclesNavigator}
           options={{
-            tabBarLabel: '',
-            tabBarIcon: () => null,
+            tabBarLabel: 'Circles',
+            tabBarButton: () => null,
           }}
         />
         <Tab.Screen
