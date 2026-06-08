@@ -16,11 +16,16 @@ import { PreferencesProvider } from './src/store/PreferencesContext';
 import { LockProvider } from './src/store/LockContext';
 import { FavoritesProvider } from './src/store/FavoritesContext';
 import { loadFeatures } from './src/config/features';
-import { addNotificationResponseListener } from './src/services/notifications';
 import { useDeepLinks } from './src/hooks/useDeepLinks';
+import { useNotifications } from './src/hooks/useNotifications';
 
 SplashScreen.preventAutoHideAsync();
 LogBox.ignoreLogs(['Reanimated', 'ViewPropTypes']);
+
+function NotificationInitializer() {
+  useNotifications();
+  return null;
+}
 
 function ThemedStatusBar() {
   const { isDark, colors } = useTheme();
@@ -97,21 +102,6 @@ export default function App(): React.ReactElement | null {
   };
 
   useEffect(() => {
-    const sub = addNotificationResponseListener((response) => {
-      const data = response.notification?.request?.content?.data;
-      if (data?.groupId) {
-        setTimeout(() => {
-          navigationRef.current?.navigate('Shared', {
-            screen: 'SharedGroupDetail',
-            params: { groupId: data.groupId },
-          });
-        }, 500);
-      }
-    });
-    return () => sub.remove();
-  }, []);
-
-  useEffect(() => {
     async function prepare(): Promise<void> {
       try {
         loadFeatures();
@@ -144,6 +134,7 @@ export default function App(): React.ReactElement | null {
                 <FavoritesProvider>
                   <ThemedNavigationContainer navigationRef={navigationRef} linking={linking}>
                     <ThemedStatusBar />
+                    <NotificationInitializer />
                     <RootNavigator />
                   </ThemedNavigationContainer>
                 </FavoritesProvider>

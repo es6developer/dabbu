@@ -744,4 +744,5 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   createLabel: { fontSize: 15, fontWeight: '700' },
+  createSub: { fontSize: 12, fontWeight: '500', marginTop: 1 },
 });

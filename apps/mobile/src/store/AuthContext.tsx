@@ -8,6 +8,7 @@ import React, {
   useCallback,
 } from 'react';
 import { Platform, AppState, AppStateStatus } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '../config/api';
 
 let SecureStore: any = {};
@@ -156,6 +157,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await storage.current.deleteItemAsync('appLockEnabled');
       await storage.current.deleteItemAsync('biometricEnabled');
       setAccessToken(null);
+      await AsyncStorage.multiRemove([
+        '@dabbu_preferences_cache',
+        'favorite_contacts',
+        'offline_state',
+        '@dabbu_dismissed_banners',
+      ]);
     } catch {
       // ignore clear errors
     }

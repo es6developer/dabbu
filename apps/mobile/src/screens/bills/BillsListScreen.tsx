@@ -501,6 +501,7 @@ export function BillsListScreen() {
 }
 
 const styles = StyleSheet.create({
+  container: { flex: 1 },
   headerGradient: {
     paddingBottom: 16,
   },
@@ -654,4 +655,5 @@ const styles = StyleSheet.create({
   shimmerLine: { height: 12, borderRadius: 6 },
   errorContainer: { flex: 1, alignItems: 'center', paddingVertical: 40, paddingHorizontal: 32 },
   errorTitle: { fontSize: 20, fontWeight: '800', marginTop: 16, marginBottom: 8 },
+  errorDesc: { fontSize: 14, textAlign: 'center', marginBottom: 24, fontWeight: '500' },
 });

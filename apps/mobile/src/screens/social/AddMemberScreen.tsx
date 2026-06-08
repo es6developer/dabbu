@@ -1,8 +1,18 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  View, Text, TextInput, StyleSheet, TouchableOpacity, FlatList,
-  ActivityIndicator, Linking, Animated, ScrollView, Alert,
-  KeyboardAvoidingView, Platform,
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
+  ActivityIndicator,
+  Linking,
+  Animated,
+  ScrollView,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -30,7 +40,7 @@ interface SearchUser {
   phone?: string;
 }
 
-type ContactEntry = { type: 'match' } & ContactMatch | { type: 'device' } & DeviceContact;
+type ContactEntry = ({ type: 'match' } & ContactMatch) | ({ type: 'device' } & DeviceContact);
 
 export function AddMemberScreen() {
   const navigation = useNavigation<any>();
@@ -72,7 +82,9 @@ export function AddMemberScreen() {
       return;
     }
     setSearching(true);
-    if (searchAbortRef.current) searchAbortRef.current.abort();
+    if (searchAbortRef.current) {
+      searchAbortRef.current.abort();
+    }
     const controller = new AbortController();
     searchAbortRef.current = controller;
     const timer = setTimeout(() => searchUsers(query.trim(), controller.signal), 300);
@@ -84,16 +96,19 @@ export function AddMemberScreen() {
 
   async function searchUsers(q: string, signal?: AbortSignal) {
     try {
-      const res = await api.get<any>(`/users/search?query=${encodeURIComponent(q)}`, { signal });
+      const res = await api.get<any>(`/users/search?query=${encodeURIComponent(q)}`, signal);
       const data = Array.isArray(res) ? res : res?.data || [];
       setSearchResults(data);
       setSearchError(null);
     } catch (e: any) {
-      if (e.name === 'AbortError') return;
+      if (e.name === 'AbortError') {
+        return;
+      }
       setSearchResults([]);
       setSearchError('Search failed. Check your connection.');
+    } finally {
+      setSearching(false);
     }
-    finally { setSearching(false); }
   }
 
   async function handleSyncContacts() {
@@ -111,7 +126,9 @@ export function AddMemberScreen() {
       );
       return;
     }
-    if (!granted) return;
+    if (!granted) {
+      return;
+    }
     setSyncError(null);
     setSyncing(true);
     try {
@@ -123,8 +140,9 @@ export function AddMemberScreen() {
     } catch {
       setSyncError('Could not sync contacts. Please try again.');
       setHasSynced(true);
+    } finally {
+      setSyncing(false);
     }
-    finally { setSyncing(false); }
   }
 
   const allContacts: ContactEntry[] = React.useMemo(() => {
@@ -141,14 +159,18 @@ export function AddMemberScreen() {
   }, [matchedContacts, deviceContacts]);
 
   async function handleAddToGroup(userId: string, userName: string) {
-    if (!groupId) return;
+    if (!groupId) {
+      return;
+    }
     setAddingId(userId);
     try {
       await api.post(`/shared-finance/groups/${groupId}/members`, { userId });
       Alert.alert('Added', `${userName} added to group`);
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to add member');
-    } finally { setAddingId(null); }
+    } finally {
+      setAddingId(null);
+    }
   }
 
   function handleInvite(name: string) {
@@ -156,12 +178,15 @@ export function AddMemberScreen() {
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     Alert.alert(`Invite ${name}`, '', [
       { text: 'WhatsApp', onPress: () => Linking.openURL(whatsappUrl) },
-      { text: 'Share Link', onPress: () => Linking.openURL(`sms:&body=${encodeURIComponent(message)}`) },
+      {
+        text: 'Share Link',
+        onPress: () => Linking.openURL(`sms:&body=${encodeURIComponent(message)}`),
+      },
       { text: 'Cancel', style: 'cancel' },
     ]);
   }
 
-  function handleFavoritePress(fav: typeof favorites[0]) {
+  function handleFavoritePress(fav: (typeof favorites)[0]) {
     setSelectedFavId(fav.userId);
     if (groupId) {
       handleAddToGroup(fav.userId, fav.name);
@@ -170,7 +195,12 @@ export function AddMemberScreen() {
   }
 
   const AvatarCircle = ({ name, size = 44 }: { name: string; size?: number }) => (
-    <View style={[avatarStyle.wrap, { width: size, height: size, borderRadius: size / 2, backgroundColor: '#1C1C1E' }]}>
+    <View
+      style={[
+        avatarStyle.wrap,
+        { width: size, height: size, borderRadius: size / 2, backgroundColor: '#1C1C1E' },
+      ]}
+    >
       <Text style={[avatarStyle.text, { fontSize: size * 0.4 }]}>
         {name ? name[0].toUpperCase() : '?'}
       </Text>
@@ -201,7 +231,12 @@ export function AddMemberScreen() {
         </Animated.View>
 
         {/* Search Bar */}
-        <View style={[s.searchBar, { backgroundColor: '#161616', borderColor: 'rgba(255,255,255,0.08)' }]}>
+        <View
+          style={[
+            s.searchBar,
+            { backgroundColor: '#161616', borderColor: 'rgba(255,255,255,0.08)' },
+          ]}
+        >
           <Ionicons name="search" size={18} color="#8E8E93" />
           <TextInput
             style={[s.searchInput, { color: '#FFF' }]}
@@ -240,7 +275,9 @@ export function AddMemberScreen() {
                     <View style={[s.favAvatar, selected && s.favAvatarSelected]}>
                       <AvatarCircle name={fav.name} size={48} />
                     </View>
-                    <Text style={s.favName} numberOfLines={1}>{fav.name}</Text>
+                    <Text style={s.favName} numberOfLines={1}>
+                      {fav.name}
+                    </Text>
                   </TouchableOpacity>
                 );
               })}
@@ -259,14 +296,22 @@ export function AddMemberScreen() {
               <View style={s.contactRow}>
                 <AvatarCircle name={`${item.firstName} ${item.lastName}`} />
                 <View style={s.contactInfo}>
-                  <Text style={s.contactName} numberOfLines={1}>{item.firstName} {item.lastName}</Text>
+                  <Text style={s.contactName} numberOfLines={1}>
+                    {item.firstName} {item.lastName}
+                  </Text>
                   <Text style={s.contactSub}>{item.email}</Text>
                 </View>
                 <TouchableOpacity
-                  style={[s.actionBtn, { backgroundColor: 'rgba(255,107,0,0.1)', borderColor: 'rgba(255,107,0,0.4)' }]}
+                  style={[
+                    s.actionBtn,
+                    { backgroundColor: 'rgba(255,107,0,0.1)', borderColor: 'rgba(255,107,0,0.4)' },
+                  ]}
                   onPress={() => {
-                    if (groupId) handleAddToGroup(item.id, item.firstName);
-                    else addFavorite(item.id, `${item.firstName} ${item.lastName}`, item.phone);
+                    if (groupId) {
+                      handleAddToGroup(item.id, item.firstName);
+                    } else {
+                      addFavorite(item.id, `${item.firstName} ${item.lastName}`, item.phone);
+                    }
                   }}
                   disabled={addingId === item.id}
                 >
@@ -288,9 +333,14 @@ export function AddMemberScreen() {
                 <View style={s.centerState}>
                   <Ionicons name="alert-circle-outline" size={48} color="#FF4545" />
                   <Text style={[s.emptyTitle, { color: '#FF4545' }]}>{searchError}</Text>
-                  <TouchableOpacity style={s.inviteBtn} onPress={() => {
-                    if (query.trim().length >= 2) searchUsers(query.trim());
-                  }}>
+                  <TouchableOpacity
+                    style={s.inviteBtn}
+                    onPress={() => {
+                      if (query.trim().length >= 2) {
+                        searchUsers(query.trim());
+                      }
+                    }}
+                  >
                     <Ionicons name="refresh-outline" size={16} color="#FF6B00" />
                     <Text style={s.inviteBtnText}>Retry</Text>
                   </TouchableOpacity>
@@ -298,7 +348,9 @@ export function AddMemberScreen() {
               ) : (
                 <View style={s.centerState}>
                   <Ionicons name="person-outline" size={48} color="rgba(255,255,255,0.15)" />
-                  <Text style={[s.emptyTitle, { color: 'rgba(255,255,255,0.5)' }]}>No users found</Text>
+                  <Text style={[s.emptyTitle, { color: 'rgba(255,255,255,0.5)' }]}>
+                    No users found
+                  </Text>
                   <TouchableOpacity style={s.inviteBtn} onPress={() => handleInvite(query)}>
                     <Ionicons name="share-outline" size={16} color="#FF6B00" />
                     <Text style={s.inviteBtnText}>Send Invite</Text>
@@ -318,7 +370,11 @@ export function AddMemberScreen() {
               Connect your contacts to instantly find friends on Dabbu and add them to groups.
             </Text>
             {permStatus === 'denied' ? (
-              <TouchableOpacity style={s.permBtnOutline} onPress={() => Linking.openSettings()} activeOpacity={0.85}>
+              <TouchableOpacity
+                style={s.permBtnOutline}
+                onPress={() => Linking.openSettings()}
+                activeOpacity={0.85}
+              >
                 <Ionicons name="settings-outline" size={18} color="#FF6B00" />
                 <Text style={s.permBtnOutlineText}>Open Settings</Text>
               </TouchableOpacity>
@@ -341,7 +397,9 @@ export function AddMemberScreen() {
           /* Sync Error */
           <View style={s.centerState}>
             <Ionicons name="cloud-offline-outline" size={48} color="#FF4545" />
-            <Text style={[s.emptyTitle, { color: '#FF4545', textAlign: 'center' }]}>{syncError}</Text>
+            <Text style={[s.emptyTitle, { color: '#FF4545', textAlign: 'center' }]}>
+              {syncError}
+            </Text>
             <TouchableOpacity style={s.inviteBtn} onPress={handleSyncContacts}>
               <Ionicons name="refresh-outline" size={16} color="#FF6B00" />
               <Text style={s.inviteBtnText}>Try Again</Text>
@@ -366,7 +424,9 @@ export function AddMemberScreen() {
           /* Empty after sync */
           <View style={s.centerState}>
             <Ionicons name="search-outline" size={48} color="rgba(255,255,255,0.15)" />
-            <Text style={[s.emptyTitle, { color: 'rgba(255,255,255,0.5)' }]}>No contacts found</Text>
+            <Text style={[s.emptyTitle, { color: 'rgba(255,255,255,0.5)' }]}>
+              No contacts found
+            </Text>
             <Text style={s.emptyDesc}>Invite friends to join Dabbu</Text>
             <TouchableOpacity style={s.inviteBtn} onPress={() => handleInvite('')}>
               <Ionicons name="share-outline" size={16} color="#FF6B00" />
@@ -381,15 +441,19 @@ export function AddMemberScreen() {
             keyboardShouldPersistTaps="handled"
             renderItem={({ item }) => {
               const name = item.type === 'match' ? item.name : (item as any as DeviceContact).name;
-              const phone = item.type === 'match' ? item.phone : (item as any as DeviceContact).phone;
-              const email = item.type === 'match' ? item.email : (item as any as DeviceContact).email;
+              const phone =
+                item.type === 'match' ? item.phone : (item as any as DeviceContact).phone;
+              const email =
+                item.type === 'match' ? item.email : (item as any as DeviceContact).email;
               const isAppUser = item.type === 'match';
               const userId = item.type === 'match' ? item.userId : '';
               return (
                 <View style={s.contactRow}>
                   <AvatarCircle name={name} />
                   <View style={s.contactInfo}>
-                    <Text style={s.contactName} numberOfLines={1}>{name}</Text>
+                    <Text style={s.contactName} numberOfLines={1}>
+                      {name}
+                    </Text>
                     <View style={s.contactSubRow}>
                       {phone ? (
                         <Text style={s.contactSub}>{phone}</Text>
@@ -405,10 +469,19 @@ export function AddMemberScreen() {
                   </View>
                   {isAppUser ? (
                     <TouchableOpacity
-                      style={[s.actionBtn, { backgroundColor: 'rgba(255,107,0,0.1)', borderColor: 'rgba(255,107,0,0.4)' }]}
+                      style={[
+                        s.actionBtn,
+                        {
+                          backgroundColor: 'rgba(255,107,0,0.1)',
+                          borderColor: 'rgba(255,107,0,0.4)',
+                        },
+                      ]}
                       onPress={() => {
-                        if (groupId) handleAddToGroup(userId, name);
-                        else addFavorite(userId, name, phone);
+                        if (groupId) {
+                          handleAddToGroup(userId, name);
+                        } else {
+                          addFavorite(userId, name, phone);
+                        }
                       }}
                       disabled={addingId === userId}
                     >
@@ -450,20 +523,33 @@ const s = StyleSheet.create({
 
   /* Header */
   header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 20, height: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    height: 56,
   },
   backBtn: {
-    width: 36, height: 36, borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center',
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: { fontSize: 17, fontWeight: '700', color: '#FFF' },
 
   /* Search */
   searchBar: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    marginHorizontal: 20, height: 48, borderRadius: 12,
-    borderWidth: 1, paddingHorizontal: 14, marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginHorizontal: 20,
+    height: 48,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    marginBottom: 8,
   },
   searchInput: { flex: 1, fontSize: 15, paddingVertical: 0 },
 
@@ -471,61 +557,112 @@ const s = StyleSheet.create({
   favSection: { marginTop: 12, marginBottom: 8 },
   favItem: { alignItems: 'center', gap: 6, width: 64 },
   favAvatar: {
-    width: 52, height: 52, borderRadius: 26,
-    alignItems: 'center', justifyContent: 'center',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   favAvatarSelected: {
-    borderWidth: 2, borderColor: '#FF6B00',
-    shadowColor: '#FF6B00', shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5, shadowRadius: 8, elevation: 6,
+    borderWidth: 2,
+    borderColor: '#FF6B00',
+    shadowColor: '#FF6B00',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 6,
   },
   favName: {
-    fontSize: 12, fontWeight: '500', color: '#FFF',
-    textAlign: 'center', maxWidth: 64,
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#FFF',
+    textAlign: 'center',
+    maxWidth: 64,
   },
 
   /* Contact Row */
   contactRow: {
-    flexDirection: 'row', alignItems: 'center',
-    height: 64, gap: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 64,
+    gap: 12,
   },
   contactInfo: { flex: 1, justifyContent: 'center' },
   contactName: { fontSize: 15, fontWeight: '600', color: '#FFF', marginBottom: 2 },
   contactSubRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   contactSub: { fontSize: 12, fontWeight: '500', color: '#8E8E93' },
   statusBadge: {
-    paddingHorizontal: 6, paddingVertical: 1,
-    borderRadius: 4, backgroundColor: 'rgba(52,199,89,0.12)',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 4,
+    backgroundColor: 'rgba(52,199,89,0.12)',
   },
   statusText: { fontSize: 10, fontWeight: '600', color: '#34C759' },
 
   /* Action Buttons */
   actionBtn: {
-    width: 72, height: 32, borderRadius: 8,
-    borderWidth: 1, alignItems: 'center', justifyContent: 'center',
+    width: 72,
+    height: 32,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   actionBtnText: { fontSize: 13, fontWeight: '700' },
   inviteActionBtn: {
-    width: 72, height: 32, borderRadius: 8,
-    borderWidth: 1, alignItems: 'center', justifyContent: 'center',
+    width: 72,
+    height: 32,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   inviteActionText: { fontSize: 12, fontWeight: '600', color: '#8E8E93' },
 
   /* Permission */
   permWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },
-  permIconBox: { width: 88, height: 88, borderRadius: 28, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
-  permTitle: { fontSize: 20, fontWeight: '700', color: '#FFF', marginBottom: 8, textAlign: 'center' },
-  permDesc: { fontSize: 14, fontWeight: '500', color: '#8E8E93', textAlign: 'center', lineHeight: 20, marginBottom: 24 },
+  permIconBox: {
+    width: 88,
+    height: 88,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  permTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFF',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  permDesc: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#8E8E93',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+  },
   permBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#FF6B00', paddingVertical: 14, paddingHorizontal: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#FF6B00',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
     borderRadius: 12,
   },
   permBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
   permBtnOutline: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    paddingVertical: 14, paddingHorizontal: 24,
-    borderRadius: 12, borderWidth: 1, borderColor: '#FF6B00',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FF6B00',
   },
   permBtnOutlineText: { color: '#FF6B00', fontSize: 15, fontWeight: '700' },
 
@@ -536,17 +673,25 @@ const s = StyleSheet.create({
 
   /* Invite Button */
   inviteBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingVertical: 10, paddingHorizontal: 18, borderRadius: 10,
-    borderWidth: 1, borderColor: 'rgba(255,107,0,0.3)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,107,0,0.3)',
     marginTop: 4,
   },
   inviteBtnText: { fontSize: 14, fontWeight: '700', color: '#FF6B00' },
 
   /* Sync Banner */
   syncBannerRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingVertical: 10, marginBottom: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    marginBottom: 4,
   },
   syncBannerText: { fontSize: 13, fontWeight: '600', color: '#8E8E93', flex: 1 },
 });

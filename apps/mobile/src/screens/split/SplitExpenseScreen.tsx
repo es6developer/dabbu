@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { SplitSummaryCard } from '../../components/ui/SplitSummaryCard';
@@ -26,20 +26,29 @@ const SPLIT_METHODS = [
   { key: 'manual', label: 'Manual', icon: 'create-outline', desc: 'Enter custom amounts' },
 ];
 
-const MEMBERS = [
-  { name: 'Karthik', id: '1' },
-  { name: 'Jayasri', id: '2' },
-];
+interface RouteParams {
+  members?: { name: string; id: string }[];
+}
 
 export function SplitExpenseScreen() {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
+  const routeMembers = (route.params as RouteParams)?.members || [];
 
   const [expenseName, setExpenseName] = useState('');
   const [amount, setAmount] = useState('');
   const [splitMethod, setSplitMethod] = useState('equal');
-  const [selectedMembers, setSelectedMembers] = useState<string[]>(['1', '2']);
+  const [selectedMembers, setSelectedMembers] = useState<string[]>(routeMembers.map((m) => m.id));
+  const [manualMembers, setManualMembers] = useState<string[]>(
+    routeMembers.length === 0 ? [''] : [],
+  );
+
+  const members =
+    routeMembers.length > 0
+      ? routeMembers
+      : manualMembers.filter(Boolean).map((name, i) => ({ name, id: `manual-${i}` }));
 
   function toggleMember(id: string) {
     setSelectedMembers((prev) =>
@@ -48,7 +57,7 @@ export function SplitExpenseScreen() {
   }
 
   const totalAmount = parseFloat(amount) || 0;
-  const activeMembers = MEMBERS.filter((m) => selectedMembers.includes(m.id));
+  const activeMembers = members.filter((m) => selectedMembers.includes(m.id));
   const sharePerPerson = activeMembers.length > 0 ? totalAmount / activeMembers.length : 0;
 
   function handleCreateSplit() {
@@ -129,8 +138,43 @@ export function SplitExpenseScreen() {
               ]}
             >
               <Text style={[styles.cardTitle, { color: colors.text.primary }]}>Members</Text>
+              {routeMembers.length === 0 && (
+                <View style={{ gap: 8, marginBottom: 12 }}>
+                  {manualMembers.map((name, i) => (
+                    <TextInput
+                      key={i}
+                      style={[
+                        styles.nameInput,
+                        {
+                          color: colors.text.primary,
+                          borderBottomWidth: 1,
+                          borderBottomColor: colors.border.subtle,
+                        },
+                      ]}
+                      placeholder="Enter name"
+                      placeholderTextColor={colors.text.tertiary}
+                      value={name}
+                      onChangeText={(t) => {
+                        const next = [...manualMembers];
+                        next[i] = t;
+                        setManualMembers(next);
+                      }}
+                      onSubmitEditing={() => setManualMembers((prev) => [...prev, ''])}
+                    />
+                  ))}
+                  <TouchableOpacity
+                    onPress={() => setManualMembers((prev) => [...prev, ''])}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+                  >
+                    <Ionicons name="add-circle-outline" size={18} color={colors.accent.primary} />
+                    <Text style={{ color: colors.accent.primary, fontSize: 13, fontWeight: '600' }}>
+                      Add member
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
               <View style={styles.memberRow}>
-                {MEMBERS.map((m) => (
+                {members.map((m) => (
                   <TouchableOpacity
                     key={m.id}
                     style={[

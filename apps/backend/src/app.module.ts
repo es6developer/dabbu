@@ -10,6 +10,7 @@ import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
 import mailConfig from './config/mail.config';
+import firebaseConfig from './config/firebase.config';
 import aiConfig from './modules/ai/ai.config';
 
 // Database
@@ -54,7 +55,7 @@ import { AiModule } from './modules/ai/ai.module';
     // ─── Configuration ─────────────────────────────
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, databaseConfig, jwtConfig, mailConfig, aiConfig],
+      load: [appConfig, databaseConfig, jwtConfig, mailConfig, firebaseConfig, aiConfig],
       envFilePath: ['.env', '.env.local'],
     }),
 
@@ -80,6 +81,7 @@ import { AiModule } from './modules/ai/ai.module';
         connection: {
           host: config.get<string>('database.redisHost', 'localhost'),
           port: config.get<number>('database.redisPort', 6379),
+          password: config.get<string>('database.redisPassword', ''),
         },
       }),
     }),
