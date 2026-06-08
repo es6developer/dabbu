@@ -35,7 +35,9 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
       if (stored) {
         try {
           setFavorites(JSON.parse(stored));
-        } catch {}
+        } catch {
+          /* ignore */
+        }
       }
       setLoading(false);
     });
@@ -54,11 +56,10 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   const addFavorite = useCallback(
     async (userId: string, name: string, phone?: string) => {
       const existing = favorites.find((f) => f.userId === userId);
-      if (existing) return;
-      const updated = [
-        ...favorites,
-        { userId, name, phone, addedAt: new Date().toISOString() },
-      ];
+      if (existing) {
+        return;
+      }
+      const updated = [...favorites, { userId, name, phone, addedAt: new Date().toISOString() }];
       await persist(updated);
     },
     [favorites, persist],
@@ -73,7 +74,9 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <FavoritesContext.Provider value={{ favorites, isFavorite, addFavorite, removeFavorite, loading }}>
+    <FavoritesContext.Provider
+      value={{ favorites, isFavorite, addFavorite, removeFavorite, loading }}
+    >
       {children}
     </FavoritesContext.Provider>
   );
