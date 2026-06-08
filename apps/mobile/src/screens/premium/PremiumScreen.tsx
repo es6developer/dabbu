@@ -18,6 +18,7 @@ import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { WebView } from 'react-native-webview';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { HelpTip, HelpCard } from '../../components/ui';
 
 const { width } = Dimensions.get('window');
 
@@ -307,6 +308,11 @@ export function PremiumScreen() {
 Premium gives your family unlimited access to all features, advanced analytics, and future AI
             tools.
             </Text>
+            <HelpTip
+              text="Premium unlocks unlimited groups, OCR scans, reminders, advanced analytics, custom themes, and early access to future AI features."
+              icon="diamond-outline"
+              color="#FFD700"
+            />
           </View>
         </Animated.View>
 

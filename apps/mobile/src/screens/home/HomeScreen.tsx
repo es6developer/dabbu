@@ -18,6 +18,7 @@ import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
+import { HelpTip, HelpCard } from '../../components/ui';
 import { getCategoryColor } from '../../config/categoryIcons';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -347,6 +348,14 @@ export function HomeScreen() {
               <Text style={[styles.qaLabel, { color: colors.text.secondary }]}>Reports</Text>
             </TouchableOpacity>
           </View>
+
+          <HelpCard
+            title="Dashboard Overview"
+            description="Your dashboard shows your total balance, monthly spending and budget, recent activity, and categorized spending at a glance."
+            icon="speedometer-outline"
+            accentColor={colors.accent.primary}
+            tips={['Tap any card for more details', 'Pull down to refresh your data']}
+          />
 
           {data.categories.length > 0 && (
             <View style={styles.spendingSection}>

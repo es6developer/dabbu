@@ -9,7 +9,7 @@ import { useTheme } from '../../theme';
 import { useAuth } from '../../store/AuthContext';
 import { useAppLock } from '../../store/LockContext';
 import { api, setAccessToken, getAccessToken } from '../../services/api';
-import { ConfirmDialog } from '../../components/ui';
+import { ConfirmDialog, HelpTip, HelpCard } from '../../components/ui';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -153,6 +153,13 @@ export function SettingsScreen() {
         </View>
 
         <Animated.View style={{ opacity: fadeAnim }}>
+          <HelpCard
+            title="Settings"
+            description="Customize your Dabbu experience. Manage your profile, security, preferences, and more."
+            icon="settings-outline"
+            accentColor={colors.accent.primary}
+            tips={['Upgrade to Premium for advanced features', 'Lock your app for extra security']}
+          />
           {!isPremium && (
             <TouchableOpacity
               style={[s.upgradeBanner, { backgroundColor: colors.accent.primary, borderColor: colors.border.default }]}

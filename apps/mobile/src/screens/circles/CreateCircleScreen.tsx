@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { HelpTip, HelpCard } from '../../components/ui';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 
 const CIRCLE_TYPES = [
@@ -111,6 +112,11 @@ export function CreateCircleScreen() {
             </View>
 
             <View>
+              <HelpTip
+                text="Choose a group type that best describes your circle — Couple, Family, Friends, Roommates, or Trip."
+                icon="information-circle-outline"
+                color={colors.accent.primary}
+              />
               <Text style={[styles.label, { color: colors.text.secondary }]}>Category</Text>
               <View style={styles.typeGrid}>
                 {CIRCLE_TYPES.map((t) => {

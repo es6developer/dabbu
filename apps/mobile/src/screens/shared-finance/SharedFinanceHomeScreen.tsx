@@ -21,6 +21,7 @@ import { SearchSection } from '../../components/ui/SearchSection';
 import { FilterSection } from '../../components/ui/FilterSection';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { HelpTip, HelpCard } from '../../components/ui';
 
 const H_PADDING = 16;
 
@@ -663,6 +664,14 @@ export function SharedFinanceHomeScreen() {
                 </TouchableOpacity>
               </View>
             </View>
+
+            <HelpCard
+              title="Shared Spaces"
+              description="Create shared expense groups with friends, family, or roommates. Track who owes what and settle up easily."
+              icon="people-outline"
+              accentColor={colors.accent.primary}
+              tips={['Long-press a group to delete it', 'Use search and filters to find groups']}
+            />
 
             <SummaryCard
               summary={financialSummary}

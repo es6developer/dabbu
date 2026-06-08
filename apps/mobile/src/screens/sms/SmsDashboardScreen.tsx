@@ -11,6 +11,7 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { syncAndUpload, setSyncTimestamp } from '../../services/sms';
 import { isSmsModuleAvailable, checkSmsPermission } from '../../services/sms/smsService';
+import { HelpTip, HelpCard } from '../../components/ui';
 import { getCategoryIcon } from '../../config/categoryIcons';
 
 interface Detection {
@@ -284,6 +285,14 @@ export function SmsDashboardScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      <HelpCard
+        title="SMS Intelligence"
+        description="Dabbu automatically reads financial SMS from your inbox and categorizes transactions. No manual entry needed for bank messages, UPI payments, and more."
+        icon="chatbubbles-outline"
+        accentColor={colors.accent.primary}
+        tips={['Tap Sync to manually fetch new messages', 'Auto-sync runs every 45 seconds when enabled']}
+      />
 
       {newBanner && (
         <View style={[styles.newBanner, { backgroundColor: colors.accent.primary }]}>

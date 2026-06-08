@@ -25,6 +25,7 @@ import { useAuth } from '../../store/AuthContext';
 import { BaseScreen } from '../../components/ui/BaseScreen';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { EmptyState } from '../../components/ui/EmptyState';
+import { HelpTip, HelpCard } from '../../components/ui';
 // TODO: Import CelebrationOverlay when navigator is ready
 // import { CelebrationOverlay } from '../../components/ui/CelebrationOverlay';
 
@@ -1131,6 +1132,11 @@ export function GoalsListScreen() {
                     <Ionicons name="add" size={22} color={colors.accent.primary} />
                   </TouchableOpacity>
                 }
+              />
+              <HelpTip
+                text="Set savings goals for vacations, emergencies, or big purchases. Track your progress with milestone celebrations."
+                icon="trophy-outline"
+                color={colors.accent.primary}
               />
               {goals.length > 0 && (
                 <OverallProgressHeader

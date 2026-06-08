@@ -20,6 +20,7 @@ import { useAuth } from '../../store/AuthContext';
 import { Skeleton, SkeletonList } from '../../components/ui/AnimatedSkeleton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
+import { HelpTip, HelpCard } from '../../components/ui';
 import { getCategoryIcon } from '../../config/categoryIcons';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -411,6 +412,14 @@ export function MyWalletScreen() {
                 </View>
               </View>
             </Animated.View>
+
+            <HelpCard
+              title="Wallet Tracking"
+              description="Track all your income and expenses in one place. Use search and filters to find specific transactions quickly."
+              icon="wallet-outline"
+              accentColor="#FF6B00"
+              tips={['Long-press a transaction to delete it', 'Use filter chips to view by category']}
+            />
 
             <View style={s.quickActions}>
               {PREMIUM_CATEGORIES.map((a) => (

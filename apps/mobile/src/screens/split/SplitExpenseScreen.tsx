@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { SplitSummaryCard } from '../../components/ui/SplitSummaryCard';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
+import { HelpTip, HelpCard } from '../../components/ui';
 
 const SPLIT_METHODS = [
   { key: 'equal', label: 'Equal', icon: 'reorder-three-outline', desc: 'Split equally among all' },
@@ -63,6 +64,14 @@ export function SplitExpenseScreen() {
               <View style={{ width: 32 }} />
             </View>
           </View>
+
+          <HelpCard
+            title="Split Methods"
+            description="Choose how to split the bill among members. Equal divides evenly, Percentage lets you set custom percentages, and Manual allows exact amounts per person."
+            icon="swap-horizontal-outline"
+            accentColor={colors.accent.primary}
+            tips={['Select at least 2 members to split', 'Preview the split before confirming']}
+          />
 
           <View style={{ padding: 20, gap: 16 }}>
             <View style={[styles.summaryCard, { backgroundColor: colors.bg.card, borderColor: colors.border.default, shadowColor: isDark ? '#000' : 'rgba(0,0,0,0.06)' }]}>
