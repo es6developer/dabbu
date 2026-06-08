@@ -1,5 +1,13 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Platform } from 'react-native';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+  ReactNode,
+  useCallback,
+} from 'react';
+import { Platform, AppState, AppStateStatus } from 'react-native';
 import { API_URL } from '../config/api';
 
 let SecureStore: any = {};
@@ -9,13 +17,16 @@ if (Platform.OS !== 'web') {
 
 import {
   setAccessToken,
+  getAccessToken,
   setRefreshTokenHandler,
   setOnSessionExpiredHandler,
   clearCache,
-  getAccessToken,
 } from '../services/api';
 import { registerForPushNotifications } from '../services/notifications';
 import { trackEventImmediate } from '../hooks/useAnalytics';
+
+const SESSION_TIMEOUT_MS = 24 * 60 * 60 * 1000;
+const MIN_REFRESH_INTERVAL = 30_000;
 
 function getDeviceInfo(): { deviceName: string; platform: string } {
   const platform = Platform.OS;
@@ -63,6 +74,7 @@ interface AuthContextType extends AuthState {
   refreshToken: () => Promise<boolean>;
   completeProfileSetup: (updatedUser?: Partial<User>) => void;
   updatePhone: (phone: string) => Promise<void>;
+  completeAuth: (token: string, user: User, wasNewUser: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -88,6 +100,17 @@ function getStorage(): StorageInterface {
   };
 }
 
+async function authFetch(path: string, options: RequestInit = {}): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  try {
+    const merged = { ...options, signal: controller.signal };
+    return await fetch(`${API_URL}${path}`, merged);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({
     isAuthenticated: false,
@@ -98,10 +121,141 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     needsPhone: false,
   });
 
+  const tokenRefreshInFlight = useRef<Promise<boolean> | null>(null);
+  const lastRefreshTime = useRef(0);
+  const sessionTimeoutTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
+  const storage = useRef(getStorage());
+  const isRefreshing = useRef(false);
+
+  const clearSessionTimeout = useCallback(() => {
+    if (sessionTimeoutTimer.current) {
+      clearTimeout(sessionTimeoutTimer.current);
+      sessionTimeoutTimer.current = null;
+    }
+  }, []);
+
+  const resetSessionTimeout = useCallback(() => {
+    clearSessionTimeout();
+    if (stateRef.current.isAuthenticated) {
+      sessionTimeoutTimer.current = setTimeout(() => {
+        logout();
+      }, SESSION_TIMEOUT_MS);
+    }
+  }, []);
+
+  const clearAuth_ = useCallback(async () => {
+    try {
+      await storage.current.deleteItemAsync('accessToken');
+      await storage.current.deleteItemAsync('refreshToken');
+      await storage.current.deleteItemAsync('sessionId');
+      await storage.current.deleteItemAsync('userData');
+      await storage.current.deleteItemAsync('appPin');
+      await storage.current.deleteItemAsync('appLockEnabled');
+      await storage.current.deleteItemAsync('biometricEnabled');
+      setAccessToken(null);
+    } catch {
+      // ignore clear errors
+    }
+    clearCache();
+  }, []);
+
+  const logout = useCallback(async () => {
+    clearSessionTimeout();
+    const tok = getAccessToken();
+    const refresh = await storage.current.getItem('refreshToken').catch(() => null);
+    if (tok && refresh) {
+      authFetch('/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${tok}`,
+        },
+        body: JSON.stringify({ refreshToken: refresh }),
+      }).catch(() => {});
+    }
+    await clearAuth_();
+    setState({
+      isAuthenticated: false,
+      isLoading: false,
+      user: null,
+      accessToken: null,
+      isNewUser: false,
+      needsPhone: false,
+    });
+  }, [clearAuth_, clearSessionTimeout]);
+
+  const refreshToken = useCallback(async (): Promise<boolean> => {
+    if (isRefreshing.current) {
+      return false;
+    }
+    isRefreshing.current = true;
+    try {
+      if (tokenRefreshInFlight.current) {
+        return tokenRefreshInFlight.current;
+      }
+
+      if (Date.now() - lastRefreshTime.current < MIN_REFRESH_INTERVAL) {
+        const tok = getAccessToken();
+        if (tok) {
+          return true;
+        }
+      }
+
+      const promise = doRefresh();
+      tokenRefreshInFlight.current = promise;
+      return promise;
+    } finally {
+      isRefreshing.current = false;
+    }
+  }, []);
+
+  async function doRefresh(): Promise<boolean> {
+    try {
+      const refresh = await storage.current.getItem('refreshToken');
+      if (!refresh) {
+        return false;
+      }
+
+      const res = await authFetch('/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken: refresh }),
+      });
+
+      if (!res.ok) {
+        return false;
+      }
+
+      const json = await res.json();
+      const tokens = json.data;
+      if (!tokens?.accessToken) {
+        return false;
+      }
+
+      lastRefreshTime.current = Date.now();
+      setAccessToken(tokens.accessToken);
+      await storage.current.setItem('accessToken', tokens.accessToken);
+      if (tokens.refreshToken) {
+        await storage.current.setItem('refreshToken', tokens.refreshToken);
+      }
+
+      setState((prev) => ({ ...prev, accessToken: tokens.accessToken }));
+      resetSessionTimeout();
+      return true;
+    } catch {
+      return false;
+    } finally {
+      tokenRefreshInFlight.current = null;
+    }
+  }
+
   useEffect(() => {
     setRefreshTokenHandler(refreshToken);
     setOnSessionExpiredHandler(() => {
-      clearAuth().then(() => {
+      clearAuth_().then(() => {
         setState({
           isAuthenticated: false,
           isLoading: false,
@@ -113,19 +267,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
     });
     loadStoredAuth();
-  }, []);
+  }, [refreshToken, clearAuth_]);
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (nextState: AppStateStatus) => {
+      if (nextState === 'active') {
+        resetSessionTimeout();
+      }
+    });
+    return () => sub.remove();
+  }, [resetSessionTimeout]);
 
   async function loadStoredAuth() {
     try {
-      const storage = getStorage();
-      const timeout = (ms: number) =>
-        new Promise<null>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms));
-      const token = (await Promise.race([storage.getItem('accessToken'), timeout(5000)])) as
-        | string
-        | null;
-      const userData = (await Promise.race([storage.getItem('userData'), timeout(5000)])) as
-        | string
-        | null;
+      const token = await storage.current.getItem('accessToken');
+      const userData = await storage.current.getItem('userData');
 
       if (token && userData) {
         const parsedUser = JSON.parse(userData);
@@ -138,37 +294,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           isNewUser: false,
           needsPhone: !parsedUser.phone,
         });
-
+        resetSessionTimeout();
         registerForPushNotifications(token).catch(() => {});
       } else {
         setState((prev) => ({ ...prev, isLoading: false }));
       }
-    } catch (_e) {
+    } catch {
       setState((prev) => ({ ...prev, isLoading: false }));
-    }
-  }
-
-  async function storeAuth(token: string, user: User) {
-    const storage = getStorage();
-    await storage.setItem('accessToken', token);
-    await storage.setItem('userData', JSON.stringify(user));
-  }
-
-  async function clearAuth() {
-    try {
-      const storage = getStorage();
-      await storage.deleteItemAsync('accessToken');
-      await storage.deleteItemAsync('refreshToken');
-      await storage.deleteItemAsync('userData');
-      setAccessToken(null);
-    } catch (_e) {
-      // ignore clear errors
     }
   }
 
   function applyAuth(token: string, user: User, wasNewUser: boolean) {
     setAccessToken(token);
-    storeAuth(token, user);
+    const p = storage.current.setItem('accessToken', token);
+    const p2 = storage.current.setItem('userData', JSON.stringify(user));
+    Promise.all([p, p2]).catch(() => {});
     setState({
       isAuthenticated: true,
       isLoading: false,
@@ -177,25 +317,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isNewUser: wasNewUser,
       needsPhone: !user.phone,
     });
+    resetSessionTimeout();
   }
 
+  const completeAuth = useCallback((token: string, user: User, wasNewUser: boolean) => {
+    applyAuth(token, user, wasNewUser);
+  }, []);
+
   async function login(email: string, password: string) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-    let res: Response;
-    try {
-      const { deviceName, platform } = getDeviceInfo();
-      res = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, deviceName, platform }),
-        signal: controller.signal,
-      });
-    } catch (_e) {
-      clearTimeout(timeout);
-      throw new Error('Connection timed out. Please check your internet connection and try again.');
-    }
-    clearTimeout(timeout);
+    const { deviceName, platform } = getDeviceInfo();
+    const res = await authFetch('/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, deviceName, platform }),
+    });
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -212,10 +347,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { user, tokens } = data;
 
     applyAuth(tokens.accessToken, user, false);
-    const storage = getStorage();
-    await storage.setItem('refreshToken', tokens.refreshToken);
+    if (tokens.refreshToken) {
+      await storage.current.setItem('refreshToken', tokens.refreshToken);
+    }
     if (tokens.sessionId) {
-      await storage.setItem('sessionId', tokens.sessionId);
+      await storage.current.setItem('sessionId', tokens.sessionId);
     }
 
     trackEventImmediate('login', 'auth', 'email').catch(() => {});
@@ -229,28 +365,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     lastName: string,
     referralCode?: string,
   ) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-    let res: Response;
-    try {
-      const body: Record<string, any> = { email, password, firstName, lastName };
-      if (referralCode) {
-        body.referralCode = referralCode;
-      }
-      const { deviceName, platform } = getDeviceInfo();
-      body.deviceName = deviceName;
-      body.platform = platform;
-      res = await fetch(`${API_URL}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-        signal: controller.signal,
-      });
-    } catch (_e) {
-      clearTimeout(timeout);
-      throw new Error('Connection timed out. Please check your internet connection and try again.');
+    const body: Record<string, any> = { email, password, firstName, lastName };
+    if (referralCode) {
+      body.referralCode = referralCode;
     }
-    clearTimeout(timeout);
+    const { deviceName, platform } = getDeviceInfo();
+    body.deviceName = deviceName;
+    body.platform = platform;
+    const res = await authFetch('/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -267,9 +393,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { user, tokens } = data;
 
     applyAuth(tokens.accessToken, user, false);
-    const storage = getStorage();
+    if (tokens.refreshToken) {
+      await storage.current.setItem('refreshToken', tokens.refreshToken);
+    }
     if (tokens.sessionId) {
-      await storage.setItem('sessionId', tokens.sessionId);
+      await storage.current.setItem('sessionId', tokens.sessionId);
     }
 
     trackEventImmediate('sign_up', 'auth', 'email').catch(() => {});
@@ -277,22 +405,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function googleLogin(idToken: string) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-    let res: Response;
-    try {
-      const { deviceName, platform } = getDeviceInfo();
-      res = await fetch(`${API_URL}/auth/google`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken, deviceName, platform }),
-        signal: controller.signal,
-      });
-    } catch (_e) {
-      clearTimeout(timeout);
-      throw new Error('Connection timed out. Please check your internet connection and try again.');
-    }
-    clearTimeout(timeout);
+    const { deviceName, platform } = getDeviceInfo();
+    const res = await authFetch('/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken, deviceName, platform }),
+    });
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -309,10 +427,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { user, tokens, isNewUser } = data;
 
     applyAuth(tokens.accessToken, user, !!isNewUser);
-    const storage = getStorage();
-    await storage.setItem('refreshToken', tokens.refreshToken);
+    if (tokens.refreshToken) {
+      await storage.current.setItem('refreshToken', tokens.refreshToken);
+    }
     if (tokens.sessionId) {
-      await storage.setItem('sessionId', tokens.sessionId);
+      await storage.current.setItem('sessionId', tokens.sessionId);
     }
 
     trackEventImmediate(isNewUser ? 'sign_up' : 'login', 'auth', 'google').catch(() => {});
@@ -320,22 +439,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function guestLogin() {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-    let res: Response;
-    try {
-      const { deviceName, platform } = getDeviceInfo();
-      res = await fetch(`${API_URL}/auth/guest`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ deviceName, platform }),
-        signal: controller.signal,
-      });
-    } catch (_e) {
-      clearTimeout(timeout);
-      throw new Error('Connection timed out. Please check your internet connection and try again.');
-    }
-    clearTimeout(timeout);
+    const { deviceName, platform } = getDeviceInfo();
+    const res = await authFetch('/auth/guest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deviceName, platform }),
+    });
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -351,43 +460,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const { user, tokens } = data;
 
-    setAccessToken(tokens.accessToken);
-    await storeAuth(tokens.accessToken, user);
-    const storage = getStorage();
-    await storage.setItem('refreshToken', tokens.refreshToken);
-    if (tokens.sessionId) {
-      await storage.setItem('sessionId', tokens.sessionId);
+    applyAuth(tokens.accessToken, user, false);
+    if (tokens.refreshToken) {
+      await storage.current.setItem('refreshToken', tokens.refreshToken);
     }
-
-    setState({
-      isAuthenticated: true,
-      isLoading: false,
-      user,
-      accessToken: tokens.accessToken,
-      isNewUser: false,
-      needsPhone: false,
-    });
+    if (tokens.sessionId) {
+      await storage.current.setItem('sessionId', tokens.sessionId);
+    }
 
     registerForPushNotifications(tokens.accessToken).catch(() => {});
   }
 
   async function demoLogin() {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-    let res: Response;
-    try {
-      const { deviceName, platform } = getDeviceInfo();
-      res = await fetch(`${API_URL}/auth/demo`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ deviceName, platform }),
-        signal: controller.signal,
-      });
-    } catch (_e) {
-      clearTimeout(timeout);
-      throw new Error('Connection timed out. Please check your internet connection and try again.');
-    }
-    clearTimeout(timeout);
+    const { deviceName, platform } = getDeviceInfo();
+    const res = await authFetch('/auth/demo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deviceName, platform }),
+    });
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -403,108 +493,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const { user, tokens } = data;
 
-    setAccessToken(tokens.accessToken);
-    await storeAuth(tokens.accessToken, user);
-    const storage = getStorage();
-    await storage.setItem('refreshToken', tokens.refreshToken);
-    if (tokens.sessionId) {
-      await storage.setItem('sessionId', tokens.sessionId);
+    applyAuth(tokens.accessToken, user, false);
+    if (tokens.refreshToken) {
+      await storage.current.setItem('refreshToken', tokens.refreshToken);
     }
-
-    setState({
-      isAuthenticated: true,
-      isLoading: false,
-      user,
-      accessToken: tokens.accessToken,
-      isNewUser: false,
-      needsPhone: false,
-    });
+    if (tokens.sessionId) {
+      await storage.current.setItem('sessionId', tokens.sessionId);
+    }
 
     registerForPushNotifications(tokens.accessToken).catch(() => {});
   }
 
-  async function logout() {
-    const storage = getStorage();
-    storage
-      .getItem('refreshToken')
-      .then((refresh) => {
-        if (state.accessToken && refresh) {
-          fetch(`${API_URL}/auth/logout`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${state.accessToken}`,
-            },
-            body: JSON.stringify({ refreshToken: refresh }),
-          }).catch(() => {});
-        }
-      })
-      .catch(() => {});
-
-    await clearAuth();
-    clearCache();
-    try {
-      await SecureStore.deleteItemAsync('appPin');
-      await SecureStore.deleteItemAsync('appLockEnabled');
-      await SecureStore.deleteItemAsync('biometricEnabled');
-      await SecureStore.deleteItemAsync('sessionId');
-    } catch (_e) {
-      /* ignore */
-    }
-    setState({
-      isAuthenticated: false,
-      isLoading: false,
-      user: null,
-      accessToken: null,
-      isNewUser: false,
-      needsPhone: false,
-    });
-  }
-
-  async function refreshToken(): Promise<boolean> {
-    try {
-      const storage = getStorage();
-      const refresh = await storage.getItem('refreshToken');
-      if (!refresh) {
-        return false;
-      }
-
-      const res = await fetch(`${API_URL}/auth/refresh`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken: refresh }),
-      });
-
-      if (!res.ok) {
-        return false;
-      }
-
-      const json = await res.json();
-      const tokens = json.data;
-
-      await storage.setItem('accessToken', tokens.accessToken);
-      await storage.setItem('refreshToken', tokens.refreshToken);
-
-      setState((prev) => ({ ...prev, accessToken: tokens.accessToken }));
-      return true;
-    } catch (_e) {
-      return false;
-    }
-  }
-
   function completeProfileSetup(updatedUser?: Partial<User>) {
     setState((prev) => {
-      const merged = updatedUser ? { ...prev.user!, ...updatedUser } : prev.user;
-      if (merged) {
-        storeAuth(prev.accessToken!, merged);
+      if (!prev.user) {
+        return prev;
       }
-      return { ...prev, isNewUser: false, user: merged, needsPhone: merged ? !merged.phone : false };
+      const merged = updatedUser ? { ...prev.user, ...updatedUser } : prev.user;
+      storage.current.setItem('userData', JSON.stringify(merged)).catch(() => {});
+      return {
+        ...prev,
+        isNewUser: false,
+        user: merged,
+        needsPhone: merged ? !merged.phone : false,
+      };
     });
   }
 
   async function updatePhone(phone: string) {
     const token = getAccessToken();
-    const res = await fetch(`${API_URL}/users/profile`, {
+    const res = await authFetch('/users/profile', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -520,35 +538,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const json = await res.json();
     const updatedUser = json?.data?.user || json?.data;
-    if (updatedUser) {
-      const mergedUser = { ...state.user!, phone: updatedUser.phone || phone };
-      storeAuth(state.accessToken!, mergedUser);
-      setState((prev) => ({ ...prev, user: mergedUser, needsPhone: false }));
-    } else {
-      const mergedUser = { ...state.user!, phone };
-      storeAuth(state.accessToken!, mergedUser);
-      setState((prev) => ({ ...prev, user: mergedUser, needsPhone: false }));
-    }
+    setState((prev) => {
+      if (!prev.user) {
+        return prev;
+      }
+      const merged = updatedUser ? { ...prev.user, ...updatedUser } : { ...prev.user, phone };
+      storage.current.setItem('userData', JSON.stringify(merged)).catch(() => {});
+      return { ...prev, user: merged, needsPhone: !merged.phone };
+    });
   }
 
-  return (
-    <AuthContext.Provider
-      value={{
-        ...state,
-        login,
-        register,
-        googleLogin,
-        guestLogin,
-        demoLogin,
-        logout,
-        refreshToken,
-        completeProfileSetup,
-        updatePhone,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const value = React.useMemo(
+    () => ({
+      ...state,
+      login,
+      register,
+      googleLogin,
+      guestLogin,
+      demoLogin,
+      logout,
+      refreshToken,
+      completeProfileSetup,
+      updatePhone,
+      completeAuth,
+    }),
+    [state, refreshToken, completeAuth],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth(): AuthContextType {

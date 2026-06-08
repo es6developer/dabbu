@@ -1,6 +1,13 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Animated, Dimensions,
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  RefreshControl,
+  Animated,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -8,10 +15,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, spacing } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
-import { SkeletonCard } from '../../components/ui/AnimatedSkeleton';
+import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
 const { width: SCREEN_W } = Dimensions.get('window');
-const BILL_CARD_W = 165;
 
 function fmt(v: number | string | undefined | null): string {
   const n = typeof v === 'string' ? parseFloat(v) : Number(v ?? 0);
@@ -19,22 +25,38 @@ function fmt(v: number | string | undefined | null): string {
 }
 
 function listFromResponse(res: any): any[] {
-  if (!res) return [];
-  if (Array.isArray(res)) return res;
-  if (res.items) return Array.isArray(res.items) ? res.items : [];
+  if (!res) {
+    return [];
+  }
+  if (Array.isArray(res)) {
+    return res;
+  }
+  if (res.items) {
+    return Array.isArray(res.items) ? res.items : [];
+  }
   return [];
 }
 
 function timeAgo(dateStr: string): string {
-  if (!dateStr) return '';
+  if (!dateStr) {
+    return '';
+  }
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) {
+    return 'just now';
+  }
+  if (mins < 60) {
+    return `${mins}m ago`;
+  }
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) {
+    return `${hrs}h ago`;
+  }
   const days = Math.floor(hrs / 24);
-  if (days < 7) return `${days}d ago`;
+  if (days < 7) {
+    return `${days}d ago`;
+  }
   return `${Math.floor(days / 7)}w ago`;
 }
 
@@ -42,114 +64,139 @@ const TYPE_CONFIG: Record<string, { icon: string; label: string; color: string }
   couple: { icon: 'heart', label: 'Couple', color: '#FF6B9D' },
   family: { icon: 'home', label: 'Family', color: '#FF6B00' },
   friends: { icon: 'people', label: 'Friends', color: '#34C759' },
-  trip: { icon: 'airplane', label: 'Trip', color: '#F3D28F' },
-  roommates: { icon: 'business', label: 'Roommates', color: '#4F6EF7' },
+  trip: { icon: 'airplane', label: 'Trip', color: '#60A5FA' },
+  roommates: { icon: 'business', label: 'Roommates', color: '#818CF8' },
   apartment: { icon: 'home', label: 'Apartment', color: '#FF6B00' },
   office: { icon: 'briefcase', label: 'Office', color: '#818CF8' },
   event: { icon: 'calendar', label: 'Event', color: '#FF6B6B' },
   default: { icon: 'people', label: 'Group', color: '#FF6B00' },
 };
 
+const ALL_TYPES = ['all', 'couple', 'family', 'friends', 'trip', 'roommates', 'other'] as const;
+
+const FILTER_COLORS: Record<string, string> = {
+  all: '#FF6B00',
+  couple: '#FF6B9D',
+  family: '#FF6B00',
+  friends: '#34C759',
+  trip: '#60A5FA',
+  roommates: '#818CF8',
+  other: '#8E8E93',
+};
+
 interface GroupCardProps {
   group: any;
   onPress: () => void;
+  themeColor: string;
 }
 
-function GroupCard({ group, onPress }: GroupCardProps) {
+function GroupCard({ group, onPress, themeColor }: GroupCardProps) {
   const { colors } = useTheme();
-  const cfg = TYPE_CONFIG[group.type] || TYPE_CONFIG.default;
   const mc = group.members?.length || group._count?.members || 0;
   const balance = group.balance || 0;
   const positive = balance >= 0;
   const recentActivity = group.updatedAt || group.createdAt;
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  const borderAnim = useRef(new Animated.Value(0)).current;
-
-  const handlePressIn = () => {
-    Animated.parallel([
-      Animated.spring(scaleAnim, { toValue: 0.98, friction: 12, tension: 100, useNativeDriver: true }),
-      Animated.timing(borderAnim, { toValue: 1, duration: 150, useNativeDriver: false }),
-    ]).start();
-  };
-
-  const handlePressOut = () => {
-    Animated.parallel([
-      Animated.spring(scaleAnim, { toValue: 1, friction: 12, tension: 100, useNativeDriver: true }),
-      Animated.timing(borderAnim, { toValue: 0, duration: 150, useNativeDriver: false }),
-    ]).start();
-  };
-
-  const borderOpacity = borderAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.04, 0.4],
-  });
 
   const members = group.members || [];
-  const maxAvatars = 4;
+  const maxAvatars = 3;
   const overflow = mc > maxAvatars ? mc - maxAvatars : 0;
   const displayMembers = members.slice(0, maxAvatars);
 
   return (
     <Animated.View style={[{ transform: [{ scale: scaleAnim }] }]}>
       <TouchableOpacity
-        activeOpacity={1}
+        activeOpacity={0.7}
         onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+        onPressIn={() =>
+          Animated.spring(scaleAnim, { toValue: 0.97, friction: 12, useNativeDriver: true }).start()
+        }
+        onPressOut={() =>
+          Animated.spring(scaleAnim, { toValue: 1, friction: 12, useNativeDriver: true }).start()
+        }
       >
-        <Animated.View
+        <View
           style={[
             s.groupCard,
             { backgroundColor: colors.bg.card, borderColor: colors.border.default },
           ]}
         >
-          {/* Left Block */}
-          <View style={s.groupLeft}>
-            <Text style={[s.groupName, { color: colors.text.primary }]} numberOfLines={1}>{group.name || group.title}</Text>
-            <View style={s.groupMetaRow}>
-              <View style={[s.groupTypeDot, { backgroundColor: cfg.color }]} />
-              <Text style={[s.groupMeta, { color: colors.text.secondary }]}>{cfg.label} · {mc} member{mc !== 1 ? 's' : ''}</Text>
-            </View>
-          </View>
-
-          {/* Center Block - Avatars */}
-          <View style={s.groupCenter}>
-            <View style={s.avatarStack}>
-              {displayMembers.map((m: any, i: number) => {
-                const u = m.user || m;
-                const initial = (u.firstName?.[0] || u.email?.[0] || '?').toUpperCase();
-                return (
+          <View style={[s.groupAccent, { backgroundColor: themeColor }]} />
+          <View style={s.groupContent}>
+            <View style={s.groupTop}>
+              <View style={{ flex: 1, marginRight: 8 }}>
+                <Text style={[s.groupName, { color: colors.text.primary }]} numberOfLines={1}>
+                  {group.name || group.title}
+                </Text>
+                <View style={s.groupMetaRow}>
+                  <Ionicons name="people-outline" size={11} color={colors.text.tertiary} />
+                  <Text style={[s.groupMeta, { color: colors.text.tertiary }]}>
+                    {mc} member{mc !== 1 ? 's' : ''}
+                  </Text>
+                  {recentActivity && (
+                    <>
+                      <View style={[s.metaDot, { backgroundColor: colors.text.tertiary }]} />
+                      <Text style={[s.groupMeta, { color: colors.text.tertiary }]}>
+                        {timeAgo(recentActivity)}
+                      </Text>
+                    </>
+                  )}
+                </View>
+              </View>
+              <View style={s.avatarStack}>
+                {displayMembers.map((m: any, i: number) => {
+                  const u = m.user || m;
+                  const initial = (u.firstName?.[0] || u.email?.[0] || '?').toUpperCase();
+                  return (
+                    <View
+                      key={u.id || i}
+                      style={[
+                        s.avatarCircle,
+                        {
+                          backgroundColor: colors.bg.tertiary,
+                          borderColor: colors.bg.card,
+                          marginLeft: i === 0 ? 0 : -7,
+                        },
+                      ]}
+                    >
+                      <Text style={[s.avatarText, { color: colors.text.primary }]}>{initial}</Text>
+                    </View>
+                  );
+                })}
+                {overflow > 0 && (
                   <View
-                    key={u.id || i}
-                    style={[s.avatarCircle, { backgroundColor: colors.bg.tertiary, borderColor: colors.bg.card, zIndex: maxAvatars - i, marginLeft: i === 0 ? 0 : -8 }]}
+                    style={[
+                      s.avatarCircle,
+                      {
+                        backgroundColor: `${themeColor}20`,
+                        borderColor: colors.bg.card,
+                        marginLeft: -7,
+                      },
+                    ]}
                   >
-                    <Text style={[s.avatarText, { color: colors.text.primary }]}>{initial}</Text>
+                    <Text style={[s.avatarOverflowText, { color: themeColor }]}>+{overflow}</Text>
                   </View>
-                );
-              })}
-              {overflow > 0 && (
-                <View style={[s.avatarCircle, { backgroundColor: `${colors.accent.primary}18`, borderColor: colors.bg.card, marginLeft: -8 }]}>
-                  <Text style={[s.avatarOverflowText, { color: colors.accent.primary }]}>+{overflow}</Text>
-                </View>
-              )}
-              {mc === 0 && (
-                <View style={[s.avatarCircle, { backgroundColor: `${colors.accent.primary}10`, borderWidth: 1.5, borderColor: `${colors.accent.primary}40` }]}>
-                  <Ionicons name="add" size={14} color={colors.accent.primary} />
-                </View>
-              )}
+                )}
+              </View>
+            </View>
+            <View style={s.groupBottom}>
+              <Text
+                style={[
+                  s.groupBalance,
+                  { color: balance === 0 ? '#8E8E93' : positive ? '#34C759' : '#FF4545' },
+                ]}
+              >
+                {balance === 0 ? 'Settled' : `${positive ? '+' : ''}${fmt(Math.abs(balance))}`}
+              </Text>
+              <View style={[s.typeBadge, { backgroundColor: `${themeColor}15` }]}>
+                <View style={[s.typeDot, { backgroundColor: themeColor }]} />
+                <Text style={[s.typeBadgeText, { color: themeColor }]}>
+                  {TYPE_CONFIG[group.type]?.label || 'Group'}
+                </Text>
+              </View>
             </View>
           </View>
-
-          {/* Right Block */}
-          <View style={s.groupRight}>
-            <Text style={[s.groupBalance, { color: balance === 0 ? '#8E8E93' : positive ? '#27D376' : '#FF4545' }]}>
-              {balance === 0 ? '₹0' : `${positive ? '+' : ''}${fmt(Math.abs(balance))}`}
-            </Text>
-            {recentActivity && (
-              <Text style={[s.groupActivity, { color: colors.text.tertiary }]}>Recent: {timeAgo(recentActivity)}</Text>
-            )}
-          </View>
-        </Animated.View>
+        </View>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -165,22 +212,36 @@ export function SharedScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<string>('all');
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const loadData = useCallback(async (isRefresh = false) => {
-    if (accessToken) setAccessToken(accessToken);
-    if (!isRefresh) setLoading(true);
-    setError(null);
-    try {
-      const sharedRes = await api.get<any>('/shared-finance/groups');
-      setGroups(listFromResponse(sharedRes));
-    } catch {
-      setError('Could not load spaces. Check your connection.');
-    }
-    finally { setLoading(false); setRefreshing(false); }
-  }, [accessToken]);
+  const loadData = useCallback(
+    async (isRefresh = false) => {
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      if (!isRefresh) {
+        setLoading(true);
+      }
+      setError(null);
+      try {
+        const sharedRes = await api.get<any>('/shared-finance/groups');
+        setGroups(listFromResponse(sharedRes));
+      } catch {
+        setError('Could not load spaces. Check your connection.');
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [accessToken],
+  );
 
-  useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData]),
+  );
 
   useEffect(() => {
     if (!loading) {
@@ -188,13 +249,40 @@ export function SharedScreen() {
     }
   }, [loading]);
 
-  const premiumGroups = groups.filter((g: any) => g.type === 'couple' || g.type === 'family');
-  const otherGroups = groups.filter((g: any) => g.type !== 'couple' && g.type !== 'family');
+  const filteredGroups =
+    filter === 'all'
+      ? groups
+      : filter === 'other'
+        ? groups.filter(
+            (g: any) => !['couple', 'family', 'friends', 'trip', 'roommates'].includes(g.type),
+          )
+        : groups.filter((g: any) => g.type === filter);
 
-  const recentBills = groups
-    .flatMap((g: any) => (g.expenses || []).slice(0, 3))
-    .filter(Boolean)
-    .slice(0, 8);
+  const totalMembers = groups.reduce(
+    (s: number, g: any) => s + (g.members?.length || g._count?.members || 0),
+    0,
+  );
+
+  const stats = [
+    { label: 'Total Spaces', value: String(groups.length), color: colors.accent.primary },
+    { label: 'Total Members', value: String(totalMembers), color: '#60A5FA' },
+    {
+      label: 'Pending',
+      value: String(groups.filter((g: any) => g.balance && g.balance !== 0).length),
+      color: '#F59E0B',
+    },
+    {
+      label: 'This Month',
+      value: String(
+        groups.filter((g: any) => {
+          const d = new Date(g.updatedAt || g.createdAt);
+          const now = new Date();
+          return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        }).length,
+      ),
+      color: '#34C759',
+    },
+  ];
 
   return (
     <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
@@ -204,12 +292,15 @@ export function SharedScreen() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => { setRefreshing(true); loadData(true); }}
+            onRefresh={() => {
+              setRefreshing(true);
+              loadData(true);
+            }}
             tintColor="#FF6B00"
           />
         }
       >
-        {/* Header */}
+        {/* ─── Header ─── */}
         <View style={[s.header, { paddingTop: insets.top + 16 }]}>
           <View style={s.headerRow}>
             <View>
@@ -224,170 +315,225 @@ export function SharedScreen() {
               <Ionicons name="add" size={22} color="#FFF" />
             </TouchableOpacity>
           </View>
-          {groups.length > 1 && (
-            <View style={[s.headerCount, { backgroundColor: colors.border.subtle }]}>
-              <Text style={[s.headerCountNum, { color: colors.text.primary }]}>{groups.length}</Text>
-              <Text style={[s.headerCountLabel, { color: colors.text.tertiary }]}>active spaces</Text>
-            </View>
-          )}
         </View>
 
-        {/* Loading Skeleton - cross-fades with content */}
+        {/* ─── Loading ─── */}
         {loading && (
-          <View style={{ paddingHorizontal: spacing.xl, gap: spacing.md, marginTop: spacing.sm }}>
-            {[1, 2, 3].map((i) => <SkeletonCard key={i} style={{ height: i === 1 ? 150 : 96 }} />)}
+          <View style={{ paddingHorizontal: 20, gap: 10, marginTop: 4 }}>
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              {[1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} style={{ flex: 1 }} width="100%" height={60} borderRadius={14} />
+              ))}
+            </View>
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} width="100%" height={80} borderRadius={16} />
+            ))}
           </View>
         )}
 
-        {/* Error State */}
+        {/* ─── Error ─── */}
         {error && !loading && (
           <View style={s.emptyWrap}>
-            <View style={{ alignItems: 'center' }}>
-              <View style={[s.emptyIcon, { backgroundColor: 'rgba(255,69,69,0.12)' }]}>
-                <Ionicons name="cloud-offline-outline" size={36} color="#FF4545" />
-              </View>
-              <Text style={[s.emptyTitle, { color: '#FF4545' }]}>{error}</Text>
-              <TouchableOpacity style={s.emptyBtn} onPress={() => loadData()} activeOpacity={0.85}>
-                <Ionicons name="refresh-outline" size={18} color="#FFF" />
-                <Text style={s.emptyBtnText}>Try Again</Text>
-              </TouchableOpacity>
+            <View style={[s.emptyIcon, { backgroundColor: 'rgba(255,69,69,0.12)' }]}>
+              <Ionicons name="cloud-offline-outline" size={36} color="#FF4545" />
             </View>
+            <Text style={[s.emptyTitle, { color: '#FF4545' }]}>{error}</Text>
+            <TouchableOpacity style={s.emptyBtn} onPress={() => loadData()} activeOpacity={0.85}>
+              <Ionicons name="refresh-outline" size={18} color="#FFF" />
+              <Text style={s.emptyBtnText}>Try Again</Text>
+            </TouchableOpacity>
           </View>
         )}
 
-        {/* Content */}
-        {!loading && !error && groups.length === 0 ? (
-          /* Empty State */
-          <View style={s.emptyWrap}>
-            <Animated.View style={{ opacity: fadeAnim, alignItems: 'center' }}>
-              <View style={[s.emptyIcon, { backgroundColor: 'rgba(255,107,0,0.12)' }]}>
-                <Ionicons name="layers-outline" size={36} color="#FF6B00" />
-              </View>
-              <Text style={[s.emptyTitle, { color: colors.text.primary }]}>No shared spaces yet</Text>
-              <Text style={[s.emptySub, { color: colors.text.secondary }]}>
-                Create a space to split expenses with your people
-              </Text>
-              <TouchableOpacity
-                style={s.emptyBtn}
-                onPress={() => navigation.navigate('CreateSharedGroup')}
-                activeOpacity={0.85}
-              >
-                <Ionicons name="add" size={18} color="#FFF" />
-                <Text style={s.emptyBtnText}>Create your first space</Text>
-              </TouchableOpacity>
-            </Animated.View>
-          </View>
-        ) : (
+        {/* ─── Content ─── */}
+        {!loading && !error && (
           <Animated.View style={{ opacity: fadeAnim }}>
-            {/* Recent Active Bills */}
-            {recentBills.length > 0 && (
-              <View style={{ marginBottom: 28 }}>
-                <View style={s.sectionHeader}>
-                  <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Recent Active Bills</Text>
-                  <Text style={[s.sectionCount, { color: colors.text.tertiary }]}>{recentBills.length}</Text>
-                </View>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }}
-                  decelerationRate="fast"
-                >
-                  {recentBills.map((bill: any, i: number) => (
-                    <View key={bill.id || i} style={[s.billCard, { backgroundColor: colors.bg.card, borderColor: colors.border.default }]}>
-                      <Text style={[s.billVendor, { color: colors.text.primary }]} numberOfLines={1}>
-                        {bill.description || bill.vendor || 'Expense'}
-                      </Text>
-                      <Text style={[s.billDate, { color: colors.text.tertiary }]}>
-                        {bill.date ? new Date(bill.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : ''}
-                      </Text>
-                      <Text style={[s.billAmount, { color: colors.text.primary }]}>{fmt(bill.amount)}</Text>
-                      <TouchableOpacity style={s.splitBtn} activeOpacity={0.7}>
-                        <Text style={s.splitBtnText}>Split Now</Text>
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </ScrollView>
+            {/* Stats Row */}
+            {groups.length > 0 && (
+              <View style={s.statsRow}>
+                {stats.map((stat, idx) => (
+                  <View key={idx} style={[s.statCard, { backgroundColor: colors.bg.card }]}>
+                    <Text style={[s.statValue, { color: stat.color }]}>{stat.value}</Text>
+                    <Text style={[s.statLabel, { color: colors.text.tertiary }]}>{stat.label}</Text>
+                  </View>
+                ))}
               </View>
             )}
 
-            {/* Couple & Family Spaces */}
-            {premiumGroups.length > 0 && (
-              <View style={{ marginBottom: 28 }}>
-                <View style={s.sectionHeader}>
-                  <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Couple & Family</Text>
-                  <Text style={[s.sectionCount, { color: colors.text.tertiary }]}>{premiumGroups.length}</Text>
+            {/* Filter Chips */}
+            {groups.length > 0 && (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={s.filterRow}
+              >
+                {ALL_TYPES.map((type) => {
+                  const count =
+                    type === 'all'
+                      ? groups.length
+                      : type === 'other'
+                        ? groups.filter(
+                            (g: any) =>
+                              !['couple', 'family', 'friends', 'trip', 'roommates'].includes(
+                                g.type,
+                              ),
+                          ).length
+                        : groups.filter((g: any) => g.type === type).length;
+                  if (count === 0 && type !== 'all') {
+                    return null;
+                  }
+                  const active = filter === type;
+                  const chipColor = FILTER_COLORS[type] || '#8E8E93';
+                  return (
+                    <TouchableOpacity
+                      key={type}
+                      style={[
+                        s.filterChip,
+                        active
+                          ? { backgroundColor: chipColor }
+                          : { backgroundColor: colors.bg.tertiary },
+                      ]}
+                      onPress={() => setFilter(type)}
+                      activeOpacity={0.75}
+                    >
+                      <Text
+                        style={[
+                          s.filterChipText,
+                          { color: active ? '#FFF' : colors.text.secondary },
+                        ]}
+                      >
+                        {type === 'all' ? 'All' : type.charAt(0).toUpperCase() + type.slice(1)}
+                      </Text>
+                      <View
+                        style={[
+                          s.filterChipCount,
+                          {
+                            backgroundColor: active
+                              ? 'rgba(255,255,255,0.2)'
+                              : 'rgba(255,255,255,0.08)',
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            s.filterChipCountText,
+                            { color: active ? '#FFF' : colors.text.tertiary },
+                          ]}
+                        >
+                          {count}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            )}
+
+            {/* Empty State */}
+            {groups.length === 0 && (
+              <View style={s.emptyWrap}>
+                <View style={[s.emptyIcon, { backgroundColor: 'rgba(255,107,0,0.12)' }]}>
+                  <Ionicons name="layers-outline" size={36} color="#FF6B00" />
                 </View>
-                <View style={{ paddingHorizontal: 20, gap: 12 }}>
-                  {premiumGroups.map((group: any) => (
+                <Text style={[s.emptyTitle, { color: colors.text.primary }]}>
+                  No shared spaces yet
+                </Text>
+                <Text style={[s.emptySub, { color: colors.text.secondary }]}>
+                  Create a space to split expenses with your people
+                </Text>
+                <TouchableOpacity
+                  style={s.emptyBtn}
+                  onPress={() => navigation.navigate('CreateSharedGroup')}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons name="add" size={18} color="#FFF" />
+                  <Text style={s.emptyBtnText}>Create your first space</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Groups List */}
+            {filteredGroups.length > 0 && (
+              <View style={{ paddingHorizontal: 20, gap: 10 }}>
+                {filteredGroups.map((group: any) => {
+                  const cfg = TYPE_CONFIG[group.type] || TYPE_CONFIG.default;
+                  return (
                     <GroupCard
                       key={group.id}
                       group={group}
+                      themeColor={cfg.color}
                       onPress={() => {
-                        const ds = group.type === 'couple' ? 'CoupleFinance' : 'FamilyDashboard';
-                        navigation.navigate(ds, { groupId: group.id, groupName: group.name });
+                        if (group.type === 'couple') {
+                          navigation.navigate('CoupleFinance', {
+                            groupId: group.id,
+                            groupName: group.name,
+                          });
+                        } else if (group.type === 'family') {
+                          navigation.navigate('FamilyDashboard', {
+                            groupId: group.id,
+                            groupName: group.name,
+                          });
+                        } else {
+                          navigation.navigate('SharedGroupDetail', {
+                            groupId: group.id,
+                            groupName: group.name,
+                          });
+                        }
                       }}
                     />
-                  ))}
-                </View>
+                  );
+                })}
               </View>
             )}
 
-            {/* All Spaces */}
-            {(premiumGroups.length === 0 || otherGroups.length > 0) && (
-              <View style={{ paddingHorizontal: 20 }}>
-                <View style={s.sectionHeader}>
-                  <Text style={[s.sectionTitle, { color: colors.text.primary }]}>All Spaces</Text>
-                  <Text style={[s.sectionCount, { color: colors.text.tertiary }]}>{groups.length}</Text>
-                </View>
-                <View style={{ gap: 12 }}>
-                  {otherGroups.length > 0
-                    ? otherGroups.map((group: any) => (
-                        <GroupCard
-                          key={group.id}
-                          group={group}
-                          onPress={() =>
-                            navigation.navigate('SharedGroupDetail', { groupId: group.id, groupName: group.name })
-                          }
-                        />
-                      ))
-                    : premiumGroups.length > 0 && (
-                        <Text style={{ color: colors.text.secondary, fontSize: 13, fontWeight: '500', textAlign: 'center', paddingVertical: 12 }}>
-                          All your active spaces are shown above
-                        </Text>
-                      )}
-                </View>
+            {/* No results for filter */}
+            {groups.length > 0 && filteredGroups.length === 0 && (
+              <View style={[s.emptyWrap, { paddingTop: 20 }]}>
+                <Text style={[s.emptySub, { color: colors.text.secondary }]}>
+                  No spaces match this filter
+                </Text>
               </View>
             )}
 
             {/* Create New */}
-            <TouchableOpacity
-              style={[s.createCard, { borderColor: `${colors.accent.primary}40`, backgroundColor: `${colors.accent.primary}05` }]}
-              onPress={() => navigation.navigate('CreateSharedGroup')}
-              activeOpacity={0.7}
-            >
-              <View style={[s.createIconWrap, { backgroundColor: `${colors.accent.primary}18` }]}>
-                <Ionicons name="add" size={24} color={colors.accent.primary} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[s.createLabel, { color: colors.text.primary }]}>Create New Space</Text>
-                <Text style={[s.createSub, { color: colors.text.secondary }]}>
-                  Split expenses with friends, family or roommates
-                </Text>
-              </View>
-              <Ionicons name="arrow-forward" size={18} color={colors.accent.primary} />
-            </TouchableOpacity>
+            {groups.length > 0 && (
+              <TouchableOpacity
+                style={[
+                  s.createCard,
+                  {
+                    borderColor: `${colors.accent.primary}40`,
+                    backgroundColor: `${colors.accent.primary}05`,
+                  },
+                ]}
+                onPress={() => navigation.navigate('CreateSharedGroup')}
+                activeOpacity={0.7}
+              >
+                <View style={[s.createIconWrap, { backgroundColor: `${colors.accent.primary}18` }]}>
+                  <Ionicons name="add" size={22} color={colors.accent.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[s.createLabel, { color: colors.text.primary }]}>
+                    Create New Space
+                  </Text>
+                  <Text style={[s.createSub, { color: colors.text.secondary }]}>
+                    Split expenses with friends, family or roommates
+                  </Text>
+                </View>
+                <Ionicons name="arrow-forward" size={18} color={colors.accent.primary} />
+              </TouchableOpacity>
+            )}
           </Animated.View>
         )}
       </ScrollView>
 
-      {/* FAB - Scan Receipt */}
+      {/* ─── FAB ─── */}
       <View style={[s.fabWrap, { bottom: insets.bottom + 20 }]}>
         <TouchableOpacity
           style={s.fab}
           activeOpacity={0.85}
-          onPress={() => navigation.navigate('Expense', { screen: 'CategorySelection' })}
+          onPress={() => navigation.navigate('CreateSharedGroup')}
         >
-          <Ionicons name="scan-outline" size={24} color="#FFF" />
+          <Ionicons name="add" size={26} color="#FFF" />
         </TouchableOpacity>
       </View>
     </View>
@@ -398,104 +544,147 @@ const s = StyleSheet.create({
   screen: { flex: 1 },
 
   /* Header */
-  header: { paddingHorizontal: 20, paddingBottom: 20 },
+  header: { paddingHorizontal: 20, paddingBottom: 8 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  headerEyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 2, color: 'rgba(255,255,255,0.35)', marginBottom: 2 },
-  headerTitle: { fontSize: 30, fontWeight: '800', letterSpacing: -0.5, color: '#FFF' },
+  headerEyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 2 },
+  headerTitle: { fontSize: 30, fontWeight: '800', letterSpacing: -0.5 },
   createBtn: {
-    width: 42, height: 42, borderRadius: 14, backgroundColor: '#FF6B00',
-    alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#FF6B00', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 10, elevation: 6,
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    backgroundColor: '#FF6B00',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#FF6B00',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 6,
   },
-  headerCount: {
-    flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)', alignSelf: 'flex-start',
-    paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20,
-  },
-  headerCountNum: { fontSize: 15, fontWeight: '800', color: '#FFF' },
-  headerCountLabel: { fontSize: 12, fontWeight: '500', color: 'rgba(255,255,255,0.5)' },
 
-  /* Section Header */
-  sectionHeader: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    marginBottom: 14, paddingHorizontal: 0,
+  /* Stats */
+  statsRow: { flexDirection: 'row', paddingHorizontal: 20, gap: 8, marginTop: 12, marginBottom: 8 },
+  statCard: {
+    flex: 1,
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    gap: 2,
   },
-  sectionTitle: { fontSize: 18, fontWeight: '700', letterSpacing: -0.3, color: '#FFF' },
-  sectionCount: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.3)' },
+  statValue: { fontSize: 18, fontWeight: '800' },
+  statLabel: { fontSize: 9, fontWeight: '600', letterSpacing: 0.2, textTransform: 'uppercase' },
 
-  /* Empty */
-  emptyWrap: { alignItems: 'center', paddingHorizontal: 32, paddingTop: 60 },
-  emptyIcon: { width: 88, height: 88, borderRadius: 30, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
-  emptyTitle: { fontSize: 22, fontWeight: '700', marginBottom: 8 },
-  emptySub: { fontSize: 14, textAlign: 'center', lineHeight: 20, marginBottom: 24 },
-  emptyBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#FF6B00', paddingHorizontal: 24, paddingVertical: 14, borderRadius: 14 },
-  emptyBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
-
-  /* Bill Cards */
-  billCard: {
-    width: BILL_CARD_W, height: 150,
-    backgroundColor: '#121214', borderRadius: 18,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)',
-    padding: 14, justifyContent: 'space-between',
+  /* Filter */
+  filterRow: { paddingHorizontal: 20, gap: 8, marginBottom: 16, paddingVertical: 4 },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
-  billVendor: { fontSize: 14, fontWeight: '700', color: '#FFF' },
-  billDate: { fontSize: 11, fontWeight: '500', color: '#8E8E93', marginTop: 1 },
-  billAmount: { fontSize: 20, fontWeight: '800', color: '#FFF', letterSpacing: -0.5 },
-  splitBtn: {
-    height: 24, borderRadius: 8,
-    backgroundColor: 'rgba(255,107,0,0.15)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  splitBtnText: { fontSize: 11, fontWeight: '700', color: '#FF6B00' },
+  filterChipText: { fontSize: 13, fontWeight: '600' },
+  filterChipCount: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8 },
+  filterChipCountText: { fontSize: 11, fontWeight: '700' },
 
-  /* Group Cards */
+  /* Group Card */
   groupCard: {
-    minHeight: 96,
-    backgroundColor: '#121214', borderRadius: 18,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.04)',
-    padding: 16,
-    flexDirection: 'row', alignItems: 'center',
+    borderRadius: 16,
+    borderWidth: 1,
+    overflow: 'hidden',
+    flexDirection: 'row',
   },
-  groupLeft: { flex: 1, marginRight: 12 },
-  groupName: { fontSize: 16, fontWeight: '600', color: '#FFF', marginBottom: 4 },
-  groupMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  groupTypeDot: { width: 5, height: 5, borderRadius: 2.5 },
-  groupMeta: { fontSize: 12, fontWeight: '500', color: '#8E8E93' },
-
-  groupCenter: { marginRight: 12 },
+  groupAccent: { width: 4 },
+  groupContent: { flex: 1, padding: 14, gap: 10 },
+  groupTop: { flexDirection: 'row', alignItems: 'flex-start' },
+  groupBottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  groupName: { fontSize: 16, fontWeight: '700', marginBottom: 3 },
+  groupMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  groupMeta: { fontSize: 11, fontWeight: '500' },
+  metaDot: { width: 3, height: 3, borderRadius: 1.5 },
   avatarStack: { flexDirection: 'row', alignItems: 'center' },
   avatarCircle: {
-    width: 28, height: 28, borderRadius: 14,
-    backgroundColor: '#2C2C2E', alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1.5, borderColor: '#121214',
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
   },
-  avatarText: { fontSize: 10, fontWeight: '700', color: '#FFF' },
-  avatarOverflow: { backgroundColor: 'rgba(255,107,0,0.2)' },
-  avatarOverflowText: { fontSize: 9, fontWeight: '700', color: '#FF6B00' },
-  avatarInvite: { backgroundColor: 'rgba(255,107,0,0.1)', borderColor: 'rgba(255,107,0,0.3)' },
+  avatarText: { fontSize: 10, fontWeight: '700' },
+  avatarOverflowText: { fontSize: 9, fontWeight: '700' },
+  groupBalance: { fontSize: 15, fontWeight: '800' },
+  typeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  typeDot: { width: 5, height: 5, borderRadius: 2.5 },
+  typeBadgeText: { fontSize: 11, fontWeight: '700' },
 
-  groupRight: { alignItems: 'flex-end' },
-  groupBalance: { fontSize: 16, fontWeight: '800', letterSpacing: -0.3 },
-  groupActivity: { fontSize: 10, fontWeight: '500', color: '#8E8E93', marginTop: 2 },
+  /* Empty */
+  emptyWrap: { alignItems: 'center', paddingHorizontal: 32, paddingTop: 40 },
+  emptyIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  emptyTitle: { fontSize: 20, fontWeight: '700', marginBottom: 6 },
+  emptySub: { fontSize: 14, textAlign: 'center', lineHeight: 20, marginBottom: 20 },
+  emptyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#FF6B00',
+    paddingHorizontal: 22,
+    paddingVertical: 13,
+    borderRadius: 14,
+  },
+  emptyBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
 
   /* Create Card */
   createCard: {
-    flexDirection: 'row', alignItems: 'center',
-    marginHorizontal: 20, marginTop: 24,
-    padding: 16, borderRadius: 18, borderWidth: 1.5, borderStyle: 'dashed',
-    gap: 14, backgroundColor: 'rgba(255,107,0,0.03)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 20,
+    marginTop: 20,
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    gap: 12,
   },
-  createIconWrap: { width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  createLabel: { fontSize: 16, fontWeight: '700', letterSpacing: -0.2 },
-  createSub: { fontSize: 12, fontWeight: '500', marginTop: 2 },
+  createIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  createLabel: { fontSize: 15, fontWeight: '700' },
+  createSub: { fontSize: 12, fontWeight: '500', marginTop: 1 },
 
   /* FAB */
   fabWrap: { position: 'absolute', right: 24, alignItems: 'center' },
   fab: {
-    width: 56, height: 56, borderRadius: 28,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: '#FF6B00',
-    alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#FF6B00', shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3, shadowRadius: 24, elevation: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#FF6B00',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 24,
+    elevation: 8,
   },
 });

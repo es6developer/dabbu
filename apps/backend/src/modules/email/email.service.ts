@@ -62,7 +62,9 @@ export class EmailService {
     text?: string;
   }): Promise<void> {
     if (!this.initialized) {
-      this.logger.log(`[EMAIL LOG] To: ${options.to} | Subject: ${options.subject}`);
+      this.logger.log(
+        `[EMAIL LOG] To: ${options.to} | Subject: ${options.subject}${options.text ? ` | Body: ${options.text}` : ''}`,
+      );
       return;
     }
 
@@ -85,10 +87,13 @@ export class EmailService {
   }
 
   async sendOtpEmail(to: string, name: string, otpCode: string, purpose: string): Promise<void> {
+    const purposeLabel =
+      purpose === 'email_verification' ? 'email verification' : purpose.replace('_', ' ');
     await this.send({
       to,
       subject: EMAIL_SUBJECTS.OTP_VERIFICATION,
       html: otpEmail(name, otpCode, purpose),
+      text: `Your Dabbu ${purposeLabel} code is: ${otpCode}. It expires in 10 minutes.`,
     });
   }
 

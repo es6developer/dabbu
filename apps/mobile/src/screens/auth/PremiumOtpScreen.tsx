@@ -66,8 +66,8 @@ export function PremiumOtpScreen() {
     setError('');
     try {
       await api.post('/auth/send-otp', { email, purpose });
-    } catch {
-      setError('Failed to send OTP. Please try again.');
+    } catch (e: any) {
+      setError(e?.message || 'Failed to send OTP. Please try again.');
     }
   }
 
@@ -119,7 +119,11 @@ export function PremiumOtpScreen() {
         purpose,
       });
       if (result.verified) {
-        navigation.navigate(purpose === 'password_reset' ? 'ForgotPassword' : 'Login');
+        if (purpose === 'email_verification') {
+          navigation.navigate('Login', { emailVerified: true });
+        } else {
+          navigation.navigate(purpose === 'password_reset' ? 'ForgotPassword' : 'Login');
+        }
       } else {
         setError(result.message || 'Invalid OTP');
       }
@@ -146,8 +150,7 @@ export function PremiumOtpScreen() {
 
           <Text style={styles.title}>Check your Email</Text>
           <Text style={styles.subtitle}>
-            Enter the unique code we sent to{' '}
-            <Text style={styles.emailHighlight}>{email}</Text>
+            Enter the unique code we sent to <Text style={styles.emailHighlight}>{email}</Text>
           </Text>
 
           {error ? (

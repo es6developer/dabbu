@@ -7,6 +7,8 @@ let accessToken: string | null = null;
 let refreshTokenFn: (() => Promise<boolean>) | null = null;
 let onSessionExpiredFn: (() => void) | null = null;
 
+let refreshPromise: Promise<boolean> | null = null;
+
 export function setAccessToken(token: string | null) {
   accessToken = token;
 }
@@ -18,6 +20,40 @@ export function setRefreshTokenHandler(fn: () => Promise<boolean>) {
 }
 export function setOnSessionExpiredHandler(fn: () => void) {
   onSessionExpiredFn = fn;
+}
+
+function decodeJwt(token: string): { exp: number } | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return null;
+    }
+    const payload = JSON.parse(atob(parts[1]));
+    return payload.exp ? { exp: payload.exp } : null;
+  } catch {
+    return null;
+  }
+}
+
+function isTokenExpired(token: string, bufferSec = 30): boolean {
+  const decoded = decodeJwt(token);
+  if (!decoded) {
+    return false;
+  }
+  return Date.now() >= (decoded.exp - bufferSec) * 1000;
+}
+
+async function refreshAccessToken(): Promise<boolean> {
+  if (!refreshTokenFn) {
+    return false;
+  }
+  if (refreshPromise) {
+    return refreshPromise;
+  }
+  refreshPromise = refreshTokenFn().finally(() => {
+    refreshPromise = null;
+  });
+  return refreshPromise;
 }
 
 let warmupDone = false;
@@ -211,6 +247,10 @@ async function request<T>(
     return pendingRequests.get(key) as Promise<T>;
   }
 
+  if (accessToken && isTokenExpired(accessToken) && refreshTokenFn) {
+    await refreshAccessToken();
+  }
+
   if (canCache) {
     if (!hydrationPromise) {
       hydrateCache();
@@ -275,8 +315,27 @@ async function executeRequest<T>(
     const res = await fetchWithTimeout(path, sentOptions, timeout);
 
     if (res.status === 401 && refreshTokenFn) {
-      const refreshed = await refreshTokenFn();
-      if (refreshed) {
+      if (accessToken && !isTokenExpired(accessToken)) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+        const retryRes = await fetchWithTimeout(path, { ...options, headers }, timeout);
+        if (retryRes.ok) {
+          const retryBody = await retryRes.json().catch(() => {
+            throw new Error('Invalid server response');
+          });
+          const retryData = retryBody?.data ?? retryBody;
+          if (canCache) {
+            setCached(key, retryData, ttl);
+          }
+          return retryData as T;
+        }
+        if (retryRes.status !== 401) {
+          const error = await retryRes.json().catch(() => ({ message: 'Request failed' }));
+          const msg = Array.isArray(error.message) ? error.message[0] : error.message;
+          throw new Error(msg || `HTTP ${retryRes.status}`);
+        }
+      }
+      const refreshed = await refreshAccessToken();
+      if (refreshed && accessToken) {
         headers['Authorization'] = `Bearer ${accessToken}`;
         const retryRes = await fetchWithTimeout(path, { ...options, headers }, timeout);
         if (retryRes.ok) {

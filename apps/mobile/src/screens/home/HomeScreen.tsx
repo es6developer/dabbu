@@ -157,6 +157,16 @@ export function HomeScreen() {
     [accessToken, fadeAnim, user?.id],
   );
 
+  const spendPct = useMemo(
+    () =>
+      data.monthlyBudget > 0 ? Math.min((data.monthlySpending / data.monthlyBudget) * 100, 100) : 0,
+    [data.monthlyBudget, data.monthlySpending],
+  );
+  const remaining = useMemo(
+    () => data.monthlyBudget - data.monthlySpending,
+    [data.monthlyBudget, data.monthlySpending],
+  );
+
   useFocusEffect(
     useCallback(() => {
       loadData();
@@ -167,15 +177,6 @@ export function HomeScreen() {
   if (loading) {
     return <LoadingScreen />;
   }
-
-  const spendPct = useMemo(
-    () => (data.monthlyBudget > 0 ? Math.min((data.monthlySpending / data.monthlyBudget) * 100, 100) : 0),
-    [data.monthlyBudget, data.monthlySpending],
-  );
-  const remaining = useMemo(
-    () => data.monthlyBudget - data.monthlySpending,
-    [data.monthlyBudget, data.monthlySpending],
-  );
 
   const HEADER_H = insets.top + 100;
 
@@ -419,10 +420,27 @@ export function HomeScreen() {
                         })
                       }
                     >
-                      <View style={[styles.groupAvatarBg, { backgroundColor: `${colors.accent.primary}12` }]}>
-                        <View style={[styles.groupAvatar, { backgroundColor: colors.accent.primary }]}>
+                      <View
+                        style={[
+                          styles.groupAvatarBg,
+                          { backgroundColor: `${colors.accent.primary}12` },
+                        ]}
+                      >
+                        <View
+                          style={[styles.groupAvatar, { backgroundColor: colors.accent.primary }]}
+                        >
                           <Ionicons
-                            name={g.icon === 'heart' ? 'heart' : g.icon === 'home' ? 'home' : g.icon === 'restaurant' ? 'restaurant' : g.icon === 'car' ? 'car' : 'people'}
+                            name={
+                              g.icon === 'heart'
+                                ? 'heart'
+                                : g.icon === 'home'
+                                  ? 'home'
+                                  : g.icon === 'restaurant'
+                                    ? 'restaurant'
+                                    : g.icon === 'car'
+                                      ? 'car'
+                                      : 'people'
+                            }
                             size={16}
                             color="#FFF"
                           />
@@ -440,7 +458,12 @@ export function HomeScreen() {
                           {memberCount}
                         </Text>
                       </View>
-                      <View style={[styles.groupExpenseBadge, { backgroundColor: `${colors.accent.primary}10` }]}>
+                      <View
+                        style={[
+                          styles.groupExpenseBadge,
+                          { backgroundColor: `${colors.accent.primary}10` },
+                        ]}
+                      >
                         <Text style={[styles.groupExpense, { color: colors.accent.primary }]}>
                           ₹{((g as any).totalExpense || 0).toLocaleString('en-IN')}
                         </Text>
