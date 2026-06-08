@@ -83,6 +83,7 @@ export class EmailService {
       this.logger.error(
         `Failed to send email: to=${options.to} subject="${options.subject}" error=${(error as Error).message}`,
       );
+      throw error;
     }
   }
 

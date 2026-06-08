@@ -3,6 +3,7 @@ import {
   UnauthorizedException,
   ConflictException,
   BadRequestException,
+  InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -711,13 +712,16 @@ export class AuthService {
       },
     });
 
-    this.emailService
-      .sendOtpEmail(user.email, user.firstName, otpCode, dto.purpose)
-      .catch((err) => {
-        this.logger.warn(`Failed to send OTP email to ${user.email}: ${err.message}`);
-      });
+    this.logger.log(`OTP for ${user.email} (${dto.purpose}): ${otpCode}`);
 
-    return { message: 'If the email exists, a verification code has been sent.' };
+    try {
+      await this.emailService.sendOtpEmail(user.email, user.firstName, otpCode, dto.purpose);
+    } catch (err) {
+      this.logger.error(`Failed to send OTP email to ${user.email}: ${(err as Error).message}`);
+      throw new InternalServerErrorException('Failed to send verification email. Please try again later.');
+    }
+
+    return { message: 'A verification code has been sent to your email.' };
   }
 
   async verifyOtp(dto: VerifyOtpDto): Promise<{ verified: boolean; message: string }> {
