@@ -146,13 +146,13 @@ export async function startPremiumTrial(
 }
 
 export async function createReferralLink(): Promise<ReferralData> {
-  return api.post('/external-sharing/referral/create');
+  return api.get('/referral/code');
 }
 
 export async function claimReferral(
   code: string,
 ): Promise<{ success: boolean; rewardAmount: number }> {
-  return api.post('/external-sharing/referral/claim', { code });
+  return api.post('/referral/redeem', { code });
 }
 
 export async function trackInstallRedirect(source: string): Promise<{ success: boolean }> {

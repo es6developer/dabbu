@@ -13,6 +13,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -338,8 +339,10 @@ export function ReferralScreen() {
         }
       >
         {/* Hero */}
-        <View
-          
+        <LinearGradient
+          colors={['#6C3EF4', '#8B5CF6']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
           style={[styles.hero, { paddingTop: insets.top + 16 }]}
         >
           <Text style={styles.heroEyebrow}>REFER & EARN</Text>
@@ -362,7 +365,7 @@ export function ReferralScreen() {
               <Text style={styles.codeShareText}>Share</Text>
             </View>
           </TouchableOpacity>
-        </View>
+        </LinearGradient>
 
         {/* Stats Card */}
         {stats && (
@@ -555,7 +558,7 @@ export function ReferralScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  hero: { paddingHorizontal: 24, paddingBottom: 32, alignItems: 'center' },
+  hero: { paddingHorizontal: 24, paddingBottom: 40, alignItems: 'center' },
   heroEyebrow: {
     fontSize: 11,
     fontWeight: '700',
@@ -601,7 +604,7 @@ const styles = StyleSheet.create({
   codeShareText: { fontSize: 13, fontWeight: '700', color: '#FFF' },
   statsCard: {
     marginHorizontal: 16,
-    marginTop: -16,
+    marginTop: -24,
     borderRadius: 20,
     padding: 20,
     elevation: 4,

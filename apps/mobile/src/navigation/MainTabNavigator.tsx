@@ -358,7 +358,14 @@ export function MainTabNavigator() {
   return (
     <View style={{ flex: 1 }}>
       <Tab.Navigator
-        tabBar={(props) => <GlossyTabBar {...props} colors={colors} isDark={isDark} onCenterPress={() => setShowActions(true)} />}
+        tabBar={(props) => (
+          <GlossyTabBar
+            {...props}
+            colors={colors}
+            isDark={isDark}
+            onCenterPress={() => setShowActions(true)}
+          />
+        )}
         screenOptions={{
           headerShown: false,
           tabBarShowLabel: true,
@@ -430,9 +437,19 @@ function GlossyTabBar({ state, descriptors, navigation, colors, isDark, onCenter
   const centerIndex = state.routes.findIndex((r: any) => r.name === 'QuickAction');
 
   return (
-    <View style={[tabStyles.outerWrapper, { borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }]}>
+    <View
+      style={[
+        tabStyles.outerWrapper,
+        { borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' },
+      ]}
+    >
       <View style={[tabStyles.blur, { backgroundColor: colors.bg.secondary }]}>
-        <View style={[tabStyles.innerRow, { borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}>
+        <View
+          style={[
+            tabStyles.innerRow,
+            { borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' },
+          ]}
+        >
           {state.routes.map((route: any, index: number) => {
             const descriptor = descriptors[route.key];
             const { options } = descriptor;
@@ -440,18 +457,21 @@ function GlossyTabBar({ state, descriptors, navigation, colors, isDark, onCenter
 
             if (route.name === 'QuickAction') {
               return (
-          <TouchableOpacity
-                    key={route.key}
-                    activeOpacity={0.8}
-                    style={tabStyles.centerWrap}
-                    onPress={onCenterPress}
+                <TouchableOpacity
+                  key={route.key}
+                  activeOpacity={0.8}
+                  style={tabStyles.centerWrap}
+                  onPress={onCenterPress}
+                >
+                  <View
+                    style={[
+                      tabStyles.centerBtn,
+                      { backgroundColor: colors.accent.primary, borderColor: colors.brand.hover },
+                    ]}
                   >
-                    <View
-                      style={[tabStyles.centerBtn, { backgroundColor: colors.accent.primary, borderColor: colors.brand.hover }]}
-                    >
-                      <Ionicons name="add" size={28} color="#FFF" />
-                    </View>
-                  </TouchableOpacity>
+                    <Ionicons name="add" size={28} color="#FFF" />
+                  </View>
+                </TouchableOpacity>
               );
             }
 
@@ -461,7 +481,9 @@ function GlossyTabBar({ state, descriptors, navigation, colors, isDark, onCenter
                 target: route.key,
                 canPreventDefault: true,
               });
-              if (event.defaultPrevented) return;
+              if (event.defaultPrevented) {
+                return;
+              }
               const homeScreens: Record<string, string> = {
                 Dashboard: 'DashboardMain',
                 Expense: 'ExpenseHome',
@@ -490,10 +512,22 @@ function GlossyTabBar({ state, descriptors, navigation, colors, isDark, onCenter
                 style={tabStyles.tabItem}
                 onPress={onPress}
               >
-                <View style={[tabStyles.iconWrap, isFocused && { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)' }]}>
+                <View
+                  style={[
+                    tabStyles.iconWrap,
+                    isFocused && {
+                      backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)',
+                    },
+                  ]}
+                >
                   {icon}
                 </View>
-                <Text style={[tabStyles.label, { color: isFocused ? colors.accent.primary : colors.text.tertiary }]}>
+                <Text
+                  style={[
+                    tabStyles.label,
+                    { color: isFocused ? colors.accent.primary : colors.text.tertiary },
+                  ]}
+                >
                   {options.tabBarLabel || route.name}
                 </Text>
               </TouchableOpacity>
@@ -564,9 +598,9 @@ const tabStyles = StyleSheet.create({
     marginTop: -16,
   },
   centerBtn: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 44,
+    height: 44,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,

@@ -27,3 +27,4 @@ export { CircleCard } from './CircleCard';
 export { SplitSummaryCard } from './SplitSummaryCard';
 export { ConfirmDialog } from './ConfirmDialog';
 export { Toast } from './Toast';
+export { AiInsightCard } from './AiInsightCard';

@@ -14,7 +14,7 @@ import { PrivacyPolicyScreen } from '../screens/settings/PrivacyPolicyScreen';
 
 export type AuthStackParamList = {
   Splash: undefined;
-  Onboarding: undefined;
+  Onboarding: { referralCode?: string } | undefined;
   Login: undefined;
   Signup: undefined;
   ForgotPassword: undefined;

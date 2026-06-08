@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Query, UseGuards } from '@nestjs/common';
 import { AiService } from './ai.service';
 import { AiInsightsQueryDto } from './dto/ai-query.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -31,6 +31,18 @@ export class AiController {
       ...body.context,
       userId,
     });
+    return { data: narrative };
+  }
+
+  @Get('groups/:groupId/insights')
+  async getGroupInsights(@CurrentUser('id') userId: string, @Param('groupId') groupId: string) {
+    const narrative = await this.aiService.generateGroupNarrative(groupId, userId);
+    return { data: narrative };
+  }
+
+  @Get('groups/:groupId/split-insights')
+  async getSplitInsights(@CurrentUser('id') userId: string, @Param('groupId') groupId: string) {
+    const narrative = await this.aiService.generateSplitNarrative(groupId, userId);
     return { data: narrative };
   }
 }

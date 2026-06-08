@@ -35,7 +35,13 @@ interface AuthState {
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
+  register: (
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+    referralCode?: string,
+  ) => Promise<void>;
   googleLogin: (idToken: string) => Promise<void>;
   guestLogin: () => Promise<void>;
   logout: () => Promise<void>;
@@ -189,15 +195,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     registerForPushNotifications(tokens.accessToken).catch(() => {});
   }
 
-  async function register(email: string, password: string, firstName: string, lastName: string) {
+  async function register(
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+    referralCode?: string,
+  ) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
     let res: Response;
     try {
+      const body: Record<string, any> = { email, password, firstName, lastName };
+      if (referralCode) {
+        body.referralCode = referralCode;
+      }
       res = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, firstName, lastName }),
+        body: JSON.stringify(body),
         signal: controller.signal,
       });
     } catch (_e) {
@@ -331,18 +347,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function logout() {
     const storage = getStorage();
-    storage.getItem('refreshToken').then((refresh) => {
-      if (state.accessToken && refresh) {
-        fetch(`${API_URL}/auth/logout`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${state.accessToken}`,
-          },
-          body: JSON.stringify({ refreshToken: refresh }),
-        }).catch(() => {});
-      }
-    }).catch(() => {});
+    storage
+      .getItem('refreshToken')
+      .then((refresh) => {
+        if (state.accessToken && refresh) {
+          fetch(`${API_URL}/auth/logout`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${state.accessToken}`,
+            },
+            body: JSON.stringify({ refreshToken: refresh }),
+          }).catch(() => {});
+        }
+      })
+      .catch(() => {});
 
     await clearAuth();
     clearCache();

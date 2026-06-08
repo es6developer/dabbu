@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -21,6 +21,7 @@ import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Skeleton, SkeletonCard } from '../../components/ui/AnimatedSkeleton';
+import { AiInsightCard } from '../../components/ui/AiInsightCard';
 
 function fmt(v: number) {
   return '\u20B9' + Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
@@ -73,15 +74,25 @@ const SECTIONS = [
 function getRelativeTime(dateStr: string): string {
   const now = Date.now();
   const d = new Date(dateStr).getTime();
-  if (isNaN(d)) {return '';}
+  if (isNaN(d)) {
+    return '';
+  }
   const diff = now - d;
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) {return 'just now';}
-  if (mins < 60) {return `${mins}m ago`;}
+  if (mins < 1) {
+    return 'just now';
+  }
+  if (mins < 60) {
+    return `${mins}m ago`;
+  }
   const hours = Math.floor(mins / 60);
-  if (hours < 24) {return `${hours}h ago`;}
+  if (hours < 24) {
+    return `${hours}h ago`;
+  }
   const days = Math.floor(hours / 24);
-  if (days < 7) {return `${days}d ago`;}
+  if (days < 7) {
+    return `${days}d ago`;
+  }
   return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 }
 
@@ -165,12 +176,22 @@ export function GroupExpensesScreen() {
             return;
           }
 
-          const g = grpResult.status === 'fulfilled'
-            ? (Array.isArray(grpResult.value) ? grpResult.value : Array.isArray(grpResult.value?.data) ? grpResult.value.data : [])
-            : [];
-          const txData = txResult.status === 'fulfilled'
-            ? (Array.isArray(txResult.value) ? txResult.value : Array.isArray(txResult.value?.data) ? txResult.value.data : [])
-            : [];
+          const g =
+            grpResult.status === 'fulfilled'
+              ? Array.isArray(grpResult.value)
+                ? grpResult.value
+                : Array.isArray(grpResult.value?.data)
+                  ? grpResult.value.data
+                  : []
+              : [];
+          const txData =
+            txResult.status === 'fulfilled'
+              ? Array.isArray(txResult.value)
+                ? txResult.value
+                : Array.isArray(txResult.value?.data)
+                  ? txResult.value.data
+                  : []
+              : [];
 
           setGroups(g);
           setTransactions(txData);
@@ -192,10 +213,21 @@ export function GroupExpensesScreen() {
     [accessToken, groupId, fadeAnim],
   );
 
+  const [aiTriggered, setAiTriggered] = useState(false);
+  useEffect(() => {
+    if (!loading && transactions.length > 3 && !aiTriggered) {
+      setAiTriggered(true);
+      loadAiInsights();
+    }
+  }, [loading, transactions.length, aiTriggered]);
+
   useFocusEffect(
     useCallback(() => {
       loadData();
-      return () => abortRef.current?.abort();
+      return () => {
+        abortRef.current?.abort();
+        setAiTriggered(false);
+      };
     }, [loadData]),
   );
 
@@ -208,25 +240,29 @@ export function GroupExpensesScreen() {
     const map: Record<string, { total: number; count: number; latest: any }> = {};
     for (const tx of transactions) {
       const gid = tx.expenseGroupId;
-      if (!gid) {continue;}
-      if (!map[gid]) {map[gid] = { total: 0, count: 0, latest: null };}
+      if (!gid) {
+        continue;
+      }
+      if (!map[gid]) {
+        map[gid] = { total: 0, count: 0, latest: null };
+      }
       map[gid].total += Number(tx.amount);
       map[gid].count += 1;
-      if (!map[gid].latest || new Date(tx.date) > new Date(map[gid].latest.date)) {map[gid].latest = tx;}
+      if (!map[gid].latest || new Date(tx.date) > new Date(map[gid].latest.date)) {
+        map[gid].latest = tx;
+      }
     }
     return map;
   }, [transactions]);
 
   const sectionedGroups = useMemo(() => {
-    return SECTIONS
-      .map(s => ({ ...s, groups: groups.filter(g => s.types.includes(g.type)) }))
-      .filter(s => s.groups.length > 0);
+    return SECTIONS.map((s) => ({
+      ...s,
+      groups: groups.filter((g) => s.types.includes(g.type)),
+    })).filter((s) => s.groups.length > 0);
   }, [groups]);
 
-  const members = useMemo(
-    () => (Array.isArray(group?.members) ? group.members : []),
-    [group],
-  );
+  const members = useMemo(() => (Array.isArray(group?.members) ? group.members : []), [group]);
 
   const currentMember = useMemo(
     () => members.find((m: any) => m.userId === currentUser?.id),
@@ -241,14 +277,16 @@ export function GroupExpensesScreen() {
   const memberMap = useMemo(() => {
     const m: Record<string, any> = {};
     members.forEach((mem: any) => {
-      if (mem?.userId) {m[mem.userId] = mem.user || mem;}
+      if (mem?.userId) {
+        m[mem.userId] = mem.user || mem;
+      }
     });
     return m;
   }, [members]);
 
   const name = group?.name || routeGroupName || 'Group';
 
-  const [aiInsights, setAiInsights] = useState<any>(null);
+  const [aiNarrative, setAiNarrative] = useState<any>(null);
   const [loadingAi, setLoadingAi] = useState(false);
 
   const stats = useMemo(() => {
@@ -270,27 +308,24 @@ export function GroupExpensesScreen() {
       totalCount: monthly.filter((t) => t.type === 'expense').length,
       incomeCount: monthly.filter((t) => t.type === 'income').length,
       monthlySpending: totalExpense,
-      monthlyAverage: (transactions.length > 0 ? transactions.reduce((s, t) => s + Number(t.amount || 0), 0) / transactions.length : 0) * 30,
+      monthlyAverage:
+        (transactions.length > 0
+          ? transactions.reduce((s, t) => s + Number(t.amount || 0), 0) / transactions.length
+          : 0) * 30,
     };
   }, [transactions, group]);
 
-  async function loadAiInsights() {
-    if (loadingAi || aiInsights) return;
+  async function loadAiInsights(force = false) {
+    if ((loadingAi || aiNarrative) && !force) {
+      return;
+    }
     setLoadingAi(true);
     try {
-      if (accessToken) setAccessToken(accessToken);
-      const res = await api.post<any>('/ai/narrative', {
-        section: 'shared',
-        data: {
-          groupName: group?.name,
-          totalIncome: stats.totalIncome,
-          totalExpense: stats.totalExpense,
-          remaining: stats.remaining,
-          transactionCount: transactions.length,
-          memberCount: members.length,
-        },
-      });
-      setAiInsights(res?.narrative || res?.data?.narrative || null);
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      const res = await api.get<any>(`/ai/groups/${groupId}/insights`);
+      setAiNarrative(res?.data || null);
     } catch (e: any) {
       console.warn('AI insights unavailable:', e.message);
     } finally {
@@ -304,12 +339,13 @@ export function GroupExpensesScreen() {
     }
     setSavingGroup(true);
     try {
-      if (accessToken) {setAccessToken(accessToken);}
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
       await api.patch(`/expense-groups/${groupId}`, {
         name: editName.trim(),
         description: editDescription.trim(),
         icon: editIcon,
-
       });
       await loadData(true);
       setSettingsOpen(false);
@@ -322,7 +358,9 @@ export function GroupExpensesScreen() {
 
   async function handleExport() {
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
       const res = await api.post<any>(`/shared-finance/groups/${groupId}/export`, {});
       const url = res?.fileUrl || res?.data?.fileUrl;
       if (url) {
@@ -337,11 +375,17 @@ export function GroupExpensesScreen() {
 
   async function addMember(phone?: string) {
     const num = phone || invitePhone;
-    if (!num.trim()) {return;}
+    if (!num.trim()) {
+      return;
+    }
     setSavingGroup(true);
     try {
-      if (accessToken) {setAccessToken(accessToken);}
-      await api.post(`/expense-groups/${groupId}/members/add-by-phone`, { phone: `+91${num.trim()}` });
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      await api.post(`/expense-groups/${groupId}/members/add-by-phone`, {
+        phone: `+91${num.trim()}`,
+      });
       setInvitePhone('');
       setInviteSearchResults([]);
       await loadData(true);
@@ -363,7 +407,9 @@ export function GroupExpensesScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              if (accessToken) {setAccessToken(accessToken);}
+              if (accessToken) {
+                setAccessToken(accessToken);
+              }
               await api.delete(`/expense-groups/${groupId}/members/${member.id}`);
               await loadData(true);
             } catch (e: any) {
@@ -377,7 +423,9 @@ export function GroupExpensesScreen() {
 
   async function changeMemberRole(member: any, role: 'admin' | 'member') {
     try {
-      if (accessToken) {setAccessToken(accessToken);}
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
       await api.patch(`/expense-groups/${groupId}/members/${member.id}/role`, { role });
       await loadData(true);
     } catch (e: any) {
@@ -396,7 +444,9 @@ export function GroupExpensesScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              if (accessToken) {setAccessToken(accessToken);}
+              if (accessToken) {
+                setAccessToken(accessToken);
+              }
               await api.post(`/expense-groups/${groupId}/leave`);
               navigation.goBack();
             } catch (e: any) {
@@ -410,10 +460,17 @@ export function GroupExpensesScreen() {
 
   function handleCreateGroup() {
     if (groups.length >= planInfo.maxGroups) {
-      Alert.alert('Plan Limit', `Free plan allows ${planInfo.maxGroups} groups. Upgrade for more.`, [
-        { text: 'Upgrade', onPress: () => navigation.navigate('Settings', { screen: 'Subscription' }) },
-        { text: 'Cancel', style: 'cancel' },
-      ]);
+      Alert.alert(
+        'Plan Limit',
+        `Free plan allows ${planInfo.maxGroups} groups. Upgrade for more.`,
+        [
+          {
+            text: 'Upgrade',
+            onPress: () => navigation.navigate('Settings', { screen: 'Subscription' }),
+          },
+          { text: 'Cancel', style: 'cancel' },
+        ],
+      );
       return;
     }
     navigation.navigate('CreateExpenseGroup');
@@ -425,7 +482,14 @@ export function GroupExpensesScreen() {
         <View style={[s.loadWrap, { paddingTop: insets.top + 8 }]}>
           {groupId ? (
             <>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20 }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 14,
+                  paddingHorizontal: 20,
+                }}
+              >
                 <Skeleton width={38} height={38} borderRadius={12} />
                 <Skeleton width={52} height={52} borderRadius={16} />
                 <View style={{ flex: 1, gap: 6 }}>
@@ -435,7 +499,13 @@ export function GroupExpensesScreen() {
               </View>
               <View style={{ flexDirection: 'row', paddingHorizontal: 20, gap: 10, marginTop: 18 }}>
                 {[1, 2, 3, 4].map((i) => (
-                  <Skeleton key={i} style={{ flex: 1 }} width="100%" height={80} borderRadius={18} />
+                  <Skeleton
+                    key={i}
+                    style={{ flex: 1 }}
+                    width="100%"
+                    height={80}
+                    borderRadius={18}
+                  />
                 ))}
               </View>
               <View style={{ marginTop: 20, paddingHorizontal: 20, gap: 10 }}>
@@ -446,14 +516,26 @@ export function GroupExpensesScreen() {
             </>
           ) : (
             <>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 24, paddingBottom: 16 }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  paddingHorizontal: 24,
+                  paddingBottom: 16,
+                }}
+              >
                 <View style={{ gap: 4 }}>
                   <Skeleton width={60} height={14} />
                   <Skeleton width={180} height={28} />
                 </View>
                 <Skeleton width={44} height={44} borderRadius={14} />
               </View>
-              <Skeleton width="90%" height={44} borderRadius={12} style={{ marginHorizontal: 24, marginBottom: 16 }} />
+              <Skeleton
+                width="90%"
+                height={44}
+                borderRadius={12}
+                style={{ marginHorizontal: 24, marginBottom: 16 }}
+              />
               {[1, 2, 3].map((i) => (
                 <SkeletonCard key={i} style={{ marginHorizontal: 24, marginBottom: 12 }} />
               ))}
@@ -506,7 +588,14 @@ export function GroupExpensesScreen() {
             <View style={[s.headerRow, { paddingTop: insets.top + 8 }]}>
               <TouchableOpacity
                 onPress={() => navigation.goBack()}
-                style={[s.iconBtn, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.default, borderWidth: 1 }]}
+                style={[
+                  s.iconBtn,
+                  {
+                    backgroundColor: colors.bg.tertiary,
+                    borderColor: colors.border.default,
+                    borderWidth: 1,
+                  },
+                ]}
               >
                 <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
               </TouchableOpacity>
@@ -547,14 +636,28 @@ export function GroupExpensesScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => navigation.navigate('Analytics')}
-                style={[s.actionBtn, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.default, borderWidth: 1 }]}
+                style={[
+                  s.actionBtn,
+                  {
+                    backgroundColor: colors.bg.tertiary,
+                    borderColor: colors.border.default,
+                    borderWidth: 1,
+                  },
+                ]}
               >
                 <Ionicons name="bar-chart" size={22} color={colors.text.primary} />
                 <Text style={[s.actionLabel, { color: colors.text.primary }]}>Analytics</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => setMembersOpen(true)}
-                style={[s.actionBtn, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.default, borderWidth: 1 }]}
+                style={[
+                  s.actionBtn,
+                  {
+                    backgroundColor: colors.bg.tertiary,
+                    borderColor: colors.border.default,
+                    borderWidth: 1,
+                  },
+                ]}
               >
                 <Ionicons name="people" size={22} color={colors.text.primary} />
                 <Text style={[s.actionLabel, { color: colors.text.primary }]}>Members</Text>
@@ -562,15 +665,46 @@ export function GroupExpensesScreen() {
             </View>
 
             <View style={s.grid}>
-              <View style={[s.statCard, { backgroundColor: colors.bg.card, borderColor: colors.border.default, borderWidth: 1 }]}>
+              <View
+                style={[
+                  s.statCard,
+                  {
+                    backgroundColor: colors.bg.card,
+                    borderColor: colors.border.default,
+                    borderWidth: 1,
+                  },
+                ]}
+              >
                 <Text style={[s.statLabel, { color: colors.text.tertiary }]}>Income</Text>
-                <Text style={[s.statVal, { color: colors.text.primary }]}>{fmt(stats.totalIncome)}</Text>
+                <Text style={[s.statVal, { color: colors.text.primary }]}>
+                  {fmt(stats.totalIncome)}
+                </Text>
               </View>
-              <View style={[s.statCard, { backgroundColor: colors.bg.card, borderColor: colors.border.default, borderWidth: 1 }]}>
+              <View
+                style={[
+                  s.statCard,
+                  {
+                    backgroundColor: colors.bg.card,
+                    borderColor: colors.border.default,
+                    borderWidth: 1,
+                  },
+                ]}
+              >
                 <Text style={[s.statLabel, { color: colors.text.tertiary }]}>Expenses</Text>
-                <Text style={[s.statVal, { color: colors.text.primary }]}>{fmt(stats.totalExpense)}</Text>
+                <Text style={[s.statVal, { color: colors.text.primary }]}>
+                  {fmt(stats.totalExpense)}
+                </Text>
               </View>
-              <View style={[s.statCard, { backgroundColor: colors.bg.card, borderColor: colors.border.default, borderWidth: 1 }]}>
+              <View
+                style={[
+                  s.statCard,
+                  {
+                    backgroundColor: colors.bg.card,
+                    borderColor: colors.border.default,
+                    borderWidth: 1,
+                  },
+                ]}
+              >
                 <Text style={[s.statLabel, { color: colors.text.tertiary }]}>Left</Text>
                 <Text style={[s.statVal, { color: colors.text.primary }]}>
                   {fmt(Math.abs(stats.remaining))}
@@ -579,7 +713,15 @@ export function GroupExpensesScreen() {
             </View>
             {stats.totalIncome > 0 && (
               <View style={[s.budgetBar, { backgroundColor: colors.bg.tertiary }]}>
-                <View style={[s.budgetFill, { width: `${Math.min((stats.totalExpense / stats.totalIncome) * 100, 100)}%`, backgroundColor: colors.accent.primary }]} />
+                <View
+                  style={[
+                    s.budgetFill,
+                    {
+                      width: `${Math.min((stats.totalExpense / stats.totalIncome) * 100, 100)}%`,
+                      backgroundColor: colors.accent.primary,
+                    },
+                  ]}
+                />
               </View>
             )}
 
@@ -588,19 +730,52 @@ export function GroupExpensesScreen() {
                 <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Spending Summary</Text>
                 <View style={{ marginTop: 8, gap: 8 }}>
                   {categoryBreakdown.slice(0, 5).map((cat: any, i: number) => {
-                    const pct = stats.totalExpense > 0 ? ((cat.amount || 0) / stats.totalExpense * 100) : 0;
+                    const pct =
+                      stats.totalExpense > 0 ? ((cat.amount || 0) / stats.totalExpense) * 100 : 0;
                     return (
-                      <View key={cat.category || i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <View
+                        key={cat.category || i}
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+                      >
                         <View style={{ flex: 1 }}>
                           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                            <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.primary }}>{cat.category || cat.name}</Text>
-                            <Text style={{ fontSize: 13, color: colors.text.secondary }}>{fmt(cat.amount || 0)}</Text>
+                            <Text
+                              style={{
+                                fontSize: 13,
+                                fontWeight: '500',
+                                color: colors.text.primary,
+                              }}
+                            >
+                              {cat.category || cat.name}
+                            </Text>
+                            <Text style={{ fontSize: 13, color: colors.text.secondary }}>
+                              {fmt(cat.amount || 0)}
+                            </Text>
                           </View>
-                          <View style={[s.budgetBar, { marginTop: 4, backgroundColor: colors.bg.tertiary }]}>
-                            <View style={[s.budgetFill, { width: `${pct}%`, backgroundColor: colors.accent.primary }]} />
+                          <View
+                            style={[
+                              s.budgetBar,
+                              { marginTop: 4, backgroundColor: colors.bg.tertiary },
+                            ]}
+                          >
+                            <View
+                              style={[
+                                s.budgetFill,
+                                { width: `${pct}%`, backgroundColor: colors.accent.primary },
+                              ]}
+                            />
                           </View>
                         </View>
-                        <Text style={{ fontSize: 11, color: colors.text.tertiary, width: 36, textAlign: 'right' }}>{pct.toFixed(0)}%</Text>
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            color: colors.text.tertiary,
+                            width: 36,
+                            textAlign: 'right',
+                          }}
+                        >
+                          {pct.toFixed(0)}%
+                        </Text>
                       </View>
                     );
                   })}
@@ -639,15 +814,29 @@ export function GroupExpensesScreen() {
             )}
 
             {group?.isExpired && (
-              <View style={[s.expiredBanner, { backgroundColor: colors.bg.secondary, borderColor: colors.status.warning }]}>
+              <View
+                style={[
+                  s.expiredBanner,
+                  { backgroundColor: colors.bg.secondary, borderColor: colors.status.warning },
+                ]}
+              >
                 <Ionicons name="lock-closed" size={16} color={colors.status.warning} />
                 <Text style={[s.expiredBannerText, { color: colors.text.secondary }]}>
-                  This circle expired on {new Date(group.expiresAt).toLocaleDateString('en-IN')}. It is now read-only.
+                  This circle expired on {new Date(group.expiresAt).toLocaleDateString('en-IN')}. It
+                  is now read-only.
                 </Text>
               </View>
             )}
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 8 }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 20,
+                paddingTop: 20,
+                paddingBottom: 8,
+              }}
+            >
               <Text style={[s.secTitle, { color: colors.text.tertiary, flex: 1 }]}>
                 Transactions {transactions.length > 0 ? `\u00B7 ${transactions.length}` : ''}
               </Text>
@@ -662,30 +851,14 @@ export function GroupExpensesScreen() {
               )}
             </View>
 
-            {transactions.length > 3 && aiInsights === null && !loadingAi && (
-              <TouchableOpacity
-                onPress={loadAiInsights}
-                style={[s.aiBanner, { backgroundColor: colors.bg.secondary, borderColor: `${colors.accent.primary}30` }]}
-              >
-                <Ionicons name="sparkles" size={16} color={colors.accent.primary} />
-                <Text style={[s.aiBannerText, { color: colors.accent.primary }]}>View AI Insights</Text>
-                <Ionicons name="chevron-forward" size={14} color={colors.accent.primary} />
-              </TouchableOpacity>
-            )}
-            {loadingAi && (
-              <View style={{ paddingHorizontal: 20, paddingVertical: 12 }}>
-                <ActivityIndicator size="small" color={colors.accent.primary} />
-              </View>
-            )}
-            {aiInsights && (
-              <View style={[s.aiCard, { borderColor: `${colors.accent.primary}30`, backgroundColor: colors.bg.secondary }]}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                  <Ionicons name="sparkles" size={16} color={colors.accent.primary} />
-                  <Text style={[s.aiCardTitle, { color: colors.accent.primary }]}>AI Insights</Text>
-                </View>
-                <Text style={[s.aiCardBody, { color: colors.text.secondary }]}>
-                  {typeof aiInsights === 'string' ? aiInsights : aiInsights?.summary || JSON.stringify(aiInsights)}
-                </Text>
+            {transactions.length > 3 && (
+              <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
+                <AiInsightCard
+                  narrative={aiNarrative}
+                  loading={loadingAi}
+                  onReload={() => loadAiInsights(true)}
+                  type="group"
+                />
               </View>
             )}
 
@@ -700,19 +873,35 @@ export function GroupExpensesScreen() {
               return (
                 <TouchableOpacity
                   key={item.id}
-                  style={[s.txCard, { backgroundColor: colors.bg.secondary, borderColor: colors.border.default, borderWidth: 1 }]}
-                  onPress={() => navigation.navigate('TransactionDetail', { transactionId: item.id })}
+                  style={[
+                    s.txCard,
+                    {
+                      backgroundColor: colors.bg.secondary,
+                      borderColor: colors.border.default,
+                      borderWidth: 1,
+                    },
+                  ]}
+                  onPress={() =>
+                    navigation.navigate('TransactionDetail', { transactionId: item.id })
+                  }
                   activeOpacity={0.8}
                 >
                   <View style={[s.txAvatar, { backgroundColor: colors.bg.secondary }]}>
-                    <Text style={[s.txAvatarText, { color: colors.text.primary }]}>{userName[0]?.toUpperCase() || '?'}</Text>
+                    <Text style={[s.txAvatarText, { color: colors.text.primary }]}>
+                      {userName[0]?.toUpperCase() || '?'}
+                    </Text>
                   </View>
                   <View style={{ flex: 1 }}>
                     <View style={s.txTop}>
                       <Text style={[s.txUser, { color: colors.text.primary }]} numberOfLines={1}>
                         {userName}
                       </Text>
-                      <Text style={[s.txAmount, { color: isIncome ? colors.text.primary : colors.text.primary }]}>
+                      <Text
+                        style={[
+                          s.txAmount,
+                          { color: isIncome ? colors.text.primary : colors.text.primary },
+                        ]}
+                      >
                         {isIncome ? '+' : '-'}
                         {fmt(Number(item.amount || 0))}
                       </Text>
@@ -734,9 +923,9 @@ export function GroupExpensesScreen() {
 
             {transactions.length === 0 && (
               <View style={s.empty}>
-              <View style={[s.emptyIcon, { backgroundColor: colors.bg.secondary }]}>
-                <Ionicons name="receipt-outline" size={44} color={colors.text.tertiary} />
-              </View>
+                <View style={[s.emptyIcon, { backgroundColor: colors.bg.secondary }]}>
+                  <Ionicons name="receipt-outline" size={44} color={colors.text.tertiary} />
+                </View>
                 <Text style={[s.emptyTitle, { color: colors.text.primary }]}>No expenses yet</Text>
                 <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>
                   Add your first expense
@@ -857,21 +1046,29 @@ export function GroupExpensesScreen() {
                 </View>
                 <Text style={[s.sheetSubTitle, { color: colors.text.primary }]}>Add Member</Text>
                 <View style={[s.addMemberBox, { backgroundColor: colors.bg.tertiary }]}>
-                  <Text style={{ color: colors.text.secondary, fontSize: 14, marginLeft: 4 }}>+91</Text>
+                  <Text style={{ color: colors.text.secondary, fontSize: 14, marginLeft: 4 }}>
+                    +91
+                  </Text>
                   <TextInput
                     value={invitePhone}
                     onChangeText={(t) => {
                       const digits = t.replace(/[^0-9]/g, '').slice(0, 10);
                       setInvitePhone(digits);
-                      if (inviteSearchRef.current) clearTimeout(inviteSearchRef.current);
+                      if (inviteSearchRef.current) {
+                        clearTimeout(inviteSearchRef.current);
+                      }
                       if (digits.length >= 3) {
                         inviteSearchRef.current = setTimeout(async () => {
                           try {
                             const res = await api.get<any>(`/users/search?query=+91${digits}`);
                             setInviteSearchResults(Array.isArray(res) ? res : res?.data || []);
-                          } catch { setInviteSearchResults([]); }
+                          } catch {
+                            setInviteSearchResults([]);
+                          }
                         }, 400);
-                      } else { setInviteSearchResults([]); }
+                      } else {
+                        setInviteSearchResults([]);
+                      }
                     }}
                     autoCapitalize="none"
                     keyboardType="phone-pad"
@@ -888,7 +1085,12 @@ export function GroupExpensesScreen() {
                   </TouchableOpacity>
                 </View>
                 {inviteSearchResults.length > 0 && (
-                  <View style={[s.suggestionsBox, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}>
+                  <View
+                    style={[
+                      s.suggestionsBox,
+                      { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+                    ]}
+                  >
                     {inviteSearchResults.map((user: any) => (
                       <TouchableOpacity
                         key={user.id}
@@ -896,7 +1098,8 @@ export function GroupExpensesScreen() {
                         onPress={() => addMember((user.phone || '').replace('+91', ''))}
                       >
                         <Text style={{ flex: 1, fontSize: 13, color: colors.text.primary }}>
-                          {(user.phone || '').replace('+91', '')} - {user.firstName || ''} {user.lastName || ''}
+                          {(user.phone || '').replace('+91', '')} - {user.firstName || ''}{' '}
+                          {user.lastName || ''}
                         </Text>
                         <Ionicons name="add-circle" size={18} color={colors.accent.primary} />
                       </TouchableOpacity>
@@ -1034,9 +1237,7 @@ export function GroupExpensesScreen() {
                       {section.label}
                     </Text>
                     <View style={[s.sectionCount, { backgroundColor: colors.accent.primary }]}>
-                      <Text style={s.sectionCountText}>
-                        {section.groups.length}
-                      </Text>
+                      <Text style={s.sectionCountText}>{section.groups.length}</Text>
                     </View>
                   </View>
                 </View>
@@ -1067,7 +1268,16 @@ export function GroupExpensesScreen() {
                           })
                         }
                       >
-                        <View style={[s.card, { backgroundColor: colors.bg.secondary, borderColor: colors.border.default, borderWidth: 1 }]}>
+                        <View
+                          style={[
+                            s.card,
+                            {
+                              backgroundColor: colors.bg.secondary,
+                              borderColor: colors.border.default,
+                              borderWidth: 1,
+                            },
+                          ]}
+                        >
                           <View style={s.cardTop}>
                             <View style={[s.cardAvatar, { backgroundColor: colors.bg.secondary }]}>
                               <Ionicons
@@ -1083,9 +1293,7 @@ export function GroupExpensesScreen() {
                               >
                                 {item.name}
                               </Text>
-                              <Text
-                                style={[s.cardMembers, { color: colors.text.secondary }]}
-                              >
+                              <Text style={[s.cardMembers, { color: colors.text.secondary }]}>
                                 <Ionicons
                                   name="people-outline"
                                   size={11}
@@ -1102,18 +1310,46 @@ export function GroupExpensesScreen() {
                             />
                           </View>
 
-                          <View style={[s.cardDivider, { backgroundColor: colors.border.subtle }]} />
+                          <View
+                            style={[s.cardDivider, { backgroundColor: colors.border.subtle }]}
+                          />
 
                           <View style={s.statsRow}>
-                            <View style={[s.stat, { backgroundColor: colors.bg.card, borderColor: colors.border.default, borderWidth: 1 }]}>
-                              <Text style={[s.statLabel, { color: colors.text.tertiary }]}>Total</Text>
-                              <Text style={[s.statVal, { color: colors.text.primary, marginTop: 4 }]}>
+                            <View
+                              style={[
+                                s.stat,
+                                {
+                                  backgroundColor: colors.bg.card,
+                                  borderColor: colors.border.default,
+                                  borderWidth: 1,
+                                },
+                              ]}
+                            >
+                              <Text style={[s.statLabel, { color: colors.text.tertiary }]}>
+                                Total
+                              </Text>
+                              <Text
+                                style={[s.statVal, { color: colors.text.primary, marginTop: 4 }]}
+                              >
                                 {fmt(ed.total)}
                               </Text>
                             </View>
-                            <View style={[s.stat, { backgroundColor: colors.bg.card, borderColor: colors.border.default, borderWidth: 1 }]}>
-                              <Text style={[s.statLabel, { color: colors.text.tertiary }]}>Txns</Text>
-                              <Text style={[s.statVal, { color: colors.text.primary, marginTop: 4 }]}>
+                            <View
+                              style={[
+                                s.stat,
+                                {
+                                  backgroundColor: colors.bg.card,
+                                  borderColor: colors.border.default,
+                                  borderWidth: 1,
+                                },
+                              ]}
+                            >
+                              <Text style={[s.statLabel, { color: colors.text.tertiary }]}>
+                                Txns
+                              </Text>
+                              <Text
+                                style={[s.statVal, { color: colors.text.primary, marginTop: 4 }]}
+                              >
                                 {ed.count}
                               </Text>
                             </View>
@@ -1122,13 +1358,12 @@ export function GroupExpensesScreen() {
                           {ed.latest && (
                             <>
                               <View
-                                style={[
-                                  s.cardDivider,
-                                  { backgroundColor: colors.border.subtle },
-                                ]}
+                                style={[s.cardDivider, { backgroundColor: colors.border.subtle }]}
                               />
                               <View style={s.latestRow}>
-                              <View style={[s.latestDot, { backgroundColor: colors.accent.primary }]} />
+                                <View
+                                  style={[s.latestDot, { backgroundColor: colors.accent.primary }]}
+                                />
                                 <Text
                                   style={[s.latestText, { color: colors.text.secondary }]}
                                   numberOfLines={1}
@@ -1136,9 +1371,7 @@ export function GroupExpensesScreen() {
                                   {ed.latest.description || 'Expense'} \u00B7{' '}
                                   {fmt(Number(ed.latest.amount))}
                                 </Text>
-                                <Text
-                                  style={[s.latestTime, { color: colors.text.tertiary }]}
-                                >
+                                <Text style={[s.latestTime, { color: colors.text.tertiary }]}>
                                   {getRelativeTime(ed.latest.date || ed.latest.createdAt)}
                                 </Text>
                               </View>
@@ -1146,10 +1379,7 @@ export function GroupExpensesScreen() {
                           )}
 
                           <View
-                            style={[
-                              s.cardDivider,
-                              { backgroundColor: colors.border.subtle },
-                            ]}
+                            style={[s.cardDivider, { backgroundColor: colors.border.subtle }]}
                           />
 
                           <View style={s.quickActions}>
@@ -1182,9 +1412,7 @@ export function GroupExpensesScreen() {
                                 size={14}
                                 color={colors.text.secondary}
                               />
-                              <Text
-                                style={[s.quickActionText, { color: colors.text.secondary }]}
-                              >
+                              <Text style={[s.quickActionText, { color: colors.text.secondary }]}>
                                 Split
                               </Text>
                             </TouchableOpacity>
@@ -1202,9 +1430,7 @@ export function GroupExpensesScreen() {
                                 size={14}
                                 color={colors.text.secondary}
                               />
-                              <Text
-                                style={[s.quickActionText, { color: colors.text.secondary }]}
-                              >
+                              <Text style={[s.quickActionText, { color: colors.text.secondary }]}>
                                 Members
                               </Text>
                             </TouchableOpacity>
@@ -1222,9 +1448,7 @@ export function GroupExpensesScreen() {
                                 size={14}
                                 color={colors.text.secondary}
                               />
-                              <Text
-                                style={[s.quickActionText, { color: colors.text.secondary }]}
-                              >
+                              <Text style={[s.quickActionText, { color: colors.text.secondary }]}>
                                 Settle
                               </Text>
                             </TouchableOpacity>

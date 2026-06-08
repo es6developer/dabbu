@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../store/AuthContext';
@@ -29,6 +30,16 @@ export function SignupScreen() {
   const [error, setError] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+
+  useEffect(() => {
+    AsyncStorage.getItem('referralCode').then((code) => {
+      if (code) {
+        setReferralCode(code);
+        AsyncStorage.removeItem('referralCode');
+      }
+    });
+  }, []);
 
   useEffect(() => {
     if (response) {
@@ -65,7 +76,13 @@ export function SignupScreen() {
     setLoading(true);
     setError('');
     try {
-      await register(email.trim(), password, firstName.trim(), lastName.trim());
+      await register(
+        email.trim(),
+        password,
+        firstName.trim(),
+        lastName.trim(),
+        referralCode || undefined,
+      );
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -76,12 +93,7 @@ export function SignupScreen() {
   return (
     <PageContainer noPadding>
       <KeyboardAvoidingContainer>
-        <View
-          
-          
-          
-          style={StyleSheet.absoluteFill}
-        />
+        <View style={StyleSheet.absoluteFill} />
         <View style={styles.container}>
           <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
             <View style={[styles.backCircle, { backgroundColor: colors.bg.tertiary }]}>
@@ -109,7 +121,10 @@ export function SignupScreen() {
           ) : null}
 
           <TouchableOpacity
-            style={[styles.googleBtn, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}
+            style={[
+              styles.googleBtn,
+              { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+            ]}
             onPress={() => promptAsync()}
             disabled={loading}
             activeOpacity={0.8}
@@ -126,11 +141,23 @@ export function SignupScreen() {
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.toggleRow} onPress={() => setShowEmailForm(!showEmailForm)}>
+          <TouchableOpacity
+            style={styles.toggleRow}
+            onPress={() => setShowEmailForm(!showEmailForm)}
+          >
             <Text style={[styles.toggleText, { color: colors.text.tertiary }]}>
               {showEmailForm ? 'Hide email sign-up' : 'Sign up with email instead'}
             </Text>
           </TouchableOpacity>
+
+          {referralCode && (
+            <View style={[styles.referralBadge, { backgroundColor: `${colors.accent.primary}12` }]}>
+              <Ionicons name="gift" size={14} color={colors.accent.primary} />
+              <Text style={[styles.referralBadgeText, { color: colors.accent.primary }]}>
+                Referral code applied: {referralCode}
+              </Text>
+            </View>
+          )}
 
           {showEmailForm && (
             <View
@@ -304,4 +331,14 @@ const styles = StyleSheet.create({
   googleBtnText: { fontSize: 16, fontWeight: '600' },
   toggleRow: { alignItems: 'center', marginBottom: 24 },
   toggleText: { fontSize: 13, fontWeight: '500' },
+  referralBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  referralBadgeText: { fontSize: 13, fontWeight: '600' },
 });
