@@ -8,16 +8,13 @@ import { useAuth } from '../../store/AuthContext';
 interface UpgradeBannerProps {
   variant?: 'top' | 'inline';
   message?: string;
-  onDismiss?: () => void;
 }
 
 export function UpgradeBanner({
   variant = 'top',
   message = 'Unlock unlimited groups, advanced analytics & more',
-  onDismiss,
 }: UpgradeBannerProps) {
   const { user, isPremium, refreshPremiumStatus } = useAuth();
-  const { colors } = useTheme();
   const navigation = useNavigation<any>();
   const slideAnim = useRef(new Animated.Value(variant === 'top' ? -80 : 30)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
@@ -54,27 +51,20 @@ export function UpgradeBanner({
       style={[
         styles.container,
         {
-          backgroundColor: colors.bg.card,
-          borderColor: colors.border.default,
+          borderColor: 'rgba(212, 168, 83, 0.3)',
           transform: [{ translateY: slideAnim }],
           opacity: opacityAnim,
         },
       ]}
     >
-      <TouchableOpacity
-        style={styles.dismiss}
-        onPress={onDismiss}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-      >
-        <Ionicons name="close" size={16} color={colors.text.secondary} />
-      </TouchableOpacity>
+      <View style={styles.glowLeft} />
       <View style={styles.content}>
         <View style={styles.iconWrap}>
-          <Ionicons name="diamond" size={18} color="#FF6B00" />
+          <Ionicons name="diamond" size={18} color="#0D1B2A" />
         </View>
         <View style={styles.textWrap}>
-          <Text style={[styles.title, { color: colors.text.primary }]}>Go Premium</Text>
-          <Text style={[styles.message, { color: colors.text.secondary }]}>{message}</Text>
+          <Text style={styles.title}>Go Premium</Text>
+          <Text style={styles.message}>{message}</Text>
         </View>
       </View>
       <TouchableOpacity
@@ -94,16 +84,21 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     borderRadius: 16,
     borderWidth: 1,
+    backgroundColor: '#1A1528',
     padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    overflow: 'hidden',
   },
-  dismiss: {
+  glowLeft: {
     position: 'absolute',
-    top: 6,
-    right: 6,
-    zIndex: 1,
+    left: -20,
+    top: -20,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(243, 210, 143, 0.08)',
   },
   content: {
     flexDirection: 'row',
@@ -115,7 +110,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(255, 107, 0, 0.15)',
+    backgroundColor: '#F3D28F',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 10,
@@ -127,13 +122,15 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     marginBottom: 2,
+    color: '#F3D28F',
   },
   message: {
     fontSize: 12,
     lineHeight: 16,
+    color: 'rgba(243, 210, 143, 0.7)',
   },
   button: {
-    backgroundColor: '#FF6B00',
+    backgroundColor: '#F3D28F',
     paddingHorizontal: 18,
     paddingVertical: 8,
     borderRadius: 20,
@@ -141,7 +138,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: '#0D1B2A',
     fontSize: 13,
     fontWeight: '700',
   },

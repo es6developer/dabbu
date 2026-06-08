@@ -227,18 +227,20 @@ export function SettingsScreen() {
             <TouchableOpacity
               style={[
                 s.upgradeBanner,
-                { backgroundColor: colors.accent.primary, borderColor: colors.border.default },
+                { backgroundColor: '#1A1528', borderColor: 'rgba(243, 210, 143, 0.2)' },
               ]}
               onPress={() => navigation.navigate('Premium')}
               activeOpacity={0.85}
             >
               <View style={s.upgradeGrad}>
                 <View style={{ flex: 1 }}>
-                  <Text style={s.upgradeTitle}>Upgrade to Premium</Text>
-                  <Text style={s.upgradeSub}>Unlock reports, analytics & more</Text>
+                  <Text style={[s.upgradeTitle, { color: '#F3D28F' }]}>Upgrade to Premium</Text>
+                  <Text style={[s.upgradeSub, { color: 'rgba(243, 210, 143, 0.7)' }]}>
+                    Unlock reports, analytics & more
+                  </Text>
                 </View>
-                <View style={s.upgradeArrow}>
-                  <Ionicons name="arrow-forward" size={18} color="#FFF" />
+                <View style={[s.upgradeArrow, { backgroundColor: 'rgba(243, 210, 143, 0.15)' }]}>
+                  <Ionicons name="arrow-forward" size={18} color="#F3D28F" />
                 </View>
               </View>
             </TouchableOpacity>

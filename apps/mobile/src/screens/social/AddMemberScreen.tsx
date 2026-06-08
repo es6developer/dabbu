@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   FlatList,
-  Animated,
   TextInput,
   ActivityIndicator,
   Alert,
@@ -63,14 +62,9 @@ export function AddMemberScreen() {
   const [addingId, setAddingId] = useState<string | null>(null);
   const [selectedFavId, setSelectedFavId] = useState<string | null>(null);
 
-  const scrollY = useRef(new Animated.Value(0)).current;
   const searchAbortRef = useRef<AbortController | null>(null);
 
-  const headerOpacity = scrollY.interpolate({
-    inputRange: [0, 80],
-    outputRange: [1, 0.85],
-    extrapolate: 'clamp',
-  });
+  const didAutoSync = useRef(false);
 
   useEffect(() => {
     getRawPermissionStatus().then((s) => {
@@ -78,6 +72,13 @@ export function AddMemberScreen() {
       setContactsGranted(s === 'granted');
     });
   }, []);
+
+  useEffect(() => {
+    if (permStatus === 'granted' && !hasSynced && !syncing && !syncError && !didAutoSync.current) {
+      didAutoSync.current = true;
+      handleSyncContacts();
+    }
+  }, [permStatus]);
 
   useEffect(() => {
     if (!query.trim() || query.length < 2) {
@@ -107,10 +108,7 @@ export function AddMemberScreen() {
   }
 
   async function handleSyncContacts() {
-    const { granted, status } = await requestRawPermission();
-    setPermStatus(status);
-    setContactsGranted(granted);
-    if (status === 'denied') {
+    if (permStatus === 'denied') {
       Alert.alert(
         'Contacts Access Required',
         'Enable contact access in Settings to find friends on Dabbu.',
@@ -121,8 +119,13 @@ export function AddMemberScreen() {
       );
       return;
     }
-    if (!granted) {
-      return;
+    if (permStatus === 'undetermined') {
+      const { granted, status } = await requestRawPermission();
+      setPermStatus(status);
+      setContactsGranted(granted);
+      if (!granted) {
+        return;
+      }
     }
     setSyncError(null);
     setSyncing(true);
@@ -152,6 +155,8 @@ export function AddMemberScreen() {
     }
     return entries;
   }, [matchedContacts, deviceContacts]);
+
+  const gradColors = useMemo(() => [colors.accent.primary, colors.accent.secondary], [colors]);
 
   async function handleAddToGroup(userId: string, userName: string) {
     if (!groupId) {
@@ -196,35 +201,41 @@ export function AddMemberScreen() {
     setTimeout(() => setSelectedFavId(null), 300);
   }
 
-  const gradColors = useMemo(() => [colors.accent.primary, colors.accent.secondary], [colors]);
-
   const renderHeader = () => (
-    <Animated.View style={[styles.header, { paddingTop: insets.top + 8, opacity: headerOpacity }]}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-        <Ionicons name="close" size={20} color="#FFF" />
-      </TouchableOpacity>
-      <Text style={styles.headerTitle}>Add Member</Text>
-      <View style={{ width: 36 }} />
-    </Animated.View>
+    <LinearGradient
+      colors={[colors.bg.secondary, colors.bg.primary]}
+      style={[styles.headerWrap, { paddingTop: insets.top }]}
+    >
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Ionicons name="arrow-back" size={20} color="#FFF" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Add Member</Text>
+        <View style={{ width: 36 }} />
+      </View>
+    </LinearGradient>
   );
 
   const renderSearchBar = () => (
-    <View style={styles.searchWrap}>
-      <View style={[styles.searchInner, { backgroundColor: 'rgba(255,255,255,0.07)' }]}>
-        <Ionicons name="search" size={16} color="rgba(255,255,255,0.4)" />
+    <View style={styles.searchOuter}>
+      <View style={styles.searchWrap}>
+        <Ionicons name="search" size={18} color="rgba(255,255,255,0.35)" />
         <TextInput
           style={styles.searchInput}
           value={query}
           onChangeText={setQuery}
-          placeholder="Search by name, phone, or email..."
+          placeholder="Search by name, phone or email"
           placeholderTextColor="rgba(255,255,255,0.3)"
           autoCapitalize="none"
           autoCorrect={false}
         />
         {searching && <ActivityIndicator size="small" color={colors.accent.primary} />}
         {query.length > 0 && !searching && (
-          <TouchableOpacity onPress={() => setQuery('')}>
-            <Ionicons name="close-circle" size={16} color="rgba(255,255,255,0.4)" />
+          <TouchableOpacity
+            onPress={() => setQuery('')}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name="close-circle" size={18} color="rgba(255,255,255,0.3)" />
           </TouchableOpacity>
         )}
       </View>
@@ -238,16 +249,16 @@ export function AddMemberScreen() {
     return (
       <View style={styles.favSection}>
         <Text style={styles.favSectionLabel}>FAVORITES</Text>
-        <Animated.ScrollView
+        <FlatList
           horizontal
+          data={favorites}
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, gap: 14 }}
-        >
-          {favorites.map((fav) => {
+          keyExtractor={(item) => item.userId}
+          contentContainerStyle={styles.favList}
+          renderItem={({ item: fav }) => {
             const selected = selectedFavId === fav.userId;
             return (
               <TouchableOpacity
-                key={fav.userId}
                 style={styles.favItem}
                 onPress={() => handleFavPress(fav)}
                 activeOpacity={0.7}
@@ -263,8 +274,8 @@ export function AddMemberScreen() {
                 </Text>
               </TouchableOpacity>
             );
-          })}
-        </Animated.ScrollView>
+          }}
+        />
       </View>
     );
   };
@@ -278,12 +289,12 @@ export function AddMemberScreen() {
         data={searchResults}
         keyExtractor={(item) => item.id}
         keyboardShouldPersistTaps="handled"
-        renderItem={({ item, index }) => {
+        contentContainerStyle={styles.listContainer}
+        renderItem={({ item }) => {
           const name = [item.firstName, item.lastName].filter(Boolean).join(' ') || item.email;
-          const isFav = isFavorite(item.id);
           return (
-            <Animated.View style={[styles.contactRow, { opacity: 1 }]}>
-              <LinearGradient colors={gradColors} style={styles.avatarGradient}>
+            <View style={styles.contactRow}>
+              <LinearGradient colors={gradColors} style={styles.avatar}>
                 <Text style={styles.avatarText}>
                   {(item.firstName?.[0] || item.email?.[0] || '?').toUpperCase()}
                 </Text>
@@ -292,13 +303,12 @@ export function AddMemberScreen() {
                 <Text style={styles.contactName} numberOfLines={1}>
                   {name}
                 </Text>
-                <View style={styles.contactSubRow}>
-                  {item.phone ? <Text style={styles.contactSub}>{item.phone}</Text> : null}
-                  {item.email ? <Text style={styles.contactSub}>{item.email}</Text> : null}
-                </View>
+                <Text style={styles.contactSub} numberOfLines={1}>
+                  {item.phone || item.email || ''}
+                </Text>
               </View>
-              {isFav ? (
-                <View style={[styles.actionBtn, styles.favActiveBtn]}>
+              {isFavorite(item.id) ? (
+                <View style={[styles.actionBtn, { backgroundColor: 'rgba(255,107,0,0.12)' }]}>
                   <Ionicons name="star" size={14} color={colors.accent.primary} />
                 </View>
               ) : (
@@ -319,10 +329,9 @@ export function AddMemberScreen() {
                   )}
                 </TouchableOpacity>
               )}
-            </Animated.View>
+            </View>
           );
         }}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, gap: 2 }}
         ListEmptyComponent={
           searching ? (
             <View style={styles.centerState}>
@@ -330,10 +339,12 @@ export function AddMemberScreen() {
             </View>
           ) : (
             <View style={styles.centerState}>
-              <Ionicons name="person-outline" size={40} color="rgba(255,255,255,0.15)" />
+              <View style={styles.emptyIconWrap}>
+                <Ionicons name="search-outline" size={28} color="rgba(255,255,255,0.2)" />
+              </View>
               <Text style={styles.emptyTitle}>No users found</Text>
               <TouchableOpacity style={styles.inviteBtn} onPress={() => handleInvite(query)}>
-                <Ionicons name="share-outline" size={14} color={colors.accent.primary} />
+                <Ionicons name="share-outline" size={16} color={colors.accent.primary} />
                 <Text style={styles.inviteBtnText}>Send Invite</Text>
               </TouchableOpacity>
             </View>
@@ -343,26 +354,7 @@ export function AddMemberScreen() {
     );
   };
 
-  const renderSyncButton = () => {
-    if (hasSynced) {
-      return null;
-    }
-    return (
-      <View style={{ paddingHorizontal: 20, marginTop: 12 }}>
-        <TouchableOpacity
-          style={[styles.inviteBtn, { alignSelf: 'flex-start' }]}
-          onPress={permStatus === 'denied' ? () => Linking.openSettings() : handleSyncContacts}
-        >
-          <Ionicons name="people-outline" size={14} color={colors.accent.primary} />
-          <Text style={styles.inviteBtnText}>
-            {permStatus === 'denied' ? 'Open Settings to Sync Contacts' : 'Sync Contacts'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    );
-  };
-
-  const renderMainContent = () => {
+  const renderContactsList = () => {
     if (syncing) {
       return (
         <View style={styles.centerState}>
@@ -375,13 +367,45 @@ export function AddMemberScreen() {
     if (syncError) {
       return (
         <View style={styles.centerState}>
-          <Ionicons name="cloud-offline-outline" size={40} color="#FF4545" />
-          <Text style={[styles.emptyTitle, { color: '#FF4545', textAlign: 'center' }]}>
-            {syncError}
-          </Text>
+          <View style={styles.emptyIconWrap}>
+            <Ionicons name="cloud-offline-outline" size={28} color="#FF4545" />
+          </View>
+          <Text style={[styles.emptyTitle, { color: '#FF4545' }]}>{syncError}</Text>
           <TouchableOpacity style={styles.inviteBtn} onPress={handleSyncContacts}>
-            <Ionicons name="refresh-outline" size={14} color={colors.accent.primary} />
+            <Ionicons name="refresh-outline" size={16} color={colors.accent.primary} />
             <Text style={styles.inviteBtnText}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    if (!hasSynced && permStatus !== 'granted') {
+      return (
+        <View style={styles.centerState}>
+          <View style={styles.emptyIconWrap}>
+            <Ionicons name="people-outline" size={28} color="rgba(255,255,255,0.2)" />
+          </View>
+          <Text style={styles.emptyTitle}>Find friends on Dabbu</Text>
+          <Text style={styles.emptyDesc}>Sync your contacts to see who's already here</Text>
+          <TouchableOpacity style={styles.inviteBtn} onPress={handleSyncContacts}>
+            <Ionicons name="people-outline" size={16} color={colors.accent.primary} />
+            <Text style={styles.inviteBtnText}>Sync Contacts</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    if (!hasSynced || allContacts.length === 0) {
+      return (
+        <View style={styles.centerState}>
+          <View style={styles.emptyIconWrap}>
+            <Ionicons name="person-outline" size={28} color="rgba(255,255,255,0.2)" />
+          </View>
+          <Text style={styles.emptyTitle}>No contacts found</Text>
+          <Text style={styles.emptyDesc}>Search for members by name, phone, or email</Text>
+          <TouchableOpacity style={styles.inviteBtn} onPress={() => handleInvite('')}>
+            <Ionicons name="share-outline" size={16} color={colors.accent.primary} />
+            <Text style={styles.inviteBtnText}>Send Invite</Text>
           </TouchableOpacity>
         </View>
       );
@@ -392,16 +416,15 @@ export function AddMemberScreen() {
         data={allContacts}
         keyExtractor={(_, i) => String(i)}
         keyboardShouldPersistTaps="handled"
-        ListEmptyComponent={
-          <View style={styles.centerState}>
-            <Ionicons name="search-outline" size={40} color="rgba(255,255,255,0.15)" />
-            <Text style={[styles.emptyTitle, { color: 'rgba(255,255,255,0.5)' }]}>
-              No contacts found
+        contentContainerStyle={styles.listContainer}
+        ListHeaderComponent={
+          <View style={styles.syncBanner}>
+            <Ionicons name="people" size={16} color="#34C759" />
+            <Text style={styles.syncBannerText}>
+              {matchedContacts.length} friend{matchedContacts.length !== 1 ? 's' : ''} on Dabbu
             </Text>
-            <Text style={styles.emptyDesc}>Search for members by name, phone, or email</Text>
-            <TouchableOpacity style={styles.inviteBtn} onPress={() => handleInvite('')}>
-              <Ionicons name="share-outline" size={14} color={colors.accent.primary} />
-              <Text style={styles.inviteBtnText}>Send Invite</Text>
+            <TouchableOpacity onPress={handleSyncContacts} style={styles.resyncBtn}>
+              <Ionicons name="refresh" size={16} color="rgba(255,255,255,0.4)" />
             </TouchableOpacity>
           </View>
         }
@@ -415,9 +438,9 @@ export function AddMemberScreen() {
             <View style={styles.contactRow}>
               <LinearGradient
                 colors={
-                  isAppUser ? gradColors : ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']
+                  isAppUser ? gradColors : ['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.04)']
                 }
-                style={styles.avatarGradient}
+                style={styles.avatar}
               >
                 <Text style={styles.avatarText}>{name[0]?.toUpperCase() || '?'}</Text>
               </LinearGradient>
@@ -426,11 +449,9 @@ export function AddMemberScreen() {
                   {name}
                 </Text>
                 <View style={styles.contactSubRow}>
-                  {phone ? (
-                    <Text style={styles.contactSub}>{phone}</Text>
-                  ) : email ? (
-                    <Text style={styles.contactSub}>{email}</Text>
-                  ) : null}
+                  <Text style={styles.contactSub} numberOfLines={1}>
+                    {phone || email || 'No contact info'}
+                  </Text>
                   {isAppUser && (
                     <View style={styles.statusBadge}>
                       <Text style={styles.statusText}>On Dabbu</Text>
@@ -440,13 +461,8 @@ export function AddMemberScreen() {
               </View>
               {isAppUser ? (
                 existingMemberIds.includes(userId) ? (
-                  <View
-                    style={[styles.actionBtn, { backgroundColor: `${colors.status.success}15` }]}
-                  >
-                    <Ionicons name="checkmark" size={14} color={colors.status.success} />
-                    <Text style={[styles.actionBtnText, { color: colors.status.success }]}>
-                      Member
-                    </Text>
+                  <View style={[styles.actionBtn, { backgroundColor: 'rgba(52,199,89,0.12)' }]}>
+                    <Ionicons name="checkmark-circle" size={16} color="#34C759" />
                   </View>
                 ) : (
                   <TouchableOpacity
@@ -466,25 +482,16 @@ export function AddMemberScreen() {
                   </TouchableOpacity>
                 )
               ) : (
-                <TouchableOpacity style={styles.inviteActionBtn} onPress={() => handleInvite(name)}>
+                <TouchableOpacity
+                  style={[styles.actionBtn, styles.inviteActionBtn]}
+                  onPress={() => handleInvite(name)}
+                >
                   <Text style={styles.inviteActionText}>Invite</Text>
                 </TouchableOpacity>
               )}
             </View>
           );
         }}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, gap: 2 }}
-        ListHeaderComponent={
-          <View style={styles.syncBannerRow}>
-            <Ionicons name="people" size={14} color="#34C759" />
-            <Text style={styles.syncBannerText}>
-              {matchedContacts.length} friend{matchedContacts.length !== 1 ? 's' : ''} on Dabbu
-            </Text>
-            <TouchableOpacity onPress={handleSyncContacts} style={styles.resyncBtn}>
-              <Ionicons name="refresh" size={14} color="rgba(255,255,255,0.4)" />
-            </TouchableOpacity>
-          </View>
-        }
       />
     );
   };
@@ -494,14 +501,7 @@ export function AddMemberScreen() {
       {renderHeader()}
       {renderSearchBar()}
       {renderFavoritesBar()}
-      {query.trim().length >= 2 ? (
-        renderSearchResults()
-      ) : (
-        <>
-          {renderMainContent()}
-          {!syncing && !query.trim() && renderSyncButton()}
-        </>
-      )}
+      {query.trim().length >= 2 ? renderSearchResults() : renderContactsList()}
     </View>
   );
 }
@@ -509,138 +509,158 @@ export function AddMemberScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
 
+  headerWrap: { paddingBottom: 8 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    height: 56,
+    height: 52,
   },
   backBtn: {
     width: 36,
     height: 36,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerTitle: { fontSize: 17, fontWeight: '700', color: '#FFF' },
 
-  searchWrap: { paddingHorizontal: 20, marginVertical: 12 },
-  searchInner: {
+  searchOuter: { paddingHorizontal: 20, marginTop: 8, marginBottom: 4 },
+  searchWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    borderRadius: 14,
+    gap: 10,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 12,
     paddingHorizontal: 14,
     height: 44,
   },
-  searchInput: { flex: 1, fontSize: 15, fontWeight: '500', color: '#FFF', paddingVertical: 0 },
+  searchInput: { flex: 1, fontSize: 15, color: '#FFF', paddingVertical: 0 },
 
-  favSection: { marginBottom: 8 },
+  favSection: { marginTop: 4, marginBottom: 4 },
   favSectionLabel: {
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.8,
-    color: 'rgba(255,255,255,0.35)',
+    color: 'rgba(255,255,255,0.3)',
     marginLeft: 24,
-    marginBottom: 10,
+    marginBottom: 8,
   },
-  favItem: { alignItems: 'center', gap: 6, width: 64 },
+  favList: { paddingHorizontal: 20, gap: 16 },
+  favItem: { alignItems: 'center', gap: 6, width: 60 },
   favAvatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
   },
   favAvatarSelected: { borderWidth: 2, borderColor: '#FF6B00' },
-  favAvatarText: { fontSize: 20, fontWeight: '700', color: '#FFF' },
-  favName: { fontSize: 12, fontWeight: '500', color: '#FFF', textAlign: 'center', maxWidth: 64 },
+  favAvatarText: { fontSize: 18, fontWeight: '700', color: '#FFF' },
+  favName: { fontSize: 11, fontWeight: '500', color: '#FFF', textAlign: 'center' },
+
+  listContainer: { paddingTop: 4, paddingBottom: 40 },
 
   contactRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 64,
-    gap: 12,
+    paddingVertical: 10,
     paddingHorizontal: 20,
+    gap: 12,
   },
-  avatarGradient: {
+  avatar: {
     width: 44,
     height: 44,
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: { fontSize: 17, fontWeight: '700', color: '#FFF' },
+  avatarText: { fontSize: 16, fontWeight: '700', color: '#FFF' },
   contactInfo: { flex: 1, justifyContent: 'center' },
   contactName: { fontSize: 15, fontWeight: '600', color: '#FFF', marginBottom: 2 },
   contactSubRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  contactSub: { fontSize: 12, fontWeight: '500', color: 'rgba(255,255,255,0.45)' },
+  contactSub: { fontSize: 12, fontWeight: '500', color: 'rgba(255,255,255,0.4)' },
   statusBadge: {
     paddingHorizontal: 6,
-    paddingVertical: 1,
+    paddingVertical: 2,
     borderRadius: 4,
     backgroundColor: 'rgba(52,199,89,0.12)',
   },
   statusText: { fontSize: 10, fontWeight: '600', color: '#34C759' },
 
   actionBtn: {
-    width: 68,
+    minWidth: 64,
     height: 32,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 12,
   },
   actionBtnText: { fontSize: 13, fontWeight: '700' },
-  favActiveBtn: {
-    width: 68,
-    height: 32,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,107,0,0.1)',
-  },
   inviteActionBtn: {
-    width: 68,
-    height: 32,
-    borderRadius: 8,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   inviteActionText: { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.45)' },
 
-  centerState: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
-  emptyTitle: { fontSize: 17, fontWeight: '700', color: 'rgba(255,255,255,0.5)' },
-  emptyDesc: { fontSize: 13, fontWeight: '500', color: 'rgba(255,255,255,0.3)' },
-  syncingText: { color: 'rgba(255,255,255,0.45)', fontSize: 14, fontWeight: '500', marginTop: 8 },
+  centerState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 32,
+  },
+  emptyIconWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  emptyTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.5)',
+    textAlign: 'center',
+  },
+  emptyDesc: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.3)',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  syncingText: { color: 'rgba(255,255,255,0.45)', fontSize: 14, fontWeight: '500', marginTop: 4 },
 
   inviteBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     paddingVertical: 10,
-    paddingHorizontal: 18,
+    paddingHorizontal: 20,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: 'rgba(255,107,0,0.3)',
-    marginTop: 4,
+    marginTop: 8,
   },
   inviteBtnText: { fontSize: 14, fontWeight: '700', color: '#FF6B00' },
 
-  syncBannerRow: {
+  syncBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     paddingVertical: 10,
-    marginHorizontal: 20,
+    paddingHorizontal: 20,
+    marginBottom: 4,
   },
   syncBannerText: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.45)', flex: 1 },
   resyncBtn: {
-    width: 28,
-    height: 28,
+    width: 32,
+    height: 32,
     borderRadius: 8,
     backgroundColor: 'rgba(255,255,255,0.06)',
     alignItems: 'center',
