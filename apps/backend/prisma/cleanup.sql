@@ -15,88 +15,133 @@
 --   mysql -h <host> -u <user> -p<pass> <db> < apps/backend/prisma/cleanup.sql
 -- ============================================================
 
-SET @system_email = 'system@dabbu.internal';
-SET @demo_email   = 'demo@dabbu.app';
-
--- Safety: disable foreign key checks so we can delete in any order.
--- CASCADE constraints WILL fire (MySQL fires them regardless).
-SET FOREIGN_KEY_CHECKS = 0;
-
 -- ═══════════════════════════════════════════════════════════
--- 1. TABLES THAT REFERENCE USER (userId / paidBy / createdBy / senderId / etc.)
---    Delete for all real users BEFORE deleting the user row.
---    (Many lack onDelete: Cascade in Prisma, e.g. AuditLog uses NoAction.)
+-- 1. TABLES WITH NO CASCADE (NoAction in Prisma)
+--    Delete explicitly first, otherwise the user DELETE below fails.
+--    Tables WITH CASCADE are handled automatically when users are deleted (step 2).
+--
+--    NOTE: Using literals 'system@dabbu.internal' / 'demo@dabbu.app'
+--    instead of session variables to avoid collation mismatch errors
+--    (utf8mb4_unicode_ci vs utf8mb4_0900_ai_ci).
 -- ═══════════════════════════════════════════════════════════
 
 -- Audit (NoAction → must delete explicitly)
-DELETE al FROM audit_logs al JOIN users u ON u.id = al.userId WHERE u.email NOT IN (@system_email, @demo_email);
+DELETE al FROM audit_logs al
+JOIN users u ON u.id = al.userId
+WHERE u.email != 'system@dabbu.internal' AND u.email != 'demo@dabbu.app';
 
 -- Analytics events (SetNull → safe but clean them anyway)
-DELETE ae FROM analytics_events ae JOIN users u ON u.id = ae.userId WHERE u.email NOT IN (@system_email, @demo_email);
+DELETE ae FROM analytics_events ae
+JOIN users u ON u.id = ae.userId
+WHERE u.email != 'system@dabbu.internal' AND u.email != 'demo@dabbu.app';
 
 -- Login activity
-DELETE la FROM login_activity la JOIN users u ON u.id = la.userId WHERE u.email NOT IN (@system_email, @demo_email);
+DELETE la FROM login_activity la
+JOIN users u ON u.id = la.userId
+WHERE u.email != 'system@dabbu.internal' AND u.email != 'demo@dabbu.app';
 
 -- Notification logs
-DELETE nl FROM notification_logs nl JOIN users u ON u.id = nl.userId WHERE u.email NOT IN (@system_email, @demo_email);
+DELETE nl FROM notification_logs nl
+JOIN users u ON u.id = nl.userId
+WHERE u.email != 'system@dabbu.internal' AND u.email != 'demo@dabbu.app';
 
 -- Notifications
-DELETE n FROM notifications n JOIN users u ON u.id = n.userId WHERE u.email NOT IN (@system_email, @demo_email);
+DELETE n FROM notifications n
+JOIN users u ON u.id = n.userId
+WHERE u.email != 'system@dabbu.internal' AND u.email != 'demo@dabbu.app';
 
 -- Sessions
-DELETE s FROM sessions s JOIN users u ON u.id = s.userId WHERE u.email NOT IN (@system_email, @demo_email);
+DELETE s FROM sessions s
+JOIN users u ON u.id = s.userId
+WHERE u.email != 'system@dabbu.internal' AND u.email != 'demo@dabbu.app';
 
 -- Devices
-DELETE d FROM devices d JOIN users u ON u.id = d.userId WHERE u.email NOT IN (@system_email, @demo_email);
+DELETE d FROM devices d
+JOIN users u ON u.id = d.userId
+WHERE u.email != 'system@dabbu.internal' AND u.email != 'demo@dabbu.app';
 
 -- Contact hashes
-DELETE ch FROM contact_hashes ch JOIN users u ON u.id = ch.userId WHERE u.email NOT IN (@system_email, @demo_email);
+DELETE ch FROM contact_hashes ch
+JOIN users u ON u.id = ch.userId
+WHERE u.email != 'system@dabbu.internal' AND u.email != 'demo@dabbu.app';
 
--- Friends (initiated or added)
-DELETE f FROM friends f WHERE f.userId IN (SELECT id FROM users WHERE email NOT IN (@system_email, @demo_email))
-   OR f.friendId IN (SELECT id FROM users WHERE email NOT IN (@system_email, @demo_email));
+-- Friends (initiated) — uses JOIN instead of subquery to avoid collation issues
+DELETE f1 FROM friends f1
+JOIN users u ON u.id = f1.userId
+WHERE u.email != 'system@dabbu.internal' AND u.email != 'demo@dabbu.app';
+DELETE f2 FROM friends f2
+JOIN users u ON u.id = f2.friendId
+WHERE u.email != 'system@dabbu.internal' AND u.email != 'demo@dabbu.app';
 
 -- Expense splits
-DELETE es FROM expense_splits es JOIN users u ON u.id = es.userId WHERE u.email NOT IN (@system_email, @demo_email);
+DELETE es FROM expense_splits es
+JOIN users u ON u.id = es.userId
+WHERE u.email != 'system@dabbu.internal' AND u.email != 'demo@dabbu.app';
 
 -- Household contributions
-DELETE hc FROM household_contributions hc JOIN users u ON u.id = hc.userId WHERE u.email NOT IN (@system_email, @demo_email);
+DELETE hc FROM household_contributions hc
+JOIN users u ON u.id = hc.userId
+WHERE u.email != 'system@dabbu.internal' AND u.email != 'demo@dabbu.app';
 
 -- Shared goal contributions
-DELETE sgc FROM shared_goal_contributions sgc JOIN users u ON u.id = sgc.userId WHERE u.email NOT IN (@system_email, @demo_email);
+DELETE sgc FROM shared_goal_contributions sgc
+JOIN users u ON u.id = sgc.userId
+WHERE u.email != 'system@dabbu.internal' AND u.email != 'demo@dabbu.app';
 
 -- Group wallet members
-DELETE gwm FROM group_wallet_members gwm JOIN users u ON u.id = gwm.userId WHERE u.email NOT IN (@system_email, @demo_email);
+DELETE gwm FROM group_wallet_members gwm
+JOIN users u ON u.id = gwm.userId
+WHERE u.email != 'system@dabbu.internal' AND u.email != 'demo@dabbu.app';
 
 -- Advance contribution history
-DELETE ach FROM advance_contribution_history ach JOIN users u ON u.id = ach.userId WHERE u.email NOT IN (@system_email, @demo_email);
+DELETE ach FROM advance_contribution_history ach
+JOIN users u ON u.id = ach.userId
+WHERE u.email != 'system@dabbu.internal' AND u.email != 'demo@dabbu.app';
 
 -- Document permissions
-DELETE dp FROM document_permissions dp JOIN users u ON u.id = dp.userId WHERE u.email NOT IN (@system_email, @demo_email);
+DELETE dp FROM document_permissions dp
+JOIN users u ON u.id = dp.userId
+WHERE u.email != 'system@dabbu.internal' AND u.email != 'demo@dabbu.app';
 
 -- Bill splits
-DELETE bs FROM bill_splits bs JOIN users u ON u.id = bs.userId WHERE u.email NOT IN (@system_email, @demo_email);
+DELETE bs FROM bill_splits bs
+JOIN users u ON u.id = bs.userId
+WHERE u.email != 'system@dabbu.internal' AND u.email != 'demo@dabbu.app';
 
 -- Emergency contributions
-DELETE ec FROM emergency_contributions ec JOIN users u ON u.id = ec.userId WHERE u.email NOT IN (@system_email, @demo_email);
+DELETE ec FROM emergency_contributions ec
+JOIN users u ON u.id = ec.userId
+WHERE u.email != 'system@dabbu.internal' AND u.email != 'demo@dabbu.app';
 
 -- User badges
-DELETE ub FROM user_badges ub JOIN users u ON u.id = ub.userId WHERE u.email NOT IN (@system_email, @demo_email);
+DELETE ub FROM user_badges ub
+JOIN users u ON u.id = ub.userId
+WHERE u.email != 'system@dabbu.internal' AND u.email != 'demo@dabbu.app';
 
 -- User documents
-DELETE ud FROM user_documents ud JOIN users u ON u.id = ud.userId WHERE u.email NOT IN (@system_email, @demo_email);
+DELETE ud FROM user_documents ud
+JOIN users u ON u.id = ud.userId
+WHERE u.email != 'system@dabbu.internal' AND u.email != 'demo@dabbu.app';
 
 -- User streaks
-DELETE us FROM user_streaks us JOIN users u ON u.id = us.userId WHERE u.email NOT IN (@system_email, @demo_email);
+DELETE us FROM user_streaks us
+JOIN users u ON u.id = us.userId
+WHERE u.email != 'system@dabbu.internal' AND u.email != 'demo@dabbu.app';
 
 -- Export history
-DELETE eh FROM export_histories eh JOIN users u ON u.id = eh.userId WHERE u.email NOT IN (@system_email, @demo_email);
+DELETE eh FROM export_histories eh
+JOIN users u ON u.id = eh.userId
+WHERE u.email != 'system@dabbu.internal' AND u.email != 'demo@dabbu.app';
 
 -- Settlement confirmations
-DELETE sc FROM settlement_confirmations sc JOIN users u ON u.id = sc.userId WHERE u.email NOT IN (@system_email, @demo_email);
+DELETE sc FROM settlement_confirmations sc
+JOIN users u ON u.id = sc.userId
+WHERE u.email != 'system@dabbu.internal' AND u.email != 'demo@dabbu.app';
 
 -- SMS detections
-DELETE sd FROM sms_detections sd JOIN users u ON u.id = sd.userId WHERE u.email NOT IN (@system_email, @demo_email);
+DELETE sd FROM sms_detections sd
+JOIN users u ON u.id = sd.userId
+WHERE u.email != 'system@dabbu.internal' AND u.email != 'demo@dabbu.app';
 
 -- ═══════════════════════════════════════════════════════════
 -- 2. DELETE THE REAL USERS
@@ -106,7 +151,7 @@ DELETE sd FROM sms_detections sd JOIN users u ON u.id = sd.userId WHERE u.email 
 -- ═══════════════════════════════════════════════════════════
 
 DELETE FROM users
-WHERE email NOT IN (@system_email, @demo_email);
+WHERE email != 'system@dabbu.internal' AND email != 'demo@dabbu.app';
 
 -- ═══════════════════════════════════════════════════════════
 -- 3. CLEAN UP ORPHANED CATEGORIES
@@ -117,16 +162,13 @@ DELETE tc FROM transaction_categories tc
 LEFT JOIN users u ON u.id = tc.userId
 WHERE u.id IS NULL AND tc.isDefault = 0;
 
--- Re-enable FK checks
-SET FOREIGN_KEY_CHECKS = 1;
-
 -- ═══════════════════════════════════════════════════════════
 -- 4. VERIFICATION
 -- ═══════════════════════════════════════════════════════════
 
 SELECT '' AS '';
 SELECT '=== MASTER DATA PRESERVED ===' AS status;
-SELECT email, id FROM users WHERE email IN (@system_email, @demo_email);
+SELECT email, id FROM users WHERE email = 'system@dabbu.internal' OR email = 'demo@dabbu.app';
 SELECT CONCAT('Subscription plans: ', COUNT(*)) FROM subscription_plans;
 SELECT CONCAT('Currencies: ', COUNT(*)) FROM currencies;
 SELECT CONCAT('Admin users: ', COUNT(*)) FROM admin_users;
