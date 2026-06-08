@@ -68,7 +68,7 @@ model User {
   role            String  @default("user") @db.VarChar(20) // user, premium, admin, super_admin
 
   // OTP & 2FA
-  otpCode          String?   @db.VarChar(6)
+  otpCode          String?   @db.VarChar(60)
   otpExpiresAt     DateTime?
   otpPurpose       String?   @db.VarChar(20) // email_verification, password_reset, login
   otpAttempts      Int       @default(0)

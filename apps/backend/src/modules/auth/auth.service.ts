@@ -98,17 +98,27 @@ export class AuthService {
     });
 
     const tokens = await this.generateTokens(user.id, user.email);
-    await this.createSession(user.id, tokens.refreshToken, tokens.sessionId, dto.deviceName || undefined, dto.platform || undefined, ipAddress, userAgent);
+    await this.createSession(
+      user.id,
+      tokens.refreshToken,
+      tokens.sessionId,
+      dto.deviceName || undefined,
+      dto.platform || undefined,
+      ipAddress,
+      userAgent,
+    );
 
     const { password, ...userWithoutPassword } = user;
+
+    this.emailService.sendWelcomeEmail(user.email, user.firstName).catch((err) => {
+      this.logger.warn(`Failed to send welcome email for ${user.id}: ${err.message}`);
+    });
 
     if (dto.referralCode) {
       this.referralService.processReferralSignup(user.id, dto.referralCode).catch((err) => {
         this.logger.warn(`Failed to process referral for ${user.id}: ${err.message}`);
       });
     }
-
-    await this.emailService.sendWelcomeEmail(user.email, user.firstName);
 
     return { user: userWithoutPassword, tokens };
   }
@@ -136,7 +146,14 @@ export class AuthService {
     const isPasswordValid = await bcrypt.compare(dto.password, user.password);
     if (!isPasswordValid) {
       await this.handleFailedLogin(user.id, user.loginAttempts);
-      await this.logLoginActivity(user.id, 'login_failed', ipAddress, userAgent, dto.deviceName, dto.platform);
+      await this.logLoginActivity(
+        user.id,
+        'login_failed',
+        ipAddress,
+        userAgent,
+        dto.deviceName,
+        dto.platform,
+      );
       throw new UnauthorizedException('Invalid email or password');
     }
 
@@ -153,8 +170,23 @@ export class AuthService {
     });
 
     const tokens = await this.generateTokens(user.id, user.email);
-    await this.createSession(user.id, tokens.refreshToken, tokens.sessionId, dto.deviceName || undefined, dto.platform || undefined, ipAddress, userAgent);
-    await this.logLoginActivity(user.id, 'login_success', ipAddress, userAgent, dto.deviceName || undefined, dto.platform || undefined);
+    await this.createSession(
+      user.id,
+      tokens.refreshToken,
+      tokens.sessionId,
+      dto.deviceName || undefined,
+      dto.platform || undefined,
+      ipAddress,
+      userAgent,
+    );
+    await this.logLoginActivity(
+      user.id,
+      'login_success',
+      ipAddress,
+      userAgent,
+      dto.deviceName || undefined,
+      dto.platform || undefined,
+    );
 
     const { password, ...userWithoutPassword } = user;
     return { user: userWithoutPassword, tokens };
@@ -190,7 +222,14 @@ export class AuthService {
         where: { id: session.id },
         data: { isRevoked: true, revokedAt: new Date() },
       });
-      await this.logLoginActivity(userId, 'logout', session.ipAddress || undefined, session.userAgent || undefined, session.deviceName || undefined, session.platform || undefined);
+      await this.logLoginActivity(
+        userId,
+        'logout',
+        session.ipAddress || undefined,
+        session.userAgent || undefined,
+        session.deviceName || undefined,
+        session.platform || undefined,
+      );
     }
   }
 
@@ -203,7 +242,14 @@ export class AuthService {
       data: { isRevoked: true, revokedAt: new Date() },
     });
     for (const s of sessions) {
-      await this.logLoginActivity(userId, 'logout', s.ipAddress || undefined, s.userAgent || undefined, s.deviceName || undefined, s.platform || undefined);
+      await this.logLoginActivity(
+        userId,
+        'logout',
+        s.ipAddress || undefined,
+        s.userAgent || undefined,
+        s.deviceName || undefined,
+        s.platform || undefined,
+      );
     }
   }
 
@@ -388,8 +434,23 @@ export class AuthService {
     }
 
     const tokens = await this.generateTokens(user.id, user.email);
-    await this.createSession(user.id, tokens.refreshToken, tokens.sessionId, deviceName, platform, ipAddress, userAgent);
-    await this.logLoginActivity(user.id, 'login_success', ipAddress, userAgent, deviceName, platform);
+    await this.createSession(
+      user.id,
+      tokens.refreshToken,
+      tokens.sessionId,
+      deviceName,
+      platform,
+      ipAddress,
+      userAgent,
+    );
+    await this.logLoginActivity(
+      user.id,
+      'login_success',
+      ipAddress,
+      userAgent,
+      deviceName,
+      platform,
+    );
 
     const { password, ...userWithoutPassword } = user;
     return { user: userWithoutPassword, tokens };
@@ -497,8 +558,23 @@ export class AuthService {
     }
 
     const tokens = await this.generateTokens(user.id, user.email);
-    await this.createSession(user.id, tokens.refreshToken, tokens.sessionId, deviceName || undefined, platform || undefined, ipAddress, userAgent);
-    await this.logLoginActivity(user.id, 'login_success', ipAddress, userAgent, deviceName || undefined, platform || undefined);
+    await this.createSession(
+      user.id,
+      tokens.refreshToken,
+      tokens.sessionId,
+      deviceName || undefined,
+      platform || undefined,
+      ipAddress,
+      userAgent,
+    );
+    await this.logLoginActivity(
+      user.id,
+      'login_success',
+      ipAddress,
+      userAgent,
+      deviceName || undefined,
+      platform || undefined,
+    );
 
     if (isNewUser && dto.referralCode) {
       this.referralService.processReferralSignup(user.id, dto.referralCode).catch((err) => {
@@ -553,7 +629,11 @@ export class AuthService {
       },
     });
 
-    await this.emailService.sendForgotPasswordEmail(user.email, user.firstName, resetToken);
+    this.emailService
+      .sendForgotPasswordEmail(user.email, user.firstName, resetToken)
+      .catch((err) => {
+        this.logger.warn(`Failed to send password reset email to ${user.email}: ${err.message}`);
+      });
 
     return { message: 'If the email exists, a reset link has been sent.' };
   }
@@ -597,10 +677,13 @@ export class AuthService {
       data: { isRevoked: true, revokedAt: new Date() },
     });
 
-    await this.emailService.sendPasswordChangedEmail(
-      matchedUser.email,
-      matchedUser.email.split('@')[0] || 'User',
-    );
+    this.emailService
+      .sendPasswordChangedEmail(matchedUser.email, matchedUser.email.split('@')[0] || 'User')
+      .catch((err) => {
+        this.logger.warn(
+          `Failed to send password changed email to ${matchedUser.email}: ${err.message}`,
+        );
+      });
 
     return { message: 'Password reset successfully' };
   }
@@ -628,7 +711,11 @@ export class AuthService {
       },
     });
 
-    await this.emailService.sendOtpEmail(user.email, user.firstName, otpCode, dto.purpose);
+    this.emailService
+      .sendOtpEmail(user.email, user.firstName, otpCode, dto.purpose)
+      .catch((err) => {
+        this.logger.warn(`Failed to send OTP email to ${user.email}: ${err.message}`);
+      });
 
     return { message: 'If the email exists, a verification code has been sent.' };
   }
@@ -687,7 +774,10 @@ export class AuthService {
 
   // ─── App Lock ─────────────────────────────────────────────
 
-  async setupLock(userId: string, dto: SetupLockDto): Promise<{ hasPin: boolean; biometricEnabled: boolean }> {
+  async setupLock(
+    userId: string,
+    dto: SetupLockDto,
+  ): Promise<{ hasPin: boolean; biometricEnabled: boolean }> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       throw new UnauthorizedException('User not found');
@@ -782,7 +872,14 @@ export class AuthService {
       where: { id: sessionId },
       data: { isRevoked: true, revokedAt: new Date() },
     });
-    await this.logLoginActivity(userId, 'logout', session.ipAddress || undefined, session.userAgent || undefined, session.deviceName || undefined, session.platform || undefined);
+    await this.logLoginActivity(
+      userId,
+      'logout',
+      session.ipAddress || undefined,
+      session.userAgent || undefined,
+      session.deviceName || undefined,
+      session.platform || undefined,
+    );
   }
 
   async revokeOtherSessions(userId: string, currentSessionId: string): Promise<number> {
