@@ -9,14 +9,56 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   ScrollView,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Svg, { Circle, Path, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { PremiumAuthLayout } from '../../components/ui/PremiumAuthLayout';
 import { useAuth } from '../../store/AuthContext';
 import { useGoogleAuth, getGoogleIdToken, getGoogleError } from '../../services/google-auth';
 
+const { width: SCREEN_W } = Dimensions.get('window');
 type Tab = 'login' | 'signup';
+
+function AuthVectors() {
+  return (
+    <View style={vectorsStyle.wrapper}>
+      <Svg width={SCREEN_W} height="100%" viewBox={`0 0 ${SCREEN_W} 360`}>
+        <Defs>
+          <SvgGradient id="grad1" x1="0" y1="0" x2="1" y2="1">
+            <Stop offset="0" stopColor="#FF6B00" stopOpacity="0.15" />
+            <Stop offset="1" stopColor="#FF6B00" stopOpacity="0.03" />
+          </SvgGradient>
+          <SvgGradient id="grad2" x1="0" y1="1" x2="1" y2="0">
+            <Stop offset="0" stopColor="#FF6B00" stopOpacity="0.08" />
+            <Stop offset="1" stopColor="#FF6B00" stopOpacity="0" />
+          </SvgGradient>
+        </Defs>
+        <Circle cx={SCREEN_W * 0.75} cy={80} r={60} fill="url(#grad1)" />
+        <Circle cx={SCREEN_W * 0.25} cy={180} r={90} fill="url(#grad2)" />
+        <Circle cx={SCREEN_W * 0.85} cy={220} r={40} fill="url(#grad1)" />
+        <Path
+          d={`M 0 280 Q ${SCREEN_W * 0.3} 240 ${SCREEN_W * 0.5} 280 T ${SCREEN_W} 260 L ${SCREEN_W} 360 L 0 360 Z`}
+          fill="url(#grad2)"
+          opacity={0.6}
+        />
+        <Path
+          d={`M 0 300 Q ${SCREEN_W * 0.4} 260 ${SCREEN_W * 0.6} 300 T ${SCREEN_W} 280 L ${SCREEN_W} 360 L 0 360 Z`}
+          fill="#131315"
+          opacity={1}
+        />
+      </Svg>
+    </View>
+  );
+}
+
+const vectorsStyle = StyleSheet.create({
+  wrapper: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 0,
+  },
+});
 
 export function PremiumAuthScreen() {
   const navigation = useNavigation<any>();
@@ -27,20 +69,16 @@ export function PremiumAuthScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Login fields
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
 
-  // Signup fields
   const [name, setName] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const slideAnim = useRef(new Animated.Value(0)).current;
-  const tabIndicatorLeft = useRef(new Animated.Value(0)).current;
-  const tabWidth = 0;
+  const slideAnim = useRef(new Animated.Value(tab === 'login' ? 0 : 1)).current;
 
   const emailRef = useRef<TextInput>(null);
   const pwRef = useRef<TextInput>(null);
@@ -66,13 +104,11 @@ export function PremiumAuthScreen() {
     if (next === tab) return;
     setTab(next);
     setError('');
-    Animated.parallel([
-      Animated.timing(slideAnim, {
-        toValue: next === 'login' ? 0 : 1,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    Animated.timing(slideAnim, {
+      toValue: next === 'login' ? 0 : 1,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
   }
 
   async function handleGoogleLogin(idToken: string) {
@@ -124,121 +160,124 @@ export function PremiumAuthScreen() {
     }
   }
 
-  const loginOpacity = slideAnim.interpolate({
+  const formOpacity = slideAnim.interpolate({
     inputRange: [0, 0.5, 1],
-    outputRange: [1, 0, 0],
+    outputRange: [1, 0, 1],
   });
-  const signupOpacity = slideAnim.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [0, 0, 1],
-  });
-  const loginTranslateY = slideAnim.interpolate({
+
+  const loginSlide = slideAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 12],
+    outputRange: [0, -20],
   });
-  const signupTranslateY = slideAnim.interpolate({
+
+  const signupSlide = slideAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [12, 0],
+    outputRange: [20, 0],
   });
 
   return (
     <PremiumAuthLayout>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.content}>
-          {/* Tab bar */}
-          <View style={styles.tabBar}>
-            <TouchableOpacity
-              style={styles.tab}
-              onPress={() => switchTab('login')}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.tabText, tab === 'login' && styles.tabTextActive]}>
-                Sign In
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.tab}
-              onPress={() => switchTab('signup')}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.tabText, tab === 'signup' && styles.tabTextActive]}>
-                Sign Up
-              </Text>
-            </TouchableOpacity>
-            <Animated.View
-              style={[
-                styles.tabIndicator,
-                {
-                  transform: [{
-                    translateX: slideAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0, 140],
-                    }),
-                  }],
-                },
-              ]}
-            />
-          </View>
-
           <ScrollView
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={styles.scrollContent}
           >
+            {/* Tab bar */}
+            <View style={styles.tabBar}>
+              <TouchableOpacity
+                style={styles.tab}
+                onPress={() => switchTab('login')}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.tabText, tab === 'login' && styles.tabTextActive]}>
+                  Sign In
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.tab}
+                onPress={() => switchTab('signup')}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.tabText, tab === 'signup' && styles.tabTextActive]}>
+                  Sign Up
+                </Text>
+              </TouchableOpacity>
+              <Animated.View
+                style={[
+                  styles.tabIndicator,
+                  {
+                    transform: [{
+                      translateX: slideAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, 140],
+                      }),
+                    }],
+                  },
+                ]}
+              />
+            </View>
+
             {/* Login form */}
             <Animated.View
               style={[
                 styles.formContainer,
                 {
-                  opacity: loginOpacity,
-                  transform: [{ translateY: loginTranslateY }],
+                  opacity: tab === 'login' ? formOpacity : 0,
+                  transform: [{ translateX: loginSlide }],
                 },
               ]}
               pointerEvents={tab === 'login' ? 'auto' : 'none'}
             >
-              <InputField
-                placeholder="Email address"
-                value={loginEmail}
-                onChangeText={setLoginEmail}
-                keyboardType="email-address"
-                returnKeyType="next"
-                onSubmitEditing={() => pwRef.current?.focus()}
-              />
-              <InputField
-                ref={pwRef}
-                placeholder="Password"
-                value={loginPassword}
-                onChangeText={setLoginPassword}
-                secureTextEntry
-                returnKeyType="done"
-                onSubmitEditing={handleLogin}
-              />
+              <Text style={styles.title}>Welcome Back</Text>
+              <Text style={styles.subtitle}>
+                Enter your details below to access your split circles
+              </Text>
 
-              {error && tab === 'login' ? (
-                <ErrorBox message={error} />
-              ) : null}
+              <View style={styles.form}>
+                <InputField
+                  placeholder="Email address"
+                  value={loginEmail}
+                  onChangeText={setLoginEmail}
+                  keyboardType="email-address"
+                  returnKeyType="next"
+                  onSubmitEditing={() => pwRef.current?.focus()}
+                />
+                <InputField
+                  ref={pwRef}
+                  placeholder="Password"
+                  value={loginPassword}
+                  onChangeText={setLoginPassword}
+                  secureTextEntry
+                  returnKeyType="done"
+                  onSubmitEditing={handleLogin}
+                />
 
-              <View style={styles.footnotes}>
-                <TouchableOpacity
-                  style={styles.checkboxRow}
-                  onPress={() => setRememberMe(!rememberMe)}
-                  activeOpacity={0.7}
-                >
-                  <View style={[styles.checkbox, rememberMe && styles.checkboxActive]}>
-                    {rememberMe && <Ionicons name="checkmark" size={12} color="#FFFFFF" />}
-                  </View>
-                  <Text style={styles.checkboxLabel}>Remember me</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
-                  <Text style={styles.forgotLink}>Forgot password?</Text>
-                </TouchableOpacity>
+                {error && tab === 'login' ? <ErrorBox message={error} /> : null}
+
+                <View style={styles.footnotes}>
+                  <TouchableOpacity
+                    style={styles.checkboxRow}
+                    onPress={() => setRememberMe(!rememberMe)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.checkbox, rememberMe && styles.checkboxActive]}>
+                      {rememberMe && <Ionicons name="checkmark" size={12} color="#FFFFFF" />}
+                    </View>
+                    <Text style={styles.checkboxLabel}>Remember me</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+                    <Text style={styles.forgotLink}>Forgot password?</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <PrimaryButton
+                  title="Let's Start"
+                  loading={loading && tab === 'login'}
+                  onPress={handleLogin}
+                />
               </View>
-
-              <PrimaryButton
-                title="Let's Start"
-                loading={loading && tab === 'login'}
-                onPress={handleLogin}
-              />
             </Animated.View>
 
             {/* Signup form */}
@@ -247,63 +286,77 @@ export function PremiumAuthScreen() {
                 styles.formContainer,
                 styles.formOverlay,
                 {
-                  opacity: signupOpacity,
-                  transform: [{ translateY: signupTranslateY }],
+                  opacity: tab === 'signup' ? formOpacity : 0,
+                  transform: [{ translateX: signupSlide }],
                 },
               ]}
               pointerEvents={tab === 'signup' ? 'auto' : 'none'}
             >
-              <InputField
-                placeholder="Full name"
-                value={name}
-                onChangeText={setName}
-                autoCapitalize="words"
-                returnKeyType="next"
-                onSubmitEditing={() => signupEmailRef.current?.focus()}
-              />
-              <InputField
-                ref={signupEmailRef}
-                placeholder="Email address"
-                value={signupEmail}
-                onChangeText={setSignupEmail}
-                keyboardType="email-address"
-                returnKeyType="next"
-                onSubmitEditing={() => signupPwRef.current?.focus()}
-              />
-              <InputField
-                ref={signupPwRef}
-                placeholder="Password"
-                value={signupPassword}
-                onChangeText={setSignupPassword}
-                secureTextEntry
-                returnKeyType="next"
-                onSubmitEditing={() => confirmRef.current?.focus()}
-              />
-              <InputField
-                ref={confirmRef}
-                placeholder="Confirm password"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry
-                returnKeyType="done"
-                onSubmitEditing={handleSignup}
-              />
+              <Text style={styles.title}>Get Started</Text>
+              <Text style={styles.subtitle}>
+                Join Dabbu to split bills seamlessly with friends
+              </Text>
 
-              {error && tab === 'signup' ? (
-                <ErrorBox message={error} />
-              ) : null}
+              <View style={styles.form}>
+                <InputField
+                  placeholder="Full name"
+                  value={name}
+                  onChangeText={setName}
+                  autoCapitalize="words"
+                  returnKeyType="next"
+                  onSubmitEditing={() => signupEmailRef.current?.focus()}
+                />
+                <InputField
+                  ref={signupEmailRef}
+                  placeholder="Email address"
+                  value={signupEmail}
+                  onChangeText={setSignupEmail}
+                  keyboardType="email-address"
+                  returnKeyType="next"
+                  onSubmitEditing={() => signupPwRef.current?.focus()}
+                />
+                <InputField
+                  ref={signupPwRef}
+                  placeholder="Password"
+                  value={signupPassword}
+                  onChangeText={setSignupPassword}
+                  secureTextEntry
+                  returnKeyType="next"
+                  onSubmitEditing={() => confirmRef.current?.focus()}
+                />
+                <InputField
+                  ref={confirmRef}
+                  placeholder="Confirm password"
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry
+                  returnKeyType="done"
+                  onSubmitEditing={handleSignup}
+                />
 
-              <PrimaryButton
-                title="Create Account"
-                loading={loading && tab === 'signup'}
-                onPress={handleSignup}
-              />
+                {error && tab === 'signup' ? <ErrorBox message={error} /> : null}
+
+                <PrimaryButton
+                  title="Create Account"
+                  loading={loading && tab === 'signup'}
+                  onPress={handleSignup}
+                />
+              </View>
+
+              <View style={styles.switchRow}>
+                <Text style={styles.switchText}>Already have an account? </Text>
+                <TouchableOpacity onPress={() => switchTab('login')}>
+                  <Text style={styles.switchLink}>Sign In</Text>
+                </TouchableOpacity>
+              </View>
             </Animated.View>
 
             {/* Divider + Google */}
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>Or {tab === 'login' ? 'Log In' : 'Sign Up'} With</Text>
+              <Text style={styles.dividerText}>
+                Or {tab === 'login' ? 'Log In' : 'Sign Up'} With
+              </Text>
               <View style={styles.dividerLine} />
             </View>
 
@@ -367,30 +420,13 @@ interface InputFieldProps {
 }
 
 const InputField = React.forwardRef<TextInput, InputFieldProps>(
-  (
-    {
-      placeholder,
-      value,
-      onChangeText,
-      secureTextEntry,
-      keyboardType,
-      autoCapitalize,
-      onSubmitEditing,
-      returnKeyType,
-    },
-    ref,
-  ) => {
+  ({ placeholder, value, onChangeText, secureTextEntry, keyboardType, autoCapitalize, onSubmitEditing, returnKeyType }, ref) => {
     const [focused, setFocused] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = secureTextEntry !== undefined;
 
     return (
-      <View
-        style={[
-          styles.inputContainer,
-          { borderColor: focused ? '#FF6B00' : 'rgba(255,255,255,0.08)' },
-        ]}
-      >
+      <View style={[styles.inputContainer, { borderColor: focused ? '#FF6B00' : 'rgba(255,255,255,0.08)' }]}>
         <TextInput
           ref={ref}
           style={styles.input}
@@ -412,11 +448,7 @@ const InputField = React.forwardRef<TextInput, InputFieldProps>(
             style={styles.iconBtn}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons
-              name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-              size={20}
-              color="#8E8E93"
-            />
+            <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="#8E8E93" />
           </TouchableOpacity>
         )}
         {!isPassword && value.length > 0 && (
@@ -442,15 +474,7 @@ function ErrorBox({ message }: { message: string }) {
   );
 }
 
-function PrimaryButton({
-  title,
-  loading,
-  onPress,
-}: {
-  title: string;
-  loading: boolean;
-  onPress: () => void;
-}) {
+function PrimaryButton({ title, loading, onPress }: { title: string; loading: boolean; onPress: () => void }) {
   const scale = useRef(new Animated.Value(1)).current;
   return (
     <Animated.View style={{ transform: [{ scale }] }}>
@@ -459,25 +483,14 @@ function PrimaryButton({
         onPress={onPress}
         disabled={loading}
         onPressIn={() =>
-          Animated.spring(scale, {
-            toValue: 0.97,
-            friction: 8,
-            tension: 40,
-            useNativeDriver: true,
-          }).start()
+          Animated.spring(scale, { toValue: 0.97, friction: 8, tension: 40, useNativeDriver: true }).start()
         }
         onPressOut={() =>
-          Animated.spring(scale, {
-            toValue: 1,
-            friction: 5,
-            useNativeDriver: true,
-          }).start()
+          Animated.spring(scale, { toValue: 1, friction: 5, useNativeDriver: true }).start()
         }
         activeOpacity={1}
       >
-        <Text style={styles.primaryButtonText}>
-          {loading ? 'Please wait...' : title}
-        </Text>
+        <Text style={styles.primaryButtonText}>{loading ? 'Please wait...' : title}</Text>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -486,12 +499,8 @@ function PrimaryButton({
 /* ─── Styles ─── */
 
 const styles = StyleSheet.create({
-  content: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 24,
-  },
+  content: { flex: 1 },
+  scrollContent: { paddingBottom: 24 },
 
   /* Tab bar */
   tabBar: {
@@ -502,20 +511,9 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     position: 'relative',
   },
-  tab: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: 'center',
-    zIndex: 2,
-  },
-  tabText: {
-    color: '#8E8E93',
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-  },
-  tabTextActive: {
-    color: '#FFFFFF',
-  },
+  tab: { flex: 1, paddingVertical: 10, alignItems: 'center', zIndex: 2 },
+  tabText: { color: '#8E8E93', fontSize: 14, fontFamily: 'Inter-SemiBold' },
+  tabTextActive: { color: '#FFFFFF' },
   tabIndicator: {
     position: 'absolute',
     width: '50%',
@@ -526,16 +524,21 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
 
+  /* Headers */
+  title: { fontSize: 28, color: '#FFFFFF', fontWeight: '700', fontFamily: 'Inter-Bold' },
+  subtitle: {
+    fontSize: 14,
+    color: '#8E8E93',
+    marginTop: 6,
+    fontFamily: 'Inter-Regular',
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+
   /* Forms */
-  formContainer: {
-    position: 'relative',
-  },
-  formOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-  },
+  formContainer: { position: 'relative' },
+  formOverlay: { position: 'absolute', top: 0, left: 0, right: 0 },
+  form: {},
   inputContainer: {
     height: 52,
     backgroundColor: '#1C1C1E',
@@ -553,10 +556,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     paddingVertical: 0,
   },
-  iconBtn: {
-    marginLeft: 8,
-    padding: 2,
-  },
+  iconBtn: { marginLeft: 8, padding: 2 },
+
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -566,12 +567,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     gap: 8,
   },
-  errorText: {
-    color: '#FF4545',
-    fontSize: 13,
-    fontFamily: 'Inter-Medium',
-    flex: 1,
-  },
+  errorText: { color: '#FF4545', fontSize: 13, fontFamily: 'Inter-Medium', flex: 1 },
+
   footnotes: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -579,10 +576,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 24,
   },
-  checkboxRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+  checkboxRow: { flexDirection: 'row', alignItems: 'center' },
   checkbox: {
     width: 20,
     height: 20,
@@ -593,20 +587,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 8,
   },
-  checkboxActive: {
-    backgroundColor: '#FF6B00',
-    borderColor: '#FF6B00',
-  },
-  checkboxLabel: {
-    color: '#8E8E93',
-    fontSize: 13,
-    fontFamily: 'Inter-Medium',
-  },
-  forgotLink: {
-    color: '#FF6B00',
-    fontSize: 13,
-    fontFamily: 'Inter-Medium',
-  },
+  checkboxActive: { backgroundColor: '#FF6B00', borderColor: '#FF6B00' },
+  checkboxLabel: { color: '#8E8E93', fontSize: 13, fontFamily: 'Inter-Medium' },
+  forgotLink: { color: '#FF6B00', fontSize: 13, fontFamily: 'Inter-Medium' },
+
   primaryButton: {
     height: 52,
     backgroundColor: '#FF6B00',
@@ -615,27 +599,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  primaryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-  },
-  dividerText: {
-    color: '#8E8E93',
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    marginHorizontal: 12,
-  },
+  primaryButtonText: { color: '#FFFFFF', fontSize: 16, fontFamily: 'Inter-SemiBold' },
+
+  switchRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 8, marginBottom: 4 },
+  switchText: { color: '#8E8E93', fontSize: 13, fontFamily: 'Inter-Regular' },
+  switchLink: { color: '#FF6B00', fontSize: 13, fontFamily: 'Inter-SemiBold' },
+
+  divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 20 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.06)' },
+  dividerText: { color: '#8E8E93', fontSize: 12, fontFamily: 'Inter-Medium', marginHorizontal: 12 },
+
   googleButton: {
     height: 52,
     backgroundColor: '#1C1C1E',
@@ -647,11 +620,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
-  googleButtonText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontFamily: 'Inter-SemiBold',
-  },
+  googleButtonText: { color: '#FFFFFF', fontSize: 15, fontFamily: 'Inter-SemiBold' },
+
   demoButton: {
     height: 52,
     backgroundColor: 'rgba(255,107,0,0.08)',
@@ -664,19 +634,8 @@ const styles = StyleSheet.create({
     gap: 10,
     marginTop: 8,
   },
-  demoButtonText: {
-    color: '#FF6B00',
-    fontSize: 15,
-    fontFamily: 'Inter-SemiBold',
-  },
-  privacyRow: {
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  privacyText: {
-    color: '#8E8E93',
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    opacity: 0.6,
-  },
+  demoButtonText: { color: '#FF6B00', fontSize: 15, fontFamily: 'Inter-SemiBold' },
+
+  privacyRow: { alignItems: 'center', marginTop: 20 },
+  privacyText: { color: '#8E8E93', fontSize: 12, fontFamily: 'Inter-Medium', opacity: 0.6 },
 });

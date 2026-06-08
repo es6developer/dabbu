@@ -144,9 +144,10 @@ export function PremiumOtpScreen() {
             <Ionicons name="arrow-back" size={24} color="#8E8E93" />
           </TouchableOpacity>
 
-          <Text style={styles.title}>Verify OTP</Text>
+          <Text style={styles.title}>Check your Email</Text>
           <Text style={styles.subtitle}>
-            Enter the 6-digit code sent to <Text style={styles.emailHighlight}>{email}</Text>
+            Enter the unique code we sent to{' '}
+            <Text style={styles.emailHighlight}>{email}</Text>
           </Text>
 
           {error ? (
@@ -205,21 +206,22 @@ export function PremiumOtpScreen() {
               {loading ? (
                 <Text style={styles.verifyButtonText}>Verifying...</Text>
               ) : (
-                <Text style={styles.verifyButtonText}>Verify Code</Text>
+                <Text style={styles.verifyButtonText}>Verify & Proceed</Text>
               )}
             </TouchableOpacity>
           </Animated.View>
 
-          <TouchableOpacity
-            onPress={handleResend}
-            disabled={!canResend}
-            style={styles.resendRow}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.resendText, !canResend && styles.resendTextDisabled]}>
-              {canResend ? 'Resend code' : `Resend code in ${timer}s`}
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.resendRow}>
+            <Text style={styles.resendLabel}>Didn't receive it? </Text>
+            <TouchableOpacity onPress={handleResend} disabled={!canResend} activeOpacity={0.7}>
+              <Text style={[styles.resendText, !canResend && styles.resendTextDisabled]}>
+                Send Again
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={[styles.resendTimer, canResend && styles.resendTimerHidden]}>
+            Resend in 00:{timer < 10 ? `0${timer}` : timer}s
+          </Text>
         </Animated.View>
       </TouchableWithoutFeedback>
     </PremiumAuthLayout>
@@ -305,15 +307,31 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   resendRow: {
-    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
     marginTop: 20,
+  },
+  resendLabel: {
+    color: '#8E8E93',
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
   },
   resendText: {
     color: '#FF6B00',
     fontSize: 14,
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Inter-SemiBold',
   },
   resendTextDisabled: {
     color: '#636366',
+  },
+  resendTimer: {
+    textAlign: 'center',
+    color: '#636366',
+    fontSize: 13,
+    fontFamily: 'Inter-Medium',
+    marginTop: 6,
+  },
+  resendTimerHidden: {
+    opacity: 0,
   },
 });
