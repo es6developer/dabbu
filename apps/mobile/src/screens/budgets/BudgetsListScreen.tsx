@@ -1,104 +1,375 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
-import { Skeleton } from '../../components/ui/AnimatedSkeleton';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+  RefreshControl,
+  Animated,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { PADDING, borderRadius, shadows, fabShadow } from '../../theme/design';
+import { PremiumCard } from '../../components/ui/PremiumCard';
+import { PremiumEmptyState } from '../../components/ui/PremiumEmptyState';
+
+function fmt(v: number) {
+  return `\u20B9${(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+}
+
+function getBarColor(pct: number) {
+  if (pct > 90) {
+    return '#FF4D4F';
+  }
+  if (pct > 70) {
+    return '#F59E0B';
+  }
+  return '#34C759';
+}
 
 export function BudgetsListScreen() {
   const { colors } = useTheme();
   const { accessToken } = useAuth();
+  const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const [budgets, setBudgets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const scrollY = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    if (accessToken) {setAccessToken(accessToken);}
-    loadBudgets();
-  }, [accessToken]);
+  const loadBudgets = useCallback(
+    async (refresh = false) => {
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      if (refresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+      try {
+        const res = await api.get<any>('/accounts/budgets');
+        setBudgets(Array.isArray(res) ? res : []);
+      } catch (e) {
+        /* empty */
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [accessToken],
+  );
 
-  async function loadBudgets() {
-    try {
-      const res = await api.get<any>('/accounts/budgets');
-      setBudgets(Array.isArray(res) ? res : []);
-    } catch (e) { /* ignore */ }
-    finally { setLoading(false); }
-  }
+  useFocusEffect(
+    useCallback(() => {
+      loadBudgets();
+    }, [loadBudgets]),
+  );
 
-  function getBarColor(pct: number) {
-    if (pct > 90) {return colors.status.error;}
-    if (pct > 70) {return colors.status.warning;}
-    return colors.status.success;
-  }
+  const totalBudget = budgets.reduce(
+    (s: number, b: any) => s + Number(b.limit || b.amount || 0),
+    0,
+  );
+  const totalSpent = budgets.reduce(
+    (s: number, b: any) => s + Number(b.spent || b._sum?.amount || 0),
+    0,
+  );
+  const overallPct = totalBudget > 0 ? Math.min((totalSpent / totalBudget) * 100, 100) : 0;
 
-  if (loading) {
+  if (loading && budgets.length === 0) {
     return (
-      <View style={[styles.loading, { backgroundColor: colors.bg.primary, paddingHorizontal: 24, gap: 16 }]}>
-        <Skeleton width={140} height={16} />
-        <Skeleton width="100%" height={70} borderRadius={16} />
-        <Skeleton width="100%" height={70} borderRadius={16} />
-        <Skeleton width="85%" height={70} borderRadius={16} />
-        <Skeleton width="100%" height={70} borderRadius={16} />
-        <Skeleton width="60%" height={70} borderRadius={16} />
+      <View style={[s.loading, { backgroundColor: colors.bg.primary, paddingHorizontal: PADDING }]}>
+        <View style={{ gap: 12, width: '100%' }}>
+          {[1, 2, 3, 4].map((i) => (
+            <View
+              key={i}
+              style={{
+                height: 100,
+                backgroundColor: colors.bg.tertiary,
+                borderRadius: borderRadius.lg,
+                opacity: Math.max(0.3, 1 - i * 0.15),
+              }}
+            />
+          ))}
+        </View>
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
-      <FlatList
-        data={budgets} keyExtractor={(b) => b.id}
-        refreshControl={<RefreshControl refreshing={false} onRefresh={loadBudgets} tintColor={colors.accent.primary} />}
-        contentContainerStyle={budgets.length === 0 ? styles.emptyContainer : { padding: 16, paddingBottom: 100 }}
-        renderItem={({ item }) => {
-          const spent = Number(item.spent || item._sum?.amount || 0);
-          const limit = Number(item.limit || item.amount || 0);
-          const pct = limit > 0 ? Math.min((spent / limit) * 100, 100) : 0;
-          const barColor = getBarColor(pct);
-          return (
-            <TouchableOpacity style={[styles.card, { backgroundColor: colors.bg.secondary }]}>
-              <View style={styles.cardHeader}>
-                <Text style={[styles.name, { color: colors.text.primary }]}>{item.name || item.category?.name || 'Budget'}</Text>
-                <Text style={[styles.period, { color: colors.text.tertiary }]}>{item.period || 'monthly'}</Text>
-              </View>
-              <View style={[styles.barOuter, { backgroundColor: colors.bg.tertiary }]}>
-                <View style={[styles.barInner, { width: `${pct}%`, backgroundColor: barColor }]} />
-              </View>
-              <View style={styles.cardFooter}>
-                <Text style={[styles.spent, { color: colors.text.primary }]}>₹{spent.toLocaleString('en-IN')}</Text>
-                <Text style={[styles.limit, { color: colors.text.tertiary }]}>of ₹{limit.toLocaleString('en-IN')}</Text>
-              </View>
-            </TouchableOpacity>
-          );
-        }}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>🎯</Text>
-            <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>Plan your spending</Text>
-            <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>Create a budget to take control of your finances. Know exactly how much you can spend in every category.</Text>
+    <View style={[s.container, { backgroundColor: colors.bg.primary }]}>
+      {/* Header */}
+      <View style={{ paddingTop: insets.top + 8, paddingHorizontal: PADDING, paddingBottom: 8 }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 4,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 28,
+              fontWeight: '800',
+              color: colors.text.primary,
+              letterSpacing: -0.5,
+            }}
+          >
+            Budgets
+          </Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('CreateBudget')}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              backgroundColor: `${colors.accent.primary}10`,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Ionicons name="add" size={20} color={colors.accent.primary} />
+          </TouchableOpacity>
+        </View>
+        {budgets.length > 0 && (
+          <View
+            style={{
+              backgroundColor: colors.bg.card,
+              borderRadius: borderRadius.lg,
+              padding: 16,
+              marginTop: 4,
+              ...shadows.sm,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 10,
+              }}
+            >
+              <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.secondary }}>
+                Overall Budget Health
+              </Text>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: getBarColor(overallPct) }}>
+                {Math.round(overallPct)}% used
+              </Text>
+            </View>
+            <View
+              style={{
+                height: 10,
+                backgroundColor: colors.bg.tertiary,
+                borderRadius: 5,
+                overflow: 'hidden',
+              }}
+            >
+              <View
+                style={{
+                  height: '100%',
+                  borderRadius: 5,
+                  width: `${overallPct}%`,
+                  backgroundColor: getBarColor(overallPct),
+                }}
+              />
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>
+                {fmt(totalSpent)}
+              </Text>
+              <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
+                of {fmt(totalBudget)}
+              </Text>
+            </View>
           </View>
-        }
-        windowSize={10}
-        maxToRenderPerBatch={10}
-      />
+        )}
+      </View>
+
+      {budgets.length > 0 ? (
+        <FlatList
+          data={budgets}
+          keyExtractor={(b) => b.id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ padding: PADDING, paddingTop: 8, paddingBottom: 100 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => loadBudgets(true)}
+              tintColor={colors.accent.primary}
+            />
+          }
+          onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
+            useNativeDriver: false,
+          })}
+          renderItem={({ item }) => {
+            const spent = Number(item.spent || item._sum?.amount || 0);
+            const limit = Number(item.limit || item.amount || 0);
+            const pct = limit > 0 ? Math.min((spent / limit) * 100, 100) : 0;
+            const barColor = getBarColor(pct);
+            const remaining = Math.max(limit - spent, 0);
+            return (
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => navigation.navigate('BudgetDetail', { budgetId: item.id })}
+                style={{
+                  backgroundColor: colors.bg.card,
+                  borderRadius: borderRadius.lg,
+                  padding: 18,
+                  marginBottom: 10,
+                  ...shadows.md,
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: 14,
+                  }}
+                >
+                  <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
+                    {item.name || item.category?.name || 'Budget'}
+                  </Text>
+                  <View
+                    style={{
+                      paddingHorizontal: 10,
+                      paddingVertical: 4,
+                      borderRadius: 8,
+                      backgroundColor: `${colors.accent.primary}10`,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 10,
+                        fontWeight: '700',
+                        color: colors.accent.primary,
+                        letterSpacing: 0.5,
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {item.period || 'Monthly'}
+                    </Text>
+                  </View>
+                </View>
+                <View
+                  style={{
+                    height: 12,
+                    backgroundColor: colors.bg.tertiary,
+                    borderRadius: 6,
+                    overflow: 'hidden',
+                    marginBottom: 10,
+                  }}
+                >
+                  <View
+                    style={{
+                      height: '100%',
+                      borderRadius: 6,
+                      width: `${pct}%`,
+                      backgroundColor: barColor,
+                    }}
+                  />
+                </View>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <View>
+                    <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
+                      SPENT
+                    </Text>
+                    <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
+                      {fmt(spent)}
+                    </Text>
+                  </View>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
+                      REMAINING
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        fontWeight: '700',
+                        color: remaining > 0 ? '#34C759' : '#FF4D4F',
+                      }}
+                    >
+                      {fmt(remaining)}
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 12,
+                      backgroundColor: `${barColor}12`,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Text style={{ fontSize: 12, fontWeight: '800', color: barColor }}>
+                      {Math.round(pct)}%
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          }}
+        />
+      ) : (
+        <PremiumEmptyState
+          icon="wallet-outline"
+          title="No budgets yet"
+          message="Take control of your spending. Create a budget to track every category."
+          action={
+            <TouchableOpacity
+              onPress={() => navigation.navigate('CreateBudget')}
+              style={{
+                backgroundColor: colors.accent.primary,
+                paddingVertical: 14,
+                paddingHorizontal: 28,
+                borderRadius: 14,
+                marginTop: 8,
+              }}
+            >
+              <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: '700' }}>
+                Create Budget
+              </Text>
+            </TouchableOpacity>
+          }
+        />
+      )}
+
+      {/* FAB */}
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() => navigation.navigate('CreateBudget')}
+        style={[s.fab, { backgroundColor: colors.accent.primary }, fabShadow]}
+      >
+        <Ionicons name="add" size={28} color="#FFFFFF" />
+      </TouchableOpacity>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   container: { flex: 1 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  card: { padding: 16, borderRadius: 16, marginBottom: 8 },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
-  name: { fontSize: 16, fontWeight: '600' },
-  period: { fontSize: 11, textTransform: 'capitalize' },
-  barOuter: { height: 8, borderRadius: 4, marginBottom: 8 },
-  barInner: { height: 8, borderRadius: 4 },
-  cardFooter: { flexDirection: 'row', justifyContent: 'space-between' },
-  spent: { fontSize: 14, fontWeight: '600' },
-  limit: { fontSize: 14 },
-  emptyContainer: { flexGrow: 1 },
-  empty: { alignItems: 'center' },
-  emptyIcon: { fontSize: 48, opacity: 0.5, marginBottom: 16 },
-  emptyTitle: { fontSize: 18, fontWeight: '600', marginBottom: 8 },
-  emptyDesc: { fontSize: 14 },
+  fab: {
+    position: 'absolute',
+    right: PADDING,
+    bottom: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

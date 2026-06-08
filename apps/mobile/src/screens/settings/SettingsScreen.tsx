@@ -16,6 +16,7 @@ import { useAuth } from '../../store/AuthContext';
 import { useAppLock } from '../../store/LockContext';
 import { api, setAccessToken, getAccessToken } from '../../services/api';
 import { ConfirmDialog } from '../../components/ui';
+import { PADDING, borderRadius, shadows } from '../../theme/design';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -65,32 +66,29 @@ const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
   },
 ];
 
-function getRowMeta(): Record<string, { icon: IconName }> {
-  return {
-    Profile: { icon: 'person' },
-    Subscription: { icon: 'diamond' },
-    'Favorite Contacts': { icon: 'star' },
-    'Refer & Earn': { icon: 'gift' },
-    Security: { icon: 'shield-checkmark' },
-    'Lock App': { icon: 'lock-closed' },
-    'Reports & Analytics': { icon: 'stats-chart' },
-    'Couple Space': { icon: 'heart' },
-    Theme: { icon: 'color-palette' },
-    Notifications: { icon: 'notifications' },
-    'Customise Dashboard': { icon: 'apps' },
-    'Customise Bottom Menu': { icon: 'menu' },
-    'Help Center': { icon: 'help-circle' },
-    'Contact Us': { icon: 'chatbubble-ellipses' },
-    'Privacy Policy': { icon: 'document-text' },
-  };
-}
+const ROW_META: Record<string, { icon: IconName }> = {
+  Profile: { icon: 'person' },
+  Subscription: { icon: 'diamond' },
+  'Favorite Contacts': { icon: 'star' },
+  'Refer & Earn': { icon: 'gift' },
+  Security: { icon: 'shield-checkmark' },
+  'Lock App': { icon: 'lock-closed' },
+  'Reports & Analytics': { icon: 'stats-chart' },
+  'Couple Space': { icon: 'heart' },
+  Theme: { icon: 'color-palette' },
+  Notifications: { icon: 'notifications' },
+  'Customise Dashboard': { icon: 'apps' },
+  'Customise Bottom Menu': { icon: 'menu' },
+  'Help Center': { icon: 'help-circle' },
+  'Contact Us': { icon: 'chatbubble-ellipses' },
+  'Privacy Policy': { icon: 'document-text' },
+};
 
 export function SettingsScreen() {
   const navigation = useNavigation<any>();
   const { user, logout, refreshPremiumStatus } = useAuth();
   const { lockApp } = useAppLock();
   const { colors, isDark } = useTheme();
-  const ROW_META = useMemo(() => getRowMeta(), []);
   const insets = useSafeAreaInsets();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [subscription, setSubscription] = useState<any>(null);
@@ -139,14 +137,10 @@ export function SettingsScreen() {
       return;
     }
     if (premium && !isPremium) {
-      Alert.alert(
-        'Premium Feature',
-        'This feature is available on Premium plan. Upgrade to access it.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'View Plans', onPress: () => navigation.navigate('Subscription') },
-        ],
-      );
+      Alert.alert('Premium Feature', 'This feature is available on Premium plan.', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'View Plans', onPress: () => navigation.navigate('Subscription') },
+      ]);
       return;
     }
     navigation.navigate(screen);
@@ -158,134 +152,298 @@ export function SettingsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
       >
-        <View style={[s.hero, { paddingTop: insets.top + 16, backgroundColor: colors.bg.primary }]}>
+        {/* Profile Header */}
+        <View
+          style={{ paddingTop: insets.top + 16, paddingHorizontal: PADDING, paddingBottom: 24 }}
+        >
           <View
             style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: 16,
+              backgroundColor: colors.bg.card,
+              borderRadius: borderRadius.xl,
+              padding: 20,
+              ...shadows.md,
             }}
           >
-            <TouchableOpacity
-              style={s.heroBack}
-              onPress={() => navigation.goBack()}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="chevron-back" size={22} color="#FFF" />
-            </TouchableOpacity>
-            <Text
-              style={{
-                color: 'rgba(255,255,255,0.4)',
-                fontSize: 13,
-                fontWeight: '600',
-                letterSpacing: 1,
-              }}
-            >
-              SETTINGS
-            </Text>
-            <View style={{ width: 40 }} />
-          </View>
-          <TouchableOpacity
-            onPress={() => handleNav('Profile')}
-            activeOpacity={0.8}
-            style={[s.heroProfile, { borderColor: colors.border.default }]}
-          >
-            <View style={[s.heroAvatar, { backgroundColor: colors.accent.primary }]}>
-              <Text style={s.heroAvatarText}>{user?.firstName?.[0] || 'U'}</Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={s.heroName} numberOfLines={1}>
-                {user?.firstName || 'User'} {user?.lastName || ''}
-              </Text>
-              <Text style={s.heroEmail} numberOfLines={1}>
-                {user?.email || 'No email'}
-              </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+              <View
+                style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: 18,
+                  backgroundColor: colors.accent.primary,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Text
+                  style={{ color: '#FFF', fontSize: 24, fontWeight: '800', letterSpacing: -0.5 }}
+                >
+                  {user?.firstName?.[0] || 'U'}
+                  {user?.lastName?.[0] || ''}
+                </Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontWeight: '700',
+                    color: colors.text.primary,
+                    letterSpacing: -0.3,
+                  }}
+                >
+                  {user?.firstName || 'User'} {user?.lastName || ''}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: '500',
+                    color: colors.text.tertiary,
+                    marginTop: 2,
+                  }}
+                >
+                  {user?.email || 'No email'}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => handleNav('Profile')}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 12,
+                  backgroundColor: `${colors.accent.primary}10`,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Ionicons name="chevron-forward" size={18} color={colors.accent.primary} />
+              </TouchableOpacity>
             </View>
             <View
-              style={[
-                s.heroPlanBadge,
-                { backgroundColor: isPremium ? 'rgba(20,184,166,0.13)' : 'rgba(255,255,255,0.1)' },
-              ]}
+              style={{
+                flexDirection: 'row',
+                marginTop: 16,
+                paddingTop: 16,
+                borderTopWidth: 1,
+                borderTopColor: colors.border.subtle,
+                gap: 12,
+              }}
             >
-              <Ionicons
-                name={isPremium ? 'diamond' : 'person-outline'}
-                size={12}
-                color={isPremium ? '#14B8A6' : 'rgba(255,255,255,0.6)'}
-              />
-              <Text
-                style={[s.heroPlanText, { color: isPremium ? '#14B8A6' : 'rgba(255,255,255,0.6)' }]}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 6,
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  borderRadius: 20,
+                  backgroundColor: isPremium ? `${colors.accent.primary}12` : colors.bg.tertiary,
+                }}
               >
-                {isPremium ? 'Premium' : 'Free'}
-              </Text>
+                <Ionicons
+                  name={isPremium ? 'diamond' : 'person-outline'}
+                  size={14}
+                  color={isPremium ? colors.accent.primary : colors.text.tertiary}
+                />
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '700',
+                    color: isPremium ? colors.accent.primary : colors.text.tertiary,
+                  }}
+                >
+                  {isPremium ? 'Premium' : 'Free'}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Security')}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 6,
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  borderRadius: 20,
+                  backgroundColor: colors.bg.tertiary,
+                }}
+              >
+                <Ionicons name="shield-checkmark" size={14} color={colors.text.tertiary} />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: colors.text.tertiary }}>
+                  Security
+                </Text>
+              </TouchableOpacity>
             </View>
-          </TouchableOpacity>
+          </View>
         </View>
 
         <Animated.View style={{ opacity: fadeAnim }}>
+          {/* Upgrade Banner */}
           {!isPremium && (
             <TouchableOpacity
-              style={[
-                s.upgradeBanner,
-                { backgroundColor: colors.bg.primary, borderColor: 'rgba(20, 184, 166, 0.2)' },
-              ]}
+              style={{
+                marginHorizontal: PADDING,
+                marginBottom: 24,
+                borderRadius: borderRadius.lg,
+                overflow: 'hidden',
+                ...shadows.sm,
+              }}
               onPress={() => navigation.navigate('Premium')}
               activeOpacity={0.85}
             >
-              <View style={s.upgradeGrad}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  padding: 18,
+                  gap: 12,
+                  backgroundColor: `${colors.accent.primary}08`,
+                  borderWidth: 1,
+                  borderColor: `${colors.accent.primary}20`,
+                  borderRadius: borderRadius.lg,
+                }}
+              >
+                <View
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 14,
+                    backgroundColor: `${colors.accent.primary}15`,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Ionicons name="diamond" size={22} color={colors.accent.primary} />
+                </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={[s.upgradeTitle, { color: '#14B8A6' }]}>Upgrade to Premium</Text>
-                  <Text style={[s.upgradeSub, { color: 'rgba(20, 184, 166, 0.7)' }]}>
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      fontWeight: '800',
+                      color: colors.accent.primary,
+                      letterSpacing: -0.2,
+                    }}
+                  >
+                    Upgrade to Premium
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: '500',
+                      color: colors.text.tertiary,
+                      marginTop: 2,
+                    }}
+                  >
                     Unlock reports, analytics & more
                   </Text>
                 </View>
-                <View style={[s.upgradeArrow, { backgroundColor: 'rgba(20, 184, 166, 0.15)' }]}>
-                  <Ionicons name="arrow-forward" size={18} color="#14B8A6" />
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 10,
+                    backgroundColor: `${colors.accent.primary}12`,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Ionicons name="arrow-forward" size={16} color={colors.accent.primary} />
                 </View>
               </View>
             </TouchableOpacity>
           )}
 
+          {/* Sections */}
           {SECTIONS.map((section, i) => (
-            <View key={i} style={s.section}>
-              <Text style={[s.secTitle, { color: colors.text.tertiary }]}>{section.title}</Text>
+            <View key={i} style={{ marginBottom: 24, paddingHorizontal: PADDING }}>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '700',
+                  color: colors.text.tertiary,
+                  letterSpacing: 0.8,
+                  textTransform: 'uppercase',
+                  marginBottom: 10,
+                  paddingLeft: 2,
+                }}
+              >
+                {section.title}
+              </Text>
               <View
-                style={[
-                  s.secCard,
-                  { backgroundColor: colors.bg.secondary, borderColor: colors.border.default },
-                ]}
+                style={{
+                  backgroundColor: colors.bg.card,
+                  borderRadius: borderRadius.xl,
+                  overflow: 'hidden',
+                  ...shadows.md,
+                }}
               >
                 {section.items.map((item, j) => {
                   const meta = ROW_META[item.label];
                   return (
                     <TouchableOpacity
                       key={j}
-                      style={[
-                        s.row,
-                        j < section.items.length - 1 && {
-                          borderBottomWidth: StyleSheet.hairlineWidth,
-                          borderBottomColor: colors.border.subtle,
-                        },
-                      ]}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingVertical: 15,
+                        paddingHorizontal: 18,
+                        gap: 14,
+                        borderBottomWidth: j < section.items.length - 1 ? 1 : 0,
+                        borderBottomColor: colors.border.subtle,
+                      }}
                       onPress={() => handleNav(item.screen, item.premium, item.action)}
                       activeOpacity={0.6}
                     >
-                      <View style={[s.rowIcon, { backgroundColor: colors.bg.tertiary }]}>
-                        <Ionicons name={(meta?.icon as any) || item.icon} size={18} color="#FFF" />
+                      <View
+                        style={{
+                          width: 38,
+                          height: 38,
+                          borderRadius: 12,
+                          backgroundColor: `${colors.accent.primary}10`,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Ionicons
+                          name={(meta?.icon as any) || item.icon}
+                          size={18}
+                          color={colors.accent.primary}
+                        />
                       </View>
-                      <Text style={[s.rowLabel, { color: colors.text.primary }]}>{item.label}</Text>
-                      <View style={s.rowRight}>
+                      <Text
+                        style={{
+                          flex: 1,
+                          fontSize: 15,
+                          fontWeight: '600',
+                          color: colors.text.primary,
+                        }}
+                      >
+                        {item.label}
+                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                         {item.premium && !isPremium && (
-                          <View style={[s.premiumBadge, { backgroundColor: colors.bg.tertiary }]}>
-                            <Ionicons name="lock-closed" size={9} color={colors.accent.primary} />
-                            <Text style={[s.premiumLabel, { color: colors.accent.primary }]}>
+                          <View
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              gap: 3,
+                              paddingHorizontal: 8,
+                              paddingVertical: 3,
+                              borderRadius: 6,
+                              backgroundColor: `${colors.accent.primary}10`,
+                            }}
+                          >
+                            <Ionicons name="lock-closed" size={10} color={colors.accent.primary} />
+                            <Text
+                              style={{
+                                fontSize: 10,
+                                fontWeight: '700',
+                                color: colors.accent.primary,
+                              }}
+                            >
                               Premium
                             </Text>
                           </View>
                         )}
-                        <View style={[s.chevronBox, { backgroundColor: colors.bg.tertiary }]}>
-                          <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
-                        </View>
+                        <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
                       </View>
                     </TouchableOpacity>
                   );
@@ -294,31 +452,58 @@ export function SettingsScreen() {
             </View>
           ))}
 
+          {/* Logout */}
           <TouchableOpacity
-            style={[
-              s.logoutRow,
-              { backgroundColor: colors.bg.secondary, borderColor: colors.border.default },
-            ]}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 12,
+              marginHorizontal: PADDING,
+              padding: 16,
+              backgroundColor: colors.bg.card,
+              borderRadius: borderRadius.lg,
+              ...shadows.sm,
+            }}
             onPress={() => setShowLogoutDialog(true)}
             activeOpacity={0.6}
           >
-            <View style={[s.logoutIcon, { backgroundColor: colors.bg.tertiary }]}>
-              <Ionicons name="log-out-outline" size={20} color="#FF4D4F" />
+            <View
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 12,
+                backgroundColor: `${colors.status.error}10`,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Ionicons name="log-out-outline" size={18} color={colors.status.error} />
             </View>
-            <Text style={s.logoutText}>Sign Out</Text>
-            <View style={s.chevronBox}>
-              <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
-            </View>
+            <Text style={{ flex: 1, fontSize: 15, fontWeight: '700', color: colors.status.error }}>
+              Sign Out
+            </Text>
+            <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
           </TouchableOpacity>
 
-          <Text style={[s.version, { color: colors.text.tertiary }]}>Dabbu v1.0.0</Text>
+          <Text
+            style={{
+              textAlign: 'center',
+              fontSize: 12,
+              fontWeight: '500',
+              color: colors.text.tertiary,
+              marginTop: 24,
+              marginBottom: 8,
+            }}
+          >
+            Dabbu v1.0.0
+          </Text>
         </Animated.View>
       </ScrollView>
 
       <ConfirmDialog
         visible={showLogoutDialog}
         title="Sign Out"
-        message="Are you sure you want to sign out? You'll need to log in again to access your account."
+        message="Are you sure you want to sign out?"
         confirmLabel="Sign Out"
         destructive
         icon="log-out-outline"
@@ -334,135 +519,4 @@ export function SettingsScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  hero: {
-    paddingHorizontal: 20,
-    paddingBottom: 28,
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
-    overflow: 'hidden',
-  },
-  heroBack: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heroProfile: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 20,
-    padding: 14,
-    borderWidth: 1,
-  },
-  heroAvatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heroAvatarText: { color: '#FFF', fontSize: 22, fontWeight: '800' },
-  heroName: { color: '#FFF', fontSize: 18, fontWeight: '700' },
-  heroEmail: { color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: '500', marginTop: 1 },
-  heroPlanBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
-  },
-  heroPlanText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.3 },
-
-  upgradeBanner: {
-    marginHorizontal: 20,
-    marginTop: 20,
-    marginBottom: 24,
-    borderRadius: 20,
-    overflow: 'hidden',
-    borderWidth: 1,
-  },
-  upgradeGrad: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    gap: 12,
-  },
-  upgradeTitle: { color: '#FFF', fontSize: 16, fontWeight: '800' },
-  upgradeSub: { color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '500', marginTop: 2 },
-  upgradeArrow: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  section: { marginBottom: 28, paddingHorizontal: 20 },
-  secTitle: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    marginBottom: 14,
-    marginLeft: 4,
-  },
-  secCard: { borderRadius: 20, overflow: 'hidden', borderWidth: 1 },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    gap: 14,
-  },
-  rowIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rowLabel: { flex: 1, fontSize: 15, fontWeight: '600' },
-  rowRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  chevronBox: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  premiumBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  premiumLabel: { fontSize: 10, fontWeight: '700' },
-
-  logoutRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginHorizontal: 20,
-    padding: 16,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  logoutIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoutText: { flex: 1, fontSize: 15, fontWeight: '700', color: '#FF4D4F' },
-
-  version: { textAlign: 'center', fontSize: 12, fontWeight: '500', marginTop: 24 },
 });

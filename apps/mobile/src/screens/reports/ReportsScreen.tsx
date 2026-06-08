@@ -1,14 +1,23 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl } from 'react-native';
+import React, { useMemo, useRef } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  RefreshControl,
+  Animated,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { useApiGet } from '../../hooks/useApi';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
+import { PADDING, borderRadius, shadows } from '../../theme/design';
 
 function fmt(v: number) {
-  return `₹${(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+  return `\u20B9${(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 }
 
 const MONTH_NAMES = [
@@ -43,12 +52,106 @@ const CAT_COLORS: Record<string, string> = {
   Insurance: '#F59E0B',
   Salary: '#34C759',
   Investment: '#14B8A6',
+  Dining: '#FF6B6B',
+  Other: '#64748B',
 };
+
+function DonutChart({
+  data,
+  size = 160,
+}: {
+  data: { name: string; amount: number; color: string; pct: number }[];
+  size?: number;
+}) {
+  const total = data.reduce((s, c) => s + c.amount, 0);
+  if (total === 0) {
+    return null;
+  }
+  const sorted = [...data].sort((a, b) => b.amount - a.amount);
+
+  return (
+    <View style={{ alignItems: 'center', marginVertical: 12 }}>
+      <View
+        style={{
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          backgroundColor: '#1E293B',
+          justifyContent: 'center',
+          alignItems: 'center',
+          overflow: 'hidden',
+        }}
+      >
+        {sorted.map((cat, i) => {
+          const pct = (cat.amount / total) * 100;
+          const angle = (pct / 100) * 360;
+          const rotation = sorted.slice(0, i).reduce((s, c) => s + (c.amount / total) * 360, 0);
+          return (
+            <View
+              key={i}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: size,
+                height: size,
+                transform: [{ rotate: `${rotation}deg` }],
+              }}
+            >
+              <View
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: size / 2,
+                  width: size / 2,
+                  height: size / 2,
+                  backgroundColor: cat.color,
+                  borderTopRightRadius: size / 2,
+                  opacity: 1,
+                }}
+              />
+            </View>
+          );
+        })}
+        <View
+          style={{
+            width: size * 0.55,
+            height: size * 0.55,
+            borderRadius: (size * 0.55) / 2,
+            backgroundColor: '#0F172A',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Text style={{ fontSize: 16, fontWeight: '800', color: '#F8FAFC' }}>{fmt(total)}</Text>
+          <Text style={{ fontSize: 10, fontWeight: '600', color: '#64748B' }}>Total</Text>
+        </View>
+      </View>
+      <View
+        style={{
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+          gap: 12,
+          marginTop: 16,
+        }}
+      >
+        {sorted.slice(0, 5).map((cat, i) => (
+          <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: cat.color }} />
+            <Text style={{ fontSize: 11, fontWeight: '600', color: '#64748B' }}>{cat.name}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
 
 export function ReportsScreen() {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   const {
     data: stats,
@@ -86,6 +189,7 @@ export function ReportsScreen() {
   const monthlySpend = summary.totalExpense ?? 0;
   const income = summary.totalIncome ?? 0;
   const savings = summary.netSavings ?? 0;
+  const savingsRate = income > 0 ? Math.round((savings / income) * 100) : 0;
 
   const maxAmount = monthlyData.length > 0 ? Math.max(...monthlyData.map((d: any) => d.amount)) : 1;
 
@@ -94,7 +198,7 @@ export function ReportsScreen() {
   }
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
+    <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
@@ -105,160 +209,501 @@ export function ReportsScreen() {
             tintColor={colors.accent.primary}
           />
         }
+        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
+          useNativeDriver: false,
+        })}
       >
-        <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
-          <View style={styles.headerRow}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <Ionicons name="arrow-back" size={24} color="#FFF" />
+        {/* Header */}
+        <View style={{ paddingTop: insets.top + 8, paddingHorizontal: PADDING, paddingBottom: 16 }}>
+          <View
+            style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
+          >
+            <Text
+              style={{
+                fontSize: 28,
+                fontWeight: '800',
+                color: colors.text.primary,
+                letterSpacing: -0.5,
+              }}
+            >
+              Reports
+            </Text>
+            <TouchableOpacity
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                backgroundColor: `${colors.accent.primary}10`,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Ionicons name="calendar-outline" size={20} color={colors.accent.primary} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Reports</Text>
-            <View style={{ width: 32 }} />
           </View>
         </View>
 
-        <View style={{ paddingHorizontal: 20, paddingTop: 12, gap: 12 }}>
-          <View style={styles.metricsRow}>
-            <View style={[styles.metricCard, { borderColor: colors.border.subtle }]}>
-              <Text style={[styles.metricLabel, { color: colors.text.tertiary }]}>
+        {/* Summary Cards */}
+        <View style={{ paddingHorizontal: PADDING, gap: 12, marginBottom: 20 }}>
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: colors.card.expense,
+                borderRadius: borderRadius.lg,
+                padding: 18,
+                ...shadows.sm,
+              }}
+            >
+              <View
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 12,
+                  backgroundColor: `${colors.status.error}15`,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 10,
+                }}
+              >
+                <Ionicons name="arrow-up" size={16} color={colors.status.error} />
+              </View>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '600',
+                  color: colors.text.tertiary,
+                  marginBottom: 4,
+                }}
+              >
                 Monthly Spend
               </Text>
-              <Text style={[styles.metricValue, { color: '#FF4D4F' }]}>{fmt(monthlySpend)}</Text>
-            </View>
-            <View style={[styles.metricCard, { borderColor: colors.border.subtle }]}>
-              <Text style={[styles.metricLabel, { color: colors.text.tertiary }]}>Income</Text>
-              <Text style={[styles.metricValue, { color: '#34C759' }]}>{fmt(income)}</Text>
-            </View>
-          </View>
-
-          <View style={styles.metricsRow}>
-            <View style={[styles.metricCard, { borderColor: colors.border.subtle }]}>
-              <Text style={[styles.metricLabel, { color: colors.text.tertiary }]}>Savings</Text>
-              <Text style={[styles.metricValue, { color: '#14B8A6' }]}>{fmt(savings)}</Text>
-            </View>
-            <View style={[styles.metricCard, { borderColor: colors.border.subtle }]}>
-              <Text style={[styles.metricLabel, { color: colors.text.tertiary }]}>Expense</Text>
-              <Text style={[styles.metricValue, { color: colors.accent.primary }]}>
+              <Text
+                style={{ fontSize: 22, fontWeight: '800', color: '#FF4D4F', letterSpacing: -0.5 }}
+              >
                 {fmt(monthlySpend)}
               </Text>
             </View>
-          </View>
-
-          {monthlyData.length > 0 && (
-            <View style={[styles.sectionCard, { backgroundColor: colors.bg.card }]}>
-              <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
-                Monthly Trend
-              </Text>
-              <View style={styles.chartRow}>
-                {monthlyData.map((d: { label: string; amount: number }, i: number) => (
-                  <View key={i} style={styles.barCol}>
-                    <View style={styles.barContainer}>
-                      <View
-                        style={[
-                          styles.bar,
-                          {
-                            height: `${(d.amount / maxAmount) * 100}%`,
-                            backgroundColor: colors.accent.primary,
-                          },
-                        ]}
-                      />
-                    </View>
-                    <Text style={[styles.barLabel, { color: colors.text.tertiary }]}>
-                      {d.label}
-                    </Text>
-                  </View>
-                ))}
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: colors.card.income,
+                borderRadius: borderRadius.lg,
+                padding: 18,
+                ...shadows.sm,
+              }}
+            >
+              <View
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 12,
+                  backgroundColor: `${colors.status.success}15`,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 10,
+                }}
+              >
+                <Ionicons name="arrow-down" size={16} color={colors.status.success} />
               </View>
-            </View>
-          )}
-
-          {categoryData.length > 0 && (
-            <View style={[styles.sectionCard, { backgroundColor: colors.bg.card }]}>
-              <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
-                Category Breakdown
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '600',
+                  color: colors.text.tertiary,
+                  marginBottom: 4,
+                }}
+              >
+                Income
               </Text>
-              {categoryData.map(
-                (cat: { name: string; amount: number; color: string; pct: number }, i: number) => (
-                  <View key={i} style={styles.catRow}>
-                    <View style={styles.catInfo}>
-                      <View style={[styles.catDot, { backgroundColor: cat.color }]} />
-                      <Text style={[styles.catName, { color: colors.text.primary }]}>
-                        {cat.name}
+              <Text
+                style={{ fontSize: 22, fontWeight: '800', color: '#34C759', letterSpacing: -0.5 }}
+              >
+                {fmt(income)}
+              </Text>
+            </View>
+          </View>
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: colors.card.savings,
+                borderRadius: borderRadius.lg,
+                padding: 18,
+                ...shadows.sm,
+              }}
+            >
+              <View
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 12,
+                  backgroundColor: `${colors.accent.primary}15`,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 10,
+                }}
+              >
+                <Ionicons name="trending-up" size={16} color={colors.accent.primary} />
+              </View>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '600',
+                  color: colors.text.tertiary,
+                  marginBottom: 4,
+                }}
+              >
+                Savings
+              </Text>
+              <Text
+                style={{
+                  fontSize: 22,
+                  fontWeight: '800',
+                  color: colors.accent.primary,
+                  letterSpacing: -0.5,
+                }}
+              >
+                {fmt(savings)}
+              </Text>
+            </View>
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: colors.card.budget,
+                borderRadius: borderRadius.lg,
+                padding: 18,
+                ...shadows.sm,
+              }}
+            >
+              <View
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 12,
+                  backgroundColor: `${colors.status.warning}15`,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 10,
+                }}
+              >
+                <Ionicons name="pie-chart" size={16} color={colors.status.warning} />
+              </View>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '600',
+                  color: colors.text.tertiary,
+                  marginBottom: 4,
+                }}
+              >
+                Savings Rate
+              </Text>
+              <Text
+                style={{ fontSize: 22, fontWeight: '800', color: '#F59E0B', letterSpacing: -0.5 }}
+              >
+                {savingsRate}%
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Monthly Trend */}
+        {monthlyData.length > 0 && (
+          <View
+            style={{
+              marginHorizontal: PADDING,
+              backgroundColor: colors.bg.card,
+              borderRadius: borderRadius.xl,
+              padding: 20,
+              marginBottom: 16,
+              ...shadows.md,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: '700',
+                color: colors.text.primary,
+                marginBottom: 8,
+              }}
+            >
+              Monthly Trend
+            </Text>
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '500',
+                color: colors.text.tertiary,
+                marginBottom: 20,
+              }}
+            >
+              Spending over the last 6 months
+            </Text>
+            <View style={{ height: 160, justifyContent: 'flex-end' }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-end',
+                  height: 140,
+                }}
+              >
+                {monthlyData.map((d: { label: string; amount: number }, i: number) => {
+                  const barH = (d.amount / maxAmount) * 130;
+                  return (
+                    <View key={i} style={{ flex: 1, alignItems: 'center', gap: 6 }}>
+                      <Text
+                        style={{ fontSize: 10, fontWeight: '700', color: colors.text.tertiary }}
+                      >
+                        {fmt(d.amount)}
+                      </Text>
+                      <View
+                        style={{
+                          width: '60%',
+                          height: Math.max(barH, 4),
+                          borderRadius: 6,
+                          backgroundColor: colors.accent.primary,
+                          minHeight: 4,
+                          opacity: 0.8 + (barH / 130) * 0.2,
+                        }}
+                      />
+                      <Text
+                        style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}
+                      >
+                        {d.label}
                       </Text>
                     </View>
-                    <View style={[styles.catBarOuter, { backgroundColor: colors.bg.tertiary }]}>
-                      <View
-                        style={[
-                          styles.catBar,
-                          { width: `${cat.pct}%`, backgroundColor: cat.color },
-                        ]}
-                      />
-                    </View>
-                    <Text style={[styles.catAmount, { color: colors.text.secondary }]}>
-                      {fmt(cat.amount)}
-                    </Text>
-                  </View>
-                ),
-              )}
+                  );
+                })}
+              </View>
             </View>
-          )}
-        </View>
+          </View>
+        )}
+
+        {/* Category Breakdown - Donut */}
+        {categoryData.length > 0 && (
+          <View
+            style={{
+              marginHorizontal: PADDING,
+              backgroundColor: colors.bg.card,
+              borderRadius: borderRadius.xl,
+              padding: 20,
+              marginBottom: 16,
+              ...shadows.md,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: '700',
+                color: colors.text.primary,
+                marginBottom: 4,
+              }}
+            >
+              Category Breakdown
+            </Text>
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '500',
+                color: colors.text.tertiary,
+                marginBottom: 8,
+              }}
+            >
+              Where your money went
+            </Text>
+            <DonutChart data={categoryData} size={160} />
+            {categoryData.map(
+              (cat: { name: string; amount: number; color: string; pct: number }, i: number) => (
+                <View
+                  key={i}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 10,
+                    paddingVertical: 8,
+                    borderBottomWidth: i < categoryData.length - 1 ? 1 : 0,
+                    borderBottomColor: colors.border.subtle,
+                  }}
+                >
+                  <View
+                    style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: cat.color }}
+                  />
+                  <Text
+                    style={{ flex: 1, fontSize: 13, fontWeight: '600', color: colors.text.primary }}
+                    numberOfLines={1}
+                  >
+                    {cat.name}
+                  </Text>
+                  <View
+                    style={{
+                      flex: 1,
+                      height: 6,
+                      backgroundColor: colors.bg.tertiary,
+                      borderRadius: 3,
+                      overflow: 'hidden',
+                      marginHorizontal: 8,
+                    }}
+                  >
+                    <View
+                      style={{
+                        height: '100%',
+                        borderRadius: 3,
+                        width: `${cat.pct}%`,
+                        backgroundColor: cat.color,
+                      }}
+                    />
+                  </View>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: '700',
+                      color: colors.text.secondary,
+                      minWidth: 60,
+                      textAlign: 'right',
+                    }}
+                  >
+                    {fmt(cat.amount)}
+                  </Text>
+                </View>
+              ),
+            )}
+          </View>
+        )}
+
+        {/* Income vs Expense Summary */}
+        {income > 0 && monthlySpend > 0 && (
+          <View
+            style={{
+              marginHorizontal: PADDING,
+              backgroundColor: colors.bg.card,
+              borderRadius: borderRadius.xl,
+              padding: 20,
+              marginBottom: 16,
+              ...shadows.md,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: '700',
+                color: colors.text.primary,
+                marginBottom: 16,
+              }}
+            >
+              Income vs Expenses
+            </Text>
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <View
+                style={{
+                  flex: 1,
+                  padding: 16,
+                  backgroundColor: `${colors.status.success}10`,
+                  borderRadius: borderRadius.md,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '600',
+                    color: colors.text.tertiary,
+                    marginBottom: 4,
+                  }}
+                >
+                  INCOME
+                </Text>
+                <Text style={{ fontSize: 20, fontWeight: '800', color: '#34C759' }}>
+                  {fmt(income)}
+                </Text>
+              </View>
+              <View
+                style={{
+                  flex: 1,
+                  padding: 16,
+                  backgroundColor: `${colors.status.error}10`,
+                  borderRadius: borderRadius.md,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '600',
+                    color: colors.text.tertiary,
+                    marginBottom: 4,
+                  }}
+                >
+                  EXPENSES
+                </Text>
+                <Text style={{ fontSize: 20, fontWeight: '800', color: '#FF4D4F' }}>
+                  {fmt(monthlySpend)}
+                </Text>
+              </View>
+            </View>
+            {savings >= 0 ? (
+              <View
+                style={{
+                  marginTop: 12,
+                  padding: 14,
+                  backgroundColor: `${colors.status.success}08`,
+                  borderRadius: borderRadius.md,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
+              >
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 10,
+                    backgroundColor: `${colors.status.success}15`,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Ionicons name="checkmark-circle" size={18} color="#34C759" />
+                </View>
+                <Text style={{ fontSize: 13, fontWeight: '600', color: '#34C759', flex: 1 }}>
+                  You saved {fmt(savings)} this period ({savingsRate}% of income)
+                </Text>
+              </View>
+            ) : (
+              <View
+                style={{
+                  marginTop: 12,
+                  padding: 14,
+                  backgroundColor: `${colors.status.error}08`,
+                  borderRadius: borderRadius.md,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
+              >
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 10,
+                    backgroundColor: `${colors.status.error}15`,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Ionicons name="alert-circle" size={18} color="#FF4D4F" />
+                </View>
+                <Text style={{ fontSize: 13, fontWeight: '600', color: '#FF4D4F', flex: 1 }}>
+                  You spent {fmt(Math.abs(savings))} more than you earned
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
       </ScrollView>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   root: { flex: 1 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  backBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: { color: '#FFF', fontSize: 18, fontWeight: '700' },
-  metricsRow: { flexDirection: 'row', gap: 12 },
-  metricCard: {
-    flex: 1,
-    padding: 16,
-    borderRadius: 18,
-    borderWidth: 1,
-    gap: 6,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 1,
-  },
-  metricLabel: { fontSize: 12, fontWeight: '500' },
-  metricValue: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
-  sectionCard: {
-    borderRadius: 20,
-    padding: 18,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 1,
-  },
-  sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 16 },
-  chartRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    height: 140,
-    paddingTop: 8,
-  },
-  barCol: { flex: 1, alignItems: 'center', gap: 6 },
-  barContainer: { flex: 1, width: '60%', justifyContent: 'flex-end', alignItems: 'center' },
-  bar: { width: '100%', borderRadius: 4, minHeight: 4 },
-  barLabel: { fontSize: 10, fontWeight: '500' },
-  catRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
-  catInfo: { flexDirection: 'row', alignItems: 'center', gap: 6, width: 80 },
-  catDot: { width: 8, height: 8, borderRadius: 4 },
-  catName: { fontSize: 12, fontWeight: '600' },
-  catBarOuter: { flex: 1, height: 6, borderRadius: 3, overflow: 'hidden' },
-  catBar: { height: '100%', borderRadius: 3 },
-  catAmount: { fontSize: 12, fontWeight: '700', width: 60, textAlign: 'right' },
 });

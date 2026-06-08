@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { PADDING, borderRadius, shadows } from '../../theme/design';
 
 export function ProfileScreen() {
   const navigation = useNavigation<any>();
@@ -96,7 +97,7 @@ export function ProfileScreen() {
   function handleDeleteAccount() {
     Alert.alert(
       'Delete Account',
-      'This action is irreversible. All your data will be permanently deleted. Are you sure?',
+      'This action is irreversible. All your data will be permanently deleted.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -131,7 +132,7 @@ export function ProfileScreen() {
   const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || 'User';
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
+    <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
@@ -143,162 +144,378 @@ export function ProfileScreen() {
             paddingTop: insets.top + 16,
           }}
         >
-          <View style={styles.headerRow}>
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}
+          {/* Header */}
+          <View style={{ paddingHorizontal: PADDING, marginBottom: 24 }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 16,
+              }}
             >
-              <Ionicons name="arrow-back" size={22} color={colors.accent.primary} />
-            </TouchableOpacity>
-            <Text style={[styles.pageTitle, { color: colors.text.primary }]}>Edit Profile</Text>
-            <View style={{ width: 36 }} />
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 12,
+                  backgroundColor: `${colors.accent.primary}10`,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Ionicons name="chevron-back" size={20} color={colors.accent.primary} />
+              </TouchableOpacity>
+              <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text.primary }}>
+                Edit Profile
+              </Text>
+              <View style={{ width: 40 }} />
+            </View>
           </View>
 
           {loading ? (
-            <View style={styles.loadingSection}>
+            <View
+              style={{
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingVertical: 60,
+              }}
+            >
               <ActivityIndicator size="large" color={colors.accent.primary} />
             </View>
           ) : (
             <>
-              <View style={styles.avatarSection}>
-                <View style={styles.avatarOuter}>
+              {/* Avatar */}
+              <View style={{ alignItems: 'center', marginBottom: 28 }}>
+                <View style={{ position: 'relative', marginBottom: 12 }}>
                   <View
-                    style={[styles.avatarBg, { backgroundColor: `${colors.accent.primary}18` }]}
+                    style={{
+                      width: 100,
+                      height: 100,
+                      borderRadius: 28,
+                      backgroundColor: `${colors.accent.primary}15`,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
                   >
-                    <Text style={styles.avatarText}>{initials}</Text>
+                    <Text
+                      style={{
+                        color: colors.accent.primary,
+                        fontSize: 38,
+                        fontWeight: '800',
+                        letterSpacing: -0.5,
+                      }}
+                    >
+                      {initials}
+                    </Text>
                   </View>
                   <TouchableOpacity
-                    style={[styles.editAvatarBtn, { backgroundColor: colors.accent.primary }]}
+                    style={{
+                      position: 'absolute',
+                      bottom: -2,
+                      right: -2,
+                      width: 34,
+                      height: 34,
+                      borderRadius: 17,
+                      backgroundColor: colors.accent.primary,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      ...shadows.sm,
+                      shadowColor: colors.accent.primary,
+                    }}
                     activeOpacity={0.8}
                   >
                     <Ionicons name="camera" size={16} color="#FFFFFF" />
                   </TouchableOpacity>
                 </View>
-                <Text style={[styles.avatarName, { color: colors.text.primary }]}>{fullName}</Text>
-                <Text style={[styles.avatarEmail, { color: colors.text.tertiary }]}>
+                <Text
+                  style={{
+                    fontSize: 20,
+                    fontWeight: '700',
+                    color: colors.text.primary,
+                    letterSpacing: -0.3,
+                  }}
+                >
+                  {fullName}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: '500',
+                    color: colors.text.tertiary,
+                    marginTop: 2,
+                  }}
+                >
                   {email || user?.email || ''}
                 </Text>
               </View>
 
-              <View style={[styles.card, { backgroundColor: colors.bg.card }]}>
-                <Text style={[styles.cardTitle, { color: colors.text.primary }]}>
+              {/* Profile Form */}
+              <View
+                style={{
+                  marginHorizontal: PADDING,
+                  backgroundColor: colors.bg.card,
+                  borderRadius: borderRadius.xl,
+                  padding: 20,
+                  marginBottom: 16,
+                  ...shadows.md,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '700',
+                    color: colors.text.primary,
+                    marginBottom: 16,
+                  }}
+                >
                   Personal Information
                 </Text>
 
                 {error ? (
-                  <View style={[styles.errorBox, { backgroundColor: colors.status.errorLight }]}>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: 12,
+                      borderRadius: 12,
+                      backgroundColor: `${colors.status.error}10`,
+                      marginBottom: 16,
+                    }}
+                  >
                     <Ionicons name="alert-circle" size={16} color={colors.status.error} />
-                    <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text>
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        fontWeight: '600',
+                        color: colors.status.error,
+                        flex: 1,
+                      }}
+                    >
+                      {error}
+                    </Text>
                   </View>
                 ) : null}
 
-                <Text style={[styles.label, { color: colors.text.tertiary }]}>First Name</Text>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '800',
+                    color: colors.text.tertiary,
+                    letterSpacing: 0.8,
+                    textTransform: 'uppercase',
+                    marginBottom: 8,
+                    marginTop: 4,
+                  }}
+                >
+                  First Name
+                </Text>
                 <TextInput
-                  style={[
-                    styles.input,
-                    {
-                      backgroundColor: colors.bg.tertiary,
-                      color: colors.text.primary,
-                      borderColor: colors.border.subtle,
-                    },
-                  ]}
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '500',
+                    paddingHorizontal: 16,
+                    paddingVertical: 15,
+                    borderRadius: borderRadius.md,
+                    borderWidth: 1,
+                    borderColor: colors.border.subtle,
+                    backgroundColor: colors.bg.tertiary,
+                    color: colors.text.primary,
+                  }}
                   value={firstName}
                   onChangeText={setFirstName}
                   placeholder="Enter your first name"
                   placeholderTextColor={colors.text.tertiary}
                 />
 
-                <Text style={[styles.label, { color: colors.text.tertiary }]}>Last Name</Text>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '800',
+                    color: colors.text.tertiary,
+                    letterSpacing: 0.8,
+                    textTransform: 'uppercase',
+                    marginBottom: 8,
+                    marginTop: 16,
+                  }}
+                >
+                  Last Name
+                </Text>
                 <TextInput
-                  style={[
-                    styles.input,
-                    {
-                      backgroundColor: colors.bg.tertiary,
-                      color: colors.text.primary,
-                      borderColor: colors.border.subtle,
-                    },
-                  ]}
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '500',
+                    paddingHorizontal: 16,
+                    paddingVertical: 15,
+                    borderRadius: borderRadius.md,
+                    borderWidth: 1,
+                    borderColor: colors.border.subtle,
+                    backgroundColor: colors.bg.tertiary,
+                    color: colors.text.primary,
+                  }}
                   value={lastName}
                   onChangeText={setLastName}
                   placeholder="Enter your last name"
                   placeholderTextColor={colors.text.tertiary}
                 />
 
-                <Text style={[styles.label, { color: colors.text.tertiary }]}>Email</Text>
-                <View
-                  style={[
-                    styles.input,
-                    styles.inputDisabled,
-                    { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-                  ]}
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '800',
+                    color: colors.text.tertiary,
+                    letterSpacing: 0.8,
+                    textTransform: 'uppercase',
+                    marginBottom: 8,
+                    marginTop: 16,
+                  }}
                 >
-                  <Text style={[styles.inputText, { color: colors.text.tertiary }]}>
+                  Email
+                </Text>
+                <View
+                  style={{
+                    paddingHorizontal: 16,
+                    paddingVertical: 15,
+                    borderRadius: borderRadius.md,
+                    borderWidth: 1,
+                    borderColor: colors.border.subtle,
+                    backgroundColor: colors.bg.tertiary,
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text.tertiary }}>
                     {email || user?.email || 'No email'}
                   </Text>
                 </View>
 
-                <Text style={[styles.label, { color: colors.text.tertiary }]}>Phone Number</Text>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '800',
+                    color: colors.text.tertiary,
+                    letterSpacing: 0.8,
+                    textTransform: 'uppercase',
+                    marginBottom: 8,
+                    marginTop: 16,
+                  }}
+                >
+                  Phone Number
+                </Text>
                 <TextInput
-                  style={[
-                    styles.input,
-                    {
-                      backgroundColor: colors.bg.tertiary,
-                      color: colors.text.primary,
-                      borderColor: colors.border.subtle,
-                    },
-                  ]}
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '500',
+                    paddingHorizontal: 16,
+                    paddingVertical: 15,
+                    borderRadius: borderRadius.md,
+                    borderWidth: 1,
+                    borderColor: colors.border.subtle,
+                    backgroundColor: colors.bg.tertiary,
+                    color: colors.text.primary,
+                  }}
                   value={phone}
                   onChangeText={setPhone}
                   placeholder="Required — helps friends find you"
                   placeholderTextColor={colors.text.tertiary}
                   keyboardType="phone-pad"
                 />
-                <Text style={[styles.helper, { color: colors.text.tertiary }]}>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '500',
+                    color: colors.text.tertiary,
+                    marginTop: 6,
+                    lineHeight: 16,
+                  }}
+                >
                   Friends can find you via contact sync. Your number is never shared.
                 </Text>
               </View>
 
-              <View style={[styles.card, { backgroundColor: colors.bg.card }]}>
-                <View style={styles.dangerHeader}>
+              {/* Danger Zone */}
+              <View
+                style={{
+                  marginHorizontal: PADDING,
+                  backgroundColor: colors.bg.card,
+                  borderRadius: borderRadius.xl,
+                  padding: 20,
+                  marginBottom: 16,
+                  ...shadows.sm,
+                }}
+              >
+                <View
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}
+                >
                   <Ionicons name="warning-outline" size={18} color={colors.status.error} />
-                  <Text style={[styles.dangerTitle, { color: colors.status.error }]}>
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: colors.status.error }}>
                     Danger Zone
                   </Text>
                 </View>
-                <Text style={[styles.dangerDesc, { color: colors.text.tertiary }]}>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: '500',
+                    color: colors.text.tertiary,
+                    lineHeight: 19,
+                    marginBottom: 16,
+                  }}
+                >
                   Once you delete your account, there is no going back. Please be certain.
                 </Text>
                 <TouchableOpacity
-                  style={[
-                    styles.deleteBtn,
-                    {
-                      borderColor: `${colors.status.error}30`,
-                      backgroundColor: `${colors.status.error}08`,
-                    },
-                  ]}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    paddingVertical: 14,
+                    borderRadius: borderRadius.md,
+                    borderWidth: 1,
+                    borderColor: `${colors.status.error}30`,
+                    backgroundColor: `${colors.status.error}08`,
+                  }}
                   onPress={handleDeleteAccount}
                   activeOpacity={0.7}
                 >
                   <Ionicons name="trash-outline" size={16} color={colors.status.error} />
-                  <Text style={styles.deleteBtnText}>Delete Account</Text>
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: colors.status.error }}>
+                    Delete Account
+                  </Text>
                 </TouchableOpacity>
               </View>
             </>
           )}
         </ScrollView>
 
+        {/* Save Button */}
         <View
-          style={[
-            styles.saveContainer,
-            { backgroundColor: colors.bg.primary, paddingBottom: insets.bottom + 20 },
-          ]}
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            paddingHorizontal: PADDING,
+            paddingTop: 12,
+            backgroundColor: colors.bg.primary,
+            paddingBottom: insets.bottom + 20,
+          }}
         >
           <TouchableOpacity
-            style={[
-              styles.saveBtn,
-              { backgroundColor: colors.accent.primary },
-              (saving || loading) && { opacity: 0.6 },
-            ]}
+            style={{
+              borderRadius: 16,
+              paddingVertical: 16,
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'row',
+              gap: 8,
+              backgroundColor: colors.accent.primary,
+              ...shadows.md,
+              shadowColor: colors.accent.primary,
+              opacity: saving || loading ? 0.6 : 1,
+            }}
             onPress={handleSaveProfile}
             disabled={saving || loading}
             activeOpacity={0.85}
@@ -308,7 +525,7 @@ export function ProfileScreen() {
             ) : (
               <>
                 <Ionicons name="checkmark-circle" size={18} color="#FFFFFF" />
-                <Text style={[styles.saveBtnText, { color: colors.text.primary }]}>
+                <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>
                   Save Changes
                 </Text>
               </>
@@ -320,111 +537,6 @@ export function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   root: { flex: 1 },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pageTitle: { fontSize: 20, fontWeight: '700' },
-  loadingSection: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
-  avatarSection: { alignItems: 'center', marginBottom: 28 },
-  avatarOuter: { position: 'relative', marginBottom: 12 },
-  avatarBg: {
-    width: 96,
-    height: 96,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: { color: '#FFFFFF', fontSize: 36, fontWeight: '800' },
-  editAvatarBtn: {
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarName: { fontSize: 20, fontWeight: '700', marginBottom: 2 },
-  avatarEmail: { fontSize: 13, fontWeight: '500' },
-  card: {
-    marginHorizontal: 20,
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 16,
-  },
-  cardTitle: { fontSize: 16, fontWeight: '700', marginBottom: 16 },
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 16,
-  },
-  errorText: { fontSize: 13, fontWeight: '600', flex: 1 },
-  label: {
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    marginBottom: 8,
-    marginTop: 16,
-  },
-  input: {
-    fontSize: 16,
-    fontWeight: '500',
-    paddingHorizontal: 16,
-    paddingVertical: 15,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  inputDisabled: {
-    justifyContent: 'center',
-  },
-  inputText: { fontSize: 16, fontWeight: '500' },
-  helper: { fontSize: 11, fontWeight: '500', marginTop: 6, lineHeight: 16 },
-  dangerHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  dangerTitle: { fontSize: 15, fontWeight: '700' },
-  dangerDesc: { fontSize: 13, fontWeight: '500', lineHeight: 19, marginBottom: 16 },
-  deleteBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-  },
-  deleteBtnText: { fontSize: 14, fontWeight: '700', color: '#FF4545' },
-  saveContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 20,
-    paddingTop: 12,
-  },
-  saveBtn: {
-    borderRadius: 16,
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    gap: 8,
-  },
-  saveBtnText: { fontSize: 16, fontWeight: '700' },
 });

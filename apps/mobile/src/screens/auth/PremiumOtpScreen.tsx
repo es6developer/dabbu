@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,15 +11,111 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PremiumAuthLayout } from '../../components/ui/PremiumAuthLayout';
+import { useTheme } from '../../theme';
+import { PADDING, borderRadius, shadows, typography as designTypo } from '../../theme/design';
+import { palette } from '../../theme/colors';
 import { api } from '../../services/api';
 
 const OTP_LENGTH = 6;
 const RESEND_COOLDOWN = 30;
 
+function createStyles(colors: typeof palette.dark) {
+  return StyleSheet.create({
+    content: {
+      flex: 1,
+      paddingTop: PADDING,
+    },
+    backButton: {
+      width: 40,
+      height: 40,
+      borderRadius: borderRadius.full,
+      backgroundColor: colors.bg.secondary,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: PADDING,
+    },
+    title: {
+      ...designTypo.largeTitle,
+      color: colors.text.primary,
+    },
+    subtitle: {
+      fontSize: 15,
+      color: colors.text.secondary,
+      marginTop: 8,
+      fontFamily: 'Inter-Regular',
+      lineHeight: 22,
+      marginBottom: PADDING + 8,
+    },
+    emailHighlight: {
+      color: colors.brand.primary,
+      fontFamily: 'Inter-SemiBold',
+    },
+    otpRow: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: 10,
+      marginBottom: PADDING + 8,
+    },
+    otpInput: {
+      width: 52,
+      height: 62,
+      borderRadius: borderRadius.lg,
+      borderWidth: 1.5,
+      textAlign: 'center',
+      fontSize: 24,
+      fontWeight: '700',
+      fontFamily: 'Inter-Bold',
+      color: colors.text.primary,
+    },
+    verifyButton: {
+      height: 56,
+      backgroundColor: colors.brand.primary,
+      borderRadius: borderRadius.xl,
+      justifyContent: 'center',
+      alignItems: 'center',
+      ...shadows.md,
+    },
+    verifyButtonText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontFamily: 'Inter-SemiBold',
+      letterSpacing: 0.3,
+    },
+    resendRow: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      marginTop: PADDING,
+    },
+    resendLabel: {
+      color: colors.text.secondary,
+      fontSize: 14,
+      fontFamily: 'Inter-Regular',
+    },
+    resendText: {
+      color: colors.brand.primary,
+      fontSize: 14,
+      fontFamily: 'Inter-SemiBold',
+    },
+    resendTextDisabled: {
+      color: colors.text.tertiary,
+    },
+    resendTimer: {
+      textAlign: 'center',
+      color: colors.text.tertiary,
+      fontSize: 13,
+      fontFamily: 'Inter-Medium',
+      marginTop: 8,
+    },
+  });
+}
+
 export function PremiumOtpScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
   const email = route.params?.email || '';
   const purpose = route.params?.purpose || 'login';
 
@@ -33,6 +129,20 @@ export function PremiumOtpScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
   const buttonScale = useRef(new Animated.Value(1)).current;
+
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
+  const contentStyle = useMemo(
+    () => [
+      styles.content,
+      {
+        opacity: fadeAnim,
+        transform: [{ translateY: slideAnim }],
+        paddingBottom: insets.bottom + PADDING,
+      },
+    ],
+    [styles.content, fadeAnim, slideAnim, insets.bottom],
+  );
 
   useEffect(() => {
     Animated.parallel([
@@ -137,15 +247,13 @@ export function PremiumOtpScreen() {
   return (
     <PremiumAuthLayout>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <Animated.View
-          style={[styles.content, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}
-        >
+        <Animated.View style={contentStyle}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
             style={styles.backButton}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons name="arrow-back" size={24} color="#8E8E93" />
+            <Ionicons name="arrow-back" size={24} color={colors.text.secondary} />
           </TouchableOpacity>
 
           <Text style={styles.title}>Check your Email</Text>
@@ -154,9 +262,28 @@ export function PremiumOtpScreen() {
           </Text>
 
           {error ? (
-            <View style={styles.errorBox}>
-              <Ionicons name="alert-circle" size={16} color="#FF4545" />
-              <Text style={styles.errorText}>{error}</Text>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: colors.status.errorLight,
+                padding: 14,
+                borderRadius: borderRadius.lg,
+                marginBottom: 16,
+                gap: 10,
+              }}
+            >
+              <Ionicons name="alert-circle" size={16} color={colors.status.error} />
+              <Text
+                style={{
+                  color: colors.status.error,
+                  fontSize: 13,
+                  fontFamily: 'Inter-Medium',
+                  flex: 1,
+                }}
+              >
+                {error}
+              </Text>
             </View>
           ) : null}
 
@@ -170,8 +297,12 @@ export function PremiumOtpScreen() {
                 style={[
                   styles.otpInput,
                   {
-                    borderColor: otp[i] ? '#14B8A6' : error ? '#FF4545' : 'rgba(255,255,255,0.08)',
-                    backgroundColor: otp[i] ? 'rgba(20,184,166,0.08)' : '#1C1C1E',
+                    borderColor: digit
+                      ? colors.brand.primary
+                      : error
+                        ? colors.status.error
+                        : colors.border.subtle,
+                    backgroundColor: digit ? colors.brand.light : colors.bg.secondary,
                   },
                 ]}
                 value={digit}
@@ -186,7 +317,7 @@ export function PremiumOtpScreen() {
 
           <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
             <TouchableOpacity
-              style={[styles.verifyButton, loading && styles.buttonDisabled]}
+              style={[styles.verifyButton, loading && { opacity: 0.6 }]}
               onPress={handleVerify}
               disabled={loading}
               onPressIn={() =>
@@ -206,11 +337,9 @@ export function PremiumOtpScreen() {
               }
               activeOpacity={1}
             >
-              {loading ? (
-                <Text style={styles.verifyButtonText}>Verifying...</Text>
-              ) : (
-                <Text style={styles.verifyButtonText}>Verify & Proceed</Text>
-              )}
+              <Text style={styles.verifyButtonText}>
+                {loading ? 'Verifying...' : 'Verify & Proceed'}
+              </Text>
             </TouchableOpacity>
           </Animated.View>
 
@@ -222,7 +351,7 @@ export function PremiumOtpScreen() {
               </Text>
             </TouchableOpacity>
           </View>
-          <Text style={[styles.resendTimer, canResend && styles.resendTimerHidden]}>
+          <Text style={[styles.resendTimer, canResend && { opacity: 0 }]}>
             Resend in 00:{timer < 10 ? `0${timer}` : timer}s
           </Text>
         </Animated.View>
@@ -230,111 +359,3 @@ export function PremiumOtpScreen() {
     </PremiumAuthLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    flex: 1,
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#1C1C1E',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 28,
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontFamily: 'Inter-Bold',
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#8E8E93',
-    marginTop: 8,
-    fontFamily: 'Inter-Regular',
-    lineHeight: 20,
-    marginBottom: 32,
-  },
-  emailHighlight: {
-    color: '#14B8A6',
-    fontFamily: 'Inter-SemiBold',
-  },
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,69,69,0.12)',
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 16,
-    gap: 8,
-  },
-  errorText: {
-    color: '#FF4545',
-    fontSize: 13,
-    fontFamily: 'Inter-Medium',
-    flex: 1,
-  },
-  otpRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
-    marginBottom: 32,
-  },
-  otpInput: {
-    width: 48,
-    height: 56,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    textAlign: 'center',
-    fontSize: 22,
-    fontWeight: '700',
-    fontFamily: 'Inter-Bold',
-    color: '#FFFFFF',
-  },
-  verifyButton: {
-    height: 52,
-    backgroundColor: '#14B8A6',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  verifyButtonText: {
-    color: '#0F172A',
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  resendRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 20,
-  },
-  resendLabel: {
-    color: '#8E8E93',
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-  },
-  resendText: {
-    color: '#14B8A6',
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-  },
-  resendTextDisabled: {
-    color: '#636366',
-  },
-  resendTimer: {
-    textAlign: 'center',
-    color: '#636366',
-    fontSize: 13,
-    fontFamily: 'Inter-Medium',
-    marginTop: 6,
-  },
-  resendTimerHidden: {
-    opacity: 0,
-  },
-});

@@ -1,10 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
+import { PADDING, borderRadius, shadows } from '../../theme/design';
 
 type OptionType = 'manual' | 'camera' | 'group';
 
@@ -14,7 +14,7 @@ interface OptionCard {
   title: string;
   description: string;
   badge?: string;
-  gradient: [string, string];
+  color: string;
 }
 
 const OPTIONS: OptionCard[] = [
@@ -23,7 +23,7 @@ const OPTIONS: OptionCard[] = [
     icon: 'create-outline',
     title: 'Manual Entry',
     description: 'Enter expense details by hand - amount, category, description.',
-    gradient: ['#00B894', '#00CEC9'],
+    color: '#4F46E5',
   },
   {
     type: 'camera',
@@ -31,14 +31,14 @@ const OPTIONS: OptionCard[] = [
     title: 'Scan Bill',
     description: 'Take a photo or upload a receipt. AI extracts the details automatically.',
     badge: 'AI',
-    gradient: ['#f7892c', '#ff9f43'],
+    color: '#F59E0B',
   },
   {
     type: 'group',
     icon: 'people-outline',
     title: 'Create Group',
     description: 'Create a group to split expenses with friends & family.',
-    gradient: ['#14B8A6', '#14B8A6'],
+    color: '#14B8A6',
   },
 ];
 
@@ -67,38 +67,61 @@ export function AddExpenseScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.bg.primary }]} />
+    <View style={[s.container, { backgroundColor: colors.bg.primary }]}>
       <Animated.View
         style={[
-          styles.content,
+          s.content,
           { paddingTop: insets.top, opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
         ]}
       >
         <TouchableOpacity
           onPress={() => navigation.goBack()}
-          style={[
-            styles.backBtn,
-            {
-              backgroundColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.12)',
-              borderColor: colors.border.subtle,
-            },
-          ]}
+          style={{
+            width: 42,
+            height: 42,
+            borderRadius: 14,
+            backgroundColor: `${colors.accent.primary}10`,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 16,
+          }}
         >
-          <Ionicons name="close" size={22} color="#FFFFFF" />
+          <Ionicons name="close" size={22} color={colors.accent.primary} />
         </TouchableOpacity>
 
-        <View style={[styles.hero, { backgroundColor: colors.bg.primary }]}>
-          <View style={styles.heroIcon}>
-            <Ionicons name="add" size={28} color="#FFFFFF" />
+        <View style={{ marginBottom: 24 }}>
+          <View
+            style={{
+              width: 52,
+              height: 52,
+              borderRadius: 16,
+              backgroundColor: `${colors.accent.primary}12`,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 20,
+            }}
+          >
+            <Ionicons name="wallet-outline" size={28} color={colors.accent.primary} />
           </View>
-          <Text style={styles.title}>Add expense</Text>
-          <Text style={styles.subtitle}>
+          <Text
+            style={{
+              color: colors.text.primary,
+              fontSize: 30,
+              fontWeight: '800',
+              letterSpacing: -1,
+              marginBottom: 8,
+            }}
+          >
+            Add expense
+          </Text>
+          <Text
+            style={{ color: colors.text.tertiary, fontSize: 15, fontWeight: '500', lineHeight: 22 }}
+          >
             Choose the fastest way to capture and organize this spend.
           </Text>
         </View>
 
-        <View style={styles.optionsContainer}>
+        <View style={{ gap: 14 }}>
           {OPTIONS.map((option, index) => (
             <Animated.View
               key={option.type}
@@ -115,71 +138,88 @@ export function AddExpenseScreen() {
               }}
             >
               <TouchableOpacity
-                style={[
-                  styles.card,
-                  {
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.15)',
-                    borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.2)',
-                  },
-                ]}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  padding: 18,
+                  borderRadius: borderRadius.xl,
+                  backgroundColor: colors.bg.card,
+                  ...shadows.md,
+                  gap: 14,
+                }}
                 onPress={() => handleSelect(option.type)}
                 activeOpacity={0.75}
               >
                 <View
-                  style={[
-                    styles.iconWrap,
-                    {
-                      backgroundColor:
-                        option.type === 'group' ? colors.accent.primary : option.gradient[0],
-                    },
-                  ]}
+                  style={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: 16,
+                    backgroundColor: `${option.color}12`,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
-                  <Ionicons name={option.icon} size={25} color="#FFFFFF" />
+                  <Ionicons name={option.icon} size={25} color={option.color} />
                 </View>
-                <View style={styles.cardContent}>
-                  <View style={styles.cardTitleRow}>
-                    <Text style={[styles.cardTitle, { color: colors.text.primary }]}>
+                <View style={{ flex: 1 }}>
+                  <View
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 17,
+                        fontWeight: '800',
+                        color: colors.text.primary,
+                        letterSpacing: -0.2,
+                      }}
+                    >
                       {option.title}
                     </Text>
                     {option.badge && (
                       <View
-                        style={[
-                          styles.badge,
-                          {
-                            backgroundColor: isDark
-                              ? 'rgba(247,137,44,0.2)'
-                              : 'rgba(247,137,44,0.25)',
-                          },
-                        ]}
+                        style={{
+                          paddingHorizontal: 8,
+                          paddingVertical: 2,
+                          borderRadius: 6,
+                          backgroundColor: `${option.color}15`,
+                        }}
                       >
-                        <Text style={[styles.badgeText, { color: colors.accent.primary }]}>
+                        <Text
+                          style={{
+                            fontSize: 10,
+                            fontWeight: '800',
+                            color: option.color,
+                            letterSpacing: 0.5,
+                          }}
+                        >
                           {option.badge}
                         </Text>
                       </View>
                     )}
                   </View>
                   <Text
-                    style={[
-                      styles.cardDesc,
-                      { color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.6)' },
-                    ]}
+                    style={{
+                      fontSize: 13,
+                      color: colors.text.tertiary,
+                      fontWeight: '500',
+                      lineHeight: 18,
+                    }}
                   >
                     {option.description}
                   </Text>
                 </View>
                 <View
-                  style={[
-                    styles.chevronWrap,
-                    {
-                      backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.1)',
-                    },
-                  ]}
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 8,
+                    backgroundColor: `${colors.accent.primary}08`,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
-                  <Ionicons
-                    name="chevron-forward"
-                    size={18}
-                    color={isDark ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.6)'}
-                  />
+                  <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
                 </View>
               </TouchableOpacity>
             </Animated.View>
@@ -190,61 +230,7 @@ export function AddExpenseScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   container: { flex: 1 },
-  content: { flex: 1, paddingHorizontal: 20, paddingBottom: 40 },
-  backBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  hero: {
-    borderRadius: 24,
-    padding: 24,
-    marginBottom: 20,
-  },
-  heroIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
-  },
-  title: { color: '#FFFFFF', fontSize: 30, fontWeight: '800', marginBottom: 7 },
-  subtitle: { color: 'rgba(255,255,255,0.75)', fontSize: 14, lineHeight: 20, fontWeight: '600' },
-  optionsContainer: { gap: 14 },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: 20,
-    borderWidth: 1,
-    gap: 14,
-  },
-  iconWrap: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cardContent: { flex: 1 },
-  cardTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
-  cardTitle: { fontSize: 17, fontWeight: '800' },
-  badge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
-  badgeText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
-  cardDesc: { fontSize: 13, lineHeight: 18, fontWeight: '500' },
-  chevronWrap: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  content: { flex: 1, paddingHorizontal: PADDING, paddingBottom: 40 },
 });

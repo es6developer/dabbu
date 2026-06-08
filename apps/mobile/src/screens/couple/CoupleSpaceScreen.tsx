@@ -15,96 +15,140 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
-import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { UpgradeBanner } from '../../components/ui/UpgradeBanner';
+import { PADDING, borderRadius, shadows, fabShadow } from '../../theme/design';
 
 const { width } = Dimensions.get('window');
-const CARD_GAP = 10;
-const CARD_W = (width - 40 - CARD_GAP) / 2;
 
 function fmt(v: number) {
-  return `₹${(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+  return `\u20B9${(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 }
 
 function daysSince(date: string): number {
   return Math.floor((Date.now() - new Date(date).getTime()) / (1000 * 60 * 60 * 24));
 }
 
-const sections = [
+const modules = [
   {
     key: 'CoupleIncome',
     icon: 'trending-up-outline',
     label: 'Income',
     desc: 'Add & manage income',
+    color: '#34C759',
   },
   {
     key: 'CoupleExpenses',
     icon: 'cart-outline',
     label: 'Expenses',
     desc: 'Personal, shared & split',
+    color: '#FF6B6B',
   },
   {
     key: 'CoupleBudgets',
     icon: 'wallet-outline',
     label: 'Budgets',
     desc: 'Monthly budget tracking',
+    color: '#F59E0B',
   },
-  { key: 'CoupleSavings', icon: 'save-outline', label: 'Savings', desc: 'Save together' },
-  { key: 'CoupleGoals', icon: 'trophy-outline', label: 'Goals', desc: 'Shared wishlist & goals' },
-  { key: 'CoupleBills', icon: 'calendar-outline', label: 'Bills', desc: 'Upcoming & recurring' },
+  {
+    key: 'CoupleSavings',
+    icon: 'save-outline',
+    label: 'Savings',
+    desc: 'Save together',
+    color: '#60A5FA',
+  },
+  {
+    key: 'CoupleGoals',
+    icon: 'trophy-outline',
+    label: 'Goals',
+    desc: 'Shared wishlist & goals',
+    color: '#A78BFA',
+  },
+  {
+    key: 'CoupleBills',
+    icon: 'calendar-outline',
+    label: 'Bills',
+    desc: 'Upcoming & recurring',
+    color: '#FF8A65',
+  },
   {
     key: 'CoupleSettlements',
     icon: 'cash-outline',
-    label: 'Settlements',
+    label: 'Settle',
     desc: 'Balances & settle up',
+    color: '#14B8A6',
   },
   {
     key: 'CoupleReports',
     icon: 'stats-chart-outline',
     label: 'Reports',
     desc: 'Spending insights',
+    color: '#4F46E5',
   },
   {
     key: 'CoupleSettings',
     icon: 'settings-outline',
     label: 'Settings',
     desc: 'Preferences & profile',
+    color: '#64748B',
   },
 ];
 
 function ModuleCard({
-  sec,
+  mod,
   colors,
   navigation,
 }: {
-  sec: (typeof sections)[0];
+  mod: (typeof modules)[0];
   colors: any;
   navigation: any;
 }) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
-
   return (
     <TouchableOpacity
       activeOpacity={0.95}
-      onPress={() => navigation.navigate(sec.key)}
+      onPress={() => navigation.navigate(mod.key)}
       onPressIn={() => Animated.spring(scaleAnim, { toValue: 0.95, useNativeDriver: true }).start()}
       onPressOut={() => Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }).start()}
+      style={{ width: (width - PADDING * 2 - 12) / 3 }}
     >
       <Animated.View
-        style={[
-          styles.moduleCard,
-          {
-            backgroundColor: colors.bg.card,
-            borderColor: colors.border.subtle,
-            transform: [{ scale: scaleAnim }],
-          },
-        ]}
+        style={{
+          backgroundColor: colors.bg.card,
+          borderRadius: borderRadius.lg,
+          padding: 14,
+          alignItems: 'center',
+          gap: 6,
+          ...shadows.sm,
+          transform: [{ scale: scaleAnim }],
+        }}
       >
-        <View style={[styles.moduleIconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
-          <Ionicons name={sec.icon as any} size={20} color={colors.accent.primary} />
+        <View
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: 14,
+            backgroundColor: `${mod.color}12`,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Ionicons name={mod.icon as any} size={20} color={mod.color} />
         </View>
-        <Text style={[styles.moduleLabel, { color: colors.text.primary }]}>{sec.label}</Text>
-        <Text style={[styles.moduleDesc, { color: colors.text.secondary }]}>{sec.desc}</Text>
+        <Text style={{ fontSize: 12, fontWeight: '700', color: colors.text.primary }}>
+          {mod.label}
+        </Text>
+        <Text
+          style={{
+            fontSize: 9,
+            fontWeight: '500',
+            color: colors.text.tertiary,
+            textAlign: 'center',
+            lineHeight: 12,
+          }}
+        >
+          {mod.desc}
+        </Text>
       </Animated.View>
     </TouchableOpacity>
   );
@@ -114,7 +158,6 @@ export function CoupleSpaceScreen() {
   const navigation = useNavigation<any>();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [coupleData, setCoupleData] = useState<any>(null);
@@ -166,19 +209,16 @@ export function CoupleSpaceScreen() {
   const partner2Name = p2?.firstName || 'Partner 2';
   const p1Initial = partner1Name[0] || 'P';
   const p2Initial = partner2Name[0] || 'T';
-
   const totalPaid =
     (partnerStats?.partner1?.totalPaid || 0) + (partnerStats?.partner2?.totalPaid || 0);
   const daysTogether = group?.createdAt ? daysSince(group.createdAt) : 0;
   const togetherSince = group?.createdAt
     ? new Date(group.createdAt).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })
     : '';
-
   const sharedBudget = coupleData?.sharedBudget;
   const budgetUsed = sharedBudget?.spent ?? 0;
   const budgetTotal = sharedBudget?.budget ?? 0;
   const budgetPct = budgetTotal > 0 ? Math.round((budgetUsed / budgetTotal) * 100) : 0;
-
   const savingsAmount = savingsProgress?.saved ?? 0;
   const savingsTarget = savingsProgress?.goal ?? 0;
   const savingsPct =
@@ -187,20 +227,48 @@ export function CoupleSpaceScreen() {
 
   if (error && !coupleData) {
     return (
-      <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
-        <View style={[styles.errorPanel, { paddingTop: insets.top + 50 }]}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={[styles.backBtn, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
-          >
-            <Ionicons name="arrow-back" size={22} color="#FFF" />
-          </TouchableOpacity>
-          <View style={styles.errorContent}>
-            <Ionicons name="heart-dislike-outline" size={48} color="rgba(255,255,255,0.5)" />
-            <Text style={styles.errorTitle}>No Couple Space</Text>
-            <Text style={styles.errorDesc}>{error}</Text>
-            <TouchableOpacity style={styles.errorRetry} onPress={() => fetchCoupleData()}>
-              <Text style={styles.errorRetryText}>Retry</Text>
+      <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
+        <View style={[s.errorPanel, { paddingTop: insets.top + 50 }]}>
+          <View style={{ paddingHorizontal: PADDING }}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Ionicons name="chevron-back" size={20} color="#FFF" />
+            </TouchableOpacity>
+          </View>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 }}>
+            <Ionicons name="heart-dislike-outline" size={56} color="rgba(255,255,255,0.4)" />
+            <Text style={{ color: '#FFF', fontSize: 22, fontWeight: '800' }}>No Couple Space</Text>
+            <Text
+              style={{
+                color: 'rgba(255,255,255,0.7)',
+                fontSize: 14,
+                textAlign: 'center',
+                lineHeight: 20,
+                paddingHorizontal: 40,
+              }}
+            >
+              {error}
+            </Text>
+            <TouchableOpacity
+              onPress={() => fetchCoupleData()}
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                paddingHorizontal: 24,
+                paddingVertical: 12,
+                borderRadius: 14,
+                marginTop: 8,
+              }}
+            >
+              <Text style={{ color: '#FFF', fontSize: 15, fontWeight: '700' }}>Retry</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -209,7 +277,7 @@ export function CoupleSpaceScreen() {
   }
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
+    <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
@@ -224,183 +292,319 @@ export function CoupleSpaceScreen() {
           />
         }
       >
-        {/* ─── Header ─── */}
-        <View style={[styles.headerWrap, { paddingTop: insets.top + 12 }]}>
-          <View style={styles.headerRow}>
+        {/* Header */}
+        <View
+          style={{
+            backgroundColor: colors.accent.primary,
+            paddingTop: insets.top + 12,
+            paddingBottom: 24,
+            paddingHorizontal: PADDING,
+            borderBottomLeftRadius: borderRadius.xl,
+            borderBottomRightRadius: borderRadius.xl,
+          }}
+        >
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 16,
+            }}
+          >
             <TouchableOpacity
               onPress={() => navigation.goBack()}
-              style={[styles.backBtn, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
-              <Ionicons name="arrow-back" size={22} color="#FFF" />
+              <Ionicons name="chevron-back" size={20} color="#FFF" />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Couple Space</Text>
+            <Text style={{ color: '#FFF', fontSize: 17, fontWeight: '700' }}>Couple Space</Text>
             <TouchableOpacity
               onPress={() => navigation.navigate('CoupleSettings')}
-              style={[styles.backBtn, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
               <Ionicons name="settings-outline" size={20} color="#FFF" />
             </TouchableOpacity>
           </View>
-
-          <View style={styles.coupleInfo}>
-            <View style={styles.profileRow}>
+          <View style={{ alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 }}>
               <View
-                style={[
-                  styles.avatar,
-                  {
-                    backgroundColor: 'rgba(255,255,255,0.2)',
-                    borderColor: 'rgba(255,255,255,0.15)',
-                  },
-                ]}
+                style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 16,
+                  backgroundColor: 'rgba(255,255,255,0.2)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 2,
+                  borderColor: 'rgba(255,255,255,0.15)',
+                }}
               >
-                <Text style={styles.avatarText}>{p1Initial}</Text>
+                <Text style={{ color: '#FFF', fontSize: 22, fontWeight: '800' }}>{p1Initial}</Text>
               </View>
-              <View style={styles.heartWrap}>
-                <Ionicons name="heart" size={16} color="#FFEBB4" />
-              </View>
+              <Ionicons name="heart" size={20} color="#FFEBB4" />
               <View
-                style={[
-                  styles.avatar,
-                  {
-                    backgroundColor: 'rgba(255,255,255,0.2)',
-                    borderColor: 'rgba(255,255,255,0.15)',
-                  },
-                ]}
+                style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 16,
+                  backgroundColor: 'rgba(255,255,255,0.2)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 2,
+                  borderColor: 'rgba(255,255,255,0.15)',
+                }}
               >
-                <Text style={styles.avatarText}>{p2Initial}</Text>
+                <Text style={{ color: '#FFF', fontSize: 22, fontWeight: '800' }}>{p2Initial}</Text>
               </View>
             </View>
-            <Text style={styles.coupleName}>
+            <Text style={{ color: '#FFF', fontSize: 22, fontWeight: '800', letterSpacing: -0.5 }}>
               {partner1Name} & {partner2Name}
             </Text>
             {togetherSince && (
-              <Text style={styles.coupleSubtitle}>Together since {togetherSince}</Text>
+              <Text
+                style={{
+                  color: 'rgba(255,255,255,0.6)',
+                  fontSize: 13,
+                  fontWeight: '500',
+                  marginTop: 4,
+                }}
+              >
+                Together since {togetherSince}
+              </Text>
             )}
           </View>
         </View>
 
         <UpgradeBanner message="Couple Space analytics & insights with Premium" />
 
-        {/* ─── Content ─── */}
-        <View style={{ paddingHorizontal: 20, paddingTop: 20, gap: 16 }}>
-          {/* ─── Hero Card ─── */}
+        {/* Content */}
+        <View style={{ paddingHorizontal: PADDING, paddingTop: 20, gap: 16 }}>
+          {/* Hero Card */}
           <View
-            style={[
-              styles.heroCard,
-              { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
-            ]}
+            style={{
+              backgroundColor: colors.bg.card,
+              borderRadius: borderRadius.xl,
+              padding: 20,
+              ...shadows.lg,
+            }}
           >
-            <View style={styles.heroTop}>
-              <Text style={[styles.heroLabel, { color: colors.text.secondary }]}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 6,
+              }}
+            >
+              <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.secondary }}>
                 Total Shared Expenses
               </Text>
-              <View style={[styles.heroBadge, { backgroundColor: `${colors.accent.primary}15` }]}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 4,
+                  paddingHorizontal: 10,
+                  paddingVertical: 4,
+                  borderRadius: 10,
+                  backgroundColor: `${colors.accent.primary}10`,
+                }}
+              >
                 <Ionicons name="calendar-outline" size={11} color={colors.accent.primary} />
-                <Text style={[styles.heroBadgeText, { color: colors.accent.primary }]}>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: colors.accent.primary }}>
                   {daysTogether}d
                 </Text>
               </View>
             </View>
-            <Text style={[styles.heroAmount, { color: colors.text.primary }]}>
+            <Text
+              style={{
+                fontSize: 34,
+                fontWeight: '800',
+                color: colors.text.primary,
+                letterSpacing: -1.5,
+                marginBottom: 14,
+              }}
+            >
               {fmt(totalPaid)}
             </Text>
-            <View style={styles.heroMetaRow}>
-              <View style={styles.heroStat}>
-                <Text style={[styles.heroStatLabel, { color: colors.text.tertiary }]}>
-                  Partner 1
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '500',
+                    color: colors.text.tertiary,
+                    marginBottom: 2,
+                  }}
+                >
+                  {partner1Name}
                 </Text>
-                <Text style={[styles.heroStatVal, { color: '#34C759' }]}>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: '#34C759' }}>
                   +{fmt(partnerStats?.partner1?.totalPaid || 0)}
                 </Text>
               </View>
-              <View style={[styles.heroStatDivider, { backgroundColor: colors.border.subtle }]} />
-              <View style={styles.heroStat}>
-                <Text style={[styles.heroStatLabel, { color: colors.text.tertiary }]}>
-                  Partner 2
+              <View
+                style={{
+                  width: 1,
+                  height: 36,
+                  backgroundColor: colors.border.subtle,
+                  marginHorizontal: 12,
+                }}
+              />
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '500',
+                    color: colors.text.tertiary,
+                    marginBottom: 2,
+                  }}
+                >
+                  {partner2Name}
                 </Text>
-                <Text style={[styles.heroStatVal, { color: '#34C759' }]}>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: '#34C759' }}>
                   +{fmt(partnerStats?.partner2?.totalPaid || 0)}
                 </Text>
               </View>
             </View>
-            <View style={styles.quickActions}>
-              <TouchableOpacity
-                style={[styles.quickAction, { backgroundColor: colors.accent.primary }]}
-                activeOpacity={0.85}
-                onPress={() => navigation.navigate('CoupleExpenses')}
-              >
-                <Ionicons name="receipt-outline" size={16} color="#FFF" />
-                <Text style={styles.quickActionText}>Expenses</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.quickAction, { backgroundColor: '#34C759' }]}
-                activeOpacity={0.85}
-                onPress={() =>
-                  navigation.navigate('SharedExpenseForm', { groupId: group?.id, edit: false })
-                }
-              >
-                <Ionicons name="add-circle-outline" size={16} color="#FFF" />
-                <Text style={styles.quickActionText}>Add</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.quickAction, { backgroundColor: '#60A5FA' }]}
-                activeOpacity={0.85}
-                onPress={() => navigation.navigate('CoupleSettlements')}
-              >
-                <Ionicons name="swap-horizontal-outline" size={16} color="#FFF" />
-                <Text style={styles.quickActionText}>Settle</Text>
-              </TouchableOpacity>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              {[
+                {
+                  icon: 'receipt-outline',
+                  label: 'Expenses',
+                  color: colors.accent.primary,
+                  screen: 'CoupleExpenses',
+                },
+                {
+                  icon: 'add-circle-outline',
+                  label: 'Add',
+                  color: '#34C759',
+                  screen: 'SharedExpenseForm',
+                  params: { groupId: group?.id, edit: false },
+                },
+                {
+                  icon: 'swap-horizontal-outline',
+                  label: 'Settle',
+                  color: '#60A5FA',
+                  screen: 'CoupleSettlements',
+                },
+              ].map((btn, i) => (
+                <TouchableOpacity
+                  key={i}
+                  activeOpacity={0.85}
+                  onPress={() => navigation.navigate(btn.screen, btn.params)}
+                  style={{
+                    flex: 1,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 4,
+                    paddingVertical: 11,
+                    borderRadius: 12,
+                    backgroundColor: btn.color,
+                  }}
+                >
+                  <Ionicons name={btn.icon as any} size={14} color="#FFF" />
+                  <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '700' }}>
+                    {btn.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
           </View>
 
-          {/* ─── Budget ─── */}
+          {/* Budget */}
           {budgetTotal > 0 && (
             <TouchableOpacity
-              style={[
-                styles.card,
-                { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
-              ]}
               activeOpacity={0.7}
               onPress={() => navigation.navigate('CoupleBudgets')}
+              style={{
+                backgroundColor: colors.bg.card,
+                borderRadius: borderRadius.lg,
+                padding: 18,
+                ...shadows.md,
+              }}
             >
-              <View style={styles.cardHeader}>
-                <View style={styles.cardHeaderLeft}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 12,
+                }}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                   <View
-                    style={[styles.cardIcon, { backgroundColor: `${colors.accent.primary}15` }]}
+                    style={{
+                      width: 38,
+                      height: 38,
+                      borderRadius: 12,
+                      backgroundColor: `${colors.accent.primary}12`,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
                   >
-                    <Ionicons name="wallet-outline" size={16} color={colors.accent.primary} />
+                    <Ionicons name="wallet-outline" size={18} color={colors.accent.primary} />
                   </View>
                   <View>
-                    <Text style={[styles.cardTitle, { color: colors.text.primary }]}>
+                    <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
                       Monthly Budget
                     </Text>
-                    <Text style={[styles.cardLabel, { color: colors.text.tertiary }]}>
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        fontWeight: '500',
+                        color: colors.text.tertiary,
+                        marginTop: 1,
+                      }}
+                    >
                       {fmt(budgetTotal)} / month
                     </Text>
                   </View>
                 </View>
-                <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+                <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
               </View>
-              <View style={[styles.progressBar, { backgroundColor: colors.bg.tertiary }]}>
+              <View
+                style={{
+                  height: 8,
+                  backgroundColor: colors.bg.tertiary,
+                  borderRadius: 4,
+                  overflow: 'hidden',
+                }}
+              >
                 <View
-                  style={[
-                    styles.progressFill,
-                    {
-                      width: `${Math.min(budgetPct, 100)}%`,
-                      backgroundColor: budgetPct > 80 ? '#FF4545' : colors.accent.primary,
-                    },
-                  ]}
+                  style={{
+                    height: '100%',
+                    borderRadius: 4,
+                    width: `${Math.min(budgetPct, 100)}%`,
+                    backgroundColor: budgetPct > 80 ? '#FF4545' : colors.accent.primary,
+                  }}
                 />
               </View>
-              <View style={styles.progressMeta}>
-                <Text style={[styles.progressLabel, { color: colors.text.tertiary }]}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
+                <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text.tertiary }}>
                   {fmt(budgetUsed)} used
                 </Text>
                 <Text
-                  style={[
-                    styles.progressPct,
-                    { color: budgetPct > 80 ? '#FF4545' : colors.text.tertiary },
-                  ]}
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '700',
+                    color: budgetPct > 80 ? '#FF4545' : colors.text.tertiary,
+                  }}
                 >
                   {budgetPct}%
                 </Text>
@@ -408,93 +612,166 @@ export function CoupleSpaceScreen() {
             </TouchableOpacity>
           )}
 
-          {/* ─── Savings ─── */}
+          {/* Savings */}
           {savingsTarget > 0 && (
             <TouchableOpacity
-              style={[
-                styles.card,
-                { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
-              ]}
               activeOpacity={0.7}
               onPress={() => navigation.navigate('CoupleSavings')}
+              style={{
+                backgroundColor: colors.bg.card,
+                borderRadius: borderRadius.lg,
+                padding: 18,
+                ...shadows.md,
+              }}
             >
-              <View style={styles.cardHeader}>
-                <View style={styles.cardHeaderLeft}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 12,
+                }}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                   <View
-                    style={[styles.cardIcon, { backgroundColor: `${colors.accent.primary}15` }]}
+                    style={{
+                      width: 38,
+                      height: 38,
+                      borderRadius: 12,
+                      backgroundColor: '#34C75915',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
                   >
-                    <Ionicons name="save-outline" size={16} color={colors.accent.primary} />
+                    <Ionicons name="save-outline" size={18} color="#34C759" />
                   </View>
                   <View>
-                    <Text style={[styles.cardTitle, { color: colors.text.primary }]}>
+                    <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
                       Savings Goal
                     </Text>
-                    <Text style={[styles.cardLabel, { color: colors.text.tertiary }]}>
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        fontWeight: '500',
+                        color: colors.text.tertiary,
+                        marginTop: 1,
+                      }}
+                    >
                       {fmt(savingsAmount)} of {fmt(savingsTarget)}
                     </Text>
                   </View>
                 </View>
-                <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+                <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
               </View>
-              <View style={[styles.progressBar, { backgroundColor: colors.bg.tertiary }]}>
+              <View
+                style={{
+                  height: 8,
+                  backgroundColor: colors.bg.tertiary,
+                  borderRadius: 4,
+                  overflow: 'hidden',
+                }}
+              >
                 <View
-                  style={[
-                    styles.progressFill,
-                    { width: `${Math.min(savingsPct, 100)}%`, backgroundColor: '#34C759' },
-                  ]}
+                  style={{
+                    height: '100%',
+                    borderRadius: 4,
+                    width: `${Math.min(savingsPct, 100)}%`,
+                    backgroundColor: '#34C759',
+                  }}
                 />
               </View>
-              <View style={styles.progressMeta}>
-                <Text style={[styles.progressLabel, { color: colors.text.tertiary }]}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
+                <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text.tertiary }}>
                   {savingsPct}% completed
                 </Text>
               </View>
             </TouchableOpacity>
           )}
 
-          {/* ─── Modules Grid ─── */}
+          {/* Modules Grid */}
           <View>
-            <Text style={[styles.sectionLabel, { color: colors.text.primary }]}>All Modules</Text>
-            <View style={styles.sectionGrid}>
-              {sections.map((sec) => (
-                <ModuleCard key={sec.key} sec={sec} colors={colors} navigation={navigation} />
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: '800',
+                color: colors.text.primary,
+                marginBottom: 14,
+                letterSpacing: -0.3,
+              }}
+            >
+              All Modules
+            </Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+              {modules.map((mod) => (
+                <ModuleCard key={mod.key} mod={mod} colors={colors} navigation={navigation} />
               ))}
             </View>
           </View>
 
-          {/* ─── Wishlist ─── */}
+          {/* Goals */}
           {goals.length > 0 && (
             <View
-              style={[
-                styles.card,
-                { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
-              ]}
+              style={{
+                backgroundColor: colors.bg.card,
+                borderRadius: borderRadius.lg,
+                padding: 18,
+                ...shadows.md,
+              }}
             >
-              <View style={styles.cardHeader}>
-                <View style={styles.cardHeaderLeft}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 12,
+                }}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                   <View
-                    style={[styles.cardIcon, { backgroundColor: `${colors.accent.primary}15` }]}
+                    style={{
+                      width: 38,
+                      height: 38,
+                      borderRadius: 12,
+                      backgroundColor: `${colors.accent.primary}12`,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
                   >
-                    <Ionicons name="gift-outline" size={16} color={colors.accent.primary} />
+                    <Ionicons name="gift-outline" size={18} color={colors.accent.primary} />
                   </View>
-                  <Text style={[styles.cardTitle, { color: colors.text.primary }]}>
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
                     Shared Wishlist
                   </Text>
                 </View>
                 <TouchableOpacity onPress={() => navigation.navigate('CoupleGoals')}>
-                  <Text style={[styles.cardAction, { color: colors.accent.primary }]}>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: colors.accent.primary }}>
                     View All
                   </Text>
                 </TouchableOpacity>
               </View>
               {goals.slice(0, 3).map((item: any, i: number) => (
-                <View key={i} style={styles.wishlistItem}>
+                <View
+                  key={i}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 10,
+                    paddingVertical: 6,
+                  }}
+                >
                   <View
-                    style={[styles.wishlistDot, { backgroundColor: `${colors.accent.primary}15` }]}
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: 10,
+                      backgroundColor: `${colors.accent.primary}10`,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
                   >
                     <Ionicons name="gift-outline" size={14} color={colors.accent.primary} />
                   </View>
-                  <Text style={[styles.wishlistText, { color: colors.text.primary }]}>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>
                     {item.name}
                   </Text>
                 </View>
@@ -503,165 +780,32 @@ export function CoupleSpaceScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* FAB */}
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() =>
+          navigation.navigate('SharedExpenseForm', { groupId: group?.id, edit: false })
+        }
+        style={[s.fab, { backgroundColor: colors.accent.primary }, fabShadow]}
+      >
+        <Ionicons name="add" size={28} color="#FFFFFF" />
+      </TouchableOpacity>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   root: { flex: 1 },
-
-  /* Error Panel */
-  errorPanel: {
-    flex: 1,
-    backgroundColor: '#14B8A6',
-    paddingHorizontal: 20,
-  },
-  errorContent: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
-  errorTitle: { color: '#FFF', fontSize: 20, fontWeight: '800' },
-  errorDesc: { color: 'rgba(255,255,255,0.7)', fontSize: 14, textAlign: 'center', lineHeight: 20 },
-  errorRetry: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 14,
-    marginTop: 8,
-  },
-  errorRetryText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
-
-  /* Header */
-  headerWrap: {
-    backgroundColor: '#14B8A6',
-    paddingBottom: 28,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-  },
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  backBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: { color: '#FFF', fontSize: 17, fontWeight: '700' },
-  coupleInfo: { alignItems: 'center', marginTop: 14 },
-  profileRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  heartWrap: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  avatar: {
-    width: 46,
-    height: 46,
-    borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-  },
-  avatarText: { color: '#FFF', fontSize: 20, fontWeight: '800' },
-  coupleName: { color: '#FFF', fontSize: 20, fontWeight: '800' },
-  coupleSubtitle: { color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '500', marginTop: 3 },
-
-  /* Hero Card */
-  heroCard: {
-    borderRadius: 20,
-    padding: 20,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  heroTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  heroLabel: { fontSize: 12, fontWeight: '600' },
-  heroBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
-  },
-  heroBadgeText: { fontSize: 11, fontWeight: '700' },
-  heroAmount: { fontSize: 32, fontWeight: '800', letterSpacing: -1, marginBottom: 14 },
-  heroMetaRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
-  heroStat: { flex: 1 },
-  heroStatLabel: { fontSize: 11, fontWeight: '500', marginBottom: 2 },
-  heroStatVal: { fontSize: 16, fontWeight: '800' },
-  heroStatDivider: { width: 1, height: 32, marginHorizontal: 12 },
-
-  /* Quick Actions */
-  quickActions: { flexDirection: 'row', gap: 8 },
-  quickAction: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 5,
-    paddingVertical: 11,
-    borderRadius: 12,
-  },
-  quickActionText: { color: '#FFF', fontSize: 13, fontWeight: '700' },
-
-  /* Cards */
-  card: { borderRadius: 18, padding: 16, gap: 10, borderWidth: 1 },
-  cardTitle: { fontSize: 15, fontWeight: '700' },
-  cardLabel: { fontSize: 12, fontWeight: '500', marginTop: 1 },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  cardIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cardAction: { fontSize: 13, fontWeight: '600' },
-  progressBar: { height: 6, borderRadius: 3, overflow: 'hidden' },
-  progressFill: { height: '100%', borderRadius: 3 },
-  progressMeta: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  progressLabel: { fontSize: 11, fontWeight: '500' },
-  progressPct: { fontSize: 11, fontWeight: '700' },
-
-  /* Modules Grid */
-  sectionLabel: { fontSize: 18, fontWeight: '800', marginBottom: 12 },
-  sectionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: CARD_GAP },
-  moduleCard: {
-    width: CARD_W,
+  errorPanel: { flex: 1, backgroundColor: '#4F46E5' },
+  fab: {
+    position: 'absolute',
+    right: PADDING,
+    bottom: 24,
+    width: 56,
+    height: 56,
     borderRadius: 18,
-    padding: 16,
-    gap: 8,
-    borderWidth: 1,
-  },
-  moduleIconWrap: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  moduleLabel: { fontSize: 14, fontWeight: '700' },
-  moduleDesc: { fontSize: 11, fontWeight: '500', lineHeight: 15 },
-
-  /* Wishlist */
-  wishlistItem: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6 },
-  wishlistDot: {
-    width: 28,
-    height: 28,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  wishlistText: { fontSize: 13, fontWeight: '600' },
 });

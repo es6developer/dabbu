@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   ScrollView,
   TextInput,
   Platform,
@@ -12,7 +11,6 @@ import {
   Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
@@ -20,6 +18,7 @@ import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../config/categoryIcons';
+import { PADDING, borderRadius, shadows, fabShadow } from '../../theme/design';
 
 type PrefillParams = {
   prefill?: {
@@ -94,7 +93,7 @@ export function CreateTransactionScreen() {
           : [];
       setCategories(data);
     } catch (e) {
-      // fallback to static
+      /* empty */
     } finally {
       setLoadingMeta(false);
     }
@@ -148,10 +147,10 @@ export function CreateTransactionScreen() {
   if (loadingMeta) {
     return (
       <View style={[s.loading, { backgroundColor: colors.bg.primary }]}>
-        <View style={{ width: '100%', padding: 24, gap: 16 }}>
+        <View style={{ width: '100%', padding: PADDING, gap: 16 }}>
           <Skeleton width={140} height={22} />
-          <Skeleton width="100%" height={120} borderRadius={24} />
-          <Skeleton width="100%" height={80} borderRadius={16} />
+          <Skeleton width="100%" height={180} borderRadius={borderRadius.xl} />
+          <Skeleton width="100%" height={120} borderRadius={borderRadius.lg} />
         </View>
       </View>
     );
@@ -169,186 +168,343 @@ export function CreateTransactionScreen() {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
         >
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View>
-              <View style={[s.amountSection, { backgroundColor: colors.bg.card }]}>
-                <View style={s.amountTop}>
-                  <TouchableOpacity
-                    onPress={() => {
-                      Keyboard.dismiss();
-                      navigation.goBack();
-                    }}
-                    style={s.closeBtn}
-                  >
-                    <Ionicons name="close" size={22} color={colors.text.secondary} />
-                  </TouchableOpacity>
-                  <Text style={[s.amtTitle, { color: colors.text.primary }]}>
-                    {isEditing ? 'Edit' : type === 'income' ? 'Add Income' : 'Add Expense'}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => {
-                      inputRef.current?.focus();
-                    }}
-                    style={s.keyboardBtn}
-                  >
-                    <Ionicons name="keypad-outline" size={20} color={colors.accent.primary} />
-                  </TouchableOpacity>
-                </View>
-
-                <View style={[s.segmentRow, { backgroundColor: colors.bg.tertiary }]}>
-                  <TouchableOpacity
-                    activeOpacity={0.8}
-                    onPress={() => {
-                      setType('expense');
-                      setError('');
-                    }}
-                    style={[
-                      s.segmentBtn,
-                      type === 'expense' && { backgroundColor: colors.accent.primary },
-                    ]}
-                  >
-                    <Ionicons
-                      name="cart-outline"
-                      size={14}
-                      color={type === 'expense' ? '#FFF' : colors.text.secondary}
-                    />
-                    <Text
-                      style={[
-                        s.segmentText,
-                        { color: type === 'expense' ? '#FFF' : colors.text.secondary },
-                      ]}
-                    >
-                      Expenses
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    activeOpacity={0.8}
-                    onPress={() => {
-                      setType('income');
-                      setError('');
-                    }}
-                    style={[s.segmentBtn, type === 'income' && { backgroundColor: '#34C759' }]}
-                  >
-                    <Ionicons
-                      name="trending-up"
-                      size={14}
-                      color={type === 'income' ? '#FFF' : colors.text.secondary}
-                    />
-                    <Text
-                      style={[
-                        s.segmentText,
-                        { color: type === 'income' ? '#FFF' : colors.text.secondary },
-                      ]}
-                    >
-                      Income
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
-                <View style={s.amountDisplay}>
-                  <View style={s.amountInputRow}>
-                    <Text style={[s.amountCurrency, { color: colors.text.primary }]}>₹</Text>
-                    <TextInput
-                      ref={inputRef}
-                      style={[s.amountInput, { color: colors.text.primary }]}
-                      value={amount}
-                      onChangeText={(text) => {
-                        const cleaned = text.replace(/[^0-9.]/g, '');
-                        const dotCount = cleaned.split('.').length - 1;
-                        if (dotCount > 1) {
-                          return;
-                        }
-                        setAmount(cleaned);
-                        setError('');
-                      }}
-                      keyboardType="decimal-pad"
-                      placeholder="0"
-                      placeholderTextColor={colors.text.tertiary}
-                      returnKeyType="done"
-                      onSubmitEditing={() => Keyboard.dismiss()}
-                    />
-                  </View>
-                  <Text style={[s.amountHint, { color: colors.text.tertiary }]}>
-                    {type === 'expense' ? 'How much did you spend?' : 'How much did you receive?'}
-                  </Text>
-                </View>
-
-                {error ? (
-                  <View style={[s.errorBox, { backgroundColor: `${colors.status.error}15` }]}>
-                    <Ionicons name="alert-circle" size={14} color={colors.status.error} />
-                    <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
-                  </View>
-                ) : null}
-              </View>
-
-              <View style={s.categorySection}>
-                <Text style={[s.sectionLabel, { color: colors.text.primary }]}>Category</Text>
-                <View style={s.categoryGrid}>
-                  {currentCats.map((cat, i) => {
-                    const selected = category === cat.name;
-                    return (
-                      <TouchableOpacity
-                        key={i}
-                        activeOpacity={0.7}
-                        style={[
-                          s.categoryCard,
-                          {
-                            backgroundColor: selected ? `${cat.color}15` : colors.bg.card,
-                            borderColor: selected ? cat.color : colors.border.subtle,
-                          },
-                        ]}
-                        onPress={() => setCategory(selected ? '' : cat.name)}
-                      >
-                        <View
-                          style={[
-                            s.catIcon,
-                            { backgroundColor: selected ? cat.color : `${cat.color}12` },
-                          ]}
-                        >
-                          <Ionicons
-                            name={cat.icon as any}
-                            size={20}
-                            color={selected ? '#FFF' : cat.color}
-                          />
-                        </View>
-                        <Text
-                          style={[
-                            s.catName,
-                            { color: selected ? colors.text.primary : colors.text.secondary },
-                          ]}
-                          numberOfLines={1}
-                        >
-                          {cat.name}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              </View>
-
-              <View style={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 40 }}>
-                <TouchableOpacity
-                  style={[s.addBtn, { opacity: saving ? 0.7 : 1 }]}
-                  onPress={handleSave}
-                  disabled={saving}
-                  activeOpacity={0.85}
-                >
-                  <View style={[s.addBtnGrad, { backgroundColor: colors.accent.primary }]}>
-                    <Ionicons name="add-circle" size={18} color="#FFF" />
-                    <Text style={s.addBtnText}>
-                      {saving
-                        ? 'Saving...'
-                        : isEditing
-                          ? 'Update'
-                          : type === 'income'
-                            ? 'Add Income'
-                            : 'Add Expense'}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
+          {/* Header */}
+          <View
+            style={{ paddingTop: insets.top + 8, paddingHorizontal: PADDING, paddingBottom: 8 }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 12,
+                  backgroundColor: `${colors.accent.primary}10`,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Ionicons name="close" size={20} color={colors.accent.primary} />
+              </TouchableOpacity>
+              <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text.primary }}>
+                {isEditing ? 'Edit' : type === 'income' ? 'Add Income' : 'Add Expense'}
+              </Text>
+              <View style={{ width: 40 }} />
             </View>
-          </TouchableWithoutFeedback>
+          </View>
+
+          {/* Type Toggle */}
+          <View style={{ paddingHorizontal: PADDING, marginBottom: 20 }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                backgroundColor: colors.bg.tertiary,
+                borderRadius: 14,
+                padding: 3,
+              }}
+            >
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  setType('expense');
+                  setError('');
+                }}
+                style={{
+                  flex: 1,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  paddingVertical: 12,
+                  borderRadius: 12,
+                  backgroundColor: type === 'expense' ? colors.accent.primary : 'transparent',
+                }}
+              >
+                <Ionicons
+                  name="cart-outline"
+                  size={14}
+                  color={type === 'expense' ? '#FFF' : colors.text.secondary}
+                />
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: '700',
+                    color: type === 'expense' ? '#FFF' : colors.text.secondary,
+                  }}
+                >
+                  Expense
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  setType('income');
+                  setError('');
+                }}
+                style={{
+                  flex: 1,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  paddingVertical: 12,
+                  borderRadius: 12,
+                  backgroundColor: type === 'income' ? '#34C759' : 'transparent',
+                }}
+              >
+                <Ionicons
+                  name="trending-up"
+                  size={14}
+                  color={type === 'income' ? '#FFF' : colors.text.secondary}
+                />
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: '700',
+                    color: type === 'income' ? '#FFF' : colors.text.secondary,
+                  }}
+                >
+                  Income
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Amount Card */}
+          <View
+            style={{
+              marginHorizontal: PADDING,
+              borderRadius: borderRadius.xl,
+              padding: 24,
+              backgroundColor:
+                type === 'income' ? `${colors.status.success}10` : `${colors.status.error}08`,
+              alignItems: 'center',
+              marginBottom: 12,
+              ...shadows.md,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                justifyContent: 'center',
+                gap: 2,
+                marginBottom: 4,
+                marginTop: 8,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 36,
+                  fontWeight: '800',
+                  color: colors.text.primary,
+                  letterSpacing: -1,
+                }}
+              >
+                ₹
+              </Text>
+              <TextInput
+                ref={inputRef}
+                style={{
+                  fontSize: 48,
+                  fontWeight: '800',
+                  color: colors.text.primary,
+                  letterSpacing: -2,
+                  textAlign: 'center',
+                  minWidth: 120,
+                  paddingVertical: 0,
+                  height: 60,
+                  lineHeight: 60,
+                }}
+                value={amount}
+                onChangeText={(text) => {
+                  const c = text.replace(/[^0-9.]/g, '');
+                  if (c.split('.').length - 1 <= 1) {
+                    setAmount(c);
+                    setError('');
+                  }
+                }}
+                keyboardType="decimal-pad"
+                placeholder="0"
+                placeholderTextColor={colors.text.tertiary}
+                returnKeyType="done"
+                onSubmitEditing={() => Keyboard.dismiss()}
+              />
+            </View>
+            <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
+              {type === 'expense' ? 'How much did you spend?' : 'How much did you receive?'}
+            </Text>
+            {error ? (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: 10,
+                  borderRadius: 10,
+                  backgroundColor: `${colors.status.error}15`,
+                  marginTop: 12,
+                  width: '100%',
+                }}
+              >
+                <Ionicons name="alert-circle" size={14} color={colors.status.error} />
+                <Text
+                  style={{ fontSize: 12, fontWeight: '600', color: colors.status.error, flex: 1 }}
+                >
+                  {error}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+
+          {/* Description */}
+          <View style={{ paddingHorizontal: PADDING, marginBottom: 24 }}>
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '700',
+                color: colors.text.secondary,
+                letterSpacing: 0.5,
+                marginBottom: 8,
+                textTransform: 'uppercase',
+              }}
+            >
+              Description
+            </Text>
+            <TextInput
+              style={{
+                backgroundColor: colors.bg.card,
+                borderRadius: borderRadius.lg,
+                padding: 16,
+                fontSize: 15,
+                fontWeight: '500',
+                color: colors.text.primary,
+                borderWidth: 1,
+                borderColor: colors.border.subtle,
+                ...shadows.sm,
+              }}
+              value={description}
+              onChangeText={setDescription}
+              placeholder="What was this for?"
+              placeholderTextColor={colors.text.tertiary}
+            />
+          </View>
+
+          {/* Category Grid */}
+          <View style={{ paddingHorizontal: PADDING, marginBottom: 28 }}>
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '700',
+                color: colors.text.secondary,
+                letterSpacing: 0.5,
+                marginBottom: 14,
+                textTransform: 'uppercase',
+              }}
+            >
+              Category
+            </Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+              {currentCats.map((cat, i) => {
+                const selected = category === cat.name;
+                return (
+                  <TouchableOpacity
+                    key={i}
+                    activeOpacity={0.7}
+                    style={{
+                      width: '30%',
+                      alignItems: 'center',
+                      gap: 8,
+                      borderRadius: borderRadius.lg,
+                      borderWidth: 1.5,
+                      borderColor: selected ? cat.color : colors.border.subtle,
+                      backgroundColor: selected ? `${cat.color}12` : colors.bg.card,
+                      paddingVertical: 16,
+                      paddingHorizontal: 4,
+                      ...(selected ? shadows.sm : {}),
+                    }}
+                    onPress={() => setCategory(selected ? '' : cat.name)}
+                  >
+                    <View
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 14,
+                        backgroundColor: selected ? cat.color : `${cat.color}10`,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Ionicons
+                        name={cat.icon as any}
+                        size={20}
+                        color={selected ? '#FFF' : cat.color}
+                      />
+                    </View>
+                    <Text
+                      style={{
+                        fontSize: 11,
+                        fontWeight: '600',
+                        color: selected ? colors.text.primary : colors.text.secondary,
+                        textAlign: 'center',
+                      }}
+                      numberOfLines={1}
+                    >
+                      {cat.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Action Button */}
+          <View style={{ paddingHorizontal: PADDING, paddingTop: 8, paddingBottom: 20 }}>
+            <TouchableOpacity
+              style={{
+                borderRadius: 16,
+                overflow: 'hidden',
+                opacity: saving ? 0.7 : 1,
+                ...shadows.md,
+                shadowColor: type === 'income' ? colors.status.success : colors.accent.primary,
+              }}
+              onPress={handleSave}
+              disabled={saving}
+              activeOpacity={0.85}
+            >
+              <View
+                style={{
+                  flexDirection: 'row',
+                  paddingVertical: 16,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  backgroundColor: type === 'income' ? '#34C759' : colors.accent.primary,
+                }}
+              >
+                <Ionicons
+                  name={saving ? 'hourglass-outline' : 'wallet-outline'}
+                  size={18}
+                  color="#FFF"
+                />
+                <Text style={{ color: '#FFF', fontSize: 16, fontWeight: '700' }}>
+                  {saving
+                    ? 'Saving...'
+                    : isEditing
+                      ? 'Update'
+                      : type === 'income'
+                        ? 'Add Income'
+                        : 'Add Expense'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -358,95 +514,4 @@ export function CreateTransactionScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-
-  amountSection: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 20 },
-  amountTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  closeBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 12,
-    backgroundColor: '#F5F0FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  keyboardBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 12,
-    backgroundColor: '#F5F0FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  amtTitle: { fontSize: 17, fontWeight: '700' },
-
-  segmentRow: { flexDirection: 'row', borderRadius: 12, padding: 3, marginBottom: 20 },
-  segmentBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 10,
-    borderRadius: 10,
-  },
-  segmentText: { fontSize: 13, fontWeight: '700' },
-
-  amountDisplay: { alignItems: 'center', gap: 6, marginBottom: 8 },
-  amountInputRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
-  amountCurrency: { fontSize: 36, fontWeight: '800' },
-  amountInput: {
-    fontSize: 40,
-    fontWeight: '800',
-    letterSpacing: -1,
-    textAlign: 'center',
-    minWidth: 120,
-    paddingVertical: 0,
-  },
-  amountHint: { fontSize: 13, fontWeight: '500' },
-
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    padding: 10,
-    borderRadius: 10,
-    marginTop: 8,
-  },
-  errorText: { fontSize: 12, fontWeight: '600', flex: 1 },
-
-  categorySection: { paddingHorizontal: 20, paddingTop: 16 },
-  sectionLabel: { fontSize: 15, fontWeight: '700', marginBottom: 12 },
-  categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  categoryCard: {
-    width: '23%',
-    alignItems: 'center',
-    gap: 6,
-    borderRadius: 16,
-    borderWidth: 1,
-    paddingVertical: 14,
-    paddingHorizontal: 4,
-  },
-  catIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  catName: { fontSize: 10, fontWeight: '600', textAlign: 'center' },
-
-  addBtn: { borderRadius: 16, overflow: 'hidden', marginTop: 8 },
-  addBtnGrad: {
-    flexDirection: 'row',
-    paddingVertical: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  addBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 });
