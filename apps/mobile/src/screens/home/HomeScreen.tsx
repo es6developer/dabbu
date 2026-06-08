@@ -45,6 +45,15 @@ const emptyData: DashboardData = {
   goals: [],
 };
 
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+function dateMonthsAgo(n = 1) {
+  const d = new Date();
+  d.setMonth(d.getMonth() - n);
+  return d.toISOString().slice(0, 10);
+}
+
 function fmt(v: number) {
   const n = v || 0;
   return `₹${n.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
@@ -96,7 +105,10 @@ export function HomeScreen() {
         const results = await Promise.allSettled([
           api.get<any>('/accounts/stats', ctrl.signal),
           api.get<any>('/transactions/recent?limit=5', ctrl.signal),
-          api.get<any>('/transactions/categories-summary?months=1', ctrl.signal),
+          api.get<any>(
+            `/transactions/categories-summary?startDate=${dateMonthsAgo()}&endDate=${todayStr()}`,
+            ctrl.signal,
+          ),
           api.get<any>('/shared-finance/groups', ctrl.signal),
           api.get<any>('/notifications', ctrl.signal),
         ]);
