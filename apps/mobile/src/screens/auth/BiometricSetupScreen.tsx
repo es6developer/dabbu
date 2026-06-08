@@ -77,6 +77,6 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 16,
   },
-  buttonText: { color: '#1A1528', fontSize: 17, fontWeight: '600' },
+  buttonText: { color: '#1A1835', fontSize: 17, fontWeight: '600' },
   skip: { fontSize: 16 },
 });

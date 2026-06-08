@@ -24,7 +24,7 @@ export function BalanceCard({ totalBalance, monthlySpending, monthlyBudget }: Ba
 
   return (
     <View style={styles.wrapper}>
-      <View style={[styles.card, { backgroundColor: '#1A1528' }]}>
+      <View style={[styles.card, { backgroundColor: '#1A1835' }]}>
         <View style={styles.topRow}>
           <View>
             <Text style={styles.label}>Total Balance</Text>
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   wrapper: {
     marginHorizontal: 16,
     marginTop: -24,
-    shadowColor: '#1A1528',
+    shadowColor: '#1A1835',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.25,
     shadowRadius: 30,

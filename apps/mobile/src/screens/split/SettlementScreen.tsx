@@ -122,7 +122,7 @@ export function SettlementScreen() {
             paddingTop: insets.top + 12,
             paddingBottom: 28,
             paddingHorizontal: 20,
-            backgroundColor: '#1A1528',
+            backgroundColor: '#1A1835',
           }}
         >
           <View style={styles.headerRow}>
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  payBtnText: { color: '#1A1528', fontSize: 12, fontWeight: '700' },
+  payBtnText: { color: '#1A1835', fontSize: 12, fontWeight: '700' },
   emptyState: { alignItems: 'center', paddingVertical: 40, gap: 8 },
   emptyIcon: {
     width: 72,

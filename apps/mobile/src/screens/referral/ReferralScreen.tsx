@@ -339,7 +339,7 @@ export function ReferralScreen() {
         }
       >
         {/* Hero */}
-        <View style={[styles.hero, { paddingTop: insets.top + 16, backgroundColor: '#1A1528' }]}>
+        <View style={[styles.hero, { paddingTop: insets.top + 16, backgroundColor: '#1A1835' }]}>
           <Text style={styles.heroEyebrow}>REFER & EARN</Text>
           <Text style={styles.heroTitle}>Invite Friends, Earn Rewards</Text>
           <Text style={styles.heroSub}>
@@ -596,7 +596,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 10,
   },
-  codeShareText: { fontSize: 13, fontWeight: '700', color: '#1A1528' },
+  codeShareText: { fontSize: 13, fontWeight: '700', color: '#1A1835' },
   statsCard: {
     marginHorizontal: 16,
     marginTop: -24,
@@ -683,7 +683,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginTop: 8,
   },
-  emptyBtnText: { color: '#1A1528', fontSize: 15, fontWeight: '700' },
+  emptyBtnText: { color: '#1A1835', fontSize: 15, fontWeight: '700' },
   bottomBar: {
     position: 'absolute',
     bottom: 0,
@@ -701,7 +701,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 16,
   },
-  shareBtnText: { color: '#1A1528', fontSize: 16, fontWeight: '700' },
+  shareBtnText: { color: '#1A1835', fontSize: 16, fontWeight: '700' },
   shareSheet: {
     position: 'absolute',
     bottom: 0,

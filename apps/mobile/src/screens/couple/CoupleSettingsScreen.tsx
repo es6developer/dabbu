@@ -187,7 +187,7 @@ export function CoupleSettingsScreen() {
           />
         }
       >
-        <View style={[styles.hero, { paddingTop: insets.top + 12, backgroundColor: '#1A1528' }]}>
+        <View style={[styles.hero, { paddingTop: insets.top + 12, backgroundColor: '#1A1835' }]}>
           <TouchableOpacity
             style={styles.backBtn}
             onPress={() => navigation.goBack()}

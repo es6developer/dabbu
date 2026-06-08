@@ -155,6 +155,6 @@ const styles = StyleSheet.create({
   },
   button: { paddingVertical: 16, borderRadius: 14, alignItems: 'center', marginBottom: 20 },
   buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: '#1A1528', fontSize: 17, fontWeight: '600' },
+  buttonText: { color: '#1A1835', fontSize: 17, fontWeight: '600' },
   resend: { textAlign: 'center', fontSize: 14, fontWeight: '500' },
 });

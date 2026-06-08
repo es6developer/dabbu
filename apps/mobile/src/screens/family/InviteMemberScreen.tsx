@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
   copyHint: { fontSize: 12 },
   shareRow: { flexDirection: 'row', gap: 12 },
   shareBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
-  shareBtnText: { color: '#1A1528', fontSize: 15, fontWeight: '600' },
+  shareBtnText: { color: '#1A1835', fontSize: 15, fontWeight: '600' },
   copyBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: 'center', borderWidth: 1 },
   copyBtnText: { fontSize: 15, fontWeight: '600' },
   noFamilyCard: {
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   joinBtn: { paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
-  joinBtnText: { color: '#1A1528', fontSize: 17, fontWeight: '600' },
+  joinBtnText: { color: '#1A1835', fontSize: 17, fontWeight: '600' },
   inviteRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

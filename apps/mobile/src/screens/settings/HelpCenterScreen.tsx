@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginBottom: 28,
   },
-  supportBtnText: { color: '#1A1528', fontSize: 16, fontWeight: '600' },
+  supportBtnText: { color: '#1A1835', fontSize: 16, fontWeight: '600' },
   sectionTitle: { fontSize: 18, fontWeight: '600', marginBottom: 16 },
   faqCard: { padding: 16, borderRadius: 14, marginBottom: 8, borderWidth: 1 },
   faqHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

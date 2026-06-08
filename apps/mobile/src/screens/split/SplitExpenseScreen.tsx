@@ -89,7 +89,7 @@ export function SplitExpenseScreen() {
               paddingTop: insets.top + 12,
               paddingBottom: 20,
               paddingHorizontal: 20,
-              backgroundColor: '#1A1528',
+              backgroundColor: '#1A1835',
             }}
           >
             <View style={styles.headerRow}>
@@ -429,5 +429,5 @@ const styles = StyleSheet.create({
     marginTop: 4,
     overflow: 'hidden',
   },
-  createBtnText: { color: '#1A1528', fontSize: 16, fontWeight: '700' },
+  createBtnText: { color: '#1A1835', fontSize: 16, fontWeight: '700' },
 });

@@ -158,7 +158,7 @@ export function SettingsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
       >
-        <View style={[s.hero, { paddingTop: insets.top + 16, backgroundColor: '#1A1528' }]}>
+        <View style={[s.hero, { paddingTop: insets.top + 16, backgroundColor: '#1A1835' }]}>
           <View
             style={{
               flexDirection: 'row',
@@ -227,7 +227,7 @@ export function SettingsScreen() {
             <TouchableOpacity
               style={[
                 s.upgradeBanner,
-                { backgroundColor: '#1A1528', borderColor: 'rgba(243, 210, 143, 0.2)' },
+                { backgroundColor: '#1A1835', borderColor: 'rgba(243, 210, 143, 0.2)' },
               ]}
               onPress={() => navigation.navigate('Premium')}
               activeOpacity={0.85}

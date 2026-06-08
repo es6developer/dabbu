@@ -559,5 +559,5 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginTop: 8,
   },
-  emptyBtnText: { color: '#1A1528', fontSize: 14, fontWeight: '600' },
+  emptyBtnText: { color: '#1A1835', fontSize: 14, fontWeight: '600' },
 });

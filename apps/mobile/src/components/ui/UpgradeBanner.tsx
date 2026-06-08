@@ -60,7 +60,7 @@ export function UpgradeBanner({
       <View style={styles.glowLeft} />
       <View style={styles.content}>
         <View style={styles.iconWrap}>
-          <Ionicons name="diamond" size={18} color="#1A1528" />
+          <Ionicons name="diamond" size={18} color="#1A1835" />
         </View>
         <View style={styles.textWrap}>
           <Text style={styles.title}>Go Premium</Text>
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     borderRadius: 16,
     borderWidth: 1,
-    backgroundColor: '#1A1528',
+    backgroundColor: '#1A1835',
     padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: {
-    color: '#1A1528',
+    color: '#1A1835',
     fontSize: 13,
     fontWeight: '700',
   },

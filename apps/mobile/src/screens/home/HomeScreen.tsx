@@ -237,7 +237,7 @@ export function HomeScreen() {
         >
           <View style={styles.balanceWrap}>
             <View
-              style={[styles.balanceCard, { backgroundColor: '#1A1528', shadowColor: '#1A1528' }]}
+              style={[styles.balanceCard, { backgroundColor: '#1A1835', shadowColor: '#1A1835' }]}
             >
               <View style={styles.balanceTop}>
                 <View>
@@ -808,5 +808,5 @@ const styles = StyleSheet.create({
     borderColor: '#E86310',
     marginTop: 4,
   },
-  emptyBtnText: { color: '#1A1528', fontSize: 14, fontWeight: '600' },
+  emptyBtnText: { color: '#1A1835', fontSize: 14, fontWeight: '600' },
 });

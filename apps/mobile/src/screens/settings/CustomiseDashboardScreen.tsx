@@ -247,5 +247,5 @@ const styles = StyleSheet.create({
   eyeBtn: { padding: 8 },
   footer: { paddingHorizontal: 20, paddingTop: 12 },
   saveBtn: { height: 50, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  saveText: { color: '#1A1528', fontSize: 16, fontWeight: '700' },
+  saveText: { color: '#1A1835', fontSize: 16, fontWeight: '700' },
 });

@@ -92,7 +92,7 @@ export function SplashScreen({ onFinish }: SplashScreenProps) {
   });
 
   return (
-    <View style={[styles.root, { backgroundColor: '#1A1528' }]}>
+    <View style={[styles.root, { backgroundColor: '#1A1835' }]}>
       <Animated.View style={[styles.inner, { opacity: rootOpacity }]}>
         {/* Language nodes */}
         {LANG_NODES.map((node, i) => {

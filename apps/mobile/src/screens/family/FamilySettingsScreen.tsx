@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   saveBtn: { paddingVertical: 14, borderRadius: 14, alignItems: 'center' },
-  saveBtnText: { color: '#1A1528', fontSize: 15, fontWeight: '600' },
+  saveBtnText: { color: '#1A1835', fontSize: 15, fontWeight: '600' },
   memberRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -361,5 +361,5 @@ const styles = StyleSheet.create({
   leaveBtn: { paddingVertical: 16, borderRadius: 14, alignItems: 'center', borderWidth: 1 },
   leaveBtnText: { fontSize: 16, fontWeight: '600' },
   deleteFamilyBtn: { paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
-  deleteFamilyBtnText: { color: '#1A1528', fontSize: 16, fontWeight: '600' },
+  deleteFamilyBtnText: { color: '#1A1835', fontSize: 16, fontWeight: '600' },
 });

@@ -250,6 +250,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  buttonText: { color: '#1A1528' },
+  buttonText: { color: '#1A1835' },
   getStarted: { alignItems: 'center', paddingVertical: 12, marginTop: 4 },
 });

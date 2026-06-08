@@ -65,7 +65,7 @@ export function ExternalSplitLinkScreen() {
             paddingTop: insets.top + 12,
             paddingBottom: 28,
             paddingHorizontal: 20,
-            backgroundColor: '#1A1528',
+            backgroundColor: '#1A1835',
           }}
         >
           <View style={styles.headerRow}>
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  shareBtnText: { color: '#1A1528', fontSize: 16, fontWeight: '700' },
+  shareBtnText: { color: '#1A1835', fontSize: 16, fontWeight: '700' },
   infoCard: {
     borderRadius: 20,
     padding: 18,

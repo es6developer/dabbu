@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     borderRadius: 10,
   },
-  settleBtnText: { color: '#1A1528', fontSize: 12, fontWeight: '700' },
+  settleBtnText: { color: '#1A1835', fontSize: 12, fontWeight: '700' },
   splitBtn: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -88,7 +88,7 @@ export function AddExpenseScreen() {
           <Ionicons name="close" size={22} color="#FFFFFF" />
         </TouchableOpacity>
 
-        <View style={[styles.hero, { backgroundColor: '#1A1528' }]}>
+        <View style={[styles.hero, { backgroundColor: '#1A1835' }]}>
           <View style={styles.heroIcon}>
             <Ionicons name="add" size={28} color="#FFFFFF" />
           </View>

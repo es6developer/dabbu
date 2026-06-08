@@ -120,7 +120,7 @@ export function TransactionDetailScreen() {
 
   return (
     <View style={[s.container, { backgroundColor: colors.bg.primary }]}>
-      <View style={[s.hero, { paddingTop: insets.top + 8, backgroundColor: '#1A1528' }]}>
+      <View style={[s.hero, { paddingTop: insets.top + 8, backgroundColor: '#1A1835' }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
           <View style={s.backBtnInner}>
             <Ionicons name="chevron-back" size={22} color="#FFF" />
