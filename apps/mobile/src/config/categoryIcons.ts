@@ -23,6 +23,7 @@ export const CATEGORY_ICONS: Record<string, string> = {
   Entertainment: 'film-outline',
   Medical: 'medkit-outline',
   Health: 'medkit-outline',
+  Healthcare: 'medkit-outline',
   'Health & Medical': 'medkit-outline',
   Education: 'school-outline',
   Fuel: 'flame-outline',
@@ -46,52 +47,53 @@ export const CATEGORY_ICONS: Record<string, string> = {
   Utilities: 'flash-outline',
 };
 
-export const CATEGORY_GRADIENTS: Record<string, [string, string]> = {
-  Food: ['#FF6B6B', '#EE5A24'],
-  'Food & Dining': ['#FF6B6B', '#EE5A24'],
-  Groceries: ['#00B894', '#00A381'],
-  Grocery: ['#81ECEC', '#00CEC9'],
-  Dining: ['#FDCB6E', '#E17055'],
-  Travel: ['#6C5CE7', '#5A4BD1'],
-  Transport: ['#74B9FF', '#4D96FF'],
-  Transportation: ['#74B9FF', '#4D96FF'],
-  Gym: ['#A78BFA', '#8B5CF6'],
-  Fitness: ['#A78BFA', '#8B5CF6'],
-  Water: ['#38BDF8', '#0984E3'],
-  Internet: ['#6C5CE7', '#4A4ABF'],
-  Rent: ['#E17055', '#D63031'],
-  Home: ['#E17055', '#D63031'],
-  Housing: ['#E17055', '#D63031'],
-  Bills: ['#F59E0B', '#D68910'],
-  'Bills & Utilities': ['#F59E0B', '#D68910'],
-  Electricity: ['#FDCB6E', '#F0A830'],
-  Gas: ['#FF6B6B', '#EE5A24'],
-  Phone: ['#00B894', '#00A381'],
-  Shopping: ['#F472B6', '#E056A0'],
-  Entertainment: ['#8B5CF6', '#6C3EF4'],
-  Medical: ['#FF4D4F', '#CC3B3B'],
-  Health: ['#FF4D4F', '#CC3B3B'],
-  'Health & Medical': ['#FF4D4F', '#CC3B3B'],
-  Education: ['#6366F1', '#4F46E5'],
-  Fuel: ['#F59E0B', '#F0A830'],
-  EMI: ['#636E72', '#2D3436'],
-  Investment: ['#00B894', '#00A381'],
-  Salary: ['#00B894', '#00A381'],
-  Income: ['#00B894', '#00A381'],
-  Transfer: ['#DFE6E9', '#B2BEC3'],
-  Transfers: ['#DFE6E9', '#B2BEC3'],
-  Subscriptions: ['#6C5CE7', '#5A4BD1'],
-  Subscription: ['#6C5CE7', '#5A4BD1'],
-  Insurance: ['#00CEC9', '#00B894'],
-  Financial: ['#00CEC9', '#00B894'],
-  Refunds: ['#00B894', '#00A381'],
-  Pets: ['#FDCB6E', '#F0A830'],
-  Clothing: ['#F472B6', '#E056A0'],
-  'Other Income': ['#00B894', '#00A381'],
-  'Other Expenses': ['#636E72', '#2D3436'],
-  Other: ['#636E72', '#2D3436'],
-  Uncategorized: ['#636E72', '#2D3436'],
-  Utilities: ['#FDCB6E', '#F0A830'],
+export const CATEGORY_COLORS: Record<string, string> = {
+  Food: '#FF6B6B',
+  'Food & Dining': '#FF6B6B',
+  Groceries: '#34C759',
+  Grocery: '#00CEC9',
+  Dining: '#FDCB6E',
+  Travel: '#60A5FA',
+  Transport: '#38BDF8',
+  Transportation: '#38BDF8',
+  Gym: '#A78BFA',
+  Fitness: '#A78BFA',
+  Water: '#38BDF8',
+  Internet: '#38BDF8',
+  Rent: '#FB923C',
+  Home: '#FB923C',
+  Housing: '#FB923C',
+  Bills: '#F59E0B',
+  'Bills & Utilities': '#F59E0B',
+  Electricity: '#FDCB6E',
+  Gas: '#FF6B6B',
+  Phone: '#00B894',
+  Shopping: '#F472B6',
+  Entertainment: '#8B5CF6',
+  Medical: '#FF4D4F',
+  Health: '#FF4D4F',
+  Healthcare: '#FF4D4F',
+  'Health & Medical': '#FF4D4F',
+  Education: '#6366F1',
+  Fuel: '#F59E0B',
+  EMI: '#636E72',
+  Investment: '#00B894',
+  Salary: '#00B894',
+  Income: '#00B894',
+  Transfer: '#B2BEC3',
+  Transfers: '#B2BEC3',
+  Subscriptions: '#6C5CE7',
+  Subscription: '#6C5CE7',
+  Insurance: '#00CEC9',
+  Financial: '#00CEC9',
+  Refunds: '#00B894',
+  Pets: '#FDCB6E',
+  Clothing: '#F472B6',
+  'Other Income': '#00B894',
+  'Other Expenses': '#636E72',
+  Other: '#636E72',
+  Uncategorized: '#636E72',
+  Utilities: '#FBBF24',
 };
 
 export function getCategoryIcon(cat: string | null | undefined, defaultIcon: string = 'receipt-outline'): string {
@@ -102,17 +104,10 @@ export function getCategoryIcon(cat: string | null | undefined, defaultIcon: str
   return key ? CATEGORY_ICONS[key] : defaultIcon;
 }
 
-export function getCategoryGradient(
-  cat: string | null | undefined,
-  defaultGradient: [string, string] = ['#6C3EF4', '#8B5CF6'],
-): [string, string] {
-  if (!cat) return defaultGradient;
-  const key = Object.keys(CATEGORY_GRADIENTS).find(
+export function getCategoryColor(cat: string | null | undefined, defaultColor: string = '#6C3EF4'): string {
+  if (!cat) return defaultColor;
+  const key = Object.keys(CATEGORY_COLORS).find(
     (k) => k.toLowerCase().trim() === cat.toLowerCase().trim(),
   );
-  return key ? CATEGORY_GRADIENTS[key] : defaultGradient;
-}
-
-export function getCategoryColor(cat: string | null | undefined, defaultColor: string = '#6C3EF4'): string {
-  return getCategoryGradient(cat, [defaultColor, defaultColor])[0];
+  return key ? CATEGORY_COLORS[key] : defaultColor;
 }

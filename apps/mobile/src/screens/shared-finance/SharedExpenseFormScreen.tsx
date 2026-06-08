@@ -19,21 +19,10 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
+import { CATEGORY_ICONS, getCategoryColor } from '../../config/categoryIcons';
 
-const CATEGORIES = [
-  { name: 'Food', icon: 'fast-food-outline', color: '#FF6B6B' },
-  { name: 'Travel', icon: 'airplane-outline', color: '#60A5FA' },
-  { name: 'Shopping', icon: 'bag-outline', color: '#F472B6' },
-  { name: 'Bills', icon: 'receipt-outline', color: '#F59E0B' },
-  { name: 'Entertainment', icon: 'film-outline', color: '#8B5CF6' },
-  { name: 'Groceries', icon: 'cart-outline', color: '#34C759' },
-  { name: 'Transport', icon: 'car-outline', color: '#38BDF8' },
-  { name: 'Healthcare', icon: 'medkit-outline', color: '#FF4D4F' },
-  { name: 'Education', icon: 'school-outline', color: '#6366F1' },
-  { name: 'Rent', icon: 'home-outline', color: '#FB923C' },
-  { name: 'Utilities', icon: 'flash-outline', color: '#FBBF24' },
-  { name: 'Other', icon: 'ellipsis-horizontal-outline', color: '#9CA3AF' },
-];
+const CATEGORY_NAMES = ['Food', 'Travel', 'Shopping', 'Bills', 'Entertainment', 'Groceries', 'Transport', 'Healthcare', 'Education', 'Rent', 'Utilities', 'Other'];
+const CATEGORIES = CATEGORY_NAMES.map((name) => ({ name, icon: CATEGORY_ICONS[name], color: getCategoryColor(name) }));
 
 const SPLIT_TYPES = [
   { key: 'equal', label: 'Equal', icon: 'arrow-redo' },

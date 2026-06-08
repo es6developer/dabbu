@@ -1484,6 +1484,24 @@ export class SharedFinanceService {
       throw new NotFoundException('User not found with this email');
     }
 
+    if (senderId === receiver.id) {
+      throw new BadRequestException('Cannot send invite to yourself');
+    }
+
+    const existingSenderProfile = await this.prisma.coupleFinanceProfile.findFirst({
+      where: { OR: [{ partner1Id: senderId }, { partner2Id: senderId }] },
+    });
+    if (existingSenderProfile) {
+      throw new BadRequestException('You already have a couple profile');
+    }
+
+    const existingReceiverProfile = await this.prisma.coupleFinanceProfile.findFirst({
+      where: { OR: [{ partner1Id: receiver.id }, { partner2Id: receiver.id }] },
+    });
+    if (existingReceiverProfile) {
+      throw new BadRequestException('This user already has a couple profile');
+    }
+
     const existing = await this.prisma.coupleFinanceInvite.findUnique({
       where: { senderId_receiverId: { senderId, receiverId: receiver.id } },
     });
@@ -1505,7 +1523,7 @@ export class SharedFinanceService {
     return invite;
   }
 
-  async acceptCoupleInvite(inviteId: string, groupId: string) {
+  async acceptCoupleInvite(inviteId: string, groupId: string, userId: string) {
     const invite = await this.prisma.coupleFinanceInvite.findUnique({
       where: { id: inviteId },
     });
@@ -1516,9 +1534,31 @@ export class SharedFinanceService {
       throw new BadRequestException('Invite is no longer pending');
     }
 
+    if (invite.receiverId !== userId) {
+      throw new ForbiddenException('This invite was not sent to you');
+    }
+
     const group = await this.prisma.sharedGroup.findUnique({ where: { id: groupId } });
     if (!group) {
       throw new NotFoundException('Group not found');
+    }
+
+    if (group.type !== 'couple') {
+      throw new BadRequestException('Invite can only be accepted for a couple group');
+    }
+
+    const existingProfile = await this.prisma.coupleFinanceProfile.findUnique({
+      where: { groupId },
+    });
+    if (existingProfile) {
+      throw new BadRequestException('Couple profile already exists for this group');
+    }
+
+    const existingReceiverProfile = await this.prisma.coupleFinanceProfile.findFirst({
+      where: { OR: [{ partner1Id: userId }, { partner2Id: userId }] },
+    });
+    if (existingReceiverProfile) {
+      throw new BadRequestException('You already have a couple profile with another group');
     }
 
     await this.prisma.coupleFinanceProfile.create({
@@ -3798,11 +3838,15 @@ export class SharedFinanceService {
       .reduce((s, i) => s + Number(i.amount), 0);
 
     const partner1Incomes = incomes
-      .filter((i) => i.assignedTo === profile.partner1Id || (!i.assignedTo && i.type === 'salary'))
+      .filter((i) => i.assignedTo === profile.partner1Id)
       .reduce((s, i) => s + Number(i.amount), 0);
 
     const partner2Incomes = incomes
       .filter((i) => i.assignedTo === profile.partner2Id)
+      .reduce((s, i) => s + Number(i.amount), 0);
+
+    const unassignedIncomes = incomes
+      .filter((i) => !i.assignedTo)
       .reduce((s, i) => s + Number(i.amount), 0);
 
     return {
@@ -3811,6 +3855,7 @@ export class SharedFinanceService {
         totalMonthly: totalMonthlyIncome,
         partner1Total: partner1Incomes,
         partner2Total: partner2Incomes,
+        unassignedTotal: unassignedIncomes,
       },
     };
   }

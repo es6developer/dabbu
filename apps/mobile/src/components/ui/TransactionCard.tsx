@@ -23,20 +23,7 @@ export function TransactionCard({ name, amount, category, date, avatar, onPress 
   const isExpense = amount < 0;
   const absAmount = Math.abs(amount);
 
-  const catIcons: Record<string, string> = {
-    Food: 'fast-food-outline',
-    Groceries: 'cart-outline',
-    Travel: 'airplane-outline',
-    Home: 'home-outline',
-    Bills: 'receipt-outline',
-    Internet: 'wifi-outline',
-    Entertainment: 'film-outline',
-    Medical: 'medkit-outline',
-    Shopping: 'bag-outline',
-    Education: 'school-outline',
-  };
-
-  const iconName = catIcons[category] || 'ellipse-outline';
+  const iconName = getCategoryIcon(category, 'ellipse-outline');
 
   return (
     <TouchableOpacity

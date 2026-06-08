@@ -11,6 +11,7 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { syncAndUpload, setSyncTimestamp } from '../../services/sms';
 import { isSmsModuleAvailable, checkSmsPermission } from '../../services/sms/smsService';
+import { getCategoryIcon } from '../../config/categoryIcons';
 
 interface Detection {
   id: string;
@@ -29,31 +30,9 @@ interface Detection {
 
 type FilterMode = 'all' | 'categorized' | 'uncategorized';
 
-const CATEGORY_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  'Food & Dining': 'fast-food',
-  Groceries: 'cart',
-  Shopping: 'bag',
-  Transportation: 'car',
-  Entertainment: 'film',
-  'Bills & Utilities': 'receipt',
-  Housing: 'home',
-  Income: 'cash',
-  Subscriptions: 'flash',
-  'Health & Medical': 'medkit',
-  Education: 'school',
-  Travel: 'airplane',
-  Financial: 'shield',
-  Transfers: 'swap-horizontal',
-  Refunds: 'return-down-back',
-  Pets: 'paw',
-  Clothing: 'shirt',
-  'Other Income': 'cash-outline',
-  'Other Expenses': 'ellipse',
-};
-
-function getCatIcon(name: string | undefined | null): keyof typeof Ionicons.glyphMap {
+function getCatIcon(name: string | undefined | null): string {
   if (!name) {return 'ellipse';}
-  return CATEGORY_ICONS[name] || 'ellipse';
+  return getCategoryIcon(name, 'ellipse');
 }
 
 export function SmsDashboardScreen() {
@@ -233,7 +212,7 @@ export function SmsDashboardScreen() {
       <View style={[styles.card, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}>
         <View style={styles.cardRow}>
           <View style={[styles.iconBox, { backgroundColor: `${catColor}18` }]}>
-            <Ionicons name={iconName} size={18} color={catColor} />
+            <Ionicons name={iconName as any} size={18} color={catColor} />
           </View>
           <View style={styles.cardInfo}>
             <Text style={[styles.merchant, { color: colors.text.primary }]} numberOfLines={1}>

@@ -9,23 +9,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
+import { getCategoryIcon, getCategoryColor } from '../../config/categoryIcons';
 
 const { width } = Dimensions.get('window');
-
-const CATEGORY_MAP: Record<string, { icon: string; color: string }> = {
-  Food: { icon: 'fast-food-outline', color: '#FF6B6B' },
-  Groceries: { icon: 'cart-outline', color: '#34C759' },
-  Travel: { icon: 'airplane-outline', color: '#60A5FA' },
-  Gym: { icon: 'fitness-outline', color: '#A78BFA' },
-  Water: { icon: 'water-outline', color: '#38BDF8' },
-  Internet: { icon: 'wifi-outline', color: '#38BDF8' },
-  Rent: { icon: 'home-outline', color: '#FB923C' },
-  Bills: { icon: 'receipt-outline', color: '#F59E0B' },
-  Shopping: { icon: 'bag-outline', color: '#F472B6' },
-  Entertainment: { icon: 'film-outline', color: '#8B5CF6' },
-  Medical: { icon: 'medkit-outline', color: '#FF4D4F' },
-  Education: { icon: 'school-outline', color: '#6366F1' },
-};
 
 const DEFAULT_CAT = { icon: 'ellipse-outline', color: '#9CA3AF' };
 
@@ -109,7 +95,8 @@ export function CoupleExpensesScreen() {
   const groupId = coupleData?.group?.id;
 
   function renderExpenseRow(item: any) {
-    const catInfo = CATEGORY_MAP[item.category?.name || item.category] || DEFAULT_CAT;
+    const catName = item.category?.name || item.category;
+    const catInfo = { icon: getCategoryIcon(catName, 'ellipse-outline'), color: getCategoryColor(catName) };
     const isOwn = item.paidBy === 'me' || !item.paidBy || item.paidBy === coupleData?.profile?.partner1?.id;
     const paidByName = isOwn ? 'You' : partner1Name === 'Partner 1' ? partner2Name : partner1Name;
     const showPaidBy = activeTab !== 'personal';

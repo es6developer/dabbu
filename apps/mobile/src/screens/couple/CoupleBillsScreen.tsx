@@ -11,19 +11,11 @@ import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 
+import { getCategoryIcon } from '../../config/categoryIcons';
+
 const { width } = Dimensions.get('window');
 
-const CATEGORY_ICONS: Record<string, string> = {
-  Electricity: 'flash-outline',
-  Water: 'water-outline',
-  Internet: 'globe-outline',
-  Rent: 'home-outline',
-  Insurance: 'shield-outline',
-  Subscription: 'card-outline',
-  Phone: 'call-outline',
-  Gas: 'flame-outline',
-  Other: 'receipt-outline',
-};
+const BILL_CATEGORIES = ['Electricity', 'Water', 'Internet', 'Rent', 'Insurance', 'Subscription', 'Phone', 'Gas', 'Other'];
 
 const RECURRING_OPTIONS = [
   { label: 'Weekly', value: 'weekly' },
@@ -299,7 +291,7 @@ export function CoupleBillsScreen() {
                 upcomingBills.map((bill) => {
                   const due = daysUntil(bill.dueDate);
                   const overdue = due < 0;
-                  const icon = CATEGORY_ICONS[bill.category] || CATEGORY_ICONS.Other;
+                  const icon = getCategoryIcon(bill.category, 'receipt-outline');
                   return (
                     <View
                       key={bill.id || bill._id}
@@ -362,7 +354,7 @@ export function CoupleBillsScreen() {
                 </View>
               ) : (
                 paidBills.map((bill) => {
-                  const icon = CATEGORY_ICONS[bill.category] || CATEGORY_ICONS.Other;
+                  const icon = getCategoryIcon(bill.category, 'receipt-outline');
                   return (
                     <View
                       key={bill.id || bill._id}
@@ -454,7 +446,7 @@ export function CoupleBillsScreen() {
 
                 <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>Category</Text>
                 <View style={styles.categoryRow}>
-                  {Object.keys(CATEGORY_ICONS).map((cat) => (
+                  {BILL_CATEGORIES.map((cat) => (
                     <TouchableOpacity
                       key={cat}
                       style={[
@@ -467,7 +459,7 @@ export function CoupleBillsScreen() {
                       onPress={() => setFormCategory(cat)}
                     >
                       <Ionicons
-                        name={CATEGORY_ICONS[cat] as any}
+                        name={getCategoryIcon(cat, 'receipt-outline') as any}
                         size={14}
                         color={formCategory === cat ? '#FFF' : colors.text.secondary}
                       />

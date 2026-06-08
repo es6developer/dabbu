@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
+import { getCategoryIcon } from '../../config/categoryIcons';
 
 const { width } = Dimensions.get('window');
 const BAR_H = 8;
@@ -35,22 +36,7 @@ function statusBadge(pct: number): { label: string; bg: string; text: string; ic
   return { label: 'Normal', bg: '#E5F9E5', text: '#2E7D32', icon: 'checkmark-circle' };
 }
 
-const categoryIcons: Record<string, string> = {
-  groceries: 'basket-outline',
-  food: 'fast-food-outline',
-  dining: 'restaurant-outline',
-  transport: 'car-outline',
-  shopping: 'bag-outline',
-  entertainment: 'film-outline',
-  utilities: 'flash-outline',
-  rent: 'home-outline',
-  health: 'medkit-outline',
-  education: 'school-outline',
-  travel: 'airplane-outline',
-  insurance: 'shield-outline',
-  subscriptions: 'card-outline',
-  other: 'ellipsis-horizontal-outline',
-};
+
 
 export function CoupleBudgetsScreen() {
   const navigation = useNavigation<any>();
@@ -201,7 +187,7 @@ export function CoupleBudgetsScreen() {
             const catSpent = cat.spent ?? 0;
             const catPct = catBudget > 0 ? Math.round((catSpent / catBudget) * 100) : 0;
             const badge = statusBadge(catPct);
-            const icon = categoryIcons[(cat.icon || cat.name || '').toLowerCase()] || 'wallet-outline';
+            const icon = getCategoryIcon(cat.icon || cat.name, 'wallet-outline');
 
             return (
               <View key={cat.id || i} style={[styles.catCard, { backgroundColor: colors.bg.card }]}>

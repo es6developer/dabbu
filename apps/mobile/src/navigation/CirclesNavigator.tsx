@@ -17,6 +17,9 @@ import { WalletTransferScreen } from '../screens/shared-finance/WalletTransferSc
 import { SplitTemplatesScreen } from '../screens/shared-finance/SplitTemplatesScreen';
 import { AddMemberScreen } from '../screens/social/AddMemberScreen';
 import { ExternalSplitLinkScreen } from '../screens/split/ExternalSplitLinkScreen';
+import { CoupleIncomeScreen } from '../screens/couple/CoupleIncomeScreen';
+import { CoupleReportsScreen } from '../screens/couple/CoupleReportsScreen';
+import { TransactionDetailScreen } from '../screens/transactions/TransactionDetailScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -71,6 +74,21 @@ export function CirclesNavigator() {
         name="CoupleFinance"
         component={CoupleFinanceScreen}
         options={{ title: 'Couple Finance' }}
+      />
+      <Stack.Screen
+        name="CoupleIncome"
+        component={CoupleIncomeScreen}
+        options={{ title: 'Income' }}
+      />
+      <Stack.Screen
+        name="CoupleReports"
+        component={CoupleReportsScreen}
+        options={{ title: 'Reports' }}
+      />
+      <Stack.Screen
+        name="TransactionDetail"
+        component={TransactionDetailScreen}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="FamilyDashboard"

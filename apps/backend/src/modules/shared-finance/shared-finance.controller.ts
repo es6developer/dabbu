@@ -398,15 +398,23 @@ export class SharedFinanceController {
   }
 
   @Post('couple/invite')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Send couple finance invite' })
   async sendCoupleInvite(@CurrentUser('id') userId: string, @Body() dto: SendCoupleInviteDto) {
     return this.sf.sendCoupleInvite(userId, dto.receiverEmail);
   }
 
   @Post('couple/invites/:inviteId/accept')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Accept couple invite' })
-  async acceptCoupleInvite(@Param('inviteId') inviteId: string, @Body('groupId') groupId: string) {
-    return this.sf.acceptCoupleInvite(inviteId, groupId);
+  async acceptCoupleInvite(
+    @Param('inviteId') inviteId: string,
+    @Body('groupId') groupId: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.sf.acceptCoupleInvite(inviteId, groupId, userId);
   }
 
   @Post('salary-profile')
