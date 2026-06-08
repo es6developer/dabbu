@@ -306,6 +306,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           accessToken: token,
           isNewUser: false,
           needsPhone: !parsedUser.phone,
+          isPremium: false,
         });
         resetSessionTimeout();
         registerForPushNotifications(token).catch(() => {});
