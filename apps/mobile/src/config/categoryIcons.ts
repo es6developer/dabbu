@@ -99,13 +99,17 @@ export function getCategoryIcon(
 
 export function getCategoryColor(
   cat: string | null | undefined,
-  defaultColor: string = '#F97316',
+  defaultColor: string = '#14B8A6',
 ): string {
-  if (!cat) {
+  try {
+    if (!cat || typeof cat !== 'string') {
+      return defaultColor;
+    }
+    const key = Object.keys(CATEGORY_COLORS).find(
+      (k) => k.toLowerCase().trim() === cat.toLowerCase().trim(),
+    );
+    return key ? CATEGORY_COLORS[key] : defaultColor;
+  } catch {
     return defaultColor;
   }
-  const key = Object.keys(CATEGORY_COLORS).find(
-    (k) => k.toLowerCase().trim() === cat.toLowerCase().trim(),
-  );
-  return key ? CATEGORY_COLORS[key] : defaultColor;
 }
