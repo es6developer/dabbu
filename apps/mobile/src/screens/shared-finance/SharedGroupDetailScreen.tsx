@@ -90,12 +90,6 @@ export function SharedGroupDetailScreen() {
   const [editName, setEditName] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [savingSettings, setSavingSettings] = useState(false);
-  const [addMemberModalVisible, setAddMemberModalVisible] = useState(false);
-  const [addMemberPhone, setAddMemberPhone] = useState('');
-  const [addMemberSearchResults, setAddMemberSearchResults] = useState<any[]>([]);
-  const [addMemberRecent, setAddMemberRecent] = useState<any[]>([]);
-  const addMemberSearchRef = useRef<NodeJS.Timeout>();
-  const [addMemberLoading, setAddMemberLoading] = useState(false);
   const [activeStatPage, setActiveStatPage] = useState(0);
 
   const loadData = useCallback(
@@ -765,25 +759,7 @@ export function SharedGroupDetailScreen() {
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <TouchableOpacity
                 style={[s.inviteBtn, { backgroundColor: colors.accent.primary, flex: 1 }]}
-                onPress={async () => {
-                  setAddMemberModalVisible(true);
-                  try {
-                    const res = await api.get<any>('/expense-groups');
-                    const groups = Array.isArray(res) ? res : res?.data || [];
-                    const seen = new Map<string, any>();
-                    for (const g of groups) {
-                      for (const m of g.members || []) {
-                        const u = m.user || m;
-                        if (u.id && !seen.has(u.id)) {
-                          seen.set(u.id, u);
-                        }
-                      }
-                    }
-                    setAddMemberRecent(Array.from(seen.values()));
-                  } catch {
-                    /* ignore */
-                  }
-                }}
+                onPress={() => navigation.navigate('AddMember', { groupId })}
               >
                 <Ionicons name="person-add-outline" size={18} color="#FFF" />
                 <Text style={s.inviteBtnText}>Add Member</Text>
@@ -1064,31 +1040,6 @@ export function SharedGroupDetailScreen() {
     }
   }
 
-  async function handleAddMember(phone?: string) {
-    const num = phone || addMemberPhone;
-    if (!groupId || !num.trim()) {
-      return;
-    }
-    setAddMemberLoading(true);
-    try {
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
-      await api.post<any>(`/shared-finance/groups/${groupId}/members/add-by-phone`, {
-        phone: `+91${num.trim()}`,
-      });
-      Alert.alert('Member Added', `Member with phone +91${num.trim()} has been added.`);
-      setAddMemberModalVisible(false);
-      setAddMemberPhone('');
-      setAddMemberSearchResults([]);
-      loadData(true);
-    } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to add member');
-    } finally {
-      setAddMemberLoading(false);
-    }
-  }
-
   return (
     <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
       <FlatList
@@ -1112,7 +1063,14 @@ export function SharedGroupDetailScreen() {
         }
         ListHeaderComponent={
           <Animated.View style={{ opacity: fadeAnim }}>
-            <View style={{ paddingTop: insets.top + 8, paddingBottom: 24, paddingHorizontal: 20, backgroundColor: '#FF6B00' }}>
+            <View
+              style={{
+                paddingTop: insets.top + 8,
+                paddingBottom: 24,
+                paddingHorizontal: 20,
+                backgroundColor: '#FF6B00',
+              }}
+            >
               <View style={s.headerRow}>
                 <TouchableOpacity
                   onPress={() => navigation.goBack()}
@@ -1361,132 +1319,6 @@ export function SharedGroupDetailScreen() {
               <TouchableOpacity
                 style={[s.modalBtn, { backgroundColor: colors.bg.tertiary }]}
                 onPress={() => setSettingsOpen(false)}
-              >
-                <Text style={[s.modalBtnText, { color: colors.text.secondary }]}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      <Modal
-        visible={addMemberModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setAddMemberModalVisible(false)}
-      >
-        <TouchableOpacity
-          style={s.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setAddMemberModalVisible(false)}
-        >
-          <View style={[s.modalContent, { backgroundColor: colors.bg.secondary }]}>
-            <Text style={[s.modalTitle, { color: colors.text.primary }]}>Add Member</Text>
-            <Text style={[s.fieldLabel, { color: colors.text.secondary }]}>Phone Number</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Text style={{ color: colors.text.secondary, fontSize: 16 }}>+91</Text>
-              <TextInput
-                style={[
-                  s.textInput,
-                  {
-                    backgroundColor: colors.bg.tertiary,
-                    color: colors.text.primary,
-                    borderColor: colors.border.subtle,
-                    flex: 1,
-                  },
-                ]}
-                value={addMemberPhone}
-                onChangeText={(t) => {
-                  const digits = t.replace(/[^0-9]/g, '').slice(0, 10);
-                  setAddMemberPhone(digits);
-                  if (addMemberSearchRef.current) {
-                    clearTimeout(addMemberSearchRef.current);
-                  }
-                  if (digits.length >= 3) {
-                    addMemberSearchRef.current = setTimeout(async () => {
-                      try {
-                        const res = await api.get<any>(`/users/search?query=+91${digits}`);
-                        setAddMemberSearchResults(Array.isArray(res) ? res : res?.data || []);
-                      } catch {
-                        setAddMemberSearchResults([]);
-                      }
-                    }, 400);
-                  } else {
-                    setAddMemberSearchResults([]);
-                  }
-                }}
-                placeholder="9876543210"
-                placeholderTextColor={colors.text.tertiary}
-                keyboardType="phone-pad"
-                maxLength={10}
-                autoFocus
-              />
-            </View>
-            {addMemberSearchResults.length > 0 && (
-              <View style={[s.suggestions, { backgroundColor: colors.bg.tertiary, marginTop: 8 }]}>
-                {addMemberSearchResults.map((user: any) => (
-                  <TouchableOpacity
-                    key={user.id}
-                    style={[s.suggestionRow, { borderBottomColor: colors.border.subtle }]}
-                    onPress={() => handleAddMember((user.phone || '').replace('+91', ''))}
-                  >
-                    <View
-                      style={[
-                        s.suggestionAvatar,
-                        { backgroundColor: `${colors.accent.primary}20` },
-                      ]}
-                    >
-                      <Text
-                        style={{ color: colors.accent.primary, fontSize: 11, fontWeight: '700' }}
-                      >
-                        {user.firstName?.[0] || user.phone?.[0] || '?'}
-                      </Text>
-                    </View>
-                    <Text style={{ flex: 1, fontSize: 13, color: colors.text.primary }}>
-                      {(user.phone || '').replace('+91', '')} - {user.firstName || ''}{' '}
-                      {user.lastName || ''}
-                    </Text>
-                    <Ionicons name="add-circle" size={20} color={colors.accent.primary} />
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-            {addMemberPhone.length === 0 && addMemberRecent.length > 0 && (
-              <View style={{ marginTop: 12 }}>
-                <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Recent Contacts</Text>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
-                  {addMemberRecent.slice(0, 8).map((user: any) => (
-                    <TouchableOpacity
-                      key={user.id}
-                      style={[s.tabChip, { backgroundColor: colors.bg.tertiary }]}
-                      onPress={() => handleAddMember((user.phone || '').replace('+91', ''))}
-                    >
-                      <Text style={{ fontSize: 12, color: colors.text.primary }}>
-                        {user.firstName || user.phone?.replace('+91', '')}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            )}
-            <View style={s.modalActions}>
-              <TouchableOpacity
-                style={[s.modalBtn, { backgroundColor: colors.accent.primary }]}
-                onPress={() => handleAddMember()}
-                disabled={addMemberLoading || !addMemberPhone.trim()}
-              >
-                {addMemberLoading ? (
-                  <ActivityIndicator size="small" color="#FFF" />
-                ) : (
-                  <>
-                    <Ionicons name="send" size={18} color="#FFF" />
-                    <Text style={s.modalBtnText}> Add Member</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[s.modalBtn, { backgroundColor: colors.bg.tertiary }]}
-                onPress={() => setAddMemberModalVisible(false)}
               >
                 <Text style={[s.modalBtnText, { color: colors.text.secondary }]}>Cancel</Text>
               </TouchableOpacity>

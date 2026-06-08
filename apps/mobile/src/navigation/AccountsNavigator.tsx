@@ -17,6 +17,7 @@ import { CategorySelectionScreen } from '../screens/expense/CategorySelectionScr
 import { AddExpenseScreen as NewAddExpenseScreen } from '../screens/expense/AddExpenseScreen';
 import { SharedExpenseFormScreen } from '../screens/shared-finance/SharedExpenseFormScreen';
 import { SettlementScreen } from '../screens/shared-finance/SettlementScreen';
+import { AddMemberScreen } from '../screens/social/AddMemberScreen';
 
 export function AccountsNavigator() {
   const Stack = createNativeStackNavigator();
@@ -107,6 +108,11 @@ export function AccountsNavigator() {
         name="Settlement"
         component={SettlementScreen}
         options={{ title: 'Settle Up', presentation: 'modal' }}
+      />
+      <Stack.Screen
+        name="AddMember"
+        component={AddMemberScreen}
+        options={{ headerShown: false, animation: 'slide_from_right' }}
       />
     </Stack.Navigator>
   );

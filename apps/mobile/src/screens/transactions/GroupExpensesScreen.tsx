@@ -117,9 +117,6 @@ export function GroupExpensesScreen() {
   const [editName, setEditName] = useState('');
   const [editDescription, setEditDescription] = useState('');
 
-  const [invitePhone, setInvitePhone] = useState('');
-  const [inviteSearchResults, setInviteSearchResults] = useState<any[]>([]);
-  const inviteSearchRef = useRef<NodeJS.Timeout>();
   const [editIcon, setEditIcon] = useState('users');
   const [categoryBreakdown, setCategoryBreakdown] = useState<any[]>([]);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -371,29 +368,6 @@ export function GroupExpensesScreen() {
       }
     } catch (e: any) {
       Alert.alert('Export failed', e.message || 'Try again');
-    }
-  }
-
-  async function addMember(phone?: string) {
-    const num = phone || invitePhone;
-    if (!num.trim()) {
-      return;
-    }
-    setSavingGroup(true);
-    try {
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
-      await api.post(`/expense-groups/${groupId}/members/add-by-phone`, {
-        phone: `+91${num.trim()}`,
-      });
-      setInvitePhone('');
-      setInviteSearchResults([]);
-      await loadData(true);
-    } catch (e: any) {
-      Alert.alert('Unable to add member', e.message || 'Try again');
-    } finally {
-      setSavingGroup(false);
     }
   }
 
@@ -1046,68 +1020,13 @@ export function GroupExpensesScreen() {
                     <Ionicons name="close" size={20} color={colors.text.primary} />
                   </TouchableOpacity>
                 </View>
-                <Text style={[s.sheetSubTitle, { color: colors.text.primary }]}>Add Member</Text>
-                <View style={[s.addMemberBox, { backgroundColor: colors.bg.tertiary }]}>
-                  <Text style={{ color: colors.text.secondary, fontSize: 14, marginLeft: 4 }}>
-                    +91
-                  </Text>
-                  <TextInput
-                    value={invitePhone}
-                    onChangeText={(t) => {
-                      const digits = t.replace(/[^0-9]/g, '').slice(0, 10);
-                      setInvitePhone(digits);
-                      if (inviteSearchRef.current) {
-                        clearTimeout(inviteSearchRef.current);
-                      }
-                      if (digits.length >= 3) {
-                        inviteSearchRef.current = setTimeout(async () => {
-                          try {
-                            const res = await api.get<any>(`/users/search?query=+91${digits}`);
-                            setInviteSearchResults(Array.isArray(res) ? res : res?.data || []);
-                          } catch {
-                            setInviteSearchResults([]);
-                          }
-                        }, 400);
-                      } else {
-                        setInviteSearchResults([]);
-                      }
-                    }}
-                    autoCapitalize="none"
-                    keyboardType="phone-pad"
-                    style={[s.memberInput, { color: colors.text.primary }]}
-                    placeholder="9876543210"
-                    placeholderTextColor={colors.text.tertiary}
-                    maxLength={10}
-                  />
-                  <TouchableOpacity
-                    onPress={() => addMember()}
-                    style={[s.memberAddBtn, { backgroundColor: colors.accent.primary }]}
-                  >
-                    <Ionicons name="person-add-outline" size={18} color="#FFF" />
-                  </TouchableOpacity>
-                </View>
-                {inviteSearchResults.length > 0 && (
-                  <View
-                    style={[
-                      s.suggestionsBox,
-                      { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
-                    ]}
-                  >
-                    {inviteSearchResults.map((user: any) => (
-                      <TouchableOpacity
-                        key={user.id}
-                        style={[s.suggestionRow, { borderBottomColor: colors.border.subtle }]}
-                        onPress={() => addMember((user.phone || '').replace('+91', ''))}
-                      >
-                        <Text style={{ flex: 1, fontSize: 13, color: colors.text.primary }}>
-                          {(user.phone || '').replace('+91', '')} - {user.firstName || ''}{' '}
-                          {user.lastName || ''}
-                        </Text>
-                        <Ionicons name="add-circle" size={18} color={colors.accent.primary} />
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
+                <TouchableOpacity
+                  style={[s.addMemberBox, { backgroundColor: colors.accent.primary }]}
+                  onPress={() => navigation.navigate('AddMember', { groupId })}
+                >
+                  <Ionicons name="person-add-outline" size={18} color="#FFF" />
+                  <Text style={{ color: '#FFF', fontSize: 14, fontWeight: '600' }}>Add Member</Text>
+                </TouchableOpacity>
                 <Text style={[s.sheetSubTitle, { color: colors.text.primary }]}>All Members</Text>
                 {members.map((member: any) => (
                   <View
