@@ -19,13 +19,20 @@ import { getCategoryIcon } from '../../config/categoryIcons';
 
 function getDetailColors(primary: string): Record<string, [string, string]> {
   return {
-    Food: [primary, primary], Travel: ['#4A90D9', '#357ABD'],
-    Shopping: ['#E056A0', '#C94D8B'], Medical: ['#00B894', '#00A381'],
-    Fuel: ['#F59E0B', '#F3D28F'], Rent: ['#FF6B00', '#E86200'],
-    EMI: ['#E17055', '#D63031'], Bills: ['#0984E3', '#0768B8'],
-    Entertainment: ['#FF914D', '#E86200'], Education: ['#55EFC4', '#00CEC9'],
-    Grocery: ['#81ECEC', '#00CEC9'], Investment: ['#74B9FF', '#4D96FF'],
-    Salary: ['#00B894', '#00A381'], Transfer: ['#DFE6E9', '#B2BEC3'],
+    Food: [primary, primary],
+    Travel: ['#4A90D9', '#357ABD'],
+    Shopping: ['#E056A0', '#C94D8B'],
+    Medical: ['#00B894', '#00A381'],
+    Fuel: ['#F59E0B', '#F3D28F'],
+    Rent: ['#F3D28F', '#E8C47A'],
+    EMI: ['#E17055', '#D63031'],
+    Bills: ['#0984E3', '#0768B8'],
+    Entertainment: ['#F5DBA0', '#E8C47A'],
+    Education: ['#55EFC4', '#00CEC9'],
+    Grocery: ['#81ECEC', '#00CEC9'],
+    Investment: ['#74B9FF', '#4D96FF'],
+    Salary: ['#00B894', '#00A381'],
+    Transfer: ['#DFE6E9', '#B2BEC3'],
   };
 }
 
@@ -49,7 +56,9 @@ export function TransactionDetailScreen() {
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    if (accessToken) setAccessToken(accessToken);
+    if (accessToken) {
+      setAccessToken(accessToken);
+    }
     loadTransaction();
   }, [transactionId]);
 
@@ -57,24 +66,32 @@ export function TransactionDetailScreen() {
     try {
       const res = await api.get<any>(`/transactions/${transactionId}`);
       setTxn(res);
-    } catch { /* ignore */ }
-    finally { setLoading(false); }
+    } catch {
+      /* ignore */
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleDelete() {
     Alert.alert('Delete Transaction', 'This action cannot be undone.', [
       { text: 'Cancel', style: 'cancel' },
       {
-        text: 'Delete', style: 'destructive',
+        text: 'Delete',
+        style: 'destructive',
         onPress: async () => {
           setDeleting(true);
           try {
-            if (accessToken) setAccessToken(accessToken);
+            if (accessToken) {
+              setAccessToken(accessToken);
+            }
             await api.delete(`/transactions/${transactionId}`);
             navigation.goBack();
           } catch (e: any) {
             Alert.alert('Error', e.message || 'Failed to delete');
-          } finally { setDeleting(false); }
+          } finally {
+            setDeleting(false);
+          }
         },
       },
     ]);
@@ -103,7 +120,7 @@ export function TransactionDetailScreen() {
 
   return (
     <View style={[s.container, { backgroundColor: colors.bg.primary }]}>
-      <View style={[s.hero, { paddingTop: insets.top + 8, backgroundColor: '#0D1B2A' }]}>
+      <View style={[s.hero, { paddingTop: insets.top + 8, backgroundColor: '#1A1528' }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
           <View style={s.backBtnInner}>
             <Ionicons name="chevron-back" size={22} color="#FFF" />
@@ -114,11 +131,14 @@ export function TransactionDetailScreen() {
         </View>
         <Text style={s.heroLabel}>{isCredit ? 'Income' : 'Expense'}</Text>
         <Text style={s.heroAmount}>
-          {sign}{fmtVal(Number(txn.amount))}
+          {sign}
+          {fmtVal(Number(txn.amount))}
         </Text>
         {txn.description && <Text style={s.heroDesc}>{txn.description}</Text>}
         <View style={s.heroBadge}>
-          <View style={[s.badgeDot, { backgroundColor: txn.isReconciled ? '#34C759' : '#F59E0B' }]} />
+          <View
+            style={[s.badgeDot, { backgroundColor: txn.isReconciled ? '#34C759' : '#F59E0B' }]}
+          />
           <Text style={s.badgeText}>{txn.isReconciled ? 'Reconciled' : 'Pending'}</Text>
         </View>
       </View>
@@ -147,8 +167,11 @@ export function TransactionDetailScreen() {
             colors={colors}
             label="Date"
             value={new Date(txn.date || txn.createdAt).toLocaleString('en-IN', {
-              day: 'numeric', month: 'long', year: 'numeric',
-              hour: '2-digit', minute: '2-digit',
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
             })}
             icon="calendar-outline"
             color={colors.text.secondary}
@@ -170,12 +193,16 @@ export function TransactionDetailScreen() {
             />
           )}
           {txn.notes && (
-            <View style={[s.row, { borderBottomWidth: 0, borderBottomColor: colors.border.subtle }]}>
+            <View
+              style={[s.row, { borderBottomWidth: 0, borderBottomColor: colors.border.subtle }]}
+            >
               <View style={s.rowLeft}>
                 <Ionicons name="document-text-outline" size={18} color={colors.text.tertiary} />
                 <Text style={[s.rowLabel, { color: colors.text.secondary }]}>Notes</Text>
               </View>
-              <Text style={[s.rowValue, { color: colors.text.primary, flex: 1, textAlign: 'right' }]}>
+              <Text
+                style={[s.rowValue, { color: colors.text.primary, flex: 1, textAlign: 'right' }]}
+              >
                 {txn.notes}
               </Text>
             </View>
@@ -237,9 +264,17 @@ export function TransactionDetailScreen() {
 }
 
 function Row({
-  colors, label, value, icon, color,
+  colors,
+  label,
+  value,
+  icon,
+  color,
 }: {
-  colors: any; label: string; value: string; icon: string; color: string;
+  colors: any;
+  label: string;
+  value: string;
+  icon: string;
+  color: string;
 }) {
   return (
     <View style={[s.row, { borderBottomColor: colors.border.subtle }]}>
@@ -256,47 +291,102 @@ const s = StyleSheet.create({
   container: { flex: 1 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   hero: {
-    paddingBottom: 32, alignItems: 'center',
-    borderBottomLeftRadius: 32, borderBottomRightRadius: 32, overflow: 'hidden',
+    paddingBottom: 32,
+    alignItems: 'center',
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    overflow: 'hidden',
   },
   backBtn: { alignSelf: 'flex-start', marginLeft: 12, marginBottom: 16 },
   backBtnInner: {
-    width: 40, height: 40, borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center',
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   heroIcon: {
-    width: 64, height: 64, borderRadius: 22,
-    alignItems: 'center', justifyContent: 'center', marginBottom: 12,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2, shadowRadius: 8, elevation: 6,
+    width: 64,
+    height: 64,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
   },
   heroLabel: {
-    fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.6)',
-    textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4,
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.6)',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 4,
   },
   heroAmount: {
-    fontSize: 40, fontWeight: '800', color: '#FFF',
-    letterSpacing: -1, marginBottom: 4,
+    fontSize: 40,
+    fontWeight: '800',
+    color: '#FFF',
+    letterSpacing: -1,
+    marginBottom: 4,
   },
   heroDesc: { fontSize: 16, color: 'rgba(255,255,255,0.7)', fontWeight: '500', marginBottom: 12 },
   heroBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 14,
-    paddingVertical: 6, borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
   },
   badgeDot: { width: 8, height: 8, borderRadius: 4 },
   badgeText: { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.8)' },
   body: { flex: 1, paddingHorizontal: 16, marginTop: 20 },
-  section: { borderRadius: 20, overflow: 'hidden', marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 },
+  section: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
   row: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   rowLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   rowLabel: { fontSize: 14, fontWeight: '500' },
   rowValue: { fontSize: 14, fontWeight: '600', textAlign: 'right' },
   actionRow: { flexDirection: 'row', gap: 10 },
-  actionBtn: { flex: 1, alignItems: 'center', padding: 16, borderRadius: 20, gap: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 4, elevation: 1 },
-  actionIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  actionBtn: {
+    flex: 1,
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 20,
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  actionIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   actionLabel: { fontSize: 13, fontWeight: '600' },
 });

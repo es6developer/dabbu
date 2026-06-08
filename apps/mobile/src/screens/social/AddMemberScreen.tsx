@@ -557,7 +557,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  favAvatarSelected: { borderWidth: 2, borderColor: '#FF6B00' },
+  favAvatarSelected: { borderWidth: 2, borderColor: '#F3D28F' },
   favAvatarText: { fontSize: 18, fontWeight: '700', color: '#FFF' },
   favName: { fontSize: 11, fontWeight: '500', color: '#FFF', textAlign: 'center' },
 
@@ -647,7 +647,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,107,0,0.3)',
     marginTop: 8,
   },
-  inviteBtnText: { fontSize: 14, fontWeight: '700', color: '#FF6B00' },
+  inviteBtnText: { fontSize: 14, fontWeight: '700', color: '#F3D28F' },
 
   syncBanner: {
     flexDirection: 'row',

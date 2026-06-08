@@ -32,10 +32,10 @@ const SPACE_TYPE_CONFIG: Record<
   trip: { label: 'Trip', icon: 'airplane', gradient: ['#00B894', '#00D9A6'] },
   family: { label: 'Family', icon: 'home', gradient: ['#E85D04', '#FF8A3C'] },
   couple: { label: 'Couple', icon: 'heart', gradient: ['#FF6B9D', '#FF8FB3'] },
-  roommates: { label: 'Roommates', icon: 'business', gradient: ['#FF6B00', '#FF914D'] },
+  roommates: { label: 'Roommates', icon: 'business', gradient: ['#F3D28F', '#F5DBA0'] },
   office: { label: 'Office', icon: 'briefcase', gradient: ['#247BA0', '#4A9FC7'] },
   event: { label: 'Event', icon: 'calendar', gradient: ['#D64550', '#FF6B6B'] },
-  apartment: { label: 'Apartment', icon: 'building', gradient: ['#FF6B00', '#FF914D'] },
+  apartment: { label: 'Apartment', icon: 'building', gradient: ['#F3D28F', '#F5DBA0'] },
   default: { label: 'Group', icon: 'people', gradient: ['#4F6EF7', '#7C8FF8'] },
 };
 

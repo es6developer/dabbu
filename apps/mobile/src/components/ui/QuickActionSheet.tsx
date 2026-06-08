@@ -1,6 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions, Platform,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+  Dimensions,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -36,7 +42,12 @@ export function QuickActionSheet({ actions, activeItem, visible, onClose }: Quic
       Animated.parallel([
         Animated.spring(slideAnim, { toValue: 1, friction: 8, tension: 65, useNativeDriver: true }),
         Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
-        Animated.spring(itemScaleAnim, { toValue: 1, friction: 6, tension: 70, useNativeDriver: true }),
+        Animated.spring(itemScaleAnim, {
+          toValue: 1,
+          friction: 6,
+          tension: 70,
+          useNativeDriver: true,
+        }),
       ]).start();
     } else {
       Animated.parallel([
@@ -46,7 +57,9 @@ export function QuickActionSheet({ actions, activeItem, visible, onClose }: Quic
     }
   }, [visible]);
 
-  if (!rendered) return null;
+  if (!rendered) {
+    return null;
+  }
 
   const sheetTranslateY = slideAnim.interpolate({
     inputRange: [0, 1],
@@ -58,15 +71,8 @@ export function QuickActionSheet({ actions, activeItem, visible, onClose }: Quic
   return (
     <View style={[s.container, { bottom: backdropBottom }]} pointerEvents="box-none">
       {/* Backdrop — covers only the area above the tab bar */}
-      <Animated.View
-        style={[s.backdrop, { opacity: fadeAnim }]}
-        pointerEvents="auto"
-      >
-        <TouchableOpacity
-          style={StyleSheet.absoluteFill}
-          activeOpacity={1}
-          onPress={onClose}
-        />
+      <Animated.View style={[s.backdrop, { opacity: fadeAnim }]} pointerEvents="auto">
+        <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onClose} />
       </Animated.View>
 
       {/* Floating sheet — positioned above tab bar */}
@@ -108,8 +114,10 @@ export function QuickActionSheet({ actions, activeItem, visible, onClose }: Quic
                     s.bubble,
                     {
                       backgroundColor: isActive
-                        ? 'rgba(255, 107, 0, 0.15)'
-                        : isDark ? '#2C2C2E' : '#F2F2F7',
+                        ? 'rgba(243, 210, 143, 0.15)'
+                        : isDark
+                          ? '#2C2C2E'
+                          : '#F2F2F7',
                       opacity: itemAnim,
                     },
                   ]}
@@ -117,15 +125,10 @@ export function QuickActionSheet({ actions, activeItem, visible, onClose }: Quic
                   <Ionicons
                     name={action.icon as keyof typeof Ionicons.glyphMap}
                     size={24}
-                    color={isActive ? '#FF6B00' : (isDark ? '#FFFFFF' : '#1C1C1E')}
+                    color={isActive ? '#F3D28F' : isDark ? '#FFFFFF' : '#1C1C1E'}
                   />
                 </Animated.View>
-                <Text
-                  style={[
-                    s.label,
-                    { color: isDark ? '#8E8E93' : '#636366' },
-                  ]}
-                >
+                <Text style={[s.label, { color: isDark ? '#8E8E93' : '#636366' }]}>
                   {action.label}
                 </Text>
               </TouchableOpacity>

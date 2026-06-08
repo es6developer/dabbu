@@ -14,7 +14,6 @@ import {
   Platform,
 } from 'react-native';
 
-
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -43,7 +42,7 @@ function Confetti({ show }: { show: boolean }) {
       key: i,
       x: new Animated.Value(Math.random() * SCREEN_W),
       y: new Animated.Value(-20),
-      color: ['#FF6B6B', '#FDCB6E', '#00B894', '#74B9FF', '#FF914D', '#FD79A8'][i % 6],
+      color: ['#FF6B6B', '#FDCB6E', '#00B894', '#74B9FF', '#F5DBA0', '#FD79A8'][i % 6],
       size: 6 + Math.random() * 8,
       rotation: new Animated.Value(0),
       delay: Math.random() * 500,
@@ -166,7 +165,7 @@ function ShareSheet({
     {
       label: 'Copy Link',
       icon: 'link',
-      color: '#FF6B00',
+      color: '#F3D28F',
       action: () => {
         Share.share({ message }).catch(() => {});
       },
@@ -340,7 +339,7 @@ export function ReferralScreen() {
         }
       >
         {/* Hero */}
-        <View style={[styles.hero, { paddingTop: insets.top + 16, backgroundColor: '#0D1B2A' }]}>
+        <View style={[styles.hero, { paddingTop: insets.top + 16, backgroundColor: '#1A1528' }]}>
           <Text style={styles.heroEyebrow}>REFER & EARN</Text>
           <Text style={styles.heroTitle}>Invite Friends, Earn Rewards</Text>
           <Text style={styles.heroSub}>

@@ -44,13 +44,13 @@ function InputField({
     <View
       style={[
         styles.inputContainer,
-        { borderColor: focused ? '#FF6B00' : 'rgba(255,255,255,0.06)' },
+        { borderColor: focused ? '#F3D28F' : 'rgba(255,255,255,0.06)' },
       ]}
     >
       <Ionicons
         name={isPassword ? 'lock-closed-outline' : 'mail-outline'}
         size={18}
-        color={focused ? '#FF6B00' : '#636366'}
+        color={focused ? '#F3D28F' : '#636366'}
         style={styles.inputIcon}
       />
       <TextInput
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     marginTop: -4,
   },
   forgotLink: {
-    color: '#FF6B00',
+    color: '#F3D28F',
     fontSize: 13,
     fontFamily: 'Inter-Medium',
   },
@@ -273,11 +273,11 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     height: 52,
-    backgroundColor: '#FF6B00',
+    backgroundColor: '#F3D28F',
     borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#FF6B00',
+    shadowColor: '#F3D28F',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.35,
     shadowRadius: 12,
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
   },
   footerLink: {
-    color: '#FF6B00',
+    color: '#F3D28F',
     fontSize: 13,
     fontFamily: 'Inter-SemiBold',
   },

@@ -74,7 +74,7 @@ function groupByDate(transactions: any[]): { title: string; data: any[] }[] {
 const QUICK_ACTIONS = [
   { icon: 'add-circle', label: 'Add', color: '#00B894', screen: 'AddExpense' },
   { icon: 'scan', label: 'Scan', color: '#f7892c', screen: 'BillScanner' },
-  { icon: 'people', label: 'Group', color: '#FF6B00', screen: 'CreateExpenseGroup' },
+  { icon: 'people', label: 'Group', color: '#F3D28F', screen: 'CreateExpenseGroup' },
   { icon: 'receipt', label: 'Bills', color: '#0984E3', screen: 'BillsList' },
 ];
 

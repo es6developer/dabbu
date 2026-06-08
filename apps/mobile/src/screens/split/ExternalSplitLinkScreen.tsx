@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, Share, ActivityIndicator,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Share,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -50,9 +56,17 @@ export function ExternalSplitLinkScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}
+      >
         <View
-          style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20, backgroundColor: '#0D1B2A' }}
+          style={{
+            paddingTop: insets.top + 12,
+            paddingBottom: 28,
+            paddingHorizontal: 20,
+            backgroundColor: '#1A1528',
+          }}
         >
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
@@ -70,23 +84,35 @@ export function ExternalSplitLinkScreen() {
             </View>
             <Text style={[styles.title, { color: colors.text.primary }]}>Share Expense Link</Text>
             <Text style={[styles.desc, { color: colors.text.tertiary }]}>
-              Generate a public link that anyone can open to view and join this split. No app installation required.
+              Generate a public link that anyone can open to view and join this split. No app
+              installation required.
             </Text>
           </View>
 
           {loading ? (
             <View style={[styles.card, { backgroundColor: colors.bg.card, padding: 24 }]}>
               <ActivityIndicator size="small" color={colors.accent.primary} />
-              <Text style={[styles.desc, { color: colors.text.tertiary, marginTop: 8 }]}>Generating your link...</Text>
+              <Text style={[styles.desc, { color: colors.text.tertiary, marginTop: 8 }]}>
+                Generating your link...
+              </Text>
             </View>
           ) : (
             <>
-              <View style={[styles.linkCard, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.default }]}>
+              <View
+                style={[
+                  styles.linkCard,
+                  { backgroundColor: colors.bg.tertiary, borderColor: colors.border.default },
+                ]}
+              >
                 <View style={styles.linkHeader}>
                   <Ionicons name="globe-outline" size={16} color={colors.accent.primary} />
-                  <Text style={[styles.linkLabel, { color: colors.accent.primary }]}>Public Link</Text>
+                  <Text style={[styles.linkLabel, { color: colors.accent.primary }]}>
+                    Public Link
+                  </Text>
                 </View>
-                <Text style={[styles.linkText, { color: colors.accent.primary }]} selectable>{link}</Text>
+                <Text style={[styles.linkText, { color: colors.accent.primary }]} selectable>
+                  {link}
+                </Text>
               </View>
 
               {error ? (
@@ -94,11 +120,7 @@ export function ExternalSplitLinkScreen() {
               ) : null}
 
               <TouchableOpacity style={styles.shareBtn} onPress={handleShare} activeOpacity={0.85}>
-                <View
-                  
-                   
-                  style={styles.shareBtnGrad}
-                >
+                <View style={styles.shareBtnGrad}>
                   <Ionicons name="share-outline" size={18} color="#FFF" />
                   <Text style={styles.shareBtnText}>Share Link</Text>
                 </View>
@@ -112,10 +134,17 @@ export function ExternalSplitLinkScreen() {
               { icon: 'link', text: 'Generate a unique public link for any expense' },
               { icon: 'globe', text: 'Share via WhatsApp, SMS, or any app' },
               { icon: 'person-add', text: 'Recipients open the link and enter their amount' },
-              { icon: 'checkmark-circle', text: 'They join the split instantly - no account needed' },
+              {
+                icon: 'checkmark-circle',
+                text: 'They join the split instantly - no account needed',
+              },
             ].map((item, i) => (
               <View key={i} style={styles.infoRow}>
-                <Ionicons name={`${item.icon}-outline` as any} size={16} color={colors.accent.primary} />
+                <Ionicons
+                  name={`${item.icon}-outline` as any}
+                  size={16}
+                  color={colors.accent.primary}
+                />
                 <Text style={[styles.infoText, { color: colors.text.secondary }]}>{item.text}</Text>
               </View>
             ))}
@@ -129,10 +158,32 @@ export function ExternalSplitLinkScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  backBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
+  backBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   headerTitle: { color: '#FFF', fontSize: 18, fontWeight: '700' },
-  card: { borderRadius: 20, padding: 24, alignItems: 'center', gap: 12, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 2 },
-  iconWrap: { width: 64, height: 64, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  card: {
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    gap: 12,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  iconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   title: { fontSize: 20, fontWeight: '700', textAlign: 'center' },
   desc: { fontSize: 14, textAlign: 'center', lineHeight: 20, paddingHorizontal: 8 },
   linkCard: { borderRadius: 16, borderWidth: 1, padding: 16, gap: 8 },
@@ -140,9 +191,23 @@ const styles = StyleSheet.create({
   linkLabel: { fontSize: 12, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase' },
   linkText: { fontSize: 16, fontWeight: '600', letterSpacing: 0.3 },
   shareBtn: { borderRadius: 16, overflow: 'hidden' },
-  shareBtnGrad: { flexDirection: 'row', paddingVertical: 16, alignItems: 'center', justifyContent: 'center', gap: 8 },
+  shareBtnGrad: {
+    flexDirection: 'row',
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
   shareBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  infoCard: { borderRadius: 20, padding: 18, gap: 12, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1 },
+  infoCard: {
+    borderRadius: 20,
+    padding: 18,
+    gap: 12,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 1,
+  },
   infoTitle: { fontSize: 16, fontWeight: '700', marginBottom: 4 },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   infoText: { fontSize: 13, fontWeight: '500', flex: 1, lineHeight: 18 },

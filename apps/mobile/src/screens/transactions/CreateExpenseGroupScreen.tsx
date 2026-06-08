@@ -31,7 +31,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 }
 
 const ICONS = [
-  { key: 'people', label: 'People', color: '#FF6B00' },
+  { key: 'people', label: 'People', color: '#F3D28F' },
   { key: 'home', label: 'Home', color: '#34C759' },
   { key: 'heart', label: 'Heart', color: '#FF6B9D' },
   { key: 'star', label: 'Star', color: '#F3D28F' },
@@ -39,7 +39,7 @@ const ICONS = [
   { key: 'cart', label: 'Cart', color: '#FF6B6B' },
   { key: 'airplane', label: 'Travel', color: '#60A5FA' },
   { key: 'restaurant', label: 'Food', color: '#F59E0B' },
-  { key: 'car', label: 'Car', color: '#FF6B00' },
+  { key: 'car', label: 'Car', color: '#F3D28F' },
   { key: 'fitness', label: 'Fitness', color: '#34C759' },
 ];
 

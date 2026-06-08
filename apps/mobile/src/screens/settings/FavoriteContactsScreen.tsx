@@ -24,8 +24,8 @@ const COLORS = {
   textPrimary: '#FFF',
   textSecondary: 'rgba(255,255,255,0.7)',
   textTertiary: 'rgba(255,255,255,0.35)',
-  accent: '#FF6B00',
-  accentGradient: ['#FF6B00', '#FF8C38'] as const,
+  accent: '#F3D28F',
+  accentGradient: ['#F3D28F', '#D4A853'] as const,
   red: '#FF4D4F',
   green: '#34C759',
   surface: 'rgba(255,255,255,0.06)',
@@ -169,7 +169,7 @@ export function FavoriteContactsScreen() {
             {searchResults.map((user, i) => (
               <React.Fragment key={user.id}>
                 <View style={styles.row}>
-                  <LinearGradient colors={[COLORS.accent, '#FF8C38']} style={styles.avatarGradient}>
+                  <LinearGradient colors={[COLORS.accent, '#D4A853']} style={styles.avatarGradient}>
                     <Text style={styles.avatarText}>
                       {(user.firstName?.[0] || user.email?.[0] || '?').toUpperCase()}
                     </Text>
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
 
   divider: { height: 1, marginHorizontal: 14, backgroundColor: 'rgba(255,255,255,0.04)' },
   moreBtn: { alignItems: 'center', paddingVertical: 12 },
-  moreBtnText: { fontSize: 13, fontWeight: '600', color: '#FF6B00' },
+  moreBtnText: { fontSize: 13, fontWeight: '600', color: '#F3D28F' },
 
   emptyWrap: { alignItems: 'center', paddingHorizontal: 32, paddingTop: 60 },
   emptyIconBox: {

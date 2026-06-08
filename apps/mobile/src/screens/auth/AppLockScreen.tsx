@@ -111,7 +111,7 @@ export function AppLockScreen({ onUnlock }: Props) {
 
       <View style={styles.topSection}>
         <View style={styles.iconRing}>
-          <Ionicons name="lock-closed" size={28} color="#FF6B00" />
+          <Ionicons name="lock-closed" size={28} color="#F3D28F" />
         </View>
         <Text style={styles.title}>Welcome back</Text>
         <Text style={styles.subtitle}>{user?.firstName || 'User'} · Enter PIN</Text>
@@ -125,8 +125,8 @@ export function AppLockScreen({ onUnlock }: Props) {
               style={[
                 styles.dot,
                 {
-                  backgroundColor: pin[i] ? '#FF6B00' : 'transparent',
-                  borderColor: pin[i] ? '#FF6B00' : 'rgba(255,255,255,0.12)',
+                  backgroundColor: pin[i] ? '#F3D28F' : 'transparent',
+                  borderColor: pin[i] ? '#F3D28F' : 'rgba(255,255,255,0.12)',
                   transform: pin[i] ? [{ scale: 1 }] : [{ scale: 0.85 }],
                 },
               ]}
@@ -173,7 +173,7 @@ export function AppLockScreen({ onUnlock }: Props) {
 
       <View style={styles.bottomSection}>
         <TouchableOpacity style={styles.biometricBtn} onPress={handleBiometric} activeOpacity={0.7}>
-          <Ionicons name="finger-print" size={22} color="#FF6B00" />
+          <Ionicons name="finger-print" size={22} color="#F3D28F" />
           <Text style={styles.biometricText}>Use Biometric</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={handleForgotPin} activeOpacity={0.6}>
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#FF6B00',
+    backgroundColor: '#F3D28F',
     borderRadius: 2,
   },
   errorText: {
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,107,0,0.1)',
   },
   biometricText: {
-    color: '#FF6B00',
+    color: '#F3D28F',
     fontSize: 15,
     fontWeight: '600',
   },

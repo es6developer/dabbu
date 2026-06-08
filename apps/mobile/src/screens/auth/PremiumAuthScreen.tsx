@@ -452,7 +452,7 @@ export function PremiumAuthScreen() {
               disabled={loading}
               activeOpacity={0.8}
             >
-              <Ionicons name="rocket-outline" size={20} color="#FF6B00" />
+              <Ionicons name="rocket-outline" size={20} color="#F3D28F" />
               <Text style={styles.demoButtonText}>Demo Login</Text>
             </TouchableOpacity>
 
@@ -507,14 +507,14 @@ const InputField = React.forwardRef<TextInput, InputFieldProps>(
       <View
         style={[
           styles.inputContainer,
-          { borderColor: focused ? '#FF6B00' : 'rgba(255,255,255,0.06)' },
+          { borderColor: focused ? '#F3D28F' : 'rgba(255,255,255,0.06)' },
         ]}
       >
         {icon && (
           <Ionicons
             name={icon as any}
             size={18}
-            color={focused ? '#FF6B00' : '#636366'}
+            color={focused ? '#F3D28F' : '#636366'}
             style={styles.inputIcon}
           />
         )}
@@ -636,7 +636,7 @@ const styles = StyleSheet.create({
     height: '100%',
     top: 0,
     left: 4,
-    backgroundColor: '#FF6B00',
+    backgroundColor: '#F3D28F',
     borderRadius: 11,
     zIndex: 1,
   },
@@ -709,13 +709,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 8,
   },
-  checkboxActive: { backgroundColor: '#FF6B00', borderColor: '#FF6B00' },
+  checkboxActive: { backgroundColor: '#F3D28F', borderColor: '#F3D28F' },
   checkboxLabel: { color: '#8E8E93', fontSize: 13, fontFamily: 'Inter-Medium' },
-  forgotLink: { color: '#FF6B00', fontSize: 13, fontFamily: 'Inter-Medium' },
+  forgotLink: { color: '#F3D28F', fontSize: 13, fontFamily: 'Inter-Medium' },
 
   primaryButton: {
     height: 54,
-    backgroundColor: '#FF6B00',
+    backgroundColor: '#F3D28F',
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -746,7 +746,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   switchText: { color: '#8E8E93', fontSize: 13, fontFamily: 'Inter-Regular' },
-  switchLink: { color: '#FF6B00', fontSize: 13, fontFamily: 'Inter-SemiBold' },
+  switchLink: { color: '#F3D28F', fontSize: 13, fontFamily: 'Inter-SemiBold' },
 
   divider: {
     flexDirection: 'row',
@@ -786,7 +786,7 @@ const styles = StyleSheet.create({
     gap: 10,
     marginTop: 8,
   },
-  demoButtonText: { color: '#FF6B00', fontSize: 15, fontFamily: 'Inter-SemiBold' },
+  demoButtonText: { color: '#F3D28F', fontSize: 15, fontFamily: 'Inter-SemiBold' },
 
   privacyRow: { alignItems: 'center', marginTop: 20 },
   privacyText: { color: '#8E8E93', fontSize: 12, fontFamily: 'Inter-Medium', opacity: 0.6 },

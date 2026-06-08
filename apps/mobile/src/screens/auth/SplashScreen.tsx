@@ -67,7 +67,12 @@ export function SplashScreen({ onFinish }: SplashScreenProps) {
       Animated.timing(iconOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
       ...nodeAnims.map((n) =>
         Animated.parallel([
-          Animated.spring(n.scale, { toValue: 1, friction: 8, tension: 180, useNativeDriver: true }),
+          Animated.spring(n.scale, {
+            toValue: 1,
+            friction: 8,
+            tension: 180,
+            useNativeDriver: true,
+          }),
           Animated.timing(n.opacity, { toValue: 1, duration: 120, useNativeDriver: true }),
         ]),
       ),
@@ -87,7 +92,7 @@ export function SplashScreen({ onFinish }: SplashScreenProps) {
   });
 
   return (
-    <View style={[styles.root, { backgroundColor: '#FFFFFF' }]}>
+    <View style={[styles.root, { backgroundColor: '#1A1528' }]}>
       <Animated.View style={[styles.inner, { opacity: rootOpacity }]}>
         {/* Language nodes */}
         {LANG_NODES.map((node, i) => {
@@ -128,10 +133,7 @@ export function SplashScreen({ onFinish }: SplashScreenProps) {
 
         {/* Center icon */}
         <Animated.View
-          style={[
-            styles.iconWrap,
-            { opacity: iconOpacity, transform: [{ scale: iconScale }] },
-          ]}
+          style={[styles.iconWrap, { opacity: iconOpacity, transform: [{ scale: iconScale }] }]}
         >
           <Image
             source={require('../../assets/icon.png')}
@@ -142,10 +144,7 @@ export function SplashScreen({ onFinish }: SplashScreenProps) {
 
         {/* Title */}
         <Animated.Text
-          style={[
-            styles.title,
-            { opacity: titleOp, transform: [{ translateY: titleSlide }] },
-          ]}
+          style={[styles.title, { opacity: titleOp, transform: [{ translateY: titleSlide }] }]}
         >
           Dabbu
         </Animated.Text>
@@ -169,7 +168,7 @@ const styles = StyleSheet.create({
   native: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FF6B00',
+    color: '#F3D28F',
     marginBottom: 1,
   },
   english: {
@@ -183,7 +182,7 @@ const styles = StyleSheet.create({
     height: 130,
     borderRadius: 65,
     borderWidth: 3,
-    borderColor: '#FF6B00',
+    borderColor: '#F3D28F',
     borderTopColor: 'transparent',
     borderRightColor: 'transparent',
   },
@@ -193,7 +192,7 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,107,0,0.05)',
+    backgroundColor: 'rgba(243,210,143,0.08)',
   },
   iconImage: {
     width: 90,
@@ -204,7 +203,7 @@ const styles = StyleSheet.create({
     bottom: 80,
     fontSize: 28,
     fontWeight: '700',
-    color: '#FF6B00',
+    color: '#F3D28F',
     letterSpacing: -0.3,
   },
 });

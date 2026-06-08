@@ -24,9 +24,7 @@ export function BalanceCard({ totalBalance, monthlySpending, monthlyBudget }: Ba
 
   return (
     <View style={styles.wrapper}>
-      <View
-        style={[styles.card, { backgroundColor: '#0D1B2A' }]}
-      >
+      <View style={[styles.card, { backgroundColor: '#1A1528' }]}>
         <View style={styles.topRow}>
           <View>
             <Text style={styles.label}>Total Balance</Text>
@@ -55,12 +53,22 @@ export function BalanceCard({ totalBalance, monthlySpending, monthlyBudget }: Ba
         <View style={styles.progressSection}>
           <View style={styles.progressRow}>
             <Text style={styles.progressLabel}>{spendPct.toFixed(0)}% used</Text>
-            <Text style={[styles.progressLabel, remaining >= 0 ? { color: 'rgba(255,255,255,0.7)' } : { color: '#FF4D4F' }]}>
+            <Text
+              style={[
+                styles.progressLabel,
+                remaining >= 0 ? { color: 'rgba(255,255,255,0.7)' } : { color: '#FF4D4F' },
+              ]}
+            >
               {remaining >= 0 ? `${fmt(remaining)} left` : `${fmt(Math.abs(remaining))} over`}
             </Text>
           </View>
           <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${Math.min(spendPct, 100)}%`, backgroundColor: '#D9700A' }]} />
+            <View
+              style={[
+                styles.progressFill,
+                { width: `${Math.min(spendPct, 100)}%`, backgroundColor: '#F3D28F' },
+              ]}
+            />
           </View>
         </View>
       </View>
@@ -72,7 +80,7 @@ const styles = StyleSheet.create({
   wrapper: {
     marginHorizontal: 16,
     marginTop: -24,
-    shadowColor: '#0D1B2A',
+    shadowColor: '#1A1528',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.25,
     shadowRadius: 30,

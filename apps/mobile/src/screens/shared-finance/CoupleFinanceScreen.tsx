@@ -47,7 +47,7 @@ function getCategoryIcon(cat: string): { icon: string; color: string } {
     Rent: { icon: 'home-outline', color: '#FB923C' },
     Bills: { icon: 'receipt-outline', color: '#F59E0B' },
     Shopping: { icon: 'bag-outline', color: '#F472B6' },
-    Entertainment: { icon: 'film-outline', color: '#FF6B00' },
+    Entertainment: { icon: 'film-outline', color: '#F3D28F' },
     Medical: { icon: 'medkit-outline', color: '#FF4D4F' },
     salary: { icon: 'briefcase-outline', color: '#34C759' },
     income: { icon: 'trending-up-outline', color: '#34C759' },
@@ -233,7 +233,7 @@ export function CoupleFinanceScreen() {
             paddingTop: insets.top + 12,
             paddingBottom: 28,
             paddingHorizontal: 20,
-            backgroundColor: '#FF6B00',
+            backgroundColor: '#F3D28F',
           }}
         >
           <View style={s.headerRow}>

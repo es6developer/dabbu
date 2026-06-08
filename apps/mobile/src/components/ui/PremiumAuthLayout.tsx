@@ -24,9 +24,9 @@ function HeaderGradient() {
       <Svg width={SCREEN_W} height={220} viewBox={`0 0 ${SCREEN_W} 220`}>
         <Defs>
           <SvgGradient id="topGlow" x1="0" y1="0" x2="0.3" y2="1">
-            <Stop offset="0" stopColor="#FF6B00" stopOpacity="0.2" />
-            <Stop offset="0.5" stopColor="#FF6B00" stopOpacity="0.06" />
-            <Stop offset="1" stopColor="#FF6B00" stopOpacity="0" />
+            <Stop offset="0" stopColor="#F3D28F" stopOpacity="0.2" />
+            <Stop offset="0.5" stopColor="#F3D28F" stopOpacity="0.06" />
+            <Stop offset="1" stopColor="#F3D28F" stopOpacity="0" />
           </SvgGradient>
         </Defs>
         <Rect x="0" y="0" width={SCREEN_W} height="220" fill="url(#topGlow)" />

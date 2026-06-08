@@ -38,7 +38,7 @@ const OPTIONS: OptionCard[] = [
     icon: 'people-outline',
     title: 'Create Group',
     description: 'Create a group to split expenses with friends & family.',
-    gradient: ['#FF6B00', '#FF914D'],
+    gradient: ['#F3D28F', '#F5DBA0'],
   },
 ];
 
@@ -69,7 +69,12 @@ export function AddExpenseScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.bg.primary }]} />
-      <Animated.View style={[styles.content, { paddingTop: insets.top, opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+      <Animated.View
+        style={[
+          styles.content,
+          { paddingTop: insets.top, opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+        ]}
+      >
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={[
@@ -83,12 +88,14 @@ export function AddExpenseScreen() {
           <Ionicons name="close" size={22} color="#FFFFFF" />
         </TouchableOpacity>
 
-        <View style={[styles.hero, { backgroundColor: '#0D1B2A' }]}>
+        <View style={[styles.hero, { backgroundColor: '#1A1528' }]}>
           <View style={styles.heroIcon}>
             <Ionicons name="add" size={28} color="#FFFFFF" />
           </View>
           <Text style={styles.title}>Add expense</Text>
-          <Text style={styles.subtitle}>Choose the fastest way to capture and organize this spend.</Text>
+          <Text style={styles.subtitle}>
+            Choose the fastest way to capture and organize this spend.
+          </Text>
         </View>
 
         <View style={styles.optionsContainer}>
@@ -97,12 +104,14 @@ export function AddExpenseScreen() {
               key={option.type}
               style={{
                 opacity: fadeAnim,
-                transform: [{
-                  translateY: fadeAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [30 + index * 15, 0],
-                  }),
-                }],
+                transform: [
+                  {
+                    translateY: fadeAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [30 + index * 15, 0],
+                    }),
+                  },
+                ],
               }}
             >
               <TouchableOpacity
@@ -116,36 +125,64 @@ export function AddExpenseScreen() {
                 onPress={() => handleSelect(option.type)}
                 activeOpacity={0.75}
               >
-                <View style={[styles.iconWrap, { backgroundColor: option.type === 'group' ? colors.accent.primary : option.gradient[0] }]}>
-                <Ionicons name={option.icon} size={25} color="#FFFFFF" />
-              </View>
-              <View style={styles.cardContent}>
-                <View style={styles.cardTitleRow}>
-                  <Text style={[styles.cardTitle, { color: colors.text.primary }]}>
-                    {option.title}
-                  </Text>
-                  {option.badge && (
-                    <View style={[styles.badge, { backgroundColor: isDark ? 'rgba(247,137,44,0.2)' : 'rgba(247,137,44,0.25)' }]}>
-                      <Text style={[styles.badgeText, { color: colors.accent.primary }]}>
-                        {option.badge}
-                      </Text>
-                    </View>
-                  )}
+                <View
+                  style={[
+                    styles.iconWrap,
+                    {
+                      backgroundColor:
+                        option.type === 'group' ? colors.accent.primary : option.gradient[0],
+                    },
+                  ]}
+                >
+                  <Ionicons name={option.icon} size={25} color="#FFFFFF" />
                 </View>
-                <Text style={[styles.cardDesc, { color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.6)' }]}>
-                  {option.description}
-                </Text>
-              </View>
-              <View
-                style={[
-                  styles.chevronWrap,
-                  { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.1)' },
-                ]}
-              >
-                <Ionicons name="chevron-forward" size={18} color={isDark ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.6)'} />
-              </View>
-            </TouchableOpacity>
-          </Animated.View>
+                <View style={styles.cardContent}>
+                  <View style={styles.cardTitleRow}>
+                    <Text style={[styles.cardTitle, { color: colors.text.primary }]}>
+                      {option.title}
+                    </Text>
+                    {option.badge && (
+                      <View
+                        style={[
+                          styles.badge,
+                          {
+                            backgroundColor: isDark
+                              ? 'rgba(247,137,44,0.2)'
+                              : 'rgba(247,137,44,0.25)',
+                          },
+                        ]}
+                      >
+                        <Text style={[styles.badgeText, { color: colors.accent.primary }]}>
+                          {option.badge}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text
+                    style={[
+                      styles.cardDesc,
+                      { color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.6)' },
+                    ]}
+                  >
+                    {option.description}
+                  </Text>
+                </View>
+                <View
+                  style={[
+                    styles.chevronWrap,
+                    {
+                      backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.1)',
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name="chevron-forward"
+                    size={18}
+                    color={isDark ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.6)'}
+                  />
+                </View>
+              </TouchableOpacity>
+            </Animated.View>
           ))}
         </View>
       </Animated.View>

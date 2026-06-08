@@ -413,7 +413,7 @@ export function BillsListScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
-      <View style={[styles.headerGradient, { backgroundColor: '#0D1B2A' }]}>
+      <View style={[styles.headerGradient, { backgroundColor: '#1A1528' }]}>
         <View style={[styles.headerContent, { paddingTop: insets.top + 12 }]}>
           <Text style={styles.headerTitle}>Bills</Text>
           <TouchableOpacity style={styles.headerBtn}>

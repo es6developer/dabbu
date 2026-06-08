@@ -10,7 +10,7 @@ export const EXPENSE_CATEGORIES: { name: string; icon: IonIconName; color: strin
   { name: 'Transportation', icon: 'car-outline', color: '#38BDF8' },
   { name: 'Healthcare', icon: 'medkit-outline', color: '#FF4D4F' },
   { name: 'Shopping', icon: 'bag-outline', color: '#F472B6' },
-  { name: 'Entertainment', icon: 'film-outline', color: '#FF6B00' },
+  { name: 'Entertainment', icon: 'film-outline', color: '#F3D28F' },
   { name: 'Travel', icon: 'airplane-outline', color: '#60A5FA' },
   { name: 'Children & Baby', icon: 'happy-outline', color: '#FF9F0A' },
   { name: 'Financial', icon: 'shield-outline', color: '#00CEC9' },
@@ -19,12 +19,12 @@ export const EXPENSE_CATEGORIES: { name: string; icon: IonIconName; color: strin
 
 export const INCOME_CATEGORIES: { name: string; icon: IonIconName; color: string }[] = [
   { name: 'Employment', icon: 'briefcase-outline', color: '#00B894' },
-  { name: 'Business', icon: 'storefront-outline', color: '#FF6B00' },
+  { name: 'Business', icon: 'storefront-outline', color: '#F3D28F' },
   { name: 'Freelancing', icon: 'laptop-outline', color: '#3498DB' },
-  { name: 'Investments', icon: 'trending-up-outline', color: '#FF6B00' },
+  { name: 'Investments', icon: 'trending-up-outline', color: '#F3D28F' },
   { name: 'Rental', icon: 'home-outline', color: '#FB923C' },
   { name: 'Gifts & Rewards', icon: 'gift-outline', color: '#F472B6' },
-  { name: 'Family Contributions', icon: 'people-outline', color: '#FF6B00' },
+  { name: 'Family Contributions', icon: 'people-outline', color: '#F3D28F' },
   { name: 'Other', icon: 'ellipsis-horizontal-outline', color: '#636E72' },
 ];
 
@@ -47,8 +47,8 @@ const LEGACY_ALIASES: [string, string, string][] = [
   ['Grocery', 'basket-outline', '#00CEC9'],
   ['Dining', 'restaurant-outline', '#FDCB6E'],
   ['Transport', 'car-outline', '#38BDF8'],
-  ['Gym', 'fitness-outline', '#FF6B00'],
-  ['Fitness', 'fitness-outline', '#FF6B00'],
+  ['Gym', 'fitness-outline', '#F3D28F'],
+  ['Fitness', 'fitness-outline', '#F3D28F'],
   ['Water', 'water-outline', '#38BDF8'],
   ['Internet', 'wifi-outline', '#38BDF8'],
   ['Rent', 'home-outline', '#FB923C'],
@@ -61,15 +61,15 @@ const LEGACY_ALIASES: [string, string, string][] = [
   ['Medical', 'medkit-outline', '#FF4D4F'],
   ['Health', 'medkit-outline', '#FF4D4F'],
   ['Health & Medical', 'medkit-outline', '#FF4D4F'],
-  ['Education', 'school-outline', '#FF6B00'],
+  ['Education', 'school-outline', '#F3D28F'],
   ['Fuel', 'flame-outline', '#F59E0B'],
   ['EMI', 'card-outline', '#636E72'],
   ['Salary', 'cash-outline', '#00B894'],
   ['Income', 'cash-outline', '#00B894'],
   ['Transfer', 'swap-horizontal-outline', '#B2BEC3'],
   ['Transfers', 'swap-horizontal-outline', '#B2BEC3'],
-  ['Subscriptions', 'repeat-outline', '#FF6B00'],
-  ['Subscription', 'repeat-outline', '#FF6B00'],
+  ['Subscriptions', 'repeat-outline', '#F3D28F'],
+  ['Subscription', 'repeat-outline', '#F3D28F'],
   ['Insurance', 'shield-outline', '#00CEC9'],
   ['Refunds', 'return-down-back-outline', '#00B894'],
   ['Pets', 'paw-outline', '#FDCB6E'],
@@ -84,16 +84,26 @@ for (const [name, icon, color] of LEGACY_ALIASES) {
   CATEGORY_COLORS[name] = color;
 }
 
-export function getCategoryIcon(cat: string | null | undefined, defaultIcon: string = 'receipt-outline'): string {
-  if (!cat) return defaultIcon;
+export function getCategoryIcon(
+  cat: string | null | undefined,
+  defaultIcon: string = 'receipt-outline',
+): string {
+  if (!cat) {
+    return defaultIcon;
+  }
   const key = Object.keys(CATEGORY_ICONS).find(
     (k) => k.toLowerCase().trim() === cat.toLowerCase().trim(),
   );
   return key ? CATEGORY_ICONS[key] : defaultIcon;
 }
 
-export function getCategoryColor(cat: string | null | undefined, defaultColor: string = '#F97316'): string {
-  if (!cat) return defaultColor;
+export function getCategoryColor(
+  cat: string | null | undefined,
+  defaultColor: string = '#F97316',
+): string {
+  if (!cat) {
+    return defaultColor;
+  }
   const key = Object.keys(CATEGORY_COLORS).find(
     (k) => k.toLowerCase().trim() === cat.toLowerCase().trim(),
   );

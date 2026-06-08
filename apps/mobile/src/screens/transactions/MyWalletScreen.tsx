@@ -32,10 +32,10 @@ const CATEGORY_GRADIENTS: Record<string, [string, string]> = {
   Shopping: ['#E056A0', '#C94D8B'],
   Medical: ['#00B894', '#00A381'],
   Fuel: ['#FDCB6E', '#F0A830'],
-  Rent: ['#FF6B00', '#E86200'],
+  Rent: ['#F3D28F', '#E8C47A'],
   EMI: ['#E17055', '#D63031'],
   Bills: ['#0984E3', '#0768B8'],
-  Entertainment: ['#FF914D', '#E86200'],
+  Entertainment: ['#F5DBA0', '#E8C47A'],
   Education: ['#55EFC4', '#00CEC9'],
   Grocery: ['#81ECEC', '#00CEC9'],
   Investment: ['#74B9FF', '#4D96FF'],
@@ -96,7 +96,7 @@ const PREMIUM_CATEGORIES = [
   { icon: 'add-circle', label: 'Add', color: '#00B894', screen: 'AddExpense' },
   { icon: 'scan', label: 'Scan', color: '#F97316', screen: 'BillScanner' },
   { icon: 'receipt', label: 'Bills', color: '#4A90D9', screen: 'BillsList' },
-  { icon: 'trending-up', label: 'Analytics', color: '#FF6B00', screen: 'Analytics' },
+  { icon: 'trending-up', label: 'Analytics', color: '#F3D28F', screen: 'Analytics' },
 ];
 
 export function MyWalletScreen() {
@@ -378,7 +378,7 @@ export function MyWalletScreen() {
             </Animated.View>
 
             <Animated.View style={{ transform: [{ scale: cardScale }] }}>
-              <View style={[s.balanceCard, { backgroundColor: '#0D1B2A' }]}>
+              <View style={[s.balanceCard, { backgroundColor: '#1A1528' }]}>
                 <View style={s.balanceTop}>
                   <View>
                     <Text style={s.balanceLabel}>Total Balance</Text>
@@ -449,7 +449,7 @@ export function MyWalletScreen() {
                   },
                   {
                     icon: 'calendar',
-                    color: '#FF6B00',
+                    color: '#F3D28F',
                     value: insight.dailyAvg,
                     label: 'Daily Avg',
                   },
@@ -672,7 +672,7 @@ const s = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 1,
   },
-  chipActive: { backgroundColor: '#FF6B00', borderColor: '#FF6B00' },
+  chipActive: { backgroundColor: '#F3D28F', borderColor: '#F3D28F' },
   chipText: { fontSize: 12, fontWeight: '600' },
   sectionTitle: {
     fontSize: 18,

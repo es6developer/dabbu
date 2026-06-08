@@ -158,7 +158,7 @@ export function SettingsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
       >
-        <View style={[s.hero, { paddingTop: insets.top + 16, backgroundColor: '#0D1B2A' }]}>
+        <View style={[s.hero, { paddingTop: insets.top + 16, backgroundColor: '#1A1528' }]}>
           <View
             style={{
               flexDirection: 'row',

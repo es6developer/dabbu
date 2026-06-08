@@ -16,7 +16,7 @@ export default function MaintenanceScreen({ message }: MaintenanceScreenProps) {
       style={[styles.container, { paddingTop: insets.top + 40, paddingBottom: insets.bottom + 20 }]}
     >
       <View style={styles.iconContainer}>
-        <Ionicons name="build" size={64} color="#FF6B00" />
+        <Ionicons name="build" size={64} color="#F3D28F" />
       </View>
       <Text style={styles.title}>Under Maintenance</Text>
       <Text style={styles.subtitle}>

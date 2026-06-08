@@ -1,7 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView,
-  Switch, RefreshControl, Alert, Share, Dimensions,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Switch,
+  RefreshControl,
+  Alert,
+  Share,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -48,7 +56,9 @@ export function CoupleSettingsScreen() {
   const [error, setError] = useState('');
 
   const fetchData = useCallback(async (isRefresh = false) => {
-    if (!isRefresh) setLoading(true);
+    if (!isRefresh) {
+      setLoading(true);
+    }
     try {
       const groups: any[] = await api.get('/shared-finance/groups');
       const coupleGroup = Array.isArray(groups)
@@ -75,24 +85,31 @@ export function CoupleSettingsScreen() {
     }
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
-  const handleToggle = useCallback(async (key: string, value: boolean) => {
-    const groupId = coupleData?.group?.id;
-    if (!groupId) return;
-    setSaving(key);
-    const prev = notifPrefs;
-    setNotifPrefs((p) => ({ ...p, [key]: value }));
-    try {
-      await api.patch(`/shared-finance/groups/${groupId}/settings`, {
-        notificationPreferences: { ...notifPrefs, [key]: value },
-      });
-    } catch {
-      setNotifPrefs(prev);
-    } finally {
-      setSaving(null);
-    }
-  }, [coupleData, notifPrefs]);
+  const handleToggle = useCallback(
+    async (key: string, value: boolean) => {
+      const groupId = coupleData?.group?.id;
+      if (!groupId) {
+        return;
+      }
+      setSaving(key);
+      const prev = notifPrefs;
+      setNotifPrefs((p) => ({ ...p, [key]: value }));
+      try {
+        await api.patch(`/shared-finance/groups/${groupId}/settings`, {
+          notificationPreferences: { ...notifPrefs, [key]: value },
+        });
+      } catch {
+        setNotifPrefs(prev);
+      } finally {
+        setSaving(null);
+      }
+    },
+    [coupleData, notifPrefs],
+  );
 
   const handleLeaveCouple = useCallback(() => {
     Alert.alert(
@@ -118,7 +135,9 @@ export function CoupleSettingsScreen() {
 
   const handleInvite = useCallback(async () => {
     try {
-      const token = await api.post<string>(`/shared-finance/groups/${coupleData?.group?.id}/invites`);
+      const token = await api.post<string>(
+        `/shared-finance/groups/${coupleData?.group?.id}/invites`,
+      );
       const inviteUrl = `https://dabbu.app/join?token=${token}`;
       await Share.share({ message: `Join our Couple Space on Dabbu! ${inviteUrl}` });
     } catch {
@@ -126,7 +145,9 @@ export function CoupleSettingsScreen() {
     }
   }, [coupleData]);
 
-  if (loading) return <LoadingScreen />;
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   const p1 = coupleData?.profile?.partner1;
   const p2 = coupleData?.profile?.partner2;
@@ -158,14 +179,15 @@ export function CoupleSettingsScreen() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => { setRefreshing(true); fetchData(true); }}
+            onRefresh={() => {
+              setRefreshing(true);
+              fetchData(true);
+            }}
             tintColor={colors.accent.primary}
           />
         }
       >
-        <View
-          style={[styles.hero, { paddingTop: insets.top + 12, backgroundColor: '#0D1B2A' }]}
-        >
+        <View style={[styles.hero, { paddingTop: insets.top + 12, backgroundColor: '#1A1528' }]}>
           <TouchableOpacity
             style={styles.backBtn}
             onPress={() => navigation.goBack()}
@@ -195,7 +217,9 @@ export function CoupleSettingsScreen() {
                 <Ionicons name="heart" size={20} color="#FF4D4F" />
               </View>
               <View style={[styles.profileAvatar, !partner2Joined && styles.avatarEmpty]}>
-                <Text style={[styles.avatarText, !partner2Joined && { color: colors.text.tertiary }]}>
+                <Text
+                  style={[styles.avatarText, !partner2Joined && { color: colors.text.tertiary }]}
+                >
                   {partner2Joined ? p2Initial : '?'}
                 </Text>
               </View>
@@ -212,9 +236,7 @@ export function CoupleSettingsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text.tertiary }]}>
-            FINANCES
-          </Text>
+          <Text style={[styles.sectionTitle, { color: colors.text.tertiary }]}>FINANCES</Text>
           <View style={[styles.sectionCard, { backgroundColor: colors.bg.card }]}>
             <View style={[styles.settingRow, styles.settingRowBorder]}>
               <View style={styles.settingIconWrap}>
@@ -223,10 +245,12 @@ export function CoupleSettingsScreen() {
                 </View>
               </View>
               <View style={styles.settingContent}>
-                <Text style={[styles.settingLabel, { color: colors.text.primary }]}>Monthly Budget</Text>
+                <Text style={[styles.settingLabel, { color: colors.text.primary }]}>
+                  Monthly Budget
+                </Text>
                 <Text style={[styles.settingValue, { color: colors.text.secondary }]}>
                   {budgetTotal > 0
-                    ? `₹${(budgetTotal).toLocaleString('en-IN', { maximumFractionDigits: 0 })} / month`
+                    ? `₹${budgetTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })} / month`
                     : 'Not set'}
                 </Text>
               </View>
@@ -242,7 +266,9 @@ export function CoupleSettingsScreen() {
                 </View>
               </View>
               <View style={styles.settingContent}>
-                <Text style={[styles.settingLabel, { color: colors.text.primary }]}>Split Ratio</Text>
+                <Text style={[styles.settingLabel, { color: colors.text.primary }]}>
+                  Split Ratio
+                </Text>
                 <Text style={[styles.settingValue, { color: colors.text.secondary }]}>
                   {splitRatio} / {100 - splitRatio}
                 </Text>
@@ -259,10 +285,12 @@ export function CoupleSettingsScreen() {
                 </View>
               </View>
               <View style={styles.settingContent}>
-                <Text style={[styles.settingLabel, { color: colors.text.primary }]}>Savings Goal</Text>
+                <Text style={[styles.settingLabel, { color: colors.text.primary }]}>
+                  Savings Goal
+                </Text>
                 <Text style={[styles.settingValue, { color: colors.text.secondary }]}>
                   {savingsGoal > 0
-                    ? `₹${(savingsGoal).toLocaleString('en-IN', { maximumFractionDigits: 0 })} target`
+                    ? `₹${savingsGoal.toLocaleString('en-IN', { maximumFractionDigits: 0 })} target`
                     : 'No goal set'}
                   {savingsContribution > 0 ? ` · ₹${savingsContribution}/mo each` : ''}
                 </Text>
@@ -275,21 +303,14 @@ export function CoupleSettingsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text.tertiary }]}>
-            NOTIFICATIONS
-          </Text>
+          <Text style={[styles.sectionTitle, { color: colors.text.tertiary }]}>NOTIFICATIONS</Text>
           <View style={[styles.sectionCard, { backgroundColor: colors.bg.card }]}>
             {NOTIFICATION_ITEMS.map((item, idx) => {
               const val = notifPrefs[item.key] ?? true;
               const isLast = idx === NOTIFICATION_ITEMS.length - 1;
               return (
-                <View
-                  key={item.key}
-                  style={[styles.notifRow, !isLast && styles.settingRowBorder]}
-                >
-                  <View
-                    style={[styles.notifIcon, { backgroundColor: colors.accent.primary }]}
-                  >
+                <View key={item.key} style={[styles.notifRow, !isLast && styles.settingRowBorder]}>
+                  <View style={[styles.notifIcon, { backgroundColor: colors.accent.primary }]}>
                     <Ionicons name={item.icon} size={14} color="#FFF" />
                   </View>
                   <Text style={[styles.notifLabel, { color: colors.text.primary }]}>
@@ -309,25 +330,15 @@ export function CoupleSettingsScreen() {
         </View>
 
         {!partner2Joined ? (
-          <TouchableOpacity
-            style={styles.inviteBtn}
-            activeOpacity={0.8}
-            onPress={handleInvite}
-          >
-            <View
-              style={[styles.inviteGradient, { backgroundColor: colors.accent.primary }]}
-            >
+          <TouchableOpacity style={styles.inviteBtn} activeOpacity={0.8} onPress={handleInvite}>
+            <View style={[styles.inviteGradient, { backgroundColor: colors.accent.primary }]}>
               <Ionicons name="person-add-outline" size={20} color="#FFF" />
               <Text style={styles.inviteText}>Invite Partner</Text>
             </View>
           </TouchableOpacity>
         ) : null}
 
-        <TouchableOpacity
-          style={styles.leaveBtn}
-          activeOpacity={0.7}
-          onPress={handleLeaveCouple}
-        >
+        <TouchableOpacity style={styles.leaveBtn} activeOpacity={0.7} onPress={handleLeaveCouple}>
           <View style={styles.leaveIcon}>
             <Ionicons name="heart-dislike-outline" size={18} color="#FF4D4F" />
           </View>

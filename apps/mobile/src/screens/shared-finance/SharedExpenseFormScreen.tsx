@@ -233,7 +233,7 @@ export function SharedExpenseFormScreen() {
               paddingTop: insets.top + 12,
               paddingBottom: 24,
               paddingHorizontal: 20,
-              backgroundColor: '#FF6B00',
+              backgroundColor: '#F3D28F',
             }}
           >
             <View style={styles.headerRow}>
