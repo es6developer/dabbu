@@ -47,6 +47,7 @@ export function AddMemberScreen() {
   const insets = useSafeAreaInsets();
   const groupId = route.params?.groupId;
   const groupType: 'shared-finance' | 'expense-group' = route.params?.type || 'shared-finance';
+  const existingMemberIds: string[] = route.params?.existingMemberIds || [];
 
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
@@ -438,21 +439,32 @@ export function AddMemberScreen() {
                 </View>
               </View>
               {isAppUser ? (
-                <TouchableOpacity
-                  style={[styles.actionBtn, { backgroundColor: `${colors.accent.primary}18` }]}
-                  onPress={() =>
-                    groupId ? handleAddToGroup(userId, name) : addFavorite(userId, name, phone)
-                  }
-                  disabled={addingId === userId}
-                >
-                  {addingId === userId ? (
-                    <ActivityIndicator size="small" color={colors.accent.primary} />
-                  ) : (
-                    <Text style={[styles.actionBtnText, { color: colors.accent.primary }]}>
-                      + Add
+                existingMemberIds.includes(userId) ? (
+                  <View
+                    style={[styles.actionBtn, { backgroundColor: `${colors.status.success}15` }]}
+                  >
+                    <Ionicons name="checkmark" size={14} color={colors.status.success} />
+                    <Text style={[styles.actionBtnText, { color: colors.status.success }]}>
+                      Member
                     </Text>
-                  )}
-                </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={[styles.actionBtn, { backgroundColor: `${colors.accent.primary}18` }]}
+                    onPress={() =>
+                      groupId ? handleAddToGroup(userId, name) : addFavorite(userId, name, phone)
+                    }
+                    disabled={addingId === userId}
+                  >
+                    {addingId === userId ? (
+                      <ActivityIndicator size="small" color={colors.accent.primary} />
+                    ) : (
+                      <Text style={[styles.actionBtnText, { color: colors.accent.primary }]}>
+                        + Add
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                )
               ) : (
                 <TouchableOpacity style={styles.inviteActionBtn} onPress={() => handleInvite(name)}>
                   <Text style={styles.inviteActionText}>Invite</Text>
