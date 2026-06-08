@@ -25,7 +25,7 @@ export function BalanceCard({ totalBalance, monthlySpending, monthlyBudget }: Ba
   return (
     <View style={styles.wrapper}>
       <View
-        style={[styles.card, { backgroundColor: colors.accent.primary }]}
+        style={[styles.card, { backgroundColor: '#0D1B2A' }]}
       >
         <View style={styles.topRow}>
           <View>
@@ -60,7 +60,7 @@ export function BalanceCard({ totalBalance, monthlySpending, monthlyBudget }: Ba
             </Text>
           </View>
           <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${Math.min(spendPct, 100)}%`, backgroundColor: '#FF6B00' }]} />
+            <View style={[styles.progressFill, { width: `${Math.min(spendPct, 100)}%`, backgroundColor: '#D9700A' }]} />
           </View>
         </View>
       </View>
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
   wrapper: {
     marginHorizontal: 16,
     marginTop: -24,
-    shadowColor: '#FF6B00',
+    shadowColor: '#0D1B2A',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.25,
     shadowRadius: 30,

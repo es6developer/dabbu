@@ -378,7 +378,7 @@ export function MyWalletScreen() {
             </Animated.View>
 
             <Animated.View style={{ transform: [{ scale: cardScale }] }}>
-              <View style={[s.balanceCard, { backgroundColor: '#FF6B00' }]}>
+              <View style={[s.balanceCard, { backgroundColor: '#0D1B2A' }]}>
                 <View style={s.balanceTop}>
                   <View>
                     <Text style={s.balanceLabel}>Total Balance</Text>

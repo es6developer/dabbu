@@ -122,7 +122,7 @@ export function SettlementScreen() {
             paddingTop: insets.top + 12,
             paddingBottom: 28,
             paddingHorizontal: 20,
-            backgroundColor: colors.accent.primary,
+            backgroundColor: '#0D1B2A',
           }}
         >
           <View style={styles.headerRow}>
@@ -240,7 +240,7 @@ export function SettlementScreen() {
                                 style={[
                                   styles.payBtn,
                                   {
-                                    backgroundColor: colors.accent.primary,
+            backgroundColor: '#D9700A',
                                     borderWidth: 1,
                                     borderColor: colors.border.default,
                                   },

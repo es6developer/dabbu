@@ -89,7 +89,7 @@ export function SplitExpenseScreen() {
               paddingTop: insets.top + 12,
               paddingBottom: 20,
               paddingHorizontal: 20,
-              backgroundColor: colors.accent.primary,
+              backgroundColor: '#0D1B2A',
             }}
           >
             <View style={styles.headerRow}>

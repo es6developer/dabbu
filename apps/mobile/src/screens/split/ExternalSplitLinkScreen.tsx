@@ -52,7 +52,7 @@ export function ExternalSplitLinkScreen() {
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         <View
-          style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20, backgroundColor: colors.accent.primary }}
+          style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20, backgroundColor: '#0D1B2A' }}
         >
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>

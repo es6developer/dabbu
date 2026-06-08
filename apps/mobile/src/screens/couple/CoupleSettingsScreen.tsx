@@ -164,7 +164,7 @@ export function CoupleSettingsScreen() {
         }
       >
         <View
-          style={[styles.hero, { paddingTop: insets.top + 12, backgroundColor: colors.accent.primary }]}
+          style={[styles.hero, { paddingTop: insets.top + 12, backgroundColor: '#0D1B2A' }]}
         >
           <TouchableOpacity
             style={styles.backBtn}

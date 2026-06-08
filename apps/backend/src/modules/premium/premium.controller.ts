@@ -51,7 +51,7 @@ export class PremiumController {
     // 4. Create Razorpay subscription with auto-pay (high total_count for auto-renew, addon for first charge)
     const razorpaySub = await this.razorpayService.createSubscription({
       planId: razorpayPlanId,
-      totalCount: 999999,
+      totalCount: 1200,
       customerEmail: req.user.email,
       customerContact: req.user.phone,
       notes: { userId, subscriptionId: sub.id, planCode },

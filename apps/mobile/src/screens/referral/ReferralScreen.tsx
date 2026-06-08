@@ -340,7 +340,7 @@ export function ReferralScreen() {
         }
       >
         {/* Hero */}
-        <View style={[styles.hero, { paddingTop: insets.top + 16, backgroundColor: '#FF6B00' }]}>
+        <View style={[styles.hero, { paddingTop: insets.top + 16, backgroundColor: '#0D1B2A' }]}>
           <Text style={styles.heroEyebrow}>REFER & EARN</Text>
           <Text style={styles.heroTitle}>Invite Friends, Earn Rewards</Text>
           <Text style={styles.heroSub}>

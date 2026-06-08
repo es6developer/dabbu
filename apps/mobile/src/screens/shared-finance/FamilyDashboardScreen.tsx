@@ -162,7 +162,7 @@ export function FamilyDashboardScreen() {
           </TouchableOpacity>
         </View>
 
-        <View style={[s.heroSection, { backgroundColor: '#FF6B00' }]}>
+        <View style={[s.heroSection, { backgroundColor: '#0D1B2A' }]}>
           <View style={[s.heroIconWrap, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
             <Ionicons name="people" size={28} color="#FFF" />
           </View>
