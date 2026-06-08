@@ -14,7 +14,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../../theme';
-import { PADDING, CARD_GAP, borderRadius, shadows, fabShadow } from '../../theme/design';
+import { PADDING, borderRadius, shadows, fabShadow } from '../../theme/design';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
@@ -213,19 +213,19 @@ export function HomeScreen() {
   const quickActions = useMemo(
     () => [
       {
-        icon: 'add-circle' as const,
-        label: 'Income',
-        color: colors.status.success,
-        route: 'AddIncome',
-      },
-      {
         icon: 'remove-circle' as const,
         label: 'Expense',
         color: colors.status.error,
         route: 'AddExpense',
       },
-      { icon: 'send' as const, label: 'Transfer', color: colors.accent.primary, route: 'Transfer' },
-      { icon: 'card' as const, label: 'Pay', color: '#F59E0B', route: 'Payments' },
+      {
+        icon: 'scan' as const,
+        label: 'Scan',
+        color: '#F59E0B',
+        route: 'BillScanner',
+      },
+      { icon: 'people' as const, label: 'Group', color: '#14B8A6', route: 'CreateExpenseGroup' },
+      { icon: 'grid' as const, label: 'Spaces', color: colors.accent.primary, route: 'Spaces' },
     ],
     [colors],
   );
@@ -493,12 +493,19 @@ export function HomeScreen() {
                 activeOpacity={0.85}
                 onPress={() => {
                   const routes: Record<string, string> = {
-                    Income: 'AddIncome',
-                    Expenses: 'Transactions',
-                    Savings: 'Goals',
-                    Shared: 'SharedFinance',
+                    Income: 'ExpenseHome',
+                    Expenses: 'ExpenseHome',
+                    Savings: 'GoalsList',
+                    Shared: 'SharedFinanceHome',
                   };
-                  navigation.navigate(routes[card.label] || 'Dashboard');
+                  const screen = routes[card.label];
+                  if (screen === 'SharedFinanceHome') {
+                    navigation.navigate('Spaces', { screen: 'SharedFinanceHome' });
+                  } else if (screen === 'GoalsList') {
+                    navigation.navigate('Dashboard', { screen: 'GoalsList' });
+                  } else {
+                    navigation.navigate('Expense', { screen });
+                  }
                 }}
                 style={{
                   width: (SCREEN_WIDTH - PADDING * 2 - 12) / 2,
