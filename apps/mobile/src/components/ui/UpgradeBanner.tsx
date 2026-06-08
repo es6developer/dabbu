@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { useAuth } from '../../store/AuthContext';
 
@@ -16,11 +16,19 @@ export function UpgradeBanner({
   message = 'Unlock unlimited groups, advanced analytics & more',
   onDismiss,
 }: UpgradeBannerProps) {
-  const { user, isPremium } = useAuth();
+  const { user, isPremium, refreshPremiumStatus } = useAuth();
   const { colors } = useTheme();
   const navigation = useNavigation<any>();
   const slideAnim = useRef(new Animated.Value(variant === 'top' ? -80 : 30)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
+
+  useFocusEffect(
+    useCallback(() => {
+      if (user) {
+        refreshPremiumStatus();
+      }
+    }, [user]),
+  );
 
   useEffect(() => {
     Animated.parallel([
