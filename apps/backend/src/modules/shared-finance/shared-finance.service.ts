@@ -3826,6 +3826,7 @@ export class SharedFinanceService {
       orderBy: { date: 'desc' },
       include: {
         creator: { select: { id: true, firstName: true, lastName: true } },
+        category: { select: { id: true, name: true, icon: true, color: true } },
       },
     });
 
@@ -3869,6 +3870,7 @@ export class SharedFinanceService {
         amount: dto.amount,
         source: dto.source,
         type: dto.type || 'salary',
+        categoryId: dto.categoryId || null,
         assignedTo: dto.assignedTo || null,
         date: dto.date ? new Date(dto.date) : new Date(),
         notes: dto.notes,
@@ -3876,6 +3878,7 @@ export class SharedFinanceService {
       },
       include: {
         creator: { select: { id: true, firstName: true, lastName: true } },
+        category: { select: { id: true, name: true, icon: true, color: true } },
       },
     });
 

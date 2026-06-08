@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions, Platform,
 } from 'react-native';
@@ -28,9 +28,11 @@ export function QuickActionSheet({ actions, activeItem, visible, onClose }: Quic
   const slideAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const itemScaleAnim = useRef(new Animated.Value(0.6)).current;
+  const [rendered, setRendered] = useState(visible);
 
   useEffect(() => {
     if (visible) {
+      setRendered(true);
       Animated.parallel([
         Animated.spring(slideAnim, { toValue: 1, friction: 8, tension: 65, useNativeDriver: true }),
         Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
@@ -38,13 +40,13 @@ export function QuickActionSheet({ actions, activeItem, visible, onClose }: Quic
       ]).start();
     } else {
       Animated.parallel([
-        Animated.timing(slideAnim, { toValue: 0, duration: 150, useNativeDriver: true }),
-        Animated.timing(fadeAnim, { toValue: 0, duration: 150, useNativeDriver: true }),
-      ]).start();
+        Animated.timing(slideAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
+        Animated.timing(fadeAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
+      ]).start(() => setRendered(false));
     }
   }, [visible]);
 
-  if (!visible) return null;
+  if (!rendered) return null;
 
   const sheetTranslateY = slideAnim.interpolate({
     inputRange: [0, 1],

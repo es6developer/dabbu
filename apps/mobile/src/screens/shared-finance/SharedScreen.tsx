@@ -44,7 +44,7 @@ const TYPE_CONFIG: Record<string, { icon: string; label: string; color: string }
   friends: { icon: 'people', label: 'Friends', color: '#34C759' },
   trip: { icon: 'airplane', label: 'Trip', color: '#F3D28F' },
   roommates: { icon: 'business', label: 'Roommates', color: '#4F6EF7' },
-  apartment: { icon: 'home', label: 'Apartment', color: '#8A5CF6' },
+  apartment: { icon: 'home', label: 'Apartment', color: '#FF6B00' },
   office: { icon: 'briefcase', label: 'Office', color: '#818CF8' },
   event: { icon: 'calendar', label: 'Event', color: '#FF6B6B' },
   default: { icon: 'people', label: 'Group', color: '#FF6B00' },
@@ -67,14 +67,14 @@ function GroupCard({ group, onPress }: GroupCardProps) {
 
   const handlePressIn = () => {
     Animated.parallel([
-      Animated.spring(scaleAnim, { toValue: 0.98, friction: 8, tension: 100, useNativeDriver: true }),
+      Animated.spring(scaleAnim, { toValue: 0.98, friction: 12, tension: 100, useNativeDriver: true }),
       Animated.timing(borderAnim, { toValue: 1, duration: 150, useNativeDriver: false }),
     ]).start();
   };
 
   const handlePressOut = () => {
     Animated.parallel([
-      Animated.spring(scaleAnim, { toValue: 1, friction: 8, tension: 100, useNativeDriver: true }),
+      Animated.spring(scaleAnim, { toValue: 1, friction: 12, tension: 100, useNativeDriver: true }),
       Animated.timing(borderAnim, { toValue: 0, duration: 150, useNativeDriver: false }),
     ]).start();
   };
@@ -164,14 +164,19 @@ export function SharedScreen() {
   const [groups, setGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (isRefresh = false) => {
     if (accessToken) setAccessToken(accessToken);
+    if (!isRefresh) setLoading(true);
+    setError(null);
     try {
       const sharedRes = await api.get<any>('/shared-finance/groups');
       setGroups(listFromResponse(sharedRes));
-    } catch { /* ignore */ }
+    } catch {
+      setError('Could not load spaces. Check your connection.');
+    }
     finally { setLoading(false); setRefreshing(false); }
   }, [accessToken]);
 
@@ -199,7 +204,7 @@ export function SharedScreen() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => { setRefreshing(true); loadData(); }}
+            onRefresh={() => { setRefreshing(true); loadData(true); }}
             tintColor="#FF6B00"
           />
         }
@@ -227,12 +232,31 @@ export function SharedScreen() {
           )}
         </View>
 
-        {/* Loading */}
-        {loading ? (
+        {/* Loading Skeleton - cross-fades with content */}
+        {loading && (
           <View style={{ paddingHorizontal: spacing.xl, gap: spacing.md, marginTop: spacing.sm }}>
             {[1, 2, 3].map((i) => <SkeletonCard key={i} style={{ height: i === 1 ? 150 : 96 }} />)}
           </View>
-        ) : groups.length === 0 ? (
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <View style={s.emptyWrap}>
+            <View style={{ alignItems: 'center' }}>
+              <View style={[s.emptyIcon, { backgroundColor: 'rgba(255,69,69,0.12)' }]}>
+                <Ionicons name="cloud-offline-outline" size={36} color="#FF4545" />
+              </View>
+              <Text style={[s.emptyTitle, { color: '#FF4545' }]}>{error}</Text>
+              <TouchableOpacity style={s.emptyBtn} onPress={() => loadData()} activeOpacity={0.85}>
+                <Ionicons name="refresh-outline" size={18} color="#FFF" />
+                <Text style={s.emptyBtnText}>Try Again</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {/* Content */}
+        {!loading && !error && groups.length === 0 ? (
           /* Empty State */
           <View style={s.emptyWrap}>
             <Animated.View style={{ opacity: fadeAnim, alignItems: 'center' }}>

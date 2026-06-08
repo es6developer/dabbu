@@ -99,6 +99,26 @@ export async function getContactsPermissionStatus(): Promise<boolean> {
   }
 }
 
+export type PermissionStatusStr = 'granted' | 'denied' | 'undetermined';
+
+export async function getRawPermissionStatus(): Promise<PermissionStatusStr> {
+  try {
+    const { status } = await Contacts.getPermissionsAsync();
+    return status as PermissionStatusStr;
+  } catch {
+    return 'undetermined';
+  }
+}
+
+export async function requestRawPermission(): Promise<{ granted: boolean; status: PermissionStatusStr }> {
+  try {
+    const { status } = await Contacts.requestPermissionsAsync();
+    return { granted: status === 'granted', status: status as PermissionStatusStr };
+  } catch {
+    return { granted: false, status: 'undetermined' };
+  }
+}
+
 export async function fetchDeviceContacts(): Promise<DeviceContact[]> {
   try {
     const { data } = await Contacts.getContactsAsync({

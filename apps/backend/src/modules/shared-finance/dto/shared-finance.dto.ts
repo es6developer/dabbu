@@ -1305,6 +1305,11 @@ export class CreateCoupleIncomeDto {
   @IsOptional()
   type?: string;
 
+  @ApiPropertyOptional({ example: 'uuid-of-category' })
+  @IsString()
+  @IsOptional()
+  categoryId?: string;
+
   @ApiPropertyOptional({ example: '2026-06-01' })
   @IsDateString()
   @IsOptional()

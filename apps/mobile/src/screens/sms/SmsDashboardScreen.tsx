@@ -198,12 +198,12 @@ export function SmsDashboardScreen() {
     const isIncome = item.detectedType === 'income';
     const iconName = getCatIcon(catName);
     const catColors: Record<string, string> = {
-      'Food & Dining': '#FF6B6B', Groceries: '#00B894', Shopping: '#6C5CE7',
+      'Food & Dining': '#FF6B6B', Groceries: '#00B894', Shopping: '#FF6B00',
       Transportation: '#FDCB6E', Entertainment: '#E17055', 'Bills & Utilities': '#636E72',
       Housing: '#0984E3', Income: '#00B894', Subscriptions: '#F39C12',
-      'Health & Medical': '#E74C3C', Education: '#9B59B6', Travel: '#1ABC9C',
+      'Health & Medical': '#E74C3C', Education: '#FF6B00', Travel: '#1ABC9C',
       Financial: '#34495E', Transfers: '#2D3436', Refunds: '#00CEC9',
-      Pets: '#FD79A8', Clothing: '#A29BFE', 'Other Income': '#55EFC4',
+      Pets: '#FD79A8', Clothing: '#FF914D', 'Other Income': '#55EFC4',
       'Other Expenses': '#636E72',
     };
     const catColor = catColors[catName] || colors.accent.primary;

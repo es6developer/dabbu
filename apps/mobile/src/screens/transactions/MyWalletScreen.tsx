@@ -12,7 +12,7 @@ import {
   ScrollView,
   Animated,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
@@ -28,9 +28,9 @@ const CARD_W = (SCREEN_WIDTH - 56) / 3;
 const CATEGORY_GRADIENTS: Record<string, [string, string]> = {
   Food: ['#F97316', '#F97316'], Travel: ['#4A90D9', '#357ABD'],
   Shopping: ['#E056A0', '#C94D8B'], Medical: ['#00B894', '#00A381'],
-  Fuel: ['#FDCB6E', '#F0A830'], Rent: ['#6C5CE7', '#5A4BD1'],
+  Fuel: ['#FDCB6E', '#F0A830'], Rent: ['#FF6B00', '#E86200'],
   EMI: ['#E17055', '#D63031'], Bills: ['#0984E3', '#0768B8'],
-  Entertainment: ['#A29BFE', '#817CE8'], Education: ['#55EFC4', '#00CEC9'],
+  Entertainment: ['#FF914D', '#E86200'], Education: ['#55EFC4', '#00CEC9'],
   Grocery: ['#81ECEC', '#00CEC9'], Investment: ['#74B9FF', '#4D96FF'],
   Salary: ['#00B894', '#00A381'], Transfer: ['#DFE6E9', '#B2BEC3'],
 };
@@ -88,7 +88,7 @@ const PREMIUM_CATEGORIES = [
   { icon: 'add-circle', label: 'Add', color: '#00B894', screen: 'AddExpense' },
   { icon: 'scan', label: 'Scan', color: '#F97316', screen: 'BillScanner' },
   { icon: 'receipt', label: 'Bills', color: '#4A90D9', screen: 'BillsList' },
-  { icon: 'trending-up', label: 'Analytics', color: '#6C5CE7', screen: 'Analytics' },
+  { icon: 'trending-up', label: 'Analytics', color: '#FF6B00', screen: 'Analytics' },
 ];
 
 export function MyWalletScreen() {
@@ -209,11 +209,14 @@ export function MyWalletScreen() {
     return groupByDate(list);
   }, [transactions, search, selectedCategory]);
 
-  const remaining = summary.totalIncome - summary.totalExpense;
-  const expensePct =
-    summary.totalIncome > 0
-      ? Math.min(Math.round((summary.totalExpense / summary.totalIncome) * 100), 100)
-      : 0;
+  const { remaining, expensePct } = useMemo(() => {
+    const r = summary.totalIncome - summary.totalExpense;
+    const pct =
+      summary.totalIncome > 0
+        ? Math.min(Math.round((summary.totalExpense / summary.totalIncome) * 100), 100)
+        : 0;
+    return { remaining: r, expensePct: pct };
+  }, [summary.totalIncome, summary.totalExpense]);
 
   const insight = useMemo(() => {
     const now = new Date();
@@ -235,11 +238,15 @@ export function MyWalletScreen() {
     return { total, foodTotal, dailyAvg, topCat: top ? { name: top[0], amount: top[1] } : null };
   }, [transactions]);
 
-  const headerOpacity = scrollY.interpolate({
-    inputRange: [0, 80],
-    outputRange: [1, 0],
-    extrapolate: 'clamp',
-  });
+  const headerOpacity = useMemo(
+    () =>
+      scrollY.interpolate({
+        inputRange: [0, 80],
+        outputRange: [1, 0],
+        extrapolate: 'clamp',
+      }),
+    [scrollY],
+  );
 
   if (loading) {
     return (
@@ -264,11 +271,59 @@ export function MyWalletScreen() {
     );
   }
 
+  const keyExtractorCallback = useCallback((item: any) => item.title, []);
+
+  const renderItemCallback = useCallback(
+    ({ item: section }: { item: any }) => (
+      <View>
+        <Text style={[s.dateLabel, { color: colors.text.tertiary }]}>{section.title}</Text>
+        {section.data.map((t: any) => {
+          const isIncome = t.type === 'income';
+          const cat = t.category?.name || t.category || 'Other';
+          const time = new Date(t.date || t.createdAt).toLocaleTimeString('en-IN', {
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+          const catColors = getCategoryColors(cat);
+          return (
+            <TouchableOpacity
+              key={t.id}
+              style={[s.txCard, { backgroundColor: colors.bg.secondary }]}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('TransactionDetail', { transactionId: t.id })}
+              onLongPress={() => handleDelete(t.id)}
+            >
+              <View style={[s.txIcon, { backgroundColor: catColors[0] }]}>
+                <Ionicons name={getCategoryIcon(cat) as any} size={18} color="#FFF" />
+              </View>
+              <View style={s.txBody}>
+                <Text style={[s.txDesc, { color: colors.text.primary }]} numberOfLines={1}>
+                  {t.description || cat}
+                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={[s.txMeta, { color: colors.text.tertiary }]}>{time}</Text>
+                  <View style={[s.txDot, { backgroundColor: colors.text.tertiary }]} />
+                  <Text style={[s.txMeta, { color: catColors[0] }]}>{cat}</Text>
+                </View>
+              </View>
+              <Text style={[s.txAmount, { color: isIncome ? '#00B894' : '#FF6B6B' }]}>
+                {isIncome ? '+' : '-'}
+                {fmt(Number(t.amount))}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    ),
+    [colors, navigation, handleDelete],
+  );
+
   return (
     <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
       <FlatList
         data={filtered}
-        keyExtractor={(item) => item.title}
+        keyExtractor={keyExtractorCallback}
+        removeClippedSubviews
         showsVerticalScrollIndicator={false}
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
           useNativeDriver: false,
@@ -315,12 +370,7 @@ export function MyWalletScreen() {
             </Animated.View>
 
             <Animated.View style={{ transform: [{ scale: cardScale }] }}>
-              <LinearGradient
-                colors={['#6C3EF4', '#8B5CF6']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={s.balanceCard}
-              >
+              <View style={[s.balanceCard, { backgroundColor: '#FF6B00' }]}>
                 <View style={s.balanceTop}>
                   <View>
                     <Text style={s.balanceLabel}>Total Balance</Text>
@@ -359,7 +409,7 @@ export function MyWalletScreen() {
                     </View>
                   </View>
                 </View>
-              </LinearGradient>
+              </View>
             </Animated.View>
 
             <View style={s.quickActions}>
@@ -389,7 +439,7 @@ export function MyWalletScreen() {
                   },
                   {
                     icon: 'calendar',
-                    color: '#6C5CE7',
+                    color: '#FF6B00',
                     value: insight.dailyAvg,
                     label: 'Daily Avg',
                   },
@@ -490,47 +540,7 @@ export function MyWalletScreen() {
             )}
           </Animated.View>
         }
-        renderItem={({ item: section }) => (
-          <View>
-            <Text style={[s.dateLabel, { color: colors.text.tertiary }]}>{section.title}</Text>
-            {section.data.map((t: any) => {
-              const isIncome = t.type === 'income';
-              const cat = t.category?.name || t.category || 'Other';
-              const time = new Date(t.date || t.createdAt).toLocaleTimeString('en-IN', {
-                hour: '2-digit',
-                minute: '2-digit',
-              });
-              const catColors = getCategoryColors(cat);
-              return (
-                <TouchableOpacity
-                  key={t.id}
-                  style={[s.txCard, { backgroundColor: colors.bg.secondary }]}
-                  activeOpacity={0.7}
-                  onPress={() => navigation.navigate('TransactionDetail', { transactionId: t.id })}
-                  onLongPress={() => handleDelete(t.id)}
-                >
-                  <View style={[s.txIcon, { backgroundColor: catColors[0] }]}>
-                    <Ionicons name={getCategoryIcon(cat) as any} size={18} color="#FFF" />
-                  </View>
-                  <View style={s.txBody}>
-                    <Text style={[s.txDesc, { color: colors.text.primary }]} numberOfLines={1}>
-                      {t.description || cat}
-                    </Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={[s.txMeta, { color: colors.text.tertiary }]}>{time}</Text>
-                      <View style={[s.txDot, { backgroundColor: colors.text.tertiary }]} />
-                      <Text style={[s.txMeta, { color: catColors[0] }]}>{cat}</Text>
-                    </View>
-                  </View>
-                  <Text style={[s.txAmount, { color: isIncome ? '#00B894' : '#FF6B6B' }]}>
-                    {isIncome ? '+' : '-'}
-                    {fmt(Number(t.amount))}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        )}
+        renderItem={renderItemCallback}
         ListEmptyComponent={
           <View style={s.empty}>
             <View style={[s.emptyIcon, { backgroundColor: `${colors.accent.primary}20` }]}>
@@ -643,7 +653,7 @@ const s = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 1,
   },
-  chipActive: { backgroundColor: '#f7892c', borderColor: '#f7892c' },
+  chipActive: { backgroundColor: '#FF6B00', borderColor: '#FF6B00' },
   chipText: { fontSize: 12, fontWeight: '600' },
   sectionTitle: {
     fontSize: 18,

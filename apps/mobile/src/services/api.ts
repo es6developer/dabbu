@@ -40,6 +40,7 @@ const REQUEST_TIMEOUT = 15_000;
 const CACHE_TTL: Record<string, number> = {
   '/accounts': 120_000,
   '/transactions': 30_000,
+  '/transactions/categories-summary': 60_000,
   '/expense-groups': 300_000,
   '/expense-groups/dashboard': 300_000,
   '/categories': 120_000,
@@ -49,11 +50,18 @@ const CACHE_TTL: Record<string, number> = {
   '/reminders': 60_000,
   '/goals': 60_000,
   '/shared-finance': 60_000,
+  '/shared-finance/groups': 120_000,
+  '/shared-finance/groups/couple/dashboard': 120_000,
   '/premium': 120_000,
+  '/premium/check': 300_000,
   '/gamification': 300_000,
   '/settlements': 30_000,
   '/features': 300_000,
   '/user': 120_000,
+  '/referral': 120_000,
+  '/analytics': 60_000,
+  '/ai-insights': 60_000,
+  '/subscriptions': 60_000,
 };
 
 interface CacheEntry {
@@ -174,6 +182,8 @@ async function fetchWithTimeout(
   }
 }
 
+const pendingRequests = new Map<string, Promise<any>>();
+
 async function request<T>(
   path: string,
   options: RequestInit = {},
@@ -182,6 +192,12 @@ async function request<T>(
   const key = cacheKey(options.method || 'GET', path);
   const ttl = ttlForPath(path);
   const canCache = ttl > 0 && (!options.method || options.method === 'GET');
+  const isGet = !options.method || options.method === 'GET';
+
+  // Deduplicate in-flight GET requests
+  if (isGet && pendingRequests.has(key)) {
+    return pendingRequests.get(key) as Promise<T>;
+  }
 
   if (canCache) {
     if (!hydrationPromise) hydrateCache();
@@ -192,6 +208,32 @@ async function request<T>(
     }
   }
 
+  const promise = (async (): Promise<T> => {
+    try {
+      const result = await executeRequest<T>(path, options, customTimeout, key, ttl, canCache);
+      return result;
+    } finally {
+      if (isGet) {
+        pendingRequests.delete(key);
+      }
+    }
+  })();
+
+  if (isGet) {
+    pendingRequests.set(key, promise);
+  }
+
+  return promise;
+}
+
+async function executeRequest<T>(
+  path: string,
+  options: RequestInit,
+  customTimeout: number | undefined,
+  key: string,
+  ttl: number,
+  canCache: boolean,
+): Promise<T> {
   const isFormData =
     typeof (options as any).body !== 'string' &&
     typeof FormData !== 'undefined' &&

@@ -11,7 +11,6 @@ import {
   Keyboard,
   Alert,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -150,12 +149,7 @@ export function SharedExpenseFormScreen() {
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
       <KeyboardAvoidingContainer>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
-          <LinearGradient
-            colors={['#6C3EF4', '#8B5CF6']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{ paddingTop: insets.top + 12, paddingBottom: 24, paddingHorizontal: 20 }}
-          >
+          <View style={{ paddingTop: insets.top + 12, paddingBottom: 24, paddingHorizontal: 20, backgroundColor: '#FF6B00' }}>
             <View style={styles.headerRow}>
               <TouchableOpacity onPress={() => {
                 Keyboard.dismiss();
@@ -170,7 +164,7 @@ export function SharedExpenseFormScreen() {
               <Ionicons name="people" size={14} color="rgba(255,255,255,0.7)" />
               <Text style={styles.headerSub}>Split with {members.length} member{members.length !== 1 ? 's' : ''}</Text>
             </View>
-          </LinearGradient>
+          </View>
 
           <View style={{ padding: 20, gap: 20 }}>
             {error ? (

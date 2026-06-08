@@ -29,7 +29,7 @@ const LANG_NODES: LangNode[] = [
 
 const CENTER_X = width / 2;
 const CENTER_Y = height / 2;
-const R = Math.min(width, height) * 0.34;
+const R = Math.min(width, height) * 0.42;
 
 export function SplashScreen({ onFinish }: SplashScreenProps) {
   const rootOpacity = useRef(new Animated.Value(0)).current;
@@ -168,21 +168,21 @@ const styles = StyleSheet.create({
     width: 80,
   },
   native: {
-    fontSize: 20,
+    fontSize: 15,
     fontWeight: '700',
     color: '#FF6B00',
     marginBottom: 1,
   },
   english: {
-    fontSize: 11,
+    fontSize: 9,
     color: '#888',
     fontWeight: '500',
   },
   spinnerBorder: {
     position: 'absolute',
-    width: 170,
-    height: 170,
-    borderRadius: 85,
+    width: 130,
+    height: 130,
+    borderRadius: 65,
     borderWidth: 3,
     borderColor: '#FF6B00',
     borderTopColor: 'transparent',

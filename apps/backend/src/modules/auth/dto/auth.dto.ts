@@ -49,6 +49,16 @@ export class RegisterDto {
   @IsString()
   @IsOptional()
   referralCode?: string;
+
+  @ApiPropertyOptional({ description: 'Device name (e.g. iPhone 15 Pro)' })
+  @IsString()
+  @IsOptional()
+  deviceName?: string;
+
+  @ApiPropertyOptional({ description: 'Platform (ios, android, web)' })
+  @IsString()
+  @IsOptional()
+  platform?: string;
 }
 
 export class LoginDto {
@@ -61,6 +71,16 @@ export class LoginDto {
   @IsString()
   @IsNotEmpty()
   password: string;
+
+  @ApiPropertyOptional({ description: 'Device name (e.g. iPhone 15 Pro)' })
+  @IsString()
+  @IsOptional()
+  deviceName?: string;
+
+  @ApiPropertyOptional({ description: 'Platform (ios, android, web)' })
+  @IsString()
+  @IsOptional()
+  platform?: string;
 }
 
 export class RefreshTokenDto {
@@ -133,6 +153,16 @@ export class GoogleAuthDto {
   @IsString()
   @IsOptional()
   referralCode?: string;
+
+  @ApiPropertyOptional({ description: 'Device name (e.g. iPhone 15 Pro)' })
+  @IsString()
+  @IsOptional()
+  deviceName?: string;
+
+  @ApiPropertyOptional({ description: 'Platform (ios, android, web)' })
+  @IsString()
+  @IsOptional()
+  platform?: string;
 }
 
 export class ChangePasswordDto {
@@ -149,4 +179,21 @@ export class ChangePasswordDto {
     message: 'Password must contain at least 1 uppercase, 1 lowercase, and 1 number',
   })
   newPassword: string;
+}
+
+export class SetupLockDto {
+  @ApiPropertyOptional({ description: '4-digit app PIN (null/omit to remove)' })
+  @IsString()
+  @IsOptional()
+  @Matches(/^\d{4}$/, { message: 'PIN must be exactly 4 digits' })
+  pin?: string;
+
+  @ApiPropertyOptional({ description: 'Current PIN (required when changing PIN)' })
+  @IsString()
+  @IsOptional()
+  oldPin?: string;
+
+  @ApiPropertyOptional({ description: 'Enable biometric unlock' })
+  @IsOptional()
+  biometricEnabled?: boolean;
 }

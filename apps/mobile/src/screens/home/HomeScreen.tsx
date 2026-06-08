@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -168,9 +168,14 @@ export function HomeScreen() {
     return <LoadingScreen />;
   }
 
-  const spendPct =
-    data.monthlyBudget > 0 ? Math.min((data.monthlySpending / data.monthlyBudget) * 100, 100) : 0;
-  const remaining = data.monthlyBudget - data.monthlySpending;
+  const spendPct = useMemo(
+    () => (data.monthlyBudget > 0 ? Math.min((data.monthlySpending / data.monthlyBudget) * 100, 100) : 0),
+    [data.monthlyBudget, data.monthlySpending],
+  );
+  const remaining = useMemo(
+    () => data.monthlyBudget - data.monthlySpending,
+    [data.monthlyBudget, data.monthlySpending],
+  );
 
   const HEADER_H = insets.top + 100;
 

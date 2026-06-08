@@ -20,6 +20,7 @@ import {
   GoogleAuthDto,
   SendOtpDto,
   VerifyOtpDto,
+  SetupLockDto,
 } from './dto/auth.dto';
 import { JwtPayload, TokenPair } from './interfaces/jwt-payload.interface';
 
@@ -37,7 +38,11 @@ export class AuthService {
     private readonly referralService: ReferralService,
   ) {}
 
-  async register(dto: RegisterDto): Promise<{ user: any; tokens: TokenPair }> {
+  async register(
+    dto: RegisterDto,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<{ user: any; tokens: TokenPair }> {
     const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (existing) {
       throw new ConflictException('Email already registered');
@@ -93,7 +98,7 @@ export class AuthService {
     });
 
     const tokens = await this.generateTokens(user.id, user.email);
-    await this.createSession(user.id, tokens.refreshToken);
+    await this.createSession(user.id, tokens.refreshToken, tokens.sessionId, dto.deviceName || undefined, dto.platform || undefined, ipAddress, userAgent);
 
     const { password, ...userWithoutPassword } = user;
 
@@ -108,7 +113,11 @@ export class AuthService {
     return { user: userWithoutPassword, tokens };
   }
 
-  async login(dto: LoginDto): Promise<{ user: any; tokens: TokenPair }> {
+  async login(
+    dto: LoginDto,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<{ user: any; tokens: TokenPair }> {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
       include: { settings: true, subscription: { include: { plan: true } } },
@@ -127,6 +136,7 @@ export class AuthService {
     const isPasswordValid = await bcrypt.compare(dto.password, user.password);
     if (!isPasswordValid) {
       await this.handleFailedLogin(user.id, user.loginAttempts);
+      await this.logLoginActivity(user.id, 'login_failed', ipAddress, userAgent, dto.deviceName, dto.platform);
       throw new UnauthorizedException('Invalid email or password');
     }
 
@@ -143,7 +153,8 @@ export class AuthService {
     });
 
     const tokens = await this.generateTokens(user.id, user.email);
-    await this.createSession(user.id, tokens.refreshToken);
+    await this.createSession(user.id, tokens.refreshToken, tokens.sessionId, dto.deviceName || undefined, dto.platform || undefined, ipAddress, userAgent);
+    await this.logLoginActivity(user.id, 'login_success', ipAddress, userAgent, dto.deviceName || undefined, dto.platform || undefined);
 
     const { password, ...userWithoutPassword } = user;
     return { user: userWithoutPassword, tokens };
@@ -165,23 +176,35 @@ export class AuthService {
     });
 
     const tokens = await this.generateTokens(session.userId, session.user.email);
-    await this.createSession(session.userId, tokens.refreshToken);
+    await this.createSession(session.userId, tokens.refreshToken, tokens.sessionId);
 
     return tokens;
   }
 
   async logout(userId: string, refreshToken: string): Promise<void> {
-    await this.prisma.session.updateMany({
-      where: { userId, refreshToken },
-      data: { isRevoked: true, revokedAt: new Date() },
+    const session = await this.prisma.session.findFirst({
+      where: { userId, refreshToken, isRevoked: false },
     });
+    if (session) {
+      await this.prisma.session.update({
+        where: { id: session.id },
+        data: { isRevoked: true, revokedAt: new Date() },
+      });
+      await this.logLoginActivity(userId, 'logout', session.ipAddress || undefined, session.userAgent || undefined, session.deviceName || undefined, session.platform || undefined);
+    }
   }
 
   async logoutAll(userId: string): Promise<void> {
+    const sessions = await this.prisma.session.findMany({
+      where: { userId, isRevoked: false },
+    });
     await this.prisma.session.updateMany({
       where: { userId, isRevoked: false },
       data: { isRevoked: true, revokedAt: new Date() },
     });
+    for (const s of sessions) {
+      await this.logLoginActivity(userId, 'logout', s.ipAddress || undefined, s.userAgent || undefined, s.deviceName || undefined, s.platform || undefined);
+    }
   }
 
   async guestLogin(): Promise<{ user: any; tokens: TokenPair }> {
@@ -262,7 +285,7 @@ export class AuthService {
     }
 
     const tokens = await this.generateTokens(user.id, user.email);
-    await this.createSession(user.id, tokens.refreshToken);
+    await this.createSession(user.id, tokens.refreshToken, tokens.sessionId);
 
     const { password, ...userWithoutPassword } = user;
 
@@ -271,6 +294,10 @@ export class AuthService {
 
   async googleAuth(
     dto: GoogleAuthDto,
+    ipAddress?: string,
+    userAgent?: string,
+    deviceName?: string,
+    platform?: string,
   ): Promise<{ user: any; tokens: TokenPair; isNewUser: boolean }> {
     const client = new OAuth2Client();
     let ticket;
@@ -367,7 +394,8 @@ export class AuthService {
     }
 
     const tokens = await this.generateTokens(user.id, user.email);
-    await this.createSession(user.id, tokens.refreshToken);
+    await this.createSession(user.id, tokens.refreshToken, tokens.sessionId, deviceName || undefined, platform || undefined, ipAddress, userAgent);
+    await this.logLoginActivity(user.id, 'login_success', ipAddress, userAgent, deviceName || undefined, platform || undefined);
 
     if (isNewUser && dto.referralCode) {
       this.referralService.processReferralSignup(user.id, dto.referralCode).catch((err) => {
@@ -554,6 +582,140 @@ export class AuthService {
     return { verified: true, message: 'OTP verified successfully' };
   }
 
+  // ─── App Lock ─────────────────────────────────────────────
+
+  async setupLock(userId: string, dto: SetupLockDto): Promise<{ hasPin: boolean; biometricEnabled: boolean }> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const updateData: any = {};
+
+    if (dto.biometricEnabled !== undefined) {
+      updateData.biometricEnabled = dto.biometricEnabled;
+    }
+
+    if (dto.pin !== undefined) {
+      if (dto.pin === null || dto.pin === '') {
+        updateData.appPin = null;
+        await this.logLoginActivity(userId, 'pin_removed');
+      } else {
+        if (user.appPin && dto.oldPin) {
+          const isOldPinValid = await bcrypt.compare(dto.oldPin, user.appPin);
+          if (!isOldPinValid) {
+            throw new BadRequestException('Current PIN is incorrect');
+          }
+        }
+        updateData.appPin = await bcrypt.hash(dto.pin, 10);
+        await this.logLoginActivity(userId, user.appPin ? 'pin_changed' : 'pin_set');
+      }
+    }
+
+    if (Object.keys(updateData).length > 0) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: updateData,
+      });
+    }
+
+    const updated = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { appPin: true, biometricEnabled: true },
+    });
+
+    return {
+      hasPin: !!updated?.appPin,
+      biometricEnabled: updated?.biometricEnabled ?? false,
+    };
+  }
+
+  async getLockSettings(userId: string): Promise<{ hasPin: boolean; biometricEnabled: boolean }> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { appPin: true, biometricEnabled: true },
+    });
+    return {
+      hasPin: !!user?.appPin,
+      biometricEnabled: user?.biometricEnabled ?? false,
+    };
+  }
+
+  // ─── Sessions ─────────────────────────────────────────────
+
+  async getSessions(userId: string, currentSessionId?: string): Promise<any[]> {
+    const sessions = await this.prisma.session.findMany({
+      where: { userId, isRevoked: false },
+      orderBy: { lastUsedAt: 'desc' },
+      select: {
+        id: true,
+        deviceName: true,
+        platform: true,
+        ipAddress: true,
+        lastUsedAt: true,
+        createdAt: true,
+        userAgent: true,
+      },
+    });
+
+    return sessions.map((s) => ({
+      id: s.id,
+      deviceName: s.deviceName || 'Unknown device',
+      platform: s.platform,
+      ip: s.ipAddress,
+      lastActive: s.lastUsedAt || s.createdAt,
+      isCurrent: s.id === currentSessionId,
+    }));
+  }
+
+  async revokeSession(userId: string, sessionId: string): Promise<void> {
+    const session = await this.prisma.session.findFirst({
+      where: { id: sessionId, userId, isRevoked: false },
+    });
+    if (!session) {
+      throw new BadRequestException('Session not found or already revoked');
+    }
+    await this.prisma.session.update({
+      where: { id: sessionId },
+      data: { isRevoked: true, revokedAt: new Date() },
+    });
+    await this.logLoginActivity(userId, 'logout', session.ipAddress || undefined, session.userAgent || undefined, session.deviceName || undefined, session.platform || undefined);
+  }
+
+  async revokeOtherSessions(userId: string, currentSessionId: string): Promise<number> {
+    const result = await this.prisma.session.updateMany({
+      where: { userId, isRevoked: false, id: { not: currentSessionId } },
+      data: { isRevoked: true, revokedAt: new Date() },
+    });
+    return result.count;
+  }
+
+  async getLoginActivity(userId: string): Promise<any[]> {
+    const activities = await this.prisma.loginActivity.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      select: {
+        action: true,
+        ipAddress: true,
+        deviceName: true,
+        platform: true,
+        createdAt: true,
+      },
+    });
+
+    return activities.map((a) => ({
+      action: a.action,
+      ip: a.ipAddress,
+      location: null,
+      deviceName: a.deviceName,
+      platform: a.platform,
+      createdAt: a.createdAt,
+    }));
+  }
+
+  // ─── Private helpers ──────────────────────────────────────
+
   private async generateTokens(userId: string, email: string): Promise<TokenPair> {
     const payload: JwtPayload = { id: userId, sub: userId, email };
 
@@ -569,20 +731,57 @@ export class AuthService {
     }) as any;
 
     const refreshToken = crypto.randomBytes(64).toString('hex');
+    const sessionId = crypto.randomUUID();
 
     return {
       accessToken,
       refreshToken,
       expiresAt: new Date(decoded.exp * 1000),
+      sessionId,
     };
   }
 
-  private async createSession(userId: string, refreshToken: string): Promise<void> {
+  private async createSession(
+    userId: string,
+    refreshToken: string,
+    sessionId: string,
+    deviceName?: string,
+    platform?: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<void> {
+    const now = new Date();
     await this.prisma.session.create({
       data: {
+        id: sessionId,
         userId,
         refreshToken,
+        deviceName: deviceName || null,
+        platform: platform || null,
+        ipAddress: ipAddress || null,
+        userAgent: userAgent || null,
+        lastUsedAt: now,
         expiresAt: new Date(Date.now() + 7 * 86400000),
+      },
+    });
+  }
+
+  private async logLoginActivity(
+    userId: string,
+    action: string,
+    ipAddress?: string,
+    userAgent?: string,
+    deviceName?: string,
+    platform?: string,
+  ): Promise<void> {
+    await this.prisma.loginActivity.create({
+      data: {
+        userId,
+        action,
+        ipAddress: ipAddress || null,
+        userAgent: userAgent || null,
+        deviceName: deviceName || null,
+        platform: platform || null,
       },
     });
   }

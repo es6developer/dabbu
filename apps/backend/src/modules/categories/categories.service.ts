@@ -48,15 +48,17 @@ export class CategoriesService {
     });
   }
 
-  async findAll(userId: string) {
+  async findAll(userId: string, type?: string) {
+    const typeFilter = type ? { transactionType: type } : {};
+
     const userCats = await this.prisma.transactionCategory.findMany({
-      where: { userId, isActive: true },
+      where: { userId, isActive: true, ...typeFilter },
       orderBy: { sortOrder: 'asc' },
       include: { _count: { select: { transactions: true } } },
     });
 
     const defaultCats = await this.prisma.transactionCategory.findMany({
-      where: { isDefault: true, isActive: true },
+      where: { isDefault: true, isActive: true, ...typeFilter },
       orderBy: { sortOrder: 'asc' },
       include: { _count: { select: { transactions: true } } },
     });

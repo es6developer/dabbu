@@ -17,6 +17,17 @@ import {
 import { registerForPushNotifications } from '../services/notifications';
 import { trackEventImmediate } from '../hooks/useAnalytics';
 
+function getDeviceInfo(): { deviceName: string; platform: string } {
+  const platform = Platform.OS;
+  let deviceName: string = platform;
+  if (Platform.OS === 'ios') {
+    deviceName = 'iPhone';
+  } else if (Platform.OS === 'android') {
+    deviceName = 'Android';
+  }
+  return { deviceName, platform };
+}
+
 interface User {
   id: string;
   email: string;
@@ -172,10 +183,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const timeout = setTimeout(() => controller.abort(), 15000);
     let res: Response;
     try {
+      const { deviceName, platform } = getDeviceInfo();
       res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, deviceName, platform }),
         signal: controller.signal,
       });
     } catch (_e) {
@@ -201,6 +213,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     applyAuth(tokens.accessToken, user, false);
     const storage = getStorage();
     await storage.setItem('refreshToken', tokens.refreshToken);
+    if (tokens.sessionId) {
+      await storage.setItem('sessionId', tokens.sessionId);
+    }
 
     trackEventImmediate('login', 'auth', 'email').catch(() => {});
     registerForPushNotifications(tokens.accessToken).catch(() => {});
@@ -221,6 +236,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (referralCode) {
         body.referralCode = referralCode;
       }
+      const { deviceName, platform } = getDeviceInfo();
+      body.deviceName = deviceName;
+      body.platform = platform;
       res = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -248,6 +266,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { user, tokens } = data;
 
     applyAuth(tokens.accessToken, user, false);
+    const storage = getStorage();
+    if (tokens.sessionId) {
+      await storage.setItem('sessionId', tokens.sessionId);
+    }
 
     trackEventImmediate('sign_up', 'auth', 'email').catch(() => {});
     registerForPushNotifications(tokens.accessToken).catch(() => {});
@@ -258,10 +280,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const timeout = setTimeout(() => controller.abort(), 15000);
     let res: Response;
     try {
+      const { deviceName, platform } = getDeviceInfo();
       res = await fetch(`${API_URL}/auth/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken }),
+        body: JSON.stringify({ idToken, deviceName, platform }),
         signal: controller.signal,
       });
     } catch (_e) {
@@ -287,6 +310,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     applyAuth(tokens.accessToken, user, !!isNewUser);
     const storage = getStorage();
     await storage.setItem('refreshToken', tokens.refreshToken);
+    if (tokens.sessionId) {
+      await storage.setItem('sessionId', tokens.sessionId);
+    }
 
     trackEventImmediate(isNewUser ? 'sign_up' : 'login', 'auth', 'google').catch(() => {});
     registerForPushNotifications(tokens.accessToken).catch(() => {});
@@ -297,9 +323,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const timeout = setTimeout(() => controller.abort(), 15000);
     let res: Response;
     try {
+      const { deviceName, platform } = getDeviceInfo();
       res = await fetch(`${API_URL}/auth/guest`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deviceName, platform }),
         signal: controller.signal,
       });
     } catch (_e) {
@@ -326,6 +354,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await storeAuth(tokens.accessToken, user);
     const storage = getStorage();
     await storage.setItem('refreshToken', tokens.refreshToken);
+    if (tokens.sessionId) {
+      await storage.setItem('sessionId', tokens.sessionId);
+    }
 
     setState({
       isAuthenticated: true,
@@ -363,6 +394,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await SecureStore.deleteItemAsync('appPin');
       await SecureStore.deleteItemAsync('appLockEnabled');
       await SecureStore.deleteItemAsync('biometricEnabled');
+      await SecureStore.deleteItemAsync('sessionId');
     } catch (_e) {
       /* ignore */
     }

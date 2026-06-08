@@ -22,10 +22,10 @@ const SPACE_TYPE_CONFIG: Record<string, { label: string; icon: string; gradient:
   trip: { label: 'Trip', icon: 'airplane', gradient: ['#00B894', '#00D9A6'] },
   family: { label: 'Family', icon: 'home', gradient: ['#E85D04', '#FF8A3C'] },
   couple: { label: 'Couple', icon: 'heart', gradient: ['#FF6B9D', '#FF8FB3'] },
-  roommates: { label: 'Roommates', icon: 'business', gradient: ['#6C5CE7', '#A29BFE'] },
+  roommates: { label: 'Roommates', icon: 'business', gradient: ['#FF6B00', '#FF914D'] },
   office: { label: 'Office', icon: 'briefcase', gradient: ['#247BA0', '#4A9FC7'] },
   event: { label: 'Event', icon: 'calendar', gradient: ['#D64550', '#FF6B6B'] },
-  apartment: { label: 'Apartment', icon: 'building', gradient: ['#8A5CF6', '#B794F4'] },
+  apartment: { label: 'Apartment', icon: 'building', gradient: ['#FF6B00', '#FF914D'] },
   default: { label: 'Group', icon: 'people', gradient: ['#4F6EF7', '#7C8FF8'] },
 };
 

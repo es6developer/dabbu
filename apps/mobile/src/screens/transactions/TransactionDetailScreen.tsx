@@ -21,9 +21,9 @@ function getDetailColors(primary: string): Record<string, [string, string]> {
   return {
     Food: [primary, primary], Travel: ['#4A90D9', '#357ABD'],
     Shopping: ['#E056A0', '#C94D8B'], Medical: ['#00B894', '#00A381'],
-    Fuel: ['#F59E0B', '#F3D28F'], Rent: ['#6C5CE7', '#5A4BD1'],
+    Fuel: ['#F59E0B', '#F3D28F'], Rent: ['#FF6B00', '#E86200'],
     EMI: ['#E17055', '#D63031'], Bills: ['#0984E3', '#0768B8'],
-    Entertainment: ['#A29BFE', '#817CE8'], Education: ['#55EFC4', '#00CEC9'],
+    Entertainment: ['#FF914D', '#E86200'], Education: ['#55EFC4', '#00CEC9'],
     Grocery: ['#81ECEC', '#00CEC9'], Investment: ['#74B9FF', '#4D96FF'],
     Salary: ['#00B894', '#00A381'], Transfer: ['#DFE6E9', '#B2BEC3'],
   };

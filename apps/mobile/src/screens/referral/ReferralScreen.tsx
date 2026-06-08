@@ -13,7 +13,8 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+
+
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -42,7 +43,7 @@ function Confetti({ show }: { show: boolean }) {
       key: i,
       x: new Animated.Value(Math.random() * SCREEN_W),
       y: new Animated.Value(-20),
-      color: ['#FF6B6B', '#FDCB6E', '#00B894', '#74B9FF', '#A29BFE', '#FD79A8'][i % 6],
+      color: ['#FF6B6B', '#FDCB6E', '#00B894', '#74B9FF', '#FF914D', '#FD79A8'][i % 6],
       size: 6 + Math.random() * 8,
       rotation: new Animated.Value(0),
       delay: Math.random() * 500,
@@ -165,7 +166,7 @@ function ShareSheet({
     {
       label: 'Copy Link',
       icon: 'link',
-      color: '#6C5CE7',
+      color: '#FF6B00',
       action: () => {
         Share.share({ message }).catch(() => {});
       },
@@ -339,12 +340,7 @@ export function ReferralScreen() {
         }
       >
         {/* Hero */}
-        <LinearGradient
-          colors={['#6C3EF4', '#8B5CF6']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[styles.hero, { paddingTop: insets.top + 16 }]}
-        >
+        <View style={[styles.hero, { paddingTop: insets.top + 16, backgroundColor: '#FF6B00' }]}>
           <Text style={styles.heroEyebrow}>REFER & EARN</Text>
           <Text style={styles.heroTitle}>Invite Friends, Earn Rewards</Text>
           <Text style={styles.heroSub}>
@@ -365,7 +361,7 @@ export function ReferralScreen() {
               <Text style={styles.codeShareText}>Share</Text>
             </View>
           </TouchableOpacity>
-        </LinearGradient>
+        </View>
 
         {/* Stats Card */}
         {stats && (

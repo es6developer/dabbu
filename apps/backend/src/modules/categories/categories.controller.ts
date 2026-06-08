@@ -1,5 +1,5 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { CategoriesService } from './categories.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -20,9 +20,10 @@ export class CategoriesController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all user categories' })
-  async findAll(@CurrentUser('id') userId: string) {
-    return this.categoriesService.findAll(userId);
+  @ApiOperation({ summary: 'Get all user categories (optional ?type=income|expense filter)' })
+  @ApiQuery({ name: 'type', required: false, type: String, description: 'Filter by transaction type (income or expense)' })
+  async findAll(@CurrentUser('id') userId: string, @Query('type') type?: string) {
+    return this.categoriesService.findAll(userId, type);
   }
 
   @Get('defaults')

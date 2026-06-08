@@ -199,6 +199,9 @@ model User {
   payNowLinksFrom              PayNowLink[]                 @relation("PayFrom")
   payNowLinksTo                PayNowLink[]                 @relation("PayTo")
 
+  // Login activity
+  loginActivity       LoginActivity[]
+
   // Friends & Contacts
   friendsInitiated    Friend[]              @relation("UserFriends")
   friendsAdded        Friend[]              @relation("FriendOf")
@@ -222,7 +225,10 @@ model Session {
   refreshToken String    @db.VarChar(500)
   userAgent    String?   @db.VarChar(500)
   ipAddress    String?   @db.VarChar(45)
+  deviceName   String?   @db.VarChar(255)
+  platform     String?   @db.VarChar(50)
   isRevoked    Boolean   @default(false)
+  lastUsedAt   DateTime?
   expiresAt    DateTime
   createdAt    DateTime  @default(now())
   revokedAt    DateTime?
@@ -235,6 +241,24 @@ model Session {
   @@index([userId, isRevoked])
   @@index([expiresAt])
   @@map("sessions")
+}
+
+// ─── LOGIN ACTIVITY ────────────────────────────────────────
+// Track login/logout events for display in security screen
+model LoginActivity {
+  id         String   @id @default(uuid()) @db.VarChar(36)
+  userId     String   @db.VarChar(36)
+  action     String   @db.VarChar(50) // login_success, login_failed, logout, password_change, pin_change, pin_removed
+  ipAddress  String?  @db.VarChar(45)
+  userAgent  String?  @db.VarChar(500)
+  deviceName String?  @db.VarChar(255)
+  platform   String?  @db.VarChar(50)
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("login_activity")
 }
 
 // ─── DEVICES ───────────────────────────────────────────────
@@ -556,13 +580,14 @@ model TransactionCategory {
   updatedAt       DateTime @updatedAt
 
   // Relations
-  user         User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  parent       TransactionCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
-  children     TransactionCategory[] @relation("CategoryHierarchy")
-  transactions Transaction[]
-  budgets      Budget[]
-  bills        Bill[]
-  reminders    Reminder[]
+  user           User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent         TransactionCategory?    @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children       TransactionCategory[]   @relation("CategoryHierarchy")
+  transactions   Transaction[]
+  budgets        Budget[]
+  bills          Bill[]
+  reminders      Reminder[]
+  coupleIncomes  CoupleFinanceIncome[]
 
   @@index([userId, transactionType])
   @@index([userId, parentId])
@@ -1504,14 +1529,16 @@ model CoupleFinanceIncome {
   amount     Decimal  @db.Decimal(15, 2)
   source     String   @db.VarChar(255)
   type       String   @default("salary") @db.VarChar(30)
+  categoryId String?  @db.VarChar(36)
   assignedTo String?  @db.VarChar(36)
   date       DateTime @default(now())
   notes      String?  @db.Text
   createdBy  String   @db.VarChar(36)
   createdAt  DateTime @default(now())
 
-  group   SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  creator User        @relation(fields: [createdBy], references: [id])
+  group    SharedGroup        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  creator  User               @relation(fields: [createdBy], references: [id])
+  category TransactionCategory? @relation(fields: [categoryId], references: [id])
 
   @@index([groupId])
   @@map("couple_finance_incomes")

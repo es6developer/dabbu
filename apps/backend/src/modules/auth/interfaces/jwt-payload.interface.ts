@@ -13,6 +13,7 @@ export interface TokenPair {
   accessToken: string;
   refreshToken: string;
   expiresAt: Date;
+  sessionId: string;
 }
 
 export interface AuthTokens {

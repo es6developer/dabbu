@@ -16,10 +16,10 @@ function fmt(v: number) {
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const CAT_COLORS: Record<string, string> = {
-  Food: '#FF6B6B', Rent: '#60A5FA', Travel: '#34C759', Shopping: '#A78BFA',
-  Bills: '#F59E0B', Fuel: '#FF4D4F', Medical: '#FF4D4F', Entertainment: '#8B5CF6',
-  Groceries: '#F3D28F', Utilities: '#60A5FA', Transport: '#34C759', Education: '#A78BFA',
-  Healthcare: '#FF4D4F', Insurance: '#F59E0B', Salary: '#34C759', Investment: '#8B5CF6',
+  Food: '#FF6B6B', Rent: '#60A5FA', Travel: '#34C759', Shopping: '#FF6B00',
+  Bills: '#F59E0B', Fuel: '#FF4D4F', Medical: '#FF4D4F', Entertainment: '#FF6B00',
+  Groceries: '#F3D28F', Utilities: '#60A5FA', Transport: '#34C759', Education: '#FF6B00',
+  Healthcare: '#FF4D4F', Insurance: '#F59E0B', Salary: '#34C759', Investment: '#FF6B00',
 };
 
 export function ReportsScreen() {

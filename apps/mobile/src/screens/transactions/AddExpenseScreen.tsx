@@ -38,7 +38,7 @@ const OPTIONS: OptionCard[] = [
     icon: 'people-outline',
     title: 'Create Group',
     description: 'Create a group to split expenses with friends & family.',
-    gradient: ['#6C5CE7', '#A29BFE'],
+    gradient: ['#FF6B00', '#FF914D'],
   },
 ];
 

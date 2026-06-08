@@ -16,7 +16,6 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
@@ -42,10 +41,10 @@ const TYPE_THEMES: Record<string, { gradient: [string, string]; chipColor: strin
       icon: 'home',
     },
     couple: { gradient: ['#FF6B9D', '#FF8FB3'], chipColor: '#FF6B9D', icon: 'heart' },
-    roommates: { gradient: ['#6C5CE7', '#A29BFE'], chipColor: '#6C5CE7', icon: 'business' },
+    roommates: { gradient: ['#FF6B00', '#FF914D'], chipColor: '#FF6B00', icon: 'business' },
     office: { gradient: ['#247BA0', '#4A9FC7'], chipColor: '#247BA0', icon: 'briefcase' },
     event: { gradient: ['#D64550', '#FF6B6B'], chipColor: '#D64550', icon: 'calendar' },
-    apartment: { gradient: ['#8A5CF6', '#B794F4'], chipColor: '#8A5CF6', icon: 'building' },
+    apartment: { gradient: ['#FF6B00', '#FF914D'], chipColor: '#FF6B00', icon: 'building' },
     default: {
       gradient: [palette.brand.primary, palette.brand.hover],
       chipColor: palette.brand.primary,
@@ -1113,12 +1112,7 @@ export function SharedGroupDetailScreen() {
         }
         ListHeaderComponent={
           <Animated.View style={{ opacity: fadeAnim }}>
-            <LinearGradient
-              colors={theme.gradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{ paddingTop: insets.top + 8, paddingBottom: 24, paddingHorizontal: 20 }}
-            >
+            <View style={{ paddingTop: insets.top + 8, paddingBottom: 24, paddingHorizontal: 20, backgroundColor: '#FF6B00' }}>
               <View style={s.headerRow}>
                 <TouchableOpacity
                   onPress={() => navigation.goBack()}
@@ -1167,7 +1161,7 @@ export function SharedGroupDetailScreen() {
                   </TouchableOpacity>
                 )}
               </View>
-            </LinearGradient>
+            </View>
 
             <View style={{ marginTop: -16, paddingHorizontal: 16 }}>
               <View style={{ flexDirection: 'row', gap: 10 }}>

@@ -3,7 +3,6 @@ import {
   View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator,
   ScrollView, Alert,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
@@ -20,7 +19,7 @@ const GROUP_TYPES = [
   { key: 'roommates', label: 'Roommates', icon: 'business', color: '#4F6EF7' },
   { key: 'office', label: 'Office', icon: 'briefcase', color: palette.brand.primary },
   { key: 'event', label: 'Event', icon: 'calendar', color: '#FF6B6B' },
-  { key: 'apartment', label: 'Apartment', icon: 'home', color: '#8A5CF6' },
+  { key: 'apartment', label: 'Apartment', icon: 'home', color: '#FF6B00' },
 ];
 
 export function CreateSharedGroupScreen() {
@@ -67,12 +66,7 @@ export function CreateSharedGroupScreen() {
     <PageContainer noPadding>
       <KeyboardAvoidingContainer>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-          <LinearGradient
-            colors={['#6C3EF4', '#8B5CF6']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{ paddingTop: 48, paddingBottom: 28, paddingHorizontal: 20 }}
-          >
+          <View style={{ paddingTop: 48, paddingBottom: 28, paddingHorizontal: 20, backgroundColor: '#FF6B00' }}>
             <View style={styles.headerRow}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                 <Ionicons name="close" size={24} color="#FFF" />
@@ -81,7 +75,7 @@ export function CreateSharedGroupScreen() {
               <View style={{ width: 32 }} />
             </View>
             <Text style={styles.headerSub}>Split expenses with friends, family, and more</Text>
-          </LinearGradient>
+          </View>
 
           <View style={{ padding: 20, gap: 20 }}>
             {error ? (

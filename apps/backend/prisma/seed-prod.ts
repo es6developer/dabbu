@@ -22,6 +22,7 @@ const DEFAULT_CATEGORIES = [
   { name: 'Rental', icon: 'home', color: '#FB923C', transactionType: 'income' },
   { name: 'Gifts & Rewards', icon: 'gift', color: '#F472B6', transactionType: 'income' },
   { name: 'Family Contributions', icon: 'people', color: '#FF6B00', transactionType: 'income' },
+  { name: 'Other', icon: 'more-horizontal', color: '#636E72', transactionType: 'income' },
 ];
 
 const PLANS = [

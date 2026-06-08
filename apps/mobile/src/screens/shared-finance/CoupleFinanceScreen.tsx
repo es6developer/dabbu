@@ -7,7 +7,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme, palette } from '../../theme';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
@@ -35,7 +34,7 @@ function getCategoryIcon(cat: string): { icon: string; color: string } {
     Rent: { icon: 'home-outline', color: '#FB923C' },
     Bills: { icon: 'receipt-outline', color: '#F59E0B' },
     Shopping: { icon: 'bag-outline', color: '#F472B6' },
-    Entertainment: { icon: 'film-outline', color: '#8B5CF6' },
+    Entertainment: { icon: 'film-outline', color: '#FF6B00' },
     Medical: { icon: 'medkit-outline', color: '#FF4D4F' },
     salary: { icon: 'briefcase-outline', color: '#34C759' },
     income: { icon: 'trending-up-outline', color: '#34C759' },
@@ -176,12 +175,7 @@ export function CoupleFinanceScreen() {
         contentContainerStyle={{ paddingBottom: 100 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} tintColor={colors.accent.primary} />}
       >
-        <LinearGradient
-          colors={['#6C3EF4', '#8B5CF6']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}
-        >
+        <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20, backgroundColor: '#FF6B00' }}>
           <View style={s.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={s.headerBtn}>
               <Ionicons name="arrow-back" size={22} color="#FFF" />
@@ -204,7 +198,7 @@ export function CoupleFinanceScreen() {
             <Text style={s.partnerNames}>{partner1Name} & {partner2Name}</Text>
             <Text style={s.partnerRatio}>Split Ratio: {ratio}</Text>
           </View>
-        </LinearGradient>
+        </View>
 
         <View style={s.tabRow}>
           {['overview', 'activity'].map((tab) => {

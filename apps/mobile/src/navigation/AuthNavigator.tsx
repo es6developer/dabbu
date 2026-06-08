@@ -4,8 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../theme';
 import { OnboardingScreen } from '../screens/onboarding/OnboardingScreen';
-import { PremiumLoginScreen } from '../screens/auth/PremiumLoginScreen';
-import { PremiumSignupScreen } from '../screens/auth/PremiumSignupScreen';
+import { PremiumAuthScreen } from '../screens/auth/PremiumAuthScreen';
 import { PremiumOtpScreen } from '../screens/auth/PremiumOtpScreen';
 import { ForgotPasswordScreen } from '../screens/auth/ForgotPasswordScreen';
 import { BiometricSetupScreen } from '../screens/auth/BiometricSetupScreen';
@@ -47,8 +46,8 @@ export function AuthNavigator(): React.ReactElement | null {
       }}
     >
       <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-      <Stack.Screen name="Login" component={PremiumLoginScreen} />
-      <Stack.Screen name="Signup" component={PremiumSignupScreen} />
+      <Stack.Screen name="Login" component={PremiumAuthScreen} initialParams={{ tab: 'login' }} />
+      <Stack.Screen name="Signup" component={PremiumAuthScreen} initialParams={{ tab: 'signup' }} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="OtpVerification" component={PremiumOtpScreen} />
       <Stack.Screen name="BiometricSetup" component={BiometricSetupScreen} />

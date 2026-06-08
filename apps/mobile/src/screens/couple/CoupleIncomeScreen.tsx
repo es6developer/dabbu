@@ -21,14 +21,22 @@ function fmtDate(d: string) {
   return dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+interface IncomeCategory {
+  id: string;
+  name: string;
+  icon: string | null;
+  color: string | null;
+}
+
 interface IncomeEntry {
   id: string;
   source: string;
   amount: number;
   date: string;
-  type: 'salary' | 'other';
-  partnerId: string;
-  partnerName: string;
+  categoryId: string | null;
+  category: IncomeCategory | null;
+  assignedTo: string | null;
+  creator: { id: string; firstName: string; lastName: string } | null;
 }
 
 export function CoupleIncomeScreen() {
@@ -39,20 +47,18 @@ export function CoupleIncomeScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [incomes, setIncomes] = useState<IncomeEntry[]>([]);
-  const [partner1Name, setPartner1Name] = useState('Partner 1');
-  const [partner2Name, setPartner2Name] = useState('Partner 2');
-  const [partner1Id, setPartner1Id] = useState('partner1');
-  const [partner2Id, setPartner2Id] = useState('partner2');
+  const [categories, setCategories] = useState<IncomeCategory[]>([]);
+  const [groupInfo, setGroupInfo] = useState<{ id: string; partner1Id: string; partner2Id: string; partner1Name: string; partner2Name: string } | null>(null);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [source, setSource] = useState('');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-  const [incomeType, setIncomeType] = useState<'salary' | 'other'>('salary');
+  const [selectedCategory, setSelectedCategory] = useState<IncomeCategory | null>(null);
   const [selectedPartner, setSelectedPartner] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const fetchIncomes = useCallback(async (isRefresh = false) => {
+  const fetchData = useCallback(async (isRefresh = false) => {
     if (!isRefresh) setLoading(true);
     try {
       const groups: any[] = await api.get('/shared-finance/groups');
@@ -61,28 +67,30 @@ export function CoupleIncomeScreen() {
         : null;
       if (!coupleGroup) {
         setIncomes([]);
+        setGroupInfo(null);
         return;
       }
       const groupId = coupleGroup.id;
       const dashboard = await api.get<any>(`/shared-finance/groups/${groupId}/couple/dashboard`);
       const profile = dashboard?.profile;
+      let p1Name = 'Partner 1', p2Name = 'Partner 2', p1Id = 'p1', p2Id = 'p2';
       if (profile) {
-        const p1 = profile.partner1;
-        const p2 = profile.partner2;
-        setPartner1Name(p1?.firstName || p1?.email || 'Partner 1');
-        setPartner2Name(p2?.firstName || p2?.email || 'Partner 2');
-        setPartner1Id(p1?.id || 'partner1');
-        setPartner2Id(p2?.id || 'partner2');
+        p1Name = profile.partner1?.firstName || profile.partner1?.email || 'Partner 1';
+        p2Name = profile.partner2?.firstName || profile.partner2?.email || 'Partner 2';
+        p1Id = profile.partner1?.id || 'p1';
+        p2Id = profile.partner2?.id || 'p2';
       }
-      const incomeData = await api.get<IncomeEntry[]>(`/shared-finance/groups/${groupId}/couple/incomes`);
-      if (Array.isArray(incomeData)) {
-        setIncomes(incomeData);
-      } else {
-        setIncomes([]);
-      }
+      setGroupInfo({ id: groupId, partner1Id: p1Id, partner2Id: p2Id, partner1Name: p1Name, partner2Name: p2Name });
+
+      const catData = await api.get<any[]>('/categories?type=income');
+      if (Array.isArray(catData)) setCategories(catData);
+
+      const incomeResp = await api.get<any>(`/shared-finance/groups/${groupId}/couple/incomes`);
+      const incomeList: IncomeEntry[] = incomeResp?.incomes || (Array.isArray(incomeResp) ? incomeResp : []);
+      setIncomes(incomeList);
     } catch (e: any) {
       if (e.message !== 'Session expired. Please login again.') {
-        Alert.alert('Error', e.message || 'Failed to load incomes');
+        Alert.alert('Error', e.message || 'Failed to load data');
       }
     } finally {
       setLoading(false);
@@ -90,7 +98,7 @@ export function CoupleIncomeScreen() {
     }
   }, []);
 
-  useEffect(() => { fetchIncomes(); }, [fetchIncomes]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   async function handleAddIncome() {
     if (!source.trim()) { Alert.alert('Missing', 'Please enter a source'); return; }
@@ -98,21 +106,16 @@ export function CoupleIncomeScreen() {
     if (!amt || amt <= 0) { Alert.alert('Invalid', 'Please enter a valid amount'); return; }
     if (!date) { Alert.alert('Missing', 'Please select a date'); return; }
     if (!selectedPartner) { Alert.alert('Missing', 'Please assign to a partner'); return; }
+    if (!groupInfo) { Alert.alert('Error', 'No couple group found'); return; }
 
     setSubmitting(true);
     try {
-      const groups: any[] = await api.get('/shared-finance/groups');
-      const coupleGroup = Array.isArray(groups)
-        ? groups.find((g: any) => g.type === 'couple' && g.status === 'ACTIVE')
-        : null;
-      if (!coupleGroup) { Alert.alert('Error', 'No couple group found'); setSubmitting(false); return; }
-
-      const newIncome = await api.post<any>(`/shared-finance/groups/${coupleGroup.id}/couple/incomes`, {
+      const newIncome = await api.post<any>(`/shared-finance/groups/${groupInfo.id}/couple/incomes`, {
         source: source.trim(),
         amount: amt,
         date,
-        type: incomeType,
-        partnerId: selectedPartner,
+        categoryId: selectedCategory?.id || null,
+        assignedTo: selectedPartner,
       });
       if (newIncome) {
         setIncomes((prev) => [newIncome, ...prev]);
@@ -130,13 +133,13 @@ export function CoupleIncomeScreen() {
     setSource('');
     setAmount('');
     setDate(new Date().toISOString().slice(0, 10));
-    setIncomeType('salary');
+    setSelectedCategory(null);
     setSelectedPartner('');
   }
 
   const totalIncome = incomes.reduce((sum, i) => sum + i.amount, 0);
-  const p1Income = incomes.filter((i) => i.partnerId === partner1Id).reduce((sum, i) => sum + i.amount, 0);
-  const p2Income = incomes.filter((i) => i.partnerId === partner2Id).reduce((sum, i) => sum + i.amount, 0);
+  const p1Income = incomes.filter((i) => i.assignedTo === groupInfo?.partner1Id).reduce((sum, i) => sum + i.amount, 0);
+  const p2Income = incomes.filter((i) => i.assignedTo === groupInfo?.partner2Id).reduce((sum, i) => sum + i.amount, 0);
 
   if (loading) return <LoadingScreen />;
 
@@ -148,7 +151,7 @@ export function CoupleIncomeScreen() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => { setRefreshing(true); fetchIncomes(true); }}
+            onRefresh={() => { setRefreshing(true); fetchData(true); }}
             tintColor={colors.accent.primary}
           />
         }
@@ -175,13 +178,13 @@ export function CoupleIncomeScreen() {
             <View style={styles.summaryRow}>
               <View style={styles.summaryItem}>
                 <View style={[styles.summaryDot, { backgroundColor: colors.accent.primary }]} />
-                <Text style={styles.summaryPartnerLabel}>{partner1Name}</Text>
+                <Text style={styles.summaryPartnerLabel}>{groupInfo?.partner1Name || 'Partner 1'}</Text>
                 <Text style={styles.summaryPartnerAmount}>{fmt(p1Income)}</Text>
               </View>
               <View style={styles.summaryDivider} />
               <View style={styles.summaryItem}>
                 <View style={[styles.summaryDot, { backgroundColor: colors.accent.primary }]} />
-                <Text style={styles.summaryPartnerLabel}>{partner2Name}</Text>
+                <Text style={styles.summaryPartnerLabel}>{groupInfo?.partner2Name || 'Partner 2'}</Text>
                 <Text style={styles.summaryPartnerAmount}>{fmt(p2Income)}</Text>
               </View>
             </View>
@@ -211,32 +214,36 @@ export function CoupleIncomeScreen() {
           </View>
         ) : (
           <View style={{ paddingHorizontal: 20, marginTop: 20, gap: 10 }}>
-            {incomes.map((item) => (
-              <View
-                key={item.id}
-                style={[styles.incomeCard, { backgroundColor: colors.bg.card }]}
-              >
-                <View style={[styles.incomeIconWrap, { backgroundColor: item.type === 'salary' ? `${colors.status.info}18` : `${colors.status.warning}18` }]}>
-                  <Ionicons
-                    name={item.type === 'salary' ? 'briefcase-outline' : 'cash-outline'}
-                    size={20}
-                    color={item.type === 'salary' ? colors.status.info : colors.status.warning}
-                  />
-                </View>
-                <View style={styles.incomeInfo}>
-                  <Text style={[styles.incomeSource, { color: colors.text.primary }]}>{item.source}</Text>
-                  <Text style={[styles.incomeDate, { color: colors.text.tertiary }]}>{fmtDate(item.date)}</Text>
-                </View>
-                <View style={styles.incomeRight}>
-                  <Text style={[styles.incomeAmount, { color: colors.status.success }]}>+{fmt(item.amount)}</Text>
-                  <View style={[styles.partnerChip, { backgroundColor: `${item.partnerId === partner1Id ? colors.accent.primary : colors.accent.primary}18` }]}>
-                    <Text style={[styles.partnerChipText, { color: item.partnerId === partner1Id ? colors.accent.primary : colors.accent.primary }]}>
-                      {item.partnerName || (item.partnerId === partner1Id ? partner1Name : partner2Name)}
-                    </Text>
+            {incomes.map((item) => {
+              const cat = item.category;
+              const iconName = cat?.icon || (item.categoryId ? 'cash-outline' : 'cash-outline');
+              const catColor = cat?.color || colors.text.secondary;
+              return (
+                <View
+                  key={item.id}
+                  style={[styles.incomeCard, { backgroundColor: colors.bg.card }]}
+                >
+                  <View style={[styles.incomeIconWrap, { backgroundColor: `${catColor}18` }]}>
+                    <Ionicons name={iconName as any} size={20} color={catColor} />
+                  </View>
+                  <View style={styles.incomeInfo}>
+                    <Text style={[styles.incomeSource, { color: colors.text.primary }]}>{item.source}</Text>
+                    {cat ? <Text style={[styles.incomeCategoryLabel, { color: catColor }]}>{cat.name}</Text> : null}
+                    <Text style={[styles.incomeDate, { color: colors.text.tertiary }]}>{fmtDate(item.date)}</Text>
+                  </View>
+                  <View style={styles.incomeRight}>
+                    <Text style={[styles.incomeAmount, { color: colors.status.success }]}>+{fmt(item.amount)}</Text>
+                    {groupInfo && (
+                      <View style={[styles.partnerChip, { backgroundColor: `${colors.accent.primary}18` }]}>
+                        <Text style={[styles.partnerChipText, { color: colors.accent.primary }]}>
+                          {item.assignedTo === groupInfo.partner1Id ? groupInfo.partner1Name : groupInfo.partner2Name}
+                        </Text>
+                      </View>
+                    )}
                   </View>
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         )}
       </ScrollView>
@@ -288,52 +295,70 @@ export function CoupleIncomeScreen() {
               placeholderTextColor={colors.text.tertiary}
             />
 
-            <Text style={[styles.inputLabel, { color: colors.text.secondary }]}>Type</Text>
-            <View style={styles.segmentRow}>
-              <TouchableOpacity
-                style={[
-                  styles.segmentBtn,
-                  { backgroundColor: incomeType === 'salary' ? colors.accent.primary : colors.bg.tertiary },
-                ]}
-                onPress={() => setIncomeType('salary')}
-              >
-                <Ionicons name="briefcase-outline" size={16} color={incomeType === 'salary' ? '#FFF' : colors.text.secondary} />
-                <Text style={[styles.segmentText, { color: incomeType === 'salary' ? '#FFF' : colors.text.secondary }]}>Salary</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.segmentBtn,
-                  { backgroundColor: incomeType === 'other' ? colors.accent.primary : colors.bg.tertiary },
-                ]}
-                onPress={() => setIncomeType('other')}
-              >
-                <Ionicons name="cash-outline" size={16} color={incomeType === 'other' ? '#FFF' : colors.text.secondary} />
-                <Text style={[styles.segmentText, { color: incomeType === 'other' ? '#FFF' : colors.text.secondary }]}>Other</Text>
-              </TouchableOpacity>
-            </View>
+            <Text style={[styles.inputLabel, { color: colors.text.secondary }]}>Category</Text>
+            {categories.length > 0 ? (
+              <View style={styles.categoryGrid}>
+                {categories.map((cat) => {
+                  const isSelected = selectedCategory?.id === cat.id;
+                  const catColor = cat.color || colors.accent.primary;
+                  return (
+                    <TouchableOpacity
+                      key={cat.id}
+                      style={[
+                        styles.categoryChip,
+                        {
+                          backgroundColor: isSelected ? catColor : colors.bg.tertiary,
+                          borderColor: isSelected ? catColor : colors.border.default,
+                        },
+                      ]}
+                      onPress={() => setSelectedCategory(isSelected ? null : cat)}
+                    >
+                      <Ionicons
+                        name={(cat.icon || 'cash-outline') as any}
+                        size={16}
+                        color={isSelected ? '#FFF' : catColor}
+                      />
+                      <Text
+                        style={[
+                          styles.categoryChipText,
+                          { color: isSelected ? '#FFF' : colors.text.primary },
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {cat.name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            ) : null}
 
             <Text style={[styles.inputLabel, { color: colors.text.secondary }]}>Assign to</Text>
             <View style={styles.segmentRow}>
-              <TouchableOpacity
-                style={[
-                  styles.segmentBtn,
-                  { backgroundColor: selectedPartner === partner1Id ? colors.accent.primary : colors.bg.tertiary },
-                ]}
-                onPress={() => setSelectedPartner(partner1Id)}
-              >
-                <Ionicons name="person-outline" size={16} color={selectedPartner === partner1Id ? '#FFF' : colors.text.secondary} />
-                <Text style={[styles.segmentText, { color: selectedPartner === partner1Id ? '#FFF' : colors.text.secondary }]}>{partner1Name}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.segmentBtn,
-                  { backgroundColor: selectedPartner === partner2Id ? colors.accent.primary : colors.bg.tertiary },
-                ]}
-                onPress={() => setSelectedPartner(partner2Id)}
-              >
-                <Ionicons name="person-outline" size={16} color={selectedPartner === partner2Id ? '#FFF' : colors.text.secondary} />
-                <Text style={[styles.segmentText, { color: selectedPartner === partner2Id ? '#FFF' : colors.text.secondary }]}>{partner2Name}</Text>
-              </TouchableOpacity>
+              {groupInfo && (
+                <>
+                  <TouchableOpacity
+                    style={[
+                      styles.segmentBtn,
+                      { backgroundColor: selectedPartner === groupInfo.partner1Id ? colors.accent.primary : colors.bg.tertiary },
+                    ]}
+                    onPress={() => setSelectedPartner(groupInfo.partner1Id)}
+                  >
+                    <Ionicons name="person-outline" size={16} color={selectedPartner === groupInfo.partner1Id ? '#FFF' : colors.text.secondary} />
+                    <Text style={[styles.segmentText, { color: selectedPartner === groupInfo.partner1Id ? '#FFF' : colors.text.secondary }]}>{groupInfo.partner1Name}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.segmentBtn,
+                      { backgroundColor: selectedPartner === groupInfo.partner2Id ? colors.accent.primary : colors.bg.tertiary },
+                    ]}
+                    onPress={() => setSelectedPartner(groupInfo.partner2Id)}
+                  >
+                    <Ionicons name="person-outline" size={16} color={selectedPartner === groupInfo.partner2Id ? '#FFF' : colors.text.secondary} />
+                    <Text style={[styles.segmentText, { color: selectedPartner === groupInfo.partner2Id ? '#FFF' : colors.text.secondary }]}>{groupInfo.partner2Name}</Text>
+                  </TouchableOpacity>
+                </>
+              )}
             </View>
 
             <TouchableOpacity
@@ -392,7 +417,8 @@ const styles = StyleSheet.create({
   },
   incomeInfo: { flex: 1, gap: 2 },
   incomeSource: { fontSize: 15, fontWeight: '700' },
-  incomeDate: { fontSize: 11, fontWeight: '500' },
+  incomeCategoryLabel: { fontSize: 11, fontWeight: '600', marginTop: 1 },
+  incomeDate: { fontSize: 11, fontWeight: '500', marginTop: 1 },
   incomeRight: { alignItems: 'flex-end', gap: 6 },
   incomeAmount: { fontSize: 16, fontWeight: '800' },
   partnerChip: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 8 },
@@ -426,6 +452,16 @@ const styles = StyleSheet.create({
     gap: 6, paddingVertical: 12, borderRadius: 14,
   },
   segmentText: { fontSize: 13, fontWeight: '700' },
+
+  categoryGrid: {
+    flexDirection: 'row', flexWrap: 'wrap', gap: 8,
+  },
+  categoryChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14,
+    borderWidth: 1,
+  },
+  categoryChipText: { fontSize: 13, fontWeight: '600' },
 
   submitBtn: {
     paddingVertical: 16, borderRadius: 16, alignItems: 'center', justifyContent: 'center',

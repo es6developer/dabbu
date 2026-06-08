@@ -45,20 +45,29 @@ export function SecurityScreen() {
 
   async function loadData() {
     try {
-      const [sessionsRes, activityRes] = await Promise.all([
-        api.get<any>('/auth/sessions'),
+      const sessionId = await SecureStore.getItemAsync('sessionId');
+
+      const [sessionsRes, activityRes, lockRes] = await Promise.all([
+        api.get<any>(`/auth/sessions${sessionId ? `?currentSessionId=${sessionId}` : ''}`),
         api.get<any>('/auth/activity'),
+        api.get<any>('/auth/lock'),
       ]);
-      setSessions(Array.isArray(sessionsRes.data) ? sessionsRes.data : []);
-      setActivity(Array.isArray(activityRes.data) ? activityRes.data : []);
+
+      setSessions(Array.isArray(sessionsRes) ? sessionsRes : []);
+      setActivity(Array.isArray(activityRes) ? activityRes : []);
+
+      if (lockRes) {
+        setHasPin(!!lockRes.hasPin);
+        setLockEnabled(!!lockRes.hasPin);
+        setBiometricEnabled(!!lockRes.biometricEnabled);
+      }
+    } catch (e) {
       const storedBiometric = await SecureStore.getItemAsync('biometricEnabled');
       setBiometricEnabled(storedBiometric === 'true');
       const storedLock = await SecureStore.getItemAsync('appLockEnabled');
       setLockEnabled(storedLock === 'true');
       const existingPin = await SecureStore.getItemAsync('appPin');
       setHasPin(!!existingPin);
-    } catch (e) {
-      /* ignore */
     } finally {
       setLoading(false);
     }
@@ -75,6 +84,7 @@ export function SecurityScreen() {
       }
       await SecureStore.setItemAsync('biometricEnabled', String(value));
       setBiometricEnabled(value);
+      api.post('/auth/lock', { biometricEnabled: value }).catch(() => {});
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to update biometric setting');
     }
@@ -109,8 +119,11 @@ export function SecurityScreen() {
     }
     setSavingPin(true);
     try {
-      await SecureStore.setItemAsync('appPin', pin);
-      await SecureStore.setItemAsync('appLockEnabled', 'true');
+      await Promise.all([
+        SecureStore.setItemAsync('appPin', pin),
+        SecureStore.setItemAsync('appLockEnabled', 'true'),
+        api.post('/auth/lock', { pin }).catch(() => {}),
+      ]);
       setLockEnabled(true);
       setHasPin(true);
       Alert.alert('Success', 'PIN set up successfully. Lock App is now enabled.');
@@ -147,7 +160,10 @@ export function SecurityScreen() {
         setSavingPin(false);
         return;
       }
-      await SecureStore.setItemAsync('appPin', pin);
+      await Promise.all([
+        SecureStore.setItemAsync('appPin', pin),
+        api.post('/auth/lock', { oldPin, pin }).catch(() => {}),
+      ]);
       Alert.alert('Success', 'PIN changed successfully');
       setShowPinSetup(false);
       setPin('');
@@ -173,8 +189,11 @@ export function SecurityScreen() {
           onPress: async () => {
             setSavingPin(true);
             try {
-              await SecureStore.deleteItemAsync('appPin');
-              await SecureStore.setItemAsync('appLockEnabled', 'false');
+              await Promise.all([
+                SecureStore.deleteItemAsync('appPin'),
+                SecureStore.setItemAsync('appLockEnabled', 'false'),
+                api.post('/auth/lock', { pin: '' }).catch(() => {}),
+              ]);
               setLockEnabled(false);
               setHasPin(false);
               setShowPinSetup(false);
@@ -197,9 +216,6 @@ export function SecurityScreen() {
 
   async function handleRevokeSession(sessionId: string) {
     try {
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
       await api.delete(`/auth/sessions/${sessionId}`);
       setSessions((prev) => prev.filter((s) => s.id !== sessionId));
     } catch (e: any) {
@@ -591,10 +607,8 @@ export function SecurityScreen() {
         onConfirm={async () => {
           setShowLogoutAllDialog(false);
           try {
-            if (accessToken) {
-              setAccessToken(accessToken);
-            }
-            await api.post('/auth/sessions/logout-all');
+            const sessionId = await SecureStore.getItemAsync('sessionId');
+            await api.post('/auth/sessions/logout-all', { currentSessionId: sessionId || '' });
             Alert.alert('Success', 'All other sessions logged out');
             loadData();
           } catch (e: any) {
