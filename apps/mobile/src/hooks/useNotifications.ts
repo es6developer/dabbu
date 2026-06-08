@@ -9,6 +9,7 @@ import { api, setAccessToken } from '../services/api';
 type NotificationType =
   | 'expense'
   | 'shared_finance'
+  | 'group_expense'
   | 'goal'
   | 'emi'
   | 'subscription'
@@ -69,6 +70,7 @@ export function useNotifications() {
       switch (data.type) {
         case 'expense':
         case 'shared_finance':
+        case 'group_expense':
           if (data.groupId) {
             navigation.navigate('Spaces', {
               screen: 'SharedGroupDetail',

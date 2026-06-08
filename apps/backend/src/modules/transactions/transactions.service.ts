@@ -1,10 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { NotificationEventsService } from '../notification/notification-events.service';
 import { CreateTransactionDto, UpdateTransactionDto, TransactionFilterDto } from './dto';
 
 @Injectable()
 export class TransactionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(TransactionsService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationEvents: NotificationEventsService,
+  ) {}
 
   async create(userId: string, dto: CreateTransactionDto) {
     const categoryId = dto.categoryId || (await this.predictCategory(userId, dto));
@@ -37,7 +43,52 @@ export class TransactionsService {
       },
       include: { category: true },
     });
+
+    if (dto.expenseGroupId) {
+      this.notifyGroupMembers(userId, dto.expenseGroupId, tx).catch((err) =>
+        this.logger.warn(`Failed to notify group members: ${err.message}`),
+      );
+    }
+
     return tx;
+  }
+
+  private async notifyGroupMembers(actorUserId: string, expenseGroupId: string, tx: any) {
+    const [group, actor] = await Promise.all([
+      this.prisma.expenseGroup.findUnique({
+        where: { id: expenseGroupId },
+        include: {
+          members: {
+            select: { userId: true },
+          },
+        },
+      }),
+      this.prisma.user.findUnique({
+        where: { id: actorUserId },
+        select: { firstName: true, lastName: true },
+      }),
+    ]);
+
+    if (!group) return;
+
+    const actorName = [actor?.firstName, actor?.lastName].filter(Boolean).join(' ') || 'Someone';
+    const memberIds = group.members
+      .map((m) => m.userId)
+      .filter((id) => id !== actorUserId);
+
+    if (memberIds.length === 0) return;
+
+    await Promise.allSettled(
+      memberIds.map((memberId) =>
+        this.notificationEvents.groupExpenseAdded(memberId, {
+          groupId: expenseGroupId,
+          groupName: group.name,
+          amount: Number(tx.amount),
+          description: tx.description || '',
+          addedBy: actorName,
+        }),
+      ),
+    );
   }
 
   async findAll(userId: string, filter: TransactionFilterDto) {
