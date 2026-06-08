@@ -307,13 +307,22 @@ export function SharedScreen() {
               <Text style={[s.headerEyebrow, { color: colors.text.tertiary }]}>SPACES</Text>
               <Text style={[s.headerTitle, { color: colors.text.primary }]}>Shared Spaces</Text>
             </View>
-            <TouchableOpacity
-              style={s.createBtn}
-              onPress={() => navigation.navigate('CreateSharedGroup')}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="add" size={22} color="#FFF" />
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <TouchableOpacity
+                style={s.templateBtn}
+                onPress={() => navigation.navigate('SplitTemplates')}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="layers-outline" size={20} color="#FF6B00" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={s.createBtn}
+                onPress={() => navigation.navigate('CreateSharedGroup')}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="add" size={22} color="#FFF" />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -548,6 +557,16 @@ const s = StyleSheet.create({
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   headerEyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 2 },
   headerTitle: { fontSize: 30, fontWeight: '800', letterSpacing: -0.5 },
+  templateBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,107,0,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,107,0,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   createBtn: {
     width: 42,
     height: 42,
