@@ -48,24 +48,35 @@ export class PremiumController {
     const plan = await this.prisma.subscriptionPlan.findUnique({ where: { id: sub.planId } });
     const addonAmount = plan ? Number(plan.price) * 100 : undefined;
 
-    // 4. Create Razorpay subscription with auto-pay (high total_count for auto-renew, addon for first charge)
+    // 4. Determine safe total_count per plan interval (keep end_time before year 2100)
+    const intervalMonths: Record<string, number> = {
+      monthly: 1,
+      quarterly: 3,
+      halfyearly: 6,
+      yearly: 12,
+    };
+    const monthsPerCycle = intervalMonths[plan?.interval || 'monthly'] || 1;
+    const maxSafeCycles = Math.floor(((2100 - new Date().getFullYear()) * 12) / monthsPerCycle);
+    const totalCount = Math.min(maxSafeCycles, 120);
+
+    // 5. Create Razorpay subscription with auto-pay (total_count for auto-renew, addon for first charge)
     const razorpaySub = await this.razorpayService.createSubscription({
       planId: razorpayPlanId,
-      totalCount: 1200,
+      totalCount,
       customerEmail: req.user.email,
       customerContact: req.user.phone,
       notes: { userId, subscriptionId: sub.id, planCode },
       addonAmount,
     });
 
-    // 5. Store Razorpay subscription ID on local subscription
+    // 6. Store Razorpay subscription ID on local subscription
     await this.prisma.subscription.update({
       where: { id: sub.id },
       data: { razorpaySubscriptionId: razorpaySub.id },
     });
     (sub as any).razorpaySubscriptionId = razorpaySub.id;
 
-    // 6. Return checkout URL for user to authorize auto-debit
+    // 7. Return checkout URL for user to authorize auto-debit
     const checkoutUrl = `https://api.razorpay.com/v1/subscriptions/${razorpaySub.id}/checkout`;
 
     return { ...sub, checkoutUrl };
