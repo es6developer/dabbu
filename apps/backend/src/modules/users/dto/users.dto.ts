@@ -29,6 +29,12 @@ export class UpdateProfileDto {
   phone?: string;
 }
 
+export class MatchContactsDto {
+  @ApiProperty({ description: 'Array of 10-digit phone numbers (digits only)' })
+  @IsString({ each: true })
+  phones: string[];
+}
+
 export class SyncContactsDto {
   @ApiProperty({ description: 'Array of SHA-256 hashed phone numbers' })
   @IsString({ each: true })

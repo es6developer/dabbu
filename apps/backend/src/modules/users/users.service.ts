@@ -21,7 +21,8 @@ export class UsersService {
     };
 
     if (digits.length >= 3) {
-      where.OR.push({ phone: { contains: digits } });
+      const last10 = digits.slice(-10);
+      where.OR.push({ phone: { endsWith: last10 } }, { phone: { contains: digits } });
     }
 
     const users = await this.prisma.user.findMany({
@@ -57,6 +58,41 @@ export class UsersService {
       },
     });
     return user;
+  }
+
+  async matchContacts(userId: string, phones: string[]) {
+    if (!phones.length) {
+      return [];
+    }
+    const conditions = phones.map((p) => {
+      const digits = p.replace(/\D/g, '').slice(-10);
+      return { phone: { endsWith: digits } };
+    });
+    const users = await this.prisma.user.findMany({
+      where: {
+        isActive: true,
+        status: 'active',
+        id: { not: userId },
+        OR: conditions,
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        avatarUrl: true,
+        phone: true,
+      },
+    });
+    return users.map((u) => ({
+      userId: u.id,
+      name: `${u.firstName} ${u.lastName}`.trim() || u.email,
+      email: u.email,
+      phone: u.phone?.replace(/\D/g, '').slice(-10) || '',
+      avatarUrl: u.avatarUrl,
+      isFriend: false,
+      isAppUser: true,
+    }));
   }
 
   async syncContacts(userId: string, hashes: string[]) {

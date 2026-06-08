@@ -3,7 +3,12 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { UsersService } from './users.service';
-import { SearchUsersDto, UpdateProfileDto, SyncContactsDto } from './dto/users.dto';
+import {
+  SearchUsersDto,
+  UpdateProfileDto,
+  MatchContactsDto,
+  SyncContactsDto,
+} from './dto/users.dto';
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -24,6 +29,13 @@ export class UsersController {
   async updateProfile(@CurrentUser('id') userId: string, @Body() dto: UpdateProfileDto) {
     const user = await this.usersService.updateProfile(userId, dto);
     return { data: user };
+  }
+
+  @Post('match-contacts')
+  @ApiOperation({ summary: 'Match device contacts by 10-digit phone numbers' })
+  async matchContacts(@CurrentUser('id') userId: string, @Body() dto: MatchContactsDto) {
+    const result = await this.usersService.matchContacts(userId, dto.phones);
+    return { matched: result };
   }
 
   @Post('contacts/sync')
