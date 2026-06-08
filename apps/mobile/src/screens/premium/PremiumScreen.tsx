@@ -14,6 +14,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { WebView } from 'react-native-webview';
@@ -91,6 +92,7 @@ export function PremiumScreen() {
   const insets = useSafeAreaInsets();
   const { trackFeature } = useAnalytics();
   const { refreshPremiumStatus } = useAuth();
+  const tabBarHeight = useBottomTabBarHeight();
   const [selectedPlan, setSelectedPlan] = useState(3);
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState(false);
@@ -396,7 +398,10 @@ export function PremiumScreen() {
       </ScrollView>
 
       <Animated.View
-        style={[styles.stickyCta, { paddingBottom: insets.bottom + 16, opacity: fadeAnim }]}
+        style={[
+          styles.stickyCta,
+          { paddingBottom: insets.bottom + tabBarHeight + 16, opacity: fadeAnim },
+        ]}
       >
         <TouchableOpacity
           style={[styles.upgradeBtn, (subscribing || processing) && styles.upgradeBtnDisabled]}
@@ -478,6 +483,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 8,
+    backgroundColor: '#FFD700',
   },
   mostPopularText: { color: '#000', fontSize: 9, fontWeight: '800', letterSpacing: 0.5 },
   colTitle: { fontSize: 18, fontWeight: '800', color: '#FFFFFF', marginBottom: 4 },
@@ -516,6 +522,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 6,
+    backgroundColor: '#FFD700',
   },
   planBadgeText: { color: '#000', fontSize: 9, fontWeight: '700' },
   planLabel: { fontSize: 15, fontWeight: '700', color: 'rgba(255,255,255,0.8)' },
@@ -540,7 +547,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
   },
-  upgradeBtnGradient: { ...StyleSheet.absoluteFillObject, borderRadius: 16 },
+  upgradeBtnGradient: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 16,
+    backgroundColor: '#FFD700',
+  },
   upgradeBtnDisabled: { opacity: 0.7 },
   upgradeText: { color: '#000', fontSize: 17, fontWeight: '800', letterSpacing: 0.5 },
   guaranteeText: {
