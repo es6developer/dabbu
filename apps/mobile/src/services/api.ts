@@ -99,12 +99,16 @@ function getCached<T>(key: string): T | null {
 let persistTimer: ReturnType<typeof setTimeout> | null = null;
 
 function persistCache(): void {
-  if (persistTimer) return;
+  if (persistTimer) {
+    return;
+  }
   persistTimer = setTimeout(() => {
     persistTimer = null;
     const obj: Record<string, CacheEntry> = {};
     cache.forEach((entry, key) => {
-      if (Date.now() - entry.createdAt <= entry.ttl) obj[key] = entry;
+      if (Date.now() - entry.createdAt <= entry.ttl) {
+        obj[key] = entry;
+      }
     });
     AsyncStorage.setItem(CACHE_STORAGE_KEY, JSON.stringify(obj)).catch(() => {});
   }, 2000);
@@ -113,11 +117,15 @@ function persistCache(): void {
 let hydrationPromise: Promise<void> | null = null;
 
 export async function hydrateCache(): Promise<void> {
-  if (hydrationPromise) return hydrationPromise;
+  if (hydrationPromise) {
+    return hydrationPromise;
+  }
   hydrationPromise = (async () => {
     try {
       const raw = await AsyncStorage.getItem(CACHE_STORAGE_KEY);
-      if (!raw) return;
+      if (!raw) {
+        return;
+      }
       const obj: Record<string, CacheEntry> = JSON.parse(raw);
       const now = Date.now();
       for (const [key, entry] of Object.entries(obj)) {
@@ -125,7 +133,9 @@ export async function hydrateCache(): Promise<void> {
           cache.set(key, entry);
         }
       }
-    } catch {}
+    } catch {
+      /* ignore */
+    }
   })();
   return hydrationPromise;
 }
@@ -143,7 +153,9 @@ function setCached(key: string, data: any, ttl: number): void {
 
 function invalidateCacheForMutation(path: string): void {
   const affectedPrefixes = Object.keys(CACHE_TTL).filter((p) => path.startsWith(p));
-  if (affectedPrefixes.length === 0) return;
+  if (affectedPrefixes.length === 0) {
+    return;
+  }
   for (const [key] of cache) {
     const keyPath = key.slice(key.indexOf('/'));
     if (affectedPrefixes.some((p) => keyPath.startsWith(p))) {
@@ -200,7 +212,9 @@ async function request<T>(
   }
 
   if (canCache) {
-    if (!hydrationPromise) hydrateCache();
+    if (!hydrationPromise) {
+      hydrateCache();
+    }
     await hydrationPromise;
     const cached = getCached<T>(key);
     if (cached) {
