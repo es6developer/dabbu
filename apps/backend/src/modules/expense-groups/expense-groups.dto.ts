@@ -23,6 +23,10 @@ export class AddMemberDto {
   @ApiProperty() @IsString() email: string;
 }
 
+export class AddMemberByUserIdDto {
+  @ApiProperty() @IsString() userId: string;
+}
+
 export class AddMemberByPhoneDto {
   @ApiProperty({ example: '+919876543210' })
   @IsString()

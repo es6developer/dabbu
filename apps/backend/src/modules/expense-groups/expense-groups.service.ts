@@ -317,6 +317,49 @@ export class ExpenseGroupsService {
     return { data: member };
   }
 
+  async addMemberByUserId(id: string, adminId: string, targetUserId: string) {
+    const group = await this.findGroupOrThrow(id);
+    this.validateAdmin(group, adminId);
+
+    const plan = await this.getUserPlan(adminId);
+
+    const memberCount = await this.prisma.expenseGroupMember.count({ where: { groupId: id } });
+    if (memberCount >= plan.maxMembersPerGroup) {
+      throw new BadRequestException(
+        `Plan allows max ${plan.maxMembersPerGroup} members per group. Upgrade to Premium for up to ${PLAN_LIMITS.premium.maxMembersPerGroup} members or Gold for unlimited.`,
+      );
+    }
+
+    const user = await this.prisma.user.findFirst({
+      where: { id: targetUserId, isActive: true },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const existing = await this.prisma.expenseGroupMember.findUnique({
+      where: { groupId_userId: { groupId: id, userId: user.id } },
+    });
+    if (existing) {
+      throw new ConflictException('User is already a member');
+    }
+
+    const member = await this.prisma.expenseGroupMember.create({
+      data: { groupId: id, userId: user.id, role: 'member' },
+      include: {
+        user: {
+          select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true },
+        },
+      },
+    });
+
+    await this.notifyMemberAdded(adminId, user.id, group.name, id).catch((error) => {
+      this.logger.warn(`Failed to notify added group member: ${error.message}`);
+    });
+
+    return { data: member };
+  }
+
   async addMemberByPhone(id: string, userId: string, phone: string) {
     const group = await this.findGroupOrThrow(id);
     this.validateAdmin(group, userId);
@@ -348,7 +391,14 @@ export class ExpenseGroupsService {
       data: { groupId: id, userId: user.id, role: 'member' },
       include: {
         user: {
-          select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true, phone: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatarUrl: true,
+            email: true,
+            phone: true,
+          },
         },
       },
     });

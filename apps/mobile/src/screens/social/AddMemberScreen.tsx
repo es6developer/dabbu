@@ -46,6 +46,7 @@ export function AddMemberScreen() {
   const { favorites, isFavorite, addFavorite, refresh } = useFavorites();
   const insets = useSafeAreaInsets();
   const groupId = route.params?.groupId;
+  const groupType: 'shared-finance' | 'expense-group' = route.params?.type || 'shared-finance';
 
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
@@ -157,7 +158,11 @@ export function AddMemberScreen() {
     setAddingId(userId);
     try {
       const { api } = await import('../../services/api');
-      await api.post(`/shared-finance/groups/${groupId}/members`, { userId });
+      if (groupType === 'expense-group') {
+        await api.post(`/expense-groups/${groupId}/members/add-by-user-id`, { userId });
+      } else {
+        await api.post(`/shared-finance/groups/${groupId}/members`, { userId });
+      }
       Alert.alert('Added', `${userName} added to group`);
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'Failed to add member');

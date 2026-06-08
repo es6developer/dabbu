@@ -1022,7 +1022,9 @@ export function GroupExpensesScreen() {
                 </View>
                 <TouchableOpacity
                   style={[s.addMemberBox, { backgroundColor: colors.accent.primary }]}
-                  onPress={() => navigation.navigate('AddMember', { groupId })}
+                  onPress={() =>
+                    navigation.navigate('AddMember', { groupId, type: 'expense-group' })
+                  }
                 >
                   <Ionicons name="person-add-outline" size={18} color="#FFF" />
                   <Text style={{ color: '#FFF', fontSize: 14, fontWeight: '600' }}>Add Member</Text>

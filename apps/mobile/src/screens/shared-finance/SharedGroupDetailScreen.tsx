@@ -759,7 +759,9 @@ export function SharedGroupDetailScreen() {
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <TouchableOpacity
                 style={[s.inviteBtn, { backgroundColor: colors.accent.primary, flex: 1 }]}
-                onPress={() => navigation.navigate('AddMember', { groupId })}
+                onPress={() =>
+                  navigation.navigate('AddMember', { groupId, type: 'shared-finance' })
+                }
               >
                 <Ionicons name="person-add-outline" size={18} color="#FFF" />
                 <Text style={s.inviteBtnText}>Add Member</Text>

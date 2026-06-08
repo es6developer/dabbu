@@ -12,7 +12,14 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { ExpenseGroupsService } from './expense-groups.service';
-import { CreateExpenseGroupDto, UpdateExpenseGroupDto, AddMemberDto, AddMemberByPhoneDto, UpdateMemberRoleDto } from './expense-groups.dto';
+import {
+  CreateExpenseGroupDto,
+  UpdateExpenseGroupDto,
+  AddMemberDto,
+  AddMemberByPhoneDto,
+  AddMemberByUserIdDto,
+  UpdateMemberRoleDto,
+} from './expense-groups.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
@@ -74,6 +81,17 @@ export class ExpenseGroupsController {
     @Body() dto: AddMemberDto,
   ) {
     return this.expenseGroupsService.addMember(id, userId, dto);
+  }
+
+  @Post(':id/members/add-by-user-id')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Add member to expense group by user id' })
+  async addMemberByUserId(
+    @CurrentUser('id') userId: string,
+    @Param('id') id: string,
+    @Body() dto: AddMemberByUserIdDto,
+  ) {
+    return this.expenseGroupsService.addMemberByUserId(id, userId, dto.userId);
   }
 
   @Post(':id/members/add-by-phone')
