@@ -16,24 +16,12 @@ import { useFavorites } from '../../store/FavoritesContext';
 import * as favoritesApi from '../../services/favorites';
 import * as contactsService from '../../services/contacts';
 import { LinearGradient } from 'expo-linear-gradient';
-
-const COLORS = {
-  bg: '#070708',
-  cardBg: '#131315',
-  border: 'rgba(255,255,255,0.06)',
-  textPrimary: '#FFF',
-  textSecondary: 'rgba(255,255,255,0.7)',
-  textTertiary: 'rgba(255,255,255,0.35)',
-  accent: '#F3D28F',
-  accentGradient: ['#F3D28F', '#D4A853'] as const,
-  red: '#FF4D4F',
-  green: '#34C759',
-  surface: 'rgba(255,255,255,0.06)',
-};
+import { useTheme } from '../../theme';
 
 export function FavoriteContactsScreen() {
   const navigation = useNavigation<any>();
   const { favorites, loading, refresh } = useFavorites();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -115,32 +103,35 @@ export function FavoriteContactsScreen() {
 
   const favoriteIds = useMemo(() => new Set(favorites.map((f) => f.userId)), [favorites]);
 
-  const gradientColors = useMemo(() => [...COLORS.accentGradient], []);
+  const gradientColors = useMemo(() => [colors.brand.primary, colors.brand.hover], [colors]);
 
   const renderHeader = () => (
     <Animated.View style={[styles.header, { paddingTop: insets.top + 8, opacity: headerOpacity }]}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-        <Ionicons name="arrow-back" size={20} color="#FFF" />
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        style={[styles.backBtn, { backgroundColor: colors.bg.glass }]}
+      >
+        <Ionicons name="arrow-back" size={20} color={colors.text.primary} />
       </TouchableOpacity>
-      <Text style={styles.headerTitle}>Favorite Contacts</Text>
+      <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Favorite Contacts</Text>
       <View style={{ width: 36 }} />
     </Animated.View>
   );
 
   const renderSearchBar = () => (
     <View style={styles.searchWrap}>
-      <View style={styles.searchInner}>
-        <Ionicons name="search" size={16} color="rgba(255,255,255,0.4)" style={styles.searchIcon} />
+      <View style={[styles.searchInner, { backgroundColor: colors.bg.glass }]}>
+        <Ionicons name="search" size={16} color={colors.text.tertiary} style={styles.searchIcon} />
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { color: colors.text.primary }]}
           placeholder="Search by name or phone..."
-          placeholderTextColor="rgba(255,255,255,0.3)"
+          placeholderTextColor={colors.text.tertiary}
           value={searchQuery}
           onChangeText={handleSearch}
           returnKeyType="search"
           keyboardType="default"
         />
-        {searching && <ActivityIndicator size="small" color={COLORS.accent} />}
+        {searching && <ActivityIndicator size="small" color={colors.brand.primary} />}
         {searchQuery.length > 0 && !searching && (
           <TouchableOpacity
             onPress={() => {
@@ -148,7 +139,7 @@ export function FavoriteContactsScreen() {
               setSearchResults([]);
             }}
           >
-            <Ionicons name="close-circle" size={16} color="rgba(255,255,255,0.4)" />
+            <Ionicons name="close-circle" size={16} color={colors.text.tertiary} />
           </TouchableOpacity>
         )}
       </View>
@@ -161,44 +152,63 @@ export function FavoriteContactsScreen() {
     }
     return (
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>
+        <Text style={[styles.sectionTitle, { color: colors.text.tertiary }]}>
           {searchResults.length > 0 ? 'Search Results' : 'No users found'}
         </Text>
         {searchResults.length > 0 && (
-          <View style={styles.listCard}>
+          <View
+            style={[
+              styles.listCard,
+              { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+            ]}
+          >
             {searchResults.map((user, i) => (
               <React.Fragment key={user.id}>
                 <View style={styles.row}>
-                  <LinearGradient colors={[COLORS.accent, '#D4A853']} style={styles.avatarGradient}>
-                    <Text style={styles.avatarText}>
+                  <LinearGradient
+                    colors={[colors.brand.primary, colors.brand.hover]}
+                    style={styles.avatarGradient}
+                  >
+                    <Text style={[styles.avatarText, { color: colors.text.primary }]}>
                       {(user.firstName?.[0] || user.email?.[0] || '?').toUpperCase()}
                     </Text>
                   </LinearGradient>
                   <View style={styles.rowInfo}>
-                    <Text style={styles.rowName} numberOfLines={1}>
+                    <Text
+                      style={[styles.rowName, { color: colors.text.primary }]}
+                      numberOfLines={1}
+                    >
                       {[user.firstName, user.lastName].filter(Boolean).join(' ') || user.email}
                     </Text>
-                    {user.phone && <Text style={styles.rowPhone}>{user.phone}</Text>}
+                    {user.phone && (
+                      <Text style={[styles.rowPhone, { color: colors.text.secondary }]}>
+                        {user.phone}
+                      </Text>
+                    )}
                   </View>
                   {favoriteIds.has(user.id) ? (
-                    <View style={[styles.actionBtn, styles.favBtnActive]}>
-                      <Ionicons name="star" size={16} color={COLORS.accent} />
+                    <View
+                      style={[styles.actionBtn, { backgroundColor: colors.accent.primary + '25' }]}
+                    >
+                      <Ionicons name="star" size={16} color={colors.brand.primary} />
                     </View>
                   ) : (
                     <TouchableOpacity
-                      style={[styles.actionBtn, styles.addBtn]}
+                      style={[styles.actionBtn, { backgroundColor: colors.brand.light }]}
                       onPress={() => handleAddFavorite(user.id)}
                       disabled={addingId === user.id}
                     >
                       {addingId === user.id ? (
-                        <ActivityIndicator size="small" color={COLORS.accent} />
+                        <ActivityIndicator size="small" color={colors.brand.primary} />
                       ) : (
-                        <Ionicons name="star-outline" size={16} color={COLORS.accent} />
+                        <Ionicons name="star-outline" size={16} color={colors.brand.primary} />
                       )}
                     </TouchableOpacity>
                   )}
                 </View>
-                {i < searchResults.length - 1 && <View style={styles.divider} />}
+                {i < searchResults.length - 1 && (
+                  <View style={[styles.divider, { backgroundColor: colors.border.subtle }]} />
+                )}
               </React.Fragment>
             ))}
           </View>
@@ -213,40 +223,55 @@ export function FavoriteContactsScreen() {
     }
     return (
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>From Your Contacts</Text>
-        <View style={styles.listCard}>
+        <Text style={[styles.sectionTitle, { color: colors.text.tertiary }]}>
+          From Your Contacts
+        </Text>
+        <View
+          style={[
+            styles.listCard,
+            { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+          ]}
+        >
           {deviceContacts.slice(0, 5).map((user, i) => (
             <React.Fragment key={user.id}>
               <View style={styles.row}>
                 <LinearGradient colors={gradientColors} style={styles.avatarGradient}>
-                  <Text style={styles.avatarText}>
+                  <Text style={[styles.avatarText, { color: colors.text.primary }]}>
                     {(user.firstName?.[0] || '?').toUpperCase()}
                   </Text>
                 </LinearGradient>
                 <View style={styles.rowInfo}>
-                  <Text style={styles.rowName} numberOfLines={1}>
+                  <Text style={[styles.rowName, { color: colors.text.primary }]} numberOfLines={1}>
                     {user.firstName || user.email}
                   </Text>
-                  {user.phone && <Text style={styles.rowPhone}>{user.phone}</Text>}
+                  {user.phone && (
+                    <Text style={[styles.rowPhone, { color: colors.text.secondary }]}>
+                      {user.phone}
+                    </Text>
+                  )}
                 </View>
                 <TouchableOpacity
-                  style={[styles.actionBtn, styles.addBtn]}
+                  style={[styles.actionBtn, { backgroundColor: colors.brand.light }]}
                   onPress={() => handleAddFavorite(user.id)}
                   disabled={addingId === user.id}
                 >
                   {addingId === user.id ? (
-                    <ActivityIndicator size="small" color={COLORS.accent} />
+                    <ActivityIndicator size="small" color={colors.brand.primary} />
                   ) : (
-                    <Ionicons name="star-outline" size={16} color={COLORS.accent} />
+                    <Ionicons name="star-outline" size={16} color={colors.brand.primary} />
                   )}
                 </TouchableOpacity>
               </View>
-              {i < Math.min(deviceContacts.length, 5) - 1 && <View style={styles.divider} />}
+              {i < Math.min(deviceContacts.length, 5) - 1 && (
+                <View style={[styles.divider, { backgroundColor: colors.border.subtle }]} />
+              )}
             </React.Fragment>
           ))}
           {deviceContacts.length > 5 && (
             <TouchableOpacity style={styles.moreBtn}>
-              <Text style={styles.moreBtnText}>+{deviceContacts.length - 5} more</Text>
+              <Text style={[styles.moreBtnText, { color: colors.brand.primary }]}>
+                +{deviceContacts.length - 5} more
+              </Text>
             </TouchableOpacity>
           )}
         </View>
@@ -259,13 +284,13 @@ export function FavoriteContactsScreen() {
       return (
         <View style={styles.emptyWrap}>
           <LinearGradient
-            colors={['rgba(255,107,0,0.15)', 'rgba(255,107,0,0.05)']}
+            colors={[colors.bg.glassLight, colors.bg.glass]}
             style={styles.emptyIconBox}
           >
-            <Ionicons name="star-outline" size={40} color={COLORS.accent} />
+            <Ionicons name="star-outline" size={40} color={colors.brand.primary} />
           </LinearGradient>
-          <Text style={styles.emptyTitle}>No favorites yet</Text>
-          <Text style={styles.emptyDesc}>
+          <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No favorites yet</Text>
+          <Text style={[styles.emptyDesc, { color: colors.text.secondary }]}>
             Search by name or phone above, or sync your contacts to find friends on Dabbu.
           </Text>
         </View>
@@ -277,28 +302,43 @@ export function FavoriteContactsScreen() {
 
     return (
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Favorites ({favorites.length})</Text>
-        <View style={styles.listCard}>
+        <Text style={[styles.sectionTitle, { color: colors.text.tertiary }]}>
+          Favorites ({favorites.length})
+        </Text>
+        <View
+          style={[
+            styles.listCard,
+            { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+          ]}
+        >
           {favorites.map((fav, i) => (
             <React.Fragment key={fav.userId}>
               <View style={styles.row}>
                 <LinearGradient colors={gradientColors} style={styles.avatarGradient}>
-                  <Text style={styles.avatarText}>{fav.name[0]?.toUpperCase() || '?'}</Text>
+                  <Text style={[styles.avatarText, { color: colors.text.primary }]}>
+                    {fav.name[0]?.toUpperCase() || '?'}
+                  </Text>
                 </LinearGradient>
                 <View style={styles.rowInfo}>
-                  <Text style={styles.rowName} numberOfLines={1}>
+                  <Text style={[styles.rowName, { color: colors.text.primary }]} numberOfLines={1}>
                     {fav.name}
                   </Text>
-                  {fav.phone && <Text style={styles.rowPhone}>{fav.phone}</Text>}
+                  {fav.phone && (
+                    <Text style={[styles.rowPhone, { color: colors.text.secondary }]}>
+                      {fav.phone}
+                    </Text>
+                  )}
                 </View>
                 <TouchableOpacity
-                  style={[styles.actionBtn, styles.removeBtn]}
+                  style={[styles.actionBtn, { backgroundColor: colors.status.errorLight }]}
                   onPress={() => handleRemoveFavorite(fav.userId)}
                 >
-                  <Ionicons name="trash-outline" size={16} color={COLORS.red} />
+                  <Ionicons name="trash-outline" size={16} color={colors.status.error} />
                 </TouchableOpacity>
               </View>
-              {i < favorites.length - 1 && <View style={styles.divider} />}
+              {i < favorites.length - 1 && (
+                <View style={[styles.divider, { backgroundColor: colors.border.subtle }]} />
+              )}
             </React.Fragment>
           ))}
         </View>
@@ -318,17 +358,17 @@ export function FavoriteContactsScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.screen, { backgroundColor: COLORS.bg }]}>
+      <View style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
         {renderHeader()}
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color={COLORS.accent} />
+          <ActivityIndicator size="large" color={colors.brand.primary} />
         </View>
       </View>
     );
   }
 
   return (
-    <View style={[styles.screen, { backgroundColor: COLORS.bg }]}>
+    <View style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
       <FlatList
         data={[]}
         renderItem={() => null}
@@ -363,13 +403,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: { fontSize: 17, fontWeight: '700', color: '#FFF' },
+  headerTitle: { fontSize: 17, fontWeight: '700' },
 
   searchWrap: { paddingHorizontal: 20, marginTop: 12, marginBottom: 8 },
   searchInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.07)',
     borderRadius: 14,
     paddingHorizontal: 14,
     height: 44,
@@ -380,7 +419,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     fontWeight: '500',
-    color: '#FFF',
     paddingVertical: 0,
   },
 
@@ -390,15 +428,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
-    color: 'rgba(255,255,255,0.35)',
     marginBottom: 10,
     marginLeft: 4,
   },
   listCard: {
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-    backgroundColor: '#131315',
     overflow: 'hidden',
   },
 
@@ -415,10 +450,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: { fontSize: 17, fontWeight: '700', color: '#FFF' },
+  avatarText: { fontSize: 17, fontWeight: '700' },
   rowInfo: { flex: 1 },
-  rowName: { fontSize: 15, fontWeight: '600', color: '#FFF', marginBottom: 1 },
-  rowPhone: { fontSize: 12, fontWeight: '500', color: 'rgba(255,255,255,0.45)' },
+  rowName: { fontSize: 15, fontWeight: '600', marginBottom: 1 },
+  rowPhone: { fontSize: 12, fontWeight: '500' },
 
   actionBtn: {
     width: 36,
@@ -427,13 +462,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  addBtn: { backgroundColor: 'rgba(255,107,0,0.1)' },
-  favBtnActive: { backgroundColor: 'rgba(255,107,0,0.15)' },
-  removeBtn: { backgroundColor: 'rgba(255,77,79,0.1)' },
+  addBtn: {},
+  removeBtn: {},
 
-  divider: { height: 1, marginHorizontal: 14, backgroundColor: 'rgba(255,255,255,0.04)' },
+  divider: { height: 1, marginHorizontal: 14 },
   moreBtn: { alignItems: 'center', paddingVertical: 12 },
-  moreBtnText: { fontSize: 13, fontWeight: '600', color: '#F3D28F' },
+  moreBtnText: { fontSize: 13, fontWeight: '600' },
 
   emptyWrap: { alignItems: 'center', paddingHorizontal: 32, paddingTop: 60 },
   emptyIconBox: {
@@ -444,11 +478,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 20,
   },
-  emptyTitle: { fontSize: 20, fontWeight: '700', color: '#FFF', marginBottom: 8 },
+  emptyTitle: { fontSize: 20, fontWeight: '700', marginBottom: 8 },
   emptyDesc: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#8E8E93',
     textAlign: 'center',
     lineHeight: 20,
   },

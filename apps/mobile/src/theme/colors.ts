@@ -14,8 +14,8 @@ export const palette = {
 
   dark: {
     bg: {
-      primary: '#1A1835',
-      secondary: '#212048',
+      primary: '#11101d',
+      secondary: '#1c1c30',
       tertiary: '#2B2958',
       card: '#1E1C3E',
       elevated: '#252349',

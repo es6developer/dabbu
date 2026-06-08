@@ -16,6 +16,34 @@ export class PremiumController {
     private prisma: PrismaService,
   ) {}
 
+  @Post('verify')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Verify subscription payment by checking Razorpay directly' })
+  async verifyPayment(@Req() req: any) {
+    const userId = req.user.id;
+    const sub = await this.premiumService.getCurrentSubscription(userId);
+    if (!sub || !sub.razorpaySubscriptionId) {
+      return { verified: false, message: 'No pending subscription' };
+    }
+    if (sub.status === 'active') {
+      return { verified: true, message: 'Already active' };
+    }
+    const rzpSub = await this.razorpayService.fetchSubscription(sub.razorpaySubscriptionId);
+    if (!rzpSub) {
+      return { verified: false, message: 'Could not fetch subscription from Razorpay' };
+    }
+    if (
+      rzpSub.status === 'active' ||
+      rzpSub.status === 'authenticated' ||
+      rzpSub.status === 'completed'
+    ) {
+      await this.premiumService.activateFromRazorpay(sub.id, sub.planId, sub.userId);
+      return { verified: true, message: 'Subscription activated' };
+    }
+    return { verified: false, message: `Razorpay status: ${rzpSub.status}` };
+  }
+
   @Get('plans')
   @ApiOperation({ summary: 'Get all active subscription plans' })
   async getPlans() {

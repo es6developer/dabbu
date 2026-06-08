@@ -119,6 +119,29 @@ export class PremiumService {
     });
   }
 
+  async activateFromRazorpay(subscriptionId: string, planId: string, userId: string) {
+    const sub = await this.prisma.subscription.findUnique({ where: { id: subscriptionId } });
+    if (!sub || sub.status === 'active') {
+      return;
+    }
+    const plan = await this.prisma.subscriptionPlan.findUnique({ where: { id: planId } });
+    const now = new Date();
+    const periodEnd = plan
+      ? this.calculatePeriodEnd(now, plan.interval, plan.intervalCount)
+      : new Date(now.getTime() + 30 * 86400000);
+    await this.prisma.subscription.update({
+      where: { id: subscriptionId },
+      data: {
+        status: 'active',
+        currentPeriodStart: now,
+        currentPeriodEnd: periodEnd,
+        cancelledAt: null,
+        cancelAtPeriodEnd: false,
+      },
+    });
+    await this.syncEntitlements(userId, subscriptionId, plan);
+  }
+
   async isPremium(userId: string): Promise<boolean> {
     const sub = await this.prisma.subscription.findUnique({
       where: { userId },

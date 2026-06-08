@@ -64,12 +64,16 @@ function CheckoutOverlay({ url, onClose }: { url: string; onClose: () => void })
           if (
             navState.url.includes('success') ||
             navState.url.includes('callback') ||
-            navState.url.includes('/subscriptions/')
+            navState.url.includes('/subscriptions/') ||
+            navState.url.includes('razorpay.com/payments/')
           ) {
             onClose();
           }
         }}
       />
+      <TouchableOpacity style={styles.checkoutCloseBtn} onPress={onClose} activeOpacity={0.7}>
+        <Ionicons name="close" size={22} color="#FFF" />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -113,7 +117,7 @@ export function PremiumScreen() {
     loadCurrentSubscription();
     return () => {
       if (pollRef.current) {
-        clearInterval(pollRef.current);
+        clearTimeout(pollRef.current);
       }
     };
   }, []);
@@ -125,7 +129,7 @@ export function PremiumScreen() {
       if (sub?.status === 'active' && sub?.plan?.code !== 'FREE') {
         setProcessing(false);
         if (pollRef.current) {
-          clearInterval(pollRef.current);
+          clearTimeout(pollRef.current);
           pollRef.current = null;
         }
       }
@@ -136,41 +140,60 @@ export function PremiumScreen() {
     }
   }, []);
 
+  const verifyPayment = useCallback(async (): Promise<boolean> => {
+    try {
+      const result: any = await api.post('/premium/verify');
+      return result?.verified === true;
+    } catch {
+      return false;
+    }
+  }, []);
+
   const waitForActivation = useCallback(() => {
     setProcessing(true);
     let attempts = 0;
-    const maxAttempts = 30;
-    pollRef.current = setInterval(async () => {
+    const maxAttempts = 20;
+    const tick = async () => {
       attempts++;
-      try {
-        const sub = await api.get<any>('/premium/current');
-        if (sub?.status === 'active' && sub?.plan?.code !== 'FREE') {
+      const activated = await verifyPayment();
+      if (activated) {
+        const sub = await api.get<any>('/premium/current').catch(() => null);
+        if (sub) {
           setCurrentSub(sub);
-          setProcessing(false);
-          if (pollRef.current) {
-            clearInterval(pollRef.current);
-            pollRef.current = null;
-          }
-          refreshPremiumStatus();
-          Alert.alert('Welcome to Premium!', 'Your subscription is now active.');
-        }
-      } catch {
-        /* noop */
-      }
-      if (attempts >= maxAttempts) {
-        if (pollRef.current) {
-          clearInterval(pollRef.current);
-          pollRef.current = null;
         }
         setProcessing(false);
-        Alert.alert(
-          'Still processing',
-          'Your payment was received but activation is taking longer than expected. Please check your subscription status in a few moments.',
-        );
-        loadCurrentSubscription();
+        if (pollRef.current) {
+          clearTimeout(pollRef.current);
+          pollRef.current = null;
+        }
+        refreshPremiumStatus();
+        Alert.alert('Welcome to Premium!', 'Your subscription is now active.');
+        return;
       }
-    }, 2000);
-  }, [loadCurrentSubscription]);
+      if (attempts >= maxAttempts) {
+        setProcessing(false);
+        if (pollRef.current) {
+          clearTimeout(pollRef.current);
+          pollRef.current = null;
+        }
+        const sub = await api.get<any>('/premium/current').catch(() => null);
+        if (sub?.status === 'active' && sub?.plan?.code !== 'FREE') {
+          setCurrentSub(sub);
+          refreshPremiumStatus();
+          Alert.alert('Welcome to Premium!', 'Your subscription is now active.');
+        } else {
+          Alert.alert(
+            'Still processing',
+            'Your payment was received but activation is taking longer than expected. Please check your subscription status in a few moments.',
+          );
+          loadCurrentSubscription();
+        }
+        return;
+      }
+      pollRef.current = setTimeout(tick, 2000) as any;
+    };
+    tick();
+  }, [verifyPayment, loadCurrentSubscription, refreshPremiumStatus]);
 
   const handleWebViewClose = useCallback(() => {
     setCheckoutUrl(null);
@@ -616,5 +639,18 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.6)',
     textAlign: 'center',
     lineHeight: 20,
+  },
+
+  checkoutCloseBtn: {
+    position: 'absolute',
+    top: 60,
+    right: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
   },
 });
