@@ -48,6 +48,7 @@ import { GamificationModule } from './modules/gamification/gamification.module';
 import { ReferralModule } from './modules/referral/referral.module';
 import { UsersModule } from './modules/users/users.module';
 import { FriendsModule } from './modules/friends/friends.module';
+import { FavoritesModule } from './modules/favorites/favorites.module';
 import { AiModule } from './modules/ai/ai.module';
 
 @Module({
@@ -121,6 +122,7 @@ import { AiModule } from './modules/ai/ai.module';
     ReferralModule,
     UsersModule,
     FriendsModule,
+    FavoritesModule,
   ],
   controllers: [HealthController],
   providers: [

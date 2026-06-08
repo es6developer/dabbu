@@ -236,10 +236,7 @@ export function HomeScreen() {
         >
           <View style={styles.balanceWrap}>
             <View
-              style={[
-                styles.balanceCard,
-                { backgroundColor: colors.accent.primary, shadowColor: colors.accent.primary },
-              ]}
+              style={[styles.balanceCard, { backgroundColor: '#0D1B2A', shadowColor: '#0D1B2A' }]}
             >
               <View style={styles.balanceTop}>
                 <View>

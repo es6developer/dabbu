@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import * as SecureStore from 'expo-secure-store';
 import * as ExpoSplashScreen from 'expo-splash-screen';
 import { SplashScreen } from '../screens/auth/SplashScreen';
 
@@ -18,14 +17,18 @@ import { API_URL } from '../config/api';
 export function RootNavigator(): React.ReactElement | null {
   const { isAuthenticated, isLoading, isNewUser, needsPhone, accessToken } = useAuth();
   const { isLocked, unlockApp } = useAppLock();
-  const [phase, setPhase] = useState<'loading' | 'maintenance' | 'auth' | 'lock' | 'setup' | 'app'>('loading');
+  const [phase, setPhase] = useState<'loading' | 'maintenance' | 'auth' | 'lock' | 'setup' | 'app'>(
+    'loading',
+  );
   const [maintenanceMessage, setMaintenanceMessage] = useState<string | undefined>();
   const [splashDone, setSplashDone] = useState(false);
   const maintenanceChecked = useRef(false);
   const preFetchStarted = useRef(false);
 
   useEffect(() => {
-    if (maintenanceChecked.current) return;
+    if (maintenanceChecked.current) {
+      return;
+    }
     maintenanceChecked.current = true;
     fetch(`${API_URL}/admin/maintenance`, { method: 'GET' })
       .then((r) => r.json())
@@ -40,20 +43,29 @@ export function RootNavigator(): React.ReactElement | null {
 
   useEffect(() => {
     if (maintenanceChecked.current === true && phase !== 'maintenance') {
-      if (isLoading) return;
-      if (!isAuthenticated) { setPhase('auth'); return; }
-      if (isLocked) { setPhase('lock'); return; }
-      if (isNewUser) { setPhase('setup'); return; }
-      Promise.all([SecureStore.getItemAsync('appPin'), SecureStore.getItemAsync('appLockEnabled')])
-        .then(([pin, enabled]) => {
-          setPhase(pin && enabled === 'true' ? 'lock' : 'app');
-        })
-        .catch(() => { setPhase('app'); });
+      if (isLoading) {
+        return;
+      }
+      if (!isAuthenticated) {
+        setPhase('auth');
+        return;
+      }
+      if (isLocked) {
+        setPhase('lock');
+        return;
+      }
+      if (isNewUser) {
+        setPhase('setup');
+        return;
+      }
+      setPhase('app');
     }
   }, [isAuthenticated, isLoading, isLocked, phase]);
 
   useEffect(() => {
-    if (preFetchStarted.current || !accessToken) return;
+    if (preFetchStarted.current || !accessToken) {
+      return;
+    }
     preFetchStarted.current = true;
     setAccessToken(accessToken);
     Promise.allSettled([

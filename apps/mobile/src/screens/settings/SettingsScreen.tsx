@@ -157,16 +157,34 @@ export function SettingsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
       >
-        <View
-          style={[s.hero, { paddingTop: insets.top + 16, backgroundColor: colors.accent.primary }]}
-        >
-          <TouchableOpacity
-            style={s.heroBack}
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.7}
+        <View style={[s.hero, { paddingTop: insets.top + 16, backgroundColor: '#0D1B2A' }]}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 16,
+            }}
           >
-            <Ionicons name="chevron-back" size={22} color="#FFF" />
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={s.heroBack}
+              onPress={() => navigation.goBack()}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="chevron-back" size={22} color="#FFF" />
+            </TouchableOpacity>
+            <Text
+              style={{
+                color: 'rgba(255,255,255,0.4)',
+                fontSize: 13,
+                fontWeight: '600',
+                letterSpacing: 1,
+              }}
+            >
+              SETTINGS
+            </Text>
+            <View style={{ width: 40 }} />
+          </View>
           <TouchableOpacity
             onPress={() => handleNav('Profile')}
             activeOpacity={0.8}
@@ -315,7 +333,7 @@ const s = StyleSheet.create({
   root: { flex: 1 },
   hero: {
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 28,
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
     overflow: 'hidden',
@@ -327,7 +345,6 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
   },
   heroProfile: {
     flexDirection: 'row',
@@ -360,8 +377,8 @@ const s = StyleSheet.create({
 
   upgradeBanner: {
     marginHorizontal: 20,
-    marginTop: 16,
-    marginBottom: 20,
+    marginTop: 20,
+    marginBottom: 24,
     borderRadius: 20,
     overflow: 'hidden',
     borderWidth: 1,
@@ -383,22 +400,22 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  section: { marginBottom: 20, paddingHorizontal: 20 },
+  section: { marginBottom: 28, paddingHorizontal: 20 },
   secTitle: {
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
-    marginBottom: 10,
+    marginBottom: 14,
     marginLeft: 4,
   },
   secCard: { borderRadius: 20, overflow: 'hidden', borderWidth: 1 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 16,
     paddingHorizontal: 16,
-    gap: 12,
+    gap: 14,
   },
   rowIcon: {
     width: 36,

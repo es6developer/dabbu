@@ -207,6 +207,8 @@ model User {
   friendsInitiated    Friend[]              @relation("UserFriends")
   friendsAdded        Friend[]              @relation("FriendOf")
   contactHashes       ContactHash[]
+  favoritesOwned      FavoriteContact[]     @relation("FavoritesOwner")
+  favoritedBy         FavoriteContact[]     @relation("FavoritedContact")
   supportTickets      SupportTicket[]
   referralRewards     ReferralReward[]
   CoupleFinanceIncome CoupleFinanceIncome[]
@@ -2660,4 +2662,20 @@ model SupportTicket {
   @@index([assignedToId])
   @@index([userId])
   @@map("support_tickets")
+}
+
+// ─── FAVORITE CONTACTS ─────────────────────────────────────
+// One-directional favorites (no accept/reject needed)
+model FavoriteContact {
+  id             String   @id @default(uuid()) @db.VarChar(36)
+  userId         String   @db.VarChar(36)  // user who added the favorite
+  contactUserId  String   @db.VarChar(36)  // user being favorited
+  createdAt      DateTime @default(now())
+
+  user    User @relation("FavoritesOwner", fields: [userId], references: [id], onDelete: Cascade)
+  contact User @relation("FavoritedContact", fields: [contactUserId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contactUserId])
+  @@index([userId])
+  @@map("favorite_contacts")
 }

@@ -31,8 +31,11 @@ export function LockProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const sub = AppState.addEventListener('change', (nextState) => {
       if (nextState === 'background' || nextState === 'inactive') {
-        SecureStore.getItemAsync('appPin').then((pin) => {
-          if (pin) {
+        Promise.all([
+          SecureStore.getItemAsync('appPin'),
+          SecureStore.getItemAsync('appLockEnabled'),
+        ]).then(([pin, enabled]) => {
+          if (pin && enabled === 'true') {
             setIsLocked(true);
           }
         });

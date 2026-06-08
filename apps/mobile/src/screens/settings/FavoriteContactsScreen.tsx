@@ -1,249 +1,455 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, FlatList, Animated,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
+  Animated,
+  TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFavorites } from '../../store/FavoritesContext';
-import { fetchRecentContacts, ContactUser } from '../../services/contacts';
+import * as favoritesApi from '../../services/favorites';
+import * as contactsService from '../../services/contacts';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const COLORS = {
+  bg: '#070708',
+  cardBg: '#131315',
+  border: 'rgba(255,255,255,0.06)',
+  textPrimary: '#FFF',
+  textSecondary: 'rgba(255,255,255,0.7)',
+  textTertiary: 'rgba(255,255,255,0.35)',
+  accent: '#FF6B00',
+  accentGradient: ['#FF6B00', '#FF8C38'] as const,
+  red: '#FF4D4F',
+  green: '#34C759',
+  surface: 'rgba(255,255,255,0.06)',
+};
 
 export function FavoriteContactsScreen() {
   const navigation = useNavigation<any>();
-  const { favorites, addFavorite, removeFavorite } = useFavorites();
+  const { favorites, loading, refresh } = useFavorites();
   const insets = useSafeAreaInsets();
-  const [suggestions, setSuggestions] = useState<ContactUser[]>([]);
-  const [loadingSuggestions, setLoadingSuggestions] = useState(true);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<favoritesApi.SearchUser[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [deviceContacts, setDeviceContacts] = useState<favoritesApi.SearchUser[]>([]);
+  const [loadingDevice, setLoadingDevice] = useState(false);
+  const [addingId, setAddingId] = useState<string | null>(null);
+
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [0, 60],
+    outputRange: [1, 0.92],
+    extrapolate: 'clamp',
+  });
 
   useEffect(() => {
-    fetchRecentContacts().then((contacts) => {
-      const filtered = contacts.filter((c) => !favorites.some((f) => f.userId === c.id));
-      setSuggestions(filtered);
-      setLoadingSuggestions(false);
-    });
-  }, [favorites]);
+    loadDeviceContacts();
+  }, []);
 
-  const handleRemove = useCallback(async (userId: string) => {
-    await removeFavorite(userId);
-  }, [removeFavorite]);
-
-  const handleAdd = useCallback(async (userId: string, name: string, phone?: string) => {
-    await addFavorite(userId, name, phone);
-  }, [addFavorite]);
-
-  const FavoriteRow = ({ item, onRemove }: { item: typeof favorites[0]; onRemove: () => void }) => {
-    const fadeAnim = useRef(new Animated.Value(1)).current;
-    const slideAnim = useRef(new Animated.Value(0)).current;
-
-    const handleRemoveAnim = () => {
-      Animated.parallel([
-        Animated.timing(fadeAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-        Animated.timing(slideAnim, { toValue: -20, duration: 200, useNativeDriver: true }),
-      ]).start(() => onRemove());
-    };
-
-    const scaleAnim = useRef(new Animated.Value(1)).current;
-
-    return (
-      <Animated.View
-        style={[
-          s.row,
-          { opacity: fadeAnim, transform: [{ translateX: slideAnim }, { scale: scaleAnim }] },
-        ]}
-      >
-        <View style={s.avatar}>
-          <Text style={s.avatarText}>{item.name[0]?.toUpperCase() || '?'}</Text>
-        </View>
-        <View style={s.rowInfo}>
-          <Text style={s.rowName} numberOfLines={1}>{item.name}</Text>
-          {item.phone && <Text style={s.rowPhone}>{item.phone}</Text>}
-        </View>
-        <TouchableOpacity
-          style={s.removeBtn}
-          onPress={handleRemoveAnim}
-          activeOpacity={0.6}
-        >
-          <Ionicons name="trash-outline" size={18} color="#FF4D4F" />
-        </TouchableOpacity>
-      </Animated.View>
-    );
+  const loadDeviceContacts = async () => {
+    setLoadingDevice(true);
+    try {
+      const { matched } = await contactsService.syncContacts();
+      setDeviceContacts(
+        matched
+          .filter((m) => !favorites.some((f) => f.userId === m.userId))
+          .map((m) => ({
+            id: m.userId,
+            email: m.email,
+            firstName: m.name,
+            lastName: '',
+            avatarUrl: m.avatarUrl,
+            phone: m.phone,
+          })),
+      );
+    } catch {
+      // ignore
+    }
+    setLoadingDevice(false);
   };
 
-  const SuggestionRow = ({ item, onAdd }: { item: ContactUser; onAdd: () => void }) => {
-    const scaleAnim = useRef(new Animated.Value(1)).current;
-    const name = [item.firstName, item.lastName].filter(Boolean).join(' ') || 'Unknown';
+  const handleSearch = useCallback(
+    async (text: string) => {
+      setSearchQuery(text);
+      if (text.trim().length < 2) {
+        setSearchResults([]);
+        return;
+      }
+      setSearching(true);
+      const results = await favoritesApi.searchUsers(text);
+      setSearchResults(results.filter((r) => !favorites.some((f) => f.userId === r.id)));
+      setSearching(false);
+    },
+    [favorites],
+  );
 
+  const handleAddFavorite = useCallback(
+    async (userId: string) => {
+      setAddingId(userId);
+      await favoritesApi.addFavorite(userId);
+      await refresh();
+      setAddingId(null);
+      setSearchQuery('');
+      setSearchResults([]);
+      loadDeviceContacts();
+    },
+    [refresh],
+  );
+
+  const handleRemoveFavorite = useCallback(
+    async (userId: string) => {
+      await favoritesApi.removeFavorite(userId);
+      await refresh();
+      loadDeviceContacts();
+    },
+    [refresh],
+  );
+
+  const favoriteIds = useMemo(() => new Set(favorites.map((f) => f.userId)), [favorites]);
+
+  const gradientColors = useMemo(() => [...COLORS.accentGradient], []);
+
+  const renderHeader = () => (
+    <Animated.View style={[styles.header, { paddingTop: insets.top + 8, opacity: headerOpacity }]}>
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+        <Ionicons name="arrow-back" size={20} color="#FFF" />
+      </TouchableOpacity>
+      <Text style={styles.headerTitle}>Favorite Contacts</Text>
+      <View style={{ width: 36 }} />
+    </Animated.View>
+  );
+
+  const renderSearchBar = () => (
+    <View style={styles.searchWrap}>
+      <View style={styles.searchInner}>
+        <Ionicons name="search" size={16} color="rgba(255,255,255,0.4)" style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search by name or phone..."
+          placeholderTextColor="rgba(255,255,255,0.3)"
+          value={searchQuery}
+          onChangeText={handleSearch}
+          returnKeyType="search"
+          keyboardType="default"
+        />
+        {searching && <ActivityIndicator size="small" color={COLORS.accent} />}
+        {searchQuery.length > 0 && !searching && (
+          <TouchableOpacity
+            onPress={() => {
+              setSearchQuery('');
+              setSearchResults([]);
+            }}
+          >
+            <Ionicons name="close-circle" size={16} color="rgba(255,255,255,0.4)" />
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
+  );
+
+  const renderSearchResults = () => {
+    if (searchQuery.length < 2) {
+      return null;
+    }
     return (
-      <View style={s.row}>
-        <View style={s.avatar}>
-          <Text style={s.avatarText}>{name[0]?.toUpperCase() || '?'}</Text>
-        </View>
-        <View style={s.rowInfo}>
-          <Text style={s.rowName} numberOfLines={1}>{name}</Text>
-          {item.email && <Text style={s.rowPhone}>{item.email}</Text>}
-        </View>
-        <TouchableOpacity
-          style={s.addBtn}
-          onPress={() => {
-            Animated.sequence([
-              Animated.timing(scaleAnim, { toValue: 1.2, duration: 100, useNativeDriver: true }),
-              Animated.timing(scaleAnim, { toValue: 1, duration: 100, useNativeDriver: true }),
-            ]).start();
-            onAdd();
-          }}
-          activeOpacity={0.6}
-        >
-          <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-            <Ionicons name="star-outline" size={20} color="#FF6B00" />
-          </Animated.View>
-        </TouchableOpacity>
-      </View>
-    );
-  };
-
-  return (
-    <View style={[s.screen, { backgroundColor: '#070708' }]}>
-      <View style={[s.header, { paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-          <Ionicons name="arrow-back" size={22} color="#FFF" />
-        </TouchableOpacity>
-        <Text style={s.headerTitle}>Manage Favorites</Text>
-        <View style={{ width: 36 }} />
-      </View>
-
-      <FlatList
-        data={['favorites_section', 'suggestions_section']}
-        keyExtractor={(item) => item}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}
-        renderItem={({ item }) => {
-          if (item === 'favorites_section') {
-            if (favorites.length === 0 && suggestions.length === 0) {
-              return (
-                <View style={s.emptyWrap}>
-                  <View style={s.emptyIconBox}>
-                    <Ionicons name="star-outline" size={48} color="rgba(255,255,255,0.2)" />
-                  </View>
-                  <Text style={s.emptyTitle}>No favorites yet</Text>
-                  <Text style={s.emptyDesc}>
-                    Add frequent friends to quickly pull them into new split circles.
-                  </Text>
-                </View>
-              );
-            }
-            return (
-              <View style={s.section}>
-                <Text style={s.sectionTitle}>Active Favorites</Text>
-                <View style={[s.listCard, { backgroundColor: '#131315', borderColor: 'rgba(255,255,255,0.06)' }]}>
-                  {favorites.length === 0 ? (
-                    <Text style={[s.emptyHint, { color: 'rgba(255,255,255,0.3)' }]}>
-                      No favorites added yet
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>
+          {searchResults.length > 0 ? 'Search Results' : 'No users found'}
+        </Text>
+        {searchResults.length > 0 && (
+          <View style={styles.listCard}>
+            {searchResults.map((user, i) => (
+              <React.Fragment key={user.id}>
+                <View style={styles.row}>
+                  <LinearGradient colors={[COLORS.accent, '#FF8C38']} style={styles.avatarGradient}>
+                    <Text style={styles.avatarText}>
+                      {(user.firstName?.[0] || user.email?.[0] || '?').toUpperCase()}
                     </Text>
+                  </LinearGradient>
+                  <View style={styles.rowInfo}>
+                    <Text style={styles.rowName} numberOfLines={1}>
+                      {[user.firstName, user.lastName].filter(Boolean).join(' ') || user.email}
+                    </Text>
+                    {user.phone && <Text style={styles.rowPhone}>{user.phone}</Text>}
+                  </View>
+                  {favoriteIds.has(user.id) ? (
+                    <View style={[styles.actionBtn, styles.favBtnActive]}>
+                      <Ionicons name="star" size={16} color={COLORS.accent} />
+                    </View>
                   ) : (
-                    favorites.map((fav, i) => (
-                      <React.Fragment key={fav.userId}>
-                        <FavoriteRow item={fav} onRemove={() => handleRemove(fav.userId)} />
-                        {i < favorites.length - 1 && (
-                          <View style={[s.divider, { backgroundColor: 'rgba(255,255,255,0.04)' }]} />
-                        )}
-                      </React.Fragment>
-                    ))
+                    <TouchableOpacity
+                      style={[styles.actionBtn, styles.addBtn]}
+                      onPress={() => handleAddFavorite(user.id)}
+                      disabled={addingId === user.id}
+                    >
+                      {addingId === user.id ? (
+                        <ActivityIndicator size="small" color={COLORS.accent} />
+                      ) : (
+                        <Ionicons name="star-outline" size={16} color={COLORS.accent} />
+                      )}
+                    </TouchableOpacity>
                   )}
                 </View>
-              </View>
-            );
-          }
+                {i < searchResults.length - 1 && <View style={styles.divider} />}
+              </React.Fragment>
+            ))}
+          </View>
+        )}
+      </View>
+    );
+  };
 
-          if (item === 'suggestions_section') {
-            if (loadingSuggestions) return null;
-            if (suggestions.length === 0) return null;
-            return (
-              <View style={s.section}>
-                <Text style={s.sectionTitle}>Suggested Friends</Text>
-                <View style={[s.listCard, { backgroundColor: '#131315', borderColor: 'rgba(255,255,255,0.06)' }]}>
-                  {suggestions.slice(0, 10).map((sug, i) => {
-                    const name = [sug.firstName, sug.lastName].filter(Boolean).join(' ') || 'Unknown';
-                    return (
-                      <React.Fragment key={sug.id || String(i)}>
-                        <SuggestionRow
-                          item={sug}
-                          onAdd={() => handleAdd(sug.id, name, sug.phone)}
-                        />
-                        {i < Math.min(suggestions.length, 10) - 1 && (
-                          <View style={[s.divider, { backgroundColor: 'rgba(255,255,255,0.04)' }]} />
-                        )}
-                      </React.Fragment>
-                    );
-                  })}
+  const renderDeviceContacts = () => {
+    if (deviceContacts.length === 0 || searchQuery.length > 0) {
+      return null;
+    }
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>From Your Contacts</Text>
+        <View style={styles.listCard}>
+          {deviceContacts.slice(0, 5).map((user, i) => (
+            <React.Fragment key={user.id}>
+              <View style={styles.row}>
+                <LinearGradient colors={gradientColors} style={styles.avatarGradient}>
+                  <Text style={styles.avatarText}>
+                    {(user.firstName?.[0] || '?').toUpperCase()}
+                  </Text>
+                </LinearGradient>
+                <View style={styles.rowInfo}>
+                  <Text style={styles.rowName} numberOfLines={1}>
+                    {user.firstName || user.email}
+                  </Text>
+                  {user.phone && <Text style={styles.rowPhone}>{user.phone}</Text>}
                 </View>
+                <TouchableOpacity
+                  style={[styles.actionBtn, styles.addBtn]}
+                  onPress={() => handleAddFavorite(user.id)}
+                  disabled={addingId === user.id}
+                >
+                  {addingId === user.id ? (
+                    <ActivityIndicator size="small" color={COLORS.accent} />
+                  ) : (
+                    <Ionicons name="star-outline" size={16} color={COLORS.accent} />
+                  )}
+                </TouchableOpacity>
               </View>
-            );
-          }
-          return null;
-        }}
+              {i < Math.min(deviceContacts.length, 5) - 1 && <View style={styles.divider} />}
+            </React.Fragment>
+          ))}
+          {deviceContacts.length > 5 && (
+            <TouchableOpacity style={styles.moreBtn}>
+              <Text style={styles.moreBtnText}>+{deviceContacts.length - 5} more</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+    );
+  };
+
+  const renderFavorites = () => {
+    if (favorites.length === 0 && searchQuery.length === 0) {
+      return (
+        <View style={styles.emptyWrap}>
+          <LinearGradient
+            colors={['rgba(255,107,0,0.15)', 'rgba(255,107,0,0.05)']}
+            style={styles.emptyIconBox}
+          >
+            <Ionicons name="star-outline" size={40} color={COLORS.accent} />
+          </LinearGradient>
+          <Text style={styles.emptyTitle}>No favorites yet</Text>
+          <Text style={styles.emptyDesc}>
+            Search by name or phone above, or sync your contacts to find friends on Dabbu.
+          </Text>
+        </View>
+      );
+    }
+    if (searchQuery.length > 0) {
+      return null;
+    }
+
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Favorites ({favorites.length})</Text>
+        <View style={styles.listCard}>
+          {favorites.map((fav, i) => (
+            <React.Fragment key={fav.userId}>
+              <View style={styles.row}>
+                <LinearGradient colors={gradientColors} style={styles.avatarGradient}>
+                  <Text style={styles.avatarText}>{fav.name[0]?.toUpperCase() || '?'}</Text>
+                </LinearGradient>
+                <View style={styles.rowInfo}>
+                  <Text style={styles.rowName} numberOfLines={1}>
+                    {fav.name}
+                  </Text>
+                  {fav.phone && <Text style={styles.rowPhone}>{fav.phone}</Text>}
+                </View>
+                <TouchableOpacity
+                  style={[styles.actionBtn, styles.removeBtn]}
+                  onPress={() => handleRemoveFavorite(fav.userId)}
+                >
+                  <Ionicons name="trash-outline" size={16} color={COLORS.red} />
+                </TouchableOpacity>
+              </View>
+              {i < favorites.length - 1 && <View style={styles.divider} />}
+            </React.Fragment>
+          ))}
+        </View>
+      </View>
+    );
+  };
+
+  const ListHeader = () => (
+    <>
+      {renderHeader()}
+      {renderSearchBar()}
+      {renderSearchResults()}
+      {renderDeviceContacts()}
+      {renderFavorites()}
+    </>
+  );
+
+  if (loading) {
+    return (
+      <View style={[styles.screen, { backgroundColor: COLORS.bg }]}>
+        {renderHeader()}
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={COLORS.accent} />
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.screen, { backgroundColor: COLORS.bg }]}>
+      <FlatList
+        data={[]}
+        renderItem={() => null}
+        ListHeaderComponent={ListHeader}
+        ListFooterComponent={() => <View style={{ height: 40 }} />}
+        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
+          useNativeDriver: false,
+        })}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       />
     </View>
   );
 }
 
-const s = StyleSheet.create({
+const styles = StyleSheet.create({
   screen: { flex: 1 },
 
-  /* Header */
   header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 20, height: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    height: 56,
   },
   backBtn: {
-    width: 36, height: 36, borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center',
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: { fontSize: 17, fontWeight: '700', color: '#FFF' },
 
-  /* Empty State */
-  emptyWrap: { alignItems: 'center', paddingHorizontal: 32, paddingTop: 80 },
-  emptyIconBox: {
-    width: 88, height: 88, borderRadius: 28,
-    backgroundColor: 'rgba(255,255,255,0.04)', alignItems: 'center', justifyContent: 'center',
-    marginBottom: 20,
+  searchWrap: { paddingHorizontal: 20, marginTop: 12, marginBottom: 8 },
+  searchInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    height: 44,
+    gap: 8,
   },
-  emptyTitle: { fontSize: 20, fontWeight: '700', color: '#FFF', marginBottom: 8 },
-  emptyDesc: {
-    fontSize: 14, fontWeight: '500', color: '#8E8E93',
-    textAlign: 'center', lineHeight: 20,
+  searchIcon: { marginRight: 2 },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#FFF',
+    paddingVertical: 0,
   },
 
-  /* Sections */
   section: { marginTop: 24, paddingHorizontal: 20 },
   sectionTitle: {
-    fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase',
-    color: 'rgba(255,255,255,0.35)', marginBottom: 10, marginLeft: 4,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    color: 'rgba(255,255,255,0.35)',
+    marginBottom: 10,
+    marginLeft: 4,
   },
-  listCard: { borderRadius: 20, borderWidth: 1, overflow: 'hidden' },
-  emptyHint: { fontSize: 13, fontWeight: '500', textAlign: 'center', paddingVertical: 24 },
+  listCard: {
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: '#131315',
+    overflow: 'hidden',
+  },
 
-  /* Row */
   row: {
-    flexDirection: 'row', alignItems: 'center',
-    padding: 14, gap: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    gap: 12,
   },
-  avatar: {
-    width: 44, height: 44, borderRadius: 22,
-    backgroundColor: '#1C1C1E', alignItems: 'center', justifyContent: 'center',
+  avatarGradient: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   avatarText: { fontSize: 17, fontWeight: '700', color: '#FFF' },
   rowInfo: { flex: 1 },
   rowName: { fontSize: 15, fontWeight: '600', color: '#FFF', marginBottom: 1 },
-  rowPhone: { fontSize: 12, fontWeight: '500', color: '#8E8E93' },
+  rowPhone: { fontSize: 12, fontWeight: '500', color: 'rgba(255,255,255,0.45)' },
 
-  removeBtn: {
-    width: 36, height: 36, borderRadius: 10,
-    backgroundColor: 'rgba(255,77,79,0.1)', alignItems: 'center', justifyContent: 'center',
+  actionBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  addBtn: {
-    width: 36, height: 36, borderRadius: 10,
-    backgroundColor: 'rgba(255,107,0,0.1)', alignItems: 'center', justifyContent: 'center',
-  },
+  addBtn: { backgroundColor: 'rgba(255,107,0,0.1)' },
+  favBtnActive: { backgroundColor: 'rgba(255,107,0,0.15)' },
+  removeBtn: { backgroundColor: 'rgba(255,77,79,0.1)' },
 
-  divider: { height: 1, marginHorizontal: 14 },
+  divider: { height: 1, marginHorizontal: 14, backgroundColor: 'rgba(255,255,255,0.04)' },
+  moreBtn: { alignItems: 'center', paddingVertical: 12 },
+  moreBtnText: { fontSize: 13, fontWeight: '600', color: '#FF6B00' },
+
+  emptyWrap: { alignItems: 'center', paddingHorizontal: 32, paddingTop: 60 },
+  emptyIconBox: {
+    width: 80,
+    height: 80,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  emptyTitle: { fontSize: 20, fontWeight: '700', color: '#FFF', marginBottom: 8 },
+  emptyDesc: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#8E8E93',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
 });
