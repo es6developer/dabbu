@@ -26,6 +26,7 @@ import {
   SendOtpDto,
   VerifyOtpDto,
   SetupLockDto,
+  DemoLoginDto,
 } from './dto/auth.dto';
 
 @ApiTags('Authentication')
@@ -93,9 +94,13 @@ export class AuthController {
   @Post('demo')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Demo login with pre-created demo account' })
-  async demoLogin(@Req() req: any, @Headers('user-agent') userAgent?: string) {
+  async demoLogin(
+    @Body() dto: DemoLoginDto,
+    @Req() req: any,
+    @Headers('user-agent') userAgent?: string,
+  ) {
     const ip = req.ip || req.headers['x-forwarded-for']?.split(',')[0] || '';
-    const result = await this.authService.demoLogin(ip, userAgent);
+    const result = await this.authService.demoLogin(ip, userAgent, dto.deviceName, dto.platform);
     return { data: result };
   }
 

@@ -165,6 +165,18 @@ export class GoogleAuthDto {
   platform?: string;
 }
 
+export class DemoLoginDto {
+  @ApiPropertyOptional({ description: 'Device name (e.g. iPhone 15 Pro)' })
+  @IsString()
+  @IsOptional()
+  deviceName?: string;
+
+  @ApiPropertyOptional({ description: 'Platform (ios, android, web)' })
+  @IsString()
+  @IsOptional()
+  platform?: string;
+}
+
 export class ChangePasswordDto {
   @ApiProperty()
   @IsString()

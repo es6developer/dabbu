@@ -36,6 +36,7 @@
     "expo-font": "~11.10.0",
     "expo-haptics": "~12.8.0",
     "expo-image-picker": "~14.7.1",
+    "expo-linear-gradient": "~12.7.2",
     "expo-linking": "~6.2.0",
     "expo-local-authentication": "~13.8.0",
     "expo-localization": "~14.8.0",
@@ -58,7 +59,7 @@
     "react-native-web": "0.19.13",
     "react-native-webview": "13.6.4",
     "socket.io-client": "4.8.3",
-    "zod": "^3.22.0",
+    "zod": "^3.22.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
