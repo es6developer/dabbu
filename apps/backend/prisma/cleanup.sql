@@ -2,9 +2,9 @@
 -- DABBU DATABASE CLEANUP
 -- Removes ALL user data while preserving master/seed data.
 --
--- Master data preserved:
+-- Master data preserved (user records kept, their data wiped):
 --   System user system@dabbu.internal  → owns default categories
---   Demo user   demo@dabbu.app         → test/demo account
+--   Demo user   demo@dabbu.app         → user record kept, all data wiped
 --   subscription_plans                  → premium tiers
 --   currencies                          → supported currencies
 --   admin_users                         → admin panel accounts
@@ -35,160 +35,160 @@ SET @target_users = NULL;
 -- Shared expenses (NoAction FK on paidBy)
 DELETE se FROM shared_expenses se
 JOIN users u ON u.id = se.paidBy
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- Settlements (NoAction FK on fromUserId and toUserId)
 DELETE s1 FROM settlements s1
 JOIN users u ON u.id = s1.fromUserId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 DELETE s2 FROM settlements s2
 JOIN users u ON u.id = s2.toUserId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- Audit (NoAction)
 DELETE al FROM audit_logs al
 JOIN users u ON u.id = al.userId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- Analytics events (SetNull)
 DELETE ae FROM analytics_events ae
 JOIN users u ON u.id = ae.userId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- Login activity
 DELETE la FROM login_activity la
 JOIN users u ON u.id = la.userId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- Notification logs
 DELETE nl FROM notification_logs nl
 JOIN users u ON u.id = nl.userId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- Notifications
 DELETE n FROM notifications n
 JOIN users u ON u.id = n.userId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- Sessions
 DELETE s FROM sessions s
 JOIN users u ON u.id = s.userId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- Devices
 DELETE d FROM devices d
 JOIN users u ON u.id = d.userId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- Contact hashes
 DELETE ch FROM contact_hashes ch
 JOIN users u ON u.id = ch.userId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- Friends (both sides)
 DELETE f1 FROM friends f1
 JOIN users u ON u.id = f1.userId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 DELETE f2 FROM friends f2
 JOIN users u ON u.id = f2.friendId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- Expense splits (NoAction)
 DELETE es FROM expense_splits es
 JOIN users u ON u.id = es.userId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- Household contributions (NoAction)
 DELETE hc FROM household_contributions hc
 JOIN users u ON u.id = hc.userId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- Shared goal contributions (NoAction)
 DELETE sgc FROM shared_goal_contributions sgc
 JOIN users u ON u.id = sgc.userId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- Group wallet members (NoAction)
 DELETE gwm FROM group_wallet_members gwm
 JOIN users u ON u.id = gwm.userId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- Advance contribution history (NoAction)
 DELETE ach FROM advance_contribution_history ach
 JOIN users u ON u.id = ach.userId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- Document permissions (NoAction)
 DELETE dp FROM document_permissions dp
 JOIN users u ON u.id = dp.userId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- Bill splits (NoAction)
 DELETE bs FROM bill_splits bs
 JOIN users u ON u.id = bs.userId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- Emergency contributions (NoAction)
 DELETE ec FROM emergency_contributions ec
 JOIN users u ON u.id = ec.userId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- User badges (NoAction)
 DELETE ub FROM user_badges ub
 JOIN users u ON u.id = ub.userId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- User documents (NoAction)
 DELETE ud FROM user_documents ud
 JOIN users u ON u.id = ud.userId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- User streaks (NoAction)
 DELETE us FROM user_streaks us
 JOIN users u ON u.id = us.userId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- Export history (NoAction — FK is exportedBy, not userId)
 DELETE eh FROM export_history eh
 JOIN users u ON u.id = eh.exportedBy
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- SMS detections
 DELETE sd FROM sms_detections sd
 JOIN users u ON u.id = sd.userId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- Group chat messages (NoAction on senderId)
 DELETE gcm FROM group_chat_messages gcm
 JOIN users u ON u.id = gcm.senderId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- Group chat reads (NoAction on userId)
 DELETE gcr FROM group_chat_reads gcr
 JOIN users u ON u.id = gcr.userId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- Shared_group_members (we need to delete by userId since group is CASCADE, but userId is also CASCADE — redundant for safety)
 DELETE sgm FROM shared_group_members sgm
 JOIN users u ON u.id = sgm.userId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- Expense_group_members (same as above)
 DELETE egm FROM expense_group_members egm
 JOIN users u ON u.id = egm.userId
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- Shared groups (CASCADE, but explicit for safety)
 DELETE sg FROM shared_groups sg
 JOIN users u ON u.id = sg.createdBy
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- Expense groups (CASCADE, explicit for safety)
 DELETE eg FROM expense_groups eg
 JOIN users u ON u.id = eg.createdBy
-WHERE u.email NOT IN ('system@dabbu.internal', 'demo@dabbu.app');
+WHERE u.email NOT IN ('system@dabbu.internal');
 
 -- ═══════════════════════════════════════════════════════════
 -- 2. DELETE THE REAL USERS

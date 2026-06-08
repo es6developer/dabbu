@@ -94,7 +94,8 @@ function InputField({
 export function PremiumSignupScreen() {
   const navigation = useNavigation<any>();
   const { register } = useAuth();
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -103,6 +104,7 @@ export function PremiumSignupScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(24)).current;
 
+  const lastNameRef = useRef<TextInput>(null);
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
   const confirmRef = useRef<TextInput>(null);
@@ -115,7 +117,7 @@ export function PremiumSignupScreen() {
   }, [fadeAnim, slideAnim]);
 
   async function handleSignup() {
-    if (!name.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
+    if (!firstName.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
       setError('Please fill in all fields');
       return;
     }
@@ -123,14 +125,11 @@ export function PremiumSignupScreen() {
       setError('Passwords do not match');
       return;
     }
-    const nameParts = name.trim().split(' ');
-    const firstName = nameParts[0];
-    const lastName = nameParts.slice(1).join(' ') || '';
 
     setLoading(true);
     setError('');
     try {
-      await register(email.trim(), password, firstName, lastName);
+      await register(email.trim(), password, firstName.trim(), lastName.trim());
     } catch (e: any) {
       setError(e.message || 'Registration failed');
     } finally {
@@ -162,15 +161,30 @@ export function PremiumSignupScreen() {
             <Text style={styles.subtitle}>Join millions managing money smarter with Dabbu</Text>
 
             <View style={styles.form}>
-              <InputField
-                placeholder="Full name"
-                value={name}
-                onChangeText={setName}
-                autoCapitalize="words"
-                returnKeyType="next"
-                icon="person-outline"
-                onSubmitEditing={() => emailRef.current?.focus()}
-              />
+              <View style={styles.nameRow}>
+                <View style={styles.nameField}>
+                  <InputField
+                    placeholder="First name"
+                    value={firstName}
+                    onChangeText={setFirstName}
+                    autoCapitalize="words"
+                    returnKeyType="next"
+                    icon="person-outline"
+                    onSubmitEditing={() => lastNameRef.current?.focus()}
+                  />
+                </View>
+                <View style={styles.nameField}>
+                  <InputField
+                    placeholder="Last name"
+                    value={lastName}
+                    onChangeText={setLastName}
+                    autoCapitalize="words"
+                    returnKeyType="next"
+                    inputRef={lastNameRef}
+                    onSubmitEditing={() => emailRef.current?.focus()}
+                  />
+                </View>
+              </View>
               <InputField
                 placeholder="Email address"
                 value={email}
@@ -291,6 +305,8 @@ const styles = StyleSheet.create({
   form: {
     gap: 0,
   },
+  nameRow: { flexDirection: 'row', gap: 10 },
+  nameField: { flex: 1 },
   inputContainer: {
     height: 52,
     backgroundColor: '#1C1C1E',
