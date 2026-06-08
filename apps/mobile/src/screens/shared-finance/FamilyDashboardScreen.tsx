@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -162,8 +163,13 @@ export function FamilyDashboardScreen() {
           </TouchableOpacity>
         </View>
 
-        <View  style={s.heroSection}>
-          <View style={s.heroIconWrap}>
+        <LinearGradient
+          colors={['#6C3EF4', '#8B5CF6']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={s.heroSection}
+        >
+          <View style={[s.heroIconWrap, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
             <Ionicons name="people" size={28} color="#FFF" />
           </View>
           <Text style={s.heroTitle}>{groupName}</Text>
@@ -173,7 +179,7 @@ export function FamilyDashboardScreen() {
             <Text style={s.heroMetaText}>{summary.totalExpenses || 0} expenses</Text>
           </View>
           <Text style={s.heroSub}>{fmt(totalMonthlySpending)} spent this month</Text>
-        </View>
+        </LinearGradient>
 
         <View style={s.widgetsGrid}>
           <View style={[s.widgetCard, { backgroundColor: colors.bg.secondary }]}>
@@ -373,6 +379,7 @@ const s = StyleSheet.create({
     padding: 24,
     marginTop: 16,
     alignItems: 'center',
+    overflow: 'hidden',
   },
   heroIconWrap: {
     width: 52,

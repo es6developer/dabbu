@@ -58,17 +58,6 @@ function BillCarouselCard({ item, colors, navigation }: { item: any; colors: any
           {fmt(Number(item.amount))}
         </Text>
       </View>
-      <TouchableOpacity
-        style={[s.splitBtn, { backgroundColor: 'rgba(255,107,0,0.15)' }]}
-        activeOpacity={0.8}
-        onPress={() => {
-          if (item.expenseGroupId) {
-            navigation.navigate('GroupExpenses', { groupId: item.expenseGroupId });
-          }
-        }}
-      >
-        <Text style={[s.splitBtnText, { color: colors.accent.primary }]}>Split Now</Text>
-      </TouchableOpacity>
     </View>
   );
 }
@@ -201,15 +190,27 @@ export function SharedCirclesScreen() {
       else setLoading(true);
       try {
         if (accessToken) setAccessToken(accessToken);
-        const [grpResult, txResult] = await Promise.allSettled([
+        const [grpResult] = await Promise.allSettled([
           api.get<any>('/expense-groups', ctrl.signal),
-          api.get<any>('/transactions', ctrl.signal),
         ]);
         if (ctrl.signal.aborted) return;
         const g = grpResult.status === 'fulfilled' ? (Array.isArray(grpResult.value) ? grpResult.value : []) : [];
-        const txData = txResult.status === 'fulfilled' ? (Array.isArray(txResult.value) ? txResult.value : []) : [];
         setGroups(g);
-        setTransactions(txData);
+
+        let allTx: any[] = [];
+        const groupIds = g.filter((grp: any) => (grp._count?.transactions || 0) > 0).map((grp: any) => grp.id);
+        if (groupIds.length > 0) {
+          const txResults = await Promise.allSettled(
+            groupIds.map((gid: string) =>
+              api.get<any>(`/transactions?expenseGroupId=${gid}&limit=5`, ctrl.signal),
+            ),
+          );
+          allTx = txResults
+            .filter((r) => r.status === 'fulfilled')
+            .flatMap((r: any) => (Array.isArray(r.value) ? r.value : []));
+        }
+        setTransactions(allTx);
+
         Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
       } catch (e) {
         /* ignore */

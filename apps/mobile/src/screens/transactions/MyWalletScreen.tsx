@@ -12,6 +12,7 @@ import {
   ScrollView,
   Animated,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
@@ -314,7 +315,12 @@ export function MyWalletScreen() {
             </Animated.View>
 
             <Animated.View style={{ transform: [{ scale: cardScale }] }}>
-              <View style={[s.balanceCard, { backgroundColor: colors.bg.secondary }]}>
+              <LinearGradient
+                colors={['#6C3EF4', '#8B5CF6']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={s.balanceCard}
+              >
                 <View style={s.balanceTop}>
                   <View>
                     <Text style={s.balanceLabel}>Total Balance</Text>
@@ -353,7 +359,7 @@ export function MyWalletScreen() {
                     </View>
                   </View>
                 </View>
-              </View>
+              </LinearGradient>
             </Animated.View>
 
             <View style={s.quickActions}>
@@ -571,7 +577,7 @@ const s = StyleSheet.create({
   headerTitle: { fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
   avatar: { width: 42, height: 42, borderRadius: 12, overflow: 'hidden' },
   avatarGrad: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  balanceCard: { marginHorizontal: 20, borderRadius: 28, padding: 24, gap: 20, marginBottom: 16 },
+  balanceCard: { marginHorizontal: 20, borderRadius: 28, padding: 24, gap: 20, marginBottom: 16, overflow: 'hidden' },
   balanceTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   balanceLabel: {
     fontSize: 12,

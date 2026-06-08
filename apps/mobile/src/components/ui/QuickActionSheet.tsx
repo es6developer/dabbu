@@ -1,12 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions,
+  View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 
 const { height: SCREEN_H } = Dimensions.get('window');
+const TAB_BAR_OFFSET = Platform.OS === 'ios' ? 90 : 80;
 
 interface ActionItem {
   label: string;
@@ -22,21 +23,23 @@ interface QuickActionSheetProps {
 }
 
 export function QuickActionSheet({ actions, activeItem, visible, onClose }: QuickActionSheetProps) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const slideAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const itemScaleAnim = useRef(new Animated.Value(0.6)).current;
 
   useEffect(() => {
     if (visible) {
       Animated.parallel([
-        Animated.timing(slideAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
-        Animated.timing(fadeAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
+        Animated.spring(slideAnim, { toValue: 1, friction: 8, tension: 65, useNativeDriver: true }),
+        Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
+        Animated.spring(itemScaleAnim, { toValue: 1, friction: 6, tension: 70, useNativeDriver: true }),
       ]).start();
     } else {
       Animated.parallel([
-        Animated.timing(slideAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-        Animated.timing(fadeAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
+        Animated.timing(slideAnim, { toValue: 0, duration: 150, useNativeDriver: true }),
+        Animated.timing(fadeAnim, { toValue: 0, duration: 150, useNativeDriver: true }),
       ]).start();
     }
   }, [visible]);
@@ -45,11 +48,14 @@ export function QuickActionSheet({ actions, activeItem, visible, onClose }: Quic
 
   const sheetTranslateY = slideAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [400, 0],
+    outputRange: [200, 0],
   });
 
+  const backdropBottom = insets.bottom + TAB_BAR_OFFSET;
+
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+    <View style={[s.container, { bottom: backdropBottom }]} pointerEvents="box-none">
+      {/* Backdrop — covers only the area above the tab bar */}
       <Animated.View
         style={[s.backdrop, { opacity: fadeAnim }]}
         pointerEvents="auto"
@@ -60,20 +66,31 @@ export function QuickActionSheet({ actions, activeItem, visible, onClose }: Quic
           onPress={onClose}
         />
       </Animated.View>
+
+      {/* Floating sheet — positioned above tab bar */}
       <Animated.View
         style={[
           s.sheet,
           {
-            paddingBottom: insets.bottom + 20,
             transform: [{ translateY: sheetTranslateY }],
-            backgroundColor: '#1C1C1E',
+            backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
+            borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
           },
         ]}
       >
-        <View style={[s.handle, { backgroundColor: '#3A3A3C' }]} />
+        {/* Handle bar */}
+        <View style={[s.handle, { backgroundColor: isDark ? '#3A3A3C' : '#D1D1D6' }]} />
+
+        {/* Action grid */}
         <View style={s.grid}>
           {actions.map((action, i) => {
             const isActive = action.label === activeItem;
+            const itemDelay = i * 50;
+            const itemAnim = slideAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0.3 + i * 0.05, 1],
+            });
+
             return (
               <TouchableOpacity
                 key={i}
@@ -84,21 +101,31 @@ export function QuickActionSheet({ actions, activeItem, visible, onClose }: Quic
                   action.onPress();
                 }}
               >
-                <View
+                <Animated.View
                   style={[
                     s.bubble,
                     {
-                      backgroundColor: isActive ? 'rgba(255, 107, 0, 0.15)' : '#2C2C2E',
+                      backgroundColor: isActive
+                        ? 'rgba(255, 107, 0, 0.15)'
+                        : isDark ? '#2C2C2E' : '#F2F2F7',
+                      opacity: itemAnim,
                     },
                   ]}
                 >
                   <Ionicons
                     name={action.icon as keyof typeof Ionicons.glyphMap}
                     size={24}
-                    color={isActive ? '#FF6B00' : '#8E8E93'}
+                    color={isActive ? '#FF6B00' : (isDark ? '#FFFFFF' : '#1C1C1E')}
                   />
-                </View>
-                <Text style={[s.label, { color: colors.text.secondary }]}>{action.label}</Text>
+                </Animated.View>
+                <Text
+                  style={[
+                    s.label,
+                    { color: isDark ? '#8E8E93' : '#636366' },
+                  ]}
+                >
+                  {action.label}
+                </Text>
               </TouchableOpacity>
             );
           })}
@@ -109,6 +136,12 @@ export function QuickActionSheet({ actions, activeItem, visible, onClose }: Quic
 }
 
 const s = StyleSheet.create({
+  container: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+  },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -120,8 +153,15 @@ const s = StyleSheet.create({
     bottom: 0,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
+    borderWidth: 1,
     paddingTop: 12,
     paddingHorizontal: 20,
+    paddingBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 15,
   },
   handle: {
     width: 40,
@@ -150,6 +190,7 @@ const s = StyleSheet.create({
   },
   label: {
     fontSize: 11,
+    fontWeight: '600',
     textAlign: 'center',
   },
 });

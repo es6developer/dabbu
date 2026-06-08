@@ -289,7 +289,9 @@ export function HomeScreen() {
               onPress={() => navigation.navigate('Expense', { screen: 'CategorySelection' })}
             >
               <View style={[styles.qaIcon, { backgroundColor: `${colors.accent.primary}15` }]}>
-                <Ionicons name="add-circle-outline" size={24} color={colors.accent.primary} />
+                <View style={styles.qaIconInner}>
+                  <Ionicons name="add-circle-outline" size={24} color={colors.accent.primary} />
+                </View>
               </View>
               <Text style={[styles.qaLabel, { color: colors.text.secondary }]}>Add Expense</Text>
             </TouchableOpacity>
@@ -302,7 +304,9 @@ export function HomeScreen() {
               onPress={() => navigation.navigate('Spaces', { screen: 'CreateCircle' })}
             >
               <View style={[styles.qaIcon, { backgroundColor: `${colors.accent.primary}15` }]}>
-                <Ionicons name="people-outline" size={24} color={colors.accent.primary} />
+                <View style={styles.qaIconInner}>
+                  <Ionicons name="people-outline" size={24} color={colors.accent.primary} />
+                </View>
               </View>
               <Text style={[styles.qaLabel, { color: colors.text.secondary }]}>Create Circle</Text>
             </TouchableOpacity>
@@ -315,7 +319,9 @@ export function HomeScreen() {
               onPress={() => navigation.navigate('Spaces', { screen: 'SplitExpense' })}
             >
               <View style={[styles.qaIcon, { backgroundColor: '#34C75915' }]}>
-                <Ionicons name="swap-horizontal-outline" size={24} color="#34C759" />
+                <View style={styles.qaIconInner}>
+                  <Ionicons name="swap-horizontal-outline" size={24} color="#34C759" />
+                </View>
               </View>
               <Text style={[styles.qaLabel, { color: colors.text.secondary }]}>Split Payment</Text>
             </TouchableOpacity>
@@ -328,7 +334,9 @@ export function HomeScreen() {
               onPress={() => navigation.navigate('Settings', { screen: 'Reports' })}
             >
               <View style={[styles.qaIcon, { backgroundColor: '#F3D28F20' }]}>
-                <Ionicons name="stats-chart-outline" size={24} color="#F3D28F" />
+                <View style={styles.qaIconInner}>
+                  <Ionicons name="stats-chart-outline" size={24} color="#F3D28F" />
+                </View>
               </View>
               <Text style={[styles.qaLabel, { color: colors.text.secondary }]}>Reports</Text>
             </TouchableOpacity>
@@ -392,32 +400,49 @@ export function HomeScreen() {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }}
               >
-                {data.sharedGroups.slice(0, 5).map((g: any) => (
-                  <TouchableOpacity
-                    key={g.id}
-                    style={[styles.groupCard, { backgroundColor: colors.bg.card }]}
-                    activeOpacity={0.7}
-                    onPress={() =>
-                      navigation.navigate('Spaces', {
-                        screen: 'GroupDetail',
-                        params: { groupId: g.id },
-                      })
-                    }
-                  >
-                    <View style={styles.groupAvatar}>
-                      <Ionicons name="people" size={18} color="#FFF" />
-                    </View>
-                    <Text
-                      style={[styles.groupName, { color: colors.text.primary }]}
-                      numberOfLines={1}
+                {data.sharedGroups.slice(0, 5).map((g: any) => {
+                  const memberCount = g.members?.length || g._count?.members || 2;
+                  return (
+                    <TouchableOpacity
+                      key={g.id}
+                      style={[styles.groupCard, { backgroundColor: colors.bg.card }]}
+                      activeOpacity={0.7}
+                      onPress={() =>
+                        navigation.navigate('Spaces', {
+                          screen: 'GroupDetail',
+                          params: { groupId: g.id },
+                        })
+                      }
                     >
-                      {g.name}
-                    </Text>
-                    <Text style={[styles.groupExpense, { color: colors.text.secondary }]}>
-                      ₹{((g as any).totalExpense || 0).toLocaleString('en-IN')}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                      <View style={[styles.groupAvatarBg, { backgroundColor: `${colors.accent.primary}12` }]}>
+                        <View style={[styles.groupAvatar, { backgroundColor: colors.accent.primary }]}>
+                          <Ionicons
+                            name={g.icon === 'heart' ? 'heart' : g.icon === 'home' ? 'home' : g.icon === 'restaurant' ? 'restaurant' : g.icon === 'car' ? 'car' : 'people'}
+                            size={16}
+                            color="#FFF"
+                          />
+                        </View>
+                      </View>
+                      <Text
+                        style={[styles.groupName, { color: colors.text.primary }]}
+                        numberOfLines={1}
+                      >
+                        {g.name}
+                      </Text>
+                      <View style={styles.groupMetaRow}>
+                        <Ionicons name="people-outline" size={11} color={colors.text.tertiary} />
+                        <Text style={[styles.groupMeta, { color: colors.text.tertiary }]}>
+                          {memberCount}
+                        </Text>
+                      </View>
+                      <View style={[styles.groupExpenseBadge, { backgroundColor: `${colors.accent.primary}10` }]}>
+                        <Text style={[styles.groupExpense, { color: colors.accent.primary }]}>
+                          ₹{((g as any).totalExpense || 0).toLocaleString('en-IN')}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
               </ScrollView>
             </View>
           )}
@@ -474,10 +499,10 @@ export function HomeScreen() {
                     <Text
                       style={[
                         styles.txAmount,
-                        { color: Number(tx.amount) > 0 ? '#34C759' : '#FF4D4F' },
+                        { color: tx.type === 'income' ? '#34C759' : '#FF4D4F' },
                       ]}
                     >
-                      {Number(tx.amount) > 0 ? '+' : ''}
+                      {tx.type === 'income' ? '+' : '-'}
                       {fmt(Math.abs(Number(tx.amount)))}
                     </Text>
                   </TouchableOpacity>
@@ -638,6 +663,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  qaIconInner: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   qaLabel: { fontSize: 10, fontWeight: '600', textAlign: 'center' },
 
   section: { marginTop: 24 },
@@ -665,15 +696,23 @@ const styles = StyleSheet.create({
   catAmount: { fontSize: 11, fontWeight: '700' },
 
   groupCard: {
-    width: 140,
+    width: 130,
     padding: 14,
     borderRadius: 18,
-    gap: 8,
+    gap: 6,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
     elevation: 1,
+  },
+  groupAvatarBg: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 2,
   },
   groupAvatar: {
     width: 36,
@@ -683,7 +722,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   groupName: { fontSize: 13, fontWeight: '700' },
-  groupExpense: { fontSize: 12, fontWeight: '600' },
+  groupMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  groupMeta: { fontSize: 11, fontWeight: '500' },
+  groupExpenseBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    marginTop: 2,
+  },
+  groupExpense: { fontSize: 11, fontWeight: '700' },
 
   txCard: {
     flexDirection: 'row',

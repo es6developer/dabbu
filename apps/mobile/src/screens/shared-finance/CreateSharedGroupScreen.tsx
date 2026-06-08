@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator,
   ScrollView, Alert,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
@@ -66,9 +67,10 @@ export function CreateSharedGroupScreen() {
     <PageContainer noPadding>
       <KeyboardAvoidingContainer>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-          <View
-            
-             
+          <LinearGradient
+            colors={['#6C3EF4', '#8B5CF6']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={{ paddingTop: 48, paddingBottom: 28, paddingHorizontal: 20 }}
           >
             <View style={styles.headerRow}>
@@ -79,7 +81,7 @@ export function CreateSharedGroupScreen() {
               <View style={{ width: 32 }} />
             </View>
             <Text style={styles.headerSub}>Split expenses with friends, family, and more</Text>
-          </View>
+          </LinearGradient>
 
           <View style={{ padding: 20, gap: 20 }}>
             {error ? (

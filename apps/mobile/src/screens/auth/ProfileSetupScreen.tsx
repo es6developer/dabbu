@@ -61,7 +61,9 @@ export function ProfileSetupScreen() {
         throw new Error(err?.message?.[0] || err?.message || 'Failed to save profile');
       }
 
-      completeProfileSetup();
+      const profileResult = await res.json().catch(() => ({}));
+      const updatedUser = profileResult?.data || profileResult;
+      completeProfileSetup(updatedUser);
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -71,12 +73,6 @@ export function ProfileSetupScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
-      <View
-        
-        
-        
-        style={StyleSheet.absoluteFill}
-      />
       <SafeAreaWrapper insets={insets}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}

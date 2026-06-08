@@ -2,11 +2,12 @@ import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Dimensions, Alert,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme, palette } from '../../theme';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
@@ -175,7 +176,10 @@ export function CoupleFinanceScreen() {
         contentContainerStyle={{ paddingBottom: 100 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} tintColor={colors.accent.primary} />}
       >
-        <View   
+        <LinearGradient
+          colors={['#6C3EF4', '#8B5CF6']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
           style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}
         >
           <View style={s.headerRow}>
@@ -189,18 +193,18 @@ export function CoupleFinanceScreen() {
           </View>
           <View style={s.partnerHero}>
             <View style={s.avatarRow}>
-              <View  style={s.avatar}>
+              <View  style={[s.avatar, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
                 <Text style={s.avatarText}>{p1Initial}</Text>
               </View>
-              <View style={s.heartBadge}><Ionicons name="heart" size={16} color="#FFEBB4" /></View>
-              <View  style={s.avatar}>
+              <View style={[s.heartBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}><Ionicons name="heart" size={16} color="#FFEBB4" /></View>
+              <View  style={[s.avatar, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
                 <Text style={s.avatarText}>{p2Initial}</Text>
               </View>
             </View>
             <Text style={s.partnerNames}>{partner1Name} & {partner2Name}</Text>
             <Text style={s.partnerRatio}>Split Ratio: {ratio}</Text>
           </View>
-        </View>
+        </LinearGradient>
 
         <View style={s.tabRow}>
           {['overview', 'activity'].map((tab) => {

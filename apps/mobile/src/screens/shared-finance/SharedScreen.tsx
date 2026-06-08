@@ -56,6 +56,7 @@ interface GroupCardProps {
 }
 
 function GroupCard({ group, onPress }: GroupCardProps) {
+  const { colors } = useTheme();
   const cfg = TYPE_CONFIG[group.type] || TYPE_CONFIG.default;
   const mc = group.members?.length || group._count?.members || 0;
   const balance = group.balance || 0;
@@ -99,15 +100,15 @@ function GroupCard({ group, onPress }: GroupCardProps) {
         <Animated.View
           style={[
             s.groupCard,
-            { borderColor: `rgba(255, 255, 255, ${borderOpacity})` },
+            { backgroundColor: colors.bg.card, borderColor: colors.border.default },
           ]}
         >
           {/* Left Block */}
           <View style={s.groupLeft}>
-            <Text style={s.groupName} numberOfLines={1}>{group.name || group.title}</Text>
+            <Text style={[s.groupName, { color: colors.text.primary }]} numberOfLines={1}>{group.name || group.title}</Text>
             <View style={s.groupMetaRow}>
               <View style={[s.groupTypeDot, { backgroundColor: cfg.color }]} />
-              <Text style={s.groupMeta}>{cfg.label} · {mc} member{mc !== 1 ? 's' : ''}</Text>
+              <Text style={[s.groupMeta, { color: colors.text.secondary }]}>{cfg.label} · {mc} member{mc !== 1 ? 's' : ''}</Text>
             </View>
           </View>
 
@@ -120,20 +121,20 @@ function GroupCard({ group, onPress }: GroupCardProps) {
                 return (
                   <View
                     key={u.id || i}
-                    style={[s.avatarCircle, { zIndex: maxAvatars - i, marginLeft: i === 0 ? 0 : -8 }]}
+                    style={[s.avatarCircle, { backgroundColor: colors.bg.tertiary, borderColor: colors.bg.card, zIndex: maxAvatars - i, marginLeft: i === 0 ? 0 : -8 }]}
                   >
-                    <Text style={s.avatarText}>{initial}</Text>
+                    <Text style={[s.avatarText, { color: colors.text.primary }]}>{initial}</Text>
                   </View>
                 );
               })}
               {overflow > 0 && (
-                <View style={[s.avatarCircle, s.avatarOverflow, { marginLeft: -8 }]}>
-                  <Text style={s.avatarOverflowText}>+{overflow}</Text>
+                <View style={[s.avatarCircle, { backgroundColor: `${colors.accent.primary}18`, borderColor: colors.bg.card, marginLeft: -8 }]}>
+                  <Text style={[s.avatarOverflowText, { color: colors.accent.primary }]}>+{overflow}</Text>
                 </View>
               )}
               {mc === 0 && (
-                <View style={[s.avatarCircle, s.avatarInvite]}>
-                  <Ionicons name="add" size={14} color="#FF6B00" />
+                <View style={[s.avatarCircle, { backgroundColor: `${colors.accent.primary}10`, borderWidth: 1.5, borderColor: `${colors.accent.primary}40` }]}>
+                  <Ionicons name="add" size={14} color={colors.accent.primary} />
                 </View>
               )}
             </View>
@@ -145,7 +146,7 @@ function GroupCard({ group, onPress }: GroupCardProps) {
               {balance === 0 ? '₹0' : `${positive ? '+' : ''}${fmt(Math.abs(balance))}`}
             </Text>
             {recentActivity && (
-              <Text style={s.groupActivity}>Recent: {timeAgo(recentActivity)}</Text>
+              <Text style={[s.groupActivity, { color: colors.text.tertiary }]}>Recent: {timeAgo(recentActivity)}</Text>
             )}
           </View>
         </Animated.View>
@@ -191,7 +192,7 @@ export function SharedScreen() {
     .slice(0, 8);
 
   return (
-    <View style={[s.screen, { backgroundColor: '#070708' }]}>
+    <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}
@@ -207,8 +208,8 @@ export function SharedScreen() {
         <View style={[s.header, { paddingTop: insets.top + 16 }]}>
           <View style={s.headerRow}>
             <View>
-              <Text style={s.headerEyebrow}>SPACES</Text>
-              <Text style={s.headerTitle}>Shared Spaces</Text>
+              <Text style={[s.headerEyebrow, { color: colors.text.tertiary }]}>SPACES</Text>
+              <Text style={[s.headerTitle, { color: colors.text.primary }]}>Shared Spaces</Text>
             </View>
             <TouchableOpacity
               style={s.createBtn}
@@ -219,9 +220,9 @@ export function SharedScreen() {
             </TouchableOpacity>
           </View>
           {groups.length > 1 && (
-            <View style={s.headerCount}>
-              <Text style={s.headerCountNum}>{groups.length}</Text>
-              <Text style={s.headerCountLabel}>active spaces</Text>
+            <View style={[s.headerCount, { backgroundColor: colors.border.subtle }]}>
+              <Text style={[s.headerCountNum, { color: colors.text.primary }]}>{groups.length}</Text>
+              <Text style={[s.headerCountLabel, { color: colors.text.tertiary }]}>active spaces</Text>
             </View>
           )}
         </View>
@@ -238,8 +239,8 @@ export function SharedScreen() {
               <View style={[s.emptyIcon, { backgroundColor: 'rgba(255,107,0,0.12)' }]}>
                 <Ionicons name="layers-outline" size={36} color="#FF6B00" />
               </View>
-              <Text style={[s.emptyTitle, { color: '#FFF' }]}>No shared spaces yet</Text>
-              <Text style={[s.emptySub, { color: '#8E8E93' }]}>
+              <Text style={[s.emptyTitle, { color: colors.text.primary }]}>No shared spaces yet</Text>
+              <Text style={[s.emptySub, { color: colors.text.secondary }]}>
                 Create a space to split expenses with your people
               </Text>
               <TouchableOpacity
@@ -258,8 +259,8 @@ export function SharedScreen() {
             {recentBills.length > 0 && (
               <View style={{ marginBottom: 28 }}>
                 <View style={s.sectionHeader}>
-                  <Text style={s.sectionTitle}>Recent Active Bills</Text>
-                  <Text style={s.sectionCount}>{recentBills.length}</Text>
+                  <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Recent Active Bills</Text>
+                  <Text style={[s.sectionCount, { color: colors.text.tertiary }]}>{recentBills.length}</Text>
                 </View>
                 <ScrollView
                   horizontal
@@ -268,14 +269,14 @@ export function SharedScreen() {
                   decelerationRate="fast"
                 >
                   {recentBills.map((bill: any, i: number) => (
-                    <View key={bill.id || i} style={s.billCard}>
-                      <Text style={s.billVendor} numberOfLines={1}>
+                    <View key={bill.id || i} style={[s.billCard, { backgroundColor: colors.bg.card, borderColor: colors.border.default }]}>
+                      <Text style={[s.billVendor, { color: colors.text.primary }]} numberOfLines={1}>
                         {bill.description || bill.vendor || 'Expense'}
                       </Text>
-                      <Text style={s.billDate}>
+                      <Text style={[s.billDate, { color: colors.text.tertiary }]}>
                         {bill.date ? new Date(bill.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : ''}
                       </Text>
-                      <Text style={s.billAmount}>{fmt(bill.amount)}</Text>
+                      <Text style={[s.billAmount, { color: colors.text.primary }]}>{fmt(bill.amount)}</Text>
                       <TouchableOpacity style={s.splitBtn} activeOpacity={0.7}>
                         <Text style={s.splitBtnText}>Split Now</Text>
                       </TouchableOpacity>
@@ -289,8 +290,8 @@ export function SharedScreen() {
             {premiumGroups.length > 0 && (
               <View style={{ marginBottom: 28 }}>
                 <View style={s.sectionHeader}>
-                  <Text style={s.sectionTitle}>Couple & Family</Text>
-                  <Text style={s.sectionCount}>{premiumGroups.length}</Text>
+                  <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Couple & Family</Text>
+                  <Text style={[s.sectionCount, { color: colors.text.tertiary }]}>{premiumGroups.length}</Text>
                 </View>
                 <View style={{ paddingHorizontal: 20, gap: 12 }}>
                   {premiumGroups.map((group: any) => (
@@ -311,8 +312,8 @@ export function SharedScreen() {
             {(premiumGroups.length === 0 || otherGroups.length > 0) && (
               <View style={{ paddingHorizontal: 20 }}>
                 <View style={s.sectionHeader}>
-                  <Text style={s.sectionTitle}>All Spaces</Text>
-                  <Text style={s.sectionCount}>{groups.length}</Text>
+                  <Text style={[s.sectionTitle, { color: colors.text.primary }]}>All Spaces</Text>
+                  <Text style={[s.sectionCount, { color: colors.text.tertiary }]}>{groups.length}</Text>
                 </View>
                 <View style={{ gap: 12 }}>
                   {otherGroups.length > 0
@@ -326,7 +327,7 @@ export function SharedScreen() {
                         />
                       ))
                     : premiumGroups.length > 0 && (
-                        <Text style={{ color: '#8E8E93', fontSize: 13, fontWeight: '500', textAlign: 'center', paddingVertical: 12 }}>
+                        <Text style={{ color: colors.text.secondary, fontSize: 13, fontWeight: '500', textAlign: 'center', paddingVertical: 12 }}>
                           All your active spaces are shown above
                         </Text>
                       )}
@@ -336,20 +337,20 @@ export function SharedScreen() {
 
             {/* Create New */}
             <TouchableOpacity
-              style={[s.createCard, { borderColor: 'rgba(255,107,0,0.3)' }]}
+              style={[s.createCard, { borderColor: `${colors.accent.primary}40`, backgroundColor: `${colors.accent.primary}05` }]}
               onPress={() => navigation.navigate('CreateSharedGroup')}
               activeOpacity={0.7}
             >
-              <View style={[s.createIconWrap, { backgroundColor: 'rgba(255,107,0,0.12)' }]}>
-                <Ionicons name="add" size={24} color="#FF6B00" />
+              <View style={[s.createIconWrap, { backgroundColor: `${colors.accent.primary}18` }]}>
+                <Ionicons name="add" size={24} color={colors.accent.primary} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[s.createLabel, { color: '#FFF' }]}>Create New Space</Text>
-                <Text style={[s.createSub, { color: '#8E8E93' }]}>
+                <Text style={[s.createLabel, { color: colors.text.primary }]}>Create New Space</Text>
+                <Text style={[s.createSub, { color: colors.text.secondary }]}>
                   Split expenses with friends, family or roommates
                 </Text>
               </View>
-              <Ionicons name="arrow-forward" size={18} color="#FF6B00" />
+              <Ionicons name="arrow-forward" size={18} color={colors.accent.primary} />
             </TouchableOpacity>
           </Animated.View>
         )}

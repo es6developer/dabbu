@@ -12,6 +12,7 @@ import {
   setRefreshTokenHandler,
   setOnSessionExpiredHandler,
   clearCache,
+  getAccessToken,
 } from '../services/api';
 import { registerForPushNotifications } from '../services/notifications';
 import { trackEventImmediate } from '../hooks/useAnalytics';
@@ -23,6 +24,7 @@ interface User {
   lastName: string;
   avatarUrl?: string;
   role: string;
+  phone?: string | null;
 }
 
 interface AuthState {
@@ -31,6 +33,7 @@ interface AuthState {
   user: User | null;
   accessToken: string | null;
   isNewUser: boolean;
+  needsPhone: boolean;
 }
 
 interface AuthContextType extends AuthState {
@@ -46,7 +49,8 @@ interface AuthContextType extends AuthState {
   guestLogin: () => Promise<void>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<boolean>;
-  completeProfileSetup: () => void;
+  completeProfileSetup: (updatedUser?: Partial<User>) => void;
+  updatePhone: (phone: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -79,6 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user: null,
     accessToken: null,
     isNewUser: false,
+    needsPhone: false,
   });
 
   useEffect(() => {
@@ -91,6 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           user: null,
           accessToken: null,
           isNewUser: false,
+          needsPhone: false,
         });
       });
     });
@@ -118,6 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           user: parsedUser,
           accessToken: token,
           isNewUser: false,
+          needsPhone: !parsedUser.phone,
         });
 
         registerForPushNotifications(token).catch(() => {});
@@ -145,6 +152,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (_e) {
       // ignore clear errors
     }
+  }
+
+  function applyAuth(token: string, user: User, wasNewUser: boolean) {
+    setAccessToken(token);
+    storeAuth(token, user);
+    setState({
+      isAuthenticated: true,
+      isLoading: false,
+      user,
+      accessToken: token,
+      isNewUser: wasNewUser,
+      needsPhone: !user.phone,
+    });
   }
 
   async function login(email: string, password: string) {
@@ -178,18 +198,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const { user, tokens } = data;
 
-    setAccessToken(tokens.accessToken);
-    await storeAuth(tokens.accessToken, user);
+    applyAuth(tokens.accessToken, user, false);
     const storage = getStorage();
     await storage.setItem('refreshToken', tokens.refreshToken);
-
-    setState({
-      isAuthenticated: true,
-      isLoading: false,
-      user,
-      accessToken: tokens.accessToken,
-      isNewUser: false,
-    });
 
     trackEventImmediate('login', 'auth', 'email').catch(() => {});
     registerForPushNotifications(tokens.accessToken).catch(() => {});
@@ -236,16 +247,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const { user, tokens } = data;
 
-    setAccessToken(tokens.accessToken);
-    await storeAuth(tokens.accessToken, user);
-
-    setState({
-      isAuthenticated: true,
-      isLoading: false,
-      user,
-      accessToken: tokens.accessToken,
-      isNewUser: false,
-    });
+    applyAuth(tokens.accessToken, user, false);
 
     trackEventImmediate('sign_up', 'auth', 'email').catch(() => {});
     registerForPushNotifications(tokens.accessToken).catch(() => {});
@@ -282,18 +284,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const { user, tokens, isNewUser } = data;
 
-    setAccessToken(tokens.accessToken);
-    await storeAuth(tokens.accessToken, user);
+    applyAuth(tokens.accessToken, user, !!isNewUser);
     const storage = getStorage();
     await storage.setItem('refreshToken', tokens.refreshToken);
-
-    setState({
-      isAuthenticated: true,
-      isLoading: false,
-      user,
-      accessToken: tokens.accessToken,
-      isNewUser: !!isNewUser,
-    });
 
     trackEventImmediate(isNewUser ? 'sign_up' : 'login', 'auth', 'google').catch(() => {});
     registerForPushNotifications(tokens.accessToken).catch(() => {});
@@ -340,6 +333,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       accessToken: tokens.accessToken,
       isNewUser: false,
+      needsPhone: false,
     });
 
     registerForPushNotifications(tokens.accessToken).catch(() => {});
@@ -378,6 +372,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user: null,
       accessToken: null,
       isNewUser: false,
+      needsPhone: false,
     });
   }
 
@@ -412,8 +407,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  function completeProfileSetup() {
-    setState((prev) => ({ ...prev, isNewUser: false }));
+  function completeProfileSetup(updatedUser?: Partial<User>) {
+    setState((prev) => {
+      const merged = updatedUser ? { ...prev.user!, ...updatedUser } : prev.user;
+      if (merged) {
+        storeAuth(prev.accessToken!, merged);
+      }
+      return { ...prev, isNewUser: false, user: merged, needsPhone: merged ? !merged.phone : false };
+    });
+  }
+
+  async function updatePhone(phone: string) {
+    const token = getAccessToken();
+    const res = await fetch(`${API_URL}/users/profile`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ phone }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.message?.[0] || err?.message || 'Failed to save phone');
+    }
+
+    const json = await res.json();
+    const updatedUser = json?.data?.user || json?.data;
+    if (updatedUser) {
+      const mergedUser = { ...state.user!, phone: updatedUser.phone || phone };
+      storeAuth(state.accessToken!, mergedUser);
+      setState((prev) => ({ ...prev, user: mergedUser, needsPhone: false }));
+    } else {
+      const mergedUser = { ...state.user!, phone };
+      storeAuth(state.accessToken!, mergedUser);
+      setState((prev) => ({ ...prev, user: mergedUser, needsPhone: false }));
+    }
   }
 
   return (
@@ -427,6 +457,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         refreshToken,
         completeProfileSetup,
+        updatePhone,
       }}
     >
       {children}

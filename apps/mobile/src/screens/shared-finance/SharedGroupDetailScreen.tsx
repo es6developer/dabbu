@@ -16,6 +16,7 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
@@ -1112,7 +1113,12 @@ export function SharedGroupDetailScreen() {
         }
         ListHeaderComponent={
           <Animated.View style={{ opacity: fadeAnim }}>
-            <View style={{ paddingTop: insets.top + 8, paddingBottom: 24, paddingHorizontal: 20 }}>
+            <LinearGradient
+              colors={theme.gradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ paddingTop: insets.top + 8, paddingBottom: 24, paddingHorizontal: 20 }}
+            >
               <View style={s.headerRow}>
                 <TouchableOpacity
                   onPress={() => navigation.goBack()}
@@ -1161,7 +1167,7 @@ export function SharedGroupDetailScreen() {
                   </TouchableOpacity>
                 )}
               </View>
-            </View>
+            </LinearGradient>
 
             <View style={{ marginTop: -16, paddingHorizontal: 16 }}>
               <View style={{ flexDirection: 'row', gap: 10 }}>

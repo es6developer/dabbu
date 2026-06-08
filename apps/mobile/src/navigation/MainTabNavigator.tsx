@@ -595,7 +595,6 @@ const tabStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 2,
-    marginTop: -16,
   },
   centerBtn: {
     width: 44,
