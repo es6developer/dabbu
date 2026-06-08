@@ -8,7 +8,6 @@ export { KeyboardAvoidingContainer } from './KeyboardAvoidingContainer';
 export { Skeleton, SkeletonCard, SkeletonList } from './AnimatedSkeleton';
 export { BaseScreen } from './BaseScreen';
 export { PageHeader } from './PageHeader';
-export { FloatingActionButton } from './FloatingActionButton';
 export { SearchSection } from './SearchSection';
 export { FilterSection } from './FilterSection';
 export {
@@ -29,4 +28,3 @@ export { ConfirmDialog } from './ConfirmDialog';
 export { Toast } from './Toast';
 export { AiInsightCard } from './AiInsightCard';
 export { PremiumAuthLayout } from './PremiumAuthLayout';
-export { HelpTip, HelpCard } from './HelpTip';

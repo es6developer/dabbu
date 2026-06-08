@@ -1,8 +1,15 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  RefreshControl, Animated, LayoutAnimation,
-  Platform, UIManager,
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  RefreshControl,
+  Animated,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -34,7 +41,20 @@ interface MonthlyGroup {
 }
 
 function getMonthName(m: number): string {
-  const names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const names = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
   return names[m - 1] || '';
 }
 
@@ -76,7 +96,12 @@ function AccordionSection({
   });
 
   return (
-    <View style={[styles.monthSection, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}>
+    <View
+      style={[
+        styles.monthSection,
+        { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+      ]}
+    >
       <TouchableOpacity style={styles.monthHeader} onPress={onToggle} activeOpacity={0.7}>
         <View style={styles.monthHeaderLeft}>
           <Text style={[styles.monthName, { color: colors.text.primary }]}>
@@ -109,14 +134,16 @@ function AccordionSection({
 
 function BillCard({ bill, colors, onPress }: { bill: BillItem; colors: any; onPress: () => void }) {
   return (
-    <TouchableOpacity style={[styles.billCard, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle }]} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={[
+        styles.billCard,
+        { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+      ]}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
       <View style={styles.billCardLeft}>
-        <View
-          
-          
-          
-          style={styles.categoryDot}
-        >
+        <View style={styles.categoryDot}>
           <Ionicons name="receipt" size={14} color="#FFFFFF" />
         </View>
         <View style={styles.billCardInfo}>
@@ -125,7 +152,9 @@ function BillCard({ bill, colors, onPress }: { bill: BillItem; colors: any; onPr
           </Text>
           <View style={styles.billCardMeta}>
             <View style={[styles.categoryBadge, { backgroundColor: `${colors.accent.primary}18` }]}>
-              <Text style={[styles.categoryBadgeText, { color: colors.accent.primary }]}>{bill.category}</Text>
+              <Text style={[styles.categoryBadgeText, { color: colors.accent.primary }]}>
+                {bill.category}
+              </Text>
             </View>
             {bill.itemCount > 0 && (
               <Text style={[styles.billItems, { color: colors.text.tertiary }]}>
@@ -136,15 +165,29 @@ function BillCard({ bill, colors, onPress }: { bill: BillItem; colors: any; onPr
         </View>
       </View>
       <View style={styles.billCardRight}>
-        <Text style={[styles.billAmount, { color: colors.text.primary }]}>{formatCurrency(bill.amount)}</Text>
-        <Text style={[styles.billDate, { color: colors.text.tertiary }]}>{formatDate(bill.date)}</Text>
+        <Text style={[styles.billAmount, { color: colors.text.primary }]}>
+          {formatCurrency(bill.amount)}
+        </Text>
+        <Text style={[styles.billDate, { color: colors.text.tertiary }]}>
+          {formatDate(bill.date)}
+        </Text>
       </View>
     </TouchableOpacity>
   );
 }
 
-function ComparisonCard({ groups, colors, onCompare }: { groups: MonthlyGroup[]; colors: any; onCompare: (g1: MonthlyGroup, g2: MonthlyGroup) => void }) {
-  if (groups.length < 2) {return null;}
+function ComparisonCard({
+  groups,
+  colors,
+  onCompare,
+}: {
+  groups: MonthlyGroup[];
+  colors: any;
+  onCompare: (g1: MonthlyGroup, g2: MonthlyGroup) => void;
+}) {
+  if (groups.length < 2) {
+    return null;
+  }
 
   const latest = groups[0];
   const previous = groups[1];
@@ -154,7 +197,10 @@ function ComparisonCard({ groups, colors, onCompare }: { groups: MonthlyGroup[];
 
   return (
     <TouchableOpacity
-      style={[styles.comparisonCard, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}
+      style={[
+        styles.comparisonCard,
+        { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+      ]}
       onPress={() => onCompare(latest, previous)}
       activeOpacity={0.7}
     >
@@ -167,23 +213,42 @@ function ComparisonCard({ groups, colors, onCompare }: { groups: MonthlyGroup[];
       </View>
       <View style={styles.comparisonBody}>
         <View style={styles.comparisonCol}>
-          <Text style={[styles.comparisonLabel, { color: colors.text.tertiary }]}>{getMonthName(latest.month)}</Text>
-          <Text style={[styles.comparisonAmount, { color: isUp ? colors.status.error : colors.status.success }]}>
+          <Text style={[styles.comparisonLabel, { color: colors.text.tertiary }]}>
+            {getMonthName(latest.month)}
+          </Text>
+          <Text
+            style={[
+              styles.comparisonAmount,
+              { color: isUp ? colors.status.error : colors.status.success },
+            ]}
+          >
             {formatCurrency(latest.totalAmount)}
           </Text>
         </View>
         <View style={[styles.comparisonDivider, { backgroundColor: colors.border.subtle }]} />
         <View style={styles.comparisonCol}>
-          <Text style={[styles.comparisonLabel, { color: colors.text.tertiary }]}>{getMonthName(previous.month)}</Text>
+          <Text style={[styles.comparisonLabel, { color: colors.text.tertiary }]}>
+            {getMonthName(previous.month)}
+          </Text>
           <Text style={[styles.comparisonAmount, { color: colors.text.primary }]}>
             {formatCurrency(previous.totalAmount)}
           </Text>
         </View>
       </View>
       <View style={[styles.comparisonFooter, { borderTopColor: colors.border.subtle }]}>
-        <Ionicons name={isUp ? 'arrow-up' : 'arrow-down'} size={14} color={isUp ? colors.status.error : colors.status.success} />
-        <Text style={[styles.comparisonFooterText, { color: isUp ? colors.status.error : colors.status.success }]}>
-          {isUp ? 'Increased' : 'Decreased'} by {formatCurrency(Math.abs(diff))} ({Math.abs(pct).toFixed(1)}%)
+        <Ionicons
+          name={isUp ? 'arrow-up' : 'arrow-down'}
+          size={14}
+          color={isUp ? colors.status.error : colors.status.success}
+        />
+        <Text
+          style={[
+            styles.comparisonFooterText,
+            { color: isUp ? colors.status.error : colors.status.success },
+          ]}
+        >
+          {isUp ? 'Increased' : 'Decreased'} by {formatCurrency(Math.abs(diff))} (
+          {Math.abs(pct).toFixed(1)}%)
         </Text>
       </View>
     </TouchableOpacity>
@@ -193,29 +258,15 @@ function ComparisonCard({ groups, colors, onCompare }: { groups: MonthlyGroup[];
 function EmptyState({ colors, onScan }: { colors: any; onScan: () => void }) {
   return (
     <View style={styles.emptyContainer}>
-      <View
-        
-        
-        
-        style={styles.emptyIconWrap}
-      >
+      <View style={styles.emptyIconWrap}>
         <Ionicons name="receipt-outline" size={56} color="#FFFFFF" />
       </View>
       <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No Bills Yet</Text>
       <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
         Scan your first receipt or bill to start managing expenses automatically.
       </Text>
-      <View
-        
-        
-        
-        style={styles.emptyBtn}
-      >
-        <TouchableOpacity
-          style={styles.emptyBtnInner}
-          onPress={onScan}
-          activeOpacity={0.8}
-        >
+      <View style={styles.emptyBtn}>
+        <TouchableOpacity style={styles.emptyBtnInner} onPress={onScan} activeOpacity={0.8}>
           <Ionicons name="camera" size={20} color="#FFFFFF" />
           <Text style={styles.emptyBtnText}>Scan Your First Bill</Text>
         </TouchableOpacity>
@@ -228,16 +279,42 @@ function LoadingState({ colors }: { colors: any }) {
   return (
     <View style={styles.loadingContainer}>
       {[1, 2, 3].map((i) => (
-        <View key={i} style={[styles.shimmerCard, { backgroundColor: colors.skeleton.base, borderColor: colors.border.subtle }]}>
+        <View
+          key={i}
+          style={[
+            styles.shimmerCard,
+            { backgroundColor: colors.skeleton.base, borderColor: colors.border.subtle },
+          ]}
+        >
           <View style={styles.shimmerRow}>
             <View style={[styles.shimmerCircle, { backgroundColor: colors.skeleton.highlight }]} />
             <View style={{ flex: 1 }}>
-              <View style={[styles.shimmerLine, { width: '60%', backgroundColor: colors.skeleton.highlight }]} />
-              <View style={[styles.shimmerLine, { width: '40%', backgroundColor: colors.skeleton.highlight, marginTop: 6 }]} />
+              <View
+                style={[
+                  styles.shimmerLine,
+                  { width: '60%', backgroundColor: colors.skeleton.highlight },
+                ]}
+              />
+              <View
+                style={[
+                  styles.shimmerLine,
+                  { width: '40%', backgroundColor: colors.skeleton.highlight, marginTop: 6 },
+                ]}
+              />
             </View>
             <View>
-              <View style={[styles.shimmerLine, { width: 80, backgroundColor: colors.skeleton.highlight }]} />
-              <View style={[styles.shimmerLine, { width: 60, backgroundColor: colors.skeleton.highlight, marginTop: 6 }]} />
+              <View
+                style={[
+                  styles.shimmerLine,
+                  { width: 80, backgroundColor: colors.skeleton.highlight },
+                ]}
+              />
+              <View
+                style={[
+                  styles.shimmerLine,
+                  { width: 60, backgroundColor: colors.skeleton.highlight, marginTop: 6 },
+                ]}
+              />
             </View>
           </View>
         </View>
@@ -265,7 +342,9 @@ export function BillsListScreen() {
 
   const loadBills = useCallback(async () => {
     try {
-      if (accessToken) {setAccessToken(accessToken);}
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
       const res = await api.get<any>('/bills/monthly');
       if (Array.isArray(res)) {
         setGroups(res);
@@ -287,15 +366,18 @@ export function BillsListScreen() {
   useFocusEffect(
     useCallback(() => {
       loadBills();
-    }, [loadBills])
+    }, [loadBills]),
   );
 
   function toggleMonth(key: string) {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpandedMonths((prev) => {
       const next = new Set(prev);
-      if (next.has(key)) {next.delete(key);}
-      else {next.add(key);}
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
       return next;
     });
   }
@@ -331,9 +413,7 @@ export function BillsListScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
-      <View
-        style={[styles.headerGradient, { backgroundColor: colors.accent.primary }]}
-      >
+      <View style={[styles.headerGradient, { backgroundColor: colors.accent.primary }]}>
         <View style={[styles.headerContent, { paddingTop: insets.top + 12 }]}>
           <Text style={styles.headerTitle}>Bills</Text>
           <TouchableOpacity style={styles.headerBtn}>
@@ -344,18 +424,27 @@ export function BillsListScreen() {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent.primary} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.accent.primary}
+          />
         }
       >
         <Animated.View style={{ opacity: fadeAnim }}>
           {error && groups.length === 0 ? (
             <View style={styles.errorContainer}>
               <Ionicons name="cloud-offline-outline" size={56} color={colors.status.error} />
-              <Text style={[styles.errorTitle, { color: colors.text.primary }]}>Failed to Load</Text>
+              <Text style={[styles.errorTitle, { color: colors.text.primary }]}>
+                Failed to Load
+              </Text>
               <Text style={[styles.errorDesc, { color: colors.text.tertiary }]}>{error}</Text>
               <TouchableOpacity
                 style={[styles.emptyBtn, { backgroundColor: colors.accent.primary }]}
-                onPress={() => { setLoading(true); loadBills(); }}
+                onPress={() => {
+                  setLoading(true);
+                  loadBills();
+                }}
               >
                 <Ionicons name="refresh" size={20} color="#FFFFFF" />
                 <Text style={styles.emptyBtnText}>Try Again</Text>
@@ -365,15 +454,26 @@ export function BillsListScreen() {
             <EmptyState colors={colors} onScan={() => navigation.navigate('BillScanner')} />
           ) : (
             <>
-              <View style={[styles.summaryBar, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}>
+              <View
+                style={[
+                  styles.summaryBar,
+                  { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+                ]}
+              >
                 <View style={styles.summaryItem}>
-                  <Text style={[styles.summaryLabel, { color: colors.text.tertiary }]}>Total Spent</Text>
-                  <Text style={[styles.summaryValue, { color: colors.text.primary }]}>{formatCurrency(totalSpent)}</Text>
+                  <Text style={[styles.summaryLabel, { color: colors.text.tertiary }]}>
+                    Total Spent
+                  </Text>
+                  <Text style={[styles.summaryValue, { color: colors.text.primary }]}>
+                    {formatCurrency(totalSpent)}
+                  </Text>
                 </View>
                 <View style={[styles.summaryDivider, { backgroundColor: colors.border.subtle }]} />
                 <View style={styles.summaryItem}>
                   <Text style={[styles.summaryLabel, { color: colors.text.tertiary }]}>Bills</Text>
-                  <Text style={[styles.summaryValue, { color: colors.text.primary }]}>{totalBills}</Text>
+                  <Text style={[styles.summaryValue, { color: colors.text.primary }]}>
+                    {totalBills}
+                  </Text>
                 </View>
               </View>
 
@@ -396,27 +496,11 @@ export function BillsListScreen() {
           )}
         </Animated.View>
       </ScrollView>
-
-      <View
-        
-        
-        
-        style={[styles.fab, { bottom: insets.bottom + 100 }]}
-      >
-        <TouchableOpacity
-          style={styles.fabInner}
-          onPress={() => navigation.navigate('BillScanner')}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="camera" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
   headerGradient: {
     paddingBottom: 16,
   },
@@ -437,38 +521,70 @@ const styles = StyleSheet.create({
   },
   scrollContent: { padding: 16, paddingBottom: 100 },
   summaryBar: {
-    flexDirection: 'row', alignItems: 'center',
-    borderRadius: 22, padding: 22, marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 22,
+    padding: 22,
+    marginBottom: 16,
     borderWidth: 1,
   },
   summaryItem: { flex: 1, alignItems: 'center' },
-  summaryLabel: { fontSize: 12, fontWeight: '700', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 },
+  summaryLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
   summaryValue: { fontSize: 24, fontWeight: '800' },
   summaryDivider: { width: 1, height: 36, marginHorizontal: 16 },
   comparisonCard: {
-    borderRadius: 22, borderWidth: 1, padding: 18, marginBottom: 16,
+    borderRadius: 22,
+    borderWidth: 1,
+    padding: 18,
+    marginBottom: 16,
   },
   comparisonHeader: {
-    flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
   },
   comparisonTitle: { fontSize: 14, fontWeight: '700', flex: 1 },
   comparisonBody: {
-    flexDirection: 'row', alignItems: 'center', marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   comparisonCol: { flex: 1, alignItems: 'center' },
-  comparisonLabel: { fontSize: 11, fontWeight: '700', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 },
+  comparisonLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
   comparisonAmount: { fontSize: 20, fontWeight: '800' },
   comparisonDivider: { width: 1, height: 32, marginHorizontal: 12 },
   comparisonFooter: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 6, paddingTop: 10, borderTopWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingTop: 10,
+    borderTopWidth: 1,
   },
   comparisonFooterText: { fontSize: 12, fontWeight: '700' },
   monthSection: {
-    borderRadius: 22, borderWidth: 1, marginBottom: 12, overflow: 'hidden',
+    borderRadius: 22,
+    borderWidth: 1,
+    marginBottom: 12,
+    overflow: 'hidden',
   },
   monthHeader: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 18,
   },
   monthHeaderLeft: { flex: 1 },
@@ -478,12 +594,23 @@ const styles = StyleSheet.create({
   monthCount: { fontSize: 13, fontWeight: '500' },
   monthBills: { paddingHorizontal: 16, paddingBottom: 8 },
   billCard: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingVertical: 14, paddingHorizontal: 14, borderRadius: 16, borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    borderWidth: 1,
     marginBottom: 10,
   },
   billCardLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: 12 },
-  categoryDot: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  categoryDot: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   billCardInfo: { flex: 1 },
   billMerchant: { fontSize: 15, fontWeight: '700', marginBottom: 4 },
   billCardMeta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -494,11 +621,31 @@ const styles = StyleSheet.create({
   billAmount: { fontSize: 16, fontWeight: '800', marginBottom: 2 },
   billDate: { fontSize: 11, fontWeight: '500' },
   emptyContainer: { flex: 1, alignItems: 'center', paddingVertical: 60, paddingHorizontal: 32 },
-  emptyIconWrap: { width: 120, height: 120, borderRadius: 60, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
+  emptyIconWrap: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
   emptyTitle: { fontSize: 24, fontWeight: '800', marginBottom: 8 },
-  emptyDesc: { fontSize: 14, textAlign: 'center', lineHeight: 22, marginBottom: 32, fontWeight: '500' },
+  emptyDesc: {
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 32,
+    fontWeight: '500',
+  },
   emptyBtn: { borderRadius: 16, width: '100%' },
-  emptyBtnInner: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 16, paddingHorizontal: 28, justifyContent: 'center' },
+  emptyBtnInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 16,
+    paddingHorizontal: 28,
+    justifyContent: 'center',
+  },
   emptyBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '800' },
   loadingContainer: { padding: 16, paddingTop: 40 },
   shimmerCard: { borderRadius: 22, borderWidth: 1, padding: 16, marginBottom: 12 },
@@ -507,15 +654,4 @@ const styles = StyleSheet.create({
   shimmerLine: { height: 12, borderRadius: 6 },
   errorContainer: { flex: 1, alignItems: 'center', paddingVertical: 40, paddingHorizontal: 32 },
   errorTitle: { fontSize: 20, fontWeight: '800', marginTop: 16, marginBottom: 8 },
-  errorDesc: { fontSize: 14, textAlign: 'center', marginBottom: 24, fontWeight: '500' },
-  fab: {
-    position: 'absolute', right: 20,
-    width: 56, height: 56, borderRadius: 28,
-    elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3, shadowRadius: 8,
-  },
-  fabInner: {
-    width: 56, height: 56, borderRadius: 28,
-    alignItems: 'center', justifyContent: 'center',
-  },
 });

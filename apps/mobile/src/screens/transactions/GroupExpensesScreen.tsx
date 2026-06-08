@@ -1463,14 +1463,6 @@ export function GroupExpensesScreen() {
           )}
         </Animated.View>
       </ScrollView>
-
-      <TouchableOpacity
-        style={[s.fab, { backgroundColor: colors.accent.primary, bottom: insets.bottom + 24 }]}
-        onPress={handleCreateGroup}
-        activeOpacity={0.8}
-      >
-        <Ionicons name="add" size={24} color="#FFF" />
-      </TouchableOpacity>
     </View>
   );
 }
@@ -1756,21 +1748,6 @@ const s = StyleSheet.create({
   },
   quickActionText: { fontSize: 11, fontWeight: '700', color: '#FFF' },
 
-  fab: {
-    position: 'absolute',
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    overflow: 'hidden',
-  },
   emptyHub: { alignItems: 'center', gap: 12, paddingTop: 80 },
   emptyHubIcon: {
     width: 88,

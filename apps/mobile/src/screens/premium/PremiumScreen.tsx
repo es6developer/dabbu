@@ -18,7 +18,6 @@ import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { WebView } from 'react-native-webview';
 import { useAnalytics } from '../../hooks/useAnalytics';
-import { HelpTip, HelpCard } from '../../components/ui';
 
 const { width } = Dimensions.get('window');
 
@@ -231,10 +230,7 @@ export function PremiumScreen() {
     return (
       <View style={{ flex: 1, backgroundColor: '#0A0A1A' }}>
         <ScrollView style={[styles.container, { backgroundColor: '#0A0A1A' }]}>
-          <View
-            
-            style={[styles.activeHeader, { paddingTop: insets.top }]}
-          >
+          <View style={[styles.activeHeader, { paddingTop: insets.top }]}>
             <View style={styles.premiumBadgeLarge}>
               <Ionicons name="diamond" size={24} color="#FFD700" />
               <Text style={styles.premiumBadgeText}>DABBU PREMIUM</Text>
@@ -292,12 +288,7 @@ export function PremiumScreen() {
         <Animated.View
           style={[styles.heroSection, { opacity: fadeAnim, transform: [{ scale: heroScale }] }]}
         >
-          <View
-            
-            
-            
-            style={[styles.heroGradient, { paddingTop: insets.top }]}
-          >
+          <View style={[styles.heroGradient, { paddingTop: insets.top }]}>
             <View style={styles.premiumBadgeSmall}>
               <Ionicons name="diamond" size={14} color="#FFD700" />
               <Text style={styles.premiumBadgeSmallText}>PREMIUM</Text>
@@ -305,14 +296,9 @@ export function PremiumScreen() {
             <Text style={styles.heroTitle}>Unlock the Full</Text>
             <Text style={styles.heroTitleAccent}>Dabbu Experience</Text>
             <Text style={styles.heroSubtitle}>
-Premium gives your family unlimited access to all features, advanced analytics, and future AI
-            tools.
+              Premium gives your family unlimited access to all features, advanced analytics, and
+              future AI tools.
             </Text>
-            <HelpTip
-              text="Premium unlocks unlimited groups, OCR scans, reminders, advanced analytics, custom themes, and early access to future AI features."
-              icon="diamond-outline"
-              color="#FFD700"
-            />
           </View>
         </Animated.View>
 
@@ -337,7 +323,7 @@ Premium gives your family unlimited access to all features, advanced analytics, 
               </View>
             </View>
             <View style={styles.premiumCol}>
-              <View  style={styles.mostPopularBadge}>
+              <View style={styles.mostPopularBadge}>
                 <Text style={styles.mostPopularText}>MOST POPULAR</Text>
               </View>
               <Text style={[styles.colTitle, { color: '#FFD700' }]}>Premium</Text>
@@ -380,7 +366,7 @@ Premium gives your family unlimited access to all features, advanced analytics, 
                     ]}
                   >
                     {plan.badge && (
-                      <View  style={styles.planBadge}>
+                      <View style={styles.planBadge}>
                         <Text style={styles.planBadgeText}>{plan.badge}</Text>
                       </View>
                     )}
@@ -415,12 +401,7 @@ Premium gives your family unlimited access to all features, advanced analytics, 
           disabled={subscribing || processing}
           activeOpacity={0.85}
         >
-          <View
-            
-            
-            
-            style={[styles.upgradeBtnGradient]}
-          />
+          <View style={[styles.upgradeBtnGradient]} />
           {subscribing || processing ? (
             <ActivityIndicator size="small" color="#000" />
           ) : (

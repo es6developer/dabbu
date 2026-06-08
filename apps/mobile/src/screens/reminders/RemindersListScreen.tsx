@@ -13,7 +13,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BaseScreen } from '../../components/ui/BaseScreen';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { EmptyState } from '../../components/ui/EmptyState';
-import { FloatingActionButton } from '../../components/ui/FloatingActionButton';
 import { FilterSection } from '../../components/ui/FilterSection';
 import { spacing } from '../../theme';
 import { useTheme } from '../../theme';
@@ -124,7 +123,7 @@ export function RemindersListScreen() {
     );
   }
 
-  const FILTER_OPTIONS = FILTERS.map(f => ({ key: f.key, label: f.label }));
+  const FILTER_OPTIONS = FILTERS.map((f) => ({ key: f.key, label: f.label }));
 
   return (
     <BaseScreen noPadding>
@@ -140,10 +139,7 @@ export function RemindersListScreen() {
         }
         ListHeaderComponent={
           <View style={{ paddingHorizontal: spacing.lg }}>
-            <PageHeader
-              title="Reminders"
-              subtitle="Family Finance"
-            />
+            <PageHeader title="Reminders" subtitle="Family Finance" />
             <FilterSection
               options={FILTER_OPTIONS}
               selected={filter}
@@ -204,11 +200,6 @@ export function RemindersListScreen() {
         }
         windowSize={10}
         maxToRenderPerBatch={10}
-      />
-
-      <FloatingActionButton
-        onPress={() => navigation.navigate('CreateReminder')}
-        icon="add"
       />
     </BaseScreen>
   );

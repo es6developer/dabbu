@@ -42,6 +42,7 @@ import { CategorySelectionScreen } from '../screens/expense/CategorySelectionScr
 import { AddExpenseScreen } from '../screens/expense/AddExpenseScreen';
 import { useTheme } from '../theme';
 import { useAuth } from '../store/AuthContext';
+import { usePreferences } from '../store/PreferencesContext';
 import { api } from '../services/api';
 import { QuickActionSheet } from '../components/ui/QuickActionSheet';
 
@@ -292,9 +293,12 @@ export function MainTabNavigator() {
   const theme = useTheme();
   const { colors } = theme;
   const { user, accessToken } = useAuth();
+  const { getTabVisibility } = usePreferences();
   const [showActions, setShowActions] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   const navigation = useNavigation<any>();
+
+  const qaVisible = getTabVisibility('QuickAction');
 
   useFocusEffect(
     useCallback(() => {
@@ -367,6 +371,7 @@ export function MainTabNavigator() {
             {...props}
             colors={colors}
             isDark={isDark}
+            showCenterButton={qaVisible}
             onCenterPress={() => setShowActions(true)}
           />
         )}
@@ -436,9 +441,82 @@ export function MainTabNavigator() {
   );
 }
 
-function GlossyTabBar({ state, descriptors, navigation, colors, isDark, onCenterPress }: any) {
-  const routes = state.routes.filter((r: any) => r.name !== 'QuickAction');
-  const centerIndex = state.routes.findIndex((r: any) => r.name === 'QuickAction');
+function GlossyTabBar({
+  state,
+  descriptors,
+  navigation,
+  colors,
+  isDark,
+  showCenterButton,
+  onCenterPress,
+}: any) {
+  const { getTabVisibility } = usePreferences();
+  const visibleRoutes = state.routes.filter(
+    (r: any) => r.name !== 'Circles' && getTabVisibility(r.name),
+  );
+  const midIndex = Math.floor(visibleRoutes.length / 2);
+  const leftRoutes = visibleRoutes.slice(0, midIndex);
+  const rightRoutes = visibleRoutes.slice(midIndex);
+
+  function renderTab(route: any) {
+    const descriptor = descriptors[route.key];
+    const { options } = descriptor;
+    const isFocused = state.index === state.routes.findIndex((r: any) => r.key === route.key);
+
+    const onPress = () => {
+      const event = navigation.emit({
+        type: 'tabPress',
+        target: route.key,
+        canPreventDefault: true,
+      });
+      if (event.defaultPrevented) {
+        return;
+      }
+      const homeScreens: Record<string, string> = {
+        Dashboard: 'DashboardMain',
+        Expense: 'ExpenseHome',
+        Spaces: 'SharedFinanceHome',
+        Settings: 'SettingsMain',
+      };
+      navigation.navigate(route.name, { screen: homeScreens[route.name] || route.name });
+    };
+
+    const icon = options.tabBarIcon
+      ? options.tabBarIcon({
+          focused: isFocused,
+          color: isFocused ? colors.accent.primary : colors.text.tertiary,
+          size: 22,
+        })
+      : null;
+
+    return (
+      <TouchableOpacity
+        key={route.key}
+        activeOpacity={0.7}
+        style={tabStyles.tabItem}
+        onPress={onPress}
+      >
+        <View
+          style={[
+            tabStyles.iconWrap,
+            isFocused && {
+              backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)',
+            },
+          ]}
+        >
+          {icon}
+        </View>
+        <Text
+          style={[
+            tabStyles.label,
+            { color: isFocused ? colors.accent.primary : colors.text.tertiary },
+          ]}
+        >
+          {options.tabBarLabel || route.name}
+        </Text>
+      </TouchableOpacity>
+    );
+  }
 
   return (
     <View
@@ -454,89 +532,27 @@ function GlossyTabBar({ state, descriptors, navigation, colors, isDark, onCenter
             { borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' },
           ]}
         >
-          {state.routes.map((route: any, index: number) => {
-            const descriptor = descriptors[route.key];
-            const { options } = descriptor;
-            const isFocused = state.index === index;
+          {leftRoutes.map(renderTab)}
 
-            if (route.name === 'QuickAction') {
-              return (
-                <TouchableOpacity
-                  key={route.key}
-                  activeOpacity={0.8}
-                  style={tabStyles.centerWrap}
-                  onPress={onCenterPress}
-                >
-                  <View
-                    style={[
-                      tabStyles.centerBtn,
-                      { backgroundColor: colors.accent.primary, borderColor: colors.brand.hover },
-                    ]}
-                  >
-                    <Ionicons name="add" size={28} color="#FFF" />
-                  </View>
-                </TouchableOpacity>
-              );
-            }
-
-            const onPress = () => {
-              const event = navigation.emit({
-                type: 'tabPress',
-                target: route.key,
-                canPreventDefault: true,
-              });
-              if (event.defaultPrevented) {
-                return;
-              }
-              const homeScreens: Record<string, string> = {
-                Dashboard: 'DashboardMain',
-                Expense: 'ExpenseHome',
-                Spaces: 'SharedFinanceHome',
-                Settings: 'SettingsMain',
-              };
-              if (isFocused) {
-                navigation.navigate(route.name, { screen: homeScreens[route.name] || route.name });
-              } else {
-                navigation.navigate(route.name, { screen: homeScreens[route.name] || route.name });
-              }
-            };
-
-            const icon = options.tabBarIcon
-              ? options.tabBarIcon({
-                  focused: isFocused,
-                  color: isFocused ? colors.accent.primary : colors.text.tertiary,
-                  size: 22,
-                })
-              : null;
-
-            return (
-              <TouchableOpacity
-                key={route.key}
-                activeOpacity={0.7}
-                style={tabStyles.tabItem}
-                onPress={onPress}
+          {showCenterButton && (
+            <TouchableOpacity
+              key="center-fab"
+              activeOpacity={0.8}
+              style={tabStyles.centerWrap}
+              onPress={onCenterPress}
+            >
+              <View
+                style={[
+                  tabStyles.centerBtn,
+                  { backgroundColor: colors.accent.primary, borderColor: colors.brand.hover },
+                ]}
               >
-                <View
-                  style={[
-                    tabStyles.iconWrap,
-                    isFocused && {
-                      backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)',
-                    },
-                  ]}
-                >
-                  {icon}
-                </View>
-                <Text
-                  style={[
-                    tabStyles.label,
-                    { color: isFocused ? colors.accent.primary : colors.text.tertiary },
-                  ]}
-                >
-                  {options.tabBarLabel || route.name}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+                <Ionicons name="add" size={28} color="#FFF" />
+              </View>
+            </TouchableOpacity>
+          )}
+
+          {rightRoutes.map(renderTab)}
         </View>
       </View>
     </View>

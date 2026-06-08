@@ -12,7 +12,6 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { PremiumAuthLayout } from '../../components/ui/PremiumAuthLayout';
-import { useTheme } from '../../theme';
 import { useAuth } from '../../store/AuthContext';
 
 interface InputFieldProps {
@@ -39,30 +38,21 @@ function InputField({
   const inputRef = useRef<TextInput>(null);
   const [focused, setFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const borderAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(borderAnim, {
-      toValue: focused ? 1 : 0,
-      duration: 200,
-      useNativeDriver: false,
-    }).start();
-  }, [focused, borderAnim]);
-
-  const borderColor = borderAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['rgba(255,255,255,0.08)', '#FF6B00'],
-  });
-
   const isPassword = secureTextEntry !== undefined;
 
   return (
-    <Animated.View
+    <View
       style={[
         styles.inputContainer,
-        { borderColor: focused ? '#FF6B00' : 'rgba(255,255,255,0.08)' },
+        { borderColor: focused ? '#FF6B00' : 'rgba(255,255,255,0.06)' },
       ]}
     >
+      <Ionicons
+        name={isPassword ? 'lock-closed-outline' : 'mail-outline'}
+        size={18}
+        color={focused ? '#FF6B00' : '#636366'}
+        style={styles.inputIcon}
+      />
       <TextInput
         ref={inputRef}
         style={styles.input}
@@ -87,40 +77,28 @@ function InputField({
           <Ionicons
             name={showPassword ? 'eye-off-outline' : 'eye-outline'}
             size={20}
-            color="#8E8E93"
+            color="#636366"
           />
         </TouchableOpacity>
       )}
-      {!isPassword && value.length > 0 && (
-        <TouchableOpacity
-          onPress={() => onChangeText('')}
-          style={styles.iconButton}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Ionicons name="close-circle" size={18} color="#8E8E93" />
-        </TouchableOpacity>
-      )}
-    </Animated.View>
+    </View>
   );
 }
 
 export function PremiumLoginScreen() {
   const navigation = useNavigation<any>();
-  const { colors } = useTheme();
   const { login } = useAuth();
   const [email, setEmail] = useState('demo@dabbu.app');
   const [password, setPassword] = useState('Demo123!');
-  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(20)).current;
-  const buttonScale = useRef(new Animated.Value(1)).current;
+  const slideAnim = useRef(new Animated.Value(24)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.spring(slideAnim, { toValue: 0, friction: 10, tension: 60, useNativeDriver: true }),
     ]).start();
   }, [fadeAnim, slideAnim]);
 
@@ -141,13 +119,13 @@ export function PremiumLoginScreen() {
   }
 
   return (
-    <PremiumAuthLayout>
+    <PremiumAuthLayout subtitle="Smart money management for everyone">
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <Animated.View
           style={[styles.content, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}
         >
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>Enter your details below to access your split circles</Text>
+          <Text style={styles.greeting}>Welcome back</Text>
+          <Text style={styles.instruction}>Sign in to continue managing your finances</Text>
 
           <View style={styles.form}>
             <InputField
@@ -174,71 +152,45 @@ export function PremiumLoginScreen() {
               </View>
             ) : null}
 
-            <View style={styles.footnotes}>
-              <TouchableOpacity
-                style={styles.checkboxRow}
-                onPress={() => setRememberMe(!rememberMe)}
-                activeOpacity={0.7}
-              >
-                <View style={[styles.checkbox, rememberMe && styles.checkboxActive]}>
-                  {rememberMe && <Ionicons name="checkmark" size={12} color="#FFFFFF" />}
-                </View>
-                <Text style={styles.checkboxLabel}>Remember me</Text>
-              </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('ForgotPassword')}
+              style={styles.forgotRow}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.forgotLink}>Forgot password?</Text>
+            </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() => navigation.navigate('ForgotPassword')}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.forgotLink}>Forgot password?</Text>
-              </TouchableOpacity>
-            </View>
-
-            <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
-              <TouchableOpacity
-                style={[styles.primaryButton, loading && styles.buttonDisabled]}
-                onPress={handleLogin}
-                disabled={loading}
-                onPressIn={() =>
-                  Animated.spring(buttonScale, {
-                    toValue: 0.97,
-                    friction: 8,
-                    tension: 40,
-                    useNativeDriver: true,
-                  }).start()
-                }
-                onPressOut={() =>
-                  Animated.spring(buttonScale, {
-                    toValue: 1,
-                    friction: 5,
-                    useNativeDriver: true,
-                  }).start()
-                }
-                activeOpacity={1}
-              >
-                <Text style={styles.primaryButtonText}>
-                  {loading ? 'Signing in...' : "Let's Start"}
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
+            <TouchableOpacity
+              style={[styles.primaryButton, loading && styles.buttonDisabled]}
+              onPress={handleLogin}
+              disabled={loading}
+              activeOpacity={0.9}
+            >
+              <Text style={styles.primaryButtonText}>{loading ? 'Signing in...' : 'Sign In'}</Text>
+            </TouchableOpacity>
           </View>
 
-          <View style={styles.divider}>
+          <View style={styles.dividerRow}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>Or Log In With</Text>
+            <Text style={styles.dividerText}>or continue with</Text>
             <View style={styles.dividerLine} />
           </View>
 
           <TouchableOpacity style={styles.googleButton} activeOpacity={0.8}>
             <Ionicons name="logo-google" size={20} color="#FFFFFF" />
-            <Text style={styles.googleButtonText}>Continue with Google</Text>
+            <Text style={styles.googleButtonText}>Google</Text>
           </TouchableOpacity>
 
-          <View style={styles.signupRow}>
-            <Text style={styles.signupText}>Don't have an account? </Text>
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Don't have an account? </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
-              <Text style={styles.signupLink}>Sign Up</Text>
+              <Text style={styles.footerLink}>Create one</Text>
             </TouchableOpacity>
+          </View>
+
+          <View style={styles.securityBadge}>
+            <Ionicons name="shield-checkmark-outline" size={12} color="#636366" />
+            <Text style={styles.securityText}>256-bit encrypted connection</Text>
           </View>
         </Animated.View>
       </TouchableWithoutFeedback>
@@ -250,49 +202,35 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  title: {
-    fontSize: 28,
+  greeting: {
+    fontSize: 26,
     color: '#FFFFFF',
     fontWeight: '700',
     fontFamily: 'Inter-Bold',
   },
-  subtitle: {
+  instruction: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: '#636366',
     marginTop: 6,
     fontFamily: 'Inter-Regular',
     lineHeight: 20,
+    marginBottom: 28,
   },
   form: {
-    marginTop: 28,
-  },
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,69,69,0.12)',
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 12,
-    gap: 8,
-  },
-  errorText: {
-    color: '#FF4545',
-    fontSize: 13,
-    fontFamily: 'Inter-Medium',
-    flex: 1,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
+    gap: 0,
   },
   inputContainer: {
     height: 52,
     backgroundColor: '#1C1C1E',
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
+  },
+  inputIcon: {
+    marginRight: 10,
   },
   input: {
     flex: 1,
@@ -305,58 +243,55 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     padding: 2,
   },
-  footnotes: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 4,
-    marginBottom: 24,
-  },
-  checkboxRow: {
+  errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: 'rgba(255,69,69,0.1)',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 12,
+    gap: 8,
   },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 6,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  checkboxActive: {
-    backgroundColor: '#FF6B00',
-    borderColor: '#FF6B00',
-  },
-  checkboxLabel: {
-    color: '#8E8E93',
+  errorText: {
+    color: '#FF4545',
     fontSize: 13,
     fontFamily: 'Inter-Medium',
+    flex: 1,
+  },
+  forgotRow: {
+    alignSelf: 'flex-end',
+    marginBottom: 24,
+    marginTop: -4,
   },
   forgotLink: {
     color: '#FF6B00',
     fontSize: 13,
     fontFamily: 'Inter-Medium',
   },
+  buttonDisabled: {
+    opacity: 0.5,
+  },
   primaryButton: {
     height: 52,
     backgroundColor: '#FF6B00',
-    borderRadius: 12,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    shadowColor: '#FF6B00',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 8,
   },
   primaryButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
   },
-  divider: {
+  dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 20,
+    marginVertical: 24,
   },
   dividerLine: {
     flex: 1,
@@ -364,17 +299,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.06)',
   },
   dividerText: {
-    color: '#8E8E93',
+    color: '#636366',
     fontSize: 12,
     fontFamily: 'Inter-Medium',
     marginHorizontal: 12,
   },
   googleButton: {
-    height: 52,
+    height: 50,
     backgroundColor: '#1C1C1E',
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(255,255,255,0.06)',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -385,19 +320,32 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: 'Inter-SemiBold',
   },
-  signupRow: {
+  footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     marginTop: 24,
   },
-  signupText: {
-    color: '#8E8E93',
+  footerText: {
+    color: '#636366',
     fontSize: 13,
     fontFamily: 'Inter-Regular',
   },
-  signupLink: {
+  footerLink: {
     color: '#FF6B00',
     fontSize: 13,
     fontFamily: 'Inter-SemiBold',
+  },
+  securityBadge: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  securityText: {
+    color: '#636366',
+    fontSize: 11,
+    fontFamily: 'Inter-Regular',
   },
 });

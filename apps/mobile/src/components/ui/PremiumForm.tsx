@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, spacing } from '../../theme';
 import { PageContainer } from './PageContainer';
 import { KeyboardAvoidingContainer } from './KeyboardAvoidingContainer';
@@ -44,18 +45,20 @@ export function PremiumFormScreen({
 }: PremiumFormScreenProps) {
   const navigation = useNavigation<any>();
   const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
   const gradient = accent || [colors.accent.primary, colors.accent.secondary];
 
   return (
     <PageContainer noPadding>
       <KeyboardAvoidingContainer>
+        <View style={StyleSheet.absoluteFill} />
         <View
-          
-          
-          
-          style={StyleSheet.absoluteFill}
-        />
-        <View style={[styles.content, contentStyle]}>
+          style={[
+            styles.content,
+            { paddingBottom: Math.max(72, insets.bottom + 60) },
+            contentStyle,
+          ]}
+        >
           {!hideClose && (
             <TouchableOpacity
               onPress={onClose || (() => navigation.goBack())}
@@ -72,12 +75,7 @@ export function PremiumFormScreen({
             </TouchableOpacity>
           )}
 
-          <View
-            
-            
-            
-            style={styles.hero}
-          >
+          <View style={styles.hero}>
             <View style={styles.heroTop}>
               <View style={styles.heroIcon}>
                 <Ionicons name={icon} size={24} color="#FFFFFF" />
@@ -179,7 +177,8 @@ export function PremiumAmountInput({
   return (
     <View style={styles.fieldBlock}>
       <Text style={[styles.label, { color: colors.text.tertiary }]}>
-        {label}{required && <Text style={{ color: '#FF6B6B' }}> *</Text>}
+        {label}
+        {required && <Text style={{ color: '#FF6B6B' }}> *</Text>}
       </Text>
       <View
         style={[

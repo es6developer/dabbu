@@ -15,7 +15,6 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { BaseScreen } from '../../components/ui/BaseScreen';
 import { EmptyState } from '../../components/ui/EmptyState';
-import { FloatingActionButton } from '../../components/ui/FloatingActionButton';
 import { useTheme, spacing } from '../../theme';
 import { Card } from '../../components/ui/Card';
 
@@ -201,11 +200,6 @@ export function RemindersScreen() {
           maxToRenderPerBatch={10}
         />
       )}
-
-      <FloatingActionButton
-        onPress={() => navigation.navigate('CreateReminder' as never)}
-        icon="add"
-      />
     </BaseScreen>
   );
 }

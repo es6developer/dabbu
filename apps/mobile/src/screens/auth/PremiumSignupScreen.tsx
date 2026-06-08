@@ -25,6 +25,7 @@ interface InputFieldProps {
   onSubmitEditing?: () => void;
   returnKeyType?: 'next' | 'done';
   inputRef?: React.RefObject<TextInput>;
+  icon?: keyof typeof Ionicons.glyphMap;
 }
 
 function InputField({
@@ -37,19 +38,27 @@ function InputField({
   onSubmitEditing,
   returnKeyType,
   inputRef,
+  icon,
 }: InputFieldProps) {
   const [focused, setFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
   const isPassword = secureTextEntry !== undefined;
 
   return (
     <View
       style={[
         styles.inputContainer,
-        { borderColor: focused ? '#FF6B00' : 'rgba(255,255,255,0.08)' },
+        { borderColor: focused ? '#FF6B00' : 'rgba(255,255,255,0.06)' },
       ]}
     >
+      {icon ? (
+        <Ionicons
+          name={icon}
+          size={18}
+          color={focused ? '#FF6B00' : '#636366'}
+          style={styles.inputIcon}
+        />
+      ) : null}
       <TextInput
         ref={inputRef}
         style={styles.input}
@@ -74,17 +83,8 @@ function InputField({
           <Ionicons
             name={showPassword ? 'eye-off-outline' : 'eye-outline'}
             size={20}
-            color="#8E8E93"
+            color="#636366"
           />
-        </TouchableOpacity>
-      )}
-      {!isPassword && value.length > 0 && (
-        <TouchableOpacity
-          onPress={() => onChangeText('')}
-          style={styles.iconButton}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Ionicons name="close-circle" size={18} color="#8E8E93" />
         </TouchableOpacity>
       )}
     </View>
@@ -101,8 +101,7 @@ export function PremiumSignupScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(20)).current;
-  const buttonScale = useRef(new Animated.Value(1)).current;
+  const slideAnim = useRef(new Animated.Value(24)).current;
 
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
@@ -110,8 +109,8 @@ export function PremiumSignupScreen() {
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.spring(slideAnim, { toValue: 0, friction: 10, tension: 60, useNativeDriver: true }),
     ]).start();
   }, [fadeAnim, slideAnim]);
 
@@ -140,7 +139,7 @@ export function PremiumSignupScreen() {
   }
 
   return (
-    <PremiumAuthLayout>
+    <PremiumAuthLayout subtitle="Start splitting and saving in minutes">
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <Animated.View
           style={[styles.content, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}
@@ -151,20 +150,16 @@ export function PremiumSignupScreen() {
             contentContainerStyle={styles.scrollContent}
           >
             <View style={styles.headerRow}>
-              <View style={styles.headerTextBlock}>
-                <Text style={styles.title}>Create Account</Text>
-                <Text style={styles.subtitle}>
-                  Join Dabbu and start splitting expenses with ease
-                </Text>
-              </View>
+              <Text style={styles.title}>Create your account</Text>
               <TouchableOpacity
                 onPress={() => navigation.goBack()}
                 style={styles.backButton}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Ionicons name="close" size={24} color="#8E8E93" />
+                <Ionicons name="close" size={22} color="#636366" />
               </TouchableOpacity>
             </View>
+            <Text style={styles.subtitle}>Join millions managing money smarter with Dabbu</Text>
 
             <View style={styles.form}>
               <InputField
@@ -173,6 +168,7 @@ export function PremiumSignupScreen() {
                 onChangeText={setName}
                 autoCapitalize="words"
                 returnKeyType="next"
+                icon="person-outline"
                 onSubmitEditing={() => emailRef.current?.focus()}
               />
               <InputField
@@ -183,6 +179,7 @@ export function PremiumSignupScreen() {
                 autoCapitalize="none"
                 returnKeyType="next"
                 inputRef={emailRef}
+                icon="mail-outline"
                 onSubmitEditing={() => passwordRef.current?.focus()}
               />
               <InputField
@@ -192,6 +189,7 @@ export function PremiumSignupScreen() {
                 secureTextEntry
                 returnKeyType="next"
                 inputRef={passwordRef}
+                icon="lock-closed-outline"
                 onSubmitEditing={() => confirmRef.current?.focus()}
               />
               <InputField
@@ -201,6 +199,7 @@ export function PremiumSignupScreen() {
                 secureTextEntry
                 returnKeyType="done"
                 inputRef={confirmRef}
+                icon="lock-closed-outline"
                 onSubmitEditing={handleSignup}
               />
 
@@ -211,51 +210,39 @@ export function PremiumSignupScreen() {
                 </View>
               ) : null}
 
-              <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
-                <TouchableOpacity
-                  style={[styles.primaryButton, loading && styles.buttonDisabled]}
-                  onPress={handleSignup}
-                  disabled={loading}
-                  onPressIn={() =>
-                    Animated.spring(buttonScale, {
-                      toValue: 0.97,
-                      friction: 8,
-                      tension: 40,
-                      useNativeDriver: true,
-                    }).start()
-                  }
-                  onPressOut={() =>
-                    Animated.spring(buttonScale, {
-                      toValue: 1,
-                      friction: 5,
-                      useNativeDriver: true,
-                    }).start()
-                  }
-                  activeOpacity={1}
-                >
-                  <Text style={styles.primaryButtonText}>
-                    {loading ? 'Creating account...' : 'Create Account'}
-                  </Text>
-                </TouchableOpacity>
-              </Animated.View>
+              <TouchableOpacity
+                style={[styles.primaryButton, loading && styles.buttonDisabled]}
+                onPress={handleSignup}
+                disabled={loading}
+                activeOpacity={0.9}
+              >
+                <Text style={styles.primaryButtonText}>
+                  {loading ? 'Creating account...' : 'Create Account'}
+                </Text>
+              </TouchableOpacity>
             </View>
 
-            <View style={styles.divider}>
+            <View style={styles.dividerRow}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>Or Sign Up With</Text>
+              <Text style={styles.dividerText}>or sign up with</Text>
               <View style={styles.dividerLine} />
             </View>
 
             <TouchableOpacity style={styles.googleButton} activeOpacity={0.8}>
               <Ionicons name="logo-google" size={20} color="#FFFFFF" />
-              <Text style={styles.googleButtonText}>Continue with Google</Text>
+              <Text style={styles.googleButtonText}>Google</Text>
             </TouchableOpacity>
 
-            <View style={styles.loginRow}>
-              <Text style={styles.loginText}>Already have an account? </Text>
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>Already have an account? </Text>
               <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                <Text style={styles.loginLink}>Sign In</Text>
+                <Text style={styles.footerLink}>Sign In</Text>
               </TouchableOpacity>
+            </View>
+
+            <View style={styles.securityBadge}>
+              <Ionicons name="shield-checkmark-outline" size={12} color="#636366" />
+              <Text style={styles.securityText}>256-bit encrypted connection</Text>
             </View>
           </ScrollView>
         </Animated.View>
@@ -276,21 +263,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
   },
-  headerTextBlock: {
-    flex: 1,
-  },
   title: {
-    fontSize: 28,
+    fontSize: 26,
     color: '#FFFFFF',
     fontWeight: '700',
     fontFamily: 'Inter-Bold',
+    flex: 1,
   },
   subtitle: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: '#636366',
     marginTop: 6,
     fontFamily: 'Inter-Regular',
     lineHeight: 20,
+    marginBottom: 28,
   },
   backButton: {
     width: 36,
@@ -300,20 +286,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 12,
-    marginTop: 4,
+    marginTop: 2,
   },
   form: {
-    marginTop: 28,
+    gap: 0,
   },
   inputContainer: {
     height: 52,
     backgroundColor: '#1C1C1E',
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
+  },
+  inputIcon: {
+    marginRight: 10,
   },
   input: {
     flex: 1,
@@ -329,7 +318,7 @@ const styles = StyleSheet.create({
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,69,69,0.12)',
+    backgroundColor: 'rgba(255,69,69,0.1)',
     padding: 12,
     borderRadius: 12,
     marginBottom: 12,
@@ -342,25 +331,30 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   buttonDisabled: {
-    opacity: 0.6,
+    opacity: 0.5,
   },
   primaryButton: {
     height: 52,
     backgroundColor: '#FF6B00',
-    borderRadius: 12,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: 4,
+    shadowColor: '#FF6B00',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 8,
   },
   primaryButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
   },
-  divider: {
+  dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 20,
+    marginVertical: 24,
   },
   dividerLine: {
     flex: 1,
@@ -368,17 +362,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.06)',
   },
   dividerText: {
-    color: '#8E8E93',
+    color: '#636366',
     fontSize: 12,
     fontFamily: 'Inter-Medium',
     marginHorizontal: 12,
   },
   googleButton: {
-    height: 52,
+    height: 50,
     backgroundColor: '#1C1C1E',
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(255,255,255,0.06)',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -389,19 +383,32 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: 'Inter-SemiBold',
   },
-  loginRow: {
+  footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     marginTop: 24,
   },
-  loginText: {
-    color: '#8E8E93',
+  footerText: {
+    color: '#636366',
     fontSize: 13,
     fontFamily: 'Inter-Regular',
   },
-  loginLink: {
+  footerLink: {
     color: '#FF6B00',
     fontSize: 13,
     fontFamily: 'Inter-SemiBold',
+  },
+  securityBadge: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  securityText: {
+    color: '#636366',
+    fontSize: 11,
+    fontFamily: 'Inter-Regular',
   },
 });

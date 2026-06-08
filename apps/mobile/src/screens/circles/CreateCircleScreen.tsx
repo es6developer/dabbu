@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert,
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -8,7 +14,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
-import { HelpTip, HelpCard } from '../../components/ui';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 
 const CIRCLE_TYPES = [
@@ -39,7 +44,9 @@ export function CreateCircleScreen() {
     }
     setLoading(true);
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
       await api.post('/shared-finance/groups', {
         name: name.trim(),
         description: description.trim(),
@@ -62,20 +69,19 @@ export function CreateCircleScreen() {
   }
 
   function removeMember(name: string) {
-    setMembers(members.filter(m => m !== name));
+    setMembers(members.filter((m) => m !== name));
   }
 
-  const selType = CIRCLE_TYPES.find(t => t.key === type)!;
+  const selType = CIRCLE_TYPES.find((t) => t.key === type)!;
 
   return (
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
       <KeyboardAvoidingContainer>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-          <View
-            
-             
-            style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}
-          >
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: Math.max(40, insets.bottom + 40) }}
+        >
+          <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
             <View style={styles.headerRow}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                 <Ionicons name="close" size={24} color="#FFF" />
@@ -90,7 +96,14 @@ export function CreateCircleScreen() {
             <View>
               <Text style={[styles.label, { color: colors.text.secondary }]}>Circle Name *</Text>
               <TextInput
-                style={[styles.input, { backgroundColor: colors.bg.card, color: colors.text.primary, borderColor: colors.border.subtle }]}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.bg.card,
+                    color: colors.text.primary,
+                    borderColor: colors.border.subtle,
+                  },
+                ]}
                 placeholder="Enter circle name"
                 placeholderTextColor={colors.text.tertiary}
                 value={name}
@@ -101,7 +114,15 @@ export function CreateCircleScreen() {
             <View>
               <Text style={[styles.label, { color: colors.text.secondary }]}>Description</Text>
               <TextInput
-                style={[styles.input, styles.textArea, { backgroundColor: colors.bg.card, color: colors.text.primary, borderColor: colors.border.subtle }]}
+                style={[
+                  styles.input,
+                  styles.textArea,
+                  {
+                    backgroundColor: colors.bg.card,
+                    color: colors.text.primary,
+                    borderColor: colors.border.subtle,
+                  },
+                ]}
                 placeholder="Add a description (optional)"
                 placeholderTextColor={colors.text.tertiary}
                 value={description}
@@ -112,11 +133,6 @@ export function CreateCircleScreen() {
             </View>
 
             <View>
-              <HelpTip
-                text="Choose a group type that best describes your circle — Couple, Family, Friends, Roommates, or Trip."
-                icon="information-circle-outline"
-                color={colors.accent.primary}
-              />
               <Text style={[styles.label, { color: colors.text.secondary }]}>Category</Text>
               <View style={styles.typeGrid}>
                 {CIRCLE_TYPES.map((t) => {
@@ -134,10 +150,26 @@ export function CreateCircleScreen() {
                       onPress={() => setType(t.key)}
                       activeOpacity={0.7}
                     >
-                      <View style={[styles.typeIcon, { backgroundColor: active ? `${t.color}20` : colors.bg.tertiary }]}>
-                        <Ionicons name={t.icon as any} size={20} color={active ? t.color : colors.text.tertiary} />
+                      <View
+                        style={[
+                          styles.typeIcon,
+                          { backgroundColor: active ? `${t.color}20` : colors.bg.tertiary },
+                        ]}
+                      >
+                        <Ionicons
+                          name={t.icon as any}
+                          size={20}
+                          color={active ? t.color : colors.text.tertiary}
+                        />
                       </View>
-                      <Text style={[styles.typeLabel, { color: active ? t.color : colors.text.secondary }]}>{t.label}</Text>
+                      <Text
+                        style={[
+                          styles.typeLabel,
+                          { color: active ? t.color : colors.text.secondary },
+                        ]}
+                      >
+                        {t.label}
+                      </Text>
                     </TouchableOpacity>
                   );
                 })}
@@ -146,7 +178,12 @@ export function CreateCircleScreen() {
 
             <View>
               <Text style={[styles.label, { color: colors.text.secondary }]}>Add Members</Text>
-              <View style={[styles.searchRow, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
+              <View
+                style={[
+                  styles.searchRow,
+                  { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+                ]}
+              >
                 <Ionicons name="search" size={18} color={colors.text.tertiary} />
                 <TextInput
                   style={[styles.searchInput, { color: colors.text.primary }]}
@@ -162,7 +199,10 @@ export function CreateCircleScreen() {
               {members.length > 0 && (
                 <View style={styles.memberList}>
                   {members.map((m, i) => (
-                    <View key={i} style={[styles.memberChip, { backgroundColor: `${selType.color}15` }]}>
+                    <View
+                      key={i}
+                      style={[styles.memberChip, { backgroundColor: `${selType.color}15` }]}
+                    >
                       <View style={[styles.memberAvatar, { backgroundColor: selType.color }]}>
                         <Text style={styles.memberAvatarText}>{m[0]}</Text>
                       </View>
@@ -177,9 +217,10 @@ export function CreateCircleScreen() {
             </View>
 
             <View
-              
-               
-              style={[styles.createBtn, { opacity: loading ? 0.6 : 1 }]}
+              style={[
+                styles.createBtn,
+                { backgroundColor: colors.accent.primary, opacity: loading ? 0.6 : 1 },
+              ]}
             >
               <TouchableOpacity
                 onPress={handleCreate}
@@ -200,29 +241,87 @@ export function CreateCircleScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
-  backBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  backBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   headerTitle: { color: '#FFF', fontSize: 18, fontWeight: '700' },
   headerSub: { color: 'rgba(255,255,255,0.6)', fontSize: 13, marginTop: 4 },
   label: { fontSize: 13, fontWeight: '600', marginBottom: 8 },
-  input: { fontSize: 15, paddingHorizontal: 16, paddingVertical: 14, borderRadius: 14, borderWidth: 1 },
+  input: {
+    fontSize: 15,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
   textArea: { minHeight: 80, textAlignVertical: 'top' },
   typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   typeCard: {
-    width: '30.5%', alignItems: 'center', gap: 8, paddingVertical: 16,
-    borderRadius: 16, borderWidth: 1.5,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 1,
+    width: '30.5%',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 16,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
   },
-  typeIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  typeIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   typeLabel: { fontSize: 12, fontWeight: '700' },
-  searchRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1 },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
   searchInput: { flex: 1, fontSize: 15, paddingVertical: 12 },
   memberList: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
-  memberChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12 },
-  memberAvatar: { width: 24, height: 24, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  memberChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  memberAvatar: {
+    width: 24,
+    height: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   memberAvatarText: { color: '#FFF', fontSize: 11, fontWeight: '700' },
   memberName: { fontSize: 13, fontWeight: '600' },
   createBtn: { borderRadius: 16, overflow: 'hidden', marginTop: 4 },
-  createBtnInner: { flexDirection: 'row', paddingVertical: 16, alignItems: 'center', justifyContent: 'center', gap: 8 },
+  createBtnInner: {
+    flexDirection: 'row',
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
   createBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 });

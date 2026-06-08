@@ -9,11 +9,13 @@ import DraggableFlatList, {
 } from 'react-native-draggable-flatlist';
 import { useTheme } from '../../theme';
 import { api, setAccessToken, getAccessToken } from '../../services/api';
+import { usePreferences, TabConfig } from '../../store/PreferencesContext';
 
 const TAB_META: Record<string, { label: string; icon: string; desc: string }> = {
   Dashboard: { label: 'Dashboard', icon: 'compass', desc: 'Home screen with overview' },
   Accounts: { label: 'Expenses', icon: 'receipt', desc: 'Transactions & accounts' },
-  Shared: { label: 'Spaces', icon: 'grid', desc: 'Split expenses & shared accounts' },
+  QuickAction: { label: 'Quick Action', icon: 'add-circle', desc: 'Center FAB with quick actions' },
+  Spaces: { label: 'Spaces', icon: 'grid', desc: 'Split expenses & shared accounts' },
   Goals: { label: 'Goals', icon: 'trophy', desc: 'Savings goals & milestones' },
   Reminders: { label: 'Reminders', icon: 'notifications', desc: 'Bill & task reminders' },
   SMS: { label: 'SMS', icon: 'chatbubbles', desc: 'Auto-detect SMS transactions' },
@@ -24,7 +26,8 @@ export function CustomiseBottomMenuScreen() {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const [tabs, setTabs] = useState<any[]>([]);
+  const { refresh } = usePreferences();
+  const [tabs, setTabs] = useState<TabConfig[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -32,10 +35,16 @@ export function CustomiseBottomMenuScreen() {
     setAccessToken(getAccessToken());
     try {
       const res = await api.get<any>('/user/preferences');
-      const config = res?.bottomMenuConfig || [];
-      setTabs(config.sort((a: any, b: any) => a.order - b.order));
+      const config: TabConfig[] = (res?.bottomMenuConfig || []).sort(
+        (a: any, b: any) => a.order - b.order,
+      );
+      if (config.length > 0) {
+        setTabs(config);
+      } else {
+        setTabs(getDefaultTabs());
+      }
     } catch {
-      /* use defaults */
+      setTabs(getDefaultTabs());
     }
     setLoading(false);
   }, []);
@@ -54,6 +63,7 @@ export function CustomiseBottomMenuScreen() {
     }));
     try {
       await api.put('/user/preferences/bottom-menu', { config });
+      await refresh();
       Alert.alert('Saved', 'Bottom menu layout updated');
       navigation.goBack();
     } catch (e: any) {
@@ -67,10 +77,11 @@ export function CustomiseBottomMenuScreen() {
     setTabs((prev) => prev.map((t, i) => (i === index ? { ...t, visible: !t.visible } : t)));
   };
 
-  const renderItem = ({ item, drag, isActive, getIndex }: RenderItemParams<any>) => {
+  const renderItem = ({ item, drag, isActive, getIndex }: RenderItemParams<TabConfig>) => {
     const meta = TAB_META[item.id] || { label: item.id, icon: 'help', desc: '' };
     const idx = getIndex() ?? 0;
     const isSettings = item.id === 'Settings';
+    const isQa = item.id === 'QuickAction';
     return (
       <ScaleDecorator>
         <TouchableOpacity
@@ -86,7 +97,7 @@ export function CustomiseBottomMenuScreen() {
           ]}
         >
           <Ionicons
-            name={isSettings ? 'lock-closed' : 'menu'}
+            name={isSettings ? 'lock-closed' : isQa ? 'flash' : 'menu'}
             size={20}
             color={isSettings ? colors.text.tertiary : colors.text.tertiary}
             style={{ marginRight: 12 }}
@@ -168,6 +179,19 @@ export function CustomiseBottomMenuScreen() {
       </View>
     </View>
   );
+}
+
+function getDefaultTabs(): TabConfig[] {
+  return [
+    { id: 'Dashboard', visible: true, order: 0, locked: false },
+    { id: 'Accounts', visible: true, order: 1, locked: false },
+    { id: 'QuickAction', visible: true, order: 2, locked: false },
+    { id: 'Spaces', visible: true, order: 3, locked: false },
+    { id: 'Goals', visible: false, order: 4, locked: false },
+    { id: 'Reminders', visible: false, order: 5, locked: false },
+    { id: 'SMS', visible: false, order: 6, locked: false },
+    { id: 'Settings', visible: true, order: 7, locked: true },
+  ];
 }
 
 const styles = StyleSheet.create({

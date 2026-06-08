@@ -20,20 +20,25 @@ import { useAuth } from '../../store/AuthContext';
 import { Skeleton, SkeletonList } from '../../components/ui/AnimatedSkeleton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { HelpTip, HelpCard } from '../../components/ui';
-import { getCategoryIcon } from '../../config/categoryIcons';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_W = (SCREEN_WIDTH - 56) / 3;
 
 const CATEGORY_GRADIENTS: Record<string, [string, string]> = {
-  Food: ['#F97316', '#F97316'], Travel: ['#4A90D9', '#357ABD'],
-  Shopping: ['#E056A0', '#C94D8B'], Medical: ['#00B894', '#00A381'],
-  Fuel: ['#FDCB6E', '#F0A830'], Rent: ['#FF6B00', '#E86200'],
-  EMI: ['#E17055', '#D63031'], Bills: ['#0984E3', '#0768B8'],
-  Entertainment: ['#FF914D', '#E86200'], Education: ['#55EFC4', '#00CEC9'],
-  Grocery: ['#81ECEC', '#00CEC9'], Investment: ['#74B9FF', '#4D96FF'],
-  Salary: ['#00B894', '#00A381'], Transfer: ['#DFE6E9', '#B2BEC3'],
+  Food: ['#F97316', '#F97316'],
+  Travel: ['#4A90D9', '#357ABD'],
+  Shopping: ['#E056A0', '#C94D8B'],
+  Medical: ['#00B894', '#00A381'],
+  Fuel: ['#FDCB6E', '#F0A830'],
+  Rent: ['#FF6B00', '#E86200'],
+  EMI: ['#E17055', '#D63031'],
+  Bills: ['#0984E3', '#0768B8'],
+  Entertainment: ['#FF914D', '#E86200'],
+  Education: ['#55EFC4', '#00CEC9'],
+  Grocery: ['#81ECEC', '#00CEC9'],
+  Investment: ['#74B9FF', '#4D96FF'],
+  Salary: ['#00B894', '#00A381'],
+  Transfer: ['#DFE6E9', '#B2BEC3'],
 };
 function getCategoryColors(cat: string) {
   return CATEGORY_GRADIENTS[cat] || ['#F97316', '#F97316'];
@@ -413,14 +418,6 @@ export function MyWalletScreen() {
               </View>
             </Animated.View>
 
-            <HelpCard
-              title="Wallet Tracking"
-              description="Track all your income and expenses in one place. Use search and filters to find specific transactions quickly."
-              icon="wallet-outline"
-              accentColor="#FF6B00"
-              tips={['Long-press a transaction to delete it', 'Use filter chips to view by category']}
-            />
-
             <View style={s.quickActions}>
               {PREMIUM_CATEGORIES.map((a) => (
                 <TouchableOpacity
@@ -452,12 +449,14 @@ export function MyWalletScreen() {
                     value: insight.dailyAvg,
                     label: 'Daily Avg',
                   },
-                  { icon: 'fast-food', color: colors.accent.primary, value: insight.foodTotal, label: 'Food' },
+                  {
+                    icon: 'fast-food',
+                    color: colors.accent.primary,
+                    value: insight.foodTotal,
+                    label: 'Food',
+                  },
                 ].map((c, i) => (
-                  <View
-                    key={i}
-                    style={[s.insightCard, { backgroundColor: `${c.color}12` }]}
-                  >
+                  <View key={i} style={[s.insightCard, { backgroundColor: `${c.color}12` }]}>
                     <Ionicons name={c.icon as any} size={16} color={c.color} />
                     <Text style={[s.insightVal, { color: colors.text.primary }]}>
                       {fmt(c.value)}
@@ -596,7 +595,14 @@ const s = StyleSheet.create({
   headerTitle: { fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
   avatar: { width: 42, height: 42, borderRadius: 12, overflow: 'hidden' },
   avatarGrad: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  balanceCard: { marginHorizontal: 20, borderRadius: 28, padding: 24, gap: 20, marginBottom: 16, overflow: 'hidden' },
+  balanceCard: {
+    marginHorizontal: 20,
+    borderRadius: 28,
+    padding: 24,
+    gap: 20,
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
   balanceTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   balanceLabel: {
     fontSize: 12,

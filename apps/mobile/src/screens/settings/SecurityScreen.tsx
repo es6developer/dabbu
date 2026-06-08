@@ -13,7 +13,7 @@ import * as SecureStore from 'expo-secure-store';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
-import { ConfirmDialog, HelpTip, HelpCard } from '../../components/ui';
+import { ConfirmDialog } from '../../components/ui';
 import { useAuth } from '../../store/AuthContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { PageContainer } from '../../components/ui/PageContainer';
@@ -247,14 +247,6 @@ export function SecurityScreen() {
       <KeyboardAvoidingContainer>
         <View style={styles.container}>
           <Text style={[styles.title, { color: colors.text.primary }]}>Security</Text>
-
-          <HelpCard
-            title="Authentication & PIN"
-            description="Secure your account with biometric authentication (Face ID / fingerprint) and an app PIN. Lock App ensures your data stays private when you're away."
-            icon="shield-checkmark-outline"
-            accentColor={colors.accent.primary}
-            tips={['Use biometric for quick access', 'Set a PIN as a backup method']}
-          />
 
           <View
             style={[
@@ -504,14 +496,6 @@ export function SecurityScreen() {
               </View>
             )}
           </View>
-
-          <HelpCard
-            title="Active Sessions"
-            description="View all devices where your account is logged in. Revoke access from unfamiliar devices to keep your account secure."
-            icon="phone-portrait-outline"
-            accentColor={colors.accent.primary}
-            tips={['Logout all other sessions with one tap', 'Check recent login activity below']}
-          />
 
           <View
             style={[

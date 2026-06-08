@@ -88,117 +88,123 @@ interface GroupCardProps {
   group: any;
   onPress: () => void;
   themeColor: string;
+  netBalance?: number;
 }
 
-function GroupCard({ group, onPress, themeColor }: GroupCardProps) {
+function GroupCard({ group, onPress, themeColor, netBalance }: GroupCardProps) {
   const { colors } = useTheme();
   const mc = group.members?.length || group._count?.members || 0;
-  const balance = group.balance || 0;
-  const positive = balance >= 0;
-  const recentActivity = group.updatedAt || group.createdAt;
+  const balance = netBalance ?? 0;
+  const isPositive = balance >= 0;
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const members = group.members || [];
   const maxAvatars = 3;
-  const overflow = mc > maxAvatars ? mc - maxAvatars : 0;
-  const displayMembers = members.slice(0, maxAvatars);
+  const displayAvatars = Math.min(mc, maxAvatars);
+  const overflow = Math.max(mc - maxAvatars, 0);
+  const getInitial = (m: any) => {
+    const u = m.user || m;
+    return ((u.firstName?.[0] || '') + (u.lastName?.[0] || '')).trim() || '?';
+  };
 
   return (
-    <Animated.View style={[{ transform: [{ scale: scaleAnim }] }]}>
-      <TouchableOpacity
-        activeOpacity={0.7}
-        onPress={onPress}
-        onPressIn={() =>
-          Animated.spring(scaleAnim, { toValue: 0.97, friction: 12, useNativeDriver: true }).start()
-        }
-        onPressOut={() =>
-          Animated.spring(scaleAnim, { toValue: 1, friction: 12, useNativeDriver: true }).start()
-        }
+    <TouchableOpacity
+      activeOpacity={0.95}
+      onPress={onPress}
+      onPressIn={() => {
+        Animated.spring(scaleAnim, { toValue: 0.98, useNativeDriver: true }).start();
+      }}
+      onPressOut={() => {
+        Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }).start();
+      }}
+    >
+      <Animated.View
+        style={[
+          s.groupCard,
+          {
+            backgroundColor: colors.bg.card,
+            borderColor: colors.border.default,
+            transform: [{ scale: scaleAnim }],
+          },
+        ]}
       >
-        <View
-          style={[
-            s.groupCard,
-            { backgroundColor: colors.bg.card, borderColor: colors.border.default },
-          ]}
-        >
-          <View style={[s.groupAccent, { backgroundColor: themeColor }]} />
-          <View style={s.groupContent}>
-            <View style={s.groupTop}>
-              <View style={{ flex: 1, marginRight: 8 }}>
-                <Text style={[s.groupName, { color: colors.text.primary }]} numberOfLines={1}>
-                  {group.name || group.title}
-                </Text>
-                <View style={s.groupMetaRow}>
-                  <Ionicons name="people-outline" size={11} color={colors.text.tertiary} />
-                  <Text style={[s.groupMeta, { color: colors.text.tertiary }]}>
-                    {mc} member{mc !== 1 ? 's' : ''}
-                  </Text>
-                  {recentActivity && (
-                    <>
-                      <View style={[s.metaDot, { backgroundColor: colors.text.tertiary }]} />
-                      <Text style={[s.groupMeta, { color: colors.text.tertiary }]}>
-                        {timeAgo(recentActivity)}
-                      </Text>
-                    </>
-                  )}
-                </View>
-              </View>
-              <View style={s.avatarStack}>
-                {displayMembers.map((m: any, i: number) => {
-                  const u = m.user || m;
-                  const initial = (u.firstName?.[0] || u.email?.[0] || '?').toUpperCase();
-                  return (
-                    <View
-                      key={u.id || i}
-                      style={[
-                        s.avatarCircle,
-                        {
-                          backgroundColor: colors.bg.tertiary,
-                          borderColor: colors.bg.card,
-                          marginLeft: i === 0 ? 0 : -7,
-                        },
-                      ]}
-                    >
-                      <Text style={[s.avatarText, { color: colors.text.primary }]}>{initial}</Text>
-                    </View>
-                  );
-                })}
-                {overflow > 0 && (
-                  <View
-                    style={[
-                      s.avatarCircle,
-                      {
-                        backgroundColor: `${themeColor}20`,
-                        borderColor: colors.bg.card,
-                        marginLeft: -7,
-                      },
-                    ]}
-                  >
-                    <Text style={[s.avatarOverflowText, { color: themeColor }]}>+{overflow}</Text>
-                  </View>
-                )}
-              </View>
-            </View>
-            <View style={s.groupBottom}>
-              <Text
-                style={[
-                  s.groupBalance,
-                  { color: balance === 0 ? '#8E8E93' : positive ? '#34C759' : '#FF4545' },
-                ]}
-              >
-                {balance === 0 ? 'Settled' : `${positive ? '+' : ''}${fmt(Math.abs(balance))}`}
+        <View style={s.groupInner}>
+          <View style={s.groupLeft}>
+            <Text style={[s.groupName, { color: colors.text.primary }]} numberOfLines={1}>
+              {group.name || group.title}
+            </Text>
+            <View style={s.memberBadge}>
+              <Ionicons name="people-outline" size={12} color={colors.text.secondary} />
+              <Text style={[s.memberCountText, { color: colors.text.secondary }]}>
+                {mc} member{mc !== 1 ? 's' : ''}
               </Text>
-              <View style={[s.typeBadge, { backgroundColor: `${themeColor}15` }]}>
-                <View style={[s.typeDot, { backgroundColor: themeColor }]} />
-                <Text style={[s.typeBadgeText, { color: themeColor }]}>
-                  {TYPE_CONFIG[group.type]?.label || 'Group'}
-                </Text>
-              </View>
+              <View style={[s.metaDot, { backgroundColor: colors.text.secondary }]} />
+              <Text style={[s.memberActivity, { color: colors.text.secondary }]}>
+                {timeAgo(group.updatedAt || group.createdAt)}
+              </Text>
+            </View>
+          </View>
+
+          <View style={s.avatarCluster}>
+            {Array.from({ length: displayAvatars }).map((_, i) => {
+              const u = members[i]?.user || members[i];
+              return (
+                <View
+                  key={u?.id || i}
+                  style={[
+                    s.avatarCircle,
+                    {
+                      backgroundColor: colors.bg.tertiary,
+                      borderColor: colors.bg.card,
+                      marginLeft: i === 0 ? 0 : -8,
+                      zIndex: displayAvatars - i,
+                    },
+                  ]}
+                >
+                  <Text style={[s.avatarLetter, { color: colors.text.secondary }]}>
+                    {u ? getInitial(u) : '?'}
+                  </Text>
+                </View>
+              );
+            })}
+            <View
+              style={[
+                s.avatarCircle,
+                s.overflowBadge,
+                {
+                  backgroundColor: `${themeColor}20`,
+                  borderColor: colors.bg.card,
+                  marginLeft: -8,
+                },
+              ]}
+            >
+              {overflow > 0 ? (
+                <Text style={[s.overflowText, { color: themeColor }]}>+{overflow}</Text>
+              ) : (
+                <Ionicons name="add" size={14} color={themeColor} />
+              )}
+            </View>
+          </View>
+
+          <View style={s.groupRight}>
+            <Text
+              style={[
+                s.balanceText,
+                { color: balance === 0 ? '#8E8E93' : isPositive ? '#34C759' : '#FF4545' },
+              ]}
+            >
+              {balance === 0 ? 'Settled' : `${isPositive ? '+' : ''}${fmt(Math.abs(balance))}`}
+            </Text>
+            <View style={[s.typeBadge, { backgroundColor: `${themeColor}15` }]}>
+              <View style={[s.typeDot, { backgroundColor: themeColor }]} />
+              <Text style={[s.typeBadgeText, { color: themeColor }]}>
+                {TYPE_CONFIG[group.type]?.label || 'Group'}
+              </Text>
             </View>
           </View>
         </View>
-      </TouchableOpacity>
-    </Animated.View>
+      </Animated.View>
+    </TouchableOpacity>
   );
 }
 
@@ -206,9 +212,10 @@ export function SharedScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
-  const { accessToken } = useAuth();
+  const { accessToken, user } = useAuth();
 
   const [groups, setGroups] = useState<any[]>([]);
+  const [groupBalances, setGroupBalances] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -226,7 +233,42 @@ export function SharedScreen() {
       setError(null);
       try {
         const sharedRes = await api.get<any>('/shared-finance/groups');
-        setGroups(listFromResponse(sharedRes));
+        const groupList = listFromResponse(sharedRes);
+        setGroups(groupList);
+
+        // Fetch real balances for groups with expenses
+        const groupIdsWithExpenses = groupList
+          .filter((g: any) => (g._count?.expenses || 0) > 0)
+          .map((g: any) => g.id);
+        if (groupIdsWithExpenses.length > 0) {
+          const balanceResults = await Promise.allSettled(
+            groupIdsWithExpenses.map((gid: string) =>
+              api.get<any>(`/shared-finance/groups/${gid}/balances`),
+            ),
+          );
+          const balancesMap: Record<string, number> = {};
+          const currentUserId = (user as any)?.id;
+          balanceResults.forEach((r, idx) => {
+            if (r.status === 'fulfilled' && Array.isArray(r.value)) {
+              if (currentUserId) {
+                const myEntry = r.value.find((b: any) => b.userId === currentUserId);
+                if (myEntry) {
+                  balancesMap[groupIdsWithExpenses[idx]] = Number(myEntry.balance);
+                }
+              }
+              // If no current user entry found, show any non-zero balance as pending
+              if (!balancesMap[groupIdsWithExpenses[idx]]) {
+                const anyNonZero = r.value.find((b: any) => Math.abs(Number(b.balance)) > 0.01);
+                if (anyNonZero) {
+                  balancesMap[groupIdsWithExpenses[idx]] = Number(anyNonZero.balance);
+                }
+              }
+            }
+          });
+          setGroupBalances(balancesMap);
+        } else {
+          setGroupBalances({});
+        }
       } catch {
         setError('Could not load spaces. Check your connection.');
       } finally {
@@ -471,6 +513,7 @@ export function SharedScreen() {
                       key={group.id}
                       group={group}
                       themeColor={cfg.color}
+                      netBalance={groupBalances[group.id]}
                       onPress={() => {
                         if (group.type === 'couple') {
                           navigation.navigate('CoupleFinance', {
@@ -534,17 +577,6 @@ export function SharedScreen() {
           </Animated.View>
         )}
       </ScrollView>
-
-      {/* ─── FAB ─── */}
-      <View style={[s.fabWrap, { bottom: insets.bottom + 20 }]}>
-        <TouchableOpacity
-          style={s.fab}
-          activeOpacity={0.85}
-          onPress={() => navigation.navigate('CreateSharedGroup')}
-        >
-          <Ionicons name="add" size={26} color="#FFF" />
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -610,31 +642,53 @@ const s = StyleSheet.create({
 
   /* Group Card */
   groupCard: {
-    borderRadius: 16,
+    marginHorizontal: 16,
+    marginBottom: 12,
+    borderRadius: 18,
     borderWidth: 1,
-    overflow: 'hidden',
-    flexDirection: 'row',
+    minHeight: 80,
+    padding: 16,
   },
-  groupAccent: { width: 4 },
-  groupContent: { flex: 1, padding: 14, gap: 10 },
-  groupTop: { flexDirection: 'row', alignItems: 'flex-start' },
-  groupBottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  groupName: { fontSize: 16, fontWeight: '700', marginBottom: 3 },
-  groupMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  groupMeta: { fontSize: 11, fontWeight: '500' },
+  groupInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  groupLeft: {
+    flex: 1,
+    marginRight: 12,
+  },
+  groupName: { fontSize: 16, fontWeight: '700', marginBottom: 2 },
+  memberBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 3,
+  },
+  memberCountText: { fontSize: 12, fontWeight: '500' },
+  memberActivity: { fontSize: 11, fontWeight: '400' },
   metaDot: { width: 3, height: 3, borderRadius: 1.5 },
-  avatarStack: { flexDirection: 'row', alignItems: 'center' },
+
+  /* Avatar Cluster */
+  avatarCluster: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+  },
   avatarCircle: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
   },
-  avatarText: { fontSize: 10, fontWeight: '700' },
-  avatarOverflowText: { fontSize: 9, fontWeight: '700' },
-  groupBalance: { fontSize: 15, fontWeight: '800' },
+  avatarLetter: { fontSize: 11, fontWeight: '600' },
+  overflowBadge: { borderWidth: 1.5 },
+  overflowText: { fontSize: 10, fontWeight: '700' },
+
+  /* Right side */
+  groupRight: { alignItems: 'flex-end' },
+  balanceText: { fontSize: 16, fontWeight: '800' },
   typeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -642,6 +696,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
+    marginTop: 4,
   },
   typeDot: { width: 5, height: 5, borderRadius: 2.5 },
   typeBadgeText: { fontSize: 11, fontWeight: '700' },
@@ -689,21 +744,4 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   createLabel: { fontSize: 15, fontWeight: '700' },
-  createSub: { fontSize: 12, fontWeight: '500', marginTop: 1 },
-
-  /* FAB */
-  fabWrap: { position: 'absolute', right: 24, alignItems: 'center' },
-  fab: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#FF6B00',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#FF6B00',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 24,
-    elevation: 8,
-  },
 });

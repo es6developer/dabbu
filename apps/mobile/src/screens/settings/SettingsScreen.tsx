@@ -1,6 +1,12 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Animated,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -9,7 +15,7 @@ import { useTheme } from '../../theme';
 import { useAuth } from '../../store/AuthContext';
 import { useAppLock } from '../../store/LockContext';
 import { api, setAccessToken, getAccessToken } from '../../services/api';
-import { ConfirmDialog, HelpTip, HelpCard } from '../../components/ui';
+import { ConfirmDialog } from '../../components/ui';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -100,27 +106,46 @@ export function SettingsScreen() {
       setAccessToken(getAccessToken());
       const res = await api.get<any>('/premium/current');
       setSubscription(res);
-    } catch { setSubscription(null); }
+    } catch {
+      setSubscription(null);
+    }
   }
 
   const isPremium = !!subscription && subscription.status === 'active';
 
   const handleNav = (screen: string, premium?: boolean, action?: 'lock') => {
-    if (action === 'lock') { lockApp(); return; }
+    if (action === 'lock') {
+      lockApp();
+      return;
+    }
     const registered = [
-      'Profile', 'Security', 'Premium', 'Theme', 'CustomiseDashboard',
-      'CustomiseBottomMenu', 'Help', 'Contact', 'Privacy', 'Analytics',
-      'NotificationSettings', 'FavoriteContacts',
+      'Profile',
+      'Security',
+      'Premium',
+      'Theme',
+      'CustomiseDashboard',
+      'CustomiseBottomMenu',
+      'Help',
+      'Contact',
+      'Privacy',
+      'Analytics',
+      'NotificationSettings',
+      'FavoriteContacts',
+      'Referral',
     ];
     if (!registered.includes(screen)) {
       Alert.alert('Coming Soon', `${screen} settings will be available soon`);
       return;
     }
     if (premium && !isPremium) {
-      Alert.alert('Premium Feature', 'This feature is available on Premium plan. Upgrade to access it.', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'View Plans', onPress: () => navigation.navigate('Subscription') },
-      ]);
+      Alert.alert(
+        'Premium Feature',
+        'This feature is available on Premium plan. Upgrade to access it.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'View Plans', onPress: () => navigation.navigate('Subscription') },
+        ],
+      );
       return;
     }
     navigation.navigate(screen);
@@ -128,24 +153,50 @@ export function SettingsScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
+      >
         <View
           style={[s.hero, { paddingTop: insets.top + 16, backgroundColor: colors.accent.primary }]}
         >
-          <TouchableOpacity style={s.heroBack} onPress={() => navigation.goBack()} activeOpacity={0.7}>
+          <TouchableOpacity
+            style={s.heroBack}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
+          >
             <Ionicons name="chevron-back" size={22} color="#FFF" />
           </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleNav('Profile')} activeOpacity={0.8} style={[s.heroProfile, { borderColor: colors.border.default }]}>
+          <TouchableOpacity
+            onPress={() => handleNav('Profile')}
+            activeOpacity={0.8}
+            style={[s.heroProfile, { borderColor: colors.border.default }]}
+          >
             <View style={[s.heroAvatar, { backgroundColor: colors.accent.primary }]}>
               <Text style={s.heroAvatarText}>{user?.firstName?.[0] || 'U'}</Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={s.heroName} numberOfLines={1}>{user?.firstName || 'User'} {user?.lastName || ''}</Text>
-              <Text style={s.heroEmail} numberOfLines={1}>{user?.email || 'No email'}</Text>
+              <Text style={s.heroName} numberOfLines={1}>
+                {user?.firstName || 'User'} {user?.lastName || ''}
+              </Text>
+              <Text style={s.heroEmail} numberOfLines={1}>
+                {user?.email || 'No email'}
+              </Text>
             </View>
-            <View style={[s.heroPlanBadge, { backgroundColor: isPremium ? '#F3D28F20' : 'rgba(255,255,255,0.1)' }]}>
-              <Ionicons name={isPremium ? 'diamond' : 'person-outline'} size={12} color={isPremium ? '#F3D28F' : 'rgba(255,255,255,0.6)'} />
-              <Text style={[s.heroPlanText, { color: isPremium ? '#F3D28F' : 'rgba(255,255,255,0.6)' }]}>
+            <View
+              style={[
+                s.heroPlanBadge,
+                { backgroundColor: isPremium ? '#F3D28F20' : 'rgba(255,255,255,0.1)' },
+              ]}
+            >
+              <Ionicons
+                name={isPremium ? 'diamond' : 'person-outline'}
+                size={12}
+                color={isPremium ? '#F3D28F' : 'rgba(255,255,255,0.6)'}
+              />
+              <Text
+                style={[s.heroPlanText, { color: isPremium ? '#F3D28F' : 'rgba(255,255,255,0.6)' }]}
+              >
                 {isPremium ? 'Premium' : 'Free'}
               </Text>
             </View>
@@ -153,20 +204,16 @@ export function SettingsScreen() {
         </View>
 
         <Animated.View style={{ opacity: fadeAnim }}>
-          <HelpCard
-            title="Settings"
-            description="Customize your Dabbu experience. Manage your profile, security, preferences, and more."
-            icon="settings-outline"
-            accentColor={colors.accent.primary}
-            tips={['Upgrade to Premium for advanced features', 'Lock your app for extra security']}
-          />
           {!isPremium && (
             <TouchableOpacity
-              style={[s.upgradeBanner, { backgroundColor: colors.accent.primary, borderColor: colors.border.default }]}
+              style={[
+                s.upgradeBanner,
+                { backgroundColor: colors.accent.primary, borderColor: colors.border.default },
+              ]}
               onPress={() => navigation.navigate('Premium')}
               activeOpacity={0.85}
             >
-              <View    style={s.upgradeGrad}>
+              <View style={s.upgradeGrad}>
                 <View style={{ flex: 1 }}>
                   <Text style={s.upgradeTitle}>Upgrade to Premium</Text>
                   <Text style={s.upgradeSub}>Unlock reports, analytics & more</Text>
@@ -181,15 +228,23 @@ export function SettingsScreen() {
           {SECTIONS.map((section, i) => (
             <View key={i} style={s.section}>
               <Text style={[s.secTitle, { color: colors.text.tertiary }]}>{section.title}</Text>
-              <View style={[s.secCard, { backgroundColor: colors.bg.secondary, borderColor: colors.border.default }]}>
-                  {section.items.map((item, j) => {
+              <View
+                style={[
+                  s.secCard,
+                  { backgroundColor: colors.bg.secondary, borderColor: colors.border.default },
+                ]}
+              >
+                {section.items.map((item, j) => {
                   const meta = ROW_META[item.label];
                   return (
                     <TouchableOpacity
                       key={j}
                       style={[
                         s.row,
-                        j < section.items.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border.subtle },
+                        j < section.items.length - 1 && {
+                          borderBottomWidth: StyleSheet.hairlineWidth,
+                          borderBottomColor: colors.border.subtle,
+                        },
                       ]}
                       onPress={() => handleNav(item.screen, item.premium, item.action)}
                       activeOpacity={0.6}
@@ -202,7 +257,9 @@ export function SettingsScreen() {
                         {item.premium && !isPremium && (
                           <View style={[s.premiumBadge, { backgroundColor: colors.bg.tertiary }]}>
                             <Ionicons name="lock-closed" size={9} color={colors.accent.primary} />
-                            <Text style={[s.premiumLabel, { color: colors.accent.primary }]}>Premium</Text>
+                            <Text style={[s.premiumLabel, { color: colors.accent.primary }]}>
+                              Premium
+                            </Text>
                           </View>
                         )}
                         <View style={[s.chevronBox, { backgroundColor: colors.bg.tertiary }]}>
@@ -217,7 +274,10 @@ export function SettingsScreen() {
           ))}
 
           <TouchableOpacity
-            style={[s.logoutRow, { backgroundColor: colors.bg.secondary, borderColor: colors.border.default }]}
+            style={[
+              s.logoutRow,
+              { backgroundColor: colors.bg.secondary, borderColor: colors.border.default },
+            ]}
             onPress={() => setShowLogoutDialog(true)}
             activeOpacity={0.6}
           >
@@ -241,7 +301,10 @@ export function SettingsScreen() {
         confirmLabel="Sign Out"
         destructive
         icon="log-out-outline"
-        onConfirm={() => { setShowLogoutDialog(false); logout().catch(() => {}); }}
+        onConfirm={() => {
+          setShowLogoutDialog(false);
+          logout().catch(() => {});
+        }}
         onCancel={() => setShowLogoutDialog(false)}
       />
     </View>
@@ -258,68 +321,126 @@ const s = StyleSheet.create({
     overflow: 'hidden',
   },
   heroBack: {
-    width: 40, height: 40, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)',
-    alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
   },
   heroProfile: {
-    flexDirection: 'row', alignItems: 'center', gap: 14,
-    backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 20, padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 20,
+    padding: 14,
     borderWidth: 1,
   },
   heroAvatar: {
-    width: 52, height: 52, borderRadius: 18, alignItems: 'center', justifyContent: 'center',
+    width: 52,
+    height: 52,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   heroAvatarText: { color: '#FFF', fontSize: 22, fontWeight: '800' },
   heroName: { color: '#FFF', fontSize: 18, fontWeight: '700' },
   heroEmail: { color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: '500', marginTop: 1 },
   heroPlanBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
   },
   heroPlanText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.3 },
 
-  upgradeBanner: { marginHorizontal: 20, marginTop: 16, marginBottom: 20, borderRadius: 20, overflow: 'hidden', borderWidth: 1 },
+  upgradeBanner: {
+    marginHorizontal: 20,
+    marginTop: 16,
+    marginBottom: 20,
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 1,
+  },
   upgradeGrad: {
-    flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    gap: 12,
   },
   upgradeTitle: { color: '#FFF', fontSize: 16, fontWeight: '800' },
   upgradeSub: { color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '500', marginTop: 2 },
-  upgradeArrow: { width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
+  upgradeArrow: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 
   section: { marginBottom: 20, paddingHorizontal: 20 },
   secTitle: {
-    fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase',
-    marginBottom: 10, marginLeft: 4,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginBottom: 10,
+    marginLeft: 4,
   },
   secCard: { borderRadius: 20, overflow: 'hidden', borderWidth: 1 },
   row: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingVertical: 14, paddingHorizontal: 16, gap: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    gap: 12,
   },
   rowIcon: {
-    width: 36, height: 36, borderRadius: 10,
-    alignItems: 'center', justifyContent: 'center',
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   rowLabel: { flex: 1, fontSize: 15, fontWeight: '600' },
   rowRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   chevronBox: {
-    width: 22, height: 22, borderRadius: 6,
-    alignItems: 'center', justifyContent: 'center',
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   premiumBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 3,
-    paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 6,
   },
   premiumLabel: { fontSize: 10, fontWeight: '700' },
 
   logoutRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    marginHorizontal: 20, padding: 16, borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginHorizontal: 20,
+    padding: 16,
+    borderRadius: 20,
     borderWidth: 1,
   },
   logoutIcon: {
-    width: 36, height: 36, borderRadius: 10,
-    alignItems: 'center', justifyContent: 'center',
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   logoutText: { flex: 1, fontSize: 15, fontWeight: '700', color: '#FF4D4F' },
 

@@ -3,10 +3,16 @@ import { StatusBar, LogBox, Appearance } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
-import { NavigationContainer, NavigationContainerRef, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import {
+  NavigationContainer,
+  NavigationContainerRef,
+  DefaultTheme,
+  DarkTheme,
+} from '@react-navigation/native';
 import { ThemeProvider, useTheme } from './src/theme/ThemeProvider';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { AuthProvider } from './src/store/AuthContext';
+import { PreferencesProvider } from './src/store/PreferencesContext';
 import { LockProvider } from './src/store/LockContext';
 import { FavoritesProvider } from './src/store/FavoritesContext';
 import { loadFeatures } from './src/config/features';
@@ -27,7 +33,15 @@ function ThemedStatusBar() {
   );
 }
 
-function ThemedNavigationContainer({ children, navigationRef, linking }: { children: React.ReactNode; navigationRef: React.RefObject<NavigationContainerRef<any>>; linking?: any }) {
+function ThemedNavigationContainer({
+  children,
+  navigationRef,
+  linking,
+}: {
+  children: React.ReactNode;
+  navigationRef: React.RefObject<NavigationContainerRef<any>>;
+  linking?: any;
+}) {
   const { isDark, colors } = useTheme();
   const navTheme = React.useMemo(() => {
     const base = isDark ? DarkTheme : DefaultTheme;
@@ -125,14 +139,16 @@ export default function App(): React.ReactElement | null {
       <SafeAreaProvider>
         <ThemeProvider>
           <AuthProvider>
-            <LockProvider>
-              <FavoritesProvider>
-                <ThemedNavigationContainer navigationRef={navigationRef} linking={linking}>
-                  <ThemedStatusBar />
-                  <RootNavigator />
-                </ThemedNavigationContainer>
-              </FavoritesProvider>
-            </LockProvider>
+            <PreferencesProvider>
+              <LockProvider>
+                <FavoritesProvider>
+                  <ThemedNavigationContainer navigationRef={navigationRef} linking={linking}>
+                    <ThemedStatusBar />
+                    <RootNavigator />
+                  </ThemedNavigationContainer>
+                </FavoritesProvider>
+              </LockProvider>
+            </PreferencesProvider>
           </AuthProvider>
         </ThemeProvider>
       </SafeAreaProvider>

@@ -1,7 +1,13 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
-  View, Text, FlatList, StyleSheet, TouchableOpacity,
-  ActivityIndicator, RefreshControl, Alert,
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -11,7 +17,6 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { syncAndUpload, setSyncTimestamp } from '../../services/sms';
 import { isSmsModuleAvailable, checkSmsPermission } from '../../services/sms/smsService';
-import { HelpTip, HelpCard } from '../../components/ui';
 import { getCategoryIcon } from '../../config/categoryIcons';
 
 interface Detection {
@@ -32,7 +37,9 @@ interface Detection {
 type FilterMode = 'all' | 'categorized' | 'uncategorized';
 
 function getCatIcon(name: string | undefined | null): string {
-  if (!name) {return 'ellipse';}
+  if (!name) {
+    return 'ellipse';
+  }
   return getCategoryIcon(name, 'ellipse');
 }
 
@@ -53,14 +60,21 @@ export function SmsDashboardScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      if (accessToken) {setAccessToken(accessToken);}
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
       loadDetections();
       const poll = setInterval(loadDetections, 5000);
       const liveSync = setInterval(() => {
-        if (!syncLockRef.current) {liveReadSync();}
+        if (!syncLockRef.current) {
+          liveReadSync();
+        }
       }, 45000);
-      return () => { clearInterval(poll); clearInterval(liveSync); };
-    }, [accessToken])
+      return () => {
+        clearInterval(poll);
+        clearInterval(liveSync);
+      };
+    }, [accessToken]),
   );
 
   const prevCount = useRef(0);
@@ -78,12 +92,17 @@ export function SmsDashboardScreen() {
       const res = await api.get<any>('/sms-detection');
       const data = Array.isArray(res) ? res : [];
       setDetections(data);
-    } catch (_e) { /* ignore */ }
-    finally { setLoading(false); }
+    } catch (_e) {
+      /* ignore */
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function autoCreateFresh(pending: Detection[]) {
-    if (creatingRef.current || pending.length === 0) {return;}
+    if (creatingRef.current || pending.length === 0) {
+      return;
+    }
     creatingRef.current = true;
     setAutoCreating(true);
     const cutoff = Date.now() - 120000;
@@ -94,7 +113,9 @@ export function SmsDashboardScreen() {
           message: d.messageBody,
           sender: d.sender,
         });
-      } catch (_e) { /* ignore */ }
+      } catch (_e) {
+        /* ignore */
+      }
     }
     if (fresh.length > 0) {
       await loadDetections();
@@ -129,7 +150,9 @@ export function SmsDashboardScreen() {
         setNewBanner('No financial messages found in inbox');
       } else if (uploadFailed > 0) {
         const topErrors = [...new Set(uploadErrors)].slice(0, 2).join(', ');
-        setNewBanner(`Synced ${msgCount} — ${uploadSuccess} created, ${uploadFailed} failed (${topErrors})`);
+        setNewBanner(
+          `Synced ${msgCount} — ${uploadSuccess} created, ${uploadFailed} failed (${topErrors})`,
+        );
       } else {
         setNewBanner(`Synced ${msgCount} — ${uploadSuccess} created`);
       }
@@ -142,47 +165,66 @@ export function SmsDashboardScreen() {
     } catch (_e) {
       setNewBanner('Sync failed — check SMS permission and backend connection');
       setTimeout(() => setNewBanner(null), 5000);
+    } finally {
+      setSyncing(false);
     }
-    finally { setSyncing(false); }
   }
 
   async function liveReadSync() {
     syncLockRef.current = true;
     try {
       const moduleOk = isSmsModuleAvailable();
-      if (!moduleOk) {return;}
+      if (!moduleOk) {
+        return;
+      }
       const permission = await checkSmsPermission();
-      if (permission !== 'granted') {return;}
+      if (permission !== 'granted') {
+        return;
+      }
       const result = await syncAndUpload();
-      if (result.raw.length === 0) {return;}
+      if (result.raw.length === 0) {
+        return;
+      }
       const res = await api.get<any>('/sms-detection');
       const data = Array.isArray(res) ? res : [];
       setDetections(data);
       autoCreateFresh(data.filter((d: Detection) => !d.isProcessed));
-    } catch (_e) { void _e; }
-    finally { syncLockRef.current = false; }
+    } catch (_e) {
+      void _e;
+    } finally {
+      syncLockRef.current = false;
+    }
   }
 
   function formatCurrency(val: number | null): string {
-    if (val === null || val === undefined) {return '';}
+    if (val === null || val === undefined) {
+      return '';
+    }
     const prefix = val >= 0 ? '₹' : '-₹';
-    return prefix + Math.abs(val).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return (
+      prefix +
+      Math.abs(val).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    );
   }
 
   const stats = {
     total: detections.length,
-    categorized: detections.filter(d => d.category?.name).length,
-    pending: detections.filter(d => !d.isProcessed).length,
-    thisMonth: detections.filter(d => {
+    categorized: detections.filter((d) => d.category?.name).length,
+    pending: detections.filter((d) => !d.isProcessed).length,
+    thisMonth: detections.filter((d) => {
       const dDate = new Date(d.createdAt);
       const now = new Date();
       return dDate.getMonth() === now.getMonth() && dDate.getFullYear() === now.getFullYear();
     }).length,
   };
 
-  const filtered = detections.filter(d => {
-    if (filter === 'categorized') {return !!d.category?.name;}
-    if (filter === 'uncategorized') {return !d.category?.name;}
+  const filtered = detections.filter((d) => {
+    if (filter === 'categorized') {
+      return !!d.category?.name;
+    }
+    if (filter === 'uncategorized') {
+      return !d.category?.name;
+    }
     return true;
   });
 
@@ -199,18 +241,35 @@ export function SmsDashboardScreen() {
     const isIncome = item.detectedType === 'income';
     const iconName = getCatIcon(catName);
     const catColors: Record<string, string> = {
-      'Food & Dining': '#FF6B6B', Groceries: '#00B894', Shopping: '#FF6B00',
-      Transportation: '#FDCB6E', Entertainment: '#E17055', 'Bills & Utilities': '#636E72',
-      Housing: '#0984E3', Income: '#00B894', Subscriptions: '#F39C12',
-      'Health & Medical': '#E74C3C', Education: '#FF6B00', Travel: '#1ABC9C',
-      Financial: '#34495E', Transfers: '#2D3436', Refunds: '#00CEC9',
-      Pets: '#FD79A8', Clothing: '#FF914D', 'Other Income': '#55EFC4',
+      'Food & Dining': '#FF6B6B',
+      Groceries: '#00B894',
+      Shopping: '#FF6B00',
+      Transportation: '#FDCB6E',
+      Entertainment: '#E17055',
+      'Bills & Utilities': '#636E72',
+      Housing: '#0984E3',
+      Income: '#00B894',
+      Subscriptions: '#F39C12',
+      'Health & Medical': '#E74C3C',
+      Education: '#FF6B00',
+      Travel: '#1ABC9C',
+      Financial: '#34495E',
+      Transfers: '#2D3436',
+      Refunds: '#00CEC9',
+      Pets: '#FD79A8',
+      Clothing: '#FF914D',
+      'Other Income': '#55EFC4',
       'Other Expenses': '#636E72',
     };
     const catColor = catColors[catName] || colors.accent.primary;
 
     return (
-      <View style={[styles.card, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}>
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+        ]}
+      >
         <View style={styles.cardRow}>
           <View style={[styles.iconBox, { backgroundColor: `${catColor}18` }]}>
             <Ionicons name={iconName as any} size={18} color={catColor} />
@@ -225,13 +284,20 @@ export function SmsDashboardScreen() {
           </View>
           <View style={styles.rightCol}>
             {item.detectedAmount !== null && item.detectedAmount !== undefined && (
-              <Text style={[styles.amount, { color: isIncome ? colors.status.success : colors.status.error }]}>
-                {isIncome ? '+' : '-'}{formatCurrency(item.detectedAmount)}
+              <Text
+                style={[
+                  styles.amount,
+                  { color: isIncome ? colors.status.success : colors.status.error },
+                ]}
+              >
+                {isIncome ? '+' : '-'}
+                {formatCurrency(item.detectedAmount)}
               </Text>
             )}
             <Text style={[styles.date, { color: colors.text.tertiary }]}>
               {new Date(item.createdAt).toLocaleDateString('en-IN', {
-                day: 'numeric', month: 'short',
+                day: 'numeric',
+                month: 'short',
               })}
             </Text>
           </View>
@@ -268,7 +334,11 @@ export function SmsDashboardScreen() {
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>SMS Intelligence</Text>
         <View style={styles.headerRight}>
           {autoCreating && (
-            <ActivityIndicator color={colors.accent.primary} size="small" style={{ marginRight: 4 }} />
+            <ActivityIndicator
+              color={colors.accent.primary}
+              size="small"
+              style={{ marginRight: 4 }}
+            />
           )}
           <TouchableOpacity
             style={[styles.iconBtn, { backgroundColor: `${colors.accent.primary}15` }]}
@@ -278,21 +348,16 @@ export function SmsDashboardScreen() {
             <Ionicons name="sync" size={18} color={colors.accent.primary} />
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.iconBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}
+            style={[
+              styles.iconBtn,
+              { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' },
+            ]}
             onPress={() => navigation.navigate('SmsPermission')}
           >
             <Ionicons name="settings-outline" size={18} color={colors.text.secondary} />
           </TouchableOpacity>
         </View>
       </View>
-
-      <HelpCard
-        title="SMS Intelligence"
-        description="Dabbu automatically reads financial SMS from your inbox and categorizes transactions. No manual entry needed for bank messages, UPI payments, and more."
-        icon="chatbubbles-outline"
-        accentColor={colors.accent.primary}
-        tips={['Tap Sync to manually fetch new messages', 'Auto-sync runs every 45 seconds when enabled']}
-      />
 
       {newBanner && (
         <View style={[styles.newBanner, { backgroundColor: colors.accent.primary }]}>
@@ -304,8 +369,18 @@ export function SmsDashboardScreen() {
       <FlatList
         data={filtered}
         keyExtractor={(d) => d.id}
-        refreshControl={<RefreshControl refreshing={false} onRefresh={loadDetections} tintColor={colors.accent.primary} />}
-        contentContainerStyle={filtered.length === 0 ? styles.emptyContainer : { paddingHorizontal: 16, paddingBottom: 100 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={false}
+            onRefresh={loadDetections}
+            tintColor={colors.accent.primary}
+          />
+        }
+        contentContainerStyle={
+          filtered.length === 0
+            ? styles.emptyContainer
+            : { paddingHorizontal: 16, paddingBottom: 100 }
+        }
         ListHeaderComponent={
           detections.length > 0 ? (
             <View>
@@ -316,9 +391,17 @@ export function SmsDashboardScreen() {
                   { label: 'Pending', value: stats.pending, color: colors.status.warning },
                   { label: 'This Month', value: stats.thisMonth, color: colors.text.secondary },
                 ].map((s, i) => (
-                  <View key={i} style={[styles.statCard, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}>
+                  <View
+                    key={i}
+                    style={[
+                      styles.statCard,
+                      { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+                    ]}
+                  >
                     <Text style={[styles.statValue, { color: s.color }]}>{s.value}</Text>
-                    <Text style={[styles.statLabel, { color: colors.text.tertiary }]}>{s.label}</Text>
+                    <Text style={[styles.statLabel, { color: colors.text.tertiary }]}>
+                      {s.label}
+                    </Text>
                   </View>
                 ))}
               </View>
@@ -329,12 +412,19 @@ export function SmsDashboardScreen() {
                     key={f}
                     style={[
                       styles.filterChip,
-                      { backgroundColor: filter === f ? colors.accent.primary : 'transparent',
-                        borderColor: filter === f ? colors.accent.primary : colors.border.subtle },
+                      {
+                        backgroundColor: filter === f ? colors.accent.primary : 'transparent',
+                        borderColor: filter === f ? colors.accent.primary : colors.border.subtle,
+                      },
                     ]}
                     onPress={() => setFilter(f)}
                   >
-                    <Text style={[styles.filterText, { color: filter === f ? '#FFFFFF' : colors.text.secondary }]}>
+                    <Text
+                      style={[
+                        styles.filterText,
+                        { color: filter === f ? '#FFFFFF' : colors.text.secondary },
+                      ]}
+                    >
                       {f === 'all' ? 'All' : f === 'categorized' ? 'Categorized' : 'Uncategorized'}
                     </Text>
                   </TouchableOpacity>
@@ -349,9 +439,12 @@ export function SmsDashboardScreen() {
             <View style={[styles.emptyIcon, { backgroundColor: `${colors.accent.primary}15` }]}>
               <Ionicons name="chatbubbles-outline" size={40} color={colors.accent.primary} />
             </View>
-            <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>Automatically track expenses</Text>
+            <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
+              Automatically track expenses
+            </Text>
             <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
-              Enable SMS sync to automatically detect and categorize financial transactions from your messages. No manual entry needed.
+              Enable SMS sync to automatically detect and categorize financial transactions from
+              your messages. No manual entry needed.
             </Text>
             <TouchableOpacity
               style={[styles.emptyBtn, { backgroundColor: colors.accent.primary }]}
@@ -372,38 +465,99 @@ export function SmsDashboardScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+  },
   headerTitle: { fontSize: 22, fontWeight: '700' },
   headerRight: { flexDirection: 'row', gap: 8, alignItems: 'center' },
-  iconBtn: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  iconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   statsRow: { flexDirection: 'row', gap: 10, marginTop: 8, marginBottom: 12 },
-  statCard: { flex: 1, borderRadius: 16, borderWidth: 1, padding: 12, alignItems: 'center', gap: 4 },
+  statCard: {
+    flex: 1,
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 12,
+    alignItems: 'center',
+    gap: 4,
+  },
   statValue: { fontSize: 22, fontWeight: '700' },
   statLabel: { fontSize: 10, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 0.3 },
-  newBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 8, marginHorizontal: 16, borderRadius: 12, marginBottom: 8 },
+  newBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    marginHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
   newBannerText: { color: '#FFFFFF', fontSize: 13, fontWeight: '600' },
   filterRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
   filterChip: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, borderWidth: 1 },
   filterText: { fontSize: 12, fontWeight: '600' },
   card: { borderRadius: 20, borderWidth: 1, padding: 16, marginBottom: 12 },
   cardRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  iconBox: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  iconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   cardInfo: { flex: 1 },
   merchant: { fontSize: 15, fontWeight: '600' },
   category: { fontSize: 12, fontWeight: '500', marginTop: 2 },
   rightCol: { alignItems: 'flex-end', gap: 2 },
   amount: { fontSize: 17, fontWeight: '700' },
   date: { fontSize: 11 },
-  cardFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: 1, marginTop: 12, paddingTop: 10 },
+  cardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderTopWidth: 1,
+    marginTop: 12,
+    paddingTop: 10,
+  },
   badgeRow: { flexDirection: 'row', gap: 6 },
-  badge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
   badgeText: { fontSize: 11, fontWeight: '600' },
   conf: { fontSize: 11, fontWeight: '500' },
   emptyContainer: { flexGrow: 1, paddingHorizontal: 16 },
   empty: { alignItems: 'center', gap: 12, paddingHorizontal: 32 },
-  emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
+  emptyIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   emptyTitle: { fontSize: 17, fontWeight: '600' },
   emptyDesc: { fontSize: 13, textAlign: 'center', lineHeight: 18 },
-  emptyBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 13, paddingHorizontal: 20, borderRadius: 14, marginTop: 8 },
+  emptyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 13,
+    paddingHorizontal: 20,
+    borderRadius: 14,
+    marginTop: 8,
+  },
   emptyBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
 });

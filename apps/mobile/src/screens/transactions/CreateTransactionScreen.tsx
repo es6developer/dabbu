@@ -47,33 +47,51 @@ export function CreateTransactionScreen() {
   const isEditing = Boolean(editingTransaction?.id);
 
   const [amount, setAmount] = useState(
-    editingTransaction?.amount ? String(editingTransaction.amount) : prefill?.amount ? String(prefill.amount) : '',
+    editingTransaction?.amount
+      ? String(editingTransaction.amount)
+      : prefill?.amount
+        ? String(prefill.amount)
+        : '',
   );
   const [type, setType] = useState<'expense' | 'income'>(prefill?.type || 'expense');
-  const [category, setCategory] = useState(editingTransaction?.category?.name || prefill?.categoryName || '');
+  const [category, setCategory] = useState(
+    editingTransaction?.category?.name || prefill?.categoryName || '',
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const inputRef = useRef<TextInput>(null);
   const [loadingMeta, setLoadingMeta] = useState(true);
   const [categories, setCategories] = useState<any[]>([]);
-  const [selectedGroupId, setSelectedGroupId] = useState(editingTransaction?.expenseGroupId || prefill?.groupId || '');
+  const [selectedGroupId, setSelectedGroupId] = useState(
+    editingTransaction?.expenseGroupId || prefill?.groupId || '',
+  );
   const [selectedGroupName, setSelectedGroupName] = useState(prefill?.groupName || '');
-  const [description, setDescription] = useState(editingTransaction?.description || prefill?.description || '');
+  const [description, setDescription] = useState(
+    editingTransaction?.description || prefill?.description || '',
+  );
   const [date] = useState(
-    (editingTransaction?.date ? new Date(editingTransaction.date).toISOString().split('T')[0] : undefined) ||
+    (editingTransaction?.date
+      ? new Date(editingTransaction.date).toISOString().split('T')[0]
+      : undefined) ||
       prefill?.date ||
       new Date().toISOString().split('T')[0],
   );
 
   useEffect(() => {
-    if (accessToken) setAccessToken(accessToken);
+    if (accessToken) {
+      setAccessToken(accessToken);
+    }
     loadCategories();
   }, [accessToken]);
 
   async function loadCategories() {
     try {
       const res = await api.get<any[]>('/categories');
-      const data = Array.isArray(res) ? res : Array.isArray((res as any)?.data) ? (res as any).data : [];
+      const data = Array.isArray(res)
+        ? res
+        : Array.isArray((res as any)?.data)
+          ? (res as any).data
+          : [];
       setCategories(data);
     } catch (e) {
       // fallback to static
@@ -89,7 +107,9 @@ export function CreateTransactionScreen() {
     }
     setError('');
     setSaving(true);
-    if (accessToken) setAccessToken(accessToken);
+    if (accessToken) {
+      setAccessToken(accessToken);
+    }
     try {
       const data: any = {
         amount: Number(amount),
@@ -97,16 +117,24 @@ export function CreateTransactionScreen() {
         description: description.trim() || (category ? `${category} expense` : 'Expense'),
         date,
       };
-      if (selectedGroupId) data.expenseGroupId = selectedGroupId;
+      if (selectedGroupId) {
+        data.expenseGroupId = selectedGroupId;
+      }
       if (isEditing) {
         await api.patch(`/transactions/${editingTransaction.id}`, data);
       } else {
         await api.post('/transactions', data);
       }
       if (prefill?.returnTo === 'GroupExpenses' && selectedGroupId) {
-        navigation.navigate('GroupExpenses', { groupId: selectedGroupId, groupName: selectedGroupName || prefill.groupName });
+        navigation.navigate('GroupExpenses', {
+          groupId: selectedGroupId,
+          groupName: selectedGroupName || prefill.groupName,
+        });
       } else {
-        navigation.navigate(isEditing ? 'TransactionDetail' : 'ExpenseHome', isEditing ? { transactionId: editingTransaction.id } : undefined);
+        navigation.navigate(
+          isEditing ? 'TransactionDetail' : 'ExpenseHome',
+          isEditing ? { transactionId: editingTransaction.id } : undefined,
+        );
       }
     } catch (e: any) {
       setError(e.message || 'Failed to create transaction');
@@ -137,7 +165,7 @@ export function CreateTransactionScreen() {
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 40 }}
+          contentContainerStyle={{ paddingBottom: Math.max(40, insets.bottom + 40) }}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
         >
@@ -145,18 +173,24 @@ export function CreateTransactionScreen() {
             <View>
               <View style={[s.amountSection, { backgroundColor: colors.bg.card }]}>
                 <View style={s.amountTop}>
-                  <TouchableOpacity onPress={() => {
-                    Keyboard.dismiss();
-                    navigation.goBack();
-                  }} style={s.closeBtn}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      Keyboard.dismiss();
+                      navigation.goBack();
+                    }}
+                    style={s.closeBtn}
+                  >
                     <Ionicons name="close" size={22} color={colors.text.secondary} />
                   </TouchableOpacity>
                   <Text style={[s.amtTitle, { color: colors.text.primary }]}>
                     {isEditing ? 'Edit' : type === 'income' ? 'Add Income' : 'Add Expense'}
                   </Text>
-                  <TouchableOpacity onPress={() => {
-                    inputRef.current?.focus();
-                  }} style={s.keyboardBtn}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      inputRef.current?.focus();
+                    }}
+                    style={s.keyboardBtn}
+                  >
                     <Ionicons name="keypad-outline" size={20} color={colors.accent.primary} />
                   </TouchableOpacity>
                 </View>
@@ -164,19 +198,50 @@ export function CreateTransactionScreen() {
                 <View style={[s.segmentRow, { backgroundColor: colors.bg.tertiary }]}>
                   <TouchableOpacity
                     activeOpacity={0.8}
-                    onPress={() => { setType('expense'); setError(''); }}
-                    style={[s.segmentBtn, type === 'expense' && { backgroundColor: colors.accent.primary }]}
+                    onPress={() => {
+                      setType('expense');
+                      setError('');
+                    }}
+                    style={[
+                      s.segmentBtn,
+                      type === 'expense' && { backgroundColor: colors.accent.primary },
+                    ]}
                   >
-                    <Ionicons name="cart-outline" size={14} color={type === 'expense' ? '#FFF' : colors.text.secondary} />
-                    <Text style={[s.segmentText, { color: type === 'expense' ? '#FFF' : colors.text.secondary }]}>Expenses</Text>
+                    <Ionicons
+                      name="cart-outline"
+                      size={14}
+                      color={type === 'expense' ? '#FFF' : colors.text.secondary}
+                    />
+                    <Text
+                      style={[
+                        s.segmentText,
+                        { color: type === 'expense' ? '#FFF' : colors.text.secondary },
+                      ]}
+                    >
+                      Expenses
+                    </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     activeOpacity={0.8}
-                    onPress={() => { setType('income'); setError(''); }}
+                    onPress={() => {
+                      setType('income');
+                      setError('');
+                    }}
                     style={[s.segmentBtn, type === 'income' && { backgroundColor: '#34C759' }]}
                   >
-                    <Ionicons name="trending-up" size={14} color={type === 'income' ? '#FFF' : colors.text.secondary} />
-                    <Text style={[s.segmentText, { color: type === 'income' ? '#FFF' : colors.text.secondary }]}>Income</Text>
+                    <Ionicons
+                      name="trending-up"
+                      size={14}
+                      color={type === 'income' ? '#FFF' : colors.text.secondary}
+                    />
+                    <Text
+                      style={[
+                        s.segmentText,
+                        { color: type === 'income' ? '#FFF' : colors.text.secondary },
+                      ]}
+                    >
+                      Income
+                    </Text>
                   </TouchableOpacity>
                 </View>
 
@@ -190,7 +255,9 @@ export function CreateTransactionScreen() {
                       onChangeText={(text) => {
                         const cleaned = text.replace(/[^0-9.]/g, '');
                         const dotCount = cleaned.split('.').length - 1;
-                        if (dotCount > 1) return;
+                        if (dotCount > 1) {
+                          return;
+                        }
                         setAmount(cleaned);
                         setError('');
                       }}
@@ -232,11 +299,23 @@ export function CreateTransactionScreen() {
                         ]}
                         onPress={() => setCategory(selected ? '' : cat.name)}
                       >
-                        <View style={[s.catIcon, { backgroundColor: selected ? cat.color : `${cat.color}12` }]}>
-                          <Ionicons name={cat.icon as any} size={20} color={selected ? '#FFF' : cat.color} />
+                        <View
+                          style={[
+                            s.catIcon,
+                            { backgroundColor: selected ? cat.color : `${cat.color}12` },
+                          ]}
+                        >
+                          <Ionicons
+                            name={cat.icon as any}
+                            size={20}
+                            color={selected ? '#FFF' : cat.color}
+                          />
                         </View>
                         <Text
-                          style={[s.catName, { color: selected ? colors.text.primary : colors.text.secondary }]}
+                          style={[
+                            s.catName,
+                            { color: selected ? colors.text.primary : colors.text.secondary },
+                          ]}
                           numberOfLines={1}
                         >
                           {cat.name}
@@ -257,7 +336,13 @@ export function CreateTransactionScreen() {
                   <View style={[s.addBtnGrad, { backgroundColor: colors.accent.primary }]}>
                     <Ionicons name="add-circle" size={18} color="#FFF" />
                     <Text style={s.addBtnText}>
-                      {saving ? 'Saving...' : isEditing ? 'Update' : type === 'income' ? 'Add Income' : 'Add Expense'}
+                      {saving
+                        ? 'Saving...'
+                        : isEditing
+                          ? 'Update'
+                          : type === 'income'
+                            ? 'Add Income'
+                            : 'Add Expense'}
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -275,35 +360,93 @@ const s = StyleSheet.create({
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
   amountSection: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 20 },
-  amountTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
-  closeBtn: { width: 34, height: 34, borderRadius: 12, backgroundColor: '#F5F0FF', alignItems: 'center', justifyContent: 'center' },
-  keyboardBtn: { width: 34, height: 34, borderRadius: 12, backgroundColor: '#F5F0FF', alignItems: 'center', justifyContent: 'center' },
+  amountTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  closeBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    backgroundColor: '#F5F0FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  keyboardBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    backgroundColor: '#F5F0FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   amtTitle: { fontSize: 17, fontWeight: '700' },
 
   segmentRow: { flexDirection: 'row', borderRadius: 12, padding: 3, marginBottom: 20 },
-  segmentBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: 10 },
+  segmentBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
   segmentText: { fontSize: 13, fontWeight: '700' },
 
   amountDisplay: { alignItems: 'center', gap: 6, marginBottom: 8 },
   amountInputRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
   amountCurrency: { fontSize: 36, fontWeight: '800' },
-  amountInput: { fontSize: 40, fontWeight: '800', letterSpacing: -1, textAlign: 'center', minWidth: 120, paddingVertical: 0 },
+  amountInput: {
+    fontSize: 40,
+    fontWeight: '800',
+    letterSpacing: -1,
+    textAlign: 'center',
+    minWidth: 120,
+    paddingVertical: 0,
+  },
   amountHint: { fontSize: 13, fontWeight: '500' },
 
-  errorBox: { flexDirection: 'row', alignItems: 'center', gap: 6, padding: 10, borderRadius: 10, marginTop: 8 },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    padding: 10,
+    borderRadius: 10,
+    marginTop: 8,
+  },
   errorText: { fontSize: 12, fontWeight: '600', flex: 1 },
 
   categorySection: { paddingHorizontal: 20, paddingTop: 16 },
   sectionLabel: { fontSize: 15, fontWeight: '700', marginBottom: 12 },
   categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   categoryCard: {
-    width: '23%', alignItems: 'center', gap: 6, borderRadius: 16, borderWidth: 1,
-    paddingVertical: 14, paddingHorizontal: 4,
+    width: '23%',
+    alignItems: 'center',
+    gap: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 4,
   },
-  catIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  catIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   catName: { fontSize: 10, fontWeight: '600', textAlign: 'center' },
 
   addBtn: { borderRadius: 16, overflow: 'hidden', marginTop: 8 },
-  addBtnGrad: { flexDirection: 'row', paddingVertical: 15, alignItems: 'center', justifyContent: 'center', gap: 8 },
+  addBtnGrad: {
+    flexDirection: 'row',
+    paddingVertical: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
   addBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 });

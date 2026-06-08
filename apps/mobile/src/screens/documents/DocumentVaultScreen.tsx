@@ -359,30 +359,6 @@ export function DocumentVaultScreen() {
         windowSize={10}
         maxToRenderPerBatch={10}
       />
-
-      <View style={[s.fabRow, { bottom: insets.bottom + 80 }]}>
-        <TouchableOpacity
-          style={[s.fabCamera, { backgroundColor: colors.bg.secondary }]}
-          activeOpacity={0.7}
-          onPress={uploadFromCamera}
-        >
-          <Ionicons name="camera-outline" size={22} color={colors.text.primary} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[s.fabCamera, { backgroundColor: colors.bg.secondary }]}
-          activeOpacity={0.7}
-          onPress={pickAndUpload}
-        >
-          <Ionicons name="document-outline" size={22} color={colors.text.primary} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[s.fab, { backgroundColor: colors.accent.primary }]}
-          activeOpacity={0.7}
-          onPress={pickAndUpload}
-        >
-          <Ionicons name="add" size={24} color="#FFF" />
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -478,37 +454,4 @@ const s = StyleSheet.create({
   emptyState: { alignItems: 'center', paddingTop: 60, gap: 12, paddingHorizontal: 40 },
   emptyTitle: { fontSize: 18, fontWeight: '700' },
   emptyDesc: { fontSize: 13, textAlign: 'center', lineHeight: 18 },
-  fabRow: {
-    position: 'absolute',
-    right: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  fabCamera: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  fab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    height: 48,
-    borderRadius: 24,
-    gap: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  fabText: { fontSize: 14, fontWeight: '700', color: '#FFF' },
 });

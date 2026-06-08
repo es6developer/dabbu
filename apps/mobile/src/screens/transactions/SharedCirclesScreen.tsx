@@ -22,8 +22,6 @@ import { Skeleton, SkeletonCard } from '../../components/ui/AnimatedSkeleton';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const BILL_CARD_W = 165;
 
-
-
 function fmt(v: number) {
   return '₹' + v.toLocaleString('en-IN', { maximumFractionDigits: 0 });
 }
@@ -31,18 +29,39 @@ function fmt(v: number) {
 function timeAgo(d: string) {
   const diff = Date.now() - new Date(d).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) {
+    return 'just now';
+  }
+  if (mins < 60) {
+    return `${mins}m ago`;
+  }
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) {
+    return `${hrs}h ago`;
+  }
   const days = Math.floor(hrs / 24);
-  if (days < 30) return `${days}d ago`;
+  if (days < 30) {
+    return `${days}d ago`;
+  }
   return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 }
 
-function BillCarouselCard({ item, colors, navigation }: { item: any; colors: any; navigation: any }) {
+function BillCarouselCard({
+  item,
+  colors,
+  navigation,
+}: {
+  item: any;
+  colors: any;
+  navigation: any;
+}) {
   return (
-    <View style={[s.billCard, { backgroundColor: colors.bg.card, borderColor: 'rgba(255,255,255,0.05)' }]}>
+    <View
+      style={[
+        s.billCard,
+        { backgroundColor: colors.bg.card, borderColor: 'rgba(255,255,255,0.05)' },
+      ]}
+    >
       <View style={s.billCardBody}>
         <View style={s.billIconWrap}>
           <Ionicons name="receipt-outline" size={20} color={colors.accent.primary} />
@@ -79,7 +98,9 @@ function GroupCard({ item, groupExpenses, navigation, colors }: any) {
   return (
     <TouchableOpacity
       activeOpacity={0.95}
-      onPress={() => navigation.navigate('GroupExpenses', { groupId: item.id, groupName: item.name })}
+      onPress={() =>
+        navigation.navigate('GroupExpenses', { groupId: item.id, groupName: item.name })
+      }
       onPressIn={() => {
         Animated.spring(scaleAnim, { toValue: 0.98, useNativeDriver: true }).start();
       }}
@@ -150,7 +171,8 @@ function GroupCard({ item, groupExpenses, navigation, colors }: any) {
 
           <View style={s.groupRight}>
             <Text style={[s.balanceText, { color: isPositive ? '#27D376' : '#FF4545' }]}>
-              {isPositive ? '+' : '-'}{fmt(Math.abs(balance))}
+              {isPositive ? '+' : '-'}
+              {fmt(Math.abs(balance))}
             </Text>
             {ed.latest && (
               <Text style={[s.recentLabel, { color: colors.text.secondary }]}>
@@ -186,16 +208,30 @@ export function SharedCirclesScreen() {
       const ctrl = new AbortController();
       abortRef.current = ctrl;
       const hasCachedData = groups.length > 0;
-      if (refresh) setRefreshing(true);
-      else if (!hasCachedData) setLoading(true);
+      if (refresh) {
+        setRefreshing(true);
+      } else if (!hasCachedData) {
+        setLoading(true);
+      }
       try {
-        if (accessToken) setAccessToken(accessToken);
+        if (accessToken) {
+          setAccessToken(accessToken);
+        }
         const [grpResult] = await Promise.allSettled([
           api.get<any>('/expense-groups/dashboard', ctrl.signal),
         ]);
-        if (ctrl.signal.aborted) return;
-        const g = grpResult.status === 'fulfilled' ? (Array.isArray(grpResult.value) ? grpResult.value : []) : [];
-        if (g.length > 0 || !hasCachedData) setGroups(g);
+        if (ctrl.signal.aborted) {
+          return;
+        }
+        const g =
+          grpResult.status === 'fulfilled'
+            ? Array.isArray(grpResult.value)
+              ? grpResult.value
+              : []
+            : [];
+        if (g.length > 0 || !hasCachedData) {
+          setGroups(g);
+        }
 
         const allTx: any[] = [];
         for (const grp of g) {
@@ -233,18 +269,27 @@ export function SharedCirclesScreen() {
     const map: Record<string, { total: number; count: number; latest: any }> = {};
     for (const tx of transactions) {
       const gid = tx.expenseGroupId;
-      if (!gid) continue;
-      if (!map[gid]) map[gid] = { total: 0, count: 0, latest: null };
+      if (!gid) {
+        continue;
+      }
+      if (!map[gid]) {
+        map[gid] = { total: 0, count: 0, latest: null };
+      }
       map[gid].total += Number(tx.amount);
       map[gid].count += 1;
-      if (!map[gid].latest || new Date(tx.date) > new Date(map[gid].latest.date)) map[gid].latest = tx;
+      if (!map[gid].latest || new Date(tx.date) > new Date(map[gid].latest.date)) {
+        map[gid].latest = tx;
+      }
     }
     return map;
   }, [transactions]);
 
   const recentBills = useMemo(() => {
     return [...transactions]
-      .sort((a, b) => new Date(b.createdAt || b.date).getTime() - new Date(a.createdAt || a.date).getTime())
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt || b.date).getTime() - new Date(a.createdAt || a.date).getTime(),
+      )
       .slice(0, 8);
   }, [transactions]);
 
@@ -252,19 +297,31 @@ export function SharedCirclesScreen() {
     let list = [...groups];
     if (search.trim()) {
       const q = search.toLowerCase();
-      list = list.filter((g) => g.name?.toLowerCase().includes(q) || g.description?.toLowerCase().includes(q));
+      list = list.filter(
+        (g) => g.name?.toLowerCase().includes(q) || g.description?.toLowerCase().includes(q),
+      );
     }
-    if (sortBy === 'recent') list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    else if (sortBy === 'active') list.sort((a, b) => (groupExpenses[b.id]?.count || 0) - (groupExpenses[a.id]?.count || 0));
+    if (sortBy === 'recent') {
+      list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    } else if (sortBy === 'active') {
+      list.sort((a, b) => (groupExpenses[b.id]?.count || 0) - (groupExpenses[a.id]?.count || 0));
+    }
     return list;
   }, [groups, search, sortBy, groupExpenses]);
 
   function handleCreateGroup() {
     if (groups.length >= planInfo.maxGroups) {
-      Alert.alert('Plan Limit', `Free plan allows ${planInfo.maxGroups} circles. Upgrade for more.`, [
-        { text: 'Upgrade', onPress: () => navigation.navigate('Settings', { screen: 'Subscription' }) },
-        { text: 'Cancel', style: 'cancel' },
-      ]);
+      Alert.alert(
+        'Plan Limit',
+        `Free plan allows ${planInfo.maxGroups} circles. Upgrade for more.`,
+        [
+          {
+            text: 'Upgrade',
+            onPress: () => navigation.navigate('Settings', { screen: 'Subscription' }),
+          },
+          { text: 'Cancel', style: 'cancel' },
+        ],
+      );
       return;
     }
     navigation.navigate('CreateExpenseGroup');
@@ -280,7 +337,12 @@ export function SharedCirclesScreen() {
           </View>
           <Skeleton width={44} height={44} borderRadius={14} />
         </View>
-        <Skeleton width="90%" height={44} borderRadius={12} style={{ marginHorizontal: 20, marginBottom: 12 }} />
+        <Skeleton
+          width="90%"
+          height={44}
+          borderRadius={12}
+          style={{ marginHorizontal: 20, marginBottom: 12 }}
+        />
         {[1, 2, 3].map((i) => (
           <SkeletonCard key={i} style={{ marginHorizontal: 16, marginBottom: 12 }} />
         ))}
@@ -293,7 +355,11 @@ export function SharedCirclesScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} tintColor={colors.accent.primary} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => loadData(true)}
+            tintColor={colors.accent.primary}
+          />
         }
         contentContainerStyle={filtered.length === 0 ? s.emptyContainer : { paddingBottom: 140 }}
       >
@@ -306,7 +372,14 @@ export function SharedCirclesScreen() {
             </View>
             <View style={{ flexDirection: 'row', gap: 8 }}>
               <TouchableOpacity
-                style={[s.iconBtn, { backgroundColor: colors.bg.secondary, borderColor: colors.border.default, borderWidth: 1 }]}
+                style={[
+                  s.iconBtn,
+                  {
+                    backgroundColor: colors.bg.secondary,
+                    borderColor: colors.border.default,
+                    borderWidth: 1,
+                  },
+                ]}
                 onPress={() => navigation.navigate('Analytics')}
               >
                 <Ionicons name="bar-chart" size={20} color={colors.text.primary} />
@@ -322,12 +395,19 @@ export function SharedCirclesScreen() {
 
           {/* ─── Plan Pill ─── */}
           {planInfo.tier === 'free' && (
-            <View style={[s.planPill, { backgroundColor: colors.bg.secondary, borderColor: colors.border.default }]}>
+            <View
+              style={[
+                s.planPill,
+                { backgroundColor: colors.bg.secondary, borderColor: colors.border.default },
+              ]}
+            >
               <Ionicons name="shield-outline" size={14} color={colors.text.secondary} />
               <Text style={[s.planText, { color: colors.text.secondary }]}>
                 {groups.length}/{planInfo.maxGroups} groups
               </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}
+              >
                 <Text style={[s.planAction, { color: colors.accent.primary }]}>Upgrade</Text>
               </TouchableOpacity>
             </View>
@@ -337,7 +417,9 @@ export function SharedCirclesScreen() {
           {recentBills.length > 0 && (
             <View style={s.sectionBlock}>
               <View style={s.sectionHeaderRow}>
-                <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Recent Active Bills</Text>
+                <Text style={[s.sectionTitle, { color: colors.text.primary }]}>
+                  Recent Active Bills
+                </Text>
                 <TouchableOpacity>
                   <Text style={[s.seeAllText, { color: colors.accent.primary }]}>See All</Text>
                 </TouchableOpacity>
@@ -350,7 +432,12 @@ export function SharedCirclesScreen() {
                 snapToInterval={BILL_CARD_W + 12}
               >
                 {recentBills.map((bill, i) => (
-                  <BillCarouselCard key={bill.id || i} item={bill} colors={colors} navigation={navigation} />
+                  <BillCarouselCard
+                    key={bill.id || i}
+                    item={bill}
+                    colors={colors}
+                    navigation={navigation}
+                  />
                 ))}
               </ScrollView>
             </View>
@@ -359,7 +446,14 @@ export function SharedCirclesScreen() {
           {/* ─── Search & Filter ─── */}
           <View style={s.searchRow}>
             <View
-              style={[s.searchBar, { backgroundColor: colors.bg.secondary, borderColor: colors.border.default, borderWidth: 1 }]}
+              style={[
+                s.searchBar,
+                {
+                  backgroundColor: colors.bg.secondary,
+                  borderColor: colors.border.default,
+                  borderWidth: 1,
+                },
+              ]}
             >
               <Ionicons name="search-outline" size={18} color={colors.text.secondary} />
               <TextInput
@@ -384,7 +478,10 @@ export function SharedCirclesScreen() {
                 style={[
                   s.filterChip,
                   { borderColor: colors.border.default },
-                  sortBy === option && { backgroundColor: colors.accent.primary, borderColor: colors.accent.primary },
+                  sortBy === option && {
+                    backgroundColor: colors.accent.primary,
+                    borderColor: colors.accent.primary,
+                  },
                 ]}
                 onPress={() => setSortBy(option)}
               >
@@ -447,15 +544,6 @@ export function SharedCirclesScreen() {
           )}
         </Animated.View>
       </ScrollView>
-
-      {/* ─── Floating Scan FAB ─── */}
-      <View style={[s.fabContainer, { bottom: insets.bottom + 24 }]}>
-        <TouchableOpacity activeOpacity={0.85} onPress={() => navigation.navigate('ScanReceipt')}>
-          <View style={[s.fab, { backgroundColor: '#FF6B00' }]}>
-            <Ionicons name="camera-outline" size={24} color="#FFF" />
-          </View>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -592,24 +680,6 @@ const s = StyleSheet.create({
   groupRight: { alignItems: 'flex-end' },
   balanceText: { fontSize: 16, fontWeight: '800' },
   recentLabel: { fontSize: 11, fontWeight: '400', marginTop: 2 },
-
-  /* ─── Floating FAB ─── */
-  fabContainer: {
-    position: 'absolute',
-    alignSelf: 'center',
-    shadowColor: '#FF6B00',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 24,
-    elevation: 10,
-  },
-  fab: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
 
   /* ─── Empty State ─── */
   empty: { alignItems: 'center', gap: 12, paddingTop: 40 },

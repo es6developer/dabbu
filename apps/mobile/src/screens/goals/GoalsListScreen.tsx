@@ -25,7 +25,6 @@ import { useAuth } from '../../store/AuthContext';
 import { BaseScreen } from '../../components/ui/BaseScreen';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { EmptyState } from '../../components/ui/EmptyState';
-import { HelpTip, HelpCard } from '../../components/ui';
 // TODO: Import CelebrationOverlay when navigator is ready
 // import { CelebrationOverlay } from '../../components/ui/CelebrationOverlay';
 
@@ -385,23 +384,18 @@ function GoalCard({
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={onNavigate}
-        style={[s.card, { backgroundColor: colors.bg.secondary, borderColor: colors.border.default }]}
+        style={[
+          s.card,
+          { backgroundColor: colors.bg.secondary, borderColor: colors.border.default },
+        ]}
       >
         <View style={StyleSheet.absoluteFill}>
-          <View
-            
-            
-            
-            style={{ flex: 1, borderRadius: 20 }}
-          />
+          <View style={{ flex: 1, borderRadius: 20 }} />
         </View>
 
         <View style={s.cardTopRow}>
           <View style={s.cardLeftCol}>
-            <View
-              
-              style={[s.cardIcon, { borderRadius: 12 }]}
-            >
+            <View style={[s.cardIcon, { borderRadius: 12 }]}>
               <Ionicons name={config.icon as any} size={22} color={config.color} />
             </View>
             <View style={{ flex: 1 }}>
@@ -458,9 +452,7 @@ function GoalCard({
           <View style={{ flex: 1 }}>
             <View style={s.footerRow}>
               <Text style={[typography.caption, { color: colors.text.tertiary }]}>Saved</Text>
-              <Text
-                style={[typography.amountSmall, { color: colors.text.primary, fontSize: 16 }]}
-              >
+              <Text style={[typography.amountSmall, { color: colors.text.primary, fontSize: 16 }]}>
                 {fmt(saved)}
               </Text>
             </View>
@@ -544,7 +536,10 @@ function OverallProgressHeader({
 
   return (
     <View
-      style={[s.overallCard, { backgroundColor: colors.bg.card, borderWidth: 1, borderColor: colors.border.default }]}
+      style={[
+        s.overallCard,
+        { backgroundColor: colors.bg.card, borderWidth: 1, borderColor: colors.border.default },
+      ]}
     >
       <View style={s.overallInner}>
         <View style={{ flex: 1 }}>
@@ -717,10 +712,7 @@ function GoalsEmptyState({
               activeOpacity={0.7}
               onPress={() => onSuggestionPress(sg)}
             >
-              <View
-                
-                style={[s.suggestionIcon, { borderRadius: 10 }]}
-              >
+              <View style={[s.suggestionIcon, { borderRadius: 10 }]}>
                 <Ionicons name={cfg.icon as any} size={20} color={cfg.color} />
               </View>
               <View style={{ flex: 1 }}>
@@ -1132,11 +1124,6 @@ export function GoalsListScreen() {
                     <Ionicons name="add" size={22} color={colors.accent.primary} />
                   </TouchableOpacity>
                 }
-              />
-              <HelpTip
-                text="Set savings goals for vacations, emergencies, or big purchases. Track your progress with milestone celebrations."
-                icon="trophy-outline"
-                color={colors.accent.primary}
               />
               {goals.length > 0 && (
                 <OverallProgressHeader

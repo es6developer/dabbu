@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
@@ -13,6 +14,7 @@ export function WalletTransferScreen() {
   const route = useRoute<any>();
   const { accessToken } = useAuth();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const { fromWalletId, groupId } = route.params;
 
   const [wallets, setWallets] = useState<any[]>([]);
@@ -108,10 +110,7 @@ export function WalletTransferScreen() {
                   ]}
                   onPress={() => setTargetWalletId(item.id)}
                 >
-                  <View
-                    
-                    style={styles.iconWrap}
-                  >
+                  <View style={styles.iconWrap}>
                     <Ionicons name="wallet" size={22} color={colors.accent.primary} />
                   </View>
                   <View style={{ flex: 1 }}>
@@ -135,7 +134,11 @@ export function WalletTransferScreen() {
           <View
             style={[
               styles.form,
-              { backgroundColor: colors.bg.secondary, borderTopColor: colors.border.subtle },
+              {
+                backgroundColor: colors.bg.secondary,
+                borderTopColor: colors.border.subtle,
+                paddingBottom: Math.max(20, insets.bottom + 20),
+              },
             ]}
           >
             <TextInput

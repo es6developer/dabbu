@@ -173,10 +173,7 @@ export function TripDashboardScreen() {
           />
         }
       >
-        <View
-          
-          style={[s.heroSection, { paddingTop: insets.top + 8 }]}
-        >
+        <View style={[s.heroSection, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtnWrap}>
             <Ionicons name="chevron-back" size={22} color="#FFF" />
           </TouchableOpacity>
@@ -292,7 +289,7 @@ export function TripDashboardScreen() {
           {balances.length > 0 ? (
             balances.map((b) => (
               <View key={b.id} style={[s.balanceCard, { backgroundColor: colors.bg.secondary }]}>
-                <View  style={s.balanceAvatar}>
+                <View style={s.balanceAvatar}>
                   <Text style={s.balanceAvatarText}>{b.name[0]?.toUpperCase() || '?'}</Text>
                 </View>
                 <View style={{ flex: 1 }}>
@@ -321,24 +318,6 @@ export function TripDashboardScreen() {
           )}
         </View>
       </ScrollView>
-
-      <TouchableOpacity
-        style={[
-          s.fab,
-          {
-            backgroundColor: colors.accent.primary,
-            bottom: insets.bottom + 24,
-          },
-        ]}
-        onPress={() =>
-          navigation.navigate('SharedExpenseForm', {
-            groupId: trip?.groupId,
-            prefill: { tripId },
-          })
-        }
-      >
-        <Ionicons name="add" size={26} color="#FFF" />
-      </TouchableOpacity>
     </View>
   );
 }
@@ -468,18 +447,4 @@ const s = StyleSheet.create({
   balanceName: { fontSize: 14, fontWeight: '700' },
   balancePaid: { fontSize: 12, marginTop: 2 },
   balanceAmt: { fontSize: 14, fontWeight: '800' },
-  fab: {
-    position: 'absolute',
-    right: 24,
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 10,
-    shadowColor: '#f7892c',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-  },
 });
