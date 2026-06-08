@@ -12,15 +12,17 @@ try {
       shouldSetBadge: true,
     }),
   });
-} catch (_e) { void _e; }
+} catch (_e) {
+  void _e;
+}
 
 let deviceId: string | null = null;
 
-function getProjectId(): string | undefined {
+const EAS_PROJECT_ID = '57a858a9-aa05-47d4-b908-e3d887e07597';
+
+function getProjectId(): string {
   return (
-    Constants.expoConfig?.extra?.eas?.projectId ||
-    Constants.easConfig?.projectId ||
-    undefined
+    Constants.expoConfig?.extra?.eas?.projectId || Constants.easConfig?.projectId || EAS_PROJECT_ID
   );
 }
 
@@ -65,15 +67,25 @@ export async function registerForPushNotifications(accessToken: string): Promise
     return;
   }
 
+  let pushToken: string;
   try {
     const projectId = getProjectId();
-    const tokenData = await Notifications.getExpoPushTokenAsync(
-      projectId ? { projectId } : undefined,
-    );
-    const pushToken = tokenData.data;
+    const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
+    pushToken = tokenData.data;
+  } catch (e) {
+    console.warn('Expo push token failed, falling back to native FCM token:', e);
+    try {
+      const deviceToken = await Notifications.getDevicePushTokenAsync();
+      pushToken = deviceToken.data;
+    } catch (e2) {
+      console.warn('Native FCM token also failed:', e2);
+      return;
+    }
+  }
 
-    const storedId = getStableDeviceId();
+  const storedId = getStableDeviceId();
 
+  try {
     await api.post('/devices/register', {
       deviceId: storedId,
       platform: Platform.OS,

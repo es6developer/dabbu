@@ -8,18 +8,24 @@ export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async search(query: string, excludeUserId: string) {
+    const digits = query.replace(/\D/g, '');
+    const where: any = {
+      isActive: true,
+      status: 'active',
+      id: { not: excludeUserId },
+      OR: [
+        { email: { contains: query } },
+        { firstName: { contains: query } },
+        { lastName: { contains: query } },
+      ],
+    };
+
+    if (digits.length >= 3) {
+      where.OR.push({ phone: { contains: digits } });
+    }
+
     const users = await this.prisma.user.findMany({
-      where: {
-        isActive: true,
-        status: 'active',
-        id: { not: excludeUserId },
-        OR: [
-          { email: { contains: query } },
-          { firstName: { contains: query } },
-          { lastName: { contains: query } },
-          ...(query.includes('@') ? [] : [{ phone: { contains: query } }]),
-        ],
-      },
+      where,
       select: {
         id: true,
         email: true,

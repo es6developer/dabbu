@@ -436,7 +436,14 @@ export class SharedFinanceService {
   ) {
     await this.verifyAdmin(groupId, adminId);
 
-    const user = await this.prisma.user.findFirst({ where: { phone, isActive: true, status: 'active' } });
+    const digits = phone.replace(/\D/g, '');
+    const user = await this.prisma.user.findFirst({
+      where: {
+        phone: { contains: digits },
+        isActive: true,
+        status: 'active',
+      },
+    });
     if (!user) {
       throw new NotFoundException(`No user found with phone ${phone}. They need to sign up first.`);
     }
@@ -465,7 +472,14 @@ export class SharedFinanceService {
       data: { groupId, userId: user.id, role: role || 'member' },
       include: {
         user: {
-          select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true, phone: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatarUrl: true,
+            email: true,
+            phone: true,
+          },
         },
       },
     });
@@ -3914,15 +3928,22 @@ export class SharedFinanceService {
 
     const categories = Array.from(categoryMap.entries()).map(([category, spent]) => {
       const budgetRow = categoryBudgets.find((cb) => cb.category === category);
-      const budget = budgetRow ? Number(budgetRow.budgetAmount) : Math.round(totalBudget / Math.max(categoryMap.size, 1));
+      const budget = budgetRow
+        ? Number(budgetRow.budgetAmount)
+        : Math.round(totalBudget / Math.max(categoryMap.size, 1));
       return {
         category,
         budget,
         spent: Math.round(spent),
         percentage: budget > 0 ? Math.round((spent / budget) * 100) : 0,
-        status: budget > 0
-          ? (spent / budget) > 0.9 ? 'Exceeded' : (spent / budget) > 0.7 ? 'Warning' : 'Normal'
-          : 'Normal',
+        status:
+          budget > 0
+            ? spent / budget > 0.9
+              ? 'Exceeded'
+              : spent / budget > 0.7
+                ? 'Warning'
+                : 'Normal'
+            : 'Normal',
       };
     });
 
@@ -3975,11 +3996,15 @@ export class SharedFinanceService {
       },
       partners: {
         partner1: {
-          name: `${profile.partner1.firstName || ''} ${profile.partner1.lastName || ''}`.trim() || 'Partner 1',
+          name:
+            `${profile.partner1.firstName || ''} ${profile.partner1.lastName || ''}`.trim() ||
+            'Partner 1',
           contributed: partner1Contributed,
         },
         partner2: {
-          name: `${profile.partner2.firstName || ''} ${profile.partner2.lastName || ''}`.trim() || 'Partner 2',
+          name:
+            `${profile.partner2.firstName || ''} ${profile.partner2.lastName || ''}`.trim() ||
+            'Partner 2',
           contributed: partner2Contributed,
         },
       },
@@ -3998,7 +4023,11 @@ export class SharedFinanceService {
     };
   }
 
-  async contributeToCoupleSavings(groupId: string, userId: string, dto: CoupleSavingsContributeDto) {
+  async contributeToCoupleSavings(
+    groupId: string,
+    userId: string,
+    dto: CoupleSavingsContributeDto,
+  ) {
     await this.getCoupleProfileOrThrow(groupId);
 
     const saving = await this.prisma.coupleFinanceSaving.create({
@@ -4219,9 +4248,13 @@ export class SharedFinanceService {
       netSavings: Math.round(totalIncome - totalExpense),
       categoryBreakdown: sortedCategories,
       partnerContribution: {
-        partner1Name: `${profile.partner1.firstName || ''} ${profile.partner1.lastName || ''}`.trim() || 'Partner 1',
+        partner1Name:
+          `${profile.partner1.firstName || ''} ${profile.partner1.lastName || ''}`.trim() ||
+          'Partner 1',
         partner1Amount: Math.round(partner1Paid),
-        partner2Name: `${profile.partner2.firstName || ''} ${profile.partner2.lastName || ''}`.trim() || 'Partner 2',
+        partner2Name:
+          `${profile.partner2.firstName || ''} ${profile.partner2.lastName || ''}`.trim() ||
+          'Partner 2',
         partner2Amount: Math.round(partner2Paid),
         totalExpense: budgetSpent,
       },
@@ -4278,9 +4311,15 @@ export class SharedFinanceService {
     const profile = await this.getCoupleProfileOrThrow(groupId);
 
     const updateData: any = {};
-    if (dto.monthlyBudget !== undefined) updateData.sharedBudget = dto.monthlyBudget;
-    if (dto.splitRatio !== undefined) updateData.splitRatio = dto.splitRatio;
-    if (dto.savingsGoal !== undefined) updateData.savingsGoal = dto.savingsGoal;
+    if (dto.monthlyBudget !== undefined) {
+      updateData.sharedBudget = dto.monthlyBudget;
+    }
+    if (dto.splitRatio !== undefined) {
+      updateData.splitRatio = dto.splitRatio;
+    }
+    if (dto.savingsGoal !== undefined) {
+      updateData.savingsGoal = dto.savingsGoal;
+    }
 
     if (Object.keys(updateData).length > 0) {
       await this.prisma.coupleFinanceProfile.update({
@@ -4308,12 +4347,20 @@ export class SharedFinanceService {
       include: {
         partner1: {
           select: {
-            id: true, firstName: true, lastName: true, avatarUrl: true, email: true,
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatarUrl: true,
+            email: true,
           },
         },
         partner2: {
           select: {
-            id: true, firstName: true, lastName: true, avatarUrl: true, email: true,
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatarUrl: true,
+            email: true,
           },
         },
       },
