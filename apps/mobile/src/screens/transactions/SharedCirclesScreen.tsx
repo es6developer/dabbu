@@ -186,32 +186,29 @@ export function SharedCirclesScreen() {
       abortRef.current?.abort();
       const ctrl = new AbortController();
       abortRef.current = ctrl;
+      const hasCachedData = groups.length > 0;
       if (refresh) setRefreshing(true);
-      else setLoading(true);
+      else if (!hasCachedData) setLoading(true);
       try {
         if (accessToken) setAccessToken(accessToken);
         const [grpResult] = await Promise.allSettled([
-          api.get<any>('/expense-groups', ctrl.signal),
+          api.get<any>('/expense-groups/dashboard', ctrl.signal),
         ]);
         if (ctrl.signal.aborted) return;
         const g = grpResult.status === 'fulfilled' ? (Array.isArray(grpResult.value) ? grpResult.value : []) : [];
-        setGroups(g);
+        if (g.length > 0 || !hasCachedData) setGroups(g);
 
-        let allTx: any[] = [];
-        const groupIds = g.filter((grp: any) => (grp._count?.transactions || 0) > 0).map((grp: any) => grp.id);
-        if (groupIds.length > 0) {
-          const txResults = await Promise.allSettled(
-            groupIds.map((gid: string) =>
-              api.get<any>(`/transactions?expenseGroupId=${gid}&limit=5`, ctrl.signal),
-            ),
-          );
-          allTx = txResults
-            .filter((r) => r.status === 'fulfilled')
-            .flatMap((r: any) => (Array.isArray(r.value) ? r.value : []));
+        const allTx: any[] = [];
+        for (const grp of g) {
+          if (grp.transactions?.length) {
+            allTx.push(...grp.transactions);
+          }
         }
         setTransactions(allTx);
 
-        Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
+        if (!hasCachedData) {
+          Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
+        }
       } catch (e) {
         /* ignore */
       } finally {
@@ -221,7 +218,7 @@ export function SharedCirclesScreen() {
         }
       }
     },
-    [accessToken, fadeAnim],
+    [accessToken, fadeAnim, groups.length],
   );
 
   useFocusEffect(

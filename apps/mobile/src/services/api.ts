@@ -40,7 +40,8 @@ const REQUEST_TIMEOUT = 15_000;
 const CACHE_TTL: Record<string, number> = {
   '/accounts': 120_000,
   '/transactions': 30_000,
-  '/expense-groups': 60_000,
+  '/expense-groups': 300_000,
+  '/expense-groups/dashboard': 300_000,
   '/categories': 120_000,
   '/bills': 60_000,
   '/notifications': 30_000,
@@ -133,13 +134,15 @@ function setCached(key: string, data: any, ttl: number): void {
 }
 
 function invalidateCacheForMutation(path: string): void {
-  for (const prefix of Object.keys(CACHE_TTL)) {
-    if (path.startsWith(prefix)) {
-      cache.clear();
-      AsyncStorage.removeItem(CACHE_STORAGE_KEY).catch(() => {});
-      return;
+  const affectedPrefixes = Object.keys(CACHE_TTL).filter((p) => path.startsWith(p));
+  if (affectedPrefixes.length === 0) return;
+  for (const [key] of cache) {
+    const keyPath = key.slice(key.indexOf('/'));
+    if (affectedPrefixes.some((p) => keyPath.startsWith(p))) {
+      cache.delete(key);
     }
   }
+  persistCache();
 }
 
 function mergeSignals(timeoutSignal: AbortSignal, userSignal?: AbortSignal): AbortSignal {

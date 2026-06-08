@@ -172,6 +172,50 @@ export class ExpenseGroupsService {
     return { data: groups };
   }
 
+  async findDashboard(userId: string) {
+    const plan = await this.getUserPlan(userId);
+    const memberships = await this.prisma.expenseGroupMember.findMany({
+      where: { userId },
+      include: {
+        group: {
+          include: {
+            members: {
+              include: {
+                user: {
+                  select: { id: true, firstName: true, lastName: true, avatarUrl: true },
+                },
+              },
+            },
+            _count: { select: { members: true, transactions: true } },
+            transactions: {
+              take: 5,
+              orderBy: { date: 'desc' },
+              select: {
+                id: true,
+                amount: true,
+                description: true,
+                date: true,
+                type: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { addedAt: 'desc' },
+    });
+
+    const groups = memberships.map((m) => ({
+      ...this.addExpiryInfo(m.group),
+      _plan: {
+        tier: plan.tier,
+        maxGroups: plan.maxGroups,
+        maxMembersPerGroup: plan.maxMembersPerGroup,
+      },
+    }));
+
+    return { data: groups };
+  }
+
   async findOne(id: string, userId: string) {
     const plan = await this.getUserPlan(userId);
     const group = await this.prisma.expenseGroup.findUnique({

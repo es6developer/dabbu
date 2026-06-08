@@ -36,6 +36,12 @@ export class ExpenseGroupsController {
     return this.expenseGroupsService.findAll(userId);
   }
 
+  @Get('dashboard')
+  @ApiOperation({ summary: 'Get expense groups with recent transactions (dashboard use)' })
+  async findDashboard(@CurrentUser('id') userId: string) {
+    return this.expenseGroupsService.findDashboard(userId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get expense group details' })
   async findOne(@CurrentUser('id') userId: string, @Param('id') id: string) {
