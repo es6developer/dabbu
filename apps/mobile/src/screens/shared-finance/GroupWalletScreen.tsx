@@ -134,10 +134,7 @@ export function GroupWalletScreen() {
                 activeOpacity={0.7}
               >
                 <View style={styles.walletHeader}>
-                  <View
-                    
-                    style={styles.walletIcon}
-                  >
+                  <View style={styles.walletIcon}>
                     <Ionicons
                       name={item.isLocked ? 'lock-closed' : 'wallet'}
                       size={24}
@@ -424,5 +421,5 @@ const styles = StyleSheet.create({
   cancelBtn: { paddingHorizontal: 20, paddingVertical: 12 },
   cancelText: { fontSize: 15, fontWeight: '600' },
   confirmBtn: { paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 },
-  confirmText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+  confirmText: { color: '#1A1528', fontSize: 15, fontWeight: '700' },
 });

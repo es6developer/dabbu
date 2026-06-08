@@ -429,5 +429,5 @@ const styles = StyleSheet.create({
     marginTop: 4,
     overflow: 'hidden',
   },
-  createBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  createBtnText: { color: '#1A1528', fontSize: 16, fontWeight: '700' },
 });

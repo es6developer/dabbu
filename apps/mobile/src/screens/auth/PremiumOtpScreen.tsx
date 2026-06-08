@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   verifyButtonText: {
-    color: '#FFFFFF',
+    color: '#1A1528',
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
   },

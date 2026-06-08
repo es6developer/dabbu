@@ -572,7 +572,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 16,
   },
-  primaryBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '600' },
+  primaryBtnText: { color: '#1A1528', fontSize: 15, fontWeight: '600' },
   infoCard: { borderRadius: 16, borderWidth: 1, padding: 16, gap: 10 },
   infoText: { fontSize: 13, lineHeight: 18 },
   smallBtn: {

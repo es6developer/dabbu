@@ -596,7 +596,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 10,
   },
-  codeShareText: { fontSize: 13, fontWeight: '700', color: '#FFF' },
+  codeShareText: { fontSize: 13, fontWeight: '700', color: '#1A1528' },
   statsCard: {
     marginHorizontal: 16,
     marginTop: -24,
@@ -683,7 +683,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginTop: 8,
   },
-  emptyBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+  emptyBtnText: { color: '#1A1528', fontSize: 15, fontWeight: '700' },
   bottomBar: {
     position: 'absolute',
     bottom: 0,
@@ -701,7 +701,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 16,
   },
-  shareBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  shareBtnText: { color: '#1A1528', fontSize: 16, fontWeight: '700' },
   shareSheet: {
     position: 'absolute',
     bottom: 0,

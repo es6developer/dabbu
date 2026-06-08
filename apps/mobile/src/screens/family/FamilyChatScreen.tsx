@@ -180,5 +180,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   sendBtn: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 22, marginLeft: 8 },
-  sendText: { color: '#FFFFFF', fontWeight: '600' },
+  sendText: { color: '#1A1528', fontWeight: '600' },
 });

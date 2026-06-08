@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   primaryButtonText: {
-    color: '#FFFFFF',
+    color: '#1A1528',
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
   },

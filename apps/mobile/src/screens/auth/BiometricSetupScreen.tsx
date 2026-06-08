@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Platform,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
@@ -13,11 +20,13 @@ export function BiometricSetupScreen() {
     setLoading(true);
     try {
       setTimeout(() => navigation.navigate('Login'), 500);
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <View    style={styles.container}>
+    <View style={styles.container}>
       <View style={[styles.iconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
         <Ionicons name="finger-print" size={56} color={colors.accent.primary} />
       </View>
@@ -26,8 +35,20 @@ export function BiometricSetupScreen() {
         Enable {Platform.OS === 'ios' ? 'Face ID' : 'fingerprint'} for quick and secure access
       </Text>
 
-      <TouchableOpacity style={[styles.button, { backgroundColor: colors.accent.primary }, loading && { opacity: 0.6 }]} onPress={handleEnable} disabled={loading}>
-        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Enable Biometrics</Text>}
+      <TouchableOpacity
+        style={[
+          styles.button,
+          { backgroundColor: colors.accent.primary },
+          loading && { opacity: 0.6 },
+        ]}
+        onPress={handleEnable}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Enable Biometrics</Text>
+        )}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('Login')}>
@@ -39,10 +60,23 @@ export function BiometricSetupScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
-  iconWrap: { width: 108, height: 108, borderRadius: 32, alignItems: 'center', justifyContent: 'center', marginBottom: 28 },
+  iconWrap: {
+    width: 108,
+    height: 108,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 28,
+  },
   title: { fontSize: 28, fontWeight: '700', marginBottom: 12, textAlign: 'center' },
   subtitle: { fontSize: 16, textAlign: 'center', marginBottom: 48, lineHeight: 24 },
-  button: { paddingVertical: 16, borderRadius: 14, alignItems: 'center', width: '100%', marginBottom: 16 },
-  buttonText: { color: '#FFFFFF', fontSize: 17, fontWeight: '600' },
+  button: {
+    paddingVertical: 16,
+    borderRadius: 14,
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 16,
+  },
+  buttonText: { color: '#1A1528', fontSize: 17, fontWeight: '600' },
   skip: { fontSize: 16 },
 });

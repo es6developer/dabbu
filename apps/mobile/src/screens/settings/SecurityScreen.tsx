@@ -651,7 +651,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   pinSaveBtn: { paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
-  pinSaveBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '600' },
+  pinSaveBtnText: { color: '#1A1528', fontSize: 15, fontWeight: '600' },
   emptyText: { fontSize: 14, fontStyle: 'italic' },
   sessionRow: {
     flexDirection: 'row',

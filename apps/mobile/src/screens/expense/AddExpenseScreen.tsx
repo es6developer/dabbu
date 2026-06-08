@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: { color: '#FFF', fontSize: 18, fontWeight: '700' },
-  saveText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+  saveText: { color: '#1A1528', fontSize: 15, fontWeight: '700' },
   tabRow: { flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 16, gap: 8 },
   tab: {
     flex: 1,
@@ -260,5 +260,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  saveBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  saveBtnText: { color: '#1A1528', fontSize: 16, fontWeight: '700' },
 });

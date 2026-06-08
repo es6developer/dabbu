@@ -808,5 +808,5 @@ const styles = StyleSheet.create({
     borderColor: '#E86310',
     marginTop: 4,
   },
-  emptyBtnText: { color: '#FFF', fontSize: 14, fontWeight: '600' },
+  emptyBtnText: { color: '#1A1528', fontSize: 14, fontWeight: '600' },
 });

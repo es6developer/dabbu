@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  payBtnText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
+  payBtnText: { color: '#1A1528', fontSize: 12, fontWeight: '700' },
   emptyState: { alignItems: 'center', paddingVertical: 40, gap: 8 },
   emptyIcon: {
     width: 72,

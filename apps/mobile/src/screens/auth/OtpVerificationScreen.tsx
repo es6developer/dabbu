@@ -62,12 +62,7 @@ export function OtpVerificationScreen() {
   return (
     <PageContainer noPadding>
       <KeyboardAvoidingContainer>
-        <View
-          
-          
-          
-          style={StyleSheet.absoluteFill}
-        />
+        <View style={StyleSheet.absoluteFill} />
         <View style={styles.container}>
           <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={22} color={colors.text.secondary} />
@@ -160,6 +155,6 @@ const styles = StyleSheet.create({
   },
   button: { paddingVertical: 16, borderRadius: 14, alignItems: 'center', marginBottom: 20 },
   buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: '#FFFFFF', fontSize: 17, fontWeight: '600' },
+  buttonText: { color: '#1A1528', fontSize: 17, fontWeight: '600' },
   resend: { textAlign: 'center', fontSize: 14, fontWeight: '500' },
 });

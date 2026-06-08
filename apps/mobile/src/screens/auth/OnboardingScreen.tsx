@@ -101,12 +101,7 @@ function SlideContent({
             Your financial life, simplified
           </Text>
         )}
-        <View
-          
-          
-          
-          style={styles.iconWrap}
-        >
+        <View style={styles.iconWrap}>
           <Ionicons name={item.icon as any} size={40} color="#FFFFFF" />
         </View>
         <Text style={[{ color: colors.text.primary, ...typography.sectionHeader }, styles.title]}>
@@ -165,12 +160,7 @@ export function OnboardingScreen() {
 
   return (
     <View style={styles.root}>
-      <View
-        
-        
-        
-        style={[styles.gradient, { paddingTop: insets.top + 8 }]}
-      >
+      <View style={[styles.gradient, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity style={styles.skip} onPress={handleSkip}>
           <Text style={[{ color: colors.text.tertiary }, typography.subhead]}>Skip</Text>
         </TouchableOpacity>
@@ -181,9 +171,7 @@ export function OnboardingScreen() {
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
-          onMomentumScrollEnd={(e) =>
-            setIndex(Math.round(e.nativeEvent.contentOffset.x / width))
-          }
+          onMomentumScrollEnd={(e) => setIndex(Math.round(e.nativeEvent.contentOffset.x / width))}
           renderItem={renderSlide}
           keyExtractor={(_, i) => String(i)}
           windowSize={3}
@@ -219,9 +207,7 @@ export function OnboardingScreen() {
 
           {!isLast && (
             <TouchableOpacity style={styles.getStarted} onPress={handleSkip}>
-              <Text style={[{ color: colors.text.tertiary }, typography.subhead]}>
-                Get started
-              </Text>
+              <Text style={[{ color: colors.text.tertiary }, typography.subhead]}>Get started</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -264,6 +250,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  buttonText: { color: '#FFFFFF' },
+  buttonText: { color: '#1A1528' },
   getStarted: { alignItems: 'center', paddingVertical: 12, marginTop: 4 },
 });

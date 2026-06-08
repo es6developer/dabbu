@@ -90,7 +90,10 @@ export function PhoneScreen() {
               placeholder="+1 (555) 123-4567"
               placeholderTextColor={colors.text.tertiary}
               value={phone}
-              onChangeText={(t) => { setPhone(t); setError(''); }}
+              onChangeText={(t) => {
+                setPhone(t);
+                setError('');
+              }}
               keyboardType="phone-pad"
               autoFocus
             />
@@ -138,5 +141,5 @@ const styles = StyleSheet.create({
   label: { fontSize: 13, fontWeight: '600', marginBottom: 6 },
   input: { fontSize: 16, padding: 16, borderRadius: 14, marginBottom: 16, borderWidth: 1 },
   saveBtn: { paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
-  saveBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+  saveBtnText: { color: '#1A1528', fontSize: 16, fontWeight: '600' },
 });
