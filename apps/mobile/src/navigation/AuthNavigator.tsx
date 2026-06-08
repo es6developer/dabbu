@@ -3,17 +3,15 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../theme';
-import { SplashScreen } from '../screens/auth/SplashScreen';
 import { OnboardingScreen } from '../screens/onboarding/OnboardingScreen';
-import { LoginScreen } from '../screens/auth/LoginScreen';
-import { SignupScreen } from '../screens/auth/SignupScreen';
+import { PremiumLoginScreen } from '../screens/auth/PremiumLoginScreen';
+import { PremiumSignupScreen } from '../screens/auth/PremiumSignupScreen';
+import { PremiumOtpScreen } from '../screens/auth/PremiumOtpScreen';
 import { ForgotPasswordScreen } from '../screens/auth/ForgotPasswordScreen';
-import { OtpVerificationScreen } from '../screens/auth/OtpVerificationScreen';
 import { BiometricSetupScreen } from '../screens/auth/BiometricSetupScreen';
 import { PrivacyPolicyScreen } from '../screens/settings/PrivacyPolicyScreen';
 
 export type AuthStackParamList = {
-  Splash: undefined;
   Onboarding: { referralCode?: string } | undefined;
   Login: undefined;
   Signup: undefined;
@@ -25,7 +23,7 @@ export type AuthStackParamList = {
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
-export function AuthNavigator(): React.ReactElement {
+export function AuthNavigator(): React.ReactElement | null {
   const { colors } = useTheme();
   const [route, setRoute] = useState<'Onboarding' | 'Login' | null>(null);
 
@@ -36,7 +34,7 @@ export function AuthNavigator(): React.ReactElement {
   }, []);
 
   if (!route) {
-    return <SplashScreen />;
+    return null;
   }
 
   return (
@@ -49,11 +47,10 @@ export function AuthNavigator(): React.ReactElement {
       }}
     >
       <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-      <Stack.Screen name="Splash" component={SplashScreen} />
-      <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="Signup" component={SignupScreen} />
+      <Stack.Screen name="Login" component={PremiumLoginScreen} />
+      <Stack.Screen name="Signup" component={PremiumSignupScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-      <Stack.Screen name="OtpVerification" component={OtpVerificationScreen} />
+      <Stack.Screen name="OtpVerification" component={PremiumOtpScreen} />
       <Stack.Screen name="BiometricSetup" component={BiometricSetupScreen} />
       <Stack.Screen name="Privacy" component={PrivacyPolicyScreen} />
     </Stack.Navigator>

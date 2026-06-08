@@ -13,7 +13,14 @@ import { OAuth2Client } from 'google-auth-library';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import { ReferralService } from '../referral/referral.service';
-import { RegisterDto, LoginDto, RefreshTokenDto, GoogleAuthDto } from './dto/auth.dto';
+import {
+  RegisterDto,
+  LoginDto,
+  RefreshTokenDto,
+  GoogleAuthDto,
+  SendOtpDto,
+  VerifyOtpDto,
+} from './dto/auth.dto';
 import { JwtPayload, TokenPair } from './interfaces/jwt-payload.interface';
 
 @Injectable()
@@ -465,6 +472,86 @@ export class AuthService {
     );
 
     return { message: 'Password reset successfully' };
+  }
+
+  private readonly OTP_EXPIRY_MINUTES = 5;
+  private readonly MAX_OTP_ATTEMPTS = 5;
+
+  async sendOtp(dto: SendOtpDto): Promise<{ message: string }> {
+    const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    if (!user) {
+      return { message: 'If the email exists, a verification code has been sent.' };
+    }
+
+    const otpCode = crypto.randomInt(100000, 999999).toString();
+    const otpExpires = new Date(Date.now() + this.OTP_EXPIRY_MINUTES * 60000);
+    const hashedOtp = await bcrypt.hash(otpCode, 10);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        otpCode: hashedOtp,
+        otpExpiresAt: otpExpires,
+        otpPurpose: dto.purpose,
+        otpAttempts: 0,
+      },
+    });
+
+    await this.emailService.sendOtpEmail(user.email, user.firstName, otpCode, dto.purpose);
+
+    return { message: 'If the email exists, a verification code has been sent.' };
+  }
+
+  async verifyOtp(dto: VerifyOtpDto): Promise<{ verified: boolean; message: string }> {
+    const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    if (!user) {
+      return { verified: false, message: 'Invalid or expired OTP' };
+    }
+
+    if (!user.otpCode || !user.otpExpiresAt || user.otpPurpose !== dto.purpose) {
+      return { verified: false, message: 'Invalid or expired OTP' };
+    }
+
+    if (user.otpExpiresAt < new Date()) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { otpCode: null, otpExpiresAt: null, otpPurpose: null, otpAttempts: 0 },
+      });
+      return { verified: false, message: 'OTP has expired. Please request a new one.' };
+    }
+
+    if (user.otpAttempts >= this.MAX_OTP_ATTEMPTS) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { otpCode: null, otpExpiresAt: null, otpPurpose: null, otpAttempts: 0 },
+      });
+      return {
+        verified: false,
+        message: 'Too many failed attempts. Please request a new OTP.',
+      };
+    }
+
+    const isValid = await bcrypt.compare(dto.otp, user.otpCode);
+    if (!isValid) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { otpAttempts: user.otpAttempts + 1 },
+      });
+      return { verified: false, message: 'Invalid OTP. Please try again.' };
+    }
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        otpCode: null,
+        otpExpiresAt: null,
+        otpPurpose: null,
+        otpAttempts: 0,
+        ...(dto.purpose === 'email_verification' ? { isEmailVerified: true } : {}),
+      },
+    });
+
+    return { verified: true, message: 'OTP verified successfully' };
   }
 
   private async generateTokens(userId: string, email: string): Promise<TokenPair> {

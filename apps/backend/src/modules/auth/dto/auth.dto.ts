@@ -93,6 +93,18 @@ export class ResetPasswordDto {
   password: string;
 }
 
+export class SendOtpDto {
+  @ApiProperty({ example: 'user@example.com' })
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @ApiProperty({ enum: ['email_verification', 'login'] })
+  @IsString()
+  @IsNotEmpty()
+  purpose: string;
+}
+
 export class VerifyOtpDto {
   @ApiProperty({ example: 'user@example.com' })
   @IsEmail()

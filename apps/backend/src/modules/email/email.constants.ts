@@ -6,7 +6,8 @@ export const EMAIL_SUBJECTS = {
   PREMIUM_RENEWED: 'Your Dabbu Premium Subscription Has Been Renewed',
   PREMIUM_EXPIRY_REMINDER: 'Your Dabbu Premium Plan Is Expiring Soon',
   PAYMENT_FAILED: 'Action Required: Premium Renewal Failed',
-  GROUP_INVITE: 'You\'ve Been Added to a Group on Dabbu',
+  GROUP_INVITE: "You've Been Added to a Group on Dabbu",
+  OTP_VERIFICATION: 'Your Dabbu Verification Code',
 } as const;
 
 export const PASSWORD_RESET_EXPIRY_MINUTES = 30;

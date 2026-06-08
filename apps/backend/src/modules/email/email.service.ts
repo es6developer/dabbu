@@ -11,6 +11,7 @@ import {
   premiumExpiryReminderEmail,
   paymentFailedEmail,
   groupInviteEmail,
+  otpEmail,
 } from './email.templates';
 import { EMAIL_SUBJECTS, PASSWORD_RESET_EXPIRY_MINUTES } from './email.constants';
 
@@ -26,7 +27,10 @@ export class EmailService {
   constructor() {
     this.fromName = process.env.EMAIL_FROM_NAME || 'Dabbu';
     this.fromEmail =
-      process.env.EMAIL_FROM || process.env.SMTP_EMAIL || process.env.SMTP_USER || 'noreply@dabbu.app';
+      process.env.EMAIL_FROM ||
+      process.env.SMTP_EMAIL ||
+      process.env.SMTP_USER ||
+      'noreply@dabbu.app';
     this.frontendUrl = (
       process.env.FRONTEND_URL || 'https://web-omega-snowy-80.vercel.app'
     ).replace(/\/+$/, '');
@@ -78,6 +82,14 @@ export class EmailService {
         `Failed to send email: to=${options.to} subject="${options.subject}" error=${(error as Error).message}`,
       );
     }
+  }
+
+  async sendOtpEmail(to: string, name: string, otpCode: string, purpose: string): Promise<void> {
+    await this.send({
+      to,
+      subject: EMAIL_SUBJECTS.OTP_VERIFICATION,
+      html: otpEmail(name, otpCode, purpose),
+    });
   }
 
   async sendWelcomeEmail(to: string, name: string): Promise<void> {

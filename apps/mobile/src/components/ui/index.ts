@@ -28,3 +28,4 @@ export { SplitSummaryCard } from './SplitSummaryCard';
 export { ConfirmDialog } from './ConfirmDialog';
 export { Toast } from './Toast';
 export { AiInsightCard } from './AiInsightCard';
+export { PremiumAuthLayout } from './PremiumAuthLayout';

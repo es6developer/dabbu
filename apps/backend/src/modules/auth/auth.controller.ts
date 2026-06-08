@@ -3,7 +3,16 @@ import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { RegisterDto, LoginDto, RefreshTokenDto, ForgotPasswordDto, ResetPasswordDto, GoogleAuthDto } from './dto/auth.dto';
+import {
+  RegisterDto,
+  LoginDto,
+  RefreshTokenDto,
+  ForgotPasswordDto,
+  ResetPasswordDto,
+  GoogleAuthDto,
+  SendOtpDto,
+  VerifyOtpDto,
+} from './dto/auth.dto';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -57,6 +66,22 @@ export class AuthController {
     return { data: result };
   }
 
+  @Post('send-otp')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Send OTP code to email for verification or login' })
+  async sendOtp(@Body() dto: SendOtpDto) {
+    const result = await this.authService.sendOtp(dto);
+    return { data: result };
+  }
+
+  @Post('verify-otp')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verify OTP code' })
+  async verifyOtp(@Body() dto: VerifyOtpDto) {
+    const result = await this.authService.verifyOtp(dto);
+    return { data: result };
+  }
+
   @Post('google')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login or register with Google Sign-In' })
@@ -79,10 +104,7 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Logout and invalidate refresh token' })
-  async logout(
-    @CurrentUser('id') userId: string,
-    @Body('refreshToken') refreshToken: string,
-  ) {
+  async logout(@CurrentUser('id') userId: string, @Body('refreshToken') refreshToken: string) {
     await this.authService.logout(userId, refreshToken);
     return { data: { message: 'Logged out successfully' } };
   }

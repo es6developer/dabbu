@@ -353,6 +353,44 @@ export function groupInviteEmail(
   `);
 }
 
+export function otpEmail(name: string, otpCode: string, purpose: string): string {
+  const purposeText =
+    purpose === 'login' ? 'logging into your Dabbu account' : 'verifying your email address';
+  return baseTemplate(`
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="width:56px;height:56px;border-radius:50%;background:${ACCENT_LIGHT};margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:24px;">&#128274;</span>
+      </div>
+      <h1 style="font-size:24px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
+        Verification Code
+      </h1>
+    </div>
+    <p style="font-size:15px;color:${TEXT_MUTED};line-height:1.7;margin:0 0 8px;">
+      Hi ${name}, use the code below for ${purposeText}:
+    </p>
+    <table cellpadding="0" cellspacing="0" border="0" style="margin:24px auto;">
+      <tr>
+        <td style="background:linear-gradient(135deg,${ACCENT},${ACCENT_DARK});border-radius:14px;padding:20px 40px;letter-spacing:12px;">
+          <span style="font-size:36px;font-weight:800;color:#FFFFFF;font-family:monospace;">${otpCode}</span>
+        </td>
+      </tr>
+    </table>
+    <p style="font-size:14px;color:${TEXT_MUTED};line-height:1.6;margin:20px 0 0;text-align:center;">
+      This code expires in <strong style="color:${WARNING};">5 minutes</strong>.
+      If you didn't request this, you can safely ignore this email.
+    </p>
+    ${divider()}
+    <table cellpadding="0" cellspacing="0" border="0" style="background:rgba(239,68,68,0.1);border-radius:10px;padding:16px;margin:0;">
+      <tr>
+        <td style="font-size:13px;color:${ERROR};line-height:1.5;">
+          <strong>&#9888; Security notice:</strong> Never share this code with anyone.
+          Dabbu will never ask for your verification code via phone or social media.
+        </td>
+      </tr>
+    </table>
+  `);
+}
+
 export function paymentFailedEmail(
   name: string,
   planName: string,
