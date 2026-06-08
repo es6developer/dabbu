@@ -57,6 +57,7 @@
       "googleClientId": "407187036002-5hh2u40fa00m72oumrfrnnj8genlft9s.apps.googleusercontent.com",
       "androidGoogleClientId": "407187036002-emb73glp4cjdabsng81iod9ukt91ace0.apps.googleusercontent.com",
       "androidDebugGoogleClientId": "407187036002-bj9sonpkhmssd7nfdt9q9ro45u0bq2ip.apps.googleusercontent.com",
+      "webGoogleClientId": "407187036002-f25f6fvjurlbqrf1u5vckkob2or1n9mg.apps.googleusercontent.com",
       "eas": {
         "projectId": "dabbu-notifications"
       }

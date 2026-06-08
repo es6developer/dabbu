@@ -6,13 +6,14 @@ WebBrowser.maybeCompleteAuthSession();
 
 const extra = (Constants.expoConfig as any)?.extra || {};
 const googleClientId = extra.googleClientId || '';
+const webGoogleClientId = extra.webGoogleClientId || googleClientId;
 
 const iosClientId = googleClientId;
 const androidClientId =
   __DEV__ && extra.androidDebugGoogleClientId
     ? extra.androidDebugGoogleClientId
     : extra.androidGoogleClientId || googleClientId;
-const webClientId = googleClientId;
+const webClientId = webGoogleClientId;
 
 export function useGoogleAuth() {
   const [request, response, promptAsync] = Google.useAuthRequest({

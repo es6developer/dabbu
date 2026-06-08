@@ -277,6 +277,7 @@ const s = StyleSheet.create({
   amountSection: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 20 },
   amountTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
   closeBtn: { width: 34, height: 34, borderRadius: 12, backgroundColor: '#F5F0FF', alignItems: 'center', justifyContent: 'center' },
+  keyboardBtn: { width: 34, height: 34, borderRadius: 12, backgroundColor: '#F5F0FF', alignItems: 'center', justifyContent: 'center' },
   amtTitle: { fontSize: 17, fontWeight: '700' },
 
   segmentRow: { flexDirection: 'row', borderRadius: 12, padding: 3, marginBottom: 20 },
@@ -301,14 +302,6 @@ const s = StyleSheet.create({
   },
   catIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   catName: { fontSize: 10, fontWeight: '600', textAlign: 'center' },
-
-  numpad: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
-    paddingHorizontal: 20, paddingTop: 8, paddingBottom: 34, borderTopWidth: 1,
-  },
-  numpadRow: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 4 },
-  numpadKey: { width: 80, height: 52, alignItems: 'center', justifyContent: 'center' },
-  numpadKeyText: { fontSize: 26, fontWeight: '500' },
 
   addBtn: { borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   addBtnGrad: { flexDirection: 'row', paddingVertical: 15, alignItems: 'center', justifyContent: 'center', gap: 8 },
