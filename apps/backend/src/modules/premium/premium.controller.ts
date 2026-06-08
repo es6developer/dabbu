@@ -48,10 +48,10 @@ export class PremiumController {
     const plan = await this.prisma.subscriptionPlan.findUnique({ where: { id: sub.planId } });
     const addonAmount = plan ? Number(plan.price) * 100 : undefined;
 
-    // 4. Create Razorpay subscription with auto-pay (total_count=0 for infinite, addon for first charge)
+    // 4. Create Razorpay subscription with auto-pay (high total_count for auto-renew, addon for first charge)
     const razorpaySub = await this.razorpayService.createSubscription({
       planId: razorpayPlanId,
-      totalCount: 0,
+      totalCount: 999999,
       customerEmail: req.user.email,
       customerContact: req.user.phone,
       notes: { userId, subscriptionId: sub.id, planCode },
