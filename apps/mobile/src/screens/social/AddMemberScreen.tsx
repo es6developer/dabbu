@@ -27,6 +27,7 @@ import {
   PermissionStatusStr,
 } from '../../services/contacts';
 import { useTheme } from '../../theme';
+import { api } from '../../services/api';
 
 interface SearchUser {
   id: string;
@@ -158,7 +159,6 @@ export function AddMemberScreen() {
     }
     setAddingId(userId);
     try {
-      const { api } = await import('../../services/api');
       if (groupType === 'expense-group') {
         await api.post(`/expense-groups/${groupId}/members/add-by-user-id`, { userId });
       } else {

@@ -57,6 +57,7 @@
       "androidGoogleClientId": "407187036002-emb73glp4cjdabsng81iod9ukt91ace0.apps.googleusercontent.com",
       "androidDebugGoogleClientId": "407187036002-bj9sonpkhmssd7nfdt9q9ro45u0bq2ip.apps.googleusercontent.com",
       "webGoogleClientId": "407187036002-f25f6fvjurlbqrf1u5vckkob2or1n9mg.apps.googleusercontent.com",
+      "projectId": "57a858a9-aa05-47d4-b908-e3d887e07597",
       "eas": {
         "projectId": "57a858a9-aa05-47d4-b908-e3d887e07597"
       }
