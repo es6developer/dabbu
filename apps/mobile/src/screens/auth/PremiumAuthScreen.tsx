@@ -34,7 +34,7 @@ interface PendingAuth {
   sessionId?: string;
 }
 
-const { width: SCREEN_W } = Dimensions.get('window');
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const TAB_BAR_H_PAD = 48;
 const TAB_WIDTH = (SCREEN_W - TAB_BAR_H_PAD - 8) / 2;
 
@@ -220,16 +220,14 @@ export function PremiumAuthScreen() {
     );
   }
 
+  const tabBarHeight = SCREEN_H * 0.2;
+
   return (
     <PremiumAuthLayout>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.content}>
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={styles.scrollContent}
-          >
-            {/* Tab bar */}
+          {/* Fixed tab bar at 20% from top */}
+          <View style={[styles.tabBarFixed, { top: tabBarHeight }]}>
             <View style={styles.tabBar}>
               <Animated.View
                 style={[styles.tabIndicator, { transform: [{ translateX: indicatorX }] }]}
@@ -273,6 +271,15 @@ export function PremiumAuthScreen() {
                 </Animated.Text>
               </TouchableOpacity>
             </View>
+          </View>
+
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={styles.scrollContent}
+          >
+            {/* Spacer so scroll content starts below the fixed tab bar */}
+            <View style={{ height: tabBarHeight + 60 }} />
 
             {/* Active form */}
             <Animated.View style={{ opacity: fadeAnim }}>
@@ -606,14 +613,19 @@ function PrimaryButton({
 
 const styles = StyleSheet.create({
   content: { flex: 1 },
-  scrollContent: { paddingBottom: 32 },
+  scrollContent: { paddingBottom: 32, paddingTop: 16 },
 
+  tabBarFixed: {
+    position: 'absolute',
+    left: 24,
+    right: 24,
+    zIndex: 10,
+  },
   tabBar: {
     flexDirection: 'row',
     backgroundColor: 'rgba(255,255,255,0.04)',
     borderRadius: 14,
     padding: 4,
-    marginBottom: 28,
     position: 'relative',
   },
   tab: { flex: 1, paddingVertical: 11, alignItems: 'center', zIndex: 2 },
