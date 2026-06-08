@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../theme';
 
 interface CircleCardProps {
@@ -20,11 +19,11 @@ function fmt(v: number) {
 
 const TYPE_CONFIG: Record<string, { icon: string; gradient: [string, string] }> = {
   couple: { icon: 'heart', gradient: ['#FF6B9D', '#FF8FB3'] },
-  family: { icon: 'home', gradient: ['#6C3EF4', '#8B5CF6'] },
+  family: { icon: 'home', gradient: ['#F97316', '#EA580C'] },
   friends: { icon: 'people', gradient: ['#00B894', '#00D9A6'] },
   roommates: { icon: 'business', gradient: ['#4F6EF7', '#7C8FF8'] },
   trip: { icon: 'airplane', gradient: ['#E85D04', '#FF8A3C'] },
-  default: { icon: 'ellipse', gradient: ['#6C3EF4', '#8B5CF6'] },
+  default: { icon: 'ellipse', gradient: ['#F97316', '#EA580C'] },
 };
 
 export function CircleCard({ name, membersCount, totalExpenses, yourBalance, type, onPress, onLongPress }: CircleCardProps) {
@@ -46,7 +45,7 @@ export function CircleCard({ name, membersCount, totalExpenses, yourBalance, typ
         },
       ]}
     >
-      <LinearGradient colors={cfg.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.cover}>
+      <View    style={styles.cover}>
         <View style={styles.coverOverlay}>
           <View style={styles.coverTop}>
             <View style={styles.typeBadge}>
@@ -56,7 +55,7 @@ export function CircleCard({ name, membersCount, totalExpenses, yourBalance, typ
           </View>
           <Text style={styles.coverName} numberOfLines={1}>{name}</Text>
         </View>
-      </LinearGradient>
+      </View>
 
       <View style={styles.body}>
         <View style={styles.statsRow}>

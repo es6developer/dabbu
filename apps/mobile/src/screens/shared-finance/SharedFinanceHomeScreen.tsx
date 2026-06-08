@@ -4,7 +4,6 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
@@ -110,9 +109,9 @@ function SummaryCard({ summary, anim, colors, typography }: any) {
   const net = summary.totalOwedToMe - summary.totalIOwe;
   return (
     <Animated.View style={[sCard.wrap, { opacity: anim, transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [24, 0] }) }] }]}>
-      <LinearGradient
-        colors={[colors.accent.primary + '15', colors.accent.primary + '08']}
-        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+      <View
+        
+         
         style={[sCard.card, { borderColor: colors.border.subtle }]}
       >
         <View style={sCard.topRow}>
@@ -163,7 +162,7 @@ function SummaryCard({ summary, anim, colors, typography }: any) {
             </View>
           )}
         </View>
-      </LinearGradient>
+      </View>
     </Animated.View>
   );
 }
@@ -183,7 +182,7 @@ function GroupCard({ group, currentUserId, colors, typography, anim, onPress, on
         style={[gCard.outer, { borderColor: colors.border.subtle }]}
       >
         <View style={[gCard.card, { backgroundColor: colors.bg.card }]}>
-          <LinearGradient colors={cfg.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={gCard.cover}>
+          <View    style={gCard.cover}>
             <View style={gCard.coverOverlay}>
               <View style={gCard.coverMeta}>
                 <View style={gCard.coverIcon}>
@@ -196,7 +195,7 @@ function GroupCard({ group, currentUserId, colors, typography, anim, onPress, on
               <Text style={gCard.coverName} numberOfLines={1}>{group.name}</Text>
               {group.description ? <Text style={gCard.coverDesc} numberOfLines={1}>{group.description}</Text> : null}
             </View>
-          </LinearGradient>
+          </View>
 
             <View style={gCard.body}>
               {totalSpent === 0 ? (
@@ -443,9 +442,9 @@ export function SharedFinanceHomeScreen() {
                 onPress={() => navigation.navigate('MainTabs', { screen: 'Dashboard', params: { screen: 'GoalsList' } })}
                 style={{ marginBottom: 16 }}
               >
-                <LinearGradient
-                  colors={[colors.accent.primary + '18', colors.accent.secondary + '10']}
-                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                <View
+                  
+                   
                   style={{ borderRadius: 16, padding: 16, borderWidth: 1, borderColor: colors.border.subtle }}
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -471,7 +470,7 @@ export function SharedFinanceHomeScreen() {
                       {goals.length} goal{goals.length > 1 ? 's' : ''}
                     </Text>
                   </View>
-                </LinearGradient>
+                </View>
               </TouchableOpacity>
             )}
 

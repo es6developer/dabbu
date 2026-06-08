@@ -1,15 +1,15 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { useAuth } from '../../store/AuthContext';
 import { useAppLock } from '../../store/LockContext';
 import { api, setAccessToken, getAccessToken } from '../../services/api';
+import { ConfirmDialog } from '../../components/ui';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -26,6 +26,7 @@ const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
     title: 'Account',
     items: [
       { label: 'Profile', icon: 'person-circle', screen: 'Profile' },
+      { label: 'Favorite Contacts', icon: 'star', screen: 'FavoriteContacts' },
       { label: 'Subscription', icon: 'diamond', screen: 'Premium' },
       { label: 'Refer & Earn', icon: 'gift', screen: 'Referral' },
       { label: 'Security', icon: 'shield-checkmark', screen: 'Security' },
@@ -58,31 +59,36 @@ const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
   },
 ];
 
-const ROW_META: Record<string, { gradient: [string, string]; icon: IconName }> = {
-  Profile: { gradient: ['#6C3EF4', '#8B5CF6'], icon: 'person' },
-  Subscription: { gradient: ['#F3D28F', '#D4A84B'], icon: 'diamond' },
-  'Refer & Earn': { gradient: ['#FF4D4F', '#FF6B6B'], icon: 'gift' },
-  Security: { gradient: ['#34C759', '#059669'], icon: 'shield-checkmark' },
-  'Lock App': { gradient: ['#6C3EF4', '#5B2ED6'], icon: 'lock-closed' },
-  'Reports & Analytics': { gradient: ['#8B5CF6', '#6D28D9'], icon: 'stats-chart' },
-  'Couple Space': { gradient: ['#FF4D6A', '#FF6B8A'], icon: 'heart' },
-  Theme: { gradient: ['#EC4899', '#BE185D'], icon: 'color-palette' },
-  Notifications: { gradient: ['#6C3EF4', '#8B5CF6'], icon: 'notifications' },
-  'Customise Dashboard': { gradient: ['#4F6EF7', '#6C5CE7'], icon: 'apps' },
-  'Customise Bottom Menu': { gradient: ['#34C759', '#00A86B'], icon: 'menu' },
-  'Help Center': { gradient: ['#6C3EF4', '#5B2ED6'], icon: 'help-circle' },
-  'Contact Us': { gradient: ['#14B8A6', '#0D9488'], icon: 'chatbubble-ellipses' },
-  'Privacy Policy': { gradient: ['#78716C', '#57534E'], icon: 'document-text' },
-};
+function getRowMeta(): Record<string, { icon: IconName }> {
+  return {
+    Profile: { icon: 'person' },
+    Subscription: { icon: 'diamond' },
+    'Favorite Contacts': { icon: 'star' },
+    'Refer & Earn': { icon: 'gift' },
+    Security: { icon: 'shield-checkmark' },
+    'Lock App': { icon: 'lock-closed' },
+    'Reports & Analytics': { icon: 'stats-chart' },
+    'Couple Space': { icon: 'heart' },
+    Theme: { icon: 'color-palette' },
+    Notifications: { icon: 'notifications' },
+    'Customise Dashboard': { icon: 'apps' },
+    'Customise Bottom Menu': { icon: 'menu' },
+    'Help Center': { icon: 'help-circle' },
+    'Contact Us': { icon: 'chatbubble-ellipses' },
+    'Privacy Policy': { icon: 'document-text' },
+  };
+}
 
 export function SettingsScreen() {
   const navigation = useNavigation<any>();
   const { user, logout } = useAuth();
   const { lockApp } = useAppLock();
   const { colors, isDark } = useTheme();
+  const ROW_META = useMemo(() => getRowMeta(), []);
   const insets = useSafeAreaInsets();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [subscription, setSubscription] = useState<any>(null);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   useEffect(() => {
     loadSubscription();
@@ -104,7 +110,7 @@ export function SettingsScreen() {
     const registered = [
       'Profile', 'Security', 'Premium', 'Theme', 'CustomiseDashboard',
       'CustomiseBottomMenu', 'Help', 'Contact', 'Privacy', 'Analytics',
-      'NotificationSettings',
+      'NotificationSettings', 'FavoriteContacts',
     ];
     if (!registered.includes(screen)) {
       Alert.alert('Coming Soon', `${screen} settings will be available soon`);
@@ -123,18 +129,16 @@ export function SettingsScreen() {
   return (
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}>
-        <LinearGradient
-          colors={['#6C3EF4', '#8B5CF6']}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          style={[s.hero, { paddingTop: insets.top + 16 }]}
+        <View
+          style={[s.hero, { paddingTop: insets.top + 16, backgroundColor: colors.accent.primary }]}
         >
           <TouchableOpacity style={s.heroBack} onPress={() => navigation.goBack()} activeOpacity={0.7}>
             <Ionicons name="chevron-back" size={22} color="#FFF" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => handleNav('Profile')} activeOpacity={0.8} style={s.heroProfile}>
-            <LinearGradient colors={['#6C3EF4', '#8B5CF6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.heroAvatar}>
+            <TouchableOpacity onPress={() => handleNav('Profile')} activeOpacity={0.8} style={[s.heroProfile, { borderColor: colors.border.default }]}>
+            <View style={[s.heroAvatar, { backgroundColor: colors.accent.primary }]}>
               <Text style={s.heroAvatarText}>{user?.firstName?.[0] || 'U'}</Text>
-            </LinearGradient>
+            </View>
             <View style={{ flex: 1 }}>
               <Text style={s.heroName} numberOfLines={1}>{user?.firstName || 'User'} {user?.lastName || ''}</Text>
               <Text style={s.heroEmail} numberOfLines={1}>{user?.email || 'No email'}</Text>
@@ -146,16 +150,16 @@ export function SettingsScreen() {
               </Text>
             </View>
           </TouchableOpacity>
-        </LinearGradient>
+        </View>
 
         <Animated.View style={{ opacity: fadeAnim }}>
           {!isPremium && (
             <TouchableOpacity
-              style={s.upgradeBanner}
+              style={[s.upgradeBanner, { backgroundColor: colors.accent.primary, borderColor: colors.border.default }]}
               onPress={() => navigation.navigate('Premium')}
               activeOpacity={0.85}
             >
-              <LinearGradient colors={['#F3D28F', '#D4A84B']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.upgradeGrad}>
+              <View    style={s.upgradeGrad}>
                 <View style={{ flex: 1 }}>
                   <Text style={s.upgradeTitle}>Upgrade to Premium</Text>
                   <Text style={s.upgradeSub}>Unlock reports, analytics & more</Text>
@@ -163,37 +167,38 @@ export function SettingsScreen() {
                 <View style={s.upgradeArrow}>
                   <Ionicons name="arrow-forward" size={18} color="#FFF" />
                 </View>
-              </LinearGradient>
+              </View>
             </TouchableOpacity>
           )}
 
           {SECTIONS.map((section, i) => (
             <View key={i} style={s.section}>
               <Text style={[s.secTitle, { color: colors.text.tertiary }]}>{section.title}</Text>
-              <View style={[s.secCard, { backgroundColor: colors.bg.secondary }]}>
-                {section.items.map((item, j) => {
+              <View style={[s.secCard, { backgroundColor: colors.bg.secondary, borderColor: colors.border.default }]}>
+                  {section.items.map((item, j) => {
                   const meta = ROW_META[item.label];
                   return (
                     <TouchableOpacity
                       key={j}
-                      style={[s.row, j < section.items.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border.subtle }]}
+                      style={[
+                        s.row,
+                        j < section.items.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border.subtle },
+                      ]}
                       onPress={() => handleNav(item.screen, item.premium, item.action)}
                       activeOpacity={0.6}
                     >
-                      <LinearGradient colors={meta?.gradient || ['#6C3EF4', '#8B5CF6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.rowIcon}>
+                      <View style={[s.rowIcon, { backgroundColor: colors.bg.tertiary }]}>
                         <Ionicons name={(meta?.icon as any) || item.icon} size={18} color="#FFF" />
-                      </LinearGradient>
-                      <View style={{ flex: 1 }}>
-                        <Text style={[s.rowLabel, { color: colors.text.primary }]}>{item.label}</Text>
                       </View>
+                      <Text style={[s.rowLabel, { color: colors.text.primary }]}>{item.label}</Text>
                       <View style={s.rowRight}>
                         {item.premium && !isPremium && (
-                          <View style={s.premiumBadge}>
-                            <Ionicons name="lock-closed" size={9} color="#6C3EF4" />
-                            <Text style={s.premiumLabel}>Premium</Text>
+                          <View style={[s.premiumBadge, { backgroundColor: colors.bg.tertiary }]}>
+                            <Ionicons name="lock-closed" size={9} color={colors.accent.primary} />
+                            <Text style={[s.premiumLabel, { color: colors.accent.primary }]}>Premium</Text>
                           </View>
                         )}
-                        <View style={s.chevronBox}>
+                        <View style={[s.chevronBox, { backgroundColor: colors.bg.tertiary }]}>
                           <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
                         </View>
                       </View>
@@ -205,16 +210,11 @@ export function SettingsScreen() {
           ))}
 
           <TouchableOpacity
-            style={[s.logoutRow, { backgroundColor: colors.bg.secondary }]}
-            onPress={() => {
-              Alert.alert('Logout', 'Are you sure you want to logout?', [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'Logout', style: 'destructive', onPress: () => logout().catch(() => {}) },
-              ]);
-            }}
+            style={[s.logoutRow, { backgroundColor: colors.bg.secondary, borderColor: colors.border.default }]}
+            onPress={() => setShowLogoutDialog(true)}
             activeOpacity={0.6}
           >
-            <View style={s.logoutIcon}>
+            <View style={[s.logoutIcon, { backgroundColor: colors.bg.tertiary }]}>
               <Ionicons name="log-out-outline" size={20} color="#FF4D4F" />
             </View>
             <Text style={s.logoutText}>Sign Out</Text>
@@ -226,6 +226,17 @@ export function SettingsScreen() {
           <Text style={[s.version, { color: colors.text.tertiary }]}>Dabbu v1.0.0</Text>
         </Animated.View>
       </ScrollView>
+
+      <ConfirmDialog
+        visible={showLogoutDialog}
+        title="Sign Out"
+        message="Are you sure you want to sign out? You'll need to log in again to access your account."
+        confirmLabel="Sign Out"
+        destructive
+        icon="log-out-outline"
+        onConfirm={() => { setShowLogoutDialog(false); logout().catch(() => {}); }}
+        onCancel={() => setShowLogoutDialog(false)}
+      />
     </View>
   );
 }
@@ -246,6 +257,7 @@ const s = StyleSheet.create({
   heroProfile: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
     backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 20, padding: 14,
+    borderWidth: 1,
   },
   heroAvatar: {
     width: 52, height: 52, borderRadius: 18, alignItems: 'center', justifyContent: 'center',
@@ -259,7 +271,7 @@ const s = StyleSheet.create({
   },
   heroPlanText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.3 },
 
-  upgradeBanner: { marginHorizontal: 20, marginTop: 16, marginBottom: 20, borderRadius: 20, overflow: 'hidden' },
+  upgradeBanner: { marginHorizontal: 20, marginTop: 16, marginBottom: 20, borderRadius: 20, overflow: 'hidden', borderWidth: 1 },
   upgradeGrad: {
     flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12,
   },
@@ -272,34 +284,35 @@ const s = StyleSheet.create({
     fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase',
     marginBottom: 10, marginLeft: 4,
   },
-  secCard: { borderRadius: 20, overflow: 'hidden' },
+  secCard: { borderRadius: 20, overflow: 'hidden', borderWidth: 1 },
   row: {
     flexDirection: 'row', alignItems: 'center',
-    paddingVertical: 15, paddingHorizontal: 16,
+    paddingVertical: 14, paddingHorizontal: 16, gap: 12,
   },
   rowIcon: {
-    width: 44, height: 32, borderRadius: 10,
-    alignItems: 'center', justifyContent: 'center', marginRight: 14,
+    width: 36, height: 36, borderRadius: 10,
+    alignItems: 'center', justifyContent: 'center',
   },
   rowLabel: { flex: 1, fontSize: 15, fontWeight: '600' },
-  rowRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  rowRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   chevronBox: {
-    width: 24, height: 24, borderRadius: 8,
-    backgroundColor: 'rgba(0,0,0,0.03)', alignItems: 'center', justifyContent: 'center',
+    width: 22, height: 22, borderRadius: 6,
+    alignItems: 'center', justifyContent: 'center',
   },
   premiumBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 3,
-    paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6, backgroundColor: '#6C3EF410',
+    paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6,
   },
-  premiumLabel: { fontSize: 10, fontWeight: '700', color: '#6C3EF4' },
+  premiumLabel: { fontSize: 10, fontWeight: '700' },
 
   logoutRow: {
-    flexDirection: 'row', alignItems: 'center',
+    flexDirection: 'row', alignItems: 'center', gap: 12,
     marginHorizontal: 20, padding: 16, borderRadius: 20,
+    borderWidth: 1,
   },
   logoutIcon: {
-    width: 38, height: 38, borderRadius: 12,
-    backgroundColor: '#FF4D4F12', alignItems: 'center', justifyContent: 'center', marginRight: 14,
+    width: 36, height: 36, borderRadius: 10,
+    alignItems: 'center', justifyContent: 'center',
   },
   logoutText: { flex: 1, fontSize: 15, fontWeight: '700', color: '#FF4D4F' },
 

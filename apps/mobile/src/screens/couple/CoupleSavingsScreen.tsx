@@ -4,7 +4,6 @@ import {
   TextInput, Modal, Alert, Dimensions, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -120,14 +119,12 @@ export function CoupleSavingsScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={() => { setRefreshing(true); fetchSavings(true); }}
-            tintColor="#5D38B5"
+            tintColor={colors.accent.primary}
           />
         }
       >
-        <LinearGradient
-          colors={['#5D38B5', '#7A52D1']}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}
+        <View
+          style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20, backgroundColor: colors.accent.primary }}
         >
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
@@ -140,12 +137,12 @@ export function CoupleSavingsScreen() {
             <Ionicons name="save-outline" size={28} color="rgba(255,255,255,0.6)" />
             <Text style={styles.headerSubText}>Save together, grow together</Text>
           </View>
-        </LinearGradient>
+        </View>
 
         <View style={{ paddingHorizontal: 20, marginTop: -16, gap: 16 }}>
           <View style={[styles.goalCard, { backgroundColor: '#FFEBB4' }]}>
             <View style={styles.goalHeader}>
-              <Ionicons name="trophy-outline" size={22} color="#5D38B5" />
+              <Ionicons name="trophy-outline" size={22} color={colors.accent.primary} />
               <Text style={styles.goalTitle}>Savings Goal</Text>
             </View>
             <View style={styles.goalRow}>
@@ -198,7 +195,7 @@ export function CoupleSavingsScreen() {
               </View>
             </View>
             <View style={styles.contribRow}>
-              <View style={[styles.contribAvatar, { backgroundColor: '#7A52D1' }]}>
+              <View style={[styles.contribAvatar, { backgroundColor: colors.accent.primary }]}>
                 <Text style={styles.contribAvatarText}>{p2Name[0]}</Text>
               </View>
               <View style={styles.contribInfo}>
@@ -217,14 +214,12 @@ export function CoupleSavingsScreen() {
             activeOpacity={0.8}
             onPress={() => setModalVisible(true)}
           >
-            <LinearGradient
-              colors={['#5D38B5', '#7A52D1']}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              style={styles.addBtnGradient}
+            <View
+              style={[styles.addBtnGradient, { backgroundColor: colors.accent.primary }]}
             >
               <Ionicons name="add-circle-outline" size={20} color="#FFF" />
               <Text style={styles.addBtnText}>Add to Savings</Text>
-            </LinearGradient>
+            </View>
           </TouchableOpacity>
 
           {contributions.length > 0 && (
@@ -239,7 +234,7 @@ export function CoupleSavingsScreen() {
                   ]}
                 >
                   <View style={styles.ledgerLeft}>
-                    <View style={[styles.ledgerAvatar, { backgroundColor: entry.contributorId === partners?.partner1?.id ? '#6C3EF4' : '#7A52D1' }]}>
+                    <View style={[styles.ledgerAvatar, { backgroundColor: entry.contributorId === partners?.partner1?.id ? colors.accent.primary : colors.accent.primary }]}>
                       <Text style={styles.ledgerAvatarText}>
                         {(entry.contributorName || entry.contributorId || '?')[0]}
                       </Text>
@@ -320,13 +315,11 @@ export function CoupleSavingsScreen() {
                 onPress={handleAddSavings}
                 disabled={submitting}
               >
-                <LinearGradient
-                  colors={['#5D38B5', '#7A52D1']}
-                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                  style={styles.modalSubmitGradient}
+                <View
+                  style={[styles.modalSubmitGradient, { backgroundColor: colors.accent.primary }]}
                 >
                   <Text style={styles.modalSubmitText}>{submitting ? 'Adding...' : 'Add'}</Text>
-                </LinearGradient>
+                </View>
               </TouchableOpacity>
             </View>
           </View>
@@ -351,15 +344,15 @@ const styles = StyleSheet.create({
 
   goalCard: { borderRadius: 24, padding: 22, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.12, shadowRadius: 16, elevation: 6 },
   goalHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 },
-  goalTitle: { fontSize: 16, fontWeight: '800', color: '#5D38B5' },
+  goalTitle: { fontSize: 16, fontWeight: '800', color: '#F97316' },
   goalRow: { flexDirection: 'row', gap: 24, marginBottom: 14 },
   goalCol: { flex: 1 },
   goalLabel: { fontSize: 11, fontWeight: '600', color: 'rgba(93,56,181,0.6)', marginBottom: 2 },
-  goalValue: { fontSize: 24, fontWeight: '800', color: '#5D38B5', letterSpacing: -0.5 },
+  goalValue: { fontSize: 24, fontWeight: '800', color: '#F97316', letterSpacing: -0.5 },
   progressWrap: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
   progressBar: { flex: 1, height: 8, borderRadius: 4, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: '#5D38B5', borderRadius: 4 },
-  progressText: { fontSize: 13, fontWeight: '800', color: '#5D38B5', minWidth: 36, textAlign: 'right' },
+  progressFill: { height: '100%', backgroundColor: '#F97316', borderRadius: 4 },
+  progressText: { fontSize: 13, fontWeight: '800', color: '#F97316', minWidth: 36, textAlign: 'right' },
   goalDate: { fontSize: 11, fontWeight: '500', color: 'rgba(93,56,181,0.5)' },
 
   statsRow: {
@@ -376,7 +369,7 @@ const styles = StyleSheet.create({
 
   contribRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   contribAvatar: {
-    width: LEDGE_ICON, height: LEDGE_ICON, borderRadius: 12, backgroundColor: '#5D38B5',
+    width: LEDGE_ICON, height: LEDGE_ICON, borderRadius: 12, backgroundColor: '#F97316',
     alignItems: 'center', justifyContent: 'center',
   },
   contribAvatarText: { color: '#FFF', fontSize: 16, fontWeight: '800' },
@@ -390,7 +383,7 @@ const styles = StyleSheet.create({
   contribTotalLabel: { fontSize: 12, fontWeight: '600' },
   contribTotalAmount: { fontSize: 18, fontWeight: '800' },
 
-  addBtn: { overflow: 'hidden', borderRadius: 18, elevation: 4, shadowColor: '#5D38B5', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
+  addBtn: { overflow: 'hidden', borderRadius: 18, elevation: 4, shadowColor: '#F97316', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
   addBtnGradient: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     paddingVertical: 16,

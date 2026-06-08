@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as SecureStore from 'expo-secure-store';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useTheme } from '../../theme';
 import { useAuth } from '../../store/AuthContext';
+import { ConfirmDialog } from '../../components/ui';
 
 interface Props {
   onUnlock: () => void;
@@ -18,6 +18,7 @@ export function AppLockScreen({ onUnlock }: Props) {
   const [error, setError] = useState('');
   const shakeAnim = useRef(new Animated.Value(0)).current;
   const [storedPin, setStoredPin] = useState<string | null>(null);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const actualPin = storedPin || '1111';
   const pinLength = actualPin.length;
 
@@ -80,23 +81,16 @@ export function AppLockScreen({ onUnlock }: Props) {
   }
 
   function handleForgotPin() {
-    Alert.alert(
-      'Reset PIN',
-      'Forgot PIN? You will need to log out and set a new PIN after logging back in.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Logout', style: 'destructive', onPress: () => logout().catch(() => {}) },
-      ],
-    );
+    setShowLogoutDialog(true);
   }
 
   const isFull = pin.length === pinLength;
 
   return (
-    <LinearGradient
-      colors={isDark ? [colors.bg.secondary, colors.bg.primary] : ['#f8f4f0', colors.bg.primary]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0, y: 1 }}
+    <View
+      
+      
+      
       style={styles.container}
     >
       <View style={styles.topSection}>
@@ -179,7 +173,18 @@ export function AppLockScreen({ onUnlock }: Props) {
           <Text style={[styles.forgotText, { color: colors.text.tertiary }]}>Forgot PIN?</Text>
         </TouchableOpacity>
       </View>
-    </LinearGradient>
+
+      <ConfirmDialog
+        visible={showLogoutDialog}
+        title="Reset PIN"
+        message="Forgot PIN? You will need to sign out and set a new PIN after logging back in."
+        confirmLabel="Sign Out"
+        destructive
+        icon="log-out-outline"
+        onConfirm={() => { setShowLogoutDialog(false); logout().catch(() => {}); }}
+        onCancel={() => setShowLogoutDialog(false)}
+      />
+    </View>
   );
 }
 

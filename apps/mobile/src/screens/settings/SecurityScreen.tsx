@@ -13,6 +13,7 @@ import * as SecureStore from 'expo-secure-store';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
+import { ConfirmDialog } from '../../components/ui';
 import { useAuth } from '../../store/AuthContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { PageContainer } from '../../components/ui/PageContainer';
@@ -33,6 +34,7 @@ export function SecurityScreen() {
   const [activity, setActivity] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingPin, setSavingPin] = useState(false);
+  const [showLogoutAllDialog, setShowLogoutAllDialog] = useState(false);
 
   useEffect(() => {
     if (accessToken) {
@@ -190,25 +192,7 @@ export function SecurityScreen() {
   }
 
   async function handleLogoutAll() {
-    Alert.alert('Logout All Sessions', 'This will log out all other devices. Are you sure?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Logout',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            if (accessToken) {
-              setAccessToken(accessToken);
-            }
-            await api.post('/auth/sessions/logout-all');
-            Alert.alert('Success', 'All other sessions logged out');
-            loadData();
-          } catch (e: any) {
-            Alert.alert('Error', e.message || 'Failed to logout sessions');
-          }
-        },
-      },
-    ]);
+    setShowLogoutAllDialog(true);
   }
 
   async function handleRevokeSession(sessionId: string) {
@@ -596,6 +580,29 @@ export function SecurityScreen() {
           </View>
         </View>
       </KeyboardAvoidingContainer>
+
+      <ConfirmDialog
+        visible={showLogoutAllDialog}
+        title="Logout All Sessions"
+        message="This will log out all other devices. Are you sure?"
+        confirmLabel="Logout"
+        destructive
+        icon="phone-portrait-outline"
+        onConfirm={async () => {
+          setShowLogoutAllDialog(false);
+          try {
+            if (accessToken) {
+              setAccessToken(accessToken);
+            }
+            await api.post('/auth/sessions/logout-all');
+            Alert.alert('Success', 'All other sessions logged out');
+            loadData();
+          } catch (e: any) {
+            Alert.alert('Error', e.message || 'Failed to logout sessions');
+          }
+        }}
+        onCancel={() => setShowLogoutAllDialog(false)}
+      />
     </PageContainer>
   );
 }

@@ -44,6 +44,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   padding: {
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.xl,
   },
 });

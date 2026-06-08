@@ -12,17 +12,14 @@ import {
   Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
-import { CATEGORY_ICONS, getCategoryColor } from '../../config/categoryIcons';
-
-const CATEGORY_NAMES = ['Food', 'Groceries', 'Travel', 'Gym', 'Water', 'Internet', 'Rent', 'Bills', 'Shopping', 'Entertainment', 'Medical', 'Education'];
-const CATEGORIES = CATEGORY_NAMES.map((name) => ({ name, icon: CATEGORY_ICONS[name], color: getCategoryColor(name) }));
+import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../config/categoryIcons';
 
 type PrefillParams = {
   prefill?: {
@@ -118,8 +115,7 @@ export function CreateTransactionScreen() {
     }
   }
 
-  const allCats = [...CATEGORIES];
-  const filtered = allCats.filter(c => !category || c.name === category);
+  const currentCats = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
 
   if (loadingMeta) {
     return (
@@ -169,7 +165,7 @@ export function CreateTransactionScreen() {
                   <TouchableOpacity
                     activeOpacity={0.8}
                     onPress={() => { setType('expense'); setError(''); }}
-                    style={[s.segmentBtn, type === 'expense' && { backgroundColor: '#5D38B5' }]}
+                    style={[s.segmentBtn, type === 'expense' && { backgroundColor: colors.accent.primary }]}
                   >
                     <Ionicons name="cart-outline" size={14} color={type === 'expense' ? '#FFF' : colors.text.secondary} />
                     <Text style={[s.segmentText, { color: type === 'expense' ? '#FFF' : colors.text.secondary }]}>Expenses</Text>
@@ -221,7 +217,7 @@ export function CreateTransactionScreen() {
               <View style={s.categorySection}>
                 <Text style={[s.sectionLabel, { color: colors.text.primary }]}>Category</Text>
                 <View style={s.categoryGrid}>
-                  {CATEGORIES.map((cat, i) => {
+                  {currentCats.map((cat, i) => {
                     const selected = category === cat.name;
                     return (
                       <TouchableOpacity
@@ -258,16 +254,12 @@ export function CreateTransactionScreen() {
                   disabled={saving}
                   activeOpacity={0.85}
                 >
-                  <LinearGradient
-                    colors={type === 'income' ? ['#00B894', '#00A381'] : ['#5D38B5', '#7A52D1']}
-                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                    style={s.addBtnGrad}
-                  >
+                  <View style={[s.addBtnGrad, { backgroundColor: colors.accent.primary }]}>
                     <Ionicons name="add-circle" size={18} color="#FFF" />
                     <Text style={s.addBtnText}>
                       {saving ? 'Saving...' : isEditing ? 'Update' : type === 'income' ? 'Add Income' : 'Add Expense'}
                     </Text>
-                  </LinearGradient>
+                  </View>
                 </TouchableOpacity>
               </View>
             </View>

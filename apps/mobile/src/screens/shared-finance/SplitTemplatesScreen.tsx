@@ -10,7 +10,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -195,11 +194,8 @@ export function SplitTemplatesScreen() {
                 ]}
               >
                 <View style={s.cardTop}>
-                  <LinearGradient
-                    colors={[
-                      `${item.coverColor || coverColor}25`,
-                      `${item.coverColor || coverColor}10`,
-                    ]}
+                  <View
+                    
                     style={s.iconWrap}
                   >
                     <Ionicons
@@ -207,7 +203,7 @@ export function SplitTemplatesScreen() {
                       size={24}
                       color={item.coverColor || coverColor}
                     />
-                  </LinearGradient>
+                  </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[s.cardName, { color: colors.text.primary }]}>{item.name}</Text>
                     {item.description && (

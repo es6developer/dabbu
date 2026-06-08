@@ -23,7 +23,7 @@ export function QuickActions({ actions }: QuickActionsProps) {
         {actions.map((action, index) => (
           <TouchableOpacity
             key={index}
-            style={[styles.card, { backgroundColor: colors.bg.card }]}
+            style={[styles.card, { backgroundColor: colors.bg.card, borderColor: colors.border.default }]}
             activeOpacity={0.7}
             onPress={action.onPress}
           >
@@ -54,6 +54,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 14,
     borderRadius: 18,
+    borderWidth: 1,
     gap: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },

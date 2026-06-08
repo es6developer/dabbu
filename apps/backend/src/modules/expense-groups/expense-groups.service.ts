@@ -148,6 +148,13 @@ export class ExpenseGroupsService {
       include: {
         group: {
           include: {
+            members: {
+              include: {
+                user: {
+                  select: { id: true, firstName: true, lastName: true, avatarUrl: true },
+                },
+              },
+            },
             _count: { select: { members: true, transactions: true } },
           },
         },

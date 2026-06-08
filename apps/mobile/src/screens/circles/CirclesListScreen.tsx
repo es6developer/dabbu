@@ -3,7 +3,6 @@ import {
   View, Text, FlatList, StyleSheet, TouchableOpacity, Animated, RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
@@ -100,13 +99,13 @@ export function CirclesListScreen() {
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         windowSize={5} initialNumToRender={5} maxToRenderPerBatch={10}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} tintColor="#6C3EF4" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} tintColor={colors.accent.primary} />}
         contentContainerStyle={groups.length === 0 ? { flexGrow: 1 } : { paddingBottom: insets.bottom + 100 }}
         ListHeaderComponent={
           <View>
-            <LinearGradient
-              colors={['#6C3EF4', '#8B5CF6']}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            <View
+              
+               
               style={{ paddingTop: insets.top + 12, paddingBottom: 32, paddingHorizontal: 20 }}
             >
               <View style={styles.headerRow}>
@@ -121,14 +120,14 @@ export function CirclesListScreen() {
                   <Ionicons name="add" size={22} color="#FFF" />
                 </TouchableOpacity>
               </View>
-            </LinearGradient>
+            </View>
 
             {(totalOwed.owed > 0 || totalOwed.iOwe > 0) && (
               <View style={{ paddingHorizontal: H_PADDING, marginTop: -20 }}>
-                <LinearGradient
-                  colors={['#6C3EF4', '#8B5CF6', '#F3D28F']}
-                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                  style={styles.summaryCard}
+                <View
+                  
+                   
+                  style={[styles.summaryCard, { shadowColor: colors.accent.primary }]}
                 >
                   <View style={styles.summaryRow}>
                     <View style={styles.summaryItem}>
@@ -153,11 +152,11 @@ export function CirclesListScreen() {
                       style={styles.splitBtn}
                       onPress={() => navigation.navigate('SplitExpense')}
                     >
-                      <Ionicons name="add-circle" size={12} color="#6C3EF4" />
-                      <Text style={styles.splitBtnText}>Split</Text>
+                      <Ionicons name="add-circle" size={12} color={colors.accent.primary} />
+                      <Text style={[styles.splitBtnText, { color: colors.accent.primary }]}>Split</Text>
                     </TouchableOpacity>
                   </View>
-                </LinearGradient>
+                </View>
               </View>
             )}
           </View>
@@ -184,9 +183,9 @@ export function CirclesListScreen() {
               onPress={() => navigation.navigate('CreateCircle')}
               activeOpacity={0.7}
             >
-              <LinearGradient colors={['#6C3EF4', '#8B5CF6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.createCardIcon}>
+              <View    style={styles.createCardIcon}>
                 <Ionicons name="add" size={24} color="#FFF" />
-              </LinearGradient>
+              </View>
               <Text style={[styles.createCardText, { color: colors.text.primary }]}>Create New Circle</Text>
               <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
             </TouchableOpacity>
@@ -205,13 +204,13 @@ export function CirclesListScreen() {
         }
       />
       <TouchableOpacity
-        style={[styles.fab, { shadowColor: isDark ? '#000' : '#6C3EF4' }]}
+        style={[styles.fab, { shadowColor: isDark ? '#000' : colors.accent.primary }]}
         onPress={() => navigation.navigate('CreateCircle')}
         activeOpacity={0.85}
       >
-        <LinearGradient colors={['#6C3EF4', '#8B5CF6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.fabGrad}>
+        <View    style={styles.fabGrad}>
           <Ionicons name="add" size={28} color="#FFF" />
-        </LinearGradient>
+        </View>
       </TouchableOpacity>
     </BaseScreen>
   );
@@ -224,7 +223,7 @@ const styles = StyleSheet.create({
   addBtn: { width: 42, height: 42, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', marginTop: 4 },
   summaryCard: {
     borderRadius: 20, padding: 18,
-    shadowColor: '#6C3EF4', shadowOffset: { width: 0, height: 6 },
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.25, shadowRadius: 16, elevation: 8,
   },
   summaryRow: { flexDirection: 'row', alignItems: 'center' },
@@ -236,7 +235,7 @@ const styles = StyleSheet.create({
   settleBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#34C759', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 10 },
   settleBtnText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
   splitBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#FFF', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 10 },
-  splitBtnText: { color: '#6C3EF4', fontSize: 12, fontWeight: '700' },
+  splitBtnText: { fontSize: 12, fontWeight: '700' },
   createCard: {
     flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginTop: 4, marginBottom: 8,
     padding: 16, borderRadius: 20, borderWidth: 1, gap: 12,

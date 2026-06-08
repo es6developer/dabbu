@@ -6,10 +6,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
-import { useTheme } from '../../theme';
+import { useTheme, palette } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { EmptyState } from './components/EmptyState';
@@ -17,15 +16,15 @@ import { EmptyState } from './components/EmptyState';
 const TABS = ['overview', 'expenses', 'balances', 'members', 'activity'] as const;
 
 const TYPE_THEMES: Record<string, { gradient: [string, string]; chipColor: string; icon: string }> = {
-  friends: { gradient: ['#6C3EF4', '#8B5CF6'], chipColor: '#6C3EF4', icon: 'people' },
+  friends: { gradient: [palette.brand.primary, palette.brand.hover], chipColor: palette.brand.primary, icon: 'people' },
   trip: { gradient: ['#00B894', '#00D9A6'], chipColor: '#00B894', icon: 'airplane' },
-  family: { gradient: ['#6C3EF4', '#8B5CF6'], chipColor: '#6C3EF4', icon: 'home' },
+  family: { gradient: [palette.brand.primary, palette.brand.hover], chipColor: palette.brand.primary, icon: 'home' },
   couple: { gradient: ['#FF6B9D', '#FF8FB3'], chipColor: '#FF6B9D', icon: 'heart' },
   roommates: { gradient: ['#6C5CE7', '#A29BFE'], chipColor: '#6C5CE7', icon: 'business' },
   office: { gradient: ['#247BA0', '#4A9FC7'], chipColor: '#247BA0', icon: 'briefcase' },
   event: { gradient: ['#D64550', '#FF6B6B'], chipColor: '#D64550', icon: 'calendar' },
   apartment: { gradient: ['#8A5CF6', '#B794F4'], chipColor: '#8A5CF6', icon: 'building' },
-  default: { gradient: ['#6C3EF4', '#8B5CF6'], chipColor: '#6C3EF4', icon: 'people' },
+  default: { gradient: [palette.brand.primary, palette.brand.hover], chipColor: palette.brand.primary, icon: 'people' },
 };
 
 function fmt(v: number) {
@@ -201,7 +200,7 @@ export function SharedGroupDetailScreen() {
     return (
       <View style={[s.screen, { backgroundColor: colors.bg.primary, justifyContent: 'center', alignItems: 'center', paddingTop: insets.top }]}>
         <Text style={[s.errText, { color: colors.text.primary }]}>{error}</Text>
-        <TouchableOpacity style={[s.retry, { backgroundColor: '#6C3EF4' }]} onPress={() => loadData()}>
+        <TouchableOpacity style={[s.retry, { backgroundColor: colors.accent.primary }]} onPress={() => loadData()}>
           <Text style={{ color: '#FFF', fontWeight: '700' }}>Retry</Text>
         </TouchableOpacity>
       </View>
@@ -230,7 +229,7 @@ export function SharedGroupDetailScreen() {
           <View style={s.divider} />
           <View style={s.finSumRow}><Text style={[s.finSumLabel, { color: colors.text.tertiary }]}>Per Transaction</Text><Text style={[s.finSumValue, { color: colors.text.primary }]}>{fmt(Math.round(stats.totalSpent / Math.max(stats.totalTransactions, 1)))}</Text></View>
           <View style={s.divider} />
-          <View style={s.finSumRow}><Text style={[s.finSumLabel, { color: colors.text.tertiary }]}>Top Category</Text><Text style={[s.finSumValue, { color: '#6C3EF4' }]}>{topCategory}</Text></View>
+          <View style={s.finSumRow}><Text style={[s.finSumLabel, { color: colors.text.tertiary }]}>Top Category</Text><Text style={[s.finSumValue, { color: colors.accent.primary }]}>{topCategory}</Text></View>
         </View>
 
         <View style={[s.card, { backgroundColor: colors.bg.card }]}>
@@ -239,7 +238,7 @@ export function SharedGroupDetailScreen() {
             {['Food', 'Travel', 'Shopping', 'Bills', 'Entertainment'].map((cat) => {
               const amt = expenses.filter((e) => (e.category || 'Other').toLowerCase() === cat.toLowerCase()).reduce((s, e) => s + Number(e.amount || 0), 0);
               if (amt === 0) return null;
-              return <View key={cat} style={[s.categoryChip, { backgroundColor: '#6C3EF415' }]}><Text style={[s.categoryChipText, { color: '#6C3EF4' }]}>{cat} · {fmt(amt)}</Text></View>;
+              return <View key={cat} style={[s.categoryChip, { backgroundColor: `${colors.accent.primary}15` }]}><Text style={[s.categoryChipText, { color: colors.accent.primary }]}>{cat} · {fmt(amt)}</Text></View>;
             })}
           </View>
         </View>
@@ -276,7 +275,7 @@ export function SharedGroupDetailScreen() {
         )}
 
         {(type === 'couple' || type === 'family') && (
-          <TouchableOpacity style={[s.typeDashBtn, { backgroundColor: '#6C3EF4' }]} onPress={() => type === 'couple' ? navigation.navigate('CoupleFinance', { groupId, groupName: name }) : navigation.navigate('FamilyDashboard', { groupId, groupName: name })}>
+          <TouchableOpacity style={[s.typeDashBtn, { backgroundColor: colors.accent.primary }]} onPress={() => type === 'couple' ? navigation.navigate('CoupleFinance', { groupId, groupName: name }) : navigation.navigate('FamilyDashboard', { groupId, groupName: name })}>
             <Ionicons name={type === 'couple' ? 'heart' : 'home'} size={18} color="#FFF" />
             <Text style={s.typeDashBtnText}>Open {type === 'couple' ? 'Couple' : 'Family'} Dashboard</Text>
             <Ionicons name="arrow-forward" size={16} color="#FFF" />
@@ -294,9 +293,9 @@ export function SharedGroupDetailScreen() {
     const category = item.category || 'Other';
     return (
       <TouchableOpacity style={[s.expenseCard, { backgroundColor: colors.bg.card }]} onPress={() => navigation.navigate('SharedExpenseForm', { groupId, expenseId: item.id, edit: true })} activeOpacity={0.8}>
-        <LinearGradient colors={['#6C3EF4', '#8B5CF6']} style={s.expenseAvatar}>
+        <View  style={s.expenseAvatar}>
           <Text style={s.expenseAvatarText}>{payerName[0]?.toUpperCase() || '?'}</Text>
-        </LinearGradient>
+        </View>
         <View style={{ flex: 1 }}>
           <View style={s.expenseTop}>
             <Text style={[s.expenseDesc, { color: colors.text.primary }]} numberOfLines={1}>{item.description || category}</Text>
@@ -307,7 +306,7 @@ export function SharedGroupDetailScreen() {
             {!isNaN(date.getTime()) && <Text style={[s.expenseMeta, { color: colors.text.tertiary }]}>{date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</Text>}
           </View>
           <View style={s.expenseTags}>
-            <View style={[s.splitBadge, { backgroundColor: '#6C3EF415' }]}><Text style={[s.splitBadgeText, { color: '#6C3EF4' }]}>{splitType.charAt(0).toUpperCase() + splitType.slice(1)}</Text></View>
+            <View style={[s.splitBadge, { backgroundColor: `${colors.accent.primary}15` }]}><Text style={[s.splitBadgeText, { color: colors.accent.primary }]}>{splitType.charAt(0).toUpperCase() + splitType.slice(1)}</Text></View>
             <View style={[s.catBadge, { backgroundColor: '#60A5FA15' }]}><Text style={[s.catBadgeText, { color: '#60A5FA' }]}>{category}</Text></View>
           </View>
         </View>
@@ -326,9 +325,9 @@ export function SharedGroupDetailScreen() {
           const currentUserOwes = owes && row.userId !== currentUser?.id;
           return (
             <View key={row.id} style={[s.balanceCard, { backgroundColor: colors.bg.card }]}>
-              <LinearGradient colors={['#6C3EF4', '#8B5CF6']} style={s.balanceAvatar}>
+              <View  style={s.balanceAvatar}>
                 <Text style={s.balanceAvatarText}>{row.name[0]?.toUpperCase() || '?'}</Text>
-              </LinearGradient>
+              </View>
               <View style={{ flex: 1 }}>
                 <Text style={[s.balanceName, { color: colors.text.primary }]}>{row.name}</Text>
                 <Text style={[s.balanceStatus, { color: colors.text.tertiary }]}>Paid {fmt(row.paid)}</Text>
@@ -358,11 +357,11 @@ export function SharedGroupDetailScreen() {
           const row = balanceRows.find(r => r.userId === member.userId);
           return (
             <TouchableOpacity key={member.id} style={[s.memberCard, { backgroundColor: colors.bg.card }]} onLongPress={() => { if (!isAdmin || isMemberCurrentUser) return; Alert.alert(member.user?.firstName || 'Member', 'Choose action', [{ text: role === 'admin' ? 'Make Member' : 'Make Admin', onPress: () => changeMemberRole(member, role === 'admin' ? 'member' : 'admin') }, { text: 'Remove', style: 'destructive', onPress: () => removeMember(member) }, { text: 'Cancel', style: 'cancel' }]); }} activeOpacity={0.7}>
-              <LinearGradient colors={['#6C3EF4', '#8B5CF6']} style={s.memberAvatar}><Text style={s.memberAvatarText}>{(member.user?.firstName?.[0] || member.firstName?.[0] || '?').toUpperCase()}</Text></LinearGradient>
+              <View  style={s.memberAvatar}><Text style={s.memberAvatarText}>{(member.user?.firstName?.[0] || member.firstName?.[0] || '?').toUpperCase()}</Text></View>
               <View style={{ flex: 1 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Text style={[s.memberName, { color: colors.text.primary }]}>{member.user?.firstName || member.user?.email || member.firstName || 'Member'}{isMemberCurrentUser ? ' (You)' : ''}</Text>
-                  <View style={[s.roleBadge, { backgroundColor: role === 'admin' ? '#6C3EF415' : `${colors.text.tertiary}18` }]}><Text style={[s.roleBadgeText, { color: role === 'admin' ? '#6C3EF4' : colors.text.tertiary }]}>{role === 'admin' ? 'Admin' : 'Member'}</Text></View>
+                  <View style={[s.roleBadge, { backgroundColor: role === 'admin' ? `${colors.accent.primary}15` : `${colors.text.tertiary}18` }]}><Text style={[s.roleBadgeText, { color: role === 'admin' ? colors.accent.primary : colors.text.tertiary }]}>{role === 'admin' ? 'Admin' : 'Member'}</Text></View>
                 </View>
                 {row && (
                   <View style={{ marginTop: 6, gap: 4 }}>
@@ -372,7 +371,7 @@ export function SharedGroupDetailScreen() {
                         {Math.abs(row.balance) < 1 ? <Text style={{ fontSize: 11, fontWeight: '700', color: '#34C759' }}>Settled ✅</Text> : row.balance < 0 ? <Text style={{ fontSize: 11, fontWeight: '700', color: '#FF4D4F' }}>Owes {fmt(Math.abs(Math.round(row.balance)))}</Text> : <Text style={{ fontSize: 11, fontWeight: '700', color: '#34C759' }}>Gets {fmt(Math.round(row.balance))}</Text>}
                       </View>
                     </View>
-                    <View style={[s.contBarBg, { backgroundColor: colors.bg.tertiary }]}><View style={[s.contBarFill, { width: `${stats.totalSpent > 0 ? Math.min(row.paid / stats.totalSpent * 100, 100) : 0}%`, backgroundColor: '#6C3EF4' }]} /></View>
+                    <View style={[s.contBarBg, { backgroundColor: colors.bg.tertiary }]}><View style={[s.contBarFill, { width: `${stats.totalSpent > 0 ? Math.min(row.paid / stats.totalSpent * 100, 100) : 0}%`, backgroundColor: colors.accent.primary }]} /></View>
                   </View>
                 )}
                 {!row && <Text style={{ fontSize: 12, color: colors.text.tertiary, marginTop: 4 }}>No expenses yet</Text>}
@@ -383,7 +382,7 @@ export function SharedGroupDetailScreen() {
         {type !== 'couple' && (
           <>
             <View style={{ flexDirection: 'row', gap: 10 }}>
-              <TouchableOpacity style={[s.inviteBtn, { backgroundColor: '#6C3EF4', flex: 1 }]} onPress={async () => { setAddMemberModalVisible(true); try { const res = await api.get<any>('/expense-groups'); const groups = Array.isArray(res) ? res : res?.data || []; const seen = new Map<string, any>(); for (const g of groups) { for (const m of g.members || []) { const u = m.user || m; if (u.id && !seen.has(u.id)) seen.set(u.id, u); } } setAddMemberRecent(Array.from(seen.values())); } catch {} }}>
+              <TouchableOpacity style={[s.inviteBtn, { backgroundColor: colors.accent.primary, flex: 1 }]} onPress={async () => { setAddMemberModalVisible(true); try { const res = await api.get<any>('/expense-groups'); const groups = Array.isArray(res) ? res : res?.data || []; const seen = new Map<string, any>(); for (const g of groups) { for (const m of g.members || []) { const u = m.user || m; if (u.id && !seen.has(u.id)) seen.set(u.id, u); } } setAddMemberRecent(Array.from(seen.values())); } catch {} }}>
                 <Ionicons name="person-add-outline" size={18} color="#FFF" />
                 <Text style={s.inviteBtnText}>Add Member</Text>
               </TouchableOpacity>
@@ -392,7 +391,7 @@ export function SharedGroupDetailScreen() {
                 <Text style={[s.inviteBtnText, { color: colors.text.primary }]}>{inviteLoading ? 'Generating...' : 'Invite Link'}</Text>
               </TouchableOpacity>
             </View>
-            {inviteToken && <TouchableOpacity style={[s.viewLinkBtn, { borderColor: colors.border.default }]} onPress={() => setInviteModalVisible(true)}><Ionicons name="link-outline" size={16} color="#6C3EF4" /><Text style={[s.viewLinkText, { color: '#6C3EF4' }]}>View invite link</Text></TouchableOpacity>}
+            {inviteToken && <TouchableOpacity style={[s.viewLinkBtn, { borderColor: colors.border.default }]} onPress={() => setInviteModalVisible(true)}><Ionicons name="link-outline" size={16} color={colors.accent.primary} /><Text style={[s.viewLinkText, { color: colors.accent.primary }]}>View invite link</Text></TouchableOpacity>}
           </>
         )}
 
@@ -403,7 +402,7 @@ export function SharedGroupDetailScreen() {
               <Text style={[s.modalDesc, { color: colors.text.tertiary }]}>Share this link with anyone to join "{name}"</Text>
               <View style={[s.linkBox, { backgroundColor: colors.bg.tertiary }]}><Text style={[s.linkText, { color: colors.text.primary }]} selectable numberOfLines={2}>{inviteToken ? `https://external-web.vercel.app/invite/${inviteToken}` : ''}</Text></View>
               <View style={s.modalActions}>
-                <TouchableOpacity style={[s.modalBtn, { backgroundColor: '#6C3EF4' }]} onPress={async () => { const url = `https://external-web.vercel.app/invite/${inviteToken}`; await Share.share({ message: `Join "${name}" on Dabbu! ${url}`, url }).catch(() => {}); setInviteModalVisible(false); }}><Ionicons name="share-outline" size={18} color="#FFF" /><Text style={s.modalBtnText}>Share</Text></TouchableOpacity>
+                <TouchableOpacity style={[s.modalBtn, { backgroundColor: colors.accent.primary }]} onPress={async () => { const url = `https://external-web.vercel.app/invite/${inviteToken}`; await Share.share({ message: `Join "${name}" on Dabbu! ${url}`, url }).catch(() => {}); setInviteModalVisible(false); }}><Ionicons name="share-outline" size={18} color="#FFF" /><Text style={s.modalBtnText}>Share</Text></TouchableOpacity>
                 <TouchableOpacity style={[s.modalBtn, { backgroundColor: '#34C75920' }]} onPress={async () => { const url = `https://external-web.vercel.app/invite/${inviteToken}`; const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Join "${name}" on Dabbu! ${url}`)}`; const supported = await Linking.canOpenURL(whatsappUrl); if (supported) { await Linking.openURL(whatsappUrl); } else { await Share.share({ message: url }); } setInviteModalVisible(false); }}><Ionicons name="logo-whatsapp" size={18} color="#34C759" /><Text style={[s.modalBtnText, { color: '#34C759' }]}>WhatsApp</Text></TouchableOpacity>
               </View>
               <TouchableOpacity style={s.modalClose} onPress={() => setInviteModalVisible(false)}><Text style={[s.modalCloseText, { color: colors.text.tertiary }]}>Close</Text></TouchableOpacity>
@@ -424,10 +423,10 @@ export function SharedGroupDetailScreen() {
           <View key={group.title}>
             <Text style={[s.activitySectionTitle, { color: colors.text.tertiary }]}>{group.title}</Text>
             {group.data.map((item) => {
-              const typeColor = item.type === 'expense' || item.type === 'expense_added' ? '#60A5FA' : item.type === 'member' || item.type === 'member_joined' ? '#34C759' : item.type?.includes('settlement') ? '#F59E0B' : item.type === 'payment_completed' || item.type === 'settlement_confirmed' ? '#34C759' : '#6C3EF4';
+              const typeColor = item.type === 'expense' || item.type === 'expense_added' ? '#60A5FA' : item.type === 'member' || item.type === 'member_joined' ? '#34C759' : item.type?.includes('settlement') ? '#F59E0B' : item.type === 'payment_completed' || item.type === 'settlement_confirmed' ? '#34C759' : colors.accent.primary;
               return (
                 <View key={item.id} style={[s.activityRow, { borderLeftWidth: 3, borderLeftColor: typeColor }]}>
-                  <View style={[s.activityIcon, { backgroundColor: colors.bg.tertiary }]}><Ionicons name={item.icon as any} size={16} color="#6C3EF4" /></View>
+                  <View style={[s.activityIcon, { backgroundColor: colors.bg.tertiary }]}><Ionicons name={item.icon as any} size={16} color={colors.accent.primary} /></View>
                   <View style={{ flex: 1 }}><Text style={[s.activityTitle, { color: colors.text.primary }]}>{item.title}</Text><Text style={[s.activityDetail, { color: colors.text.tertiary }]}>{item.detail}</Text></View>
                   {item.date && <Text style={[s.activityDate, { color: colors.text.tertiary }]}>{new Date(item.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</Text>}
                 </View>
@@ -522,11 +521,11 @@ export function SharedGroupDetailScreen() {
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         initialNumToRender={8} windowSize={5} maxToRenderPerBatch={10}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} tintColor="#6C3EF4" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} tintColor={colors.accent.primary} />}
         contentContainerStyle={activeTab === 'expenses' && expenses.length === 0 ? s.emptyContainer : { paddingBottom: insets.bottom + 96 }}
         ListHeaderComponent={
           <Animated.View style={{ opacity: fadeAnim }}>
-            <LinearGradient colors={theme.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ paddingTop: insets.top + 8, paddingBottom: 24, paddingHorizontal: 20 }}>
+            <View    style={{ paddingTop: insets.top + 8, paddingBottom: 24, paddingHorizontal: 20 }}>
               <View style={s.headerRow}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={[s.iconBtn, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
                   <Ionicons name="chevron-back" size={22} color="#FFF" />
@@ -541,7 +540,7 @@ export function SharedGroupDetailScreen() {
                 {isAdmin && <TouchableOpacity style={[s.iconBtn, { backgroundColor: 'rgba(255,255,255,0.2)' }]} onPress={() => { setEditName(name); setEditDescription(group?.description || ''); setSettingsOpen(true); }}><Ionicons name="settings-outline" size={20} color="#FFF" /></TouchableOpacity>}
                 {type !== 'couple' && <TouchableOpacity style={[s.iconBtn, { backgroundColor: 'rgba(255,255,255,0.2)' }]} onPress={handleGenerateInvite} disabled={inviteLoading}><Ionicons name={inviteLoading ? 'hourglass-outline' : 'share-outline'} size={20} color="#FFF" /></TouchableOpacity>}
               </View>
-            </LinearGradient>
+            </View>
 
             <View style={{ marginTop: -16, paddingHorizontal: 16 }}>
               <View style={{ flexDirection: 'row', gap: 10 }}>
@@ -549,7 +548,7 @@ export function SharedGroupDetailScreen() {
                   { label: 'Total Spent', value: fmt(stats.totalSpent), color: colors.text.primary },
                   { label: myBalanceRow && myBalanceRow.balance >= 0 ? 'You Are Owed' : 'You Owe', value: myBalanceRow ? (myBalanceRow.balance >= 0 ? fmt(myBalanceRow.balance) : fmt(Math.abs(myBalanceRow.balance))) : fmt(0), color: myBalanceRow && myBalanceRow.balance >= 0 ? '#34C759' : (myBalanceRow && myBalanceRow.balance < 0 ? '#FF4D4F' : colors.text.primary) },
                   { label: 'Settlements Pending', value: String(stats.pendingSettlements), color: '#F59E0B' },
-                  { label: 'Members', value: String(members.length), color: '#6C3EF4' },
+                  { label: 'Members', value: String(members.length), color: colors.accent.primary },
                 ].map((page, idx) => (
                   <View key={idx} style={[s.statCard, { backgroundColor: colors.bg.card }]}>
                     <Text style={[s.statLabel, { color: colors.text.tertiary }]}>{page.label}</Text>
@@ -560,7 +559,7 @@ export function SharedGroupDetailScreen() {
             </View>
 
             <View style={s.quickActions}>
-              <TouchableOpacity style={[s.quickAction, { backgroundColor: '#6C3EF4' }]} onPress={() => navigation.navigate('SharedExpenseForm', { groupId, edit: false })}>
+              <TouchableOpacity style={[s.quickAction, { backgroundColor: colors.accent.primary }]} onPress={() => navigation.navigate('SharedExpenseForm', { groupId, edit: false })}>
                 <Ionicons name="add-circle-outline" size={18} color="#FFF" />
                 <Text style={s.quickActionText}>Add Expense</Text>
               </TouchableOpacity>
@@ -577,7 +576,7 @@ export function SharedGroupDetailScreen() {
             <View style={s.tabRowOuter}>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.tabRow}>
                 {TABS.map((tab) => (
-                  <TouchableOpacity key={tab} style={[s.tabChip, activeTab === tab ? { backgroundColor: '#6C3EF4' } : { backgroundColor: colors.bg.tertiary }]} onPress={() => setActiveTab(tab)}>
+                  <TouchableOpacity key={tab} style={[s.tabChip, activeTab === tab ? { backgroundColor: colors.accent.primary } : { backgroundColor: colors.bg.tertiary }]} onPress={() => setActiveTab(tab)}>
                     <Text style={[s.tabText, { color: activeTab === tab ? '#FFF' : colors.text.secondary }]}>{tab.charAt(0).toUpperCase() + tab.slice(1)}</Text>
                   </TouchableOpacity>
                 ))}
@@ -605,7 +604,7 @@ export function SharedGroupDetailScreen() {
             <Text style={[s.fieldLabel, { color: colors.text.secondary, marginTop: 16 }]}>Description</Text>
             <TextInput style={[s.textInput, { backgroundColor: colors.bg.tertiary, color: colors.text.primary, borderColor: colors.border.subtle, height: 80, textAlignVertical: 'top' }]} value={editDescription} onChangeText={setEditDescription} placeholder="Add a description (optional)" placeholderTextColor={colors.text.tertiary} multiline />
             <View style={s.modalActions}>
-              <TouchableOpacity style={[s.modalBtn, { backgroundColor: '#6C3EF4' }]} onPress={handleSaveSettings} disabled={savingSettings}>{savingSettings ? <ActivityIndicator size="small" color="#FFF" /> : <><Ionicons name="checkmark" size={18} color="#FFF" /><Text style={s.modalBtnText}> Save</Text></>}</TouchableOpacity>
+              <TouchableOpacity style={[s.modalBtn, { backgroundColor: colors.accent.primary }]} onPress={handleSaveSettings} disabled={savingSettings}>{savingSettings ? <ActivityIndicator size="small" color="#FFF" /> : <><Ionicons name="checkmark" size={18} color="#FFF" /><Text style={s.modalBtnText}> Save</Text></>}</TouchableOpacity>
               <TouchableOpacity style={[s.modalBtn, { backgroundColor: colors.bg.tertiary }]} onPress={() => setSettingsOpen(false)}><Text style={[s.modalBtnText, { color: colors.text.secondary }]}>Cancel</Text></TouchableOpacity>
             </View>
           </View>
@@ -625,9 +624,9 @@ export function SharedGroupDetailScreen() {
               <View style={[s.suggestions, { backgroundColor: colors.bg.tertiary, marginTop: 8 }]}>
                 {addMemberSearchResults.map((user: any) => (
                   <TouchableOpacity key={user.id} style={[s.suggestionRow, { borderBottomColor: colors.border.subtle }]} onPress={() => handleAddMember((user.phone || '').replace('+91', ''))}>
-                    <View style={[s.suggestionAvatar, { backgroundColor: '#6C3EF420' }]}><Text style={{ color: '#6C3EF4', fontSize: 11, fontWeight: '700' }}>{user.firstName?.[0] || user.phone?.[0] || '?'}</Text></View>
+                    <View style={[s.suggestionAvatar, { backgroundColor: `${colors.accent.primary}20` }]}><Text style={{ color: colors.accent.primary, fontSize: 11, fontWeight: '700' }}>{user.firstName?.[0] || user.phone?.[0] || '?'}</Text></View>
                     <Text style={{ flex: 1, fontSize: 13, color: colors.text.primary }}>{(user.phone || '').replace('+91', '')} - {user.firstName || ''} {user.lastName || ''}</Text>
-                    <Ionicons name="add-circle" size={20} color="#6C3EF4" />
+                    <Ionicons name="add-circle" size={20} color={colors.accent.primary} />
                   </TouchableOpacity>
                 ))}
               </View>
@@ -645,7 +644,7 @@ export function SharedGroupDetailScreen() {
               </View>
             )}
             <View style={s.modalActions}>
-              <TouchableOpacity style={[s.modalBtn, { backgroundColor: '#6C3EF4' }]} onPress={() => handleAddMember()} disabled={addMemberLoading || !addMemberPhone.trim()}>{addMemberLoading ? <ActivityIndicator size="small" color="#FFF" /> : <><Ionicons name="send" size={18} color="#FFF" /><Text style={s.modalBtnText}> Add Member</Text></>}</TouchableOpacity>
+              <TouchableOpacity style={[s.modalBtn, { backgroundColor: colors.accent.primary }]} onPress={() => handleAddMember()} disabled={addMemberLoading || !addMemberPhone.trim()}>{addMemberLoading ? <ActivityIndicator size="small" color="#FFF" /> : <><Ionicons name="send" size={18} color="#FFF" /><Text style={s.modalBtnText}> Add Member</Text></>}</TouchableOpacity>
               <TouchableOpacity style={[s.modalBtn, { backgroundColor: colors.bg.tertiary }]} onPress={() => setAddMemberModalVisible(false)}><Text style={[s.modalBtnText, { color: colors.text.secondary }]}>Cancel</Text></TouchableOpacity>
             </View>
           </View>

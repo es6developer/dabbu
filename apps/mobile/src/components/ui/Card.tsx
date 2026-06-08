@@ -1,15 +1,13 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle, TouchableOpacity } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme, spacing, borderRadius } from '../../theme';
 
 interface CardProps {
   children: React.ReactNode;
   style?: ViewStyle | ViewStyle[];
-  variant?: 'default' | 'elevated' | 'glass' | 'outlined' | 'premium' | 'glassDark';
+  variant?: 'default' | 'elevated' | 'glass' | 'outlined' | 'premium';
   onPress?: () => void;
   padding?: keyof typeof spacing | number;
-  gradient?: [string, string];
 }
 
 export const Card: React.FC<CardProps> = ({
@@ -18,46 +16,43 @@ export const Card: React.FC<CardProps> = ({
   variant = 'default',
   onPress,
   padding = 'lg',
-  gradient,
 }) => {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const padValue = typeof padding === 'number' ? padding : spacing[padding];
 
   const variantStyles: Record<string, ViewStyle> = {
     default: {
       backgroundColor: colors.bg.card,
-      borderRadius: borderRadius.xl,
+      borderRadius: borderRadius['2xl'],
+      borderWidth: 1,
+      borderColor: colors.border.subtle,
     },
     elevated: {
-      backgroundColor: colors.bg.elevated,
-      borderRadius: borderRadius.xl,
-      shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: isDark ? 0.3 : 0.12,
-      shadowRadius: 16,
-      elevation: 10,
+      backgroundColor: colors.bg.card,
+      borderRadius: borderRadius['2xl'],
+      borderWidth: 1,
+      borderColor: colors.border.subtle,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 12,
+      elevation: 4,
     },
     glass: {
-      backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.7)',
-      borderRadius: borderRadius.xl,
+      backgroundColor: 'rgba(255, 255, 255, 0.04)',
+      borderRadius: borderRadius['2xl'],
       borderWidth: 1,
-      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-    },
-    glassDark: {
-      backgroundColor: 'rgba(255,255,255,0.03)',
-      borderRadius: borderRadius.xl,
-      borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.06)',
+      borderColor: 'rgba(255, 255, 255, 0.06)',
     },
     outlined: {
       backgroundColor: 'transparent',
-      borderRadius: borderRadius.xl,
+      borderRadius: borderRadius['2xl'],
       borderWidth: 1.5,
       borderColor: colors.border.default,
     },
     premium: {
-      backgroundColor: colors.accent.primary + '12',
-      borderRadius: borderRadius.xl,
+      backgroundColor: colors.accent.primary + '15',
+      borderRadius: borderRadius['2xl'],
       borderWidth: 1,
       borderColor: colors.accent.primary + '25',
     },
@@ -65,14 +60,6 @@ export const Card: React.FC<CardProps> = ({
 
   const content = (
     <View style={[{ padding: padValue }, variantStyles[variant]].concat(style ? (Array.isArray(style) ? style : [style]) : [])}>
-      {gradient ? (
-        <LinearGradient
-          colors={gradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[StyleSheet.absoluteFill, { borderRadius: borderRadius.xl, opacity: isDark ? 0.15 : 0.08 }]}
-        />
-      ) : null}
       {children}
     </View>
   );

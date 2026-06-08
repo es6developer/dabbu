@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -38,9 +37,9 @@ export function SplashScreen() {
   }, []);
 
   return (
-    <LinearGradient
-      colors={isDark ? [colors.bg.secondary, colors.bg.primary] : ['#f8f4f0', colors.bg.primary]}
-      start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+    <View
+      
+       
       style={styles.container}
     >
       <Animated.View style={[styles.logoContainer, { opacity: logoOpacity, transform: [{ scale: logoScale }] }]}>
@@ -61,7 +60,7 @@ export function SplashScreen() {
           ))}
         </View>
       </Animated.View>
-    </LinearGradient>
+    </View>
   );
 }
 

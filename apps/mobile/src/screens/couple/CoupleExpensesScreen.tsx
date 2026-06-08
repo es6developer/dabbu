@@ -3,7 +3,6 @@ import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Animated, Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -155,13 +154,11 @@ export function CoupleExpensesScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchData(true); }} tintColor="#6C3EF4" />
+          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchData(true); }} tintColor={colors.accent.primary} />
         }
       >
-        <LinearGradient
-          colors={['#6C3EF4', '#8B5CF6']}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          style={{ paddingTop: insets.top + 12, paddingBottom: 24, paddingHorizontal: 20 }}
+        <View
+          style={{ paddingTop: insets.top + 12, paddingBottom: 24, paddingHorizontal: 20, backgroundColor: colors.accent.primary }}
         >
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
@@ -175,7 +172,7 @@ export function CoupleExpensesScreen() {
               <Ionicons name="add" size={22} color="#FFF" />
             </TouchableOpacity>
           </View>
-        </LinearGradient>
+        </View>
 
         <View style={styles.tabSection}>
           <View style={[styles.segmentRow, { backgroundColor: colors.bg.tertiary }]}>
@@ -186,7 +183,7 @@ export function CoupleExpensesScreen() {
                   key={tab.key}
                   activeOpacity={0.8}
                   onPress={() => setActiveTab(tab.key)}
-                  style={[styles.segmentBtn, active && { backgroundColor: '#6C3EF4' }]}
+                  style={[styles.segmentBtn, active && { backgroundColor: colors.accent.primary }]}
                 >
                   <Ionicons name={tab.icon as any} size={14} color={active ? '#FFF' : colors.text.secondary} />
                   <Text style={[styles.segmentText, { color: active ? '#FFF' : colors.text.secondary }]}>{tab.label}</Text>
@@ -242,13 +239,11 @@ export function CoupleExpensesScreen() {
           activeOpacity={0.85}
           onPress={() => navigation.navigate('CreateTransaction', { prefill: { groupId, groupName: 'Couple', returnTo: 'CoupleExpenses', type: 'expense' } })}
         >
-          <LinearGradient
-            colors={['#6C3EF4', '#8B5CF6']}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-            style={styles.fabGrad}
+          <View
+            style={[styles.fabGrad, { backgroundColor: colors.accent.primary }]}
           >
             <Ionicons name="add" size={26} color="#FFF" />
-          </LinearGradient>
+          </View>
         </TouchableOpacity>
       </Animated.View>
     </View>
@@ -272,10 +267,10 @@ const styles = StyleSheet.create({
     shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.12, shadowRadius: 16, elevation: 6,
   },
   summaryTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  summaryLabel: { fontSize: 12, fontWeight: '600', color: '#5D38B5', letterSpacing: 0.3 },
+  summaryLabel: { fontSize: 12, fontWeight: '600', color: '#F97316', letterSpacing: 0.3 },
   countBadge: { backgroundColor: 'rgba(93,56,181,0.12)', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 8 },
-  countBadgeText: { fontSize: 11, fontWeight: '700', color: '#5D38B5' },
-  summaryAmount: { fontSize: 32, fontWeight: '800', color: '#5D38B5', letterSpacing: -1, marginBottom: 2 },
+  countBadgeText: { fontSize: 11, fontWeight: '700', color: '#F97316' },
+  summaryAmount: { fontSize: 32, fontWeight: '800', color: '#F97316', letterSpacing: -1, marginBottom: 2 },
   summarySub: { fontSize: 12, fontWeight: '500', color: 'rgba(93,56,181,0.6)' },
 
   expenseList: { gap: 10, paddingTop: 16 },
@@ -309,6 +304,6 @@ const styles = StyleSheet.create({
   fabGrad: {
     width: 56, height: 56, borderRadius: 28,
     alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#6C3EF4', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 8,
+    shadowColor: '#F97316', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 8,
   },
 });

@@ -8,7 +8,6 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../theme';
 import { MyWalletScreen } from '../screens/transactions/MyWalletScreen';
 import { SharedCirclesScreen } from '../screens/transactions/SharedCirclesScreen';
@@ -87,10 +86,10 @@ export function ExpenseTabNavigator() {
               },
             ]}
           >
-            <LinearGradient
-              colors={[...colors.accent.gradient]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
+            <View
+              
+              
+              
               style={s.segGradient}
             />
           </Animated.View>

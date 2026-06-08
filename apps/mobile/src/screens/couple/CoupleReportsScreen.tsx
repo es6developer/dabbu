@@ -3,12 +3,12 @@ import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Dimensions, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
+import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../config/categoryIcons';
 
 const { width } = Dimensions.get('window');
 const TAB_W = (width - 40 - 8) / 3;
@@ -24,12 +24,10 @@ function pctStr(v: number) {
 const PERIODS = ['This Month', 'This Quarter', 'This Year'] as const;
 type Period = (typeof PERIODS)[number];
 
-const CAT_COLORS: Record<string, string> = {
-  Food: '#FF6B6B', Rent: '#60A5FA', Travel: '#34C759', Shopping: '#A78BFA',
-  Bills: '#F59E0B', Fuel: '#FF4D4F', Medical: '#FF4D4F', Entertainment: '#8B5CF6',
-  Groceries: '#F3D28F', Utilities: '#60A5FA', Transport: '#34C759', Education: '#A78BFA',
-  Healthcare: '#FF4D4F', Insurance: '#F59E0B', Salary: '#34C759', Investment: '#8B5CF6',
-};
+const CAT_COLORS: Record<string, string> = {};
+for (const c of [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES]) {
+  CAT_COLORS[c.name] = c.color;
+}
 
 export function CoupleReportsScreen() {
   const navigation = useNavigation<any>();
@@ -90,7 +88,7 @@ export function CoupleReportsScreen() {
     return cats.map((c: any) => ({
       name: c.name || 'Uncategorized',
       amount: c.amount || 0,
-      color: CAT_COLORS[c.name] || '#6C3EF4',
+      color: CAT_COLORS[c.name] || colors.accent.primary,
       pct: Math.round((c.amount / total) * 100),
     }));
   }, [data]);
@@ -114,9 +112,9 @@ export function CoupleReportsScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
         <ScrollView contentContainerStyle={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-          <LinearGradient
-            colors={['#6C3EF4', '#8B5CF6']}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          <View
+            
+             
             style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20, position: 'absolute', top: 0, left: 0, right: 0 }}
           >
             <View style={styles.headerRow}>
@@ -126,8 +124,8 @@ export function CoupleReportsScreen() {
               <Text style={styles.headerTitle}>Reports</Text>
               <View style={{ width: 32 }} />
             </View>
-          </LinearGradient>
-          <Ionicons name="stats-chart-outline" size={48} color={isDark ? '#8B5CF6' : '#6C3EF4'} />
+          </View>
+          <Ionicons name="stats-chart-outline" size={48} color={colors.accent.primary} />
           <Text style={[styles.emptyTitle, { color: colors.text.secondary, marginTop: 12 }]}>No Data</Text>
           <Text style={[styles.emptyDesc, { color: colors.text.tertiary, textAlign: 'center' }]}>{error}</Text>
         </ScrollView>
@@ -140,11 +138,11 @@ export function CoupleReportsScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchReports(true); }} tintColor="#6C3EF4" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchReports(true); }} tintColor={colors.accent.primary} />}
       >
-        <LinearGradient
-          colors={['#6C3EF4', '#8B5CF6']}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+        <View
+          
+           
           style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}
         >
           <View style={styles.headerRow}>
@@ -156,7 +154,7 @@ export function CoupleReportsScreen() {
               <Ionicons name="download-outline" size={20} color="#FFF" />
             </TouchableOpacity>
           </View>
-        </LinearGradient>
+        </View>
 
         <View style={{ paddingHorizontal: 20, paddingTop: 12, gap: 12 }}>
           <View style={[styles.periodRow, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}>
@@ -167,7 +165,7 @@ export function CoupleReportsScreen() {
                 style={[styles.periodTab, { width: TAB_W }, period === p && styles.periodTabActive]}
                 onPress={() => setPeriod(p)}
               >
-                <Text style={[styles.periodText, { color: colors.text.tertiary }, period === p && { color: '#6C3EF4', fontWeight: '700' }]}>
+                <Text style={[styles.periodText, { color: colors.text.tertiary }, period === p && { color: colors.accent.primary, fontWeight: '700' }]}>
                   {p}
                 </Text>
               </TouchableOpacity>
@@ -176,10 +174,10 @@ export function CoupleReportsScreen() {
 
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }} style={{ marginHorizontal: -20, paddingHorizontal: 20 }}>
             {summaryCards.map((card, i) => (
-              <LinearGradient
+              <View
                 key={i}
-                colors={i === 0 ? ['#34C75910', '#34C75905'] : i === 1 ? ['#FF4D4F10', '#FF4D4F05'] : ['#F3D28F15', '#F5DBA805']}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                
+                 
                 style={[styles.summaryCard, { borderColor: colors.border.subtle }]}
               >
                 <View style={[styles.summaryIcon, { backgroundColor: `${card.color}15` }]}>
@@ -187,7 +185,7 @@ export function CoupleReportsScreen() {
                 </View>
                 <Text style={[styles.summaryLabel, { color: colors.text.tertiary }]}>{card.label}</Text>
                 <Text style={[styles.summaryAmount, { color: card.color }]}>{fmt(card.amount)}</Text>
-              </LinearGradient>
+              </View>
             ))}
           </ScrollView>
 
@@ -237,7 +235,7 @@ export function CoupleReportsScreen() {
               <View style={{ flex: 1 }}>
                 <Text style={[styles.partnerName, { color: colors.text.secondary }]}>{partnerData.p1.name}</Text>
                 <View style={[styles.partnerBarOuter, { backgroundColor: colors.bg.tertiary }]}>
-                  <View style={[styles.partnerBar, { width: `${partnerData.p1Pct}%`, backgroundColor: '#6C3EF4' }]} />
+                  <View style={[styles.partnerBar, { width: `${partnerData.p1Pct}%`, backgroundColor: colors.accent.primary }]} />
                 </View>
                 <Text style={[styles.partnerAmount, { color: colors.text.primary }]}>{fmt(partnerData.p1.amount)}</Text>
               </View>
@@ -245,16 +243,16 @@ export function CoupleReportsScreen() {
               <View style={{ flex: 1, alignItems: 'flex-end' }}>
                 <Text style={[styles.partnerName, { color: colors.text.secondary, textAlign: 'right' }]}>{partnerData.p2.name}</Text>
                 <View style={[styles.partnerBarOuter, { backgroundColor: colors.bg.tertiary }]}>
-                  <View style={[styles.partnerBar, { width: `${partnerData.p2Pct}%`, backgroundColor: '#8B5CF6' }]} />
+                  <View style={[styles.partnerBar, { width: `${partnerData.p2Pct}%`, backgroundColor: colors.accent.primary }]} />
                 </View>
                 <Text style={[styles.partnerAmount, { color: colors.text.primary, textAlign: 'right' }]}>{fmt(partnerData.p2.amount)}</Text>
               </View>
             </View>
           </View>
 
-          <LinearGradient
-            colors={[`${statusColor}15`, `${statusColor}05`]}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          <View
+            
+             
             style={[styles.budgetCard, { borderColor: colors.border.subtle }]}
           >
             <View style={styles.budgetTop}>
@@ -275,14 +273,14 @@ export function CoupleReportsScreen() {
               </Text>
               <Text style={[styles.budgetPct, { color: statusColor }]}>{pctStr(budgetPct)}</Text>
             </View>
-          </LinearGradient>
+          </View>
 
           <TouchableOpacity
             activeOpacity={0.7}
             style={[styles.exportBtn, { backgroundColor: colors.bg.card, borderColor: colors.border.default }]}
             onPress={() => Alert.alert('Coming Soon', 'Export reports as PDF or CSV will be available soon.')}
           >
-            <Ionicons name="download-outline" size={20} color="#6C3EF4" />
+            <Ionicons name="download-outline" size={20} color={colors.accent.primary} />
             <Text style={styles.exportText}>Export Report</Text>
             <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
           </TouchableOpacity>
@@ -354,7 +352,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     paddingVertical: 16, borderRadius: 18, borderWidth: 1, marginTop: 4,
   },
-  exportText: { fontSize: 15, fontWeight: '600', color: '#6C3EF4' },
+  exportText: { fontSize: 15, fontWeight: '600', color: '#F97316' },
 
   emptyTitle: { fontSize: 18, fontWeight: '700' },
   emptyDesc: { fontSize: 14 },

@@ -9,7 +9,6 @@ import {
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
@@ -77,12 +76,10 @@ export function SignupScreen() {
   return (
     <PageContainer noPadding>
       <KeyboardAvoidingContainer>
-        <LinearGradient
-          colors={
-            isDark ? [colors.bg.secondary, colors.bg.primary] : ['#f8f4f0', colors.bg.primary]
-          }
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
+        <View
+          
+          
+          
           style={StyleSheet.absoluteFill}
         />
         <View style={styles.container}>

@@ -4,7 +4,6 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { HomeScreen } from '../screens/home/HomeScreen';
 import { NotificationsScreen } from '../screens/home/NotificationsScreen';
 import { NotificationCenterScreen } from '../screens/home/NotificationCenterScreen';
@@ -35,6 +34,7 @@ import { AnalyticsScreen } from '../screens/analytics/AnalyticsScreen';
 import { CustomiseDashboardScreen } from '../screens/settings/CustomiseDashboardScreen';
 import { CustomiseBottomMenuScreen } from '../screens/settings/CustomiseBottomMenuScreen';
 import { NotificationSettingsScreen } from '../screens/settings/NotificationSettingsScreen';
+import { FavoriteContactsScreen } from '../screens/settings/FavoriteContactsScreen';
 import { ReportsScreen } from '../screens/reports/ReportsScreen';
 import { CoupleSpaceNavigator } from './CoupleSpaceNavigator';
 import { CirclesNavigator } from './CirclesNavigator';
@@ -212,6 +212,11 @@ function SettingsNavigator() {
         component={NotificationSettingsScreen}
         options={{ headerShown: false }}
       />
+      <SettingsStack.Screen
+        name="FavoriteContacts"
+        component={FavoriteContactsScreen}
+        options={{ headerShown: false }}
+      />
     </SettingsStack.Navigator>
   );
 }
@@ -307,13 +312,13 @@ export function MainTabNavigator() {
     {
       label: 'Add Expense',
       icon: 'add-circle-outline' as const,
-      color: '#6C3EF4',
+      color: '#F97316',
       onPress: () => navigation.navigate('Expense', { screen: 'CategorySelection' }),
     },
     {
       label: 'Create Circle',
       icon: 'people-outline' as const,
-      color: '#8B5CF6',
+      color: '#F97316',
       onPress: () => navigation.navigate('Circles', { screen: 'CreateCircle' }),
     },
     {
@@ -425,7 +430,7 @@ function GlossyTabBar({ state, descriptors, navigation, colors, isDark, onCenter
   const centerIndex = state.routes.findIndex((r: any) => r.name === 'QuickAction');
 
   return (
-    <View style={tabStyles.outerWrapper}>
+    <View style={[tabStyles.outerWrapper, { borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }]}>
       <View style={[tabStyles.blur, { backgroundColor: colors.bg.secondary }]}>
         <View style={[tabStyles.innerRow, { borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}>
           {state.routes.map((route: any, index: number) => {
@@ -441,14 +446,11 @@ function GlossyTabBar({ state, descriptors, navigation, colors, isDark, onCenter
                     style={tabStyles.centerWrap}
                     onPress={onCenterPress}
                   >
-                    <LinearGradient
-                      colors={['#6C3EF4', '#8B5CF6']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={tabStyles.centerBtn}
+                    <View
+                      style={[tabStyles.centerBtn, { backgroundColor: colors.accent.primary, borderColor: colors.brand.hover }]}
                     >
                       <Ionicons name="add" size={28} color="#FFF" />
-                    </LinearGradient>
+                    </View>
                   </TouchableOpacity>
               );
             }
@@ -510,6 +512,7 @@ const tabStyles = StyleSheet.create({
     right: 10,
     bottom: Platform.OS === 'ios' ? 18 : 10,
     borderRadius: 22,
+    borderWidth: 1,
     overflow: 'hidden',
     ...Platform.select({
       ios: {
@@ -566,10 +569,11 @@ const tabStyles = StyleSheet.create({
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1.5,
     elevation: 8,
-    shadowColor: '#6C3EF4',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.15,
     shadowRadius: 10,
   },
 });

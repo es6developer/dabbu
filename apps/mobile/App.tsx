@@ -10,6 +10,7 @@ import { ThemeProvider, useTheme } from './src/theme/ThemeProvider';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { AuthProvider } from './src/store/AuthContext';
 import { LockProvider } from './src/store/LockContext';
+import { FavoritesProvider } from './src/store/FavoritesContext';
 import { loadFeatures } from './src/config/features';
 import { addNotificationResponseListener } from './src/services/notifications';
 import { useDeepLinks } from './src/hooks/useDeepLinks';
@@ -133,11 +134,13 @@ export default function App(): React.ReactElement | null {
         <ThemeProvider>
           <AuthProvider>
             <LockProvider>
-              <ThemedNavigationContainer navigationRef={navigationRef} linking={linking}>
-                <ThemedStatusBar />
-                <RootNavigator />
-              </ThemedNavigationContainer>
-              <Toast />
+              <FavoritesProvider>
+                <ThemedNavigationContainer navigationRef={navigationRef} linking={linking}>
+                  <ThemedStatusBar />
+                  <RootNavigator />
+                </ThemedNavigationContainer>
+                <Toast />
+              </FavoritesProvider>
             </LockProvider>
           </AuthProvider>
         </ThemeProvider>

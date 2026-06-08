@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 
@@ -18,7 +17,7 @@ export function BiometricSetupScreen() {
   }
 
   return (
-    <LinearGradient colors={isDark ? [colors.bg.secondary, colors.bg.primary] : ['#f8f4f0', colors.bg.primary]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.container}>
+    <View    style={styles.container}>
       <View style={[styles.iconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
         <Ionicons name="finger-print" size={56} color={colors.accent.primary} />
       </View>
@@ -34,7 +33,7 @@ export function BiometricSetupScreen() {
       <TouchableOpacity onPress={() => navigation.navigate('Login')}>
         <Text style={[styles.skip, { color: colors.text.tertiary }]}>Skip</Text>
       </TouchableOpacity>
-    </LinearGradient>
+    </View>
   );
 }
 

@@ -3,7 +3,6 @@ import {
   View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -13,7 +12,7 @@ import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingC
 
 const CIRCLE_TYPES = [
   { key: 'couple', label: 'Couple', icon: 'heart', color: '#FF6B9D' },
-  { key: 'family', label: 'Family', icon: 'home', color: '#6C3EF4' },
+  { key: 'family', label: 'Family', icon: 'home', color: '#F97316' },
   { key: 'friends', label: 'Friends', icon: 'people', color: '#34C759' },
   { key: 'roommates', label: 'Roommates', icon: 'business', color: '#4F6EF7' },
   { key: 'trip', label: 'Trip', icon: 'airplane', color: '#F3D28F' },
@@ -71,9 +70,9 @@ export function CreateCircleScreen() {
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
       <KeyboardAvoidingContainer>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-          <LinearGradient
-            colors={['#6C3EF4', '#8B5CF6']}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          <View
+            
+             
             style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}
           >
             <View style={styles.headerRow}>
@@ -84,7 +83,7 @@ export function CreateCircleScreen() {
               <View style={{ width: 32 }} />
             </View>
             <Text style={styles.headerSub}>Start splitting expenses with your people</Text>
-          </LinearGradient>
+          </View>
 
           <View style={{ padding: 20, gap: 20 }}>
             <View>
@@ -171,9 +170,9 @@ export function CreateCircleScreen() {
               )}
             </View>
 
-            <LinearGradient
-              colors={['#6C3EF4', '#8B5CF6']}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            <View
+              
+               
               style={[styles.createBtn, { opacity: loading ? 0.6 : 1 }]}
             >
               <TouchableOpacity
@@ -185,7 +184,7 @@ export function CreateCircleScreen() {
                 <Ionicons name="people" size={18} color="#FFF" />
                 <Text style={styles.createBtnText}>Create Circle</Text>
               </TouchableOpacity>
-            </LinearGradient>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingContainer>

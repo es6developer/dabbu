@@ -17,7 +17,6 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
@@ -33,19 +32,18 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 type GoalConfig = {
   icon: string;
-  gradient: [string, string];
   color: string;
 };
 
 const GOAL_CONFIGS: Record<string, GoalConfig> = {
-  emergency: { icon: 'shield-checkmark', gradient: ['#FF6B6B', '#ee5a24'], color: '#FF6B6B' },
-  vacation: { icon: 'airplane', gradient: ['#00B894', '#00a381'], color: '#00B894' },
-  education: { icon: 'school', gradient: ['#4F6EF7', '#3d5ae0'], color: '#4F6EF7' },
-  home: { icon: 'home', gradient: ['#6C3EF4', '#8B5CF6'], color: '#6C3EF4' },
-  car: { icon: 'car-sport', gradient: ['#6C5CE7', '#5a4bd1'], color: '#6C5CE7' },
-  wedding: { icon: 'heart', gradient: ['#FF6B9D', '#e0557e'], color: '#FF6B9D' },
-  retirement: { icon: 'umbrella', gradient: ['#247BA0', '#1a6080'], color: '#247BA0' },
-  custom: { icon: 'trophy', gradient: ['#8A5CF6', '#6c3ce0'], color: '#8A5CF6' },
+  emergency: { icon: 'shield-checkmark', color: '#FF6B6B' },
+  vacation: { icon: 'airplane', color: '#00B894' },
+  education: { icon: 'school', color: '#4F6EF7' },
+  home: { icon: 'home', color: '#F97316' },
+  car: { icon: 'car-sport', color: '#6C5CE7' },
+  wedding: { icon: 'heart', color: '#FF6B9D' },
+  retirement: { icon: 'umbrella', color: '#247BA0' },
+  custom: { icon: 'trophy', color: '#8A5CF6' },
 };
 
 const SUGGESTED_GOALS = [
@@ -386,25 +384,25 @@ function GoalCard({
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={onNavigate}
-        style={[s.card, { backgroundColor: colors.bg.secondary, borderColor: config.color + '15' }]}
+        style={[s.card, { backgroundColor: colors.bg.secondary, borderColor: colors.border.default }]}
       >
         <View style={StyleSheet.absoluteFill}>
-          <LinearGradient
-            colors={[config.color + '08', 'transparent']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+          <View
+            
+            
+            
             style={{ flex: 1, borderRadius: 20 }}
           />
         </View>
 
         <View style={s.cardTopRow}>
           <View style={s.cardLeftCol}>
-            <LinearGradient
-              colors={[config.gradient[0] + '25', config.gradient[1] + '15']}
+            <View
+              
               style={[s.cardIcon, { borderRadius: 12 }]}
             >
               <Ionicons name={config.icon as any} size={22} color={config.color} />
-            </LinearGradient>
+            </View>
             <View style={{ flex: 1 }}>
               <Text style={[typography.h4, { color: colors.text.primary }]} numberOfLines={1}>
                 {item.name}
@@ -460,7 +458,7 @@ function GoalCard({
             <View style={s.footerRow}>
               <Text style={[typography.caption, { color: colors.text.tertiary }]}>Saved</Text>
               <Text
-                style={[typography.amountSmall, { color: colors.status.success, fontSize: 16 }]}
+                style={[typography.amountSmall, { color: colors.text.primary, fontSize: 16 }]}
               >
                 {fmt(saved)}
               </Text>
@@ -511,7 +509,7 @@ function GoalCard({
           </View>
         </View>
 
-        <View style={[s.taglineRow, { backgroundColor: config.color + '12' }]}>
+        <View style={[s.taglineRow, { backgroundColor: 'transparent' }]}>
           <Ionicons name="sparkles" size={13} color={config.color} />
           <Text style={[typography.footnote, { color: config.color, fontWeight: '600' }]}>
             {tagline}
@@ -544,11 +542,8 @@ function OverallProgressHeader({
   const pct = totalTarget > 0 ? Math.min((totalSaved / totalTarget) * 100, 100) : 0;
 
   return (
-    <LinearGradient
-      colors={[colors.accent.gradient[0], colors.accent.gradient[1]]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={s.overallCard}
+    <View
+      style={[s.overallCard, { backgroundColor: colors.bg.card, borderWidth: 1, borderColor: colors.border.default }]}
     >
       <View style={s.overallInner}>
         <View style={{ flex: 1 }}>
@@ -596,7 +591,7 @@ function OverallProgressHeader({
           </View>
         </View>
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -715,18 +710,18 @@ function GoalsEmptyState({
                 s.suggestionCard,
                 {
                   backgroundColor: colors.bg.secondary,
-                  borderColor: cfg.color + '20',
+                  borderColor: colors.border.default,
                 },
               ]}
               activeOpacity={0.7}
               onPress={() => onSuggestionPress(sg)}
             >
-              <LinearGradient
-                colors={[cfg.gradient[0] + '20', cfg.gradient[1] + '10']}
+              <View
+                
                 style={[s.suggestionIcon, { borderRadius: 10 }]}
               >
                 <Ionicons name={cfg.icon as any} size={20} color={cfg.color} />
-              </LinearGradient>
+              </View>
               <View style={{ flex: 1 }}>
                 <Text style={[typography.h4, { color: colors.text.primary }]}>{sg.name}</Text>
                 <Text style={[typography.footnote, { color: colors.text.tertiary }]}>

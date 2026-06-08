@@ -19,7 +19,6 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { getCategoryIcon } from '../../config/categoryIcons';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -254,14 +253,9 @@ export function TransactionsListScreen() {
         onPress={() => navigation.navigate('TransactionDetail', { transactionId: item.id })}
         onLongPress={() => handleDelete(item.id)}
       >
-        <LinearGradient
-          colors={isIncome ? ['#00B894', '#00CEC9'] : ['#FF6B6B', '#EE5A24']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.cardIcon}
-        >
+        <View style={[styles.cardIcon, { backgroundColor: isIncome ? '#00B894' : '#FF6B6B' }]}>
           <Ionicons name={getCategoryIcon(categoryName) as any} size={18} color="#FFF" />
-        </LinearGradient>
+        </View>
         <View style={styles.cardBody}>
           <Text style={[styles.cardDesc, { color: colors.text.primary }]} numberOfLines={1}>
             {item.description || categoryName}
@@ -300,14 +294,7 @@ export function TransactionsListScreen() {
         }
         ListHeaderComponent={
           <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
-            <LinearGradient
-              colors={
-                isDark
-                  ? ['#0A0A0F', '#12121A']
-                  : ['#1a1a2e', '#16213e']
-              }
-              style={[styles.headerGradient, { paddingTop: insets.top + 16 }]}
-            >
+            <View style={[styles.headerGradient, { paddingTop: insets.top + 16, backgroundColor: colors.bg.secondary }]}>
               <View style={styles.headerRow}>
                 <View>
                   <Text style={styles.greetingLabel}>
@@ -323,26 +310,14 @@ export function TransactionsListScreen() {
                   style={[styles.headerAvatarRing, { borderColor: colors.accent.primary }]}
                   onPress={() => navigation.navigate('AddExpense')}
                 >
-                  <LinearGradient
-                    colors={[...colors.accent.gradient]}
-                    style={styles.headerAvatar}
-                  >
+                  <View style={[styles.headerAvatar, { backgroundColor: colors.accent.primary }]}>
                     <Ionicons name="add" size={24} color="#FFF" />
-                  </LinearGradient>
+                  </View>
                 </TouchableOpacity>
               </View>
-            </LinearGradient>
+            </View>
 
-            <LinearGradient
-              colors={
-                isDark
-                  ? ['#1a1a2e', '#16213e', '#0f3460']
-                  : ['#1a1a2e', '#16213e', '#0f3460']
-              }
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.balanceCard}
-            >
+            <View style={[styles.balanceCard, { backgroundColor: colors.bg.secondary }]}>
               <Text style={styles.balanceLabel}>Total Balance</Text>
               <Text style={styles.balanceAmount}>{formatCurrency(remaining)}</Text>
               <View style={styles.balanceBar}>
@@ -378,7 +353,7 @@ export function TransactionsListScreen() {
                   <Text style={styles.balanceRowLabel}>Expense</Text>
                 </View>
               </View>
-            </LinearGradient>
+            </View>
 
             <View style={styles.quickActions}>
               {QUICK_ACTIONS.map((action) => (
@@ -424,11 +399,11 @@ export function TransactionsListScreen() {
                       }
                       activeOpacity={0.7}
                     >
-                      <LinearGradient colors={[...colors.accent.gradient]} style={styles.groupAvatar}>
+                      <View style={[styles.groupAvatar, { backgroundColor: colors.accent.primary }]}>
                         <Text style={styles.groupAvatarText}>
                           {(g.name || 'G')[0].toUpperCase()}
                         </Text>
-                      </LinearGradient>
+                      </View>
                       <Text
                         style={[styles.groupName, { color: colors.text.primary }]}
                         numberOfLines={1}
@@ -619,12 +594,9 @@ export function TransactionsListScreen() {
         )}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <LinearGradient
-              colors={[...colors.accent.gradient]}
-              style={styles.emptyIconWrap}
-            >
+            <View style={[styles.emptyIconWrap, { backgroundColor: colors.accent.primary }]}>
               <Ionicons name="wallet-outline" size={44} color="#FFF" />
-            </LinearGradient>
+            </View>
             <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
               Track your spending
             </Text>

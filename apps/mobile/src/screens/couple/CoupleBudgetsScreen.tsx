@@ -3,7 +3,6 @@ import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -86,10 +85,8 @@ export function CoupleBudgetsScreen() {
     return (
       <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
         <ScrollView contentContainerStyle={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-          <LinearGradient
-            colors={['#5D38B5', '#7A52D1']}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-            style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20, position: 'absolute', top: 0, left: 0, right: 0 }}
+          <View
+            style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20, position: 'absolute', top: 0, left: 0, right: 0, backgroundColor: colors.accent.primary }}
           >
             <View style={styles.headerRow}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
@@ -98,8 +95,8 @@ export function CoupleBudgetsScreen() {
               <Text style={styles.headerTitle}>Budgets</Text>
               <View style={{ width: 32 }} />
             </View>
-          </LinearGradient>
-          <Ionicons name="wallet-outline" size={48} color={isDark ? '#7A52D1' : '#5D38B5'} />
+          </View>
+          <Ionicons name="wallet-outline" size={48} color={colors.accent.primary} />
           <Text style={[styles.emptyTitle, { color: colors.text.secondary, marginTop: 12 }]}>No Budget Data</Text>
           <Text style={[styles.emptyDesc, { color: colors.text.tertiary, textAlign: 'center' }]}>{error}</Text>
         </ScrollView>
@@ -116,14 +113,12 @@ export function CoupleBudgetsScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={() => { setRefreshing(true); fetchData(true); }}
-            tintColor="#5D38B5"
+            tintColor={colors.accent.primary}
           />
         }
       >
-        <LinearGradient
-          colors={['#5D38B5', '#7A52D1']}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}
+        <View
+          style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20, backgroundColor: colors.accent.primary }}
         >
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
@@ -132,14 +127,14 @@ export function CoupleBudgetsScreen() {
             <Text style={styles.headerTitle}>Budgets</Text>
             <View style={{ width: 32 }} />
           </View>
-        </LinearGradient>
+        </View>
 
         <View style={{ paddingHorizontal: 20, paddingTop: 12, gap: 12 }}>
           <View style={[styles.heroCard, { backgroundColor: '#FFEBB4' }]}>
             <View style={styles.heroTop}>
               <Text style={styles.heroLabel}>{monthLabel()}</Text>
               <View style={styles.heroBadge}>
-                <Ionicons name="calendar-outline" size={12} color="#5D38B5" />
+                <Ionicons name="calendar-outline" size={12} color={colors.accent.primary} />
                 <Text style={styles.heroBadgeText}> Monthly Budget</Text>
               </View>
             </View>
@@ -151,7 +146,7 @@ export function CoupleBudgetsScreen() {
                   styles.progressFill,
                   {
                     width: `${Math.min(overallPct, 100)}%`,
-                    backgroundColor: overallPct > 90 ? '#FF4D4F' : overallPct > 70 ? '#F59E0B' : '#5D38B5',
+                    backgroundColor: overallPct > 90 ? '#FF4D4F' : overallPct > 70 ? '#F59E0B' : colors.accent.primary,
                   },
                 ]}
               />
@@ -193,13 +188,11 @@ export function CoupleBudgetsScreen() {
               <View key={cat.id || i} style={[styles.catCard, { backgroundColor: colors.bg.card }]}>
                 <View style={styles.catTop}>
                   <View style={styles.catLeft}>
-                    <LinearGradient
-                      colors={['#6C3EF4', '#8B5CF6']}
-                      start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                      style={styles.catIcon}
+                    <View
+                      style={[styles.catIcon, { backgroundColor: colors.accent.primary }]}
                     >
                       <Ionicons name={icon as any} size={16} color="#FFF" />
-                    </LinearGradient>
+                    </View>
                     <View>
                       <Text style={[styles.catName, { color: colors.text.primary }]}>
                         {cat.name || 'Category'}
@@ -240,7 +233,7 @@ export function CoupleBudgetsScreen() {
           })}
 
           <TouchableOpacity
-            style={[styles.adjustBtn, { backgroundColor: '#6C3EF4' }]}
+            style={[styles.adjustBtn, { backgroundColor: colors.accent.primary }]}
             activeOpacity={0.85}
             onPress={() => navigation.navigate('CoupleBudgetAdjust')}
           >
@@ -264,18 +257,18 @@ const styles = StyleSheet.create({
     shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.12, shadowRadius: 16, elevation: 6,
   },
   heroTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  heroLabel: { fontSize: 12, fontWeight: '600', color: '#5D38B5', letterSpacing: 0.3 },
+  heroLabel: { fontSize: 12, fontWeight: '600', color: '#F97316', letterSpacing: 0.3 },
   heroBadge: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(93,56,181,0.12)',
     paddingHorizontal: 10, paddingVertical: 3, borderRadius: 8, gap: 4,
   },
-  heroBadgeText: { fontSize: 11, fontWeight: '700', color: '#5D38B5' },
-  heroAmount: { fontSize: 32, fontWeight: '800', color: '#5D38B5', letterSpacing: -1, marginTop: 4 },
-  heroSub: { fontSize: 13, fontWeight: '500', color: '#5D38B5', opacity: 0.7, marginTop: 2 },
+  heroBadgeText: { fontSize: 11, fontWeight: '700', color: '#F97316' },
+  heroAmount: { fontSize: 32, fontWeight: '800', color: '#F97316', letterSpacing: -1, marginTop: 4 },
+  heroSub: { fontSize: 13, fontWeight: '500', color: '#F97316', opacity: 0.7, marginTop: 2 },
   heroStats: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 16 },
   heroStatItem: { alignItems: 'center' },
-  heroStatLabel: { fontSize: 10, fontWeight: '600', color: '#5D38B5', letterSpacing: 0.3, opacity: 0.6 },
-  heroStatValue: { fontSize: 15, fontWeight: '800', color: '#5D38B5', marginTop: 2 },
+  heroStatLabel: { fontSize: 10, fontWeight: '600', color: '#F97316', letterSpacing: 0.3, opacity: 0.6 },
+  heroStatValue: { fontSize: 15, fontWeight: '800', color: '#F97316', marginTop: 2 },
 
   progressBar: { height: BAR_H, borderRadius: BAR_H / 2, overflow: 'hidden' },
   progressFill: { height: '100%', borderRadius: BAR_H / 2 },
@@ -304,7 +297,7 @@ const styles = StyleSheet.create({
   adjustBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     paddingVertical: 16, borderRadius: 16, marginTop: 8,
-    shadowColor: '#6C3EF4', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 10, elevation: 4,
+    shadowColor: '#F97316', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 10, elevation: 4,
   },
   adjustBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
 

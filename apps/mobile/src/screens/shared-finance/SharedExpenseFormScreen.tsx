@@ -12,17 +12,13 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
-import { CATEGORY_ICONS, getCategoryColor } from '../../config/categoryIcons';
-
-const CATEGORY_NAMES = ['Food', 'Travel', 'Shopping', 'Bills', 'Entertainment', 'Groceries', 'Transport', 'Healthcare', 'Education', 'Rent', 'Utilities', 'Other'];
-const CATEGORIES = CATEGORY_NAMES.map((name) => ({ name, icon: CATEGORY_ICONS[name], color: getCategoryColor(name) }));
+import { EXPENSE_CATEGORIES } from '../../config/categoryIcons';
 
 const SPLIT_TYPES = [
   { key: 'equal', label: 'Equal', icon: 'arrow-redo' },
@@ -153,9 +149,9 @@ export function SharedExpenseFormScreen() {
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
       <KeyboardAvoidingContainer>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
-          <LinearGradient
-            colors={['#1A1A3E', '#12121A']}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          <View
+            
+             
             style={{ paddingTop: insets.top + 12, paddingBottom: 24, paddingHorizontal: 20 }}
           >
             <View style={styles.headerRow}>
@@ -172,7 +168,7 @@ export function SharedExpenseFormScreen() {
               <Ionicons name="people" size={14} color="rgba(255,255,255,0.7)" />
               <Text style={styles.headerSub}>Split with {members.length} member{members.length !== 1 ? 's' : ''}</Text>
             </View>
-          </LinearGradient>
+          </View>
 
           <View style={{ padding: 20, gap: 20 }}>
             {error ? (
@@ -207,7 +203,7 @@ export function SharedExpenseFormScreen() {
                     />
                   </View>
                   <View style={[styles.amountUnderline, { backgroundColor: colors.border.subtle }]}>
-                    <View style={[styles.amountUnderlineActive, { width: amount ? `${Math.min(Number(amount) / 100 * 100, 100)}%` : '0%', backgroundColor: '#6C3EF4' }]} />
+                    <View style={[styles.amountUnderlineActive, { width: amount ? `${Math.min(Number(amount) / 100 * 100, 100)}%` : '0%', backgroundColor: colors.accent.primary }]} />
                   </View>
                 </View>
               </TouchableWithoutFeedback>
@@ -233,14 +229,14 @@ export function SharedExpenseFormScreen() {
                   return (
                     <TouchableOpacity
                       key={m.userId}
-                      style={[styles.payerChip, { borderColor: selected ? '#6C3EF4' : colors.border.subtle, backgroundColor: selected ? '#6C3EF415' : colors.bg.card }]}
+                      style={[styles.payerChip, { borderColor: selected ? colors.accent.primary : colors.border.subtle, backgroundColor: selected ? `${colors.accent.primary}15` : colors.bg.card }]}
                       onPress={() => setPaidBy(m.userId)}
                     >
-                      <LinearGradient colors={selected ? ['#6C3EF4', '#8B5CF6'] : ['#4A4A6A', '#3A3A5A']} style={styles.payerDot}>
+                      <View  style={styles.payerDot}>
                         <Text style={styles.payerInit}>{initial}</Text>
-                      </LinearGradient>
-                      <Text style={[styles.payerName, { color: selected ? '#6C3EF4' : colors.text.secondary }]}>{name}</Text>
-                      {selected && <Ionicons name="checkmark-circle" size={14} color="#6C3EF4" />}
+                      </View>
+                      <Text style={[styles.payerName, { color: selected ? colors.accent.primary : colors.text.secondary }]}>{name}</Text>
+                      {selected && <Ionicons name="checkmark-circle" size={14} color={colors.accent.primary} />}
                     </TouchableOpacity>
                   );
                 })}
@@ -251,7 +247,7 @@ export function SharedExpenseFormScreen() {
             <View>
               <Text style={[styles.sectionLabel, { color: colors.text.primary }]}>Category</Text>
               <View style={styles.categoryGrid}>
-                {CATEGORIES.map((cat, i) => {
+                {EXPENSE_CATEGORIES.map((cat, i) => {
                   const selected = category === cat.name;
                   return (
                     <TouchableOpacity
@@ -290,11 +286,11 @@ export function SharedExpenseFormScreen() {
                   return (
                     <TouchableOpacity
                       key={st.key}
-                      style={[styles.splitTypeCard, { borderColor: active ? '#6C3EF4' : colors.border.subtle, backgroundColor: active ? '#6C3EF415' : colors.bg.card }]}
+                      style={[styles.splitTypeCard, { borderColor: active ? colors.accent.primary : colors.border.subtle, backgroundColor: active ? `${colors.accent.primary}15` : colors.bg.card }]}
                       onPress={() => setSplitType(st.key)}
                     >
-                      <Ionicons name={st.icon as any} size={18} color={active ? '#6C3EF4' : colors.text.tertiary} />
-                      <Text style={[styles.splitTypeText, { color: active ? '#6C3EF4' : colors.text.secondary }]}>{st.label}</Text>
+                      <Ionicons name={st.icon as any} size={18} color={active ? colors.accent.primary : colors.text.tertiary} />
+                      <Text style={[styles.splitTypeText, { color: active ? colors.accent.primary : colors.text.secondary }]}>{st.label}</Text>
                     </TouchableOpacity>
                   );
                 })}
@@ -312,9 +308,9 @@ export function SharedExpenseFormScreen() {
                   const val = splitType === 'shares' ? sharesCount[m.id] || '' : splitValues[m.id] || '';
                   return (
                     <View key={m.id} style={[styles.splitMemberRow, { borderBottomColor: colors.border.subtle }]}>
-                      <LinearGradient colors={['#6C3EF4', '#8B5CF6']} style={styles.splitMemberDot}>
+                      <View  style={styles.splitMemberDot}>
                         <Text style={styles.splitMemberInit}>{(mName[0] || '?').toUpperCase()}</Text>
-                      </LinearGradient>
+                      </View>
                       <Text style={[styles.splitMemberName, { color: colors.text.secondary }]}>{mName}</Text>
                       <View style={[styles.splitInputWrap, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle }]}>
                         {splitType === 'exact' && <Text style={[styles.splitPrefix, { color: colors.text.tertiary }]}>₹</Text>}
@@ -371,9 +367,9 @@ export function SharedExpenseFormScreen() {
             </View>
 
             {/* Save Button */}
-            <LinearGradient
-              colors={['#6C3EF4', '#8B5CF6']}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            <View
+              
+               
               style={[styles.saveBtn, saving && { opacity: 0.6 }]}
             >
               <TouchableOpacity onPress={handleSave} disabled={saving} activeOpacity={0.85} style={styles.saveBtnInner}>
@@ -384,7 +380,7 @@ export function SharedExpenseFormScreen() {
                   </>
                 )}
               </TouchableOpacity>
-            </LinearGradient>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingContainer>
@@ -446,7 +442,7 @@ const styles = StyleSheet.create({
   previewName: { fontSize: 14, fontWeight: '500' },
   previewAmount: { fontSize: 14, fontWeight: '700' },
   previewBarBg: { height: 6, borderRadius: 3, overflow: 'hidden' },
-  previewBarFill: { height: 6, borderRadius: 3, backgroundColor: '#6C3EF4' },
+  previewBarFill: { height: 6, borderRadius: 3, backgroundColor: '#F97316' },
   previewEmptyWrap: { alignItems: 'center', gap: 8, paddingVertical: 12 },
   previewEmpty: { fontSize: 13, textAlign: 'center' },
 

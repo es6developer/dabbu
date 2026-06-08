@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -26,12 +25,12 @@ export function AccessExpiredScreen({ route, navigation }: AccessExpiredScreenPr
       style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.bg.primary }]}
     >
       <View style={styles.content}>
-        <LinearGradient
-          colors={[`${colors.status.error}20`, `${colors.status.error}10`]}
+        <View
+          
           style={styles.iconWrap}
         >
           <Ionicons name="lock-closed" size={52} color={colors.status.error} />
-        </LinearGradient>
+        </View>
 
         <Text style={[styles.title, { color: colors.text.primary }]}>Access Expired</Text>
 

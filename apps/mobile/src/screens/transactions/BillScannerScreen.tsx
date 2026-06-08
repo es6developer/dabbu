@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Rect, Line } from 'react-native-svg';
-import { LinearGradient } from 'expo-linear-gradient';
+
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -244,12 +244,7 @@ export function BillScannerScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
-      <LinearGradient
-        colors={['#1A1A3E', '#12121A']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.bg.primary }]} />
       <ScrollView
         contentContainerStyle={{ ...styles.content, paddingTop: insets.top + 8 }}
       >
@@ -266,12 +261,7 @@ export function BillScannerScreen() {
 
               <ScanFrame />
 
-              <LinearGradient
-                colors={[...colors.accent.gradient]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.actionBtn}
-              >
+              <View style={[styles.actionBtn, { backgroundColor: colors.accent.primary }]}>
                 <TouchableOpacity
                   style={styles.actionBtnInner}
                   onPress={openCamera}
@@ -280,7 +270,7 @@ export function BillScannerScreen() {
                   <Ionicons name="camera" size={20} color="#FFFFFF" />
                   <Text style={styles.actionBtnText}>Open Camera</Text>
                 </TouchableOpacity>
-              </LinearGradient>
+              </View>
 
               <TouchableOpacity
                 style={[styles.actionBtn, styles.secondaryBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.1)', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)' }]}
@@ -339,12 +329,7 @@ export function BillScannerScreen() {
                 <Text style={[styles.errorTitle, { color: colors.text.primary }]}>Scan Failed</Text>
                 <Text style={[styles.errorDesc, { color: colors.text.tertiary }]}>{errorMessage}</Text>
                 <View style={{ gap: 12, width: '100%', marginTop: 8 }}>
-                  <LinearGradient
-                    colors={[...colors.accent.gradient]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.actionBtn}
-                  >
+                  <View style={[styles.actionBtn, { backgroundColor: colors.accent.primary }]}>
                     <TouchableOpacity
                       style={styles.actionBtnInner}
                       onPress={handleRetry}
@@ -353,7 +338,7 @@ export function BillScannerScreen() {
                       <Ionicons name="refresh" size={20} color="#FFFFFF" />
                       <Text style={styles.actionBtnText}>Try Again</Text>
                     </TouchableOpacity>
-                  </LinearGradient>
+                  </View>
                   <TouchableOpacity
                     style={[styles.actionBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.3)' }]}
                     onPress={() => navigation.navigate('CreateTransaction' as any)}

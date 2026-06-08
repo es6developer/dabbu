@@ -4,7 +4,6 @@ import {
   Modal, TextInput, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -150,15 +149,12 @@ export function CoupleIncomeScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={() => { setRefreshing(true); fetchIncomes(true); }}
-            tintColor="#6C3EF4"
+            tintColor={colors.accent.primary}
           />
         }
       >
-        <LinearGradient
-          colors={['#6C3EF4', '#8B5CF6']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}
+        <View
+          style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20, backgroundColor: colors.accent.primary }}
         >
           <View style={styles.headerRow}>
             <TouchableOpacity
@@ -170,7 +166,7 @@ export function CoupleIncomeScreen() {
             <Text style={styles.headerTitle}>Income</Text>
             <View style={{ width: 34 }} />
           </View>
-        </LinearGradient>
+        </View>
 
         <View style={{ paddingHorizontal: 20, marginTop: -16 }}>
           <View style={[styles.summaryCard, { backgroundColor: '#FFEBB4' }]}>
@@ -178,13 +174,13 @@ export function CoupleIncomeScreen() {
             <Text style={styles.summaryTotalAmount}>{fmt(totalIncome)}</Text>
             <View style={styles.summaryRow}>
               <View style={styles.summaryItem}>
-                <View style={[styles.summaryDot, { backgroundColor: '#6C3EF4' }]} />
+                <View style={[styles.summaryDot, { backgroundColor: colors.accent.primary }]} />
                 <Text style={styles.summaryPartnerLabel}>{partner1Name}</Text>
                 <Text style={styles.summaryPartnerAmount}>{fmt(p1Income)}</Text>
               </View>
               <View style={styles.summaryDivider} />
               <View style={styles.summaryItem}>
-                <View style={[styles.summaryDot, { backgroundColor: '#8B5CF6' }]} />
+                <View style={[styles.summaryDot, { backgroundColor: colors.accent.primary }]} />
                 <Text style={styles.summaryPartnerLabel}>{partner2Name}</Text>
                 <Text style={styles.summaryPartnerAmount}>{fmt(p2Income)}</Text>
               </View>
@@ -233,8 +229,8 @@ export function CoupleIncomeScreen() {
                 </View>
                 <View style={styles.incomeRight}>
                   <Text style={[styles.incomeAmount, { color: colors.status.success }]}>+{fmt(item.amount)}</Text>
-                  <View style={[styles.partnerChip, { backgroundColor: `${item.partnerId === partner1Id ? '#6C3EF4' : '#8B5CF6'}18` }]}>
-                    <Text style={[styles.partnerChipText, { color: item.partnerId === partner1Id ? '#6C3EF4' : '#8B5CF6' }]}>
+                  <View style={[styles.partnerChip, { backgroundColor: `${item.partnerId === partner1Id ? colors.accent.primary : colors.accent.primary}18` }]}>
+                    <Text style={[styles.partnerChipText, { color: item.partnerId === partner1Id ? colors.accent.primary : colors.accent.primary }]}>
                       {item.partnerName || (item.partnerId === partner1Id ? partner1Name : partner2Name)}
                     </Text>
                   </View>
@@ -297,7 +293,7 @@ export function CoupleIncomeScreen() {
               <TouchableOpacity
                 style={[
                   styles.segmentBtn,
-                  { backgroundColor: incomeType === 'salary' ? '#6C3EF4' : colors.bg.tertiary },
+                  { backgroundColor: incomeType === 'salary' ? colors.accent.primary : colors.bg.tertiary },
                 ]}
                 onPress={() => setIncomeType('salary')}
               >
@@ -307,7 +303,7 @@ export function CoupleIncomeScreen() {
               <TouchableOpacity
                 style={[
                   styles.segmentBtn,
-                  { backgroundColor: incomeType === 'other' ? '#6C3EF4' : colors.bg.tertiary },
+                  { backgroundColor: incomeType === 'other' ? colors.accent.primary : colors.bg.tertiary },
                 ]}
                 onPress={() => setIncomeType('other')}
               >
@@ -321,7 +317,7 @@ export function CoupleIncomeScreen() {
               <TouchableOpacity
                 style={[
                   styles.segmentBtn,
-                  { backgroundColor: selectedPartner === partner1Id ? '#6C3EF4' : colors.bg.tertiary },
+                  { backgroundColor: selectedPartner === partner1Id ? colors.accent.primary : colors.bg.tertiary },
                 ]}
                 onPress={() => setSelectedPartner(partner1Id)}
               >
@@ -331,7 +327,7 @@ export function CoupleIncomeScreen() {
               <TouchableOpacity
                 style={[
                   styles.segmentBtn,
-                  { backgroundColor: selectedPartner === partner2Id ? '#6C3EF4' : colors.bg.tertiary },
+                  { backgroundColor: selectedPartner === partner2Id ? colors.accent.primary : colors.bg.tertiary },
                 ]}
                 onPress={() => setSelectedPartner(partner2Id)}
               >
@@ -341,7 +337,7 @@ export function CoupleIncomeScreen() {
             </View>
 
             <TouchableOpacity
-              style={[styles.submitBtn, { backgroundColor: '#6C3EF4', opacity: submitting ? 0.7 : 1 }]}
+              style={[styles.submitBtn, { backgroundColor: colors.accent.primary, opacity: submitting ? 0.7 : 1 }]}
               onPress={handleAddIncome}
               disabled={submitting}
             >
@@ -371,19 +367,19 @@ const styles = StyleSheet.create({
     borderRadius: 24, padding: 22,
     shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.12, shadowRadius: 16, elevation: 6,
   },
-  summaryTotalLabel: { fontSize: 12, fontWeight: '600', color: '#5D38B5', letterSpacing: 0.3 },
-  summaryTotalAmount: { fontSize: 32, fontWeight: '800', color: '#5D38B5', letterSpacing: -1, marginTop: 4, marginBottom: 18 },
+  summaryTotalLabel: { fontSize: 12, fontWeight: '600', color: '#F97316', letterSpacing: 0.3 },
+  summaryTotalAmount: { fontSize: 32, fontWeight: '800', color: '#F97316', letterSpacing: -1, marginTop: 4, marginBottom: 18 },
   summaryRow: { flexDirection: 'row', alignItems: 'center' },
   summaryItem: { flex: 1, alignItems: 'center', gap: 4 },
   summaryDot: { width: 8, height: 8, borderRadius: 4 },
-  summaryPartnerLabel: { fontSize: 11, fontWeight: '600', color: '#5D38B5', marginTop: 2 },
-  summaryPartnerAmount: { fontSize: 16, fontWeight: '800', color: '#5D38B5' },
+  summaryPartnerLabel: { fontSize: 11, fontWeight: '600', color: '#F97316', marginTop: 2 },
+  summaryPartnerAmount: { fontSize: 16, fontWeight: '800', color: '#F97316' },
   summaryDivider: { width: 1, height: 36, backgroundColor: 'rgba(93,56,181,0.15)', marginHorizontal: 12 },
 
   addBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    backgroundColor: '#6C3EF4', paddingVertical: 16, borderRadius: 18,
-    shadowColor: '#6C3EF4', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 4,
+    backgroundColor: '#F97316', paddingVertical: 16, borderRadius: 18,
+    shadowColor: '#F97316', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 4,
   },
   addBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 

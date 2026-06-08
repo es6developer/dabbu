@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -109,12 +108,12 @@ export function WalletTransferScreen() {
                   ]}
                   onPress={() => setTargetWalletId(item.id)}
                 >
-                  <LinearGradient
-                    colors={[`${colors.accent.primary}25`, `${colors.accent.secondary}15`]}
+                  <View
+                    
                     style={styles.iconWrap}
                   >
                     <Ionicons name="wallet" size={22} color={colors.accent.primary} />
-                  </LinearGradient>
+                  </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.walletName, { color: colors.text.primary }]}>
                       {item.name}

@@ -10,7 +10,6 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../../theme';
@@ -206,12 +205,12 @@ export function BillDetailScreen() {
     <PageContainer noPadding>
       <KeyboardAvoidingContainer>
         <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <LinearGradient colors={[...colors.accent.gradient]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.headerGradient}>
+          <View style={[styles.headerGradient, { backgroundColor: colors.accent.primary }]}>
             <View style={styles.headerContent}>
               <Text style={styles.headerTitle}>Bill Details</Text>
               <Text style={styles.headerSub}>Review and edit your bill information</Text>
             </View>
-          </LinearGradient>
+          </View>
 
           {bill && (
             <View style={[styles.confidenceBadge, { backgroundColor: `${getConfidenceColor(bill.confidence, colors)}18` }]}>
@@ -372,7 +371,7 @@ export function BillDetailScreen() {
               disabled={saving}
               activeOpacity={0.85}
             >
-              <LinearGradient colors={[...colors.accent.gradient]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.saveBtn}>
+              <View    style={styles.saveBtn}>
                 {saving ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
@@ -381,7 +380,7 @@ export function BillDetailScreen() {
                     <Text style={styles.saveBtnText}>Save Changes</Text>
                   </>
                 )}
-              </LinearGradient>
+              </View>
             </TouchableOpacity>
 
             <TouchableOpacity

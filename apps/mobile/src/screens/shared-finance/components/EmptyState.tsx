@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../../theme';
 
 interface EmptyStateProps {
@@ -23,12 +22,12 @@ export function EmptyState({
 
   return (
     <View style={styles.wrapper}>
-      <LinearGradient
-        colors={[`${colors.accent.primary}20`, `${colors.accent.secondary}20`]}
+      <View
+        
         style={styles.iconWrap}
       >
         <Ionicons name={icon as any} size={44} color={colors.accent.primary} />
-      </LinearGradient>
+      </View>
       <Text style={[styles.title, { color: colors.text.primary }]}>{title}</Text>
       <Text style={[styles.message, { color: colors.text.tertiary }]}>{message}</Text>
       {actionLabel && onAction && (

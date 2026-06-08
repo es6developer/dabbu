@@ -1,34 +1,27 @@
 import React, { useEffect, useRef } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-  Dimensions,
-  TouchableWithoutFeedback,
+  View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { height: SCREEN_H } = Dimensions.get('window');
 
 interface ActionItem {
   label: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  color: string;
+  icon: string;
   onPress: () => void;
 }
 
 interface QuickActionSheetProps {
+  actions: ActionItem[];
+  activeItem?: string;
   visible: boolean;
   onClose: () => void;
-  actions: ActionItem[];
 }
 
-export function QuickActionSheet({ visible, onClose, actions }: QuickActionSheetProps) {
+export function QuickActionSheet({ actions, activeItem, visible, onClose }: QuickActionSheetProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const slideAnim = useRef(new Animated.Value(0)).current;
@@ -37,78 +30,126 @@ export function QuickActionSheet({ visible, onClose, actions }: QuickActionSheet
   useEffect(() => {
     if (visible) {
       Animated.parallel([
+        Animated.timing(slideAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
         Animated.timing(fadeAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
-        Animated.spring(slideAnim, { toValue: 1, damping: 25, stiffness: 250, useNativeDriver: true }),
       ]).start();
     } else {
       Animated.parallel([
-        Animated.timing(fadeAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
-        Animated.timing(slideAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
+        Animated.timing(slideAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
+        Animated.timing(fadeAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
       ]).start();
     }
-  }, [visible, fadeAnim, slideAnim]);
+  }, [visible]);
 
   if (!visible) return null;
 
+  const sheetTranslateY = slideAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [400, 0],
+  });
+
   return (
-    <TouchableWithoutFeedback onPress={onClose}>
-      <Animated.View style={[st.overlay, { opacity: fadeAnim }]}>
-        <TouchableWithoutFeedback>
-          <Animated.View
-            style={[
-              st.sheet,
-              {
-                backgroundColor: colors.bg.secondary,
-                paddingBottom: insets.bottom + 20,
-                transform: [{ translateY: slideAnim.interpolate({ inputRange: [0, 1], outputRange: [400, 0] }) }],
-              },
-            ]}
-          >
-            <View style={[st.handle, { backgroundColor: colors.border.subtle }]} />
-            <Text style={[st.title, { color: colors.text.primary }]}>Quick Actions</Text>
-            <View style={st.grid}>
-              {actions.map((action, i) => (
-                <TouchableOpacity
-                  key={i}
-                  style={[st.item, { backgroundColor: colors.bg.tertiary }]}
-                  activeOpacity={0.7}
-                  onPress={() => { onClose(); action.onPress(); }}
-                >
-                  <LinearGradient
-                    colors={[action.color, `${action.color}CC`]}
-                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                    style={st.iconBox}
-                  >
-                    <Ionicons name={action.icon} size={22} color="#FFF" />
-                  </LinearGradient>
-                  <Text style={[st.itemLabel, { color: colors.text.primary }]} numberOfLines={2}>
-                    {action.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            <TouchableOpacity
-              style={[st.cancelBtn, { backgroundColor: colors.bg.tertiary }]}
-              onPress={onClose} activeOpacity={0.7}
-            >
-              <Text style={[st.cancelText, { color: colors.text.secondary }]}>Cancel</Text>
-            </TouchableOpacity>
-          </Animated.View>
-        </TouchableWithoutFeedback>
+    <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+      <Animated.View
+        style={[s.backdrop, { opacity: fadeAnim }]}
+        pointerEvents="auto"
+      >
+        <TouchableOpacity
+          style={StyleSheet.absoluteFill}
+          activeOpacity={1}
+          onPress={onClose}
+        />
       </Animated.View>
-    </TouchableWithoutFeedback>
+      <Animated.View
+        style={[
+          s.sheet,
+          {
+            paddingBottom: insets.bottom + 20,
+            transform: [{ translateY: sheetTranslateY }],
+            backgroundColor: '#1C1C1E',
+          },
+        ]}
+      >
+        <View style={[s.handle, { backgroundColor: '#3A3A3C' }]} />
+        <View style={s.grid}>
+          {actions.map((action, i) => {
+            const isActive = action.label === activeItem;
+            return (
+              <TouchableOpacity
+                key={i}
+                style={s.item}
+                activeOpacity={0.7}
+                onPress={() => {
+                  onClose();
+                  action.onPress();
+                }}
+              >
+                <View
+                  style={[
+                    s.bubble,
+                    {
+                      backgroundColor: isActive ? 'rgba(255, 107, 0, 0.15)' : '#2C2C2E',
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name={action.icon as keyof typeof Ionicons.glyphMap}
+                    size={24}
+                    color={isActive ? '#FF6B00' : '#8E8E93'}
+                  />
+                </View>
+                <Text style={[s.label, { color: colors.text.secondary }]}>{action.label}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </Animated.View>
+    </View>
   );
 }
 
-const st = StyleSheet.create({
-  overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end', zIndex: 1000 },
-  sheet: { borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingTop: 12, paddingHorizontal: 20 },
-  handle: { width: 40, height: 5, borderRadius: 3, alignSelf: 'center', marginBottom: 16 },
-  title: { fontSize: 20, fontWeight: '800', marginBottom: 18 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  item: { width: '30%', flex: 1, alignItems: 'center', paddingVertical: 16, borderRadius: 18, gap: 10, minWidth: 90 },
-  iconBox: { width: 50, height: 50, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  itemLabel: { fontSize: 12, fontWeight: '600', textAlign: 'center' },
-  cancelBtn: { marginTop: 14, paddingVertical: 16, borderRadius: 16, alignItems: 'center' },
-  cancelText: { fontSize: 16, fontWeight: '700' },
+const s = StyleSheet.create({
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  sheet: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingTop: 12,
+    paddingHorizontal: 20,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 10,
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 20,
+  },
+  item: {
+    alignItems: 'center',
+    gap: 6,
+    width: 72,
+  },
+  bubble: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  label: {
+    fontSize: 11,
+    textAlign: 'center',
+  },
 });

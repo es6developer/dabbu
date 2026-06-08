@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, Switch, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { BaseScreen } from '../../components/ui/BaseScreen';
 import { useTheme, typography as typographyStyles } from '../../theme';
 import { spacing } from '../../theme';
@@ -33,7 +32,8 @@ interface Section {
   }[];
 }
 
-const SECTIONS: Section[] = [
+function getSections(primary: string, hover: string): Section[] {
+  return [
   {
     title: 'Alerts & Reminders',
     icon: 'notifications',
@@ -43,7 +43,7 @@ const SECTIONS: Section[] = [
         label: 'Expense Alerts',
         description: 'Get notified when expenses are recorded',
         icon: 'card-outline',
-        gradient: ['#6366F1', '#8B5CF6'],
+        gradient: [primary, primary],
       },
       {
         key: 'groupAlerts',
@@ -57,7 +57,7 @@ const SECTIONS: Section[] = [
         label: 'Goal Alerts',
         description: 'Progress updates on your financial goals',
         icon: 'trophy-outline',
-        gradient: ['#6C3EF4', '#4A1FCC'],
+        gradient: [primary, hover],
       },
       {
         key: 'emiReminders',
@@ -78,7 +78,7 @@ const SECTIONS: Section[] = [
         label: 'Daily Digest',
         description: 'End-of-day spending summary',
         icon: 'newspaper-outline',
-        gradient: ['#8B5CF6', '#6D28D9'],
+        gradient: [primary, hover],
       },
     ],
   },
@@ -98,7 +98,7 @@ const SECTIONS: Section[] = [
         label: 'Monthly Reports',
         description: 'Comprehensive monthly financial report',
         icon: 'document-text-outline',
-        gradient: ['#8B5CF6', '#6D28D9'],
+        gradient: [primary, hover],
       },
     ],
   },
@@ -116,6 +116,7 @@ const SECTIONS: Section[] = [
     ],
   },
 ];
+}
 
 const BACKEND_KEY_MAP: Record<ToggleKey, string> = {
   expenseAlerts: 'pushNotifications',
@@ -234,14 +235,10 @@ export function NotificationSettingsScreen() {
   if (loading) {
     return (
       <BaseScreen noPadding>
-        <LinearGradient
-        colors={
-          isDark
-            ? ['#11111A', colors.bg.primary, '#0A0A0F']
-            : ['#F5F0FF', colors.bg.primary, '#FAF8FF']
-        }
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
+        <View
+        
+        
+        
         style={StyleSheet.absoluteFill}
       />
       <View style={{ padding: spacing.lg, paddingTop: insets.top + 60, gap: 20 }}>
@@ -257,24 +254,20 @@ export function NotificationSettingsScreen() {
 
   return (
     <BaseScreen noPadding>
-      <LinearGradient
-        colors={
-          isDark
-            ? ['#11111A', colors.bg.primary, '#0A0A0F']
-            : ['#F5F0FF', colors.bg.primary, '#FAF8FF']
-        }
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
+      <View
+        
+        
+        
         style={StyleSheet.absoluteFill}
       />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
       >
-        <LinearGradient
-          colors={[colors.accent.primary, isDark ? '#4A1FCC' : '#8B5CF6']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
+        <View
+          
+          
+          
           style={styles.header}
         >
           <View style={styles.headerRow}>
@@ -294,9 +287,9 @@ export function NotificationSettingsScreen() {
           <Text style={styles.headerMetric}>
             Choose which notifications matter most to you.
           </Text>
-        </LinearGradient>
+        </View>
 
-        {SECTIONS.map((section, sIdx) => (
+        {getSections(colors.accent.primary, colors.accent.hover).map((section, sIdx) => (
           <View key={sIdx} style={styles.section}>
             <View style={styles.sectionTitleRow}>
               <Ionicons
@@ -328,14 +321,14 @@ export function NotificationSettingsScreen() {
                       },
                     ]}
                   >
-                    <LinearGradient
-                      colors={item.gradient}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
+                    <View
+                      
+                      
+                      
                       style={styles.rowIcon}
                     >
                       <Ionicons name={item.icon} size={15} color="#FFFFFF" />
-                    </LinearGradient>
+                    </View>
                     <View style={styles.rowContent}>
                       <Text style={[styles.rowLabel, { color: colors.text.primary }]}>
                         {item.label}

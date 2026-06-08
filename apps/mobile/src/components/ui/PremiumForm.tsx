@@ -10,7 +10,6 @@ import {
   ViewStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme, spacing } from '../../theme';
 import { PageContainer } from './PageContainer';
@@ -50,14 +49,10 @@ export function PremiumFormScreen({
   return (
     <PageContainer noPadding>
       <KeyboardAvoidingContainer>
-        <LinearGradient
-          colors={
-            isDark
-              ? ['#11111A', colors.bg.primary, '#0A0A0F']
-              : ['#F5F0FF', colors.bg.primary, '#FAF8FF']
-          }
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
+        <View
+          
+          
+          
           style={StyleSheet.absoluteFill}
         />
         <View style={[styles.content, contentStyle]}>
@@ -77,10 +72,10 @@ export function PremiumFormScreen({
             </TouchableOpacity>
           )}
 
-          <LinearGradient
-            colors={[gradient[0], gradient[1]]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+          <View
+            
+            
+            
             style={styles.hero}
           >
             <View style={styles.heroTop}>
@@ -93,7 +88,7 @@ export function PremiumFormScreen({
             </View>
             <Text style={styles.heroTitle}>{title}</Text>
             <Text style={styles.heroSubtitle}>{subtitle}</Text>
-          </LinearGradient>
+          </View>
 
           <View
             style={[

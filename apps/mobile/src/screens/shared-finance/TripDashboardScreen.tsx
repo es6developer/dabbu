@@ -9,7 +9,6 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
@@ -174,8 +173,8 @@ export function TripDashboardScreen() {
           />
         }
       >
-        <LinearGradient
-          colors={['#0f3443', '#34e89e']}
+        <View
+          
           style={[s.heroSection, { paddingTop: insets.top + 8 }]}
         >
           <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtnWrap}>
@@ -189,7 +188,7 @@ export function TripDashboardScreen() {
             </Text>
           </View>
           {trip?.description && <Text style={s.heroDesc}>{trip.description}</Text>}
-        </LinearGradient>
+        </View>
 
         <View style={s.content}>
           <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Budget Progress</Text>
@@ -293,9 +292,9 @@ export function TripDashboardScreen() {
           {balances.length > 0 ? (
             balances.map((b) => (
               <View key={b.id} style={[s.balanceCard, { backgroundColor: colors.bg.secondary }]}>
-                <LinearGradient colors={[...colors.accent.gradient]} style={s.balanceAvatar}>
+                <View  style={s.balanceAvatar}>
                   <Text style={s.balanceAvatarText}>{b.name[0]?.toUpperCase() || '?'}</Text>
-                </LinearGradient>
+                </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[s.balanceName, { color: colors.text.primary }]}>{b.name}</Text>
                   <Text style={[s.balancePaid, { color: colors.text.tertiary }]}>

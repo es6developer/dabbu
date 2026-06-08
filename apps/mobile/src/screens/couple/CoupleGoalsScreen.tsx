@@ -4,7 +4,6 @@ import {
   Modal, TextInput, KeyboardAvoidingView, Platform, Dimensions, FlatList, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -159,14 +158,14 @@ export function CoupleGoalsScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={() => { setRefreshing(true); fetchGoals(true); }}
-            tintColor="#6C3EF4"
+            tintColor={colors.accent.primary}
           />
         }
         ListHeaderComponent={
-          <LinearGradient
-            colors={['#6C3EF4', '#8B5CF6']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+          <View
+            
+            
+            
             style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}
           >
             <View style={styles.headerRow}>
@@ -186,18 +185,18 @@ export function CoupleGoalsScreen() {
                 ? `${goals.length} goal${goals.length !== 1 ? 's' : ''}`
                 : 'Save towards what matters most'}
             </Text>
-          </LinearGradient>
+          </View>
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <LinearGradient
-              colors={['rgba(108,62,244,0.12)', 'rgba(139,92,246,0.06)']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+            <View
+              
+              
+              
               style={styles.emptyIllustration}
             >
-              <Ionicons name="gift-outline" size={56} color="#6C3EF4" />
-            </LinearGradient>
+              <Ionicons name="gift-outline" size={56} color={colors.accent.primary} />
+            </View>
             <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
               Add your first shared goal
             </Text>
@@ -233,14 +232,14 @@ export function CoupleGoalsScreen() {
           return (
             <View style={[styles.goalCard, { backgroundColor: colors.bg.card, borderColor: colors.border.default }]}>
               <View style={styles.goalTopRow}>
-                <LinearGradient
-                  colors={['#6C3EF4', '#8B5CF6']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
+                <View
+                  
+                  
+                  
                   style={styles.goalIconWrap}
                 >
                   <Ionicons name={(item.icon || 'gift') as any} size={22} color="#FFF" />
-                </LinearGradient>
+                </View>
                 <View style={styles.goalTitleWrap}>
                   <Text style={[styles.goalTitle, { color: colors.text.primary }]} numberOfLines={1}>
                     {item.name}
@@ -277,7 +276,7 @@ export function CoupleGoalsScreen() {
                   <View style={styles.partnerChips}>
                     {p1 && (
                       <View style={[styles.partnerChip, { backgroundColor: colors.bg.tertiary }]}>
-                        <View style={[styles.partnerDot, { backgroundColor: '#6C3EF4' }]} />
+                        <View style={[styles.partnerDot, { backgroundColor: colors.accent.primary }]} />
                         <Text style={[styles.partnerChipText, { color: colors.text.secondary }]} numberOfLines={1}>
                           {p1.name || 'Partner 1'} {p1Pct > 0 ? `(${p1Pct}%)` : ''}
                         </Text>
@@ -367,8 +366,8 @@ export function CoupleGoalsScreen() {
                   style={[
                     styles.iconItem,
                     {
-                      backgroundColor: formIcon === g.key ? 'rgba(108,62,244,0.15)' : colors.bg.tertiary,
-                      borderColor: formIcon === g.key ? '#6C3EF4' : 'transparent',
+                      backgroundColor: formIcon === g.key ? `${colors.accent.primary}15` : colors.bg.tertiary,
+                      borderColor: formIcon === g.key ? colors.accent.primary : 'transparent',
                     },
                   ]}
                   onPress={() => setFormIcon(g.key)}
@@ -376,12 +375,12 @@ export function CoupleGoalsScreen() {
                   <Ionicons
                     name={g.icon as any}
                     size={22}
-                    color={formIcon === g.key ? '#6C3EF4' : colors.text.secondary}
+                    color={formIcon === g.key ? colors.accent.primary : colors.text.secondary}
                   />
                   <Text
                     style={[
                       styles.iconLabel,
-                      { color: formIcon === g.key ? '#6C3EF4' : colors.text.tertiary },
+                      { color: formIcon === g.key ? colors.accent.primary : colors.text.tertiary },
                     ]}
                   >
                     {g.label}
@@ -531,7 +530,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#6C3EF4',
+    backgroundColor: '#F97316',
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 16,
@@ -571,7 +570,7 @@ const styles = StyleSheet.create({
   goalSaved: { fontSize: 26, fontWeight: '800' },
   goalSavedLabel: { fontSize: 11, fontWeight: '500', marginTop: 1 },
   goalPctBadge: {
-    backgroundColor: '#6C3EF4',
+    backgroundColor: '#F97316',
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 10,
@@ -579,7 +578,7 @@ const styles = StyleSheet.create({
   goalPctText: { color: '#FFF', fontSize: 13, fontWeight: '700' },
 
   progressBar: { height: 6, borderRadius: 3, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: '#6C3EF4', borderRadius: 3 },
+  progressFill: { height: '100%', backgroundColor: '#F97316', borderRadius: 3 },
 
   goalMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   goalMetaText: { fontSize: 12, fontWeight: '500' },
@@ -602,7 +601,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: '#6C3EF4',
+    backgroundColor: '#F97316',
     paddingVertical: 12,
     borderRadius: 14,
   },
@@ -686,7 +685,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 50,
     borderRadius: 16,
-    backgroundColor: '#6C3EF4',
+    backgroundColor: '#F97316',
     alignItems: 'center',
     justifyContent: 'center',
   },

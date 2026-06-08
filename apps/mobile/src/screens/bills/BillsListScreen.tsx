@@ -5,7 +5,6 @@ import {
   Platform, UIManager,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
@@ -112,14 +111,14 @@ function BillCard({ bill, colors, onPress }: { bill: BillItem; colors: any; onPr
   return (
     <TouchableOpacity style={[styles.billCard, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle }]} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.billCardLeft}>
-        <LinearGradient
-          colors={[...colors.accent.gradient]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
+        <View
+          
+          
+          
           style={styles.categoryDot}
         >
           <Ionicons name="receipt" size={14} color="#FFFFFF" />
-        </LinearGradient>
+        </View>
         <View style={styles.billCardInfo}>
           <Text style={[styles.billMerchant, { color: colors.text.primary }]} numberOfLines={1}>
             {bill.merchant}
@@ -194,22 +193,22 @@ function ComparisonCard({ groups, colors, onCompare }: { groups: MonthlyGroup[];
 function EmptyState({ colors, onScan }: { colors: any; onScan: () => void }) {
   return (
     <View style={styles.emptyContainer}>
-      <LinearGradient
-        colors={[...colors.accent.gradient]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+      <View
+        
+        
+        
         style={styles.emptyIconWrap}
       >
         <Ionicons name="receipt-outline" size={56} color="#FFFFFF" />
-      </LinearGradient>
+      </View>
       <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No Bills Yet</Text>
       <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
         Scan your first receipt or bill to start managing expenses automatically.
       </Text>
-      <LinearGradient
-        colors={[...colors.accent.gradient]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+      <View
+        
+        
+        
         style={styles.emptyBtn}
       >
         <TouchableOpacity
@@ -220,7 +219,7 @@ function EmptyState({ colors, onScan }: { colors: any; onScan: () => void }) {
           <Ionicons name="camera" size={20} color="#FFFFFF" />
           <Text style={styles.emptyBtnText}>Scan Your First Bill</Text>
         </TouchableOpacity>
-      </LinearGradient>
+      </View>
     </View>
   );
 }
@@ -332,11 +331,8 @@ export function BillsListScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
-      <LinearGradient
-        colors={['#1A1A3E', '#12121A']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.headerGradient}
+      <View
+        style={[styles.headerGradient, { backgroundColor: colors.accent.primary }]}
       >
         <View style={[styles.headerContent, { paddingTop: insets.top + 12 }]}>
           <Text style={styles.headerTitle}>Bills</Text>
@@ -344,7 +340,7 @@ export function BillsListScreen() {
             <Ionicons name="options-outline" size={22} color="rgba(255,255,255,0.7)" />
           </TouchableOpacity>
         </View>
-      </LinearGradient>
+      </View>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
@@ -401,10 +397,10 @@ export function BillsListScreen() {
         </Animated.View>
       </ScrollView>
 
-      <LinearGradient
-        colors={[...colors.accent.gradient]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+      <View
+        
+        
+        
         style={[styles.fab, { bottom: insets.bottom + 100 }]}
       >
         <TouchableOpacity
@@ -414,7 +410,7 @@ export function BillsListScreen() {
         >
           <Ionicons name="camera" size={24} color="#FFFFFF" />
         </TouchableOpacity>
-      </LinearGradient>
+      </View>
     </View>
   );
 }

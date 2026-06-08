@@ -4,7 +4,6 @@ import {
   Modal, TextInput, Switch, Platform, Alert, Dimensions, Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -15,7 +14,7 @@ import { getCategoryIcon } from '../../config/categoryIcons';
 
 const { width } = Dimensions.get('window');
 
-const BILL_CATEGORIES = ['Electricity', 'Water', 'Internet', 'Rent', 'Insurance', 'Subscription', 'Phone', 'Gas', 'Other'];
+const BILL_CATEGORIES = ['Utilities', 'Housing', 'Groceries', 'Healthcare', 'Transportation', 'Financial', 'Shopping', 'Entertainment', 'Other'];
 
 const RECURRING_OPTIONS = [
   { label: 'Weekly', value: 'weekly' },
@@ -204,14 +203,14 @@ export function CoupleBillsScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={() => { setRefreshing(true); fetchBills(true); }}
-            tintColor="#5D38B5"
+            tintColor={colors.accent.primary}
           />
         }
       >
-        <LinearGradient
-          colors={['#5D38B5', '#7A52D1']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
+        <View
+          
+          
+          
           style={{ paddingTop: insets.top + 12, paddingBottom: 24, paddingHorizontal: 20 }}
         >
           <View style={styles.headerRow}>
@@ -223,7 +222,7 @@ export function CoupleBillsScreen() {
               <Ionicons name="add" size={24} color="#FFF" />
             </TouchableOpacity>
           </View>
-        </LinearGradient>
+        </View>
 
         <View style={{ paddingHorizontal: 20, marginTop: -12, gap: 12 }}>
           <View style={[styles.summaryCard, { backgroundColor: '#FFEBB4' }]}>
@@ -242,28 +241,28 @@ export function CoupleBillsScreen() {
 
           <View style={styles.tabRow}>
             <TouchableOpacity
-              style={[styles.tab, activeTab === 'upcoming' && [styles.tabActive, { borderBottomColor: '#5D38B5' }]]}
+              style={[styles.tab, activeTab === 'upcoming' && [styles.tabActive, { borderBottomColor: colors.accent.primary }]]}
               onPress={() => setActiveTab('upcoming')}
             >
               <Text
                 style={[
                   styles.tabText,
                   { color: colors.text.secondary },
-                  activeTab === 'upcoming' && [styles.tabTextActive, { color: '#5D38B5' }],
+                  activeTab === 'upcoming' && [styles.tabTextActive, { color: colors.accent.primary }],
                 ]}
               >
                 Upcoming
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.tab, activeTab === 'paid' && [styles.tabActive, { borderBottomColor: '#5D38B5' }]]}
+              style={[styles.tab, activeTab === 'paid' && [styles.tabActive, { borderBottomColor: colors.accent.primary }]]}
               onPress={() => setActiveTab('paid')}
             >
               <Text
                 style={[
                   styles.tabText,
                   { color: colors.text.secondary },
-                  activeTab === 'paid' && [styles.tabTextActive, { color: '#5D38B5' }],
+                  activeTab === 'paid' && [styles.tabTextActive, { color: colors.accent.primary }],
                 ]}
               >
                 Paid
@@ -299,7 +298,7 @@ export function CoupleBillsScreen() {
                     >
                       <View style={styles.billCardTop}>
                         <View style={[styles.categoryIconWrap, { backgroundColor: isDark ? 'rgba(93,56,181,0.2)' : 'rgba(93,56,181,0.1)' }]}>
-                          <Ionicons name={icon as any} size={20} color="#5D38B5" />
+                          <Ionicons name={icon as any} size={20} color={colors.accent.primary} />
                         </View>
                         <View style={styles.billInfo}>
                           <View style={styles.billNameRow}>
@@ -452,8 +451,8 @@ export function CoupleBillsScreen() {
                       style={[
                         styles.categoryChip,
                         {
-                          backgroundColor: formCategory === cat ? '#5D38B5' : colors.bg.tertiary,
-                          borderColor: formCategory === cat ? '#5D38B5' : colors.border.default,
+                          backgroundColor: formCategory === cat ? colors.accent.primary : colors.bg.tertiary,
+                          borderColor: formCategory === cat ? colors.accent.primary : colors.border.default,
                         },
                       ]}
                       onPress={() => setFormCategory(cat)}
@@ -480,8 +479,8 @@ export function CoupleBillsScreen() {
                   <Switch
                     value={formRecurring}
                     onValueChange={setFormRecurring}
-                    trackColor={{ false: colors.border.default, true: '#5D38B580' }}
-                    thumbColor={formRecurring ? '#5D38B5' : '#f4f3f4'}
+                    trackColor={{ false: colors.border.default, true: `${colors.accent.primary}80` }}
+                    thumbColor={formRecurring ? colors.accent.primary : '#f4f3f4'}
                   />
                 </View>
 
@@ -495,8 +494,8 @@ export function CoupleBillsScreen() {
                           style={[
                             styles.categoryChip,
                             {
-                              backgroundColor: formRecurringInterval === opt.value ? '#5D38B5' : colors.bg.tertiary,
-                              borderColor: formRecurringInterval === opt.value ? '#5D38B5' : colors.border.default,
+                              backgroundColor: formRecurringInterval === opt.value ? colors.accent.primary : colors.bg.tertiary,
+                              borderColor: formRecurringInterval === opt.value ? colors.accent.primary : colors.border.default,
                             },
                           ]}
                           onPress={() => setFormRecurringInterval(opt.value)}
@@ -523,8 +522,8 @@ export function CoupleBillsScreen() {
                       style={[
                         styles.categoryChip,
                         {
-                          backgroundColor: formAssignedTo === p.id ? '#5D38B5' : colors.bg.tertiary,
-                          borderColor: formAssignedTo === p.id ? '#5D38B5' : colors.border.default,
+                          backgroundColor: formAssignedTo === p.id ? colors.accent.primary : colors.bg.tertiary,
+                          borderColor: formAssignedTo === p.id ? colors.accent.primary : colors.border.default,
                         },
                       ]}
                       onPress={() => setFormAssignedTo(p.id === formAssignedTo ? '' : p.id)}
@@ -593,8 +592,8 @@ const styles = StyleSheet.create({
     height: 40,
     backgroundColor: 'rgba(93,56,181,0.15)',
   },
-  summaryLabel: { fontSize: 12, fontWeight: '600', color: '#5D38B5', letterSpacing: 0.3, marginBottom: 4 },
-  summaryAmount: { fontSize: 24, fontWeight: '800', color: '#5D38B5', letterSpacing: -0.5 },
+  summaryLabel: { fontSize: 12, fontWeight: '600', color: '#F97316', letterSpacing: 0.3, marginBottom: 4 },
+  summaryAmount: { fontSize: 24, fontWeight: '800', color: '#F97316', letterSpacing: -0.5 },
 
   tabRow: {
     flexDirection: 'row',
@@ -653,7 +652,7 @@ const styles = StyleSheet.create({
   dueDateText: { fontSize: 12, fontWeight: '500', flex: 1 },
   dueDateValue: { fontSize: 11, fontWeight: '500' },
   markPaidBtn: {
-    backgroundColor: '#5D38B5',
+    backgroundColor: '#F97316',
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 10,
@@ -717,7 +716,7 @@ const styles = StyleSheet.create({
   },
   modalFooter: { marginTop: 20 },
   submitBtn: {
-    backgroundColor: '#5D38B5',
+    backgroundColor: '#F97316',
     paddingVertical: 16,
     borderRadius: 16,
     alignItems: 'center',

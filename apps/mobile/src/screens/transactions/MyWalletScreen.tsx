@@ -13,7 +13,6 @@ import {
   Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -26,7 +25,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_W = (SCREEN_WIDTH - 56) / 3;
 
 const CATEGORY_GRADIENTS: Record<string, [string, string]> = {
-  Food: ['#6C3EF4', '#8B5CF6'], Travel: ['#4A90D9', '#357ABD'],
+  Food: ['#F97316', '#F97316'], Travel: ['#4A90D9', '#357ABD'],
   Shopping: ['#E056A0', '#C94D8B'], Medical: ['#00B894', '#00A381'],
   Fuel: ['#FDCB6E', '#F0A830'], Rent: ['#6C5CE7', '#5A4BD1'],
   EMI: ['#E17055', '#D63031'], Bills: ['#0984E3', '#0768B8'],
@@ -35,7 +34,7 @@ const CATEGORY_GRADIENTS: Record<string, [string, string]> = {
   Salary: ['#00B894', '#00A381'], Transfer: ['#DFE6E9', '#B2BEC3'],
 };
 function getCategoryColors(cat: string) {
-  return CATEGORY_GRADIENTS[cat] || ['#6C3EF4', '#8B5CF6'];
+  return CATEGORY_GRADIENTS[cat] || ['#F97316', '#F97316'];
 }
 function fmt(v: number) {
   return '₹' + v.toLocaleString('en-IN', { maximumFractionDigits: 0 });
@@ -86,7 +85,7 @@ function groupByDate(tx: any[]) {
 
 const PREMIUM_CATEGORIES = [
   { icon: 'add-circle', label: 'Add', color: '#00B894', screen: 'AddExpense' },
-  { icon: 'scan', label: 'Scan', color: '#8B5CF6', screen: 'BillScanner' },
+  { icon: 'scan', label: 'Scan', color: '#F97316', screen: 'BillScanner' },
   { icon: 'receipt', label: 'Bills', color: '#4A90D9', screen: 'BillsList' },
   { icon: 'trending-up', label: 'Analytics', color: '#6C5CE7', screen: 'Analytics' },
 ];
@@ -308,24 +307,14 @@ export function MyWalletScreen() {
                 style={[s.avatar, { backgroundColor: `${colors.accent.primary}18` }]}
                 onPress={() => navigation.navigate('AddExpense')}
               >
-                <LinearGradient
-                  colors={[...colors.accent.gradient]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={s.avatarGrad}
-                >
+                <View style={[s.avatarGrad, { backgroundColor: colors.accent.primary }]}>
                   <Ionicons name="wallet-outline" size={18} color="#FFF" />
-                </LinearGradient>
+                </View>
               </TouchableOpacity>
             </Animated.View>
 
             <Animated.View style={{ transform: [{ scale: cardScale }] }}>
-              <LinearGradient
-                colors={['#1A1A3E', '#16213E', '#0F3460']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={s.balanceCard}
-              >
+              <View style={[s.balanceCard, { backgroundColor: colors.bg.secondary }]}>
                 <View style={s.balanceTop}>
                   <View>
                     <Text style={s.balanceLabel}>Total Balance</Text>
@@ -364,7 +353,7 @@ export function MyWalletScreen() {
                     </View>
                   </View>
                 </View>
-              </LinearGradient>
+              </View>
             </Animated.View>
 
             <View style={s.quickActions}>
@@ -375,9 +364,9 @@ export function MyWalletScreen() {
                   onPress={() => navigation.navigate(a.screen)}
                   activeOpacity={0.7}
                 >
-                  <LinearGradient colors={[`${a.color}25`, `${a.color}10`]} style={s.qaIcon}>
+                  <View style={[s.qaIcon, { backgroundColor: `${a.color}20` }]}>
                     <Ionicons name={a.icon as any} size={22} color={a.color} />
-                  </LinearGradient>
+                  </View>
                   <Text style={[s.qaLabel, { color: colors.text.secondary }]}>{a.label}</Text>
                 </TouchableOpacity>
               ))}
@@ -398,19 +387,18 @@ export function MyWalletScreen() {
                     value: insight.dailyAvg,
                     label: 'Daily Avg',
                   },
-                  { icon: 'fast-food', color: '#8B5CF6', value: insight.foodTotal, label: 'Food' },
+                  { icon: 'fast-food', color: colors.accent.primary, value: insight.foodTotal, label: 'Food' },
                 ].map((c, i) => (
-                  <LinearGradient
+                  <View
                     key={i}
-                    colors={[`${c.color}12`, `${c.color}05`]}
-                    style={s.insightCard}
+                    style={[s.insightCard, { backgroundColor: `${c.color}12` }]}
                   >
                     <Ionicons name={c.icon as any} size={16} color={c.color} />
                     <Text style={[s.insightVal, { color: colors.text.primary }]}>
                       {fmt(c.value)}
                     </Text>
                     <Text style={[s.insightLabel, { color: colors.text.tertiary }]}>{c.label}</Text>
-                  </LinearGradient>
+                  </View>
                 ))}
               </View>
             )}
@@ -515,14 +503,9 @@ export function MyWalletScreen() {
                   onPress={() => navigation.navigate('TransactionDetail', { transactionId: t.id })}
                   onLongPress={() => handleDelete(t.id)}
                 >
-                  <LinearGradient
-                    colors={catColors}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={s.txIcon}
-                  >
+                  <View style={[s.txIcon, { backgroundColor: catColors[0] }]}>
                     <Ionicons name={getCategoryIcon(cat) as any} size={18} color="#FFF" />
-                  </LinearGradient>
+                  </View>
                   <View style={s.txBody}>
                     <Text style={[s.txDesc, { color: colors.text.primary }]} numberOfLines={1}>
                       {t.description || cat}
@@ -544,9 +527,9 @@ export function MyWalletScreen() {
         )}
         ListEmptyComponent={
           <View style={s.empty}>
-            <LinearGradient colors={['#6C3EF420', '#8B5CF615']} style={s.emptyIcon}>
-              <Ionicons name="wallet-outline" size={44} color="#6C3EF4" />
-            </LinearGradient>
+            <View style={[s.emptyIcon, { backgroundColor: `${colors.accent.primary}20` }]}>
+              <Ionicons name="wallet-outline" size={44} color={colors.accent.primary} />
+            </View>
             <Text style={[s.emptyTitle, { color: colors.text.primary }]}>
               {search || selectedCategory ? 'No matching transactions' : 'No transactions yet'}
             </Text>
@@ -561,15 +544,10 @@ export function MyWalletScreen() {
                 onPress={() => navigation.navigate('AddExpense')}
                 activeOpacity={0.8}
               >
-                <LinearGradient
-                  colors={[...colors.accent.gradient]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={s.emptyCtaGrad}
-                >
+                <View style={[s.emptyCtaGrad, { backgroundColor: colors.accent.primary }]}>
                   <Ionicons name="add" size={18} color="#FFF" />
                   <Text style={s.emptyCtaText}>Add Transaction</Text>
-                </LinearGradient>
+                </View>
               </TouchableOpacity>
             )}
           </View>
@@ -659,7 +637,7 @@ const s = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 1,
   },
-  chipActive: { backgroundColor: '#6C3EF4', borderColor: '#6C3EF4' },
+  chipActive: { backgroundColor: '#f7892c', borderColor: '#f7892c' },
   chipText: { fontSize: 12, fontWeight: '600' },
   sectionTitle: {
     fontSize: 18,

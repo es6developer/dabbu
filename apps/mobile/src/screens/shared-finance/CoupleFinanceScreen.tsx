@@ -3,12 +3,11 @@ import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Dimensions, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
-import { useTheme } from '../../theme';
+import { useTheme, palette } from '../../theme';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
 const { width } = Dimensions.get('window');
@@ -161,11 +160,11 @@ export function CoupleFinanceScreen() {
             <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
           </TouchableOpacity>
         </View>
-        <LinearGradient colors={['#6C3EF4', '#8B5CF6']} style={s.heroEmpty}>
+        <View  style={s.heroEmpty}>
           <View style={s.heartIconWrap}><Ionicons name="heart-circle" size={64} color="#FFF" /></View>
           <Text style={s.heroTitle}>Connect with your Partner</Text>
           <Text style={s.heroSub}>Add your partner to start sharing finances</Text>
-        </LinearGradient>
+        </View>
       </ScrollView>
     );
   }
@@ -174,9 +173,9 @@ export function CoupleFinanceScreen() {
     <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
       <ScrollView
         contentContainerStyle={{ paddingBottom: 100 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} tintColor="#6C3EF4" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} tintColor={colors.accent.primary} />}
       >
-        <LinearGradient colors={['#6C3EF4', '#8B5CF6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+        <View   
           style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}
         >
           <View style={s.headerRow}>
@@ -190,18 +189,18 @@ export function CoupleFinanceScreen() {
           </View>
           <View style={s.partnerHero}>
             <View style={s.avatarRow}>
-              <LinearGradient colors={['rgba(255,255,255,0.3)', 'rgba(255,255,255,0.15)']} style={s.avatar}>
+              <View  style={s.avatar}>
                 <Text style={s.avatarText}>{p1Initial}</Text>
-              </LinearGradient>
+              </View>
               <View style={s.heartBadge}><Ionicons name="heart" size={16} color="#FFEBB4" /></View>
-              <LinearGradient colors={['rgba(255,255,255,0.3)', 'rgba(255,255,255,0.15)']} style={s.avatar}>
+              <View  style={s.avatar}>
                 <Text style={s.avatarText}>{p2Initial}</Text>
-              </LinearGradient>
+              </View>
             </View>
             <Text style={s.partnerNames}>{partner1Name} & {partner2Name}</Text>
             <Text style={s.partnerRatio}>Split Ratio: {ratio}</Text>
           </View>
-        </LinearGradient>
+        </View>
 
         <View style={s.tabRow}>
           {['overview', 'activity'].map((tab) => {
@@ -209,9 +208,9 @@ export function CoupleFinanceScreen() {
             return (
               <TouchableOpacity key={tab} activeOpacity={0.7}
                 onPress={() => setActiveTab(tab as any)}
-                style={[s.tabBtn, active && { borderBottomWidth: 2, borderBottomColor: '#6C3EF4' }]}
+                style={[s.tabBtn, active && { borderBottomWidth: 2, borderBottomColor: colors.accent.primary }]}
               >
-                <Text style={[s.tabText, { color: active ? '#6C3EF4' : colors.text.tertiary }]}>
+                <Text style={[s.tabText, { color: active ? colors.accent.primary : colors.text.tertiary }]}>
                   {tab === 'overview' ? 'Overview' : 'Activity'}
                 </Text>
               </TouchableOpacity>
@@ -222,7 +221,7 @@ export function CoupleFinanceScreen() {
         {activeTab === 'overview' ? (
           <View style={{ paddingHorizontal: 20, gap: 14, paddingTop: 8 }}>
 
-            <LinearGradient colors={['#FFEBB4', '#F5DBA8']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.heroFinanceCard}>
+            <View    style={s.heroFinanceCard}>
               <View style={s.heroFinanceTop}>
                 <Text style={s.heroFinanceLabel}>Total Income</Text>
                 <Text style={s.heroFinanceLabel}>Total Expenses</Text>
@@ -237,7 +236,7 @@ export function CoupleFinanceScreen() {
                   Net {totalIncome >= totalExpenses ? 'Surplus' : 'Deficit'}: {fmt(Math.abs(totalIncome - totalExpenses))}
                 </Text>
               </View>
-            </LinearGradient>
+            </View>
 
             <View style={[s.card, { backgroundColor: colors.bg.card }]}>
               <Text style={[s.cardTitle, { color: colors.text.primary }]}>Spending by Partner</Text>
@@ -245,26 +244,26 @@ export function CoupleFinanceScreen() {
                 <View>
                   <View style={s.barLabelRow}>
                     <View style={s.barLabelLeft}>
-                      <View style={[s.barDot, { backgroundColor: '#6C3EF4' }]} />
+                      <View style={[s.barDot, { backgroundColor: colors.accent.primary }]} />
                       <Text style={[s.barName, { color: colors.text.primary }]}>{partner1Name}</Text>
                     </View>
                     <Text style={[s.barAmount, { color: colors.text.primary }]}>{fmt(partner1Paid)}</Text>
                   </View>
                   <View style={[s.barOuter, { backgroundColor: colors.bg.tertiary }]}>
-                    <View style={[s.barFill, { width: `${p1Pct}%`, backgroundColor: '#6C3EF4' }]} />
+                    <View style={[s.barFill, { width: `${p1Pct}%`, backgroundColor: colors.accent.primary }]} />
                   </View>
                   <Text style={[s.barPct, { color: colors.text.tertiary }]}>{p1Pct}% of total</Text>
                 </View>
                 <View>
                   <View style={s.barLabelRow}>
                     <View style={s.barLabelLeft}>
-                      <View style={[s.barDot, { backgroundColor: '#8B5CF6' }]} />
+                      <View style={[s.barDot, { backgroundColor: colors.accent.primary }]} />
                       <Text style={[s.barName, { color: colors.text.primary }]}>{partner2Name}</Text>
                     </View>
                     <Text style={[s.barAmount, { color: colors.text.primary }]}>{fmt(partner2Paid)}</Text>
                   </View>
                   <View style={[s.barOuter, { backgroundColor: colors.bg.tertiary }]}>
-                    <View style={[s.barFill, { width: `${p2Pct}%`, backgroundColor: '#8B5CF6' }]} />
+                    <View style={[s.barFill, { width: `${p2Pct}%`, backgroundColor: colors.accent.primary }]} />
                   </View>
                   <Text style={[s.barPct, { color: colors.text.tertiary }]}>{p2Pct}% of total</Text>
                 </View>
@@ -273,8 +272,8 @@ export function CoupleFinanceScreen() {
 
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <View style={[s.statCard, { backgroundColor: colors.bg.card, flex: 1 }]}>
-                <View style={[s.statIconWrap, { backgroundColor: '#6C3EF418' }]}>
-                  <Ionicons name="wallet-outline" size={18} color="#6C3EF4" />
+                <View style={[s.statIconWrap, { backgroundColor: `${colors.accent.primary}18` }]}>
+                  <Ionicons name="wallet-outline" size={18} color={colors.accent.primary} />
                 </View>
                 <Text style={[s.statValue, { color: colors.text.primary }]}>{fmt(monthlySpent)}</Text>
                 <Text style={[s.statLabel, { color: colors.text.tertiary }]}>Monthly Spend</Text>
@@ -360,7 +359,7 @@ export function CoupleFinanceScreen() {
                 {goals.slice(0, 3).map((goal: any, i: number) => (
                   <View key={goal.id || i} style={{ marginTop: 12 }}>
                     <View style={s.goalTopRow}>
-                      <Ionicons name="flag-outline" size={16} color="#6C3EF4" />
+                      <Ionicons name="flag-outline" size={16} color={colors.accent.primary} />
                       <Text style={[s.goalName, { color: colors.text.primary, marginLeft: 8, flex: 1 }]}>{goal.name}</Text>
                       <Text style={[s.goalPct, { color: colors.text.tertiary }]}>{goal.progress}%</Text>
                     </View>
@@ -393,13 +392,13 @@ export function CoupleFinanceScreen() {
                       if (isExpense) navigation.navigate('TransactionDetail', { transactionId: item.id, groupId });
                     }}
                   >
-                    <LinearGradient
-                      colors={isIncome ? ['#34C759', '#30D158'] : ['#6C3EF4', '#8B5CF6']}
-                      start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                    <View
+                      
+                       
                       style={s.activityIcon}
                     >
                       <Ionicons name={isIncome ? 'trending-up' : cat.icon as any} size={18} color="#FFF" />
-                    </LinearGradient>
+                    </View>
                     <View style={{ flex: 1 }}>
                       <Text style={[s.activityDesc, { color: colors.text.primary }]} numberOfLines={1}>
                         {item.description || item.category || (isIncome ? 'Income' : 'Expense')}
@@ -419,9 +418,9 @@ export function CoupleFinanceScreen() {
         )}
       </ScrollView>
 
-      <LinearGradient
-        colors={['#6C3EF4', '#8B5CF6']}
-        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+      <View
+        
+         
         style={[s.addFab, { bottom: insets.bottom + 24 }]}
       >
         <TouchableOpacity
@@ -443,7 +442,7 @@ export function CoupleFinanceScreen() {
         >
           <Ionicons name="add" size={28} color="#FFF" />
         </TouchableOpacity>
-      </LinearGradient>
+      </View>
     </View>
   );
 }
@@ -474,9 +473,9 @@ const s = StyleSheet.create({
 
   heroFinanceCard: { borderRadius: 24, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.12, shadowRadius: 16, elevation: 6 },
   heroFinanceTop: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
-  heroFinanceLabel: { fontSize: 11, fontWeight: '700', color: '#5D38B5', letterSpacing: 0.3, textTransform: 'uppercase' },
+  heroFinanceLabel: { fontSize: 11, fontWeight: '700', color: '#F97316', letterSpacing: 0.3, textTransform: 'uppercase' },
   heroFinanceRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  heroFinanceAmount: { fontSize: 26, fontWeight: '800', color: '#5D38B5', letterSpacing: -1 },
+  heroFinanceAmount: { fontSize: 26, fontWeight: '800', color: '#F97316', letterSpacing: -1 },
   netRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12 },
   netText: { fontSize: 13, fontWeight: '700' },
 
@@ -515,7 +514,7 @@ const s = StyleSheet.create({
   goalName: { fontSize: 13, fontWeight: '600' },
   goalPct: { fontSize: 12, fontWeight: '700' },
   progressBar: { height: 5, borderRadius: 3, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: '#6C3EF4', borderRadius: 3 },
+  progressFill: { height: '100%', backgroundColor: palette.brand.primary, borderRadius: 3 },
 
   activityRow: {
     flexDirection: 'row', alignItems: 'center', borderRadius: 18, padding: 14, gap: 12,
@@ -530,7 +529,7 @@ const s = StyleSheet.create({
   emptyTitle: { fontSize: 16, fontWeight: '700' },
   emptyDesc: { fontSize: 13, fontWeight: '500', textAlign: 'center' },
 
-  addFab: { position: 'absolute', right: 24, borderRadius: 28, shadowColor: '#6C3EF4', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 8 },
+  addFab: { position: 'absolute', right: 24, borderRadius: 28, shadowColor: '#F97316', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 8 },
   addFabTouch: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
 
   heroEmpty: { marginHorizontal: 20, borderRadius: 24, padding: 32, alignItems: 'center', marginTop: 16 },

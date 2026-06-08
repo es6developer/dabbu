@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Animated, View, StyleSheet } from 'react-native';
+import { Animated, View } from 'react-native';
 import { useTheme } from '../../theme';
 
 interface SkeletonProps {
@@ -11,74 +11,59 @@ interface SkeletonProps {
 
 export function Skeleton({ width = '100%', height = 20, borderRadius = 8, style }: SkeletonProps) {
   const { colors } = useTheme();
-  const opacity = useRef(new Animated.Value(0.3)).current;
+  const anim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    const anim = Animated.loop(
+    const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(opacity, { toValue: 1, duration: 800, useNativeDriver: true }),
-        Animated.timing(opacity, { toValue: 0.3, duration: 800, useNativeDriver: true }),
+        Animated.timing(anim, { toValue: 1, duration: 600, useNativeDriver: true }),
+        Animated.timing(anim, { toValue: 0, duration: 600, useNativeDriver: true }),
       ]),
     );
-    anim.start();
-    return () => anim.stop();
-  }, [opacity]);
+    loop.start();
+    return () => loop.stop();
+  }, [anim]);
+
+  const translateX = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-300, 300],
+  });
 
   return (
-    <Animated.View
+    <View
       style={[
         {
           width: width as any,
           height,
           borderRadius,
           backgroundColor: colors.skeleton.base,
-          opacity,
+          overflow: 'hidden',
         },
         style,
       ]}
-    />
-  );
-}
-
-export function SkeletonCard({ style }: { style?: any }) {
-  const { colors } = useTheme();
-  return (
-    <View style={[ss.card, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }, style]}>
-      <View style={ss.cardRow}>
-        <Skeleton width={44} height={44} borderRadius={12} />
-        <View style={ss.cardContent}>
-          <Skeleton width="60%" height={14} />
-          <Skeleton width="40%" height={11} style={{ marginTop: 6 }} />
-        </View>
-        <Skeleton width={60} height={14} />
-      </View>
+    >
+      <Animated.View
+        style={{
+          width: 80,
+          height: '100%',
+          backgroundColor: 'rgba(255,255,255,0.06)',
+          transform: [{ translateX }],
+        }}
+      />
     </View>
   );
 }
 
-export function SkeletonList({ count = 4 }: { count?: number }) {
+export function SkeletonCard({ style }: { style?: any }) {
+  return <Skeleton height={120} borderRadius={20} style={style} />;
+}
+
+export function SkeletonList({ count = 3, style }: { count?: number; style?: any }) {
   return (
-    <View style={{ gap: 10, paddingHorizontal: 16 }}>
-      {Array.from({ length: count }).map((_, i) => (
+    <View style={[{ gap: 12 }, style]}>
+      {Array.from({ length: count }, (_, i) => (
         <SkeletonCard key={i} />
       ))}
     </View>
   );
 }
-
-const ss = StyleSheet.create({
-  card: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 14,
-  },
-  cardRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  cardContent: {
-    flex: 1,
-    gap: 6,
-  },
-});

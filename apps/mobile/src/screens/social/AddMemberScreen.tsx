@@ -1,15 +1,23 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View, Text, TextInput, StyleSheet, TouchableOpacity, FlatList,
-  ActivityIndicator, Alert, RefreshControl, Linking,
+  ActivityIndicator, Linking, Animated, ScrollView, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../../store/AuthContext';
+import { useFavorites } from '../../store/FavoritesContext';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
-import { syncContacts, requestContactsPermission, getContactsPermissionStatus } from '../../services/contacts';
+import {
+  requestContactsPermission,
+  getContactsPermissionStatus,
+  fetchDeviceContacts,
+  syncContacts,
+  DeviceContact,
+  ContactMatch,
+} from '../../services/contacts';
 
 interface SearchUser {
   id: string;
@@ -20,31 +28,28 @@ interface SearchUser {
   phone?: string;
 }
 
-interface ContactMatch {
-  userId: string;
-  name: string;
-  email: string;
-  avatarUrl?: string;
-  isFriend: boolean;
-}
+type ContactEntry = { type: 'match' } & ContactMatch | { type: 'device' } & DeviceContact;
 
 export function AddMemberScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { user: currentUser } = useAuth();
   const { colors, isDark } = useTheme();
+  const { favorites, isFavorite, addFavorite } = useFavorites();
   const insets = useSafeAreaInsets();
   const groupId = route.params?.groupId;
 
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
   const [searching, setSearching] = useState(false);
-  const [contactMatches, setContactMatches] = useState<ContactMatch[]>([]);
-  const [syncing, setSyncing] = useState(false);
   const [contactsGranted, setContactsGranted] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [hasSynced, setHasSynced] = useState(false);
+  const [matchedContacts, setMatchedContacts] = useState<ContactMatch[]>([]);
+  const [deviceContacts, setDeviceContacts] = useState<DeviceContact[]>([]);
   const [addingId, setAddingId] = useState<string | null>(null);
-  const [tab, setTab] = useState<'contacts' | 'search'>('contacts');
+  const [selectedFavId, setSelectedFavId] = useState<string | null>(null);
+  const scrollX = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     getContactsPermissionStatus().then(setContactsGranted);
@@ -65,11 +70,8 @@ export function AddMemberScreen() {
       const res = await api.get<any>(`/users/search?query=${encodeURIComponent(q)}`);
       const data = Array.isArray(res) ? res : res?.data || [];
       setSearchResults(data);
-    } catch {
-      setSearchResults([]);
-    } finally {
-      setSearching(false);
-    }
+    } catch { setSearchResults([]); }
+    finally { setSearching(false); }
   }
 
   async function handleSyncContacts() {
@@ -78,317 +80,392 @@ export function AddMemberScreen() {
     if (!granted) return;
     setSyncing(true);
     try {
+      const devContacts = await fetchDeviceContacts();
+      setDeviceContacts(devContacts);
       const result = await syncContacts();
-      setContactMatches(result.matched || []);
+      setMatchedContacts(result.matched || []);
       setHasSynced(true);
-    } catch (e: any) {
-      Alert.alert('Sync Failed', e.message || 'Could not sync contacts');
-    } finally {
-      setSyncing(false);
-    }
+    } catch { /* ignore */ }
+    finally { setSyncing(false); }
   }
 
-  async function handleAddFriend(friendId: string) {
-    setAddingId(friendId);
-    try {
-      const res = await api.post<any>('/friends/add', { friendId });
-      const status = res?.status || res?.data?.status;
-      if (status === 'accepted') {
-        setContactMatches((prev) =>
-          prev.map((c) => (c.userId === friendId ? { ...c, isFriend: true } : c))
-        );
-        Alert.alert('Connected', 'You are now friends!');
-      } else {
-        Alert.alert('Request Sent', 'Friend request sent successfully');
-      }
-    } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to add friend');
-    } finally {
-      setAddingId(null);
+  const allContacts: ContactEntry[] = React.useMemo(() => {
+    const entries: ContactEntry[] = [];
+    for (const m of matchedContacts) {
+      entries.push({ type: 'match', ...m });
     }
-  }
+    for (const d of deviceContacts) {
+      if (!matchedContacts.some((m) => m.phone === d.phone)) {
+        entries.push({ type: 'device', ...d });
+      }
+    }
+    return entries;
+  }, [matchedContacts, deviceContacts]);
 
   async function handleAddToGroup(userId: string, userName: string) {
-    if (!groupId) {
-      Alert.alert('Error', 'No group selected');
-      return;
-    }
+    if (!groupId) return;
     setAddingId(userId);
     try {
       await api.post(`/shared-finance/groups/${groupId}/members`, { userId });
       Alert.alert('Added', `${userName} added to group`);
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to add member');
-    } finally {
-      setAddingId(null);
-    }
+    } finally { setAddingId(null); }
   }
 
-  function handleInvite(user: { name: string; email?: string }) {
-    const message = `Hey! Join me on Dabbu - the smart family finance app. Track shared expenses, split bills, and manage money together.\n\nDownload: https://dabbu.app/download`;
+  function handleInvite(name: string) {
+    const message = `Hey! Join me on Dabbu - the smart expense splitting app.\n\nDownload: https://dabbu.app/download`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    Alert.alert('Invite via', '', [
+    Alert.alert(`Invite ${name}`, '', [
       { text: 'WhatsApp', onPress: () => Linking.openURL(whatsappUrl) },
-      { text: 'Share Link', onPress: () => {
-        try {
-          Linking.openURL(`sms:&body=${encodeURIComponent(message)}`);
-        } catch {}
-      }},
+      { text: 'Share Link', onPress: () => Linking.openURL(`sms:&body=${encodeURIComponent(message)}`) },
       { text: 'Cancel', style: 'cancel' },
     ]);
   }
 
-  const renderContactItem = ({ item }: { item: ContactMatch }) => (
-    <View style={[styles.userCard, { backgroundColor: colors.bg.secondary }]}>
-      <View style={[styles.avatar, { backgroundColor: isDark ? '#333' : '#e0e0e0' }]}>
-        <Text style={styles.avatarText}>{item.name[0]?.toUpperCase() || '?'}</Text>
-      </View>
-      <View style={styles.userInfo}>
-        <Text style={[styles.userName, { color: colors.text.primary }]} numberOfLines={1}>{item.name}</Text>
-        <Text style={[styles.userEmail, { color: colors.text.tertiary }]} numberOfLines={1}>{item.email}</Text>
-      </View>
-      {item.isFriend ? (
-        <View style={[styles.friendBadge, { backgroundColor: `${colors.status.success}20` }]}>
-          <Ionicons name="checkmark-circle" size={14} color={colors.status.success} />
-          <Text style={[styles.friendBadgeText, { color: colors.status.success }]}>Friend</Text>
-        </View>
-      ) : (
-        <TouchableOpacity
-          style={[styles.actionBtn, { backgroundColor: colors.accent.primary }]}
-          onPress={() => handleAddFriend(item.userId)}
-          disabled={addingId === item.userId}
-        >
-          {addingId === item.userId ? (
-            <ActivityIndicator size="small" color="#FFF" />
-          ) : (
-            <Text style={styles.actionBtnText}>Add</Text>
-          )}
-        </TouchableOpacity>
-      )}
-      {groupId && (
-        <TouchableOpacity
-          style={[styles.addToGroupBtn, { borderColor: colors.border.subtle }]}
-          onPress={() => handleAddToGroup(item.userId, item.name)}
-        >
-          <Ionicons name="person-add" size={16} color={colors.accent.primary} />
-        </TouchableOpacity>
-      )}
-    </View>
-  );
+  function handleFavoritePress(fav: typeof favorites[0]) {
+    setSelectedFavId(fav.userId);
+    if (groupId) {
+      handleAddToGroup(fav.userId, fav.name);
+    }
+    setTimeout(() => setSelectedFavId(null), 300);
+  }
 
-  const renderSearchItem = ({ item }: { item: SearchUser }) => (
-    <View style={[styles.userCard, { backgroundColor: colors.bg.secondary }]}>
-      <View style={[styles.avatar, { backgroundColor: isDark ? '#333' : '#e0e0e0' }]}>
-        <Text style={styles.avatarText}>{item.firstName[0]?.toUpperCase() || '?'}</Text>
-      </View>
-      <View style={styles.userInfo}>
-        <Text style={[styles.userName, { color: colors.text.primary }]} numberOfLines={1}>
-          {item.firstName} {item.lastName}
-        </Text>
-        <Text style={[styles.userEmail, { color: colors.text.tertiary }]} numberOfLines={1}>{item.email}</Text>
-      </View>
-      <TouchableOpacity
-        style={[styles.actionBtn, { backgroundColor: colors.accent.primary }]}
-        onPress={() => handleAddFriend(item.id)}
-        disabled={addingId === item.id}
-      >
-        {addingId === item.id ? (
-          <ActivityIndicator size="small" color="#FFF" />
-        ) : (
-          <Text style={styles.actionBtnText}>Add</Text>
-        )}
-      </TouchableOpacity>
+  const AvatarCircle = ({ name, size = 44 }: { name: string; size?: number }) => (
+    <View style={[avatarStyle.wrap, { width: size, height: size, borderRadius: size / 2, backgroundColor: '#1C1C1E' }]}>
+      <Text style={[avatarStyle.text, { fontSize: size * 0.4 }]}>
+        {name ? name[0].toUpperCase() : '?'}
+      </Text>
     </View>
   );
 
   return (
-    <View style={[styles.screen, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="close" size={24} color={colors.text.primary} />
+    <View style={[s.screen, { backgroundColor: '#070708' }]}>
+      {/* Header */}
+      <View style={[s.header, { paddingTop: insets.top + 8 }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
+          <Ionicons name="close" size={22} color="#FFF" />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text.primary }]}>Add Member</Text>
-        <View style={{ width: 40 }} />
+        <Text style={s.headerTitle}>Add Member</Text>
+        <View style={{ width: 36 }} />
       </View>
 
-      <View style={[styles.tabRow, { borderBottomColor: colors.border.subtle }]}>
-        <TouchableOpacity
-          style={[styles.tab, tab === 'contacts' && { borderBottomColor: colors.accent.primary, borderBottomWidth: 2 }]}
-          onPress={() => setTab('contacts')}
-        >
-          <Text style={[styles.tabText, { color: tab === 'contacts' ? colors.accent.primary : colors.text.tertiary }]}>
-            Contacts
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, tab === 'search' && { borderBottomColor: colors.accent.primary, borderBottomWidth: 2 }]}
-          onPress={() => setTab('search')}
-        >
-          <Text style={[styles.tabText, { color: tab === 'search' ? colors.accent.primary : colors.text.tertiary }]}>
-            Search
-          </Text>
-        </TouchableOpacity>
+      {/* Search Bar */}
+      <View style={[s.searchBar, { backgroundColor: '#161616', borderColor: 'rgba(255,255,255,0.08)' }]}>
+        <Ionicons name="search" size={18} color="#8E8E93" />
+        <TextInput
+          style={[s.searchInput, { color: '#FFF' }]}
+          value={query}
+          onChangeText={setQuery}
+          placeholder="Search by name, phone, or favorites..."
+          placeholderTextColor="#8E8E93"
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+        {query.length > 0 && (
+          <TouchableOpacity onPress={() => setQuery('')}>
+            <Ionicons name="close-circle" size={18} color="#8E8E93" />
+          </TouchableOpacity>
+        )}
       </View>
 
-      {tab === 'contacts' ? (
-        <View style={{ flex: 1 }}>
-          {!contactsGranted && !hasSynced ? (
-            <View style={styles.permPrompt}>
-              <View style={[styles.permIcon, { backgroundColor: `${colors.accent.primary}20` }]}>
-                <Ionicons name="people-outline" size={40} color={colors.accent.primary} />
+      {/* Favorites Quick-Select Bar */}
+      {favorites.length > 0 && !query.trim() && (
+        <View style={s.favSection}>
+          <Animated.ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 20, gap: 16 }}
+            onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], { useNativeDriver: false })}
+            scrollEventThrottle={16}
+          >
+            {favorites.map((fav) => {
+              const selected = selectedFavId === fav.userId;
+              return (
+                <TouchableOpacity
+                  key={fav.userId}
+                  style={s.favItem}
+                  onPress={() => handleFavoritePress(fav)}
+                  activeOpacity={0.7}
+                >
+                  <View style={[s.favAvatar, selected && s.favAvatarSelected]}>
+                    <AvatarCircle name={fav.name} size={48} />
+                  </View>
+                  <Text style={s.favName} numberOfLines={1}>{fav.name}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </Animated.ScrollView>
+        </View>
+      )}
+
+      {/* Content */}
+      {query.trim().length >= 2 ? (
+        /* Search Results */
+        <FlatList
+          data={searchResults}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View style={s.contactRow}>
+              <AvatarCircle name={`${item.firstName} ${item.lastName}`} />
+              <View style={s.contactInfo}>
+                <Text style={s.contactName} numberOfLines={1}>{item.firstName} {item.lastName}</Text>
+                <Text style={s.contactSub}>{item.email}</Text>
               </View>
-              <Text style={[styles.permTitle, { color: colors.text.primary }]}>Find Friends</Text>
-              <Text style={[styles.permDesc, { color: colors.text.secondary }]}>
-                Sync your contacts to find friends already on Dabbu. Your contacts are hashed and never stored in plain text.
-              </Text>
               <TouchableOpacity
-                style={[styles.permBtn, { backgroundColor: colors.accent.primary }]}
-                onPress={handleSyncContacts}
+                style={[s.actionBtn, { backgroundColor: 'rgba(255,107,0,0.1)', borderColor: 'rgba(255,107,0,0.4)' }]}
+                onPress={() => {
+                  if (groupId) handleAddToGroup(item.id, item.firstName);
+                  else addFavorite(item.id, `${item.firstName} ${item.lastName}`, item.phone);
+                }}
+                disabled={addingId === item.id}
               >
-                <Ionicons name="people" size={18} color="#FFF" />
-                <Text style={styles.permBtnText}>Find Friends</Text>
+                {addingId === item.id ? (
+                  <ActivityIndicator size="small" color="#FF6B00" />
+                ) : (
+                  <Text style={[s.actionBtnText, { color: '#FF6B00' }]}>+ Add</Text>
+                )}
               </TouchableOpacity>
             </View>
-          ) : syncing ? (
-            <View style={styles.syncingContainer}>
-              <ActivityIndicator size="large" color={colors.accent.primary} />
-              <Text style={[styles.syncingText, { color: colors.text.secondary }]}>Syncing contacts...</Text>
-            </View>
-          ) : contactMatches.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Ionicons name="search-outline" size={48} color={colors.text.tertiary} />
-              <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>No friends found</Text>
-              <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
-                Invite friends to join Dabbu and manage shared expenses together.
-              </Text>
-              <TouchableOpacity
-                style={[styles.inviteBtn, { borderColor: colors.accent.primary }]}
-                onPress={() => handleInvite({ name: '' })}
-              >
-                <Ionicons name="share-outline" size={16} color={colors.accent.primary} />
-                <Text style={[styles.inviteBtnText, { color: colors.accent.primary }]}>Invite Friends</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <FlatList
-              data={contactMatches}
-              keyExtractor={(item) => item.userId}
-              renderItem={renderContactItem}
-              contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
-              refreshControl={
-                <RefreshControl
-                  refreshing={syncing}
-                  onRefresh={handleSyncContacts}
-                  tintColor={colors.accent.primary}
-                />
-              }
-              ListHeaderComponent={
-                <View style={styles.syncBanner}>
-                  <Ionicons name="people" size={16} color={colors.status.success} />
-                  <Text style={[styles.syncBannerText, { color: colors.text.secondary }]}>
-                    {contactMatches.length} friend{contactMatches.length !== 1 ? 's' : ''} on Dabbu
-                  </Text>
-                  <TouchableOpacity onPress={handleSyncContacts}>
-                    <Ionicons name="refresh" size={18} color={colors.accent.primary} />
-                  </TouchableOpacity>
-                </View>
-              }
-            />
           )}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, gap: 4 }}
+          ListEmptyComponent={
+            searching ? (
+              <View style={s.centerState}>
+                <ActivityIndicator size="large" color="#FF6B00" />
+              </View>
+            ) : (
+              <View style={s.centerState}>
+                <Ionicons name="person-outline" size={48} color="rgba(255,255,255,0.15)" />
+                <Text style={[s.emptyTitle, { color: 'rgba(255,255,255,0.5)' }]}>No users found</Text>
+                <TouchableOpacity style={s.inviteBtn} onPress={() => handleInvite(query)}>
+                  <Ionicons name="share-outline" size={16} color="#FF6B00" />
+                  <Text style={s.inviteBtnText}>Send Invite</Text>
+                </TouchableOpacity>
+              </View>
+            )
+          }
+        />
+      ) : !contactsGranted ? (
+        /* Permission Banner */
+        <View style={s.permWrap}>
+          <View style={[s.permIconBox, { backgroundColor: 'rgba(255,107,0,0.12)' }]}>
+            <Ionicons name="people-outline" size={44} color="#FF6B00" />
+          </View>
+          <Text style={s.permTitle}>Sync Contacts to Split Faster</Text>
+          <Text style={s.permDesc}>
+            Connect your contacts to instantly find friends on Dabbu and add them to groups.
+          </Text>
+          <TouchableOpacity style={s.permBtn} onPress={handleSyncContacts} activeOpacity={0.85}>
+            <Ionicons name="people" size={18} color="#FFF" />
+            <Text style={s.permBtnText}>Grant Contacts Permission</Text>
+          </TouchableOpacity>
+        </View>
+      ) : syncing ? (
+        /* Syncing State */
+        <View style={s.centerState}>
+          <ActivityIndicator size="large" color="#FF6B00" />
+          <Text style={{ color: '#8E8E93', fontSize: 14, fontWeight: '500', marginTop: 12 }}>
+            Syncing contacts...
+          </Text>
+        </View>
+      ) : allContacts.length === 0 && !hasSynced ? (
+        /* Initial state before sync */
+        <View style={s.permWrap}>
+          <View style={[s.permIconBox, { backgroundColor: 'rgba(255,107,0,0.12)' }]}>
+            <Ionicons name="people-outline" size={44} color="#FF6B00" />
+          </View>
+          <Text style={s.permTitle}>Sync Contacts to Split Faster</Text>
+          <Text style={s.permDesc}>
+            Connect your contacts to instantly find friends on Dabbu and add them to groups.
+          </Text>
+          <TouchableOpacity style={s.permBtn} onPress={handleSyncContacts} activeOpacity={0.85}>
+            <Ionicons name="people" size={18} color="#FFF" />
+            <Text style={s.permBtnText}>Grant Contacts Permission</Text>
+          </TouchableOpacity>
+        </View>
+      ) : allContacts.length === 0 ? (
+        /* Empty after sync */
+        <View style={s.centerState}>
+          <Ionicons name="search-outline" size={48} color="rgba(255,255,255,0.15)" />
+          <Text style={[s.emptyTitle, { color: 'rgba(255,255,255,0.5)' }]}>No contacts found</Text>
+          <Text style={s.emptyDesc}>Invite friends to join Dabbu</Text>
+          <TouchableOpacity style={s.inviteBtn} onPress={() => handleInvite('')}>
+            <Ionicons name="share-outline" size={16} color="#FF6B00" />
+            <Text style={s.inviteBtnText}>Send Invite</Text>
+          </TouchableOpacity>
         </View>
       ) : (
-        <View style={{ flex: 1, padding: 16 }}>
-          <View style={[styles.searchBar, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle }]}>
-            <Ionicons name="search" size={18} color={colors.text.tertiary} />
-            <TextInput
-              style={[styles.searchInput, { color: colors.text.primary }]}
-              value={query}
-              onChangeText={setQuery}
-              placeholder="Search by name, email, or phone..."
-              placeholderTextColor={colors.text.tertiary}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-            {query.length > 0 && (
-              <TouchableOpacity onPress={() => setQuery('')}>
-                <Ionicons name="close-circle" size={18} color={colors.text.tertiary} />
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {searching ? (
-            <View style={styles.syncingContainer}>
-              <ActivityIndicator size="large" color={colors.accent.primary} />
-            </View>
-          ) : searchResults.length > 0 ? (
-            <FlatList
-              data={searchResults}
-              keyExtractor={(item) => item.id}
-              renderItem={renderSearchItem}
-              contentContainerStyle={{ paddingBottom: 40 }}
-            />
-          ) : query.length >= 2 ? (
-            <View style={styles.emptyState}>
-              <Ionicons name="person-outline" size={48} color={colors.text.tertiary} />
-              <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>No users found</Text>
-              <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
-                Invite them to join Dabbu instead
+        /* Contact List */
+        <FlatList
+          data={allContacts}
+          keyExtractor={(item, i) => String(i)}
+          renderItem={({ item }) => {
+            const name = item.type === 'match' ? item.name : (item as any as DeviceContact).name;
+            const phone = item.type === 'match' ? item.phone : (item as any as DeviceContact).phone;
+            const email = item.type === 'match' ? item.email : (item as any as DeviceContact).email;
+            const isAppUser = item.type === 'match';
+            const userId = item.type === 'match' ? item.userId : '';
+            return (
+              <View style={s.contactRow}>
+                <AvatarCircle name={name} />
+                <View style={s.contactInfo}>
+                  <Text style={s.contactName} numberOfLines={1}>{name}</Text>
+                  <View style={s.contactSubRow}>
+                    {phone ? (
+                      <Text style={s.contactSub}>{phone}</Text>
+                    ) : email ? (
+                      <Text style={s.contactSub}>{email}</Text>
+                    ) : null}
+                    {isAppUser && (
+                      <View style={s.statusBadge}>
+                        <Text style={s.statusText}>On Dabbu</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+                {isAppUser ? (
+                  <TouchableOpacity
+                    style={[s.actionBtn, { backgroundColor: 'rgba(255,107,0,0.1)', borderColor: 'rgba(255,107,0,0.4)' }]}
+                    onPress={() => {
+                      if (groupId) handleAddToGroup(userId, name);
+                      else addFavorite(userId, name, phone);
+                    }}
+                    disabled={addingId === userId}
+                  >
+                    {addingId === userId ? (
+                      <ActivityIndicator size="small" color="#FF6B00" />
+                    ) : (
+                      <Text style={[s.actionBtnText, { color: '#FF6B00' }]}>+ Add</Text>
+                    )}
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    style={[s.inviteActionBtn, { borderColor: 'rgba(255,255,255,0.08)' }]}
+                    onPress={() => handleInvite(name)}
+                  >
+                    <Text style={s.inviteActionText}>Invite</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            );
+          }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, gap: 4 }}
+          ListHeaderComponent={
+            <View style={s.syncBannerRow}>
+              <Ionicons name="people" size={14} color="#34C759" />
+              <Text style={s.syncBannerText}>
+                {matchedContacts.length} friend{matchedContacts.length !== 1 ? 's' : ''} on Dabbu
               </Text>
-              <TouchableOpacity
-                style={[styles.inviteBtn, { borderColor: colors.accent.primary }]}
-                onPress={() => handleInvite({ name: query })}
-              >
-                <Ionicons name="share-outline" size={16} color={colors.accent.primary} />
-                <Text style={[styles.inviteBtnText, { color: colors.accent.primary }]}>Send Invite</Text>
-              </TouchableOpacity>
             </View>
-          ) : null}
-        </View>
+          }
+        />
       )}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   screen: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, height: 56 },
-  backBtn: { padding: 4 },
-  title: { fontSize: 17, fontWeight: '700' },
-  tabRow: { flexDirection: 'row', borderBottomWidth: 1 },
-  tab: { flex: 1, alignItems: 'center', paddingVertical: 12 },
-  tabText: { fontSize: 14, fontWeight: '600' },
 
-  permPrompt: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32, gap: 12 },
-  permIcon: { width: 80, height: 80, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
-  permTitle: { fontSize: 20, fontWeight: '700' },
-  permDesc: { fontSize: 14, fontWeight: '500', textAlign: 'center', lineHeight: 20, marginBottom: 8 },
-  permBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 14, paddingHorizontal: 24, borderRadius: 14 },
+  /* Header */
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 20, height: 56,
+  },
+  backBtn: {
+    width: 36, height: 36, borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center',
+  },
+  headerTitle: { fontSize: 17, fontWeight: '700', color: '#FFF' },
+
+  /* Search */
+  searchBar: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    marginHorizontal: 20, height: 48, borderRadius: 12,
+    borderWidth: 1, paddingHorizontal: 14, marginBottom: 8,
+  },
+  searchInput: { flex: 1, fontSize: 15, paddingVertical: 0 },
+
+  /* Favorites Bar */
+  favSection: { marginTop: 12, marginBottom: 8 },
+  favItem: { alignItems: 'center', gap: 6, width: 64 },
+  favAvatar: {
+    width: 52, height: 52, borderRadius: 26,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  favAvatarSelected: {
+    borderWidth: 2, borderColor: '#FF6B00',
+    shadowColor: '#FF6B00', shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5, shadowRadius: 8, elevation: 6,
+  },
+  favName: {
+    fontSize: 12, fontWeight: '500', color: '#FFF',
+    textAlign: 'center', maxWidth: 64,
+  },
+
+  /* Contact Row */
+  contactRow: {
+    flexDirection: 'row', alignItems: 'center',
+    height: 64, gap: 12,
+  },
+  contactInfo: { flex: 1, justifyContent: 'center' },
+  contactName: { fontSize: 15, fontWeight: '600', color: '#FFF', marginBottom: 2 },
+  contactSubRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  contactSub: { fontSize: 12, fontWeight: '500', color: '#8E8E93' },
+  statusBadge: {
+    paddingHorizontal: 6, paddingVertical: 1,
+    borderRadius: 4, backgroundColor: 'rgba(52,199,89,0.12)',
+  },
+  statusText: { fontSize: 10, fontWeight: '600', color: '#34C759' },
+
+  /* Action Buttons */
+  actionBtn: {
+    width: 72, height: 32, borderRadius: 8,
+    borderWidth: 1, alignItems: 'center', justifyContent: 'center',
+  },
+  actionBtnText: { fontSize: 13, fontWeight: '700' },
+  inviteActionBtn: {
+    width: 72, height: 32, borderRadius: 8,
+    borderWidth: 1, alignItems: 'center', justifyContent: 'center',
+  },
+  inviteActionText: { fontSize: 12, fontWeight: '600', color: '#8E8E93' },
+
+  /* Permission */
+  permWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },
+  permIconBox: { width: 88, height: 88, borderRadius: 28, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+  permTitle: { fontSize: 20, fontWeight: '700', color: '#FFF', marginBottom: 8, textAlign: 'center' },
+  permDesc: { fontSize: 14, fontWeight: '500', color: '#8E8E93', textAlign: 'center', lineHeight: 20, marginBottom: 24 },
+  permBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: '#FF6B00', paddingVertical: 14, paddingHorizontal: 24,
+    borderRadius: 12,
+  },
   permBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
 
-  syncBanner: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12, paddingHorizontal: 4 },
-  syncBannerText: { flex: 1, fontSize: 13, fontWeight: '600' },
-
-  searchBar: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1, marginBottom: 16 },
-  searchInput: { flex: 1, fontSize: 15, paddingVertical: 10 },
-
-  userCard: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 14, marginBottom: 8 },
-  avatar: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { fontSize: 16, fontWeight: '700', color: '#FFF' },
-  userInfo: { flex: 1 },
-  userName: { fontSize: 15, fontWeight: '600' },
-  userEmail: { fontSize: 12, fontWeight: '500', marginTop: 1 },
-  actionBtn: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10, minWidth: 60, alignItems: 'center' },
-  actionBtnText: { color: '#FFF', fontSize: 13, fontWeight: '700' },
-  addToGroupBtn: { width: 36, height: 36, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  friendBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8 },
-  friendBadgeText: { fontSize: 12, fontWeight: '700' },
-
-  syncingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
-  syncingText: { fontSize: 14, fontWeight: '600' },
-
-  emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32, gap: 8 },
+  /* States */
+  centerState: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
   emptyTitle: { fontSize: 17, fontWeight: '700' },
-  emptyDesc: { fontSize: 14, fontWeight: '500', textAlign: 'center', lineHeight: 20, marginBottom: 8 },
-  inviteBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 10, paddingHorizontal: 18, borderRadius: 10, borderWidth: 1 },
-  inviteBtnText: { fontSize: 14, fontWeight: '700' },
+  emptyDesc: { fontSize: 13, fontWeight: '500', color: '#8E8E93' },
+
+  /* Invite Button */
+  inviteBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingVertical: 10, paddingHorizontal: 18, borderRadius: 10,
+    borderWidth: 1, borderColor: 'rgba(255,107,0,0.3)',
+    marginTop: 4,
+  },
+  inviteBtnText: { fontSize: 14, fontWeight: '700', color: '#FF6B00' },
+
+  /* Sync Banner */
+  syncBannerRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingVertical: 10, marginBottom: 4,
+  },
+  syncBannerText: { fontSize: 13, fontWeight: '600', color: '#8E8E93', flex: 1 },
+});
+
+const avatarStyle = StyleSheet.create({
+  wrap: { alignItems: 'center', justifyContent: 'center' },
+  text: { fontWeight: '700', color: '#FFF' },
 });

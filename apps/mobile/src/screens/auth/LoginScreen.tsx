@@ -11,7 +11,6 @@ import {
   Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
@@ -86,10 +85,10 @@ export function LoginScreen() {
   return (
     <PageContainer noPadding>
       <KeyboardAvoidingContainer>
-        <LinearGradient
-          colors={isDark ? ['#0F0A1E', '#1A0A2E', '#0D0D1A'] : ['#F8F8FA', '#FFFFFF', '#FFFFFF']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
+        <View
+          
+          
+          
           style={StyleSheet.absoluteFill}
         />
 
@@ -101,14 +100,11 @@ export function LoginScreen() {
           </TouchableOpacity>
 
           <Animated.View style={[styles.brand, { transform: [{ translateY: slideUp }] }]}>
-            <LinearGradient
-              colors={['#6C3EF4', '#8B5CF6']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.logoOuter}
+            <View
+              style={[styles.logoOuter, { backgroundColor: colors.accent.primary }]}
             >
               <Text style={styles.logoText}>D</Text>
-            </LinearGradient>
+            </View>
             <Text style={[styles.title, { color: colors.text.primary }]}>Welcome to Dabbu</Text>
             <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>
               Sign in to manage your finances
@@ -150,15 +146,12 @@ export function LoginScreen() {
                 </View>
 
                 <TouchableOpacity
-                  style={[styles.primaryBtn, loading && { opacity: 0.6 }]}
+                  style={[styles.primaryBtn, { backgroundColor: colors.accent.primary, borderColor: colors.brand.hover }, loading && { opacity: 0.6 }]}
                   onPress={handleSendOtp}
                   disabled={loading}
                   activeOpacity={0.85}
                 >
-                  <LinearGradient
-                    colors={['#6C3EF4', '#8B5CF6']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
+                  <View
                     style={styles.primaryBtnGrad}
                   >
                     {loading ? (
@@ -166,7 +159,7 @@ export function LoginScreen() {
                     ) : (
                       <Text style={styles.primaryBtnText}>Continue</Text>
                     )}
-                  </LinearGradient>
+                  </View>
                 </TouchableOpacity>
               </>
             ) : (
@@ -189,15 +182,12 @@ export function LoginScreen() {
                 </View>
 
                 <TouchableOpacity
-                  style={[styles.primaryBtn, loading && { opacity: 0.6 }]}
+                  style={[styles.primaryBtn, { backgroundColor: colors.accent.primary, borderColor: colors.brand.hover }, loading && { opacity: 0.6 }]}
                   onPress={handleVerifyOtp}
                   disabled={loading}
                   activeOpacity={0.85}
                 >
-                  <LinearGradient
-                    colors={['#6C3EF4', '#8B5CF6']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
+                  <View
                     style={styles.primaryBtnGrad}
                   >
                     {loading ? (
@@ -205,7 +195,7 @@ export function LoginScreen() {
                     ) : (
                       <Text style={styles.primaryBtnText}>Verify & Sign In</Text>
                     )}
-                  </LinearGradient>
+                  </View>
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={() => { setShowOtp(false); setOtp(''); }} style={{ alignSelf: 'center', marginTop: 12 }}>
@@ -223,7 +213,7 @@ export function LoginScreen() {
             </View>
 
             <TouchableOpacity
-              style={[styles.socialBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.04)', borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}
+              style={[styles.socialBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.04)', borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)' }]}
               onPress={handleGuestLogin}
               disabled={loading}
               activeOpacity={0.85}
@@ -266,7 +256,7 @@ const styles = StyleSheet.create({
   otpSent: { fontSize: 13, marginBottom: 12 },
   otpRow: { borderRadius: 16, borderWidth: 1, paddingHorizontal: 14, marginBottom: 16 },
   otpInput: { fontSize: 20, paddingVertical: 16, textAlign: 'center', letterSpacing: 8 },
-  primaryBtn: { borderRadius: 16, overflow: 'hidden', marginTop: 4 },
+  primaryBtn: { borderRadius: 16, overflow: 'hidden', marginTop: 4, borderWidth: 1.5 },
   primaryBtnGrad: { paddingVertical: 16, alignItems: 'center', justifyContent: 'center' },
   primaryBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
   backLink: { fontSize: 13, fontWeight: '600' },
@@ -274,7 +264,7 @@ const styles = StyleSheet.create({
   dividerRow: { flexDirection: 'row', alignItems: 'center', width: '100%' },
   dividerLine: { flex: 1, height: 1 },
   dividerText: { fontSize: 12, fontWeight: '600', marginHorizontal: 12, letterSpacing: 0.3 },
-  socialBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, borderRadius: 16, borderWidth: 1, gap: 10, width: '100%' },
+  socialBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, borderRadius: 16, borderWidth: 1.5, gap: 10, width: '100%' },
   socialBtnText: { fontSize: 15, fontWeight: '600' },
   guestBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8 },
   guestText: { fontSize: 14, fontWeight: '600' },

@@ -12,7 +12,6 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -108,23 +107,20 @@ export function ProfileScreen() {
         >
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <Ionicons name="arrow-back" size={22} color="#6C3EF4" />
+              <Ionicons name="arrow-back" size={22} color={colors.accent.primary} />
             </TouchableOpacity>
             <Text style={[styles.pageTitle, { color: colors.text.primary }]}>Edit Profile</Text>
             <View style={{ width: 36 }} />
           </View>
 
-          <View style={styles.avatarSection}>
+            <View style={styles.avatarSection}>
             <View style={styles.avatarOuter}>
-              <LinearGradient
-                colors={['#6C3EF4', '#8B5CF6']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.avatarGradient}
+              <View
+                style={[styles.avatarGradient, { shadowColor: colors.accent.primary }]}
               >
                 <Text style={styles.avatarText}>{initials}</Text>
-              </LinearGradient>
-              <TouchableOpacity style={styles.editAvatarBtn} activeOpacity={0.8}>
+              </View>
+              <TouchableOpacity style={[styles.editAvatarBtn, { backgroundColor: colors.accent.primary, shadowColor: colors.accent.primary }]} activeOpacity={0.8}>
                 <View style={styles.editAvatarInner}>
                   <Ionicons name="camera" size={16} color="#FFFFFF" />
                 </View>
@@ -213,10 +209,10 @@ export function ProfileScreen() {
             disabled={saving}
             activeOpacity={0.85}
           >
-            <LinearGradient
-              colors={['#6C3EF4', '#8B5CF6']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+            <View
+              
+              
+              
               style={styles.saveBtnGrad}
             >
               {saving ? (
@@ -227,7 +223,7 @@ export function ProfileScreen() {
                   <Text style={styles.saveBtnText}>Save Changes</Text>
                 </>
               )}
-            </LinearGradient>
+            </View>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -262,7 +258,6 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#6C3EF4',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.25,
     shadowRadius: 16,
@@ -276,10 +271,8 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#6C3EF4',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#6C3EF4',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 6,

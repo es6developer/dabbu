@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRoute } from '@react-navigation/native';
 import { useTheme } from '../../theme';
@@ -170,7 +169,7 @@ export function MonthlyComparisonScreen() {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.bg.primary }]} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <LinearGradient colors={[...colors.accent.gradient]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.headingUnderline} />
+      <View    style={styles.headingUnderline} />
       <Text style={[styles.heading, { color: colors.text.primary }]}>
         {getMonthName(month1)} {year1} vs {getMonthName(month2)} {year2}
       </Text>
@@ -222,9 +221,9 @@ export function MonthlyComparisonScreen() {
         (!data?.differences?.onlyInMonth2 || data.differences.onlyInMonth2.length === 0) &&
         (!data?.differences?.priceChanges || data.differences.priceChanges.length === 0) && (
         <View style={[styles.emptyCard, { backgroundColor: colors.bg.glassLight, borderColor: colors.border.subtle }]}>
-          <LinearGradient colors={[...colors.accent.gradient]} style={styles.emptyIconWrap}>
+          <View  style={styles.emptyIconWrap}>
             <Ionicons name="analytics-outline" size={28} color="#FFFFFF" />
-          </LinearGradient>
+          </View>
           <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No Differences Found</Text>
           <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>Both months have identical spending patterns.</Text>
         </View>

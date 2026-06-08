@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme';
@@ -85,8 +84,8 @@ export function AiInsightsScreen() {
 
   return (
     <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
-      <LinearGradient
-        colors={['#8B5CF6', '#6D28D9']}
+      <View
+        
         style={[s.header, { paddingTop: insets.top + 16 }]}
       >
         <View style={s.headerRow}>
@@ -99,7 +98,7 @@ export function AiInsightsScreen() {
             <Text style={s.headerBadgeText}>BETA</Text>
           </View>
         </View>
-      </LinearGradient>
+      </View>
 
       <ScrollView
         horizontal
@@ -113,7 +112,7 @@ export function AiInsightsScreen() {
             style={[
               s.sectionTab,
               {
-                backgroundColor: activeSection === sec.key ? '#8B5CF6' : colors.bg.secondary,
+                backgroundColor: activeSection === sec.key ? colors.accent.primary : colors.bg.secondary,
               },
             ]}
             onPress={() => {
@@ -146,7 +145,7 @@ export function AiInsightsScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={() => loadInsights(activeSection, true)}
-            tintColor="#8B5CF6"
+            tintColor={colors.accent.primary}
           />
         }
       >
@@ -161,7 +160,7 @@ export function AiInsightsScreen() {
             {narrative?.summary && (
               <View style={[s.narrativeCard, { backgroundColor: colors.bg.secondary }]}>
                 <View style={s.narrativeHeader}>
-                  <Ionicons name="sparkles" size={18} color="#8B5CF6" />
+                  <Ionicons name="sparkles" size={18} color={colors.accent.primary} />
                   <Text style={[s.narrativeTitle, { color: colors.text.primary }]}>
                     AI Analysis
                   </Text>
@@ -187,7 +186,7 @@ export function AiInsightsScreen() {
                     </Text>
                     {narrative.recommendations.map((r: string, i: number) => (
                       <View key={i} style={s.bulletRow}>
-                        <Text style={[s.bullet, { color: '#8B5CF6' }]}>▶</Text>
+                        <Text style={[s.bullet, { color: colors.accent.primary }]}>▶</Text>
                         <Text style={[s.bulletText, { color: colors.text.tertiary }]}>{r}</Text>
                       </View>
                     ))}
@@ -228,9 +227,9 @@ export function AiInsightsScreen() {
                       </Text>
                     </View>
                     {insight.source === 'ai' && (
-                      <View style={[s.aiBadge, { backgroundColor: '#8B5CF618' }]}>
-                        <Ionicons name="sparkles" size={10} color="#8B5CF6" />
-                        <Text style={s.aiBadgeText}>AI</Text>
+                      <View style={[s.aiBadge, { backgroundColor: `${colors.accent.primary}18` }]}>
+                        <Ionicons name="sparkles" size={10} color={colors.accent.primary} />
+                        <Text style={[s.aiBadgeText, { color: colors.accent.primary }]}>AI</Text>
                       </View>
                     )}
                   </View>
@@ -313,7 +312,7 @@ const s = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 8,
   },
-  aiBadgeText: { fontSize: 9, fontWeight: '700', color: '#8B5CF6', letterSpacing: 0.5 },
+  aiBadgeText: { fontSize: 9, fontWeight: '700', letterSpacing: 0.5 },
 
   sevTag: {
     alignSelf: 'flex-start',

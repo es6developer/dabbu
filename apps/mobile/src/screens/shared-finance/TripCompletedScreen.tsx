@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CelebrationOverlay } from '../../components/ui/CelebrationOverlay';
@@ -50,12 +49,12 @@ export function TripCompletedScreen({ route, navigation }: TripCompletedScreenPr
         contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + 32 }}
       >
       <View style={styles.hero}>
-        <LinearGradient
-          colors={[`${colors.status.success}20`, `${colors.status.success}08`]}
+        <View
+          
           style={styles.iconWrap}
         >
           <Ionicons name="checkmark-circle" size={64} color={colors.status.success} />
-        </LinearGradient>
+        </View>
 
         <Text style={[styles.heroTitle, { color: colors.text.primary }]}>
           Trip Completed Successfully!
@@ -132,15 +131,15 @@ export function TripCompletedScreen({ route, navigation }: TripCompletedScreenPr
           onPress={() => Linking.openURL('https://dabbu.app/premium')}
           activeOpacity={0.85}
         >
-          <LinearGradient
-            colors={[colors.accent.primary, colors.accent.secondary]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+          <View
+            
+            
+            
             style={styles.ctaGradient}
           >
             <Ionicons name="rocket-outline" size={20} color="#FFF" />
             <Text style={styles.ctaText}>Claim Your Free Premium Trial</Text>
-          </LinearGradient>
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity

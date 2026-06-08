@@ -4,7 +4,6 @@ import {
   Switch, RefreshControl, Alert, Share, Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -17,14 +16,13 @@ interface NotificationPref {
   key: string;
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
-  gradient: [string, string];
 }
 
 const NOTIFICATION_ITEMS: NotificationPref[] = [
-  { key: 'newExpenses', label: 'New Expenses', icon: 'card-outline', gradient: ['#6C3EF4', '#8B5CF6'] },
-  { key: 'budgetAlerts', label: 'Budget Alerts', icon: 'alert-circle-outline', gradient: ['#F59E0B', '#FBBF24'] },
-  { key: 'billReminders', label: 'Bill Reminders', icon: 'calendar-outline', gradient: ['#60A5FA', '#93C5FD'] },
-  { key: 'goalProgress', label: 'Goal Progress', icon: 'trophy-outline', gradient: ['#34C759', '#30D158'] },
+  { key: 'newExpenses', label: 'New Expenses', icon: 'card-outline' },
+  { key: 'budgetAlerts', label: 'Budget Alerts', icon: 'alert-circle-outline' },
+  { key: 'billReminders', label: 'Bill Reminders', icon: 'calendar-outline' },
+  { key: 'goalProgress', label: 'Goal Progress', icon: 'trophy-outline' },
 ];
 
 function daysSince(date: string): number {
@@ -161,15 +159,12 @@ export function CoupleSettingsScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={() => { setRefreshing(true); fetchData(true); }}
-            tintColor="#6C3EF4"
+            tintColor={colors.accent.primary}
           />
         }
       >
-        <LinearGradient
-          colors={['#6C3EF4', '#8B5CF6']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[styles.hero, { paddingTop: insets.top + 12 }]}
+        <View
+          style={[styles.hero, { paddingTop: insets.top + 12, backgroundColor: colors.accent.primary }]}
         >
           <TouchableOpacity
             style={styles.backBtn}
@@ -181,7 +176,7 @@ export function CoupleSettingsScreen() {
           <Text style={styles.heroTitle}>Settings</Text>
           <Text style={styles.heroSub}>Couple space preferences</Text>
           <View style={styles.heroGlow} />
-        </LinearGradient>
+        </View>
 
         {error ? (
           <View style={styles.errorBanner}>
@@ -223,9 +218,9 @@ export function CoupleSettingsScreen() {
           <View style={[styles.sectionCard, { backgroundColor: colors.bg.card }]}>
             <View style={[styles.settingRow, styles.settingRowBorder]}>
               <View style={styles.settingIconWrap}>
-                <LinearGradient colors={['#6C3EF4', '#8B5CF6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.settingIcon}>
+                <View style={[styles.settingIcon, { backgroundColor: colors.accent.primary }]}>
                   <Ionicons name="wallet-outline" size={16} color="#FFF" />
-                </LinearGradient>
+                </View>
               </View>
               <View style={styles.settingContent}>
                 <Text style={[styles.settingLabel, { color: colors.text.primary }]}>Monthly Budget</Text>
@@ -242,9 +237,9 @@ export function CoupleSettingsScreen() {
 
             <View style={[styles.settingRow, styles.settingRowBorder]}>
               <View style={styles.settingIconWrap}>
-                <LinearGradient colors={['#F3D28F', '#D4A84B']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.settingIcon}>
+                <View style={[styles.settingIcon, { backgroundColor: colors.accent.secondary }]}>
                   <Ionicons name="pie-chart-outline" size={16} color="#FFF" />
-                </LinearGradient>
+                </View>
               </View>
               <View style={styles.settingContent}>
                 <Text style={[styles.settingLabel, { color: colors.text.primary }]}>Split Ratio</Text>
@@ -259,9 +254,9 @@ export function CoupleSettingsScreen() {
 
             <View style={styles.settingRow}>
               <View style={styles.settingIconWrap}>
-                <LinearGradient colors={['#34C759', '#30D158']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.settingIcon}>
+                <View style={[styles.settingIcon, { backgroundColor: colors.status.success }]}>
                   <Ionicons name="save-outline" size={16} color="#FFF" />
-                </LinearGradient>
+                </View>
               </View>
               <View style={styles.settingContent}>
                 <Text style={[styles.settingLabel, { color: colors.text.primary }]}>Savings Goal</Text>
@@ -292,21 +287,18 @@ export function CoupleSettingsScreen() {
                   key={item.key}
                   style={[styles.notifRow, !isLast && styles.settingRowBorder]}
                 >
-                  <LinearGradient
-                    colors={item.gradient}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.notifIcon}
+                  <View
+                    style={[styles.notifIcon, { backgroundColor: colors.accent.primary }]}
                   >
                     <Ionicons name={item.icon} size={14} color="#FFF" />
-                  </LinearGradient>
+                  </View>
                   <Text style={[styles.notifLabel, { color: colors.text.primary }]}>
                     {item.label}
                   </Text>
                   <Switch
                     value={val}
                     onValueChange={(v) => handleToggle(item.key, v)}
-                    trackColor={{ false: colors.border.subtle, true: '#6C3EF4' }}
+                    trackColor={{ false: colors.border.subtle, true: colors.accent.primary }}
                     thumbColor={val ? '#FFF' : colors.text.tertiary}
                     ios_backgroundColor={colors.border.subtle}
                   />
@@ -322,15 +314,12 @@ export function CoupleSettingsScreen() {
             activeOpacity={0.8}
             onPress={handleInvite}
           >
-            <LinearGradient
-              colors={['#6C3EF4', '#8B5CF6']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.inviteGradient}
+            <View
+              style={[styles.inviteGradient, { backgroundColor: colors.accent.primary }]}
             >
               <Ionicons name="person-add-outline" size={20} color="#FFF" />
               <Text style={styles.inviteText}>Invite Partner</Text>
-            </LinearGradient>
+            </View>
           </TouchableOpacity>
         ) : null}
 
@@ -402,7 +391,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     alignItems: 'center',
-    shadowColor: '#6C3EF4',
+    shadowColor: '#F97316',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.12,
     shadowRadius: 16,
@@ -418,14 +407,14 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 18,
-    backgroundColor: '#6C3EF4',
+    backgroundColor: '#F97316',
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarEmpty: {
-    backgroundColor: 'rgba(108,62,244,0.25)',
+    backgroundColor: '#F9731625',
     borderWidth: 2,
-    borderColor: 'rgba(108,62,244,0.4)',
+    borderColor: '#F9731640',
     borderStyle: 'dashed',
   },
   avatarText: {
@@ -512,12 +501,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 10,
-    backgroundColor: 'rgba(108,62,244,0.1)',
+    backgroundColor: '#F9731610',
   },
   editBtnText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#6C3EF4',
+    color: '#F97316',
   },
 
   notifRow: {

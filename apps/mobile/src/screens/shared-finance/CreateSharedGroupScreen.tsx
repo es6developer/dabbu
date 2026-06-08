@@ -4,21 +4,20 @@ import {
   ScrollView, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
-import { useTheme } from '../../theme';
+import { useTheme, palette } from '../../theme';
 import { PageContainer } from '../../components/ui/PageContainer';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 
 const GROUP_TYPES = [
   { key: 'friends', label: 'Friends', icon: 'people', color: '#34C759' },
   { key: 'trip', label: 'Trip', icon: 'airplane', color: '#F3D28F' },
-  { key: 'family', label: 'Family', icon: 'home', color: '#6C3EF4' },
+  { key: 'family', label: 'Family', icon: 'home', color: palette.brand.primary },
   { key: 'couple', label: 'Couple', icon: 'heart', color: '#FF6B9D' },
   { key: 'roommates', label: 'Roommates', icon: 'business', color: '#4F6EF7' },
-  { key: 'office', label: 'Office', icon: 'briefcase', color: '#6366F1' },
+  { key: 'office', label: 'Office', icon: 'briefcase', color: palette.brand.primary },
   { key: 'event', label: 'Event', icon: 'calendar', color: '#FF6B6B' },
   { key: 'apartment', label: 'Apartment', icon: 'home', color: '#8A5CF6' },
 ];
@@ -67,9 +66,9 @@ export function CreateSharedGroupScreen() {
     <PageContainer noPadding>
       <KeyboardAvoidingContainer>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-          <LinearGradient
-            colors={['#6C3EF4', '#8B5CF6']}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          <View
+            
+             
             style={{ paddingTop: 48, paddingBottom: 28, paddingHorizontal: 20 }}
           >
             <View style={styles.headerRow}>
@@ -80,7 +79,7 @@ export function CreateSharedGroupScreen() {
               <View style={{ width: 32 }} />
             </View>
             <Text style={styles.headerSub}>Split expenses with friends, family, and more</Text>
-          </LinearGradient>
+          </View>
 
           <View style={{ padding: 20, gap: 20 }}>
             {error ? (
@@ -153,9 +152,9 @@ export function CreateSharedGroupScreen() {
               </View>
             )}
 
-            <LinearGradient
-              colors={['#6C3EF4', '#8B5CF6']}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            <View
+              
+               
               style={[styles.saveBtn, saving && { opacity: 0.6 }]}
             >
               <TouchableOpacity
@@ -169,7 +168,7 @@ export function CreateSharedGroupScreen() {
                   </>
                 )}
               </TouchableOpacity>
-            </LinearGradient>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingContainer>

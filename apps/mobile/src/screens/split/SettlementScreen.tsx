@@ -3,20 +3,21 @@ import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { useApiGet } from '../../hooks/useApi';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 
-const TYPE_CONFIG: Record<string, { icon: string; color: string }> = {
-  friends: { icon: 'people', color: '#6C3EF4' },
-  couple: { icon: 'heart', color: '#FF6B9D' },
-  family: { icon: 'home', color: '#34C759' },
-  trip: { icon: 'airplane', color: '#F3D28F' },
-  business: { icon: 'briefcase', color: '#F59E0B' },
-};
+function getTypeConfig(primary: string): Record<string, { icon: string; color: string }> {
+  return {
+    friends: { icon: 'people', color: primary },
+    couple: { icon: 'heart', color: '#FF6B9D' },
+    family: { icon: 'home', color: '#34C759' },
+    trip: { icon: 'airplane', color: '#F3D28F' },
+    business: { icon: 'briefcase', color: '#F59E0B' },
+  };
+}
 
 function fmt(v: number) {
   return `₹${(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
@@ -46,12 +47,10 @@ export function SettlementScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor="#6C3EF4" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.accent.primary} />}
       >
-        <LinearGradient
-          colors={['#6C3EF4', '#8B5CF6']}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}
+        <View
+          style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20, backgroundColor: colors.accent.primary }}
         >
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
@@ -61,19 +60,19 @@ export function SettlementScreen() {
             <View style={{ width: 32 }} />
           </View>
           <Text style={styles.headerSubtitle}>Settle up with your groups</Text>
-        </LinearGradient>
+        </View>
 
         <View style={{ paddingHorizontal: 20, paddingTop: 12, gap: 12 }}>
           {settlementGroups.length > 0 ? (
             settlementGroups.map((g: any) => {
-              const cfg = TYPE_CONFIG[g.type] || { icon: 'people', color: '#6C3EF4' };
+              const cfg = getTypeConfig(colors.accent.primary)[g.type] || { icon: 'people', color: colors.accent.primary };
               const members = g.members || [];
               const userMember = members.find((m: any) => m.balance !== undefined);
 
               return (
                 <View key={g.id}>
-                  <View style={[styles.groupHeader, { backgroundColor: colors.bg.card }]}>
-                    <View style={[styles.groupAvatar, { backgroundColor: `${cfg.color}15` }]}>
+                  <View style={[styles.groupHeader, { backgroundColor: colors.bg.card, borderWidth: 1, borderColor: colors.border.default }]}>
+                    <View style={[styles.groupAvatar, { backgroundColor: 'transparent' }]}>
                       <Ionicons name={`${cfg.icon}-outline` as any} size={20} color={cfg.color} />
                     </View>
                     <View style={{ flex: 1 }}>
@@ -95,11 +94,11 @@ export function SettlementScreen() {
                       return (
                         <View
                           key={mi}
-                          style={[styles.settlementCard, { backgroundColor: colors.bg.card }]}
+                          style={[styles.settlementCard, { backgroundColor: colors.bg.card, borderWidth: 1, borderColor: colors.border.default }]}
                         >
                           <View style={styles.settlementLeft}>
-                            <View style={[styles.settlementAvatar, { backgroundColor: isOwed ? '#34C75915' : '#FF4D4F15' }]}>
-                              <Text style={[styles.settlementAvatarText, { color: isOwed ? '#34C759' : '#FF4D4F' }]}>
+                            <View style={[styles.settlementAvatar, { backgroundColor: 'transparent' }]}>
+                              <Text style={[styles.settlementAvatarText, { color: colors.text.primary }]}>
                                 {member.name?.[0] || '?'}
                               </Text>
                             </View>
@@ -107,39 +106,33 @@ export function SettlementScreen() {
                               <Text style={[styles.settlementName, { color: colors.text.primary }]}>
                                 {member.name || 'Member'}
                               </Text>
-                              <Text style={[styles.settlementLabel, { color: isOwed ? '#34C759' : '#FF4D4F' }]}>
+                              <Text style={[styles.settlementLabel, { color: colors.text.secondary }]}>
                                 {isOwed ? 'gets back' : 'owes'}
                               </Text>
                             </View>
                           </View>
                           <View style={styles.settlementRight}>
-                            <Text style={[styles.settlementAmount, { color: isOwed ? '#34C759' : '#FF4D4F' }]}>
+                            <Text style={[styles.settlementAmount, { color: colors.text.primary }]}>
                               {fmt(Math.abs(balance))}
                             </Text>
                             <TouchableOpacity
-                              style={styles.payBtn}
+                              style={[styles.payBtn, { backgroundColor: colors.accent.primary, borderWidth: 1, borderColor: colors.border.default }]}
                               activeOpacity={0.85}
                               onPress={() => navigation.navigate('SharedGroupDetail', { groupId: g.id })}
                             >
-                              <LinearGradient
-                                colors={['#6C3EF4', '#8B5CF6']}
-                                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                                style={styles.payBtnGrad}
-                              >
-                                <Text style={styles.payBtnText}>
-                                  {owes ? 'Pay Now' : 'Request'}
-                                </Text>
-                              </LinearGradient>
+                              <Text style={styles.payBtnText}>
+                                {owes ? 'Pay Now' : 'Request'}
+                              </Text>
                             </TouchableOpacity>
                           </View>
                         </View>
                       );
                     })
                   ) : (
-                    <View style={[styles.settlementCard, { backgroundColor: colors.bg.card }]}>
+                    <View style={[styles.settlementCard, { backgroundColor: colors.bg.card, borderWidth: 1, borderColor: colors.border.default }]}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                        <View style={[styles.settlementAvatar, { backgroundColor: '#34C75915' }]}>
-                          <Ionicons name="checkmark-circle" size={22} color="#34C759" />
+                        <View style={[styles.settlementAvatar, { backgroundColor: 'transparent' }]}>
+                          <Ionicons name="checkmark-circle" size={22} color={colors.text.secondary} />
                         </View>
                         <Text style={[styles.settlementName, { color: colors.text.secondary }]}>
                           All settled up
@@ -152,8 +145,8 @@ export function SettlementScreen() {
             })
           ) : (
             <View style={styles.emptyState}>
-              <View style={[styles.emptyIcon, { backgroundColor: '#34C75915' }]}>
-                <Ionicons name="checkmark-circle" size={40} color="#34C759" />
+              <View style={[styles.emptyIcon, { backgroundColor: 'transparent' }]}>
+                <Ionicons name="checkmark-circle" size={40} color={colors.text.secondary} />
               </View>
               <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>All settled up!</Text>
               <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>No pending settlements</Text>
@@ -196,8 +189,7 @@ const styles = StyleSheet.create({
   settlementLabel: { fontSize: 11, fontWeight: '600', marginTop: 1 },
   settlementRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   settlementAmount: { fontSize: 16, fontWeight: '800' },
-  payBtn: { borderRadius: 12, overflow: 'hidden' },
-  payBtnGrad: { paddingHorizontal: 16, paddingVertical: 9, alignItems: 'center', justifyContent: 'center' },
+  payBtn: { borderRadius: 12, overflow: 'hidden', paddingHorizontal: 16, paddingVertical: 9, alignItems: 'center', justifyContent: 'center' },
   payBtnText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
   emptyState: { alignItems: 'center', paddingVertical: 40, gap: 8 },
   emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },

@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
@@ -17,22 +17,24 @@ import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { getCategoryIcon } from '../../config/categoryIcons';
 
-const DETAIL_COLORS: Record<string, [string, string]> = {
-  Food: ['#6C3EF4', '#8B5CF6'], Travel: ['#4A90D9', '#357ABD'],
-  Shopping: ['#E056A0', '#C94D8B'], Medical: ['#00B894', '#00A381'],
-  Fuel: ['#F59E0B', '#F3D28F'], Rent: ['#6C5CE7', '#5A4BD1'],
-  EMI: ['#E17055', '#D63031'], Bills: ['#0984E3', '#0768B8'],
-  Entertainment: ['#A29BFE', '#817CE8'], Education: ['#55EFC4', '#00CEC9'],
-  Grocery: ['#81ECEC', '#00CEC9'], Investment: ['#74B9FF', '#4D96FF'],
-  Salary: ['#00B894', '#00A381'], Transfer: ['#DFE6E9', '#B2BEC3'],
-};
+function getDetailColors(primary: string): Record<string, [string, string]> {
+  return {
+    Food: [primary, primary], Travel: ['#4A90D9', '#357ABD'],
+    Shopping: ['#E056A0', '#C94D8B'], Medical: ['#00B894', '#00A381'],
+    Fuel: ['#F59E0B', '#F3D28F'], Rent: ['#6C5CE7', '#5A4BD1'],
+    EMI: ['#E17055', '#D63031'], Bills: ['#0984E3', '#0768B8'],
+    Entertainment: ['#A29BFE', '#817CE8'], Education: ['#55EFC4', '#00CEC9'],
+    Grocery: ['#81ECEC', '#00CEC9'], Investment: ['#74B9FF', '#4D96FF'],
+    Salary: ['#00B894', '#00A381'], Transfer: ['#DFE6E9', '#B2BEC3'],
+  };
+}
 
 function getIcon(cat: string): string {
   return getCategoryIcon(cat, 'ellipse');
 }
 
-function getCatColors(cat: string): [string, string] {
-  return DETAIL_COLORS[cat] || ['#6C3EF4', '#8B5CF6'];
+function getCatColors(cat: string, primary: string): [string, string] {
+  return getDetailColors(primary)[cat] || [primary, primary];
 }
 
 export function TransactionDetailScreen() {
@@ -81,7 +83,7 @@ export function TransactionDetailScreen() {
   if (loading) {
     return (
       <View style={[s.loading, { backgroundColor: colors.bg.primary }]}>
-        <ActivityIndicator color="#6C3EF4" size="large" />
+        <ActivityIndicator color={colors.accent.primary} size="large" />
       </View>
     );
   }
@@ -97,29 +99,19 @@ export function TransactionDetailScreen() {
   const sign = isCredit ? '+' : '-';
   const fmtVal = (val: number) => '₹' + val.toLocaleString('en-IN');
   const cat = txn.category?.name || txn.category || 'Other';
-  const catColors = getCatColors(cat);
+  const catColors = getCatColors(cat, colors.accent.primary);
 
   return (
     <View style={[s.container, { backgroundColor: colors.bg.primary }]}>
-      <LinearGradient
-        colors={['#6C3EF4', '#8B5CF6']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[s.hero, { paddingTop: insets.top + 8 }]}
-      >
+      <View style={[s.hero, { paddingTop: insets.top + 8, backgroundColor: colors.accent.primary }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
           <View style={s.backBtnInner}>
             <Ionicons name="chevron-back" size={22} color="#FFF" />
           </View>
         </TouchableOpacity>
-        <LinearGradient
-          colors={catColors}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={s.heroIcon}
-        >
+        <View style={[s.heroIcon, { backgroundColor: catColors[0] }]}>
           <Ionicons name={getIcon(cat) as any} size={32} color="#FFF" />
-        </LinearGradient>
+        </View>
         <Text style={s.heroLabel}>{isCredit ? 'Income' : 'Expense'}</Text>
         <Text style={s.heroAmount}>
           {sign}{fmtVal(Number(txn.amount))}
@@ -129,7 +121,7 @@ export function TransactionDetailScreen() {
           <View style={[s.badgeDot, { backgroundColor: txn.isReconciled ? '#34C759' : '#F59E0B' }]} />
           <Text style={s.badgeText}>{txn.isReconciled ? 'Reconciled' : 'Pending'}</Text>
         </View>
-      </LinearGradient>
+      </View>
 
       <ScrollView
         style={s.body}
@@ -196,8 +188,8 @@ export function TransactionDetailScreen() {
             onPress={() => navigation.push('CreateTransaction', { transaction: txn })}
             activeOpacity={0.7}
           >
-            <View style={[s.actionIcon, { backgroundColor: '#6C3EF415' }]}>
-              <Ionicons name="create-outline" size={20} color="#6C3EF4" />
+            <View style={[s.actionIcon, { backgroundColor: `${colors.accent.primary}15` }]}>
+              <Ionicons name="create-outline" size={20} color={colors.accent.primary} />
             </View>
             <Text style={[s.actionLabel, { color: colors.text.primary }]}>Edit</Text>
           </TouchableOpacity>
@@ -216,8 +208,8 @@ export function TransactionDetailScreen() {
             }
             activeOpacity={0.7}
           >
-            <View style={[s.actionIcon, { backgroundColor: '#8B5CF615' }]}>
-              <Ionicons name="copy-outline" size={20} color="#8B5CF6" />
+            <View style={[s.actionIcon, { backgroundColor: `${colors.accent.primary}15` }]}>
+              <Ionicons name="copy-outline" size={20} color={colors.accent.primary} />
             </View>
             <Text style={[s.actionLabel, { color: colors.text.primary }]}>Duplicate</Text>
           </TouchableOpacity>

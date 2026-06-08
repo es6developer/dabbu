@@ -27,7 +27,7 @@ export function TransactionCard({ name, amount, category, date, avatar, onPress 
 
   return (
     <TouchableOpacity
-      style={[styles.card, { backgroundColor: colors.bg.card }]}
+      style={[styles.card, { backgroundColor: colors.bg.card, borderColor: colors.border.default }]}
       activeOpacity={0.7}
       onPress={onPress}
     >
@@ -66,6 +66,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 16,
+    borderWidth: 1,
     marginBottom: 8,
     gap: 12,
     shadowColor: '#000',
@@ -84,7 +85,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#6C3EF4',
+    color: '#F97316',
   },
   info: {
     flex: 1,

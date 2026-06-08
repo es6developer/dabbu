@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../theme';
 
 const { width } = Dimensions.get('window');
@@ -25,11 +25,8 @@ export function BalanceCard({ totalBalance, monthlySpending, monthlyBudget }: Ba
 
   return (
     <View style={styles.wrapper}>
-      <LinearGradient
-        colors={['#6C3EF4', '#8B5CF6']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
+      <View
+        style={[styles.card, { backgroundColor: colors.accent.primary }]}
       >
         <View style={styles.topRow}>
           <View>
@@ -37,7 +34,7 @@ export function BalanceCard({ totalBalance, monthlySpending, monthlyBudget }: Ba
             <Text style={styles.balance}>{fmt(totalBalance)}</Text>
           </View>
           <View style={styles.goldBadge}>
-            <Ionicons name="wallet" size={14} color="#F3D28F" />
+            <Ionicons name="wallet" size={14} color="#FFFFFF" />
             <Text style={styles.goldText}>Premium</Text>
           </View>
         </View>
@@ -64,10 +61,15 @@ export function BalanceCard({ totalBalance, monthlySpending, monthlyBudget }: Ba
             </Text>
           </View>
           <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${Math.min(spendPct, 100)}%` }]} />
+            <LinearGradient
+              colors={['#FF6B00', '#FF914D']}
+              style={[styles.progressFill, { width: `${Math.min(spendPct, 100)}%` }]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            />
           </View>
         </View>
-      </LinearGradient>
+      </View>
     </View>
   );
 }
@@ -76,14 +78,14 @@ const styles = StyleSheet.create({
   wrapper: {
     marginHorizontal: 16,
     marginTop: -24,
-    shadowColor: '#6C3EF4',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 24,
-    elevation: 12,
+    shadowColor: '#FF6B00',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 30,
+    elevation: 8,
   },
   card: {
-    borderRadius: 24,
+    borderRadius: 20,
     padding: 22,
   },
   topRow: {
@@ -92,15 +94,14 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   label: {
-    color: 'rgba(255,255,255,0.6)',
+    color: 'rgba(255,255,255,0.7)',
     fontSize: 13,
     fontWeight: '500',
-    letterSpacing: 0.3,
   },
   balance: {
     color: '#FFFFFF',
     fontSize: 36,
-    fontWeight: '800',
+    fontWeight: '700',
     letterSpacing: -1,
     marginTop: 4,
   },
@@ -108,13 +109,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: 'rgba(243,210,143,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.15)',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 10,
   },
   goldText: {
-    color: '#F3D28F',
+    color: '#FFFFFF',
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.5,
@@ -133,8 +134,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   statLabel: {
-    color: 'rgba(255,255,255,0.5)',
-    fontSize: 11,
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 13,
     fontWeight: '500',
     marginBottom: 4,
   },
@@ -158,19 +159,18 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   progressLabel: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: 11,
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 13,
     fontWeight: '500',
   },
   progressBar: {
-    height: 6,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 3,
+    height: 8,
+    backgroundColor: '#242427',
+    borderRadius: 4,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#F3D28F',
-    borderRadius: 3,
+    borderRadius: 4,
   },
 });

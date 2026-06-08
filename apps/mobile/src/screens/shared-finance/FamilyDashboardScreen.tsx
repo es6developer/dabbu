@@ -9,7 +9,6 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
@@ -163,7 +162,7 @@ export function FamilyDashboardScreen() {
           </TouchableOpacity>
         </View>
 
-        <LinearGradient colors={['#2D6A4F', '#1B4332']} style={s.heroSection}>
+        <View  style={s.heroSection}>
           <View style={s.heroIconWrap}>
             <Ionicons name="people" size={28} color="#FFF" />
           </View>
@@ -174,7 +173,7 @@ export function FamilyDashboardScreen() {
             <Text style={s.heroMetaText}>{summary.totalExpenses || 0} expenses</Text>
           </View>
           <Text style={s.heroSub}>{fmt(totalMonthlySpending)} spent this month</Text>
-        </LinearGradient>
+        </View>
 
         <View style={s.widgetsGrid}>
           <View style={[s.widgetCard, { backgroundColor: colors.bg.secondary }]}>

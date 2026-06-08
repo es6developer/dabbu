@@ -14,7 +14,6 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme';
@@ -339,8 +338,8 @@ export function ReferralScreen() {
         }
       >
         {/* Hero */}
-        <LinearGradient
-          colors={isDark ? ['#1A0A2E', '#2D1B4E'] : ['#6C5CE7', '#A29BFE']}
+        <View
+          
           style={[styles.hero, { paddingTop: insets.top + 16 }]}
         >
           <Text style={styles.heroEyebrow}>REFER & EARN</Text>
@@ -363,7 +362,7 @@ export function ReferralScreen() {
               <Text style={styles.codeShareText}>Share</Text>
             </View>
           </TouchableOpacity>
-        </LinearGradient>
+        </View>
 
         {/* Stats Card */}
         {stats && (

@@ -2,23 +2,33 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { CreateCategoryDto, UpdateCategoryDto } from './dto';
 
-const DEFAULT_CATEGORIES = [
-  { name: 'Food & Dining', type: 'expense', icon: 'fast-food', color: '#f7892c' },
-  { name: 'Transportation', type: 'expense', icon: 'car', color: '#6366F1' },
-  { name: 'Shopping', type: 'expense', icon: 'bag', color: '#EC4899' },
-  { name: 'Bills & Utilities', type: 'expense', icon: 'flash', color: '#F59E0B' },
+const EXPENSE_DEFAULTS = [
+  { name: 'Housing', type: 'expense', icon: 'home', color: '#FB923C' },
+  { name: 'Groceries', type: 'expense', icon: 'cart', color: '#34C759' },
+  { name: 'Food & Dining', type: 'expense', icon: 'fast-food', color: '#FF6B6B' },
+  { name: 'Utilities', type: 'expense', icon: 'flash', color: '#FBBF24' },
+  { name: 'Transportation', type: 'expense', icon: 'car', color: '#38BDF8' },
+  { name: 'Healthcare', type: 'expense', icon: 'medkit', color: '#FF4D4F' },
+  { name: 'Shopping', type: 'expense', icon: 'bag', color: '#F472B6' },
   { name: 'Entertainment', type: 'expense', icon: 'film', color: '#8B5CF6' },
-  { name: 'Healthcare', type: 'expense', icon: 'medkit', color: '#EF4444' },
-  { name: 'Education', type: 'expense', icon: 'book', color: '#14B8A6' },
-  { name: 'Rent', type: 'expense', icon: 'home', color: '#3B82F6' },
-  { name: 'Salary', type: 'income', icon: 'cash', color: '#10B981' },
-  { name: 'Investment', type: 'income', icon: 'trending-up', color: '#f7892c' },
-  { name: 'Transfer', type: 'transfer', icon: 'swap-horizontal', color: '#6B7280' },
-  { name: 'EMI', type: 'expense', icon: 'card', color: '#E11D48' },
-  { name: 'Insurance', type: 'expense', icon: 'shield', color: '#0EA5E9' },
-  { name: 'Subscriptions', type: 'expense', icon: 'repeat', color: '#A855F7' },
-  { name: 'Miscellaneous', type: 'expense', icon: 'ellipsis-horizontal', color: '#6B7280' },
+  { name: 'Travel', type: 'expense', icon: 'airplane', color: '#60A5FA' },
+  { name: 'Children & Baby', type: 'expense', icon: 'happy', color: '#FF9F0A' },
+  { name: 'Financial', type: 'expense', icon: 'shield', color: '#00CEC9' },
+  { name: 'Other', type: 'expense', icon: 'ellipsis-horizontal', color: '#636E72' },
 ];
+
+const INCOME_DEFAULTS = [
+  { name: 'Employment', type: 'income', icon: 'briefcase', color: '#00B894' },
+  { name: 'Business', type: 'income', icon: 'storefront', color: '#6366F1' },
+  { name: 'Freelancing', type: 'income', icon: 'laptop', color: '#3498DB' },
+  { name: 'Investments', type: 'income', icon: 'trending-up', color: '#9B59B6' },
+  { name: 'Rental', type: 'income', icon: 'home', color: '#FB923C' },
+  { name: 'Gifts & Rewards', type: 'income', icon: 'gift', color: '#F472B6' },
+  { name: 'Family Contributions', type: 'income', icon: 'people', color: '#FF6B00' },
+  { name: 'Other', type: 'income', icon: 'ellipsis-horizontal', color: '#636E72' },
+];
+
+const DEFAULT_CATEGORIES = [...EXPENSE_DEFAULTS, ...INCOME_DEFAULTS];
 
 @Injectable()
 export class CategoriesService {

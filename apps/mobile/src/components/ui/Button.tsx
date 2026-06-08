@@ -1,15 +1,11 @@
-import React, { useCallback, useRef } from 'react';
-import {
-  TouchableOpacity, Text, StyleSheet, ActivityIndicator,
-  ViewStyle, TextStyle, Animated, AccessibilityProps,
-} from 'react-native';
-import * as Haptics from 'expo-haptics';
+import React, { useRef } from 'react';
+import { Animated, TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
 import { useTheme, spacing, borderRadius, typography } from '../../theme';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
-interface ButtonProps extends AccessibilityProps {
+interface ButtonProps {
   title: string;
   onPress: () => void;
   variant?: ButtonVariant;
@@ -20,7 +16,6 @@ interface ButtonProps extends AccessibilityProps {
   iconPosition?: 'left' | 'right';
   style?: ViewStyle;
   textStyle?: TextStyle;
-  haptic?: boolean;
   fullWidth?: boolean;
 }
 
@@ -35,22 +30,16 @@ export const Button: React.FC<ButtonProps> = ({
   iconPosition = 'left',
   style,
   textStyle,
-  haptic = true,
   fullWidth = false,
-  ...accessibilityProps
 }) => {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const scaleAnim = useRef(new Animated.Value(1)).current;
-
-  const handlePress = useCallback(() => {
-    if (disabled || loading) {return;}
-    if (haptic) {Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);}
-    onPress();
-  }, [disabled, loading, haptic, onPress]);
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
       toValue: 0.97,
+      friction: 8,
+      tension: 40,
       useNativeDriver: true,
     }).start();
   };
@@ -82,23 +71,21 @@ export const Button: React.FC<ButtonProps> = ({
     primary: {
       container: {
         backgroundColor: colors.accent.primary,
-        borderRadius: borderRadius.lg,
+        borderRadius: 12,
       },
       text: { color: '#FFFFFF' },
     },
     secondary: {
       container: {
-        backgroundColor: colors.bg.glassLight,
-        borderRadius: borderRadius.lg,
-        borderWidth: 1,
-        borderColor: colors.border.default,
+        backgroundColor: colors.bg.tertiary,
+        borderRadius: 12,
       },
       text: { color: colors.text.primary },
     },
     outline: {
       container: {
         backgroundColor: 'transparent',
-        borderRadius: borderRadius.lg,
+        borderRadius: 12,
         borderWidth: 1.5,
         borderColor: colors.accent.primary,
       },
@@ -107,14 +94,14 @@ export const Button: React.FC<ButtonProps> = ({
     ghost: {
       container: {
         backgroundColor: 'transparent',
-        borderRadius: borderRadius.lg,
+        borderRadius: 12,
       },
       text: { color: colors.accent.primary },
     },
     danger: {
       container: {
         backgroundColor: colors.status.error,
-        borderRadius: borderRadius.lg,
+        borderRadius: 12,
       },
       text: { color: '#FFFFFF' },
     },
@@ -126,7 +113,7 @@ export const Button: React.FC<ButtonProps> = ({
   return (
     <Animated.View style={[{ transform: [{ scale: scaleAnim }] }, fullWidth && { width: '100%' }]}>
       <TouchableOpacity
-        onPress={handlePress}
+        onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         disabled={disabled || loading}
@@ -139,25 +126,24 @@ export const Button: React.FC<ButtonProps> = ({
           disabled && { opacity: 0.5 },
           style,
         ]}
-        {...accessibilityProps}
       >
         {loading ? (
           <ActivityIndicator size="small" color={currentVariant.text.color as string} />
         ) : (
           <>
-            {icon && iconPosition === 'left' && <>{icon}</>}
+            {icon && iconPosition === 'left' && icon}
             <Text
               style={[
                 currentSize.text,
                 currentVariant.text,
-                (icon && iconPosition === 'left' ? { marginLeft: spacing.sm } : undefined),
-                (icon && iconPosition === 'right' ? { marginRight: spacing.sm } : undefined),
+                icon && iconPosition === 'left' ? { marginLeft: spacing.sm } : undefined,
+                icon && iconPosition === 'right' ? { marginRight: spacing.sm } : undefined,
                 textStyle,
               ]}
             >
               {title}
             </Text>
-            {icon && iconPosition === 'right' && <>{icon}</>}
+            {icon && iconPosition === 'right' && icon}
           </>
         )}
       </TouchableOpacity>

@@ -16,7 +16,7 @@ export function ContactUsScreen() {
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.bg.primary }]} contentContainerStyle={styles.content}>
       <View style={styles.hero}>
-        <View style={[styles.heroIcon, { backgroundColor: `${colors.accent.primary}15` }]}>
+<View style={[styles.heroIcon, { backgroundColor: colors.bg.secondary }]}>
           <Ionicons name="chatbubbles" size={40} color={colors.accent.primary} />
         </View>
         <Text style={[styles.title, { color: colors.text.primary }]}>Get in Touch</Text>
@@ -28,10 +28,9 @@ export function ContactUsScreen() {
         <TouchableOpacity
           key={i}
           style={[styles.card, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}
-          onPress={() => Linking.openURL(opt.action)}
           activeOpacity={0.7}
         >
-          <View style={[styles.iconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
+          <View style={[styles.iconWrap, { backgroundColor: colors.bg.secondary }]}>
             <Ionicons name={opt.icon} size={22} color={colors.accent.primary} />
           </View>
           <View style={styles.info}>

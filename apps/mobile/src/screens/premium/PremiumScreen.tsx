@@ -12,7 +12,6 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
@@ -231,8 +230,8 @@ export function PremiumScreen() {
     return (
       <View style={{ flex: 1, backgroundColor: '#0A0A1A' }}>
         <ScrollView style={[styles.container, { backgroundColor: '#0A0A1A' }]}>
-          <LinearGradient
-            colors={['#1A0A2E', '#0A0A1A']}
+          <View
+            
             style={[styles.activeHeader, { paddingTop: insets.top }]}
           >
             <View style={styles.premiumBadgeLarge}>
@@ -240,7 +239,7 @@ export function PremiumScreen() {
               <Text style={styles.premiumBadgeText}>DABBU PREMIUM</Text>
             </View>
             <Text style={styles.activeTitle}>You're on Premium</Text>
-          </LinearGradient>
+          </View>
           <View style={styles.activeDetails}>
             <View style={styles.detailCard}>
               <Ionicons name="calendar" size={20} color="#FFD700" />
@@ -292,10 +291,10 @@ export function PremiumScreen() {
         <Animated.View
           style={[styles.heroSection, { opacity: fadeAnim, transform: [{ scale: heroScale }] }]}
         >
-          <LinearGradient
-            colors={['#1A0A2E', '#2D1B4E', '#0A0A1A']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+          <View
+            
+            
+            
             style={[styles.heroGradient, { paddingTop: insets.top }]}
           >
             <View style={styles.premiumBadgeSmall}>
@@ -308,7 +307,7 @@ export function PremiumScreen() {
 Premium gives your family unlimited access to all features, advanced analytics, and future AI
             tools.
             </Text>
-          </LinearGradient>
+          </View>
         </Animated.View>
 
         <Animated.View
@@ -332,9 +331,9 @@ Premium gives your family unlimited access to all features, advanced analytics, 
               </View>
             </View>
             <View style={styles.premiumCol}>
-              <LinearGradient colors={['#F5A623', '#FF8C00']} style={styles.mostPopularBadge}>
+              <View  style={styles.mostPopularBadge}>
                 <Text style={styles.mostPopularText}>MOST POPULAR</Text>
-              </LinearGradient>
+              </View>
               <Text style={[styles.colTitle, { color: '#FFD700' }]}>Premium</Text>
               <Text style={[styles.colPrice, { color: '#FFD700' }]}>₹89</Text>
               <Text style={[styles.colPeriod, { color: '#FFD700' }]}>per month</Text>
@@ -375,9 +374,9 @@ Premium gives your family unlimited access to all features, advanced analytics, 
                     ]}
                   >
                     {plan.badge && (
-                      <LinearGradient colors={['#FFD700', '#FF8C00']} style={styles.planBadge}>
+                      <View  style={styles.planBadge}>
                         <Text style={styles.planBadgeText}>{plan.badge}</Text>
-                      </LinearGradient>
+                      </View>
                     )}
                     <Text style={[styles.planLabel, isSelected && { color: '#FFD700' }]}>
                       {plan.label}
@@ -410,10 +409,10 @@ Premium gives your family unlimited access to all features, advanced analytics, 
           disabled={subscribing || processing}
           activeOpacity={0.85}
         >
-          <LinearGradient
-            colors={['#FFD700', '#FF8C00']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+          <View
+            
+            
+            
             style={[styles.upgradeBtnGradient]}
           />
           {subscribing || processing ? (

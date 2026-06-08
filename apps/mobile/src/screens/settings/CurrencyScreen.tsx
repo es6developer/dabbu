@@ -9,7 +9,7 @@ export function CurrencyScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={styles.content}>
-        <View style={[styles.iconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
+        <View style={[styles.iconWrap, { backgroundColor: colors.bg.secondary }]}>
           <Ionicons name="cash-outline" size={40} color={colors.accent.primary} />
         </View>
         <Text style={[styles.title, { color: colors.text.primary }]}>Indian Rupee (INR)</Text>

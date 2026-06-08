@@ -1,52 +1,41 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme, spacing, borderRadius } from '../../theme';
+import { useTheme } from '../../theme';
 
 interface EmptyStateProps {
-  icon?: string;
-  title: string;
-  message: string;
+  title?: string;
+  message?: string;
+  icon?: keyof typeof Ionicons.glyphMap;
   actionLabel?: string;
   onAction?: () => void;
-  compact?: boolean;
 }
 
-export function EmptyState({
-  icon = 'file-tray-outline',
-  title,
-  message,
-  actionLabel,
-  onAction,
-  compact = false,
-}: EmptyStateProps) {
+export function EmptyState({ title = 'No activity yet', message, icon, actionLabel, onAction }: EmptyStateProps) {
   const { colors } = useTheme();
 
   return (
-    <View style={[styles.container, compact && styles.compact]}>
-      <LinearGradient
-        colors={[`${colors.accent.primary}20`, `${colors.accent.secondary}20`]}
-        style={[styles.iconWrap, compact && styles.iconWrapCompact]}
-      >
-        <Ionicons name={icon as any} size={compact ? 32 : 44} color={colors.accent.primary} />
-      </LinearGradient>
-      <Text style={[styles.title, compact && styles.titleCompact, { color: colors.text.primary }]}>
-        {title}
-      </Text>
-      <Text
-        style={[styles.message, compact && styles.messageCompact, { color: colors.text.tertiary }]}
-      >
-        {message}
-      </Text>
-      {actionLabel && onAction && (
+    <View style={styles.container}>
+      <View style={styles.iconContainer}>
+        <Ionicons
+          name="document-text-outline"
+          size={56}
+          color={colors.accent.primary}
+          style={{ opacity: 0.2, position: 'absolute', transform: [{ rotate: '-5deg' }] }}
+        />
+        <Ionicons name="receipt-outline" size={72} color={colors.text.tertiary} />
+      </View>
+      <Text style={[styles.title, { color: colors.text.secondary }]}>{title}</Text>
+      {message && (
+        <Text style={[styles.message, { color: colors.text.tertiary }]}>{message}</Text>
+      )}
+      {onAction && (
         <TouchableOpacity
           style={[styles.actionBtn, { backgroundColor: colors.accent.primary }]}
           onPress={onAction}
-          activeOpacity={0.8}
+          activeOpacity={0.7}
         >
-          <Ionicons name="add" size={18} color="#FFF" />
-          <Text style={styles.actionLabel}>{actionLabel}</Text>
+          <Text style={styles.actionText}>{actionLabel || '+ Log First Expense'}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -56,55 +45,35 @@ export function EmptyState({
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    gap: spacing.sm,
-    paddingHorizontal: spacing['2xl'],
-    paddingVertical: spacing['4xl'],
+    paddingHorizontal: 24,
+    paddingVertical: 40,
   },
-  compact: {
-    paddingVertical: spacing['2xl'],
-  },
-  iconWrap: {
-    width: 88,
-    height: 88,
-    borderRadius: borderRadius['2xl'],
+  iconContainer: {
+    height: 140,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.sm,
-  },
-  iconWrapCompact: {
-    width: 64,
-    height: 64,
-    borderRadius: borderRadius.xl,
+    marginBottom: 16,
   },
   title: {
-    fontSize: 17,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '600',
     textAlign: 'center',
-  },
-  titleCompact: {
-    fontSize: 15,
+    marginBottom: 8,
   },
   message: {
     fontSize: 13,
     textAlign: 'center',
-    lineHeight: 20,
-  },
-  messageCompact: {
-    fontSize: 12,
     lineHeight: 18,
   },
   actionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.lg,
-    marginTop: spacing.sm,
+    marginTop: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
   },
-  actionLabel: {
-    color: '#FFF',
-    fontSize: 15,
-    fontWeight: '600',
+  actionText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

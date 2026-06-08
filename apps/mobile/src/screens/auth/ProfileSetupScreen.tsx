@@ -12,7 +12,6 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
@@ -72,12 +71,10 @@ export function ProfileSetupScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
-      <LinearGradient
-        colors={
-          isDark ? [colors.bg.secondary, colors.bg.primary] : ['#f8f4f0', colors.bg.primary]
-        }
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
+      <View
+        
+        
+        
         style={StyleSheet.absoluteFill}
       />
       <SafeAreaWrapper insets={insets}>

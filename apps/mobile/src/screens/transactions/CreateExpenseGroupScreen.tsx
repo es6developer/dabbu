@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState, useEffect } from 'react';
+import React, { useCallback, useRef, useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,7 @@ import {
   Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
@@ -26,8 +26,9 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const ICONS = [
-  { key: 'people', label: 'People', color: '#6C3EF4' },
+function getIcons(primary: string): Array<{ key: string; label: string; color: string }> {
+  return [
+  { key: 'people', label: 'People', color: primary },
   { key: 'home', label: 'Home', color: '#34C759' },
   { key: 'heart', label: 'Heart', color: '#FF6B9D' },
   { key: 'star', label: 'Star', color: '#F3D28F' },
@@ -35,9 +36,10 @@ const ICONS = [
   { key: 'cart', label: 'Cart', color: '#FF6B6B' },
   { key: 'airplane', label: 'Travel', color: '#60A5FA' },
   { key: 'restaurant', label: 'Food', color: '#F59E0B' },
-  { key: 'car', label: 'Car', color: '#6366F1' },
+  { key: 'car', label: 'Car', color: primary },
   { key: 'fitness', label: 'Fitness', color: '#34C759' },
 ];
+}
 
 const COUNTRY_CODE = '+91';
 
@@ -46,6 +48,7 @@ export function CreateExpenseGroupScreen() {
   const { accessToken } = useAuth();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const ICONS = useMemo(() => getIcons(colors.accent.primary), [colors.accent.primary]);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -165,11 +168,7 @@ export function CreateExpenseGroupScreen() {
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
       <KeyboardAvoidingContainer>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-          <LinearGradient
-            colors={['#6C3EF4', '#8B5CF6']}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-            style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}
-          >
+          <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20, backgroundColor: colors.accent.primary }}>
             <View style={styles.headerRow}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                 <Ionicons name="close" size={24} color="#FFF" />
@@ -178,7 +177,7 @@ export function CreateExpenseGroupScreen() {
               <View style={{ width: 32 }} />
             </View>
             <Text style={styles.headerSub}>Create a circle to split expenses with your people</Text>
-          </LinearGradient>
+          </View>
 
           <View style={{ padding: 20, gap: 16 }}>
             {error ? (
@@ -258,14 +257,14 @@ export function CreateExpenseGroupScreen() {
                           style={[styles.suggestionRow, { borderBottomColor: colors.border.subtle }]}
                           onPress={() => selectUser(index, user)}
                         >
-                          <View style={[styles.suggestionAvatar, { backgroundColor: '#6C3EF415' }]}>
-                            <Text style={{ color: '#6C3EF4', fontSize: 13, fontWeight: '800' }}>{user.firstName?.[0] || user.phone?.[0] || '?'}</Text>
+                          <View style={[styles.suggestionAvatar, { backgroundColor: `${colors.accent.primary}15` }]}>
+                            <Text style={{ color: colors.accent.primary, fontSize: 13, fontWeight: '800' }}>{user.firstName?.[0] || user.phone?.[0] || '?'}</Text>
                           </View>
                           <View style={{ flex: 1 }}>
                             <Text style={[styles.suggestionName, { color: colors.text.primary }]}>{user.phone || ''} - {user.firstName || ''} {user.lastName || ''}</Text>
                             {user.email && <Text style={[styles.suggestionEmail, { color: colors.text.tertiary }]}>{user.email}</Text>}
                           </View>
-                          <Ionicons name="add-circle" size={20} color="#6C3EF4" />
+                          <Ionicons name="add-circle" size={20} color={colors.accent.primary} />
                         </TouchableOpacity>
                       ))}
                     </View>
@@ -273,8 +272,8 @@ export function CreateExpenseGroupScreen() {
                 </Animated.View>
               ))}
               <TouchableOpacity style={styles.addMemberBtn} onPress={addRow} activeOpacity={0.7}>
-                <Ionicons name="add-circle-outline" size={18} color="#6C3EF4" />
-                <Text style={[styles.addMemberText, { color: '#6C3EF4' }]}>Add another member</Text>
+                <Ionicons name="add-circle-outline" size={18} color={colors.accent.primary} />
+                <Text style={[styles.addMemberText, { color: colors.accent.primary }]}>Add another member</Text>
               </TouchableOpacity>
             </View>
 
@@ -284,7 +283,7 @@ export function CreateExpenseGroupScreen() {
                   <Text style={[styles.recurringTitle, { color: colors.text.primary }]}>Pull recurring from last month?</Text>
                   <Text style={[styles.recurringSub, { color: colors.text.tertiary }]}>Import last month's recurring expenses into this circle</Text>
                 </View>
-                <Switch value={pullRecurring} onValueChange={setPullRecurring} trackColor={{ false: colors.border.subtle, true: '#6C3EF4' }} thumbColor="#FFF" />
+                <Switch value={pullRecurring} onValueChange={setPullRecurring} trackColor={{ false: colors.border.subtle, true: colors.accent.primary }} thumbColor="#FFF" />
               </View>
               {pullRecurring && (
                 <View style={{ marginTop: 12, gap: 8 }}>
@@ -295,7 +294,7 @@ export function CreateExpenseGroupScreen() {
                   ) : (
                     recurringTx.map((tx) => (
                       <TouchableOpacity key={tx.id} style={styles.recurringItem} onPress={() => toggleRecurring(tx.id)}>
-                        <Ionicons name={selectedRecurring.has(tx.id) ? 'checkbox' : 'square-outline'} size={20} color={selectedRecurring.has(tx.id) ? '#6C3EF4' : colors.text.tertiary} />
+                        <Ionicons name={selectedRecurring.has(tx.id) ? 'checkbox' : 'square-outline'} size={20} color={selectedRecurring.has(tx.id) ? colors.accent.primary : colors.text.tertiary} />
                         <View style={{ flex: 1, marginLeft: 8 }}>
                           <Text style={[styles.recurringItemText, { color: colors.text.primary }]}>{tx.description || 'Transaction'}</Text>
                           <Text style={[styles.recurringItemSub, { color: colors.text.tertiary }]}>₹{Number(tx.amount).toLocaleString('en-IN')} · {tx.category?.name || tx.category || 'Other'}</Text>
@@ -311,16 +310,16 @@ export function CreateExpenseGroupScreen() {
               <Ionicons name="shield-outline" size={16} color="#FF6B6B" />
               <Text style={[styles.planInfoText, { color: colors.text.tertiary }]}>Free plan: 5 circles max · 2 members per circle</Text>
               <TouchableOpacity onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}>
-                <Text style={{ color: '#6C3EF4', fontSize: 13, fontWeight: '800' }}>Upgrade</Text>
+                <Text style={{ color: colors.accent.primary, fontSize: 13, fontWeight: '800' }}>Upgrade</Text>
               </TouchableOpacity>
             </View>
 
-            <LinearGradient colors={['#6C3EF4', '#8B5CF6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.createBtn, saving && { opacity: 0.6 }]}>
+            <View style={[styles.createBtn, { backgroundColor: colors.accent.primary }, saving && { opacity: 0.6 }]}>
               <TouchableOpacity onPress={handleCreate} disabled={saving} activeOpacity={0.85} style={styles.createBtnInner}>
                 <Ionicons name="add" size={18} color="#FFF" />
                 <Text style={styles.createBtnText}>Create Split Group</Text>
               </TouchableOpacity>
-            </LinearGradient>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingContainer>

@@ -8,7 +8,6 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
@@ -85,8 +84,8 @@ export function SubscriptionScreen() {
         />
       }
     >
-      <LinearGradient
-        colors={['#2D1B4E', '#1A0A2E']}
+      <View
+        
         style={[s.heroSection, { paddingTop: insets.top + 8 }]}
       >
         <Text style={s.heroEyebrow}>Subscriptions</Text>
@@ -106,7 +105,7 @@ export function SubscriptionScreen() {
             <Text style={s.heroStatValue}>{fmt(yearlyTotal)}</Text>
           </View>
         </View>
-      </LinearGradient>
+      </View>
 
       {upcomingRenewals.length > 0 && (
         <View style={s.section}>

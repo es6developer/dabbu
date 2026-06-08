@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -135,8 +134,8 @@ export function GroupWalletScreen() {
                 activeOpacity={0.7}
               >
                 <View style={styles.walletHeader}>
-                  <LinearGradient
-                    colors={[`${colors.accent.primary}25`, `${colors.accent.secondary}15`]}
+                  <View
+                    
                     style={styles.walletIcon}
                   >
                     <Ionicons
@@ -144,7 +143,7 @@ export function GroupWalletScreen() {
                       size={24}
                       color={colors.accent.primary}
                     />
-                  </LinearGradient>
+                  </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.walletName, { color: colors.text.primary }]}>
                       {item.name}

@@ -4,7 +4,6 @@ import {
   Alert, Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -143,15 +142,12 @@ export function CoupleSettlementsScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={() => { setRefreshing(true); fetchData(true); }}
-            tintColor="#6C3EF4"
+            tintColor={colors.accent.primary}
           />
         }
       >
-        <LinearGradient
-          colors={['#6C3EF4', '#8B5CF6']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}
+        <View
+          style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20, backgroundColor: colors.accent.primary }}
         >
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
@@ -160,7 +156,7 @@ export function CoupleSettlementsScreen() {
             <Text style={styles.headerTitle}>Settlements</Text>
             <View style={{ width: 34 }} />
           </View>
-        </LinearGradient>
+        </View>
 
         <View style={{ paddingHorizontal: 20, marginTop: -16, gap: 16 }}>
           {bal && (
@@ -209,7 +205,7 @@ export function CoupleSettlementsScreen() {
                 </TouchableOpacity>
               ) : (
                 <View style={styles.settlePending}>
-                  <Ionicons name="time-outline" size={16} color="#5D38B5" />
+                  <Ionicons name="time-outline" size={16} color={colors.accent.primary} />
                   <Text style={styles.settlePendingText}>Waiting for partner to settle</Text>
                 </View>
               )}
@@ -219,7 +215,7 @@ export function CoupleSettlementsScreen() {
           {data?.outstanding && data.outstanding.length > 0 && (
             <View style={[styles.sectionCard, { backgroundColor: colors.bg.card }]}>
               <View style={styles.sectionHeaderRow}>
-                <Ionicons name="receipt-outline" size={18} color="#6C3EF4" />
+                <Ionicons name="receipt-outline" size={18} color={colors.accent.primary} />
                 <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Outstanding Transactions</Text>
               </View>
               <Text style={[styles.sectionSub, { color: colors.text.tertiary }]}>
@@ -249,7 +245,7 @@ export function CoupleSettlementsScreen() {
           {data?.settlements && data.settlements.length > 0 && (
             <View style={[styles.sectionCard, { backgroundColor: colors.bg.card }]}>
               <View style={styles.sectionHeaderRow}>
-                <Ionicons name="swap-horizontal-outline" size={18} color="#6C3EF4" />
+                <Ionicons name="swap-horizontal-outline" size={18} color={colors.accent.primary} />
                 <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Settlement History</Text>
               </View>
               {data.settlements.map((item) => (
@@ -312,12 +308,12 @@ const styles = StyleSheet.create({
     shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.12, shadowRadius: 16, elevation: 6,
   },
   balanceEyebrow: {
-    fontSize: 11, fontWeight: '700', color: '#5D38B5', letterSpacing: 0.8, textTransform: 'uppercase',
+    fontSize: 11, fontWeight: '700', color: '#F97316', letterSpacing: 0.8, textTransform: 'uppercase',
     marginBottom: 14,
   },
   balanceRow: { flexDirection: 'row', alignItems: 'flex-start' },
   balanceSide: { flex: 1, alignItems: 'center' },
-  balanceLabel: { fontSize: 12, fontWeight: '600', color: '#5D38B5', marginBottom: 4 },
+  balanceLabel: { fontSize: 12, fontWeight: '600', color: '#F97316', marginBottom: 4 },
   balanceAmount: { fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
   balanceTag: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 8, marginTop: 4 },
   balanceTagText: { fontSize: 11, fontWeight: '700' },
@@ -326,11 +322,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     marginTop: 16, paddingTop: 14, borderTopWidth: 1, borderTopColor: 'rgba(93,56,181,0.12)',
   },
-  netLabel: { fontSize: 13, fontWeight: '600', color: '#5D38B5' },
+  netLabel: { fontSize: 13, fontWeight: '600', color: '#F97316' },
   netAmount: { fontSize: 20, fontWeight: '800', letterSpacing: -0.5 },
 
   settleBtn: {
-    backgroundColor: '#6C3EF4', marginTop: 16, paddingVertical: 14, borderRadius: 16,
+    backgroundColor: '#F97316', marginTop: 16, paddingVertical: 14, borderRadius: 16,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
   },
   settleBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
@@ -338,7 +334,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
     marginTop: 16, paddingVertical: 12,
   },
-  settlePendingText: { fontSize: 13, fontWeight: '600', color: '#5D38B5' },
+  settlePendingText: { fontSize: 13, fontWeight: '600', color: '#F97316' },
 
   sectionCard: { borderRadius: 20, padding: 18, gap: 10, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 2 },
   sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },

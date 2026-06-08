@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,17 +10,22 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
-const slides = [
+function getSlides(primary: string): Array<{
+  icon: string;
+  gradient: [string, string];
+  title: string;
+  desc: string;
+}> {
+  return [
   {
     icon: 'wallet-outline',
-    gradient: ['#6C3EF4', '#8B5CF6'] as [string, string],
+    gradient: [primary, primary] as [string, string],
     title: 'Manage Money Together',
     desc: 'Track expenses, split bills and manage family finances in one place.',
   },
@@ -37,6 +42,7 @@ const slides = [
     desc: 'Create private circles with your spouse, family or friends and split expenses instantly.',
   },
 ];
+}
 
 function SlideContent({
   item,
@@ -47,6 +53,7 @@ function SlideContent({
   index: number;
   isActive: boolean;
 }) {
+  const { colors } = useTheme();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
 
@@ -66,25 +73,22 @@ function SlideContent({
       <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }], alignItems: 'center' }}>
         {slideIndex === 0 && (
           <>
-            <LinearGradient
-              colors={['#6C3EF4', '#8B5CF6']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.logoWrap}
+            <View
+              style={[styles.logoWrap, { shadowColor: colors.accent.primary }]}
             >
               <Text style={styles.logoText}>D</Text>
-            </LinearGradient>
-            <Text style={styles.brandName}>Dabbu</Text>
+            </View>
+            <Text style={[styles.brandName, { color: colors.accent.primary }]}>Dabbu</Text>
           </>
         )}
-        <LinearGradient
-          colors={item.gradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
+        <View
+          
+          
+          
           style={styles.illustrationWrap}
         >
           <Ionicons name={item.icon as any} size={56} color="#FFF" />
-        </LinearGradient>
+        </View>
         <Text style={styles.title}>{item.title}</Text>
         <Text style={styles.desc}>{item.desc}</Text>
       </Animated.View>
@@ -94,10 +98,11 @@ function SlideContent({
 
 export function OnboardingScreen() {
   const navigation = useNavigation<any>();
-  const { isDark } = useTheme();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const [index, setIndex] = useState(0);
   const flatRef = useRef<FlatList>(null);
+  const slides = useMemo(() => getSlides(colors.accent.primary), [colors.accent.primary]);
 
   async function markSeen() {
     await AsyncStorage.setItem('hasSeenOnboarding', 'true');
@@ -128,14 +133,14 @@ export function OnboardingScreen() {
 
   return (
     <View style={styles.root}>
-      <LinearGradient
-        colors={isDark ? ['#0A0A0F', '#1A0A2E'] : ['#FFFFFF', '#F8F8FA']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
+      <View
+        
+        
+        
         style={[styles.gradient, { paddingTop: insets.top + 8 }]}
       >
         <TouchableOpacity style={styles.skip} onPress={handleSkip}>
-          <Text style={styles.skipText}>Skip</Text>
+          <Text style={[styles.skipText, { color: colors.accent.primary }]}>Skip</Text>
         </TouchableOpacity>
 
         <FlatList
@@ -161,7 +166,7 @@ export function OnboardingScreen() {
                 style={[
                   styles.dot,
                   { backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.12)' },
-                  i === index && { width: 28, backgroundColor: '#6C3EF4' },
+                  i === index && { width: 28, backgroundColor: colors.accent.primary },
                 ]}
               />
             ))}
@@ -172,26 +177,26 @@ export function OnboardingScreen() {
             onPress={handleNext}
             activeOpacity={0.85}
           >
-            <LinearGradient
-              colors={['#6C3EF4', '#8B5CF6']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+            <View
+              
+              
+              
               style={styles.buttonGrad}
             >
-              <Text style={styles.buttonText}>
+              <Text style={[styles.buttonText, { color: colors.text.primary }]}>
                 {isLast ? 'Get Started' : 'Next'}
               </Text>
-              {!isLast && <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />}
-            </LinearGradient>
+              {!isLast && <Ionicons name="arrow-forward" size={18} color={colors.text.primary} />}
+            </View>
           </TouchableOpacity>
 
           {!isLast && (
             <TouchableOpacity style={styles.getStarted} onPress={handleSkip}>
-              <Text style={styles.getStartedText}>Get Started</Text>
+              <Text style={[styles.getStartedText, { color: colors.accent.primary }]}>Get Started</Text>
             </TouchableOpacity>
           )}
         </View>
-      </LinearGradient>
+      </View>
     </View>
   );
 }
@@ -200,17 +205,17 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   gradient: { flex: 1 },
   skip: { alignSelf: 'flex-end', paddingHorizontal: 24, paddingVertical: 8, opacity: 0.7 },
-  skipText: { color: '#6C3EF4', fontSize: 14, fontWeight: '600' },
+  skipText: { fontSize: 14, fontWeight: '600' },
   slide: { width, alignItems: 'center', paddingHorizontal: 32, paddingTop: 20 },
   logoWrap: {
     width: 64, height: 64, borderRadius: 20,
     alignItems: 'center', justifyContent: 'center', marginBottom: 8,
-    shadowColor: '#6C3EF4', shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3, shadowRadius: 8, elevation: 6,
   },
   logoText: { color: '#FFF', fontSize: 28, fontWeight: '800' },
   brandName: {
-    color: '#6C3EF4', fontSize: 32, fontWeight: '800',
+    fontSize: 32, fontWeight: '800',
     marginBottom: 24, letterSpacing: -0.5,
   },
   illustrationWrap: {
@@ -242,5 +247,5 @@ const styles = StyleSheet.create({
   },
   buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
   getStarted: { alignItems: 'center', paddingVertical: 12, marginTop: 4 },
-  getStartedText: { color: '#6C3EF4', fontSize: 14, fontWeight: '600' },
+  getStartedText: { fontSize: 14, fontWeight: '600' },
 });

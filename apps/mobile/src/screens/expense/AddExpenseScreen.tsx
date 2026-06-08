@@ -3,7 +3,6 @@ import {
   View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -39,9 +38,9 @@ export function AddExpenseScreen() {
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
       <KeyboardAvoidingContainer>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
-          <LinearGradient
-            colors={['#6C3EF4', '#8B5CF6']}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          <View
+            
+             
             style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}
           >
             <View style={styles.headerRow}>
@@ -53,25 +52,25 @@ export function AddExpenseScreen() {
                 <Text style={styles.saveText}>Save</Text>
               </TouchableOpacity>
             </View>
-          </LinearGradient>
+          </View>
 
           <View style={styles.tabRow}>
             <TouchableOpacity
-              style={[styles.tab, activeTab === 'expense' && styles.tabActive]}
+              style={[styles.tab, activeTab === 'expense' && { backgroundColor: `${colors.accent.primary}15` }]}
               onPress={() => setActiveTab('expense')}
             >
-              <Text style={[styles.tabText, { color: activeTab === 'expense' ? '#6C3EF4' : colors.text.tertiary }]}>Expenses</Text>
+              <Text style={[styles.tabText, { color: activeTab === 'expense' ? colors.accent.primary : colors.text.tertiary }]}>Expenses</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.tab, activeTab === 'income' && styles.tabActive]}
+              style={[styles.tab, activeTab === 'income' && { backgroundColor: `${colors.accent.primary}15` }]}
               onPress={() => setActiveTab('income')}
             >
-              <Text style={[styles.tabText, { color: activeTab === 'income' ? '#6C3EF4' : colors.text.tertiary }]}>Income</Text>
+              <Text style={[styles.tabText, { color: activeTab === 'income' ? colors.accent.primary : colors.text.tertiary }]}>Income</Text>
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity onPress={() => inputRef.current?.focus()} style={styles.amountSection}>
-            <Text style={styles.amountDisplay}>{fmtAmount}</Text>
+            <Text style={[styles.amountDisplay, { color: colors.accent.primary }]}>{fmtAmount}</Text>
             <Text style={[styles.amountHint, { color: colors.text.tertiary }]}>Tap to edit amount</Text>
             <TextInput
               ref={inputRef}
@@ -88,7 +87,7 @@ export function AddExpenseScreen() {
               {CATEGORY_CHIPS.map((c) => (
                 <TouchableOpacity
                   key={c}
-                  style={[styles.chip, { backgroundColor: category === c ? '#6C3EF4' : colors.bg.card, borderColor: category === c ? '#6C3EF4' : colors.border.subtle }]}
+                  style={[styles.chip, { backgroundColor: category === c ? colors.accent.primary : colors.bg.card, borderColor: category === c ? colors.accent.primary : colors.border.subtle }]}
                   onPress={() => setCategory(c)}
                 >
                   <Text style={[styles.chipText, { color: category === c ? '#FFF' : colors.text.secondary }]}>{c}</Text>
@@ -121,14 +120,14 @@ export function AddExpenseScreen() {
 
         <View style={[styles.bottomBar, { backgroundColor: colors.bg.secondary }]}>
           <TouchableOpacity style={styles.saveBtn} onPress={handleSave} activeOpacity={0.85}>
-            <LinearGradient
-              colors={['#6C3EF4', '#8B5CF6']}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            <View
+              
+               
               style={styles.saveBtnGrad}
             >
               <Ionicons name="checkmark-circle" size={18} color="#FFF" />
               <Text style={styles.saveBtnText}>Save Expense</Text>
-            </LinearGradient>
+            </View>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingContainer>
@@ -144,10 +143,10 @@ const styles = StyleSheet.create({
   saveText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
   tabRow: { flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 16, gap: 8 },
   tab: { flex: 1, paddingVertical: 10, borderRadius: 12, alignItems: 'center', backgroundColor: 'transparent' },
-  tabActive: { backgroundColor: '#6C3EF415' },
+
   tabText: { fontSize: 14, fontWeight: '600' },
   amountSection: { alignItems: 'center', paddingVertical: 24, gap: 4 },
-  amountDisplay: { fontSize: 44, fontWeight: '800', color: '#6C3EF4', letterSpacing: -2 },
+  amountDisplay: { fontSize: 44, fontWeight: '800', letterSpacing: -2 },
   amountHint: { fontSize: 12, fontWeight: '500' },
   amountInput: { position: 'absolute', width: 1, height: 1, opacity: 0 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },

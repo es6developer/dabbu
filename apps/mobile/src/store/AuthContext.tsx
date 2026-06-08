@@ -330,22 +330,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function logout() {
-    try {
-      const storage = getStorage();
-      const refresh = await storage.getItem('refreshToken');
+    const storage = getStorage();
+    storage.getItem('refreshToken').then((refresh) => {
       if (state.accessToken && refresh) {
-        await fetch(`${API_URL}/auth/logout`, {
+        fetch(`${API_URL}/auth/logout`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${state.accessToken}`,
           },
           body: JSON.stringify({ refreshToken: refresh }),
-        });
+        }).catch(() => {});
       }
-    } catch (_e) {
-      // ignore logout API errors
-    }
+    }).catch(() => {});
 
     await clearAuth();
     clearCache();

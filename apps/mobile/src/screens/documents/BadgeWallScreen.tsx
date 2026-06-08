@@ -9,7 +9,6 @@ import {
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme';
@@ -109,8 +108,8 @@ export function BadgeWallScreen() {
       }
     >
       {/* Hero */}
-      <LinearGradient
-        colors={['#2D1B4E', '#1A0A2E']}
+      <View
+        
         style={[s.hero, { paddingTop: insets.top + 16 }]}
       >
         <View style={s.heroRow}>
@@ -124,7 +123,7 @@ export function BadgeWallScreen() {
             </Text>
           </View>
         </View>
-      </LinearGradient>
+      </View>
 
       {/* Streaks */}
       {streaks.length > 0 && (

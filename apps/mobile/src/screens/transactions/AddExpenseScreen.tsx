@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -68,12 +68,7 @@ export function AddExpenseScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
-      <LinearGradient
-        colors={['#1A1A3E', '#12121A']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.bg.primary }]} />
       <Animated.View style={[styles.content, { paddingTop: insets.top, opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -88,18 +83,13 @@ export function AddExpenseScreen() {
           <Ionicons name="close" size={22} color="#FFFFFF" />
         </TouchableOpacity>
 
-        <LinearGradient
-          colors={[...colors.accent.gradient]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.hero}
-        >
+        <View style={[styles.hero, { backgroundColor: colors.accent.primary }]}>
           <View style={styles.heroIcon}>
             <Ionicons name="add" size={28} color="#FFFFFF" />
           </View>
           <Text style={styles.title}>Add expense</Text>
           <Text style={styles.subtitle}>Choose the fastest way to capture and organize this spend.</Text>
-        </LinearGradient>
+        </View>
 
         <View style={styles.optionsContainer}>
           {OPTIONS.map((option, index) => (
@@ -126,14 +116,9 @@ export function AddExpenseScreen() {
                 onPress={() => handleSelect(option.type)}
                 activeOpacity={0.75}
               >
-                <LinearGradient
-                  colors={option.type === 'group' ? [...colors.accent.gradient] : option.gradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.iconWrap}
-                >
+                <View style={[styles.iconWrap, { backgroundColor: option.type === 'group' ? colors.accent.primary : option.gradient[0] }]}>
                 <Ionicons name={option.icon} size={25} color="#FFFFFF" />
-              </LinearGradient>
+              </View>
               <View style={styles.cardContent}>
                 <View style={styles.cardTitleRow}>
                   <Text style={[styles.cardTitle, { color: colors.text.primary }]}>

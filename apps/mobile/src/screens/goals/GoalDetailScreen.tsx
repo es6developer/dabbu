@@ -14,7 +14,6 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { useTheme } from '../../theme';
@@ -25,19 +24,18 @@ import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
 type GoalConfig = {
   icon: string;
-  gradient: [string, string];
   color: string;
 };
 
 const GOAL_CONFIGS: Record<string, GoalConfig> = {
-  emergency: { icon: 'shield-checkmark', gradient: ['#FF6B6B', '#ee5a24'], color: '#FF6B6B' },
-  vacation: { icon: 'airplane', gradient: ['#00B894', '#00a381'], color: '#00B894' },
-  education: { icon: 'school', gradient: ['#4F6EF7', '#3d5ae0'], color: '#4F6EF7' },
-  home: { icon: 'home', gradient: ['#6C3EF4', '#8B5CF6'], color: '#6C3EF4' },
-  car: { icon: 'car-sport', gradient: ['#6C5CE7', '#5a4bd1'], color: '#6C5CE7' },
-  wedding: { icon: 'heart', gradient: ['#FF6B9D', '#e0557e'], color: '#FF6B9D' },
-  retirement: { icon: 'umbrella', gradient: ['#247BA0', '#1a6080'], color: '#247BA0' },
-  custom: { icon: 'trophy', gradient: ['#8A5CF6', '#6c3ce0'], color: '#8A5CF6' },
+  emergency: { icon: 'shield-checkmark', color: '#FF6B6B' },
+  vacation: { icon: 'airplane', color: '#00B894' },
+  education: { icon: 'school', color: '#4F6EF7' },
+  home: { icon: 'home', color: '#F97316' },
+  car: { icon: 'car-sport', color: '#6C5CE7' },
+  wedding: { icon: 'heart', color: '#FF6B9D' },
+  retirement: { icon: 'umbrella', color: '#247BA0' },
+  custom: { icon: 'trophy', color: '#8A5CF6' },
 };
 
 const MILESTONES = [25, 50, 75, 100];
@@ -487,11 +485,8 @@ export function GoalDetailScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}
       >
         {/* ─── Header Gradient ─── */}
-        <LinearGradient
-          colors={[config.gradient[0], config.gradient[1]]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[s.headerGradient, { paddingTop: insets.top + sp.lg }]}
+        <View
+          style={[s.headerGradient, { paddingTop: insets.top + sp.lg, backgroundColor: colors.accent.primary, borderWidth: 1, borderColor: colors.border.default }]}
         >
           <Animated.View style={{ opacity: fadeAnim }}>
             <View style={s.headerRow}>
@@ -533,7 +528,7 @@ export function GoalDetailScreen() {
               </View>
             </View>
           </Animated.View>
-        </LinearGradient>
+        </View>
 
         {/* ─── Progress Section ─── */}
         <Animated.View
@@ -593,10 +588,10 @@ export function GoalDetailScreen() {
               { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
             ]}
           >
-            <View style={[s.statIconWrap, { backgroundColor: colors.status.successLight }]}>
+            <View style={[s.statIconWrap, { backgroundColor: colors.bg.tertiary }]}>
               <Ionicons name="wallet-outline" size={18} color={colors.status.success} />
             </View>
-            <Text style={[typography.amountSmall, { color: colors.status.success }]}>
+            <Text style={[typography.amountSmall, { color: colors.text.primary }]}>
               {fmt(saved)}
             </Text>
             <Text style={[typography.caption, { color: colors.text.tertiary }]}>Saved</Text>
@@ -607,7 +602,7 @@ export function GoalDetailScreen() {
               { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
             ]}
           >
-            <View style={[s.statIconWrap, { backgroundColor: colors.status.warningLight }]}>
+            <View style={[s.statIconWrap, { backgroundColor: colors.bg.tertiary }]}>
               <Ionicons name="trending-up-outline" size={18} color={colors.status.warning} />
             </View>
             <Text style={[typography.amountSmall, { color: colors.status.warning }]}>
@@ -621,7 +616,7 @@ export function GoalDetailScreen() {
               { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
             ]}
           >
-            <View style={[s.statIconWrap, { backgroundColor: colors.status.infoLight }]}>
+            <View style={[s.statIconWrap, { backgroundColor: colors.bg.tertiary }]}>
               <Ionicons name="repeat-outline" size={18} color={colors.status.info} />
             </View>
             <Text style={[typography.amountSmall, { color: colors.status.info }]}>
@@ -652,7 +647,7 @@ export function GoalDetailScreen() {
         >
           <View style={[s.glassBg, { backgroundColor: config.color + '08' }]} />
           <View style={s.completionRow}>
-            <View style={[s.completionIcon, { backgroundColor: config.color + '20' }]}>
+            <View style={[s.completionIcon, { backgroundColor: colors.bg.secondary }]}>
               <Ionicons name="calendar-outline" size={22} color={config.color} />
             </View>
             <View style={{ flex: 1 }}>

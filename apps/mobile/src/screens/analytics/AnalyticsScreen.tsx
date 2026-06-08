@@ -153,7 +153,7 @@ export function AnalyticsScreen() {
   const pieData = (catData || []).slice(0, 6).map((c: any, i: number) => ({
     name: c.name,
     amount: c.amount || 0,
-    color: c.color || ['#6C3EF4', '#00B894', '#FF6B6B', '#FDCB6E', '#74B9FF', '#A29BFE'][i % 6],
+    color: c.color || [colors.accent.primary, '#00B894', '#FF6B6B', '#FDCB6E', '#74B9FF', '#A29BFE'][i % 6],
     legendFontColor: colors.text.secondary,
     legendFontSize: 12,
   }));

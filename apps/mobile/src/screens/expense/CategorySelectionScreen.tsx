@@ -3,24 +3,24 @@ import {
   View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, FlatList, Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { CATEGORY_ICONS, getCategoryColor } from '../../config/categoryIcons';
-
-const CATEGORY_NAMES = ['Food', 'Groceries', 'Travel', 'Gym', 'Water', 'Internet', 'Rent', 'Bills', 'Shopping', 'Entertainment', 'Medical', 'Education'];
-const CATEGORIES = CATEGORY_NAMES.map((name) => ({ name, icon: CATEGORY_ICONS[name], color: getCategoryColor(name) }));
+import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../config/categoryIcons';
 
 export function CategorySelectionScreen() {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const [search, setSearch] = useState('');
   const [showCustom, setShowCustom] = useState(false);
   const [customName, setCustomName] = useState('');
 
-  const filtered = CATEGORIES.filter(c =>
+  const transactionType: 'expense' | 'income' = route.params?.type || 'expense';
+  const currentCats = transactionType === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+
+  const filtered = currentCats.filter(c =>
     c.name.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -28,17 +28,13 @@ export function CategorySelectionScreen() {
 
   function handleCustomAdd() {
     if (customName.trim()) {
-      navigation.navigate('NewAddExpense', { category: customName.trim(), isCustom: true });
+      navigation.navigate('NewAddExpense', { category: customName.trim(), isCustom: true, type: transactionType });
     }
   }
 
   return (
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
-      <LinearGradient
-        colors={['#5D38B5', '#7A52D1']}
-        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-        style={{ paddingTop: insets.top + 12, paddingBottom: 24, paddingHorizontal: 20 }}
-      >
+      <View style={{ paddingTop: insets.top + 12, paddingBottom: 24, paddingHorizontal: 20 }}>
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
             <Ionicons name="close" size={22} color="#FFF" />
@@ -56,7 +52,7 @@ export function CategorySelectionScreen() {
             onChangeText={setSearch}
           />
         </View>
-      </LinearGradient>
+      </View>
 
       <FlatList
         data={data}
@@ -84,7 +80,7 @@ export function CategorySelectionScreen() {
             <TouchableOpacity
               style={[styles.categoryCard, { backgroundColor: colors.bg.card }]}
               activeOpacity={0.7}
-              onPress={() => navigation.navigate('NewAddExpense', { category: item.name })}
+              onPress={() => navigation.navigate('NewAddExpense', { category: item.name, type: transactionType })}
             >
               <View style={[styles.catIcon, { backgroundColor: `${item.color}15` }]}>
                 <Ionicons name={item.icon as any} size={22} color={item.color} />
@@ -112,7 +108,7 @@ export function CategorySelectionScreen() {
               <TouchableOpacity style={[styles.sheetBtn, { backgroundColor: colors.bg.tertiary }]} onPress={() => setShowCustom(false)}>
                 <Text style={[styles.sheetBtnText, { color: colors.text.secondary }]}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.sheetBtn, { backgroundColor: '#5D38B5' }]} onPress={handleCustomAdd}>
+              <TouchableOpacity style={[styles.sheetBtn, { backgroundColor: colors.accent.primary }]} onPress={handleCustomAdd}>
                 <Text style={[styles.sheetBtnText, { color: '#FFF' }]}>Add</Text>
               </TouchableOpacity>
             </View>
@@ -137,7 +133,7 @@ const styles = StyleSheet.create({
 
   addCard: { flex: 1, alignItems: 'center', gap: 8, borderRadius: 18, borderWidth: 1, borderStyle: 'dashed', paddingVertical: 16, paddingHorizontal: 6 },
   addIcon: { width: 52, height: 52, borderRadius: 16, backgroundColor: '#F5F0FF', alignItems: 'center', justifyContent: 'center' },
-  addIconText: { fontSize: 24, fontWeight: '700', color: '#5D38B5' },
+  addIconText: { fontSize: 24, fontWeight: '700', color: '#F97316' },
 
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   sheet: { borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 22, paddingBottom: 40, gap: 16 },

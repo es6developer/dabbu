@@ -130,7 +130,7 @@ export function CustomiseDashboardScreen() {
           style={[
             styles.widgetItem,
             {
-              backgroundColor: isActive ? `${colors.accent.primary}15` : colors.bg.secondary,
+              backgroundColor: isActive ? colors.bg.tertiary : colors.bg.secondary,
               borderColor: isActive ? colors.accent.primary : colors.border.subtle,
               opacity: item.visible ? 1 : 0.5,
             },
@@ -142,7 +142,7 @@ export function CustomiseDashboardScreen() {
             color={colors.text.tertiary}
             style={{ marginRight: 12 }}
           />
-          <View style={[styles.widgetIcon, { backgroundColor: `${colors.accent.primary}18` }]}>
+          <View style={[styles.widgetIcon, { backgroundColor: colors.bg.tertiary }]}>
             <Ionicons name={meta.icon as any} size={20} color={colors.accent.primary} />
           </View>
           <View style={{ flex: 1 }}>

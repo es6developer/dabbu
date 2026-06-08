@@ -11,7 +11,6 @@ import {
   Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -295,21 +294,21 @@ export function SettlementScreen() {
                   const isPayer = s.fromUserId === currentUser?.id;
                   const isReceiver = s.toUserId === currentUser?.id;
                   return (
-                    <LinearGradient
+                    <View
                       key={s.id || i}
-                      colors={[colors.bg.secondary, colors.bg.tertiary]}
+                      
                       style={s.settlementCard}
                     >
                       <View style={s.settlementFlow}>
                         <View style={s.settlementParty}>
-                          <LinearGradient
-                            colors={[...colors.accent.gradient]}
+                          <View
+                            
                             style={s.partyAvatar}
                           >
                             <Text style={s.partyInit}>
                               {(s.fromName?.[0] || '?').toUpperCase()}
                             </Text>
-                          </LinearGradient>
+                          </View>
                           <Text style={[s.partyName, { color: colors.text.secondary }]}>
                             {s.fromName || 'Someone'}
                           </Text>
@@ -321,12 +320,12 @@ export function SettlementScreen() {
                           </Text>
                         </View>
                         <View style={s.settlementParty}>
-                          <LinearGradient
-                            colors={[...colors.accent.gradientAlt]}
+                          <View
+                            
                             style={s.partyAvatar}
                           >
                             <Text style={s.partyInit}>{(s.toName?.[0] || '?').toUpperCase()}</Text>
-                          </LinearGradient>
+                          </View>
                           <Text style={[s.partyName, { color: colors.text.secondary }]}>
                             {s.toName || 'Someone'}
                           </Text>
@@ -463,7 +462,7 @@ export function SettlementScreen() {
                           </Text>
                         </View>
                       )}
-                    </LinearGradient>
+                    </View>
                   );
                 })}
               </View>

@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { useAnalytics } from '../../hooks/useAnalytics';
@@ -102,14 +101,14 @@ function SlideContent({
             Your financial life, simplified
           </Text>
         )}
-        <LinearGradient
-          colors={[colors.accent.primary, colors.accent.secondary]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
+        <View
+          
+          
+          
           style={styles.iconWrap}
         >
           <Ionicons name={item.icon as any} size={40} color="#FFFFFF" />
-        </LinearGradient>
+        </View>
         <Text style={[{ color: colors.text.primary, ...typography.sectionHeader }, styles.title]}>
           {item.title}
         </Text>
@@ -166,10 +165,10 @@ export function OnboardingScreen() {
 
   return (
     <View style={styles.root}>
-      <LinearGradient
-        colors={isDark ? [colors.bg.secondary, colors.bg.primary] : ['#f8f4f0', colors.bg.primary]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
+      <View
+        
+        
+        
         style={[styles.gradient, { paddingTop: insets.top + 8 }]}
       >
         <TouchableOpacity style={styles.skip} onPress={handleSkip}>
@@ -226,7 +225,7 @@ export function OnboardingScreen() {
             </TouchableOpacity>
           )}
         </View>
-      </LinearGradient>
+      </View>
     </View>
   );
 }

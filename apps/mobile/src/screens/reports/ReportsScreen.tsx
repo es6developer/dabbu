@@ -3,7 +3,6 @@ import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -45,7 +44,7 @@ export function ReportsScreen() {
     return (stats.categoryBreakdown as any[]).map((c: any) => ({
       name: c.name || 'Uncategorized',
       amount: c.amount || 0,
-      color: CAT_COLORS[c.name] || '#6C3EF4',
+      color: CAT_COLORS[c.name] || colors.accent.primary,
       pct: Math.round((c.amount / total) * 100),
     }));
   }, [stats]);
@@ -64,11 +63,11 @@ export function ReportsScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor="#6C3EF4" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.accent.primary} />}
       >
-        <LinearGradient
-          colors={['#6C3EF4', '#8B5CF6']}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+        <View
+          
+           
           style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}
         >
           <View style={styles.headerRow}>
@@ -78,45 +77,45 @@ export function ReportsScreen() {
             <Text style={styles.headerTitle}>Reports</Text>
             <View style={{ width: 32 }} />
           </View>
-        </LinearGradient>
+        </View>
 
         <View style={{ paddingHorizontal: 20, paddingTop: 12, gap: 12 }}>
           <View style={styles.metricsRow}>
-            <LinearGradient
-              colors={['#6C3EF415', '#8B5CF608']}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            <View
+              
+               
               style={[styles.metricCard, { borderColor: colors.border.subtle }]}
             >
               <Text style={[styles.metricLabel, { color: colors.text.tertiary }]}>Monthly Spend</Text>
               <Text style={[styles.metricValue, { color: '#FF4D4F' }]}>{fmt(monthlySpend)}</Text>
-            </LinearGradient>
-            <LinearGradient
-              colors={['#34C75910', '#34C75905']}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            </View>
+            <View
+              
+               
               style={[styles.metricCard, { borderColor: colors.border.subtle }]}
             >
               <Text style={[styles.metricLabel, { color: colors.text.tertiary }]}>Income</Text>
               <Text style={[styles.metricValue, { color: '#34C759' }]}>{fmt(income)}</Text>
-            </LinearGradient>
+            </View>
           </View>
 
           <View style={styles.metricsRow}>
-            <LinearGradient
-              colors={['#F3D28F15', '#F5DBA808']}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            <View
+              
+               
               style={[styles.metricCard, { borderColor: colors.border.subtle }]}
             >
               <Text style={[styles.metricLabel, { color: colors.text.tertiary }]}>Savings</Text>
               <Text style={[styles.metricValue, { color: '#F3D28F' }]}>{fmt(savings)}</Text>
-            </LinearGradient>
-            <LinearGradient
-              colors={['#6C3EF415', '#8B5CF608']}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            </View>
+            <View
+              
+               
               style={[styles.metricCard, { borderColor: colors.border.subtle }]}
             >
               <Text style={[styles.metricLabel, { color: colors.text.tertiary }]}>Expense</Text>
-              <Text style={[styles.metricValue, { color: '#6C3EF4' }]}>{fmt(monthlySpend)}</Text>
-            </LinearGradient>
+              <Text style={[styles.metricValue, { color: colors.accent.primary }]}>{fmt(monthlySpend)}</Text>
+            </View>
           </View>
 
           {monthlyData.length > 0 && (
@@ -127,7 +126,7 @@ export function ReportsScreen() {
                   <View key={i} style={styles.barCol}>
                     <View style={styles.barContainer}>
                       <View
-                        style={[styles.bar, { height: `${(d.amount / maxAmount) * 100}%`, backgroundColor: '#6C3EF4' }]}
+                        style={[styles.bar, { height: `${(d.amount / maxAmount) * 100}%`, backgroundColor: colors.accent.primary }]}
                       />
                     </View>
                     <Text style={[styles.barLabel, { color: colors.text.tertiary }]}>{d.label}</Text>
