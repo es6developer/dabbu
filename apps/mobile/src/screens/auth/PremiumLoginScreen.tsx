@@ -108,8 +108,8 @@ export function PremiumLoginScreen() {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
   const { login } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('demo@dabbu.app');
+  const [password, setPassword] = useState('Demo123!');
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
