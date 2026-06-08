@@ -342,40 +342,26 @@ export function AddMemberScreen() {
     );
   };
 
-  const renderMainContent = () => {
-    if (!contactsGranted) {
-      return (
-        <View style={styles.permWrap}>
-          <LinearGradient
-            colors={[`${colors.accent.primary}20`, `${colors.accent.primary}08`]}
-            style={styles.permIconBox}
-          >
-            <Ionicons name="people-outline" size={40} color={colors.accent.primary} />
-          </LinearGradient>
-          <Text style={styles.permTitle}>Sync Contacts to Split Faster</Text>
-          <Text style={styles.permDesc}>
-            Find friends on Dabbu and add them to groups instantly.
-          </Text>
-          {permStatus === 'denied' ? (
-            <TouchableOpacity style={styles.permBtnOutline} onPress={() => Linking.openSettings()}>
-              <Ionicons name="settings-outline" size={16} color={colors.accent.primary} />
-              <Text style={[styles.permBtnOutlineText, { color: colors.accent.primary }]}>
-                Open Settings
-              </Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              style={[styles.permBtn, { backgroundColor: colors.accent.primary }]}
-              onPress={handleSyncContacts}
-            >
-              <Ionicons name="people" size={16} color="#FFF" />
-              <Text style={styles.permBtnText}>Grant Contacts Permission</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      );
+  const renderSyncButton = () => {
+    if (contactsGranted) {
+      return null;
     }
+    return (
+      <View style={{ paddingHorizontal: 20, marginTop: 12 }}>
+        <TouchableOpacity
+          style={[styles.inviteBtn, { alignSelf: 'flex-start' }]}
+          onPress={permStatus === 'denied' ? () => Linking.openSettings() : handleSyncContacts}
+        >
+          <Ionicons name="people-outline" size={14} color={colors.accent.primary} />
+          <Text style={styles.inviteBtnText}>
+            {permStatus === 'denied' ? 'Open Settings to Sync Contacts' : 'Sync Contacts'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
+  const renderMainContent = () => {
     if (syncing) {
       return (
         <View style={styles.centerState}>
@@ -400,27 +386,24 @@ export function AddMemberScreen() {
       );
     }
 
-    if (allContacts.length === 0) {
-      return (
-        <View style={styles.centerState}>
-          <Ionicons name="search-outline" size={40} color="rgba(255,255,255,0.15)" />
-          <Text style={[styles.emptyTitle, { color: 'rgba(255,255,255,0.5)' }]}>
-            No contacts found
-          </Text>
-          <Text style={styles.emptyDesc}>Invite friends to join Dabbu</Text>
-          <TouchableOpacity style={styles.inviteBtn} onPress={() => handleInvite('')}>
-            <Ionicons name="share-outline" size={14} color={colors.accent.primary} />
-            <Text style={styles.inviteBtnText}>Send Invite</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-
     return (
       <FlatList
         data={allContacts}
         keyExtractor={(_, i) => String(i)}
         keyboardShouldPersistTaps="handled"
+        ListEmptyComponent={
+          <View style={styles.centerState}>
+            <Ionicons name="search-outline" size={40} color="rgba(255,255,255,0.15)" />
+            <Text style={[styles.emptyTitle, { color: 'rgba(255,255,255,0.5)' }]}>
+              No contacts found
+            </Text>
+            <Text style={styles.emptyDesc}>Search for members by name, phone, or email</Text>
+            <TouchableOpacity style={styles.inviteBtn} onPress={() => handleInvite('')}>
+              <Ionicons name="share-outline" size={14} color={colors.accent.primary} />
+              <Text style={styles.inviteBtnText}>Send Invite</Text>
+            </TouchableOpacity>
+          </View>
+        }
         renderItem={({ item }) => {
           const name = item.type === 'match' ? item.name : (item as DeviceContact).name;
           const phone = item.type === 'match' ? item.phone : (item as DeviceContact).phone;
@@ -499,7 +482,14 @@ export function AddMemberScreen() {
       {renderHeader()}
       {renderSearchBar()}
       {renderFavoritesBar()}
-      {query.trim().length >= 2 ? renderSearchResults() : renderMainContent()}
+      {query.trim().length >= 2 ? (
+        renderSearchResults()
+      ) : (
+        <>
+          {renderMainContent()}
+          {!contactsGranted && !syncing && !query.trim() && renderSyncButton()}
+        </>
+      )}
     </View>
   );
 }
@@ -609,51 +599,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   inviteActionText: { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.45)' },
-
-  permWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },
-  permIconBox: {
-    width: 80,
-    height: 80,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  permTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#FFF',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  permDesc: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.45)',
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 24,
-  },
-  permBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-  },
-  permBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
-  permBtnOutline: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#FF6B00',
-  },
-  permBtnOutlineText: { fontSize: 15, fontWeight: '700' },
 
   centerState: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
   emptyTitle: { fontSize: 17, fontWeight: '700', color: 'rgba(255,255,255,0.5)' },
