@@ -90,6 +90,15 @@ export class AuthController {
     return { data: result };
   }
 
+  @Post('demo')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Demo login with pre-created demo account' })
+  async demoLogin(@Req() req: any, @Headers('user-agent') userAgent?: string) {
+    const ip = req.ip || req.headers['x-forwarded-for']?.split(',')[0] || '';
+    const result = await this.authService.demoLogin(ip, userAgent);
+    return { data: result };
+  }
+
   @Post('send-otp')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Send OTP code to email for verification or login' })

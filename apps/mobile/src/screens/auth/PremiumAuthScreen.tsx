@@ -21,7 +21,7 @@ type Tab = 'login' | 'signup';
 export function PremiumAuthScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const { login, register, googleLogin } = useAuth();
+  const { login, register, googleLogin, demoLogin } = useAuth();
   const { response, promptAsync } = useGoogleAuth();
   const [tab, setTab] = useState<Tab>(route.params?.tab || 'login');
   const [loading, setLoading] = useState(false);
@@ -315,6 +315,27 @@ export function PremiumAuthScreen() {
             >
               <Ionicons name="logo-google" size={20} color="#FFFFFF" />
               <Text style={styles.googleButtonText}>Continue with Google</Text>
+            </TouchableOpacity>
+
+            {/* Demo Login */}
+            <TouchableOpacity
+              style={styles.demoButton}
+              onPress={async () => {
+                setLoading(true);
+                setError('');
+                try {
+                  await demoLogin();
+                } catch (e: any) {
+                  setError(e.message || 'Demo login failed');
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              disabled={loading}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="rocket-outline" size={20} color="#FF6B00" />
+              <Text style={styles.demoButtonText}>Demo Login</Text>
             </TouchableOpacity>
 
             {/* Privacy */}
@@ -628,6 +649,23 @@ const styles = StyleSheet.create({
   },
   googleButtonText: {
     color: '#FFFFFF',
+    fontSize: 15,
+    fontFamily: 'Inter-SemiBold',
+  },
+  demoButton: {
+    height: 52,
+    backgroundColor: 'rgba(255,107,0,0.08)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,107,0,0.25)',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 8,
+  },
+  demoButtonText: {
+    color: '#FF6B00',
     fontSize: 15,
     fontFamily: 'Inter-SemiBold',
   },

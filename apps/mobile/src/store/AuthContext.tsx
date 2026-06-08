@@ -58,6 +58,7 @@ interface AuthContextType extends AuthState {
   ) => Promise<void>;
   googleLogin: (idToken: string) => Promise<void>;
   guestLogin: () => Promise<void>;
+  demoLogin: () => Promise<void>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<boolean>;
   completeProfileSetup: (updatedUser?: Partial<User>) => void;
@@ -370,6 +371,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     registerForPushNotifications(tokens.accessToken).catch(() => {});
   }
 
+  async function demoLogin() {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    let res: Response;
+    try {
+      const { deviceName, platform } = getDeviceInfo();
+      res = await fetch(`${API_URL}/auth/demo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deviceName, platform }),
+        signal: controller.signal,
+      });
+    } catch (_e) {
+      clearTimeout(timeout);
+      throw new Error('Connection timed out. Please check your internet connection and try again.');
+    }
+    clearTimeout(timeout);
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.message?.[0] || err?.message || 'Demo login failed');
+    }
+
+    const json = await res.json().catch(() => {
+      throw new Error('Invalid response from server');
+    });
+    const data = json?.data;
+    if (!data) {
+      throw new Error('Invalid response from server');
+    }
+    const { user, tokens } = data;
+
+    setAccessToken(tokens.accessToken);
+    await storeAuth(tokens.accessToken, user);
+    const storage = getStorage();
+    await storage.setItem('refreshToken', tokens.refreshToken);
+    if (tokens.sessionId) {
+      await storage.setItem('sessionId', tokens.sessionId);
+    }
+
+    setState({
+      isAuthenticated: true,
+      isLoading: false,
+      user,
+      accessToken: tokens.accessToken,
+      isNewUser: false,
+      needsPhone: false,
+    });
+
+    registerForPushNotifications(tokens.accessToken).catch(() => {});
+  }
+
   async function logout() {
     const storage = getStorage();
     storage
@@ -486,6 +539,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         googleLogin,
         guestLogin,
+        demoLogin,
         logout,
         refreshToken,
         completeProfileSetup,

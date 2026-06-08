@@ -292,6 +292,109 @@ export class AuthService {
     return { user: userWithoutPassword, tokens };
   }
 
+  async demoLogin(
+    ipAddress?: string,
+    userAgent?: string,
+    deviceName?: string,
+    platform?: string,
+  ): Promise<{ user: any; tokens: TokenPair }> {
+    const DEMO_EMAIL = 'demo@dabbu.app';
+    const DEMO_PASSWORD = 'Demo123!';
+
+    let user = await this.prisma.user.findUnique({
+      where: { email: DEMO_EMAIL },
+      include: {
+        settings: true,
+        subscription: { include: { plan: true } },
+      },
+    });
+
+    if (!user) {
+      const hashedPassword = await bcrypt.hash(DEMO_PASSWORD, 12);
+      let freePlan = await this.prisma.subscriptionPlan.findFirst({
+        where: { isActive: true },
+        orderBy: { sortOrder: 'asc' },
+      });
+      if (!freePlan) {
+        freePlan = await this.prisma.subscriptionPlan.create({
+          data: {
+            name: 'Free',
+            code: 'free',
+            description: 'Free plan for demo users',
+            price: 0,
+            currency: 'INR',
+            interval: 'year',
+            intervalCount: 1,
+            popular: false,
+            bestValue: false,
+            features: [],
+            isActive: true,
+            sortOrder: 0,
+          },
+        });
+      }
+
+      user = await this.prisma.user.create({
+        data: {
+          email: DEMO_EMAIL,
+          password: hashedPassword,
+          firstName: 'Demo',
+          lastName: 'User',
+          role: 'user',
+          status: 'active',
+          authProvider: 'email',
+          referralCode: crypto.randomBytes(4).toString('hex').toUpperCase(),
+          isEmailVerified: true,
+          settings: {
+            create: {
+              emailNotifications: false,
+              pushNotifications: true,
+              smsNotifications: false,
+              weeklyReport: false,
+              monthlyReport: false,
+              theme: 'dark',
+              autoDetectTransactions: false,
+              budgetAlertThreshold: 80,
+              defaultCurrency: 'INR',
+              dateFormat: 'DD/MM/yyyy',
+              firstDayOfWeek: 1,
+              language: 'en',
+            },
+          },
+          subscription: {
+            create: {
+              planId: freePlan.id,
+              status: 'active',
+              currentPeriodStart: new Date(),
+              currentPeriodEnd: new Date(Date.now() + 365 * 86400000),
+            },
+          },
+        },
+        include: {
+          settings: true,
+          subscription: { include: { plan: true } },
+        },
+      });
+    } else {
+      const hashedPassword = await bcrypt.hash(DEMO_PASSWORD, 12);
+      user = await this.prisma.user.update({
+        where: { id: user.id },
+        data: { password: hashedPassword, isEmailVerified: true, authProvider: 'email' },
+        include: {
+          settings: true,
+          subscription: { include: { plan: true } },
+        },
+      });
+    }
+
+    const tokens = await this.generateTokens(user.id, user.email);
+    await this.createSession(user.id, tokens.refreshToken, tokens.sessionId, deviceName, platform, ipAddress, userAgent);
+    await this.logLoginActivity(user.id, 'login_success', ipAddress, userAgent, deviceName, platform);
+
+    const { password, ...userWithoutPassword } = user;
+    return { user: userWithoutPassword, tokens };
+  }
+
   async googleAuth(
     dto: GoogleAuthDto,
     ipAddress?: string,
