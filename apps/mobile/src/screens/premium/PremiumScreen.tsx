@@ -18,6 +18,7 @@ import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { WebView } from 'react-native-webview';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { useAuth } from '../../store/AuthContext';
 
 const { width } = Dimensions.get('window');
 
@@ -89,6 +90,7 @@ export function PremiumScreen() {
   const { colors, typography } = useTheme();
   const insets = useSafeAreaInsets();
   const { trackFeature } = useAnalytics();
+  const { refreshPremiumStatus } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState(3);
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState(false);
@@ -147,6 +149,7 @@ export function PremiumScreen() {
             clearInterval(pollRef.current);
             pollRef.current = null;
           }
+          refreshPremiumStatus();
           Alert.alert('Welcome to Premium!', 'Your subscription is now active.');
         }
       } catch {

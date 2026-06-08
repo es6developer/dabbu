@@ -18,6 +18,7 @@ import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
+import { UpgradeBanner } from '../../components/ui/UpgradeBanner';
 import { getCategoryColor } from '../../config/categoryIcons';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -281,6 +282,8 @@ export function HomeScreen() {
               </View>
             </View>
           </View>
+
+          <UpgradeBanner message="Unlock advanced analytics, unlimited groups & more" />
 
           <View style={styles.quickActions}>
             <TouchableOpacity

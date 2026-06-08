@@ -19,6 +19,7 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import { SearchSection } from '../../components/ui/SearchSection';
 import { FilterSection } from '../../components/ui/FilterSection';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
+import { UpgradeBanner } from '../../components/ui/UpgradeBanner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const H_PADDING = 16;
@@ -669,6 +670,8 @@ export function SharedFinanceHomeScreen() {
               colors={colors}
               typography={typography}
             />
+
+            <UpgradeBanner message="Unlimited groups, members & premium features" />
 
             {goals.length > 0 && (
               <TouchableOpacity

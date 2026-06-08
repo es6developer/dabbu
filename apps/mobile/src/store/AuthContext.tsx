@@ -22,6 +22,7 @@ import {
   setRefreshTokenHandler,
   setOnSessionExpiredHandler,
   clearCache,
+  api,
 } from '../services/api';
 import { registerForPushNotifications } from '../services/notifications';
 import { trackEventImmediate } from '../hooks/useAnalytics';
@@ -57,6 +58,7 @@ interface AuthState {
   accessToken: string | null;
   isNewUser: boolean;
   needsPhone: boolean;
+  isPremium: boolean;
 }
 
 interface AuthContextType extends AuthState {
@@ -76,6 +78,7 @@ interface AuthContextType extends AuthState {
   completeProfileSetup: (updatedUser?: Partial<User>) => void;
   updatePhone: (phone: string) => Promise<void>;
   completeAuth: (token: string, user: User, wasNewUser: boolean) => void;
+  refreshPremiumStatus: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -120,6 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     accessToken: null,
     isNewUser: false,
     needsPhone: false,
+    isPremium: false,
   });
 
   const tokenRefreshInFlight = useRef<Promise<boolean> | null>(null);
@@ -191,6 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       accessToken: null,
       isNewUser: false,
       needsPhone: false,
+      isPremium: false,
     });
   }, [clearAuth_, clearSessionTimeout]);
 
@@ -303,6 +308,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
         resetSessionTimeout();
         registerForPushNotifications(token).catch(() => {});
+        refreshPremiumStatus();
       } else {
         setState((prev) => ({ ...prev, isLoading: false }));
       }
@@ -323,8 +329,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       accessToken: token,
       isNewUser: wasNewUser,
       needsPhone: !user.phone,
+      isPremium: false,
     });
     resetSessionTimeout();
+    refreshPremiumStatus();
   }
 
   const completeAuth = useCallback((token: string, user: User, wasNewUser: boolean) => {
@@ -555,6 +563,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }
 
+  const refreshPremiumStatus = useCallback(async () => {
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        setState((prev) => ({ ...prev, isPremium: false }));
+        return;
+      }
+      const res = await api.get<any>('/premium/check');
+      setState((prev) => ({ ...prev, isPremium: !!res?.isPremium }));
+    } catch {
+      setState((prev) => ({ ...prev, isPremium: false }));
+    }
+  }, []);
+
   const value = React.useMemo(
     () => ({
       ...state,
@@ -568,8 +590,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       completeProfileSetup,
       updatePhone,
       completeAuth,
+      refreshPremiumStatus,
     }),
-    [state, refreshToken, completeAuth],
+    [state, refreshToken, completeAuth, refreshPremiumStatus],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

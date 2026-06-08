@@ -16,6 +16,7 @@ import { useTheme, spacing } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
+import { UpgradeBanner } from '../../components/ui/UpgradeBanner';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
@@ -367,6 +368,8 @@ export function SharedScreen() {
             </View>
           </View>
         </View>
+
+        <UpgradeBanner message="Create unlimited shared spaces with Premium" />
 
         {/* ─── Loading ─── */}
         {loading && (

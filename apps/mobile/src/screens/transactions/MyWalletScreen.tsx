@@ -19,6 +19,7 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Skeleton, SkeletonList } from '../../components/ui/AnimatedSkeleton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { UpgradeBanner } from '../../components/ui/UpgradeBanner';
 import { useTheme } from '../../theme';
 import { getCategoryIcon } from '../../config/categoryIcons';
 
@@ -418,6 +419,8 @@ export function MyWalletScreen() {
                 </View>
               </View>
             </Animated.View>
+
+            <UpgradeBanner message="Get premium insights, unlimited OCR scans & more" />
 
             <View style={s.quickActions}>
               {PREMIUM_CATEGORIES.map((a) => (

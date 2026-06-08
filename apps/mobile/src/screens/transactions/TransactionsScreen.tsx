@@ -18,6 +18,7 @@ import { useAuth } from '../../store/AuthContext';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { SkeletonCard } from '../../components/ui/AnimatedSkeleton';
+import { UpgradeBanner } from '../../components/ui/UpgradeBanner';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -208,6 +209,8 @@ export function TransactionsScreen() {
             </Text>
           </View>
         </View>
+
+        <UpgradeBanner message="Upgrade for advanced filters, export & insights" />
 
         {/* Filter Chips */}
         {showFilters && (
