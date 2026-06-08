@@ -343,7 +343,7 @@ export function AddMemberScreen() {
   };
 
   const renderSyncButton = () => {
-    if (contactsGranted) {
+    if (hasSynced) {
       return null;
     }
     return (
@@ -487,7 +487,7 @@ export function AddMemberScreen() {
       ) : (
         <>
           {renderMainContent()}
-          {!contactsGranted && !syncing && !query.trim() && renderSyncButton()}
+          {!syncing && !query.trim() && renderSyncButton()}
         </>
       )}
     </View>
