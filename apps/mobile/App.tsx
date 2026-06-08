@@ -3,7 +3,6 @@ import { StatusBar, LogBox, Appearance } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
-import * as Font from 'expo-font';
 import { NavigationContainer, NavigationContainerRef, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { ThemeProvider, useTheme } from './src/theme/ThemeProvider';
 import { RootNavigator } from './src/navigation/RootNavigator';
@@ -101,15 +100,9 @@ export default function App(): React.ReactElement | null {
   useEffect(() => {
     async function prepare(): Promise<void> {
       try {
-        await Font.loadAsync({
-          'Inter-Regular': require('./src/assets/fonts/Inter-Regular.ttf'),
-          'Inter-Medium': require('./src/assets/fonts/Inter-Medium.ttf'),
-          'Inter-SemiBold': require('./src/assets/fonts/Inter-SemiBold.ttf'),
-          'Inter-Bold': require('./src/assets/fonts/Inter-Bold.ttf'),
-        });
         loadFeatures();
       } catch (e) {
-        console.warn('Font loading error:', e);
+        console.warn('Load features error:', e);
       } finally {
         setAppIsReady(true);
       }
@@ -138,7 +131,6 @@ export default function App(): React.ReactElement | null {
                   <ThemedStatusBar />
                   <RootNavigator />
                 </ThemedNavigationContainer>
-                <Toast />
               </FavoritesProvider>
             </LockProvider>
           </AuthProvider>

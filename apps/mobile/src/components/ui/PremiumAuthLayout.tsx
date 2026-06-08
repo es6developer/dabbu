@@ -1,7 +1,6 @@
 import React, { ReactNode } from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Platform, Image, Dimensions } from 'react-native';
 import Svg, { Circle, Path, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { height: SCREEN_HEIGHT, width: SCREEN_W } = Dimensions.get('window');
@@ -53,18 +52,14 @@ export function PremiumAuthLayout({ children }: PremiumAuthLayoutProps) {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
       >
-        <LinearGradient
-          colors={['#131315', '#070708']}
-          locations={[0, 1]}
-          style={[styles.topPanel, { paddingTop: insets.top + 20 }]}
-        >
+        <View style={[styles.topPanel, { paddingTop: insets.top + 20, backgroundColor: '#131315' }]}>
           <AuthVectors />
           <Image
             source={require('../../../assets/logo.png')}
             style={styles.logo}
             resizeMode="contain"
           />
-        </LinearGradient>
+        </View>
 
         <View style={styles.formCard}>{children}</View>
       </KeyboardAvoidingView>

@@ -12,7 +12,6 @@ import {
   Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -452,14 +451,9 @@ export function SharedCirclesScreen() {
       {/* ─── Floating Scan FAB ─── */}
       <View style={[s.fabContainer, { bottom: insets.bottom + 24 }]}>
         <TouchableOpacity activeOpacity={0.85} onPress={() => navigation.navigate('ScanReceipt')}>
-          <LinearGradient
-            colors={['#FF6B00', '#FF8533']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={s.fab}
-          >
+          <View style={[s.fab, { backgroundColor: '#FF6B00' }]}>
             <Ionicons name="camera-outline" size={24} color="#FFF" />
-          </LinearGradient>
+          </View>
         </TouchableOpacity>
       </View>
     </View>

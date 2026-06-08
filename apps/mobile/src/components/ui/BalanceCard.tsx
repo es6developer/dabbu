@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../theme';
 
 const { width } = Dimensions.get('window');
@@ -61,12 +60,7 @@ export function BalanceCard({ totalBalance, monthlySpending, monthlyBudget }: Ba
             </Text>
           </View>
           <View style={styles.progressBar}>
-            <LinearGradient
-              colors={['#FF6B00', '#FF914D']}
-              style={[styles.progressFill, { width: `${Math.min(spendPct, 100)}%` }]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-            />
+            <View style={[styles.progressFill, { width: `${Math.min(spendPct, 100)}%`, backgroundColor: '#FF6B00' }]} />
           </View>
         </View>
       </View>

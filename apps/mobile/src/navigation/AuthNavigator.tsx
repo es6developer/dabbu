@@ -12,8 +12,8 @@ import { PrivacyPolicyScreen } from '../screens/settings/PrivacyPolicyScreen';
 
 export type AuthStackParamList = {
   Onboarding: { referralCode?: string } | undefined;
-  Login: undefined;
-  Signup: undefined;
+  Login: { tab?: 'login' | 'signup' } | undefined;
+  Signup: { tab?: 'login' | 'signup' } | undefined;
   ForgotPassword: undefined;
   OtpVerification: { email: string; purpose: 'email_verification' | 'password_reset' | 'login' };
   BiometricSetup: undefined;

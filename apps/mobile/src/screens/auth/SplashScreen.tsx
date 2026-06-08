@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Dimensions, Image, Easing } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
 
@@ -88,7 +87,7 @@ export function SplashScreen({ onFinish }: SplashScreenProps) {
   });
 
   return (
-    <LinearGradient colors={['#FFFFFF', '#FFF5F0']} style={styles.root}>
+    <View style={[styles.root, { backgroundColor: '#FFFFFF' }]}>
       <Animated.View style={[styles.inner, { opacity: rootOpacity }]}>
         {/* Language nodes */}
         {LANG_NODES.map((node, i) => {
@@ -151,7 +150,7 @@ export function SplashScreen({ onFinish }: SplashScreenProps) {
           Dabbu
         </Animated.Text>
       </Animated.View>
-    </LinearGradient>
+    </View>
   );
 }
 

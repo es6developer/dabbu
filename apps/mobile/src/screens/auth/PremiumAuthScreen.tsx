@@ -9,56 +9,14 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   ScrollView,
-  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Svg, { Circle, Path, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { PremiumAuthLayout } from '../../components/ui/PremiumAuthLayout';
 import { useAuth } from '../../store/AuthContext';
 import { useGoogleAuth, getGoogleIdToken, getGoogleError } from '../../services/google-auth';
 
-const { width: SCREEN_W } = Dimensions.get('window');
 type Tab = 'login' | 'signup';
-
-function AuthVectors() {
-  return (
-    <View style={vectorsStyle.wrapper}>
-      <Svg width={SCREEN_W} height="100%" viewBox={`0 0 ${SCREEN_W} 360`}>
-        <Defs>
-          <SvgGradient id="grad1" x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0" stopColor="#FF6B00" stopOpacity="0.15" />
-            <Stop offset="1" stopColor="#FF6B00" stopOpacity="0.03" />
-          </SvgGradient>
-          <SvgGradient id="grad2" x1="0" y1="1" x2="1" y2="0">
-            <Stop offset="0" stopColor="#FF6B00" stopOpacity="0.08" />
-            <Stop offset="1" stopColor="#FF6B00" stopOpacity="0" />
-          </SvgGradient>
-        </Defs>
-        <Circle cx={SCREEN_W * 0.75} cy={80} r={60} fill="url(#grad1)" />
-        <Circle cx={SCREEN_W * 0.25} cy={180} r={90} fill="url(#grad2)" />
-        <Circle cx={SCREEN_W * 0.85} cy={220} r={40} fill="url(#grad1)" />
-        <Path
-          d={`M 0 280 Q ${SCREEN_W * 0.3} 240 ${SCREEN_W * 0.5} 280 T ${SCREEN_W} 260 L ${SCREEN_W} 360 L 0 360 Z`}
-          fill="url(#grad2)"
-          opacity={0.6}
-        />
-        <Path
-          d={`M 0 300 Q ${SCREEN_W * 0.4} 260 ${SCREEN_W * 0.6} 300 T ${SCREEN_W} 280 L ${SCREEN_W} 360 L 0 360 Z`}
-          fill="#131315"
-          opacity={1}
-        />
-      </Svg>
-    </View>
-  );
-}
-
-const vectorsStyle = StyleSheet.create({
-  wrapper: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 0,
-  },
-});
 
 export function PremiumAuthScreen() {
   const navigation = useNavigation<any>();
