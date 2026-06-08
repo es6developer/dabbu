@@ -24,6 +24,7 @@ export function AccountsNavigator() {
   return (
     <Stack.Navigator
       screenOptions={{
+        animation: 'slide_from_right',
         headerStyle: { backgroundColor: colors.bg.primary },
         headerTintColor: colors.text.primary,
         headerTitleStyle: { ...(typography.calloutBold as any), color: colors.text.primary },

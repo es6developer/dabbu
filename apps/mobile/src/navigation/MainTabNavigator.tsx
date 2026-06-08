@@ -56,6 +56,7 @@ function DashboardNavigator() {
   return (
     <DashboardStack.Navigator
       screenOptions={{
+        animation: 'slide_from_right',
         headerStyle: { backgroundColor: colors.bg.primary },
         headerTintColor: colors.text.primary,
         headerTitleStyle: {
@@ -126,6 +127,7 @@ function SettingsNavigator() {
   return (
     <SettingsStack.Navigator
       screenOptions={{
+        animation: 'slide_from_right',
         headerStyle: { backgroundColor: colors.bg.primary },
         headerTintColor: colors.text.primary,
         headerTitleStyle: {
@@ -226,6 +228,7 @@ function RemindersNavigator() {
   return (
     <RemindersStack.Navigator
       screenOptions={{
+        animation: 'slide_from_right',
         headerStyle: { backgroundColor: colors.bg.primary },
         headerTintColor: colors.text.primary,
         headerTitleStyle: {
@@ -260,6 +263,7 @@ function SmsNavigator() {
   return (
     <SmsStack.Navigator
       screenOptions={{
+        animation: 'slide_from_right',
         headerStyle: { backgroundColor: colors.bg.primary },
         headerTintColor: colors.text.primary,
         headerTitleStyle: {

@@ -12,6 +12,7 @@ export function ChatNavigator() {
   return (
     <Stack.Navigator
       screenOptions={{
+        animation: 'slide_from_right',
         headerStyle: { backgroundColor: colors.bg.primary },
         headerTintColor: colors.text.primary,
         headerTitleStyle: { fontWeight: '600' },
