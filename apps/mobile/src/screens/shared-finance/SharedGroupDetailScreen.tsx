@@ -489,7 +489,11 @@ export function SharedGroupDetailScreen() {
         </View>
 
         {balanceRows.length > 0 && (
-          <View style={[s.insightCard, { backgroundColor: '#60A5FA12' }]}>
+          <TouchableOpacity
+            style={[s.insightCard, { backgroundColor: '#60A5FA12' }]}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate('Settlement', { groupId })}
+          >
             <Ionicons name="bulb-outline" size={20} color="#60A5FA" />
             <View style={{ flex: 1 }}>
               <Text style={[s.insightTitle, { color: colors.text.primary }]}>
@@ -500,7 +504,8 @@ export function SharedGroupDetailScreen() {
                 {balanceRows.filter((r) => r.balance < 0).length !== 1 ? 's' : ''} need to settle up
               </Text>
             </View>
-          </View>
+            <Ionicons name="chevron-forward" size={18} color="#60A5FA" />
+          </TouchableOpacity>
         )}
 
         {(type === 'couple' || type === 'family') && (
