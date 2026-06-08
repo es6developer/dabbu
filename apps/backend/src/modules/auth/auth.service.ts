@@ -464,10 +464,11 @@ export class AuthService {
     deviceName?: string,
     platform?: string,
   ): Promise<{ user: any; tokens: TokenPair; isNewUser: boolean }> {
-    const client = new OAuth2Client();
+    const googleClientId = this.configService.get<string>('GOOGLE_CLIENT_ID') || '';
+    const client = new OAuth2Client(googleClientId);
     let ticket;
     try {
-      ticket = await client.verifyIdToken({ idToken: dto.idToken });
+      ticket = await client.verifyIdToken({ idToken: dto.idToken, audience: googleClientId });
     } catch {
       throw new UnauthorizedException('Invalid Google token');
     }
