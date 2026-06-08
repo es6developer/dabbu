@@ -15,6 +15,7 @@ export function UpgradeBanner({
   message = 'Unlock unlimited groups, advanced analytics & more',
 }: UpgradeBannerProps) {
   const { user, isPremium, refreshPremiumStatus } = useAuth();
+  const { colors } = useTheme();
   const navigation = useNavigation<any>();
   const slideAnim = useRef(new Animated.Value(variant === 'top' ? -80 : 30)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
@@ -51,28 +52,29 @@ export function UpgradeBanner({
       style={[
         styles.container,
         {
-          borderColor: 'rgba(212, 168, 83, 0.3)',
+          borderColor: colors.border.default,
+          backgroundColor: colors.bg.primary,
           transform: [{ translateY: slideAnim }],
           opacity: opacityAnim,
         },
       ]}
     >
-      <View style={styles.glowLeft} />
+      <View style={[styles.glowLeft, { backgroundColor: colors.brand.light }]} />
       <View style={styles.content}>
-        <View style={styles.iconWrap}>
-          <Ionicons name="diamond" size={18} color="#1A1835" />
+        <View style={[styles.iconWrap, { backgroundColor: colors.brand.primary }]}>
+          <Ionicons name="diamond" size={18} color="#FFFFFF" />
         </View>
         <View style={styles.textWrap}>
-          <Text style={styles.title}>Go Premium</Text>
-          <Text style={styles.message}>{message}</Text>
+          <Text style={[styles.title, { color: colors.brand.primary }]}>Go Premium</Text>
+          <Text style={[styles.message, { color: colors.text.secondary }]}>{message}</Text>
         </View>
       </View>
       <TouchableOpacity
-        style={styles.button}
+        style={[styles.button, { backgroundColor: colors.brand.primary }]}
         activeOpacity={0.8}
         onPress={() => navigation.navigate('Settings', { screen: 'Premium' })}
       >
-        <Text style={styles.buttonText}>Upgrade</Text>
+        <Text style={[styles.buttonText, { color: colors.text.inverse }]}>Upgrade</Text>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -84,7 +86,6 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     borderRadius: 16,
     borderWidth: 1,
-    backgroundColor: '#1A1835',
     padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
@@ -98,7 +99,6 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(243, 210, 143, 0.08)',
   },
   content: {
     flexDirection: 'row',
@@ -110,7 +110,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#F3D28F',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 10,
@@ -122,15 +121,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     marginBottom: 2,
-    color: '#F3D28F',
   },
   message: {
     fontSize: 12,
     lineHeight: 16,
-    color: 'rgba(243, 210, 143, 0.7)',
   },
   button: {
-    backgroundColor: '#F3D28F',
     paddingHorizontal: 18,
     paddingVertical: 8,
     borderRadius: 20,
@@ -138,7 +134,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: {
-    color: '#1A1835',
     fontSize: 13,
     fontWeight: '700',
   },
