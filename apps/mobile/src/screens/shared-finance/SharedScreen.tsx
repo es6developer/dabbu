@@ -40,6 +40,7 @@ const SPACE_TYPE_CONFIG: Record<
   office: { label: 'Office', icon: 'briefcase', gradient: ['#247BA0', '#4A9FC7'] },
   event: { label: 'Event', icon: 'calendar', gradient: ['#D64550', '#FF6B6B'] },
   apartment: { label: 'Apartment', icon: 'building', gradient: ['#14B8A6', '#14B8A6'] },
+  sports: { label: 'Sports', icon: 'football', gradient: ['#FF6B6B', '#FF8E8E'] },
   default: { label: 'Group', icon: 'people', gradient: ['#4F6EF7', '#7C8FF8'] },
 };
 
