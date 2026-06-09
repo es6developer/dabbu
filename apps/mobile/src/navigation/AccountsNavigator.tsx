@@ -1,6 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../theme';
+import { iosTransitionOptions } from './animations';
 import { AddExpenseScreen } from '../screens/transactions/AddExpenseScreen';
 import { BillScannerScreen } from '../screens/transactions/BillScannerScreen';
 import { CreateTransactionScreen } from '../screens/transactions/CreateTransactionScreen';
@@ -21,15 +22,11 @@ import { AddMemberScreen } from '../screens/social/AddMemberScreen';
 
 export function AccountsNavigator() {
   const Stack = createNativeStackNavigator();
-  const { colors, typography } = useTheme();
+  const theme = useTheme();
+  const { colors } = theme;
   return (
     <Stack.Navigator
-      screenOptions={{
-        animation: 'slide_from_right',
-        headerStyle: { backgroundColor: colors.bg.primary },
-        headerTintColor: colors.text.primary,
-        headerTitleStyle: { ...(typography.calloutBold as any), color: colors.text.primary },
-      }}
+      screenOptions={iosTransitionOptions(theme)}
     >
       <Stack.Screen
         name="ExpenseHome"

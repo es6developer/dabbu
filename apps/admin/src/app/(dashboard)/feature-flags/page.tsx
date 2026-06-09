@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Switch } from '@tremor/react';
-import { Flag, Plus, Search, Loader2, X, Check } from 'lucide-react';
+import { Plus, Search, Loader2, X, Check } from 'lucide-react';
 import { listFeatureFlags, toggleFeatureFlag, createFeatureFlag } from '@/lib/api';
 import type { FeatureFlag } from '@/lib/api';
 

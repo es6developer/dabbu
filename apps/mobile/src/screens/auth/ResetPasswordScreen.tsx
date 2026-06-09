@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   Animated,
   Keyboard,
   TouchableWithoutFeedback,
@@ -13,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../../theme';
 import { PADDING, shadows } from '../../theme/design';
 import { api } from '../../services/api';
 
@@ -22,6 +22,7 @@ export function ResetPasswordScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const email = route.params?.email || '';
 
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''));
@@ -102,7 +103,7 @@ export function ResetPasswordScreen() {
   }
 
   return (
-    <View style={s.root}>
+    <View style={{ flex: 1, backgroundColor: colors.bg.primary }}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <Animated.View
           style={{
@@ -127,13 +128,13 @@ export function ResetPasswordScreen() {
               width: 40,
               height: 40,
               borderRadius: 12,
-              backgroundColor: '#F8F9FA',
+              backgroundColor: colors.bg.secondary,
               alignItems: 'center',
               justifyContent: 'center',
               marginBottom: 24,
             }}
           >
-            <Ionicons name="chevron-back" size={22} color="#1A1A1A" />
+            <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
           </TouchableOpacity>
 
           {/* Header */}
@@ -141,7 +142,7 @@ export function ResetPasswordScreen() {
             style={{
               fontSize: 28,
               fontWeight: '800',
-              color: '#1A1A1A',
+              color: colors.text.primary,
               letterSpacing: -0.5,
               marginBottom: 8,
             }}
@@ -152,7 +153,7 @@ export function ResetPasswordScreen() {
             style={{
               fontSize: 15,
               fontWeight: '500',
-              color: '#6B7280',
+              color: colors.text.secondary,
               lineHeight: 22,
               marginBottom: 32,
             }}
@@ -171,12 +172,12 @@ export function ResetPasswordScreen() {
                 gap: 8,
                 padding: 12,
                 borderRadius: 14,
-                backgroundColor: '#FF4D4F10',
+                backgroundColor: colors.status.errorLight,
                 marginBottom: 16,
               }}
             >
-              <Ionicons name="alert-circle" size={16} color="#FF4D4F" />
-              <Text style={{ fontSize: 13, fontWeight: '500', color: '#FF4D4F', flex: 1 }}>
+              <Ionicons name="alert-circle" size={16} color={colors.status.error} />
+              <Text style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}>
                 {error}
               </Text>
             </View>
@@ -205,15 +206,15 @@ export function ResetPasswordScreen() {
                       borderRadius: 14,
                       borderWidth: 1.5,
                       borderColor: digit
-                        ? '#8B5CF6'
+                        ? colors.brand.primary
                         : error
-                          ? '#FF4D4F'
-                          : '#E5E7EB',
-                      backgroundColor: digit ? '#8B5CF608' : '#F8F9FA',
+                          ? colors.status.error
+                          : colors.border.default,
+                      backgroundColor: digit ? colors.brand.light : colors.bg.secondary,
                       textAlign: 'center',
                       fontSize: 24,
                       fontWeight: '700',
-                      color: '#1A1A1A',
+                      color: colors.text.primary,
                     }}
                     value={digit}
                     onChangeText={(t) => handleOtpChange(t, i)}
@@ -230,16 +231,16 @@ export function ResetPasswordScreen() {
                 activeOpacity={0.85}
                 onPress={handleNext}
                 style={{
-                  backgroundColor: '#8B5CF6',
+                  backgroundColor: colors.brand.primary,
                   paddingVertical: 16,
                   borderRadius: 16,
                   alignItems: 'center',
                   justifyContent: 'center',
                   ...shadows.md,
-                  shadowColor: '#8B5CF6',
+                  shadowColor: colors.brand.primary,
                 }}
               >
-                <Text style={{ color: '#FFFFFF', fontSize: 17, fontWeight: '700' }}>Continue</Text>
+                <Text style={{ color: colors.text.inverse, fontSize: 17, fontWeight: '700' }}>Continue</Text>
               </TouchableOpacity>
             </>
           ) : (
@@ -249,7 +250,7 @@ export function ResetPasswordScreen() {
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  backgroundColor: '#F8F9FA',
+                  backgroundColor: colors.bg.secondary,
                   borderRadius: 16,
                   borderWidth: 1.5,
                   borderColor: 'transparent',
@@ -261,13 +262,13 @@ export function ResetPasswordScreen() {
                 <Ionicons
                   name="lock-closed-outline"
                   size={20}
-                  color="#9CA3AF"
+                  color={colors.text.tertiary}
                   style={{ marginRight: 12 }}
                 />
                 <TextInput
-                  style={{ flex: 1, fontSize: 16, fontWeight: '500', color: '#1A1A1A' }}
+                  style={{ flex: 1, fontSize: 16, fontWeight: '500', color: colors.text.primary }}
                   placeholder="New password"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colors.text.tertiary}
                   value={password}
                   onChangeText={(t) => {
                     setPassword(t);
@@ -281,7 +282,7 @@ export function ResetPasswordScreen() {
                   <Ionicons
                     name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                     size={20}
-                    color="#9CA3AF"
+                    color={colors.text.tertiary}
                   />
                 </TouchableOpacity>
               </View>
@@ -291,7 +292,7 @@ export function ResetPasswordScreen() {
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  backgroundColor: '#F8F9FA',
+                  backgroundColor: colors.bg.secondary,
                   borderRadius: 16,
                   borderWidth: 1.5,
                   borderColor: 'transparent',
@@ -303,13 +304,13 @@ export function ResetPasswordScreen() {
                 <Ionicons
                   name="lock-closed-outline"
                   size={20}
-                  color="#9CA3AF"
+                  color={colors.text.tertiary}
                   style={{ marginRight: 12 }}
                 />
                 <TextInput
-                  style={{ flex: 1, fontSize: 16, fontWeight: '500', color: '#1A1A1A' }}
+                  style={{ flex: 1, fontSize: 16, fontWeight: '500', color: colors.text.primary }}
                   placeholder="Confirm new password"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colors.text.tertiary}
                   value={confirmPassword}
                   onChangeText={(t) => {
                     setConfirmPassword(t);
@@ -328,7 +329,7 @@ export function ResetPasswordScreen() {
                 onPress={handleReset}
                 disabled={loading}
                 style={{
-                  backgroundColor: '#8B5CF6',
+                  backgroundColor: colors.brand.primary,
                   paddingVertical: 16,
                   borderRadius: 16,
                   alignItems: 'center',
@@ -337,13 +338,13 @@ export function ResetPasswordScreen() {
                   gap: 8,
                   opacity: loading ? 0.6 : 1,
                   ...shadows.md,
-                  shadowColor: '#8B5CF6',
+                  shadowColor: colors.brand.primary,
                 }}
               >
                 {loading ? (
-                  <ActivityIndicator color="#FFFFFF" />
+                  <ActivityIndicator color={colors.text.inverse} />
                 ) : (
-                  <Text style={{ color: '#FFFFFF', fontSize: 17, fontWeight: '700' }}>
+                  <Text style={{ color: colors.text.inverse, fontSize: 17, fontWeight: '700' }}>
                     Reset Password
                   </Text>
                 )}
@@ -359,11 +360,11 @@ export function ResetPasswordScreen() {
               alignItems: 'center',
               borderRadius: 14,
               borderWidth: 1,
-              borderColor: '#E5E7EB',
+              borderColor: colors.border.default,
               marginTop: 12,
             }}
           >
-            <Text style={{ fontSize: 15, fontWeight: '600', color: '#8B5CF6' }}>
+            <Text style={{ fontSize: 15, fontWeight: '600', color: colors.brand.primary }}>
               Back to sign in
             </Text>
           </TouchableOpacity>
@@ -373,6 +374,4 @@ export function ResetPasswordScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#FFFFFF' },
-});
+

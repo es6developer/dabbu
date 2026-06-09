@@ -1,6 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../theme';
+import { iosTransitionOptions } from './animations';
 import { CirclesListScreen } from '../screens/circles/CirclesListScreen';
 import { CreateCircleScreen } from '../screens/circles/CreateCircleScreen';
 import { SplitExpenseScreen } from '../screens/split/SplitExpenseScreen';
@@ -24,22 +25,11 @@ import { TransactionDetailScreen } from '../screens/transactions/TransactionDeta
 const Stack = createNativeStackNavigator();
 
 export function CirclesNavigator() {
-  const { colors, typography } = useTheme();
+  const theme = useTheme();
 
   return (
     <Stack.Navigator
-      screenOptions={{
-        animation: 'slide_from_right',
-        headerStyle: { backgroundColor: colors.bg.primary },
-        headerTintColor: colors.text.primary,
-        headerTitleStyle: {
-          fontFamily: typography.calloutBold.fontFamily,
-          fontSize: typography.calloutBold.fontSize,
-          fontWeight: typography.calloutBold.fontWeight,
-        },
-        contentStyle: { backgroundColor: colors.bg.primary },
-        headerShadowVisible: false,
-      }}
+      screenOptions={iosTransitionOptions(theme)}
     >
       <Stack.Screen
         name="CirclesList"

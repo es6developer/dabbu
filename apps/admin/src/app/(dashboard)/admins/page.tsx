@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Search, Shield, Plus, RefreshCw, XCircle } from 'lucide-react';
+import { Plus, RefreshCw, XCircle } from 'lucide-react';
 import { listAdmins, createAdmin, deleteAdmin, type AdminUser } from '@/lib/api';
 
 export default function AdminsPage() {

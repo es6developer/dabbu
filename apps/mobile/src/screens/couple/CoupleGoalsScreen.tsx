@@ -194,21 +194,21 @@ export function CoupleGoalsScreen() {
         ListHeaderComponent={
           <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
             <View style={styles.headerRow}>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                <Ionicons name="arrow-back" size={22} color="#FFF" />
+              <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}>
+                <Ionicons name="arrow-back" size={22} color={colors.text.primary} />
               </TouchableOpacity>
-              <Text style={styles.headerTitle}>Shared Goals</Text>
+              <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Shared Goals</Text>
               <TouchableOpacity
                 onPress={() => {
                   resetForm();
                   setAddModalVisible(true);
                 }}
-                style={styles.backBtn}
+                style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}
               >
-                <Ionicons name="add" size={24} color="#FFF" />
+                <Ionicons name="add" size={24} color={colors.text.primary} />
               </TouchableOpacity>
             </View>
-            <Text style={styles.headerSubtitle}>
+            <Text style={[styles.headerSubtitle, { color: colors.text.tertiary }]}>
               {goals.length > 0
                 ? `${goals.length} goal${goals.length !== 1 ? 's' : ''}`
                 : 'Save towards what matters most'}

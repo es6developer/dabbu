@@ -59,7 +59,7 @@ export function BalanceCard({
             <Text style={styles.pillText}>Deposit</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.pill} activeOpacity={0.8} onPress={onRequest}>
-            <Ionicons name="refresh" size={14} color="#FFFFFF" />
+            <Ionicons name="arrow-back" size={14} color="#FFFFFF" />
             <Text style={styles.pillText}>Request</Text>
           </TouchableOpacity>
         </View>

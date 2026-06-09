@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   Animated,
   Keyboard,
   TouchableWithoutFeedback,
@@ -15,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../store/AuthContext';
+import { useTheme } from '../../theme';
 import { PADDING, borderRadius, shadows } from '../../theme/design';
 
 interface InputFieldProps {
@@ -31,6 +31,7 @@ interface InputFieldProps {
   focused: boolean;
   onFocus: () => void;
   onBlur: () => void;
+  colors: any;
 }
 
 function InputField({
@@ -47,6 +48,7 @@ function InputField({
   focused,
   onFocus,
   onBlur,
+  colors,
 }: InputFieldProps) {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = secureTextEntry !== undefined;
@@ -55,27 +57,27 @@ function InputField({
       style={{
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#F8F9FA',
+        backgroundColor: colors.bg.secondary,
         borderRadius: borderRadius.md,
         borderWidth: 1.5,
-        borderColor: '#ac99d7',
+        borderColor: colors.border.default,
         paddingHorizontal: 14,
         marginBottom: 12,
       }}
     >
-      {icon && <Ionicons name={icon} size={18} color={focused ? '#8B5CF6' : '#9CA3AF'} />}
+      {icon && <Ionicons name={icon} size={18} color={focused ? colors.brand.primary : colors.text.tertiary} />}
       <TextInput
         ref={inputRef}
         style={{
           flex: 1,
           fontSize: 15,
           fontWeight: '500',
-          color: '#1A1A1A',
+          color: colors.text.primary,
           paddingVertical: 14,
           marginLeft: icon ? 10 : 0,
         }}
         placeholder={placeholder}
-        placeholderTextColor="#9CA3AF"
+        placeholderTextColor={colors.text.tertiary}
         value={value}
         onChangeText={onChangeText}
         secureTextEntry={isPassword && !showPassword}
@@ -91,7 +93,7 @@ function InputField({
           <Ionicons
             name={showPassword ? 'eye-off-outline' : 'eye-outline'}
             size={20}
-            color="#9CA3AF"
+            color={colors.text.tertiary}
           />
         </TouchableOpacity>
       )}
@@ -103,6 +105,7 @@ export function PremiumSignupScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { register } = useAuth();
+  const { colors } = useTheme();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -147,7 +150,7 @@ export function PremiumSignupScreen() {
   }
 
   return (
-    <View style={s.root}>
+    <View style={{ flex: 1, backgroundColor: colors.bg.primary }}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <Animated.View
           style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
@@ -179,7 +182,7 @@ export function PremiumSignupScreen() {
                     style={{
                       fontSize: 28,
                       fontWeight: '800',
-                      color: '#1A1A1A',
+                      color: colors.text.primary,
                       letterSpacing: -0.5,
                     }}
                   >
@@ -189,7 +192,7 @@ export function PremiumSignupScreen() {
                     style={{
                       fontSize: 15,
                       fontWeight: '500',
-                      color: '#6B7280',
+                      color: colors.text.secondary,
                       marginTop: 6,
                       lineHeight: 20,
                     }}
@@ -203,12 +206,12 @@ export function PremiumSignupScreen() {
                     width: 40,
                     height: 40,
                     borderRadius: 12,
-                    backgroundColor: '#F8F9FA',
+                    backgroundColor: colors.bg.secondary,
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <Ionicons name="close" size={22} color="#1A1A1A" />
+                  <Ionicons name="close" size={22} color={colors.text.primary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -225,6 +228,7 @@ export function PremiumSignupScreen() {
                     returnKeyType="next"
                     icon="person-outline"
                     onSubmitEditing={() => lastNameRef.current?.focus()}
+                    colors={colors}
                     focused={focusedField === 'first'}
                     onFocus={() => setFocusedField('first')}
                     onBlur={() => setFocusedField(null)}
@@ -239,6 +243,7 @@ export function PremiumSignupScreen() {
                     returnKeyType="next"
                     inputRef={lastNameRef}
                     onSubmitEditing={() => emailRef.current?.focus()}
+                    colors={colors}
                     focused={focusedField === 'last'}
                     onFocus={() => setFocusedField('last')}
                     onBlur={() => setFocusedField(null)}
@@ -256,6 +261,7 @@ export function PremiumSignupScreen() {
                 icon="mail-outline"
                 inputRef={emailRef}
                 onSubmitEditing={() => passwordRef.current?.focus()}
+                colors={colors}
                 focused={focusedField === 'email'}
                 onFocus={() => setFocusedField('email')}
                 onBlur={() => setFocusedField(null)}
@@ -269,6 +275,7 @@ export function PremiumSignupScreen() {
                 icon="lock-closed-outline"
                 inputRef={passwordRef}
                 onSubmitEditing={() => confirmRef.current?.focus()}
+                colors={colors}
                 focused={focusedField === 'password'}
                 onFocus={() => setFocusedField('password')}
                 onBlur={() => setFocusedField(null)}
@@ -282,6 +289,7 @@ export function PremiumSignupScreen() {
                 icon="lock-closed-outline"
                 inputRef={confirmRef}
                 onSubmitEditing={handleSignup}
+                colors={colors}
                 focused={focusedField === 'confirm'}
                 onFocus={() => setFocusedField('confirm')}
                 onBlur={() => setFocusedField(null)}
@@ -296,12 +304,12 @@ export function PremiumSignupScreen() {
                     gap: 8,
                     padding: 12,
                     borderRadius: 12,
-                    backgroundColor: '#FF4D4F10',
+                    backgroundColor: colors.status.errorLight,
                     marginBottom: 12,
                   }}
                 >
-                  <Ionicons name="alert-circle" size={16} color="#FF4D4F" />
-                  <Text style={{ fontSize: 13, fontWeight: '500', color: '#FF4D4F', flex: 1 }}>
+                  <Ionicons name="alert-circle" size={16} color={colors.status.error} />
+                  <Text style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}>
                     {error}
                   </Text>
                 </View>
@@ -313,35 +321,35 @@ export function PremiumSignupScreen() {
                 onPress={handleSignup}
                 disabled={loading}
                 style={{
-                  backgroundColor: '#8B5CF6',
+                  backgroundColor: colors.brand.primary,
                   paddingVertical: 16,
                   borderRadius: borderRadius.md,
                   alignItems: 'center',
                   justifyContent: 'center',
                   opacity: loading ? 0.5 : 1,
                   ...shadows.md,
-                  shadowColor: '#8B5CF6',
+                  shadowColor: colors.brand.primary,
                 }}
               >
-                <Text style={{ color: '#FFF', fontSize: 16, fontWeight: '700' }}>
+                <Text style={{ color: colors.text.inverse, fontSize: 16, fontWeight: '700' }}>
                   {loading ? 'Creating account...' : 'Create Account'}
                 </Text>
               </TouchableOpacity>
 
               {/* Divider */}
               <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 24 }}>
-                <View style={{ flex: 1, height: 1, backgroundColor: '#E5E7EB' }} />
+                <View style={{ flex: 1, height: 1, backgroundColor: colors.border.default }} />
                 <Text
                   style={{
                     marginHorizontal: 12,
                     fontSize: 12,
                     fontWeight: '600',
-                    color: '#9CA3AF',
+                    color: colors.text.tertiary,
                   }}
                 >
                   or sign up with
                 </Text>
-                <View style={{ flex: 1, height: 1, backgroundColor: '#E5E7EB' }} />
+                <View style={{ flex: 1, height: 1, backgroundColor: colors.border.default }} />
               </View>
 
               {/* Google */}
@@ -354,22 +362,22 @@ export function PremiumSignupScreen() {
                   gap: 10,
                   paddingVertical: 14,
                   borderRadius: borderRadius.md,
-                  backgroundColor: '#F8F9FA',
+                  backgroundColor: colors.bg.secondary,
                   borderWidth: 1,
-                  borderColor: '#E5E7EB',
+                  borderColor: colors.border.default,
                 }}
               >
-                <Ionicons name="logo-google" size={20} color="#1A1A1A" />
-                <Text style={{ fontSize: 15, fontWeight: '600', color: '#1A1A1A' }}>Google</Text>
+                <Ionicons name="logo-google" size={20} color={colors.text.primary} />
+                <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text.primary }}>Google</Text>
               </TouchableOpacity>
 
               {/* Footer */}
               <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 24 }}>
-                <Text style={{ fontSize: 13, fontWeight: '500', color: '#6B7280' }}>
+                <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.secondary }}>
                   Already have an account?{' '}
                 </Text>
                 <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#8B5CF6' }}>Sign In</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: colors.brand.primary }}>Sign In</Text>
                 </TouchableOpacity>
               </View>
 
@@ -383,8 +391,8 @@ export function PremiumSignupScreen() {
                   marginBottom: 8,
                 }}
               >
-                <Ionicons name="shield-checkmark-outline" size={12} color="#9CA3AF" />
-                <Text style={{ fontSize: 11, fontWeight: '500', color: '#9CA3AF' }}>
+                <Ionicons name="shield-checkmark-outline" size={12} color={colors.text.tertiary} />
+                <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary }}>
                   256-bit encrypted connection
                 </Text>
               </View>
@@ -396,6 +404,4 @@ export function PremiumSignupScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#FFFFFF' },
-});
+

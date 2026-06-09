@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../theme';
+import { iosTransitionOptions } from './animations';
 import { OnboardingScreen } from '../screens/onboarding/OnboardingScreen';
 import { PremiumLoginScreen } from '../screens/auth/PremiumLoginScreen';
 import { PremiumSignupScreen } from '../screens/auth/PremiumSignupScreen';
@@ -26,7 +27,7 @@ export type AuthStackParamList = {
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
 export function AuthNavigator(): React.ReactElement | null {
-  const { colors } = useTheme();
+  const theme = useTheme();
   const [route, setRoute] = useState<'Onboarding' | 'Login' | null>(null);
 
   useEffect(() => {
@@ -42,11 +43,7 @@ export function AuthNavigator(): React.ReactElement | null {
   return (
     <Stack.Navigator
       initialRouteName={route}
-      screenOptions={{
-        headerShown: false,
-        animation: 'slide_from_right',
-        contentStyle: { backgroundColor: colors.bg.primary },
-      }}
+      screenOptions={{ ...iosTransitionOptions(theme), headerShown: false }}
     >
       <Stack.Screen name="Onboarding" component={OnboardingScreen} />
       <Stack.Screen name="Login" component={PremiumLoginScreen} />

@@ -415,9 +415,9 @@ export function BillsListScreen() {
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.headerGradient, { backgroundColor: colors.bg.primary }]}>
         <View style={[styles.headerContent, { paddingTop: insets.top + 12 }]}>
-          <Text style={styles.headerTitle}>Bills</Text>
-          <TouchableOpacity style={styles.headerBtn}>
-            <Ionicons name="options-outline" size={22} color="rgba(255,255,255,0.7)" />
+          <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Bills</Text>
+          <TouchableOpacity style={[styles.headerBtn, { backgroundColor: colors.bg.tertiary }]}>
+            <Ionicons name="options-outline" size={22} color={colors.text.tertiary} />
           </TouchableOpacity>
         </View>
       </View>

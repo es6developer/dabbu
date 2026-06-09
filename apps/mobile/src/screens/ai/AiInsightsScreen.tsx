@@ -90,12 +90,12 @@ export function AiInsightsScreen() {
       >
         <View style={s.headerRow}>
           <View>
-            <Text style={s.headerTitle}>AI Insights</Text>
-            <Text style={s.headerSub}>Smart analysis across all sections</Text>
+            <Text style={[s.headerTitle, { color: colors.text.primary }]}>AI Insights</Text>
+            <Text style={[s.headerSub, { color: colors.text.tertiary }]}>Smart analysis across all sections</Text>
           </View>
-          <View style={s.headerBadge}>
-            <Ionicons name="sparkles" size={14} color="#FFF" />
-            <Text style={s.headerBadgeText}>BETA</Text>
+          <View style={[s.headerBadge, { backgroundColor: colors.bg.tertiary }]}>
+            <Ionicons name="sparkles" size={14} color={colors.accent.primary} />
+            <Text style={[s.headerBadgeText, { color: colors.accent.primary }]}>BETA</Text>
           </View>
         </View>
       </View>

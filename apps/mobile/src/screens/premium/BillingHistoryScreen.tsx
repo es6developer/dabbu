@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
@@ -12,10 +11,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { api } from '../../services/api';
+import { useTheme } from '../../theme';
 
 export function BillingHistoryScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -46,18 +47,18 @@ export function BillingHistoryScreen() {
   if (loading) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
-        <ActivityIndicator size="large" color="#F5A623" />
+        <ActivityIndicator size="large" color={colors.accent.primary} />
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: '#0A0A1A' }]}>
+    <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+          <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
         </TouchableOpacity>
-        <Text style={styles.title}>Billing History</Text>
+        <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text.primary }}>Billing History</Text>
         <View style={{ width: 24 }} />
       </View>
       <ScrollView
@@ -68,24 +69,24 @@ export function BillingHistoryScreen() {
               setRefreshing(true);
               load();
             }}
-            tintColor="#F5A623"
+            tintColor={colors.accent.primary}
           />
         }
         contentContainerStyle={{ padding: 16, gap: 10 }}
       >
         {payments.length === 0 ? (
           <View style={styles.emptyState}>
-            <Ionicons name="receipt-outline" size={48} color="rgba(255,255,255,0.2)" />
-            <Text style={styles.emptyText}>No billing history yet</Text>
+            <Ionicons name="receipt-outline" size={48} color={colors.text.tertiary} />
+            <Text style={{ fontSize: 14, color: colors.text.tertiary }}>No billing history yet</Text>
           </View>
         ) : (
           payments.map((p, i) => (
-            <View key={p.id || i} style={styles.paymentCard}>
+            <View key={p.id || i} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.bg.secondary, borderRadius: 12, padding: 16 }}>
               <View style={styles.paymentLeft}>
-                <Text style={styles.paymentAmount}>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                   ₹{Number(p.amount).toLocaleString('en-IN')}
                 </Text>
-                <Text style={styles.paymentDate}>
+                <Text style={{ fontSize: 12, color: colors.text.secondary }}>
                   {p.paidAt
                     ? new Date(p.paidAt).toLocaleDateString('en-IN', {
                         day: 'numeric',
@@ -117,29 +118,17 @@ export function BillingHistoryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
+const styles = {
+  container: { flex: 1 } as const,
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingBottom: 8,
-  },
-  title: { fontSize: 18, fontWeight: '800', color: '#FFFFFF' },
-  paymentCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 12,
-    padding: 16,
-  },
-  paymentLeft: { gap: 4 },
-  paymentAmount: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
-  paymentDate: { fontSize: 12, color: 'rgba(255,255,255,0.5)' },
-  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  statusText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
-  emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60, gap: 12 },
-  emptyText: { fontSize: 14, color: 'rgba(255,255,255,0.4)' },
-});
+  } as const,
+  paymentLeft: { gap: 4 } as const,
+  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 } as const,
+  statusText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.5 } as const,
+  emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60, gap: 12 } as const,
+};

@@ -204,12 +204,12 @@ export function CoupleFinanceScreen() {
             <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
           </TouchableOpacity>
         </View>
-        <View style={s.heroEmpty}>
+        <View style={[s.heroEmpty, { backgroundColor: colors.bg.secondary }]}>
           <View style={s.heartIconWrap}>
-            <Ionicons name="heart-circle" size={64} color="#FFF" />
+            <Ionicons name="heart-circle" size={64} color={colors.accent.primary} />
           </View>
-          <Text style={s.heroTitle}>Connect with your Partner</Text>
-          <Text style={s.heroSub}>Add your partner to start sharing finances</Text>
+          <Text style={[s.heroTitle, { color: colors.text.primary }]}>Connect with your Partner</Text>
+          <Text style={[s.heroSub, { color: colors.text.secondary }]}>Add your partner to start sharing finances</Text>
         </View>
       </ScrollView>
     );

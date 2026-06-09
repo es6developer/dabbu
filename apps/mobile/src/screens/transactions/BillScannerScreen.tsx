@@ -311,11 +311,11 @@ export function BillScannerScreen() {
                 )}
                 {elapsed > 20 && (
                   <TouchableOpacity
-                    style={[styles.cancelBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.15)', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)' }]}
+                    style={[styles.cancelBtn, { backgroundColor: colors.bg.secondary, borderColor: colors.border.default }]}
                     onPress={handleRetry}
                   >
-                    <Ionicons name="close" size={20} color="#FFFFFF" />
-                    <Text style={styles.cancelBtnText}>Cancel</Text>
+                    <Ionicons name="close" size={20} color={colors.text.primary} />
+                    <Text style={[styles.cancelBtnText, { color: colors.text.primary }]}>Cancel</Text>
                   </TouchableOpacity>
                 )}
               </View>

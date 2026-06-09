@@ -3,11 +3,6 @@
 import { useEffect, useState } from 'react';
 import {
   Search,
-  Filter,
-  MessageCircle,
-  CheckCircle,
-  XCircle,
-  Clock,
   RefreshCw,
   ChevronLeft,
 } from 'lucide-react';
@@ -247,11 +242,11 @@ export default function SupportPage() {
         </div>
         <div className="flex gap-2">
           {[
-            { key: null, label: 'All', icon: Filter },
-            { key: 'open', label: 'Open', icon: MessageCircle },
-            { key: 'in_progress', label: 'In Progress', icon: Clock },
-            { key: 'resolved', label: 'Resolved', icon: CheckCircle },
-            { key: 'closed', label: 'Closed', icon: XCircle },
+            { key: null, label: 'All' },
+            { key: 'open', label: 'Open' },
+            { key: 'in_progress', label: 'In Progress' },
+            { key: 'resolved', label: 'Resolved' },
+            { key: 'closed', label: 'Closed' },
           ].map((f) => (
             <button
               key={f.key ?? 'all'}

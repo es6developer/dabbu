@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ChevronLeft, RefreshCw, Trash2, Users, Calendar } from 'lucide-react';
+import { ChevronLeft, Loader2, Trash2, Users } from 'lucide-react';
 import { getFamilyDetail, deleteFamily } from '@/lib/api';
 
 export default function FamilyDetailPage() {
@@ -44,7 +44,7 @@ export default function FamilyDetailPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <RefreshCw className="w-6 h-6 animate-spin text-indigo-600" />
+        <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
       </div>
     );
   }

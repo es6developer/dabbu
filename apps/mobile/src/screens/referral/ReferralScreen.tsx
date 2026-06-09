@@ -342,9 +342,9 @@ export function ReferralScreen() {
         <View
           style={[styles.hero, { paddingTop: insets.top + 16, backgroundColor: colors.bg.primary }]}
         >
-          <Text style={styles.heroEyebrow}>REFER & EARN</Text>
-          <Text style={styles.heroTitle}>Invite Friends, Earn Rewards</Text>
-          <Text style={styles.heroSub}>
+          <Text style={[styles.heroEyebrow, { color: colors.text.tertiary }]}>REFER & EARN</Text>
+          <Text style={[styles.heroTitle, { color: colors.text.primary }]}>Invite Friends, Earn Rewards</Text>
+          <Text style={[styles.heroSub, { color: colors.text.secondary }]}>
             Earn <Text style={{ fontWeight: '800' }}>₹{REFERRAL_REWARD}</Text> for each friend who
             joins
             {'\n'}They get <Text style={{ fontWeight: '800' }}>₹{REFEREE_REWARD}</Text> welcome
@@ -352,13 +352,13 @@ export function ReferralScreen() {
           </Text>
 
           <TouchableOpacity
-            style={styles.codeBox}
+            style={[styles.codeBox, { backgroundColor: colors.bg.secondary }]}
             activeOpacity={0.7}
             onPress={() => setShowShare(true)}
           >
-            <Text style={styles.codeText}>{referralCode || 'LOADING...'}</Text>
-            <View style={styles.codeShare}>
-              <Ionicons name="share-outline" size={16} color="#FFF" />
+            <Text style={[styles.codeText, { color: colors.text.primary }]}>{referralCode || 'LOADING...'}</Text>
+            <View style={[styles.codeShare, { backgroundColor: colors.bg.tertiary }]}>
+              <Ionicons name="share-outline" size={16} color={colors.text.primary} />
               <Text style={[styles.codeShareText, { color: colors.text.primary }]}>Share</Text>
             </View>
           </TouchableOpacity>

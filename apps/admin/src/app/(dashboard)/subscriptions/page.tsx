@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { CreditCard, Users, Calendar, Loader2 } from 'lucide-react';
+import { CreditCard, UserCheck, DollarSign, Loader2 } from 'lucide-react';
 import { listSubscriptions } from '@/lib/api';
 import type { Subscription } from '@/lib/api';
 
@@ -68,7 +68,7 @@ export default function SubscriptionsPage() {
         </div>
         <div className="rounded-xl border bg-card p-5">
           <div className="flex items-center gap-3 mb-3">
-            <Users className="w-5 h-5 text-emerald-500" />
+            <UserCheck className="w-5 h-5 text-emerald-500" />
             <span className="font-medium">Active</span>
           </div>
           <p className="text-2xl font-bold">{activeCount}</p>
@@ -76,7 +76,7 @@ export default function SubscriptionsPage() {
         </div>
         <div className="rounded-xl border bg-card p-5">
           <div className="flex items-center gap-3 mb-3">
-            <Calendar className="w-5 h-5 text-amber-500" />
+            <DollarSign className="w-5 h-5 text-amber-500" />
             <span className="font-medium">Monthly Revenue</span>
           </div>
           <p className="text-2xl font-bold">₹{totalRevenue.toLocaleString('en-IN')}</p>

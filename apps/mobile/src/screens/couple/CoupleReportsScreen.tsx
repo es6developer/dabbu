@@ -168,10 +168,10 @@ export function CoupleReportsScreen() {
             }}
           >
             <View style={styles.headerRow}>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                <Ionicons name="arrow-back" size={22} color="#FFF" />
+              <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}>
+                <Ionicons name="arrow-back" size={22} color={colors.text.primary} />
               </TouchableOpacity>
-              <Text style={styles.headerTitle}>Reports</Text>
+              <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Reports</Text>
               <View style={{ width: 32 }} />
             </View>
           </View>
@@ -205,15 +205,15 @@ export function CoupleReportsScreen() {
       >
         <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
           <View style={styles.headerRow}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <Ionicons name="arrow-back" size={22} color="#FFF" />
+            <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}>
+              <Ionicons name="arrow-back" size={22} color={colors.text.primary} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Reports</Text>
+            <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Reports</Text>
             <TouchableOpacity
               onPress={() => Alert.alert('Coming Soon', 'Export feature will be available soon.')}
-              style={styles.backBtn}
+              style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}
             >
-              <Ionicons name="download-outline" size={20} color="#FFF" />
+              <Ionicons name="download-outline" size={20} color={colors.text.primary} />
             </TouchableOpacity>
           </View>
         </View>

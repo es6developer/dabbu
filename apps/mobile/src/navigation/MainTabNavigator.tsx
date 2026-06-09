@@ -45,6 +45,7 @@ import { useTheme } from '../theme';
 import { useAuth } from '../store/AuthContext';
 import { usePreferences } from '../store/PreferencesContext';
 import { QuickActionSheet } from '../components/ui/QuickActionSheet';
+import { iosTransitionOptions } from './animations';
 
 const Tab = createBottomTabNavigator();
 const DashboardStack = createNativeStackNavigator();
@@ -53,20 +54,10 @@ const RemindersStack = createNativeStackNavigator();
 const SmsStack = createNativeStackNavigator();
 
 function DashboardNavigator() {
-  const { colors, typography } = useTheme();
+  const theme = useTheme();
   return (
     <DashboardStack.Navigator
-      screenOptions={{
-        animation: 'slide_from_right',
-        headerStyle: { backgroundColor: colors.bg.primary },
-        headerTintColor: colors.text.primary,
-        headerTitleStyle: {
-          fontFamily: typography.calloutBold.fontFamily,
-          fontSize: typography.calloutBold.fontSize,
-          fontWeight: typography.calloutBold.fontWeight,
-        },
-        contentStyle: { backgroundColor: colors.bg.primary },
-      }}
+      screenOptions={iosTransitionOptions(theme)}
     >
       <DashboardStack.Screen
         name="DashboardMain"
@@ -124,20 +115,10 @@ function DashboardNavigator() {
 }
 
 function SettingsNavigator() {
-  const { colors, typography } = useTheme();
+  const theme = useTheme();
   return (
     <SettingsStack.Navigator
-      screenOptions={{
-        animation: 'slide_from_right',
-        headerStyle: { backgroundColor: colors.bg.primary },
-        headerTintColor: colors.text.primary,
-        headerTitleStyle: {
-          fontFamily: typography.calloutBold.fontFamily,
-          fontSize: typography.calloutBold.fontSize,
-          fontWeight: typography.calloutBold.fontWeight,
-        },
-        contentStyle: { backgroundColor: colors.bg.primary },
-      }}
+      screenOptions={iosTransitionOptions(theme)}
     >
       <SettingsStack.Screen
         name="SettingsMain"
@@ -230,20 +211,10 @@ function SettingsNavigator() {
 }
 
 function RemindersNavigator() {
-  const { colors, typography } = useTheme();
+  const theme = useTheme();
   return (
     <RemindersStack.Navigator
-      screenOptions={{
-        animation: 'slide_from_right',
-        headerStyle: { backgroundColor: colors.bg.primary },
-        headerTintColor: colors.text.primary,
-        headerTitleStyle: {
-          fontFamily: typography.calloutBold.fontFamily,
-          fontSize: typography.calloutBold.fontSize,
-          fontWeight: typography.calloutBold.fontWeight,
-        },
-        contentStyle: { backgroundColor: colors.bg.primary },
-      }}
+      screenOptions={iosTransitionOptions(theme)}
     >
       <RemindersStack.Screen
         name="RemindersList"
@@ -265,20 +236,10 @@ function RemindersNavigator() {
 }
 
 function SmsNavigator() {
-  const { colors, typography } = useTheme();
+  const theme = useTheme();
   return (
     <SmsStack.Navigator
-      screenOptions={{
-        animation: 'slide_from_right',
-        headerStyle: { backgroundColor: colors.bg.primary },
-        headerTintColor: colors.text.primary,
-        headerTitleStyle: {
-          fontFamily: typography.calloutBold.fontFamily,
-          fontSize: typography.calloutBold.fontSize,
-          fontWeight: typography.calloutBold.fontWeight,
-        },
-        contentStyle: { backgroundColor: colors.bg.primary },
-      }}
+      screenOptions={iosTransitionOptions(theme)}
     >
       <SmsStack.Screen
         name="SmsDashboard"

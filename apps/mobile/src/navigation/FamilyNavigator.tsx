@@ -1,6 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../theme';
+import { iosTransitionOptions } from './animations';
 import { FamilyDashboardScreen } from '../screens/family/FamilyDashboardScreen';
 import { FamilyChatScreen } from '../screens/family/FamilyChatScreen';
 import { CreateFamilyScreen } from '../screens/family/CreateFamilyScreen';
@@ -8,16 +9,10 @@ import { CreateFamilyScreen } from '../screens/family/CreateFamilyScreen';
 const Stack = createNativeStackNavigator();
 
 export function FamilyNavigator() {
-  const { colors } = useTheme();
+  const theme = useTheme();
   return (
     <Stack.Navigator
-      screenOptions={{
-        animation: 'slide_from_right',
-        headerStyle: { backgroundColor: colors.bg.primary },
-        headerTintColor: colors.text.primary,
-        headerTitleStyle: { fontWeight: '600' },
-        contentStyle: { backgroundColor: colors.bg.primary },
-      }}
+      screenOptions={iosTransitionOptions(theme)}
     >
       <Stack.Screen
         name="FamilyDashboard"

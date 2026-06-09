@@ -60,11 +60,10 @@ export class UserPreferencesService {
   private defaultBottomMenuConfig() {
     return [
       { id: 'Dashboard', visible: true, order: 0 },
-      { id: 'Accounts', visible: true, order: 1 },
-      { id: 'Shared', visible: true, order: 2 },
-      { id: 'Reminders', visible: true, order: 3 },
-      { id: 'SMS', visible: true, order: 4 },
-      { id: 'Settings', visible: true, order: 5, locked: true },
+      { id: 'Expense', visible: true, order: 1 },
+      { id: 'QuickAction', visible: true, order: 2 },
+      { id: 'Spaces', visible: true, order: 3 },
+      { id: 'Settings', visible: true, order: 4, locked: true },
     ];
   }
 }

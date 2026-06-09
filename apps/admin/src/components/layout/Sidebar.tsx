@@ -8,17 +8,18 @@ import {
   LayoutDashboard,
   Users,
   CreditCard,
-  TrendingUp,
   TrendingDown,
   Settings,
   Flag,
   LifeBuoy,
-  Send,
+  Bell,
   LogOut,
   ChevronLeft,
   BarChart3,
   Package,
   Shield,
+  Home,
+  FileText,
 } from 'lucide-react';
 
 interface NavItem {
@@ -31,16 +32,16 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: <LayoutDashboard size={18} /> },
   { label: 'Users', href: '/users', icon: <Users size={18} /> },
-  { label: 'Families', href: '/families', icon: <Users size={18} /> },
+  { label: 'Families', href: '/families', icon: <Home size={18} /> },
   { label: 'Subscriptions', href: '/subscriptions', icon: <CreditCard size={18} /> },
   { label: 'Plans', href: '/plans', icon: <Package size={18} /> },
   { label: 'Revenue', href: '/revenue', icon: <BarChart3 size={18} /> },
   { label: 'Churn', href: '/churn', icon: <TrendingDown size={18} /> },
   { label: 'Feature Flags', href: '/feature-flags', icon: <Flag size={18} /> },
-  { label: 'Notifications', href: '/notifications', icon: <Send size={18} /> },
+  { label: 'Notifications', href: '/notifications', icon: <Bell size={18} /> },
   { label: 'Support', href: '/support', icon: <LifeBuoy size={18} /> },
   { label: 'Admins', href: '/admins', icon: <Shield size={18} /> },
-  { label: 'Logs', href: '/logs', icon: <BarChart3 size={18} /> },
+  { label: 'Logs', href: '/logs', icon: <FileText size={18} /> },
   { label: 'Settings', href: '/settings', icon: <Settings size={18} /> },
 ];
 

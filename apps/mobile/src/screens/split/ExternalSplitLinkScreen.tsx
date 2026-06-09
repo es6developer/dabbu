@@ -69,10 +69,10 @@ export function ExternalSplitLinkScreen() {
           }}
         >
           <View style={styles.headerRow}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <Ionicons name="close" size={24} color="#FFF" />
+            <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}>
+              <Ionicons name="close" size={24} color={colors.text.primary} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>External Split Link</Text>
+            <Text style={[styles.headerTitle, { color: colors.text.primary }]}>External Split Link</Text>
             <View style={{ width: 32 }} />
           </View>
         </View>

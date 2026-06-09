@@ -1,6 +1,6 @@
 import './src/global.css';
 import React, { useEffect, useCallback, useState } from 'react';
-import { StatusBar, LogBox, Appearance } from 'react-native';
+import { StatusBar, LogBox, Appearance, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
@@ -12,6 +12,7 @@ import {
 } from '@react-navigation/native';
 import { ThemeProvider, useTheme } from './src/theme/ThemeProvider';
 import { RootNavigator } from './src/navigation/RootNavigator';
+import { ApiProgressBar } from './src/components/ui/ApiProgressBar';
 import { AuthProvider } from './src/store/AuthContext';
 import { PreferencesProvider } from './src/store/PreferencesContext';
 import { LockProvider } from './src/store/LockContext';
@@ -136,7 +137,10 @@ export default function App(): React.ReactElement | null {
                   <ThemedNavigationContainer navigationRef={navigationRef} linking={linking}>
                     <ThemedStatusBar />
                     <NotificationInitializer />
-                    <RootNavigator />
+                    <View style={{ flex: 1 }}>
+                      <RootNavigator />
+                      <ApiProgressBar />
+                    </View>
                   </ThemedNavigationContainer>
                 </FavoritesProvider>
               </LockProvider>

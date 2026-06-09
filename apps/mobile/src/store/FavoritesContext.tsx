@@ -61,6 +61,9 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
 
   const addFavoriteFn = useCallback(
     async (userId: string, name: string, phone?: string) => {
+      if (!userId) {
+        return;
+      }
       const existing = favorites.find((f) => f.userId === userId);
       if (existing) {
         return;
@@ -70,11 +73,23 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
         setFavorites((prev) => [
           {
             userId: fav.userId,
-            name: fav.name,
-            phone: fav.phone,
+            name: fav.name || name,
+            phone: fav.phone || phone,
             email: fav.email,
             avatarUrl: fav.avatarUrl,
             addedAt: fav.createdAt,
+          },
+          ...prev,
+        ]);
+      } else {
+        // API call failed — optimistically add with passed data so the UI reflects the action
+        setFavorites((prev) => [
+          {
+            userId,
+            name,
+            phone,
+            email: '',
+            addedAt: new Date().toISOString(),
           },
           ...prev,
         ]);

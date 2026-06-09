@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Users, Trash2, Loader2, Search, ExternalLink } from 'lucide-react';
+import { Users, Trash2, Loader2, Search } from 'lucide-react';
 import { listFamilies, deleteFamily } from '@/lib/api';
 import type { Family } from '@/lib/api';
 

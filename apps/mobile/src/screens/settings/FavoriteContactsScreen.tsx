@@ -21,7 +21,7 @@ import { useTheme } from '../../theme';
 
 export function FavoriteContactsScreen() {
   const navigation = useNavigation<any>();
-  const { favorites, loading, refresh } = useFavorites();
+  const { favorites, loading, refresh, addFavorite, removeFavorite } = useFavorites();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 
@@ -81,25 +81,31 @@ export function FavoriteContactsScreen() {
   );
 
   const handleAddFavorite = useCallback(
-    async (userId: string) => {
+    async (userId: string, userName?: string, userPhone?: string) => {
+      if (!userId) {
+        return;
+      }
       setAddingId(userId);
-      await favoritesApi.addFavorite(userId);
+      await addFavorite(userId, userName || '', userPhone);
       await refresh();
       setAddingId(null);
       setSearchQuery('');
       setSearchResults([]);
       loadDeviceContacts();
     },
-    [refresh],
+    [addFavorite, refresh],
   );
 
   const handleRemoveFavorite = useCallback(
     async (userId: string) => {
-      await favoritesApi.removeFavorite(userId);
+      if (!userId) {
+        return;
+      }
+      await removeFavorite(userId);
       await refresh();
       loadDeviceContacts();
     },
-    [refresh],
+    [removeFavorite, refresh],
   );
 
   const favoriteIds = useMemo(() => new Set(favorites.map((f) => f.userId)), [favorites]);
@@ -191,7 +197,10 @@ export function FavoriteContactsScreen() {
                   ) : (
                     <TouchableOpacity
                       style={[styles.actionBtn, { backgroundColor: colors.brand.light }]}
-                      onPress={() => handleAddFavorite(user.id)}
+                      onPress={() => {
+                        const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email;
+                        handleAddFavorite(user.id, name, user.phone);
+                      }}
                       disabled={addingId === user.id}
                     >
                       {addingId === user.id ? (
@@ -244,7 +253,7 @@ export function FavoriteContactsScreen() {
                 </View>
                 <TouchableOpacity
                   style={[styles.actionBtn, { backgroundColor: colors.brand.light }]}
-                  onPress={() => handleAddFavorite(user.id)}
+                  onPress={() => handleAddFavorite(user.id, user.firstName || user.email, user.phone)}
                   disabled={addingId === user.id}
                 >
                   {addingId === user.id ? (

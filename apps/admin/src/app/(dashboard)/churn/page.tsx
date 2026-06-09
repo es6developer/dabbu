@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { TrendingDown, UserMinus, Percent, RefreshCw, Loader2 } from 'lucide-react';
+import { TrendingUp, UserCheck, Percent, Users, Loader2 } from 'lucide-react';
 import { getDashboardStats, listSubscriptions } from '@/lib/api';
 
 export default function ChurnPage() {
@@ -54,21 +54,21 @@ export default function ChurnPage() {
             value: activeUsers.toLocaleString(),
             change: `${totalUsers - activeUsers} inactive`,
             color: 'text-emerald-600',
-            icon: UserMinus,
+            icon: UserCheck,
           },
           {
             label: 'Retention Rate',
             value: `${retentionRate}%`,
             change: 'Active / Total',
             color: 'text-emerald-600',
-            icon: TrendingDown,
+            icon: TrendingUp,
           },
           {
             label: 'Total Users',
             value: totalUsers.toLocaleString(),
             change: 'All time',
             color: 'text-emerald-600',
-            icon: RefreshCw,
+            icon: Users,
           },
         ].map((stat) => (
           <div key={stat.label} className="bg-card rounded-lg p-4 shadow-sm border border-border">

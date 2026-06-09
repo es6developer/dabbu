@@ -61,7 +61,7 @@ export function CreateExpenseGroupScreen() {
   const [selectedRecurring, setSelectedRecurring] = useState<Set<string>>(new Set());
   const [loadingRecurring, setLoadingRecurring] = useState(false);
   const inputsRef = useRef<(TextInput | null)[]>([]);
-  const searchTimeoutRef = useRef<{ [key: number]: NodeJS.Timeout }>({});
+  const searchTimeoutRef = useRef<{ [key: number]: ReturnType<typeof setTimeout> }>({});
   const [searchResults, setSearchResults] = useState<{ [key: number]: any[] }>({});
 
   const updateMember = useCallback((index: number, value: string) => {

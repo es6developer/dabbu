@@ -271,20 +271,20 @@ export function NotificationSettingsScreen() {
           style={styles.header}
         >
           <View style={styles.headerRow}>
-            <View style={styles.headerIconWrap}>
-              <Ionicons name="notifications" size={22} color="#FFFFFF" />
+            <View style={[styles.headerIconWrap, { backgroundColor: colors.bg.tertiary }]}>
+              <Ionicons name="notifications" size={22} color={colors.text.primary} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.headerTitle}>Notifications</Text>
-              <Text style={styles.headerSub}>Manage your alert preferences</Text>
+              <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Notifications</Text>
+              <Text style={[styles.headerSub, { color: colors.text.secondary }]}>Manage your alert preferences</Text>
             </View>
             {saving && (
-              <View style={styles.savingBadge}>
-                <ActivityIndicator size="small" color="#FFFFFF" />
+              <View style={[styles.savingBadge, { backgroundColor: colors.bg.tertiary }]}>
+                <ActivityIndicator size="small" color={colors.accent.primary} />
               </View>
             )}
           </View>
-          <Text style={styles.headerMetric}>
+          <Text style={[styles.headerMetric, { color: colors.text.tertiary }]}>
             Choose which notifications matter most to you.
           </Text>
         </View>
@@ -327,7 +327,7 @@ export function NotificationSettingsScreen() {
                       
                       style={styles.rowIcon}
                     >
-                      <Ionicons name={item.icon} size={15} color="#FFFFFF" />
+                      <Ionicons name={item.icon} size={15} color={colors.text.primary} />
                     </View>
                     <View style={styles.rowContent}>
                       <Text style={[styles.rowLabel, { color: colors.text.primary }]}>

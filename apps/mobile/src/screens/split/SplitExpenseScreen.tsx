@@ -93,10 +93,10 @@ export function SplitExpenseScreen() {
             }}
           >
             <View style={styles.headerRow}>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                <Ionicons name="arrow-back" size={22} color="#FFF" />
+              <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}>
+                <Ionicons name="arrow-back" size={22} color={colors.text.primary} />
               </TouchableOpacity>
-              <Text style={styles.headerTitle}>Split Bill</Text>
+              <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Split Bill</Text>
               <View style={{ width: 32 }} />
             </View>
           </View>

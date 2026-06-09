@@ -126,13 +126,13 @@ export function SettlementScreen() {
           }}
         >
           <View style={styles.headerRow}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <Ionicons name="arrow-back" size={24} color="#FFF" />
+            <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}>
+              <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Settlements</Text>
+            <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Settlements</Text>
             <View style={{ width: 32 }} />
           </View>
-          <Text style={styles.headerSubtitle}>Settle up with your groups</Text>
+          <Text style={[styles.headerSubtitle, { color: colors.text.tertiary }]}>Settle up with your groups</Text>
         </View>
 
         <View style={{ paddingHorizontal: 20, paddingTop: 12, gap: 12 }}>

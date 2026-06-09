@@ -190,14 +190,14 @@ export function CoupleSettingsScreen() {
           style={[styles.hero, { paddingTop: insets.top + 12, backgroundColor: colors.bg.primary }]}
         >
           <TouchableOpacity
-            style={styles.backBtn}
+            style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}
             onPress={() => navigation.goBack()}
             activeOpacity={0.7}
           >
-            <Ionicons name="arrow-back" size={22} color="#FFF" />
+            <Ionicons name="arrow-back" size={22} color={colors.text.primary} />
           </TouchableOpacity>
-          <Text style={styles.heroTitle}>Settings</Text>
-          <Text style={styles.heroSub}>Couple space preferences</Text>
+          <Text style={[styles.heroTitle, { color: colors.text.primary }]}>Settings</Text>
+          <Text style={[styles.heroSub, { color: colors.text.tertiary }]}>Couple space preferences</Text>
           <View style={styles.heroGlow} />
         </View>
 

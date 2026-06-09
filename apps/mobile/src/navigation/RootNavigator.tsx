@@ -11,8 +11,9 @@ import { AppLockScreen } from '../screens/auth/AppLockScreen';
 import MaintenanceScreen from '../screens/auth/MaintenanceScreen';
 import { useAuth } from '../store/AuthContext';
 import { useAppLock } from '../store/LockContext';
-import { api, setAccessToken } from '../services/api';
+import { setAccessToken } from '../services/api';
 import { API_URL } from '../config/api';
+import { startPreloading } from '../services/preload';
 
 export function RootNavigator(): React.ReactElement | null {
   const { isAuthenticated, isLoading, isNewUser, needsPhone, accessToken } = useAuth();
@@ -68,14 +69,7 @@ export function RootNavigator(): React.ReactElement | null {
     }
     preFetchStarted.current = true;
     setAccessToken(accessToken);
-    Promise.allSettled([
-      api.get<any>('/expense-groups').catch(() => {}),
-      api.get<any>('/transactions/recent?limit=10').catch(() => {}),
-      api.get<any>('/accounts/summary').catch(() => {}),
-      api.get<any>('/goals').catch(() => {}),
-      api.get<any>('/shared-finance/groups').catch(() => {}),
-      api.get<any>('/bills/upcoming').catch(() => {}),
-    ]).catch(() => {});
+    startPreloading();
   }, [accessToken]);
 
   function handleUnlock() {

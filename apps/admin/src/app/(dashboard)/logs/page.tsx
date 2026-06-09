@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Filter, Loader2 } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { listAuditLogs } from '@/lib/api';
 import type { AuditLog } from '@/lib/api';
 

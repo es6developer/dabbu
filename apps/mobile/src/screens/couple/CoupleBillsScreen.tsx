@@ -214,12 +214,12 @@ export function CoupleBillsScreen() {
           style={{ paddingTop: insets.top + 12, paddingBottom: 24, paddingHorizontal: 20 }}
         >
           <View style={styles.headerRow}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <Ionicons name="arrow-back" size={22} color="#FFF" />
+            <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}>
+              <Ionicons name="arrow-back" size={22} color={colors.text.primary} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Bills</Text>
-            <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.backBtn}>
-              <Ionicons name="add" size={24} color="#FFF" />
+            <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Bills</Text>
+            <TouchableOpacity onPress={() => setModalVisible(true)} style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}>
+              <Ionicons name="add" size={24} color={colors.text.primary} />
             </TouchableOpacity>
           </View>
         </View>

@@ -49,6 +49,7 @@ interface User {
   avatarUrl?: string;
   role: string;
   phone?: string | null;
+  upiId?: string | null;
 }
 
 interface AuthState {

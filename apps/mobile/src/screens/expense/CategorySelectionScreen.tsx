@@ -45,18 +45,18 @@ export function CategorySelectionScreen() {
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
       <View style={{ paddingTop: insets.top + 12, paddingBottom: 24, paddingHorizontal: 20 }}>
         <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Ionicons name="close" size={22} color="#FFF" />
+          <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.border.subtle }]}>
+            <Ionicons name="close" size={22} color={colors.text.primary} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Select Category</Text>
+          <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Select Category</Text>
           <View style={{ width: 34 }} />
         </View>
-        <View style={[styles.searchBar, { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
-          <Ionicons name="search" size={16} color="rgba(255,255,255,0.6)" />
+        <View style={[styles.searchBar, { backgroundColor: colors.bg.tertiary }]}>
+          <Ionicons name="search" size={16} color={colors.text.secondary} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.text.primary }]}
             placeholder="Search categories"
-            placeholderTextColor="rgba(255,255,255,0.5)"
+            placeholderTextColor={colors.text.tertiary}
             value={search}
             onChangeText={setSearch}
           />
@@ -78,8 +78,8 @@ export function CategorySelectionScreen() {
                 activeOpacity={0.7}
                 onPress={() => setShowCustom(true)}
               >
-                <View style={styles.addIcon}>
-                  <Text style={styles.addIconText}>+</Text>
+                <View style={[styles.addIcon, { backgroundColor: isDark ? 'rgba(255,107,0,0.12)' : `${colors.accent.primary}15` }]}>
+                  <Text style={[styles.addIconText, { color: colors.accent.primary }]}>+</Text>
                 </View>
                 <Text style={[styles.catName, { color: colors.text.secondary }]}>Add New</Text>
               </TouchableOpacity>
@@ -167,11 +167,10 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: { color: '#FFF', fontSize: 17, fontWeight: '700' },
+  headerTitle: { fontSize: 17, fontWeight: '700' },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -181,7 +180,7 @@ const styles = StyleSheet.create({
     height: 40,
     marginTop: 14,
   },
-  searchInput: { flex: 1, fontSize: 14, color: '#FFF' },
+  searchInput: { flex: 1, fontSize: 14 },
 
   categoryCard: {
     flex: 1,
@@ -214,11 +213,10 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 16,
-    backgroundColor: '#F5F0FF',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  addIconText: { fontSize: 24, fontWeight: '700', color: '#F97316' },
+  addIconText: { fontSize: 24, fontWeight: '700' },
 
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   sheet: {

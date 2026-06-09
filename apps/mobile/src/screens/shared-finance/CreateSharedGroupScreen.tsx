@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -21,6 +21,7 @@ const GROUP_TYPES = [
   { key: 'office', label: 'Office', icon: 'briefcase', color: '#14B8A6' },
   { key: 'event', label: 'Event', icon: 'calendar', color: '#FF6B6B' },
   { key: 'apartment', label: 'Apartment', icon: 'home', color: '#14B8A6' },
+  { key: 'sports', label: 'Sports', icon: 'football', color: '#FF6B6B' },
 ];
 
 export function CreateSharedGroupScreen() {
@@ -34,8 +35,26 @@ export function CreateSharedGroupScreen() {
   const [partnerPhone, setPartnerPhone] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [upiId, setUpiId] = useState('');
+  const [upiStatus, setUpiStatus] = useState<'idle' | 'valid' | 'invalid' | 'checking'>('idle');
+  const upiTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const UPI_PATTERN = /^[\w\.\-]+@[\w\-]+$/;
   const showPartnerInput = type === 'couple';
+  const showUpi = type === 'sports';
+
+  async function validateUpiDebounced(value: string) {
+    if (upiTimer.current) clearTimeout(upiTimer.current);
+    if (!value.trim()) { setUpiStatus('idle'); return; }
+    if (!UPI_PATTERN.test(value.trim())) { setUpiStatus('invalid'); return; }
+    setUpiStatus('checking');
+    upiTimer.current = setTimeout(async () => {
+      try {
+        const res = await api.post<any>('/shared-finance/validate-upi', { upiId: value.trim() });
+        setUpiStatus(res?.valid ? 'valid' : 'invalid');
+      } catch { setUpiStatus('valid'); }
+    }, 600);
+  }
 
   async function handleCreate() {
     if (!name.trim()) {
@@ -53,6 +72,7 @@ export function CreateSharedGroupScreen() {
         type: type.toLowerCase(),
         description: description.trim(),
         currency: 'INR',
+        upiId: type === 'sports' ? upiId.trim() || undefined : undefined,
       });
       const newGroupId = res?.id || res?._id;
       if (type === 'couple' && newGroupId && partnerPhone.trim()) {
@@ -170,6 +190,53 @@ export function CreateSharedGroupScreen() {
               maxLength={10}
             />
           </View>
+        </View>
+      )}
+
+      {showUpi && (
+        <View style={styles.fieldBlock}>
+          <Text style={[styles.label, { color: colors.text.tertiary }]}>
+            Your UPI ID{' '}
+            <Text style={{ fontWeight: '400', color: colors.text.tertiary }}>(optional)</Text>
+          </Text>
+          <View
+            style={[
+              styles.phoneRow,
+              {
+                backgroundColor: colors.bg.card,
+                borderColor: upiStatus === 'invalid' ? '#FF4D4F' : colors.border.default,
+              },
+            ]}
+          >
+            <TextInput
+              style={[styles.phoneInput, { flex: 1, color: colors.text.primary }]}
+              value={upiId}
+              onChangeText={(t) => {
+                setUpiId(t);
+                if (UPI_PATTERN.test(t.trim())) setUpiStatus('valid');
+                else setUpiStatus('idle');
+              }}
+              onBlur={() => validateUpiDebounced(upiId)}
+              placeholder="e.g. user@paytm"
+              placeholderTextColor={colors.text.tertiary}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              returnKeyType="done"
+            />
+            {upiStatus === 'valid' && <Ionicons name="checkmark-circle" size={20} color="#34C759" style={{ marginRight: 10 }} />}
+            {upiStatus === 'invalid' && <Ionicons name="alert-circle" size={20} color="#FF4D4F" style={{ marginRight: 10 }} />}
+            {upiStatus === 'checking' && <Ionicons name="sync" size={18} color={colors.text.tertiary} style={{ marginRight: 10 }} />}
+          </View>
+          {upiStatus === 'invalid' && (
+            <Text style={{ fontSize: 11, color: '#FF4D4F', marginTop: 4, marginLeft: 2 }}>
+              Enter a valid UPI ID (e.g. user@paytm)
+            </Text>
+          )}
+          {upiId.trim() && upiStatus === 'valid' && (
+            <Text style={{ fontSize: 11, color: '#34C759', marginTop: 4, marginLeft: 2 }}>
+              UPI ID verified
+            </Text>
+          )}
         </View>
       )}
     </PremiumFormScreen>

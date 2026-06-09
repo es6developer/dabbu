@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { createWorker, PSM, OEM } from 'tesseract.js';
 import sharp from 'sharp';
 
@@ -218,26 +218,61 @@ const CURRENCY_PATTERN =
   /(?:rs\.?\s*|inr\s*|₹\s*|\$\s*|total\s*:?\s*(?:rs\.?\s*|inr\s*|₹\s*)?)(\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?|\d+\.?\d{0,2})/i;
 
 @Injectable()
-export class BillScannerService implements OnModuleInit {
+export class BillScannerService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(BillScannerService.name);
   private trainedDataLoaded = false;
+  private worker: any = null;
 
   async onModuleInit() {
     try {
-      this.logger.log('Pre-loading tesseract.js language data...');
-      const worker = await createWorker('eng', OEM.LSTM_ONLY, {
+      this.logger.log('Creating persistent Tesseract worker...');
+      this.worker = await createWorker('eng', OEM.LSTM_ONLY, {
         logger: () => {},
         cachePath: '/tmp',
         cacheMethod: 'readWrite',
       });
-      await worker.terminate();
+      await this.worker.setParameters({
+        preserve_interword_spaces: '1',
+        user_defined_dpi: '300',
+      });
       this.trainedDataLoaded = true;
-      this.logger.log('Tesseract language data loaded successfully');
+      this.logger.log('Persistent Tesseract worker ready');
     } catch (err: any) {
       this.logger.warn(
-        `Failed to pre-load tesseract data (will retry on first scan): ${err.message}`,
+        `Failed to create persistent worker (will create on first scan): ${err.message}`,
       );
     }
+  }
+
+  async onModuleDestroy() {
+    if (this.worker) {
+      try {
+        await this.worker.terminate();
+      } catch {}
+      this.worker = null;
+    }
+  }
+
+  private async getWorker(): Promise<any> {
+    if (this.worker) {
+      try {
+        await this.worker.getParameters();
+        return this.worker;
+      } catch {
+        this.logger.warn('Worker died, creating a new one');
+      }
+    }
+    const w = await createWorker('eng', OEM.LSTM_ONLY, {
+      logger: () => {},
+      cachePath: '/tmp',
+      cacheMethod: 'readWrite',
+    });
+    await w.setParameters({
+      preserve_interword_spaces: '1',
+      user_defined_dpi: '300',
+    });
+    this.worker = w;
+    return w;
   }
 
   async scanBill(base64Image: string, _mimeType: string = 'image/jpeg'): Promise<BillScanResult> {
@@ -316,21 +351,12 @@ export class BillScannerService implements OnModuleInit {
     let worker: any = null;
 
     try {
-      worker = await createWorker('eng', OEM.LSTM_ONLY, {
-        logger: () => {},
-        cachePath: '/tmp',
-        cacheMethod: 'readWrite',
-      });
-
-      await worker.setParameters({
-        preserve_interword_spaces: '1',
-        user_defined_dpi: '300',
-      });
+      worker = await this.getWorker();
 
       let bestScore = -1;
       for (const variant of variants) {
         for (const psm of variant.psmModes) {
-          await worker.setParameters({ tessedit_pageseg_mode: psm });
+          await worker.setParameters({ tessedit_pageseg_mode: String(psm) });
           const { data } = await worker.recognize(variant.buffer);
           const candidate = data.text.trim();
           const score = this.ocrQualityScore(candidate, data.confidence || 0);
@@ -351,14 +377,6 @@ export class BillScannerService implements OnModuleInit {
     } catch (err: any) {
       this.logger.error(`OCR processing error: ${err.message}`);
       throw err;
-    } finally {
-      if (worker) {
-        try {
-          await worker.terminate();
-        } catch {
-          /* worker terminate may fail if already terminated */
-        }
-      }
     }
 
     if (!ocrText) {

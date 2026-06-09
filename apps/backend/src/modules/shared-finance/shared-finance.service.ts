@@ -114,6 +114,13 @@ export class SharedFinanceService {
       },
     });
 
+    if (dto.upiId) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { upiId: dto.upiId },
+      }).catch(() => {});
+    }
+
     await this.prisma.groupLifecycleEvent.create({
       data: {
         groupId: group.id,
@@ -143,7 +150,7 @@ export class SharedFinanceService {
           where: { isActive: true },
           include: {
             user: {
-              select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true },
+              select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true, upiId: true },
             },
           },
         },
@@ -2149,9 +2156,9 @@ export class SharedFinanceService {
       this.prisma.sharedGroupMember.findMany({
         where: { groupId },
         include: {
-          user: {
-            select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true },
-          },
+            user: {
+              select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true, upiId: true },
+            },
         },
       }),
       this.prisma.sharedGoal.findMany({

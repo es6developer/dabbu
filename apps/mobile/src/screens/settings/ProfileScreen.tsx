@@ -30,7 +30,7 @@ export function ProfileScreen() {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const { accessToken, user, logout, updateAvatarUrl } = useAuth();
+  const { accessToken, user, logout, updateAvatarUrl, completeProfileSetup } = useAuth();
 
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
@@ -72,6 +72,13 @@ export function ProfileScreen() {
         if (data.upiId) {
           setUpiId(data.upiId);
         }
+        completeProfileSetup({
+          firstName: data.firstName || '',
+          lastName: data.lastName || '',
+          phone: data.phone || undefined,
+          upiId: data.upiId || undefined,
+          email: data.email,
+        });
       }
     } catch {
       if (user?.phone) {
@@ -133,6 +140,12 @@ export function ProfileScreen() {
       const cleanedPhone = phone.trim().replace(/[^0-9]/g, '');
       const fullPhone = cleanedPhone.startsWith('91') ? `+${cleanedPhone}` : `+91${cleanedPhone}`;
       await api.patch('/users/profile', {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phone: fullPhone,
+        upiId: upiId.trim() || undefined,
+      });
+      completeProfileSetup({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         phone: fullPhone,

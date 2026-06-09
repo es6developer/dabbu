@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -15,11 +14,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { api } from '../../services/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../../theme';
 import { PADDING, shadows } from '../../theme/design';
 
 export function ForgotPasswordScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -43,7 +44,7 @@ export function ForgotPasswordScreen() {
   }
 
   return (
-    <View style={s.root}>
+    <View style={{ flex: 1, backgroundColor: colors.bg.primary }}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -64,13 +65,13 @@ export function ForgotPasswordScreen() {
                 width: 40,
                 height: 40,
                 borderRadius: 12,
-                backgroundColor: '#F8F9FA',
+                backgroundColor: colors.bg.secondary,
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginBottom: 24,
               }}
             >
-              <Ionicons name="chevron-back" size={22} color="#1A1A1A" />
+              <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
             </TouchableOpacity>
 
             {/* Header */}
@@ -78,7 +79,7 @@ export function ForgotPasswordScreen() {
               style={{
                 fontSize: 28,
                 fontWeight: '800',
-                color: '#1A1A1A',
+                color: colors.text.primary,
                 letterSpacing: -0.5,
                 marginBottom: 8,
               }}
@@ -89,7 +90,7 @@ export function ForgotPasswordScreen() {
               style={{
                 fontSize: 15,
                 fontWeight: '500',
-                color: '#6B7280',
+                color: colors.text.secondary,
                 lineHeight: 22,
                 marginBottom: 32,
               }}
@@ -106,12 +107,12 @@ export function ForgotPasswordScreen() {
                   gap: 8,
                   padding: 12,
                   borderRadius: 14,
-                  backgroundColor: '#FF4D4F10',
+                  backgroundColor: colors.status.errorLight,
                   marginBottom: 16,
                 }}
               >
-                <Ionicons name="alert-circle" size={16} color="#FF4D4F" />
-                <Text style={{ fontSize: 13, fontWeight: '500', color: '#FF4D4F', flex: 1 }}>
+                <Ionicons name="alert-circle" size={16} color={colors.status.error} />
+                <Text style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}>
                   {error}
                 </Text>
               </View>
@@ -122,10 +123,10 @@ export function ForgotPasswordScreen() {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                backgroundColor: emailFocused ? '#FFFFFF' : '#F8F9FA',
+                backgroundColor: emailFocused ? colors.bg.primary : colors.bg.secondary,
                 borderRadius: 16,
                 borderWidth: 1.5,
-                borderColor: emailFocused ? '#8B5CF6' : 'transparent',
+                borderColor: emailFocused ? colors.brand.primary : 'transparent',
                 paddingHorizontal: 16,
                 height: 56,
                 marginBottom: 24,
@@ -134,7 +135,7 @@ export function ForgotPasswordScreen() {
               <Ionicons
                 name="mail-outline"
                 size={20}
-                color={emailFocused ? '#8B5CF6' : '#9CA3AF'}
+                color={emailFocused ? colors.brand.primary : colors.text.tertiary}
                 style={{ marginRight: 12 }}
               />
               <TextInput
@@ -142,10 +143,10 @@ export function ForgotPasswordScreen() {
                   flex: 1,
                   fontSize: 16,
                   fontWeight: '500',
-                  color: '#1A1A1A',
+                  color: colors.text.primary,
                 }}
                 placeholder="Email address"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.text.tertiary}
                 value={email}
                 onChangeText={(t) => {
                   setEmail(t);
@@ -167,7 +168,7 @@ export function ForgotPasswordScreen() {
               onPress={handleSendOtp}
               disabled={loading}
               style={{
-                backgroundColor: '#8B5CF6',
+                backgroundColor: colors.brand.primary,
                 paddingVertical: 16,
                 borderRadius: 16,
                 alignItems: 'center',
@@ -176,13 +177,13 @@ export function ForgotPasswordScreen() {
                 gap: 8,
                 opacity: loading ? 0.6 : 1,
                 ...shadows.md,
-                shadowColor: '#8B5CF6',
+                shadowColor: colors.brand.primary,
               }}
             >
               {loading ? (
-                <ActivityIndicator color="#FFFFFF" />
+                <ActivityIndicator color={colors.text.inverse} />
               ) : (
-                <Text style={{ color: '#FFFFFF', fontSize: 17, fontWeight: '700' }}>
+                <Text style={{ color: colors.text.inverse, fontSize: 17, fontWeight: '700' }}>
                   Send Verification Code
                 </Text>
               )}
@@ -196,11 +197,11 @@ export function ForgotPasswordScreen() {
                 alignItems: 'center',
                 borderRadius: 14,
                 borderWidth: 1,
-                borderColor: '#E5E7EB',
+                borderColor: colors.border.default,
                 marginTop: 12,
               }}
             >
-              <Text style={{ fontSize: 15, fontWeight: '600', color: '#8B5CF6' }}>
+              <Text style={{ fontSize: 15, fontWeight: '600', color: colors.brand.primary }}>
                 Back to sign in
               </Text>
             </TouchableOpacity>
@@ -211,6 +212,4 @@ export function ForgotPasswordScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#FFFFFF' },
-});
+

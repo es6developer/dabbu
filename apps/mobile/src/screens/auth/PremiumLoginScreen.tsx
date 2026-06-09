@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   Animated,
   Keyboard,
   TouchableWithoutFeedback,
@@ -15,12 +14,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../store/AuthContext';
+import { useTheme } from '../../theme';
 import { PADDING, borderRadius, shadows } from '../../theme/design';
 
 export function PremiumLoginScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { login } = useAuth();
+  const { colors } = useTheme();
   const [email, setEmail] = useState('demo@dabbu.app');
   const [password, setPassword] = useState('Demo123!');
   const [loading, setLoading] = useState(false);
@@ -55,7 +56,7 @@ export function PremiumLoginScreen() {
   }
 
   return (
-    <View style={s.root}>
+    <View style={{ flex: 1, backgroundColor: colors.bg.primary }}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <Animated.ScrollView
           contentContainerStyle={{ paddingTop: insets.top + 16, paddingBottom: insets.bottom + 24 }}
@@ -70,13 +71,13 @@ export function PremiumLoginScreen() {
                 width: 40,
                 height: 40,
                 borderRadius: 12,
-                backgroundColor: '#F8F9FA',
+                backgroundColor: colors.bg.secondary,
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginBottom: 24,
               }}
             >
-              <Ionicons name="chevron-back" size={22} color="#1A1A1A" />
+              <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
             </TouchableOpacity>
             <Image
               source={require('../../../assets/logo.png')}
@@ -84,7 +85,7 @@ export function PremiumLoginScreen() {
               resizeMode="contain"
             />
             <Text
-              style={{ fontSize: 28, fontWeight: '800', color: '#1A1A1A', letterSpacing: -0.5 }}
+              style={{ fontSize: 28, fontWeight: '800', color: colors.text.primary, letterSpacing: -0.5 }}
             >
               Welcome back
             </Text>
@@ -92,7 +93,7 @@ export function PremiumLoginScreen() {
               style={{
                 fontSize: 15,
                 fontWeight: '500',
-                color: '#6B7280',
+                color: colors.text.secondary,
                 marginTop: 6,
                 lineHeight: 20,
               }}
@@ -114,7 +115,7 @@ export function PremiumLoginScreen() {
                 style={{
                   fontSize: 12,
                   fontWeight: '700',
-                  color: emailFocused ? '#8B5CF6' : '#6B7280',
+                  color: emailFocused ? colors.brand.primary : colors.text.secondary,
                   letterSpacing: 0.5,
                   marginBottom: 8,
                   textTransform: 'uppercase',
@@ -126,31 +127,31 @@ export function PremiumLoginScreen() {
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  backgroundColor: '#F8F9FA',
+                  backgroundColor: colors.bg.secondary,
                   borderRadius: borderRadius.md,
                   borderWidth: 1.5,
-                  borderColor: emailFocused ? '#8B5CF6' : '#F8F9FA',
+                  borderColor: emailFocused ? colors.brand.primary : colors.bg.secondary,
                   paddingHorizontal: 14,
                 }}
               >
                 <Ionicons
                   name="mail-outline"
                   size={18}
-                  color={emailFocused ? '#8B5CF6' : '#9CA3AF'}
+                  color={emailFocused ? colors.brand.primary : colors.text.tertiary}
                 />
                 <TextInput
                   style={{
                     flex: 1,
                     fontSize: 15,
                     fontWeight: '500',
-                    color: '#1A1A1A',
+                    color: colors.text.primary,
                     paddingVertical: 14,
                     marginLeft: 10,
                   }}
                   value={email}
                   onChangeText={setEmail}
                   placeholder="Email address"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colors.text.tertiary}
                   keyboardType="email-address"
                   autoCapitalize="none"
                   onFocus={() => setEmailFocused(true)}
@@ -166,7 +167,7 @@ export function PremiumLoginScreen() {
                 style={{
                   fontSize: 12,
                   fontWeight: '700',
-                  color: passFocused ? '#8B5CF6' : '#6B7280',
+                  color: passFocused ? colors.brand.primary : colors.text.secondary,
                   letterSpacing: 0.5,
                   marginBottom: 8,
                   textTransform: 'uppercase',
@@ -178,31 +179,31 @@ export function PremiumLoginScreen() {
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  backgroundColor: '#F8F9FA',
+                  backgroundColor: colors.bg.secondary,
                   borderRadius: borderRadius.md,
                   borderWidth: 1.5,
-                  borderColor: passFocused ? '#8B5CF6' : '#F8F9FA',
+                  borderColor: passFocused ? colors.brand.primary : colors.bg.secondary,
                   paddingHorizontal: 14,
                 }}
               >
                 <Ionicons
                   name="lock-closed-outline"
                   size={18}
-                  color={passFocused ? '#8B5CF6' : '#9CA3AF'}
+                  color={passFocused ? colors.brand.primary : colors.text.tertiary}
                 />
                 <TextInput
                   style={{
                     flex: 1,
                     fontSize: 15,
                     fontWeight: '500',
-                    color: '#1A1A1A',
+                    color: colors.text.primary,
                     paddingVertical: 14,
                     marginLeft: 10,
                   }}
                   value={password}
                   onChangeText={setPassword}
                   placeholder="Password"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colors.text.tertiary}
                   secureTextEntry={!showPassword}
                   onFocus={() => setPassFocused(true)}
                   onBlur={() => setPassFocused(false)}
@@ -213,7 +214,7 @@ export function PremiumLoginScreen() {
                   <Ionicons
                     name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                     size={20}
-                    color="#9CA3AF"
+                    color={colors.text.tertiary}
                   />
                 </TouchableOpacity>
               </View>
@@ -228,12 +229,12 @@ export function PremiumLoginScreen() {
                   gap: 8,
                   padding: 12,
                   borderRadius: 12,
-                  backgroundColor: '#FF4D4F10',
+                  backgroundColor: colors.status.errorLight,
                   marginBottom: 12,
                 }}
               >
-                <Ionicons name="alert-circle" size={16} color="#FF4D4F" />
-                <Text style={{ fontSize: 13, fontWeight: '500', color: '#FF4D4F', flex: 1 }}>
+                <Ionicons name="alert-circle" size={16} color={colors.status.error} />
+                <Text style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}>
                   {error}
                 </Text>
               </View>
@@ -244,7 +245,7 @@ export function PremiumLoginScreen() {
               onPress={() => navigation.navigate('ForgotPassword')}
               style={{ alignSelf: 'flex-end', marginBottom: 24, marginTop: -4 }}
             >
-              <Text style={{ fontSize: 13, fontWeight: '600', color: '#8B5CF6' }}>
+              <Text style={{ fontSize: 13, fontWeight: '600', color: colors.brand.primary }}>
                 Forgot password?
               </Text>
             </TouchableOpacity>
@@ -255,30 +256,30 @@ export function PremiumLoginScreen() {
               onPress={handleLogin}
               disabled={loading}
               style={{
-                backgroundColor: '#8B5CF6',
+                backgroundColor: colors.brand.primary,
                 paddingVertical: 16,
                 borderRadius: borderRadius.md,
                 alignItems: 'center',
                 justifyContent: 'center',
                 opacity: loading ? 0.5 : 1,
                 ...shadows.md,
-                shadowColor: '#8B5CF6',
+                shadowColor: colors.brand.primary,
               }}
             >
-              <Text style={{ color: '#FFF', fontSize: 16, fontWeight: '700' }}>
+              <Text style={{ color: colors.text.inverse, fontSize: 16, fontWeight: '700' }}>
                 {loading ? 'Signing in...' : 'Sign In'}
               </Text>
             </TouchableOpacity>
 
             {/* Divider */}
             <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 24 }}>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#E5E7EB' }} />
+              <View style={{ flex: 1, height: 1, backgroundColor: colors.border.default }} />
               <Text
-                style={{ marginHorizontal: 12, fontSize: 12, fontWeight: '600', color: '#9CA3AF' }}
+                style={{ marginHorizontal: 12, fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}
               >
                 or continue with
               </Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#E5E7EB' }} />
+              <View style={{ flex: 1, height: 1, backgroundColor: colors.border.default }} />
             </View>
 
             {/* Google */}
@@ -291,22 +292,22 @@ export function PremiumLoginScreen() {
                 gap: 10,
                 paddingVertical: 14,
                 borderRadius: borderRadius.md,
-                backgroundColor: '#F8F9FA',
+                backgroundColor: colors.bg.secondary,
                 borderWidth: 1,
-                borderColor: '#E5E7EB',
+                borderColor: colors.border.default,
               }}
             >
-              <Ionicons name="logo-google" size={20} color="#1A1A1A" />
-              <Text style={{ fontSize: 15, fontWeight: '600', color: '#1A1A1A' }}>Google</Text>
+              <Ionicons name="logo-google" size={20} color={colors.text.primary} />
+              <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text.primary }}>Google</Text>
             </TouchableOpacity>
 
             {/* Footer */}
             <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 24 }}>
-              <Text style={{ fontSize: 13, fontWeight: '500', color: '#6B7280' }}>
+              <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.secondary }}>
                 Don't have an account?{' '}
               </Text>
               <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: '#8B5CF6' }}>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: colors.brand.primary }}>
                   Create one
                 </Text>
               </TouchableOpacity>
@@ -321,8 +322,8 @@ export function PremiumLoginScreen() {
                 marginTop: 16,
               }}
             >
-              <Ionicons name="shield-checkmark-outline" size={12} color="#9CA3AF" />
-              <Text style={{ fontSize: 11, fontWeight: '500', color: '#9CA3AF' }}>
+              <Ionicons name="shield-checkmark-outline" size={12} color={colors.text.tertiary} />
+              <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary }}>
                 256-bit encrypted connection
               </Text>
             </View>
@@ -333,6 +334,4 @@ export function PremiumLoginScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#FFFFFF' },
-});
+

@@ -161,6 +161,7 @@ export function SharedGroupDetailScreen() {
   const theme = TYPE_THEMES[type] || TYPE_THEMES.default;
   const name = group?.name || routeGroupName || 'Group';
   const currentMember = members.find((m: any) => m.userId === currentUser?.id);
+  const adminMember = members.find((m: any) => m.role === 'admin');
   const isAdmin = currentMember?.role === 'admin' || group?.createdBy === currentUser?.id;
 
   const stats = useMemo(() => {
@@ -523,6 +524,26 @@ export function SharedGroupDetailScreen() {
             <Text style={s.typeDashBtnText}>
               Open {type === 'couple' ? 'Couple' : 'Family'} Dashboard
             </Text>
+            <Ionicons name="arrow-forward" size={16} color="#FFF" />
+          </TouchableOpacity>
+        )}
+
+        {type === 'sports' && adminMember?.user?.upiId && !isAdmin && (
+          <TouchableOpacity
+            style={[s.typeDashBtn, { backgroundColor: '#FF6B6B' }]}
+            activeOpacity={0.85}
+            onPress={() => {
+              const upiLink = `upi://pay?pa=${encodeURIComponent(adminMember.user.upiId)}&pn=${encodeURIComponent(adminMember.user.firstName || 'Admin')}&cu=INR&tn=Payment%20for%20${encodeURIComponent(name)}`;
+              Linking.openURL(upiLink).catch(() =>
+                Alert.alert(
+                  'Unable to open UPI',
+                  'No UPI app found. Please try GPay, PhonePe, or Paytm.',
+                ),
+              );
+            }}
+          >
+            <Ionicons name="football" size={18} color="#FFF" />
+            <Text style={s.typeDashBtnText}>Pay to Admin</Text>
             <Ionicons name="arrow-forward" size={16} color="#FFF" />
           </TouchableOpacity>
         )}
@@ -1355,11 +1376,11 @@ export function SharedGroupDetailScreen() {
         fromName={
           myBalanceRow && myBalanceRow.balance < 0
             ? currentUser?.firstName || 'You'
-            : myBalanceRow?.name || myBalanceRow?.userName || 'Someone'
+            : myBalanceRow?.name || 'Someone'
         }
         toName={
           myBalanceRow && myBalanceRow.balance < 0
-            ? myBalanceRow?.name || myBalanceRow?.userName || 'Someone'
+            ? myBalanceRow?.name || 'Someone'
             : currentUser?.firstName || 'You'
         }
         onConfirm={confirmAllSettlements}

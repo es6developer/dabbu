@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '../config/api';
+import { GlobalLoading } from './loading-events';
 
 const CACHE_STORAGE_KEY = 'api_cache_v2';
 
@@ -383,29 +384,43 @@ async function executeRequest<T>(
   }
 }
 
+function trackLoading<T>(promise: Promise<T>): Promise<T> {
+  GlobalLoading.increment();
+  promise
+    .finally(() => GlobalLoading.decrement())
+    .catch(() => {});
+  return promise;
+}
+
 export const api = {
   get: <T>(path: string, signal?: AbortSignal, timeout?: number) =>
     request<T>(path, { method: 'GET', ...(signal ? { signal } : {}) }, timeout),
   post: <T>(path: string, body?: any, signal?: AbortSignal, timeout?: number) =>
-    request<T>(
-      path,
-      { method: 'POST', body: body ?? undefined, ...(signal ? { signal } : {}) },
-      timeout,
+    trackLoading(
+      request<T>(
+        path,
+        { method: 'POST', body: body ?? undefined, ...(signal ? { signal } : {}) },
+        timeout,
+      ),
     ),
   put: <T>(path: string, body?: any, signal?: AbortSignal, timeout?: number) =>
-    request<T>(
-      path,
-      { method: 'PUT', body: body ?? undefined, ...(signal ? { signal } : {}) },
-      timeout,
+    trackLoading(
+      request<T>(
+        path,
+        { method: 'PUT', body: body ?? undefined, ...(signal ? { signal } : {}) },
+        timeout,
+      ),
     ),
   patch: <T>(path: string, body?: any, signal?: AbortSignal, timeout?: number) =>
-    request<T>(
-      path,
-      { method: 'PATCH', body: body ?? undefined, ...(signal ? { signal } : {}) },
-      timeout,
+    trackLoading(
+      request<T>(
+        path,
+        { method: 'PATCH', body: body ?? undefined, ...(signal ? { signal } : {}) },
+        timeout,
+      ),
     ),
   delete: <T>(path: string, signal?: AbortSignal, timeout?: number) =>
-    request<T>(path, { method: 'DELETE', ...(signal ? { signal } : {}) }, timeout),
+    trackLoading(request<T>(path, { method: 'DELETE', ...(signal ? { signal } : {}) }, timeout)),
 };
 
 export function clearCache() {

@@ -70,6 +70,12 @@ export class CreateGroupDto {
   @Min(0)
   @Transform(({ value }) => (value ? parseFloat(value) : undefined))
   monthlyIncome?: number;
+
+  @ApiPropertyOptional({ example: 'user@paytm' })
+  @IsString()
+  @IsOptional()
+  @MaxLength(100)
+  upiId?: string;
 }
 
 export class UpdateGroupDto {

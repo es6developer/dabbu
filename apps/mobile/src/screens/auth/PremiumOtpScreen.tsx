@@ -14,7 +14,8 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PremiumAuthLayout } from '../../components/ui/PremiumAuthLayout';
 import { useTheme } from '../../theme';
-import { PADDING, borderRadius, shadows, typography as designTypo } from '../../theme/design';
+import { PADDING, borderRadius, shadows } from '../../theme/design';
+import { typography as designTypo } from '../../theme';
 import { palette } from '../../theme/colors';
 import { api } from '../../services/api';
 

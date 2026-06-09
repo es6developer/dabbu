@@ -51,10 +51,10 @@ export function AddExpenseScreen() {
         >
           <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
             <View style={styles.headerRow}>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                <Ionicons name="close" size={24} color="#FFF" />
+              <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}>
+                <Ionicons name="close" size={24} color={colors.text.primary} />
               </TouchableOpacity>
-              <Text style={styles.headerTitle}>Add Expense</Text>
+              <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Add Expense</Text>
               <TouchableOpacity onPress={handleSave}>
                 <Text style={[styles.saveText, { color: colors.text.primary }]}>Save</Text>
               </TouchableOpacity>

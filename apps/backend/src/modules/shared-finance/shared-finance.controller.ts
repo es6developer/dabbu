@@ -120,6 +120,34 @@ export class SharedFinanceController {
     return this.sf.deleteGroup(groupId, userId);
   }
 
+  @Post('validate-upi')
+  @ApiOperation({ summary: 'Validate UPI ID format' })
+  async validateUpi(@Body('upiId') upiId: string) {
+    const pattern = /^[\w\.\-]+@[\w\-]+$/;
+    const valid = pattern.test(upiId);
+    let message = valid ? 'UPI ID looks valid' : 'Invalid UPI ID format';
+    if (valid) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      try {
+        const res = await fetch(`https://upichk.vercel.app/api/check?vpa=${encodeURIComponent(upiId)}`, {
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+        const data = await res.json();
+        if (data.success === true) {
+          message = 'UPI ID verified successfully';
+        } else {
+          message = 'UPI ID not found (format accepted)';
+        }
+      } catch {
+        clearTimeout(timeout);
+        message = 'UPI ID format accepted (verification service unavailable)';
+      }
+    }
+    return { valid, message };
+  }
+
   @Post('groups/:groupId/members')
   @UseGuards(GroupMemberGuard)
   @ApiOperation({ summary: 'Add member to group (admin only)' })

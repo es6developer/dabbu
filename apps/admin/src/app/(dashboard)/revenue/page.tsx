@@ -15,7 +15,7 @@ import {
   Pie,
   Cell,
 } from 'recharts';
-import { DollarSign, TrendingUp, Users, CreditCard, Loader2 } from 'lucide-react';
+import { DollarSign, TrendingUp, UserCheck, CreditCard, Loader2 } from 'lucide-react';
 import { getDashboardStats, listSubscriptions } from '@/lib/api';
 
 export default function RevenuePage() {
@@ -89,7 +89,7 @@ export default function RevenuePage() {
             value: activeSubs.length.toLocaleString(),
             change: `${subs.length - activeSubs.length} inactive`,
             color: 'text-emerald-600',
-            icon: Users,
+            icon: UserCheck,
           },
           {
             label: 'Avg Revenue/User',

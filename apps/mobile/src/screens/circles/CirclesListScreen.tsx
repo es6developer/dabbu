@@ -155,16 +155,16 @@ export function CirclesListScreen() {
             <View style={{ paddingTop: insets.top + 12, paddingBottom: 32, paddingHorizontal: 20 }}>
               <View style={styles.headerRow}>
                 <View>
-                  <Text style={styles.headerTitle}>Circles</Text>
-                  <Text style={styles.headerSub}>
+                  <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Circles</Text>
+                  <Text style={[styles.headerSub, { color: colors.text.tertiary }]}>
                     {groups.length} circle{groups.length !== 1 ? 's' : ''}
                   </Text>
                 </View>
                 <TouchableOpacity
-                  style={styles.addBtn}
+                  style={[styles.addBtn, { backgroundColor: colors.bg.tertiary }]}
                   onPress={() => navigation.navigate('CreateCircle')}
                 >
-                  <Ionicons name="add" size={22} color="#FFF" />
+                  <Ionicons name="add" size={22} color={colors.text.primary} />
                 </TouchableOpacity>
               </View>
             </View>

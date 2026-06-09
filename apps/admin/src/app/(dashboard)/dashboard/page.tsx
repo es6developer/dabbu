@@ -5,11 +5,11 @@ import {
   Users,
   CreditCard,
   DollarSign,
-  Activity,
+  UserCheck,
   ArrowUpRight,
   ArrowDownRight,
+  Loader2,
 } from 'lucide-react';
-import { Loader2 } from 'lucide-react';
 import { cn, formatNumber } from '@/lib/utils';
 import { getDashboardStats } from '@/lib/api';
 
@@ -98,7 +98,7 @@ export default function DashboardPage() {
           title="Active Users"
           value={formatNumber(stats?.activeUsers ?? 0)}
           change=""
-          icon={Users}
+          icon={UserCheck}
           trend="up"
           subtitle=""
         />
