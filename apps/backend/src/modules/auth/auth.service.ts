@@ -21,6 +21,7 @@ import {
   GoogleAuthDto,
   SendOtpDto,
   VerifyOtpDto,
+  ResetWithOtpDto,
   SetupLockDto,
 } from './dto/auth.dto';
 import { JwtPayload, TokenPair } from './interfaces/jwt-payload.interface';
@@ -1018,6 +1019,70 @@ export class AuthService {
       .catch((err) => {
         this.logger.warn(
           `Failed to send password changed email to ${matchedUser.email}: ${err.message}`,
+        );
+      });
+
+    return { message: 'Password reset successfully' };
+  }
+
+  async resetWithOtp(dto: ResetWithOtpDto): Promise<{ message: string }> {
+    const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    if (!user) {
+      throw new BadRequestException('Invalid or expired OTP');
+    }
+
+    if (!user.otpCode || !user.otpExpiresAt || user.otpPurpose !== dto.purpose) {
+      throw new BadRequestException('Invalid or expired OTP');
+    }
+
+    if (user.otpExpiresAt < new Date()) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { otpCode: null, otpExpiresAt: null, otpPurpose: null, otpAttempts: 0 },
+      });
+      throw new BadRequestException('OTP has expired. Please request a new one.');
+    }
+
+    if (user.otpAttempts >= this.MAX_OTP_ATTEMPTS) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { otpCode: null, otpExpiresAt: null, otpPurpose: null, otpAttempts: 0 },
+      });
+      throw new BadRequestException('Too many failed attempts. Please request a new OTP.');
+    }
+
+    const isValid = await bcrypt.compare(dto.otp, user.otpCode);
+    if (!isValid) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { otpAttempts: user.otpAttempts + 1 },
+      });
+      throw new BadRequestException('Invalid OTP. Please try again.');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.password, 12);
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        passwordChangedAt: new Date(),
+        otpCode: null,
+        otpExpiresAt: null,
+        otpPurpose: null,
+        otpAttempts: 0,
+      },
+    });
+
+    await this.prisma.session.updateMany({
+      where: { userId: user.id, isRevoked: false },
+      data: { isRevoked: true, revokedAt: new Date() },
+    });
+
+    this.emailService
+      .sendPasswordChangedEmail(user.email, user.email.split('@')[0] || 'User')
+      .catch((err) => {
+        this.logger.warn(
+          `Failed to send password changed email to ${user.email}: ${err.message}`,
         );
       });
 

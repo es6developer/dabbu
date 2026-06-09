@@ -58,12 +58,12 @@ function InputField({
         backgroundColor: '#F8F9FA',
         borderRadius: borderRadius.md,
         borderWidth: 1.5,
-        borderColor: focused ? '#5A4FCF' : '#F8F9FA',
+        borderColor: '#ac99d7',
         paddingHorizontal: 14,
         marginBottom: 12,
       }}
     >
-      {icon && <Ionicons name={icon} size={18} color={focused ? '#5A4FCF' : '#9CA3AF'} />}
+      {icon && <Ionicons name={icon} size={18} color={focused ? '#8B5CF6' : '#9CA3AF'} />}
       <TextInput
         ref={inputRef}
         style={{
@@ -313,14 +313,14 @@ export function PremiumSignupScreen() {
                 onPress={handleSignup}
                 disabled={loading}
                 style={{
-                  backgroundColor: '#5A4FCF',
+                  backgroundColor: '#8B5CF6',
                   paddingVertical: 16,
                   borderRadius: borderRadius.md,
                   alignItems: 'center',
                   justifyContent: 'center',
                   opacity: loading ? 0.5 : 1,
                   ...shadows.md,
-                  shadowColor: '#5A4FCF',
+                  shadowColor: '#8B5CF6',
                 }}
               >
                 <Text style={{ color: '#FFF', fontSize: 16, fontWeight: '700' }}>
@@ -369,7 +369,7 @@ export function PremiumSignupScreen() {
                   Already have an account?{' '}
                 </Text>
                 <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#5A4FCF' }}>Sign In</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#8B5CF6' }}>Sign In</Text>
                 </TouchableOpacity>
               </View>
 

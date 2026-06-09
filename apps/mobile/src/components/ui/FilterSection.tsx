@@ -23,7 +23,7 @@ export function FilterSection({ options, selected, onSelect }: FilterSectionProp
           key={f.key}
           style={[
             styles.chip,
-            { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+            { backgroundColor: colors.bg.secondary, borderColor: '#ac99d7' },
             selected === f.key && {
               backgroundColor: colors.accent.primary,
               borderColor: colors.accent.primary,

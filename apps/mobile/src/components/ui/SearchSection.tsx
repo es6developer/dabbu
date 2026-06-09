@@ -19,7 +19,7 @@ export function SearchSection({
   const { colors } = useTheme();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}>
+    <View style={[styles.container, { backgroundColor: colors.bg.secondary, borderColor: '#ac99d7' }]}> 
       <Ionicons name="search" size={18} color={colors.text.tertiary} style={styles.icon} />
       <TextInput
         style={[styles.input, { color: colors.text.primary }]}

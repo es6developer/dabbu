@@ -232,7 +232,7 @@ export function BillDetailScreen() {
             <View style={styles.cardGlow} />
             <Text style={[styles.fieldLabel, { color: colors.text.tertiary }]}>Merchant</Text>
             <TextInput
-              style={[styles.textInput, { color: colors.text.primary, borderColor: colors.border.subtle, backgroundColor: colors.bg.tertiary }]}
+              style={[styles.textInput, { color: colors.text.primary, borderColor: '#ac99d7', backgroundColor: colors.bg.tertiary }]}
               value={merchant}
               onChangeText={setMerchant}
               placeholder="Merchant name"
@@ -282,7 +282,7 @@ export function BillDetailScreen() {
               <View key={index} style={[styles.itemRow, { borderColor: colors.border.subtle }]}>
                 <View style={styles.itemFields}>
                   <TextInput
-                    style={[styles.itemNameInput, { color: colors.text.primary, borderColor: colors.border.subtle, backgroundColor: colors.bg.tertiary }]}
+                    style={[styles.itemNameInput, { color: colors.text.primary, borderColor: '#ac99d7', backgroundColor: colors.bg.tertiary }]}
                     value={item.name}
                     onChangeText={(v) => updateItem(index, 'name', v)}
                     placeholder="Item name"
@@ -290,7 +290,7 @@ export function BillDetailScreen() {
                   />
                   <View style={styles.itemNumericRow}>
                     <TextInput
-                      style={[styles.itemNumericInput, { color: colors.text.primary, borderColor: colors.border.subtle, backgroundColor: colors.bg.tertiary }]}
+                      style={[styles.itemNumericInput, { color: colors.text.primary, borderColor: '#ac99d7', backgroundColor: colors.bg.tertiary }]}
                       value={String(item.quantity)}
                       onChangeText={(v) => updateItem(index, 'quantity', v)}
                       keyboardType="numeric"
@@ -298,7 +298,7 @@ export function BillDetailScreen() {
                       placeholderTextColor={colors.text.tertiary}
                     />
                     <TextInput
-                      style={[styles.itemNumericInput, { color: colors.text.primary, borderColor: colors.border.subtle, backgroundColor: colors.bg.tertiary }]}
+                      style={[styles.itemNumericInput, { color: colors.text.primary, borderColor: '#ac99d7', backgroundColor: colors.bg.tertiary }]}
                       value={String(item.price)}
                       onChangeText={(v) => updateItem(index, 'price', v)}
                       keyboardType="numeric"
@@ -331,7 +331,7 @@ export function BillDetailScreen() {
             <View style={styles.cardGlow} />
             <Text style={[styles.fieldLabel, { color: colors.text.tertiary }]}>Notes</Text>
             <TextInput
-              style={[styles.textArea, { color: colors.text.primary, borderColor: colors.border.subtle, backgroundColor: colors.bg.tertiary }]}
+              style={[styles.textArea, { color: colors.text.primary, borderColor: '#ac99d7', backgroundColor: colors.bg.tertiary }]}
               value={notes}
               onChangeText={setNotes}
               placeholder="Add notes..."

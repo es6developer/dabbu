@@ -188,7 +188,7 @@ export function LoginScreen() {
                 style={{
                   fontSize: 12,
                   fontWeight: '700',
-                  color: emailFocused ? '#5A4FCF' : '#6B7280',
+                  color: emailFocused ? '#8B5CF6' : '#6B7280',
                   letterSpacing: 0.5,
                   marginBottom: 8,
                   textTransform: 'uppercase',
@@ -203,14 +203,14 @@ export function LoginScreen() {
                   backgroundColor: '#F8F9FA',
                   borderRadius: 16,
                   borderWidth: 1.5,
-                  borderColor: emailFocused ? '#5A4FCF' : '#F8F9FA',
+                  borderColor: emailFocused ? '#8B5CF6' : '#F8F9FA',
                   paddingHorizontal: 16,
                 }}
               >
                 <Ionicons
                   name="mail-outline"
                   size={18}
-                  color={emailFocused ? '#5A4FCF' : '#9CA3AF'}
+                  color={emailFocused ? '#8B5CF6' : '#9CA3AF'}
                 />
                 <TextInput
                   style={{
@@ -240,7 +240,7 @@ export function LoginScreen() {
                 style={{
                   fontSize: 12,
                   fontWeight: '700',
-                  color: passFocused ? '#5A4FCF' : '#6B7280',
+                  color: passFocused ? '#8B5CF6' : '#6B7280',
                   letterSpacing: 0.5,
                   marginBottom: 8,
                   textTransform: 'uppercase',
@@ -255,14 +255,14 @@ export function LoginScreen() {
                   backgroundColor: '#F8F9FA',
                   borderRadius: 16,
                   borderWidth: 1.5,
-                  borderColor: passFocused ? '#5A4FCF' : '#F8F9FA',
+                  borderColor: passFocused ? '#8B5CF6' : '#F8F9FA',
                   paddingHorizontal: 16,
                 }}
               >
                 <Ionicons
                   name="lock-closed-outline"
                   size={18}
-                  color={passFocused ? '#5A4FCF' : '#9CA3AF'}
+                  color={passFocused ? '#8B5CF6' : '#9CA3AF'}
                 />
                 <TextInput
                   style={{
@@ -297,7 +297,7 @@ export function LoginScreen() {
               onPress={() => navigation.navigate('ForgotPassword')}
               style={{ alignItems: 'flex-end', marginBottom: 24 }}
             >
-              <Text style={{ fontSize: 14, fontWeight: '600', color: '#5A4FCF' }}>
+              <Text style={{ fontSize: 14, fontWeight: '600', color: '#8B5CF6' }}>
                 Forgot password?
               </Text>
             </TouchableOpacity>
@@ -308,7 +308,7 @@ export function LoginScreen() {
               onPress={handleEmailSignIn}
               disabled={loading}
               style={{
-                backgroundColor: '#5A4FCF',
+                backgroundColor: '#8B5CF6',
                 paddingVertical: 16,
                 borderRadius: 16,
                 alignItems: 'center',
@@ -317,7 +317,7 @@ export function LoginScreen() {
                 gap: 8,
                 opacity: loading ? 0.6 : 1,
                 ...shadows.md,
-                shadowColor: '#5A4FCF',
+                shadowColor: '#8B5CF6',
               }}
             >
               {loading ? (

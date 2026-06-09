@@ -232,7 +232,7 @@ export function PremiumOtpScreen() {
         if (purpose === 'email_verification') {
           navigation.navigate('Login', { emailVerified: true });
         } else {
-          navigation.navigate(purpose === 'password_reset' ? 'ForgotPassword' : 'Login');
+          navigation.navigate(purpose === 'password_reset' ? 'ResetPassword' : 'Login');
         }
       } else {
         setError(result.message || 'Invalid OTP');

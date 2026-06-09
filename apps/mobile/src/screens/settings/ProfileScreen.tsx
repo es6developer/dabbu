@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -20,17 +20,26 @@ import { useAuth } from '../../store/AuthContext';
 import { Avatar } from '../../components/ui/Avatar';
 import { PADDING, borderRadius, shadows } from '../../theme/design';
 
+interface Preset {
+  seed: string;
+  name: string;
+  url: string;
+}
+
 export function ProfileScreen() {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const { accessToken, user, logout } = useAuth();
+  const { accessToken, user, logout, updateAvatarUrl } = useAuth();
 
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState(user?.email || '');
   const [upiId, setUpiId] = useState('');
+  const [presets, setPresets] = useState<Preset[]>([]);
+  const [presetsLoading, setPresetsLoading] = useState(true);
+  const [selectedSeed, setSelectedSeed] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -72,6 +81,43 @@ export function ProfileScreen() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    loadPresets();
+  }, []);
+
+  async function loadPresets() {
+    setPresetsLoading(true);
+    try {
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      const res = await api.get<any>('/auth/avatar/presets');
+      setPresets(res?.data || []);
+    } catch {
+      setPresets([]);
+    } finally {
+      setPresetsLoading(false);
+    }
+  }
+
+  const selectPreset = useCallback(
+    async (preset: Preset) => {
+      setSelectedSeed(preset.seed);
+      try {
+        if (accessToken) {
+          setAccessToken(accessToken);
+        }
+        await api.post('/auth/avatar/select', { seed: preset.seed });
+        updateAvatarUrl(preset.url);
+      } catch (e: any) {
+        Alert.alert('Error', e.message || 'Failed to select avatar');
+      } finally {
+        setSelectedSeed(null);
+      }
+    },
+    [accessToken, updateAvatarUrl],
+  );
 
   async function handleSaveProfile() {
     if (!firstName.trim()) {
@@ -194,18 +240,13 @@ export function ProfileScreen() {
           ) : (
             <>
               {/* Avatar */}
-              <View style={{ alignItems: 'center', marginBottom: 28 }}>
+              <View style={{ alignItems: 'center', marginBottom: 24 }}>
                 <View style={{ position: 'relative', marginBottom: 12 }}>
-                  <TouchableOpacity
-                    activeOpacity={0.8}
-                    onPress={() => navigation.navigate('AvatarPicker')}
-                  >
-                    <Avatar
-                      uri={user?.avatarUrl}
-                      name={`${user?.firstName || ''} ${user?.lastName || ''}`}
-                      size={100}
-                    />
-                  </TouchableOpacity>
+                  <Avatar
+                    uri={user?.avatarUrl}
+                    name={`${user?.firstName || ''} ${user?.lastName || ''}`}
+                    size={100}
+                  />
                   <TouchableOpacity
                     style={{
                       position: 'absolute',
@@ -236,16 +277,52 @@ export function ProfileScreen() {
                 >
                   {fullName}
                 </Text>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: '500',
-                    color: colors.text.tertiary,
-                    marginTop: 2,
-                  }}
-                >
-                  {email || user?.email || ''}
-                </Text>
+              </View>
+
+              {/* Avatar Presets */}
+              <View style={{ marginHorizontal: PADDING, marginBottom: 16 }}>
+                {presetsLoading ? (
+                  <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+                    <ActivityIndicator size="small" color={colors.accent.primary} />
+                  </View>
+                ) : presets.length > 0 ? (
+                  <>
+                    <Text
+                      style={{
+                        fontSize: 11,
+                        fontWeight: '800',
+                        color: colors.text.tertiary,
+                        letterSpacing: 0.8,
+                        textTransform: 'uppercase',
+                        marginBottom: 10,
+                        paddingLeft: 2,
+                      }}
+                    >
+                      Choose Avatar
+                    </Text>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+                      {presets.map((preset) => (
+                        <TouchableOpacity
+                          key={preset.seed}
+                          onPress={() => selectPreset(preset)}
+                          activeOpacity={0.7}
+                          disabled={selectedSeed === preset.seed}
+                          style={{
+                            borderRadius: 14,
+                            borderWidth: 2,
+                            borderColor:
+                              selectedSeed === preset.seed
+                                ? colors.accent.primary
+                                : colors.border.subtle,
+                            overflow: 'hidden',
+                          }}
+                        >
+                          <Avatar uri={preset.url} name={preset.name} size={52} />
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </>
+                ) : null}
               </View>
 
               {/* Profile Form */}
@@ -317,7 +394,7 @@ export function ProfileScreen() {
                     paddingVertical: 15,
                     borderRadius: borderRadius.md,
                     borderWidth: 1,
-                    borderColor: colors.border.subtle,
+                    borderColor: '#ac99d7',
                     backgroundColor: colors.bg.tertiary,
                     color: colors.text.primary,
                   }}
@@ -348,11 +425,11 @@ export function ProfileScreen() {
                     paddingVertical: 15,
                     borderRadius: borderRadius.md,
                     borderWidth: 1,
-                    borderColor: colors.border.subtle,
-                    backgroundColor: colors.bg.tertiary,
-                    color: colors.text.primary,
-                  }}
-                  value={lastName}
+                      borderColor: '#ac99d7',
+                      backgroundColor: colors.bg.tertiary,
+                      color: colors.text.primary,
+                    }}
+                    value={lastName}
                   onChangeText={setLastName}
                   placeholder="Enter your last name"
                   placeholderTextColor={colors.text.tertiary}
@@ -377,9 +454,8 @@ export function ProfileScreen() {
                     paddingVertical: 15,
                     borderRadius: borderRadius.md,
                     borderWidth: 1,
-                    borderColor: colors.border.subtle,
+                    borderColor: '#ac99d7',
                     backgroundColor: colors.bg.tertiary,
-                    justifyContent: 'center',
                   }}
                 >
                   <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text.tertiary }}>
@@ -408,11 +484,11 @@ export function ProfileScreen() {
                     paddingVertical: 15,
                     borderRadius: borderRadius.md,
                     borderWidth: 1,
-                    borderColor: colors.border.subtle,
-                    backgroundColor: colors.bg.tertiary,
-                    color: colors.text.primary,
-                  }}
-                  value={phone}
+                      borderColor: '#ac99d7',
+                      backgroundColor: colors.bg.tertiary,
+                      color: colors.text.primary,
+                    }}
+                    value={phone}
                   onChangeText={setPhone}
                   placeholder="Required — helps friends find you"
                   placeholderTextColor={colors.text.tertiary}
@@ -451,11 +527,11 @@ export function ProfileScreen() {
                     paddingVertical: 15,
                     borderRadius: borderRadius.md,
                     borderWidth: 1,
-                    borderColor: colors.border.subtle,
-                    backgroundColor: colors.bg.tertiary,
-                    color: colors.text.primary,
-                  }}
-                  value={upiId}
+                      borderColor: '#ac99d7',
+                      backgroundColor: colors.bg.tertiary,
+                      color: colors.text.primary,
+                    }}
+                    value={upiId}
                   onChangeText={setUpiId}
                   placeholder="example@upi"
                   placeholderTextColor={colors.text.tertiary}

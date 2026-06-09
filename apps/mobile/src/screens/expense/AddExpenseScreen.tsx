@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 
-const CATEGORY_CHIPS = ['Food', 'Travel', 'Bills', 'Shopping', 'Groceries', 'Entertainment'];
+const CATEGORY_CHIPS = ['Food', 'Travel', 'Bills', 'Shopping', 'Groceries', 'Entertainment', 'Sports'];
 
 export function AddExpenseScreen() {
   const navigation = useNavigation<any>();

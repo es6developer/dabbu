@@ -280,7 +280,7 @@ export function CoupleSavingsScreen() {
             <Text style={[styles.modalTitle, { color: colors.text.primary }]}>Add to Savings</Text>
 
             <Text style={[styles.inputLabel, { color: colors.text.tertiary }]}>Amount</Text>
-            <View style={[styles.amountInputRow, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.default }]}>
+            <View style={[styles.amountInputRow, { backgroundColor: colors.bg.tertiary, borderColor: '#ac99d7' }]}>
               <Text style={[styles.currencySign, { color: colors.text.tertiary }]}>₹</Text>
               <TextInput
                 style={[styles.amountInput, { color: colors.text.primary }]}
@@ -294,7 +294,7 @@ export function CoupleSavingsScreen() {
 
             <Text style={[styles.inputLabel, { color: colors.text.tertiary }]}>Note (optional)</Text>
             <TextInput
-              style={[styles.noteInput, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.default, color: colors.text.primary }]}
+              style={[styles.noteInput, { backgroundColor: colors.bg.tertiary, borderColor: '#ac99d7', color: colors.text.primary }]}
               placeholder="What's this for?"
               placeholderTextColor={colors.text.tertiary}
               value={addNote}

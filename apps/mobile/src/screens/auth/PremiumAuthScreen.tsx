@@ -113,7 +113,7 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
       backgroundColor: colors.bg.secondary,
       borderRadius: borderRadius.lg,
       borderWidth: 1,
-      borderColor: colors.border.subtle,
+      borderColor: '#ac99d7',
       paddingHorizontal: 16,
       flexDirection: 'row',
       alignItems: 'center',
@@ -311,7 +311,7 @@ const InputField = React.forwardRef<TextInput, InputFieldProps>(
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = secureTextEntry !== undefined;
 
-    const borderColor = focused ? colors.brand.primary : colors.border.subtle;
+    const borderColor = focused ? '#ac99d7' : '#ac99d7';
 
     return (
       <View style={[styles.inputContainer, { borderColor }]}>

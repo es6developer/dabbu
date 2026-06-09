@@ -11,6 +11,7 @@ const EXPENSE_DEFAULTS = [
   { name: 'Healthcare', type: 'expense', icon: 'medkit', color: '#FF4D4F' },
   { name: 'Shopping', type: 'expense', icon: 'bag', color: '#F472B6' },
   { name: 'Entertainment', type: 'expense', icon: 'film', color: '#8B5CF6' },
+  { name: 'Sports', type: 'expense', icon: 'football', color: '#22C55E' },
   { name: 'Travel', type: 'expense', icon: 'airplane', color: '#60A5FA' },
   { name: 'Children & Baby', type: 'expense', icon: 'happy', color: '#FF9F0A' },
   { name: 'Financial', type: 'expense', icon: 'shield', color: '#00CEC9' },

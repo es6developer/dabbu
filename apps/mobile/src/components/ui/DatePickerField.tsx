@@ -137,7 +137,7 @@ export function DatePickerField({
           styles.field,
           {
             backgroundColor: colors.bg.tertiary,
-            borderColor: colors.border.subtle,
+            borderColor: '#ac99d7',
           },
         ]}
         onPress={openDatePicker}

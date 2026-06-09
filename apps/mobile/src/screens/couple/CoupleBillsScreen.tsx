@@ -417,7 +417,7 @@ export function CoupleBillsScreen() {
               <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
                 <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>Bill Name</Text>
                 <TextInput
-                  style={[styles.input, { backgroundColor: colors.bg.tertiary, color: colors.text.primary, borderColor: colors.border.default }]}
+                  style={[styles.input, { backgroundColor: colors.bg.tertiary, color: colors.text.primary, borderColor: '#ac99d7' }]}
                   placeholder="e.g. Electricity Bill"
                   placeholderTextColor={colors.text.tertiary}
                   value={formName}
@@ -426,7 +426,7 @@ export function CoupleBillsScreen() {
 
                 <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>Amount (₹)</Text>
                 <TextInput
-                  style={[styles.input, { backgroundColor: colors.bg.tertiary, color: colors.text.primary, borderColor: colors.border.default }]}
+                  style={[styles.input, { backgroundColor: colors.bg.tertiary, color: colors.text.primary, borderColor: '#ac99d7' }]}
                   placeholder="e.g. 1500"
                   placeholderTextColor={colors.text.tertiary}
                   keyboardType="numeric"
@@ -436,7 +436,7 @@ export function CoupleBillsScreen() {
 
                 <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>Due Date (YYYY-MM-DD)</Text>
                 <TextInput
-                  style={[styles.input, { backgroundColor: colors.bg.tertiary, color: colors.text.primary, borderColor: colors.border.default }]}
+                  style={[styles.input, { backgroundColor: colors.bg.tertiary, color: colors.text.primary, borderColor: '#ac99d7' }]}
                   placeholder="e.g. 2026-07-15"
                   placeholderTextColor={colors.text.tertiary}
                   value={formDueDate}

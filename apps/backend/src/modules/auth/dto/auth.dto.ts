@@ -113,13 +113,40 @@ export class ResetPasswordDto {
   password: string;
 }
 
+export class ResetWithOtpDto {
+  @ApiProperty({ example: 'user@example.com' })
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @ApiProperty({ example: '123456' })
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^\d{6}$/, { message: 'OTP must be 6 digits' })
+  otp: string;
+
+  @ApiProperty({ example: 'NewStrongPass123!' })
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(8)
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
+    message: 'Password must contain at least 1 uppercase, 1 lowercase, and 1 number',
+  })
+  password: string;
+
+  @ApiProperty({ enum: ['email_verification', 'password_reset', 'login'] })
+  @IsString()
+  @IsNotEmpty()
+  purpose: string;
+}
+
 export class SendOtpDto {
   @ApiProperty({ example: 'user@example.com' })
   @IsEmail()
   @IsNotEmpty()
   email: string;
 
-  @ApiProperty({ enum: ['email_verification', 'login'] })
+  @ApiProperty({ enum: ['email_verification', 'login', 'password_reset'] })
   @IsString()
   @IsNotEmpty()
   purpose: string;

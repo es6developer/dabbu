@@ -33,7 +33,7 @@ export const SMSDetectionWidget: React.FC<SMSDetectionWidgetProps> = ({
   const textSecondary = isDark ? '#B8B0CC' : '#5A5280';
   const textTertiary = isDark ? '#7A7194' : '#8A84A0';
   const borderColor = isDark ? '#2B2442' : '#D4CFE0';
-  const brandColor = isDark ? '#8B6FE8' : '#5A4FCF';
+  const brandColor = isDark ? '#8B6FE8' : '#8B5CF6';
   const iconColor = isDark ? '#0B0813' : '#FFFFFF';
 
   if (!sms) {

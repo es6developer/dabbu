@@ -22,6 +22,7 @@ import {
   RefreshTokenDto,
   ForgotPasswordDto,
   ResetPasswordDto,
+  ResetWithOtpDto,
   GoogleAuthDto,
   SendOtpDto,
   VerifyOtpDto,
@@ -114,6 +115,14 @@ export class AuthController {
   @ApiOperation({ summary: 'Verify OTP code' })
   async verifyOtp(@Body() dto: VerifyOtpDto) {
     const result = await this.authService.verifyOtp(dto);
+    return { data: result };
+  }
+
+  @Post('reset-with-otp')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reset password using OTP code' })
+  async resetWithOtp(@Body() dto: ResetWithOtpDto) {
+    const result = await this.authService.resetWithOtp(dto);
     return { data: result };
   }
 

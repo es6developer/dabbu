@@ -34,7 +34,7 @@ export function FormField({
           styles.field,
           {
             backgroundColor: colors.bg.tertiary,
-            borderColor: error ? colors.status.error : colors.border.subtle,
+            borderColor: '#ac99d7',
           },
         ]}
       >

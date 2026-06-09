@@ -1355,11 +1355,11 @@ export function SharedGroupDetailScreen() {
         fromName={
           myBalanceRow && myBalanceRow.balance < 0
             ? currentUser?.firstName || 'You'
-            : myBalanceRow?.userName || 'Someone'
+            : myBalanceRow?.name || myBalanceRow?.userName || 'Someone'
         }
         toName={
           myBalanceRow && myBalanceRow.balance < 0
-            ? myBalanceRow?.userName || 'Someone'
+            ? myBalanceRow?.name || myBalanceRow?.userName || 'Someone'
             : currentUser?.firstName || 'You'
         }
         onConfirm={confirmAllSettlements}

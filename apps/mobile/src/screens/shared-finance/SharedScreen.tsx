@@ -150,20 +150,20 @@ function MemberAvatars({ members, themeColor }: { members: any[]; themeColor: st
       {visible.map((m, i) => {
         const u = m.user || m;
         return (
-          <View key={u?.id || i} style={{ marginLeft: i > 0 ? -8 : 0, zIndex: max - i }}>
+          <View key={u?.id || i} style={{ marginLeft: i > 0 ? -12 : 0, zIndex: max - i }}>
             <Avatar
               uri={u.avatarUrl}
               name={`${u.firstName || ''} ${u.lastName || ''}`.trim()}
-              size={26}
+              size={36}
             />
           </View>
         );
       })}
       {remaining > 0 && (
         <View
-          style={[cs.avatar, { marginLeft: -8, zIndex: 0, backgroundColor: colors.border.default }]}
+          style={[cs.avatar, { marginLeft: -12, zIndex: 0, backgroundColor: colors.border.default }]}
         >
-          <Text style={[cs.avatarText, { fontSize: 10 }]}>+{remaining}</Text>
+          <Text style={[cs.avatarText, { fontSize: 13 }]}>+{remaining}</Text>
         </View>
       )}
     </View>
@@ -991,15 +991,15 @@ const gCard = StyleSheet.create({
 const cs = StyleSheet.create({
   avatarRow: { flexDirection: 'row', alignItems: 'center' },
   avatar: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: '#FFF',
   },
-  avatarText: { color: '#FFF', fontSize: 11, fontWeight: '700' },
+  avatarText: { color: '#FFF', fontSize: 13, fontWeight: '700' },
 });
 
 const mod = StyleSheet.create({

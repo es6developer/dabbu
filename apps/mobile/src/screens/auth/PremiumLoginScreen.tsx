@@ -114,7 +114,7 @@ export function PremiumLoginScreen() {
                 style={{
                   fontSize: 12,
                   fontWeight: '700',
-                  color: emailFocused ? '#5A4FCF' : '#6B7280',
+                  color: emailFocused ? '#8B5CF6' : '#6B7280',
                   letterSpacing: 0.5,
                   marginBottom: 8,
                   textTransform: 'uppercase',
@@ -129,14 +129,14 @@ export function PremiumLoginScreen() {
                   backgroundColor: '#F8F9FA',
                   borderRadius: borderRadius.md,
                   borderWidth: 1.5,
-                  borderColor: emailFocused ? '#5A4FCF' : '#F8F9FA',
+                  borderColor: emailFocused ? '#8B5CF6' : '#F8F9FA',
                   paddingHorizontal: 14,
                 }}
               >
                 <Ionicons
                   name="mail-outline"
                   size={18}
-                  color={emailFocused ? '#5A4FCF' : '#9CA3AF'}
+                  color={emailFocused ? '#8B5CF6' : '#9CA3AF'}
                 />
                 <TextInput
                   style={{
@@ -166,7 +166,7 @@ export function PremiumLoginScreen() {
                 style={{
                   fontSize: 12,
                   fontWeight: '700',
-                  color: passFocused ? '#5A4FCF' : '#6B7280',
+                  color: passFocused ? '#8B5CF6' : '#6B7280',
                   letterSpacing: 0.5,
                   marginBottom: 8,
                   textTransform: 'uppercase',
@@ -181,14 +181,14 @@ export function PremiumLoginScreen() {
                   backgroundColor: '#F8F9FA',
                   borderRadius: borderRadius.md,
                   borderWidth: 1.5,
-                  borderColor: passFocused ? '#5A4FCF' : '#F8F9FA',
+                  borderColor: passFocused ? '#8B5CF6' : '#F8F9FA',
                   paddingHorizontal: 14,
                 }}
               >
                 <Ionicons
                   name="lock-closed-outline"
                   size={18}
-                  color={passFocused ? '#5A4FCF' : '#9CA3AF'}
+                  color={passFocused ? '#8B5CF6' : '#9CA3AF'}
                 />
                 <TextInput
                   style={{
@@ -244,7 +244,7 @@ export function PremiumLoginScreen() {
               onPress={() => navigation.navigate('ForgotPassword')}
               style={{ alignSelf: 'flex-end', marginBottom: 24, marginTop: -4 }}
             >
-              <Text style={{ fontSize: 13, fontWeight: '600', color: '#5A4FCF' }}>
+              <Text style={{ fontSize: 13, fontWeight: '600', color: '#8B5CF6' }}>
                 Forgot password?
               </Text>
             </TouchableOpacity>
@@ -255,14 +255,14 @@ export function PremiumLoginScreen() {
               onPress={handleLogin}
               disabled={loading}
               style={{
-                backgroundColor: '#5A4FCF',
+                backgroundColor: '#8B5CF6',
                 paddingVertical: 16,
                 borderRadius: borderRadius.md,
                 alignItems: 'center',
                 justifyContent: 'center',
                 opacity: loading ? 0.5 : 1,
                 ...shadows.md,
-                shadowColor: '#5A4FCF',
+                shadowColor: '#8B5CF6',
               }}
             >
               <Text style={{ color: '#FFF', fontSize: 16, fontWeight: '700' }}>
@@ -306,7 +306,7 @@ export function PremiumLoginScreen() {
                 Don't have an account?{' '}
               </Text>
               <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: '#5A4FCF' }}>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#8B5CF6' }}>
                   Create one
                 </Text>
               </TouchableOpacity>
