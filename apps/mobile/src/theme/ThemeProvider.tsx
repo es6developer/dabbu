@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useColorScheme } from 'react-native';
+import { useColorScheme, Appearance } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { palette } from './colors';
 import { typography } from './typography';
@@ -17,6 +17,7 @@ export interface Theme {
   borderRadius: typeof borderRadius;
   iconSizes: typeof iconSizes;
   isDark: boolean;
+  mode: ThemeMode;
 }
 
 const darkTheme: Theme = {
@@ -27,6 +28,7 @@ const darkTheme: Theme = {
   borderRadius,
   iconSizes,
   isDark: true,
+  mode: 'dark',
 };
 
 const lightTheme: Theme = {
@@ -37,18 +39,21 @@ const lightTheme: Theme = {
   borderRadius,
   iconSizes,
   isDark: false,
+  mode: 'light',
 };
 
 interface ThemeContextValue {
   theme: Theme;
   themeMode: ThemeMode;
   setThemeMode: (mode: ThemeMode) => Promise<void>;
+  isDark: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
   theme: darkTheme,
   themeMode: 'dark',
   setThemeMode: async () => {},
+  isDark: true,
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -73,10 +78,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const isDark = themeMode === 'system' ? deviceScheme === 'dark' : themeMode === 'dark';
   const theme = isDark ? darkTheme : lightTheme;
 
-  if (!loaded) {return null;}
+  useEffect(() => {
+    Appearance.setColorScheme(isDark ? 'dark' : 'light');
+  }, [isDark]);
+
+  if (!loaded) {
+    return null;
+  }
 
   return (
-    <ThemeContext.Provider value={{ theme, themeMode, setThemeMode }}>
+    <ThemeContext.Provider value={{ theme, themeMode, setThemeMode, isDark }}>
       {children}
     </ThemeContext.Provider>
   );
@@ -88,6 +99,10 @@ export function useThemeContext(): ThemeContextValue {
 
 export function useTheme(): Theme {
   return useContext(ThemeContext).theme;
+}
+
+export function useIsDark(): boolean {
+  return useContext(ThemeContext).isDark;
 }
 
 export { darkTheme, lightTheme };

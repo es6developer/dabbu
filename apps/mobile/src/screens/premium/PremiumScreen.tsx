@@ -385,32 +385,31 @@ export function PremiumScreen() {
                   key={plan.code}
                   onPress={() => setSelectedPlan(index)}
                   activeOpacity={0.8}
+                  style={styles.planCardWrap}
                 >
-                  <Animated.View
-                    style={[
-                      styles.planCard,
-                      isSelected && styles.planCardSelected,
-                      { borderColor: isSelected ? '#FFD700' : 'rgba(255,255,255,0.1)' },
-                    ]}
-                  >
+                  <View style={[styles.planCard, isSelected && styles.planCardSelected]}>
                     {plan.badge && (
                       <View style={styles.planBadge}>
                         <Text style={styles.planBadgeText}>{plan.badge}</Text>
                       </View>
                     )}
-                    <Text style={[styles.planLabel, isSelected && { color: '#FFD700' }]}>
+                    <Text style={[styles.planLabel, isSelected && { color: '#C084FC' }]}>
                       {plan.label}
                     </Text>
-                    <Text style={[styles.planPrice, isSelected && { color: '#FFD700' }]}>
+                    <Text style={[styles.planPrice, isSelected && { color: '#C084FC' }]}>
                       {plan.price}
                     </Text>
-                    <Text style={styles.planPeriod}>{plan.period}</Text>
+                    <Text
+                      style={[styles.planPeriod, isSelected && { color: 'rgba(192,132,252,0.7)' }]}
+                    >
+                      {plan.period}
+                    </Text>
                     {isSelected && (
                       <View style={styles.selectedDot}>
-                        <Ionicons name="checkmark-circle" size={20} color="#FFD700" />
+                        <Ionicons name="checkmark-circle" size={18} color="#C084FC" />
                       </View>
                     )}
-                  </Animated.View>
+                  </View>
                 </TouchableOpacity>
               );
             })}
@@ -529,29 +528,41 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 16,
   },
-  plansGrid: { gap: 10 },
+  plansGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  planCardWrap: { width: (width - 44) / 2 },
   planCard: {
-    borderRadius: 14,
-    padding: 16,
-    borderWidth: 1,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 16,
+    padding: 18,
+    paddingTop: 24,
+    backgroundColor: 'rgba(255,255,255,0.04)',
     position: 'relative',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
-  planCardSelected: { backgroundColor: 'rgba(255,215,0,0.1)', borderWidth: 2 },
+  planCardSelected: {
+    backgroundColor: 'rgba(192,132,252,0.10)',
+    borderWidth: 1.5,
+    borderColor: '#8B5CF6',
+    shadowColor: '#8B5CF6',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 12,
+    elevation: 8,
+  },
   planBadge: {
     position: 'absolute',
     top: -8,
-    right: 12,
+    right: 10,
     paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingVertical: 3,
     borderRadius: 6,
-    backgroundColor: '#FFD700',
+    backgroundColor: '#C084FC',
   },
-  planBadgeText: { color: '#000', fontSize: 9, fontWeight: '700' },
-  planLabel: { fontSize: 15, fontWeight: '700', color: 'rgba(255,255,255,0.8)' },
-  planPrice: { fontSize: 24, fontWeight: '900', color: '#FFFFFF', marginTop: 4 },
-  planPeriod: { fontSize: 12, color: 'rgba(255,255,255,0.5)' },
-  selectedDot: { position: 'absolute', top: 12, right: 12 },
+  planBadgeText: { color: '#000', fontSize: 9, fontWeight: '800' },
+  planLabel: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.7)', marginBottom: 2 },
+  planPrice: { fontSize: 26, fontWeight: '900', color: '#FFFFFF', marginTop: 2 },
+  planPeriod: { fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 2 },
+  selectedDot: { position: 'absolute', top: 10, right: 10 },
   stickyCta: {
     position: 'absolute',
     bottom: 0,

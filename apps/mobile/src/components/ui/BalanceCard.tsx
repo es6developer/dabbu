@@ -1,15 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '../../theme';
 
-const { width } = Dimensions.get('window');
-const CARD_WIDTH = width - 32;
+const GRADIENT: [string, string] = ['#1A0B2E', '#3D1B6D'];
 
 interface BalanceCardProps {
   totalBalance: number;
   monthlySpending: number;
   monthlyBudget: number;
+  onSend?: () => void;
+  onDeposit?: () => void;
+  onRequest?: () => void;
 }
 
 function fmt(v: number) {
@@ -17,114 +19,160 @@ function fmt(v: number) {
   return `₹${n.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 }
 
-export function BalanceCard({ totalBalance, monthlySpending, monthlyBudget }: BalanceCardProps) {
-  const { colors } = useTheme();
+export function BalanceCard({
+  totalBalance,
+  monthlySpending,
+  monthlyBudget,
+  onSend,
+  onDeposit,
+  onRequest,
+}: BalanceCardProps) {
   const spendPct = monthlyBudget > 0 ? Math.min((monthlySpending / monthlyBudget) * 100, 100) : 0;
   const remaining = monthlyBudget - monthlySpending;
 
   return (
-    <View style={[styles.wrapper, { shadowColor: colors.bg.primary }]}>
-      <View style={[styles.card, { backgroundColor: colors.bg.primary }]}>
-        <View style={styles.topRow}>
-          <View>
-            <Text style={styles.label}>Total Balance</Text>
-            <Text style={styles.balance}>{fmt(totalBalance)}</Text>
+    <View style={styles.wrapper}>
+      <LinearGradient
+        colors={GRADIENT}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1.2, y: 1.2 }}
+        style={styles.card}
+      >
+        <View style={styles.labelRow}>
+          <Text style={styles.label}>Joint Wallet</Text>
+          <View style={styles.premiumDot}>
+            <Ionicons name="diamond" size={10} color="#FFFFFF" />
+            <Text style={styles.premiumDotText}>PREMIUM</Text>
           </View>
-          <View style={styles.goldBadge}>
-            <Ionicons name="wallet" size={14} color="#FFFFFF" />
-            <Text style={styles.goldText}>Premium</Text>
-          </View>
+        </View>
+
+        <Text style={styles.balance}>{fmt(totalBalance)}</Text>
+        <Text style={styles.caption}>Available balance</Text>
+
+        <View style={styles.actionsRow}>
+          <TouchableOpacity style={styles.pill} activeOpacity={0.8} onPress={onSend}>
+            <Ionicons name="arrow-up" size={14} color="#FFFFFF" />
+            <Text style={styles.pillText}>Send</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.pill} activeOpacity={0.8} onPress={onDeposit}>
+            <Ionicons name="arrow-down" size={14} color="#FFFFFF" />
+            <Text style={styles.pillText}>Deposit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.pill} activeOpacity={0.8} onPress={onRequest}>
+            <Ionicons name="refresh" size={14} color="#FFFFFF" />
+            <Text style={styles.pillText}>Request</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.divider} />
 
         <View style={styles.statsRow}>
           <View style={styles.stat}>
-            <Text style={styles.statLabel}>Monthly Spending</Text>
             <Text style={styles.statValue}>{fmt(monthlySpending)}</Text>
+            <Text style={styles.statLabel}>Spent this month</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.stat}>
-            <Text style={styles.statLabel}>Monthly Budget</Text>
             <Text style={styles.statValue}>{fmt(monthlyBudget)}</Text>
+            <Text style={styles.statLabel}>Monthly budget</Text>
           </View>
         </View>
 
-        <View style={styles.progressSection}>
-          <View style={styles.progressRow}>
-            <Text style={styles.progressLabel}>{spendPct.toFixed(0)}% used</Text>
-            <Text
-              style={[
-                styles.progressLabel,
-                remaining >= 0 ? { color: 'rgba(255,255,255,0.7)' } : { color: '#FF4D4F' },
-              ]}
-            >
-              {remaining >= 0 ? `${fmt(remaining)} left` : `${fmt(Math.abs(remaining))} over`}
-            </Text>
-          </View>
-          <View style={styles.progressBar}>
-            <View
-              style={[
-                styles.progressFill,
-                { width: `${Math.min(spendPct, 100)}%`, backgroundColor: '#14B8A6' },
-              ]}
-            />
-          </View>
+        <View style={styles.progressBar}>
+          <View style={[styles.progressFill, { width: `${Math.min(spendPct, 100)}%` }]} />
         </View>
-      </View>
+        <Text
+          style={[
+            styles.progressLabel,
+            { color: remaining >= 0 ? 'rgba(255,255,255,0.6)' : '#FF4D4F' },
+          ]}
+        >
+          {spendPct.toFixed(0)}% used —
+          {remaining >= 0 ? ` ${fmt(remaining)} left` : ` ${fmt(Math.abs(remaining))} over`}
+        </Text>
+      </LinearGradient>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   wrapper: {
-    marginHorizontal: 16,
+    marginHorizontal: 20,
     marginTop: -24,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.25,
-    shadowRadius: 30,
-    elevation: 8,
+    shadowColor: '#3D1B6D',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 24,
+    elevation: 10,
   },
   card: {
-    borderRadius: 20,
-    padding: 22,
+    borderRadius: 24,
+    padding: 24,
   },
-  topRow: {
+  labelRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   label: {
-    color: 'rgba(255,255,255,0.7)',
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.6)',
+    letterSpacing: 0.5,
   },
-  balance: {
-    color: '#FFFFFF',
-    fontSize: 36,
-    fontWeight: '700',
-    letterSpacing: -1,
-    marginTop: 4,
-  },
-  goldBadge: {
+  premiumDot: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(255,255,255,0.12)',
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 4,
     borderRadius: 10,
   },
-  goldText: {
+  premiumDotText: {
+    fontSize: 9,
+    fontWeight: '800',
     color: '#FFFFFF',
-    fontSize: 11,
+    letterSpacing: 1,
+  },
+  balance: {
+    fontSize: 44,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -2,
+    lineHeight: 50,
+  },
+  caption: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: 4,
+    marginBottom: 24,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 20,
+  },
+  pill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255,255,255,0.10)',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  pillText: {
+    fontSize: 13,
     fontWeight: '700',
-    letterSpacing: 0.5,
+    color: '#FFFFFF',
   },
   divider: {
     height: 1,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    marginVertical: 16,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    marginBottom: 16,
   },
   statsRow: {
     flexDirection: 'row',
@@ -135,43 +183,37 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   statLabel: {
-    color: 'rgba(255,255,255,0.7)',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '500',
-    marginBottom: 4,
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: 2,
   },
   statValue: {
+    fontSize: 20,
+    fontWeight: '800',
     color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '700',
   },
   statDivider: {
     width: 1,
-    height: 32,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    marginHorizontal: 12,
-  },
-  progressSection: {
-    marginTop: 4,
-  },
-  progressRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
-  progressLabel: {
-    color: 'rgba(255,255,255,0.7)',
-    fontSize: 13,
-    fontWeight: '500',
+    height: 36,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    marginHorizontal: 16,
   },
   progressBar: {
-    height: 8,
-    backgroundColor: '#242427',
-    borderRadius: 4,
+    height: 6,
+    backgroundColor: 'rgba(255,255,255,0.10)',
+    borderRadius: 3,
     overflow: 'hidden',
+    marginBottom: 6,
   },
   progressFill: {
     height: '100%',
-    borderRadius: 4,
+    borderRadius: 3,
+    backgroundColor: '#C084FC',
+  },
+  progressLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.6)',
   },
 });

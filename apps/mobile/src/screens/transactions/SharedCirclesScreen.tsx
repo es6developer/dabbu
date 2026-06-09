@@ -140,7 +140,7 @@ function GroupCard({ item, groupExpenses, navigation, colors }: any) {
                   {
                     backgroundColor: colors.bg.tertiary,
                     borderColor: colors.bg.card,
-                    marginLeft: i === 0 ? 0 : -8,
+                    marginRight: i < displayAvatars - 1 ? -10 : 0,
                     zIndex: displayAvatars - i,
                   },
                 ]}
@@ -157,7 +157,7 @@ function GroupCard({ item, groupExpenses, navigation, colors }: any) {
                 {
                   backgroundColor: colors.brand.light,
                   borderColor: colors.bg.card,
-                  marginLeft: -8,
+                  marginRight: 0,
                 },
               ]}
             >
@@ -170,10 +170,25 @@ function GroupCard({ item, groupExpenses, navigation, colors }: any) {
           </View>
 
           <View style={s.groupRight}>
-            <Text style={[s.balanceText, { color: isPositive ? '#27D376' : '#FF4545' }]}>
-              {isPositive ? '+' : '-'}
-              {fmt(Math.abs(balance))}
-            </Text>
+            <View style={s.balanceRow}>
+              <View
+                style={[s.progressRing, { borderColor: `${isPositive ? '#34C759' : '#FF4545'}30` }]}
+              >
+                <View
+                  style={[
+                    s.progressFill,
+                    {
+                      backgroundColor: isPositive ? '#34C759' : '#FF4545',
+                      height: `${Math.min(Math.abs(balance) / 1000, 100)}%`,
+                    },
+                  ]}
+                />
+              </View>
+              <Text style={[s.balanceText, { color: isPositive ? '#34C759' : '#FF4545' }]}>
+                {isPositive ? '+' : '-'}
+                {fmt(Math.abs(balance))}
+              </Text>
+            </View>
             {ed.latest && (
               <Text style={[s.recentLabel, { color: colors.text.secondary }]}>
                 Recent: {timeAgo(ed.latest.date || ed.latest.createdAt)}
@@ -662,7 +677,7 @@ const s = StyleSheet.create({
   avatarCluster: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 10,
   },
   avatarCircle: {
     width: 28,
@@ -677,7 +692,21 @@ const s = StyleSheet.create({
   overflowText: { fontSize: 10, fontWeight: '700' },
 
   /* ─── Financial Status ─── */
-  groupRight: { alignItems: 'flex-end' },
+  groupRight: { alignItems: 'flex-end', gap: 4 },
+  balanceRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  progressRing: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    width: '100%',
+    borderRadius: 0,
+  },
   balanceText: { fontSize: 16, fontWeight: '800' },
   recentLabel: { fontSize: 11, fontWeight: '400', marginTop: 2 },
 

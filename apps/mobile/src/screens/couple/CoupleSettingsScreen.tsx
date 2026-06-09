@@ -311,7 +311,7 @@ export function CoupleSettingsScreen() {
               const val = notifPrefs[item.key] ?? true;
               const isLast = idx === NOTIFICATION_ITEMS.length - 1;
               return (
-                <View key={item.key} style={[styles.notifRow, !isLast && styles.settingRowBorder]}>
+                <View key={item.key} style={[styles.notifRow, !isLast && styles.notifRowBorder]}>
                   <View style={[styles.notifIcon, { backgroundColor: colors.accent.primary }]}>
                     <Ionicons name={item.icon} size={14} color="#FFF" />
                   </View>
@@ -321,9 +321,9 @@ export function CoupleSettingsScreen() {
                   <Switch
                     value={val}
                     onValueChange={(v) => handleToggle(item.key, v)}
-                    trackColor={{ false: colors.border.subtle, true: colors.accent.primary }}
-                    thumbColor={val ? '#FFF' : colors.text.tertiary}
-                    ios_backgroundColor={colors.border.subtle}
+                    trackColor={{ false: 'rgba(255,255,255,0.12)', true: '#8B5CF6' }}
+                    thumbColor={val ? '#FFFFFF' : 'rgba(255,255,255,0.4)'}
+                    ios_backgroundColor="rgba(255,255,255,0.12)"
                   />
                 </View>
               );
@@ -486,7 +486,7 @@ const styles = StyleSheet.create({
   },
   settingRowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(0,0,0,0.06)',
+    borderBottomColor: 'rgba(255,255,255,0.06)',
   },
   settingIconWrap: {
     marginRight: 14,
@@ -525,8 +525,13 @@ const styles = StyleSheet.create({
   notifRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 13,
+    paddingVertical: 14,
     paddingHorizontal: 16,
+    gap: 12,
+  },
+  notifRowBorder: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(255,255,255,0.06)',
   },
   notifIcon: {
     width: 30,
@@ -534,13 +539,11 @@ const styles = StyleSheet.create({
     borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
   },
   notifLabel: {
     flex: 1,
     fontSize: 14,
     fontWeight: '600',
-    marginRight: 10,
   },
 
   inviteBtn: {

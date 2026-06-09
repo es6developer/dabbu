@@ -157,7 +157,7 @@ function GroupCard({ group, onPress, themeColor, netBalance }: GroupCardProps) {
                     {
                       backgroundColor: colors.bg.tertiary,
                       borderColor: colors.bg.card,
-                      marginLeft: i === 0 ? 0 : -8,
+                      marginRight: i < displayAvatars - 1 ? -10 : 0,
                       zIndex: displayAvatars - i,
                     },
                   ]}
@@ -175,7 +175,7 @@ function GroupCard({ group, onPress, themeColor, netBalance }: GroupCardProps) {
                 {
                   backgroundColor: `${themeColor}20`,
                   borderColor: colors.bg.card,
-                  marginLeft: -8,
+                  marginRight: 0,
                 },
               ]}
             >
@@ -188,14 +188,31 @@ function GroupCard({ group, onPress, themeColor, netBalance }: GroupCardProps) {
           </View>
 
           <View style={s.groupRight}>
-            <Text
-              style={[
-                s.balanceText,
-                { color: balance === 0 ? '#8E8E93' : isPositive ? '#34C759' : '#FF4545' },
-              ]}
-            >
-              {balance === 0 ? 'Settled' : `${isPositive ? '+' : ''}${fmt(Math.abs(balance))}`}
-            </Text>
+            <View style={s.balanceRow}>
+              <View
+                style={[s.progressRing, { borderColor: `${isPositive ? '#34C759' : '#FF4545'}30` }]}
+              >
+                <View
+                  style={[
+                    s.progressFill,
+                    {
+                      backgroundColor: isPositive ? '#34C759' : '#FF4545',
+                      height: `${Math.min(Math.abs(balance) / 1000, 100)}%`,
+                    },
+                  ]}
+                />
+              </View>
+              <View>
+                <Text
+                  style={[
+                    s.balanceText,
+                    { color: balance === 0 ? '#8E8E93' : isPositive ? '#34C759' : '#FF4545' },
+                  ]}
+                >
+                  {balance === 0 ? 'Settled' : `${isPositive ? '+' : ''}${fmt(Math.abs(balance))}`}
+                </Text>
+              </View>
+            </View>
             <View style={[s.typeBadge, { backgroundColor: `${themeColor}15` }]}>
               <View style={[s.typeDot, { backgroundColor: themeColor }]} />
               <Text style={[s.typeBadgeText, { color: themeColor }]}>
@@ -675,7 +692,7 @@ const s = StyleSheet.create({
   avatarCluster: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 10,
   },
   avatarCircle: {
     width: 28,
@@ -691,6 +708,20 @@ const s = StyleSheet.create({
 
   /* Right side */
   groupRight: { alignItems: 'flex-end' },
+  balanceRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  progressRing: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    width: '100%',
+    borderRadius: 0,
+  },
   balanceText: { fontSize: 16, fontWeight: '800' },
   typeBadge: {
     flexDirection: 'row',

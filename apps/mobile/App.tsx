@@ -1,3 +1,4 @@
+import './src/global.css';
 import React, { useEffect, useCallback, useState } from 'react';
 import { StatusBar, LogBox, Appearance } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';

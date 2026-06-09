@@ -27,6 +27,105 @@ const SPLIT_TYPES = [
   { key: 'shares', label: 'Shares', icon: 'layers' },
 ] as const;
 
+const STEPS = [
+  { key: 'amount', label: 'Amount' },
+  { key: 'details', label: 'Details' },
+  { key: 'split', label: 'Split' },
+  { key: 'review', label: 'Review' },
+] as const;
+
+function StepIndicator({ current, colors }: { current: number; colors: any }) {
+  return (
+    <View style={stepStyles.row}>
+      {STEPS.map((s, i) => {
+        const isActive = i === current;
+        const isPast = i < current;
+        return (
+          <View key={s.key} style={stepStyles.stepWrap}>
+            <View
+              style={[
+                stepStyles.circle,
+                {
+                  backgroundColor: isPast
+                    ? '#10B981'
+                    : isActive
+                      ? '#8B5CF6'
+                      : 'rgba(255,255,255,0.12)',
+                  borderColor: isActive ? '#A78BFA' : 'transparent',
+                },
+              ]}
+            >
+              {isPast ? (
+                <Ionicons name="checkmark" size={12} color="#FFFFFF" />
+              ) : (
+                <Text
+                  style={[
+                    stepStyles.circleText,
+                    { color: isActive ? '#FFFFFF' : 'rgba(255,255,255,0.5)' },
+                  ]}
+                >
+                  {i + 1}
+                </Text>
+              )}
+            </View>
+            <Text
+              style={[stepStyles.label, { color: isActive ? '#FFFFFF' : 'rgba(255,255,255,0.5)' }]}
+            >
+              {s.label}
+            </Text>
+            {i < STEPS.length - 1 && (
+              <View
+                style={[
+                  stepStyles.connector,
+                  { backgroundColor: isPast ? '#10B981' : 'rgba(255,255,255,0.12)' },
+                ]}
+              />
+            )}
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+const stepStyles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 16,
+    paddingHorizontal: 4,
+  },
+  stepWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  circle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+  },
+  circleText: {
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  label: {
+    fontSize: 10,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  connector: {
+    flex: 1,
+    height: 2,
+    marginHorizontal: 4,
+    borderRadius: 1,
+  },
+});
+
 export function SharedExpenseFormScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
@@ -36,6 +135,7 @@ export function SharedExpenseFormScreen() {
   const { groupId, expenseId, edit } = route.params || {};
   const inputRef = useRef<TextInput>(null);
 
+  const [currentStep, setCurrentStep] = useState(0);
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [paidBy, setPaidBy] = useState<string | null>(null);
@@ -255,6 +355,7 @@ export function SharedExpenseFormScreen() {
                 Split with {members.length} member{members.length !== 1 ? 's' : ''}
               </Text>
             </View>
+            <StepIndicator current={currentStep} colors={colors} />
           </View>
 
           <View style={{ padding: 20, gap: 20 }}>

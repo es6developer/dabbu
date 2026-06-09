@@ -18,7 +18,14 @@ function fmt(v: number) {
   return `₹${n.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 }
 
-export function TransactionCard({ name, amount, category, date, avatar, onPress }: TransactionCardProps) {
+export function TransactionCard({
+  name,
+  amount,
+  category,
+  date,
+  avatar,
+  onPress,
+}: TransactionCardProps) {
   const { colors } = useTheme();
   const isExpense = amount < 0;
   const absAmount = Math.abs(amount);
@@ -35,11 +42,7 @@ export function TransactionCard({ name, amount, category, date, avatar, onPress 
         {avatar ? (
           <Text style={styles.avatarText}>{avatar[0]}</Text>
         ) : (
-          <Ionicons
-            name={iconName as any}
-            size={18}
-            color={isExpense ? '#FF4D4F' : '#34C759'}
-          />
+          <Ionicons name={iconName as any} size={16} color={isExpense ? '#FF4D4F' : '#34C759'} />
         )}
       </View>
       <View style={styles.info}>
@@ -52,8 +55,9 @@ export function TransactionCard({ name, amount, category, date, avatar, onPress 
           <Text style={[styles.category, { color: colors.text.tertiary }]}>{date}</Text>
         </View>
       </View>
-      <Text style={[styles.amount, { color: isExpense ? '#FF4D4F' : '#34C759' }]}>
-        {isExpense ? '-' : '+'}{fmt(absAmount)}
+      <Text style={[styles.amount, { color: isExpense ? colors.text.primary : '#34C759' }]}>
+        {isExpense ? '-' : '+'}
+        {fmt(absAmount)}
       </Text>
     </TouchableOpacity>
   );
@@ -63,27 +67,22 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 14,
     borderWidth: 1,
-    marginBottom: 8,
-    gap: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 1,
+    marginBottom: 6,
+    gap: 10,
   },
   avatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
+    width: 36,
+    height: 36,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
     color: '#F97316',
   },
@@ -91,26 +90,26 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   name: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    marginBottom: 2,
+    marginBottom: 1,
   },
   meta: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 5,
   },
   category: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
   },
   dot: {
-    width: 3,
-    height: 3,
-    borderRadius: 1.5,
+    width: 2,
+    height: 2,
+    borderRadius: 1,
   },
   amount: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '800',
   },
 });

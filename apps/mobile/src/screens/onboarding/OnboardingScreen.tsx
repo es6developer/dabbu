@@ -13,47 +13,37 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { PADDING, borderRadius, shadows } from '../../theme/design';
 
 const { width } = Dimensions.get('window');
 
-function getSlides(primary: string): Array<{
-  icon: string;
-  gradient: [string, string];
-  title: string;
-  desc: string;
-}> {
-  return [
-    {
-      icon: 'wallet-outline',
-      gradient: [primary, primary] as [string, string],
-      title: 'Manage Money Together',
-      desc: 'Track expenses, split bills and manage family finances in one place.',
-    },
-    {
-      icon: 'stats-chart-outline',
-      gradient: ['#14B8A6', '#FFB347'] as [string, string],
-      title: 'Track Every Rupee',
-      desc: 'Monitor groceries, rent, travel, subscriptions and more in real-time.',
-    },
-    {
-      icon: 'people-outline',
-      gradient: ['#34C759', '#5EE99D'] as [string, string],
-      title: 'Create Circles',
-      desc: 'Create private circles with your spouse, family or friends and split expenses instantly.',
-    },
-  ];
-}
+const slides = [
+  {
+    icon: 'wallet-outline',
+    title: 'Manage Money Together',
+    desc: 'Track expenses, split bills and manage family finances in one place.',
+  },
+  {
+    icon: 'stats-chart-outline',
+    title: 'Track Every Rupee',
+    desc: 'Monitor groceries, rent, travel, subscriptions and more in real-time.',
+  },
+  {
+    icon: 'people-outline',
+    title: 'Create Circles',
+    desc: 'Create private circles with your spouse, family or friends and split expenses instantly.',
+  },
+];
 
 function SlideContent({
   item,
-  index: slideIndex,
   isActive,
+  colors,
 }: {
-  item: { icon: string; gradient: [string, string]; title: string; desc: string };
-  index: number;
+  item: (typeof slides)[0];
   isActive: boolean;
+  colors: any;
 }) {
-  const { colors } = useTheme();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
 
@@ -66,26 +56,51 @@ function SlideContent({
         Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
       ]).start();
     }
-  }, [isActive, fadeAnim, slideAnim]);
+  }, [isActive]);
 
   return (
-    <View style={styles.slide}>
+    <View style={{ width, alignItems: 'center', paddingHorizontal: PADDING }}>
       <Animated.View
         style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }], alignItems: 'center' }}
       >
-        {slideIndex === 0 && (
-          <>
-            <View style={[styles.logoWrap, { shadowColor: colors.accent.primary }]}>
-              <Text style={styles.logoText}>D</Text>
-            </View>
-            <Text style={[styles.brandName, { color: colors.accent.primary }]}>Dabbu</Text>
-          </>
-        )}
-        <View style={styles.illustrationWrap}>
-          <Ionicons name={item.icon as any} size={56} color="#FFF" />
+        <View
+          style={{
+            width: 220,
+            height: 220,
+            borderRadius: 48,
+            backgroundColor: `${colors.accent.primary}08`,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 40,
+          }}
+        >
+          <Ionicons name={item.icon as any} size={72} color={colors.accent.primary} />
         </View>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.desc}>{item.desc}</Text>
+        <Text
+          style={{
+            fontSize: 28,
+            fontWeight: '800',
+            color: colors.text.primary,
+            textAlign: 'center',
+            letterSpacing: -0.5,
+            lineHeight: 36,
+            marginBottom: 12,
+          }}
+        >
+          {item.title}
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            fontWeight: '500',
+            color: colors.text.tertiary,
+            textAlign: 'center',
+            lineHeight: 24,
+            paddingHorizontal: 16,
+          }}
+        >
+          {item.desc}
+        </Text>
       </Animated.View>
     </View>
   );
@@ -93,11 +108,11 @@ function SlideContent({
 
 export function OnboardingScreen({ route }: any) {
   const navigation = useNavigation<any>();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const [index, setIndex] = useState(0);
   const flatRef = useRef<FlatList>(null);
-  const slides = useMemo(() => getSlides(colors.accent.primary), [colors.accent.primary]);
+  const dotAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const refCode = route?.params?.referralCode;
@@ -127,151 +142,113 @@ export function OnboardingScreen({ route }: any) {
   const isLast = index === slides.length - 1;
 
   const renderSlide = useCallback(
-    ({
-      item,
-      index: i,
-    }: {
-      item: { icon: string; gradient: [string, string]; title: string; desc: string };
-      index: number;
-    }) => <SlideContent item={item} index={i} isActive={i === index} />,
-    [index],
+    ({ item, index: i }: { item: (typeof slides)[0]; index: number }) => (
+      <SlideContent item={item} isActive={i === index} colors={colors} />
+    ),
+    [index, colors],
   );
 
   return (
-    <View style={styles.root}>
-      <View style={[styles.gradient, { paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity style={styles.skip} onPress={handleSkip}>
-          <Text style={[styles.skipText, { color: colors.accent.primary }]}>Skip</Text>
+    <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
+      <View style={{ paddingTop: insets.top + 12 }}>
+        <TouchableOpacity
+          onPress={handleSkip}
+          style={{ alignSelf: 'flex-end', paddingHorizontal: PADDING, paddingVertical: 8 }}
+        >
+          <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.tertiary }}>Skip</Text>
+        </TouchableOpacity>
+      </View>
+
+      <FlatList
+        ref={flatRef}
+        data={slides}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        bounces={false}
+        onMomentumScrollEnd={(e) => {
+          const idx = Math.round(e.nativeEvent.contentOffset.x / width);
+          setIndex(idx);
+          Animated.spring(dotAnim, { toValue: idx, useNativeDriver: true, friction: 8 }).start();
+        }}
+        renderItem={renderSlide}
+        keyExtractor={(_, i) => String(i)}
+        windowSize={3}
+        maxToRenderPerBatch={3}
+        initialNumToRender={3}
+        getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
+      />
+
+      <View
+        style={{
+          paddingHorizontal: PADDING,
+          paddingBottom: insets.bottom + 24,
+          backgroundColor: colors.bg.primary,
+          borderTopLeftRadius: borderRadius.xl,
+          borderTopRightRadius: borderRadius.xl,
+        }}
+      >
+        {/* Dots */}
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 8,
+            marginBottom: 28,
+          }}
+        >
+          {slides.map((_, i) => (
+            <View
+              key={i}
+              style={{
+                width: i === index ? 28 : 8,
+                height: 8,
+                borderRadius: 4,
+                backgroundColor: i === index ? colors.accent.primary : colors.border.subtle,
+              }}
+            />
+          ))}
+        </View>
+
+        {/* Button */}
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={handleNext}
+          style={{
+            backgroundColor: colors.accent.primary,
+            paddingVertical: 16,
+            borderRadius: borderRadius.xl,
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'row',
+            gap: 8,
+            ...shadows.md,
+            shadowColor: colors.accent.primary,
+          }}
+        >
+          <Text style={{ color: '#FFF', fontSize: 17, fontWeight: '700' }}>
+            {isLast ? 'Get Started' : 'Next'}
+          </Text>
+          {!isLast && <Ionicons name="arrow-forward" size={18} color="#FFF" />}
         </TouchableOpacity>
 
-        <FlatList
-          ref={flatRef}
-          data={slides}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onMomentumScrollEnd={(e) => setIndex(Math.round(e.nativeEvent.contentOffset.x / width))}
-          renderItem={renderSlide}
-          keyExtractor={(_, i) => String(i)}
-          windowSize={3}
-          maxToRenderPerBatch={3}
-          initialNumToRender={3}
-          getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
-        />
-
-        <View style={[styles.footer, { backgroundColor: isDark ? '#0D0D1A' : '#FFFFFF' }]}>
-          <View style={styles.dots}>
-            {slides.map((_, i) => (
-              <Animated.View
-                key={i}
-                style={[
-                  styles.dot,
-                  { backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.12)' },
-                  i === index && { width: 28, backgroundColor: colors.accent.primary },
-                ]}
-              />
-            ))}
-          </View>
-
-          <TouchableOpacity style={styles.button} onPress={handleNext} activeOpacity={0.85}>
-            <View style={styles.buttonGrad}>
-              <Text style={[styles.buttonText, { color: colors.text.primary }]}>
-                {isLast ? 'Get Started' : 'Next'}
-              </Text>
-              {!isLast && <Ionicons name="arrow-forward" size={18} color={colors.text.primary} />}
-            </View>
+        {/* Skip to start */}
+        {!isLast && (
+          <TouchableOpacity
+            onPress={handleSkip}
+            style={{ alignItems: 'center', paddingVertical: 12, marginTop: 4 }}
+          >
+            <Text style={{ fontSize: 14, fontWeight: '600', color: colors.accent.primary }}>
+              Get Started
+            </Text>
           </TouchableOpacity>
-
-          {!isLast && (
-            <TouchableOpacity style={styles.getStarted} onPress={handleSkip}>
-              <Text style={[styles.getStartedText, { color: colors.accent.primary }]}>
-                Get Started
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        )}
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   root: { flex: 1 },
-  gradient: { flex: 1 },
-  skip: { alignSelf: 'flex-end', paddingHorizontal: 24, paddingVertical: 8, opacity: 0.7 },
-  skipText: { fontSize: 14, fontWeight: '600' },
-  slide: { width, alignItems: 'center', paddingHorizontal: 32, paddingTop: 20 },
-  logoWrap: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  logoText: { color: '#FFF', fontSize: 28, fontWeight: '800' },
-  brandName: {
-    fontSize: 32,
-    fontWeight: '800',
-    marginBottom: 24,
-    letterSpacing: -0.5,
-  },
-  illustrationWrap: {
-    width: 200,
-    height: 200,
-    borderRadius: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 32,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    textAlign: 'center',
-    marginBottom: 12,
-    letterSpacing: -0.3,
-    color: '#1A1A2E',
-  },
-  desc: {
-    fontSize: 15,
-    textAlign: 'center',
-    lineHeight: 22,
-    paddingHorizontal: 16,
-    fontWeight: '400',
-    color: '#666680',
-  },
-  footer: {
-    paddingHorizontal: 24,
-    paddingTop: 28,
-    paddingBottom: 40,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  dots: { flexDirection: 'row', justifyContent: 'center', marginBottom: 28 },
-  dot: { width: 8, height: 8, borderRadius: 4, marginHorizontal: 4 },
-  button: { borderRadius: 16, overflow: 'hidden' },
-  buttonGrad: {
-    flexDirection: 'row',
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
-  getStarted: { alignItems: 'center', paddingVertical: 12, marginTop: 4 },
-  getStartedText: { fontSize: 14, fontWeight: '600' },
 });

@@ -408,8 +408,8 @@ export function CreateExpenseGroupScreen() {
           <Switch
             value={pullRecurring}
             onValueChange={setPullRecurring}
-            trackColor={{ false: colors.border.subtle, true: colors.accent.primary }}
-            thumbColor="#FFF"
+            trackColor={{ false: 'rgba(255,255,255,0.12)', true: '#8B5CF6' }}
+            thumbColor="#FFFFFF"
           />
         </View>
         {pullRecurring && (

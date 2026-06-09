@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme';
@@ -49,56 +50,47 @@ export function UpgradeBanner({
 
   return (
     <Animated.View
-      style={[
-        styles.container,
-        {
-          borderColor: colors.border.default,
-          backgroundColor: colors.bg.primary,
-          transform: [{ translateY: slideAnim }],
-          opacity: opacityAnim,
-        },
-      ]}
+      style={{
+        transform: [{ translateY: slideAnim }],
+        opacity: opacityAnim,
+        marginHorizontal: 16,
+        marginVertical: 8,
+      }}
     >
-      <View style={[styles.glowLeft, { backgroundColor: colors.brand.light }]} />
-      <View style={styles.content}>
-        <View style={[styles.iconWrap, { backgroundColor: colors.brand.primary }]}>
-          <Ionicons name="diamond" size={18} color="#FFFFFF" />
-        </View>
-        <View style={styles.textWrap}>
-          <Text style={[styles.title, { color: colors.brand.primary }]}>Go Premium</Text>
-          <Text style={[styles.message, { color: colors.text.secondary }]}>{message}</Text>
-        </View>
-      </View>
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: colors.brand.primary }]}
-        activeOpacity={0.8}
-        onPress={() => navigation.navigate('Settings', { screen: 'Premium' })}
+      <LinearGradient
+        colors={['#1F1A3A', '#2E1A47']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.containerGradient}
       >
-        <Text style={[styles.buttonText, { color: colors.text.inverse }]}>Upgrade</Text>
-      </TouchableOpacity>
+        <View style={styles.content}>
+          <View style={[styles.iconWrap, { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
+            <Ionicons name="diamond" size={18} color="#FFFFFF" />
+          </View>
+          <View style={styles.textWrap}>
+            <Text style={styles.title}>Go Premium</Text>
+            <Text style={styles.message}>{message}</Text>
+          </View>
+        </View>
+        <TouchableOpacity
+          style={styles.button}
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate('Settings', { screen: 'Premium' })}
+        >
+          <Text style={styles.buttonText}>Upgrade</Text>
+        </TouchableOpacity>
+      </LinearGradient>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    marginHorizontal: 16,
-    marginVertical: 8,
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 14,
+  containerGradient: {
+    borderRadius: 20,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    overflow: 'hidden',
-  },
-  glowLeft: {
-    position: 'absolute',
-    left: -20,
-    top: -20,
-    width: 80,
-    height: 80,
-    borderRadius: 40,
   },
   content: {
     flexDirection: 'row',
@@ -112,28 +104,32 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 10,
+    marginRight: 12,
   },
   textWrap: {
     flex: 1,
   },
   title: {
-    fontSize: 15,
-    fontWeight: '600',
-    marginBottom: 2,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 4,
   },
   message: {
     fontSize: 12,
     lineHeight: 16,
+    color: 'rgba(255,255,255,0.7)',
   },
   button: {
-    paddingHorizontal: 18,
-    paddingVertical: 8,
+    backgroundColor: '#FF6B00',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
     borderRadius: 20,
-    minWidth: 80,
+    minWidth: 84,
     alignItems: 'center',
   },
   buttonText: {
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '700',
   },

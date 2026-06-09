@@ -1,3 +1,14 @@
+export {
+  ScreenContainer,
+  SurfaceCard,
+  PromoHeaderBanner,
+  QuickCategoryCarousel,
+  MerchantComparisonCard,
+  DashboardPremiumHeader,
+  SMSDetectionWidget,
+  QuickScrollCategoryGrid,
+} from './nds';
+export type { CategoryItem, PriceRow, PremiumTier, ParsedSms, QuickCategoryNode } from './nds';
 export { Button } from './Button';
 export { Card } from './Card';
 export { EmptyState } from './EmptyState';

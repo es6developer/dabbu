@@ -119,22 +119,6 @@ function computeFinancialSummary(groups: any[], currentUserId?: string) {
   return { totalOwedToMe, totalIOwe, pendingSettlements, activeGroups: groups.length };
 }
 
-function NetBadge({ net, colors, typography }: any) {
-  const isPositive = net >= 0;
-  const bg = isPositive ? colors.status.success + '15' : colors.status.error + '15';
-  const fg = isPositive ? colors.status.success : colors.status.error;
-  const icon = isPositive ? 'trending-up' : 'trending-down';
-  return (
-    <View style={[sCard.netBadge, { backgroundColor: bg }]}>
-      <Ionicons name={icon} size={12} color={fg} />
-      <Text style={[typography.caption, { color: fg, fontWeight: '700' }]}>
-        {isPositive ? '+' : ''}
-        {fmtCompact(Math.abs(net))}
-      </Text>
-    </View>
-  );
-}
-
 function SummaryCard({ summary, anim, colors, typography }: any) {
   const net = summary.totalOwedToMe - summary.totalIOwe;
   return (
@@ -149,66 +133,68 @@ function SummaryCard({ summary, anim, colors, typography }: any) {
         },
       ]}
     >
-      <View style={[sCard.card, { borderColor: colors.border.subtle }]}>
+      <View style={sCard.card}>
         <View style={sCard.topRow}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <View style={[sCard.iconWrap, { backgroundColor: colors.accent.primary + '22' }]}>
-              <Ionicons name="wallet-outline" size={16} color={colors.accent.primary} />
+            <View style={sCard.iconWrap}>
+              <Ionicons name="wallet-outline" size={16} color="#C084FC" />
             </View>
-            <Text style={[typography.calloutBold, { color: colors.text.primary }]}>
-              Financial Summary
-            </Text>
+            <Text style={sCard.titleText}>Balance Hub</Text>
           </View>
-          <View style={[sCard.badge, { backgroundColor: colors.accent.primary + '20' }]}>
-            <Text
-              style={[typography.caption2, { color: colors.accent.primary, fontWeight: '700' }]}
-            >
-              {summary.activeGroups} active
-            </Text>
+          <View style={sCard.badge}>
+            <Text style={sCard.badgeText}>{summary.activeGroups} active</Text>
           </View>
         </View>
 
         <View style={sCard.metricsRow}>
           <View style={sCard.metric}>
-            <Text style={[typography.caption1, { color: colors.text.tertiary }]}>You're owed</Text>
-            <Text style={[typography.expenseAmount, { color: colors.status.success }]}>
-              {fmtCompact(summary.totalOwedToMe)}
-            </Text>
+            <Text style={sCard.metricLabel}>You're owed</Text>
+            <Text style={sCard.metricValueGreen}>{fmtCompact(summary.totalOwedToMe)}</Text>
           </View>
-          <View style={[sCard.divider, { backgroundColor: colors.border.subtle }]} />
+          <View style={sCard.divider} />
           <View style={sCard.metric}>
-            <Text style={[typography.caption1, { color: colors.text.tertiary }]}>You owe</Text>
-            <Text style={[typography.expenseAmount, { color: colors.status.error }]}>
-              {fmtCompact(summary.totalIOwe)}
-            </Text>
+            <Text style={sCard.metricLabel}>You owe</Text>
+            <Text style={sCard.metricValueRed}>{fmtCompact(summary.totalIOwe)}</Text>
           </View>
-          <View style={[sCard.divider, { backgroundColor: colors.border.subtle }]} />
+          <View style={sCard.divider} />
           <View style={sCard.metric}>
-            <Text style={[typography.caption1, { color: colors.text.tertiary }]}>Net</Text>
-            <Text
-              style={[
-                typography.expenseAmount,
-                { color: net >= 0 ? colors.status.success : colors.status.error },
-              ]}
-            >
+            <Text style={sCard.metricLabel}>Net</Text>
+            <Text style={[sCard.metricValueWhite, { color: net >= 0 ? '#34C759' : '#FF4D4F' }]}>
               {net >= 0 ? '' : '-'}
               {fmtCompact(Math.abs(net))}
             </Text>
           </View>
         </View>
 
-        <View style={[sCard.netRow, { borderTopColor: colors.border.subtle }]}>
-          <NetBadge net={net} colors={colors} typography={typography} />
+        <View style={sCard.netRow}>
+          <View style={[sCard.netBadge, { backgroundColor: net >= 0 ? '#34C75918' : '#FF4D4F18' }]}>
+            <Ionicons
+              name={net >= 0 ? 'trending-up' : 'trending-down'}
+              size={12}
+              color={net >= 0 ? '#34C759' : '#FF4D4F'}
+            />
+            <Text style={[sCard.netBadgeText, { color: net >= 0 ? '#34C759' : '#FF4D4F' }]}>
+              {net >= 0 ? '+' : ''}
+              {fmtCompact(Math.abs(net))}
+            </Text>
+          </View>
           {summary.pendingSettlements > 0 && (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Ionicons name="swap-horizontal" size={13} color={colors.status.warning} />
-              <Text
-                style={[typography.caption, { color: colors.status.warning, fontWeight: '500' }]}
-              >
-                {summary.pendingSettlements} pending
-              </Text>
+              <Ionicons name="swap-horizontal" size={13} color="#F59E0B" />
+              <Text style={sCard.pendingText}>{summary.pendingSettlements} pending</Text>
             </View>
           )}
+        </View>
+
+        <View style={sCard.actionsRow}>
+          <TouchableOpacity style={sCard.actionBtnPrimary} activeOpacity={0.8}>
+            <Ionicons name="add-circle-outline" size={16} color="#FFFFFF" />
+            <Text style={sCard.actionBtnPrimaryText}>Add Funds</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={sCard.actionBtnOutline} activeOpacity={0.8}>
+            <Ionicons name="git-branch-outline" size={16} color="#FFFFFF" />
+            <Text style={sCard.actionBtnOutlineText}>Allocate</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </Animated.View>
@@ -843,11 +829,21 @@ export function SharedFinanceHomeScreen() {
 
 const sCard = StyleSheet.create({
   wrap: { marginBottom: 16, marginTop: 4 },
-  card: { borderRadius: 16, borderWidth: 1, overflow: 'hidden', padding: 16 },
+  card: {
+    backgroundColor: '#161224',
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 6,
+  },
   iconWrap: {
     width: 32,
     height: 32,
     borderRadius: 10,
+    backgroundColor: 'rgba(192,132,252,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -855,19 +851,60 @@ const sCard = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 14,
+    marginBottom: 16,
   },
-  badge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 20 },
+  titleText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  badge: {
+    backgroundColor: 'rgba(192,132,252,0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#C084FC',
+  },
   metricsRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4 },
-  metric: { flex: 1, gap: 3, alignItems: 'center' },
-  divider: { width: 1, height: 40, marginHorizontal: 8 },
+  metric: { flex: 1, gap: 4, alignItems: 'center' },
+  metricLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.5)',
+  },
+  metricValueGreen: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#34C759',
+  },
+  metricValueRed: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#FF4D4F',
+  },
+  metricValueWhite: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  divider: {
+    width: 1,
+    height: 36,
+    backgroundColor: 'rgba(255,255,255,0.10)',
+    marginHorizontal: 8,
+  },
   netRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    paddingTop: 12,
-    marginTop: 12,
+    paddingTop: 14,
+    marginTop: 14,
     borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.08)',
   },
   netBadge: {
     flexDirection: 'row',
@@ -876,6 +913,52 @@ const sCard = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
+  },
+  netBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  pendingText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#F59E0B',
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 16,
+  },
+  actionBtnPrimary: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#F97316',
+    borderRadius: 16,
+    paddingVertical: 12,
+  },
+  actionBtnPrimaryText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  actionBtnOutline: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+  },
+  actionBtnOutlineText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });
 

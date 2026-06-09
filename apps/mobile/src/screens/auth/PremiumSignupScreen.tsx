@@ -9,11 +9,13 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   ScrollView,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { PremiumAuthLayout } from '../../components/ui/PremiumAuthLayout';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../store/AuthContext';
+import { PADDING, borderRadius, shadows } from '../../theme/design';
 
 interface InputFieldProps {
   placeholder: string;
@@ -26,6 +28,9 @@ interface InputFieldProps {
   returnKeyType?: 'next' | 'done';
   inputRef?: React.RefObject<TextInput>;
   icon?: keyof typeof Ionicons.glyphMap;
+  focused: boolean;
+  onFocus: () => void;
+  onBlur: () => void;
 }
 
 function InputField({
@@ -39,51 +44,54 @@ function InputField({
   returnKeyType,
   inputRef,
   icon,
+  focused,
+  onFocus,
+  onBlur,
 }: InputFieldProps) {
-  const [focused, setFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = secureTextEntry !== undefined;
-
   return (
     <View
-      style={[
-        styles.inputContainer,
-        { borderColor: focused ? '#14B8A6' : 'rgba(255,255,255,0.06)' },
-      ]}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#F8F9FA',
+        borderRadius: borderRadius.md,
+        borderWidth: 1.5,
+        borderColor: focused ? '#5A4FCF' : '#F8F9FA',
+        paddingHorizontal: 14,
+        marginBottom: 12,
+      }}
     >
-      {icon ? (
-        <Ionicons
-          name={icon}
-          size={18}
-          color={focused ? '#14B8A6' : '#636366'}
-          style={styles.inputIcon}
-        />
-      ) : null}
+      {icon && <Ionicons name={icon} size={18} color={focused ? '#5A4FCF' : '#9CA3AF'} />}
       <TextInput
         ref={inputRef}
-        style={styles.input}
+        style={{
+          flex: 1,
+          fontSize: 15,
+          fontWeight: '500',
+          color: '#1A1A1A',
+          paddingVertical: 14,
+          marginLeft: icon ? 10 : 0,
+        }}
         placeholder={placeholder}
-        placeholderTextColor="#636366"
+        placeholderTextColor="#9CA3AF"
         value={value}
         onChangeText={onChangeText}
         secureTextEntry={isPassword && !showPassword}
         keyboardType={keyboardType || 'default'}
         autoCapitalize={autoCapitalize || 'none'}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
+        onFocus={onFocus}
+        onBlur={onBlur}
         onSubmitEditing={onSubmitEditing}
         returnKeyType={returnKeyType}
       />
       {isPassword && value.length > 0 && (
-        <TouchableOpacity
-          onPress={() => setShowPassword(!showPassword)}
-          style={styles.iconButton}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
+        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
           <Ionicons
             name={showPassword ? 'eye-off-outline' : 'eye-outline'}
             size={20}
-            color="#636366"
+            color="#9CA3AF"
           />
         </TouchableOpacity>
       )}
@@ -93,6 +101,7 @@ function InputField({
 
 export function PremiumSignupScreen() {
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const { register } = useAuth();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -101,6 +110,7 @@ export function PremiumSignupScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [focusedField, setFocusedField] = useState<string | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(24)).current;
 
@@ -114,7 +124,7 @@ export function PremiumSignupScreen() {
       Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
       Animated.spring(slideAnim, { toValue: 0, friction: 10, tension: 60, useNativeDriver: true }),
     ]).start();
-  }, [fadeAnim, slideAnim]);
+  }, []);
 
   async function handleSignup() {
     if (!firstName.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
@@ -125,7 +135,6 @@ export function PremiumSignupScreen() {
       setError('Passwords do not match');
       return;
     }
-
     setLoading(true);
     setError('');
     try {
@@ -138,31 +147,76 @@ export function PremiumSignupScreen() {
   }
 
   return (
-    <PremiumAuthLayout subtitle="Start splitting and saving in minutes">
+    <View style={s.root}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <Animated.View
-          style={[styles.content, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}
+          style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
         >
           <ScrollView
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={{
+              paddingTop: insets.top + 16,
+              paddingBottom: insets.bottom + 24,
+            }}
           >
-            <View style={styles.headerRow}>
-              <Text style={styles.title}>Create your account</Text>
-              <TouchableOpacity
-                onPress={() => navigation.goBack()}
-                style={styles.backButton}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            {/* Header */}
+            <View style={{ paddingHorizontal: PADDING, marginBottom: 12 }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                }}
               >
-                <Ionicons name="close" size={22} color="#636366" />
-              </TouchableOpacity>
+                <View style={{ flex: 1 }}>
+                  <Image
+                    source={require('../../../assets/logo.png')}
+                    style={{ width: 48, height: 48, marginBottom: 14 }}
+                    resizeMode="contain"
+                  />
+                  <Text
+                    style={{
+                      fontSize: 28,
+                      fontWeight: '800',
+                      color: '#1A1A1A',
+                      letterSpacing: -0.5,
+                    }}
+                  >
+                    Create your account
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      fontWeight: '500',
+                      color: '#6B7280',
+                      marginTop: 6,
+                      lineHeight: 20,
+                    }}
+                  >
+                    Join millions managing money smarter with Dabbu
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => navigation.goBack()}
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 12,
+                    backgroundColor: '#F8F9FA',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Ionicons name="close" size={22} color="#1A1A1A" />
+                </TouchableOpacity>
+              </View>
             </View>
-            <Text style={styles.subtitle}>Join millions managing money smarter with Dabbu</Text>
 
-            <View style={styles.form}>
-              <View style={styles.nameRow}>
-                <View style={styles.nameField}>
+            <View style={{ paddingHorizontal: PADDING }}>
+              {/* Name Row */}
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <View style={{ flex: 1 }}>
                   <InputField
                     placeholder="First name"
                     value={firstName}
@@ -171,9 +225,12 @@ export function PremiumSignupScreen() {
                     returnKeyType="next"
                     icon="person-outline"
                     onSubmitEditing={() => lastNameRef.current?.focus()}
+                    focused={focusedField === 'first'}
+                    onFocus={() => setFocusedField('first')}
+                    onBlur={() => setFocusedField(null)}
                   />
                 </View>
-                <View style={styles.nameField}>
+                <View style={{ flex: 1 }}>
                   <InputField
                     placeholder="Last name"
                     value={lastName}
@@ -182,9 +239,13 @@ export function PremiumSignupScreen() {
                     returnKeyType="next"
                     inputRef={lastNameRef}
                     onSubmitEditing={() => emailRef.current?.focus()}
+                    focused={focusedField === 'last'}
+                    onFocus={() => setFocusedField('last')}
+                    onBlur={() => setFocusedField(null)}
                   />
                 </View>
               </View>
+
               <InputField
                 placeholder="Email address"
                 value={email}
@@ -192,9 +253,12 @@ export function PremiumSignupScreen() {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 returnKeyType="next"
-                inputRef={emailRef}
                 icon="mail-outline"
+                inputRef={emailRef}
                 onSubmitEditing={() => passwordRef.current?.focus()}
+                focused={focusedField === 'email'}
+                onFocus={() => setFocusedField('email')}
+                onBlur={() => setFocusedField(null)}
               />
               <InputField
                 placeholder="Password"
@@ -202,9 +266,12 @@ export function PremiumSignupScreen() {
                 onChangeText={setPassword}
                 secureTextEntry
                 returnKeyType="next"
-                inputRef={passwordRef}
                 icon="lock-closed-outline"
+                inputRef={passwordRef}
                 onSubmitEditing={() => confirmRef.current?.focus()}
+                focused={focusedField === 'password'}
+                onFocus={() => setFocusedField('password')}
+                onBlur={() => setFocusedField(null)}
               />
               <InputField
                 placeholder="Confirm password"
@@ -212,219 +279,123 @@ export function PremiumSignupScreen() {
                 onChangeText={setConfirmPassword}
                 secureTextEntry
                 returnKeyType="done"
-                inputRef={confirmRef}
                 icon="lock-closed-outline"
+                inputRef={confirmRef}
                 onSubmitEditing={handleSignup}
+                focused={focusedField === 'confirm'}
+                onFocus={() => setFocusedField('confirm')}
+                onBlur={() => setFocusedField(null)}
               />
 
+              {/* Error */}
               {error ? (
-                <View style={styles.errorBox}>
-                  <Ionicons name="alert-circle" size={16} color="#FF4545" />
-                  <Text style={styles.errorText}>{error}</Text>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: 12,
+                    borderRadius: 12,
+                    backgroundColor: '#FF4D4F10',
+                    marginBottom: 12,
+                  }}
+                >
+                  <Ionicons name="alert-circle" size={16} color="#FF4D4F" />
+                  <Text style={{ fontSize: 13, fontWeight: '500', color: '#FF4D4F', flex: 1 }}>
+                    {error}
+                  </Text>
                 </View>
               ) : null}
 
+              {/* Create Account Button */}
               <TouchableOpacity
-                style={[styles.primaryButton, loading && styles.buttonDisabled]}
+                activeOpacity={0.85}
                 onPress={handleSignup}
                 disabled={loading}
-                activeOpacity={0.9}
+                style={{
+                  backgroundColor: '#5A4FCF',
+                  paddingVertical: 16,
+                  borderRadius: borderRadius.md,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: loading ? 0.5 : 1,
+                  ...shadows.md,
+                  shadowColor: '#5A4FCF',
+                }}
               >
-                <Text style={styles.primaryButtonText}>
+                <Text style={{ color: '#FFF', fontSize: 16, fontWeight: '700' }}>
                   {loading ? 'Creating account...' : 'Create Account'}
                 </Text>
               </TouchableOpacity>
-            </View>
 
-            <View style={styles.dividerRow}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or sign up with</Text>
-              <View style={styles.dividerLine} />
-            </View>
+              {/* Divider */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 24 }}>
+                <View style={{ flex: 1, height: 1, backgroundColor: '#E5E7EB' }} />
+                <Text
+                  style={{
+                    marginHorizontal: 12,
+                    fontSize: 12,
+                    fontWeight: '600',
+                    color: '#9CA3AF',
+                  }}
+                >
+                  or sign up with
+                </Text>
+                <View style={{ flex: 1, height: 1, backgroundColor: '#E5E7EB' }} />
+              </View>
 
-            <TouchableOpacity style={styles.googleButton} activeOpacity={0.8}>
-              <Ionicons name="logo-google" size={20} color="#FFFFFF" />
-              <Text style={styles.googleButtonText}>Google</Text>
-            </TouchableOpacity>
-
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>Already have an account? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                <Text style={styles.footerLink}>Sign In</Text>
+              {/* Google */}
+              <TouchableOpacity
+                activeOpacity={0.85}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 10,
+                  paddingVertical: 14,
+                  borderRadius: borderRadius.md,
+                  backgroundColor: '#F8F9FA',
+                  borderWidth: 1,
+                  borderColor: '#E5E7EB',
+                }}
+              >
+                <Ionicons name="logo-google" size={20} color="#1A1A1A" />
+                <Text style={{ fontSize: 15, fontWeight: '600', color: '#1A1A1A' }}>Google</Text>
               </TouchableOpacity>
-            </View>
 
-            <View style={styles.securityBadge}>
-              <Ionicons name="shield-checkmark-outline" size={12} color="#636366" />
-              <Text style={styles.securityText}>256-bit encrypted connection</Text>
+              {/* Footer */}
+              <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 24 }}>
+                <Text style={{ fontSize: 13, fontWeight: '500', color: '#6B7280' }}>
+                  Already have an account?{' '}
+                </Text>
+                <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#5A4FCF' }}>Sign In</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gap: 6,
+                  marginTop: 16,
+                  marginBottom: 8,
+                }}
+              >
+                <Ionicons name="shield-checkmark-outline" size={12} color="#9CA3AF" />
+                <Text style={{ fontSize: 11, fontWeight: '500', color: '#9CA3AF' }}>
+                  256-bit encrypted connection
+                </Text>
+              </View>
             </View>
           </ScrollView>
         </Animated.View>
       </TouchableWithoutFeedback>
-    </PremiumAuthLayout>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 24,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  title: {
-    fontSize: 26,
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontFamily: 'Inter-Bold',
-    flex: 1,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#636366',
-    marginTop: 6,
-    fontFamily: 'Inter-Regular',
-    lineHeight: 20,
-    marginBottom: 28,
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#1C1C1E',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 12,
-    marginTop: 2,
-  },
-  form: {
-    gap: 0,
-  },
-  nameRow: { flexDirection: 'row', gap: 10 },
-  nameField: { flex: 1 },
-  inputContainer: {
-    height: 52,
-    backgroundColor: '#1C1C1E',
-    borderRadius: 14,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  inputIcon: {
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontFamily: 'Inter-Regular',
-    paddingVertical: 0,
-  },
-  iconButton: {
-    marginLeft: 8,
-    padding: 2,
-  },
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,69,69,0.1)',
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 12,
-    gap: 8,
-  },
-  errorText: {
-    color: '#FF4545',
-    fontSize: 13,
-    fontFamily: 'Inter-Medium',
-    flex: 1,
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  primaryButton: {
-    height: 52,
-    backgroundColor: '#14B8A6',
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 4,
-    shadowColor: '#14B8A6',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  primaryButtonText: {
-    color: '#0F172A',
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-  },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 24,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-  },
-  dividerText: {
-    color: '#636366',
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    marginHorizontal: 12,
-  },
-  googleButton: {
-    height: 50,
-    backgroundColor: '#1C1C1E',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 10,
-  },
-  googleButtonText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontFamily: 'Inter-SemiBold',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 24,
-  },
-  footerText: {
-    color: '#636366',
-    fontSize: 13,
-    fontFamily: 'Inter-Regular',
-  },
-  footerLink: {
-    color: '#14B8A6',
-    fontSize: 13,
-    fontFamily: 'Inter-SemiBold',
-  },
-  securityBadge: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  securityText: {
-    color: '#636366',
-    fontSize: 11,
-    fontFamily: 'Inter-Regular',
-  },
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: '#FFFFFF' },
 });

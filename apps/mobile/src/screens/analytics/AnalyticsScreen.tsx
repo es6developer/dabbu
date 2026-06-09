@@ -51,14 +51,15 @@ export function AnalyticsScreen() {
     backgroundGradientFrom: colors.bg.secondary,
     backgroundGradientTo: colors.bg.secondary,
     decimalPlaces: 0,
-    color: (opacity = 1) => (isDark ? `rgba(255,255,255,${opacity})` : `rgba(0,0,0,${opacity})`),
-    labelColor: () => colors.text.tertiary,
-    propsForBackgroundLines: { strokeDasharray: '', stroke: colors.border.subtle },
-    propsForLabels: { fontSize: 10 },
-    fillShadowGradientFrom: colors.accent.primary,
-    fillShadowGradientTo: colors.accent.primary,
-    fillShadowGradientFromOpacity: 0.3,
-    fillShadowGradientToOpacity: 0,
+    color: (opacity = 1) => `rgba(16, 185, 129, ${opacity})`,
+    labelColor: () => 'rgba(255,255,255,0.4)',
+    propsForBackgroundLines: { stroke: 'transparent' },
+    propsForLabels: { fontSize: 10, fontWeight: '500' },
+    fillShadowGradientFrom: '#10B981',
+    fillShadowGradientTo: '#10B981',
+    fillShadowGradientFromOpacity: 0.9,
+    fillShadowGradientToOpacity: 0.9,
+    barPercentage: 0.6,
   };
 
   const getDateRange = useCallback(() => {

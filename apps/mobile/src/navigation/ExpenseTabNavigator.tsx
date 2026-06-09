@@ -67,7 +67,10 @@ export function ExpenseTabNavigator() {
       <View
         style={[
           s.segWrapper,
-          { backgroundColor: isDark ? 'rgba(26,26,38,0.95)' : 'rgba(240,240,245,0.95)' },
+          {
+            backgroundColor: isDark ? 'rgba(26,26,38,0.95)' : 'rgba(240,240,245,0.95)',
+            borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+          },
         ]}
       >
         <View style={s.segInner}>
@@ -86,12 +89,7 @@ export function ExpenseTabNavigator() {
               },
             ]}
           >
-            <View
-              
-              
-              
-              style={s.segGradient}
-            />
+            <View style={s.segGradient} />
           </Animated.View>
           {SEGMENTS.map((label, i) => (
             <TouchableOpacity
@@ -126,7 +124,6 @@ const s = StyleSheet.create({
     borderRadius: 16,
     padding: 3,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
   },
   segInner: {
     flexDirection: 'row',

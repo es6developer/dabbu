@@ -273,35 +273,35 @@ export function CoupleReportsScreen() {
             <View style={styles.incomeExpenseRow}>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.ieLabel, { color: colors.text.tertiary }]}>Income</Text>
-                <View style={[styles.ieBarOuter, { backgroundColor: colors.bg.tertiary }]}>
+                <View style={[styles.ieBarOuter, { backgroundColor: 'rgba(255,255,255,0.06)' }]}>
                   <View
                     style={[
                       styles.ieBar,
                       {
                         width: `${(summaryCards[0]?.amount / maxAmount) * 100}%`,
-                        backgroundColor: '#34C759',
+                        backgroundColor: '#10B981',
                       },
                     ]}
                   />
                 </View>
-                <Text style={[styles.ieAmount, { color: '#34C759' }]}>
+                <Text style={[styles.ieAmount, { color: '#10B981' }]}>
                   {fmt(summaryCards[0]?.amount || 0)}
                 </Text>
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.ieLabel, { color: colors.text.tertiary }]}>Expenses</Text>
-                <View style={[styles.ieBarOuter, { backgroundColor: colors.bg.tertiary }]}>
+                <View style={[styles.ieBarOuter, { backgroundColor: 'rgba(255,255,255,0.06)' }]}>
                   <View
                     style={[
                       styles.ieBar,
                       {
                         width: `${(summaryCards[1]?.amount / maxAmount) * 100}%`,
-                        backgroundColor: '#FF4D4F',
+                        backgroundColor: '#10B981',
                       },
                     ]}
                   />
                 </View>
-                <Text style={[styles.ieAmount, { color: '#FF4D4F' }]}>
+                <Text style={[styles.ieAmount, { color: '#10B981' }]}>
                   {fmt(summaryCards[1]?.amount || 0)}
                 </Text>
               </View>
@@ -514,8 +514,8 @@ const styles = StyleSheet.create({
 
   incomeExpenseRow: { flexDirection: 'row', gap: 16 },
   ieLabel: { fontSize: 12, fontWeight: '600', marginBottom: 6 },
-  ieBarOuter: { height: 10, borderRadius: 5, overflow: 'hidden' },
-  ieBar: { height: '100%', borderRadius: 5, minWidth: 4 },
+  ieBarOuter: { height: 8, borderRadius: 9999, overflow: 'hidden' },
+  ieBar: { height: '100%', borderRadius: 9999, minWidth: 4 },
   ieAmount: { fontSize: 14, fontWeight: '700', marginTop: 6 },
 
   catRow: {
@@ -528,14 +528,14 @@ const styles = StyleSheet.create({
   catDot: { width: 8, height: 8, borderRadius: 4 },
   catName: { fontSize: 12, fontWeight: '600' },
   catRight: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  catBarOuter: { flex: 1, height: 6, borderRadius: 3, overflow: 'hidden' },
-  catBarFill: { height: '100%', borderRadius: 3 },
+  catBarOuter: { flex: 1, height: 6, borderRadius: 9999, overflow: 'hidden' },
+  catBarFill: { height: '100%', borderRadius: 9999 },
   catAmt: { fontSize: 12, fontWeight: '700', width: 60, textAlign: 'right' },
 
   partnerRow: { flexDirection: 'row', alignItems: 'flex-start' },
   partnerName: { fontSize: 13, fontWeight: '600', marginBottom: 6 },
-  partnerBarOuter: { height: 8, borderRadius: 4, overflow: 'hidden', width: '100%' },
-  partnerBar: { height: '100%', borderRadius: 4, minWidth: 4 },
+  partnerBarOuter: { height: 8, borderRadius: 9999, overflow: 'hidden', width: '100%' },
+  partnerBar: { height: '100%', borderRadius: 9999, minWidth: 4 },
   partnerAmount: { fontSize: 15, fontWeight: '700', marginTop: 6 },
 
   budgetCard: {
@@ -554,8 +554,8 @@ const styles = StyleSheet.create({
   budgetTitle: { fontSize: 15, fontWeight: '700' },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
   statusText: { fontSize: 12, fontWeight: '700' },
-  budgetBarOuter: { height: 8, borderRadius: 4, overflow: 'hidden' },
-  budgetBarFill: { height: '100%', borderRadius: 4, minWidth: 4 },
+  budgetBarOuter: { height: 8, borderRadius: 9999, overflow: 'hidden' },
+  budgetBarFill: { height: '100%', borderRadius: 9999, minWidth: 4 },
   budgetMeta: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   budgetMetaText: { fontSize: 12, fontWeight: '500' },
   budgetPct: { fontSize: 14, fontWeight: '800' },

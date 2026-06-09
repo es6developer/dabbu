@@ -114,41 +114,34 @@ function ModuleCard({
     >
       <Animated.View
         style={{
-          backgroundColor: colors.bg.card,
-          borderRadius: borderRadius.lg,
-          padding: 14,
+          backgroundColor: '#161224',
+          borderRadius: 18,
+          padding: 10,
           alignItems: 'center',
+          justifyContent: 'center',
           gap: 6,
-          ...shadows.sm,
+          aspectRatio: 1,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.2,
+          shadowRadius: 8,
+          elevation: 4,
           transform: [{ scale: scaleAnim }],
         }}
       >
         <View
           style={{
-            width: 44,
-            height: 44,
+            width: 40,
+            height: 40,
             borderRadius: 14,
-            backgroundColor: `${mod.color}12`,
+            backgroundColor: `${mod.color}18`,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <Ionicons name={mod.icon as any} size={20} color={mod.color} />
+          <Ionicons name={mod.icon as any} size={18} color={mod.color} />
         </View>
-        <Text style={{ fontSize: 12, fontWeight: '700', color: colors.text.primary }}>
-          {mod.label}
-        </Text>
-        <Text
-          style={{
-            fontSize: 9,
-            fontWeight: '500',
-            color: colors.text.tertiary,
-            textAlign: 'center',
-            lineHeight: 12,
-          }}
-        >
-          {mod.desc}
-        </Text>
+        <Text style={{ fontSize: 11, fontWeight: '700', color: '#FFFFFF' }}>{mod.label}</Text>
       </Animated.View>
     </TouchableOpacity>
   );

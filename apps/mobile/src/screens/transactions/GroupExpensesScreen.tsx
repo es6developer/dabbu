@@ -112,20 +112,14 @@ export function GroupExpensesScreen() {
   const [error, setError] = useState<string | null>(null);
   const [group, setGroup] = useState<any>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [membersOpen, setMembersOpen] = useState(false);
   const [savingGroup, setSavingGroup] = useState(false);
   const [editName, setEditName] = useState('');
   const [editDescription, setEditDescription] = useState('');
 
   const [editIcon, setEditIcon] = useState('users');
   const [categoryBreakdown, setCategoryBreakdown] = useState<any[]>([]);
-  const [addQuery, setAddQuery] = useState('');
-  const [addResults, setAddResults] = useState<any[]>([]);
-  const [addSearching, setAddSearching] = useState(false);
-  const [addMemberId, setAddMemberId] = useState<string | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const abortRef = useRef<AbortController | null>(null);
-  const addSearchRef = useRef<AbortController | null>(null);
 
   const loadData = useCallback(
     async (refresh = false) => {
@@ -289,45 +283,6 @@ export function GroupExpensesScreen() {
 
   const name = group?.name || routeGroupName || 'Group';
 
-  const existingMemberIds = useMemo(
-    () => new Set(members.map((m: any) => m.userId).filter(Boolean)),
-    [members],
-  );
-
-  useEffect(() => {
-    if (addQuery.trim().length < 2) {
-      setAddResults([]);
-      return;
-    }
-    addSearchRef.current?.abort();
-    const ctrl = new AbortController();
-    addSearchRef.current = ctrl;
-    setAddSearching(true);
-    const timer = setTimeout(async () => {
-      try {
-        const res = await api.get<any>(
-          `/users/search?query=${encodeURIComponent(addQuery.trim())}`,
-          ctrl.signal,
-        );
-        if (!ctrl.signal.aborted) {
-          setAddResults(res?.data || []);
-        }
-      } catch {
-        if (!ctrl.signal.aborted) {
-          setAddResults([]);
-        }
-      } finally {
-        if (!ctrl.signal.aborted) {
-          setAddSearching(false);
-        }
-      }
-    }, 300);
-    return () => {
-      clearTimeout(timer);
-      ctrl.abort();
-    };
-  }, [addQuery]);
-
   const [aiNarrative, setAiNarrative] = useState<any>(null);
   const [loadingAi, setLoadingAi] = useState(false);
 
@@ -449,23 +404,6 @@ export function GroupExpensesScreen() {
       await loadData(true);
     } catch (e: any) {
       Alert.alert('Unable to update role', e.message || 'Try again');
-    }
-  }
-
-  async function handleAddToGroup(userId: string, userName: string) {
-    setAddMemberId(userId);
-    try {
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
-      await api.post(`/expense-groups/${groupId}/members/add-by-user-id`, { userId });
-      setAddQuery('');
-      setAddResults([]);
-      await loadData(true);
-    } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Already a member');
-    } finally {
-      setAddMemberId(null);
     }
   }
 
@@ -685,7 +623,13 @@ export function GroupExpensesScreen() {
                 <Text style={[s.actionLabel, { color: colors.text.primary }]}>Analytics</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => setMembersOpen(true)}
+                onPress={() =>
+                  navigation.navigate('AddMember', {
+                    groupId,
+                    type: 'expense-group',
+                    existingMemberIds: members.map((m: any) => m.userId).filter(Boolean),
+                  })
+                }
                 style={[
                   s.actionBtn,
                   {
@@ -1052,169 +996,6 @@ export function GroupExpensesScreen() {
                 <Text style={[s.sheetSubTitle, { color: colors.text.tertiary }]}>
                   Manage members via the Members button above
                 </Text>
-              </ScrollView>
-            </View>
-          </View>
-        </Modal>
-
-        <Modal
-          visible={membersOpen}
-          animationType="slide"
-          transparent
-          onRequestClose={() => setMembersOpen(false)}
-        >
-          <View style={s.modalBackdrop}>
-            <View
-              style={[
-                s.sheet,
-                { backgroundColor: colors.bg.primary, paddingBottom: insets.bottom + 18 },
-              ]}
-            >
-              <View style={s.sheetHandle} />
-              <ScrollView showsVerticalScrollIndicator={false}>
-                <View style={s.sheetHeader}>
-                  <Text style={[s.sheetTitle, { color: colors.text.primary }]}>Members</Text>
-                  <TouchableOpacity
-                    onPress={() => setMembersOpen(false)}
-                    style={[s.sheetClose, { backgroundColor: colors.bg.tertiary }]}
-                  >
-                    <Ionicons name="close" size={20} color={colors.text.primary} />
-                  </TouchableOpacity>
-                </View>
-                <View style={s.addMemberSearchBox}>
-                  <Ionicons name="search" size={16} color={colors.text.tertiary} />
-                  <TextInput
-                    style={[s.addMemberInput, { color: colors.text.primary }]}
-                    placeholder="Search users by name, email or phone"
-                    placeholderTextColor={colors.text.tertiary}
-                    value={addQuery}
-                    onChangeText={setAddQuery}
-                  />
-                  {addQuery ? (
-                    <TouchableOpacity onPress={() => setAddQuery('')}>
-                      <Ionicons name="close-circle" size={16} color={colors.text.tertiary} />
-                    </TouchableOpacity>
-                  ) : null}
-                </View>
-                {addQuery.trim().length >= 2 ? (
-                  <>
-                    {addSearching ? (
-                      <ActivityIndicator
-                        size="small"
-                        color={colors.accent.primary}
-                        style={{ marginVertical: 16 }}
-                      />
-                    ) : addResults.length > 0 ? (
-                      <View style={{ marginBottom: 12 }}>
-                        {addResults.map((user: any) => {
-                          const isExisting = existingMemberIds.has(user.id);
-                          return (
-                            <View
-                              key={user.id}
-                              style={[
-                                s.memberManageRow,
-                                { borderBottomColor: colors.border.subtle },
-                              ]}
-                            >
-                              <View style={{ flex: 1 }}>
-                                <Text style={[s.memberManageName, { color: colors.text.primary }]}>
-                                  {[user.firstName, user.lastName].filter(Boolean).join(' ') ||
-                                    user.email}
-                                </Text>
-                                <Text style={[s.memberManageRole, { color: colors.text.tertiary }]}>
-                                  {user.email}
-                                  {user.phone ? ` · ${user.phone}` : ''}
-                                </Text>
-                              </View>
-                              {isExisting ? (
-                                <View style={[s.roleActionBtn, { opacity: 0.5 }]}>
-                                  <Text style={[s.roleActionText, { color: colors.text.tertiary }]}>
-                                    Already Member
-                                  </Text>
-                                </View>
-                              ) : (
-                                <TouchableOpacity
-                                  style={[
-                                    s.roleActionBtn,
-                                    { backgroundColor: `${colors.accent.primary}18` },
-                                  ]}
-                                  onPress={() =>
-                                    handleAddToGroup(user.id, user.firstName || user.email)
-                                  }
-                                  disabled={addMemberId === user.id}
-                                >
-                                  {addMemberId === user.id ? (
-                                    <ActivityIndicator size="small" color={colors.accent.primary} />
-                                  ) : (
-                                    <Text
-                                      style={[s.roleActionText, { color: colors.accent.primary }]}
-                                    >
-                                      + Add
-                                    </Text>
-                                  )}
-                                </TouchableOpacity>
-                              )}
-                            </View>
-                          );
-                        })}
-                      </View>
-                    ) : (
-                      <Text
-                        style={[
-                          s.memberManageRole,
-                          { color: colors.text.tertiary, textAlign: 'center', marginVertical: 12 },
-                        ]}
-                      >
-                        No users found
-                      </Text>
-                    )}
-                  </>
-                ) : null}
-                <Text style={[s.sheetSubTitle, { color: colors.text.primary }]}>All Members</Text>
-                {members.map((member: any) => (
-                  <View
-                    key={member.id}
-                    style={[s.memberManageRow, { borderBottomColor: colors.border.subtle }]}
-                  >
-                    <View style={{ flex: 1 }}>
-                      <Text style={[s.memberManageName, { color: colors.text.primary }]}>
-                        {member.user?.firstName || member.user?.phone || 'Member'}
-                      </Text>
-                      <Text style={[s.memberManageRole, { color: colors.text.tertiary }]}>
-                        {member.role || 'member'}
-                      </Text>
-                    </View>
-                    {member.userId !== currentUser?.id && (
-                      <TouchableOpacity
-                        onPress={() =>
-                          changeMemberRole(member, member.role === 'admin' ? 'member' : 'admin')
-                        }
-                        style={s.roleActionBtn}
-                      >
-                        <Text style={[s.roleActionText, { color: colors.accent.primary }]}>
-                          {member.role === 'admin' ? 'Make Member' : 'Make Admin'}
-                        </Text>
-                      </TouchableOpacity>
-                    )}
-                    {member.role !== 'admin' && (
-                      <TouchableOpacity
-                        onPress={() => removeMember(member)}
-                        style={s.removeMemberBtn}
-                      >
-                        <Ionicons name="remove-circle-outline" size={22} color="#FF6B6B" />
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                ))}
-                {group?.createdBy !== currentUser?.id && (
-                  <TouchableOpacity
-                    style={[s.dangerAction, { backgroundColor: colors.bg.secondary }]}
-                    onPress={leaveGroup}
-                  >
-                    <Ionicons name="exit-outline" size={18} color={colors.status.error} />
-                    <Text style={[s.dangerText, { color: colors.status.error }]}>Leave Group</Text>
-                  </TouchableOpacity>
-                )}
               </ScrollView>
             </View>
           </View>
@@ -1893,16 +1674,6 @@ const s = StyleSheet.create({
     marginTop: 18,
   },
   primaryActionText: { color: '#FFF', fontSize: 15, fontWeight: '800' },
-  addMemberSearchBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    gap: 8,
-    marginBottom: 10,
-  },
-  addMemberInput: { flex: 1, height: 42, fontSize: 14 },
   addMemberBox: {
     flexDirection: 'row',
     alignItems: 'center',

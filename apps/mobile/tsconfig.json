@@ -4,6 +4,7 @@
     "strict": true,
     "module": "esnext",
     "moduleResolution": "node",
+    "types": ["nativewind/types"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
@@ -19,6 +20,6 @@
       "@constants/*": ["src/constants/*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", "*.ts", "*.tsx"],
+  "include": ["**/*.ts", "**/*.tsx", "*.ts", "*.tsx", "nativewind-env.d.ts"],
   "exclude": ["node_modules"]
 }
