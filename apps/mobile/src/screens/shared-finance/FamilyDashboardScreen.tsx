@@ -154,12 +154,20 @@ export function FamilyDashboardScreen() {
           >
             <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('SharedExpenseForm', { groupId })}
-            style={[s.backBtn, { backgroundColor: colors.bg.glassLight }]}
-          >
-            <Ionicons name="add" size={22} color={colors.accent.primary} />
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('AiFamily', { groupId, groupName })}
+              style={[s.backBtn, { backgroundColor: colors.bg.glassLight }]}
+            >
+              <Ionicons name="sparkles" size={20} color="#FFD700" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('SharedExpenseForm', { groupId })}
+              style={[s.backBtn, { backgroundColor: colors.bg.glassLight }]}
+            >
+              <Ionicons name="add" size={22} color={colors.accent.primary} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={[s.heroSection, { backgroundColor: colors.bg.primary }]}>

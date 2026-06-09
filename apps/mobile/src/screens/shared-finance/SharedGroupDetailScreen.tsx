@@ -1148,6 +1148,16 @@ export function SharedGroupDetailScreen() {
                 {type !== 'couple' && (
                   <TouchableOpacity
                     style={[s.iconBtn, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
+                    onPress={() =>
+                      navigation.navigate('AiGroupSpace', { groupId, groupName: name })
+                    }
+                  >
+                    <Ionicons name="sparkles" size={20} color="#FFD700" />
+                  </TouchableOpacity>
+                )}
+                {type !== 'couple' && (
+                  <TouchableOpacity
+                    style={[s.iconBtn, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
                     onPress={handleGenerateInvite}
                     disabled={inviteLoading}
                   >

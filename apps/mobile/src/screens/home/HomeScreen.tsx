@@ -695,6 +695,32 @@ export function HomeScreen() {
           </View>
         </Animated.View>
 
+        {/* ── AI Insights ──────────────────────────── */}
+        <Animated.View style={{ paddingHorizontal: 20, marginTop: 16, opacity: fadeAnim }}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('AiHomeDashboard')}
+            style={[
+              s.aiBanner,
+              {
+                backgroundColor: '#1A0A2E',
+                borderColor: 'rgba(255,215,0,0.2)',
+              },
+            ]}
+            activeOpacity={0.8}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <View style={s.aiBannerIcon}>
+                <Ionicons name="sparkles" size={22} color="#FFD700" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={s.aiBannerTitle}>AI Financial Insights</Text>
+                <Text style={s.aiBannerSub}>Smart analysis, spending patterns & savings tips</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color="rgba(255,215,0,0.5)" />
+            </View>
+          </TouchableOpacity>
+        </Animated.View>
+
         {/* ── Spending by Category ──────────────────── */}
         {categories.length > 0 && (
           <Animated.View style={{ paddingHorizontal: 20, marginTop: 32, opacity: fadeAnim }}>
@@ -1184,6 +1210,29 @@ const s = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 6,
+  },
+  aiBanner: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 16,
+  },
+  aiBannerIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,215,0,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  aiBannerTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFD700',
+  },
+  aiBannerSub: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: 2,
   },
   aiFabWrap: {
     position: 'absolute',

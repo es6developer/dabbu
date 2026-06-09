@@ -208,8 +208,12 @@ export function CoupleFinanceScreen() {
           <View style={s.heartIconWrap}>
             <Ionicons name="heart-circle" size={64} color={colors.accent.primary} />
           </View>
-          <Text style={[s.heroTitle, { color: colors.text.primary }]}>Connect with your Partner</Text>
-          <Text style={[s.heroSub, { color: colors.text.secondary }]}>Add your partner to start sharing finances</Text>
+          <Text style={[s.heroTitle, { color: colors.text.primary }]}>
+            Connect with your Partner
+          </Text>
+          <Text style={[s.heroSub, { color: colors.text.secondary }]}>
+            Add your partner to start sharing finances
+          </Text>
         </View>
       </ScrollView>
     );
@@ -240,6 +244,12 @@ export function CoupleFinanceScreen() {
               <Ionicons name="arrow-back" size={22} color="#FFF" />
             </TouchableOpacity>
             <Text style={s.headerTitle}>Couple Finance</Text>
+            <TouchableOpacity
+              style={s.headerBtn}
+              onPress={() => navigation.navigate('AiCouple', { groupId, groupName })}
+            >
+              <Ionicons name="sparkles" size={20} color="#FFD700" />
+            </TouchableOpacity>
             <TouchableOpacity
               style={s.headerBtn}
               onPress={() => navigation.navigate('CoupleReports', { groupId })}
