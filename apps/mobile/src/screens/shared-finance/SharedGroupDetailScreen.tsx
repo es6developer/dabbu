@@ -42,6 +42,7 @@ const TYPE_THEMES: Record<string, { gradient: [string, string]; chipColor: strin
       icon: 'home',
     },
     couple: { gradient: ['#FF6B9D', '#FF8FB3'], chipColor: '#FF6B9D', icon: 'heart' },
+    sports: { gradient: ['#FF6B35', '#FF8F5E'], chipColor: '#FF6B35', icon: 'football' },
     roommates: { gradient: ['#14B8A6', '#14B8A6'], chipColor: '#14B8A6', icon: 'business' },
     office: { gradient: ['#247BA0', '#4A9FC7'], chipColor: '#247BA0', icon: 'briefcase' },
     event: { gradient: ['#D64550', '#FF6B6B'], chipColor: '#D64550', icon: 'calendar' },
@@ -172,8 +173,8 @@ export function SharedGroupDetailScreen() {
     });
     const totalAmount = expenses.reduce((s, t) => s + Number(t.amount || 0), 0);
     const monthlyAmount = monthly.reduce((s, t) => s + Number(t.amount || 0), 0);
-    const pendingSettlements =
-      group?.pendingSettlements ?? (members.length > 1 ? members.length - 1 : 0);
+    const unsettledMembers = expenses.length > 0 ? Math.max(members.length - 1, 0) : 0;
+    const pendingSettlements = group?.pendingSettlements ?? unsettledMembers;
     const count = expenses.length;
     return {
       totalSpent: totalAmount,
@@ -217,12 +218,8 @@ export function SharedGroupDetailScreen() {
           entries.set(splitUserId, { paid: 0, owes: 0 });
         }
         const splitAmount = Number(split.amount) || 0;
-        if (splitUserId === payerId) {
-          entries.get(payerId)!.paid += splitAmount;
-        } else {
-          entries.get(payerId)!.paid += splitAmount;
-          entries.get(splitUserId)!.owes += splitAmount;
-        }
+        entries.get(payerId)!.paid += splitAmount;
+        entries.get(splitUserId)!.owes += splitAmount;
       }
     }
     return members.map((member: any) => {
@@ -1491,8 +1488,13 @@ const s = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  expenseAvatarText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+  expenseAvatarText: { color: '#FFF', fontSize: 15, fontWeight: '800', letterSpacing: -0.3 },
   expenseTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   expenseDesc: { fontSize: 14, fontWeight: '600', flex: 1 },
   expenseAmount: { fontSize: 16, fontWeight: '700', marginLeft: 8 },
@@ -1522,8 +1524,13 @@ const s = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  balanceAvatarText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
+  balanceAvatarText: { color: '#FFF', fontSize: 14, fontWeight: '800', letterSpacing: -0.3 },
   balanceName: { fontSize: 14, fontWeight: '700' },
   balanceStatus: { fontSize: 12, marginTop: 2 },
   balanceAmount: { fontSize: 14, fontWeight: '800' },
@@ -1548,8 +1555,13 @@ const s = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  memberAvatarText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
+  memberAvatarText: { color: '#FFF', fontSize: 14, fontWeight: '800', letterSpacing: -0.3 },
   memberName: { fontSize: 14, fontWeight: '600' },
   roleBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
   roleBadgeText: { fontSize: 11, fontWeight: '700' },

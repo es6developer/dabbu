@@ -85,7 +85,12 @@ export function PremiumLoginScreen() {
               resizeMode="contain"
             />
             <Text
-              style={{ fontSize: 28, fontWeight: '800', color: colors.text.primary, letterSpacing: -0.5 }}
+              style={{
+                fontSize: 28,
+                fontWeight: '800',
+                color: colors.text.primary,
+                letterSpacing: -0.5,
+              }}
             >
               Welcome back
             </Text>
@@ -130,7 +135,7 @@ export function PremiumLoginScreen() {
                   backgroundColor: colors.bg.secondary,
                   borderRadius: borderRadius.md,
                   borderWidth: 1.5,
-                  borderColor: emailFocused ? colors.brand.primary : colors.bg.secondary,
+                  borderColor: emailFocused ? colors.brand.primary : colors.border.default,
                   paddingHorizontal: 14,
                 }}
               >
@@ -182,7 +187,7 @@ export function PremiumLoginScreen() {
                   backgroundColor: colors.bg.secondary,
                   borderRadius: borderRadius.md,
                   borderWidth: 1.5,
-                  borderColor: passFocused ? colors.brand.primary : colors.bg.secondary,
+                  borderColor: passFocused ? colors.brand.primary : colors.border.default,
                   paddingHorizontal: 14,
                 }}
               >
@@ -234,7 +239,9 @@ export function PremiumLoginScreen() {
                 }}
               >
                 <Ionicons name="alert-circle" size={16} color={colors.status.error} />
-                <Text style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}>
+                <Text
+                  style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}
+                >
                   {error}
                 </Text>
               </View>
@@ -275,7 +282,12 @@ export function PremiumLoginScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 24 }}>
               <View style={{ flex: 1, height: 1, backgroundColor: colors.border.default }} />
               <Text
-                style={{ marginHorizontal: 12, fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}
+                style={{
+                  marginHorizontal: 12,
+                  fontSize: 12,
+                  fontWeight: '600',
+                  color: colors.text.tertiary,
+                }}
               >
                 or continue with
               </Text>
@@ -298,7 +310,9 @@ export function PremiumLoginScreen() {
               }}
             >
               <Ionicons name="logo-google" size={20} color={colors.text.primary} />
-              <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text.primary }}>Google</Text>
+              <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text.primary }}>
+                Google
+              </Text>
             </TouchableOpacity>
 
             {/* Footer */}
@@ -333,5 +347,3 @@ export function PremiumLoginScreen() {
     </View>
   );
 }
-
-

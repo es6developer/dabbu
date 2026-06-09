@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,15 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
+import ReAnimated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  withSequence,
+  Easing as ReEasing,
+  cancelAnimation,
+} from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -97,6 +106,23 @@ export function HomeScreen() {
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const abortRef = useRef<AbortController | null>(null);
+  const aiPulse = useSharedValue(1);
+
+  useEffect(() => {
+    aiPulse.value = withRepeat(
+      withSequence(
+        withTiming(1.08, { duration: 1000, easing: ReEasing.inOut(ReEasing.quad) }),
+        withTiming(1, { duration: 1000, easing: ReEasing.inOut(ReEasing.quad) }),
+      ),
+      -1,
+      true,
+    );
+    return () => cancelAnimation(aiPulse);
+  }, []);
+
+  const aiPulseAnim = useAnimatedStyle(() => ({
+    transform: [{ scale: aiPulse.value }],
+  }));
 
   const savings = Math.max(0, monthlyIncome - monthlySpent);
   const savingsRate = monthlyIncome > 0 ? (savings / monthlyIncome) * 100 : 0;
@@ -216,9 +242,27 @@ export function HomeScreen() {
         route: 'AddExpense',
         tab: 'Expense' as const,
       },
-      { icon: 'scan' as const, label: 'Scan', color: '#F59E0B', route: 'BillScanner', tab: 'Expense' as const },
-      { icon: 'people' as const, label: 'Split', color: '#14B8A6', route: 'AddExpense', tab: 'Expense' as const },
-      { icon: 'receipt' as const, label: 'Bills', color: '#4A90D9', route: 'BillsList', tab: 'Expense' as const },
+      {
+        icon: 'scan' as const,
+        label: 'Scan',
+        color: '#F59E0B',
+        route: 'BillScanner',
+        tab: 'Expense' as const,
+      },
+      {
+        icon: 'people' as const,
+        label: 'Split',
+        color: '#14B8A6',
+        route: 'AddExpense',
+        tab: 'Expense' as const,
+      },
+      {
+        icon: 'receipt' as const,
+        label: 'Bills',
+        color: '#4A90D9',
+        route: 'BillsList',
+        tab: 'Expense' as const,
+      },
     ],
     [colors],
   );
@@ -515,7 +559,12 @@ export function HomeScreen() {
                       { backgroundColor: colors.bg.card, borderColor: colors.border.default },
                     ]}
                     activeOpacity={0.7}
-                    onPress={() => navigation.navigate('Reminders', { screen: 'ReminderDetail', params: { id: r.id } })}
+                    onPress={() =>
+                      navigation.navigate('Reminders', {
+                        screen: 'ReminderDetail',
+                        params: { id: r.id },
+                      })
+                    }
                   >
                     <View
                       style={[
@@ -660,7 +709,9 @@ export function HomeScreen() {
               <Text style={[s.sectionTitle, { color: colors.text.primary }]}>
                 Spending by Category
               </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Settings', { screen: 'Reports' })}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Settings', { screen: 'Reports' })}
+              >
                 <Text style={{ fontSize: 13, fontWeight: '600', color: colors.accent.primary }}>
                   See All
                 </Text>
@@ -796,9 +847,7 @@ export function HomeScreen() {
               Recent Transactions
             </Text>
             {recentTxns.length > 0 && (
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Expense')}
-              >
+              <TouchableOpacity onPress={() => navigation.navigate('Expense')}>
                 <Text style={{ fontSize: 13, fontWeight: '600', color: colors.accent.primary }}>
                   See All
                 </Text>
@@ -818,7 +867,10 @@ export function HomeScreen() {
                     key={tx.id || i}
                     activeOpacity={0.7}
                     onPress={() =>
-                      navigation.navigate('Expense', { screen: 'TransactionDetail', params: { transactionId: tx.id } })
+                      navigation.navigate('Expense', {
+                        screen: 'TransactionDetail',
+                        params: { transactionId: tx.id },
+                      })
                     }
                     style={[
                       s.txRow,
@@ -876,7 +928,18 @@ export function HomeScreen() {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* FAB */}
+      {/* AI FAB */}
+      <ReAnimated.View style={[s.aiFabWrap, aiPulseAnim]}>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => navigation.navigate('AIDashboard')}
+          style={s.aiFab}
+        >
+          <Ionicons name="sparkles" size={22} color="#0A0A0A" />
+        </TouchableOpacity>
+      </ReAnimated.View>
+
+      {/* Expense FAB */}
       <TouchableOpacity
         activeOpacity={0.85}
         onPress={() => navigation.navigate('Expense', { screen: 'AddExpense' })}
@@ -1088,5 +1151,24 @@ const s = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 6,
+  },
+  aiFabWrap: {
+    position: 'absolute',
+    right: 20,
+    bottom: 96,
+    zIndex: 10,
+  },
+  aiFab: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#FFD700',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#FFD700',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
   },
 });

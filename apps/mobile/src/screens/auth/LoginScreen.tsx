@@ -105,7 +105,8 @@ export function LoginScreen() {
   }
 
   return (
-    <View style={[s.root, { backgroundColor: colors.bg.primary }]}>"
+    <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
+      "
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
@@ -176,7 +177,9 @@ export function LoginScreen() {
                 }}
               >
                 <Ionicons name="alert-circle" size={16} color={colors.status.error} />
-                <Text style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}>
+                <Text
+                  style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}
+                >
                   {error}
                 </Text>
               </View>
@@ -203,7 +206,7 @@ export function LoginScreen() {
                   backgroundColor: colors.bg.secondary,
                   borderRadius: 16,
                   borderWidth: 1.5,
-                  borderColor: emailFocused ? colors.brand.primary : colors.bg.secondary,
+                  borderColor: emailFocused ? colors.brand.primary : colors.border.default,
                   paddingHorizontal: 16,
                 }}
               >
@@ -255,7 +258,7 @@ export function LoginScreen() {
                   backgroundColor: colors.bg.secondary,
                   borderRadius: 16,
                   borderWidth: 1.5,
-                  borderColor: passFocused ? colors.brand.primary : colors.bg.secondary,
+                  borderColor: passFocused ? colors.brand.primary : colors.border.default,
                   paddingHorizontal: 16,
                 }}
               >
@@ -323,7 +326,9 @@ export function LoginScreen() {
               {loading ? (
                 <ActivityIndicator color={colors.text.inverse} />
               ) : (
-                <Text style={{ color: colors.text.inverse, fontSize: 17, fontWeight: '700' }}>Sign in</Text>
+                <Text style={{ color: colors.text.inverse, fontSize: 17, fontWeight: '700' }}>
+                  Sign in
+                </Text>
               )}
             </TouchableOpacity>
 
@@ -331,7 +336,12 @@ export function LoginScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 24 }}>
               <View style={{ flex: 1, height: 1, backgroundColor: colors.border.default }} />
               <Text
-                style={{ marginHorizontal: 16, fontSize: 13, fontWeight: '600', color: colors.text.tertiary }}
+                style={{
+                  marginHorizontal: 16,
+                  fontSize: 13,
+                  fontWeight: '600',
+                  color: colors.text.tertiary,
+                }}
               >
                 Or continue with
               </Text>

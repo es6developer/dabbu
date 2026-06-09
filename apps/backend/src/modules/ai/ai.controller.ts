@@ -34,6 +34,12 @@ export class AiController {
     return { data: narrative };
   }
 
+  @Post('chat')
+  async chat(@CurrentUser('id') userId: string, @Body() body: { prompt: string }) {
+    const result = await this.aiService.processChat(userId, body.prompt);
+    return { data: result };
+  }
+
   @Get('groups/:groupId/insights')
   async getGroupInsights(@CurrentUser('id') userId: string, @Param('groupId') groupId: string) {
     const narrative = await this.aiService.generateGroupNarrative(groupId, userId);

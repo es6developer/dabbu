@@ -52,7 +52,9 @@ export function ResetPasswordScreen() {
       inputRefs.current[i + 1]?.focus();
     }
 
-    if (error) setError('');
+    if (error) {
+      setError('');
+    }
   }
 
   function handleKeyPress(e: any, i: number) {
@@ -177,7 +179,9 @@ export function ResetPasswordScreen() {
               }}
             >
               <Ionicons name="alert-circle" size={16} color={colors.status.error} />
-              <Text style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}>
+              <Text
+                style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}
+              >
                 {error}
               </Text>
             </View>
@@ -240,7 +244,9 @@ export function ResetPasswordScreen() {
                   shadowColor: colors.brand.primary,
                 }}
               >
-                <Text style={{ color: colors.text.inverse, fontSize: 17, fontWeight: '700' }}>Continue</Text>
+                <Text style={{ color: colors.text.inverse, fontSize: 17, fontWeight: '700' }}>
+                  Continue
+                </Text>
               </TouchableOpacity>
             </>
           ) : (
@@ -253,7 +259,7 @@ export function ResetPasswordScreen() {
                   backgroundColor: colors.bg.secondary,
                   borderRadius: 16,
                   borderWidth: 1.5,
-                  borderColor: 'transparent',
+                  borderColor: colors.border.default,
                   paddingHorizontal: 16,
                   height: 56,
                   marginBottom: 14,
@@ -272,7 +278,9 @@ export function ResetPasswordScreen() {
                   value={password}
                   onChangeText={(t) => {
                     setPassword(t);
-                    if (error) setError('');
+                    if (error) {
+                      setError('');
+                    }
                   }}
                   secureTextEntry={!showPassword}
                   autoCapitalize="none"
@@ -295,7 +303,7 @@ export function ResetPasswordScreen() {
                   backgroundColor: colors.bg.secondary,
                   borderRadius: 16,
                   borderWidth: 1.5,
-                  borderColor: 'transparent',
+                  borderColor: colors.border.default,
                   paddingHorizontal: 16,
                   height: 56,
                   marginBottom: 24,
@@ -314,7 +322,9 @@ export function ResetPasswordScreen() {
                   value={confirmPassword}
                   onChangeText={(t) => {
                     setConfirmPassword(t);
-                    if (error) setError('');
+                    if (error) {
+                      setError('');
+                    }
                   }}
                   secureTextEntry={!showPassword}
                   autoCapitalize="none"
@@ -373,5 +383,3 @@ export function ResetPasswordScreen() {
     </View>
   );
 }
-
-

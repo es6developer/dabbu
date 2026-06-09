@@ -38,6 +38,15 @@ export function AvatarPickerScreen() {
     loadPresets();
   }, []);
 
+  useEffect(() => {
+    if (presets.length > 0 && user?.avatarUrl) {
+      const match = presets.find((p) => user.avatarUrl?.includes(`seed=${p.seed}`));
+      if (match) {
+        setSelectedSeed(match.seed);
+      }
+    }
+  }, [presets, user?.avatarUrl]);
+
   async function loadPresets() {
     setLoading(true);
     try {
@@ -91,7 +100,6 @@ export function AvatarPickerScreen() {
         ]);
       } catch (e: any) {
         Alert.alert('Error', e.message || 'Failed to select avatar');
-        setSelectedSeed(null);
       }
     },
     [accessToken, user, completeProfileSetup, navigation],
@@ -169,7 +177,28 @@ export function AvatarPickerScreen() {
                   activeOpacity={0.7}
                   disabled={selectedSeed === preset.seed}
                 >
-                  <Avatar uri={preset.url} name={preset.name} size={64} />
+                  <View style={{ position: 'relative' }}>
+                    <Avatar uri={preset.url} name={preset.name} size={64} />
+                    {selectedSeed === preset.seed && (
+                      <View
+                        style={{
+                          position: 'absolute',
+                          top: -4,
+                          right: -4,
+                          width: 24,
+                          height: 24,
+                          borderRadius: 12,
+                          backgroundColor: colors.accent.primary,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderWidth: 2,
+                          borderColor: colors.bg.primary,
+                        }}
+                      >
+                        <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                      </View>
+                    )}
+                  </View>
                   <Text style={[s.presetName, { color: colors.text.secondary }]} numberOfLines={1}>
                     {preset.name}
                   </Text>

@@ -145,11 +145,17 @@ function computeFinancialSummary(groups: any[], currentUserId?: string) {
   return { totalOwedToMe, totalIOwe, pendingSettlements, activeGroups: groups.length };
 }
 
-function MemberAvatars({ members, max = 3, themeColor }: { members: any[]; max?: number; themeColor?: string }) {
+function MemberAvatars({
+  members,
+  max = 3,
+}: {
+  members: any[];
+  max?: number;
+  themeColor?: string;
+}) {
   const { colors } = useTheme();
   const visible = members.slice(0, max);
   const remaining = members.length - max;
-  const ringColor = themeColor || colors.accent.primary;
 
   if (members.length === 0) {
     return null;
@@ -162,27 +168,19 @@ function MemberAvatars({ members, max = 3, themeColor }: { members: any[]; max?:
         return (
           <View
             key={m.userId || i}
-            style={[
-              cs.avatarRing,
-              { marginLeft: i > 0 ? -10 : 0, zIndex: max - i, borderColor: ringColor },
-            ]}
+            style={[cs.avatarWrap, { marginLeft: i > 0 ? -8 : 0, zIndex: max - i }]}
           >
             <Avatar
               uri={u.avatarUrl}
               name={`${u.firstName || ''} ${u.lastName || ''}`.trim()}
-              size={32}
+              size={28}
             />
           </View>
         );
       })}
       {remaining > 0 && (
-        <View
-          style={[
-            cs.avatar,
-            { marginLeft: -10, zIndex: 0, backgroundColor: ringColor, borderColor: ringColor },
-          ]}
-        >
-          <Text style={cs.avatarText}>+{remaining}</Text>
+        <View style={[cs.remainBadge, { marginLeft: -8, zIndex: 0 }]}>
+          <Text style={cs.remainText}>+{remaining}</Text>
         </View>
       )}
     </View>
@@ -259,7 +257,7 @@ function GroupCard({ group, currentUserId, colors, onPress, onLongPress }: any) 
 
         <View style={gCard.body}>
           <View style={gCard.memberRow}>
-            <MemberAvatars members={members} max={3} themeColor={cfg.gradient[0]} />
+            <MemberAvatars members={members} max={3} />
             <Text style={[gCard.memberCount, { color: colors.text.tertiary }]}>
               {memberCount} member{memberCount !== 1 ? 's' : ''}
             </Text>
@@ -301,7 +299,9 @@ function GroupCard({ group, currentUserId, colors, onPress, onLongPress }: any) 
                 activeOpacity={0.8}
               >
                 <Ionicons name="swap-horizontal" size={14} color={colors.accent.primary} />
-                <Text style={[gCard.settleBtnText, { color: colors.accent.primary }]}>Settle up</Text>
+                <Text style={[gCard.settleBtnText, { color: colors.accent.primary }]}>
+                  Settle up
+                </Text>
               </TouchableOpacity>
             )}
             <View style={gCard.spentBadge}>
@@ -1004,19 +1004,27 @@ const gCard = StyleSheet.create({
 
 const cs = StyleSheet.create({
   avatarRow: { flexDirection: 'row', alignItems: 'center' },
-  avatarRing: {
+  avatarWrap: {
     borderRadius: 999,
-    borderWidth: 2.5,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
   },
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 999,
+  remainBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 0,
+    backgroundColor: '#F2F2F7',
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
   },
-  avatarText: { color: '#FFF', fontSize: 11, fontWeight: '800' },
+  remainText: { color: '#8E8E93', fontSize: 10, fontWeight: '700' },
   emptyWrap: { alignItems: 'center', gap: 12, paddingTop: 60, paddingHorizontal: H_PADDING },
   emptyIconWrap: {
     width: 80,

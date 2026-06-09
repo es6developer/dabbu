@@ -93,6 +93,15 @@ export function ProfileScreen() {
     loadPresets();
   }, []);
 
+  useEffect(() => {
+    if (presets.length > 0 && user?.avatarUrl) {
+      const match = presets.find((p) => user.avatarUrl?.includes(`seed=${p.seed}`));
+      if (match) {
+        setSelectedSeed(match.seed);
+      }
+    }
+  }, [presets, user?.avatarUrl]);
+
   async function loadPresets() {
     setPresetsLoading(true);
     try {
@@ -119,8 +128,6 @@ export function ProfileScreen() {
         updateAvatarUrl(preset.url);
       } catch (e: any) {
         Alert.alert('Error', e.message || 'Failed to select avatar');
-      } finally {
-        setSelectedSeed(null);
       }
     },
     [accessToken, updateAvatarUrl],
@@ -143,13 +150,11 @@ export function ProfileScreen() {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         phone: fullPhone,
-        upiId: upiId.trim() || undefined,
       });
       completeProfileSetup({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         phone: fullPhone,
-        upiId: upiId.trim() || undefined,
       });
       Alert.alert('Success', 'Profile updated successfully');
     } catch (e: any) {
@@ -330,7 +335,28 @@ export function ProfileScreen() {
                             overflow: 'hidden',
                           }}
                         >
-                          <Avatar uri={preset.url} name={preset.name} size={52} />
+                          <View>
+                            <Avatar uri={preset.url} name={preset.name} size={52} />
+                            {selectedSeed === preset.seed && (
+                              <View
+                                style={{
+                                  position: 'absolute',
+                                  top: -4,
+                                  right: -4,
+                                  width: 22,
+                                  height: 22,
+                                  borderRadius: 11,
+                                  backgroundColor: colors.accent.primary,
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  borderWidth: 2,
+                                  borderColor: colors.bg.primary,
+                                }}
+                              >
+                                <Ionicons name="checkmark" size={12} color="#FFFFFF" />
+                              </View>
+                            )}
+                          </View>
                         </TouchableOpacity>
                       ))}
                     </View>
@@ -438,11 +464,11 @@ export function ProfileScreen() {
                     paddingVertical: 15,
                     borderRadius: borderRadius.md,
                     borderWidth: 1,
-                      borderColor: '#ac99d7',
-                      backgroundColor: colors.bg.tertiary,
-                      color: colors.text.primary,
-                    }}
-                    value={lastName}
+                    borderColor: '#ac99d7',
+                    backgroundColor: colors.bg.tertiary,
+                    color: colors.text.primary,
+                  }}
+                  value={lastName}
                   onChangeText={setLastName}
                   placeholder="Enter your last name"
                   placeholderTextColor={colors.text.tertiary}
@@ -497,11 +523,11 @@ export function ProfileScreen() {
                     paddingVertical: 15,
                     borderRadius: borderRadius.md,
                     borderWidth: 1,
-                      borderColor: '#ac99d7',
-                      backgroundColor: colors.bg.tertiary,
-                      color: colors.text.primary,
-                    }}
-                    value={phone}
+                    borderColor: '#ac99d7',
+                    backgroundColor: colors.bg.tertiary,
+                    color: colors.text.primary,
+                  }}
+                  value={phone}
                   onChangeText={setPhone}
                   placeholder="Required — helps friends find you"
                   placeholderTextColor={colors.text.tertiary}
@@ -540,11 +566,11 @@ export function ProfileScreen() {
                     paddingVertical: 15,
                     borderRadius: borderRadius.md,
                     borderWidth: 1,
-                      borderColor: '#ac99d7',
-                      backgroundColor: colors.bg.tertiary,
-                      color: colors.text.primary,
-                    }}
-                    value={upiId}
+                    borderColor: '#ac99d7',
+                    backgroundColor: colors.bg.tertiary,
+                    color: colors.text.primary,
+                  }}
+                  value={upiId}
                   onChangeText={setUpiId}
                   placeholder="example@upi"
                   placeholderTextColor={colors.text.tertiary}

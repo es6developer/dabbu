@@ -15,6 +15,7 @@ import { DocumentVaultScreen } from '../screens/documents/DocumentVaultScreen';
 import { DocumentDetailScreen } from '../screens/documents/DocumentDetailScreen';
 import { BadgeWallScreen } from '../screens/documents/BadgeWallScreen';
 import { AiInsightsScreen } from '../screens/ai/AiInsightsScreen';
+import { AIDashboard } from '../screens/ai/AIDashboard';
 import { RemindersScreen } from '../screens/reminders/RemindersScreen';
 import { ReminderDetailScreen } from '../screens/reminders/ReminderDetailScreen';
 import { CreateReminderScreen } from '../screens/reminders/CreateReminderScreen';
@@ -56,9 +57,7 @@ const SmsStack = createNativeStackNavigator();
 function DashboardNavigator() {
   const theme = useTheme();
   return (
-    <DashboardStack.Navigator
-      screenOptions={iosTransitionOptions(theme)}
-    >
+    <DashboardStack.Navigator screenOptions={iosTransitionOptions(theme)}>
       <DashboardStack.Screen
         name="DashboardMain"
         component={HomeScreen}
@@ -110,6 +109,11 @@ function DashboardNavigator() {
         component={AiInsightsScreen}
         options={{ headerShown: false }}
       />
+      <DashboardStack.Screen
+        name="AIDashboard"
+        component={AIDashboard}
+        options={{ headerShown: false }}
+      />
     </DashboardStack.Navigator>
   );
 }
@@ -117,9 +121,7 @@ function DashboardNavigator() {
 function SettingsNavigator() {
   const theme = useTheme();
   return (
-    <SettingsStack.Navigator
-      screenOptions={iosTransitionOptions(theme)}
-    >
+    <SettingsStack.Navigator screenOptions={iosTransitionOptions(theme)}>
       <SettingsStack.Screen
         name="SettingsMain"
         component={SettingsScreen}
@@ -213,9 +215,7 @@ function SettingsNavigator() {
 function RemindersNavigator() {
   const theme = useTheme();
   return (
-    <RemindersStack.Navigator
-      screenOptions={iosTransitionOptions(theme)}
-    >
+    <RemindersStack.Navigator screenOptions={iosTransitionOptions(theme)}>
       <RemindersStack.Screen
         name="RemindersList"
         component={RemindersScreen}
@@ -238,9 +238,7 @@ function RemindersNavigator() {
 function SmsNavigator() {
   const theme = useTheme();
   return (
-    <SmsStack.Navigator
-      screenOptions={iosTransitionOptions(theme)}
-    >
+    <SmsStack.Navigator screenOptions={iosTransitionOptions(theme)}>
       <SmsStack.Screen
         name="SmsDashboard"
         component={SmsDashboardScreen}

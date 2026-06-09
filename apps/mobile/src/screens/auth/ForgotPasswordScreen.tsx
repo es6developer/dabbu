@@ -95,7 +95,8 @@ export function ForgotPasswordScreen() {
                 marginBottom: 32,
               }}
             >
-              Enter your email address and we'll send you a verification code to reset your password.
+              Enter your email address and we'll send you a verification code to reset your
+              password.
             </Text>
 
             {/* Error */}
@@ -112,7 +113,9 @@ export function ForgotPasswordScreen() {
                 }}
               >
                 <Ionicons name="alert-circle" size={16} color={colors.status.error} />
-                <Text style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}>
+                <Text
+                  style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}
+                >
                   {error}
                 </Text>
               </View>
@@ -126,7 +129,7 @@ export function ForgotPasswordScreen() {
                 backgroundColor: emailFocused ? colors.bg.primary : colors.bg.secondary,
                 borderRadius: 16,
                 borderWidth: 1.5,
-                borderColor: emailFocused ? colors.brand.primary : 'transparent',
+                borderColor: emailFocused ? colors.brand.primary : colors.border.default,
                 paddingHorizontal: 16,
                 height: 56,
                 marginBottom: 24,
@@ -150,7 +153,9 @@ export function ForgotPasswordScreen() {
                 value={email}
                 onChangeText={(t) => {
                   setEmail(t);
-                  if (error) setError('');
+                  if (error) {
+                    setError('');
+                  }
                 }}
                 onFocus={() => setEmailFocused(true)}
                 onBlur={() => setEmailFocused(false)}
@@ -211,5 +216,3 @@ export function ForgotPasswordScreen() {
     </View>
   );
 }
-
-

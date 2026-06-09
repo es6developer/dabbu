@@ -220,7 +220,12 @@ export function AddMemberScreen() {
 
   const renderSearchBar = () => (
     <View style={styles.searchOuter}>
-      <View style={[styles.searchWrap, { backgroundColor: colors.bg.card }]}>
+      <View
+        style={[
+          styles.searchWrap,
+          { backgroundColor: colors.bg.card, borderColor: colors.border.default },
+        ]}
+      >
         <Ionicons name="search" size={18} color={colors.text.tertiary} />
         <TextInput
           style={[styles.searchInput, { color: colors.text.primary }]}

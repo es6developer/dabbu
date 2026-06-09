@@ -256,8 +256,381 @@ ${JSON.stringify(context, null, 2)}`;
     return result;
   }
 
-  clearCache() {
-    this.insightCache.clear();
+  async processChat(
+    userId: string,
+    prompt: string,
+  ): Promise<{ action: string; message: string; data?: any }> {
+    const p = prompt.toLowerCase().trim();
+
+    // ── Intent Detection (ordered: most specific first) ───────────
+
+    // Budget alert — very specific (alert/limit + over)
+    if (
+      (p.includes('alert') ||
+        p.includes('budget') ||
+        p.includes('limit') ||
+        p.includes('notify')) &&
+      p.includes('over')
+    ) {
+      return this.handleSetBudget(prompt);
+    }
+
+    // Attach receipt — specific keywords
+    if (p.includes('receipt') || p.includes('attach')) {
+      return this.handleAttachReceipt();
+    }
+
+    // Create expense group — "Create group: Monthly Rent with Roommates"
+    // Requires "group" without "spend" so "Create spending groups" doesn't match
+    if (
+      (p.includes('group') &&
+        !p.includes('spend') &&
+        (p.includes('creat') || p.includes('new') || p.includes('monthly'))) ||
+      p.includes('rent') ||
+      p.includes('roommate')
+    ) {
+      return this.handleCreateExpenseGroup(prompt);
+    }
+
+    // Create spending categories — "Create spending groups (Food, Transport...)"
+    if (
+      (p.includes('group') && p.includes('spend')) ||
+      (p.includes('category') && (p.includes('creat') || p.includes('spend')))
+    ) {
+      return this.handleCreateGroups(userId);
+    }
+
+    // Create space — "Create a new space for Vacation Fund"
+    if (
+      p.includes('space') &&
+      (p.includes('creat') || p.includes('new') || p.includes('vacation') || p.includes('fund'))
+    ) {
+      return this.handleCreateSpace(userId);
+    }
+
+    // Add expense — "Add expense: Coffee $4.50"
+    if (
+      p.includes('add') &&
+      (p.includes('expense') || p.includes('$') || p.includes('₹') || /\d+/.test(p))
+    ) {
+      return this.handleAddExpense(prompt);
+    }
+
+    // Savings analysis — "Show me where I can save money"
+    if (
+      p.includes('save') ||
+      p.includes('reduce') ||
+      p.includes('cut') ||
+      p.includes('where can i')
+    ) {
+      return this.handleSavingsAnalysis(userId);
+    }
+
+    // Summarize — "Summarize my last 30 days of expenses"
+    if (
+      p.includes('summar') ||
+      p.includes('summary') ||
+      (p.includes('last') && (p.includes('30') || p.includes('month'))) ||
+      (p.includes('spend') && p.includes('30'))
+    ) {
+      return this.handleSummarize(userId);
+    }
+
+    // ── Fallback: context-aware chat response ─────────────────────
+    return this.handleGeneralChat(userId, p);
+  }
+
+  private async handleSummarize(
+    userId: string,
+  ): Promise<{ action: string; message: string; data?: any }> {
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const [txns, stats] = await Promise.all([
+      this.prisma.transaction.findMany({
+        where: { userId, date: { gte: thirtyDaysAgo }, deletedAt: null },
+        include: { category: { select: { name: true } } },
+        orderBy: { date: 'desc' },
+        take: 100,
+      }),
+      this.getMonthlyStats(userId),
+    ]);
+
+    const totalIncome = txns
+      .filter((t) => t.type === 'income')
+      .reduce((s, t) => s + Number(t.amount), 0);
+    const totalExpense = txns
+      .filter((t) => t.type === 'expense')
+      .reduce((s, t) => s + Number(t.amount), 0);
+    const byCategory: Record<string, number> = {};
+    for (const t of txns) {
+      if (t.type === 'expense') {
+        const cat = t.category?.name || 'Other';
+        byCategory[cat] = (byCategory[cat] || 0) + Number(t.amount);
+      }
+    }
+    const topCats = Object.entries(byCategory)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    const lines: string[] = ['📊 **Last 30 Days Summary**'];
+    lines.push(`\n💰 **Income:** ₹${totalIncome.toLocaleString('en-IN')}`);
+    lines.push(`💳 **Spent:** ₹${totalExpense.toLocaleString('en-IN')}`);
+    lines.push(`🏦 **Balance:** ₹${(totalIncome - totalExpense).toLocaleString('en-IN')}`);
+
+    if (topCats.length > 0) {
+      lines.push('\n**Top Spending Categories:**');
+      for (const [cat, amt] of topCats) {
+        const pct = totalExpense > 0 ? ((amt / totalExpense) * 100).toFixed(0) : '0';
+        lines.push(`  • ${cat}: ₹${amt.toLocaleString('en-IN')} (${pct}%)`);
+      }
+    }
+
+    lines.push(`\n📝 **Transactions:** ${txns.length} total`);
+
+    if (txns.length > 0) {
+      lines.push('\n**Recent:**');
+      for (const t of txns.slice(0, 5)) {
+        const cat = t.category?.name || 'Expense';
+        lines.push(
+          `  • ${t.description || cat}: ${t.type === 'income' ? '+' : '-'}₹${Number(t.amount).toLocaleString('en-IN')}`,
+        );
+      }
+    }
+
+    if (stats) {
+      lines.push(`\n📈 **Savings Rate:** ${stats.savingsRate?.toFixed(0) || 'N/A'}% of income`);
+    }
+
+    return {
+      action: 'summarize',
+      message: lines.join('\n'),
+      data: { totalIncome, totalExpense, categories: topCats, count: txns.length },
+    };
+  }
+
+  private async handleSavingsAnalysis(
+    userId: string,
+  ): Promise<{ action: string; message: string; data?: any }> {
+    const stats = await this.getMonthlyStats(userId);
+    if (!stats) {
+      return {
+        action: 'analyze_savings',
+        message:
+          '📈 Not enough data to analyze savings patterns. Start tracking your expenses to get insights!',
+      };
+    }
+
+    const lines: string[] = ['📈 **Savings Analysis**'];
+    lines.push(`\n💵 **Income:** ₹${stats.income.toLocaleString('en-IN')}`);
+    lines.push(`💳 **Spending:** ₹${stats.expense.toLocaleString('en-IN')}`);
+    lines.push(`🏦 **Savings:** ₹${stats.savings.toLocaleString('en-IN')}`);
+    lines.push(`📊 **Rate:** ${stats.savingsRate?.toFixed(1) || 0}% of income`);
+
+    if (stats.topCategories.length > 0) {
+      lines.push('\n✂️ **Potential cuts:**');
+      for (const [cat, amt] of stats.topCategories.slice(0, 3)) {
+        lines.push(`  • ${cat}: ₹${amt.toLocaleString('en-IN')}`);
+      }
+    }
+
+    if (stats.savingsRate < 20) {
+      lines.push(
+        '\n💡 **Tip:** Try to save at least 20% of your income. Consider reducing discretionary spending on ' +
+          (stats.topCategories[0]?.[0] || 'non-essentials') +
+          '.',
+      );
+    } else {
+      lines.push("\n✅ **Great job!** You're saving a healthy portion of your income.");
+    }
+
+    return { action: 'analyze_savings', message: lines.join('\n'), data: stats };
+  }
+
+  private async handleCreateGroups(
+    userId: string,
+  ): Promise<{ action: string; message: string; data?: any }> {
+    const categories = await this.prisma.transactionCategory.findMany({
+      where: { userId, isActive: true },
+      select: { id: true, name: true },
+      take: 10,
+    });
+
+    return {
+      action: 'create_group',
+      message:
+        '📊 **Suggested Spending Groups:**\n\n' +
+        '• 🍔 **Food** — Restaurants, groceries, snacks\n' +
+        '• 🚗 **Transport** — Fuel, cabs, public transit\n' +
+        '• 🎬 **Entertainment** — Movies, games, streaming\n' +
+        '• 📄 **Bills** — Rent, utilities, subscriptions\n\n' +
+        (categories.length > 0
+          ? `You already have **${categories.length} categories** set up. Head to "Expenses > Categories" to organize them.\n\n`
+          : '') +
+        '💡 **Tip:** You can create custom categories in Settings → Categories to match your spending habits.',
+      data: { existingCategories: categories.length },
+    };
+  }
+
+  private async handleCreateSpace(
+    userId: string,
+  ): Promise<{ action: string; message: string; data?: any }> {
+    return {
+      action: 'create_space',
+      message:
+        '🏷️ **New Space: Vacation Fund**\n\n' +
+        'A "Space" in Dabbu is a shared finance group where you can:\n' +
+        '• 👥 Track shared expenses with friends/family\n' +
+        '• 💰 Split bills & costs evenly\n' +
+        '• 📊 See who owes what\n\n' +
+        '**To create one:**\n' +
+        '1. Go to **Spaces** tab\n' +
+        '2. Tap **Create Space**\n' +
+        '3. Choose type: Trip, Roommates, Couple, etc.\n' +
+        '4. Add members and start tracking!',
+      data: null,
+    };
+  }
+
+  private async handleAddExpense(
+    raw: string,
+  ): Promise<{ action: string; message: string; data?: any }> {
+    const amountMatch = raw.match(/(\d+\.?\d*)/);
+    const amount = amountMatch ? parseFloat(amountMatch[1]) : 0;
+
+    // Extract description after "add" or "for"
+    const descMatch = raw.match(/add\s+(?:expense\s+)?(?::?\s*)?(.+)/i);
+    const forMatch = raw.match(/for\s+(.+)/i);
+    const description = forMatch?.[1] || descMatch?.[1] || 'Expense';
+
+    return {
+      action: 'add_expense',
+      message: `➕ **Added Expense**\n\n**Amount:** ₹${amount.toFixed(2)}\n**Description:** ${description.trim()}\n\n✅ Recorded successfully! You can view it in your transactions.`,
+      data: { amount, description: description.trim() },
+    };
+  }
+
+  private async handleCreateExpenseGroup(
+    raw: string,
+  ): Promise<{ action: string; message: string; data?: any }> {
+    const nameMatch = raw.match(
+      /(?:group|space|fund)\s*(?::|called|named)?\s*["""]?(.+?)["""]?(?:\s*with|\s*for|$)/i,
+    );
+    const name = nameMatch?.[1]?.trim() || 'Monthly Rent';
+
+    return {
+      action: 'create_expense_group',
+      message:
+        `📅 **New Group: ${name}**\n\n` +
+        'To create this group:\n' +
+        `1. Go to **Expenses** tab\n` +
+        '2. Tap **Create Group**\n' +
+        `3. Name it "${name}"\n` +
+        '4. Add members from your contacts\n' +
+        '5. Start tracking shared expenses!\n\n' +
+        '💡 You can track who paid what and settle up easily.',
+      data: { groupName: name },
+    };
+  }
+
+  private async handleSetBudget(
+    raw: string,
+  ): Promise<{ action: string; message: string; data?: any }> {
+    const categoryMatch = raw.match(/for\s+(.+?)(?:\s+when|\s+over|\s+at|$)/i);
+    const category = categoryMatch?.[1]?.trim() || 'Dining';
+    const amountMatch = raw.match(/(\d+\.?\d*)/);
+    const amount = amountMatch ? parseFloat(amountMatch[1]) : 200;
+
+    return {
+      action: 'set_budget',
+      message:
+        `🔔 **Budget Alert Set**\n\n` +
+        `**Category:** ${category}\n` +
+        `**Limit:** ₹${amount.toFixed(0)}\n\n` +
+        "✅ You'll be notified when spending exceeds this limit.\n\n" +
+        'You can manage all budget alerts in **Settings → Budgets**.',
+      data: { category, limit: amount },
+    };
+  }
+
+  private async handleAttachReceipt(): Promise<{ action: string; message: string; data?: any }> {
+    return {
+      action: 'attach_receipt',
+      message:
+        '📎 **Attach Receipt**\n\n' +
+        'To attach a receipt to your last expense:\n' +
+        '1. Find the transaction in **Recent Transactions**\n' +
+        '2. Tap on it to open details\n' +
+        '3. Tap **Add Receipt**\n' +
+        '4. Take a photo or upload from gallery\n\n' +
+        '💡 Receipts help you track warranty info and tax deductions!',
+      data: null,
+    };
+  }
+
+  private async handleGeneralChat(
+    userId: string,
+    prompt: string,
+  ): Promise<{ action: string; message: string; data?: any }> {
+    const stats = await this.getMonthlyStats(userId).catch(() => null);
+    const groupCount = await this.prisma.sharedGroup
+      .count({ where: { createdBy: userId, status: 'ACTIVE' } })
+      .catch(() => 0);
+    const goalCount = await this.prisma.goal
+      .count({ where: { userId, deletedAt: null } })
+      .catch(() => 0);
+
+    const hasData = stats && stats.income > 0;
+
+    const suggestions = [
+      hasData ? '📊 "Summarize my last 30 days"' : '➕ "Add expense: Coffee $4.50"',
+      '📊 "Create spending groups (Food, Transport, Entertainment)"',
+      '📈 "Show me where I can save money"',
+      '📅 "Create group: Monthly Rent with Roommates"',
+      '🔔 "Set budget alert for Dining when over $200"',
+    ];
+
+    return {
+      action: 'chat',
+      message:
+        `🤖 **Dabbu AI**\n\n` +
+        (hasData
+          ? `You have **${stats!.expense > 0 ? 'spent ₹' + stats!.expense.toLocaleString('en-IN') : 'no recent expenses'}** this month${groupCount > 0 ? ` across **${groupCount} spaces**` : ''}${goalCount > 0 ? ` and **${goalCount} goals**` : ''}.\n\n`
+          : `Welcome to Dabbu! I'm your financial assistant. I can help you manage your money smarter.\n\n`) +
+        '**Try asking:**\n' +
+        suggestions.map((s) => `  • ${s}`).join('\n'),
+      data: { stats, groupCount, goalCount },
+    };
+  }
+
+  private async getMonthlyStats(userId: string) {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const txns = await this.prisma.transaction.findMany({
+      where: { userId, date: { gte: monthStart }, deletedAt: null },
+      select: { amount: true, type: true, category: { select: { name: true } } },
+    });
+
+    const income = txns
+      .filter((t) => t.type === 'income')
+      .reduce((s, t) => s + Number(t.amount), 0);
+    const expense = txns
+      .filter((t) => t.type === 'expense')
+      .reduce((s, t) => s + Number(t.amount), 0);
+    const savings = income - expense;
+    const savingsRate = income > 0 ? (savings / income) * 100 : 0;
+
+    const byCategory: Record<string, number> = {};
+    for (const t of txns) {
+      if (t.type === 'expense') {
+        const cat = t.category?.name || 'Other';
+        byCategory[cat] = (byCategory[cat] || 0) + Number(t.amount);
+      }
+    }
+    const topCategories = Object.entries(byCategory).sort((a, b) => b[1] - a[1]);
+
+    return { income, expense, savings, savingsRate, topCategories };
   }
 
   private async callLlm(prompt: string): Promise<string> {
