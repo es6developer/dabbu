@@ -87,12 +87,8 @@ export function RootNavigator(): React.ReactElement | null {
     return <MaintenanceScreen message={maintenanceMessage} />;
   }
 
-  if (!splashDone) {
+  if (!splashDone || phase === 'loading' || isLoading) {
     return <SplashScreen onFinish={() => setSplashDone(true)} />;
-  }
-
-  if (phase === 'loading' || isLoading) {
-    return null;
   }
   if (phase === 'auth') {
     return <AuthNavigator key="unauth" />;
