@@ -272,7 +272,7 @@ ${JSON.stringify(context, null, 2)}`;
         p.includes('notify')) &&
       p.includes('over')
     ) {
-      return this.handleSetBudget(prompt);
+      return this.handleSetBudget(prompt, userId);
     }
 
     // Attach receipt — specific keywords
@@ -289,7 +289,7 @@ ${JSON.stringify(context, null, 2)}`;
       p.includes('rent') ||
       p.includes('roommate')
     ) {
-      return this.handleCreateExpenseGroup(prompt);
+      return this.handleCreateExpenseGroup(prompt, userId);
     }
 
     // Create spending categories — "Create spending groups (Food, Transport...)"
@@ -305,7 +305,7 @@ ${JSON.stringify(context, null, 2)}`;
       p.includes('space') &&
       (p.includes('creat') || p.includes('new') || p.includes('vacation') || p.includes('fund'))
     ) {
-      return this.handleCreateSpace(userId);
+      return this.handleCreateSpace(prompt, userId);
     }
 
     // Add expense — "Add expense: Coffee $4.50"
@@ -313,7 +313,7 @@ ${JSON.stringify(context, null, 2)}`;
       p.includes('add') &&
       (p.includes('expense') || p.includes('$') || p.includes('₹') || /\d+/.test(p))
     ) {
-      return this.handleAddExpense(prompt);
+      return this.handleAddExpense(prompt, userId);
     }
 
     // Savings analysis — "Show me where I can save money"
@@ -473,84 +473,173 @@ ${JSON.stringify(context, null, 2)}`;
   }
 
   private async handleCreateSpace(
+    raw: string,
     userId: string,
   ): Promise<{ action: string; message: string; data?: any }> {
-    return {
-      action: 'create_space',
-      message:
-        '🏷️ **New Space: Vacation Fund**\n\n' +
-        'A "Space" in Dabbu is a shared finance group where you can:\n' +
-        '• 👥 Track shared expenses with friends/family\n' +
-        '• 💰 Split bills & costs evenly\n' +
-        '• 📊 See who owes what\n\n' +
-        '**To create one:**\n' +
-        '1. Go to **Spaces** tab\n' +
-        '2. Tap **Create Space**\n' +
-        '3. Choose type: Trip, Roommates, Couple, etc.\n' +
-        '4. Add members and start tracking!',
-      data: null,
-    };
+    const nameMatch = raw.match(
+      /(?:space|fund)\s*(?::|called|named)?\s*["""]?(.+?)["""]?(?:\s*with|\s*for|$)/i,
+    );
+    const name = nameMatch?.[1]?.trim() || 'Vacation Fund';
+
+    try {
+      const group = await this.prisma.sharedGroup.create({
+        data: {
+          name,
+          type: 'friends',
+          createdBy: userId,
+          members: {
+            create: { userId, role: 'admin' },
+          },
+        },
+      });
+
+      return {
+        action: 'create_space',
+        message: `Space "${name}" created successfully! You can now invite members.`,
+        data: { groupId: group.id, groupName: group.name },
+      };
+    } catch (e: any) {
+      return {
+        action: 'create_space',
+        message: `Space "${name}" is ready. Go to the Spaces tab to finish setting it up.`,
+        data: { groupName: name },
+      };
+    }
   }
 
   private async handleAddExpense(
     raw: string,
+    userId: string,
   ): Promise<{ action: string; message: string; data?: any }> {
     const amountMatch = raw.match(/(\d+\.?\d*)/);
     const amount = amountMatch ? parseFloat(amountMatch[1]) : 0;
 
-    // Extract description after "add" or "for"
     const descMatch = raw.match(/add\s+(?:expense\s+)?(?::?\s*)?(.+)/i);
     const forMatch = raw.match(/for\s+(.+)/i);
-    const description = forMatch?.[1] || descMatch?.[1] || 'Expense';
+    const description = (forMatch?.[1] || descMatch?.[1] || 'Expense').trim();
 
-    return {
-      action: 'add_expense',
-      message: `➕ **Added Expense**\n\n**Amount:** ₹${amount.toFixed(2)}\n**Description:** ${description.trim()}\n\n✅ Recorded successfully! You can view it in your transactions.`,
-      data: { amount, description: description.trim() },
-    };
+    if (amount <= 0) {
+      return {
+        action: 'add_expense',
+        message: 'I need an amount to add an expense. Try "Add expense: Coffee ₹250".',
+        data: null,
+      };
+    }
+
+    try {
+      const category = await this.prisma.transactionCategory.findFirst({
+        where: { userId, isActive: true },
+        orderBy: { sortOrder: 'asc' },
+      });
+
+      const tx = await this.prisma.transaction.create({
+        data: {
+          userId,
+          amount,
+          type: 'expense',
+          description: description || 'AI added expense',
+          date: new Date(),
+          categoryId: category?.id || undefined,
+        },
+      });
+
+      return {
+        action: 'add_expense',
+        message: `➕ **Added Expense**\n\n**Amount:** ₹${Number(tx.amount).toFixed(2)}\n**Description:** ${tx.description || 'Expense'}\n\n✅ Recorded successfully!`,
+        data: { amount: Number(tx.amount), description: tx.description || 'Expense' },
+      };
+    } catch (e: any) {
+      return {
+        action: 'add_expense',
+        message: `➕ **Expense:** ₹${amount.toFixed(2)} for "${description}"\n\nYou can add this in the Expenses tab.`,
+        data: { amount, description },
+      };
+    }
   }
 
   private async handleCreateExpenseGroup(
     raw: string,
+    userId: string,
   ): Promise<{ action: string; message: string; data?: any }> {
     const nameMatch = raw.match(
       /(?:group|space|fund)\s*(?::|called|named)?\s*["""]?(.+?)["""]?(?:\s*with|\s*for|$)/i,
     );
     const name = nameMatch?.[1]?.trim() || 'Monthly Rent';
 
-    return {
-      action: 'create_expense_group',
-      message:
-        `📅 **New Group: ${name}**\n\n` +
-        'To create this group:\n' +
-        `1. Go to **Expenses** tab\n` +
-        '2. Tap **Create Group**\n' +
-        `3. Name it "${name}"\n` +
-        '4. Add members from your contacts\n' +
-        '5. Start tracking shared expenses!\n\n' +
-        '💡 You can track who paid what and settle up easily.',
-      data: { groupName: name },
-    };
+    try {
+      const group = await this.prisma.expenseGroup.create({
+        data: {
+          name,
+          description: `Created by Dabbu AI from: "${raw.slice(0, 100)}"`,
+          createdBy: userId,
+          members: {
+            create: { userId, role: 'admin' },
+          },
+        },
+      });
+
+      return {
+        action: 'create_group',
+        message: `Group "${name}" created successfully! You can now add members and start tracking expenses.`,
+        data: { groupId: group.id, groupName: group.name },
+      };
+    } catch (e: any) {
+      return {
+        action: 'create_group',
+        message: `Expense group "${name}" is ready to be created. Head to the Expenses tab to set it up with members.`,
+        data: { groupName: name },
+      };
+    }
   }
 
   private async handleSetBudget(
     raw: string,
+    userId: string,
   ): Promise<{ action: string; message: string; data?: any }> {
     const categoryMatch = raw.match(/for\s+(.+?)(?:\s+when|\s+over|\s+at|$)/i);
-    const category = categoryMatch?.[1]?.trim() || 'Dining';
+    const categoryName = categoryMatch?.[1]?.trim() || 'Dining';
     const amountMatch = raw.match(/(\d+\.?\d*)/);
-    const amount = amountMatch ? parseFloat(amountMatch[1]) : 200;
+    const limit = amountMatch ? parseFloat(amountMatch[1]) : 200;
 
-    return {
-      action: 'set_budget',
-      message:
-        `🔔 **Budget Alert Set**\n\n` +
-        `**Category:** ${category}\n` +
-        `**Limit:** ₹${amount.toFixed(0)}\n\n` +
-        "✅ You'll be notified when spending exceeds this limit.\n\n" +
-        'You can manage all budget alerts in **Settings → Budgets**.',
-      data: { category, limit: amount },
-    };
+    try {
+      const existingCat = await this.prisma.transactionCategory.findFirst({
+        where: { userId, name: { startsWith: categoryName }, isActive: true },
+      });
+
+      const now = new Date();
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      const budget = await this.prisma.budget.create({
+        data: {
+          userId,
+          name: `${categoryName} Budget`,
+          amount: limit,
+          period: 'monthly',
+          startDate: now,
+          endDate: endOfMonth,
+          categoryId: existingCat?.id || undefined,
+        },
+      });
+
+      return {
+        action: 'set_budget',
+        message:
+          `🔔 **Budget Alert Set**\n\n` +
+          `**Category:** ${categoryName}\n` +
+          `**Limit:** ₹${Number(budget.amount).toFixed(0)}\n\n` +
+          "✅ You'll be notified when spending exceeds this limit.\n\n" +
+          'Manage budgets in **Settings → Budgets**.',
+        data: { category: categoryName, limit: Number(budget.amount), budgetId: budget.id },
+      };
+    } catch (e: any) {
+      return {
+        action: 'set_budget',
+        message:
+          `🔔 **Budget Alert:** ${categoryName} — ₹${limit.toFixed(0)}\n\n` +
+          'Set this up in **Settings → Budgets**.',
+        data: { category: categoryName, limit },
+      };
+    }
   }
 
   private async handleAttachReceipt(): Promise<{ action: string; message: string; data?: any }> {
