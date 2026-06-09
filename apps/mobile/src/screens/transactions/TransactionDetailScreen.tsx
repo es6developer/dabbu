@@ -120,26 +120,35 @@ export function TransactionDetailScreen() {
 
   return (
     <View style={[s.container, { backgroundColor: colors.bg.primary }]}>
-      <View style={[s.hero, { paddingTop: insets.top + 8, backgroundColor: colors.bg.primary }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-          <View style={s.backBtnInner}>
-            <Ionicons name="chevron-back" size={22} color="#FFF" />
-          </View>
-        </TouchableOpacity>
+      <View style={[s.hero, { paddingTop: insets.top + 8, backgroundColor: colors.bg.card }]}>
+        <View style={s.heroTopRow}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={[s.backBtn, { backgroundColor: colors.bg.tertiary }]}
+          >
+            <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
+          </TouchableOpacity>
+        </View>
         <View style={[s.heroIcon, { backgroundColor: catColors[0] }]}>
           <Ionicons name={getIcon(cat) as any} size={32} color="#FFF" />
         </View>
-        <Text style={s.heroLabel}>{isCredit ? 'Income' : 'Expense'}</Text>
-        <Text style={s.heroAmount}>
+        <Text style={[s.heroLabel, { color: colors.text.secondary }]}>
+          {isCredit ? 'Income' : 'Expense'}
+        </Text>
+        <Text style={[s.heroAmount, { color: colors.text.primary }]}>
           {sign}
           {fmtVal(Number(txn.amount))}
         </Text>
-        {txn.description && <Text style={s.heroDesc}>{txn.description}</Text>}
-        <View style={s.heroBadge}>
+        {txn.description && (
+          <Text style={[s.heroDesc, { color: colors.text.secondary }]}>{txn.description}</Text>
+        )}
+        <View style={[s.heroBadge, { backgroundColor: colors.bg.tertiary }]}>
           <View
             style={[s.badgeDot, { backgroundColor: txn.isReconciled ? '#34C759' : '#F59E0B' }]}
           />
-          <Text style={s.badgeText}>{txn.isReconciled ? 'Reconciled' : 'Pending'}</Text>
+          <Text style={[s.badgeText, { color: colors.text.secondary }]}>
+            {txn.isReconciled ? 'Reconciled' : 'Pending'}
+          </Text>
         </View>
       </View>
 
@@ -297,12 +306,11 @@ const s = StyleSheet.create({
     borderBottomRightRadius: 32,
     overflow: 'hidden',
   },
-  backBtn: { alignSelf: 'flex-start', marginLeft: 12, marginBottom: 16 },
-  backBtnInner: {
+  heroTopRow: { width: '100%', marginBottom: 16 },
+  backBtn: {
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -322,7 +330,6 @@ const s = StyleSheet.create({
   heroLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: 'rgba(255,255,255,0.6)',
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: 4,
@@ -330,22 +337,20 @@ const s = StyleSheet.create({
   heroAmount: {
     fontSize: 40,
     fontWeight: '800',
-    color: '#FFF',
     letterSpacing: -1,
     marginBottom: 4,
   },
-  heroDesc: { fontSize: 16, color: 'rgba(255,255,255,0.7)', fontWeight: '500', marginBottom: 12 },
+  heroDesc: { fontSize: 16, fontWeight: '500', marginBottom: 12 },
   heroBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'rgba(255,255,255,0.15)',
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 20,
   },
   badgeDot: { width: 8, height: 8, borderRadius: 4 },
-  badgeText: { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.8)' },
+  badgeText: { fontSize: 12, fontWeight: '600' },
   body: { flex: 1, paddingHorizontal: 16, marginTop: 20 },
   section: {
     borderRadius: 20,

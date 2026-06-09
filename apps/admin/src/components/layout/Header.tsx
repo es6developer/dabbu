@@ -4,6 +4,7 @@ import React from 'react';
 import { Bell, Search, Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 export function Header() {
   const { theme, setTheme } = useTheme();
@@ -17,7 +18,10 @@ export function Header() {
         {/* Search */}
         <div className="flex items-center gap-4 flex-1 max-w-md">
           <div className="relative w-full">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Search
+              size={16}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            />
             <input
               type="text"
               placeholder="Search anything..."
@@ -33,7 +37,11 @@ export function Header() {
             <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-destructive" />
           </Button>
           {mounted && (
-            <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            >
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
             </Button>
           )}
@@ -42,9 +50,9 @@ export function Header() {
               <p className="text-sm font-medium">Admin User</p>
               <p className="text-xs text-muted-foreground">admin@dabbu.app</p>
             </div>
-            <div className="w-9 h-9 rounded-full bg-dabbu-500 flex items-center justify-center text-white font-semibold text-sm">
-              A
-            </div>
+            <Avatar className="bg-dabbu-500">
+              <AvatarFallback className="text-white font-semibold bg-dabbu-500">A</AvatarFallback>
+            </Avatar>
           </div>
         </div>
       </div>

@@ -77,6 +77,7 @@ interface AuthContextType extends AuthState {
   refreshToken: () => Promise<boolean>;
   completeProfileSetup: (updatedUser?: Partial<User>) => void;
   updatePhone: (phone: string) => Promise<void>;
+  updateAvatarUrl: (avatarUrl: string) => void;
   completeAuth: (token: string, user: User, wasNewUser: boolean) => void;
   refreshPremiumStatus: () => Promise<void>;
 }
@@ -565,6 +566,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }
 
+  const updateAvatarUrl = useCallback((avatarUrl: string) => {
+    setState((prev) => {
+      if (!prev.user) {
+        return prev;
+      }
+      const updated = { ...prev.user, avatarUrl };
+      storage.current.setItem('userData', JSON.stringify(updated)).catch(() => {});
+      return { ...prev, user: updated };
+    });
+  }, []);
+
   const refreshPremiumStatus = useCallback(async () => {
     try {
       const token = getAccessToken();
@@ -591,10 +603,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       refreshToken,
       completeProfileSetup,
       updatePhone,
+      updateAvatarUrl,
       completeAuth,
       refreshPremiumStatus,
     }),
-    [state, refreshToken, completeAuth, refreshPremiumStatus],
+    [state, refreshToken, completeAuth, updateAvatarUrl, refreshPremiumStatus],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

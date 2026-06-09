@@ -490,11 +490,11 @@ export function SharedGroupDetailScreen() {
 
         {balanceRows.length > 0 && (
           <TouchableOpacity
-            style={[s.insightCard, { backgroundColor: '#60A5FA12' }]}
+            style={[s.insightCard, { backgroundColor: `${colors.accent.primary}12` }]}
             activeOpacity={0.7}
             onPress={() => navigation.navigate('Settlement', { groupId })}
           >
-            <Ionicons name="bulb-outline" size={20} color="#60A5FA" />
+            <Ionicons name="bulb-outline" size={20} color={colors.accent.primary} />
             <View style={{ flex: 1 }}>
               <Text style={[s.insightTitle, { color: colors.text.primary }]}>
                 Settlement Status
@@ -504,7 +504,7 @@ export function SharedGroupDetailScreen() {
                 {balanceRows.filter((r) => r.balance < 0).length !== 1 ? 's' : ''} need to settle up
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="#60A5FA" />
+            <Ionicons name="chevron-forward" size={18} color={colors.accent.primary} />
           </TouchableOpacity>
         )}
 
@@ -542,7 +542,7 @@ export function SharedGroupDetailScreen() {
         }
         activeOpacity={0.8}
       >
-        <View style={s.expenseAvatar}>
+        <View style={[s.expenseAvatar, { backgroundColor: colors.accent.primary }]}>
           <Text style={s.expenseAvatarText}>{payerName[0]?.toUpperCase() || '?'}</Text>
         </View>
         <View style={{ flex: 1 }}>
@@ -596,7 +596,7 @@ export function SharedGroupDetailScreen() {
           const currentUserOwes = owes && row.userId !== currentUser?.id;
           return (
             <View key={row.id} style={[s.balanceCard, { backgroundColor: colors.bg.card }]}>
-              <View style={s.balanceAvatar}>
+              <View style={[s.balanceAvatar, { backgroundColor: colors.accent.primary }]}>
                 <Text style={s.balanceAvatarText}>{row.name[0]?.toUpperCase() || '?'}</Text>
               </View>
               <View style={{ flex: 1 }}>
@@ -671,7 +671,7 @@ export function SharedGroupDetailScreen() {
               }}
               activeOpacity={0.7}
             >
-              <View style={s.memberAvatar}>
+              <View style={[s.memberAvatar, { backgroundColor: colors.accent.primary }]}>
                 <Text style={s.memberAvatarText}>
                   {(member.user?.firstName?.[0] || member.firstName?.[0] || '?').toUpperCase()}
                 </Text>
@@ -1079,7 +1079,7 @@ export function SharedGroupDetailScreen() {
                 paddingTop: insets.top + 8,
                 paddingBottom: 24,
                 paddingHorizontal: 20,
-                backgroundColor: '#14B8A6',
+                backgroundColor: (TYPE_THEMES[type]?.gradient || ['#14B8A6', '#14B8A6'])[0],
               }}
             >
               <View style={s.headerRow}>
@@ -1185,11 +1185,11 @@ export function SharedGroupDetailScreen() {
                 <Text style={s.quickActionText}>Settle Up</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[s.quickAction, { backgroundColor: 'rgba(255,255,255,0.3)' }]}
+                style={[s.quickAction, { backgroundColor: colors.bg.card }]}
                 onPress={() => setActiveTab('members')}
               >
-                <Ionicons name="people-outline" size={18} color="#FFF" />
-                <Text style={s.quickActionText}>Members</Text>
+                <Ionicons name="people-outline" size={18} color={colors.text.primary} />
+                <Text style={[s.quickActionText, { color: colors.text.primary }]}>Members</Text>
               </TouchableOpacity>
             </View>
 
@@ -1598,7 +1598,7 @@ const s = StyleSheet.create({
   finSumValue: { fontSize: 15, fontWeight: '700' },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(0,0,0,0.06)',
+    backgroundColor: 'rgba(128,128,128,0.2)',
     marginVertical: 2,
   },
   balChartRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, gap: 10 },

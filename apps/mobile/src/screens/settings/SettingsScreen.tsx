@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { useAuth } from '../../store/AuthContext';
+import { Avatar } from '../../components/ui/Avatar';
 import { useAppLock } from '../../store/LockContext';
 import { api, setAccessToken, getAccessToken } from '../../services/api';
 import { ConfirmDialog } from '../../components/ui';
@@ -165,23 +166,11 @@ export function SettingsScreen() {
             }}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-              <View
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: 18,
-                  backgroundColor: colors.accent.primary,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Text
-                  style={{ color: '#FFF', fontSize: 24, fontWeight: '800', letterSpacing: -0.5 }}
-                >
-                  {user?.firstName?.[0] || 'U'}
-                  {user?.lastName?.[0] || ''}
-                </Text>
-              </View>
+              <Avatar
+                uri={user?.avatarUrl}
+                name={`${user?.firstName || ''} ${user?.lastName || ''}`}
+                size={56}
+              />
               <View style={{ flex: 1 }}>
                 <Text
                   style={{

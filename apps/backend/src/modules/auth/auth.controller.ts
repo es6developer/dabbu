@@ -27,6 +27,7 @@ import {
   VerifyOtpDto,
   SetupLockDto,
   DemoLoginDto,
+  SelectPresetAvatarDto,
 } from './dto/auth.dto';
 
 @ApiTags('Authentication')
@@ -49,11 +50,7 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login with email and password' })
-  async login(
-    @Body() dto: LoginDto,
-    @Req() req: any,
-    @Headers('user-agent') userAgent?: string,
-  ) {
+  async login(@Body() dto: LoginDto, @Req() req: any, @Headers('user-agent') userAgent?: string) {
     const ip = req.ip || req.headers['x-forwarded-for']?.split(',')[0] || '';
     const result = await this.authService.login(dto, ip, userAgent);
     return { data: result };
@@ -166,6 +163,37 @@ export class AuthController {
   async logoutAll(@CurrentUser('id') userId: string) {
     await this.authService.logoutAll(userId);
     return { data: { message: 'Logged out from all devices' } };
+  }
+
+  // ─── Avatar ───────────────────────────────────────────────
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Post('avatar/regenerate')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Generate a new random cartoon avatar' })
+  async regenerateAvatar(@CurrentUser('id') userId: string) {
+    const result = await this.authService.regenerateAvatar(userId);
+    return { data: result };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Post('avatar/select')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Select a preset cartoon avatar' })
+  async selectPresetAvatar(@CurrentUser('id') userId: string, @Body() dto: SelectPresetAvatarDto) {
+    const result = await this.authService.selectPresetAvatar(userId, dto.seed);
+    return { data: result };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Get('avatar/presets')
+  @ApiOperation({ summary: 'Get all available preset cartoon avatars' })
+  async getAvatarPresets() {
+    const presets = this.authService.getAvatarPresets();
+    return { data: presets };
   }
 
   // ─── App Lock ─────────────────────────────────────────────

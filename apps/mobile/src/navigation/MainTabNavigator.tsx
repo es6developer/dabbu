@@ -22,6 +22,7 @@ import { SmsDashboardScreen } from '../screens/sms/SmsDashboardScreen';
 import { SmsPermissionScreen } from '../screens/sms/SmsPermissionScreen';
 import { SettingsScreen } from '../screens/settings/SettingsScreen';
 import { ProfileScreen } from '../screens/settings/ProfileScreen';
+import { AvatarPickerScreen } from '../screens/settings/AvatarPickerScreen';
 import { SecurityScreen } from '../screens/settings/SecurityScreen';
 import { PremiumScreen } from '../screens/premium/PremiumScreen';
 import { BillingHistoryScreen } from '../screens/premium/BillingHistoryScreen';
@@ -217,6 +218,11 @@ function SettingsNavigator() {
       <SettingsStack.Screen
         name="FavoriteContacts"
         component={FavoriteContactsScreen}
+        options={{ headerShown: false }}
+      />
+      <SettingsStack.Screen
+        name="AvatarPicker"
+        component={AvatarPickerScreen}
         options={{ headerShown: false }}
       />
     </SettingsStack.Navigator>

@@ -207,10 +207,13 @@ export function AddMemberScreen() {
       style={[styles.headerWrap, { paddingTop: insets.top }]}
     >
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={20} color="#FFF" />
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={[styles.backBtn, { backgroundColor: colors.bg.card }]}
+        >
+          <Ionicons name="arrow-back" size={20} color={colors.text.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Add Member</Text>
+        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Add Member</Text>
         <View style={{ width: 36 }} />
       </View>
     </LinearGradient>
@@ -218,14 +221,14 @@ export function AddMemberScreen() {
 
   const renderSearchBar = () => (
     <View style={styles.searchOuter}>
-      <View style={styles.searchWrap}>
-        <Ionicons name="search" size={18} color="rgba(255,255,255,0.35)" />
+      <View style={[styles.searchWrap, { backgroundColor: colors.bg.card }]}>
+        <Ionicons name="search" size={18} color={colors.text.tertiary} />
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { color: colors.text.primary }]}
           value={query}
           onChangeText={setQuery}
           placeholder="Search by name, phone or email"
-          placeholderTextColor="rgba(255,255,255,0.3)"
+          placeholderTextColor={colors.text.tertiary}
           autoCapitalize="none"
           autoCorrect={false}
         />
@@ -235,7 +238,7 @@ export function AddMemberScreen() {
             onPress={() => setQuery('')}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Ionicons name="close-circle" size={18} color="rgba(255,255,255,0.3)" />
+            <Ionicons name="close-circle" size={18} color={colors.text.tertiary} />
           </TouchableOpacity>
         )}
       </View>
@@ -248,7 +251,7 @@ export function AddMemberScreen() {
     }
     return (
       <View style={styles.favSection}>
-        <Text style={styles.favSectionLabel}>FAVORITES</Text>
+        <Text style={[styles.favSectionLabel, { color: colors.text.tertiary }]}>FAVORITES</Text>
         <FlatList
           horizontal
           data={favorites}
@@ -269,7 +272,7 @@ export function AddMemberScreen() {
                 >
                   <Text style={styles.favAvatarText}>{fav.name[0]?.toUpperCase() || '?'}</Text>
                 </LinearGradient>
-                <Text style={styles.favName} numberOfLines={1}>
+                <Text style={[styles.favName, { color: colors.text.primary }]} numberOfLines={1}>
                   {fav.name}
                 </Text>
               </TouchableOpacity>
@@ -300,10 +303,16 @@ export function AddMemberScreen() {
                 </Text>
               </LinearGradient>
               <View style={styles.contactInfo}>
-                <Text style={styles.contactName} numberOfLines={1}>
+                <Text
+                  style={[styles.contactName, { color: colors.text.primary }]}
+                  numberOfLines={1}
+                >
                   {name}
                 </Text>
-                <Text style={styles.contactSub} numberOfLines={1}>
+                <Text
+                  style={[styles.contactSub, { color: colors.text.tertiary }]}
+                  numberOfLines={1}
+                >
                   {item.phone || item.email || ''}
                 </Text>
               </View>
@@ -339,13 +348,20 @@ export function AddMemberScreen() {
             </View>
           ) : (
             <View style={styles.centerState}>
-              <View style={styles.emptyIconWrap}>
-                <Ionicons name="search-outline" size={28} color="rgba(255,255,255,0.2)" />
+              <View style={[styles.emptyIconWrap, { backgroundColor: colors.bg.card }]}>
+                <Ionicons name="search-outline" size={28} color={colors.text.tertiary} />
               </View>
-              <Text style={styles.emptyTitle}>No users found</Text>
-              <TouchableOpacity style={styles.inviteBtn} onPress={() => handleInvite(query)}>
+              <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>
+                No users found
+              </Text>
+              <TouchableOpacity
+                style={[styles.inviteBtn, { borderColor: `${colors.accent.primary}40` }]}
+                onPress={() => handleInvite(query)}
+              >
                 <Ionicons name="share-outline" size={16} color={colors.accent.primary} />
-                <Text style={styles.inviteBtnText}>Send Invite</Text>
+                <Text style={[styles.inviteBtnText, { color: colors.accent.primary }]}>
+                  Send Invite
+                </Text>
               </TouchableOpacity>
             </View>
           )
@@ -359,7 +375,9 @@ export function AddMemberScreen() {
       return (
         <View style={styles.centerState}>
           <ActivityIndicator size="large" color={colors.accent.primary} />
-          <Text style={styles.syncingText}>Syncing contacts...</Text>
+          <Text style={[styles.syncingText, { color: colors.text.tertiary }]}>
+            Syncing contacts...
+          </Text>
         </View>
       );
     }
@@ -367,13 +385,16 @@ export function AddMemberScreen() {
     if (syncError) {
       return (
         <View style={styles.centerState}>
-          <View style={styles.emptyIconWrap}>
+          <View style={[styles.emptyIconWrap, { backgroundColor: colors.bg.card }]}>
             <Ionicons name="cloud-offline-outline" size={28} color="#FF4545" />
           </View>
-          <Text style={[styles.emptyTitle, { color: '#FF4545' }]}>{syncError}</Text>
-          <TouchableOpacity style={styles.inviteBtn} onPress={handleSyncContacts}>
+          <Text style={[styles.emptyTitle, { color: colors.status.error }]}>{syncError}</Text>
+          <TouchableOpacity
+            style={[styles.inviteBtn, { borderColor: `${colors.accent.primary}40` }]}
+            onPress={handleSyncContacts}
+          >
             <Ionicons name="refresh-outline" size={16} color={colors.accent.primary} />
-            <Text style={styles.inviteBtnText}>Try Again</Text>
+            <Text style={[styles.inviteBtnText, { color: colors.accent.primary }]}>Try Again</Text>
           </TouchableOpacity>
         </View>
       );
@@ -382,14 +403,23 @@ export function AddMemberScreen() {
     if (!hasSynced && permStatus !== 'granted') {
       return (
         <View style={styles.centerState}>
-          <View style={styles.emptyIconWrap}>
-            <Ionicons name="people-outline" size={28} color="rgba(255,255,255,0.2)" />
+          <View style={[styles.emptyIconWrap, { backgroundColor: colors.bg.card }]}>
+            <Ionicons name="people-outline" size={28} color={colors.text.tertiary} />
           </View>
-          <Text style={styles.emptyTitle}>Find friends on Dabbu</Text>
-          <Text style={styles.emptyDesc}>Sync your contacts to see who's already here</Text>
-          <TouchableOpacity style={styles.inviteBtn} onPress={handleSyncContacts}>
+          <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>
+            Find friends on Dabbu
+          </Text>
+          <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
+            Sync your contacts to see who's already here
+          </Text>
+          <TouchableOpacity
+            style={[styles.inviteBtn, { borderColor: `${colors.accent.primary}40` }]}
+            onPress={handleSyncContacts}
+          >
             <Ionicons name="people-outline" size={16} color={colors.accent.primary} />
-            <Text style={styles.inviteBtnText}>Sync Contacts</Text>
+            <Text style={[styles.inviteBtnText, { color: colors.accent.primary }]}>
+              Sync Contacts
+            </Text>
           </TouchableOpacity>
         </View>
       );
@@ -398,14 +428,23 @@ export function AddMemberScreen() {
     if (!hasSynced || allContacts.length === 0) {
       return (
         <View style={styles.centerState}>
-          <View style={styles.emptyIconWrap}>
-            <Ionicons name="person-outline" size={28} color="rgba(255,255,255,0.2)" />
+          <View style={[styles.emptyIconWrap, { backgroundColor: colors.bg.card }]}>
+            <Ionicons name="person-outline" size={28} color={colors.text.tertiary} />
           </View>
-          <Text style={styles.emptyTitle}>No contacts found</Text>
-          <Text style={styles.emptyDesc}>Search for members by name, phone, or email</Text>
-          <TouchableOpacity style={styles.inviteBtn} onPress={() => handleInvite('')}>
+          <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>
+            No contacts found
+          </Text>
+          <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
+            Search for members by name, phone, or email
+          </Text>
+          <TouchableOpacity
+            style={[styles.inviteBtn, { borderColor: `${colors.accent.primary}40` }]}
+            onPress={() => handleInvite('')}
+          >
             <Ionicons name="share-outline" size={16} color={colors.accent.primary} />
-            <Text style={styles.inviteBtnText}>Send Invite</Text>
+            <Text style={[styles.inviteBtnText, { color: colors.accent.primary }]}>
+              Send Invite
+            </Text>
           </TouchableOpacity>
         </View>
       );
@@ -420,11 +459,14 @@ export function AddMemberScreen() {
         ListHeaderComponent={
           <View style={styles.syncBanner}>
             <Ionicons name="people" size={16} color="#34C759" />
-            <Text style={styles.syncBannerText}>
+            <Text style={[styles.syncBannerText, { color: colors.text.secondary }]}>
               {matchedContacts.length} friend{matchedContacts.length !== 1 ? 's' : ''} on Dabbu
             </Text>
-            <TouchableOpacity onPress={handleSyncContacts} style={styles.resyncBtn}>
-              <Ionicons name="refresh" size={16} color="rgba(255,255,255,0.4)" />
+            <TouchableOpacity
+              onPress={handleSyncContacts}
+              style={[styles.resyncBtn, { backgroundColor: colors.bg.card }]}
+            >
+              <Ionicons name="refresh" size={16} color={colors.text.tertiary} />
             </TouchableOpacity>
           </View>
         }
@@ -437,19 +479,23 @@ export function AddMemberScreen() {
           return (
             <View style={styles.contactRow}>
               <LinearGradient
-                colors={
-                  isAppUser ? gradColors : ['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.04)']
-                }
+                colors={isAppUser ? gradColors : [colors.bg.card, colors.bg.secondary]}
                 style={styles.avatar}
               >
                 <Text style={styles.avatarText}>{name[0]?.toUpperCase() || '?'}</Text>
               </LinearGradient>
               <View style={styles.contactInfo}>
-                <Text style={styles.contactName} numberOfLines={1}>
+                <Text
+                  style={[styles.contactName, { color: colors.text.primary }]}
+                  numberOfLines={1}
+                >
                   {name}
                 </Text>
                 <View style={styles.contactSubRow}>
-                  <Text style={styles.contactSub} numberOfLines={1}>
+                  <Text
+                    style={[styles.contactSub, { color: colors.text.tertiary }]}
+                    numberOfLines={1}
+                  >
                     {phone || email || 'No contact info'}
                   </Text>
                   {isAppUser && (
@@ -483,10 +529,16 @@ export function AddMemberScreen() {
                 )
               ) : (
                 <TouchableOpacity
-                  style={[styles.actionBtn, styles.inviteActionBtn]}
+                  style={[
+                    styles.actionBtn,
+                    styles.inviteActionBtn,
+                    { borderColor: colors.border.default },
+                  ]}
                   onPress={() => handleInvite(name)}
                 >
-                  <Text style={styles.inviteActionText}>Invite</Text>
+                  <Text style={[styles.inviteActionText, { color: colors.text.tertiary }]}>
+                    Invite
+                  </Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -521,30 +573,29 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: 'rgba(255,255,255,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: { fontSize: 17, fontWeight: '700', color: '#FFF' },
+  headerTitle: { fontSize: 17, fontWeight: '700' },
 
   searchOuter: { paddingHorizontal: 20, marginTop: 8, marginBottom: 4 },
   searchWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: 12,
     paddingHorizontal: 14,
     height: 44,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
-  searchInput: { flex: 1, fontSize: 15, color: '#FFF', paddingVertical: 0 },
+  searchInput: { flex: 1, fontSize: 15, paddingVertical: 0 },
 
   favSection: { marginTop: 4, marginBottom: 4 },
   favSectionLabel: {
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.8,
-    color: 'rgba(255,255,255,0.3)',
     marginLeft: 24,
     marginBottom: 8,
   },
@@ -559,7 +610,7 @@ const styles = StyleSheet.create({
   },
   favAvatarSelected: { borderWidth: 2, borderColor: '#14B8A6' },
   favAvatarText: { fontSize: 18, fontWeight: '700', color: '#FFF' },
-  favName: { fontSize: 11, fontWeight: '500', color: '#FFF', textAlign: 'center' },
+  favName: { fontSize: 11, fontWeight: '500', textAlign: 'center' },
 
   listContainer: { paddingTop: 4, paddingBottom: 40 },
 
@@ -579,9 +630,9 @@ const styles = StyleSheet.create({
   },
   avatarText: { fontSize: 16, fontWeight: '700', color: '#FFF' },
   contactInfo: { flex: 1, justifyContent: 'center' },
-  contactName: { fontSize: 15, fontWeight: '600', color: '#FFF', marginBottom: 2 },
+  contactName: { fontSize: 15, fontWeight: '600', marginBottom: 2 },
   contactSubRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  contactSub: { fontSize: 12, fontWeight: '500', color: 'rgba(255,255,255,0.4)' },
+  contactSub: { fontSize: 12, fontWeight: '500' },
   statusBadge: {
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -601,9 +652,8 @@ const styles = StyleSheet.create({
   actionBtnText: { fontSize: 13, fontWeight: '700' },
   inviteActionBtn: {
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
   },
-  inviteActionText: { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.45)' },
+  inviteActionText: { fontSize: 12, fontWeight: '600' },
 
   centerState: {
     flex: 1,
@@ -616,7 +666,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: 'rgba(255,255,255,0.04)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
@@ -624,17 +673,15 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: 'rgba(255,255,255,0.5)',
     textAlign: 'center',
   },
   emptyDesc: {
     fontSize: 13,
     fontWeight: '500',
-    color: 'rgba(255,255,255,0.3)',
     textAlign: 'center',
     lineHeight: 18,
   },
-  syncingText: { color: 'rgba(255,255,255,0.45)', fontSize: 14, fontWeight: '500', marginTop: 4 },
+  syncingText: { fontSize: 14, fontWeight: '500', marginTop: 4 },
 
   inviteBtn: {
     flexDirection: 'row',
@@ -644,10 +691,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(20,184,166,0.3)',
     marginTop: 8,
   },
-  inviteBtnText: { fontSize: 14, fontWeight: '700', color: '#14B8A6' },
+  inviteBtnText: { fontSize: 14, fontWeight: '700' },
 
   syncBanner: {
     flexDirection: 'row',
@@ -657,12 +703,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 4,
   },
-  syncBannerText: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.45)', flex: 1 },
+  syncBannerText: { fontSize: 13, fontWeight: '600', flex: 1 },
   resyncBtn: {
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: 'rgba(255,255,255,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
   },

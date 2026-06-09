@@ -39,6 +39,329 @@ export class AuthService {
     private readonly referralService: ReferralService,
   ) {}
 
+  private generateDiceBearUrl(seed: string, options?: Record<string, string | undefined>): string {
+    const base = `https://api.dicebear.com/7.x/avataaars/svg`;
+    const params = new URLSearchParams({ seed });
+    if (options) {
+      for (const [key, value] of Object.entries(options)) {
+        if (value !== undefined) {
+          params.set(key, value);
+        }
+      }
+    }
+    return `${base}?${params.toString()}`;
+  }
+
+  private generateRandomAvatarSeed(firstName: string, lastName: string): string {
+    return `${firstName}-${lastName}-${crypto.randomBytes(4).toString('hex')}`;
+  }
+
+  private readonly AVATAR_PRESETS = [
+    {
+      seed: 'dabbu-sunny',
+      name: 'Sunny',
+      options: {
+        top: 'shortHairShortCurly',
+        hairColor: 'black',
+        accessories: 'none',
+        facialHairProbability: '0',
+        clothes: 'hoodie',
+        eyes: 'happy',
+        eyebrows: 'raisedExcited',
+        mouth: 'smile',
+        skinColor: 'light',
+      },
+    },
+    {
+      seed: 'dabbu-star',
+      name: 'Star',
+      options: {
+        top: 'longHairBigHair',
+        hairColor: 'brownDark',
+        accessories: 'prescription01',
+        facialHairProbability: '0',
+        clothes: 'blazerAndShirt',
+        eyes: 'default',
+        eyebrows: 'defaultNatural',
+        mouth: 'smile',
+        skinColor: 'pale',
+      },
+    },
+    {
+      seed: 'dabbu-rocket',
+      name: 'Rocket',
+      options: {
+        top: 'hat',
+        hairColor: 'black',
+        accessories: 'sunglasses',
+        facialHairProbability: '0',
+        clothes: 'collarAndSweater',
+        eyes: 'default',
+        eyebrows: 'default',
+        mouth: 'serious',
+        skinColor: 'brown',
+      },
+    },
+    {
+      seed: 'dabbu-breeze',
+      name: 'Breeze',
+      options: {
+        top: 'longHairStraight',
+        hairColor: 'blonde',
+        accessories: 'none',
+        facialHairProbability: '0',
+        clothes: 'shirtVNeck',
+        eyes: 'wink',
+        eyebrows: 'upNatural',
+        mouth: 'tongue',
+        skinColor: 'light',
+      },
+    },
+    {
+      seed: 'dabbu-blaze',
+      name: 'Blaze',
+      options: {
+        top: 'shortHairDreads01',
+        hairColor: 'red',
+        accessories: 'none',
+        facialHair: 'beardLight',
+        facialHairProbability: '100',
+        clothes: 'graphicShirt',
+        eyes: 'default',
+        eyebrows: 'flatNatural',
+        mouth: 'smile',
+        skinColor: 'darkBrown',
+      },
+    },
+    {
+      seed: 'dabbu-cosmo',
+      name: 'Cosmo',
+      options: {
+        top: 'noHair',
+        hairColor: 'black',
+        accessories: 'round',
+        facialHairProbability: '0',
+        clothes: 'blazerAndSweater',
+        eyes: 'default',
+        eyebrows: 'raisedExcited',
+        mouth: 'smile',
+        skinColor: 'yellow',
+      },
+    },
+    {
+      seed: 'dabbu-dream',
+      name: 'Dream',
+      options: {
+        top: 'longHairCurly',
+        hairColor: 'brown',
+        accessories: 'none',
+        facialHairProbability: '0',
+        clothes: 'shirtCrewNeck',
+        eyes: 'happy',
+        eyebrows: 'default',
+        mouth: 'smile',
+        skinColor: 'tanned',
+      },
+    },
+    {
+      seed: 'dabbu-echo',
+      name: 'Echo',
+      options: {
+        top: 'shortHairFrizzle',
+        hairColor: 'silverGray',
+        accessories: 'none',
+        facialHairProbability: '0',
+        clothes: 'overall',
+        eyes: 'default',
+        eyebrows: 'angryNatural',
+        mouth: 'serious',
+        skinColor: 'light',
+      },
+    },
+    {
+      seed: 'dabbu-flash',
+      name: 'Flash',
+      options: {
+        top: 'shortHairShortFlat',
+        hairColor: 'black',
+        accessories: 'wayfarers',
+        facialHairProbability: '0',
+        clothes: 'hoodie',
+        eyes: 'default',
+        eyebrows: 'flat',
+        mouth: 'smile',
+        skinColor: 'brown',
+      },
+    },
+    {
+      seed: 'dabbu-glow',
+      name: 'Glow',
+      options: {
+        top: 'hijab',
+        hairColor: 'black',
+        accessories: 'none',
+        facialHairProbability: '0',
+        clothes: 'shirtScoopNeck',
+        eyes: 'happy',
+        eyebrows: 'default',
+        mouth: 'smile',
+        skinColor: 'darkBrown',
+      },
+    },
+    {
+      seed: 'dabbu-harmony',
+      name: 'Harmony',
+      options: {
+        top: 'longHairFroBand',
+        hairColor: 'brownDark',
+        accessories: 'none',
+        facialHairProbability: '0',
+        clothes: 'collarAndSweater',
+        eyes: 'wink',
+        eyebrows: 'up',
+        mouth: 'tongue',
+        skinColor: 'black',
+      },
+    },
+    {
+      seed: 'dabbu-ice',
+      name: 'Ice',
+      options: {
+        top: 'turban',
+        hairColor: 'silverGray',
+        accessories: 'none',
+        facialHair: 'beardMajestic',
+        facialHairProbability: '100',
+        clothes: 'blazerAndShirt',
+        eyes: 'default',
+        eyebrows: 'default',
+        mouth: 'smile',
+        skinColor: 'pale',
+      },
+    },
+    {
+      seed: 'dabbu-jazz',
+      name: 'Jazz',
+      options: {
+        top: 'shortHairTheCaesar',
+        hairColor: 'blondeGolden',
+        accessories: 'none',
+        facialHairProbability: '0',
+        clothes: 'shirtVNeck',
+        eyes: 'squint',
+        eyebrows: 'sadConcernedNatural',
+        mouth: 'serious',
+        skinColor: 'light',
+      },
+    },
+    {
+      seed: 'dabbu-kiwi',
+      name: 'Kiwi',
+      options: {
+        top: 'longHairBun',
+        hairColor: 'auburn',
+        accessories: 'prescription02',
+        facialHairProbability: '0',
+        clothes: 'blazerAndSweater',
+        eyes: 'happy',
+        eyebrows: 'raisedExcited',
+        mouth: 'smile',
+        skinColor: 'tanned',
+      },
+    },
+    {
+      seed: 'dabbu-luna',
+      name: 'Luna',
+      options: {
+        top: 'longHairFrida',
+        hairColor: 'black',
+        accessories: 'none',
+        facialHairProbability: '0',
+        clothes: 'shirtCrewNeck',
+        eyes: 'default',
+        eyebrows: 'defaultNatural',
+        mouth: 'smile',
+        skinColor: 'brown',
+      },
+    },
+    {
+      seed: 'dabbu-moon',
+      name: 'Moon',
+      options: {
+        top: 'winterHat1',
+        hairColor: 'pastelPink',
+        accessories: 'none',
+        facialHairProbability: '0',
+        clothes: 'hoodie',
+        eyes: 'surprised',
+        eyebrows: 'raisedExcited',
+        mouth: 'surprised',
+        skinColor: 'light',
+      },
+    },
+    {
+      seed: 'dabbu-neon',
+      name: 'Neon',
+      options: {
+        top: 'shortHairSides',
+        hairColor: 'platinum',
+        accessories: 'sunglasses',
+        facialHairProbability: '0',
+        clothes: 'graphicShirt',
+        eyes: 'default',
+        eyebrows: 'flat',
+        mouth: 'smile',
+        skinColor: 'pale',
+      },
+    },
+    {
+      seed: 'dabbu-oasis',
+      name: 'Oasis',
+      options: {
+        top: 'longHairStraightStrand',
+        hairColor: 'black',
+        accessories: 'none',
+        facialHairProbability: '0',
+        clothes: 'collarAndSweater',
+        eyes: 'happy',
+        eyebrows: 'default',
+        mouth: 'smile',
+        skinColor: 'darkBrown',
+      },
+    },
+    {
+      seed: 'dabbu-pixel',
+      name: 'Pixel',
+      options: {
+        top: 'eyepatch',
+        hairColor: 'black',
+        accessories: 'none',
+        facialHairProbability: '0',
+        clothes: 'shirtVNeck',
+        eyes: 'wink',
+        eyebrows: 'up',
+        mouth: 'smile',
+        skinColor: 'yellow',
+      },
+    },
+    {
+      seed: 'dabbu-quasar',
+      name: 'Quasar',
+      options: {
+        top: 'shortHairShaggyMullet',
+        hairColor: 'brown',
+        accessories: 'none',
+        facialHair: 'moustacheMagnum',
+        facialHairProbability: '100',
+        clothes: 'shirtAndCroat',
+        eyes: 'default',
+        eyebrows: 'defaultNatural',
+        mouth: 'smile',
+        skinColor: 'light',
+      },
+    },
+  ];
+
   async register(
     dto: RegisterDto,
     ipAddress?: string,
@@ -50,6 +373,8 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 12);
+    const avatarSeed = this.generateRandomAvatarSeed(dto.firstName, dto.lastName);
+    const avatarUrl = this.generateDiceBearUrl(avatarSeed);
 
     const user = await this.prisma.user.create({
       data: {
@@ -59,6 +384,7 @@ export class AuthService {
         lastName: dto.lastName,
         phone: dto.phone || null,
         role: 'user',
+        avatarUrl,
         referralCode: crypto.randomBytes(4).toString('hex').toUpperCase(),
         isEmailVerified: false,
         settings: {
@@ -288,6 +614,9 @@ export class AuthService {
         });
       }
 
+      const guestAvatarSeed = this.generateRandomAvatarSeed('Guest', '');
+      const guestAvatarUrl = this.generateDiceBearUrl(guestAvatarSeed);
+
       user = await this.prisma.user.create({
         data: {
           email: DEMO_EMAIL,
@@ -295,6 +624,7 @@ export class AuthService {
           firstName: 'Demo',
           lastName: 'User',
           role: 'user',
+          avatarUrl: guestAvatarUrl,
           status: 'active',
           authProvider: 'guest',
           referralCode: crypto.randomBytes(4).toString('hex').toUpperCase(),
@@ -381,6 +711,9 @@ export class AuthService {
         });
       }
 
+      const demoAvatarSeed = this.generateRandomAvatarSeed('Demo', '');
+      const demoAvatarUrl = this.generateDiceBearUrl(demoAvatarSeed);
+
       user = await this.prisma.user.create({
         data: {
           email: DEMO_EMAIL,
@@ -388,6 +721,7 @@ export class AuthService {
           firstName: 'Demo',
           lastName: 'User',
           role: 'user',
+          avatarUrl: demoAvatarUrl,
           status: 'active',
           authProvider: 'email',
           referralCode: crypto.randomBytes(4).toString('hex').toUpperCase(),
@@ -719,7 +1053,9 @@ export class AuthService {
       await this.emailService.sendOtpEmail(user.email, user.firstName, otpCode, dto.purpose);
     } catch (err) {
       this.logger.error(`Failed to send OTP email to ${user.email}: ${(err as Error).message}`);
-      throw new InternalServerErrorException('Failed to send verification email. Please try again later.');
+      throw new InternalServerErrorException(
+        'Failed to send verification email. Please try again later.',
+      );
     }
 
     return { message: 'A verification code has been sent to your email.' };
@@ -916,6 +1252,37 @@ export class AuthService {
       deviceName: a.deviceName,
       platform: a.platform,
       createdAt: a.createdAt,
+    }));
+  }
+
+  async regenerateAvatar(userId: string): Promise<{ avatarUrl: string }> {
+    const seed = this.generateRandomAvatarSeed('user', userId.slice(-8));
+    const avatarUrl = this.generateDiceBearUrl(seed);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { avatarUrl },
+    });
+    return { avatarUrl };
+  }
+
+  async selectPresetAvatar(userId: string, presetSeed: string): Promise<{ avatarUrl: string }> {
+    const preset = this.AVATAR_PRESETS.find((p) => p.seed === presetSeed);
+    if (!preset) {
+      throw new BadRequestException('Invalid preset seed');
+    }
+    const avatarUrl = this.generateDiceBearUrl(preset.seed, preset.options);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { avatarUrl },
+    });
+    return { avatarUrl };
+  }
+
+  getAvatarPresets() {
+    return this.AVATAR_PRESETS.map((p) => ({
+      seed: p.seed,
+      name: p.name,
+      url: this.generateDiceBearUrl(p.seed, p.options),
     }));
   }
 

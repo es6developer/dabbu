@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ChevronLeft, RefreshCw, Ban, CheckCircle, Trash2 } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { getUserDetail, updateUserStatus, deleteUser } from '@/lib/api';
 
 export default function UserDetailPage() {
@@ -83,12 +84,15 @@ export default function UserDetailPage() {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-6 dark:border dark:border-gray-700">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center">
-              <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
+            <Avatar size="lg">
+              {user.avatarUrl && (
+                <AvatarImage src={user.avatarUrl} alt={`${user.firstName} ${user.lastName}`} />
+              )}
+              <AvatarFallback className="bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xl font-bold">
                 {user.firstName?.[0]}
                 {user.lastName?.[0]}
-              </span>
-            </div>
+              </AvatarFallback>
+            </Avatar>
             <div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                 {user.firstName} {user.lastName}

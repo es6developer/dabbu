@@ -8,21 +8,23 @@ import {
   Alert,
   Animated,
   RefreshControl,
+  Modal,
+  TextInput,
+  ScrollView,
+  Dimensions,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { BaseScreen } from '../../components/ui/BaseScreen';
-import { EmptyState } from '../../components/ui/EmptyState';
-import { SearchSection } from '../../components/ui/SearchSection';
-import { FilterSection } from '../../components/ui/FilterSection';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
-import { UpgradeBanner } from '../../components/ui/UpgradeBanner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const H_PADDING = 16;
+const H_PADDING = 20;
+const SCREEN_WIDTH = Dimensions.get('window').width;
 
 const SPACE_TYPE_CONFIG: Record<
   string,
@@ -39,18 +41,16 @@ const SPACE_TYPE_CONFIG: Record<
   default: { label: 'Group', icon: 'people', gradient: ['#4F6EF7', '#7C8FF8'] },
 };
 
-const GROUP_TYPES = [
-  { key: 'all', label: 'All' },
-  ...Object.entries(SPACE_TYPE_CONFIG)
-    .filter(([k]) => k !== 'default')
-    .map(([k, v]) => ({ key: k, label: v.label })),
-];
+const MAX_SPACES = 3;
 
 function fmt(v: number) {
   return '₹' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 }
 
 function fmtCompact(v: number) {
+  if (v >= 10000000) {
+    return '₹' + (v / 10000000).toFixed(1) + 'Cr';
+  }
   if (v >= 100000) {
     return '₹' + (v / 100000).toFixed(1) + 'L';
   }
@@ -60,15 +60,39 @@ function fmtCompact(v: number) {
   return '₹' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 }
 
+function timeSince(date: Date): string {
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) {
+    return 'Just now';
+  }
+  if (mins < 60) {
+    return `${mins}m ago`;
+  }
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) {
+    return `${hrs}h ago`;
+  }
+  const days = Math.floor(hrs / 24);
+  if (days < 7) {
+    return `${days}d ago`;
+  }
+  const weeks = Math.floor(days / 7);
+  if (weeks < 4) {
+    return `${weeks}w ago`;
+  }
+  return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+}
+
 function deriveGroupBalance(group: any, currentUserId?: string) {
   const members = group.members || [];
   const expenses = group.expenses || [];
   const totalSpent = expenses.reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
   const share = members.length > 0 ? totalSpent / members.length : 0;
   let owedToMe = 0,
-    iOwe = 0;
-
-  let anyUnsettled = false;
+    iOwe = 0,
+    anyUnsettled = false;
 
   members.forEach((m: any) => {
     let bal: number;
@@ -119,260 +143,177 @@ function computeFinancialSummary(groups: any[], currentUserId?: string) {
   return { totalOwedToMe, totalIOwe, pendingSettlements, activeGroups: groups.length };
 }
 
-function SummaryCard({ summary, anim, colors, typography }: any) {
-  const net = summary.totalOwedToMe - summary.totalIOwe;
+function MemberAvatars({ members, max = 3 }: { members: any[]; max?: number }) {
+  const { colors } = useTheme();
+  const visible = members.slice(0, max);
+  const remaining = members.length - max;
+
+  if (members.length === 0) {
+    return null;
+  }
+
   return (
-    <Animated.View
-      style={[
-        sCard.wrap,
-        {
-          opacity: anim,
-          transform: [
-            { translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [24, 0] }) },
-          ],
-        },
-      ]}
-    >
-      <View style={sCard.card}>
-        <View style={sCard.topRow}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <View style={sCard.iconWrap}>
-              <Ionicons name="wallet-outline" size={16} color="#C084FC" />
-            </View>
-            <Text style={sCard.titleText}>Balance Hub</Text>
+    <View style={cs.avatarRow}>
+      {visible.map((m: any, i: number) => {
+        const name = m.user?.firstName || m.firstName || '?';
+        const initials = name[0]?.toUpperCase() || '?';
+        return (
+          <View
+            key={m.userId || i}
+            style={[
+              cs.avatar,
+              {
+                backgroundColor: colors.accent.primary,
+                marginLeft: i > 0 ? -8 : 0,
+                zIndex: max - i,
+              },
+            ]}
+          >
+            <Text style={cs.avatarText}>{initials}</Text>
           </View>
-          <View style={sCard.badge}>
-            <Text style={sCard.badgeText}>{summary.activeGroups} active</Text>
-          </View>
+        );
+      })}
+      {remaining > 0 && (
+        <View
+          style={[
+            cs.avatar,
+            cs.avatarRemaining,
+            { marginLeft: -8, zIndex: 0, backgroundColor: colors.border.default },
+          ]}
+        >
+          <Text style={[cs.avatarText, { fontSize: 10 }]}>+{remaining}</Text>
         </View>
-
-        <View style={sCard.metricsRow}>
-          <View style={sCard.metric}>
-            <Text style={sCard.metricLabel}>You're owed</Text>
-            <Text style={sCard.metricValueGreen}>{fmtCompact(summary.totalOwedToMe)}</Text>
-          </View>
-          <View style={sCard.divider} />
-          <View style={sCard.metric}>
-            <Text style={sCard.metricLabel}>You owe</Text>
-            <Text style={sCard.metricValueRed}>{fmtCompact(summary.totalIOwe)}</Text>
-          </View>
-          <View style={sCard.divider} />
-          <View style={sCard.metric}>
-            <Text style={sCard.metricLabel}>Net</Text>
-            <Text style={[sCard.metricValueWhite, { color: net >= 0 ? '#34C759' : '#FF4D4F' }]}>
-              {net >= 0 ? '' : '-'}
-              {fmtCompact(Math.abs(net))}
-            </Text>
-          </View>
-        </View>
-
-        <View style={sCard.netRow}>
-          <View style={[sCard.netBadge, { backgroundColor: net >= 0 ? '#34C75918' : '#FF4D4F18' }]}>
-            <Ionicons
-              name={net >= 0 ? 'trending-up' : 'trending-down'}
-              size={12}
-              color={net >= 0 ? '#34C759' : '#FF4D4F'}
-            />
-            <Text style={[sCard.netBadgeText, { color: net >= 0 ? '#34C759' : '#FF4D4F' }]}>
-              {net >= 0 ? '+' : ''}
-              {fmtCompact(Math.abs(net))}
-            </Text>
-          </View>
-          {summary.pendingSettlements > 0 && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Ionicons name="swap-horizontal" size={13} color="#F59E0B" />
-              <Text style={sCard.pendingText}>{summary.pendingSettlements} pending</Text>
-            </View>
-          )}
-        </View>
-
-        <View style={sCard.actionsRow}>
-          <TouchableOpacity style={sCard.actionBtnPrimary} activeOpacity={0.8}>
-            <Ionicons name="add-circle-outline" size={16} color="#FFFFFF" />
-            <Text style={sCard.actionBtnPrimaryText}>Add Funds</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={sCard.actionBtnOutline} activeOpacity={0.8}>
-            <Ionicons name="git-branch-outline" size={16} color="#FFFFFF" />
-            <Text style={sCard.actionBtnOutlineText}>Allocate</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Animated.View>
+      )}
+    </View>
   );
 }
 
-function GroupCard({ group, currentUserId, colors, typography, anim, onPress, onLongPress }: any) {
+function GroupCard({ group, currentUserId, colors, onPress, onLongPress }: any) {
   const cfg = SPACE_TYPE_CONFIG[group.type] || SPACE_TYPE_CONFIG.default;
-  const { owedToMe, iOwe, isSettled, unsettledRatio, totalSpent, memberCount, txnCount } =
-    deriveGroupBalance(group, currentUserId);
+  const { owedToMe, iOwe, isSettled, totalSpent, memberCount } = deriveGroupBalance(
+    group,
+    currentUserId,
+  );
 
-  const barColor =
-    unsettledRatio < 0.3
-      ? colors.status.success
-      : unsettledRatio < 0.7
-        ? colors.status.warning
-        : colors.status.error;
+  const lastActivity = group.lastActivity ? new Date(group.lastActivity) : null;
+  const timeAgo = lastActivity ? timeSince(lastActivity) : null;
+
+  const members = group.members || [];
+
+  const balanceText =
+    owedToMe > 0
+      ? `You are owed ${fmtCompact(owedToMe)}`
+      : iOwe > 0
+        ? `You owe ${fmtCompact(iOwe)}`
+        : null;
+
+  const balanceColor =
+    owedToMe > 0 ? colors.status.success : iOwe > 0 ? colors.status.error : colors.text.tertiary;
+
+  const settlementText = isSettled
+    ? totalSpent > 0
+      ? 'Settled'
+      : null
+    : owedToMe > 0
+      ? 'Awaiting you'
+      : iOwe > 0
+        ? 'Pending from you'
+        : null;
+
+  const settlementColor = isSettled
+    ? colors.status.success
+    : owedToMe > 0
+      ? colors.status.warning
+      : colors.status.error;
 
   return (
-    <Animated.View
-      style={{
-        opacity: anim,
-        transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [32, 0] }) }],
-      }}
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={onPress}
+      onLongPress={onLongPress}
+      style={[gCard.outer, { borderColor: colors.border.default }]}
     >
-      <TouchableOpacity
-        activeOpacity={0.7}
-        onPress={onPress}
-        onLongPress={onLongPress}
-        style={[gCard.outer, { borderColor: colors.border.subtle }]}
-      >
-        <View style={[gCard.card, { backgroundColor: colors.bg.card }]}>
-          <View style={gCard.cover}>
-            <View style={gCard.coverOverlay}>
-              <View style={gCard.coverMeta}>
-                <View style={gCard.coverIcon}>
-                  <Ionicons name={cfg.icon as any} size={18} color="#FFF" />
-                </View>
-                <View style={gCard.typeBadge}>
-                  <Text style={gCard.typeBadgeText}>{cfg.label}</Text>
-                </View>
+      <View style={[gCard.card, { backgroundColor: colors.bg.card }]}>
+        <LinearGradient
+          colors={cfg.gradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={gCard.cover}
+        >
+          <View style={[gCard.coverOverlay, { backgroundColor: 'rgba(0,0,0,0.15)' }]}>
+            <View style={gCard.coverTop}>
+              <View style={[gCard.coverIcon, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
+                <Ionicons name={cfg.icon as any} size={18} color="#FFF" />
               </View>
-              <Text style={gCard.coverName} numberOfLines={1}>
-                {group.name}
-              </Text>
-              {group.description ? (
-                <Text style={gCard.coverDesc} numberOfLines={1}>
-                  {group.description}
-                </Text>
-              ) : null}
+              <View style={[gCard.typeBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
+                <Text style={gCard.typeBadgeText}>{cfg.label}</Text>
+              </View>
             </View>
+            <Text style={gCard.coverName} numberOfLines={1}>
+              {group.name}
+            </Text>
+            {timeAgo && <Text style={gCard.coverTime}>{timeAgo}</Text>}
+          </View>
+        </LinearGradient>
+
+        <View style={gCard.body}>
+          <View style={gCard.memberRow}>
+            <MemberAvatars members={members} max={3} />
+            <Text style={[gCard.memberCount, { color: colors.text.tertiary }]}>
+              {memberCount} member{memberCount !== 1 ? 's' : ''}
+            </Text>
           </View>
 
-          <View style={gCard.body}>
+          <View style={[gCard.dividerLine, { backgroundColor: colors.border.subtle }]} />
+
+          <View style={gCard.balanceSection}>
             {totalSpent === 0 ? (
-              <View style={gCard.balanceRow}>
-                <View style={[gCard.balanceChip, { backgroundColor: colors.text.tertiary + '12' }]}>
-                  <Ionicons name="time-outline" size={12} color={colors.text.tertiary} />
-                  <Text
-                    style={[typography.caption, { color: colors.text.tertiary, fontWeight: '500' }]}
-                  >
-                    No activity yet
-                  </Text>
-                </View>
-              </View>
-            ) : !isSettled ? (
-              <View style={gCard.balanceRow}>
-                {owedToMe > 0 && (
-                  <View
-                    style={[gCard.balanceChip, { backgroundColor: colors.status.success + '12' }]}
-                  >
-                    <Ionicons name="arrow-down" size={12} color={colors.status.success} />
-                    <Text
-                      style={[
-                        typography.caption,
-                        { color: colors.status.success, fontWeight: '600' },
-                      ]}
-                    >
-                      Owed {fmtCompact(owedToMe)}
-                    </Text>
-                  </View>
-                )}
-                {iOwe > 0 && (
-                  <View
-                    style={[gCard.balanceChip, { backgroundColor: colors.status.error + '12' }]}
-                  >
-                    <Ionicons name="arrow-up" size={12} color={colors.status.error} />
-                    <Text
-                      style={[
-                        typography.caption,
-                        { color: colors.status.error, fontWeight: '600' },
-                      ]}
-                    >
-                      Owe {fmtCompact(iOwe)}
-                    </Text>
-                  </View>
-                )}
-              </View>
+              <Text style={[gCard.emptyText, { color: colors.text.tertiary }]}>
+                No activity yet
+              </Text>
             ) : (
-              <View style={gCard.balanceRow}>
-                <View
-                  style={[gCard.balanceChip, { backgroundColor: colors.status.success + '12' }]}
-                >
-                  <Ionicons
-                    name="checkmark-circle-outline"
-                    size={12}
-                    color={colors.status.success}
-                  />
-                  <Text
-                    style={[
-                      typography.caption,
-                      { color: colors.status.success, fontWeight: '600' },
-                    ]}
-                  >
-                    All settled
-                  </Text>
-                </View>
-              </View>
+              <>
+                <Text style={[gCard.balanceLabel, { color: balanceColor }]}>{balanceText}</Text>
+                {settlementText && (
+                  <View style={gCard.settlementRow}>
+                    <View style={[gCard.settlementDot, { backgroundColor: settlementColor }]} />
+                    <Text style={[gCard.settlementText, { color: settlementColor }]}>
+                      {settlementText}
+                    </Text>
+                  </View>
+                )}
+              </>
             )}
+          </View>
 
-            <View style={[gCard.statsRow, { borderTopColor: colors.border.subtle }]}>
-              <View style={gCard.stat}>
-                <Text style={[typography.caption2, { color: colors.text.tertiary }]}>Spent</Text>
-                <Text style={[typography.subheadBold, { color: colors.text.primary }]}>
-                  {fmtCompact(totalSpent)}
-                </Text>
-              </View>
-              <View style={gCard.stat}>
-                <Text style={[typography.caption2, { color: colors.text.tertiary }]}>Members</Text>
-                <Text style={[typography.subheadBold, { color: colors.text.primary }]}>
-                  {memberCount}
-                </Text>
-              </View>
-              <View style={gCard.stat}>
-                <Text style={[typography.caption2, { color: colors.text.tertiary }]}>Txns</Text>
-                <Text style={[typography.subheadBold, { color: colors.text.primary }]}>
-                  {txnCount}
-                </Text>
-              </View>
+          <View style={gCard.actionRow}>
+            {totalSpent > 0 && !isSettled ? (
+              <TouchableOpacity
+                style={[gCard.actionBtn, { backgroundColor: colors.accent.primary }]}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="swap-horizontal" size={14} color="#FFF" />
+                <Text style={gCard.actionBtnText}>Settle up</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[gCard.actionBtn, { backgroundColor: colors.accent.primary }]}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="add-circle-outline" size={14} color="#FFF" />
+                <Text style={gCard.actionBtnText}>Add expense</Text>
+              </TouchableOpacity>
+            )}
+            <View style={gCard.spentBadge}>
+              <Text style={[gCard.spentLabel, { color: colors.text.tertiary }]}>Spent</Text>
+              <Text style={[gCard.spentValue, { color: colors.text.primary }]}>
+                {fmtCompact(totalSpent)}
+              </Text>
             </View>
-
-            {totalSpent > 0 && (
-              <View style={gCard.barOuter}>
-                <View
-                  style={[
-                    {
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      marginBottom: 4,
-                    },
-                  ]}
-                >
-                  <Text style={[typography.caption2, { color: colors.text.tertiary }]}>
-                    {isSettled
-                      ? 'Fully settled'
-                      : unsettledRatio < 0.5
-                        ? 'Nearly settled'
-                        : 'Needs attention'}
-                  </Text>
-                  <Text style={[typography.caption2, { color: barColor, fontWeight: '600' }]}>
-                    {Math.round(unsettledRatio * 100)}% unsettled
-                  </Text>
-                </View>
-                <View style={[gCard.barTrack, { backgroundColor: colors.bg.tertiary }]}>
-                  <View
-                    style={[
-                      gCard.barFill,
-                      { width: `${Math.max(unsettledRatio * 100, 2)}%`, backgroundColor: barColor },
-                    ]}
-                  />
-                </View>
-              </View>
-            )}
           </View>
         </View>
-      </TouchableOpacity>
-    </Animated.View>
+      </View>
+    </TouchableOpacity>
   );
 }
 
@@ -383,23 +324,15 @@ export function SharedFinanceHomeScreen() {
   const insets = useSafeAreaInsets();
 
   const [groups, setGroups] = useState<any[]>([]);
-  const [goals, setGoals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [search, setSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState('all');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newType, setNewType] = useState('friends');
+  const [saving, setSaving] = useState(false);
 
   const scrollY = useRef(new Animated.Value(0)).current;
-  const headerAnim = useRef(new Animated.Value(0)).current;
-  const cardAnims = useRef<Record<string, Animated.Value>>({});
   const abortRef = useRef<AbortController | null>(null);
-  const hasAnimated = useRef(false);
-
-  const headerOpacity = scrollY.interpolate({
-    inputRange: [0, 80],
-    outputRange: [1, 0.92],
-    extrapolate: 'clamp',
-  });
 
   const loadData = useCallback(
     async (refresh = false) => {
@@ -415,9 +348,8 @@ export function SharedFinanceHomeScreen() {
         if (accessToken) {
           setAccessToken(accessToken);
         }
-        const [groupsRes, goalsRes] = await Promise.allSettled([
+        const [groupsRes] = await Promise.allSettled([
           api.get<any>('/shared-finance/groups', ctrl.signal),
-          api.get<any>('/goals', ctrl.signal),
         ]);
         if (ctrl.signal.aborted) {
           return;
@@ -430,51 +362,10 @@ export function SharedFinanceHomeScreen() {
                 ? groupsRes.value.data
                 : []
             : [];
-        const goalsData =
-          goalsRes.status === 'fulfilled'
-            ? Array.isArray(goalsRes.value?.data)
-              ? goalsRes.value.data
-              : Array.isArray(goalsRes.value)
-                ? goalsRes.value
-                : []
-            : [];
         setGroups(groupsData);
-        setGoals(goalsData);
-        const currentIds = new Set(groupsData.map((g: any) => g.id));
-        Object.keys(cardAnims.current).forEach((id) => {
-          if (!currentIds.has(id)) {
-            delete cardAnims.current[id];
-          }
-        });
-        groupsData.forEach((g: any, i: number) => {
-          if (!cardAnims.current[g.id]) {
-            const v = new Animated.Value(0);
-            cardAnims.current[g.id] = v;
-            Animated.spring(v, {
-              toValue: 1,
-              tension: 50,
-              friction: 11,
-              delay: i * 60,
-              useNativeDriver: true,
-            }).start();
-          }
-        });
-        if (!hasAnimated.current) {
-          hasAnimated.current = true;
-          headerAnim.setValue(0);
-          Animated.spring(headerAnim, {
-            toValue: 1,
-            tension: 70,
-            friction: 12,
-            useNativeDriver: true,
-          }).start();
-        } else {
-          headerAnim.setValue(1);
-        }
-      } catch (e: any) {
-        if (!ctrl.signal.aborted && e.message !== 'Session expired. Please login again.') {
+      } catch {
+        if (!ctrl.signal.aborted) {
           setGroups([]);
-          setGoals([]);
         }
       } finally {
         if (!ctrl.signal.aborted) {
@@ -483,7 +374,7 @@ export function SharedFinanceHomeScreen() {
         }
       }
     },
-    [accessToken, headerAnim],
+    [accessToken],
   );
 
   useFocusEffect(
@@ -498,21 +389,19 @@ export function SharedFinanceHomeScreen() {
     [groups, user?.id],
   );
 
-  const filtered = useMemo(() => {
-    let list = [...groups];
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      list = list.filter(
-        (g) => g.name?.toLowerCase().includes(q) || g.description?.toLowerCase().includes(q),
-      );
-    }
-    if (typeFilter !== 'all') {
-      list = list.filter((g) => g.type === typeFilter);
-    }
-    return list;
-  }, [groups, search, typeFilter]);
+  const totalMembers = useMemo(() => {
+    const ids = new Set<string>();
+    groups.forEach((g) =>
+      (g.members || []).forEach((m: any) => {
+        if (m.userId) {
+          ids.add(m.userId);
+        }
+      }),
+    );
+    return ids.size;
+  }, [groups]);
 
-  async function handleDelete(group: any) {
+  async function handleDeleteSpace(group: any) {
     Alert.alert('Delete Space', `Delete "${group.name}"? All shared data will be lost.`, [
       { text: 'Cancel', style: 'cancel' },
       {
@@ -533,47 +422,49 @@ export function SharedFinanceHomeScreen() {
     ]);
   }
 
-  const goalTotal = useMemo(() => {
-    let saved = 0,
-      target = 0;
-    goals.forEach((g) => {
-      saved += Number(g.saved || g.currentAmount || 0);
-      target += Number(g.target || g.targetAmount || 0);
-    });
-    return { saved, target, pct: target > 0 ? Math.min((saved / target) * 100, 100) : 0 };
-  }, [goals]);
-
-  const typeFilterOptions = GROUP_TYPES.map((g) => ({ key: g.key, label: g.label }));
-
-  if (loading) {
-    return (
-      <BaseScreen noPadding>
-        <View style={{ paddingHorizontal: H_PADDING, paddingTop: 4 }}>
-          <Skeleton width={90} height={12} borderRadius={6} />
-          <Skeleton width={170} height={26} style={{ marginTop: 4 }} borderRadius={6} />
-        </View>
-        <View style={{ marginHorizontal: H_PADDING, marginTop: 16 }}>
-          <Skeleton width="100%" height={134} borderRadius={16} />
-        </View>
-        <View style={{ marginHorizontal: H_PADDING, marginTop: 16 }}>
-          <Skeleton width="100%" height={76} borderRadius={16} />
-        </View>
-        <View style={{ marginHorizontal: H_PADDING, marginTop: 12 }}>
-          <Skeleton width="100%" height={44} borderRadius={8} />
-        </View>
-        <View style={{ flexDirection: 'row', gap: 8, marginHorizontal: H_PADDING, marginTop: 8 }}>
-          {[0, 1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} width={56 + i * 10} height={34} borderRadius={17} />
-          ))}
-        </View>
-        <View style={{ marginTop: 24, gap: 16, paddingHorizontal: H_PADDING }}>
-          <Skeleton width="100%" height={212} borderRadius={16} />
-          <Skeleton width="100%" height={212} borderRadius={16} />
-          <Skeleton width="100%" height={212} borderRadius={16} />
-        </View>
-      </BaseScreen>
-    );
+  async function handleCreateSpace() {
+    if (!newName.trim()) {
+      Alert.alert('Required', 'Space name is required');
+      return;
+    }
+    if (groups.length >= MAX_SPACES) {
+      Alert.alert(
+        'Upgrade Required',
+        "You've reached the free limit of 3 spaces. Upgrade to Premium to create more.",
+      );
+      return;
+    }
+    setSaving(true);
+    try {
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      const res = await api.post<any>('/shared-finance/groups', {
+        name: newName.trim(),
+        type: newType.toLowerCase(),
+        currency: 'INR',
+      });
+      const newGroupId = res?.id || res?._id;
+      setShowCreateModal(false);
+      setNewName('');
+      setNewType('friends');
+      if (newGroupId) {
+        navigation.navigate('SharedGroupDetail', {
+          groupId: newGroupId,
+          groupName: newName.trim(),
+        });
+      } else {
+        loadData(true);
+      }
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to create space');
+    } finally {
+      setSaving(false);
+    }
   }
+
+  const userName = user?.firstName || user?.email?.[0]?.toUpperCase() || 'U';
+  const userInitial = userName[0]?.toUpperCase() || 'U';
 
   const keyExtractor = useCallback((item: any) => item.id, []);
 
@@ -583,27 +474,38 @@ export function SharedFinanceHomeScreen() {
         group={item}
         currentUserId={user?.id}
         colors={colors}
-        typography={typography}
-        anim={cardAnims.current[item.id] ?? new Animated.Value(1)}
         onPress={() =>
           navigation.navigate('SharedGroupDetail', { groupId: item.id, groupName: item.name })
         }
-        onLongPress={() => handleDelete(item)}
+        onLongPress={() => handleDeleteSpace(item)}
       />
     ),
-    [user?.id, colors, typography, navigation, handleDelete],
+    [user?.id, colors, navigation, handleDeleteSpace],
   );
+
+  if (loading) {
+    return (
+      <BaseScreen noPadding>
+        <View style={{ paddingHorizontal: H_PADDING, paddingTop: insets.top + 8 }}>
+          <Skeleton width={120} height={14} borderRadius={6} />
+          <Skeleton width={160} height={24} style={{ marginTop: 4 }} borderRadius={6} />
+        </View>
+        <View style={{ marginTop: 24, gap: 16, paddingHorizontal: H_PADDING }}>
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} width="100%" height={220} borderRadius={20} />
+          ))}
+        </View>
+      </BaseScreen>
+    );
+  }
 
   return (
     <BaseScreen noPadding>
       <FlatList
-        data={filtered}
+        data={groups}
         keyExtractor={keyExtractor}
         showsVerticalScrollIndicator={false}
         windowSize={10}
-        initialNumToRender={10}
-        maxToRenderPerBatch={10}
-        removeClippedSubviews
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
           useNativeDriver: false,
         })}
@@ -615,350 +517,403 @@ export function SharedFinanceHomeScreen() {
             tintColor={colors.accent.primary}
           />
         }
-        contentContainerStyle={
-          filtered.length === 0 ? { flexGrow: 1 } : { paddingBottom: insets.bottom + 100 }
-        }
+        contentContainerStyle={{
+          paddingTop: insets.top + 8,
+          paddingBottom: insets.bottom + 120,
+        }}
         ListHeaderComponent={
-          <Animated.View
-            style={{
-              opacity: Animated.multiply(headerAnim, headerOpacity),
-              transform: [
-                {
-                  translateY: headerAnim.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }),
-                },
-              ],
-              paddingHorizontal: H_PADDING,
-            }}
-          >
-            <View style={{ paddingTop: 4 }}>
-              <Text
-                style={[
-                  typography.caption2,
-                  {
-                    color: colors.text.tertiary,
-                    textTransform: 'uppercase',
-                    letterSpacing: 0.8,
-                    marginBottom: 2,
-                  },
-                ]}
+          <View style={{ paddingHorizontal: H_PADDING }}>
+            <View style={hdr.header}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('Profile')}
+                style={hdr.profileRow}
               >
-                Shared Finance
-              </Text>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }}
-              >
-                <Text style={[typography.sectionHeader, { color: colors.text.primary, flex: 1 }]}>
-                  Your Spaces
-                </Text>
+                <View style={[hdr.avatar, { backgroundColor: colors.accent.primary }]}>
+                  <Text style={hdr.avatarText}>{userInitial}</Text>
+                </View>
+                <View>
+                  <Text style={[hdr.greeting, { color: colors.text.tertiary }]}>Welcome back</Text>
+                  <Text style={[hdr.userName, { color: colors.text.primary }]} numberOfLines={1}>
+                    {userName}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              <View style={hdr.headerRight}>
                 <TouchableOpacity
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 12,
-                    backgroundColor: colors.accent.primary,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                  onPress={() => navigation.navigate('CreateSharedGroup')}
+                  style={[hdr.iconBtn, { backgroundColor: colors.accent.primary + '12' }]}
+                  onPress={() => navigation.navigate('Settings')}
                 >
-                  <Ionicons name="add" size={22} color="#FFF" />
+                  <Ionicons name="settings-outline" size={20} color={colors.accent.primary} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[hdr.iconBtn, { backgroundColor: colors.status.warning + '15' }]}
+                  onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}
+                >
+                  <Ionicons name="diamond-outline" size={18} color={colors.status.warning} />
                 </TouchableOpacity>
               </View>
             </View>
 
-            <SummaryCard
-              summary={financialSummary}
-              anim={headerAnim}
-              colors={colors}
-              typography={typography}
-            />
-
-            <UpgradeBanner message="Unlimited groups, members & premium features" />
-
-            {goals.length > 0 && (
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() =>
-                  navigation.navigate('MainTabs', {
-                    screen: 'Dashboard',
-                    params: { screen: 'GoalsList' },
-                  })
-                }
-                style={{ marginBottom: 16 }}
-              >
-                <View
-                  style={{
-                    borderRadius: 16,
-                    padding: 16,
-                    borderWidth: 1,
-                    borderColor: colors.border.subtle,
-                  }}
-                >
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      <View
-                        style={{
-                          width: 32,
-                          height: 32,
-                          borderRadius: 10,
-                          backgroundColor: colors.accent.primary + '22',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <Ionicons name="trophy-outline" size={16} color={colors.accent.primary} />
-                      </View>
-                      <Text style={[typography.cardTitle, { color: colors.text.primary }]}>
-                        Goal Progress
-                      </Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
-                  </View>
-                  <View
-                    style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 10 }}
-                  >
-                    <View
-                      style={{
-                        flex: 1,
-                        height: 8,
-                        borderRadius: 999,
-                        backgroundColor: colors.bg.tertiary,
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <View
-                        style={{
-                          width: `${goalTotal.pct}%`,
-                          height: '100%',
-                          borderRadius: 999,
-                          backgroundColor: colors.accent.primary,
-                        }}
-                      />
-                    </View>
-                    <Text style={[typography.calloutBold, { color: colors.accent.primary }]}>
-                      {Math.round(goalTotal.pct)}%
-                    </Text>
-                  </View>
-                  <View
-                    style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}
-                  >
-                    <Text style={[typography.caption, { color: colors.text.tertiary }]}>
-                      <Text style={{ color: colors.status.success }}>{fmt(goalTotal.saved)}</Text>{' '}
-                      saved of {fmt(goalTotal.target)}
-                    </Text>
-                    <Text
-                      style={[
-                        typography.caption,
-                        { color: colors.text.tertiary, fontWeight: '600' },
-                      ]}
-                    >
-                      {goals.length} goal{goals.length > 1 ? 's' : ''}
-                    </Text>
-                  </View>
+            {groups.length > 0 && (
+              <View style={hdr.statsBar}>
+                <View style={hdr.statItem}>
+                  <Text style={[hdr.statValue, { color: colors.text.primary }]}>
+                    {financialSummary.activeGroups}
+                  </Text>
+                  <Text style={[hdr.statLabel, { color: colors.text.tertiary }]}>Spaces</Text>
                 </View>
-              </TouchableOpacity>
+                <View style={[hdr.statDivider, { backgroundColor: colors.border.default }]} />
+                <View style={hdr.statItem}>
+                  <Text style={[hdr.statValue, { color: colors.text.primary }]}>
+                    {totalMembers}
+                  </Text>
+                  <Text style={[hdr.statLabel, { color: colors.text.tertiary }]}>Members</Text>
+                </View>
+                <View style={[hdr.statDivider, { backgroundColor: colors.border.default }]} />
+                <View style={hdr.statItem}>
+                  <Text
+                    style={[
+                      hdr.statValue,
+                      {
+                        color:
+                          financialSummary.totalOwedToMe >= financialSummary.totalIOwe
+                            ? colors.status.success
+                            : colors.status.error,
+                      },
+                    ]}
+                  >
+                    {financialSummary.totalOwedToMe >= financialSummary.totalIOwe
+                      ? fmtCompact(financialSummary.totalOwedToMe - financialSummary.totalIOwe)
+                      : fmtCompact(financialSummary.totalIOwe - financialSummary.totalOwedToMe)}
+                  </Text>
+                  <Text style={[hdr.statLabel, { color: colors.text.tertiary }]}>
+                    {financialSummary.totalOwedToMe >= financialSummary.totalIOwe ? 'Owed' : 'Owe'}
+                  </Text>
+                </View>
+              </View>
             )}
 
-            <SearchSection
-              value={search}
-              onChangeText={setSearch}
-              placeholder="Search spaces..."
-              onClear={() => setSearch('')}
-            />
-            <FilterSection
-              options={typeFilterOptions}
-              selected={typeFilter}
-              onSelect={setTypeFilter}
-            />
-            <View style={{ height: 1, backgroundColor: colors.border.subtle, marginVertical: 8 }} />
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: 12,
-              }}
-            >
-              <Text style={[typography.calloutBold, { color: colors.text.primary }]}>
-                {filtered.length > 0
-                  ? `${filtered.length} group${filtered.length > 1 ? 's' : ''}`
-                  : 'Groups'}
-              </Text>
-              <Text style={[typography.caption, { color: colors.text.tertiary }]}>
-                {financialSummary.activeGroups - filtered.length > 0
-                  ? `${financialSummary.activeGroups - filtered.length} filtered out`
-                  : ''}
-              </Text>
+            <View style={hdr.sectionTitleRow}>
+              <Text style={[hdr.sectionTitle, { color: colors.text.primary }]}>Your Spaces</Text>
+              {financialSummary.pendingSettlements > 0 && (
+                <View style={[hdr.pendingBadge, { backgroundColor: colors.status.warning + '15' }]}>
+                  <Text style={[hdr.pendingBadgeText, { color: colors.status.warning }]}>
+                    {financialSummary.pendingSettlements} pending
+                  </Text>
+                </View>
+              )}
             </View>
-          </Animated.View>
+          </View>
         }
         renderItem={renderItem}
         ListEmptyComponent={
-          <View style={{ paddingHorizontal: H_PADDING, marginTop: 32 }}>
-            <EmptyState
-              icon="grid-outline"
-              title={search || typeFilter !== 'all' ? 'No spaces found' : 'No spaces yet'}
-              message={
-                search || typeFilter !== 'all'
-                  ? 'Try a different search or filter'
-                  : 'Create a space to split expenses with your people'
-              }
-              actionLabel={!search && typeFilter === 'all' ? 'Create Space' : undefined}
-              onAction={
-                !search && typeFilter === 'all'
-                  ? () => navigation.navigate('CreateSharedGroup')
-                  : undefined
-              }
-            />
+          <View style={cs.emptyWrap}>
+            <View style={[cs.emptyIconWrap, { backgroundColor: colors.accent.primary + '12' }]}>
+              <Ionicons name="grid-outline" size={44} color={colors.accent.primary} />
+            </View>
+            <Text style={[cs.emptyTitle, { color: colors.text.primary }]}>No spaces yet</Text>
+            <Text style={[cs.emptyDesc, { color: colors.text.tertiary }]}>
+              Create a space to split expenses with your people
+            </Text>
+            <TouchableOpacity
+              style={[cs.emptyCta, { backgroundColor: colors.accent.primary }]}
+              onPress={() => setShowCreateModal(true)}
+            >
+              <Ionicons name="add" size={18} color="#FFF" />
+              <Text style={cs.emptyCtaText}>Create Space</Text>
+            </TouchableOpacity>
           </View>
         }
+        ListFooterComponent={
+          groups.length > 0 ? (
+            <View style={{ paddingHorizontal: H_PADDING, marginTop: 8 }}>
+              <View
+                style={[
+                  flim.card,
+                  { backgroundColor: colors.bg.card, borderColor: colors.border.default },
+                ]}
+              >
+                <View style={flim.row}>
+                  <View style={flim.left}>
+                    <View style={[flim.barOuter, { backgroundColor: colors.bg.tertiary }]}>
+                      <View
+                        style={[
+                          flim.barFill,
+                          {
+                            width: `${(groups.length / MAX_SPACES) * 100}%`,
+                            backgroundColor:
+                              groups.length >= MAX_SPACES - 1
+                                ? colors.status.warning
+                                : colors.accent.primary,
+                          },
+                        ]}
+                      />
+                    </View>
+                    <Text style={[flim.text, { color: colors.text.secondary }]}>
+                      {groups.length} of {MAX_SPACES} spaces used
+                    </Text>
+                  </View>
+                  {groups.length >= MAX_SPACES && (
+                    <TouchableOpacity
+                      onPress={() =>
+                        Alert.alert(
+                          'Upgrade',
+                          "You've reached the free limit. Upgrade to Premium for unlimited spaces.",
+                        )
+                      }
+                    >
+                      <Text style={[flim.upgradeText, { color: colors.accent.primary }]}>
+                        Upgrade
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+            </View>
+          ) : null
+        }
       />
+
+      {groups.length > 0 && (
+        <TouchableOpacity
+          style={[fab.btn, { backgroundColor: colors.accent.primary, bottom: insets.bottom + 24 }]}
+          activeOpacity={0.85}
+          onPress={() => {
+            if (groups.length >= MAX_SPACES) {
+              Alert.alert(
+                'Upgrade Required',
+                "You've reached the free limit of 3 spaces. Upgrade to Premium to create more.",
+              );
+            } else {
+              setShowCreateModal(true);
+            }
+          }}
+        >
+          <Ionicons name="add" size={24} color="#FFF" />
+          <Text style={fab.label}>New Space</Text>
+        </TouchableOpacity>
+      )}
+
+      <Modal
+        visible={showCreateModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowCreateModal(false)}
+      >
+        <View style={[mod.overlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+          <View
+            style={[
+              mod.sheet,
+              {
+                backgroundColor: colors.bg.primary,
+                borderTopLeftRadius: 28,
+                borderTopRightRadius: 28,
+              },
+            ]}
+          >
+            <View style={mod.handle} />
+            <Text style={[mod.title, { color: colors.text.primary }]}>New Space</Text>
+
+            <View style={mod.field}>
+              <Text style={[mod.label, { color: colors.text.tertiary }]}>Space Name</Text>
+              <TextInput
+                style={[
+                  mod.input,
+                  {
+                    backgroundColor: colors.bg.card,
+                    borderColor: colors.border.default,
+                    color: colors.text.primary,
+                  },
+                ]}
+                value={newName}
+                onChangeText={setNewName}
+                placeholder="e.g. Goa Trip 2025"
+                placeholderTextColor={colors.text.tertiary}
+                autoFocus
+              />
+            </View>
+
+            <View style={mod.field}>
+              <Text style={[mod.label, { color: colors.text.tertiary }]}>Type</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={mod.typeRow}
+              >
+                {Object.entries(SPACE_TYPE_CONFIG)
+                  .filter(([k]) => k !== 'default')
+                  .map(([key, cfg]) => {
+                    const active = newType === key;
+                    return (
+                      <TouchableOpacity
+                        key={key}
+                        style={[
+                          mod.typeChip,
+                          {
+                            borderColor: active ? cfg.gradient[0] : colors.border.default,
+                            backgroundColor: active ? `${cfg.gradient[0]}1A` : colors.bg.card,
+                          },
+                        ]}
+                        onPress={() => setNewType(key)}
+                      >
+                        <Ionicons
+                          name={cfg.icon as any}
+                          size={16}
+                          color={active ? cfg.gradient[0] : colors.text.tertiary}
+                        />
+                        <Text
+                          style={[
+                            mod.typeChipText,
+                            { color: active ? cfg.gradient[0] : colors.text.secondary },
+                          ]}
+                        >
+                          {cfg.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+              </ScrollView>
+            </View>
+
+            <View style={mod.field}>
+              <Text style={[mod.label, { color: colors.text.tertiary }]}>Invite Members</Text>
+              <TextInput
+                style={[
+                  mod.input,
+                  {
+                    backgroundColor: colors.bg.card,
+                    borderColor: colors.border.default,
+                    color: colors.text.primary,
+                  },
+                ]}
+                placeholder="Enter phone numbers (optional)"
+                placeholderTextColor={colors.text.tertiary}
+                keyboardType="phone-pad"
+              />
+            </View>
+
+            <View style={mod.actionRow}>
+              <TouchableOpacity
+                style={[mod.cancelBtn, { borderColor: colors.border.default }]}
+                onPress={() => {
+                  setShowCreateModal(false);
+                  setNewName('');
+                  setNewType('friends');
+                }}
+              >
+                <Text style={[mod.cancelBtnText, { color: colors.text.secondary }]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[mod.submitBtn, { backgroundColor: colors.accent.primary }]}
+                onPress={handleCreateSpace}
+                disabled={saving}
+              >
+                {saving ? (
+                  <Text style={mod.submitBtnText}>Creating...</Text>
+                ) : (
+                  <>
+                    <Ionicons name="add" size={18} color="#FFF" />
+                    <Text style={mod.submitBtnText}>Create</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </BaseScreen>
   );
 }
 
-const sCard = StyleSheet.create({
-  wrap: { marginBottom: 16, marginTop: 4 },
-  card: {
-    backgroundColor: '#161224',
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 6,
-  },
-  iconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    backgroundColor: 'rgba(192,132,252,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  topRow: {
+const hdr = StyleSheet.create({
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 16,
   },
-  titleText: {
+  profileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: {
+    color: '#FFF',
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
   },
-  badge: {
-    backgroundColor: 'rgba(192,132,252,0.15)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
-  },
-  badgeText: {
+  greeting: {
     fontSize: 11,
-    fontWeight: '700',
-    color: '#C084FC',
-  },
-  metricsRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4 },
-  metric: { flex: 1, gap: 4, alignItems: 'center' },
-  metricLabel: {
-    fontSize: 12,
     fontWeight: '500',
-    color: 'rgba(255,255,255,0.5)',
+    marginBottom: 1,
   },
-  metricValueGreen: {
-    fontSize: 20,
+  userName: {
+    fontSize: 17,
+    fontWeight: '700',
+    maxWidth: 160,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  iconBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statsBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 18,
+  },
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 2,
+  },
+  statValue: {
+    fontSize: 18,
     fontWeight: '800',
-    color: '#34C759',
   },
-  metricValueRed: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#FF4D4F',
+  statLabel: {
+    fontSize: 11,
+    fontWeight: '500',
   },
-  metricValueWhite: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#FFFFFF',
-  },
-  divider: {
+  statDivider: {
     width: 1,
-    height: 36,
-    backgroundColor: 'rgba(255,255,255,0.10)',
-    marginHorizontal: 8,
+    height: 28,
   },
-  netRow: {
+  sectionTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    paddingTop: 14,
-    marginTop: 14,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.08)',
+    justifyContent: 'space-between',
+    marginBottom: 16,
   },
-  netBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  pendingBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
   },
-  netBadgeText: {
-    fontSize: 12,
+  pendingBadgeText: {
+    fontSize: 11,
     fontWeight: '700',
-  },
-  pendingText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#F59E0B',
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 16,
-  },
-  actionBtnPrimary: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    backgroundColor: '#F97316',
-    borderRadius: 16,
-    paddingVertical: 12,
-  },
-  actionBtnPrimaryText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  actionBtnOutline: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 16,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-  },
-  actionBtnOutlineText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#FFFFFF',
   },
 });
 
@@ -966,32 +921,31 @@ const gCard = StyleSheet.create({
   outer: {
     marginHorizontal: H_PADDING,
     marginBottom: 16,
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 1,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  card: { borderRadius: 16, overflow: 'hidden' },
-  cover: { height: 100 },
-  coverOverlay: {
-    flex: 1,
-    padding: 14,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.25)',
-  },
-  coverMeta: {
+  card: { borderRadius: 20, overflow: 'hidden' },
+  cover: { height: 110 },
+  coverOverlay: { flex: 1, padding: 18, justifyContent: 'flex-end' },
+  coverTop: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     position: 'absolute',
-    top: 10,
-    left: 14,
-    right: 14,
+    top: 12,
+    left: 18,
+    right: 18,
   },
   coverIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    width: 34,
+    height: 34,
+    borderRadius: 11,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -999,24 +953,182 @@ const gCard = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 3,
     borderRadius: 8,
-    backgroundColor: 'rgba(255,255,255,0.2)',
   },
   typeBadgeText: { color: '#FFF', fontSize: 11, fontWeight: '700' },
-  coverName: { fontSize: 18, fontWeight: '800', color: '#FFF' },
-  coverDesc: { fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 1 },
-  body: { padding: 14, gap: 10 },
-  balanceRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  balanceChip: {
+  coverName: { fontSize: 19, fontWeight: '800', color: '#FFF' },
+  coverTime: { fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
+  body: { padding: 16, gap: 12 },
+  memberRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+    gap: 10,
   },
-  statsRow: { flexDirection: 'row', gap: 12, paddingTop: 10, borderTopWidth: 1 },
-  stat: { flex: 1, gap: 1 },
-  barOuter: { marginTop: 2 },
-  barTrack: { height: 4, borderRadius: 2, overflow: 'hidden' },
-  barFill: { height: '100%', borderRadius: 2 },
+  memberCount: { fontSize: 12, fontWeight: '500' },
+  dividerLine: { height: 1 },
+  balanceSection: { gap: 4 },
+  balanceLabel: { fontSize: 15, fontWeight: '700' },
+  settlementRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  settlementDot: { width: 6, height: 6, borderRadius: 3 },
+  settlementText: { fontSize: 12, fontWeight: '500' },
+  emptyText: { fontSize: 13, fontWeight: '500', fontStyle: 'italic' },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 12,
+  },
+  actionBtnText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
+  spentBadge: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  spentLabel: { fontSize: 11, fontWeight: '500' },
+  spentValue: { fontSize: 14, fontWeight: '700' },
+});
+
+const cs = StyleSheet.create({
+  avatarRow: { flexDirection: 'row', alignItems: 'center' },
+  avatar: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#FFF',
+  },
+  avatarText: { color: '#FFF', fontSize: 11, fontWeight: '700' },
+  avatarRemaining: { borderWidth: 0 },
+  emptyWrap: { alignItems: 'center', gap: 12, paddingTop: 60, paddingHorizontal: H_PADDING },
+  emptyIconWrap: {
+    width: 80,
+    height: 80,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyTitle: { fontSize: 18, fontWeight: '700' },
+  emptyDesc: { fontSize: 13, textAlign: 'center', paddingHorizontal: 32, lineHeight: 18 },
+  emptyCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 22,
+    paddingVertical: 14,
+    borderRadius: 16,
+    marginTop: 8,
+  },
+  emptyCtaText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+});
+
+const flim = StyleSheet.create({
+  card: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  left: { flex: 1, gap: 6 },
+  barOuter: { height: 5, borderRadius: 3, overflow: 'hidden' },
+  barFill: { height: '100%', borderRadius: 3 },
+  text: { fontSize: 12, fontWeight: '500' },
+  upgradeText: { fontSize: 13, fontWeight: '700' },
+});
+
+const fab = StyleSheet.create({
+  btn: {
+    position: 'absolute',
+    right: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: 28,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  label: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+});
+
+const mod = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 40,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(0,0,0,0.15)',
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  title: { fontSize: 22, fontWeight: '800', marginBottom: 20 },
+  field: { marginBottom: 16 },
+  label: {
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginBottom: 6,
+  },
+  input: {
+    minHeight: 50,
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    fontSize: 15,
+    fontWeight: '600',
+    paddingVertical: 0,
+  },
+  typeRow: { gap: 8, paddingVertical: 4 },
+  typeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  typeChipText: { fontSize: 13, fontWeight: '600' },
+  actionRow: { flexDirection: 'row', gap: 10, marginTop: 8 },
+  cancelBtn: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  cancelBtnText: { fontSize: 15, fontWeight: '700' },
+  submitBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 14,
+    borderRadius: 14,
+  },
+  submitBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
 });

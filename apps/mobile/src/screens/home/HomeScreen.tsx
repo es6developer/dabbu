@@ -16,6 +16,7 @@ import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { getCategoryColor, getCategoryIcon } from '../../config/categoryIcons';
+import { Avatar } from '../../components/ui/Avatar';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
@@ -224,7 +225,6 @@ export function HomeScreen() {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   const userName = user?.firstName || 'User';
-  const userInitial = (userName[0] || 'U').toUpperCase();
 
   const netBalance = totalBalance ?? 0;
   const isOwed = netBalance > 0;
@@ -363,11 +363,12 @@ export function HomeScreen() {
               </View>
             )}
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Settings')}
-            style={[s.avatarBtn, { backgroundColor: `${colors.accent.primary}15` }]}
-          >
-            <Text style={[s.avatarText, { color: colors.accent.primary }]}>{userInitial}</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={[s.avatarBtn]}>
+            <Avatar
+              uri={user?.avatarUrl}
+              name={`${user?.firstName || ''} ${user?.lastName || ''}`}
+              size={40}
+            />
           </TouchableOpacity>
         </View>
 

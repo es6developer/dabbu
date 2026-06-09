@@ -378,22 +378,30 @@ export function MyWalletScreen() {
             </Animated.View>
 
             <Animated.View style={{ transform: [{ scale: cardScale }] }}>
-              <View style={[s.balanceCard, { backgroundColor: colors.bg.primary }]}>
+              <View style={[s.balanceCard, { backgroundColor: colors.bg.card }]}>
                 <View style={s.balanceTop}>
                   <View>
-                    <Text style={s.balanceLabel}>Total Balance</Text>
-                    <Text style={s.balanceAmount}>{fmt(remaining)}</Text>
+                    <Text style={[s.balanceLabel, { color: colors.text.secondary }]}>
+                      Total Balance
+                    </Text>
+                    <Text style={[s.balanceAmount, { color: colors.text.primary }]}>
+                      {fmt(remaining)}
+                    </Text>
                   </View>
-                  <View style={s.balanceRing}>
-                    <Text style={s.balanceRingText}>{expensePct}%</Text>
+                  <View style={[s.balanceRing, { borderColor: colors.border.default }]}>
+                    <Text style={[s.balanceRingText, { color: colors.text.secondary }]}>
+                      {expensePct}%
+                    </Text>
                   </View>
                 </View>
                 <View style={s.barRow}>
                   <View style={s.barItem}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                       <View style={[s.dot, { backgroundColor: '#00B894' }]} />
-                      <Text style={s.barLabel}>Income</Text>
-                      <Text style={s.barValue}>{fmt(summary.totalIncome)}</Text>
+                      <Text style={[s.barLabel, { color: colors.text.secondary }]}>Income</Text>
+                      <Text style={[s.barValue, { color: colors.text.primary }]}>
+                        {fmt(summary.totalIncome)}
+                      </Text>
                     </View>
                     <View style={s.track}>
                       <View
@@ -407,10 +415,12 @@ export function MyWalletScreen() {
                   <View style={s.barItem}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                       <View style={[s.dot, { backgroundColor: '#FF6B6B' }]} />
-                      <Text style={s.barLabel}>Expense</Text>
-                      <Text style={s.barValue}>{fmt(summary.totalExpense)}</Text>
+                      <Text style={[s.barLabel, { color: colors.text.secondary }]}>Expense</Text>
+                      <Text style={[s.barValue, { color: colors.text.primary }]}>
+                        {fmt(summary.totalExpense)}
+                      </Text>
                     </View>
-                    <View style={s.track}>
+                    <View style={[s.track, { backgroundColor: colors.border.subtle }]}>
                       <View
                         style={[s.fill, { width: `${expensePct}%`, backgroundColor: '#FF6B6B' }]}
                       />
@@ -500,7 +510,10 @@ export function MyWalletScreen() {
                   style={[
                     s.chip,
                     !selectedCategory
-                      ? s.chipActive
+                      ? {
+                          backgroundColor: colors.accent.primary,
+                          borderColor: colors.accent.primary,
+                        }
                       : { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
                   ]}
                   onPress={() => setSelectedCategory('')}
@@ -520,7 +533,10 @@ export function MyWalletScreen() {
                     style={[
                       s.chip,
                       selectedCategory === cat
-                        ? s.chipActive
+                        ? {
+                            backgroundColor: colors.accent.primary,
+                            borderColor: colors.accent.primary,
+                          }
                         : {
                             backgroundColor: colors.bg.secondary,
                             borderColor: colors.border.subtle,
@@ -611,14 +627,12 @@ const s = StyleSheet.create({
   balanceLabel: {
     fontSize: 12,
     fontWeight: '500',
-    color: 'rgba(255,255,255,0.5)',
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   balanceAmount: {
     fontSize: 36,
     fontWeight: '800',
-    color: '#FFF',
     letterSpacing: -1,
     marginTop: 4,
   },
@@ -627,17 +641,16 @@ const s = StyleSheet.create({
     height: 52,
     borderRadius: 26,
     borderWidth: 3,
-    borderColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  balanceRingText: { fontSize: 13, fontWeight: '700', color: 'rgba(255,255,255,0.7)' },
+  balanceRingText: { fontSize: 13, fontWeight: '700' },
   barRow: { gap: 12 },
   barItem: { gap: 6 },
   dot: { width: 8, height: 8, borderRadius: 4 },
-  barLabel: { fontSize: 12, color: 'rgba(255,255,255,0.5)', fontWeight: '500' },
-  barValue: { fontSize: 16, fontWeight: '700', color: '#FFF' },
-  track: { height: 4, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 2 },
+  barLabel: { fontSize: 12, fontWeight: '500' },
+  barValue: { fontSize: 16, fontWeight: '700' },
+  track: { height: 4, borderRadius: 2 },
   fill: { height: '100%', borderRadius: 2 },
   quickActions: { flexDirection: 'row', paddingHorizontal: 20, gap: 10, marginBottom: 16 },
   qaBtn: { flex: 1, alignItems: 'center', padding: 14, borderRadius: 20, gap: 8 },
@@ -672,7 +685,6 @@ const s = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 1,
   },
-  chipActive: { backgroundColor: '#14B8A6', borderColor: '#14B8A6' },
   chipText: { fontSize: 12, fontWeight: '600' },
   sectionTitle: {
     fontSize: 18,

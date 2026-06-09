@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,46 +6,60 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
-  Animated,
-  Dimensions,
+  Modal,
+  TextInput,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTheme, spacing } from '../../theme';
+import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
-import { UpgradeBanner } from '../../components/ui/UpgradeBanner';
+import { Avatar } from '../../components/ui/Avatar';
 
-const { width: SCREEN_W } = Dimensions.get('window');
+const H_PADDING = 20;
+const MAX_SPACES = 3;
 
-function fmt(v: number | string | undefined | null): string {
-  const n = typeof v === 'string' ? parseFloat(v) : Number(v ?? 0);
-  return `₹${n.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+const SPACE_TYPE_CONFIG: Record<
+  string,
+  { label: string; icon: string; gradient: [string, string] }
+> = {
+  friends: { label: 'Friends', icon: 'people', gradient: ['#4F6EF7', '#7C8FF8'] },
+  trip: { label: 'Trip', icon: 'airplane', gradient: ['#00B894', '#00D9A6'] },
+  family: { label: 'Family', icon: 'home', gradient: ['#E85D04', '#FF8A3C'] },
+  couple: { label: 'Couple', icon: 'heart', gradient: ['#FF6B9D', '#FF8FB3'] },
+  roommates: { label: 'Roommates', icon: 'business', gradient: ['#14B8A6', '#14B8A6'] },
+  office: { label: 'Office', icon: 'briefcase', gradient: ['#247BA0', '#4A9FC7'] },
+  event: { label: 'Event', icon: 'calendar', gradient: ['#D64550', '#FF6B6B'] },
+  apartment: { label: 'Apartment', icon: 'building', gradient: ['#14B8A6', '#14B8A6'] },
+  default: { label: 'Group', icon: 'people', gradient: ['#4F6EF7', '#7C8FF8'] },
+};
+
+function fmtCompact(v: number) {
+  if (v >= 10000000) {
+    return '\u20B9' + (v / 10000000).toFixed(1) + 'Cr';
+  }
+  if (v >= 100000) {
+    return '\u20B9' + (v / 100000).toFixed(1) + 'L';
+  }
+  if (v >= 1000) {
+    return '\u20B9' + (v / 1000).toFixed(1) + 'K';
+  }
+  return '\u20B9' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 }
 
-function listFromResponse(res: any): any[] {
-  if (!res) {
-    return [];
-  }
-  if (Array.isArray(res)) {
-    return res;
-  }
-  if (res.items) {
-    return Array.isArray(res.items) ? res.items : [];
-  }
-  return [];
-}
-
-function timeAgo(dateStr: string): string {
+function timeSince(dateStr: string): string {
   if (!dateStr) {
     return '';
   }
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
   if (mins < 1) {
-    return 'just now';
+    return 'Just now';
   }
   if (mins < 60) {
     return `${mins}m ago`;
@@ -61,167 +75,225 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(days / 7)}w ago`;
 }
 
-const TYPE_CONFIG: Record<string, { icon: string; label: string; color: string }> = {
-  couple: { icon: 'heart', label: 'Couple', color: '#FF6B9D' },
-  family: { icon: 'home', label: 'Family', color: '#14B8A6' },
-  friends: { icon: 'people', label: 'Friends', color: '#34C759' },
-  trip: { icon: 'airplane', label: 'Trip', color: '#60A5FA' },
-  roommates: { icon: 'business', label: 'Roommates', color: '#818CF8' },
-  apartment: { icon: 'home', label: 'Apartment', color: '#14B8A6' },
-  office: { icon: 'briefcase', label: 'Office', color: '#818CF8' },
-  event: { icon: 'calendar', label: 'Event', color: '#FF6B6B' },
-  default: { icon: 'people', label: 'Group', color: '#14B8A6' },
-};
-
-const ALL_TYPES = ['all', 'couple', 'family', 'friends', 'trip', 'roommates', 'other'] as const;
-
-const FILTER_COLORS: Record<string, string> = {
-  all: '#14B8A6',
-  couple: '#FF6B9D',
-  family: '#14B8A6',
-  friends: '#34C759',
-  trip: '#60A5FA',
-  roommates: '#818CF8',
-  other: '#8E8E93',
-};
-
-interface GroupCardProps {
-  group: any;
-  onPress: () => void;
-  themeColor: string;
-  netBalance?: number;
+function listFromResponse(res: any): any[] {
+  if (!res) {
+    return [];
+  }
+  if (Array.isArray(res)) {
+    return res;
+  }
+  if (res.items) {
+    return Array.isArray(res.items) ? res.items : [];
+  }
+  return [];
 }
 
-function GroupCard({ group, onPress, themeColor, netBalance }: GroupCardProps) {
-  const { colors } = useTheme();
-  const mc = group.members?.length || group._count?.members || 0;
-  const balance = netBalance ?? 0;
-  const isPositive = balance >= 0;
-  const scaleAnim = useRef(new Animated.Value(1)).current;
+function deriveGroupBalance(
+  group: any,
+  currentUserId: string | undefined,
+  userBalance?: number,
+  balanceArray?: any[],
+) {
+  const memberCount = group.members?.length || group._count?.members || 0;
+  const hasExpenses = (group._count?.expenses || 0) > 0;
+  const totalSpent = group.totalSpent ?? 0;
 
-  const members = group.members || [];
-  const maxAvatars = 3;
-  const displayAvatars = Math.min(mc, maxAvatars);
-  const overflow = Math.max(mc - maxAvatars, 0);
-  const getInitial = (m: any) => {
-    const u = m.user || m;
-    return ((u.firstName?.[0] || '') + (u.lastName?.[0] || '')).trim() || '?';
-  };
+  let owedToMe = 0,
+    iOwe = 0,
+    unsettledOthers = 0;
+
+  if (userBalance !== undefined) {
+    if (userBalance > 0) {
+      owedToMe = userBalance;
+    } else if (userBalance < 0) {
+      iOwe = Math.abs(userBalance);
+    }
+  }
+
+  if (balanceArray && currentUserId) {
+    const currentEntry = balanceArray.find((b: any) => b.userId === currentUserId);
+    if (currentEntry) {
+      const bal = Number(currentEntry.balance);
+      if (bal > 0) {
+        owedToMe = bal;
+      } else if (bal < 0) {
+        iOwe = Math.abs(bal);
+      }
+    }
+    unsettledOthers = balanceArray.filter(
+      (b: any) => b.userId !== currentUserId && Math.abs(Number(b.balance)) > 0.99,
+    ).length;
+  }
+
+  const isSettled = !hasExpenses || (unsettledOthers === 0 && owedToMe === 0 && iOwe === 0);
+  const hasMembers = memberCount > 0;
+
+  return { owedToMe, iOwe, isSettled, totalSpent, memberCount, unsettledOthers, hasMembers };
+}
+
+function MemberAvatars({ members, themeColor }: { members: any[]; themeColor: string }) {
+  const { colors } = useTheme();
+  const max = 3;
+  const visible = members.slice(0, max);
+  const remaining = members.length - max;
+
+  if (members.length === 0) {
+    return null;
+  }
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.95}
-      onPress={onPress}
-      onPressIn={() => {
-        Animated.spring(scaleAnim, { toValue: 0.98, useNativeDriver: true }).start();
-      }}
-      onPressOut={() => {
-        Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }).start();
-      }}
-    >
-      <Animated.View
-        style={[
-          s.groupCard,
-          {
-            backgroundColor: colors.bg.card,
-            borderColor: colors.border.default,
-            transform: [{ scale: scaleAnim }],
-          },
-        ]}
-      >
-        <View style={s.groupInner}>
-          <View style={s.groupLeft}>
-            <Text style={[s.groupName, { color: colors.text.primary }]} numberOfLines={1}>
+    <View style={cs.avatarRow}>
+      {visible.map((m, i) => {
+        const u = m.user || m;
+        return (
+          <View key={u?.id || i} style={{ marginLeft: i > 0 ? -8 : 0, zIndex: max - i }}>
+            <Avatar
+              uri={u.avatarUrl}
+              name={`${u.firstName || ''} ${u.lastName || ''}`.trim()}
+              size={26}
+            />
+          </View>
+        );
+      })}
+      {remaining > 0 && (
+        <View
+          style={[cs.avatar, { marginLeft: -8, zIndex: 0, backgroundColor: colors.border.default }]}
+        >
+          <Text style={[cs.avatarText, { fontSize: 10 }]}>+{remaining}</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+function GroupCard({
+  group,
+  currentUserId,
+  onPress,
+  onAddExpense,
+  colors,
+  userBalance,
+  balanceArray,
+}: any) {
+  const cfg = SPACE_TYPE_CONFIG[group.type] || SPACE_TYPE_CONFIG.default;
+  const { owedToMe, iOwe, isSettled, totalSpent, memberCount, unsettledOthers, hasMembers } =
+    deriveGroupBalance(group, currentUserId, userBalance, balanceArray);
+  const members = group.members || [];
+  const lastActivity = timeSince(group.updatedAt || group.createdAt);
+
+  const balanceText =
+    owedToMe > 0
+      ? `You are owed ${fmtCompact(owedToMe)}`
+      : iOwe > 0
+        ? `You owe ${fmtCompact(iOwe)}`
+        : null;
+
+  const balanceColor = owedToMe > 0 ? '#10B981' : iOwe > 0 ? '#EF4444' : '#6B7280';
+
+  const settlementText = isSettled
+    ? totalSpent > 0
+      ? 'Settled'
+      : null
+    : unsettledOthers > 0 && iOwe === 0
+      ? `Pending from ${unsettledOthers} member${unsettledOthers > 1 ? 's' : ''}`
+      : 'Awaiting you';
+
+  const settlementColor = isSettled
+    ? '#10B981'
+    : unsettledOthers > 0 && iOwe === 0
+      ? '#F59E0B'
+      : '#EF4444';
+
+  const canSettle = totalSpent > 0 && !isSettled;
+
+  return (
+    <TouchableOpacity activeOpacity={0.7} onPress={onPress} style={gCard.outer}>
+      <View style={[gCard.card, { backgroundColor: colors.bg.card }]}>
+        <LinearGradient
+          colors={cfg.gradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={gCard.cover}
+        >
+          <View style={gCard.coverOverlay}>
+            <View style={gCard.coverTop}>
+              <View style={[gCard.coverIcon, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
+                <Ionicons name={cfg.icon as any} size={18} color="#FFF" />
+              </View>
+              <View style={[gCard.typeBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
+                <Text style={gCard.typeBadgeText}>{cfg.label}</Text>
+              </View>
+            </View>
+            <Text style={gCard.coverName} numberOfLines={1}>
               {group.name || group.title}
             </Text>
-            <View style={s.memberBadge}>
-              <Ionicons name="people-outline" size={12} color={colors.text.secondary} />
-              <Text style={[s.memberCountText, { color: colors.text.secondary }]}>
-                {mc} member{mc !== 1 ? 's' : ''}
-              </Text>
-              <View style={[s.metaDot, { backgroundColor: colors.text.secondary }]} />
-              <Text style={[s.memberActivity, { color: colors.text.secondary }]}>
-                {timeAgo(group.updatedAt || group.createdAt)}
-              </Text>
-            </View>
+            {lastActivity ? <Text style={gCard.coverTime}>{lastActivity}</Text> : null}
+          </View>
+        </LinearGradient>
+
+        <View style={gCard.body}>
+          <View style={gCard.memberRow}>
+            <MemberAvatars members={members} themeColor={cfg.gradient[0]} />
+            <Text style={[gCard.memberCount, { color: colors.text.tertiary }]}>
+              {memberCount} member{memberCount !== 1 ? 's' : ''}
+            </Text>
           </View>
 
-          <View style={s.avatarCluster}>
-            {Array.from({ length: displayAvatars }).map((_, i) => {
-              const u = members[i]?.user || members[i];
-              return (
-                <View
-                  key={u?.id || i}
-                  style={[
-                    s.avatarCircle,
-                    {
-                      backgroundColor: colors.bg.tertiary,
-                      borderColor: colors.bg.card,
-                      marginRight: i < displayAvatars - 1 ? -10 : 0,
-                      zIndex: displayAvatars - i,
-                    },
-                  ]}
-                >
-                  <Text style={[s.avatarLetter, { color: colors.text.secondary }]}>
-                    {u ? getInitial(u) : '?'}
-                  </Text>
-                </View>
-              );
-            })}
-            <View
-              style={[
-                s.avatarCircle,
-                s.overflowBadge,
-                {
-                  backgroundColor: `${themeColor}20`,
-                  borderColor: colors.bg.card,
-                  marginRight: 0,
-                },
-              ]}
-            >
-              {overflow > 0 ? (
-                <Text style={[s.overflowText, { color: themeColor }]}>+{overflow}</Text>
-              ) : (
-                <Ionicons name="add" size={14} color={themeColor} />
-              )}
-            </View>
+          <View style={[gCard.dividerLine, { backgroundColor: colors.border.subtle }]} />
+
+          <View style={gCard.balanceSection}>
+            {!hasMembers ? (
+              <Text style={[gCard.emptyText, { color: colors.text.tertiary }]}>No members yet</Text>
+            ) : totalSpent === 0 && owedToMe === 0 && iOwe === 0 ? (
+              <Text style={[gCard.emptyText, { color: colors.text.tertiary }]}>
+                No activity yet
+              </Text>
+            ) : (
+              <>
+                <Text style={[gCard.balanceLabel, { color: balanceColor }]}>{balanceText}</Text>
+                {settlementText && (
+                  <View style={gCard.settlementRow}>
+                    <View style={[gCard.settlementDot, { backgroundColor: settlementColor }]} />
+                    <Text style={[gCard.settlementText, { color: settlementColor }]}>
+                      {settlementText}
+                    </Text>
+                  </View>
+                )}
+              </>
+            )}
           </View>
 
-          <View style={s.groupRight}>
-            <View style={s.balanceRow}>
-              <View
-                style={[s.progressRing, { borderColor: `${isPositive ? '#34C759' : '#FF4545'}30` }]}
+          <View style={gCard.actionRow}>
+            {canSettle ? (
+              <TouchableOpacity
+                style={[gCard.actionBtn, { backgroundColor: cfg.gradient[0] }]}
+                activeOpacity={0.8}
+                onPress={() => Alert.alert('Settle Up', 'Opening settlement screen...')}
               >
-                <View
-                  style={[
-                    s.progressFill,
-                    {
-                      backgroundColor: isPositive ? '#34C759' : '#FF4545',
-                      height: `${Math.min(Math.abs(balance) / 1000, 100)}%`,
-                    },
-                  ]}
-                />
-              </View>
-              <View>
-                <Text
-                  style={[
-                    s.balanceText,
-                    { color: balance === 0 ? '#8E8E93' : isPositive ? '#34C759' : '#FF4545' },
-                  ]}
-                >
-                  {balance === 0 ? 'Settled' : `${isPositive ? '+' : ''}${fmt(Math.abs(balance))}`}
+                <Ionicons name="swap-horizontal" size={14} color="#FFF" />
+                <Text style={gCard.actionBtnText}>Settle up</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[gCard.actionBtn, { backgroundColor: cfg.gradient[0] }]}
+                activeOpacity={0.8}
+                onPress={onAddExpense}
+              >
+                <Ionicons name="add-circle-outline" size={14} color="#FFF" />
+                <Text style={gCard.actionBtnText}>Add expense</Text>
+              </TouchableOpacity>
+            )}
+            {totalSpent > 0 && (
+              <View style={gCard.spentBadge}>
+                <Text style={[gCard.spentLabel, { color: colors.text.tertiary }]}>Spent</Text>
+                <Text style={[gCard.spentValue, { color: colors.text.primary }]}>
+                  {fmtCompact(totalSpent)}
                 </Text>
               </View>
-            </View>
-            <View style={[s.typeBadge, { backgroundColor: `${themeColor}15` }]}>
-              <View style={[s.typeDot, { backgroundColor: themeColor }]} />
-              <Text style={[s.typeBadgeText, { color: themeColor }]}>
-                {TYPE_CONFIG[group.type]?.label || 'Group'}
-              </Text>
-            </View>
+            )}
           </View>
         </View>
-      </Animated.View>
+      </View>
     </TouchableOpacity>
   );
 }
@@ -234,11 +306,14 @@ export function SharedScreen() {
 
   const [groups, setGroups] = useState<any[]>([]);
   const [groupBalances, setGroupBalances] = useState<Record<string, number>>({});
+  const [groupBalanceArrays, setGroupBalanceArrays] = useState<Record<string, any[]>>({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<string>('all');
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newType, setNewType] = useState('friends');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const loadData = useCallback(
     async (isRefresh = false) => {
@@ -248,53 +323,58 @@ export function SharedScreen() {
       if (!isRefresh) {
         setLoading(true);
       }
-      setError(null);
       try {
         const sharedRes = await api.get<any>('/shared-finance/groups');
         const groupList = listFromResponse(sharedRes);
         setGroups(groupList);
 
-        // Fetch real balances for groups with expenses
         const groupIdsWithExpenses = groupList
           .filter((g: any) => (g._count?.expenses || 0) > 0)
-          .map((g: any) => g.id);
+          .map((g: any) => g.id)
+          .filter(Boolean);
+
         if (groupIdsWithExpenses.length > 0) {
           const balanceResults = await Promise.allSettled(
             groupIdsWithExpenses.map((gid: string) =>
               api.get<any>(`/shared-finance/groups/${gid}/balances`),
             ),
           );
-          const balancesMap: Record<string, number> = {};
+
+          const newBalances: Record<string, number> = {};
+          const newBalanceArrays: Record<string, any[]> = {};
           const currentUserId = (user as any)?.id;
+
           balanceResults.forEach((r, idx) => {
+            const gid = groupIdsWithExpenses[idx];
             if (r.status === 'fulfilled' && Array.isArray(r.value)) {
+              newBalanceArrays[gid] = r.value;
+
               if (currentUserId) {
                 const myEntry = r.value.find((b: any) => b.userId === currentUserId);
                 if (myEntry) {
-                  balancesMap[groupIdsWithExpenses[idx]] = Number(myEntry.balance);
+                  newBalances[gid] = Number(myEntry.balance);
                 }
               }
-              // If no current user entry found, show any non-zero balance as pending
-              if (!balancesMap[groupIdsWithExpenses[idx]]) {
+              if (newBalances[gid] === undefined) {
                 const anyNonZero = r.value.find((b: any) => Math.abs(Number(b.balance)) > 0.01);
                 if (anyNonZero) {
-                  balancesMap[groupIdsWithExpenses[idx]] = Number(anyNonZero.balance);
+                  newBalances[gid] = Number(anyNonZero.balance);
                 }
               }
             }
           });
-          setGroupBalances(balancesMap);
-        } else {
-          setGroupBalances({});
+
+          setGroupBalances(newBalances);
+          setGroupBalanceArrays(newBalanceArrays);
         }
       } catch {
-        setError('Could not load spaces. Check your connection.');
+        /* ignore */
       } finally {
         setLoading(false);
         setRefreshing(false);
       }
     },
-    [accessToken],
+    [accessToken, user],
   );
 
   useFocusEffect(
@@ -303,52 +383,120 @@ export function SharedScreen() {
     }, [loadData]),
   );
 
-  useEffect(() => {
-    if (!loading) {
-      Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
-    }
-  }, [loading]);
+  const totalMembers = useMemo(() => {
+    const ids = new Set<string>();
+    groups.forEach((g) =>
+      (g.members || []).forEach((m: any) => {
+        if (m.userId) {
+          ids.add(m.userId);
+        }
+      }),
+    );
+    return ids.size;
+  }, [groups]);
 
-  const filteredGroups =
-    filter === 'all'
-      ? groups
-      : filter === 'other'
-        ? groups.filter(
-            (g: any) => !['couple', 'family', 'friends', 'trip', 'roommates'].includes(g.type),
-          )
-        : groups.filter((g: any) => g.type === filter);
-
-  const totalMembers = groups.reduce(
-    (s: number, g: any) => s + (g.members?.length || g._count?.members || 0),
-    0,
+  const activeCount = useMemo(
+    () =>
+      groups.filter((g: any) => {
+        const d = new Date(g.updatedAt || g.createdAt);
+        const now = new Date();
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      }).length,
+    [groups],
   );
 
-  const stats = [
-    { label: 'Total Spaces', value: String(groups.length), color: colors.accent.primary },
-    { label: 'Total Members', value: String(totalMembers), color: '#60A5FA' },
-    {
-      label: 'Pending',
-      value: String(groups.filter((g: any) => g.balance && g.balance !== 0).length),
-      color: '#F59E0B',
-    },
-    {
-      label: 'This Month',
-      value: String(
-        groups.filter((g: any) => {
-          const d = new Date(g.updatedAt || g.createdAt);
-          const now = new Date();
-          return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-        }).length,
-      ),
-      color: '#34C759',
-    },
-  ];
+  const pendingCount = useMemo(
+    () =>
+      groups.filter((g: any) => {
+        const b = groupBalances[g.id];
+        return b !== undefined && Math.abs(b) > 0;
+      }).length,
+    [groups, groupBalances],
+  );
+
+  const userName = user?.firstName || user?.email?.[0]?.toUpperCase() || 'User';
+
+  function handleFabPress() {
+    if (groups.length >= MAX_SPACES) {
+      Alert.alert(
+        'Upgrade Required',
+        `You've used all ${MAX_SPACES} spaces. Upgrade to create more.`,
+        [
+          { text: 'Not now', style: 'cancel' },
+          {
+            text: 'Upgrade',
+            onPress: () => navigation.navigate('Settings', { screen: 'Subscription' }),
+          },
+        ],
+      );
+      return;
+    }
+    setShowCreateModal(true);
+  }
+
+  async function handleCreateSpace() {
+    if (!newName.trim()) {
+      return;
+    }
+    if (groups.length >= MAX_SPACES) {
+      setShowCreateModal(false);
+      return;
+    }
+    setSaving(true);
+    try {
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      const body: any = { name: newName.trim(), type: newType.toLowerCase(), currency: 'INR' };
+      if (inviteEmail.trim()) {
+        body.inviteEmail = inviteEmail.trim();
+      }
+      const res = await api.post<any>('/shared-finance/groups', body);
+      const newGroupId = res?.id || res?._id;
+      resetModal();
+      if (newGroupId) {
+        navigation.navigate('SharedGroupDetail', {
+          groupId: newGroupId,
+          groupName: newName.trim(),
+        });
+      } else {
+        loadData(true);
+      }
+    } catch {
+      /* ignore */
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function resetModal() {
+    setShowCreateModal(false);
+    setNewName('');
+    setNewType('friends');
+    setInviteEmail('');
+  }
+
+  if (loading && groups.length === 0) {
+    return (
+      <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
+        <View style={{ paddingHorizontal: H_PADDING, paddingTop: insets.top + 12 }}>
+          <Skeleton width={140} height={14} borderRadius={6} />
+          <Skeleton width={180} height={22} style={{ marginTop: 4 }} borderRadius={6} />
+        </View>
+        <View style={{ marginTop: 24, gap: 16, paddingHorizontal: H_PADDING }}>
+          {[0, 1].map((i) => (
+            <Skeleton key={i} width="100%" height={210} borderRadius={20} />
+          ))}
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 120 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -356,427 +504,524 @@ export function SharedScreen() {
               setRefreshing(true);
               loadData(true);
             }}
-            tintColor="#14B8A6"
+            tintColor={colors.accent.primary}
           />
         }
       >
         {/* ─── Header ─── */}
-        <View style={[s.header, { paddingTop: insets.top + 16 }]}>
+        <View style={[s.headerSection, { paddingTop: insets.top + 12 }]}>
           <View style={s.headerRow}>
-            <View>
-              <Text style={[s.headerEyebrow, { color: colors.text.tertiary }]}>SPACES</Text>
-              <Text style={[s.headerTitle, { color: colors.text.primary }]}>Shared Spaces</Text>
-            </View>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('Profile')}
+              style={s.profileRow}
+            >
+              <View style={[s.avatar, { backgroundColor: colors.accent.primary }]}>
+                <Text style={s.avatarText}>{userInitial}</Text>
+              </View>
+              <View>
+                <Text style={[s.headerGreeting, { color: colors.text.tertiary }]}>
+                  Welcome back
+                </Text>
+                <Text style={[s.headerName, { color: colors.text.primary }]} numberOfLines={1}>
+                  {userName}
+                </Text>
+              </View>
+            </TouchableOpacity>
+            <View style={s.headerActions}>
+              {groups.length > 0 && (
+                <TouchableOpacity
+                  style={[s.iconBtn, { backgroundColor: `${colors.accent.primary}15` }]}
+                  onPress={handleFabPress}
+                >
+                  <Ionicons name="add" size={22} color={colors.accent.primary} />
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
-                style={s.templateBtn}
-                onPress={() => navigation.navigate('SplitTemplates')}
-                activeOpacity={0.8}
+                style={[s.iconBtn, { backgroundColor: `${colors.accent.primary}15` }]}
+                onPress={() => navigation.navigate('Settings')}
               >
-                <Ionicons name="layers-outline" size={20} color="#14B8A6" />
+                <Ionicons name="settings-outline" size={20} color={colors.accent.primary} />
               </TouchableOpacity>
               <TouchableOpacity
-                style={s.createBtn}
-                onPress={() => navigation.navigate('CreateSharedGroup')}
-                activeOpacity={0.8}
+                style={[s.upgradeBadge, { backgroundColor: `${colors.status.warning}18` }]}
+                onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}
               >
-                <Ionicons name="add" size={22} color="#FFF" />
+                <Ionicons name="diamond" size={12} color={colors.status.warning} />
+                <Text style={[s.upgradeBadgeText, { color: colors.status.warning }]}>Upgrade</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
 
-        <UpgradeBanner message="Create unlimited shared spaces with Premium" />
+        {/* ─── Section Title ─── */}
+        <View style={[s.sectionTitleRow, { paddingHorizontal: H_PADDING }]}>
+          <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Your Spaces</Text>
+          {groups.length > 0 && (
+            <Text style={[s.sectionCount, { color: colors.text.tertiary }]}>{groups.length}</Text>
+          )}
+        </View>
 
-        {/* ─── Loading ─── */}
-        {loading && (
-          <View style={{ paddingHorizontal: 20, gap: 10, marginTop: 4 }}>
-            <View style={{ flexDirection: 'row', gap: 10 }}>
-              {[1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} style={{ flex: 1 }} width="100%" height={60} borderRadius={14} />
-              ))}
-            </View>
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} width="100%" height={80} borderRadius={16} />
-            ))}
+        {/* ─── Spaces ─── */}
+        {groups.length > 0 ? (
+          <View style={{ paddingHorizontal: H_PADDING, gap: 16 }}>
+            {groups.map((group: any) => {
+              const cfg = SPACE_TYPE_CONFIG[group.type] || SPACE_TYPE_CONFIG.default;
+              return (
+                <GroupCard
+                  key={group.id}
+                  group={group}
+                  currentUserId={user?.id}
+                  colors={colors}
+                  userBalance={groupBalances[group.id]}
+                  balanceArray={groupBalanceArrays[group.id]}
+                  onPress={() => {
+                    if (group.type === 'couple') {
+                      navigation.navigate('CoupleFinance', {
+                        groupId: group.id,
+                        groupName: group.name,
+                      });
+                    } else if (group.type === 'family') {
+                      navigation.navigate('FamilyDashboard', {
+                        groupId: group.id,
+                        groupName: group.name,
+                      });
+                    } else {
+                      navigation.navigate('SharedGroupDetail', {
+                        groupId: group.id,
+                        groupName: group.name,
+                      });
+                    }
+                  }}
+                  onAddExpense={() => {
+                    navigation.navigate('SharedExpenseForm', { groupId: group.id, edit: false });
+                  }}
+                />
+              );
+            })}
           </View>
-        )}
-
-        {/* ─── Error ─── */}
-        {error && !loading && (
+        ) : (
           <View style={s.emptyWrap}>
-            <View style={[s.emptyIcon, { backgroundColor: 'rgba(255,69,69,0.12)' }]}>
-              <Ionicons name="cloud-offline-outline" size={36} color="#FF4545" />
+            <View style={[s.emptyIconWrap, { backgroundColor: `${colors.accent.primary}12` }]}>
+              <Ionicons name="grid-outline" size={44} color={colors.accent.primary} />
             </View>
-            <Text style={[s.emptyTitle, { color: '#FF4545' }]}>{error}</Text>
-            <TouchableOpacity style={s.emptyBtn} onPress={() => loadData()} activeOpacity={0.85}>
-              <Ionicons name="refresh-outline" size={18} color="#FFF" />
-              <Text style={s.emptyBtnText}>Try Again</Text>
+            <Text style={[s.emptyTitle, { color: colors.text.primary }]}>No spaces yet</Text>
+            <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>
+              Create a space to split expenses with your people
+            </Text>
+            <TouchableOpacity
+              style={[s.emptyCta, { backgroundColor: colors.accent.primary }]}
+              onPress={() => setShowCreateModal(true)}
+            >
+              <Ionicons name="add" size={18} color="#FFF" />
+              <Text style={s.emptyCtaText}>Create Space</Text>
             </TouchableOpacity>
           </View>
         )}
 
-        {/* ─── Content ─── */}
-        {!loading && !error && (
-          <Animated.View style={{ opacity: fadeAnim }}>
-            {/* Stats Row */}
-            {groups.length > 0 && (
-              <View style={s.statsRow}>
-                {stats.map((stat, idx) => (
-                  <View key={idx} style={[s.statCard, { backgroundColor: colors.bg.card }]}>
-                    <Text style={[s.statValue, { color: stat.color }]}>{stat.value}</Text>
-                    <Text style={[s.statLabel, { color: colors.text.tertiary }]}>{stat.label}</Text>
+        {/* ─── Footer: Usage + Stats ─── */}
+        {groups.length > 0 && (
+          <View style={{ paddingHorizontal: H_PADDING, marginTop: 28 }}>
+            <View
+              style={[
+                s.statsCard,
+                { backgroundColor: colors.bg.card, borderColor: colors.border.default },
+              ]}
+            >
+              <View style={s.usageRow}>
+                <View style={s.usageLeft}>
+                  <View style={[s.usageBar, { backgroundColor: colors.bg.tertiary }]}>
+                    <View
+                      style={[
+                        s.usageFill,
+                        {
+                          width: `${(groups.length / MAX_SPACES) * 100}%`,
+                          backgroundColor:
+                            groups.length >= MAX_SPACES - 1
+                              ? colors.status.warning
+                              : colors.accent.primary,
+                        },
+                      ]}
+                    />
                   </View>
-                ))}
+                  <Text style={[s.usageText, { color: colors.text.secondary }]}>
+                    {groups.length} of {MAX_SPACES} spaces used
+                  </Text>
+                </View>
               </View>
-            )}
 
-            {/* Filter Chips */}
-            {groups.length > 0 && (
+              <View style={[s.statsDivider, { backgroundColor: colors.border.subtle }]} />
+              <View style={s.statsRow}>
+                <View style={s.statItem}>
+                  <Text style={[s.statValue, { color: colors.text.primary }]}>{totalMembers}</Text>
+                  <Text style={[s.statLabel, { color: colors.text.tertiary }]}>Members</Text>
+                </View>
+                <View style={[s.statDot, { backgroundColor: colors.border.default }]} />
+                <View style={s.statItem}>
+                  <Text style={[s.statValue, { color: colors.text.primary }]}>{activeCount}</Text>
+                  <Text style={[s.statLabel, { color: colors.text.tertiary }]}>Active</Text>
+                </View>
+                <View style={[s.statDot, { backgroundColor: colors.border.default }]} />
+                <View style={s.statItem}>
+                  <Text style={[s.statValue, { color: colors.status.warning }]}>
+                    {pendingCount}
+                  </Text>
+                  <Text style={[s.statLabel, { color: colors.text.tertiary }]}>Pending</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
+      </ScrollView>
+
+      {/* ─── Create Modal ─── */}
+      <Modal
+        visible={showCreateModal}
+        transparent
+        animationType="slide"
+        onRequestClose={resetModal}
+      >
+        <View style={[mod.overlay, { backgroundColor: 'rgba(0,0,0,0.45)' }]}>
+          <View style={[mod.sheet, { backgroundColor: colors.bg.primary }]}>
+            <View style={[mod.handle, { backgroundColor: colors.border.default }]} />
+            <Text style={[mod.title, { color: colors.text.primary }]}>New Space</Text>
+
+            <View style={mod.field}>
+              <Text style={[mod.label, { color: colors.text.tertiary }]}>Name</Text>
+              <TextInput
+                style={[
+                  mod.input,
+                  {
+                    backgroundColor: colors.bg.card,
+                    borderColor: colors.border.default,
+                    color: colors.text.primary,
+                  },
+                ]}
+                value={newName}
+                onChangeText={setNewName}
+                placeholder="e.g. Goa Trip 2025"
+                placeholderTextColor={colors.text.tertiary}
+                autoFocus
+              />
+            </View>
+
+            <View style={mod.field}>
+              <Text style={[mod.label, { color: colors.text.tertiary }]}>Type</Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={s.filterRow}
+                contentContainerStyle={mod.typeRow}
               >
-                {ALL_TYPES.map((type) => {
-                  const count =
-                    type === 'all'
-                      ? groups.length
-                      : type === 'other'
-                        ? groups.filter(
-                            (g: any) =>
-                              !['couple', 'family', 'friends', 'trip', 'roommates'].includes(
-                                g.type,
-                              ),
-                          ).length
-                        : groups.filter((g: any) => g.type === type).length;
-                  if (count === 0 && type !== 'all') {
-                    return null;
-                  }
-                  const active = filter === type;
-                  const chipColor = FILTER_COLORS[type] || '#8E8E93';
-                  return (
-                    <TouchableOpacity
-                      key={type}
-                      style={[
-                        s.filterChip,
-                        active
-                          ? { backgroundColor: chipColor }
-                          : { backgroundColor: colors.bg.tertiary },
-                      ]}
-                      onPress={() => setFilter(type)}
-                      activeOpacity={0.75}
-                    >
-                      <Text
+                {Object.entries(SPACE_TYPE_CONFIG)
+                  .filter(([k]) => k !== 'default')
+                  .map(([key, cfg]) => {
+                    const active = newType === key;
+                    return (
+                      <TouchableOpacity
+                        key={key}
                         style={[
-                          s.filterChipText,
-                          { color: active ? '#FFF' : colors.text.secondary },
-                        ]}
-                      >
-                        {type === 'all' ? 'All' : type.charAt(0).toUpperCase() + type.slice(1)}
-                      </Text>
-                      <View
-                        style={[
-                          s.filterChipCount,
+                          mod.typeChip,
                           {
-                            backgroundColor: active
-                              ? 'rgba(255,255,255,0.2)'
-                              : 'rgba(255,255,255,0.08)',
+                            borderColor: active ? cfg.gradient[0] : colors.border.default,
+                            backgroundColor: active ? `${cfg.gradient[0]}1A` : colors.bg.card,
                           },
                         ]}
+                        onPress={() => setNewType(key)}
                       >
+                        <Ionicons
+                          name={cfg.icon as any}
+                          size={16}
+                          color={active ? cfg.gradient[0] : colors.text.tertiary}
+                        />
                         <Text
                           style={[
-                            s.filterChipCountText,
-                            { color: active ? '#FFF' : colors.text.tertiary },
+                            mod.typeChipText,
+                            { color: active ? cfg.gradient[0] : colors.text.secondary },
                           ]}
                         >
-                          {count}
+                          {cfg.label}
                         </Text>
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
+                      </TouchableOpacity>
+                    );
+                  })}
               </ScrollView>
-            )}
+            </View>
 
-            {/* Empty State */}
-            {groups.length === 0 && (
-              <View style={s.emptyWrap}>
-                <View style={[s.emptyIcon, { backgroundColor: 'rgba(20,184,166,0.12)' }]}>
-                  <Ionicons name="layers-outline" size={36} color="#14B8A6" />
-                </View>
-                <Text style={[s.emptyTitle, { color: colors.text.primary }]}>
-                  No shared spaces yet
-                </Text>
-                <Text style={[s.emptySub, { color: colors.text.secondary }]}>
-                  Create a space to split expenses with your people
-                </Text>
-                <TouchableOpacity
-                  style={s.emptyBtn}
-                  onPress={() => navigation.navigate('CreateSharedGroup')}
-                  activeOpacity={0.85}
-                >
-                  <Ionicons name="add" size={18} color="#FFF" />
-                  <Text style={s.emptyBtnText}>Create your first space</Text>
-                </TouchableOpacity>
+            <View style={mod.field}>
+              <Text style={[mod.label, { color: colors.text.tertiary }]}>
+                Invite Member (optional)
+              </Text>
+              <View
+                style={[
+                  mod.inviteRow,
+                  { backgroundColor: colors.bg.card, borderColor: colors.border.default },
+                ]}
+              >
+                <Ionicons name="person-add-outline" size={18} color={colors.text.tertiary} />
+                <TextInput
+                  style={[mod.inviteInput, { color: colors.text.primary }]}
+                  value={inviteEmail}
+                  onChangeText={setInviteEmail}
+                  placeholder="Email address"
+                  placeholderTextColor={colors.text.tertiary}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
               </View>
-            )}
+            </View>
 
-            {/* Groups List */}
-            {filteredGroups.length > 0 && (
-              <View style={{ paddingHorizontal: 20, gap: 10 }}>
-                {filteredGroups.map((group: any) => {
-                  const cfg = TYPE_CONFIG[group.type] || TYPE_CONFIG.default;
-                  return (
-                    <GroupCard
-                      key={group.id}
-                      group={group}
-                      themeColor={cfg.color}
-                      netBalance={groupBalances[group.id]}
-                      onPress={() => {
-                        if (group.type === 'couple') {
-                          navigation.navigate('CoupleFinance', {
-                            groupId: group.id,
-                            groupName: group.name,
-                          });
-                        } else if (group.type === 'family') {
-                          navigation.navigate('FamilyDashboard', {
-                            groupId: group.id,
-                            groupName: group.name,
-                          });
-                        } else {
-                          navigation.navigate('SharedGroupDetail', {
-                            groupId: group.id,
-                            groupName: group.name,
-                          });
-                        }
-                      }}
-                    />
-                  );
-                })}
-              </View>
-            )}
-
-            {/* No results for filter */}
-            {groups.length > 0 && filteredGroups.length === 0 && (
-              <View style={[s.emptyWrap, { paddingTop: 20 }]}>
-                <Text style={[s.emptySub, { color: colors.text.secondary }]}>
-                  No spaces match this filter
-                </Text>
-              </View>
-            )}
-
-            {/* Create New */}
-            {groups.length > 0 && (
+            <View style={mod.actionRow}>
+              <TouchableOpacity
+                style={[mod.cancelBtn, { borderColor: colors.border.default }]}
+                onPress={resetModal}
+              >
+                <Text style={[mod.cancelBtnText, { color: colors.text.secondary }]}>Cancel</Text>
+              </TouchableOpacity>
               <TouchableOpacity
                 style={[
-                  s.createCard,
+                  mod.submitBtn,
                   {
-                    borderColor: `${colors.accent.primary}40`,
-                    backgroundColor: `${colors.accent.primary}05`,
+                    backgroundColor: colors.accent.primary,
+                    opacity: saving || !newName.trim() ? 0.5 : 1,
                   },
                 ]}
-                onPress={() => navigation.navigate('CreateSharedGroup')}
-                activeOpacity={0.7}
+                onPress={handleCreateSpace}
+                disabled={saving || !newName.trim()}
               >
-                <View style={[s.createIconWrap, { backgroundColor: `${colors.accent.primary}18` }]}>
-                  <Ionicons name="add" size={22} color={colors.accent.primary} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[s.createLabel, { color: colors.text.primary }]}>
-                    Create New Space
-                  </Text>
-                  <Text style={[s.createSub, { color: colors.text.secondary }]}>
-                    Split expenses with friends, family or roommates
-                  </Text>
-                </View>
-                <Ionicons name="arrow-forward" size={18} color={colors.accent.primary} />
+                {saving ? (
+                  <ActivityIndicator color="#FFF" size="small" />
+                ) : (
+                  <>
+                    <Ionicons name="add" size={18} color="#FFF" />
+                    <Text style={mod.submitBtnText}>Create</Text>
+                  </>
+                )}
               </TouchableOpacity>
-            )}
-          </Animated.View>
-        )}
-      </ScrollView>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
 const s = StyleSheet.create({
   screen: { flex: 1 },
-
-  /* Header */
-  header: { paddingHorizontal: 20, paddingBottom: 8 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  headerEyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 2 },
-  headerTitle: { fontSize: 30, fontWeight: '800', letterSpacing: -0.5 },
-  templateBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
-    backgroundColor: 'rgba(20,184,166,0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(20,184,166,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  createBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
-    backgroundColor: '#14B8A6',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#14B8A6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 6,
-  },
-
-  /* Stats */
-  statsRow: { flexDirection: 'row', paddingHorizontal: 20, gap: 8, marginTop: 12, marginBottom: 8 },
-  statCard: {
-    flex: 1,
-    borderRadius: 14,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    alignItems: 'center',
-    gap: 2,
-  },
-  statValue: { fontSize: 18, fontWeight: '800' },
-  statLabel: { fontSize: 9, fontWeight: '600', letterSpacing: 0.2, textTransform: 'uppercase' },
-
-  /* Filter */
-  filterRow: { paddingHorizontal: 20, gap: 8, marginBottom: 16, paddingVertical: 4 },
-  filterChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  filterChipText: { fontSize: 13, fontWeight: '600' },
-  filterChipCount: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8 },
-  filterChipCountText: { fontSize: 11, fontWeight: '700' },
-
-  /* Group Card */
-  groupCard: {
-    marginHorizontal: 16,
-    marginBottom: 12,
-    borderRadius: 18,
-    borderWidth: 1,
-    minHeight: 80,
-    padding: 16,
-  },
-  groupInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  groupLeft: {
-    flex: 1,
-    marginRight: 12,
-  },
-  groupName: { fontSize: 16, fontWeight: '700', marginBottom: 2 },
-  memberBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: 3,
-  },
-  memberCountText: { fontSize: 12, fontWeight: '500' },
-  memberActivity: { fontSize: 11, fontWeight: '400' },
-  metaDot: { width: 3, height: 3, borderRadius: 1.5 },
-
-  /* Avatar Cluster */
-  avatarCluster: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 10,
-  },
-  avatarCircle: {
-    width: 28,
-    height: 28,
+  headerSection: { paddingHorizontal: H_PADDING, paddingBottom: 4 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  profileRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  avatar: {
+    width: 40,
+    height: 40,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
   },
-  avatarLetter: { fontSize: 11, fontWeight: '600' },
-  overflowBadge: { borderWidth: 1.5 },
-  overflowText: { fontSize: 10, fontWeight: '700' },
-
-  /* Right side */
-  groupRight: { alignItems: 'flex-end' },
-  balanceRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  progressRing: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
+  avatarText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  headerGreeting: { fontSize: 11, fontWeight: '500', marginBottom: 1 },
+  headerName: { fontSize: 18, fontWeight: '700', maxWidth: 160 },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  iconBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    overflow: 'hidden',
+    justifyContent: 'center',
   },
-  progressFill: {
-    width: '100%',
-    borderRadius: 0,
-  },
-  balanceText: { fontSize: 16, fontWeight: '800' },
-  typeBadge: {
+  upgradeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    marginTop: 4,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
-  typeDot: { width: 5, height: 5, borderRadius: 2.5 },
-  typeBadgeText: { fontSize: 11, fontWeight: '700' },
-
-  /* Empty */
-  emptyWrap: { alignItems: 'center', paddingHorizontal: 32, paddingTop: 40 },
-  emptyIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 28,
+  upgradeBadgeText: { fontSize: 12, fontWeight: '700' },
+  sectionTitleRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
     marginBottom: 16,
   },
-  emptyTitle: { fontSize: 20, fontWeight: '700', marginBottom: 6 },
-  emptySub: { fontSize: 14, textAlign: 'center', lineHeight: 20, marginBottom: 20 },
-  emptyBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#14B8A6',
-    paddingHorizontal: 22,
-    paddingVertical: 13,
-    borderRadius: 14,
-  },
-  emptyBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
-
-  /* Create Card */
-  createCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: 20,
-    marginTop: 20,
-    padding: 14,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    gap: 12,
-  },
-  createIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+  sectionTitle: { fontSize: 20, fontWeight: '800' },
+  sectionCount: { fontSize: 14, fontWeight: '600' },
+  emptyWrap: { alignItems: 'center', gap: 12, paddingTop: 80, paddingHorizontal: H_PADDING },
+  emptyIconWrap: {
+    width: 80,
+    height: 80,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  createLabel: { fontSize: 15, fontWeight: '700' },
-  createSub: { fontSize: 12, fontWeight: '500', marginTop: 1 },
+  emptyTitle: { fontSize: 18, fontWeight: '700' },
+  emptyDesc: { fontSize: 13, textAlign: 'center', paddingHorizontal: 32, lineHeight: 18 },
+  emptyCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 22,
+    paddingVertical: 14,
+    borderRadius: 16,
+    marginTop: 8,
+  },
+  emptyCtaText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+  statsCard: { borderRadius: 16, borderWidth: 1, padding: 16 },
+  usageRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  usageLeft: { flex: 1, gap: 6 },
+  usageBar: { height: 5, borderRadius: 3, overflow: 'hidden' },
+  usageFill: { height: '100%', borderRadius: 3 },
+  usageText: { fontSize: 12, fontWeight: '500' },
+  statsDivider: { height: 1, marginVertical: 14 },
+  statsRow: { flexDirection: 'row', alignItems: 'center' },
+  statItem: { flex: 1, alignItems: 'center', gap: 2 },
+  statValue: { fontSize: 18, fontWeight: '800' },
+  statLabel: { fontSize: 11, fontWeight: '500' },
+  statDot: { width: 4, height: 4, borderRadius: 2 },
+});
+
+const gCard = StyleSheet.create({
+  outer: {
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  card: { borderRadius: 20, overflow: 'hidden' },
+  cover: { height: 106 },
+  coverOverlay: { flex: 1, padding: 16, justifyContent: 'flex-end' },
+  coverTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    position: 'absolute',
+    top: 12,
+    left: 16,
+    right: 16,
+  },
+  coverIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  typeBadge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 7 },
+  typeBadgeText: { color: '#FFF', fontSize: 11, fontWeight: '700' },
+  coverName: { fontSize: 18, fontWeight: '800', color: '#FFF' },
+  coverTime: { fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
+  body: { padding: 16 },
+  memberRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  memberCount: { fontSize: 12, fontWeight: '500' },
+  dividerLine: { height: 1, marginVertical: 12 },
+  balanceSection: { gap: 4 },
+  balanceLabel: { fontSize: 15, fontWeight: '700' },
+  settlementRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  settlementDot: { width: 6, height: 6, borderRadius: 3 },
+  settlementText: { fontSize: 12, fontWeight: '500' },
+  emptyText: { fontSize: 13, fontWeight: '500', fontStyle: 'italic' },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 12,
+  },
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 12,
+  },
+  actionBtnText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
+  spentBadge: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  spentLabel: { fontSize: 11, fontWeight: '500' },
+  spentValue: { fontSize: 14, fontWeight: '700' },
+});
+
+const cs = StyleSheet.create({
+  avatarRow: { flexDirection: 'row', alignItems: 'center' },
+  avatar: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#FFF',
+  },
+  avatarText: { color: '#FFF', fontSize: 11, fontWeight: '700' },
+});
+
+const mod = StyleSheet.create({
+  overlay: { flex: 1, justifyContent: 'flex-end' },
+  sheet: {
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 40,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+  },
+  handle: { width: 40, height: 4, borderRadius: 2, alignSelf: 'center', marginBottom: 20 },
+  title: { fontSize: 22, fontWeight: '800', marginBottom: 20 },
+  field: { marginBottom: 16 },
+  label: {
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginBottom: 6,
+  },
+  input: {
+    minHeight: 50,
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  typeRow: { gap: 8, paddingVertical: 4 },
+  typeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  typeChipText: { fontSize: 13, fontWeight: '600' },
+  inviteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    minHeight: 50,
+  },
+  inviteInput: { flex: 1, fontSize: 15, fontWeight: '500', paddingVertical: 12 },
+  actionRow: { flexDirection: 'row', gap: 10, marginTop: 8 },
+  cancelBtn: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  cancelBtnText: { fontSize: 15, fontWeight: '700' },
+  submitBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 14,
+    borderRadius: 14,
+  },
+  submitBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
 });

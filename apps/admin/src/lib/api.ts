@@ -47,6 +47,7 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
+  avatarUrl?: string | null;
   isActive: boolean;
   isEmailVerified: boolean;
   role: string;

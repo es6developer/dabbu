@@ -89,7 +89,7 @@ export function ExpenseTabNavigator() {
               },
             ]}
           >
-            <View style={s.segGradient} />
+            <View style={[s.segGradient, { backgroundColor: colors.accent.primary }]} />
           </Animated.View>
           {SEGMENTS.map((label, i) => (
             <TouchableOpacity

@@ -60,40 +60,43 @@ export function PremiumFormScreen({
           ]}
         >
           {!hideClose && (
-            <TouchableOpacity
-              onPress={onClose || (() => navigation.goBack())}
-              style={[
-                styles.closeButton,
-                {
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(10,10,15,0.05)',
-                  borderColor: colors.border.subtle,
-                },
-              ]}
-              activeOpacity={0.75}
-            >
-              <Ionicons name={closeIcon} size={21} color={colors.text.primary} />
-            </TouchableOpacity>
+            <View style={[styles.navbar, { borderBottomColor: colors.border.subtle }]}>
+              <TouchableOpacity
+                onPress={onClose || (() => navigation.goBack())}
+                style={[
+                  styles.navBackBtn,
+                  { backgroundColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(10,10,15,0.05)' },
+                ]}
+                activeOpacity={0.75}
+              >
+                <Ionicons name="chevron-back" size={20} color={colors.text.primary} />
+              </TouchableOpacity>
+              <Text style={[styles.navTitle, { color: colors.text.primary }]} numberOfLines={1}>
+                {title}
+              </Text>
+              <View style={{ width: 36 }} />
+            </View>
           )}
 
           <View style={styles.hero}>
             <View style={styles.heroTop}>
-              <View style={styles.heroIcon}>
-                <Ionicons name={icon} size={24} color="#FFFFFF" />
+              <View style={[styles.heroIcon, { backgroundColor: `${colors.accent.primary}30` }]}>
+                <Ionicons name={icon} size={24} color={colors.text.primary} />
               </View>
-              <View style={styles.heroPill}>
-                <Text style={styles.heroPillText}>Dabbu</Text>
+              <View style={[styles.heroPill, { backgroundColor: `${colors.accent.primary}20` }]}>
+                <Text style={[styles.heroPillText, { color: colors.accent.primary }]}>Dabbu</Text>
               </View>
             </View>
-            <Text style={styles.heroTitle}>{title}</Text>
-            <Text style={styles.heroSubtitle}>{subtitle}</Text>
+            <Text style={[styles.heroTitle, { color: colors.text.primary }]}>{title}</Text>
+            <Text style={[styles.heroSubtitle, { color: colors.text.secondary }]}>{subtitle}</Text>
           </View>
 
           <View
             style={[
               styles.formPanel,
               {
-                backgroundColor: isDark ? 'rgba(255,255,255,0.045)' : 'rgba(255,255,255,0.82)',
-                borderColor: colors.border.subtle,
+                backgroundColor: colors.bg.card,
+                borderColor: colors.border.default,
               },
             ]}
           >
@@ -135,7 +138,7 @@ export function PremiumInput({
         style={[
           styles.inputShell,
           multiline && styles.inputShellMultiline,
-          { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+          { backgroundColor: colors.bg.card, borderColor: colors.border.default },
         ]}
       >
         {icon ? (
@@ -183,7 +186,7 @@ export function PremiumAmountInput({
       <View
         style={[
           styles.amountShell,
-          { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+          { backgroundColor: colors.bg.card, borderColor: colors.border.default },
         ]}
       >
         <Text style={[styles.amountSymbol, { color: colors.text.primary }]}>{symbol}</Text>
@@ -214,7 +217,7 @@ export function PremiumChip({ label, selected, icon, onPress }: PremiumChipProps
       activeOpacity={0.75}
       style={[
         styles.chip,
-        { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+        { backgroundColor: colors.bg.card, borderColor: colors.border.default },
         selected && {
           backgroundColor: `${colors.accent.primary}1F`,
           borderColor: colors.accent.primary,
@@ -318,14 +321,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingBottom: 72,
   },
-  closeButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
-    borderWidth: 1,
+  navbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingBottom: 12,
+    marginBottom: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  navBackBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+  },
+  navTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    flex: 1,
+    textAlign: 'center',
   },
   hero: {
     borderRadius: 24,
@@ -343,7 +358,6 @@ const styles = StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: 15,
-    backgroundColor: 'rgba(255,255,255,0.18)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -351,22 +365,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 11,
     paddingVertical: 6,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.16)',
   },
   heroPillText: {
-    color: '#FFFFFF',
     fontSize: 11,
     fontWeight: '800',
   },
   heroTitle: {
-    color: '#FFFFFF',
     fontSize: 28,
     lineHeight: 34,
     fontWeight: '800',
     marginBottom: 7,
   },
   heroSubtitle: {
-    color: 'rgba(255,255,255,0.78)',
     fontSize: 14,
     lineHeight: 20,
     fontWeight: '500',

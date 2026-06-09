@@ -272,8 +272,8 @@ export function CreateExpenseGroupScreen() {
                 style={[
                   styles.iconBtn,
                   {
-                    borderColor: active ? ic.color : colors.border.subtle,
-                    backgroundColor: active ? `${ic.color}1A` : colors.bg.tertiary,
+                    borderColor: active ? ic.color : colors.border.default,
+                    backgroundColor: active ? `${ic.color}1A` : colors.bg.card,
                   },
                 ]}
                 onPress={() => setIcon(ic.key)}
@@ -309,7 +309,7 @@ export function CreateExpenseGroupScreen() {
             <View
               style={[
                 styles.memberRow,
-                { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+                { backgroundColor: colors.bg.card, borderColor: colors.border.default },
               ]}
             >
               <Text style={[styles.countryCode, { color: colors.text.tertiary }]}>
@@ -345,13 +345,13 @@ export function CreateExpenseGroupScreen() {
               <View
                 style={[
                   styles.suggestions,
-                  { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+                  { backgroundColor: colors.bg.card, borderColor: colors.border.default },
                 ]}
               >
                 {searchResults[index].map((user: any) => (
                   <TouchableOpacity
                     key={user.id}
-                    style={[styles.suggestionRow, { borderBottomColor: colors.border.subtle }]}
+                    style={[styles.suggestionRow, { borderBottomColor: colors.border.default }]}
                     onPress={() => selectUser(index, user)}
                   >
                     <View
@@ -393,7 +393,7 @@ export function CreateExpenseGroupScreen() {
       <View
         style={[
           styles.recurringCard,
-          { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+          { backgroundColor: colors.bg.card, borderColor: colors.border.default },
         ]}
       >
         <View style={styles.recurringHeader}>
@@ -408,7 +408,7 @@ export function CreateExpenseGroupScreen() {
           <Switch
             value={pullRecurring}
             onValueChange={setPullRecurring}
-            trackColor={{ false: 'rgba(255,255,255,0.12)', true: '#8B5CF6' }}
+            trackColor={{ false: colors.border.default, true: colors.accent.primary }}
             thumbColor="#FFFFFF"
           />
         </View>

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Search, MoreHorizontal, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn, formatDate } from '@/lib/utils';
 import { listUsers, updateUserStatus, deleteUser } from '@/lib/api';
 import type { User } from '@/lib/api';
@@ -116,9 +117,17 @@ export default function UsersPage() {
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-dabbu-500/10 flex items-center justify-center text-xs font-medium text-dabbu-500">
-                            {(user.firstName?.[0] || '') + (user.lastName?.[0] || '')}
-                          </div>
+                          <Avatar size="sm">
+                            {user.avatarUrl && (
+                              <AvatarImage
+                                src={user.avatarUrl}
+                                alt={`${user.firstName} ${user.lastName}`}
+                              />
+                            )}
+                            <AvatarFallback className="bg-dabbu-500/10 text-dabbu-500 text-xs">
+                              {(user.firstName?.[0] || '') + (user.lastName?.[0] || '')}
+                            </AvatarFallback>
+                          </Avatar>
                           <div>
                             <p className="text-sm font-medium">
                               <Link

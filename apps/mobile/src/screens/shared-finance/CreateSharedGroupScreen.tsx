@@ -118,8 +118,8 @@ export function CreateSharedGroupScreen() {
                 style={[
                   styles.typeChip,
                   {
-                    borderColor: active ? t.color : colors.border.subtle,
-                    backgroundColor: active ? `${t.color}1A` : colors.bg.tertiary,
+                    borderColor: active ? t.color : colors.border.default,
+                    backgroundColor: active ? `${t.color}1A` : colors.bg.card,
                   },
                 ]}
                 onPress={() => setType(t.key)}
@@ -156,7 +156,7 @@ export function CreateSharedGroupScreen() {
           <View
             style={[
               styles.phoneRow,
-              { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+              { backgroundColor: colors.bg.card, borderColor: colors.border.default },
             ]}
           >
             <Text style={[styles.countryCode, { color: colors.text.tertiary }]}>+91</Text>

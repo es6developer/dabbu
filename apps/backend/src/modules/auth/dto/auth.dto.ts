@@ -193,6 +193,13 @@ export class ChangePasswordDto {
   newPassword: string;
 }
 
+export class SelectPresetAvatarDto {
+  @ApiProperty({ description: 'Preset seed identifier (e.g. "dabbu-sunny")' })
+  @IsString()
+  @IsNotEmpty()
+  seed: string;
+}
+
 export class SetupLockDto {
   @ApiPropertyOptional({ description: '4-digit app PIN (null/omit to remove)' })
   @IsString()

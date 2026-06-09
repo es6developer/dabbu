@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { Avatar } from '../../components/ui/Avatar';
 import { PADDING, borderRadius, shadows } from '../../theme/design';
 
 export function ProfileScreen() {
@@ -128,7 +129,6 @@ export function ProfileScreen() {
     );
   }
 
-  const initials = [user?.firstName?.[0], user?.lastName?.[0]].filter(Boolean).join('') || 'U';
   const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || 'User';
 
   return (
@@ -190,27 +190,11 @@ export function ProfileScreen() {
               {/* Avatar */}
               <View style={{ alignItems: 'center', marginBottom: 28 }}>
                 <View style={{ position: 'relative', marginBottom: 12 }}>
-                  <View
-                    style={{
-                      width: 100,
-                      height: 100,
-                      borderRadius: 28,
-                      backgroundColor: `${colors.accent.primary}15`,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color: colors.accent.primary,
-                        fontSize: 38,
-                        fontWeight: '800',
-                        letterSpacing: -0.5,
-                      }}
-                    >
-                      {initials}
-                    </Text>
-                  </View>
+                  <Avatar
+                    uri={user?.avatarUrl}
+                    name={`${user?.firstName || ''} ${user?.lastName || ''}`}
+                    size={100}
+                  />
                   <TouchableOpacity
                     style={{
                       position: 'absolute',
@@ -226,6 +210,7 @@ export function ProfileScreen() {
                       shadowColor: colors.accent.primary,
                     }}
                     activeOpacity={0.8}
+                    onPress={() => navigation.navigate('AvatarPicker')}
                   >
                     <Ionicons name="camera" size={16} color="#FFFFFF" />
                   </TouchableOpacity>

@@ -9,6 +9,7 @@ export {
   QuickScrollCategoryGrid,
 } from './nds';
 export type { CategoryItem, PriceRow, PremiumTier, ParsedSms, QuickCategoryNode } from './nds';
+export { Avatar } from './Avatar';
 export { Button } from './Button';
 export { Card } from './Card';
 export { EmptyState } from './EmptyState';
