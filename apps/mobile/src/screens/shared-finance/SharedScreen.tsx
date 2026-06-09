@@ -10,6 +10,10 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -683,125 +687,154 @@ export function SharedScreen() {
         animationType="slide"
         onRequestClose={resetModal}
       >
-        <View style={[mod.overlay, { backgroundColor: 'rgba(0,0,0,0.45)' }]}>
-          <View style={[mod.sheet, { backgroundColor: colors.bg.primary }]}>
-            <View style={[mod.handle, { backgroundColor: colors.border.default }]} />
-            <Text style={[mod.title, { color: colors.text.primary }]}>New Space</Text>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={[mod.overlay, { backgroundColor: 'rgba(0,0,0,0.45)' }]}>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+              keyboardVerticalOffset={Platform.OS === 'ios' ? -20 : 0}
+              style={{ justifyContent: 'flex-end' }}
+            >
+              <TouchableWithoutFeedback onPress={() => {}}>
+                <View style={[mod.sheet, { backgroundColor: colors.bg.primary }]}>
+                  <View style={[mod.handle, { backgroundColor: colors.border.default }]} />
+                  <Text style={[mod.title, { color: colors.text.primary }]}>New Space</Text>
 
-            <View style={mod.field}>
-              <Text style={[mod.label, { color: colors.text.tertiary }]}>Name</Text>
-              <TextInput
-                style={[
-                  mod.input,
-                  {
-                    backgroundColor: colors.bg.card,
-                    borderColor: colors.border.default,
-                    color: colors.text.primary,
-                  },
-                ]}
-                value={newName}
-                onChangeText={setNewName}
-                placeholder="e.g. Goa Trip 2025"
-                placeholderTextColor={colors.text.tertiary}
-                autoFocus
-              />
-            </View>
-
-            <View style={mod.field}>
-              <Text style={[mod.label, { color: colors.text.tertiary }]}>Type</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={mod.typeRow}
-              >
-                {Object.entries(SPACE_TYPE_CONFIG)
-                  .filter(([k]) => k !== 'default')
-                  .map(([key, cfg]) => {
-                    const active = newType === key;
-                    return (
-                      <TouchableOpacity
-                        key={key}
+                  <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                    contentContainerStyle={{ paddingBottom: 8 }}
+                  >
+                    <View style={mod.field}>
+                      <Text style={[mod.label, { color: colors.text.tertiary }]}>Name</Text>
+                      <TextInput
                         style={[
-                          mod.typeChip,
+                          mod.input,
                           {
-                            borderColor: active ? cfg.gradient[0] : colors.border.default,
-                            backgroundColor: active ? `${cfg.gradient[0]}1A` : colors.bg.card,
+                            backgroundColor: colors.bg.card,
+                            borderColor: colors.border.default,
+                            color: colors.text.primary,
                           },
                         ]}
-                        onPress={() => setNewType(key)}
+                        value={newName}
+                        onChangeText={setNewName}
+                        placeholder="e.g. Goa Trip 2025"
+                        placeholderTextColor={colors.text.tertiary}
+                      />
+                    </View>
+
+                    <View style={mod.field}>
+                      <Text style={[mod.label, { color: colors.text.tertiary }]}>Type</Text>
+                      <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={mod.typeRow}
+                      >
+                        {Object.entries(SPACE_TYPE_CONFIG)
+                          .filter(([k]) => k !== 'default')
+                          .map(([key, cfg]) => {
+                            const active = newType === key;
+                            return (
+                              <TouchableOpacity
+                                key={key}
+                                style={[
+                                  mod.typeChip,
+                                  {
+                                    borderColor: active ? cfg.gradient[0] : colors.border.default,
+                                    backgroundColor: active
+                                      ? `${cfg.gradient[0]}1A`
+                                      : colors.bg.card,
+                                  },
+                                ]}
+                                onPress={() => setNewType(key)}
+                              >
+                                <Ionicons
+                                  name={cfg.icon as any}
+                                  size={16}
+                                  color={active ? cfg.gradient[0] : colors.text.tertiary}
+                                />
+                                <Text
+                                  style={[
+                                    mod.typeChipText,
+                                    { color: active ? cfg.gradient[0] : colors.text.secondary },
+                                  ]}
+                                >
+                                  {cfg.label}
+                                </Text>
+                              </TouchableOpacity>
+                            );
+                          })}
+                      </ScrollView>
+                    </View>
+
+                    <View style={mod.field}>
+                      <Text style={[mod.label, { color: colors.text.tertiary }]}>
+                        Invite Member (optional)
+                      </Text>
+                      <View
+                        style={[
+                          mod.inviteRow,
+                          { backgroundColor: colors.bg.card, borderColor: colors.border.default },
+                        ]}
                       >
                         <Ionicons
-                          name={cfg.icon as any}
-                          size={16}
-                          color={active ? cfg.gradient[0] : colors.text.tertiary}
+                          name="person-add-outline"
+                          size={18}
+                          color={colors.text.tertiary}
                         />
-                        <Text
-                          style={[
-                            mod.typeChipText,
-                            { color: active ? cfg.gradient[0] : colors.text.secondary },
-                          ]}
-                        >
-                          {cfg.label}
+                        <TextInput
+                          style={[mod.inviteInput, { color: colors.text.primary }]}
+                          value={inviteEmail}
+                          onChangeText={setInviteEmail}
+                          placeholder="Email address"
+                          placeholderTextColor={colors.text.tertiary}
+                          keyboardType="email-address"
+                          autoCapitalize="none"
+                        />
+                      </View>
+                    </View>
+
+                    <View style={mod.actionRow}>
+                      <TouchableOpacity
+                        style={[mod.cancelBtn, { borderColor: colors.border.default }]}
+                        onPress={() => {
+                          resetModal();
+                          Keyboard.dismiss();
+                        }}
+                      >
+                        <Text style={[mod.cancelBtnText, { color: colors.text.secondary }]}>
+                          Cancel
                         </Text>
                       </TouchableOpacity>
-                    );
-                  })}
-              </ScrollView>
-            </View>
-
-            <View style={mod.field}>
-              <Text style={[mod.label, { color: colors.text.tertiary }]}>
-                Invite Member (optional)
-              </Text>
-              <View
-                style={[
-                  mod.inviteRow,
-                  { backgroundColor: colors.bg.card, borderColor: colors.border.default },
-                ]}
-              >
-                <Ionicons name="person-add-outline" size={18} color={colors.text.tertiary} />
-                <TextInput
-                  style={[mod.inviteInput, { color: colors.text.primary }]}
-                  value={inviteEmail}
-                  onChangeText={setInviteEmail}
-                  placeholder="Email address"
-                  placeholderTextColor={colors.text.tertiary}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-              </View>
-            </View>
-
-            <View style={mod.actionRow}>
-              <TouchableOpacity
-                style={[mod.cancelBtn, { borderColor: colors.border.default }]}
-                onPress={resetModal}
-              >
-                <Text style={[mod.cancelBtnText, { color: colors.text.secondary }]}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  mod.submitBtn,
-                  {
-                    backgroundColor: colors.accent.primary,
-                    opacity: saving || !newName.trim() ? 0.5 : 1,
-                  },
-                ]}
-                onPress={handleCreateSpace}
-                disabled={saving || !newName.trim()}
-              >
-                {saving ? (
-                  <ActivityIndicator color="#FFF" size="small" />
-                ) : (
-                  <>
-                    <Ionicons name="add" size={18} color="#FFF" />
-                    <Text style={mod.submitBtnText}>Create</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
+                      <TouchableOpacity
+                        style={[
+                          mod.submitBtn,
+                          {
+                            backgroundColor: colors.accent.primary,
+                            opacity: saving || !newName.trim() ? 0.5 : 1,
+                          },
+                        ]}
+                        onPress={() => {
+                          Keyboard.dismiss();
+                          handleCreateSpace();
+                        }}
+                        disabled={saving || !newName.trim()}
+                      >
+                        {saving ? (
+                          <ActivityIndicator color="#FFF" size="small" />
+                        ) : (
+                          <>
+                            <Ionicons name="add" size={18} color="#FFF" />
+                            <Text style={mod.submitBtnText}>Create</Text>
+                          </>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  </ScrollView>
+                </View>
+              </TouchableWithoutFeedback>
+            </KeyboardAvoidingView>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
     </View>
   );
