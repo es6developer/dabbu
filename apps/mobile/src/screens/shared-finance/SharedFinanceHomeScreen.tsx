@@ -21,6 +21,7 @@ import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { BaseScreen } from '../../components/ui/BaseScreen';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
+import { Avatar } from '../../components/ui/Avatar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const H_PADDING = 20;
@@ -155,21 +156,14 @@ function MemberAvatars({ members, max = 3 }: { members: any[]; max?: number }) {
   return (
     <View style={cs.avatarRow}>
       {visible.map((m: any, i: number) => {
-        const name = m.user?.firstName || m.firstName || '?';
-        const initials = name[0]?.toUpperCase() || '?';
+        const u = m.user || m;
         return (
-          <View
-            key={m.userId || i}
-            style={[
-              cs.avatar,
-              {
-                backgroundColor: colors.accent.primary,
-                marginLeft: i > 0 ? -8 : 0,
-                zIndex: max - i,
-              },
-            ]}
-          >
-            <Text style={cs.avatarText}>{initials}</Text>
+          <View key={m.userId || i} style={{ marginLeft: i > 0 ? -8 : 0, zIndex: max - i }}>
+            <Avatar
+              uri={u.avatarUrl}
+              name={`${u.firstName || ''} ${u.lastName || ''}`.trim()}
+              size={26}
+            />
           </View>
         );
       })}
@@ -464,7 +458,6 @@ export function SharedFinanceHomeScreen() {
   }
 
   const userName = user?.firstName || user?.email?.[0]?.toUpperCase() || 'U';
-  const userInitial = userName[0]?.toUpperCase() || 'U';
 
   const keyExtractor = useCallback((item: any) => item.id, []);
 
@@ -529,9 +522,11 @@ export function SharedFinanceHomeScreen() {
                 onPress={() => navigation.navigate('Profile')}
                 style={hdr.profileRow}
               >
-                <View style={[hdr.avatar, { backgroundColor: colors.accent.primary }]}>
-                  <Text style={hdr.avatarText}>{userInitial}</Text>
-                </View>
+                <Avatar
+                  uri={user?.avatarUrl}
+                  name={`${user?.firstName || ''} ${user?.lastName || ''}`}
+                  size={40}
+                />
                 <View>
                   <Text style={[hdr.greeting, { color: colors.text.tertiary }]}>Welcome back</Text>
                   <Text style={[hdr.userName, { color: colors.text.primary }]} numberOfLines={1}>

@@ -3,13 +3,14 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { getCategoryIcon } from '../../config/categoryIcons';
+import { Avatar } from './Avatar';
 
 interface TransactionCardProps {
   name: string;
   amount: number;
   category: string;
   date: string;
-  avatar?: string;
+  avatarUrl?: string | null;
   onPress?: () => void;
 }
 
@@ -23,7 +24,7 @@ export function TransactionCard({
   amount,
   category,
   date,
-  avatar,
+  avatarUrl,
   onPress,
 }: TransactionCardProps) {
   const { colors } = useTheme();
@@ -38,13 +39,7 @@ export function TransactionCard({
       activeOpacity={0.7}
       onPress={onPress}
     >
-      <View style={[styles.avatar, { backgroundColor: isExpense ? '#FF4D4F15' : '#34C75915' }]}>
-        {avatar ? (
-          <Text style={styles.avatarText}>{avatar[0]}</Text>
-        ) : (
-          <Ionicons name={iconName as any} size={16} color={isExpense ? '#FF4D4F' : '#34C759'} />
-        )}
-      </View>
+      <Avatar uri={avatarUrl} name={name} size={36} />
       <View style={styles.info}>
         <Text style={[styles.name, { color: colors.text.primary }]} numberOfLines={1}>
           {name}

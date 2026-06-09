@@ -91,6 +91,9 @@ model User {
   stripeCustomerId   String? @db.VarChar(255)
   razorpayCustomerId String? @db.VarChar(255)
 
+  // UPI ID for direct payments
+  upiId String? @db.VarChar(100)
+
   // Password history (prevent reuse)
   passwordHistory Json? @db.Json // Array of previous password hashes
 

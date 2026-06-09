@@ -18,6 +18,7 @@ import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Skeleton, SkeletonCard } from '../../components/ui/AnimatedSkeleton';
+import { Avatar } from '../../components/ui/Avatar';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const BILL_CARD_W = 165;
@@ -90,11 +91,6 @@ function GroupCard({ item, groupExpenses, navigation, colors }: any) {
   const members = memberList.length || item._count?.members || 0;
   const displayAvatars = Math.min(members, 3);
   const overflow = Math.max(members - 3, 0);
-  const getInitial = (m: any) => {
-    const u = m.user || m;
-    return ((u.firstName?.[0] || '') + (u.lastName?.[0] || '')).trim() || '?';
-  };
-
   return (
     <TouchableOpacity
       activeOpacity={0.95}
@@ -132,24 +128,29 @@ function GroupCard({ item, groupExpenses, navigation, colors }: any) {
           </View>
 
           <View style={s.avatarCluster}>
-            {Array.from({ length: displayAvatars }).map((_, i) => (
-              <View
-                key={i}
-                style={[
-                  s.avatarCircle,
-                  {
-                    backgroundColor: colors.bg.tertiary,
-                    borderColor: colors.bg.card,
-                    marginRight: i < displayAvatars - 1 ? -10 : 0,
-                    zIndex: displayAvatars - i,
-                  },
-                ]}
-              >
-                <Text style={[s.avatarLetter, { color: colors.text.secondary }]}>
-                  {memberList[i] ? getInitial(memberList[i]) : '?'}
-                </Text>
-              </View>
-            ))}
+            {Array.from({ length: displayAvatars }).map((_, i) => {
+              const m = memberList[i];
+              const u = m?.user || m;
+              return (
+                <View
+                  key={i}
+                  style={[
+                    s.avatarCircle,
+                    {
+                      borderColor: colors.bg.card,
+                      marginRight: i < displayAvatars - 1 ? -10 : 0,
+                      zIndex: displayAvatars - i,
+                    },
+                  ]}
+                >
+                  <Avatar
+                    uri={u?.avatarUrl}
+                    name={`${u?.firstName || ''} ${u?.lastName || ''}`.trim()}
+                    size={28}
+                  />
+                </View>
+              );
+            })}
             <View
               style={[
                 s.avatarCircle,

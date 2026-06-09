@@ -27,6 +27,12 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsString()
   phone?: string;
+
+  @ApiPropertyOptional({ description: 'UPI ID for direct payments' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  upiId?: string;
 }
 
 export class MatchContactsDto {

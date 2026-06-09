@@ -1,9 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { Avatar } from '../../components/ui/Avatar';
 import { useTheme } from '../../theme';
 
 export function ChatListScreen() {
@@ -15,7 +24,9 @@ export function ChatListScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    if (accessToken) {setAccessToken(accessToken);}
+    if (accessToken) {
+      setAccessToken(accessToken);
+    }
     loadChats();
   }, [accessToken]);
 
@@ -23,8 +34,11 @@ export function ChatListScreen() {
     try {
       const res = await api.get<any>('/chat');
       setChats(Array.isArray(res) ? res : []);
-    } catch (e) { /* ignore */ }
-    finally { setLoading(false); }
+    } catch (e) {
+      /* ignore */
+    } finally {
+      setLoading(false);
+    }
   }
 
   const onRefresh = useCallback(async () => {
@@ -34,10 +48,14 @@ export function ChatListScreen() {
   }, []);
 
   function getChatTitle(chat: any): string {
-    if (chat.title) {return chat.title;}
+    if (chat.title) {
+      return chat.title;
+    }
     if (chat.type === 'direct') {
       const other = chat.participants?.find((p: any) => p.userId !== user?.id);
-      const name = other ? `${other.user?.firstName || ''} ${other.user?.lastName || ''}`.trim() : '';
+      const name = other
+        ? `${other.user?.firstName || ''} ${other.user?.lastName || ''}`.trim()
+        : '';
       return name || 'Chat';
     }
     return 'Group Chat';
@@ -45,29 +63,42 @@ export function ChatListScreen() {
 
   function getLastMessage(chat: any): string {
     const lastMsg = chat.messages?.[0];
-    if (!lastMsg) {return 'No messages yet';}
+    if (!lastMsg) {
+      return 'No messages yet';
+    }
     const prefix = lastMsg.senderId === user?.id ? 'You: ' : '';
     return `${prefix}${lastMsg.content || ''}`;
   }
 
-  if (loading) {return (
-    <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}>
-      <ActivityIndicator color={colors.accent.primary} size="large" />
-    </View>
-  );}
+  if (loading) {
+    return (
+      <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}>
+        <ActivityIndicator color={colors.accent.primary} size="large" />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text.primary }]}>Chats</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('CreateChat')} style={[styles.headerBtn, { backgroundColor: `${colors.accent.primary}15` }]}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('CreateChat')}
+          style={[styles.headerBtn, { backgroundColor: `${colors.accent.primary}15` }]}
+        >
           <Ionicons name="create-outline" size={20} color={colors.accent.primary} />
         </TouchableOpacity>
       </View>
       <FlatList
         data={chats}
         keyExtractor={(c) => c.id}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent.primary} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.accent.primary}
+          />
+        }
         contentContainerStyle={{ paddingBottom: 100 }}
         renderItem={({ item }) => {
           const title = getChatTitle(item);
@@ -77,12 +108,14 @@ export function ChatListScreen() {
               activeOpacity={0.7}
               onPress={() => navigation.navigate('ChatRoom', { chatId: item.id, title })}
             >
-              <View style={[styles.avatarWrap, { backgroundColor: colors.accent.primary }]}>
-                <Text style={styles.avatarText}>{title[0] || '?'}</Text>
-              </View>
+              <Avatar name={title} size={46} />
               <View style={styles.chatInfo}>
-                <Text style={[styles.chatName, { color: colors.text.primary }]} numberOfLines={1}>{title}</Text>
-                <Text style={[styles.lastMsg, { color: colors.text.tertiary }]} numberOfLines={1}>{getLastMessage(item)}</Text>
+                <Text style={[styles.chatName, { color: colors.text.primary }]} numberOfLines={1}>
+                  {title}
+                </Text>
+                <Text style={[styles.lastMsg, { color: colors.text.tertiary }]} numberOfLines={1}>
+                  {getLastMessage(item)}
+                </Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
             </TouchableOpacity>
@@ -91,8 +124,12 @@ export function ChatListScreen() {
         ListEmptyComponent={
           <View style={styles.empty}>
             <Ionicons name="chatbubbles-outline" size={52} color={colors.text.tertiary} />
-            <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No conversations</Text>
-            <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>Start a new chat with your family</Text>
+            <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
+              No conversations
+            </Text>
+            <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
+              Start a new chat with your family
+            </Text>
           </View>
         }
         windowSize={10}
@@ -105,11 +142,38 @@ export function ChatListScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 56, paddingBottom: 16 },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 56,
+    paddingBottom: 16,
+  },
   title: { fontSize: 26, fontWeight: '700' },
-  headerBtn: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  chatRow: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginVertical: 5, padding: 14, borderRadius: 18 },
-  avatarWrap: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
+  headerBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chatRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginVertical: 5,
+    padding: 14,
+    borderRadius: 18,
+  },
+  avatarWrap: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
   avatarText: { color: '#FFFFFF', fontSize: 18, fontWeight: '700' },
   chatInfo: { flex: 1 },
   chatName: { fontSize: 15, fontWeight: '600', marginBottom: 3 },

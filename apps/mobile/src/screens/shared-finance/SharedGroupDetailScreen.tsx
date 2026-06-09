@@ -24,6 +24,7 @@ import { useTheme, palette } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { EmptyState } from './components/EmptyState';
+import { SettleUpModal } from '../../components/ui/SettleUpModal';
 
 const TABS = ['overview', 'expenses', 'balances', 'members', 'activity'] as const;
 
@@ -91,6 +92,7 @@ export function SharedGroupDetailScreen() {
   const [editDescription, setEditDescription] = useState('');
   const [savingSettings, setSavingSettings] = useState(false);
   const [activeStatPage, setActiveStatPage] = useState(0);
+  const [settleModalVisible, setSettleModalVisible] = useState(false);
 
   const loadData = useCallback(
     async (refresh = false) => {
@@ -995,26 +997,35 @@ export function SharedGroupDetailScreen() {
     }
   }
 
-  async function handleSettleUp() {
-    Alert.alert('Settle Up', 'Are you sure you want to settle up all balances in this group?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Yes, Settle Up',
-        style: 'default',
-        onPress: async () => {
-          try {
-            if (accessToken) {
-              setAccessToken(accessToken);
-            }
-            await api.post(`/shared-finance/groups/${groupId}/settle`, {});
-            Alert.alert('Settled Up!', 'All balances in this group have been settled.');
-            loadData(true);
-          } catch (e: any) {
-            Alert.alert('Error', e.message || 'Failed to settle up');
-          }
-        },
-      },
-    ]);
+  function handleSettleUp() {
+    setSettleModalVisible(true);
+  }
+
+  async function confirmAllSettlements() {
+    setSettleModalVisible(false);
+    try {
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      const plan = await api.get<any>(`/shared-finance/groups/${groupId}/settlements/plan`);
+      const items = Array.isArray(plan) ? plan : [];
+      if (items.length === 0) {
+        Alert.alert('All Settled', 'No pending settlements.');
+        return;
+      }
+      for (const s of items) {
+        if (currentUser?.id && (s.fromUserId === currentUser.id || s.toUserId === currentUser.id)) {
+          await api.post(`/shared-finance/settlements/${s.id}/complete`, {}).catch(() => {});
+        }
+      }
+      Alert.alert(
+        'Settled Up!',
+        'Your pending balances have been settled. The space admin has been notified.',
+      );
+      loadData(true);
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to settle up');
+    }
   }
 
   async function handleGenerateInvite() {
@@ -1337,6 +1348,23 @@ export function SharedGroupDetailScreen() {
           </View>
         </TouchableOpacity>
       </Modal>
+
+      <SettleUpModal
+        visible={settleModalVisible}
+        amount={Math.abs(myBalanceRow?.balance || 0)}
+        fromName={
+          myBalanceRow && myBalanceRow.balance < 0
+            ? currentUser?.firstName || 'You'
+            : myBalanceRow?.userName || 'Someone'
+        }
+        toName={
+          myBalanceRow && myBalanceRow.balance < 0
+            ? myBalanceRow?.userName || 'Someone'
+            : currentUser?.firstName || 'You'
+        }
+        onConfirm={confirmAllSettlements}
+        onCancel={() => setSettleModalVisible(false)}
+      />
     </View>
   );
 }

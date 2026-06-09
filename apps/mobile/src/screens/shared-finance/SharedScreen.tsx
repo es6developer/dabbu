@@ -516,9 +516,11 @@ export function SharedScreen() {
               onPress={() => navigation.navigate('Profile')}
               style={s.profileRow}
             >
-              <View style={[s.avatar, { backgroundColor: colors.accent.primary }]}>
-                <Text style={s.avatarText}>{userInitial}</Text>
-              </View>
+              <Avatar
+                uri={user?.avatarUrl}
+                name={`${user?.firstName || ''} ${user?.lastName || ''}`}
+                size={40}
+              />
               <View>
                 <Text style={[s.headerGreeting, { color: colors.text.tertiary }]}>
                   Welcome back

@@ -17,17 +17,11 @@ import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { PageContainer } from '../../components/ui/PageContainer';
+import { SettleUpModal } from '../../components/ui/SettleUpModal';
 
 function fmt(v: number) {
   return '₹' + v.toLocaleString('en-IN', { maximumFractionDigits: 0 });
 }
-
-const SETTLEMENT_METHODS = [
-  { key: 'upi', label: 'UPI', icon: 'phone-portrait-outline' },
-  { key: 'cash', label: 'Cash', icon: 'cash-outline' },
-  { key: 'bank', label: 'Bank Transfer', icon: 'business-outline' },
-  { key: 'other', label: 'Other', icon: 'ellipsis-horizontal-outline' },
-] as const;
 
 export function SettlementScreen() {
   const navigation = useNavigation<any>();
@@ -41,9 +35,12 @@ export function SettlementScreen() {
   const [activity, setActivity] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState<string>('upi');
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<'settle' | 'history' | 'activity'>('settle');
+  const [settleModal, setSettleModal] = useState<{ visible: boolean; settlement: any }>({
+    visible: false,
+    settlement: null,
+  });
 
   const loadData = useCallback(
     async (refresh = false) => {
@@ -92,117 +89,56 @@ export function SettlementScreen() {
     }, [loadData]),
   );
 
-  async function markSettled(settlementId: string) {
-    setSubmitting(settlementId);
+  function promptSettleUp(settlement: any) {
+    setSettleModal({ visible: true, settlement });
+  }
+
+  async function confirmSettleUp() {
+    const s = settleModal.settlement;
+    if (!s) {
+      return;
+    }
+    setSettleModal({ visible: false, settlement: null });
+    setSubmitting(s.id);
     try {
       if (accessToken) {
         setAccessToken(accessToken);
       }
-      await api.post(`/shared-finance/settlements/${settlementId}/complete`, {
-        method: selectedMethod,
-      });
-      Alert.alert('Settled', 'Marked as settled successfully');
+      await api.post(`/shared-finance/settlements/${s.id}/complete`, { method: 'cash' });
+      Alert.alert(
+        'Settled Up!',
+        `${s.fromName || 'Someone'} settled ${fmt(s.amount || 0)} with ${s.toName || 'Someone'}`,
+      );
       await loadData(true);
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to mark as settled');
+      Alert.alert('Error', e.message || 'Failed to settle up');
     } finally {
       setSubmitting(null);
     }
   }
 
-  async function handlePayNow(settlement: any) {
+  async function handlePayNowUpi(settlement: any) {
     setSubmitting(settlement.id);
     try {
       if (accessToken) {
         setAccessToken(accessToken);
       }
       const res = await api.post<any>('/settlements/pay-now', { settlementId: settlement.id });
-      const data = res;
-      const upiLink = data.upiLink || data.data?.upiLink;
-
+      const upiLink = res.upiLink || res.data?.upiLink;
       if (!upiLink) {
         Alert.alert('Error', 'No UPI link generated');
         return;
       }
-
-      // Open UPI app
       const supported = await Linking.canOpenURL(upiLink);
       if (supported) {
         await Linking.openURL(upiLink);
       } else {
-        Alert.alert('Open UPI App', upiLink);
+        Alert.alert('UPI Link', upiLink);
       }
-
-      // Ask if payment was made
-      Alert.alert(
-        'Confirm Payment',
-        'Did you complete the payment in your UPI app?',
-        [
-          {
-            text: 'Yes, Paid',
-            onPress: async () => {
-              try {
-                await api.post('/settlements/confirm-payment', {
-                  settlementId: settlement.id,
-                  paymentMethod: 'upi',
-                });
-                Alert.alert('Success', 'Payment confirmed! Waiting for receiver to confirm.');
-                await loadData(true);
-              } catch (e: any) {
-                Alert.alert('Error', e.message || 'Failed to confirm payment');
-              }
-            },
-          },
-          { text: 'Not yet', style: 'cancel' },
-        ],
-        { cancelable: true },
-      );
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to initiate payment');
+      Alert.alert('Error', e.message || 'Failed to generate UPI link');
     } finally {
       setSubmitting(null);
-    }
-  }
-
-  async function handleConfirmReceipt(settlementId: string) {
-    try {
-      await api.post('/settlements/confirm-receipt', { settlementId });
-      Alert.alert('Confirmed', 'Receipt confirmed. Settlement completed!');
-      await loadData(true);
-    } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to confirm receipt');
-    }
-  }
-
-  async function handleRejectReceipt(settlementId: string) {
-    Alert.alert('Reject Payment', 'Are you sure you want to reject this payment?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Reject',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await api.post('/settlements/reject-receipt', {
-              settlementId,
-              reason: 'Receiver rejected the payment claim',
-            });
-            Alert.alert('Rejected', 'Payment claim rejected.');
-            await loadData(true);
-          } catch (e: any) {
-            Alert.alert('Error', e.message || 'Failed to reject');
-          }
-        },
-      },
-    ]);
-  }
-
-  async function checkConfirmation(settlementId: string) {
-    try {
-      const res = await api.get<any>(`/settlements/confirmation/${settlementId}`);
-      const data = res;
-      return data;
-    } catch {
-      return null;
     }
   }
 
@@ -286,165 +222,86 @@ export function SettlementScreen() {
         {activeSection === 'settle' && (
           <>
             <Text style={[s.sectionTitle, { color: colors.text.tertiary }]}>
-              Optimized Settlements
+              Pending Settlements
             </Text>
             {settlements.length > 0 ? (
               <View style={s.settlementsList}>
-                {settlements.map((s, i) => {
-                  const isPayer = s.fromUserId === currentUser?.id;
-                  const isReceiver = s.toUserId === currentUser?.id;
+                {settlements.map((item, i) => {
+                  const isPayer = item.fromUserId === currentUser?.id;
                   return (
                     <View
-                      key={s.id || i}
-                      
-                      style={s.settlementCard}
+                      key={item.id || i}
+                      style={[s.settlementCard, { backgroundColor: colors.bg.secondary }]}
                     >
                       <View style={s.settlementFlow}>
                         <View style={s.settlementParty}>
-                          <View
-                            
-                            style={s.partyAvatar}
-                          >
+                          <View style={[s.partyAvatar, { backgroundColor: colors.accent.primary }]}>
                             <Text style={s.partyInit}>
-                              {(s.fromName?.[0] || '?').toUpperCase()}
+                              {(item.fromName?.[0] || '?').toUpperCase()}
                             </Text>
                           </View>
                           <Text style={[s.partyName, { color: colors.text.secondary }]}>
-                            {s.fromName || 'Someone'}
+                            {item.fromName || 'Someone'}
                           </Text>
                         </View>
                         <View style={s.flowCenter}>
                           <Ionicons name="arrow-forward" size={20} color={colors.accent.primary} />
                           <Text style={[s.flowAmount, { color: colors.accent.primary }]}>
-                            {fmt(s.amount || 0)}
+                            {fmt(item.amount || 0)}
                           </Text>
                         </View>
                         <View style={s.settlementParty}>
-                          <View
-                            
-                            style={s.partyAvatar}
-                          >
-                            <Text style={s.partyInit}>{(s.toName?.[0] || '?').toUpperCase()}</Text>
+                          <View style={[s.partyAvatar, { backgroundColor: colors.status.success }]}>
+                            <Text style={s.partyInit}>
+                              {(item.toName?.[0] || '?').toUpperCase()}
+                            </Text>
                           </View>
                           <Text style={[s.partyName, { color: colors.text.secondary }]}>
-                            {s.toName || 'Someone'}
+                            {item.toName || 'Someone'}
                           </Text>
                         </View>
                       </View>
-                      {s.status !== 'completed' ? (
-                        <>
-                          <Text style={[s.methodLabel, { color: colors.text.tertiary }]}>
-                            Settle via
-                          </Text>
-                          <View style={s.methodRow}>
-                            {SETTLEMENT_METHODS.map((m) => (
-                              <TouchableOpacity
-                                key={m.key}
-                                style={[
-                                  s.methodChip,
-                                  {
-                                    backgroundColor: colors.bg.tertiary,
-                                    borderColor: colors.border.subtle,
-                                  },
-                                  selectedMethod === m.key && {
-                                    backgroundColor: `${colors.accent.primary}20`,
-                                    borderColor: colors.accent.primary,
-                                  },
-                                ]}
-                                onPress={() => setSelectedMethod(m.key)}
-                              >
-                                <Ionicons
-                                  name={m.icon as any}
-                                  size={16}
-                                  color={
-                                    selectedMethod === m.key
-                                      ? colors.accent.primary
-                                      : colors.text.tertiary
-                                  }
-                                />
-                                <Text
-                                  style={[
-                                    s.methodText,
-                                    {
-                                      color:
-                                        selectedMethod === m.key
-                                          ? colors.accent.primary
-                                          : colors.text.tertiary,
-                                    },
-                                  ]}
-                                >
-                                  {m.label}
-                                </Text>
-                              </TouchableOpacity>
-                            ))}
-                          </View>
-                          <View style={s.actionRow}>
-                            {isPayer && selectedMethod === 'upi' && (
-                              <TouchableOpacity
-                                style={[
-                                  s.primaryBtn,
-                                  { backgroundColor: colors.accent.primary },
-                                  submitting === s.id && { opacity: 0.6 },
-                                ]}
-                                onPress={() => handlePayNow(s)}
-                                disabled={submitting === s.id}
-                              >
-                                {submitting === s.id ? (
-                                  <ActivityIndicator size="small" color="#FFF" />
-                                ) : (
-                                  <>
-                                    <Ionicons
-                                      name="phone-portrait-outline"
-                                      size={16}
-                                      color="#FFF"
-                                    />
-                                    <Text style={s.primaryBtnText}>Pay Now · UPI</Text>
-                                  </>
-                                )}
-                              </TouchableOpacity>
+                      {item.status !== 'completed' ? (
+                        <View style={s.actionRow}>
+                          <TouchableOpacity
+                            style={[
+                              s.settleBtn,
+                              { backgroundColor: colors.status.success },
+                              submitting === item.id && { opacity: 0.6 },
+                            ]}
+                            onPress={() => promptSettleUp(item)}
+                            disabled={submitting === item.id}
+                          >
+                            {submitting === item.id ? (
+                              <ActivityIndicator size="small" color="#FFF" />
+                            ) : (
+                              <>
+                                <Ionicons name="checkmark-circle-outline" size={18} color="#FFF" />
+                                <Text style={s.settleBtnText}>Settle Up</Text>
+                              </>
                             )}
+                          </TouchableOpacity>
+                          {isPayer && (
                             <TouchableOpacity
                               style={[
-                                s.settleBtn,
-                                { backgroundColor: colors.status.success },
-                                submitting === s.id && { opacity: 0.6 },
+                                s.payNowBtn,
+                                { backgroundColor: colors.accent.primary },
+                                submitting === item.id && { opacity: 0.6 },
                               ]}
-                              onPress={() => markSettled(s.id)}
-                              disabled={submitting === s.id}
+                              onPress={() => handlePayNowUpi(item)}
+                              disabled={submitting === item.id}
                             >
-                              {submitting === s.id ? (
+                              {submitting === item.id ? (
                                 <ActivityIndicator size="small" color="#FFF" />
                               ) : (
                                 <>
-                                  <Ionicons
-                                    name="checkmark-circle-outline"
-                                    size={18}
-                                    color="#FFF"
-                                  />
-                                  <Text style={s.settleBtnText}>Mark Settled</Text>
+                                  <Ionicons name="phone-portrait-outline" size={16} color="#FFF" />
+                                  <Text style={s.payNowBtnText}>PAY NOW</Text>
                                 </>
                               )}
                             </TouchableOpacity>
-                          </View>
-                          {isReceiver && (
-                            <View style={s.receiverRow}>
-                              <TouchableOpacity
-                                style={[s.receiverBtn, { backgroundColor: colors.status.success }]}
-                                onPress={() => handleConfirmReceipt(s.id)}
-                              >
-                                <Ionicons name="checkmark-circle" size={16} color="#FFF" />
-                                <Text style={s.receiverBtnText}>Confirm Received</Text>
-                              </TouchableOpacity>
-                              <TouchableOpacity
-                                style={[s.receiverBtn, { backgroundColor: colors.status.error }]}
-                                onPress={() => handleRejectReceipt(s.id)}
-                              >
-                                <Ionicons name="close-circle" size={16} color="#FFF" />
-                                <Text style={s.receiverBtnText}>Reject</Text>
-                              </TouchableOpacity>
-                            </View>
                           )}
-                        </>
+                        </View>
                       ) : (
                         <View
                           style={[
@@ -458,7 +315,7 @@ export function SettlementScreen() {
                             color={colors.status.success}
                           />
                           <Text style={[s.completedText, { color: colors.status.success }]}>
-                            Settled via {s.method || 'UPI'}
+                            Settled via {item.method || 'cash'}
                           </Text>
                         </View>
                       )}
@@ -477,6 +334,16 @@ export function SettlementScreen() {
             )}
           </>
         )}
+
+        <SettleUpModal
+          visible={settleModal.visible}
+          amount={settleModal.settlement?.amount || 0}
+          fromName={settleModal.settlement?.fromName || 'Someone'}
+          toName={settleModal.settlement?.toName || 'Someone'}
+          loading={submitting === settleModal.settlement?.id}
+          onConfirm={confirmSettleUp}
+          onCancel={() => setSettleModal({ visible: false, settlement: null })}
+        />
 
         {activeSection === 'history' && (
           <>
@@ -674,34 +541,7 @@ const s = StyleSheet.create({
   partyName: { fontSize: 11, textAlign: 'center' },
   flowCenter: { alignItems: 'center', gap: 4, paddingHorizontal: 8 },
   flowAmount: { fontSize: 16, fontWeight: '800' },
-  methodLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  methodRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  methodChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  methodText: { fontSize: 12, fontWeight: '600' },
   actionRow: { flexDirection: 'row', gap: 8 },
-  primaryBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 14,
-  },
-  primaryBtnText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
   settleBtn: {
     flex: 1,
     flexDirection: 'row',
@@ -712,17 +552,16 @@ const s = StyleSheet.create({
     borderRadius: 14,
   },
   settleBtnText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
-  receiverRow: { flexDirection: 'row', gap: 8 },
-  receiverBtn: {
+  payNowBtn: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 12,
+    gap: 8,
+    paddingVertical: 14,
     borderRadius: 14,
   },
-  receiverBtnText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
+  payNowBtnText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
   completedBadge: {
     flexDirection: 'row',
     alignItems: 'center',

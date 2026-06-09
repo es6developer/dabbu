@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
+import { Avatar } from '../../components/ui/Avatar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export function FamilyDashboardScreen() {
@@ -65,9 +66,7 @@ export function FamilyDashboardScreen() {
         renderItem={({ item }) => (
           <View style={[styles.card, { backgroundColor: colors.bg.tertiary }]}>
             <View style={styles.cardHeader}>
-              <View style={[styles.avatar, { backgroundColor: colors.accent.primary }]}>
-                <Text style={styles.avatarText}>{item.name?.charAt(0) || 'F'}</Text>
-              </View>
+              <Avatar name={item.name} size={48} />
               <View style={styles.cardInfo}>
                 <Text style={[styles.cardName, { color: colors.text.primary }]}>{item.name}</Text>
                 <Text style={[styles.cardMeta, { color: colors.text.tertiary }]}>

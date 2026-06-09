@@ -27,6 +27,7 @@ import {
 } from '../../services/contacts';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
+import { Avatar } from '../../components/ui/Avatar';
 
 interface SearchUser {
   id: string;
@@ -156,8 +157,6 @@ export function AddMemberScreen() {
     return entries;
   }, [matchedContacts, deviceContacts]);
 
-  const gradColors = useMemo(() => [colors.accent.primary, colors.accent.secondary], [colors]);
-
   async function handleAddToGroup(userId: string, userName: string) {
     if (!groupId) {
       return;
@@ -266,12 +265,7 @@ export function AddMemberScreen() {
                 onPress={() => handleFavPress(fav)}
                 activeOpacity={0.7}
               >
-                <LinearGradient
-                  colors={selected ? [colors.accent.primary, colors.accent.secondary] : gradColors}
-                  style={[styles.favAvatar, selected && styles.favAvatarSelected]}
-                >
-                  <Text style={styles.favAvatarText}>{fav.name[0]?.toUpperCase() || '?'}</Text>
-                </LinearGradient>
+                <Avatar uri={fav.avatarUrl} name={fav.name} size={50} />
                 <Text style={[styles.favName, { color: colors.text.primary }]} numberOfLines={1}>
                   {fav.name}
                 </Text>
@@ -297,11 +291,11 @@ export function AddMemberScreen() {
           const name = [item.firstName, item.lastName].filter(Boolean).join(' ') || item.email;
           return (
             <View style={styles.contactRow}>
-              <LinearGradient colors={gradColors} style={styles.avatar}>
-                <Text style={styles.avatarText}>
-                  {(item.firstName?.[0] || item.email?.[0] || '?').toUpperCase()}
-                </Text>
-              </LinearGradient>
+              <Avatar
+                uri={item.avatarUrl}
+                name={`${item.firstName || ''} ${item.lastName || ''}`.trim()}
+                size={44}
+              />
               <View style={styles.contactInfo}>
                 <Text
                   style={[styles.contactName, { color: colors.text.primary }]}
@@ -478,12 +472,7 @@ export function AddMemberScreen() {
           const userId = item.type === 'match' ? item.userId : '';
           return (
             <View style={styles.contactRow}>
-              <LinearGradient
-                colors={isAppUser ? gradColors : [colors.bg.card, colors.bg.secondary]}
-                style={styles.avatar}
-              >
-                <Text style={styles.avatarText}>{name[0]?.toUpperCase() || '?'}</Text>
-              </LinearGradient>
+              <Avatar name={name} size={44} />
               <View style={styles.contactInfo}>
                 <Text
                   style={[styles.contactName, { color: colors.text.primary }]}

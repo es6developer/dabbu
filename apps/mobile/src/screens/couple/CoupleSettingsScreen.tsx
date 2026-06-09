@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
+import { Avatar } from '../../components/ui/Avatar';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 
@@ -156,8 +157,6 @@ export function CoupleSettingsScreen() {
 
   const partner1Name = p1?.firstName || p1?.name || 'Partner 1';
   const partner2Name = p2?.firstName || p2?.name || 'Partner 2';
-  const p1Initial = partner1Name[0] || 'P';
-  const p2Initial = partner2Name[0] || 'P';
   const partner2Joined = !!p2;
 
   const togetherSince = group?.createdAt
@@ -212,19 +211,11 @@ export function CoupleSettingsScreen() {
         <View style={styles.profileSection}>
           <View style={[styles.profileCard, { backgroundColor: colors.bg.card }]}>
             <View style={styles.profileRow}>
-              <View style={styles.profileAvatar}>
-                <Text style={styles.avatarText}>{p1Initial}</Text>
-              </View>
+              <Avatar name={partner1Name} size={56} />
               <View style={styles.heartWrap}>
                 <Ionicons name="heart" size={20} color="#FF4D4F" />
               </View>
-              <View style={[styles.profileAvatar, !partner2Joined && styles.avatarEmpty]}>
-                <Text
-                  style={[styles.avatarText, !partner2Joined && { color: colors.text.tertiary }]}
-                >
-                  {partner2Joined ? p2Initial : '?'}
-                </Text>
-              </View>
+              <Avatar name={partner2Joined ? partner2Name : '?'} size={56} />
             </View>
             <Text style={[styles.coupleName, { color: colors.text.primary }]}>
               {partner1Name} & {partner2Joined ? partner2Name : 'Waiting for Partner'}

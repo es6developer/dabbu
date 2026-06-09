@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
+import { Avatar } from '../../components/ui/Avatar';
 import { useTheme, palette } from '../../theme';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
@@ -128,8 +129,6 @@ export function CoupleFinanceScreen() {
   const partner2 = profile?.partner2;
   const partner1Name = partner1?.firstName || partner1?.email || 'You';
   const partner2Name = partner2?.firstName || partner2?.email || 'Partner';
-  const p1Initial = partner1Name[0]?.toUpperCase() || 'Y';
-  const p2Initial = partner2Name[0]?.toUpperCase() || 'P';
   const ratio = profile?.splitRatio || '50:50';
 
   const expenses = data?.expenses || [];
@@ -250,15 +249,19 @@ export function CoupleFinanceScreen() {
           </View>
           <View style={s.partnerHero}>
             <View style={s.avatarRow}>
-              <View style={[s.avatar, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-                <Text style={s.avatarText}>{p1Initial}</Text>
-              </View>
+              <Avatar
+                uri={partner1?.avatarUrl}
+                name={`${partner1?.firstName || ''} ${partner1?.lastName || ''}`.trim()}
+                size={46}
+              />
               <View style={[s.heartBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
                 <Ionicons name="heart" size={16} color="#FFEBB4" />
               </View>
-              <View style={[s.avatar, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-                <Text style={s.avatarText}>{p2Initial}</Text>
-              </View>
+              <Avatar
+                uri={partner2?.avatarUrl}
+                name={`${partner2?.firstName || ''} ${partner2?.lastName || ''}`.trim()}
+                size={46}
+              />
             </View>
             <Text style={s.partnerNames}>
               {partner1Name} & {partner2Name}

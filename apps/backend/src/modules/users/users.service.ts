@@ -42,7 +42,7 @@ export class UsersService {
 
   async updateProfile(
     userId: string,
-    data: { firstName?: string; lastName?: string; phone?: string },
+    data: { firstName?: string; lastName?: string; phone?: string; upiId?: string },
   ) {
     const user = await this.prisma.user.update({
       where: { id: userId },
@@ -55,6 +55,7 @@ export class UsersService {
         avatarUrl: true,
         phone: true,
         role: true,
+        upiId: true,
       },
     });
     return user;

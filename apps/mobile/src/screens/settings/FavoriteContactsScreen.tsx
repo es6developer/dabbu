@@ -16,6 +16,7 @@ import { useFavorites } from '../../store/FavoritesContext';
 import * as favoritesApi from '../../services/favorites';
 import * as contactsService from '../../services/contacts';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Avatar } from '../../components/ui/Avatar';
 import { useTheme } from '../../theme';
 
 export function FavoriteContactsScreen() {
@@ -165,14 +166,11 @@ export function FavoriteContactsScreen() {
             {searchResults.map((user, i) => (
               <React.Fragment key={user.id}>
                 <View style={styles.row}>
-                  <LinearGradient
-                    colors={[colors.brand.primary, colors.brand.hover]}
-                    style={styles.avatarGradient}
-                  >
-                    <Text style={[styles.avatarText, { color: colors.text.primary }]}>
-                      {(user.firstName?.[0] || user.email?.[0] || '?').toUpperCase()}
-                    </Text>
-                  </LinearGradient>
+                  <Avatar
+                    uri={user.avatarUrl}
+                    name={`${user.firstName || ''} ${user.lastName || ''}`.trim()}
+                    size={44}
+                  />
                   <View style={styles.rowInfo}>
                     <Text
                       style={[styles.rowName, { color: colors.text.primary }]}
@@ -233,11 +231,7 @@ export function FavoriteContactsScreen() {
           {deviceContacts.slice(0, 5).map((user, i) => (
             <React.Fragment key={user.id}>
               <View style={styles.row}>
-                <LinearGradient colors={gradientColors} style={styles.avatarGradient}>
-                  <Text style={[styles.avatarText, { color: colors.text.primary }]}>
-                    {(user.firstName?.[0] || '?').toUpperCase()}
-                  </Text>
-                </LinearGradient>
+                <Avatar uri={user.avatarUrl} name={user.firstName || user.email} size={44} />
                 <View style={styles.rowInfo}>
                   <Text style={[styles.rowName, { color: colors.text.primary }]} numberOfLines={1}>
                     {user.firstName || user.email}
@@ -312,11 +306,7 @@ export function FavoriteContactsScreen() {
           {favorites.map((fav, i) => (
             <React.Fragment key={fav.userId}>
               <View style={styles.row}>
-                <LinearGradient colors={gradientColors} style={styles.avatarGradient}>
-                  <Text style={[styles.avatarText, { color: colors.text.primary }]}>
-                    {fav.name[0]?.toUpperCase() || '?'}
-                  </Text>
-                </LinearGradient>
+                <Avatar uri={fav.avatarUrl} name={fav.name} size={44} />
                 <View style={styles.rowInfo}>
                   <Text style={[styles.rowName, { color: colors.text.primary }]} numberOfLines={1}>
                     {fav.name}

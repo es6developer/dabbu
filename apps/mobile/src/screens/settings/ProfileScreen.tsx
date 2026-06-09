@@ -30,6 +30,7 @@ export function ProfileScreen() {
   const [lastName, setLastName] = useState(user?.lastName || '');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState(user?.email || '');
+  const [upiId, setUpiId] = useState('');
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -59,6 +60,9 @@ export function ProfileScreen() {
         if (data.email) {
           setEmail(data.email);
         }
+        if (data.upiId) {
+          setUpiId(data.upiId);
+        }
       }
     } catch {
       if (user?.phone) {
@@ -86,6 +90,7 @@ export function ProfileScreen() {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         phone: fullPhone,
+        upiId: upiId.trim() || undefined,
       });
       Alert.alert('Success', 'Profile updated successfully');
     } catch (e: any) {
@@ -130,6 +135,7 @@ export function ProfileScreen() {
   }
 
   const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || 'User';
+  const tabBarHeight = Platform.OS === 'ios' ? 90 : 80;
 
   return (
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
@@ -140,7 +146,7 @@ export function ProfileScreen() {
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
-            paddingBottom: insets.bottom + 120,
+            paddingBottom: insets.bottom + 120 + tabBarHeight,
             paddingTop: insets.top + 16,
           }}
         >
@@ -418,6 +424,49 @@ export function ProfileScreen() {
                 >
                   Friends can find you via contact sync. Your number is never shared.
                 </Text>
+
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '800',
+                    color: colors.text.tertiary,
+                    letterSpacing: 0.8,
+                    textTransform: 'uppercase',
+                    marginBottom: 8,
+                    marginTop: 16,
+                  }}
+                >
+                  UPI ID
+                </Text>
+                <TextInput
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '500',
+                    paddingHorizontal: 16,
+                    paddingVertical: 15,
+                    borderRadius: borderRadius.md,
+                    borderWidth: 1,
+                    borderColor: colors.border.subtle,
+                    backgroundColor: colors.bg.tertiary,
+                    color: colors.text.primary,
+                  }}
+                  value={upiId}
+                  onChangeText={setUpiId}
+                  placeholder="example@upi"
+                  placeholderTextColor={colors.text.tertiary}
+                  autoCapitalize="none"
+                />
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '500',
+                    color: colors.text.tertiary,
+                    marginTop: 6,
+                    lineHeight: 16,
+                  }}
+                >
+                  Set your UPI ID so group members can pay you directly.
+                </Text>
               </View>
 
               {/* Danger Zone */}
@@ -479,7 +528,7 @@ export function ProfileScreen() {
         <View
           style={{
             position: 'absolute',
-            bottom: 0,
+            bottom: tabBarHeight,
             left: 0,
             right: 0,
             paddingHorizontal: PADDING,

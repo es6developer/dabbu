@@ -22,6 +22,7 @@ import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Skeleton, SkeletonCard } from '../../components/ui/AnimatedSkeleton';
 import { AiInsightCard } from '../../components/ui/AiInsightCard';
+import { Avatar } from '../../components/ui/Avatar';
 import { UpgradeBanner } from '../../components/ui/UpgradeBanner';
 
 function fmt(v: number) {
@@ -778,9 +779,11 @@ export function GroupExpensesScreen() {
                       style={[s.memberChip, { backgroundColor: colors.bg.tertiary }]}
                     >
                       <View style={[s.memberDot, { backgroundColor: colors.bg.tertiary }]}>
-                        <Text style={s.memberInit}>
-                          {(m.user?.firstName?.[0] || m.firstName?.[0] || '?').toUpperCase()}
-                        </Text>
+                        <Avatar
+                          uri={m.user?.avatarUrl}
+                          name={`${m.user?.firstName || ''} ${m.user?.lastName || ''}`.trim()}
+                          size={26}
+                        />
                       </View>
                       <Text
                         style={[s.memberName, { color: colors.text.primary }]}
@@ -867,11 +870,7 @@ export function GroupExpensesScreen() {
                   }
                   activeOpacity={0.8}
                 >
-                  <View style={[s.txAvatar, { backgroundColor: colors.bg.secondary }]}>
-                    <Text style={[s.txAvatarText, { color: colors.text.primary }]}>
-                      {userName[0]?.toUpperCase() || '?'}
-                    </Text>
-                  </View>
+                  <Avatar uri={user?.avatarUrl} name={userName} size={40} />
                   <View style={{ flex: 1 }}>
                     <View style={s.txTop}>
                       <Text style={[s.txUser, { color: colors.text.primary }]} numberOfLines={1}>

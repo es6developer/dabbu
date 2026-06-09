@@ -2,11 +2,13 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
+import { Avatar } from './Avatar';
 
 interface SplitMember {
   name: string;
   amount: number;
   isPaid?: boolean;
+  avatarUrl?: string | null;
 }
 
 interface SplitSummaryCardProps {
@@ -30,21 +32,22 @@ export function SplitSummaryCard({ totalAmount, members, splitMethod }: SplitSum
 
   return (
     <View style={[styles.card, { backgroundColor: colors.bg.card }]}>
-      <View
-        
-        
-        
-        style={styles.gradientBg}
-      >
+      <View style={styles.gradientBg}>
         <View style={styles.header}>
           <View style={[styles.methodBadge, { backgroundColor: `${colors.accent.primary}15` }]}>
-            <Ionicons name={(methodIcons[splitMethod] || 'reorder-three-outline') as any} size={12} color={colors.accent.primary} />
+            <Ionicons
+              name={(methodIcons[splitMethod] || 'reorder-three-outline') as any}
+              size={12}
+              color={colors.accent.primary}
+            />
             <Text style={styles.methodText}>{splitMethod}</Text>
           </View>
           <Text style={[styles.totalLabel, { color: colors.text.tertiary }]}>Total</Text>
         </View>
 
-        <Text style={[styles.totalAmount, { color: colors.accent.primary }]}>{fmt(totalAmount)}</Text>
+        <Text style={[styles.totalAmount, { color: colors.accent.primary }]}>
+          {fmt(totalAmount)}
+        </Text>
 
         <View style={[styles.divider, { backgroundColor: colors.border.subtle }]} />
 
@@ -55,9 +58,7 @@ export function SplitSummaryCard({ totalAmount, members, splitMethod }: SplitSum
         {members.map((member, index) => (
           <View key={index} style={styles.memberRow}>
             <View style={styles.memberInfo}>
-              <View style={[styles.avatar, { backgroundColor: `${colors.accent.primary}15` }]}>
-                <Text style={[styles.avatarText, { color: colors.accent.primary }]}>{member.name[0]}</Text>
-              </View>
+              <Avatar uri={member.avatarUrl} name={member.name} size={32} />
               <Text style={[styles.memberName, { color: colors.text.primary }]}>{member.name}</Text>
             </View>
             <View style={styles.memberRight}>

@@ -1084,6 +1084,11 @@ export class SharedFinanceService {
   async completeSettlement(settlementId: string, userId: string) {
     const settlement = await this.prisma.settlement.findUnique({
       where: { id: settlementId },
+      include: {
+        group: { select: { id: true, name: true, createdBy: true } },
+        fromUser: { select: { id: true, firstName: true, lastName: true } },
+        toUser: { select: { id: true, firstName: true, lastName: true } },
+      },
     });
     if (!settlement) {
       throw new NotFoundException('Settlement not found');
@@ -1101,6 +1106,48 @@ export class SharedFinanceService {
         toUser: { select: { id: true, firstName: true, lastName: true } },
       },
     });
+
+    const amount = Number(settlement.amount);
+    const fromName = `${settlement.fromUser.firstName} ${settlement.fromUser.lastName}`.trim();
+    const toName = `${settlement.toUser.firstName} ${settlement.toUser.lastName}`.trim();
+
+    try {
+      await this.notificationService.create({
+        userId: settlement.group.createdBy,
+        type: 'settlement_complete' as any,
+        title: 'Settlement Completed',
+        message: `${fromName} settled ₹${amount.toLocaleString('en-IN')} with ${toName} in ${settlement.group.name}`,
+        data: {
+          groupId: settlement.group.id,
+          groupName: settlement.group.name,
+          amount,
+          paidBy: fromName,
+          paidTo: toName,
+        },
+        priority: 'high',
+      });
+
+      const otherPartyId =
+        settlement.fromUserId === userId ? settlement.toUserId : settlement.fromUserId;
+      if (otherPartyId !== settlement.group.createdBy) {
+        await this.notificationService.create({
+          userId: otherPartyId,
+          type: 'settlement_complete' as any,
+          title: 'Settlement Completed',
+          message: `₹${amount.toLocaleString('en-IN')} settled in ${settlement.group.name}`,
+          data: {
+            groupId: settlement.group.id,
+            groupName: settlement.group.name,
+            amount,
+            paidBy: fromName,
+            paidTo: toName,
+          },
+          priority: 'high',
+        });
+      }
+    } catch (e) {
+      this.logger.warn('Failed to send settlement notification', e);
+    }
 
     return updated;
   }
@@ -4125,6 +4172,11 @@ export class SharedFinanceService {
     const profile = await this.getCoupleProfileOrThrow(groupId);
     const partnerId = profile.partner1Id === userId ? profile.partner2Id : profile.partner1Id;
 
+    const group = await this.prisma.sharedGroup.findUnique({
+      where: { id: groupId },
+      select: { name: true, createdBy: true },
+    });
+
     const expenses = await this.prisma.sharedExpense.findMany({
       where: { groupId },
       include: { splits: true },
@@ -4168,6 +4220,40 @@ export class SharedFinanceService {
       },
       data: { isPaid: true },
     });
+
+    const fromName = `${settlement.fromUser.firstName} ${settlement.fromUser.lastName}`.trim();
+    try {
+      await this.notificationService.create({
+        userId: group?.createdBy || partnerId,
+        type: 'settlement_complete' as any,
+        title: 'Settlement Completed',
+        message: `Couple settled up ₹${amount.toLocaleString('en-IN')}`,
+        data: {
+          groupId,
+          groupName: group?.name || 'Couple',
+          amount,
+          paidBy: fromName,
+          paidTo: settlement.toUser.firstName,
+        },
+        priority: 'high',
+      });
+      await this.notificationService.create({
+        userId: partnerId,
+        type: 'settlement_complete' as any,
+        title: 'Settlement Completed',
+        message: `${fromName} settled ₹${amount.toLocaleString('en-IN')} with you`,
+        data: {
+          groupId,
+          groupName: group?.name || 'Couple',
+          amount,
+          paidBy: fromName,
+          paidTo: settlement.toUser.firstName,
+        },
+        priority: 'high',
+      });
+    } catch (e) {
+      this.logger.warn('Failed to send couple settlement notification', e);
+    }
 
     return { ...settlement, amount: Number(settlement.amount) };
   }
