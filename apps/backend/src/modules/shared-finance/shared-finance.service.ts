@@ -181,6 +181,14 @@ export class SharedFinanceService {
       include: {
         group: {
           include: {
+            members: {
+              where: { isActive: true },
+              include: {
+                user: {
+                  select: { id: true, firstName: true, lastName: true, avatarUrl: true },
+                },
+              },
+            },
             _count: {
               select: { members: true, expenses: true },
             },

@@ -137,7 +137,7 @@ function deriveGroupBalance(
 
 function MemberAvatars({ members, themeColor }: { members: any[]; themeColor: string }) {
   const { colors } = useTheme();
-  const max = 3;
+  const max = 5;
   const visible = members.slice(0, max);
   const remaining = members.length - max;
 
@@ -238,9 +238,13 @@ function GroupCard({
         <View style={gCard.body}>
           <View style={gCard.memberRow}>
             <MemberAvatars members={members} themeColor={cfg.gradient[0]} />
-            <Text style={[gCard.memberCount, { color: colors.text.tertiary }]}>
-              {memberCount} member{memberCount !== 1 ? 's' : ''}
-            </Text>
+            {memberCount > 0 && (
+              <View style={[gCard.memberBadge, { backgroundColor: `${cfg.gradient[0]}15` }]}>
+                <Text style={[gCard.memberBadgeText, { color: cfg.gradient[0] }]}>
+                  {memberCount}
+                </Text>
+              </View>
+            )}
           </View>
 
           <View style={[gCard.dividerLine, { backgroundColor: colors.border.subtle }]} />
@@ -948,7 +952,14 @@ const gCard = StyleSheet.create({
   coverName: { fontSize: 18, fontWeight: '800', color: '#FFF' },
   coverTime: { fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
   body: { padding: 16 },
-  memberRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  memberRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  memberBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    marginLeft: -4,
+  },
+  memberBadgeText: { fontSize: 11, fontWeight: '700' },
   memberCount: { fontSize: 12, fontWeight: '500' },
   dividerLine: { height: 1, marginVertical: 12 },
   balanceSection: { gap: 4 },
