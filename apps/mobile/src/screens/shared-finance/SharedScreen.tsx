@@ -151,20 +151,29 @@ function MemberAvatars({ members, themeColor }: { members: any[]; themeColor: st
       {visible.map((m, i) => {
         const u = m.user || m;
         return (
-          <View key={u?.id || i} style={{ marginLeft: i > 0 ? -12 : 0, zIndex: max - i }}>
+          <View
+            key={u?.id || i}
+            style={[
+              cs.avatarRing,
+              { marginLeft: i > 0 ? -14 : 0, zIndex: max - i, borderColor: themeColor },
+            ]}
+          >
             <Avatar
               uri={u.avatarUrl}
               name={`${u.firstName || ''} ${u.lastName || ''}`.trim()}
-              size={36}
+              size={38}
             />
           </View>
         );
       })}
       {remaining > 0 && (
         <View
-          style={[cs.avatar, { marginLeft: -12, zIndex: 0, backgroundColor: colors.border.default }]}
+          style={[
+            cs.avatar,
+            { marginLeft: -14, zIndex: 0, backgroundColor: themeColor, borderColor: themeColor },
+          ]}
         >
-          <Text style={[cs.avatarText, { fontSize: 13 }]}>+{remaining}</Text>
+          <Text style={cs.avatarText}>+{remaining}</Text>
         </View>
       )}
     </View>
@@ -273,23 +282,22 @@ function GroupCard({
           </View>
 
           <View style={gCard.actionRow}>
-            {canSettle ? (
+            <TouchableOpacity
+              style={[gCard.actionBtn, { backgroundColor: cfg.gradient[0] }]}
+              activeOpacity={0.8}
+              onPress={onAddExpense}
+            >
+              <Ionicons name="add-circle-outline" size={14} color="#FFF" />
+              <Text style={gCard.actionBtnText}>Add expense</Text>
+            </TouchableOpacity>
+            {canSettle && (
               <TouchableOpacity
-                style={[gCard.actionBtn, { backgroundColor: cfg.gradient[0] }]}
+                style={[gCard.settleBtn, { borderColor: cfg.gradient[0] }]}
                 activeOpacity={0.8}
                 onPress={() => Alert.alert('Settle Up', 'Opening settlement screen...')}
               >
-                <Ionicons name="swap-horizontal" size={14} color="#FFF" />
-                <Text style={gCard.actionBtnText}>Settle up</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={[gCard.actionBtn, { backgroundColor: cfg.gradient[0] }]}
-                activeOpacity={0.8}
-                onPress={onAddExpense}
-              >
-                <Ionicons name="add-circle-outline" size={14} color="#FFF" />
-                <Text style={gCard.actionBtnText}>Add expense</Text>
+                <Ionicons name="swap-horizontal" size={14} color={cfg.gradient[0]} />
+                <Text style={[gCard.settleBtnText, { color: cfg.gradient[0] }]}>Settle up</Text>
               </TouchableOpacity>
             )}
             {totalSpent > 0 && (
@@ -992,6 +1000,16 @@ const gCard = StyleSheet.create({
     borderRadius: 12,
   },
   actionBtnText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
+  settleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 12,
+    borderWidth: 1.5,
+  },
+  settleBtnText: { fontSize: 12, fontWeight: '700' },
   spentBadge: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   spentLabel: { fontSize: 11, fontWeight: '500' },
   spentValue: { fontSize: 14, fontWeight: '700' },
@@ -999,16 +1017,19 @@ const gCard = StyleSheet.create({
 
 const cs = StyleSheet.create({
   avatarRow: { flexDirection: 'row', alignItems: 'center' },
+  avatarRing: {
+    borderRadius: 999,
+    borderWidth: 2.5,
+  },
   avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#FFF',
+    borderWidth: 0,
   },
-  avatarText: { color: '#FFF', fontSize: 13, fontWeight: '700' },
+  avatarText: { color: '#FFF', fontSize: 12, fontWeight: '800' },
 });
 
 const mod = StyleSheet.create({
