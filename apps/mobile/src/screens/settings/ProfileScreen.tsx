@@ -196,11 +196,16 @@ export function ProfileScreen() {
               {/* Avatar */}
               <View style={{ alignItems: 'center', marginBottom: 28 }}>
                 <View style={{ position: 'relative', marginBottom: 12 }}>
-                  <Avatar
-                    uri={user?.avatarUrl}
-                    name={`${user?.firstName || ''} ${user?.lastName || ''}`}
-                    size={100}
-                  />
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => navigation.navigate('AvatarPicker')}
+                  >
+                    <Avatar
+                      uri={user?.avatarUrl}
+                      name={`${user?.firstName || ''} ${user?.lastName || ''}`}
+                      size={100}
+                    />
+                  </TouchableOpacity>
                   <TouchableOpacity
                     style={{
                       position: 'absolute',
@@ -218,7 +223,7 @@ export function ProfileScreen() {
                     activeOpacity={0.8}
                     onPress={() => navigation.navigate('AvatarPicker')}
                   >
-                    <Ionicons name="camera" size={16} color="#FFFFFF" />
+                    <Ionicons name="pencil" size={14} color="#FFFFFF" />
                   </TouchableOpacity>
                 </View>
                 <Text
