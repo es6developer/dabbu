@@ -77,13 +77,13 @@ function FeedCard({ card, onPress }: { card: FeedCard; onPress: () => void }) {
         <Text style={s.cardMessage}>{card.message}</Text>
 
         <View style={s.cardFooter}>
-          {card.impactValue != null && card.impactValue > 0 && (
+          {card.impactValue !== null && card.impactValue > 0 && (
             <View style={s.footerItem}>
               <Ionicons name="pricetag-outline" size={12} color={AI_COLORS.textSecondary} />
               <Text style={s.footerText}>₹{card.impactValue.toLocaleString('en-IN')}</Text>
             </View>
           )}
-          {card.confidenceScore != null && (
+          {card.confidenceScore !== null && (
             <View style={s.footerItem}>
               <Ionicons name="analytics-outline" size={12} color={AI_COLORS.textSecondary} />
               <Text style={s.footerText}>{card.confidenceScore}% confidence</Text>
@@ -191,14 +191,14 @@ export function TodayFeedScreen() {
     try {
       await api.patch(`/ai/feed/${card.id}/read`);
       setFeed(prev => prev.map(c => c.id === card.id ? { ...c, isRead: true } : c));
-    } catch {}
+    } catch { /* ignore */ }
   }, []);
 
   const handleDismiss = useCallback(async (cardId: string) => {
     try {
       await api.patch(`/ai/feed/${cardId}/dismiss`);
       setFeed(prev => prev.filter(c => c.id !== cardId));
-    } catch {}
+    } catch { /* ignore */ }
   }, []);
 
   const emptyState = !loading && feed.length === 0;
