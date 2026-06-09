@@ -22,6 +22,16 @@ export function PhoneScreen() {
   const [phone, setPhone] = useState(user?.phone || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [fieldError, setFieldError] = useState('');
+
+  const validatePhone = (v: string) => {
+    const digits = v.replace(/[^0-9+]/g, '');
+    if (v.length > 0 && digits.length < 8) {
+      setFieldError('Please enter a valid phone number (min 8 digits)');
+    } else {
+      setFieldError('');
+    }
+  };
 
   async function handleSave() {
     const digits = phone.replace(/[^0-9+]/g, '');
@@ -34,7 +44,14 @@ export function PhoneScreen() {
     try {
       await updatePhone(digits);
     } catch (e: any) {
-      setError(e.message || 'Failed to save phone number');
+      const msg = e?.message || '';
+      const knownErrors: Record<string, string> = {
+        'phone must be a valid phone number': 'Please enter a valid phone number with country code',
+        'phone already in use': 'This phone number is already linked to another account',
+        'phone is required': 'Phone number is required',
+      };
+      const matched = Object.keys(knownErrors).find((k) => msg.toLowerCase().includes(k.toLowerCase()));
+      setError(matched ? knownErrors[matched] : msg || 'Failed to save phone number');
     } finally {
       setSaving(false);
     }
@@ -50,7 +67,7 @@ export function PhoneScreen() {
           <View style={styles.center}>
             <Image
               source={require('../../../assets/logo.png')}
-              style={styles.logo}
+              style={[styles.logo, { tintColor: colors.brand.primary }]}
               resizeMode="contain"
             />
             <Text style={[styles.title, { color: colors.text.primary }]}>
@@ -84,7 +101,7 @@ export function PhoneScreen() {
                 {
                   backgroundColor: colors.bg.tertiary,
                   color: colors.text.primary,
-                  borderColor: colors.border.subtle,
+                  borderColor: fieldError ? colors.status.error : colors.border.subtle,
                 },
               ]}
               placeholder="+1 (555) 123-4567"
@@ -93,10 +110,16 @@ export function PhoneScreen() {
               onChangeText={(t) => {
                 setPhone(t);
                 setError('');
+                validatePhone(t);
               }}
               keyboardType="phone-pad"
               autoFocus
             />
+            {fieldError ? (
+              <Text style={{ fontSize: 12, color: colors.status.error, marginTop: -12, marginBottom: 12 }}>
+                {fieldError}
+              </Text>
+            ) : null}
 
             <TouchableOpacity
               style={[

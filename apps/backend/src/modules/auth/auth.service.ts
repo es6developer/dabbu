@@ -40,8 +40,16 @@ export class AuthService {
     private readonly referralService: ReferralService,
   ) {}
 
-  private generateDiceBearUrl(seed: string): string {
-    return `https://api.dicebear.com/10.x/lorelei/svg?seed=${encodeURIComponent(seed)}`;
+  private get appUrl(): string {
+    return this.configService.get<string>('app.url', 'http://localhost:4000').replace(/\/+$/, '');
+  }
+
+  private get apiPrefix(): string {
+    return this.configService.get<string>('app.prefix', '/api/v1');
+  }
+
+  private generateAvatarUrl(seed: string): string {
+    return `${this.appUrl}${this.apiPrefix}/auth/avatar/${encodeURIComponent(seed)}.svg`;
   }
 
   private generateRandomAvatarSeed(firstName: string, lastName: string): string {
@@ -60,15 +68,16 @@ export class AuthService {
     { seed: 'dabbu-oasis', name: 'Oasis' },
     { seed: 'dabbu-pixel', name: 'Pixel' },
     { seed: 'dabbu-quasar', name: 'Quasar' },
+    { seed: 'dabbu-bliss', name: 'Bliss' },
     { seed: 'dabbu-ember', name: 'Ember' },
     { seed: 'dabbu-aurora', name: 'Aurora' },
     { seed: 'dabbu-coral', name: 'Coral' },
     { seed: 'dabbu-haven', name: 'Haven' },
-    { seed: 'dabbu-ivy', name: 'Ivy' },
+    { seed: 'dabbu-luna', name: 'Luna' },
     { seed: 'dabbu-jade', name: 'Jade' },
     { seed: 'dabbu-karma', name: 'Karma' },
+    { seed: 'dabbu-pearl', name: 'Pearl' },
     { seed: 'dabbu-ash', name: 'Ash' },
-    { seed: 'dabbu-mint', name: 'Mint' },
   ];
 
   async register(
@@ -83,7 +92,7 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(dto.password, 12);
     const avatarSeed = this.generateRandomAvatarSeed(dto.firstName, dto.lastName);
-    const avatarUrl = this.generateDiceBearUrl(avatarSeed);
+    const avatarUrl = this.generateAvatarUrl(avatarSeed);
 
     const user = await this.prisma.user.create({
       data: {
@@ -324,7 +333,7 @@ export class AuthService {
       }
 
       const guestAvatarSeed = this.generateRandomAvatarSeed('Guest', '');
-      const guestAvatarUrl = this.generateDiceBearUrl(guestAvatarSeed);
+      const guestAvatarUrl = this.generateAvatarUrl(guestAvatarSeed);
 
       user = await this.prisma.user.create({
         data: {
@@ -421,7 +430,7 @@ export class AuthService {
       }
 
       const demoAvatarSeed = this.generateRandomAvatarSeed('Demo', '');
-      const demoAvatarUrl = this.generateDiceBearUrl(demoAvatarSeed);
+      const demoAvatarUrl = this.generateAvatarUrl(demoAvatarSeed);
 
       user = await this.prisma.user.create({
         data: {
@@ -1028,7 +1037,7 @@ export class AuthService {
 
   async regenerateAvatar(userId: string): Promise<{ avatarUrl: string }> {
     const seed = this.generateRandomAvatarSeed('user', userId.slice(-8));
-    const avatarUrl = this.generateDiceBearUrl(seed);
+    const avatarUrl = this.generateAvatarUrl(seed);
     await this.prisma.user.update({
       where: { id: userId },
       data: { avatarUrl },
@@ -1041,7 +1050,7 @@ export class AuthService {
     if (!preset) {
       throw new BadRequestException('Invalid preset seed');
     }
-    const avatarUrl = this.generateDiceBearUrl(preset.seed);
+    const avatarUrl = this.generateAvatarUrl(preset.seed);
     await this.prisma.user.update({
       where: { id: userId },
       data: { avatarUrl },
@@ -1053,7 +1062,7 @@ export class AuthService {
     return this.AVATAR_PRESETS.map((p) => ({
       seed: p.seed,
       name: p.name,
-      url: this.generateDiceBearUrl(p.seed),
+      url: this.generateAvatarUrl(p.seed),
     }));
   }
 

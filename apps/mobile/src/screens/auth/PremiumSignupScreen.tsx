@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { PADDING, borderRadius, shadows } from '../../theme/design';
+import { Alert } from 'react-native';
 
 interface InputFieldProps {
   placeholder: string;
@@ -32,6 +33,7 @@ interface InputFieldProps {
   onFocus: () => void;
   onBlur: () => void;
   colors: any;
+  error?: boolean;
 }
 
 function InputField({
@@ -49,7 +51,8 @@ function InputField({
   onFocus,
   onBlur,
   colors,
-}: InputFieldProps) {
+  error,
+}: InputFieldProps & { error?: boolean }) {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = secureTextEntry !== undefined;
   return (
@@ -60,7 +63,7 @@ function InputField({
         backgroundColor: colors.bg.secondary,
         borderRadius: borderRadius.md,
         borderWidth: 1.5,
-        borderColor: colors.border.default,
+        borderColor: error ? colors.status.error : focused ? colors.brand.primary : colors.border.default,
         paddingHorizontal: 14,
         marginBottom: 12,
       }}
@@ -114,6 +117,30 @@ export function PremiumSignupScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const validateEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+
+  const handleBlur = (field: string) => {
+    setFocusedField(null);
+    const errs = { ...fieldErrors };
+    if (field === 'email' && email && !validateEmail(email)) {
+      errs.email = 'Invalid email format';
+    } else if (field === 'email') {
+      delete errs.email;
+    }
+    if (field === 'confirm' && confirmPassword && password !== confirmPassword) {
+      errs.confirm = 'Passwords do not match';
+    } else if (field === 'confirm') {
+      delete errs.confirm;
+    }
+    if (field === 'password' && password && password.length < 6) {
+      errs.password = 'Min 6 characters';
+    } else if (field === 'password') {
+      delete errs.password;
+    }
+    setFieldErrors(errs);
+  };
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(24)).current;
 
@@ -175,7 +202,7 @@ export function PremiumSignupScreen() {
                 <View style={{ flex: 1 }}>
                   <Image
                     source={require('../../../assets/logo.png')}
-                    style={{ width: 48, height: 48, marginBottom: 14 }}
+                    style={{ width: 48, height: 48, marginBottom: 14, tintColor: colors.brand.primary }}
                     resizeMode="contain"
                   />
                   <Text
@@ -223,7 +250,12 @@ export function PremiumSignupScreen() {
                   <InputField
                     placeholder="First name"
                     value={firstName}
-                    onChangeText={setFirstName}
+                    onChangeText={(t) => {
+                      setFirstName(t);
+                      if (fieldErrors.first) {
+                        setFieldErrors((prev) => { const n = {...prev}; delete n.first; return n; });
+                      }
+                    }}
                     autoCapitalize="words"
                     returnKeyType="next"
                     icon="person-outline"
@@ -231,14 +263,20 @@ export function PremiumSignupScreen() {
                     colors={colors}
                     focused={focusedField === 'first'}
                     onFocus={() => setFocusedField('first')}
-                    onBlur={() => setFocusedField(null)}
+                    onBlur={() => handleBlur('first')}
+                    error={!!fieldErrors.first}
                   />
                 </View>
                 <View style={{ flex: 1 }}>
                   <InputField
                     placeholder="Last name"
                     value={lastName}
-                    onChangeText={setLastName}
+                    onChangeText={(t) => {
+                      setLastName(t);
+                      if (fieldErrors.last) {
+                        setFieldErrors((prev) => { const n = {...prev}; delete n.last; return n; });
+                      }
+                    }}
                     autoCapitalize="words"
                     returnKeyType="next"
                     inputRef={lastNameRef}
@@ -246,7 +284,8 @@ export function PremiumSignupScreen() {
                     colors={colors}
                     focused={focusedField === 'last'}
                     onFocus={() => setFocusedField('last')}
-                    onBlur={() => setFocusedField(null)}
+                    onBlur={() => handleBlur('last')}
+                    error={!!fieldErrors.last}
                   />
                 </View>
               </View>
@@ -254,7 +293,14 @@ export function PremiumSignupScreen() {
               <InputField
                 placeholder="Email address"
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(t) => {
+                  setEmail(t);
+                  if (t && !validateEmail(t)) {
+                    setFieldErrors((prev) => ({...prev, email: 'Invalid email format'}));
+                  } else {
+                    setFieldErrors((prev) => { const n = {...prev}; delete n.email; return n; });
+                  }
+                }}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 returnKeyType="next"
@@ -264,12 +310,25 @@ export function PremiumSignupScreen() {
                 colors={colors}
                 focused={focusedField === 'email'}
                 onFocus={() => setFocusedField('email')}
-                onBlur={() => setFocusedField(null)}
+                onBlur={() => handleBlur('email')}
+                error={!!fieldErrors.email}
               />
               <InputField
                 placeholder="Password"
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(t) => {
+                  setPassword(t);
+                  if (t && t.length < 6) {
+                    setFieldErrors((prev) => ({...prev, password: 'Min 6 characters'}));
+                  } else {
+                    setFieldErrors((prev) => { const n = {...prev}; delete n.password; return n; });
+                  }
+                  if (confirmPassword && t !== confirmPassword) {
+                    setFieldErrors((prev) => ({...prev, confirm: 'Passwords do not match'}));
+                  } else if (confirmPassword) {
+                    setFieldErrors((prev) => { const n = {...prev}; delete n.confirm; return n; });
+                  }
+                }}
                 secureTextEntry
                 returnKeyType="next"
                 icon="lock-closed-outline"
@@ -278,12 +337,20 @@ export function PremiumSignupScreen() {
                 colors={colors}
                 focused={focusedField === 'password'}
                 onFocus={() => setFocusedField('password')}
-                onBlur={() => setFocusedField(null)}
+                onBlur={() => handleBlur('password')}
+                error={!!fieldErrors.password}
               />
               <InputField
                 placeholder="Confirm password"
                 value={confirmPassword}
-                onChangeText={setConfirmPassword}
+                onChangeText={(t) => {
+                  setConfirmPassword(t);
+                  if (t && password !== t) {
+                    setFieldErrors((prev) => ({...prev, confirm: 'Passwords do not match'}));
+                  } else {
+                    setFieldErrors((prev) => { const n = {...prev}; delete n.confirm; return n; });
+                  }
+                }}
                 secureTextEntry
                 returnKeyType="done"
                 icon="lock-closed-outline"
@@ -292,7 +359,8 @@ export function PremiumSignupScreen() {
                 colors={colors}
                 focused={focusedField === 'confirm'}
                 onFocus={() => setFocusedField('confirm')}
-                onBlur={() => setFocusedField(null)}
+                onBlur={() => handleBlur('confirm')}
+                error={!!fieldErrors.confirm}
               />
 
               {/* Error */}
@@ -355,6 +423,7 @@ export function PremiumSignupScreen() {
               {/* Google */}
               <TouchableOpacity
                 activeOpacity={0.85}
+                onPress={() => Alert.alert('Google Sign-In', 'Google sign-in will be available soon.')}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -396,6 +465,16 @@ export function PremiumSignupScreen() {
                   256-bit encrypted connection
                 </Text>
               </View>
+              {/* Field Errors */}
+              {Object.keys(fieldErrors).length > 0 && (
+                <View style={{ marginTop: -4, marginBottom: 8 }}>
+                  {Object.entries(fieldErrors).map(([key, msg]) => (
+                    <Text key={key} style={{ fontSize: 12, color: colors.status.error, marginBottom: 2 }}>
+                      {msg}
+                    </Text>
+                  ))}
+                </View>
+              )}
             </View>
           </ScrollView>
         </Animated.View>

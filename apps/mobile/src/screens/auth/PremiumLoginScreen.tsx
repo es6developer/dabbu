@@ -8,8 +8,9 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   ActivityIndicator,
-  Image,
-} from 'react-native';
+  Alert,
+   Image,
+ } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -65,23 +66,10 @@ export function PremiumLoginScreen() {
         >
           {/* Back + Brand */}
           <View style={{ paddingHorizontal: PADDING, marginBottom: 12 }}>
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 12,
-                backgroundColor: colors.bg.secondary,
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: 24,
-              }}
-            >
-              <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
-            </TouchableOpacity>
+
             <Image
               source={require('../../../assets/logo.png')}
-              style={{ width: 48, height: 48, marginBottom: 14 }}
+              style={{ width: 48, height: 48, marginBottom: 14, tintColor: colors.brand.primary }}
               resizeMode="contain"
             />
             <Text
@@ -297,6 +285,10 @@ export function PremiumLoginScreen() {
             {/* Google */}
             <TouchableOpacity
               activeOpacity={0.85}
+              onPress={() => {
+                const { GoogleAuth } = require('expo-auth-session/providers/google');
+                Alert.alert('Google Sign-In', 'Google sign-in will be available soon.');
+              }}
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',

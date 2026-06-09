@@ -204,18 +204,31 @@ model User {
   payNowLinksTo                PayNowLink[]                 @relation("PayTo")
 
   // Login activity
-  loginActivity       LoginActivity[]
+  loginActivity LoginActivity[]
 
   // Friends & Contacts
-  friendsInitiated    Friend[]              @relation("UserFriends")
-  friendsAdded        Friend[]              @relation("FriendOf")
-  contactHashes       ContactHash[]
-  favoritesOwned      FavoriteContact[]     @relation("FavoritesOwner")
-  favoritedBy         FavoriteContact[]     @relation("FavoritedContact")
-  supportTickets      SupportTicket[]
-  referralRewards     ReferralReward[]
-  CoupleFinanceIncome CoupleFinanceIncome[]
-  CoupleFinanceSaving CoupleFinanceSaving[]
+  friendsInitiated     Friend[]               @relation("UserFriends")
+  friendsAdded         Friend[]               @relation("FriendOf")
+  contactHashes        ContactHash[]
+  favoritesOwned       FavoriteContact[]      @relation("FavoritesOwner")
+  favoritedBy          FavoriteContact[]      @relation("FavoritedContact")
+  supportTickets       SupportTicket[]
+  referralRewards      ReferralReward[]
+  CoupleFinanceIncome  CoupleFinanceIncome[]
+  CoupleFinanceSaving  CoupleFinanceSaving[]
+  FinancialDna         FinancialDna[]
+  AiInsight            AiInsight[]
+  AiPrediction         AiPrediction[]
+  AiAnomaly            AiAnomaly[]
+  AiRecommendation     AiRecommendation[]
+  AiScore              AiScore[]
+  UserBehaviorMetric   UserBehaviorMetric[]
+  GoalPrediction       GoalPrediction[]
+  DashboardAiCard      DashboardAiCard[]
+  SmartCategoryMapping SmartCategoryMapping[]
+  LifeEvent            LifeEvent[]
+  AiMilestone          AiMilestone[]
+  AiFeedCard           AiFeedCard[]
 
   @@index([email])
   @@index([isActive])
@@ -375,9 +388,10 @@ model Family {
   updatedAt  DateTime @updatedAt
 
   // Relations
-  members   FamilyMember[]
-  tasks     SharedTask[]
-  reminders SharedReminder[]
+  members            FamilyMember[]
+  tasks              SharedTask[]
+  reminders          SharedReminder[]
+  FamilyIntelligence FamilyIntelligence[]
 
   @@index([code])
   @@index([ownerId])
@@ -586,14 +600,14 @@ model TransactionCategory {
   updatedAt       DateTime @updatedAt
 
   // Relations
-  user           User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  parent         TransactionCategory?    @relation("CategoryHierarchy", fields: [parentId], references: [id])
-  children       TransactionCategory[]   @relation("CategoryHierarchy")
-  transactions   Transaction[]
-  budgets        Budget[]
-  bills          Bill[]
-  reminders      Reminder[]
-  coupleIncomes  CoupleFinanceIncome[]
+  user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent        TransactionCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children      TransactionCategory[] @relation("CategoryHierarchy")
+  transactions  Transaction[]
+  budgets       Budget[]
+  bills         Bill[]
+  reminders     Reminder[]
+  coupleIncomes CoupleFinanceIncome[]
 
   @@index([userId, transactionType])
   @@index([userId, parentId])
@@ -1163,6 +1177,7 @@ model SharedGroup {
   coupleSavings           CoupleFinanceSaving[]
   budgetCategories        CoupleBudgetCategory[]
   groupSetting            GroupSetting?
+  SettlementSuggestion    SettlementSuggestion[]
 
   @@index([createdBy])
   @@index([type])
@@ -1505,9 +1520,10 @@ model CoupleFinanceProfile {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  group    SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  partner1 User        @relation("CouplePartner1", fields: [partner1Id], references: [id])
-  partner2 User        @relation("CouplePartner2", fields: [partner2Id], references: [id])
+  group              SharedGroup          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  partner1           User                 @relation("CouplePartner1", fields: [partner1Id], references: [id])
+  partner2           User                 @relation("CouplePartner2", fields: [partner2Id], references: [id])
+  CoupleIntelligence CoupleIntelligence[]
 
   @@map("couple_finance_profiles")
 }
@@ -1542,8 +1558,8 @@ model CoupleFinanceIncome {
   createdBy  String   @db.VarChar(36)
   createdAt  DateTime @default(now())
 
-  group    SharedGroup        @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  creator  User               @relation(fields: [createdBy], references: [id])
+  group    SharedGroup          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  creator  User                 @relation(fields: [createdBy], references: [id])
   category TransactionCategory? @relation(fields: [categoryId], references: [id])
 
   @@index([groupId])
@@ -2670,10 +2686,10 @@ model SupportTicket {
 // ─── FAVORITE CONTACTS ─────────────────────────────────────
 // One-directional favorites (no accept/reject needed)
 model FavoriteContact {
-  id             String   @id @default(uuid()) @db.VarChar(36)
-  userId         String   @db.VarChar(36)  // user who added the favorite
-  contactUserId  String   @db.VarChar(36)  // user being favorited
-  createdAt      DateTime @default(now())
+  id            String   @id @default(uuid()) @db.VarChar(36)
+  userId        String   @db.VarChar(36) // user who added the favorite
+  contactUserId String   @db.VarChar(36) // user being favorited
+  createdAt     DateTime @default(now())
 
   user    User @relation("FavoritesOwner", fields: [userId], references: [id], onDelete: Cascade)
   contact User @relation("FavoritedContact", fields: [contactUserId], references: [id], onDelete: Cascade)
@@ -2681,4 +2697,446 @@ model FavoriteContact {
   @@unique([userId, contactUserId])
   @@index([userId])
   @@map("favorite_contacts")
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// AI 2.0 — INTELLIGENCE LAYER
+// ═══════════════════════════════════════════════════════════════════
+
+// ─── FINANCIAL DNA ────────────────────────────────────────────
+// Unique financial personality profile per user, updated weekly
+model FinancialDna {
+  id     String @id @default(uuid()) @db.VarChar(36)
+  userId String @db.VarChar(36)
+
+  // Personality traits (0-100)
+  spendingPersonality String @default("balanced") @db.VarChar(50) // frugal, balanced, spender, lavish
+  savingPersonality   String @default("moderate") @db.VarChar(50) // hoarder, moderate, spender
+  riskLevel           String @default("moderate") @db.VarChar(20) // conservative, moderate, aggressive
+
+  // Scores (0-100)
+  spendingScore   Int @default(50)
+  savingScore     Int @default(50)
+  disciplineScore Int @default(50)
+
+  // Behavioral metrics
+  weekendSpendingPct         Float   @default(0) // percentage of spending on weekends
+  luxurySpendingScore        Int     @default(0) // 0-100
+  impulsePurchaseScore       Int     @default(0) // 0-100
+  familyContributionScore    Int     @default(0) // 0-100
+  settlementReliabilityScore Int     @default(0) // 0-100
+  incomeConsistency          String  @default("stable") @db.VarChar(20) // stable, irregular, seasonal
+  billPaymentBehavior        String  @default("ontime") @db.VarChar(20) // ontime, late, inconsistent
+  topCategoryPreference      String? @db.VarChar(50)
+
+  // Percentile rankings
+  disciplinePercentile Float @default(0)
+  savingsPercentile    Float @default(0)
+
+  // Metadata
+  weekStart  DateTime
+  weekEnd    DateTime
+  computedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, weekStart])
+  @@index([userId])
+  @@index([userId, weekStart])
+  @@map("financial_dna")
+}
+
+// ─── AI INSIGHTS ─────────────────────────────────────────────
+// Pre-computed insights cached for instant display
+model AiInsight {
+  id          String    @id @default(uuid()) @db.VarChar(36)
+  userId      String    @db.VarChar(36)
+  type        String    @db.VarChar(50) // spending, saving, behavior, goal, family, couple, settlement, milestone
+  title       String    @db.VarChar(255)
+  description String    @db.Text
+  category    String?   @db.VarChar(50)
+  amount      Decimal?  @db.Decimal(15, 2)
+  severity    String    @default("info") @db.VarChar(20) // info, positive, warning, achievement
+  icon        String?   @db.VarChar(50)
+  actionLabel String?   @db.VarChar(100)
+  actionRoute String?   @db.VarChar(255)
+  isRead      Boolean   @default(false)
+  isDismissed Boolean   @default(false)
+  validFrom   DateTime  @default(now())
+  validUntil  DateTime?
+  createdAt   DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@index([userId, isRead])
+  @@index([userId, validFrom, validUntil])
+  @@map("ai_insights")
+}
+
+// ─── AI PREDICTIONS ──────────────────────────────────────────
+// Spending predictions, cash flow forecasts, budget overrun alerts
+model AiPrediction {
+  id             String    @id @default(uuid()) @db.VarChar(36)
+  userId         String    @db.VarChar(36)
+  type           String    @db.VarChar(50) // end_of_month_balance, expected_expenses, expected_savings, budget_overrun, cash_shortage
+  category       String?   @db.VarChar(50) // for budget-specific predictions
+  predictedValue Decimal   @db.Decimal(15, 2)
+  currentValue   Decimal?  @db.Decimal(15, 2)
+  confidence     Float     @default(0) // 0-100
+  status         String    @default("active") @db.VarChar(20) // active, fulfilled, expired
+  message        String?   @db.Text
+  validFrom      DateTime  @default(now())
+  validUntil     DateTime? @default(now())
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@index([userId, status])
+  @@map("ai_predictions")
+}
+
+// ─── AI ANOMALIES ────────────────────────────────────────────
+// Detected unusual spending patterns and anomalies
+model AiAnomaly {
+  id            String    @id @default(uuid()) @db.VarChar(36)
+  userId        String    @db.VarChar(36)
+  type          String    @db.VarChar(50) // spending_spike, large_transaction, unusual_category, income_drop, missing_expected
+  category      String?   @db.VarChar(50)
+  description   String    @db.Text
+  severity      String    @default("medium") @db.VarChar(20) // low, medium, high, critical
+  actualValue   Decimal   @db.Decimal(15, 2)
+  expectedValue Decimal   @db.Decimal(15, 2)
+  deviationPct  Float     @default(0)
+  transactionId String?   @db.VarChar(36)
+  isResolved    Boolean   @default(false)
+  resolvedAt    DateTime?
+  detectedAt    DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, severity])
+  @@index([userId, isResolved])
+  @@index([userId, detectedAt])
+  @@map("ai_anomalies")
+}
+
+// ─── AI RECOMMENDATIONS ──────────────────────────────────────
+// Actionable recommendations for savings, budgets, and behavior
+model AiRecommendation {
+  id            String    @id @default(uuid()) @db.VarChar(36)
+  userId        String    @db.VarChar(36)
+  type          String    @db.VarChar(50) // savings, budget, subscription, investment, behavior, goal
+  title         String    @db.VarChar(255)
+  description   String    @db.Text
+  impact        Decimal?  @db.Decimal(15, 2) // potential monthly savings
+  priority      String    @default("medium") @db.VarChar(20) // low, medium, high
+  category      String?   @db.VarChar(50)
+  actionLabel   String?   @db.VarChar(100)
+  actionRoute   String?   @db.VarChar(255)
+  isImplemented Boolean   @default(false)
+  isDismissed   Boolean   @default(false)
+  validFrom     DateTime  @default(now())
+  validUntil    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@index([userId, priority])
+  @@index([userId, isImplemented])
+  @@map("ai_recommendations")
+}
+
+// ─── AI SCORES ───────────────────────────────────────────────
+// Financial health scores snapshot over time
+model AiScore {
+  id     String @id @default(uuid()) @db.VarChar(36)
+  userId String @db.VarChar(36)
+
+  // Financial Health Score 2.0
+  overallScore     Int @default(0) // 0-100
+  savingsRate      Int @default(0)
+  debtRatio        Int @default(0)
+  budgetDiscipline Int @default(0)
+  goalProgress     Int @default(0)
+  billConsistency  Int @default(0)
+  emergencyFund    Int @default(0)
+
+  // Monthly change
+  monthlyChange Int @default(0) // -100 to +100
+  previousScore Int @default(0)
+
+  // Level
+  financialLevel String @default("building") @db.VarChar(30) // critical, building, stable, thriving, exceptional
+
+  // Period
+  periodType  String   @default("monthly") @db.VarChar(20) // daily, weekly, monthly
+  periodStart DateTime
+  periodEnd   DateTime
+  computedAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, periodType, periodStart])
+  @@index([userId])
+  @@index([userId, periodType])
+  @@map("ai_scores")
+}
+
+// ─── USER BEHAVIOR METRICS ────────────────────────────────────
+// Raw behavioral data collected for AI analysis
+model UserBehaviorMetric {
+  id             String   @id @default(uuid()) @db.VarChar(36)
+  userId         String   @db.VarChar(36)
+  metricType     String   @db.VarChar(50) // login_frequency, feature_usage, spending_consistency, etc.
+  metricValue    Float    @default(0)
+  metricCategory String?  @db.VarChar(50)
+  periodType     String   @default("daily") @db.VarChar(20)
+  periodStart    DateTime
+  periodEnd      DateTime
+  metadata       Json?    @db.Json
+  recordedAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, metricType, periodStart])
+  @@index([userId, metricType])
+  @@index([userId, periodType, periodStart])
+  @@map("user_behavior_metrics")
+}
+
+// ─── GOAL PREDICTIONS ───────────────────────────────────────
+// AI-driven goal projections and success probabilities
+model GoalPrediction {
+  id                          String    @id @default(uuid()) @db.VarChar(36)
+  userId                      String    @db.VarChar(36)
+  goalId                      String    @db.VarChar(36)
+  successProbability          Float     @default(0) // 0-100
+  requiredMonthlyContribution Decimal   @db.Decimal(15, 2)
+  predictedCompletionDate     DateTime?
+  delayRisk                   String    @default("low") @db.VarChar(20) // low, medium, high
+  delayMonths                 Int       @default(0)
+  currentPace                 String    @default("ontrack") @db.VarChar(20) // ahead, ontrack, behind, critical
+  improvementTip              String?   @db.Text
+  computedAt                  DateTime  @default(now())
+  createdAt                   DateTime  @default(now())
+  updatedAt                   DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, goalId])
+  @@index([userId])
+  @@index([goalId])
+  @@map("goal_predictions")
+}
+
+// ─── SETTLEMENT SUGGESTIONS ───────────────────────────────────
+// AI-optimized settlement plans to minimize transactions
+model SettlementSuggestion {
+  id               String    @id @default(uuid()) @db.VarChar(36)
+  groupId          String    @db.VarChar(36)
+  originalTxCount  Int       @default(0)
+  optimizedTxCount Int       @default(0)
+  totalAmount      Decimal   @db.Decimal(15, 2)
+  savingsTxCount   Int       @default(0)
+  suggestion       Json      @db.Json // [{from, to, amount}]
+  isApplied        Boolean   @default(false)
+  appliedAt        DateTime?
+  createdAt        DateTime  @default(now())
+
+  group SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([groupId])
+  @@index([isApplied])
+  @@map("settlement_suggestions")
+}
+
+// ─── DASHBOARD AI CARDS ───────────────────────────────────────
+// Personalized daily dashboard layout determined by AI
+model DashboardAiCard {
+  id          String    @id @default(uuid()) @db.VarChar(36)
+  userId      String    @db.VarChar(36)
+  widgetType  String    @db.VarChar(50) // overspend_warning, upcoming_bills, savings_opportunity, goal_milestone, etc.
+  title       String    @db.VarChar(255)
+  description String    @db.Text
+  priority    Int       @default(0) // sort order
+  widgetSize  String    @default("medium") @db.VarChar(20) // small, medium, large
+  icon        String?   @db.VarChar(50)
+  actionLabel String?   @db.VarChar(100)
+  actionRoute String?   @db.VarChar(255)
+  metadata    Json?     @db.Json
+  isActive    Boolean   @default(true)
+  validFrom   DateTime  @default(now())
+  validUntil  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive])
+  @@index([userId, priority])
+  @@map("dashboard_ai_cards")
+}
+
+// ─── SMART CATEGORY MAPPINGS ─────────────────────────────────
+// Learned category corrections from user behavior
+model SmartCategoryMapping {
+  id                String   @id @default(uuid()) @db.VarChar(36)
+  userId            String   @db.VarChar(36)
+  originalText      String   @db.VarChar(255) // original merchant/description text
+  correctedCategory String   @db.VarChar(50) // user-chosen category
+  confidence        Float    @default(0) // 0-100 based on how many times user corrected
+  timesCorrected    Int      @default(0)
+  lastCorrectedAt   DateTime @default(now())
+  isAuto            Boolean  @default(false) // auto-applied vs manual override
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, originalText])
+  @@index([userId])
+  @@index([userId, confidence])
+  @@map("smart_category_mappings")
+}
+
+// ─── LIFE EVENTS ─────────────────────────────────────────────
+// Detected life events from spending pattern analysis
+model LifeEvent {
+  id          String    @id @default(uuid()) @db.VarChar(36)
+  userId      String    @db.VarChar(36)
+  eventType   String    @db.VarChar(50) // marriage, moving_house, new_child, new_vehicle, salary_increase, vacation, job_change
+  title       String    @db.VarChar(255)
+  description String    @db.Text
+  confidence  Float     @default(0) // 0-100
+  detectedAt  DateTime  @default(now())
+  eventDate   DateTime? // estimated date of the event
+  isConfirmed Boolean   @default(false) // user confirmed
+  isDismissed Boolean   @default(false)
+  metadata    Json?     @db.Json
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, eventType])
+  @@index([userId, isConfirmed])
+  @@map("life_events")
+}
+
+// ─── AI MILESTONES (Joyful AI Moments) ────────────────────────
+// Tracked achievements and celebrations
+model AiMilestone {
+  id            String    @id @default(uuid()) @db.VarChar(36)
+  userId        String    @db.VarChar(36)
+  milestoneType String    @db.VarChar(50) // first_lakh_saved, streak_3months, fastest_settlement, goal_completed, etc.
+  title         String    @db.VarChar(255)
+  description   String    @db.Text
+  icon          String?   @db.VarChar(50)
+  animation     String?   @db.VarChar(50) // confetti, progress_ring, achievement_card
+  value         Decimal?  @db.Decimal(15, 2)
+  isAchieved    Boolean   @default(false)
+  achievedAt    DateTime?
+  isCelebrated  Boolean   @default(false) // has user seen the celebration
+  createdAt     DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isAchieved])
+  @@index([userId, milestoneType])
+  @@map("ai_milestones")
+}
+
+// ─── COUPLE INTELLIGENCE ──────────────────────────────────────
+// AI-generated couple financial compatibility and insights
+model CoupleIntelligence {
+  id                  String   @id @default(uuid()) @db.VarChar(36)
+  coupleProfileId     String   @db.VarChar(36)
+  compatibilityScore  Int      @default(0) // 0-100
+  spendingAlignment   Int      @default(0)
+  savingsAlignment    Int      @default(0)
+  financialDiscipline Int      @default(0)
+  sharedGoalAlignment Int      @default(0)
+  spendingDifferences Json?    @db.Json // category-level differences
+  insights            Json?    @db.Json // generated insights
+  recommendations     Json?    @db.Json // AI recommendations
+  monthlyReport       Json?    @db.Json // monthly wins, challenges, suggestions
+  periodStart         DateTime
+  periodEnd           DateTime
+  computedAt          DateTime @default(now())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  coupleProfile CoupleFinanceProfile @relation(fields: [coupleProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([coupleProfileId, periodStart])
+  @@index([coupleProfileId])
+  @@map("couple_intelligence")
+}
+
+// ─── FAMILY INTELLIGENCE ──────────────────────────────────────
+// AI-generated family financial health dashboard
+model FamilyIntelligence {
+  id                  String   @id @default(uuid()) @db.VarChar(36)
+  familyId            String   @db.VarChar(36)
+  savingsRate         Float    @default(0)
+  sharedBillScore     Int      @default(0)
+  emergencyFundMonths Float    @default(0)
+  debtPressureScore   Int      @default(0)
+  healthScore         Int      @default(0)
+  monthlyChange       Int      @default(0)
+  insights            Json?    @db.Json
+  recommendations     Json?    @db.Json
+  periodStart         DateTime
+  periodEnd           DateTime
+  computedAt          DateTime @default(now())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@unique([familyId, periodStart])
+  @@index([familyId])
+  @@map("family_intelligence")
+}
+
+// ─── AI FEED CARDS ─────────────────────────────────────────
+// Pre-computed daily feed cards shown in Today Feed screen.
+// Generated by cron jobs; never computed on demand.
+model AiFeedCard {
+  id              String   @id @default(uuid()) @db.VarChar(36)
+  userId          String   @db.VarChar(36)
+  type            String   @db.VarChar(50)
+  priority        String   @default("medium") @db.VarChar(20)
+  title           String   @db.VarChar(200)
+  message         String   @db.Text
+  impactValue     Float?
+  confidenceScore Float?
+  category        String   @db.VarChar(50)
+  actionType      String?  @db.VarChar(50)
+  actionPayload   Json?    @db.Json
+  metadata        Json?    @db.Json
+  isRead          Boolean  @default(false)
+  isDismissed     Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  expiresAt       DateTime?
+  readAt          DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, priority, createdAt(sort: Desc)])
+  @@index([userId, isRead, createdAt(sort: Desc)])
+  @@index([userId, type])
+  @@map("ai_feed_cards")
 }

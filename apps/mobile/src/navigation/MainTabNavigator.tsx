@@ -16,6 +16,19 @@ import { DocumentDetailScreen } from '../screens/documents/DocumentDetailScreen'
 import { BadgeWallScreen } from '../screens/documents/BadgeWallScreen';
 import { AiInsightsScreen } from '../screens/ai/AiInsightsScreen';
 import { AIDashboard } from '../screens/ai/AIDashboard';
+import { AiHomeDashboardScreen } from '../screens/ai/AiHomeDashboardScreen';
+import { FinancialDnaScreen } from '../screens/ai/FinancialDnaScreen';
+import { FinancialCopilotScreen } from '../screens/ai/FinancialCopilotScreen';
+import { MonthlyAiReviewScreen } from '../screens/ai/MonthlyAiReviewScreen';
+import { SmartGoalCoachScreen } from '../screens/ai/SmartGoalCoachScreen';
+import { CoupleAiScreen } from '../screens/ai/CoupleAiScreen';
+import { FamilyAiScreen } from '../screens/ai/FamilyAiScreen';
+import { GroupSpaceAiScreen } from '../screens/ai/GroupSpaceAiScreen';
+import { AiSavingsScreen } from '../screens/ai/AiSavingsScreen';
+import { AnomalyDetectionScreen } from '../screens/ai/AnomalyDetectionScreen';
+import { SmartNotificationScreen } from '../screens/ai/SmartNotificationScreen';
+import { PremiumAiPaywallScreen } from '../screens/ai/PremiumAiPaywallScreen';
+import { TodayFeedScreen } from '../screens/ai/TodayFeedScreen';
 import { RemindersScreen } from '../screens/reminders/RemindersScreen';
 import { ReminderDetailScreen } from '../screens/reminders/ReminderDetailScreen';
 import { CreateReminderScreen } from '../screens/reminders/CreateReminderScreen';
@@ -110,8 +123,73 @@ function DashboardNavigator() {
         options={{ headerShown: false }}
       />
       <DashboardStack.Screen
+        name="AiHomeDashboard"
+        component={AiHomeDashboardScreen}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
         name="AIDashboard"
         component={AIDashboard}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
+        name="AiFinancialDna"
+        component={FinancialDnaScreen}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
+        name="AiFinancialCopilot"
+        component={FinancialCopilotScreen}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
+        name="AiMonthlyReview"
+        component={MonthlyAiReviewScreen}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
+        name="AiGoalCoach"
+        component={SmartGoalCoachScreen}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
+        name="AiCouple"
+        component={CoupleAiScreen}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
+        name="AiFamily"
+        component={FamilyAiScreen}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
+        name="AiGroupSpace"
+        component={GroupSpaceAiScreen}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
+        name="AiSavings"
+        component={AiSavingsScreen}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
+        name="AiAnomalies"
+        component={AnomalyDetectionScreen}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
+        name="AiNotifications"
+        component={SmartNotificationScreen}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
+        name="AiPremiumPaywall"
+        component={PremiumAiPaywallScreen}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
+        name="TodayFeed"
+        component={TodayFeedScreen}
         options={{ headerShown: false }}
       />
     </DashboardStack.Navigator>

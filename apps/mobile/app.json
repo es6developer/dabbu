@@ -9,7 +9,9 @@
     "scheme": "dabbu",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "backgroundColor": "#070708"
+      "backgroundColor": "#070708",
+      "image": "./src/assets/splash.png",
+      "resizeMode": "contain"
     },
     "assetBundlePatterns": ["src/assets/**/*"],
     "ios": {
@@ -28,7 +30,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/adaptive-icon.png",
-        "backgroundColor": "#0A0A0F"
+        "backgroundColor": "#4F46E5"
       },
       "package": "app.dabbu.mobile",
       "permissions": [

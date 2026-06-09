@@ -251,7 +251,7 @@ export function BillScannerScreen() {
         <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }], alignItems: 'center', width: '100%' }}>
           {scanState === 'idle' && (
             <>
-              <View style={[styles.iconWrap, { backgroundColor: 'rgba(247,137,44,0.15)' }]}>
+              <View style={[styles.iconWrap, { backgroundColor: `${colors.accent.primary}18` }]}>
                 <Ionicons name="camera" size={44} color={colors.accent.primary} />
               </View>
               <Text style={[styles.title, { color: colors.text.primary }]}>Scan a Bill</Text>

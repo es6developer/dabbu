@@ -134,12 +134,19 @@ export function OnboardingScreen({ route }: any) {
     }
   }, [index, navigation]);
 
+  const handlePrev = useCallback(() => {
+    if (index > 0) {
+      flatRef.current?.scrollToOffset({ offset: width * (index - 1), animated: true });
+    }
+  }, [index]);
+
   const handleSkip = useCallback(async () => {
     await markSeen();
     navigation.replace('Login');
   }, [navigation]);
 
   const isLast = index === slides.length - 1;
+  const isFirst = index === 0;
 
   const renderSlide = useCallback(
     ({ item, index: i }: { item: (typeof slides)[0]; index: number }) => (
@@ -233,14 +240,23 @@ export function OnboardingScreen({ route }: any) {
           {!isLast && <Ionicons name="arrow-forward" size={18} color="#FFF" />}
         </TouchableOpacity>
 
-        {/* Skip to start */}
-        {!isLast && (
+        {/* Back / Skip */}
+        {isFirst ? (
           <TouchableOpacity
             onPress={handleSkip}
             style={{ alignItems: 'center', paddingVertical: 12, marginTop: 4 }}
           >
             <Text style={{ fontSize: 14, fontWeight: '600', color: colors.accent.primary }}>
               Get Started
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            onPress={handlePrev}
+            style={{ alignItems: 'center', paddingVertical: 12, marginTop: 4 }}
+          >
+            <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.tertiary }}>
+              Back
             </Text>
           </TouchableOpacity>
         )}

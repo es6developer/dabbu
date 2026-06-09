@@ -934,3 +934,478 @@ export interface PostGroupRemovalData {
   removedBy: string;
   removalType: RemovalType;
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// AI 2.0 — INTELLIGENCE LAYER TYPES
+// ═══════════════════════════════════════════════════════════════════
+
+// ─── Financial DNA ───────────────────────────────────────────
+export type SpendingPersonality = 'frugal' | 'balanced' | 'spender' | 'lavish';
+export type SavingPersonality = 'hoarder' | 'moderate' | 'spender';
+export type RiskLevel = 'conservative' | 'moderate' | 'aggressive';
+export type IncomeConsistency = 'stable' | 'irregular' | 'seasonal';
+export type BillPaymentBehavior = 'ontime' | 'late' | 'inconsistent';
+
+export interface FinancialDNA {
+  id: string;
+  userId: string;
+  spendingPersonality: SpendingPersonality;
+  savingPersonality: SavingPersonality;
+  riskLevel: RiskLevel;
+  spendingScore: number;
+  savingScore: number;
+  disciplineScore: number;
+  weekendSpendingPct: number;
+  luxurySpendingScore: number;
+  impulsePurchaseScore: number;
+  familyContributionScore: number;
+  settlementReliabilityScore: number;
+  incomeConsistency: IncomeConsistency;
+  billPaymentBehavior: BillPaymentBehavior;
+  topCategoryPreference?: string;
+  disciplinePercentile: number;
+  savingsPercentile: number;
+  weekStart: string;
+  weekEnd: string;
+}
+
+// ─── AI Insights ─────────────────────────────────────────────
+export type AiInsightType =
+  | 'spending' | 'saving' | 'behavior' | 'goal'
+  | 'family' | 'couple' | 'settlement' | 'milestone';
+
+export type InsightSeverity = 'info' | 'positive' | 'warning' | 'achievement';
+
+export interface AiInsightData {
+  id: string;
+  userId: string;
+  type: AiInsightType;
+  title: string;
+  description: string;
+  category?: string;
+  amount?: number;
+  severity: InsightSeverity;
+  icon?: string;
+  actionLabel?: string;
+  actionRoute?: string;
+  isRead: boolean;
+  isDismissed: boolean;
+  validFrom: string;
+  validUntil?: string;
+  createdAt: string;
+}
+
+// ─── AI Predictions ──────────────────────────────────────────
+export type PredictionType =
+  | 'end_of_month_balance'
+  | 'expected_expenses'
+  | 'expected_savings'
+  | 'budget_overrun'
+  | 'cash_shortage';
+
+export type PredictionStatus = 'active' | 'fulfilled' | 'expired';
+
+export interface AiPredictionData {
+  id: string;
+  userId: string;
+  type: PredictionType;
+  category?: string;
+  predictedValue: number;
+  currentValue?: number;
+  confidence: number;
+  status: PredictionStatus;
+  message?: string;
+  validFrom: string;
+  validUntil?: string;
+}
+
+// ─── AI Anomalies ────────────────────────────────────────────
+export type AnomalyType =
+  | 'spending_spike'
+  | 'large_transaction'
+  | 'unusual_category'
+  | 'income_drop'
+  | 'missing_expected';
+
+export type AnomalySeverity = 'low' | 'medium' | 'high' | 'critical';
+
+export interface AiAnomalyData {
+  id: string;
+  userId: string;
+  type: AnomalyType;
+  category?: string;
+  description: string;
+  severity: AnomalySeverity;
+  actualValue: number;
+  expectedValue: number;
+  deviationPct: number;
+  transactionId?: string;
+  isResolved: boolean;
+  resolvedAt?: string;
+  detectedAt: string;
+}
+
+// ─── AI Recommendations ──────────────────────────────────────
+export type RecommendationType =
+  | 'savings' | 'budget' | 'subscription' | 'investment' | 'behavior' | 'goal';
+
+export type RecommendationPriority = 'low' | 'medium' | 'high';
+
+export interface AiRecommendationData {
+  id: string;
+  userId: string;
+  type: RecommendationType;
+  title: string;
+  description: string;
+  impact?: number;
+  priority: RecommendationPriority;
+  category?: string;
+  actionLabel?: string;
+  actionRoute?: string;
+  isImplemented: boolean;
+  isDismissed: boolean;
+  validFrom: string;
+  validUntil?: string;
+}
+
+// ─── AI Scores (Financial Health 2.0) ────────────────────────
+export type FinancialLevel = 'critical' | 'building' | 'stable' | 'thriving' | 'exceptional';
+
+export interface AiScoreData {
+  id: string;
+  userId: string;
+  overallScore: number;
+  savingsRate: number;
+  debtRatio: number;
+  budgetDiscipline: number;
+  goalProgress: number;
+  billConsistency: number;
+  emergencyFund: number;
+  monthlyChange: number;
+  previousScore: number;
+  financialLevel: FinancialLevel;
+  periodType: 'daily' | 'weekly' | 'monthly';
+  periodStart: string;
+  periodEnd: string;
+  improvementTips: string[];
+}
+
+// ─── Goal Predictions ────────────────────────────────────────
+export type DelayRisk = 'low' | 'medium' | 'high';
+export type GoalPace = 'ahead' | 'ontrack' | 'behind' | 'critical';
+
+export interface GoalPredictionData {
+  id: string;
+  userId: string;
+  goalId: string;
+  goalName: string;
+  successProbability: number;
+  requiredMonthlyContribution: number;
+  predictedCompletionDate?: string;
+  delayRisk: DelayRisk;
+  delayMonths: number;
+  currentPace: GoalPace;
+  improvementTip?: string;
+}
+
+// ─── Settlement Suggestions ──────────────────────────────────
+export interface SettlementSuggestionData {
+  id: string;
+  groupId: string;
+  originalTxCount: number;
+  optimizedTxCount: number;
+  totalAmount: number;
+  savingsTxCount: number;
+  suggestion: SettlementOptimization[];
+  isApplied: boolean;
+}
+
+export interface SettlementOptimization {
+  from: string;
+  fromName: string;
+  to: string;
+  toName: string;
+  amount: number;
+}
+
+// ─── Dashboard AI Cards ──────────────────────────────────────
+export type DashboardCardType =
+  | 'overspend_warning'
+  | 'upcoming_bills'
+  | 'savings_opportunity'
+  | 'goal_milestone'
+  | 'family_summary'
+  | 'settlement_reminder'
+  | 'anomaly_alert'
+  | 'prediction_card'
+  | 'financial_dna'
+  | 'couple_insight'
+  | 'investment_health'
+  | 'budget_alert'
+  | 'achievement'
+  | 'life_event';
+
+export type DashboardCardSize = 'small' | 'medium' | 'large';
+
+export interface DashboardAiCardData {
+  id: string;
+  widgetType: DashboardCardType;
+  title: string;
+  description: string;
+  priority: number;
+  widgetSize: DashboardCardSize;
+  icon?: string;
+  actionLabel?: string;
+  actionRoute?: string;
+  metadata?: Record<string, unknown>;
+  isActive: boolean;
+}
+
+// ─── Smart Category Mapping ─────────────────────────────────
+export interface SmartCategoryMappingData {
+  id: string;
+  userId: string;
+  originalText: string;
+  correctedCategory: string;
+  confidence: number;
+  timesCorrected: number;
+  isAuto: boolean;
+}
+
+// ─── Life Events ────────────────────────────────────────────
+export type LifeEventType =
+  | 'marriage'
+  | 'moving_house'
+  | 'new_child'
+  | 'new_vehicle'
+  | 'salary_increase'
+  | 'vacation'
+  | 'job_change'
+  | 'school_fees'
+  | 'relocation';
+
+export interface LifeEventData {
+  id: string;
+  userId: string;
+  eventType: LifeEventType;
+  title: string;
+  description: string;
+  confidence: number;
+  detectedAt: string;
+  eventDate?: string;
+  isConfirmed: boolean;
+  isDismissed: boolean;
+  metadata?: Record<string, unknown>;
+}
+
+// ─── AI Milestones (Joyful AI Moments) ──────────────────────
+export type MilestoneType =
+  | 'first_lakh_saved'
+  | 'streak_3months'
+  | 'fastest_settlement'
+  | 'goal_completed'
+  | 'budget_onthree_months'
+  | 'couple_savings_streak'
+  | 'first_goal_reached'
+  | 'settlement_master'
+  | 'savings_milestone'
+  | 'discipline_milestone';
+
+export type MilestoneAnimation = 'confetti' | 'progress_ring' | 'achievement_card';
+
+export interface AiMilestoneData {
+  id: string;
+  userId: string;
+  milestoneType: MilestoneType;
+  title: string;
+  description: string;
+  icon?: string;
+  animation?: MilestoneAnimation;
+  value?: number;
+  isAchieved: boolean;
+  achievedAt?: string;
+  isCelebrated: boolean;
+}
+
+// ─── Couple Intelligence ────────────────────────────────────
+export interface CoupleIntelligenceData {
+  id: string;
+  coupleProfileId: string;
+  compatibilityScore: number;
+  spendingAlignment: number;
+  savingsAlignment: number;
+  financialDiscipline: number;
+  sharedGoalAlignment: number;
+  spendingDifferences: { category: string; partnerADiff: number; partnerBDiff: number }[];
+  insights: string[];
+  recommendations: string[];
+  monthlyReport: {
+    wins: string[];
+    challenges: string[];
+    suggestions: string[];
+  };
+  periodStart: string;
+  periodEnd: string;
+}
+
+// ─── Family Intelligence ────────────────────────────────────
+export interface FamilyIntelligenceData {
+  id: string;
+  familyId: string;
+  savingsRate: number;
+  sharedBillScore: number;
+  emergencyFundMonths: number;
+  debtPressureScore: number;
+  healthScore: number;
+  monthlyChange: number;
+  insights: string[];
+  recommendations: string[];
+  periodStart: string;
+  periodEnd: string;
+}
+
+// ─── Prediction Engine Output ───────────────────────────────
+export interface SpendingPrediction {
+  endOfMonthBalance: number;
+  expectedExpenses: number;
+  expectedSavings: number;
+  budgetOverruns: BudgetOverrunPrediction[];
+  cashShortageProbability: number;
+  cashShortageAmount?: number;
+  shortfallDate?: string;
+  confidence: number;
+}
+
+export interface BudgetOverrunPrediction {
+  category: string;
+  budgetAmount: number;
+  spentSoFar: number;
+  projectedSpend: number;
+  overrunAmount: number;
+  daysUntilOverrun: number;
+  probability: number;
+}
+
+// ─── Anomaly Detection Output ───────────────────────────────
+export interface AnomalyResult {
+  type: AnomalyType;
+  category?: string;
+  description: string;
+  severity: AnomalySeverity;
+  actualValue: number;
+  expectedValue: number;
+  deviationPct: number;
+  transactionId?: string;
+}
+
+// ─── Savings Opportunity Output ─────────────────────────────
+export interface SavingsOpportunity {
+  type: 'duplicate_subscription' | 'unused_subscription' | 'food_delivery' | 'atm_fees' | 'shopping_frequency' | 'impulse_purchase';
+  title: string;
+  description: string;
+  monthlySavings: number;
+  category?: string;
+  actionLabel?: string;
+  actionRoute?: string;
+}
+
+// ─── Group Space AI ─────────────────────────────────────────
+export interface TripAIAnalytics {
+  budgetBurnRate: number;
+  predictedOverspend: number;
+  dailyAverage: number;
+  daysRemaining: number;
+  projectedTotal: number;
+  expenseDistributionFairness: number;
+  insights: string[];
+}
+
+export interface RoommateAIAnalytics {
+  contributionFairness: number;
+  settlementDelays: { memberId: string; memberName: string; avgDelayDays: number }[];
+  fairnessScore: number;
+  insights: string[];
+}
+
+export interface FamilyGroupAI {
+  sharedBillOptimization: { billId: string; billName: string; suggestion: string; savings: number }[];
+  savingsOpportunities: string[];
+}
+
+// ─── Smart Notification Data ────────────────────────────────
+export interface SmartNotification {
+  userId: string;
+  type: string;
+  title: string;
+  message: string;
+  context: {
+    trigger: string;
+    userBehavior?: string;
+    consistencyScore?: number;
+    personalization: string;
+  };
+  priority: 'low' | 'medium' | 'high';
+  actionLabel?: string;
+  actionRoute?: string;
+}
+
+// ─── AI Feed Card Types ────────────────────────────────────
+export type FeedCardType =
+  | 'spending_insight'
+  | 'anomaly_alert'
+  | 'savings_opportunity'
+  | 'budget_risk'
+  | 'goal_update'
+  | 'couple_update'
+  | 'family_update'
+  | 'settlement_optimization'
+  | 'subscription_warning'
+  | 'achievement';
+
+export type FeedPriority = 'critical' | 'high' | 'medium' | 'low';
+
+export type FeedCategory =
+  | 'budget'
+  | 'savings'
+  | 'anomaly'
+  | 'goal'
+  | 'couple'
+  | 'family'
+  | 'group'
+  | 'spending'
+  | 'subscription'
+  | 'achievement';
+
+export interface AiFeedCardData {
+  id: string;
+  userId: string;
+  type: FeedCardType;
+  priority: FeedPriority;
+  title: string;
+  message: string;
+  impactValue: number | null;
+  confidenceScore: number | null;
+  category: FeedCategory;
+  actionType: string | null;
+  actionPayload: Record<string, any> | null;
+  metadata: Record<string, any> | null;
+  isRead: boolean;
+  isDismissed: boolean;
+  createdAt: string;
+  expiresAt: string | null;
+  readAt: string | null;
+}
+
+export interface TodayFeedResponse {
+  userId: string;
+  generatedAt: string;
+  feed: AiFeedCardData[];
+}
+
+export interface FeedSummaryData {
+  totalInsightsToday: number;
+  savingsPotential: number;
+  riskAlerts: number;
+  goalUpdates: number;
+  topPriority: FeedCardType | null;
+}

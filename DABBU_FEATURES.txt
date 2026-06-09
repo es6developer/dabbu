@@ -1,0 +1,563 @@
+╔══════════════════════════════════════════════════════════════════╗
+║                     DABBU — FEATURE MAP                         ║
+║         Family Finance & Expense-Splitting Platform              ║
+╚══════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────┐
+│                   1. AUTHENTICATION LAYER                        │
+│        (All features require this layer to function)            │
+└──────────────────────────────────────────────────────────────────┘
+  │
+  ├─ Email/Password Registration & Login
+  ├─ Google SSO (single sign-on)
+  ├─ OTP Email Verification (mandatory before completing signup)
+  ├─ Password Reset (email link + OTP-based)
+  ├─ Biometric Authentication (fingerprint / face ID)
+  ├─ App Lock PIN (4-6 digit PIN + auto-lock on background)
+  ├─ Session Management (view active sessions, revoke remotely)
+  └─ Token Refresh Queue (deduplicates concurrent 401s via singleton)
+
+  → Every other feature depends on auth tokens.
+  → Profile data (name, phone, UPI) propagates instantly
+    via AuthContext — no restart needed.
+
+┌──────────────────────────────────────────────────────────────────┐
+│             2. PERSONAL FINANCE (Core Layer)                     │
+│        (Most features build on or extend this layer)            │
+└──────────────────────────────────────────────────────────────────┘
+  │
+  ├─ ACCOUNTS & WALLETS
+  │   • Multiple account types: checking, savings, credit card,
+  │     cash, investment, loan, wallet
+  │   • Per-account balance tracking
+  │
+  ├─ TRANSACTIONS
+  │   • Income / Expense / Transfer types
+  │   • Category-based classification (hierarchical - income/expense)
+  │   • Receipt image upload per transaction
+  │   • Recurring transaction detection
+  │   • Bulk create via SMS sync
+  │   • OCR bill scanning from photos
+  │   • Search, filter, pagination
+  │
+  ├─ BUDGETS
+  │   • Monthly / yearly / custom period budgets
+  │   • Per-category budget limits
+  │   • Notify-at percentage thresholds
+  │   • Overspend alerts
+  │
+  ├─ GOALS
+  │   • Types: emergency, vacation, education, home, car,
+  │     wedding, retirement, custom
+  │   • Target amount + deadline
+  │   • Progress tracking with contributions
+  │
+  ├─ BILLS
+  │   • Bill creation, scanning from receipt image
+  │   • Monthly/yearly/category filtering
+  │   • Payment tracking
+  │
+  ├─ INVESTMENTS
+  │   • Portfolio: stocks, crypto, mutual funds, ETFs, bonds,
+  │     real estate
+  │   • Quantity + buy price tracking
+  │
+  ├─ SMS DETECTION
+  │   • Reads financial SMS (bank transactions)
+  │   • Auto-categorizes and creates transactions
+  │   • Permission-gated
+  │
+  └─ RECURRING TRANSACTIONS
+      • Auto-detected from transaction history
+      • Manually configurable
+
+  → Transactions feed into Analytics, Reports, and AI Insights.
+  → Goals and Budgets reference Transaction categories.
+  → Bills can be auto-created from scans via OCR.
+
+┌──────────────────────────────────────────────────────────────────┐
+│            3. SHARED FINANCE (Social Layer)                      │
+│      (Two tiers: Circles ⚡ light, Spaces 🚀 full-featured)    │
+└──────────────────────────────────────────────────────────────────┘
+  │
+  ├─ CIRCLE (Expense Groups — lightweight)
+  │   • Quick group creation for simple splits
+  │   • Add members, track shared expenses
+  │   • Basic settlement (who owes whom)
+  │
+  └─ SPACE (Shared Groups — full-featured)
+      │
+      ├─ GROUP TYPES
+      │   friends, trip, family, couple, roommates,
+      │   office, event, apartment
+      │
+      ├─ GROUP LIFECYCLE
+      │   ACTIVE → PAUSED → COMPLETED → ARCHIVED → CLOSED
+      │   (state machine with access control per state)
+      │
+      ├─ MEMBER MANAGEMENT
+      │   • Add by user ID / email / phone
+      │   • Roles: admin, member, viewer
+      │   • Member lifecycle: active, removed, left, expired
+      │   • Session revocation on removal
+      │   • Avatar stack display (max 5 + pill badge)
+      │
+      ├─ EXPENSE SPLITTING
+      │   • Split types: equal, percentage, exact, shares,
+      │     weighted, multi-payer
+      │   • Per-expense category assignment
+      │
+      ├─ SETTLEMENTS
+      │   • Payer confirmation + receiver confirmation workflow
+      │   • UPI deep link generation
+      │   • Custom SettleUpModal (no external UPI app)
+      │   • Notifies space admin on complete
+      │
+      ├─ GROUP WALLETS
+      │   • Multi-wallet per group
+      │   • Contribute, spend, reimburse, transfer
+      │   • Wallet membership tracking
+      │   • Approval workflow for expenses
+      │
+      ├─ ADVANCE CONTRIBUTIONS
+      │   • Prepaid funds before expenses occur
+      │   • Adjustments (reimbursement, settlement, partial, write-off)
+      │   • Full contribution history
+      │
+      ├─ GROUP DOCUMENTS
+      │   • Upload tickets, passports, bookings, invoices, receipts
+      │   • Per-user document permissions
+      │   • Audit log for document access
+      │   • OCR text extraction
+      │
+      ├─ CREDIT CARD BILL SPLITTING
+      │   • Upload credit card statement
+      │   • Split individual transactions across members
+      │
+      ├─ CASH POOLS
+      │   • Physical cash tracking with custodian
+      │   • Cash-in/cash-out transactions
+      │
+      ├─ EMERGENCY FUNDS
+      │   • Group emergency fund pool
+      │   • Contribution tracking
+      │   • Withdrawal approval workflow
+      │
+      ├─ SHARED GOALS
+      │   • Group savings goals with contributions
+      │   • Progress shared among members
+      │
+      ├─ EXPENSE APPROVAL QUEUE
+      │   • Guest-submitted expenses pending admin approval
+      │
+      ├─ PAY NOW LINKS
+      │   • Shareable payment links for non-app users
+      │
+      ├─ CONTRIBUTION RULES
+      │   • Equal, salary-ratio, fixed, percentage, custom
+      │   • Auto-apply to new expenses
+      │
+      ├─ GROUP CALENDAR
+      │   • Events: trips, due dates, birthdays, anniversaries,
+      │     bills, reminders
+      │
+      ├─ GROUP CHAT
+      │   • Messages with reply threading
+      │   • Read receipts tracking
+      │
+      ├─ REIMBURSEMENT LOGS
+      │   • Track pending/completed reimbursements
+      │
+      ├─ SPLIT TEMPLATES
+      │   • Reusable templates for common split scenarios
+      │   • Template categories + contribution rules
+      │
+      ├─ TRIP GROUPS
+      │   • Destination + dates + budget
+      │   • Trip-specific expenses (travel, hotel, food, fuel, activities)
+      │
+      ├─ HOUSEHOLD BILLS
+      │   • Rent, electricity, water, gas, internet, maid, grocery
+      │   • Per-member contribution tracking
+      │
+      ├─ INVITE LINKS
+      │   • Shareable invite links with expiry
+      │   • Guest access (shadow users with UPI)
+      │
+      └─ EXPORT HISTORY
+          • PDF / Excel / CSV report exports
+          • Group financial reports
+
+  → Shared groups reference Personal Transactions for expense data.
+  → Group members are linked to User accounts.
+  → Settlements update both group balances and personal ledgers.
+  → AI can summarize group activity, generate narratives.
+
+┌──────────────────────────────────────────────────────────────────┐
+│                4. COUPLE FINANCE (Specialized Layer)             │
+│          (Built on top of Shared Finance Spaces)                │
+└──────────────────────────────────────────────────────────────────┘
+  │
+  ├─ Couple Finance Profile
+  │   • Shared budget, savings goal, split ratio
+  │   • partner1 + partner2 linked to User accounts
+  │
+  ├─ Income Tracking
+  │   • Per-partner income records
+  │
+  ├─ Shared Savings
+  │   • Joint savings contributions
+  │
+  ├─ Couple Budget Categories
+  │   • Custom budget categories for the couple
+  │
+  ├─ Shared Bills & Settlements
+  │   • Bill splitting between partners
+  │
+  └─ Couple Reports
+      • Combined financial reports
+
+  → Uses SharedGroup of type 'couple'.
+  → Limited to exactly 2 members.
+
+┌──────────────────────────────────────────────────────────────────┐
+│                5. FAMILY FEATURES                                │
+│          (Another layer on top of Shared Finance)               │
+└──────────────────────────────────────────────────────────────────┘
+  │
+  ├─ Family Groups
+  ├─ Family Chat
+  ├─ Shared Tasks
+  ├─ Shared Reminders
+  ├─ Family Financial Dashboard
+  └─ Family Net Worth Snapshots (assets + liabilities)
+
+  → Uses SharedGroup of type 'family'.
+  → Adds family-specific models (SharedTask, SharedReminder).
+
+┌──────────────────────────────────────────────────────────────────┐
+│              6. AI & INTELLIGENCE LAYER                          │
+│      (Free rule-based engine — no paid API key)                │
+└──────────────────────────────────────────────────────────────────┘
+  │
+  ├─ AI CHAT (Conversational)
+  │   • Intent detection: summarize, create_group, create_space,
+  │     add_expense, set_budget, attach_receipt, analyze_savings,
+  │     create_expense_group, general_chat
+  │   • Queries real user data from DB (transactions, groups, etc.)
+  │   • Context-aware responses
+  │
+  ├─ AI INSIGHTS
+  │   • Per-section insights: dashboard, transactions,
+  │     shared_finance, goals, budgets
+  │   • Financial health analysis
+  │   • Savings recommendations
+  │
+  ├─ AI NARRATIVES
+  │   • Natural language summary of financial activity
+  │   • Group narrative generation
+  │   • Split/settlement analysis
+  │
+  └─ FINANCIAL HEALTH SCORING
+      • Smart insights across all financial dimensions
+
+  → Reads from Transactions, Accounts, Goals, Budgets, SharedGroup.
+  → No external API dependency — entirely self-contained rule engine.
+
+┌──────────────────────────────────────────────────────────────────┐
+│               7. GAMIFICATION & ENGAGEMENT                       │
+└──────────────────────────────────────────────────────────────────┘
+  │
+  ├─ BADGES
+  │   • Categories: settlement, expense, savings, streak, social
+  │   • Tier-based: bronze, silver, gold, diamond
+  │   • Criteria-driven unlocking
+  │
+  └─ STREAKS
+      • Daily, weekly, monthly usage streaks
+      • Badge wall display
+
+  → Encourages continued usage of all finance features.
+
+┌──────────────────────────────────────────────────────────────────┐
+│                8. REFERRAL PROGRAM                               │
+└──────────────────────────────────────────────────────────────────┘
+  │
+  ├─ Referral codes (unique per user)
+  ├─ Invite tracking
+  └─ Reward payouts
+
+  → User acquisition layer on top of Auth.
+
+┌──────────────────────────────────────────────────────────────────┐
+│               9. PREMIUM SUBSCRIPTIONS                           │
+│              (Monetization layer via Razorpay)                  │
+└──────────────────────────────────────────────────────────────────┘
+  │
+  ├─ Plans: MONTHLY_89 (₹89), QUARTERLY_219 (₹219/qtr),
+  │          HALFYEARLY_389 (₹389/6mo), YEARLY_699 (₹699/yr)
+  ├─ Razorpay subscription creation + verification
+  ├─ Per-feature entitlement system
+  ├─ Billing history
+  └─ Webhook event handling
+
+  → Gated features check PremiumEntitlement before activation.
+
+┌──────────────────────────────────────────────────────────────────┐
+│              10. DATA & ANALYTICS LAYER                          │
+└──────────────────────────────────────────────────────────────────┘
+  │
+  ├─ SPENDING ANALYTICS
+  │   • Category-wise breakdown
+  │   • Monthly income vs expense comparison
+  │   • Pre-computed analytics (daily/weekly/monthly/yearly)
+  │
+  ├─ DASHBOARD
+  │   • Real data from: /accounts/stats, /transactions/stats,
+  │     /expense-groups, /reminders/upcoming, /goals,
+  │     /notifications/unread-count
+  │
+  ├─ REPORTS (Export)
+  │   • PDF, Excel, CSV formats
+  │   • Annual, trip, settlement, contribution reports
+  │   • Export history tracking
+  │
+  └─ FINANCIAL HEALTH
+      • Composite health score from multiple metrics
+      • Smart insights with recommendations
+
+  → Consumes data from all Personal Finance and Shared Finance layers.
+
+┌──────────────────────────────────────────────────────────────────┐
+│             11. NOTIFICATIONS & REMINDERS                        │
+└──────────────────────────────────────────────────────────────────┘
+  │
+  ├─ PUSH NOTIFICATIONS (FCM)
+  │   • Transaction alerts
+  │   • Settlement reminders
+  │   • Group activity
+  │   • Overdue bill alerts
+  │   • Goal milestones
+  │
+  ├─ IN-APP NOTIFICATION CENTER
+  │   • Smart priority sorting
+  │   • Read/unread tracking
+  │
+  ├─ EMAIL NOTIFICATIONS
+  │   • Welcome email (fire-and-forget)
+  │   • OTP delivery
+  │   • Password reset
+  │
+  └─ REMINDERS
+      • One-time: bill, task, event, general
+      • Recurring: daily, weekly, monthly, yearly
+      • Snooze functionality
+      • Priority levels
+      • Upcoming / today / overdue filtered views
+
+  → Event-driven: triggered by transactions, settlements, group changes.
+  → Notification events service bridges all modules to notifications.
+
+┌──────────────────────────────────────────────────────────────────┐
+│              12. CUSTOMIZATION LAYER                             │
+└──────────────────────────────────────────────────────────────────┘
+  │
+  ├─ DASHBOARD LAYOUT
+  │   • Widget order and visibility
+  │   • Per-user saved preferences
+  │
+  ├─ BOTTOM TAB CUSTOMIZATION
+  │   • Which tabs appear
+  │   • Custom ordering
+  │
+  └─ THEME
+      • Light / Dark / System
+      • Preferred accent color (brand orange #FF6B00 by default)
+
+  → UserPreferences model persists customization choices.
+
+┌──────────────────────────────────────────────────────────────────┐
+│              13. ADMINISTRATION PANEL                            │
+│              (Back-office for platform operators)               │
+└──────────────────────────────────────────────────────────────────┘
+  │
+  ├─ User management (search, detail, activate/deactivate, delete)
+  ├─ Family management
+  ├─ Subscription plan management (CRUD)
+  ├─ Feature flags (create, toggle)
+  ├─ Audit logs viewer
+  ├─ Support ticket system (assign, update)
+  ├─ Broadcast push notifications
+  ├─ App configuration management
+  └─ Maintenance mode control
+
+  → Separate admin auth — not accessible from user app.
+  → Can override/control all platform features via feature flags.
+
+┌──────────────────────────────────────────────────────────────────┐
+│                    HOW FEATURES ARE INTERLINKED                  │
+└──────────────────────────────────────────────────────────────────┘
+
+  AUTH ───────────┬───► ACCOUNTS ──► TRANSACTIONS ──┬──► ANALYTICS
+                  │                                  │
+    All features  │    ┌─────────────┐              ├──► BUDGETS
+    require auth  │    │ SMS Detect  │──────────────┘    (category ref)
+                  │    └─────────────┘
+                  │                                  ┌──► GOALS
+                  │                                  │    (progress)
+                  └───► BILLS ──────► SCAN/OCR ──────┤
+                                                     ├──► REPORTS
+                                                     │    (export)
+                                                     └──► AI INSIGHTS
+
+  TRANSACTIONS ──┬──► SHARED FINANCE (Circles/Spaces)
+                  │       │
+                  │       ├──► EXPENSES (splits reference transactions)
+                  │       ├──► SETTLEMENTS (balance reconciliation)
+                  │       ├──► GROUP WALLETS (wallet transactions)
+                  │       ├──► ADVANCE CONTRIBUTIONS
+                  │       ├──► CASH POOLS
+                  │       ├──► EMERGENCY FUNDS
+                  │       ├──► CREDIT CARD BILL SPLITTING
+                  │       ├──► EXPENSE APPROVAL WORKFLOW
+                  │       └──► SHARED GOALS
+                  │
+                  ├──► COUPLE FINANCE (type='couple' SharedGroup)
+                  │       ├──► INCOME TRACKING
+                  │       ├──► SHARED SAVINGS
+                  │       ├──► COUPLE BUDGETS
+                  │       └──► COUPLE REPORTS
+                  │
+                  └──► FAMILY FEATURES (type='family' SharedGroup)
+                          ├──► FAMILY CHAT
+                          ├──► SHARED TASKS
+                          ├──► SHARED REMINDERS
+                          └──► NET WORTH SNAPSHOTS
+
+  SHARED FINANCE ──► GROUP DOCUMENTS
+                  │        (encrypted vault per group)
+                  │
+                  ├──► GROUP CHAT (per-group messaging)
+                  ├──► GROUP CALENDAR (events tied to expense dates)
+                  ├──► SPLIT TEMPLATES (reusable patterns)
+                  ├──► INVITE LINKS (guest access)
+                  ├──► PAY NOW (non-app user payments)
+                  └──► EXPORT HISTORY (group reports)
+
+  AI CHAT ──► queries ALL modules above
+  │             (transactions, groups, goals, budgets, accounts)
+  │
+  └──► INTENT DISPATCH
+        ├── "summarize" → Transactions + Accounts
+        ├── "add expense" → Transactions (writes)
+        ├── "create group/space" → SharedFinance (writes)
+        ├── "set budget" → Budgets (writes)
+        ├── "analyze savings" → Transactions + Goals
+        └── "general chat" → Contextual financial Q&A
+
+  GAMIFICATION ──► tracks activity across ALL modules
+  │                   (transactions created, settlements done,
+  │                    goals achieved, streaks maintained)
+  │
+  └──► BADGES + STREAKS → displayed on Dashboard + Badge Wall
+
+  PREMIUM ──► gated by entitlement checks in all modules
+  │
+  └──► Razorpay subscription ↔ PremiumEntitlement ↔ Feature Gate
+
+  NOTIFICATIONS ──► event-driven bridge across ALL modules
+  │
+  ├── TransactionEvents → push/email
+  ├── SettlementEvents → push/in-app
+  ├── GroupEvents → push to members
+  ├── GoalEvents → milestone alerts
+  ├── BudgetEvents → overspend alerts
+  └── ReminderEvents → push at scheduled time
+
+  DASHBOARD ──► aggregation endpoint
+  │
+  └──► reads from: Stats, Transactions, Expense Groups,
+                    Reminders, Goals, Notifications
+
+┌──────────────────────────────────────────────────────────────────┐
+│                  DATA FLOW ARCHITECTURE                          │
+└──────────────────────────────────────────────────────────────────┘
+
+  MOBILE APP (Expo React Native)
+       │
+       │ HTTP (REST API)
+       ▼
+  BACKEND (NestJS)
+       │
+       ├── Auth Guard ──► JWT Validation
+       ├── Transform Interceptor ──► wraps response in {data, success}
+       ├── Logging Interceptor
+       │
+       ▼
+  SERVICE LAYER (business logic)
+       │
+       ├── Prisma ORM ──► PostgreSQL
+       ├── FCM ──► Push Notifications
+       ├── Email Service ──► SMTP
+       ├── Razorpay ──► Payment Gateway
+       └── Rule Engine ──► AI Features (no external API)
+       │
+       ▼
+  POSTGRESQL (66 models / 2684 lines schema)
+
+┌──────────────────────────────────────────────────────────────────┐
+│                   KEY TECH STACK                                 │
+└──────────────────────────────────────────────────────────────────┘
+
+  FRONTEND
+    ├── React Native (Expo managed workflow)
+    ├── React Navigation (native stack + bottom tabs)
+    ├── Reanimated 2 (animations — splash orbit, tab spring)
+    ├── react-native-svg (progress rings, graphics)
+    ├── @react-native-firebase/messaging (push notifications)
+    ├── expo-google-sign-in (Google SSO)
+    ├── expo-local-authentication (biometrics)
+    └── expo-contacts (contact sync)
+
+  BACKEND
+    ├── NestJS (Node.js framework)
+    ├── Prisma ORM (PostgreSQL)
+    ├── JWT (auth tokens)
+    ├── Razorpay SDK (subscriptions)
+    ├── firebase-admin (FCM push)
+    └── nodemailer (email)
+
+  INFRASTRUCTURE
+    ├── Render (backend hosting, cold starts 5-15s)
+    ├── PostgreSQL (database)
+    ├── Turborepo (monorepo orchestration)
+    └── Husky + Commitlint (git hooks)
+
+┌──────────────────────────────────────────────────────────────────┐
+│                 FEATURE COUNT SUMMARY                            │
+└──────────────────────────────────────────────────────────────────┘
+
+  Backend Modules:      33
+  Database Models:      66 (106 with relations)
+  API Endpoints:        200+
+  Mobile Screens:       120+
+  Tab Navigator:        4 main tabs + 1 hidden (Circles)
+  AI Intents:           9
+  Auth Methods:         3 (email, Google, guest)
+  Payment Plans:        4
+  Badge Tiers:          4 (bronze, silver, gold, diamond)
+  Group Types:          9 (friends, trip, family, couple,
+                           roommates, office, event, apartment, default)
+  Expense Split Types:  6 (equal, percentage, exact, shares,
+                           weighted, multi-payer)
+  Account Types:        7 (checking, savings, credit, cash,
+                           investment, loan, wallet)
+  Goal Types:           8
+  Investment Types:     6
+  Document Types:       8
+  Reminder Types:       4
+  Export Formats:       3 (PDF, Excel, CSV)
+
+╔══════════════════════════════════════════════════════════════════╗
+║  END OF DOCUMENT                                                ║
+╚══════════════════════════════════════════════════════════════════╝

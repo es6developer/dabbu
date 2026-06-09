@@ -1,156 +1,114 @@
 import React, { useState, useCallback } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
-  ActivityIndicator,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import { useTheme } from '../../theme';
+import ReAnimated, { FadeInUp } from 'react-native-reanimated';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
+import {
+  AI_COLORS, AiCard, SectionHeader, PremiumBadge,
+} from './components/AiShared';
 
 const SECTIONS = [
-  { key: 'dashboard', label: 'Dashboard', icon: 'grid' },
-  { key: 'transactions', label: 'Transactions', icon: 'cash' },
-  { key: 'shared_finance', label: 'Shared Finance', icon: 'people' },
-  { key: 'goals', label: 'Goals', icon: 'trophy' },
-  { key: 'budgets', label: 'Budgets', icon: 'wallet' },
+  { key: 'predictions', label: 'Predictions', icon: 'trending-up' as const },
+  { key: 'anomalies', label: 'Anomalies', icon: 'warning-outline' as const },
+  { key: 'savings', label: 'Savings', icon: 'cash-outline' as const },
+  { key: 'recommendations', label: 'Recommendations', icon: 'bulb-outline' as const },
 ];
+
+interface InsightItem {
+  title: string;
+  message: string;
+  severity: string;
+  confidence?: number;
+  icon?: string;
+}
 
 export function AiInsightsScreen() {
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
   const { accessToken } = useAuth();
-
-  const [activeSection, setActiveSection] = useState('dashboard');
-  const [insights, setInsights] = useState<any[]>([]);
+  const [activeSection, setActiveSection] = useState('predictions');
+  const [items, setItems] = useState<InsightItem[]>([]);
   const [narrative, setNarrative] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const loadInsights = useCallback(
-    async (section: string, refresh = false) => {
-      if (refresh) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
-      try {
-        if (accessToken) {
-          setAccessToken(accessToken);
-        }
-        const [insightsRes, narrativeRes] = await Promise.allSettled([
-          api.get<any>(`/accounts/ai-insights?section=${section}`),
-          api.post<any>('/ai/narrative', { section, context: { section } }),
-        ]);
+  const loadData = useCallback(async (section: string, refresh = false) => {
+    if (accessToken) setAccessToken(accessToken);
+    if (refresh) setRefreshing(true); else setLoading(true);
 
-        if (insightsRes.status === 'fulfilled') {
-          setInsights(insightsRes.value?.data || []);
-        }
-        if (narrativeRes.status === 'fulfilled') {
-          setNarrative(narrativeRes.value?.data || null);
-        }
-      } catch {
-        /* ignore */
-      } finally {
-        setLoading(false);
-        setRefreshing(false);
-      }
-    },
-    [accessToken],
-  );
+    try {
+      const sectionMap: Record<string, string> = {
+        predictions: 'dashboard',
+        anomalies: 'transactions',
+        savings: 'budgets',
+        recommendations: 'goals',
+      };
+      const [insightsRes, narrativeRes] = await Promise.allSettled([
+        api.get<any>(`/ai/insights?section=${sectionMap[section] ?? 'dashboard'}`),
+        api.post<any>('/ai/narrative', { section: sectionMap[section] ?? 'dashboard', context: {} }),
+      ]);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadInsights(activeSection);
-    }, [loadInsights, activeSection]),
-  );
+      if (insightsRes.status === 'fulfilled') {
+        const list = insightsRes.value?.data ?? insightsRes.value;
+        if (Array.isArray(list)) {
+          setItems(list.map((i: any) => ({
+            title: i.title ?? '',
+            message: i.message ?? '',
+            severity: i.severity ?? 'info',
+            confidence: i.confidence ?? undefined,
+            icon: i.icon ?? 'bulb-outline',
+          })));
+        } else { setItems([]); }
+      }
+      if (narrativeRes.status === 'fulfilled') {
+        setNarrative(narrativeRes.value?.data ?? null);
+      }
+    } catch { setItems([]); } finally { setLoading(false); setRefreshing(false); }
+  }, [accessToken]);
+
+  useFocusEffect(useCallback(() => { loadData(activeSection); }, [loadData, activeSection]));
 
   const severityColor = (sev: string) =>
-    sev === 'critical'
-      ? '#FF6B6B'
-      : sev === 'warning'
-        ? '#FDCB6E'
-        : sev === 'success'
-          ? '#00B894'
-          : '#74B9FF';
+    sev === 'critical' ? AI_COLORS.danger : sev === 'warning' ? AI_COLORS.warning : sev === 'success' ? AI_COLORS.success : AI_COLORS.info;
 
   return (
-    <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
-      <View
-        
-        style={[s.header, { paddingTop: insets.top + 16 }]}
-      >
-        <View style={s.headerRow}>
-          <View>
-            <Text style={[s.headerTitle, { color: colors.text.primary }]}>AI Insights</Text>
-            <Text style={[s.headerSub, { color: colors.text.tertiary }]}>Smart analysis across all sections</Text>
-          </View>
-          <View style={[s.headerBadge, { backgroundColor: colors.bg.tertiary }]}>
-            <Ionicons name="sparkles" size={14} color={colors.accent.primary} />
-            <Text style={[s.headerBadgeText, { color: colors.accent.primary }]}>BETA</Text>
-          </View>
-        </View>
-      </View>
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={s.sectionTabs}
-        contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
-      >
-        {SECTIONS.map((sec) => (
-          <TouchableOpacity
-            key={sec.key}
-            style={[
-              s.sectionTab,
-              {
-                backgroundColor: activeSection === sec.key ? colors.accent.primary : colors.bg.secondary,
-              },
-            ]}
-            onPress={() => {
-              setActiveSection(sec.key);
-              loadInsights(sec.key);
-            }}
-            activeOpacity={0.7}
-          >
-            <Ionicons
-              name={sec.icon as any}
-              size={14}
-              color={activeSection === sec.key ? '#FFF' : colors.text.tertiary}
-            />
-            <Text
-              style={[
-                s.sectionTabLabel,
-                { color: activeSection === sec.key ? '#FFF' : colors.text.tertiary },
-              ]}
-            >
-              {sec.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
+    <View style={[s.screen, { backgroundColor: AI_COLORS.bg }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => loadInsights(activeSection, true)}
-            tintColor={colors.accent.primary}
-          />
-        }
+        contentContainerStyle={{ paddingBottom: 100 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(activeSection, true)} tintColor={AI_COLORS.primary} />}
       >
+        <ReAnimated.View entering={FadeInUp.duration(400)} style={[s.header, { paddingTop: insets.top + 16 }]}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <View>
+              <Text style={s.headerTitle}>AI Insights</Text>
+              <Text style={s.headerSub}>Smart analysis across all areas</Text>
+            </View>
+            <PremiumBadge />
+          </View>
+        </ReAnimated.View>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 8, paddingVertical: 12 }}>
+          {SECTIONS.map((sec) => (
+            <TouchableOpacity
+              key={sec.key}
+              style={[s.sectionTab, { backgroundColor: activeSection === sec.key ? AI_COLORS.primary : AI_COLORS.card, borderColor: activeSection === sec.key ? AI_COLORS.primary : AI_COLORS.border }]}
+              onPress={() => { setActiveSection(sec.key); loadData(sec.key); }}
+              activeOpacity={0.7}
+            >
+              <Ionicons name={sec.icon} size={16} color={activeSection === sec.key ? '#FFF' : AI_COLORS.textSecondary} />
+              <Text style={[s.sectionTabLabel, { color: activeSection === sec.key ? '#FFF' : AI_COLORS.textSecondary }]}>{sec.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
         {loading ? (
-          <View style={{ gap: 12 }}>
+          <View style={{ padding: 16, gap: 12 }}>
             <Skeleton width="100%" height={120} borderRadius={16} />
             <Skeleton width="100%" height={80} borderRadius={12} />
             <Skeleton width="100%" height={80} borderRadius={12} />
@@ -158,94 +116,62 @@ export function AiInsightsScreen() {
         ) : (
           <>
             {narrative?.summary && (
-              <View style={[s.narrativeCard, { backgroundColor: colors.bg.secondary }]}>
-                <View style={s.narrativeHeader}>
-                  <Ionicons name="sparkles" size={18} color={colors.accent.primary} />
-                  <Text style={[s.narrativeTitle, { color: colors.text.primary }]}>
-                    AI Analysis
-                  </Text>
-                </View>
-                <Text style={[s.narrativeText, { color: colors.text.secondary }]}>
-                  {narrative.summary}
-                </Text>
-                {narrative.highlights?.length > 0 && (
-                  <View style={{ marginTop: 12 }}>
-                    <Text style={[s.narrativeSub, { color: colors.text.primary }]}>Highlights</Text>
-                    {narrative.highlights.map((h: string, i: number) => (
-                      <View key={i} style={s.bulletRow}>
-                        <Text style={[s.bullet, { color: '#00B894' }]}>◆</Text>
-                        <Text style={[s.bulletText, { color: colors.text.tertiary }]}>{h}</Text>
-                      </View>
-                    ))}
+              <ReAnimated.View entering={FadeInUp.duration(500)} style={{ paddingHorizontal: 16, marginBottom: 8 }}>
+                <AiCard padding={16}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                    <Ionicons name="sparkles" size={16} color={AI_COLORS.primary} />
+                    <Text style={{ fontSize: 15, fontWeight: '700', color: AI_COLORS.text }}>AI Analysis</Text>
                   </View>
-                )}
-                {narrative.recommendations?.length > 0 && (
-                  <View style={{ marginTop: 12 }}>
-                    <Text style={[s.narrativeSub, { color: colors.text.primary }]}>
-                      Recommendations
-                    </Text>
-                    {narrative.recommendations.map((r: string, i: number) => (
-                      <View key={i} style={s.bulletRow}>
-                        <Text style={[s.bullet, { color: colors.accent.primary }]}>▶</Text>
-                        <Text style={[s.bulletText, { color: colors.text.tertiary }]}>{r}</Text>
-                      </View>
-                    ))}
-                  </View>
-                )}
-                {narrative.riskFlags?.length > 0 && (
-                  <View style={{ marginTop: 12 }}>
-                    <Text style={[s.narrativeSub, { color: colors.text.primary }]}>Risk Flags</Text>
-                    {narrative.riskFlags.map((f: string, i: number) => (
-                      <View key={i} style={s.bulletRow}>
-                        <Text style={[s.bullet, { color: '#FF6B6B' }]}>⚠</Text>
-                        <Text style={[s.bulletText, { color: colors.text.tertiary }]}>{f}</Text>
-                      </View>
-                    ))}
-                  </View>
-                )}
-              </View>
+                  <Text style={{ fontSize: 13, color: AI_COLORS.textSecondary, lineHeight: 19 }}>{narrative.summary}</Text>
+                  {narrative.highlights?.length > 0 && (
+                    <View style={{ marginTop: 12, gap: 4 }}>
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: AI_COLORS.text, marginBottom: 4 }}>Highlights</Text>
+                      {narrative.highlights.map((h: string, i: number) => (
+                        <View key={i} style={{ flexDirection: 'row', gap: 6 }}>
+                          <Text style={{ color: AI_COLORS.success }}>◆</Text>
+                          <Text style={{ fontSize: 12, color: AI_COLORS.textTertiary, flex: 1 }}>{h}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </AiCard>
+              </ReAnimated.View>
             )}
 
-            {insights.map((insight: any, i: number) => {
-              const sevColor = severityColor(insight.severity);
-              return (
-                <TouchableOpacity
-                  key={i}
-                  style={[
-                    s.insightCard,
-                    { backgroundColor: colors.bg.secondary, borderLeftColor: sevColor },
-                  ]}
-                  activeOpacity={0.7}
-                >
-                  <View style={s.insightRow}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[s.insightTitle, { color: colors.text.primary }]}>
-                        {insight.title}
-                      </Text>
-                      <Text style={[s.insightMsg, { color: colors.text.tertiary }]}>
-                        {insight.message}
-                      </Text>
-                    </View>
-                    {insight.source === 'ai' && (
-                      <View style={[s.aiBadge, { backgroundColor: `${colors.accent.primary}18` }]}>
-                        <Ionicons name="sparkles" size={10} color={colors.accent.primary} />
-                        <Text style={[s.aiBadgeText, { color: colors.accent.primary }]}>AI</Text>
+            <View style={{ paddingHorizontal: 16, gap: 6 }}>
+              {items.map((item, i) => {
+                const clr = severityColor(item.severity);
+                return (
+                  <ReAnimated.View key={i} entering={FadeInUp.duration(300).delay(i * 50)}>
+                    <TouchableOpacity activeOpacity={0.8}>
+                      <View style={[s.insightCard, { backgroundColor: AI_COLORS.card, borderLeftColor: clr, borderColor: AI_COLORS.border }]}>
+                        <View style={{ flexDirection: 'row', gap: 12 }}>
+                          <View style={[s.insightIcon, { backgroundColor: `${clr}20` }]}>
+                            <Ionicons name={item.icon as any || 'bulb-outline'} size={18} color={clr} />
+                          </View>
+                          <View style={{ flex: 1 }}>
+                            <Text style={{ fontSize: 14, fontWeight: '700', color: AI_COLORS.text }}>{item.title}</Text>
+                            <Text style={{ fontSize: 12, color: AI_COLORS.textSecondary, marginTop: 2, lineHeight: 17 }}>{item.message}</Text>
+                            {item.confidence !== undefined && (
+                              <View style={[s.badge, { backgroundColor: `${clr}20`, marginTop: 6 }]}>
+                                <Text style={{ fontSize: 10, fontWeight: '600', color: clr }}>{(item.confidence * 100).toFixed(0)}% confidence</Text>
+                              </View>
+                            )}
+                          </View>
+                        </View>
                       </View>
-                    )}
-                  </View>
-                  <View style={[s.sevTag, { backgroundColor: `${sevColor}18` }]}>
-                    <Text style={[s.sevText, { color: sevColor }]}>{insight.severity}</Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
+                    </TouchableOpacity>
+                  </ReAnimated.View>
+                );
+              })}
+            </View>
 
-            {insights.length === 0 && !narrative && (
-              <View style={s.emptyState}>
-                <Ionicons name="sparkles-outline" size={48} color={colors.text.tertiary} />
-                <Text style={[s.emptyTitle, { color: colors.text.primary }]}>No insights yet</Text>
-                <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>
-                  AI insights will appear here once the AI service is configured and enabled.
+            {!loading && items.length === 0 && !narrative && (
+              <View style={{ alignItems: 'center', paddingTop: 60, gap: 12, paddingHorizontal: 32 }}>
+                <Ionicons name="sparkles-outline" size={48} color={AI_COLORS.textTertiary} />
+                <Text style={{ fontSize: 18, fontWeight: '700', color: AI_COLORS.text }}>No insights yet</Text>
+                <Text style={{ fontSize: 13, color: AI_COLORS.textSecondary, textAlign: 'center' }}>
+                  AI insights will appear here after analysis.
                 </Text>
               </View>
             )}
@@ -258,72 +184,12 @@ export function AiInsightsScreen() {
 
 const s = StyleSheet.create({
   screen: { flex: 1 },
-  header: { paddingHorizontal: 20, paddingBottom: 20 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  headerTitle: { fontSize: 24, fontWeight: '800', color: '#FFF', letterSpacing: -0.5 },
-  headerSub: { fontSize: 13, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
-  headerBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-  },
-  headerBadgeText: { fontSize: 11, fontWeight: '800', color: '#FFF', letterSpacing: 0.5 },
-
-  sectionTabs: { paddingVertical: 12, maxHeight: 56 },
-  sectionTab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
+  header: { paddingHorizontal: 20, paddingBottom: 8, gap: 6 },
+  headerTitle: { fontSize: 28, fontWeight: '800', color: AI_COLORS.text, letterSpacing: -0.5 },
+  headerSub: { fontSize: 13, color: AI_COLORS.textSecondary, marginTop: 2 },
+  sectionTab: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 14, borderWidth: 1 },
   sectionTabLabel: { fontSize: 13, fontWeight: '600' },
-
-  narrativeCard: { borderRadius: 16, padding: 16, marginBottom: 12 },
-  narrativeHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
-  narrativeTitle: { fontSize: 16, fontWeight: '700' },
-  narrativeText: { fontSize: 13, lineHeight: 20 },
-  narrativeSub: { fontSize: 13, fontWeight: '700', marginBottom: 6 },
-
-  bulletRow: { flexDirection: 'row', gap: 6, marginBottom: 4, alignItems: 'flex-start' },
-  bullet: { fontSize: 12, marginTop: 2 },
-  bulletText: { fontSize: 12, lineHeight: 18, flex: 1 },
-
-  insightCard: {
-    padding: 14,
-    borderRadius: 14,
-    marginBottom: 8,
-    borderLeftWidth: 3,
-  },
-  insightRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  insightTitle: { fontSize: 14, fontWeight: '700' },
-  insightMsg: { fontSize: 12, marginTop: 2, lineHeight: 17 },
-
-  aiBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  aiBadgeText: { fontSize: 9, fontWeight: '700', letterSpacing: 0.5 },
-
-  sevTag: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
-    marginTop: 6,
-  },
-  sevText: { fontSize: 10, fontWeight: '700', textTransform: 'capitalize' },
-
-  emptyState: { alignItems: 'center', paddingTop: 60, gap: 12, paddingHorizontal: 32 },
-  emptyTitle: { fontSize: 18, fontWeight: '700' },
-  emptyDesc: { fontSize: 13, textAlign: 'center', lineHeight: 18 },
+  insightCard: { padding: 14, borderRadius: 14, marginBottom: 6, borderLeftWidth: 3, borderWidth: 1 },
+  insightIcon: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  badge: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
 });

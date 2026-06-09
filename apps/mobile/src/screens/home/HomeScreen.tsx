@@ -88,7 +88,7 @@ function getIcon(cat: string): keyof typeof Ionicons.glyphMap {
 export function HomeScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { user, accessToken } = useAuth();
 
   const [totalBalance, setTotalBalance] = useState<number | null>(null);
@@ -245,21 +245,21 @@ export function HomeScreen() {
       {
         icon: 'scan' as const,
         label: 'Scan',
-        color: '#F59E0B',
+        color: isDark ? '#FBBF24' : '#F59E0B',
         route: 'BillScanner',
         tab: 'Expense' as const,
       },
       {
         icon: 'people' as const,
         label: 'Split',
-        color: '#14B8A6',
+        color: isDark ? '#34D399' : '#14B8A6',
         route: 'AddExpense',
         tab: 'Expense' as const,
       },
       {
         icon: 'receipt' as const,
         label: 'Bills',
-        color: '#4A90D9',
+        color: isDark ? '#60A5FA' : '#4A90D9',
         route: 'BillsList',
         tab: 'Expense' as const,
       },
@@ -654,7 +654,7 @@ export function HomeScreen() {
         </Animated.View>
 
         {/* ── This Month Stats ──────────────────────── */}
-        <Animated.View style={{ paddingHorizontal: 20, marginTop: 28, opacity: fadeAnim }}>
+        <Animated.View style={{ paddingHorizontal: 20, marginTop: 32, opacity: fadeAnim }}>
           <Text style={[s.sectionTitle, { color: colors.text.primary }]}>This Month</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
             {statCards.map((card) => (
@@ -697,7 +697,7 @@ export function HomeScreen() {
 
         {/* ── Spending by Category ──────────────────── */}
         {categories.length > 0 && (
-          <Animated.View style={{ paddingHorizontal: 20, marginTop: 28, opacity: fadeAnim }}>
+          <Animated.View style={{ paddingHorizontal: 20, marginTop: 32, opacity: fadeAnim }}>
             <View
               style={{
                 flexDirection: 'row',
@@ -834,7 +834,7 @@ export function HomeScreen() {
         )}
 
         {/* ── Recent Transactions ───────────────────── */}
-        <Animated.View style={{ paddingHorizontal: 20, marginTop: 28, opacity: fadeAnim }}>
+        <Animated.View style={{ paddingHorizontal: 20, marginTop: 32, opacity: fadeAnim }}>
           <View
             style={{
               flexDirection: 'row',
@@ -847,7 +847,7 @@ export function HomeScreen() {
               Recent Transactions
             </Text>
             {recentTxns.length > 0 && (
-              <TouchableOpacity onPress={() => navigation.navigate('Expense')}>
+              <TouchableOpacity onPress={() => navigation.navigate('Expense', { screen: 'ExpenseHome' })}>
                 <Text style={{ fontSize: 13, fontWeight: '600', color: colors.accent.primary }}>
                   See All
                 </Text>
@@ -1140,7 +1140,7 @@ const s = StyleSheet.create({
   fab: {
     position: 'absolute',
     right: 20,
-    bottom: 24,
+    bottom: 100,
     width: 56,
     height: 56,
     borderRadius: 18,
