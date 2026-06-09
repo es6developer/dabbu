@@ -12,51 +12,37 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
-import { useAnalytics } from '../../hooks/useAnalytics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { PADDING, borderRadius, shadows } from '../../theme/design';
 
 const { width } = Dimensions.get('window');
 
 const slides = [
   {
-    icon: 'receipt-outline',
-    title: 'Expense Tracking',
-    desc: 'Track every expense in seconds. Scan bills, split with friends, and know exactly where your money goes.',
+    icon: 'shield-checkmark-outline',
+    title: 'Easy way to Secure money',
+    desc: 'Track every transaction, set budgets, and reach your financial goals with smart tools designed for modern couples and families.',
   },
   {
     icon: 'people-outline',
-    title: 'Shared Finance',
+    title: 'Shared Finance Made Simple',
     desc: 'Create shared spaces for trips, family, or roommates. Split expenses, track balances, and settle up seamlessly.',
   },
   {
     icon: 'trophy-outline',
-    title: 'Goals',
-    desc: 'Set financial goals that matter. Save for a vacation, emergency fund, or your dream home — with progress tracking that keeps you motivated.',
-  },
-  {
-    icon: 'alarm-outline',
-    title: 'Smart Reminders',
-    desc: 'Never miss a bill or payment. Set smart reminders for recurring expenses, subscriptions, and due dates.',
-  },
-  {
-    icon: 'swap-horizontal-outline',
-    title: 'Settlements',
-    desc: 'Settle debts with a tap. UPI integration makes paying back friends and family instant and hassle-free.',
+    title: 'Goals That Keep You Going',
+    desc: 'Set financial goals that matter. Save for a vacation, emergency fund, or your dream home with progress tracking.',
   },
 ];
 
 function SlideContent({
   item,
-  index: slideIndex,
   isActive,
   colors,
-  typography,
 }: {
   item: (typeof slides)[0];
-  index: number;
   isActive: boolean;
   colors: any;
-  typography: any;
 }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
@@ -66,190 +52,209 @@ function SlideContent({
       fadeAnim.setValue(0);
       slideAnim.setValue(30);
       Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 500,
-          useNativeDriver: true,
-        }),
+        Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
+        Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
       ]).start();
     }
-  }, [isActive, fadeAnim, slideAnim]);
-
-  const isBrand = slideIndex === 0;
+  }, [isActive]);
 
   return (
-    <View style={styles.slide}>
-      <Animated.View
+    <Animated.View
+      style={{
+        width,
+        alignItems: 'center',
+        justifyContent: 'center',
+        opacity: fadeAnim,
+        transform: [{ translateY: slideAnim }],
+        paddingHorizontal: PADDING,
+      }}
+    >
+      <View
         style={{
-          opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }],
+          width: width * 0.55,
+          height: width * 0.55,
+          borderRadius: width * 0.27,
+          backgroundColor: `${colors.accent.primary}08`,
           alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: 48,
         }}
       >
-        {isBrand && (
-          <Text style={[{ color: colors.accent.primary, ...typography.hero }, styles.brandName]}>
-            Dabbu
-          </Text>
-        )}
-        {isBrand && (
-          <Text style={[{ color: colors.text.tertiary, ...typography.body }, styles.tagline]}>
-            Your financial life, simplified
-          </Text>
-        )}
-        <View style={styles.iconWrap}>
-          <Ionicons name={item.icon as any} size={40} color="#FFFFFF" />
+        <View
+          style={{
+            width: width * 0.36,
+            height: width * 0.36,
+            borderRadius: width * 0.18,
+            backgroundColor: `${colors.accent.primary}12`,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Ionicons name={item.icon as any} size={68} color={colors.accent.primary} />
         </View>
-        <Text style={[{ color: colors.text.primary, ...typography.sectionHeader }, styles.title]}>
-          {item.title}
-        </Text>
-        <Text style={[{ color: colors.text.secondary, ...typography.body }, styles.desc]}>
-          {item.desc}
-        </Text>
-      </Animated.View>
-    </View>
+      </View>
+      <Text
+        style={{
+          fontSize: 30,
+          fontWeight: '800',
+          color: colors.text.primary,
+          textAlign: 'center',
+          letterSpacing: -0.5,
+          lineHeight: 38,
+          marginBottom: 14,
+        }}
+      >
+        {item.title}
+      </Text>
+      <Text
+        style={{
+          fontSize: 15,
+          fontWeight: '500',
+          color: colors.text.tertiary,
+          textAlign: 'center',
+          lineHeight: 24,
+          paddingHorizontal: 8,
+        }}
+      >
+        {item.desc}
+      </Text>
+    </Animated.View>
   );
 }
 
 export function OnboardingScreen() {
   const navigation = useNavigation<any>();
-  const { colors, typography, isDark } = useTheme();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const [index, setIndex] = useState(0);
   const flatRef = useRef<FlatList>(null);
-  const { trackFeature } = useAnalytics();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const dotAnim = useRef(new Animated.Value(0)).current;
 
-  async function markSeen() {
-    await AsyncStorage.setItem('hasSeenOnboarding', 'true');
-  }
-
-  const handleNext = useCallback(async () => {
-    if (index < slides.length - 1) {
-      flatRef.current?.scrollToOffset({ offset: width * (index + 1), animated: true });
-    } else {
-      trackFeature('Onboarding', 'complete');
-      await markSeen();
-      navigation.replace('Login');
-    }
-  }, [index, trackFeature, navigation]);
-
-  const handleSkip = useCallback(async () => {
-    trackFeature('Onboarding', 'skip');
-    await markSeen();
-    navigation.replace('Login');
-  }, [trackFeature, navigation]);
-
-  const isLast = index === slides.length - 1;
-
-  const renderSlide = useCallback(
-    ({ item, index: i }: { item: (typeof slides)[0]; index: number }) => (
-      <SlideContent
-        item={item}
-        index={i}
-        isActive={i === index}
-        colors={colors}
-        typography={typography}
-      />
-    ),
-    [index, colors, typography],
+  const onViewableItemsChanged = useCallback(
+    ({ viewableItems }: any) => {
+      if (viewableItems.length > 0) {
+        const idx = viewableItems[0].index ?? 0;
+        setCurrentIndex(idx);
+        Animated.spring(dotAnim, { toValue: idx, useNativeDriver: true, friction: 8 }).start();
+      }
+    },
+    [dotAnim],
   );
 
+  const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 60 }).current;
+
+  const isLast = currentIndex === slides.length - 1;
+
   return (
-    <View style={styles.root}>
-      <View style={[styles.gradient, { paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity style={styles.skip} onPress={handleSkip}>
-          <Text style={[{ color: colors.text.tertiary }, typography.subhead]}>Skip</Text>
-        </TouchableOpacity>
+    <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
+      <FlatList
+        ref={flatRef}
+        data={slides}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        bounces={false}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        renderItem={({ item, index }) => (
+          <SlideContent item={item} isActive={currentIndex === index} colors={colors} />
+        )}
+        keyExtractor={(_, i) => String(i)}
+      />
 
-        <FlatList
-          ref={flatRef}
-          data={slides}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onMomentumScrollEnd={(e) => setIndex(Math.round(e.nativeEvent.contentOffset.x / width))}
-          renderItem={renderSlide}
-          keyExtractor={(_, i) => String(i)}
-          windowSize={3}
-          maxToRenderPerBatch={3}
-          initialNumToRender={3}
-          getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
-        />
+      {/* Pagination Dots */}
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: 8,
+          marginBottom: 32,
+        }}
+      >
+        {slides.map((_, i) => {
+          const isActive = currentIndex === i;
+          return (
+            <View
+              key={i}
+              style={{
+                width: isActive ? 28 : 8,
+                height: 8,
+                borderRadius: 4,
+                backgroundColor: isActive ? colors.accent.primary : colors.border.subtle,
+              }}
+            />
+          );
+        })}
+      </View>
 
-        <View style={[styles.footer, { backgroundColor: colors.bg.primary }]}>
-          <View style={styles.dots}>
-            {slides.map((_, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.dot,
-                  { backgroundColor: colors.text.tertiary },
-                  i === index && { width: 28, backgroundColor: colors.accent.primary },
-                ]}
-              />
-            ))}
-          </View>
-
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: colors.accent.primary }]}
-            onPress={handleNext}
-            activeOpacity={0.85}
-          >
-            <Text style={[styles.buttonText, typography.button, { color: colors.text.primary }]}>
-              {isLast ? 'Get Started' : 'Next'}
-            </Text>
-            {!isLast && <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />}
-          </TouchableOpacity>
-
-          {!isLast && (
-            <TouchableOpacity style={styles.getStarted} onPress={handleSkip}>
-              <Text style={[{ color: colors.text.tertiary }, typography.subhead]}>Get started</Text>
+      {/* Bottom Area */}
+      <View style={{ paddingHorizontal: PADDING, paddingBottom: insets.bottom + 20 }}>
+        {isLast ? (
+          <>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => navigation.replace('MainTabs')}
+              style={{
+                backgroundColor: colors.accent.primary,
+                paddingVertical: 16,
+                borderRadius: borderRadius.xl,
+                alignItems: 'center',
+                marginBottom: 12,
+                ...shadows.md,
+                shadowColor: colors.accent.primary,
+              }}
+            >
+              <Text style={{ color: '#FFF', fontSize: 17, fontWeight: '700', letterSpacing: 0.2 }}>
+                Get Started
+              </Text>
             </TouchableOpacity>
-          )}
-        </View>
+            <TouchableOpacity
+              onPress={() => navigation.replace('Login')}
+              style={{ paddingVertical: 8, alignItems: 'center' }}
+            >
+              <Text style={{ color: colors.accent.primary, fontSize: 14, fontWeight: '600' }}>
+                Already have an account? Sign in
+              </Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => {
+                const next = currentIndex + 1;
+                flatRef.current?.scrollToIndex({ index: next, animated: true });
+              }}
+              style={{
+                backgroundColor: colors.accent.primary,
+                paddingVertical: 16,
+                borderRadius: borderRadius.xl,
+                alignItems: 'center',
+                marginBottom: 12,
+                ...shadows.md,
+                shadowColor: colors.accent.primary,
+              }}
+            >
+              <Text style={{ color: '#FFF', fontSize: 17, fontWeight: '700', letterSpacing: 0.2 }}>
+                Next
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.replace('Login')}
+              style={{ paddingVertical: 8, alignItems: 'center' }}
+            >
+              <Text style={{ color: colors.accent.primary, fontSize: 14, fontWeight: '600' }}>
+                Already have an account? Sign in
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-  gradient: { flex: 1 },
-  skip: { alignSelf: 'flex-end', paddingHorizontal: 24, paddingVertical: 8, opacity: 0.7 },
-  slide: { width, alignItems: 'center', paddingHorizontal: 32, paddingTop: 40 },
-  brandName: { marginBottom: 4, fontSize: 36 },
-  tagline: { marginBottom: 32 },
-  iconWrap: {
-    width: 88,
-    height: 88,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
-  },
-  title: { fontSize: 22, textAlign: 'center', marginBottom: 10 },
-  desc: { textAlign: 'center', lineHeight: 22, paddingHorizontal: 16 },
-  footer: {
-    paddingHorizontal: 24,
-    paddingTop: 28,
-    paddingBottom: 40,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-  },
-  dots: { flexDirection: 'row', justifyContent: 'center', marginBottom: 28 },
-  dot: { width: 8, height: 8, borderRadius: 4, marginHorizontal: 4 },
-  button: {
-    flexDirection: 'row',
-    paddingVertical: 16,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  buttonText: {},
-  getStarted: { alignItems: 'center', paddingVertical: 12, marginTop: 4 },
+const s = StyleSheet.create({
+  root: { flex: 1, justifyContent: 'center' },
 });
