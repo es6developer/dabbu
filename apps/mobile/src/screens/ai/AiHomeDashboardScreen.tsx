@@ -21,6 +21,7 @@ const QUICK_ACTIONS = [
   { icon: 'camera' as const, label: 'Scan Receipt' },
   { icon: 'swap-horizontal' as const, label: 'Split Expense' },
   { icon: 'sparkles' as const, label: 'Ask AI' },
+  { icon: 'newspaper-outline' as const, label: 'Today Feed' },
 ];
 
 interface DashboardData {
@@ -136,6 +137,7 @@ export function AiHomeDashboardScreen() {
                   onPress={() => {
                     if (qa.label === 'Ask AI') navigateTo('AIDashboard');
                     else if (qa.label === 'Scan Receipt') navigateTo('BillScanner');
+                    else if (qa.label === 'Today Feed') navigateTo('TodayFeed');
                     else navigateTo('NewAddExpense');
                   }}
                 />

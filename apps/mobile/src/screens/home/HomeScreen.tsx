@@ -925,6 +925,46 @@ export function HomeScreen() {
           )}
         </Animated.View>
 
+        {/* ── Today Feed ────────────────────────────── */}
+        <Animated.View style={{ paddingHorizontal: 20, marginTop: 28, opacity: fadeAnim }}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('TodayFeed')}
+            activeOpacity={0.7}
+            style={{
+              backgroundColor: `${colors.accent.primary}10`,
+              borderRadius: 20,
+              borderWidth: 1,
+              borderColor: `${colors.accent.primary}20`,
+              padding: 18,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 14,
+            }}
+          >
+            <View
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 14,
+                backgroundColor: colors.accent.primary,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Ionicons name="sparkles" size={22} color="#FFFFFF" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
+                AI Today Feed
+              </Text>
+              <Text style={{ fontSize: 12, color: colors.text.tertiary, marginTop: 2 }}>
+                Your financial intelligence, updated every 6 hours
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.text.tertiary} />
+          </TouchableOpacity>
+        </Animated.View>
+
         <View style={{ height: 40 }} />
       </ScrollView>
 
