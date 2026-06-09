@@ -1,13 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-  RefreshControl,
-} from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
+import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -169,9 +162,7 @@ export function RemindersScreen() {
       </View>
 
       {loading ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={colors.accent.primary} />
-        </View>
+        <ListSkeleton count={3} />
       ) : reminders.length === 0 ? (
         <View style={{ paddingTop: spacing['4xl'] }}>
           <EmptyState

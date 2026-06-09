@@ -1,13 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-  RefreshControl,
-} from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
+import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BaseScreen } from '../../components/ui/BaseScreen';
@@ -116,9 +109,7 @@ export function RemindersListScreen() {
   if (loading) {
     return (
       <BaseScreen>
-        <View style={{ justifyContent: 'center', alignItems: 'center', flex: 1 }}>
-          <ActivityIndicator color={colors.accent.primary} size="large" />
-        </View>
+        <ListSkeleton />
       </BaseScreen>
     );
   }

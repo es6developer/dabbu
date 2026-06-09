@@ -15,6 +15,7 @@ import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { PADDING, borderRadius, shadows, fabShadow } from '../../theme/design';
+import { SkeletonList } from '../../components/ui/AnimatedSkeleton';
 import { PremiumCard } from '../../components/ui/PremiumCard';
 import { PremiumEmptyState } from '../../components/ui/PremiumEmptyState';
 
@@ -84,19 +85,7 @@ export function BudgetsListScreen() {
   if (loading && budgets.length === 0) {
     return (
       <View style={[s.loading, { backgroundColor: colors.bg.primary, paddingHorizontal: PADDING }]}>
-        <View style={{ gap: 12, width: '100%' }}>
-          {[1, 2, 3, 4].map((i) => (
-            <View
-              key={i}
-              style={{
-                height: 100,
-                backgroundColor: colors.bg.tertiary,
-                borderRadius: borderRadius.lg,
-                opacity: Math.max(0.3, 1 - i * 0.15),
-              }}
-            />
-          ))}
-        </View>
+        <SkeletonList count={4} />
       </View>
     );
   }

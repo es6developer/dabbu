@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -166,7 +167,7 @@ export function CustomiseDashboardScreen() {
       <View
         style={[styles.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}
       >
-        <ActivityIndicator size="large" color={colors.accent.primary} />
+        <ListSkeleton />
       </View>
     );
   }

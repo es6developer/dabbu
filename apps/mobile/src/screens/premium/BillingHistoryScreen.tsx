@@ -1,12 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  RefreshControl,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -47,7 +41,7 @@ export function BillingHistoryScreen() {
   if (loading) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
-        <ActivityIndicator size="large" color={colors.accent.primary} />
+        <ListSkeleton />
       </View>
     );
   }
@@ -58,7 +52,9 @@ export function BillingHistoryScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
         </TouchableOpacity>
-        <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text.primary }}>Billing History</Text>
+        <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text.primary }}>
+          Billing History
+        </Text>
         <View style={{ width: 24 }} />
       </View>
       <ScrollView
@@ -77,11 +73,23 @@ export function BillingHistoryScreen() {
         {payments.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="receipt-outline" size={48} color={colors.text.tertiary} />
-            <Text style={{ fontSize: 14, color: colors.text.tertiary }}>No billing history yet</Text>
+            <Text style={{ fontSize: 14, color: colors.text.tertiary }}>
+              No billing history yet
+            </Text>
           </View>
         ) : (
           payments.map((p, i) => (
-            <View key={p.id || i} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.bg.secondary, borderRadius: 12, padding: 16 }}>
+            <View
+              key={p.id || i}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                backgroundColor: colors.bg.secondary,
+                borderRadius: 12,
+                padding: 16,
+              }}
+            >
               <View style={styles.paymentLeft}>
                 <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                   ₹{Number(p.amount).toLocaleString('en-IN')}
@@ -130,5 +138,10 @@ const styles = {
   paymentLeft: { gap: 4 } as const,
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 } as const,
   statusText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.5 } as const,
-  emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60, gap: 12 } as const,
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+    gap: 12,
+  } as const,
 };

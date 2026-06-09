@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
+import { DetailSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { Ionicons } from '@expo/vector-icons';
 import { API_URL } from '../../config/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -207,7 +208,7 @@ export function DocumentDetailScreen() {
   if (loading) {
     return (
       <View style={[s.screen, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}>
-        <ActivityIndicator size="large" color={colors.accent.primary} style={{ marginTop: 80 }} />
+        <DetailSkeleton />
       </View>
     );
   }

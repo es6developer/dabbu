@@ -17,6 +17,7 @@ import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -275,50 +276,10 @@ function EmptyState({ colors, onScan }: { colors: any; onScan: () => void }) {
   );
 }
 
-function LoadingState({ colors }: { colors: any }) {
+function LoadingState() {
   return (
     <View style={styles.loadingContainer}>
-      {[1, 2, 3].map((i) => (
-        <View
-          key={i}
-          style={[
-            styles.shimmerCard,
-            { backgroundColor: colors.skeleton.base, borderColor: colors.border.subtle },
-          ]}
-        >
-          <View style={styles.shimmerRow}>
-            <View style={[styles.shimmerCircle, { backgroundColor: colors.skeleton.highlight }]} />
-            <View style={{ flex: 1 }}>
-              <View
-                style={[
-                  styles.shimmerLine,
-                  { width: '60%', backgroundColor: colors.skeleton.highlight },
-                ]}
-              />
-              <View
-                style={[
-                  styles.shimmerLine,
-                  { width: '40%', backgroundColor: colors.skeleton.highlight, marginTop: 6 },
-                ]}
-              />
-            </View>
-            <View>
-              <View
-                style={[
-                  styles.shimmerLine,
-                  { width: 80, backgroundColor: colors.skeleton.highlight },
-                ]}
-              />
-              <View
-                style={[
-                  styles.shimmerLine,
-                  { width: 60, backgroundColor: colors.skeleton.highlight, marginTop: 6 },
-                ]}
-              />
-            </View>
-          </View>
-        </View>
-      ))}
+      <ListSkeleton count={3} />
     </View>
   );
 }
@@ -403,7 +364,7 @@ export function BillsListScreen() {
   if (loading && groups.length === 0) {
     return (
       <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
-        <LoadingState colors={colors} />
+        <LoadingState />
       </View>
     );
   }

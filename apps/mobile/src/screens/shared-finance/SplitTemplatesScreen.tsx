@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { useTheme } from '../../theme';
 import { PageContainer } from '../../components/ui/PageContainer';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
@@ -146,7 +147,7 @@ export function SplitTemplatesScreen() {
     return (
       <PageContainer>
         <View style={[s.container, { backgroundColor: colors.bg.primary }]}>
-          <Text style={[s.loadingText, { color: colors.text.tertiary }]}>Loading templates...</Text>
+          <ListSkeleton />
         </View>
       </PageContainer>
     );
@@ -194,10 +195,7 @@ export function SplitTemplatesScreen() {
                 ]}
               >
                 <View style={s.cardTop}>
-                  <View
-                    
-                    style={s.iconWrap}
-                  >
+                  <View style={s.iconWrap}>
                     <Ionicons
                       name={item.icon as any}
                       size={24}

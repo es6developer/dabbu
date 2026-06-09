@@ -1,13 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-  RefreshControl,
-} from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
+import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
@@ -73,7 +66,7 @@ export function ChatListScreen() {
   if (loading) {
     return (
       <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}>
-        <ActivityIndicator color={colors.accent.primary} size="large" />
+        <ListSkeleton />
       </View>
     );
   }

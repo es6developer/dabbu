@@ -1,14 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-  Modal,
-} from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Modal } from 'react-native';
+import { DetailSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
@@ -126,7 +118,7 @@ export function ReminderDetailScreen() {
   if (loading) {
     return (
       <View style={[styles.loading, { backgroundColor: colors.bg.primary }]}>
-        <ActivityIndicator color={colors.accent.primary} size="large" />
+        <DetailSkeleton />
       </View>
     );
   }

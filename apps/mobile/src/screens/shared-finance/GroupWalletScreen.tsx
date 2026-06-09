@@ -7,6 +7,7 @@ import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { PageContainer } from '../../components/ui/PageContainer';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
+import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
 
 export function GroupWalletScreen() {
   const navigation = useNavigation<any>();
@@ -90,9 +91,7 @@ export function GroupWalletScreen() {
     return (
       <PageContainer>
         <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
-          <Text style={[styles.loadingText, { color: colors.text.tertiary }]}>
-            Loading wallets...
-          </Text>
+          <ListSkeleton />
         </View>
       </PageContainer>
     );

@@ -17,6 +17,7 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { DatePickerField } from '../../components/ui/DatePickerField';
 import { PageContainer } from '../../components/ui/PageContainer';
+import { DetailSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 
 const CATEGORIES = [
@@ -52,14 +53,22 @@ interface Bill {
 }
 
 function getConfidenceColor(score: number, colors: any): string {
-  if (score >= 0.7) return colors.status.success;
-  if (score >= 0.4) return colors.status.warning;
+  if (score >= 0.7) {
+    return colors.status.success;
+  }
+  if (score >= 0.4) {
+    return colors.status.warning;
+  }
   return colors.status.error;
 }
 
 function getConfidenceLabel(score: number): string {
-  if (score >= 0.7) return 'High Confidence';
-  if (score >= 0.4) return 'Medium Confidence';
+  if (score >= 0.7) {
+    return 'High Confidence';
+  }
+  if (score >= 0.4) {
+    return 'Medium Confidence';
+  }
   return 'Low Confidence';
 }
 
@@ -193,7 +202,7 @@ export function BillDetailScreen() {
     return (
       <PageContainer>
         <View style={[styles.centered, { backgroundColor: colors.bg.primary }]}>
-          <ActivityIndicator size="large" color={colors.accent.primary} />
+          <DetailSkeleton />
         </View>
       </PageContainer>
     );
@@ -204,7 +213,11 @@ export function BillDetailScreen() {
   return (
     <PageContainer noPadding>
       <KeyboardAvoidingContainer>
-        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={[styles.headerGradient, { backgroundColor: colors.accent.primary }]}>
             <View style={styles.headerContent}>
               <Text style={styles.headerTitle}>Bill Details</Text>
@@ -213,12 +226,31 @@ export function BillDetailScreen() {
           </View>
 
           {bill && (
-            <View style={[styles.confidenceBadge, { backgroundColor: `${getConfidenceColor(bill.confidence, colors)}18` }]}>
-              <View style={[styles.shieldWrap, { backgroundColor: `${getConfidenceColor(bill.confidence, colors)}25` }]}>
-                <Ionicons name="shield-checkmark" size={16} color={getConfidenceColor(bill.confidence, colors)} />
+            <View
+              style={[
+                styles.confidenceBadge,
+                { backgroundColor: `${getConfidenceColor(bill.confidence, colors)}18` },
+              ]}
+            >
+              <View
+                style={[
+                  styles.shieldWrap,
+                  { backgroundColor: `${getConfidenceColor(bill.confidence, colors)}25` },
+                ]}
+              >
+                <Ionicons
+                  name="shield-checkmark"
+                  size={16}
+                  color={getConfidenceColor(bill.confidence, colors)}
+                />
               </View>
               <View style={styles.confidenceInfo}>
-                <Text style={[styles.confidenceLabel, { color: getConfidenceColor(bill.confidence, colors) }]}>
+                <Text
+                  style={[
+                    styles.confidenceLabel,
+                    { color: getConfidenceColor(bill.confidence, colors) },
+                  ]}
+                >
                   {getConfidenceLabel(bill.confidence)}
                 </Text>
                 <Text style={[styles.confidencePct, { color: colors.text.tertiary }]}>
@@ -228,11 +260,23 @@ export function BillDetailScreen() {
             </View>
           )}
 
-          <View style={[styles.card, { backgroundColor: colors.bg.glassLight, borderColor: colors.border.subtle }]}>
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: colors.bg.glassLight, borderColor: colors.border.subtle },
+            ]}
+          >
             <View style={styles.cardGlow} />
             <Text style={[styles.fieldLabel, { color: colors.text.tertiary }]}>Merchant</Text>
             <TextInput
-              style={[styles.textInput, { color: colors.text.primary, borderColor: '#ac99d7', backgroundColor: colors.bg.tertiary }]}
+              style={[
+                styles.textInput,
+                {
+                  color: colors.text.primary,
+                  borderColor: '#ac99d7',
+                  backgroundColor: colors.bg.tertiary,
+                },
+              ]}
               value={merchant}
               onChangeText={setMerchant}
               placeholder="Merchant name"
@@ -240,22 +284,40 @@ export function BillDetailScreen() {
             />
           </View>
 
-          <View style={[styles.card, { backgroundColor: colors.bg.glassLight, borderColor: colors.border.subtle }]}>
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: colors.bg.glassLight, borderColor: colors.border.subtle },
+            ]}
+          >
             <View style={styles.cardGlow} />
             <Text style={[styles.fieldLabel, { color: colors.text.tertiary }]}>Category</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll} contentContainerStyle={styles.categoryContent}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.categoryScroll}
+              contentContainerStyle={styles.categoryContent}
+            >
               {CATEGORIES.map((cat) => (
                 <TouchableOpacity
                   key={cat}
                   style={[
                     styles.categoryChip,
                     category === cat
-                      ? { backgroundColor: `${colors.accent.primary}20`, borderColor: colors.accent.primary }
+                      ? {
+                          backgroundColor: `${colors.accent.primary}20`,
+                          borderColor: colors.accent.primary,
+                        }
                       : { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
                   ]}
                   onPress={() => setCategory(cat)}
                 >
-                  <Text style={[styles.categoryChipText, { color: category === cat ? colors.accent.primary : colors.text.secondary }]}>
+                  <Text
+                    style={[
+                      styles.categoryChipText,
+                      { color: category === cat ? colors.accent.primary : colors.text.secondary },
+                    ]}
+                  >
                     {cat}
                   </Text>
                 </TouchableOpacity>
@@ -263,16 +325,29 @@ export function BillDetailScreen() {
             </ScrollView>
           </View>
 
-          <View style={[styles.card, { backgroundColor: colors.bg.glassLight, borderColor: colors.border.subtle }]}>
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: colors.bg.glassLight, borderColor: colors.border.subtle },
+            ]}
+          >
             <View style={styles.cardGlow} />
             <DatePickerField label="Date" value={date} onChange={setDate} />
           </View>
 
-          <View style={[styles.card, { backgroundColor: colors.bg.glassLight, borderColor: colors.border.subtle }]}>
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: colors.bg.glassLight, borderColor: colors.border.subtle },
+            ]}
+          >
             <View style={styles.cardGlow} />
             <View style={styles.sectionHeader}>
               <Text style={[styles.fieldLabel, { color: colors.text.tertiary }]}>Items</Text>
-              <TouchableOpacity onPress={addItem} style={[styles.addItemBtn, { backgroundColor: `${colors.accent.primary}15` }]}>
+              <TouchableOpacity
+                onPress={addItem}
+                style={[styles.addItemBtn, { backgroundColor: `${colors.accent.primary}15` }]}
+              >
                 <Ionicons name="add" size={16} color={colors.accent.primary} />
                 <Text style={[styles.addItemText, { color: colors.accent.primary }]}>Add Item</Text>
               </TouchableOpacity>
@@ -282,7 +357,14 @@ export function BillDetailScreen() {
               <View key={index} style={[styles.itemRow, { borderColor: colors.border.subtle }]}>
                 <View style={styles.itemFields}>
                   <TextInput
-                    style={[styles.itemNameInput, { color: colors.text.primary, borderColor: '#ac99d7', backgroundColor: colors.bg.tertiary }]}
+                    style={[
+                      styles.itemNameInput,
+                      {
+                        color: colors.text.primary,
+                        borderColor: '#ac99d7',
+                        backgroundColor: colors.bg.tertiary,
+                      },
+                    ]}
                     value={item.name}
                     onChangeText={(v) => updateItem(index, 'name', v)}
                     placeholder="Item name"
@@ -290,7 +372,14 @@ export function BillDetailScreen() {
                   />
                   <View style={styles.itemNumericRow}>
                     <TextInput
-                      style={[styles.itemNumericInput, { color: colors.text.primary, borderColor: '#ac99d7', backgroundColor: colors.bg.tertiary }]}
+                      style={[
+                        styles.itemNumericInput,
+                        {
+                          color: colors.text.primary,
+                          borderColor: '#ac99d7',
+                          backgroundColor: colors.bg.tertiary,
+                        },
+                      ]}
                       value={String(item.quantity)}
                       onChangeText={(v) => updateItem(index, 'quantity', v)}
                       keyboardType="numeric"
@@ -298,7 +387,14 @@ export function BillDetailScreen() {
                       placeholderTextColor={colors.text.tertiary}
                     />
                     <TextInput
-                      style={[styles.itemNumericInput, { color: colors.text.primary, borderColor: '#ac99d7', backgroundColor: colors.bg.tertiary }]}
+                      style={[
+                        styles.itemNumericInput,
+                        {
+                          color: colors.text.primary,
+                          borderColor: '#ac99d7',
+                          backgroundColor: colors.bg.tertiary,
+                        },
+                      ]}
                       value={String(item.price)}
                       onChangeText={(v) => updateItem(index, 'price', v)}
                       keyboardType="numeric"
@@ -327,11 +423,23 @@ export function BillDetailScreen() {
             )}
           </View>
 
-          <View style={[styles.card, { backgroundColor: colors.bg.glassLight, borderColor: colors.border.subtle }]}>
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: colors.bg.glassLight, borderColor: colors.border.subtle },
+            ]}
+          >
             <View style={styles.cardGlow} />
             <Text style={[styles.fieldLabel, { color: colors.text.tertiary }]}>Notes</Text>
             <TextInput
-              style={[styles.textArea, { color: colors.text.primary, borderColor: '#ac99d7', backgroundColor: colors.bg.tertiary }]}
+              style={[
+                styles.textArea,
+                {
+                  color: colors.text.primary,
+                  borderColor: '#ac99d7',
+                  backgroundColor: colors.bg.tertiary,
+                },
+              ]}
               value={notes}
               onChangeText={setNotes}
               placeholder="Add notes..."
@@ -344,20 +452,36 @@ export function BillDetailScreen() {
 
           {bill?.rawText ? (
             <TouchableOpacity
-              style={[styles.card, { backgroundColor: colors.bg.glassLight, borderColor: colors.border.subtle }]}
+              style={[
+                styles.card,
+                { backgroundColor: colors.bg.glassLight, borderColor: colors.border.subtle },
+              ]}
               onPress={() => setShowOcr(!showOcr)}
               activeOpacity={0.7}
             >
               <View style={styles.cardGlow} />
               <View style={styles.ocrHeader}>
-                <View style={[styles.ocrIconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
+                <View
+                  style={[styles.ocrIconWrap, { backgroundColor: `${colors.accent.primary}15` }]}
+                >
                   <Ionicons name="document-text-outline" size={16} color={colors.accent.primary} />
                 </View>
-                <Text style={[styles.ocrTitle, { color: colors.text.secondary }]}>Raw OCR Text</Text>
-                <Ionicons name={showOcr ? 'chevron-up' : 'chevron-down'} size={16} color={colors.text.tertiary} />
+                <Text style={[styles.ocrTitle, { color: colors.text.secondary }]}>
+                  Raw OCR Text
+                </Text>
+                <Ionicons
+                  name={showOcr ? 'chevron-up' : 'chevron-down'}
+                  size={16}
+                  color={colors.text.tertiary}
+                />
               </View>
               {showOcr && (
-                <Text style={[styles.ocrText, { color: colors.text.tertiary, borderTopColor: colors.border.subtle }]}>
+                <Text
+                  style={[
+                    styles.ocrText,
+                    { color: colors.text.tertiary, borderTopColor: colors.border.subtle },
+                  ]}
+                >
                   {bill.rawText}
                 </Text>
               )}
@@ -371,7 +495,7 @@ export function BillDetailScreen() {
               disabled={saving}
               activeOpacity={0.85}
             >
-              <View    style={styles.saveBtn}>
+              <View style={styles.saveBtn}>
                 {saving ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
@@ -384,7 +508,10 @@ export function BillDetailScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.deleteBtn, { borderColor: colors.status.error, opacity: deleting ? 0.6 : 1 }]}
+              style={[
+                styles.deleteBtn,
+                { borderColor: colors.status.error, opacity: deleting ? 0.6 : 1 },
+              ]}
               onPress={confirmDelete}
               disabled={deleting}
               activeOpacity={0.7}
@@ -394,7 +521,9 @@ export function BillDetailScreen() {
               ) : (
                 <>
                   <Ionicons name="trash-outline" size={20} color={colors.status.error} />
-                  <Text style={[styles.deleteBtnText, { color: colors.status.error }]}>Delete Bill</Text>
+                  <Text style={[styles.deleteBtnText, { color: colors.status.error }]}>
+                    Delete Bill
+                  </Text>
                 </>
               )}
             </TouchableOpacity>

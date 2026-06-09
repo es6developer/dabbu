@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { DetailSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { Ionicons } from '@expo/vector-icons';
 import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -95,29 +96,7 @@ export function BudgetDetailScreen() {
   if (loading) {
     return (
       <View style={[s.loading, { backgroundColor: colors.bg.primary, paddingHorizontal: PADDING }]}>
-        <View style={{ gap: 16, width: '100%' }}>
-          <View
-            style={{
-              height: 180,
-              backgroundColor: colors.bg.tertiary,
-              borderRadius: borderRadius.xl,
-            }}
-          />
-          <View
-            style={{
-              height: 80,
-              backgroundColor: colors.bg.tertiary,
-              borderRadius: borderRadius.lg,
-            }}
-          />
-          <View
-            style={{
-              height: 80,
-              backgroundColor: colors.bg.tertiary,
-              borderRadius: borderRadius.lg,
-            }}
-          />
-        </View>
+        <DetailSkeleton />
       </View>
     );
   }

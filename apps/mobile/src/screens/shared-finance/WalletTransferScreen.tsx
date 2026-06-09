@@ -8,6 +8,7 @@ import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { PageContainer } from '../../components/ui/PageContainer';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
+import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
 
 export function WalletTransferScreen() {
   const navigation = useNavigation<any>();
@@ -79,9 +80,7 @@ export function WalletTransferScreen() {
           </View>
 
           {loading ? (
-            <Text style={[styles.loadingText, { color: colors.text.tertiary }]}>
-              Loading wallets...
-            </Text>
+            <ListSkeleton count={3} />
           ) : (
             <FlatList
               data={wallets}

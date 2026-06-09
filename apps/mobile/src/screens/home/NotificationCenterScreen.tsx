@@ -5,10 +5,10 @@ import {
   FlatList,
   StyleSheet,
   TouchableOpacity,
-  ActivityIndicator,
   RefreshControl,
   Alert,
 } from 'react-native';
+import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -365,9 +365,7 @@ export function NotificationCenterScreen() {
       </View>
 
       {loading ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={colors.accent.primary} />
-        </View>
+        <ListSkeleton count={5} />
       ) : notifications.length === 0 ? (
         <View style={styles.center}>
           <View style={[styles.emptyIcon, { backgroundColor: colors.bg.tertiary }]}>

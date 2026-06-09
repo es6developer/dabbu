@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { DetailSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useRoute, useNavigation } from '@react-navigation/native';
@@ -100,7 +101,7 @@ export function TransactionDetailScreen() {
   if (loading) {
     return (
       <View style={[s.loading, { backgroundColor: colors.bg.primary }]}>
-        <ActivityIndicator color={colors.accent.primary} size="large" />
+        <DetailSkeleton />
       </View>
     );
   }
