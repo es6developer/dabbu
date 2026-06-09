@@ -268,47 +268,51 @@ export function SettingsScreen() {
           {/* Upgrade Banner */}
           {!isPremium && (
             <TouchableOpacity
+              onPress={() => navigation.navigate('Premium')}
+              activeOpacity={0.85}
               style={{
                 marginHorizontal: PADDING,
                 marginBottom: 24,
-                borderRadius: borderRadius.lg,
+                borderRadius: borderRadius.xl,
                 overflow: 'hidden',
-                ...shadows.sm,
+                backgroundColor: isDark ? '#1E1B4B' : '#F5F3FF',
+                borderWidth: 1,
+                borderColor: isDark ? '#2E1065' : '#E9D5FF',
               }}
-              onPress={() => navigation.navigate('Premium')}
-              activeOpacity={0.85}
             >
+              <View
+                style={{
+                  height: 4,
+                  backgroundColor: '#FFD700',
+                }}
+              />
               <View
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  padding: 18,
-                  gap: 12,
-                  backgroundColor: `${colors.accent.primary}08`,
-                  borderWidth: 1,
-                  borderColor: `${colors.accent.primary}20`,
-                  borderRadius: borderRadius.lg,
+                  padding: 20,
+                  gap: 14,
                 }}
               >
                 <View
                   style={{
-                    width: 44,
-                    height: 44,
+                    width: 48,
+                    height: 48,
                     borderRadius: 14,
-                    backgroundColor: `${colors.accent.primary}15`,
+                    backgroundColor: '#FFD700',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <Ionicons name="diamond" size={22} color={colors.accent.primary} />
+                  <Ionicons name="diamond" size={24} color="#0A0A0A" />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text
                     style={{
-                      fontSize: 15,
+                      fontSize: 16,
                       fontWeight: '800',
-                      color: colors.accent.primary,
-                      letterSpacing: -0.2,
+                      color: colors.text.primary,
+                      letterSpacing: -0.3,
                     }}
                   >
                     Upgrade to Premium
@@ -321,20 +325,26 @@ export function SettingsScreen() {
                       marginTop: 2,
                     }}
                   >
-                    Unlock reports, analytics & more
+                    Unlock reports, analytics & exclusive features
                   </Text>
                 </View>
                 <View
                   style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 10,
-                    backgroundColor: `${colors.accent.primary}12`,
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    paddingHorizontal: 16,
+                    paddingVertical: 9,
+                    borderRadius: 20,
+                    backgroundColor: '#FFD700',
                   }}
                 >
-                  <Ionicons name="arrow-forward" size={16} color={colors.accent.primary} />
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontWeight: '800',
+                      color: '#0A0A0A',
+                    }}
+                  >
+                    Upgrade
+                  </Text>
                 </View>
               </View>
             </TouchableOpacity>
