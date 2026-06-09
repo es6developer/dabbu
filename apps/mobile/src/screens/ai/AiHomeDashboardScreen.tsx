@@ -1,6 +1,13 @@
 import React, { useRef, useCallback, useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Animated, Platform,
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Dimensions,
+  Animated,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,7 +17,13 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import {
-  AI_COLORS, HealthScoreCard, QuickActionBtn, SectionHeader, AnimatedProgressRing, AiCard, PulseView,
+  AI_COLORS,
+  HealthScoreCard,
+  QuickActionBtn,
+  SectionHeader,
+  AnimatedProgressRing,
+  AiCard,
+  PulseView,
 } from './components/AiShared';
 
 const { width: SCREEN_W } = Dimensions.get('window');
@@ -44,32 +57,78 @@ export function AiHomeDashboardScreen() {
   const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(async () => {
-    if (accessToken) setAccessToken(accessToken);
+    if (accessToken) {
+      setAccessToken(accessToken);
+    }
     setLoading(true);
     try {
-      const [healthRes, insightRes] = await Promise.allSettled([
+      const [healthRes, dashRes, dnaRes, anomalyRes] = await Promise.allSettled([
         api.get<any>('/ai/health-score'),
-        api.get<any>('/ai/insights?section=dashboard'),
+        api.get<any>('/ai/dashboard'),
+        api.get<any>('/ai/dna'),
+        api.get<any>('/ai/anomalies'),
       ]);
 
-      let hs = 0, ht = 0;
+      let hs = 0,
+        ht = 0;
       if (healthRes.status === 'fulfilled') {
         const h = healthRes.value?.data ?? healthRes.value;
         if (h) {
-          hs = h.overallScore ?? 0;
-          ht = h.monthlyChange ?? 0;
+          hs = h.overallScore ?? h.score ?? 0;
+          ht = h.monthlyChange ?? h.trend ?? 0;
         }
       }
 
       let insights: DashboardData['insights'] = [];
-      if (insightRes.status === 'fulfilled') {
-        const list = insightRes.value?.data ?? insightRes.value;
+      if (dashRes.status === 'fulfilled') {
+        const d = dashRes.value?.data ?? dashRes.value;
+        const cards = (d?.cards ?? d?.widgets ?? Array.isArray(d)) ? d : null;
+        if (Array.isArray(cards)) {
+          insights = cards.map((c: any) => ({
+            title: c.title ?? c.label ?? '',
+            message: c.description ?? c.message ?? '',
+            severity:
+              c.priority && c.priority > 50
+                ? 'warning'
+                : c.priority && c.priority > 30
+                  ? 'info'
+                  : 'success',
+            confidence: 0.85,
+          }));
+        }
+      }
+
+      let alerts: DashboardData['alerts'] = [];
+      if (anomalyRes.status === 'fulfilled') {
+        const list = anomalyRes.value?.data ?? anomalyRes.value;
         if (Array.isArray(list)) {
-          insights = list.map((i: any) => ({
-            title: i.title ?? i.label ?? '',
-            message: i.message ?? i.description ?? '',
-            severity: i.severity ?? 'info',
-            confidence: i.confidence ?? 0.8,
+          alerts = list.map((a: any) => ({
+            severity: a.severity ?? a.risk ?? 'info',
+            message: a.message ?? a.description ?? '',
+            amount: a.amount ? `₹${Number(a.amount).toLocaleString('en-IN')}` : '',
+          }));
+        }
+      }
+
+      let dnaScores: DashboardData['dnaScores'] = [
+        { label: 'Saver', value: 0, color: AI_COLORS.success },
+        { label: 'Impulse', value: 0, color: AI_COLORS.warning },
+        { label: 'Luxury', value: 0, color: AI_COLORS.info },
+        { label: 'Consistency', value: 0, color: AI_COLORS.purple },
+      ];
+      if (dnaRes.status === 'fulfilled') {
+        const d = dnaRes.value?.data ?? dnaRes.value;
+        if (d?.scores && Array.isArray(d.scores)) {
+          dnaScores = d.scores.map((s: any) => ({
+            label: s.label ?? s.name ?? '',
+            value: s.value ?? s.score ?? 0,
+            color: s.color ?? AI_COLORS.primary,
+          }));
+        } else if (d?.traits && Array.isArray(d.traits)) {
+          dnaScores = d.traits.map((t: any) => ({
+            label: t.label ?? t.name ?? '',
+            value: t.value ?? t.score ?? 0,
+            color: t.color ?? AI_COLORS.primary,
           }));
         }
       }
@@ -78,20 +137,28 @@ export function AiHomeDashboardScreen() {
         healthScore: hs,
         healthTrend: ht,
         insights: insights.slice(0, 6),
-        alerts: [],
-        dnaScores: [
-          { label: 'Saver', value: 0, color: AI_COLORS.success },
-          { label: 'Impulse', value: 0, color: AI_COLORS.warning },
-          { label: 'Luxury', value: 0, color: AI_COLORS.info },
-          { label: 'Consistency', value: 0, color: AI_COLORS.purple },
-        ],
+        alerts,
+        dnaScores,
       });
-    } catch { /* ignore */ } finally { setLoading(false); }
+    } catch {
+      /* ignore */
+    } finally {
+      setLoading(false);
+    }
   }, [accessToken]);
 
-  useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData]),
+  );
 
-  const navigateTo = useCallback((screen: string) => { navigation.navigate(screen); }, [navigation]);
+  const navigateTo = useCallback(
+    (screen: string) => {
+      navigation.navigate(screen);
+    },
+    [navigation],
+  );
 
   if (loading) {
     return (
@@ -108,11 +175,23 @@ export function AiHomeDashboardScreen() {
 
   return (
     <View style={[s.screen, { backgroundColor: AI_COLORS.bg }]}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-        <ReAnimated.View entering={FadeInUp.duration(400)} style={[s.header, { paddingTop: insets.top + 16 }]}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
+        <ReAnimated.View
+          entering={FadeInUp.duration(400)}
+          style={[s.header, { paddingTop: insets.top + 16 }]}
+        >
           <View>
             <Text style={s.greeting}>{greeting}, Karthik</Text>
-            <Text style={s.date}>{new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}</Text>
+            <Text style={s.date}>
+              {new Date().toLocaleDateString('en-IN', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+              })}
+            </Text>
           </View>
           <TouchableOpacity onPress={() => navigateTo('AiNotifications')} style={s.bellWrap}>
             <Ionicons name="notifications" size={22} color={AI_COLORS.text} />
@@ -124,21 +203,34 @@ export function AiHomeDashboardScreen() {
           <>
             <ReAnimated.View entering={FadeInUp.duration(500)} style={{ paddingHorizontal: 16 }}>
               <HealthScoreCard
-                score={data.healthScore} trend={data.healthTrend}
+                score={data.healthScore}
+                trend={data.healthTrend}
                 title="Dabbu AI"
-                subtitle={data.healthScore >= 80 ? 'Your finances are healthier than last week.' : 'Focus on improving your financial health.'}
+                subtitle={
+                  data.healthScore >= 80
+                    ? 'Your finances are healthier than last week.'
+                    : 'Focus on improving your financial health.'
+                }
                 onPress={() => navigateTo('AiFinancialDna')}
               />
             </ReAnimated.View>
 
             <ReAnimated.View entering={FadeInUp.duration(600)} style={s.qaSection}>
               {QUICK_ACTIONS.map((qa, i) => (
-                <QuickActionBtn key={i} icon={qa.icon} label={qa.label}
+                <QuickActionBtn
+                  key={i}
+                  icon={qa.icon}
+                  label={qa.label}
                   onPress={() => {
-                    if (qa.label === 'Ask AI') navigateTo('AIDashboard');
-                    else if (qa.label === 'Scan Receipt') navigateTo('BillScanner');
-                    else if (qa.label === 'Today Feed') navigateTo('TodayFeed');
-                    else navigateTo('NewAddExpense');
+                    if (qa.label === 'Ask AI') {
+                      navigateTo('AIDashboard');
+                    } else if (qa.label === 'Scan Receipt') {
+                      navigateTo('BillScanner');
+                    } else if (qa.label === 'Today Feed') {
+                      navigateTo('TodayFeed');
+                    } else {
+                      navigateTo('NewAddExpense');
+                    }
                   }}
                 />
               ))}
@@ -146,19 +238,47 @@ export function AiHomeDashboardScreen() {
 
             {data.insights.length > 0 && (
               <>
-                <SectionHeader title="AI Insights" subtitle="What Dabbu thinks" action="See All" onAction={() => navigateTo('AiInsights')} />
+                <SectionHeader
+                  title="AI Insights"
+                  subtitle="What Dabbu thinks"
+                  action="See All"
+                  onAction={() => navigateTo('AiInsights')}
+                />
                 <Animated.ScrollView
-                  horizontal showsHorizontalScrollIndicator={false}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
                   contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}
-                  onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], { useNativeDriver: false })}
-                  snapToInterval={CARD_W + 12} decelerationRate="fast"
+                  onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], {
+                    useNativeDriver: false,
+                  })}
+                  snapToInterval={CARD_W + 12}
+                  decelerationRate="fast"
                 >
                   {data.insights.map((insight, i) => (
-                    <ReAnimated.View key={i} entering={FadeInRight.duration(400).delay(i * 100)} style={{ width: CARD_W }}>
-                      <TouchableOpacity activeOpacity={0.8} onPress={() => navigateTo('AiInsights')}>
+                    <ReAnimated.View
+                      key={i}
+                      entering={FadeInRight.duration(400).delay(i * 100)}
+                      style={{ width: CARD_W }}
+                    >
+                      <TouchableOpacity
+                        activeOpacity={0.8}
+                        onPress={() => navigateTo('AiInsights')}
+                      >
                         <AiCard padding={20} style={{ minHeight: 160 }}>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                            <View style={[s.carouselIcon, { backgroundColor: `${AI_COLORS.primary}20` }]}>
+                          <View
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              gap: 10,
+                              marginBottom: 12,
+                            }}
+                          >
+                            <View
+                              style={[
+                                s.carouselIcon,
+                                { backgroundColor: `${AI_COLORS.primary}20` },
+                              ]}
+                            >
                               <Ionicons name="bulb" size={20} color={AI_COLORS.primary} />
                             </View>
                             <Text style={s.carouselType}>{insight.severity.toUpperCase()}</Text>
@@ -166,7 +286,9 @@ export function AiHomeDashboardScreen() {
                           <Text style={s.carouselTitle}>{insight.title}</Text>
                           <Text style={s.carouselMsg}>{insight.message}</Text>
                           <View style={s.carouselFooter}>
-                            <Text style={s.carouselConf}>{Math.round((insight.confidence || 0.8) * 100)}% confidence</Text>
+                            <Text style={s.carouselConf}>
+                              {Math.round((insight.confidence || 0.8) * 100)}% confidence
+                            </Text>
                             <Ionicons name="arrow-forward" size={16} color={AI_COLORS.primary} />
                           </View>
                         </AiCard>
@@ -182,8 +304,17 @@ export function AiHomeDashboardScreen() {
         {!data && (
           <View style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
             <Ionicons name="sparkles-outline" size={48} color={AI_COLORS.textTertiary} />
-            <Text style={{ fontSize: 18, fontWeight: '700', color: AI_COLORS.text }}>No data yet</Text>
-            <Text style={{ fontSize: 13, color: AI_COLORS.textSecondary, textAlign: 'center', paddingHorizontal: 32 }}>
+            <Text style={{ fontSize: 18, fontWeight: '700', color: AI_COLORS.text }}>
+              No data yet
+            </Text>
+            <Text
+              style={{
+                fontSize: 13,
+                color: AI_COLORS.textSecondary,
+                textAlign: 'center',
+                paddingHorizontal: 32,
+              }}
+            >
               Insights will appear here once the AI service processes your data.
             </Text>
           </View>
@@ -193,7 +324,11 @@ export function AiHomeDashboardScreen() {
       </ScrollView>
 
       <PulseView style={[s.aiFab, { bottom: insets.bottom + 80 }]}>
-        <TouchableOpacity onPress={() => navigateTo('AIDashboard')} activeOpacity={0.8} style={s.aiFabBtn}>
+        <TouchableOpacity
+          onPress={() => navigateTo('AIDashboard')}
+          activeOpacity={0.8}
+          style={s.aiFabBtn}
+        >
           <Ionicons name="sparkles" size={24} color="#FFF" />
         </TouchableOpacity>
       </PulseView>
@@ -203,18 +338,78 @@ export function AiHomeDashboardScreen() {
 
 const s = StyleSheet.create({
   screen: { flex: 1 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16 },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
   greeting: { fontSize: 24, fontWeight: '700', color: AI_COLORS.text, letterSpacing: -0.3 },
   date: { fontSize: 13, color: AI_COLORS.textSecondary, marginTop: 2 },
-  bellWrap: { width: 40, height: 40, borderRadius: 12, backgroundColor: AI_COLORS.card, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: AI_COLORS.border },
-  bellDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: AI_COLORS.danger, position: 'absolute', top: 8, right: 8 },
-  qaSection: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 16, paddingVertical: 20 },
-  carouselIcon: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
-  carouselType: { fontSize: 10, fontWeight: '700', color: AI_COLORS.textTertiary, letterSpacing: 1 },
+  bellWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: AI_COLORS.card,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: AI_COLORS.border,
+  },
+  bellDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: AI_COLORS.danger,
+    position: 'absolute',
+    top: 8,
+    right: 8,
+  },
+  qaSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+  },
+  carouselIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  carouselType: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: AI_COLORS.textTertiary,
+    letterSpacing: 1,
+  },
   carouselTitle: { fontSize: 17, fontWeight: '700', color: AI_COLORS.text, letterSpacing: -0.2 },
   carouselMsg: { fontSize: 12, color: AI_COLORS.textSecondary, marginTop: 6, lineHeight: 17 },
-  carouselFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 },
+  carouselFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 16,
+  },
   carouselConf: { fontSize: 11, color: AI_COLORS.textTertiary },
   aiFab: { position: 'absolute', right: 20 },
-  aiFabBtn: { width: 56, height: 56, borderRadius: 18, backgroundColor: AI_COLORS.primary, justifyContent: 'center', alignItems: 'center', ...Platform.select({ ios: { shadowColor: AI_COLORS.primaryGlow, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.5, shadowRadius: 16 }, android: { elevation: 10 } }) },
+  aiFabBtn: {
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    backgroundColor: AI_COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: AI_COLORS.primaryGlow,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.5,
+        shadowRadius: 16,
+      },
+      android: { elevation: 10 },
+    }),
+  },
 });

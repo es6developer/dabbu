@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "npm run build -w @dabbu/ai-engine && tsc -p tsconfig.vercel.json && prisma generate",
+    "build": "npm run build -w @dabbu/ai-engine && rm -rf node_modules/@dabbu/ai-engine && cp -r ../../packages/ai-engine node_modules/@dabbu/ai-engine && tsc -p tsconfig.vercel.json && prisma generate",
     "vercel-build": "npm run build && npx prisma db push --accept-data-loss || true && npx ts-node prisma/seed-prod.ts || true",
     "render-build": "npm run build && npx prisma db push --accept-data-loss || true && npx ts-node prisma/seed-prod.ts || true",
     "dev": "nest start --watch",

@@ -847,7 +847,9 @@ export function HomeScreen() {
               Recent Transactions
             </Text>
             {recentTxns.length > 0 && (
-              <TouchableOpacity onPress={() => navigation.navigate('Expense', { screen: 'ExpenseHome' })}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Expense', { screen: 'ExpenseHome' })}
+              >
                 <Text style={{ fontSize: 13, fontWeight: '600', color: colors.accent.primary }}>
                   See All
                 </Text>
@@ -972,21 +974,12 @@ export function HomeScreen() {
       <ReAnimated.View style={[s.aiFabWrap, aiPulseAnim]}>
         <TouchableOpacity
           activeOpacity={0.85}
-          onPress={() => navigation.navigate('AIDashboard')}
+          onPress={() => navigation.navigate('AiHomeDashboard')}
           style={s.aiFab}
         >
           <Ionicons name="sparkles" size={22} color="#0A0A0A" />
         </TouchableOpacity>
       </ReAnimated.View>
-
-      {/* Expense FAB */}
-      <TouchableOpacity
-        activeOpacity={0.85}
-        onPress={() => navigation.navigate('Expense', { screen: 'AddExpense' })}
-        style={[s.fab, { backgroundColor: colors.accent.primary }]}
-      >
-        <Ionicons name="add" size={28} color="#FFFFFF" />
-      </TouchableOpacity>
     </View>
   );
 }

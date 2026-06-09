@@ -1,6 +1,14 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator,
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,16 +29,8 @@ const SUGGESTIONS = [
   'Analyze my spending',
   'Show family financial health',
   'Will I hit my vacation goal?',
-  'Predict next month\'s expenses',
+  "Predict next month's expenses",
 ];
-
-const FALLBACK_RESPONSES: Record<string, string> = {
-  'how can i save more this month?': 'Based on your spending, you can save ₹3,200/month by:\n\n1. Reducing food delivery (-₹1,850)\n2. Pausing unused subscriptions (-₹750)\n3. Lowering entertainment spend (-₹600)\n\nYour savings potential score is 82/100.',
-  'analyze my spending': 'Here\'s your spending breakdown this month:\n\n• Food: ₹8,200 (28%)\n• Transport: ₹3,400 (12%)\n• Shopping: ₹5,100 (18%)\n• Bills: ₹6,800 (24%)\n• Entertainment: ₹2,100 (7%)\n• Others: ₹3,200 (11%)\n\nTotal: ₹28,800. You\'re 4% under last month.',
-  'show family financial health': 'Family Financial Health Dashboard:\n\n• Health Score: 76/100 (↑3)\n• Emergency Fund: 1.2 months (↓ needs 3)\n• Savings Rate: 18% of income\n• Debt Pressure: Low\n\nRecommendation: Build emergency fund to 3 months.',
-  'will i hit my vacation goal?': 'Yes, you\'re on track! 🎉\n\nGoal: ₹1,00,000 by Dec 15\nSaved: ₹72,000 (72%)\nAt current rate: Will complete by Nov 14 (91% probability)\n\nTip: Save ₹750/month more to reach it 2 weeks early.',
-  'predict next month\'s expenses': 'Next Month Prediction:\n\n• Estimated Spend: ₹31,200 (±₹2,100)\n• Income: ₹42,000\n• Projected Savings: ₹10,800\n• Budget Risk: Food (+8%) and Entertainment (+12%)\n\nAI Confidence: 86%',
-};
 
 export function FinancialCopilotScreen() {
   const insets = useSafeAreaInsets();
@@ -43,21 +43,44 @@ export function FinancialCopilotScreen() {
 
   const handleSend = useCallback(async () => {
     const text = input.trim();
-    if (!text || loading) return;
+    if (!text || loading) {
+      return;
+    }
     setInput('');
     const userMsg: Message = { id: Date.now().toString(), role: 'user', text };
-    setMessages(prev => [...prev, userMsg]);
+    setMessages((prev) => [...prev, userMsg]);
     setLoading(true);
 
     try {
-      if (accessToken) setAccessToken(accessToken);
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
       const res = await api.post<any>('/ai/chat', { prompt: text });
       const reply = res?.data?.reply ?? res?.data?.message ?? res?.reply ?? res?.message ?? '';
-      setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'assistant', text: reply }]);
+      if (reply) {
+        setMessages((prev) => [
+          ...prev,
+          { id: (Date.now() + 1).toString(), role: 'assistant', text: reply },
+        ]);
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            text: "I couldn't process that request. Please try again.",
+          },
+        ]);
+      }
     } catch {
-      const lower = text.toLowerCase().trim();
-      const reply = FALLBACK_RESPONSES[lower] || `I analyzed your finances. Your current balance is ₹24,500. You've spent ₹28,800 this month. Would you like me to dive deeper into any specific area?`;
-      setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'assistant', text: reply }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          text: "Sorry, I'm having trouble connecting right now. Please check your connection and try again.",
+        },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -107,7 +130,7 @@ export function FinancialCopilotScreen() {
       <FlatList
         ref={flatRef}
         data={messages}
-        keyExtractor={item => item.id}
+        keyExtractor={(item) => item.id}
         renderItem={renderMessage}
         ListEmptyComponent={
           <ReAnimated.View entering={FadeInUp.duration(500)} style={s.emptyWrap}>
@@ -116,12 +139,18 @@ export function FinancialCopilotScreen() {
                 <Ionicons name="sparkles" size={36} color={AI_COLORS.primary} />
               </View>
               <Text style={s.welcomeTitle}>Hi, I'm Dabbu AI</Text>
-              <Text style={s.welcomeDesc}>Your personal financial copilot. Ask me anything about your money.</Text>
+              <Text style={s.welcomeDesc}>
+                Your personal financial copilot. Ask me anything about your money.
+              </Text>
             </View>
             <View style={{ gap: 8, paddingHorizontal: 16 }}>
               <Text style={s.sugTitle}>Try asking</Text>
               {SUGGESTIONS.map((sug, i) => (
-                <TouchableOpacity key={i} style={[s.sugChip, { borderColor: AI_COLORS.border }]} onPress={() => setInput(sug)}>
+                <TouchableOpacity
+                  key={i}
+                  style={[s.sugChip, { borderColor: AI_COLORS.border }]}
+                  onPress={() => setInput(sug)}
+                >
                   <Ionicons name="chatbubble-ellipses" size={14} color={AI_COLORS.primary} />
                   <Text style={s.sugText}>{sug}</Text>
                 </TouchableOpacity>
@@ -129,20 +158,24 @@ export function FinancialCopilotScreen() {
             </View>
           </ReAnimated.View>
         }
-        ListFooterComponent={loading ? (
-          <ReAnimated.View entering={FadeInUp.duration(300)} style={s.aiMsgWrap}>
-            <View style={s.aiMsgRow}>
-              <View style={s.aiAvatar}>
-                <Ionicons name="sparkles" size={16} color={AI_COLORS.primary} />
-              </View>
-              <View style={[s.aiMsg, { borderColor: AI_COLORS.border }]}>
-                <View style={{ flexDirection: 'row', gap: 4 }}>
-                  {[0, 1, 2].map(i => <View key={i} style={s.typingDot} />)}
+        ListFooterComponent={
+          loading ? (
+            <ReAnimated.View entering={FadeInUp.duration(300)} style={s.aiMsgWrap}>
+              <View style={s.aiMsgRow}>
+                <View style={s.aiAvatar}>
+                  <Ionicons name="sparkles" size={16} color={AI_COLORS.primary} />
+                </View>
+                <View style={[s.aiMsg, { borderColor: AI_COLORS.border }]}>
+                  <View style={{ flexDirection: 'row', gap: 4 }}>
+                    {[0, 1, 2].map((i) => (
+                      <View key={i} style={s.typingDot} />
+                    ))}
+                  </View>
                 </View>
               </View>
-            </View>
-          </ReAnimated.View>
-        ) : null}
+            </ReAnimated.View>
+          ) : null
+        }
         contentContainerStyle={{ paddingTop: 8, paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
@@ -150,20 +183,38 @@ export function FinancialCopilotScreen() {
       />
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={[s.inputWrap, { paddingBottom: Math.max(insets.bottom, 8) + (Platform.OS === 'ios' ? 88 : 72) }]}>
+        <View
+          style={[
+            s.inputWrap,
+            { paddingBottom: Math.max(insets.bottom, 8) + (Platform.OS === 'ios' ? 88 : 72) },
+          ]}
+        >
           <View style={[s.inputRow, { borderColor: AI_COLORS.border }]}>
             <TextInput
-              style={s.input} placeholder="Ask Dabbu AI..."
+              style={s.input}
+              placeholder="Ask Dabbu AI..."
               placeholderTextColor={AI_COLORS.textTertiary}
-              value={input} onChangeText={setInput}
-              multiline maxLength={1000}
-              returnKeyType="send" onSubmitEditing={handleSend} blurOnSubmit
+              value={input}
+              onChangeText={setInput}
+              multiline
+              maxLength={1000}
+              returnKeyType="send"
+              onSubmitEditing={handleSend}
+              blurOnSubmit
             />
             <TouchableOpacity
-              style={[s.sendBtn, { backgroundColor: input.trim() ? AI_COLORS.primary : AI_COLORS.border }]}
-              onPress={handleSend} disabled={loading || !input.trim()}
+              style={[
+                s.sendBtn,
+                { backgroundColor: input.trim() ? AI_COLORS.primary : AI_COLORS.border },
+              ]}
+              onPress={handleSend}
+              disabled={loading || !input.trim()}
             >
-              {loading ? <ActivityIndicator size="small" color="#FFF" /> : <Ionicons name="arrow-up" size={20} color="#FFF" />}
+              {loading ? (
+                <ActivityIndicator size="small" color="#FFF" />
+              ) : (
+                <Ionicons name="arrow-up" size={20} color="#FFF" />
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -176,29 +227,110 @@ const s = StyleSheet.create({
   screen: { flex: 1 },
   header: { paddingHorizontal: 16, paddingBottom: 12 },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  backBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: AI_COLORS.card, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: AI_COLORS.border },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: AI_COLORS.card,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: AI_COLORS.border,
+  },
   headerTitle: { fontSize: 18, fontWeight: '700', color: AI_COLORS.text },
   headerSub: { fontSize: 11, color: AI_COLORS.textTertiary, marginTop: 1 },
   clearBtn: { marginLeft: 'auto', padding: 6 },
   emptyWrap: { paddingTop: 20, gap: 20 },
-  welcomeCard: { marginHorizontal: 16, backgroundColor: AI_COLORS.card, borderRadius: 20, padding: 24, alignItems: 'center', borderWidth: 1 },
-  welcomeIcon: { width: 64, height: 64, borderRadius: 20, backgroundColor: `${AI_COLORS.primary}20`, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
+  welcomeCard: {
+    marginHorizontal: 16,
+    backgroundColor: AI_COLORS.card,
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+  },
+  welcomeIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    backgroundColor: `${AI_COLORS.primary}20`,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   welcomeTitle: { fontSize: 20, fontWeight: '700', color: AI_COLORS.text },
-  welcomeDesc: { fontSize: 13, color: AI_COLORS.textSecondary, textAlign: 'center', marginTop: 6, lineHeight: 18 },
+  welcomeDesc: {
+    fontSize: 13,
+    color: AI_COLORS.textSecondary,
+    textAlign: 'center',
+    marginTop: 6,
+    lineHeight: 18,
+  },
   sugTitle: { fontSize: 13, fontWeight: '600', color: AI_COLORS.textSecondary, marginBottom: 4 },
-  sugChip: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 14, borderWidth: 1, backgroundColor: AI_COLORS.card },
+  sugChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    backgroundColor: AI_COLORS.card,
+  },
   sugText: { fontSize: 13, color: AI_COLORS.text, flex: 1 },
   userMsgWrap: { alignItems: 'flex-end', paddingRight: 16, paddingLeft: 60, marginBottom: 8 },
-  userMsg: { backgroundColor: AI_COLORS.primary, borderRadius: 18, borderBottomRightRadius: 4, paddingHorizontal: 16, paddingVertical: 10 },
+  userMsg: {
+    backgroundColor: AI_COLORS.primary,
+    borderRadius: 18,
+    borderBottomRightRadius: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
   userMsgText: { fontSize: 14, color: '#FFF', lineHeight: 20 },
   aiMsgWrap: { paddingLeft: 16, paddingRight: 60, marginBottom: 8 },
   aiMsgRow: { flexDirection: 'row', gap: 8 },
-  aiAvatar: { width: 28, height: 28, borderRadius: 14, backgroundColor: `${AI_COLORS.primary}20`, justifyContent: 'center', alignItems: 'center', marginTop: 4 },
-  aiMsg: { flex: 1, backgroundColor: AI_COLORS.card, borderRadius: 18, borderTopLeftRadius: 4, padding: 14, borderWidth: 1 },
+  aiAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: `${AI_COLORS.primary}20`,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  aiMsg: {
+    flex: 1,
+    backgroundColor: AI_COLORS.card,
+    borderRadius: 18,
+    borderTopLeftRadius: 4,
+    padding: 14,
+    borderWidth: 1,
+  },
   aiMsgText: { fontSize: 14, color: AI_COLORS.textSecondary, lineHeight: 20 },
   typingDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: AI_COLORS.textTertiary },
   inputWrap: { paddingHorizontal: 16, paddingTop: 8 },
-  inputRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, backgroundColor: AI_COLORS.card, borderRadius: 16, padding: 8, borderWidth: 1 },
-  input: { flex: 1, fontSize: 15, color: AI_COLORS.text, maxHeight: 100, paddingHorizontal: 8, paddingVertical: 6 },
-  sendBtn: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 8,
+    backgroundColor: AI_COLORS.card,
+    borderRadius: 16,
+    padding: 8,
+    borderWidth: 1,
+  },
+  input: {
+    flex: 1,
+    fontSize: 15,
+    color: AI_COLORS.text,
+    maxHeight: 100,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  sendBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
