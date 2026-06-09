@@ -93,7 +93,7 @@ export function ProfileScreen() {
         setAccessToken(accessToken);
       }
       const res = await api.get<any>('/auth/avatar/presets');
-      setPresets(res?.data || []);
+      setPresets(Array.isArray(res) ? res : res?.data || []);
     } catch {
       setPresets([]);
     } finally {

@@ -1,20 +1,12 @@
 import React, { useEffect } from 'react';
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  Dimensions,
-  StatusBar,
-} from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
+import { View, Text, Image, StyleSheet, Dimensions, StatusBar } from 'react-native';
+import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import Animated, {
   useSharedValue,
-  useAnimatedProps,
   useAnimatedStyle,
-  withRepeat,
+  useAnimatedProps,
   withTiming,
-  withSequence,
+  withRepeat,
   cancelAnimation,
   interpolate,
   runOnJS,
@@ -22,10 +14,18 @@ import Animated, {
 } from 'react-native-reanimated';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
-const CIRCLE_RADIUS = SCREEN_W * 0.35;
-const RING_R = CIRCLE_RADIUS - 10;
-const CENTER = SCREEN_W / 2;
-const CIRCUMFERENCE = 2 * Math.PI * RING_R;
+const CX = SCREEN_W / 2;
+const CY = SCREEN_H / 2;
+
+const LANG_RADIUS = Math.min(SCREEN_W, SCREEN_H) * 0.32;
+const ITEM_W = 80;
+const ITEM_H = 30;
+const ORBIT_SZ = (LANG_RADIUS + ITEM_W / 2) * 2;
+const O = ORBIT_SZ / 2;
+
+const RING_R = 55;
+const RING_SZ = (RING_R + 2) * 2;
+const RING_C = 2 * Math.PI * RING_R;
 
 const LANGUAGES = [
   { name: 'हिन्दी', lang: 'Hindi' },
@@ -44,139 +44,176 @@ const LANGUAGES = [
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
-interface SplashScreenProps {
-  onFinish?: () => void;
+function LangItem({
+  name,
+  lang,
+  left,
+  top,
+  rotation,
+}: {
+  name: string;
+  lang: string;
+  left: number;
+  top: number;
+  rotation: Animated.SharedValue<number>;
+}) {
+  const upright = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${-rotation.value}deg` }],
+  }));
+
+  return (
+    <Animated.View style={[styles.langItem, { left, top }, upright]}>
+      <Text style={styles.langName}>{name}</Text>
+      <Text style={styles.langLabel}>{lang}</Text>
+    </Animated.View>
+  );
 }
 
-export function SplashScreen({ onFinish }: SplashScreenProps) {
+export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
   const rotation = useSharedValue(0);
   const progress = useSharedValue(0);
-  const fadeOut = useSharedValue(0);
-  const circleOpacity = useSharedValue(0);
-  const brandOpacity = useSharedValue(0);
+  const fadeOpacity = useSharedValue(1);
+  const contentOpacity = useSharedValue(0);
+  const brandScale = useSharedValue(0.8);
 
   useEffect(() => {
+    const easeOut = Easing.bezier(0.16, 1, 0.3, 1);
+
+    contentOpacity.value = withTiming(1, { duration: 500, easing: easeOut });
+    brandScale.value = withTiming(1, { duration: 600, easing: Easing.bezier(0.34, 1.56, 0.64, 1) });
     rotation.value = withRepeat(
-      withTiming(360, { duration: 20000, easing: Easing.linear }),
+      withTiming(360, { duration: 15000, easing: Easing.linear }),
       -1,
       false,
     );
+    progress.value = withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.quad) });
 
-    circleOpacity.value = withTiming(1, { duration: 800 });
-    brandOpacity.value = withSequence(
-      withTiming(0, { duration: 0 }),
-      withTiming(1, { duration: 600 }),
-    );
-
-    progress.value = withTiming(1, { duration: 2000 }, (finished) => {
-      if (finished) {
-        fadeOut.value = withTiming(1, { duration: 500 }, (fDone) => {
-          if (fDone && onFinish) {
-            runOnJS(onFinish)();
-          }
-        });
-      }
-    });
+    const timer = setTimeout(() => {
+      fadeOpacity.value = withTiming(0, { duration: 500, easing: easeOut }, (finished) => {
+        if (finished && onFinish) {
+          runOnJS(onFinish)();
+        }
+      });
+    }, 2000);
 
     return () => {
+      clearTimeout(timer);
       cancelAnimation(rotation);
       cancelAnimation(progress);
-      cancelAnimation(fadeOut);
+      cancelAnimation(fadeOpacity);
+      cancelAnimation(contentOpacity);
+      cancelAnimation(brandScale);
     };
   }, []);
 
-  const containerStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(fadeOut.value, [0, 1], [1, 0]),
+  const containerAnim = useAnimatedStyle(() => ({
+    opacity: fadeOpacity.value,
   }));
 
-  const brandStyle = useAnimatedStyle(() => ({
-    opacity: brandOpacity.value,
-    transform: [{ scale: interpolate(brandOpacity.value, [0, 1], [0.85, 1]) }],
+  const orbitAnim = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotation.value}deg` }],
+  }));
+
+  const fadeInAnim = useAnimatedStyle(() => ({
+    opacity: contentOpacity.value,
+  }));
+
+  const brandAnim = useAnimatedStyle(() => ({
+    opacity: contentOpacity.value,
+    transform: [{ scale: brandScale.value }],
   }));
 
   const progressProps = useAnimatedProps(() => ({
-    strokeDashoffset: CIRCUMFERENCE * (1 - progress.value),
+    strokeDashoffset: interpolate(progress.value, [0, 1], [RING_C, 0]),
   }));
 
-  function getLanguagePosition(index: number) {
-    const angle = (index * 360) / LANGUAGES.length;
-    const radian = (angle * Math.PI) / 180;
-    return {
-      x: CENTER + CIRCLE_RADIUS * Math.cos(radian) - 40,
-      y: SCREEN_H / 2 + CIRCLE_RADIUS * Math.sin(radian) - 12,
-    };
-  }
-
   return (
-    <Animated.View style={[styles.container, containerStyle]}>
+    <Animated.View style={[styles.container, containerAnim]}>
       <StatusBar hidden translucent />
 
-      {/* Background */}
-      <View style={styles.background}>
-        <View style={styles.gradientTop} />
-        <View style={styles.gradientBottom} />
-      </View>
+      <Svg width={SCREEN_W} height={SCREEN_H} style={StyleSheet.absoluteFill}>
+        <Defs>
+          <RadialGradient id="bgGlow" cx="50%" cy="50%" r="60%">
+            <Stop offset="0%" stopColor="#141418" />
+            <Stop offset="50%" stopColor="#0D0D10" />
+            <Stop offset="100%" stopColor="#0A0A0A" />
+          </RadialGradient>
+        </Defs>
+        <Circle cx={CX} cy={CY} r={SCREEN_W * 0.7} fill="url(#bgGlow)" />
+      </Svg>
 
-      {/* Rotating Language Circle */}
       <Animated.View
         style={[
-          styles.ringContainer,
-          { transform: [{ rotate: `${rotation.value}deg` }] },
+          styles.orbit,
+          { width: ORBIT_SZ, height: ORBIT_SZ, top: CY - O, left: CX - O },
+          orbitAnim,
         ]}
       >
-        {LANGUAGES.map((lang, index) => {
-          const pos = getLanguagePosition(index);
+        {LANGUAGES.map((lang, i) => {
+          const deg = (i * 360) / LANGUAGES.length;
+          const rad = (deg * Math.PI) / 180;
+          const left = O + LANG_RADIUS * Math.cos(rad) - ITEM_W / 2;
+          const top = O + LANG_RADIUS * Math.sin(rad) - ITEM_H / 2;
           return (
-            <View
-              key={index}
-              style={[
-                styles.languageItem,
-                { left: pos.x, top: pos.y },
-              ]}
-            >
-              <Text style={styles.languageText}>{lang.name}</Text>
-              <Text style={styles.languageSub}>{lang.lang}</Text>
-            </View>
+            <LangItem
+              key={i}
+              name={lang.name}
+              lang={lang.lang}
+              left={left}
+              top={top}
+              rotation={rotation}
+            />
           );
         })}
       </Animated.View>
 
-      {/* Progress Ring */}
-      <Animated.View style={[styles.progressContainer, { opacity: circleOpacity }]}>
-        <Svg width={CIRCLE_RADIUS * 2 + 40} height={CIRCLE_RADIUS * 2 + 40}>
+      <View
+        style={{
+          position: 'absolute',
+          top: CY - RING_R - 2,
+          left: CX - RING_R - 2,
+          width: RING_SZ,
+          height: RING_SZ,
+        }}
+      >
+        <Svg width={RING_SZ} height={RING_SZ}>
           <Circle
-            cx={CIRCLE_RADIUS + 20}
-            cy={CIRCLE_RADIUS + 20}
+            cx={RING_R + 2}
+            cy={RING_R + 2}
             r={RING_R}
             stroke="rgba(255,215,0,0.12)"
             strokeWidth={2}
-            fill="none"
+            fill="transparent"
           />
           <AnimatedCircle
-            cx={CIRCLE_RADIUS + 20}
-            cy={CIRCLE_RADIUS + 20}
+            cx={RING_R + 2}
+            cy={RING_R + 2}
             r={RING_R}
             stroke="#FFD700"
-            strokeWidth={3}
-            fill="none"
+            strokeWidth={2}
+            fill="transparent"
+            strokeDasharray={RING_C}
             strokeLinecap="round"
-            strokeDasharray={CIRCUMFERENCE}
             animatedProps={progressProps}
+            transform={`rotate(-90, ${RING_R + 2}, ${RING_R + 2})`}
           />
         </Svg>
-      </Animated.View>
+      </View>
 
-      {/* Center Logo & Brand */}
-      <Animated.View style={[styles.centerContent, brandStyle]}>
-        <View style={styles.iconWrap}>
-          <Image
-            source={require('../../../assets/logo.png')}
-            style={styles.appIcon}
-            resizeMode="contain"
-          />
+      <Animated.View style={[styles.center, brandAnim]}>
+        <View style={styles.iconShadow}>
+          <View style={styles.iconWrap}>
+            <Image
+              source={require('../../../assets/logo.png')}
+              style={styles.iconImg}
+              resizeMode="contain"
+            />
+          </View>
         </View>
-        <Text style={styles.brandName}>Dabbu</Text>
-        <Text style={styles.tagline}>Your Money. Your Life. Organized.</Text>
+        <Animated.View style={fadeInAnim}>
+          <Text style={styles.brandName}>Dabbu</Text>
+          <Text style={styles.tagline}>Your Money. Your Life. Organized.</Text>
+        </Animated.View>
       </Animated.View>
     </Animated.View>
   );
@@ -184,90 +221,78 @@ export function SplashScreen({ onFinish }: SplashScreenProps) {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
     backgroundColor: '#0A0A0A',
+  },
+  orbit: {
+    position: 'absolute',
+    overflow: 'visible',
+  },
+  langItem: {
+    position: 'absolute',
+    width: ITEM_W,
     alignItems: 'center',
-    justifyContent: 'center',
   },
-  background: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  gradientTop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: SCREEN_H * 0.4,
-    backgroundColor: '#1A1A2E',
-  },
-  gradientBottom: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: SCREEN_H * 0.6,
-    backgroundColor: '#0A0A0A',
-  },
-  ringContainer: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  languageItem: {
-    position: 'absolute',
-    alignItems: 'center',
-    width: 80,
-  },
-  languageText: {
+  langName: {
     color: '#FFD700',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     textShadowColor: 'rgba(255, 215, 0, 0.3)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
   },
-  languageSub: {
+  langLabel: {
     color: '#888',
     fontSize: 9,
-    marginTop: 2,
+    marginTop: 1,
   },
-  progressContainer: {
+  center: {
     position: 'absolute',
-    top: SCREEN_H / 2 - CIRCLE_RADIUS - 20,
-    left: SCREEN_W / 2 - CIRCLE_RADIUS - 20,
-  },
-  centerContent: {
-    position: 'absolute',
-    top: SCREEN_H / 2 - 90,
-    left: SCREEN_W / 2 - 80,
-    width: 160,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconShadow: {
+    marginBottom: 14,
+    shadowColor: '#FFD700',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 6,
+    borderRadius: 40,
   },
   iconWrap: {
     width: 80,
     height: 80,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,215,0,0.1)',
+    borderRadius: 40,
+    backgroundColor: 'rgba(255,215,0,0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(255,215,0,0.2)',
+    borderColor: 'rgba(255,215,0,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
     overflow: 'hidden',
   },
-  appIcon: {
+  iconImg: {
     width: 48,
     height: 48,
   },
   brandName: {
     color: '#FFD700',
-    fontSize: 26,
+    fontSize: 20,
     fontWeight: '700',
     letterSpacing: 1.5,
-    marginBottom: 8,
+    marginBottom: 6,
+    textShadowColor: 'rgba(255, 215, 0, 0.12)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 6,
+    textAlign: 'center',
   },
   tagline: {
     color: '#666',

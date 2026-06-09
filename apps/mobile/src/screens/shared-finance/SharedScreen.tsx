@@ -336,14 +336,11 @@ export function SharedScreen() {
         const groupList = listFromResponse(sharedRes);
         setGroups(groupList);
 
-        const groupIdsWithExpenses = groupList
-          .filter((g: any) => (g._count?.expenses || 0) > 0)
-          .map((g: any) => g.id)
-          .filter(Boolean);
+        const allGroupIds = groupList.map((g: any) => g.id).filter(Boolean);
 
-        if (groupIdsWithExpenses.length > 0) {
+        if (allGroupIds.length > 0) {
           const balanceResults = await Promise.allSettled(
-            groupIdsWithExpenses.map((gid: string) =>
+            allGroupIds.map((gid: string) =>
               api.get<any>(`/shared-finance/groups/${gid}/balances`),
             ),
           );
@@ -353,7 +350,7 @@ export function SharedScreen() {
           const currentUserId = (user as any)?.id;
 
           balanceResults.forEach((r, idx) => {
-            const gid = groupIdsWithExpenses[idx];
+            const gid = allGroupIds[idx];
             if (r.status === 'fulfilled' && Array.isArray(r.value)) {
               newBalanceArrays[gid] = r.value;
 
@@ -423,9 +420,10 @@ export function SharedScreen() {
   );
 
   const userName = user?.firstName || user?.email?.[0]?.toUpperCase() || 'User';
+  const isAtLimit = groups.length >= MAX_SPACES;
 
   function handleFabPress() {
-    if (groups.length >= MAX_SPACES) {
+    if (isAtLimit) {
       Alert.alert(
         'Upgrade Required',
         `You've used all ${MAX_SPACES} spaces. Upgrade to create more.`,
@@ -541,10 +539,17 @@ export function SharedScreen() {
             <View style={s.headerActions}>
               {groups.length > 0 && (
                 <TouchableOpacity
-                  style={[s.iconBtn, { backgroundColor: `${colors.accent.primary}15` }]}
+                  style={[s.iconBtn, {
+                    backgroundColor: isAtLimit ? `${colors.status.error}15` : `${colors.accent.primary}15`,
+                  }]}
                   onPress={handleFabPress}
+                  disabled={isAtLimit}
                 >
-                  <Ionicons name="add" size={22} color={colors.accent.primary} />
+                  <Ionicons
+                    name={isAtLimit ? 'lock-closed' : 'add'}
+                    size={20}
+                    color={isAtLimit ? colors.status.error : colors.accent.primary}
+                  />
                 </TouchableOpacity>
               )}
               <TouchableOpacity
@@ -647,15 +652,18 @@ export function SharedScreen() {
                         {
                           width: `${(groups.length / MAX_SPACES) * 100}%`,
                           backgroundColor:
-                            groups.length >= MAX_SPACES - 1
-                              ? colors.status.warning
-                              : colors.accent.primary,
+                            isAtLimit
+                              ? colors.status.error
+                              : groups.length >= MAX_SPACES - 1
+                                ? colors.status.warning
+                                : colors.accent.primary,
                         },
                       ]}
                     />
                   </View>
                   <Text style={[s.usageText, { color: colors.text.secondary }]}>
                     {groups.length} of {MAX_SPACES} spaces used
+                    {isAtLimit ? ' — Full' : ''}
                   </Text>
                 </View>
               </View>

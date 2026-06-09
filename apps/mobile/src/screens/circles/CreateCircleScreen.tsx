@@ -81,15 +81,17 @@ export function CreateCircleScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: Math.max(40, insets.bottom + 40) }}
         >
-          <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
-            <View style={styles.headerRow}>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                <Ionicons name="close" size={24} color="#FFF" />
-              </TouchableOpacity>
-              <Text style={styles.headerTitle}>Create Circle</Text>
-              <View style={{ width: 32 }} />
+          <View style={[styles.headerBg, { backgroundColor: colors.accent.primary }]}>
+            <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
+              <View style={styles.headerRow}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                  <Ionicons name="close" size={22} color="#FFF" />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>Create Circle</Text>
+                <View style={{ width: 32 }} />
+              </View>
+              <Text style={styles.headerSub}>Start splitting expenses with your people</Text>
             </View>
-            <Text style={styles.headerSub}>Start splitting expenses with your people</Text>
           </View>
 
           <View style={{ padding: 20, gap: 20 }}>
@@ -229,9 +231,7 @@ export function CreateCircleScreen() {
                 style={styles.createBtnInner}
               >
                 <Ionicons name="people" size={18} color="#FFF" />
-                <Text style={[styles.createBtnText, { color: colors.text.primary }]}>
-                  Create Circle
-                </Text>
+                <Text style={styles.createBtnText}>Create Circle</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -243,6 +243,10 @@ export function CreateCircleScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  headerBg: {
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -258,7 +262,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: { color: '#FFF', fontSize: 18, fontWeight: '700' },
-  headerSub: { color: 'rgba(255,255,255,0.6)', fontSize: 13, marginTop: 4 },
+  headerSub: { color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 4 },
   label: { fontSize: 13, fontWeight: '600', marginBottom: 8 },
   input: {
     fontSize: 15,
@@ -325,5 +329,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  createBtnText: { fontSize: 16, fontWeight: '700' },
+  createBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 });

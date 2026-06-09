@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../../theme';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
@@ -18,15 +19,15 @@ interface PremiumAuthLayoutProps {
   subtitle?: string;
 }
 
-function HeaderGradient() {
+function HeaderGradient({ color }: { color: string }) {
   return (
     <View style={styles.glowWrapper}>
       <Svg width={SCREEN_W} height={220} viewBox={`0 0 ${SCREEN_W} 220`}>
         <Defs>
           <SvgGradient id="topGlow" x1="0" y1="0" x2="0.3" y2="1">
-            <Stop offset="0" stopColor="#14B8A6" stopOpacity="0.2" />
-            <Stop offset="0.5" stopColor="#14B8A6" stopOpacity="0.06" />
-            <Stop offset="1" stopColor="#14B8A6" stopOpacity="0" />
+            <Stop offset="0" stopColor={color} stopOpacity="0.2" />
+            <Stop offset="0.5" stopColor={color} stopOpacity="0.06" />
+            <Stop offset="1" stopColor={color} stopOpacity="0" />
           </SvgGradient>
         </Defs>
         <Rect x="0" y="0" width={SCREEN_W} height="220" fill="url(#topGlow)" />
@@ -37,26 +38,29 @@ function HeaderGradient() {
 
 export function PremiumAuthLayout({ children, subtitle }: PremiumAuthLayoutProps) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
 
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
       >
-        <View style={[styles.headerSection, { paddingTop: insets.top + 40 }]}>
-          <HeaderGradient />
+        <View style={[styles.headerSection, { backgroundColor: colors.bg.primary, paddingTop: insets.top + 40 }]}>
+          <HeaderGradient color={colors.accent.primary} />
           <Image
             source={require('../../../assets/logo.png')}
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={styles.brandName}>Dabbu</Text>
-          {subtitle ? <Text style={styles.tagline}>{subtitle}</Text> : null}
+          <Text style={[styles.brandName, { color: colors.text.primary }]}>Dabbu</Text>
+          {subtitle ? <Text style={[styles.tagline, { color: colors.text.tertiary }]}>{subtitle}</Text> : null}
         </View>
 
-        <View style={styles.formCard}>{children}</View>
+        <View style={[styles.formCard, { backgroundColor: colors.bg.secondary, borderTopColor: colors.border.default }]}>
+          {children}
+        </View>
       </KeyboardAvoidingView>
     </View>
   );
@@ -65,7 +69,6 @@ export function PremiumAuthLayout({ children, subtitle }: PremiumAuthLayoutProps
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#070708',
   },
   flex: {
     flex: 1,
@@ -73,7 +76,6 @@ const styles = StyleSheet.create({
   headerSection: {
     alignItems: 'center',
     paddingBottom: 12,
-    backgroundColor: '#070708',
   },
   glowWrapper: {
     position: 'absolute',
@@ -91,7 +93,6 @@ const styles = StyleSheet.create({
   brandName: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#FFFFFF',
     fontFamily: 'Inter-Bold',
     marginTop: 8,
     letterSpacing: -0.5,
@@ -99,7 +100,6 @@ const styles = StyleSheet.create({
   },
   tagline: {
     fontSize: 13,
-    color: '#8E8E93',
     fontFamily: 'Inter-Regular',
     marginTop: 4,
     letterSpacing: 0.2,
@@ -107,11 +107,9 @@ const styles = StyleSheet.create({
   },
   formCard: {
     flex: 1,
-    backgroundColor: '#131315',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.05)',
     paddingHorizontal: 24,
     paddingTop: 28,
   },

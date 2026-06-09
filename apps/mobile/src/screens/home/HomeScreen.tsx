@@ -214,10 +214,11 @@ export function HomeScreen() {
         label: 'Add',
         color: colors.accent.primary,
         route: 'AddExpense',
+        tab: 'Expense' as const,
       },
-      { icon: 'scan' as const, label: 'Scan', color: '#F59E0B', route: 'BillScanner' },
-      { icon: 'people' as const, label: 'Split', color: '#14B8A6', route: 'AddExpense' },
-      { icon: 'receipt' as const, label: 'Bills', color: '#4A90D9', route: 'ExpenseHome' },
+      { icon: 'scan' as const, label: 'Scan', color: '#F59E0B', route: 'BillScanner', tab: 'Expense' as const },
+      { icon: 'people' as const, label: 'Split', color: '#14B8A6', route: 'AddExpense', tab: 'Expense' as const },
+      { icon: 'receipt' as const, label: 'Bills', color: '#4A90D9', route: 'BillsList', tab: 'Expense' as const },
     ],
     [colors],
   );
@@ -514,7 +515,7 @@ export function HomeScreen() {
                       { backgroundColor: colors.bg.card, borderColor: colors.border.default },
                     ]}
                     activeOpacity={0.7}
-                    onPress={() => navigation.navigate('Reminders', { reminderId: r.id })}
+                    onPress={() => navigation.navigate('Reminders', { screen: 'ReminderDetail', params: { id: r.id } })}
                   >
                     <View
                       style={[
@@ -580,7 +581,7 @@ export function HomeScreen() {
           {quickActions.map((a) => (
             <TouchableOpacity
               key={a.label}
-              onPress={() => navigation.navigate(a.route)}
+              onPress={() => navigation.navigate(a.tab, { screen: a.route })}
               style={{ flex: 1, alignItems: 'center', gap: 8 }}
               activeOpacity={0.7}
             >
@@ -620,7 +621,7 @@ export function HomeScreen() {
                     navigation.navigate('Spaces');
                   }
                   if (card.label === 'Spent') {
-                    navigation.navigate('Reports');
+                    navigation.navigate('Settings', { screen: 'Reports' });
                   }
                 }}
               >
@@ -659,7 +660,7 @@ export function HomeScreen() {
               <Text style={[s.sectionTitle, { color: colors.text.primary }]}>
                 Spending by Category
               </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Reports')}>
+              <TouchableOpacity onPress={() => navigation.navigate('Settings', { screen: 'Reports' })}>
                 <Text style={{ fontSize: 13, fontWeight: '600', color: colors.accent.primary }}>
                   See All
                 </Text>
@@ -727,7 +728,7 @@ export function HomeScreen() {
               }}
             >
               <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Goals</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Goals')}>
+              <TouchableOpacity onPress={() => navigation.navigate('GoalsList')}>
                 <Text style={{ fontSize: 13, fontWeight: '600', color: colors.accent.primary }}>
                   See All
                 </Text>
@@ -796,7 +797,7 @@ export function HomeScreen() {
             </Text>
             {recentTxns.length > 0 && (
               <TouchableOpacity
-                onPress={() => navigation.navigate('Expense', { screen: 'SharedCircles' })}
+                onPress={() => navigation.navigate('Expense')}
               >
                 <Text style={{ fontSize: 13, fontWeight: '600', color: colors.accent.primary }}>
                   See All
@@ -817,7 +818,7 @@ export function HomeScreen() {
                     key={tx.id || i}
                     activeOpacity={0.7}
                     onPress={() =>
-                      navigation.navigate('TransactionDetail', { transactionId: tx.id })
+                      navigation.navigate('Expense', { screen: 'TransactionDetail', params: { transactionId: tx.id } })
                     }
                     style={[
                       s.txRow,
@@ -878,7 +879,7 @@ export function HomeScreen() {
       {/* FAB */}
       <TouchableOpacity
         activeOpacity={0.85}
-        onPress={() => navigation.navigate('AddExpense')}
+        onPress={() => navigation.navigate('Expense', { screen: 'AddExpense' })}
         style={[s.fab, { backgroundColor: colors.accent.primary }]}
       >
         <Ionicons name="add" size={28} color="#FFFFFF" />

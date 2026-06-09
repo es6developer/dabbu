@@ -45,7 +45,7 @@ export function AvatarPickerScreen() {
         setAccessToken(accessToken);
       }
       const res = await api.get<any>('/auth/avatar/presets');
-      const data = res?.data || [];
+      const data = Array.isArray(res) ? res : res?.data || [];
       setPresets(data);
     } catch {
       setPresets([]);

@@ -40,17 +40,8 @@ export class AuthService {
     private readonly referralService: ReferralService,
   ) {}
 
-  private generateDiceBearUrl(seed: string, options?: Record<string, string | undefined>): string {
-    const base = `https://api.dicebear.com/7.x/avataaars/svg`;
-    const params = new URLSearchParams({ seed });
-    if (options) {
-      for (const [key, value] of Object.entries(options)) {
-        if (value !== undefined) {
-          params.set(key, value);
-        }
-      }
-    }
-    return `${base}?${params.toString()}`;
+  private generateDiceBearUrl(seed: string): string {
+    return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed)}`;
   }
 
   private generateRandomAvatarSeed(firstName: string, lastName: string): string {
@@ -1335,7 +1326,7 @@ export class AuthService {
     if (!preset) {
       throw new BadRequestException('Invalid preset seed');
     }
-    const avatarUrl = this.generateDiceBearUrl(preset.seed, preset.options);
+    const avatarUrl = this.generateDiceBearUrl(preset.seed);
     await this.prisma.user.update({
       where: { id: userId },
       data: { avatarUrl },
@@ -1347,7 +1338,7 @@ export class AuthService {
     return this.AVATAR_PRESETS.map((p) => ({
       seed: p.seed,
       name: p.name,
-      url: this.generateDiceBearUrl(p.seed, p.options),
+      url: this.generateDiceBearUrl(p.seed),
     }));
   }
 
