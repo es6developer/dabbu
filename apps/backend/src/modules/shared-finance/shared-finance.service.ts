@@ -158,6 +158,7 @@ export class SharedFinanceService {
                 lastName: true,
                 avatarUrl: true,
                 email: true,
+                status: true,
               },
             },
           },

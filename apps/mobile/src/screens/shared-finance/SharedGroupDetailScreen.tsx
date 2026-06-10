@@ -710,6 +710,16 @@ export function SharedGroupDetailScreen() {
                     {member.user?.firstName || member.user?.email || member.firstName || 'Member'}
                     {isMemberCurrentUser ? ' (You)' : ''}
                   </Text>
+                  {member.user?.status === 'temporary' && (
+                    <View
+                      style={[
+                        s.roleBadge,
+                        { backgroundColor: `${colors.text.tertiary}18`, marginLeft: 6 },
+                      ]}
+                    >
+                      <Text style={[s.roleBadgeText, { color: colors.text.tertiary }]}>Guest</Text>
+                    </View>
+                  )}
                   <View
                     style={[
                       s.roleBadge,
