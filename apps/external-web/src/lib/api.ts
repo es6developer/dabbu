@@ -340,7 +340,7 @@ export const api = {
 
   expenses: {
     list: async (groupId: string) => {
-      const res = await get<any[]>(`/shared-finance/expenses?groupId=${groupId}`);
+      const res = await get<any[]>(`/shared-finance/groups/${groupId}/expenses`);
       if (res.error) {
         return res as ApiResponse<Expense[]>;
       }
@@ -360,8 +360,7 @@ export const api = {
         notes?: string;
       },
     ) => {
-      return post<any>(`/shared-finance/expenses`, {
-        groupId,
+      return post<any>(`/shared-finance/groups/${groupId}/expenses`, {
         description: data.description,
         amount: data.amount,
         paidBy: data.paidById,
@@ -376,7 +375,7 @@ export const api = {
 
   settlements: {
     list: async (groupId: string) => {
-      const res = await get<any[]>(`/shared-finance/settlements?groupId=${groupId}`);
+      const res = await get<any[]>(`/shared-finance/groups/${groupId}/settlements`);
       if (res.error) {
         return res as ApiResponse<Settlement[]>;
       }
@@ -393,10 +392,9 @@ export const api = {
         note?: string;
       },
     ) => {
-      return post<any>(`/shared-finance/settlements`, {
-        groupId,
-        fromId: data.fromId,
-        toId: data.toId,
+      return post<any>(`/shared-finance/groups/${groupId}/settlements`, {
+        fromUserId: data.fromId,
+        toUserId: data.toId,
         amount: data.amount,
         method: data.method,
         note: data.note,
@@ -432,7 +430,7 @@ export const api = {
 
   chat: {
     list: async (groupId: string) => {
-      const res = await get<any[]>(`/shared-finance/chat?groupId=${groupId}`);
+      const res = await get<any[]>(`/shared-finance/groups/${groupId}/chat/messages`);
       if (res.error) {
         return res as ApiResponse<ChatMessage[]>;
       }
@@ -440,7 +438,7 @@ export const api = {
     },
 
     send: async (groupId: string, content: string) => {
-      return post<any>(`/shared-finance/chat`, { groupId, content });
+      return post<any>(`/shared-finance/groups/${groupId}/chat/messages`, { content });
     },
   },
 };
