@@ -29,9 +29,10 @@ export class GoogleOAuthTempDto {
   @IsString()
   idToken: string;
 
-  @ApiProperty({ example: 'uuid-of-group' })
+  @ApiProperty({ example: 'uuid-of-group', required: false })
   @IsUUID()
-  groupId: string;
+  @IsOptional()
+  groupId?: string;
 }
 
 export class ConvertTempUserDto {

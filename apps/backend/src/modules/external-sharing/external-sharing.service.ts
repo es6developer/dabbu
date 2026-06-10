@@ -91,7 +91,7 @@ export class ExternalSharingService {
 
   async googleAuthAsTemp(
     idToken: string,
-    groupId: string,
+    groupId?: string,
   ): Promise<{ user: any; tokens: TempTokens }> {
     const googlePayload = await this.verifyGoogleToken(idToken);
     if (!googlePayload || !googlePayload.email) {
@@ -110,14 +110,16 @@ export class ExternalSharingService {
           role: 'user',
           status: 'temporary',
           authProvider: 'google',
-          tempGroupId: groupId,
+          tempGroupId: groupId || null,
           avatarUrl: googlePayload.picture || null,
         },
       });
 
-      await this.prisma.sharedGroupMember.create({
-        data: { groupId, userId: user.id, role: 'member' },
-      });
+      if (groupId) {
+        await this.prisma.sharedGroupMember.create({
+          data: { groupId, userId: user.id, role: 'member' },
+        });
+      }
     }
 
     if (user.status !== 'temporary' && user.authProvider !== 'google') {
@@ -126,7 +128,7 @@ export class ExternalSharingService {
       );
     }
 
-    if (user.status === 'temporary' && user.tempGroupId !== groupId) {
+    if (groupId && user.status === 'temporary' && user.tempGroupId !== groupId) {
       const membership = await this.prisma.sharedGroupMember.findUnique({
         where: { groupId_userId: { groupId, userId: user.id } },
       });
@@ -351,9 +353,12 @@ export class ExternalSharingService {
   private async generateTempTokens(
     userId: string,
     email: string,
-    groupId: string,
+    groupId?: string,
   ): Promise<TempTokens> {
-    const payload = { sub: userId, email, tempGroupId: groupId, status: 'temporary' };
+    const payload: any = { sub: userId, email, status: 'temporary' };
+    if (groupId) {
+      payload.tempGroupId = groupId;
+    }
 
     const accessToken = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('jwt.secret')!,

@@ -1,38 +1,46 @@
-"use client";
+'use client';
 
-import { Suspense, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
-import { api } from "@/lib/api";
-import { useAuth } from "@/lib/auth-context";
-import { toast } from "sonner";
+import { Suspense, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { CredentialResponse, GoogleLogin } from '@react-oauth/google';
+import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
+import { toast } from 'sonner';
 
 function AuthPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuth();
-  const redirect = searchParams.get("redirect") || "/";
+  const redirect = searchParams.get('redirect') || '/';
 
   const onSuccess = useCallback(
     async (credentialResponse: CredentialResponse) => {
       if (!credentialResponse.credential) {
-        toast.error("Google sign-in failed");
+        toast.error('Google sign-in failed');
         return;
       }
-      const res = await api.auth.google(credentialResponse.credential);
+      let groupId: string | undefined;
+      const inviteMatch = redirect.match(/\/invite\/([a-f0-9]+)/);
+      if (inviteMatch) {
+        const inviteRes = await api.groups.getInvite(inviteMatch[1]);
+        if (inviteRes.data?.group?.id) {
+          groupId = inviteRes.data.group.id;
+        }
+      }
+      const res = await api.auth.google(credentialResponse.credential, groupId);
       if (res.error) {
         toast.error(res.error);
         return;
       }
       login(res.data!.token, res.data!.user as Record<string, unknown>);
-      toast.success("Welcome to Dabbu!");
+      toast.success('Welcome to Dabbu!');
       router.push(redirect);
     },
     [router, redirect, login],
   );
 
   const onError = useCallback(() => {
-    toast.error("Google sign-in failed. Please try again.");
+    toast.error('Google sign-in failed. Please try again.');
   }, []);
 
   return (
@@ -44,9 +52,18 @@ function AuthPage() {
       <div className="absolute top-1/4 -left-32 w-64 h-64 border border-dabbu-accent/5 rounded-full blur-3xl" />
       <div className="absolute bottom-1/4 -right-32 w-64 h-64 border border-dabbu-accent/5 rounded-full blur-3xl" />
 
-      <div className="absolute top-20 left-10 w-1 h-1 bg-dabbu-accent/20 rounded-full animate-ping" style={{ animationDuration: '3s' }} />
-      <div className="absolute bottom-32 right-16 w-1.5 h-1.5 bg-dabbu-accent/15 rounded-full animate-ping" style={{ animationDuration: '4s' }} />
-      <div className="absolute top-1/3 right-1/4 w-1 h-1 bg-white/10 rounded-full animate-ping" style={{ animationDuration: '5s' }} />
+      <div
+        className="absolute top-20 left-10 w-1 h-1 bg-dabbu-accent/20 rounded-full animate-ping"
+        style={{ animationDuration: '3s' }}
+      />
+      <div
+        className="absolute bottom-32 right-16 w-1.5 h-1.5 bg-dabbu-accent/15 rounded-full animate-ping"
+        style={{ animationDuration: '4s' }}
+      />
+      <div
+        className="absolute top-1/3 right-1/4 w-1 h-1 bg-white/10 rounded-full animate-ping"
+        style={{ animationDuration: '5s' }}
+      />
 
       <div className="w-full max-w-sm relative z-10">
         <div className="relative">
@@ -91,10 +108,14 @@ function AuthPage() {
               </div>
 
               <p className="text-center text-white/20 text-xs mt-5 leading-relaxed">
-                By continuing, you agree to Dabbu&apos;s{" "}
-                <span className="text-white/30 underline underline-offset-2 decoration-dabbu-accent/30">Terms</span>{" "}
-                and{" "}
-                <span className="text-white/30 underline underline-offset-2 decoration-dabbu-accent/30">Privacy Policy</span>
+                By continuing, you agree to Dabbu&apos;s{' '}
+                <span className="text-white/30 underline underline-offset-2 decoration-dabbu-accent/30">
+                  Terms
+                </span>{' '}
+                and{' '}
+                <span className="text-white/30 underline underline-offset-2 decoration-dabbu-accent/30">
+                  Privacy Policy
+                </span>
               </p>
             </div>
           </div>

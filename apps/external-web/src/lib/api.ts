@@ -259,11 +259,14 @@ export const api = {
   clearTempSession,
 
   auth: {
-    google: (idToken: string) => {
-      const deviceId = `web_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    google: (idToken: string, groupId?: string) => {
+      const body: Record<string, unknown> = { idToken };
+      if (groupId) {
+        body.groupId = groupId;
+      }
       return post<{ token: string; user: Record<string, unknown> }>(
         '/external-sharing/auth/google',
-        { idToken, deviceId },
+        body,
       );
     },
   },
