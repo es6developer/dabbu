@@ -32,7 +32,8 @@ function AuthPage() {
         toast.error(res.error);
         return;
       }
-      login(res.data!.token, res.data!.user as Record<string, unknown>);
+      const data = res.data as any;
+      login(data.tokens?.accessToken || data.token, data.user);
       toast.success('Welcome to Dabbu!');
       router.push(redirect);
     },

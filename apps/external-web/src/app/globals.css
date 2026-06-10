@@ -5,20 +5,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
-  --dabbu-bg: #0A0A0F;
-  --dabbu-surface: #121218;
-  --dabbu-surface2: #1A1A24;
-  --dabbu-border: #2A2A35;
-  --dabbu-accent: #f7892c;
-  --dabbu-text: #FFFFFF;
-  --dabbu-text-secondary: #9CA3AF;
-  --dabbu-text-muted: #6B7280;
-  --dabbu-green: #22c55e;
+  --dabbu-bg: #000000;
+  --dabbu-surface: #121214;
+  --dabbu-surface2: #1a1a1e;
+  --dabbu-border: #2a2a2e;
+  --dabbu-accent: #8b5cf6;
+  --dabbu-text: #ffffff;
+  --dabbu-text-secondary: #94a3b8;
+  --dabbu-text-muted: #64748b;
+  --dabbu-green: #10b981;
   --dabbu-red: #ef4444;
 
-  --toast-bg: #1A1A24;
-  --toast-border: #2A2A35;
-  --toast-text: #FFFFFF;
+  --toast-bg: #1a1a1e;
+  --toast-border: #2a2a2e;
+  --toast-text: #ffffff;
 
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 }
@@ -44,7 +44,7 @@ body {
 }
 
 ::selection {
-  background-color: rgba(247, 137, 44, 0.3);
+  background-color: rgba(139, 92, 246, 0.3);
   color: #fff;
 }
 
@@ -66,23 +66,44 @@ body {
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(247, 137, 44, 0.2); }
-  50% { box-shadow: 0 0 40px rgba(247, 137, 44, 0.4); }
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(139, 92, 246, 0.4);
+  }
 }
 
 @keyframes fadeInScale {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @layer utilities {
@@ -102,7 +123,7 @@ body {
     background: linear-gradient(
       90deg,
       transparent 0%,
-      rgba(247, 137, 44, 0.08) 50%,
+      rgba(139, 92, 246, 0.08) 50%,
       transparent 100%
     );
     background-size: 200% 100%;
@@ -114,34 +135,38 @@ body {
   }
 
   .hover-lift {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
   }
 
   .hover-lift:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(247, 137, 44, 0.15);
+    box-shadow: 0 8px 30px rgba(139, 92, 246, 0.15);
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, #f7892c 0%, #ff6b35 50%, #f7892c 100%);
+    background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 50%, #8b5cf6 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .glass-effect {
-    background: rgba(18, 18, 24, 0.8);
+    background: rgba(18, 18, 20, 0.8);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(42, 42, 53, 0.5);
+    border: 1px solid rgba(42, 42, 46, 0.5);
   }
 
-  .glow-orange {
-    box-shadow: 0 0 20px rgba(247, 137, 44, 0.15), 0 0 60px rgba(247, 137, 44, 0.05);
+  .glow-accent {
+    box-shadow:
+      0 0 20px rgba(139, 92, 246, 0.15),
+      0 0 60px rgba(139, 92, 246, 0.05);
   }
 
   .glow-green {
-    box-shadow: 0 0 20px rgba(34, 197, 94, 0.15);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
   }
 
   .glow-red {
@@ -149,25 +174,27 @@ body {
   }
 
   .animate-in {
-    animation: fadeIn 0.5s ease-in-out, slideUp 0.5s ease-out;
+    animation:
+      fadeIn 0.5s ease-in-out,
+      slideUp 0.5s ease-out;
   }
 
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
 }
 
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-input[type="number"] {
+input[type='number'] {
   -moz-appearance: textfield;
 }

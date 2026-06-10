@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
+  TextInput,
   Dimensions,
   Animated,
 } from 'react-native';
@@ -18,12 +19,19 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../../services/api';
+import { EXPENSE_CATEGORIES } from '../../config/categoryIcons';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const FRAME_SIZE = SCREEN_WIDTH - 64;
 const CORNER_LENGTH = 24;
 
-type ScanState = 'idle' | 'scanning' | 'complete' | 'error';
+type ScanState = 'idle' | 'scanning' | 'preview' | 'error';
+
+interface BillItem {
+  name: string;
+  price: number;
+  quantity?: number;
+}
 
 interface BillData {
   amount: number;
@@ -31,7 +39,7 @@ interface BillData {
   date: string;
   description: string;
   category: string;
-  items?: { name: string; price: number; quantity?: number }[];
+  items?: BillItem[];
   confidence: number;
   rawText?: string;
 }
@@ -71,36 +79,76 @@ function ScanFrame() {
           fill={isDark ? 'rgba(247,137,44,0.06)' : 'rgba(247,137,44,0.04)'}
         />
         <Line
-          x1="28" y1="2" x2="28" y2={CORNER_LENGTH + 2}
-          stroke={colors.accent.primary} strokeWidth="3" strokeLinecap="round"
+          x1="28"
+          y1="2"
+          x2="28"
+          y2={CORNER_LENGTH + 2}
+          stroke={colors.accent.primary}
+          strokeWidth="3"
+          strokeLinecap="round"
         />
         <Line
-          x1="2" y1="28" x2={CORNER_LENGTH + 2} y2="28"
-          stroke={colors.accent.primary} strokeWidth="3" strokeLinecap="round"
+          x1="2"
+          y1="28"
+          x2={CORNER_LENGTH + 2}
+          y2="28"
+          stroke={colors.accent.primary}
+          strokeWidth="3"
+          strokeLinecap="round"
         />
         <Line
-          x1={FRAME_SIZE - 28} y1="2" x2={FRAME_SIZE - 28} y2={CORNER_LENGTH + 2}
-          stroke={colors.accent.primary} strokeWidth="3" strokeLinecap="round"
+          x1={FRAME_SIZE - 28}
+          y1="2"
+          x2={FRAME_SIZE - 28}
+          y2={CORNER_LENGTH + 2}
+          stroke={colors.accent.primary}
+          strokeWidth="3"
+          strokeLinecap="round"
         />
         <Line
-          x1={FRAME_SIZE - 2} y1="28" x2={FRAME_SIZE - CORNER_LENGTH - 2} y2="28"
-          stroke={colors.accent.primary} strokeWidth="3" strokeLinecap="round"
+          x1={FRAME_SIZE - 2}
+          y1="28"
+          x2={FRAME_SIZE - CORNER_LENGTH - 2}
+          y2="28"
+          stroke={colors.accent.primary}
+          strokeWidth="3"
+          strokeLinecap="round"
         />
         <Line
-          x1="28" y1={FRAME_SIZE * 0.7 - 2} x2="28" y2={FRAME_SIZE * 0.7 - CORNER_LENGTH - 2}
-          stroke={colors.accent.primary} strokeWidth="3" strokeLinecap="round"
+          x1="28"
+          y1={FRAME_SIZE * 0.7 - 2}
+          x2="28"
+          y2={FRAME_SIZE * 0.7 - CORNER_LENGTH - 2}
+          stroke={colors.accent.primary}
+          strokeWidth="3"
+          strokeLinecap="round"
         />
         <Line
-          x1="2" y1={FRAME_SIZE * 0.7 - 28} x2={CORNER_LENGTH + 2} y2={FRAME_SIZE * 0.7 - 28}
-          stroke={colors.accent.primary} strokeWidth="3" strokeLinecap="round"
+          x1="2"
+          y1={FRAME_SIZE * 0.7 - 28}
+          x2={CORNER_LENGTH + 2}
+          y2={FRAME_SIZE * 0.7 - 28}
+          stroke={colors.accent.primary}
+          strokeWidth="3"
+          strokeLinecap="round"
         />
         <Line
-          x1={FRAME_SIZE - 28} y1={FRAME_SIZE * 0.7 - 2} x2={FRAME_SIZE - 28} y2={FRAME_SIZE * 0.7 - CORNER_LENGTH - 2}
-          stroke={colors.accent.primary} strokeWidth="3" strokeLinecap="round"
+          x1={FRAME_SIZE - 28}
+          y1={FRAME_SIZE * 0.7 - 2}
+          x2={FRAME_SIZE - 28}
+          y2={FRAME_SIZE * 0.7 - CORNER_LENGTH - 2}
+          stroke={colors.accent.primary}
+          strokeWidth="3"
+          strokeLinecap="round"
         />
         <Line
-          x1={FRAME_SIZE - 2} y1={FRAME_SIZE * 0.7 - 28} x2={FRAME_SIZE - CORNER_LENGTH - 2} y2={FRAME_SIZE * 0.7 - 28}
-          stroke={colors.accent.primary} strokeWidth="3" strokeLinecap="round"
+          x1={FRAME_SIZE - 2}
+          y1={FRAME_SIZE * 0.7 - 28}
+          x2={FRAME_SIZE - CORNER_LENGTH - 2}
+          y2={FRAME_SIZE * 0.7 - 28}
+          stroke={colors.accent.primary}
+          strokeWidth="3"
+          strokeLinecap="round"
         />
       </Svg>
     </Animated.View>
@@ -128,6 +176,21 @@ export function BillScannerScreen() {
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startedAtRef = useRef(0);
+  const [editAmount, setEditAmount] = useState('');
+  const [editMerchant, setEditMerchant] = useState('');
+  const [editDate, setEditDate] = useState('');
+  const [editCategory, setEditCategory] = useState('Other');
+  const [editDescription, setEditDescription] = useState('');
+
+  useEffect(() => {
+    if (billData) {
+      setEditAmount(String(billData.amount || 0));
+      setEditMerchant(billData.merchant || '');
+      setEditDate(billData.date || new Date().toISOString().split('T')[0]);
+      setEditCategory(billData.category || 'Other');
+      setEditDescription(billData.description || '');
+    }
+  }, [billData]);
 
   async function openCamera() {
     const ImagePicker = await import('expo-image-picker');
@@ -189,24 +252,18 @@ export function BillScannerScreen() {
       form.append('file', { uri, name: fileName, type: mimeType });
 
       const res = await api.post<any>('/transactions/scan-bill', form as any, undefined, 120_000);
-      if (res && res.rawText && res.rawText !== 'NO TEXT EXTRACTED') {
-        navigation.navigate('CreateTransaction', {
-          prefill: {
-            amount: res.amount || 0,
-            description: res.merchant || res.description || '',
-            categoryName: res.category || 'Other',
-            date: res.date || new Date().toISOString().split('T')[0],
-          },
+      if (res && (res.amount > 0 || (res.rawText && res.rawText !== 'NO TEXT EXTRACTED'))) {
+        setBillData({
+          amount: res.amount || 0,
+          merchant: res.merchant || res.description || '',
+          date: res.date || new Date().toISOString().split('T')[0],
+          description: res.description || res.merchant || '',
+          category: res.category || 'Other',
+          items: res.items || undefined,
+          confidence: res.confidence || 0,
+          rawText: res.rawText || undefined,
         });
-      } else if (res && res.amount > 0) {
-        navigation.navigate('CreateTransaction', {
-          prefill: {
-            amount: res.amount,
-            description: res.merchant || res.description || '',
-            categoryName: res.category || 'Other',
-            date: res.date || new Date().toISOString().split('T')[0],
-          },
-        });
+        setScanState('preview');
       } else {
         throw new Error('Could not read the bill. Please try a clearer photo.');
       }
@@ -245,10 +302,15 @@ export function BillScannerScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.bg.primary }]} />
-      <ScrollView
-        contentContainerStyle={{ ...styles.content, paddingTop: insets.top + 8 }}
-      >
-        <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }], alignItems: 'center', width: '100%' }}>
+      <ScrollView contentContainerStyle={{ ...styles.content, paddingTop: insets.top + 8 }}>
+        <Animated.View
+          style={{
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }],
+            alignItems: 'center',
+            width: '100%',
+          }}
+        >
           {scanState === 'idle' && (
             <>
               <View style={[styles.iconWrap, { backgroundColor: `${colors.accent.primary}18` }]}>
@@ -273,7 +335,14 @@ export function BillScannerScreen() {
               </View>
 
               <TouchableOpacity
-                style={[styles.actionBtn, styles.secondaryBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.1)', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)' }]}
+                style={[
+                  styles.actionBtn,
+                  styles.secondaryBtn,
+                  {
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.1)',
+                    borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)',
+                  },
+                ]}
                 onPress={pickFromGallery}
               >
                 <Ionicons name="images-outline" size={20} color={colors.accent.primary} />
@@ -283,7 +352,10 @@ export function BillScannerScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.viewBillsBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.08)' }]}
+                style={[
+                  styles.viewBillsBtn,
+                  { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.08)' },
+                ]}
                 onPress={() => navigation.navigate('BillsList')}
               >
                 <Ionicons name="receipt-outline" size={18} color={colors.accent.primary} />
@@ -299,10 +371,22 @@ export function BillScannerScreen() {
               {imageUri && (
                 <Image source={{ uri: imageUri }} style={styles.preview} resizeMode="contain" />
               )}
-              <View style={[styles.scanningCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.12)', borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.2)' }]}>
+              <View
+                style={[
+                  styles.scanningCard,
+                  {
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.12)',
+                    borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.2)',
+                  },
+                ]}
+              >
                 <ActivityIndicator color={colors.accent.primary} size="large" />
-                <Text style={[styles.scanningText, { color: colors.text.secondary, marginTop: 16 }]}>
-                  {elapsed > 15 ? 'Still analyzing... taking longer than expected' : 'Analyzing bill...'}
+                <Text
+                  style={[styles.scanningText, { color: colors.text.secondary, marginTop: 16 }]}
+                >
+                  {elapsed > 15
+                    ? 'Still analyzing... taking longer than expected'
+                    : 'Analyzing bill...'}
                 </Text>
                 {elapsed > 5 && (
                   <Text style={[styles.elapsedText, { color: colors.text.tertiary }]}>
@@ -311,23 +395,310 @@ export function BillScannerScreen() {
                 )}
                 {elapsed > 20 && (
                   <TouchableOpacity
-                    style={[styles.cancelBtn, { backgroundColor: colors.bg.secondary, borderColor: colors.border.default }]}
+                    style={[
+                      styles.cancelBtn,
+                      { backgroundColor: colors.bg.secondary, borderColor: colors.border.default },
+                    ]}
                     onPress={handleRetry}
                   >
                     <Ionicons name="close" size={20} color={colors.text.primary} />
-                    <Text style={[styles.cancelBtnText, { color: colors.text.primary }]}>Cancel</Text>
+                    <Text style={[styles.cancelBtnText, { color: colors.text.primary }]}>
+                      Cancel
+                    </Text>
                   </TouchableOpacity>
                 )}
               </View>
             </View>
           )}
 
+          {scanState === 'preview' && billData && (
+            <View style={{ width: '100%' }}>
+              {imageUri && (
+                <Image source={{ uri: imageUri }} style={styles.preview} resizeMode="contain" />
+              )}
+
+              <View
+                style={[
+                  styles.resultCard,
+                  { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+                ]}
+              >
+                <View style={styles.resultHeader}>
+                  <Ionicons name="document-text" size={20} color={colors.accent.primary} />
+                  <Text style={[styles.resultTitle, { color: colors.text.primary }]}>
+                    OCR Prediction
+                  </Text>
+                </View>
+
+                <View style={{ gap: 12 }}>
+                  <View>
+                    <Text style={[styles.fieldLabel, { color: colors.text.tertiary }]}>Amount</Text>
+                    <TextInput
+                      style={[
+                        styles.fieldInput,
+                        {
+                          color: colors.text.primary,
+                          backgroundColor: colors.bg.tertiary,
+                          borderColor: colors.border.subtle,
+                        },
+                      ]}
+                      value={editAmount}
+                      onChangeText={setEditAmount}
+                      keyboardType="decimal-pad"
+                      placeholder="0.00"
+                      placeholderTextColor={colors.text.tertiary}
+                    />
+                  </View>
+
+                  <View>
+                    <Text style={[styles.fieldLabel, { color: colors.text.tertiary }]}>
+                      Merchant
+                    </Text>
+                    <TextInput
+                      style={[
+                        styles.fieldInput,
+                        {
+                          color: colors.text.primary,
+                          backgroundColor: colors.bg.tertiary,
+                          borderColor: colors.border.subtle,
+                        },
+                      ]}
+                      value={editMerchant}
+                      onChangeText={setEditMerchant}
+                      placeholder="Store name"
+                      placeholderTextColor={colors.text.tertiary}
+                    />
+                  </View>
+
+                  <View>
+                    <Text style={[styles.fieldLabel, { color: colors.text.tertiary }]}>Date</Text>
+                    <TextInput
+                      style={[
+                        styles.fieldInput,
+                        {
+                          color: colors.text.primary,
+                          backgroundColor: colors.bg.tertiary,
+                          borderColor: colors.border.subtle,
+                        },
+                      ]}
+                      value={editDate}
+                      onChangeText={setEditDate}
+                      placeholder="YYYY-MM-DD"
+                      placeholderTextColor={colors.text.tertiary}
+                    />
+                  </View>
+
+                  <View>
+                    <Text style={[styles.fieldLabel, { color: colors.text.tertiary }]}>
+                      Category
+                    </Text>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      style={{ marginTop: 6 }}
+                    >
+                      {EXPENSE_CATEGORIES.map((cat) => {
+                        const selected = editCategory === cat.name;
+                        return (
+                          <TouchableOpacity
+                            key={cat.name}
+                            activeOpacity={0.7}
+                            onPress={() => setEditCategory(cat.name)}
+                            style={[
+                              styles.categoryChip,
+                              {
+                                backgroundColor: selected ? `${cat.color}22` : colors.bg.tertiary,
+                                borderColor: selected ? cat.color : colors.border.subtle,
+                              },
+                            ]}
+                          >
+                            <Ionicons
+                              name={cat.icon as any}
+                              size={14}
+                              color={selected ? cat.color : colors.text.tertiary}
+                            />
+                            <Text
+                              style={[
+                                styles.categoryChipText,
+                                { color: selected ? cat.color : colors.text.secondary },
+                              ]}
+                            >
+                              {cat.name}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </ScrollView>
+                  </View>
+
+                  <View>
+                    <Text style={[styles.fieldLabel, { color: colors.text.tertiary }]}>
+                      Description
+                    </Text>
+                    <TextInput
+                      style={[
+                        styles.fieldInput,
+                        styles.fieldInputMultiline,
+                        {
+                          color: colors.text.primary,
+                          backgroundColor: colors.bg.tertiary,
+                          borderColor: colors.border.subtle,
+                        },
+                      ]}
+                      value={editDescription}
+                      onChangeText={setEditDescription}
+                      placeholder="Optional notes"
+                      placeholderTextColor={colors.text.tertiary}
+                      multiline
+                      numberOfLines={2}
+                    />
+                  </View>
+                </View>
+
+                {billData.items && billData.items.length > 0 && (
+                  <>
+                    <View
+                      style={[
+                        styles.resultDivider,
+                        { backgroundColor: colors.border.subtle, marginVertical: 14 },
+                      ]}
+                    />
+                    <Text
+                      style={[styles.fieldLabel, { color: colors.text.tertiary, marginBottom: 8 }]}
+                    >
+                      Line Items
+                    </Text>
+                    {billData.items.map((item, i) => (
+                      <View
+                        key={i}
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          paddingVertical: 3,
+                        }}
+                      >
+                        <Text style={{ fontSize: 13, color: colors.text.secondary, flex: 1 }}>
+                          {item.name}
+                        </Text>
+                        <Text
+                          style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}
+                        >
+                          {item.quantity ? `x${item.quantity} ` : ''}₹{item.price.toFixed(2)}
+                        </Text>
+                      </View>
+                    ))}
+                  </>
+                )}
+              </View>
+
+              {billData.confidence > 0 && (
+                <View
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 16 }}
+                >
+                  <View
+                    style={{
+                      flex: 1,
+                      height: 4,
+                      borderRadius: 2,
+                      backgroundColor: colors.border.subtle,
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: `${Math.round(billData.confidence * 100)}%`,
+                        height: 4,
+                        borderRadius: 2,
+                        backgroundColor:
+                          billData.confidence > 0.7
+                            ? colors.status.success
+                            : billData.confidence > 0.4
+                              ? '#F59E0B'
+                              : colors.status.error,
+                      }}
+                    />
+                  </View>
+                  <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
+                    {Math.round(billData.confidence * 100)}% confidence
+                  </Text>
+                </View>
+              )}
+
+              {billData.rawText && (
+                <View
+                  style={[
+                    styles.rawTextCard,
+                    { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+                  ]}
+                >
+                  <Text style={[styles.rawTextLabel, { color: colors.text.tertiary }]}>
+                    Raw Extracted Text
+                  </Text>
+                  <Text style={[styles.rawTextContent, { color: colors.text.secondary }]}>
+                    {billData.rawText}
+                  </Text>
+                </View>
+              )}
+
+              <View style={{ gap: 10, marginTop: 8 }}>
+                <TouchableOpacity
+                  style={[styles.actionBtn, { backgroundColor: colors.accent.primary }]}
+                  activeOpacity={0.8}
+                  onPress={() =>
+                    navigation.navigate('CreateTransaction', {
+                      prefill: {
+                        amount: parseFloat(editAmount) || 0,
+                        description: editMerchant || editDescription || '',
+                        categoryName: editCategory || 'Other',
+                        date: editDate || new Date().toISOString().split('T')[0],
+                      },
+                    })
+                  }
+                >
+                  <View style={styles.actionBtnInner}>
+                    <Ionicons name="add-circle" size={20} color="#FFFFFF" />
+                    <Text style={styles.actionBtnText}>Add to Expenses</Text>
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.actionBtn,
+                    {
+                      backgroundColor: 'transparent',
+                      borderWidth: 1,
+                      borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)',
+                    },
+                  ]}
+                  activeOpacity={0.8}
+                  onPress={handleRetry}
+                >
+                  <View style={styles.actionBtnInner}>
+                    <Ionicons name="close" size={20} color={colors.text.secondary} />
+                    <Text style={[styles.actionBtnText, { color: colors.text.secondary }]}>
+                      Discard & Scan Again
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
           {scanState === 'error' && (
             <View style={styles.centerContent}>
-              <View style={[styles.errorCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.12)', borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.2)' }]}>
+              <View
+                style={[
+                  styles.errorCard,
+                  {
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.12)',
+                    borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.2)',
+                  },
+                ]}
+              >
                 <Ionicons name="alert-circle" size={56} color={colors.status.error} />
                 <Text style={[styles.errorTitle, { color: colors.text.primary }]}>Scan Failed</Text>
-                <Text style={[styles.errorDesc, { color: colors.text.tertiary }]}>{errorMessage}</Text>
+                <Text style={[styles.errorDesc, { color: colors.text.tertiary }]}>
+                  {errorMessage}
+                </Text>
                 <View style={{ gap: 12, width: '100%', marginTop: 8 }}>
                   <View style={[styles.actionBtn, { backgroundColor: colors.accent.primary }]}>
                     <TouchableOpacity
@@ -340,7 +711,14 @@ export function BillScannerScreen() {
                     </TouchableOpacity>
                   </View>
                   <TouchableOpacity
-                    style={[styles.actionBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.3)' }]}
+                    style={[
+                      styles.actionBtn,
+                      {
+                        backgroundColor: 'transparent',
+                        borderWidth: 1,
+                        borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.3)',
+                      },
+                    ]}
                     onPress={() => navigation.navigate('CreateTransaction' as any)}
                   >
                     <Ionicons name="create-outline" size={20} color={colors.text.secondary} />
@@ -361,7 +739,12 @@ export function BillScannerScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 24, paddingBottom: 120, alignItems: 'center' },
-  centerContent: { alignItems: 'center', justifyContent: 'center', paddingVertical: 20, width: '100%' },
+  centerContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 20,
+    width: '100%',
+  },
   iconWrap: {
     width: 88,
     height: 88,
@@ -436,4 +819,73 @@ const styles = StyleSheet.create({
   },
   errorTitle: { fontSize: 20, fontWeight: '800', marginTop: 16, marginBottom: 8 },
   errorDesc: { fontSize: 14, textAlign: 'center', paddingHorizontal: 32, fontWeight: '500' },
+  resultCard: {
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 18,
+    marginBottom: 16,
+    width: '100%',
+  },
+  resultHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 14,
+  },
+  resultTitle: { fontSize: 16, fontWeight: '700' },
+  resultRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+  },
+  resultLabel: { fontSize: 13, fontWeight: '600' },
+  resultValue: { fontSize: 15, fontWeight: '700' },
+  resultDivider: { height: 1, marginVertical: 0 },
+  categoryBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  categoryBadgeText: { fontSize: 12, fontWeight: '700' },
+  rawTextCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+    marginBottom: 16,
+  },
+  rawTextLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  rawTextContent: { fontSize: 12, fontWeight: '500', lineHeight: 18 },
+  fieldLabel: { fontSize: 12, fontWeight: '700', letterSpacing: 0.3, textTransform: 'uppercase' },
+  fieldInput: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
+    fontWeight: '600',
+    marginTop: 6,
+  },
+  fieldInputMultiline: {
+    minHeight: 56,
+    textAlignVertical: 'top',
+    paddingTop: 12,
+  },
+  categoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    marginRight: 8,
+  },
+  categoryChipText: { fontSize: 12, fontWeight: '700' },
 });

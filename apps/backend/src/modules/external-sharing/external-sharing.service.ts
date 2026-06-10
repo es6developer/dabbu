@@ -364,7 +364,7 @@ export class ExternalSharingService {
       secret: this.configService.get<string>('jwt.secret')!,
       expiresIn: '7d',
       issuer: this.configService.get<string>('jwt.issuer') || 'dabbu',
-      audience: 'dabbu-temp-users',
+      audience: this.configService.get<string>('jwt.audience') || 'dabbu-users',
     });
 
     const decoded = this.jwtService.verify(accessToken, {

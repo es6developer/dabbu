@@ -264,10 +264,10 @@ export const api = {
       if (groupId) {
         body.groupId = groupId;
       }
-      return post<{ token: string; user: Record<string, unknown> }>(
-        '/external-sharing/auth/google',
-        body,
-      );
+      return post<{
+        tokens: { accessToken: string; refreshToken: string; expiresAt: string };
+        user: Record<string, unknown>;
+      }>('/external-sharing/auth/google', body);
     },
   },
 
