@@ -164,7 +164,6 @@ export function HomeScreen() {
   const [goals, setGoals] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [upcomingBillsTotal, setUpcomingBillsTotal] = useState(0);
-  const [subscriptionTotal, setSubscriptionTotal] = useState(0);
   const [spaces, setSpaces] = useState<any[]>([]);
   const [budgets, setBudgets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -175,6 +174,12 @@ export function HomeScreen() {
 
   const savings = Math.max(0, monthlyIncome - monthlySpent);
   const savingsRate = monthlyIncome > 0 ? (savings / monthlyIncome) * 100 : 0;
+
+  const subscriptionTotal = useMemo(() => {
+    const sub = categories.find((c) => c.name === 'Subscription');
+    return sub ? sub.amount : 0;
+  }, [categories]);
+
   const safeToSpend = Math.max(0, (totalBalance ?? 0) - upcomingBillsTotal - subscriptionTotal);
 
   const budgetHealth = useMemo(() => {
@@ -220,27 +225,17 @@ export function HomeScreen() {
       }
 
       try {
-        const [
-          balRes,
-          statsRes,
-          remRes,
-          goalRes,
-          notifRes,
-          billsRes,
-          subRes,
-          spacesRes,
-          budgetsRes,
-        ] = await Promise.allSettled([
-          api.get<any>('/accounts/stats', ctrl.signal),
-          api.get<any>('/transactions/stats?months=1', ctrl.signal),
-          api.get<any>('/reminders/upcoming?days=7', ctrl.signal),
-          api.get<any>('/goals', ctrl.signal),
-          api.get<any>('/notifications/unread-count', ctrl.signal),
-          api.get<any>('/bills?status=pending', ctrl.signal).catch(() => []),
-          api.get<any>('/accounts/subscriptions', ctrl.signal).catch(() => ({ monthlyTotal: 0 })),
-          api.get<any>('/shared-finance/groups', ctrl.signal).catch(() => []),
-          api.get<any>('/budgets', ctrl.signal).catch(() => []),
-        ]);
+        const [balRes, statsRes, remRes, goalRes, notifRes, billsRes, spacesRes, budgetsRes] =
+          await Promise.allSettled([
+            api.get<any>('/accounts/stats', ctrl.signal),
+            api.get<any>('/transactions/stats?months=1', ctrl.signal),
+            api.get<any>('/reminders/upcoming?days=7', ctrl.signal),
+            api.get<any>('/goals', ctrl.signal),
+            api.get<any>('/notifications/unread-count', ctrl.signal),
+            api.get<any>('/bills?status=pending', ctrl.signal).catch(() => []),
+            api.get<any>('/shared-finance/groups', ctrl.signal).catch(() => []),
+            api.get<any>('/budgets', ctrl.signal).catch(() => []),
+          ]);
 
         if (ctrl.signal.aborted) {
           return;
@@ -292,11 +287,6 @@ export function HomeScreen() {
           setUpcomingBillsTotal(
             bills.reduce((s: number, b: any) => s + (Number(b.amount) || 0), 0),
           );
-        }
-
-        if (subRes.status === 'fulfilled') {
-          const subData = subRes.value?.data ?? subRes.value ?? {};
-          setSubscriptionTotal(Number(subData.monthlyTotal ?? subData.total ?? 0));
         }
 
         if (spacesRes.status === 'fulfilled') {

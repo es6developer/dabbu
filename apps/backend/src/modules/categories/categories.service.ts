@@ -11,6 +11,7 @@ const EXPENSE_DEFAULTS = [
   { name: 'Healthcare', type: 'expense', icon: 'medkit', color: '#FF4D4F' },
   { name: 'Shopping', type: 'expense', icon: 'bag', color: '#F472B6' },
   { name: 'Entertainment', type: 'expense', icon: 'film', color: '#8B5CF6' },
+  { name: 'Subscription', type: 'expense', icon: 'repeat', color: '#8B5CF6' },
   { name: 'Sports', type: 'expense', icon: 'football', color: '#22C55E' },
   { name: 'Travel', type: 'expense', icon: 'airplane', color: '#60A5FA' },
   { name: 'Children & Baby', type: 'expense', icon: 'happy', color: '#FF9F0A' },
@@ -68,7 +69,9 @@ export class CategoriesService {
     const nameSeen = new Map<string, boolean>();
     const uniqueDefaults = defaultCats.filter((c) => {
       const key = c.name;
-      if (nameSeen.has(key)) return false;
+      if (nameSeen.has(key)) {
+        return false;
+      }
       nameSeen.set(key, true);
       return true;
     });
@@ -90,7 +93,9 @@ export class CategoriesService {
       where: { id, isActive: true },
       include: { _count: { select: { transactions: true } } },
     });
-    if (!cat) throw new NotFoundException('Category not found');
+    if (!cat) {
+      throw new NotFoundException('Category not found');
+    }
     return { data: cat };
   }
 
@@ -98,7 +103,9 @@ export class CategoriesService {
     const cat = await this.prisma.transactionCategory.findFirst({
       where: { id, userId },
     });
-    if (!cat) throw new NotFoundException('Category not found');
+    if (!cat) {
+      throw new NotFoundException('Category not found');
+    }
 
     return this.prisma.transactionCategory.update({
       where: { id },
@@ -118,7 +125,9 @@ export class CategoriesService {
     const cat = await this.prisma.transactionCategory.findFirst({
       where: { id, userId },
     });
-    if (!cat) throw new NotFoundException('Category not found');
+    if (!cat) {
+      throw new NotFoundException('Category not found');
+    }
 
     await this.prisma.transactionCategory.update({
       where: { id },
