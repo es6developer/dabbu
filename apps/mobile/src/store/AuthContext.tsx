@@ -111,7 +111,14 @@ async function authFetch(path: string, options: RequestInit = {}): Promise<Respo
   const timeout = setTimeout(() => controller.abort(), 45000);
   try {
     const merged = { ...options, signal: controller.signal };
-    return await fetch(`${API_URL}${path}`, merged);
+    const url = `${API_URL}${path}`;
+    const res = await fetch(url, merged);
+    return res;
+  } catch (err: any) {
+    if (err?.name === 'AbortError') {
+      throw new Error('Request timed out. Check your internet connection.');
+    }
+    throw new Error('Unable to reach server. Please check your internet connection or try again.');
   } finally {
     clearTimeout(timeout);
   }
