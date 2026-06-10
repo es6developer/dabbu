@@ -422,24 +422,25 @@ export function SharedGroupDetailScreen() {
         <View style={[s.card, { backgroundColor: colors.bg.card }]}>
           <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Category Breakdown</Text>
           <View style={s.chipRow}>
-            {['Food', 'Travel', 'Shopping', 'Bills', 'Entertainment'].map((cat) => {
-              const amt = expenses
-                .filter((e) => (e.category || 'Other').toLowerCase() === cat.toLowerCase())
-                .reduce((s, e) => s + Number(e.amount || 0), 0);
-              if (amt === 0) {
-                return null;
-              }
-              return (
-                <View
-                  key={cat}
-                  style={[s.categoryChip, { backgroundColor: `${colors.accent.primary}15` }]}
-                >
-                  <Text style={[s.categoryChipText, { color: colors.accent.primary }]}>
-                    {cat} · {fmt(amt)}
-                  </Text>
-                </View>
-              );
-            })}
+            {(() => {
+              const cats: Record<string, number> = {};
+              expenses.forEach((e) => {
+                const c = (e.category || 'Other').toLowerCase();
+                cats[c] = (cats[c] || 0) + Number(e.amount || 0);
+              });
+              return Object.entries(cats)
+                .sort(([, a], [, b]) => b - a)
+                .slice(0, 6);
+            })().map(([cat, amt]) => (
+              <View
+                key={cat}
+                style={[s.categoryChip, { backgroundColor: `${colors.accent.primary}15` }]}
+              >
+                <Text style={[s.categoryChipText, { color: colors.accent.primary }]}>
+                  {cat.charAt(0).toUpperCase() + cat.slice(1)} · {fmt(amt)}
+                </Text>
+              </View>
+            ))}
           </View>
         </View>
 
@@ -779,7 +780,7 @@ export function SharedGroupDetailScreen() {
             </TouchableOpacity>
           );
         })}
-        {type !== 'couple' && (
+        {!(type === 'couple' && members.length >= 2) && (
           <>
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <TouchableOpacity
@@ -1145,7 +1146,7 @@ export function SharedGroupDetailScreen() {
                     <Ionicons name="settings-outline" size={20} color="#FFF" />
                   </TouchableOpacity>
                 )}
-                {type !== 'couple' && (
+                {!(type === 'couple' && members.length >= 2) && (
                   <TouchableOpacity
                     style={[s.iconBtn, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
                     onPress={() =>
@@ -1155,7 +1156,7 @@ export function SharedGroupDetailScreen() {
                     <Ionicons name="sparkles" size={20} color="#FFD700" />
                   </TouchableOpacity>
                 )}
-                {type !== 'couple' && (
+                {!(type === 'couple' && members.length >= 2) && (
                   <TouchableOpacity
                     style={[s.iconBtn, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
                     onPress={handleGenerateInvite}

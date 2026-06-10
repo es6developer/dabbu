@@ -40,16 +40,10 @@ export class AuthService {
     private readonly referralService: ReferralService,
   ) {}
 
-  private get appUrl(): string {
-    return this.configService.get<string>('app.url', 'http://localhost:4000').replace(/\/+$/, '');
-  }
-
-  private get apiPrefix(): string {
-    return this.configService.get<string>('app.prefix', '/api/v1');
-  }
-
   private generateAvatarUrl(seed: string): string {
-    return `${this.appUrl}${this.apiPrefix}/auth/avatar/${encodeURIComponent(seed)}.svg`;
+    const hash = crypto.createHash('md5').update(seed).digest('hex');
+    const style = ['rings', 'shapes', 'thumbs'][parseInt(hash[0], 16) % 3];
+    return `https://api.dicebear.com/9.x/${style}/svg?seed=${encodeURIComponent(seed)}`;
   }
 
   private generateRandomAvatarSeed(firstName: string, lastName: string): string {

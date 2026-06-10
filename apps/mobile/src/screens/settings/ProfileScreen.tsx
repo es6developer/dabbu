@@ -150,11 +150,13 @@ export function ProfileScreen() {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         phone: fullPhone,
+        upiId: upiId.trim() || undefined,
       });
       completeProfileSetup({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         phone: fullPhone,
+        upiId: upiId.trim() || undefined,
       });
       Alert.alert('Success', 'Profile updated successfully');
     } catch (e: any) {
@@ -433,7 +435,7 @@ export function ProfileScreen() {
                     paddingVertical: 15,
                     borderRadius: borderRadius.md,
                     borderWidth: 1,
-                    borderColor: '#ac99d7',
+                    borderColor: colors.border.default,
                     backgroundColor: colors.bg.tertiary,
                     color: colors.text.primary,
                   }}
@@ -464,7 +466,7 @@ export function ProfileScreen() {
                     paddingVertical: 15,
                     borderRadius: borderRadius.md,
                     borderWidth: 1,
-                    borderColor: '#ac99d7',
+                    borderColor: colors.border.default,
                     backgroundColor: colors.bg.tertiary,
                     color: colors.text.primary,
                   }}
@@ -493,7 +495,7 @@ export function ProfileScreen() {
                     paddingVertical: 15,
                     borderRadius: borderRadius.md,
                     borderWidth: 1,
-                    borderColor: '#ac99d7',
+                    borderColor: colors.border.default,
                     backgroundColor: colors.bg.tertiary,
                   }}
                 >
@@ -523,7 +525,7 @@ export function ProfileScreen() {
                     paddingVertical: 15,
                     borderRadius: borderRadius.md,
                     borderWidth: 1,
-                    borderColor: '#ac99d7',
+                    borderColor: colors.border.default,
                     backgroundColor: colors.bg.tertiary,
                     color: colors.text.primary,
                   }}
@@ -566,7 +568,7 @@ export function ProfileScreen() {
                     paddingVertical: 15,
                     borderRadius: borderRadius.md,
                     borderWidth: 1,
-                    borderColor: '#ac99d7',
+                    borderColor: colors.border.default,
                     backgroundColor: colors.bg.tertiary,
                     color: colors.text.primary,
                   }}

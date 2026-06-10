@@ -693,7 +693,7 @@ export function SharedExpenseFormScreen() {
                 onPress={handleSave}
                 disabled={saving}
                 activeOpacity={0.85}
-                style={styles.saveBtnInner}
+                style={[styles.saveBtnInner, { backgroundColor: colors.accent.primary }]}
               >
                 {saving ? (
                   <ActivityIndicator color="#FFF" />

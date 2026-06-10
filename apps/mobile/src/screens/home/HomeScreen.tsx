@@ -702,21 +702,39 @@ export function HomeScreen() {
             style={[
               s.aiBanner,
               {
-                backgroundColor: '#1A0A2E',
-                borderColor: 'rgba(255,215,0,0.2)',
+                backgroundColor: isDark ? '#1A0A2E' : '#FEFCE8',
+                borderColor: isDark ? 'rgba(255,215,0,0.2)' : 'rgba(234,179,8,0.3)',
               },
             ]}
             activeOpacity={0.8}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <View style={s.aiBannerIcon}>
-                <Ionicons name="sparkles" size={22} color="#FFD700" />
+              <View
+                style={[
+                  s.aiBannerIcon,
+                  { backgroundColor: isDark ? 'rgba(255,215,0,0.15)' : 'rgba(234,179,8,0.2)' },
+                ]}
+              >
+                <Ionicons name="sparkles" size={22} color={isDark ? '#FFD700' : '#A16207'} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={s.aiBannerTitle}>AI Financial Insights</Text>
-                <Text style={s.aiBannerSub}>Smart analysis, spending patterns & savings tips</Text>
+                <Text style={[s.aiBannerTitle, { color: isDark ? '#FFD700' : '#713F12' }]}>
+                  AI Financial Insights
+                </Text>
+                <Text
+                  style={[
+                    s.aiBannerSub,
+                    { color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(113,63,18,0.6)' },
+                  ]}
+                >
+                  Smart analysis, spending patterns & savings tips
+                </Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color="rgba(255,215,0,0.5)" />
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={isDark ? 'rgba(255,215,0,0.5)' : 'rgba(113,63,18,0.4)'}
+              />
             </View>
           </TouchableOpacity>
         </Animated.View>
@@ -1220,18 +1238,15 @@ const s = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255,215,0,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   aiBannerTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFD700',
   },
   aiBannerSub: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.5)',
     marginTop: 2,
   },
   aiFabWrap: {
