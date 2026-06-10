@@ -69,7 +69,7 @@ function warmupBackend(): void {
   }
   const ctrl = new AbortController();
   setTimeout(() => ctrl.abort(), 5000);
-  fetch(`${API_URL}/features`, { headers, signal: ctrl.signal }).catch(() => {});
+  fetch(`${API_URL}/health`, { headers, signal: ctrl.signal }).catch(() => {});
 }
 
 const REQUEST_TIMEOUT = 45_000;
