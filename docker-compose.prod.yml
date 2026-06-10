@@ -67,8 +67,8 @@ services:
 
   api:
     build:
-      context: ./apps/backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/backend/Dockerfile
       target: production
     container_name: dabbu-api
     restart: unless-stopped
@@ -120,8 +120,9 @@ services:
 
   db-migrate:
     build:
-      context: ./apps/backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/backend/Dockerfile
+      target: build
       target: build
     container_name: dabbu-db-migrate
     command: npx prisma migrate deploy

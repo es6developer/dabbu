@@ -54,7 +54,7 @@ export function BudgetsListScreen() {
         setLoading(true);
       }
       try {
-        const res = await api.get<any>('/accounts/budgets');
+        const res = await api.get<any>('/budgets');
         setBudgets(Array.isArray(res) ? res : []);
       } catch (e) {
         /* empty */

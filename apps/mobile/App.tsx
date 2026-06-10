@@ -17,6 +17,8 @@ import { AuthProvider } from './src/store/AuthContext';
 import { PreferencesProvider } from './src/store/PreferencesContext';
 import { LockProvider } from './src/store/LockContext';
 import { FavoritesProvider } from './src/store/FavoritesContext';
+import { OfflineProvider } from './src/store/OfflineContext';
+import { OfflineBanner } from './src/components/ui/OfflineBanner';
 import { loadFeatures } from './src/config/features';
 import { useDeepLinks } from './src/hooks/useDeepLinks';
 import { useNotifications } from './src/hooks/useNotifications';
@@ -134,14 +136,17 @@ export default function App(): React.ReactElement | null {
             <PreferencesProvider>
               <LockProvider>
                 <FavoritesProvider>
-                  <ThemedNavigationContainer navigationRef={navigationRef} linking={linking}>
-                    <ThemedStatusBar />
-                    <NotificationInitializer />
-                    <View style={{ flex: 1 }}>
-                      <RootNavigator />
-                      <ApiProgressBar />
-                    </View>
-                  </ThemedNavigationContainer>
+                  <OfflineProvider>
+                    <ThemedNavigationContainer navigationRef={navigationRef} linking={linking}>
+                      <ThemedStatusBar />
+                      <NotificationInitializer />
+                      <View style={{ flex: 1 }}>
+                        <RootNavigator />
+                        <OfflineBanner />
+                        <ApiProgressBar />
+                      </View>
+                    </ThemedNavigationContainer>
+                  </OfflineProvider>
                 </FavoritesProvider>
               </LockProvider>
             </PreferencesProvider>

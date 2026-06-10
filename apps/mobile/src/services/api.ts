@@ -4,6 +4,13 @@ import { GlobalLoading } from './loading-events';
 
 const CACHE_STORAGE_KEY = 'api_cache_v2';
 
+export class OfflineError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'OfflineError';
+  }
+}
+
 let accessToken: string | null = null;
 let refreshTokenFn: (() => Promise<boolean>) | null = null;
 let onSessionExpiredFn: (() => void) | null = null;
@@ -15,6 +22,70 @@ export function setAccessToken(token: string | null) {
 }
 export function getAccessToken(): string | null {
   return accessToken;
+}
+
+// ─── Offline Queue ──────────────────────────────────
+let isOnline = true;
+const offlineQueue: {
+  id: string;
+  action: 'create' | 'update' | 'delete';
+  resource: string;
+  data: any;
+  createdAt: number;
+  retries: number;
+}[] = [];
+
+export function setOnlineStatus(online: boolean) {
+  isOnline = online;
+  if (online && offlineQueue.length > 0) {
+    processOfflineQueue();
+  }
+}
+
+export function getOfflinePendingCount(): number {
+  return offlineQueue.length;
+}
+
+async function processOfflineQueue() {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (accessToken) {
+    headers['Authorization'] = `Bearer ${accessToken}`;
+  }
+  while (offlineQueue.length > 0) {
+    const item = offlineQueue[0];
+    try {
+      let method = 'POST';
+      let url = `${API_URL}/${item.resource}`;
+      let body = JSON.stringify(item.data);
+      if (item.action === 'update') {
+        method = 'PATCH';
+        url = `${API_URL}/${item.resource}/${item.data.id}`;
+      } else if (item.action === 'delete') {
+        method = 'DELETE';
+        url = `${API_URL}/${item.resource}/${item.data.id}`;
+        body = undefined as any;
+      }
+      const res = await fetch(url, { method, headers, body });
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      offlineQueue.shift();
+    } catch {
+      break;
+    }
+  }
+}
+
+async function enqueueMutation(action: 'create' | 'update' | 'delete', path: string, data: any) {
+  const resource = path.startsWith('/') ? path.slice(1) : path;
+  offlineQueue.push({
+    id: `${Date.now()}-${Math.random()}`,
+    action,
+    resource,
+    data,
+    createdAt: Date.now(),
+    retries: 0,
+  });
 }
 export function setRefreshTokenHandler(fn: () => Promise<boolean>) {
   refreshTokenFn = fn;
@@ -311,6 +382,28 @@ async function executeRequest<T>(
   ttl: number,
   canCache: boolean,
 ): Promise<T> {
+  const isGet = !options.method || options.method === 'GET';
+
+  // Offline-first: queue mutations when offline
+  if (!isGet && !isOnline) {
+    let body = options.body;
+    try {
+      body = typeof body === 'string' ? JSON.parse(body) : body;
+    } catch {
+      /* ignore parse errors */
+    }
+    await enqueueMutation(
+      options.method === 'POST'
+        ? 'create'
+        : options.method === 'PATCH' || options.method === 'PUT'
+          ? 'update'
+          : 'delete',
+      path,
+      body || {},
+    );
+    throw new OfflineError('You are offline. Your changes will sync when you reconnect.');
+  }
+
   const isFormData =
     typeof (options as any).body !== 'string' &&
     typeof FormData !== 'undefined' &&
@@ -396,6 +489,28 @@ async function executeRequest<T>(
 
     return data as T;
   } catch (err: any) {
+    // Queue mutation for retry when fetch fails due to network
+    if (
+      (!isGet && err?.message?.includes('fetch')) ||
+      err?.name === 'TypeError' ||
+      err?.message?.includes('Network')
+    ) {
+      let body = options.body;
+      try {
+        body = typeof body === 'string' ? JSON.parse(body) : body;
+      } catch {
+        /* ignore parse errors */
+      }
+      await enqueueMutation(
+        options.method === 'POST'
+          ? 'create'
+          : options.method === 'PATCH' || options.method === 'PUT'
+            ? 'update'
+            : 'delete',
+        path,
+        body || {},
+      );
+    }
     if (canCache) {
       const stale = getCached<T>(key);
       if (stale) {

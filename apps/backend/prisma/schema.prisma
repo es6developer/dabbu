@@ -229,6 +229,9 @@ model User {
   LifeEvent            LifeEvent[]
   AiMilestone          AiMilestone[]
   AiFeedCard           AiFeedCard[]
+  loans                UserLoan[]
+  netWorth             UserNetWorth?
+  netWorthSnapshots    NetWorthSnapshot[]
 
   @@index([email])
   @@index([isActive])
@@ -708,6 +711,7 @@ model Bill {
   amount       Decimal   @db.Decimal(15, 2)
   dueDate      DateTime  @db.Date
   isPaid       Boolean   @default(false)
+  paidAmount   Decimal   @default(0) @db.Decimal(15, 2)  // Amount paid so far (for partial payments)
   paidDate     DateTime? @db.Date
   isRecurring  Boolean   @default(false)
   frequency    String?   @db.VarChar(20)
@@ -3139,4 +3143,80 @@ model AiFeedCard {
   @@index([userId, isRead, createdAt(sort: Desc)])
   @@index([userId, type])
   @@map("ai_feed_cards")
+}
+
+// ─── USER LOANS ─────────────────────────────────────────────
+// Personal loan tracking (Home, Car, Personal, Education)
+model UserLoan {
+  id           String    @id @default(uuid()) @db.VarChar(36)
+  userId       String    @db.VarChar(36)
+  name         String    @db.VarChar(100)
+  totalAmount  Decimal   @default(0) @db.Decimal(12, 2)
+  paidAmount   Decimal   @default(0) @db.Decimal(12, 2)
+  interestPaid Decimal   @default(0) @db.Decimal(12, 2)
+  monthlyEmi   Decimal   @default(0) @db.Decimal(12, 2)
+  emiDay       Int?                                // Day of month EMI is due (1-31)
+  startDate    DateTime?  @db.Date                  // Loan start date
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_loans")
+}
+
+// ─── USER NET WORTH ─────────────────────────────────────────
+// Personal net worth tracking (assets vs liabilities)
+model UserNetWorth {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  userId      String   @db.VarChar(36) @unique
+  totalAssets Decimal  @default(0) @db.Decimal(14, 2)
+  totalLiabilities Decimal @default(0) @db.Decimal(14, 2)
+  bank        Decimal  @default(0) @db.Decimal(14, 2)
+  cash        Decimal  @default(0) @db.Decimal(14, 2)
+  gold        Decimal  @default(0) @db.Decimal(14, 2)
+  property    Decimal  @default(0) @db.Decimal(14, 2)
+  investments Decimal  @default(0) @db.Decimal(14, 2)
+  fixedDeposits Decimal @default(0) @db.Decimal(14, 2)
+  homeLoan    Decimal  @default(0) @db.Decimal(14, 2)
+  personalLoan Decimal @default(0) @db.Decimal(14, 2)
+  creditCardDebt Decimal @default(0) @db.Decimal(14, 2)
+  otherLiabilities Decimal @default(0) @db.Decimal(14, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_net_worth")
+}
+
+// ─── NET WORTH SNAPSHOT ──────────────────────────────
+// Monthly history of net worth for trend tracking
+model NetWorthSnapshot {
+  id              String   @id @default(uuid()) @db.VarChar(36)
+  userId          String   @db.VarChar(36)
+  snapshotDate    DateTime @db.Date               // First day of the month
+  totalAssets     Decimal  @default(0) @db.Decimal(14, 2)
+  totalLiabilities Decimal @default(0) @db.Decimal(14, 2)
+  netWorth        Decimal  @default(0) @db.Decimal(14, 2)
+  bank            Decimal  @default(0) @db.Decimal(14, 2)
+  cash            Decimal  @default(0) @db.Decimal(14, 2)
+  gold            Decimal  @default(0) @db.Decimal(14, 2)
+  property        Decimal  @default(0) @db.Decimal(14, 2)
+  investments     Decimal  @default(0) @db.Decimal(14, 2)
+  fixedDeposits   Decimal  @default(0) @db.Decimal(14, 2)
+  homeLoan        Decimal  @default(0) @db.Decimal(14, 2)
+  personalLoan    Decimal  @default(0) @db.Decimal(14, 2)
+  creditCardDebt  Decimal  @default(0) @db.Decimal(14, 2)
+  otherLiabilities Decimal @default(0) @db.Decimal(14, 2)
+  createdAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, snapshotDate])
+  @@index([userId, snapshotDate])
+  @@map("net_worth_snapshots")
 }

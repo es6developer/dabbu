@@ -89,4 +89,25 @@ export class TransactionFilterDto {
   @ApiPropertyOptional() @IsOptional() @IsString() groupId?: string;
 
   @ApiPropertyOptional() @IsOptional() @IsString() expenseGroupId?: string;
+
+  // ─── Advanced Filters ──────────────────────────────────────
+  @ApiPropertyOptional({ description: 'Sort field (date, amount, createdAt)' })
+  @IsOptional()
+  @IsString()
+  sortBy?: string;
+
+  @ApiPropertyOptional({ description: 'Sort order (asc, desc)', default: 'desc' })
+  @IsOptional()
+  @IsString()
+  sortOrder?: string;
+
+  @ApiPropertyOptional({ description: 'Filter by tags (comma-separated)' })
+  @IsOptional()
+  @IsString()
+  tags?: string;
+
+  @ApiPropertyOptional({ description: 'Filter by status (cleared, pending, flagged)' })
+  @IsOptional()
+  @IsString()
+  status?: string;
 }

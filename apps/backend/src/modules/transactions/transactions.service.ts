@@ -69,14 +69,16 @@ export class TransactionsService {
       }),
     ]);
 
-    if (!group) return;
+    if (!group) {
+      return;
+    }
 
     const actorName = [actor?.firstName, actor?.lastName].filter(Boolean).join(' ') || 'Someone';
-    const memberIds = group.members
-      .map((m) => m.userId)
-      .filter((id) => id !== actorUserId);
+    const memberIds = group.members.map((m) => m.userId).filter((id) => id !== actorUserId);
 
-    if (memberIds.length === 0) return;
+    if (memberIds.length === 0) {
+      return;
+    }
 
     await Promise.allSettled(
       memberIds.map((memberId) =>
@@ -128,6 +130,20 @@ export class TransactionsService {
       ];
     }
 
+    if (filter.tags) {
+      const tagArray = filter.tags
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean);
+      if (tagArray.length > 0) {
+        where.tags = { hasSome: tagArray };
+      }
+    }
+
+    if (filter.status) {
+      where.status = filter.status;
+    }
+
     const page = filter.page || 1;
     const limit = filter.limit || 20;
 
@@ -135,11 +151,17 @@ export class TransactionsService {
     const needsGroupFilter = !!filter.groupId;
     const skip = (page - 1) * limit;
 
+    // Build orderBy from sortBy/sortOrder
+    const orderByField = ['date', 'amount', 'createdAt'].includes(filter.sortBy || '')
+      ? filter.sortBy!
+      : 'date';
+    const orderByDir = filter.sortOrder === 'asc' ? 'asc' : 'desc';
+
     const [rawData, total] = await Promise.all([
       this.prisma.transaction.findMany({
         where,
         include: { category: true },
-        orderBy: { date: 'desc' },
+        orderBy: { [orderByField]: orderByDir },
         skip,
         take: limit,
       }),
@@ -291,7 +313,12 @@ export class TransactionsService {
     return { data: transactions };
   }
 
-  async getCategorySummary(userId: string, startDate?: string, endDate?: string, expenseGroupId?: string) {
+  async getCategorySummary(
+    userId: string,
+    startDate?: string,
+    endDate?: string,
+    expenseGroupId?: string,
+  ) {
     const where: any = { deletedAt: null, type: 'expense' };
     if (expenseGroupId) {
       where.expenseGroupId = expenseGroupId;
@@ -410,36 +437,103 @@ export class TransactionsService {
     const keyword = (dto.description || dto.title || '').toLowerCase();
     const categoryMap: Record<string, string[]> = {
       'Food & Dining': [
-        'food', 'restaurant', 'swiggy', 'zomato', 'dining', 'cafe',
-        'lunch', 'dinner', 'breakfast', 'uber eats', 'pizza', 'burger',
+        'food',
+        'restaurant',
+        'swiggy',
+        'zomato',
+        'dining',
+        'cafe',
+        'lunch',
+        'dinner',
+        'breakfast',
+        'uber eats',
+        'pizza',
+        'burger',
       ],
       Transportation: [
-        'uber', 'ola', 'fuel', 'petrol', 'diesel', 'metro', 'bus',
-        'cab', 'parking', 'toll',
+        'uber',
+        'ola',
+        'fuel',
+        'petrol',
+        'diesel',
+        'metro',
+        'bus',
+        'cab',
+        'parking',
+        'toll',
       ],
       Shopping: [
-        'amazon', 'flipkart', 'myntra', 'shopping', 'mall',
-        'clothing', 'electronics', 'online',
+        'amazon',
+        'flipkart',
+        'myntra',
+        'shopping',
+        'mall',
+        'clothing',
+        'electronics',
+        'online',
       ],
       Utilities: [
-        'electricity', 'water', 'gas', 'broadband', 'wifi',
-        'phone', 'mobile', 'recharge', 'bill',
+        'electricity',
+        'water',
+        'gas',
+        'broadband',
+        'wifi',
+        'phone',
+        'mobile',
+        'recharge',
+        'bill',
       ],
       Entertainment: [
-        'netflix', 'prime', 'hotstar', 'movie', 'cinema',
-        'spotify', 'game', 'entertainment',
+        'netflix',
+        'prime',
+        'hotstar',
+        'movie',
+        'cinema',
+        'spotify',
+        'game',
+        'entertainment',
       ],
       Healthcare: [
-        'hospital', 'doctor', 'clinic', 'pharmacy', 'medicine',
-        'medical', 'health', 'dentist',
+        'hospital',
+        'doctor',
+        'clinic',
+        'pharmacy',
+        'medicine',
+        'medical',
+        'health',
+        'dentist',
       ],
       Housing: ['rent', 'lease', 'deposit', 'maintenance', 'society'],
       Groceries: ['grocery', 'groceries', 'vegetables', 'fruits', 'supermarket'],
       Travel: ['flight', 'airline', 'hotel', 'booking', 'trip', 'vacation', 'travel'],
-      'Children & Baby': ['school', 'tutor', 'class', 'course', 'training', 'education',
-        'university', 'college', 'baby', 'diaper', 'toy', 'kids', 'children'],
-      Financial: ['emi', 'loan', 'installment', 'insurance', 'subscription', 'transfer',
-        'neft', 'imps', 'rtgs', 'upi', 'bank transfer'],
+      'Children & Baby': [
+        'school',
+        'tutor',
+        'class',
+        'course',
+        'training',
+        'education',
+        'university',
+        'college',
+        'baby',
+        'diaper',
+        'toy',
+        'kids',
+        'children',
+      ],
+      Financial: [
+        'emi',
+        'loan',
+        'installment',
+        'insurance',
+        'subscription',
+        'transfer',
+        'neft',
+        'imps',
+        'rtgs',
+        'upi',
+        'bank transfer',
+      ],
       Employment: ['salary', 'income', 'payroll', 'payout', 'wages'],
       Investments: ['mutual fund', 'stock', 'share', 'investment', 'sip', 'fd', 'fixed deposit'],
       Freelancing: ['freelance', 'freelancing', 'contract', 'consulting', 'gig'],

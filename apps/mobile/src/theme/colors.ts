@@ -43,7 +43,7 @@ export const palette = {
     text: {
       primary: '#0F172A',
       secondary: '#64748B',
-      tertiary: '#94A3B8',
+      tertiary: '#6B7280',
       inverse: '#FFFFFF',
       link: '#8B5CF6',
       success: '#047857',
@@ -55,8 +55,8 @@ export const palette = {
       muted: '#C4B5FD',
     },
     border: {
-      subtle: '#F3F4F6',
-      default: '#E5E7EB',
+      subtle: '#E5E7EB',
+      default: '#D1D5DB',
       active: 'rgba(139, 92, 246, 0.25)',
     },
     accent: {

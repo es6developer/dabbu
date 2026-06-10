@@ -2848,4 +2848,80 @@ ${JSON.stringify(context, null, 2)}`;
       return null;
     }
   }
+
+  async getCoupleIntelligence(userId: string, groupId: string): Promise<any> {
+    try {
+      // Verify membership
+      const member = await this.prisma.sharedGroupMember.findUnique({
+        where: { groupId_userId: { groupId, userId } },
+      });
+      if (!member || !member.isActive) {
+        return null;
+      }
+
+      const intel = await this.prisma.coupleIntelligence.findFirst({
+        where: { coupleProfile: { groupId } },
+        orderBy: { computedAt: 'desc' },
+      });
+      if (!intel) {
+        return null;
+      }
+
+      const profile = await this.prisma.coupleFinanceProfile.findUnique({
+        where: { groupId },
+        select: { partner1Id: true, partner2Id: true, splitRatio: true, contributionType: true },
+      });
+
+      return {
+        compatibilityScore: intel.compatibilityScore,
+        spendingAlignment: intel.spendingAlignment,
+        savingsAlignment: intel.savingsAlignment,
+        financialDiscipline: intel.financialDiscipline,
+        sharedGoalAlignment: intel.sharedGoalAlignment,
+        spendingDifferences: intel.spendingDifferences,
+        insights: intel.insights,
+        recommendations: intel.recommendations,
+        monthlyReport: intel.monthlyReport,
+        computedAt: intel.computedAt,
+        profile,
+      };
+    } catch (error) {
+      this.logger.error(`Couple intelligence fetch failed: ${(error as Error).message}`);
+      return null;
+    }
+  }
+
+  async getFamilyIntelligence(userId: string, familyId: string): Promise<any> {
+    try {
+      const member = await this.prisma.familyMember.findFirst({
+        where: { familyId, userId },
+      });
+      if (!member) {
+        return null;
+      }
+
+      const intel = await this.prisma.familyIntelligence.findFirst({
+        where: { familyId },
+        orderBy: { computedAt: 'desc' },
+      });
+      if (!intel) {
+        return null;
+      }
+
+      return {
+        savingsRate: intel.savingsRate,
+        sharedBillScore: intel.sharedBillScore,
+        emergencyFundMonths: intel.emergencyFundMonths,
+        debtPressureScore: intel.debtPressureScore,
+        healthScore: intel.healthScore,
+        monthlyChange: intel.monthlyChange,
+        insights: intel.insights,
+        recommendations: intel.recommendations,
+        computedAt: intel.computedAt,
+      };
+    } catch (error) {
+      this.logger.error(`Family intelligence fetch failed: ${(error as Error).message}`);
+      return null;
+    }
+  }
 }

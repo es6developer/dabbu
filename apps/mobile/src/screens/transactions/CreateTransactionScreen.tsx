@@ -19,6 +19,7 @@ import { useTheme } from '../../theme';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../config/categoryIcons';
 import { PADDING, borderRadius, shadows, fabShadow } from '../../theme/design';
+import { KEYWORD_CATEGORIES } from '../../constants/smartEntryKeywords';
 
 type PrefillParams = {
   prefill?: {
@@ -68,6 +69,24 @@ export function CreateTransactionScreen() {
   const [description, setDescription] = useState(
     editingTransaction?.description || prefill?.description || '',
   );
+  const [smartEntry, setSmartEntry] = useState('');
+
+  function smartParse(text: string) {
+    const match = text.match(/^(.+?)\s+(\d+(?:\.\d+)?)$/);
+    if (match) {
+      const desc = match[1].trim();
+      const amt = match[2];
+      setAmount(amt);
+      setDescription(desc);
+      const lower = desc.toLowerCase();
+      for (const [keyword, cat] of Object.entries(KEYWORD_CATEGORIES)) {
+        if (lower.includes(keyword)) {
+          setCategory(cat);
+          return;
+        }
+      }
+    }
+  }
   const [date] = useState(
     (editingTransaction?.date
       ? new Date(editingTransaction.date).toISOString().split('T')[0]
@@ -276,6 +295,70 @@ export function CreateTransactionScreen() {
             </View>
           </View>
 
+          {/* Smart Entry */}
+          <View style={{ paddingHorizontal: PADDING, marginBottom: 12 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+              <Ionicons name="flash" size={14} color={colors.accent.primary} />
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '700',
+                  color: colors.text.secondary,
+                  letterSpacing: 0.5,
+                  textTransform: 'uppercase',
+                }}
+              >
+                Smart Entry
+              </Text>
+            </View>
+            <TextInput
+              style={{
+                backgroundColor: colors.bg.card,
+                borderRadius: borderRadius.lg,
+                padding: 16,
+                fontSize: 15,
+                fontWeight: '500',
+                color: colors.text.primary,
+                borderWidth: 1,
+                borderColor: colors.accent.primary,
+              }}
+              value={smartEntry}
+              onChangeText={(text) => {
+                setSmartEntry(text);
+                smartParse(text);
+              }}
+              placeholder='e.g. "Tea 20" or "Petrol 1000"'
+              placeholderTextColor={colors.text.tertiary}
+              returnKeyType="done"
+              onSubmitEditing={() => Keyboard.dismiss()}
+            />
+            {smartEntry.length > 0 &&
+              (() => {
+                const m = smartEntry.match(/^(.+?)\s+(\d+(?:\.\d+)?)$/);
+                if (!m) {
+                  return null;
+                }
+                const lower = m[1].trim().toLowerCase();
+                let cat = 'Other';
+                for (const [kw, c] of Object.entries(KEYWORD_CATEGORIES)) {
+                  if (lower.includes(kw)) {
+                    cat = c;
+                    break;
+                  }
+                }
+                return (
+                  <View
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 }}
+                  >
+                    <Ionicons name="checkmark-circle" size={14} color={colors.status.success} />
+                    <Text style={{ fontSize: 12, color: colors.text.secondary }}>
+                      {m[1].trim()} → {cat} · ₹{m[2]}
+                    </Text>
+                  </View>
+                );
+              })()}
+          </View>
+
           {/* Amount Card */}
           <View
             style={{
@@ -361,6 +444,41 @@ export function CreateTransactionScreen() {
                 </Text>
               </View>
             ) : null}
+          </View>
+
+          {/* Quick Amount Chips */}
+          <View style={{ paddingHorizontal: PADDING, marginBottom: 20 }}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 6 }}
+            >
+              {['20', '50', '100', '200', '500', '1000', '2000', '5000'].map((val) => (
+                <TouchableOpacity
+                  key={val}
+                  activeOpacity={0.7}
+                  onPress={() => setAmount(val)}
+                  style={{
+                    paddingHorizontal: 14,
+                    paddingVertical: 8,
+                    borderRadius: 12,
+                    backgroundColor: amount === val ? `${colors.accent.primary}15` : colors.bg.card,
+                    borderWidth: 1,
+                    borderColor: amount === val ? colors.accent.primary : colors.border.subtle,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontWeight: '700',
+                      color: amount === val ? colors.accent.primary : colors.text.secondary,
+                    }}
+                  >
+                    ₹{val}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
 
           {/* Description */}

@@ -194,7 +194,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   label: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '600',
     textAlign: 'center',
   },

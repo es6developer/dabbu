@@ -5,19 +5,13 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
   RefreshControl,
   Animated,
   Dimensions,
 } from 'react-native';
-import ReAnimated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withTiming,
-  withSequence,
-  Easing as ReEasing,
-  cancelAnimation,
-} from 'react-native-reanimated';
+
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -26,6 +20,8 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { getCategoryColor, getCategoryIcon } from '../../config/categoryIcons';
 import { Avatar } from '../../components/ui/Avatar';
+import { KEYWORD_CATEGORIES } from '../../constants/smartEntryKeywords';
+import { useOffline } from '../../store/OfflineContext';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
@@ -100,29 +96,18 @@ export function HomeScreen() {
   const [reminders, setReminders] = useState<any[]>([]);
   const [goals, setGoals] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [upcomingBillsTotal, setUpcomingBillsTotal] = useState(0);
+  const [subscriptionTotal, setSubscriptionTotal] = useState(0);
+  const [loanEmiTotal, setLoanEmiTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [quickEntry, setQuickEntry] = useState('');
+  const [quickEntryLoading, setQuickEntryLoading] = useState(false);
+  const { isOnline, pendingCount } = useOffline();
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const abortRef = useRef<AbortController | null>(null);
-  const aiPulse = useSharedValue(1);
-
-  useEffect(() => {
-    aiPulse.value = withRepeat(
-      withSequence(
-        withTiming(1.08, { duration: 1000, easing: ReEasing.inOut(ReEasing.quad) }),
-        withTiming(1, { duration: 1000, easing: ReEasing.inOut(ReEasing.quad) }),
-      ),
-      -1,
-      true,
-    );
-    return () => cancelAnimation(aiPulse);
-  }, []);
-
-  const aiPulseAnim = useAnimatedStyle(() => ({
-    transform: [{ scale: aiPulse.value }],
-  }));
 
   const savings = Math.max(0, monthlyIncome - monthlySpent);
   const savingsRate = monthlyIncome > 0 ? (savings / monthlyIncome) * 100 : 0;
@@ -144,14 +129,19 @@ export function HomeScreen() {
       setError(null);
 
       try {
-        const [balRes, statsRes, grpRes, remRes, goalRes, notifRes] = await Promise.allSettled([
-          api.get<any>('/accounts/stats', ctrl.signal),
-          api.get<any>('/transactions/stats?months=1', ctrl.signal),
-          api.get<any>('/expense-groups', ctrl.signal),
-          api.get<any>('/reminders/upcoming?days=7', ctrl.signal),
-          api.get<any>('/goals', ctrl.signal),
-          api.get<any>('/notifications/unread-count', ctrl.signal),
-        ]);
+        const [balRes, statsRes, grpRes, remRes, goalRes, notifRes, billsRes, subRes] =
+          await Promise.allSettled([
+            api.get<any>('/accounts/stats', ctrl.signal),
+            api.get<any>('/transactions/stats?months=1', ctrl.signal),
+            api.get<any>('/expense-groups', ctrl.signal),
+            api.get<any>('/reminders/upcoming?days=7', ctrl.signal),
+            api.get<any>('/goals', ctrl.signal),
+            api.get<any>('/notifications/unread-count', ctrl.signal),
+            api.get<any>('/bills?status=pending', ctrl.signal).catch(() => ({ data: [] })),
+            api
+              .get<any>('/accounts/subscriptions', ctrl.signal)
+              .catch(() => ({ data: { monthlyTotal: 0 } })),
+          ]);
 
         if (ctrl.signal.aborted) {
           return;
@@ -212,6 +202,21 @@ export function HomeScreen() {
           setUnreadCount(n.count ?? n.data?.count ?? 0);
         }
 
+        if (billsRes.status === 'fulfilled') {
+          const billsData = billsRes.value?.data ?? billsRes.value ?? [];
+          const bills = Array.isArray(billsData) ? billsData : [];
+          const upcomingTotal = bills.reduce(
+            (sum: number, b: any) => sum + (Number(b.amount) || 0),
+            0,
+          );
+          setUpcomingBillsTotal(upcomingTotal);
+        }
+
+        if (subRes.status === 'fulfilled') {
+          const subData = subRes.value?.data ?? subRes.value ?? {};
+          setSubscriptionTotal(Number(subData.monthlyTotal ?? subData.total ?? 0));
+        }
+
         Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
       } catch {
         if (!ctrl.signal.aborted) {
@@ -232,6 +237,42 @@ export function HomeScreen() {
       loadData();
     }, [loadData]),
   );
+
+  async function handleQuickAdd(text: string) {
+    const match = text.match(/^(.+?)\s+(\d+(?:\.\d+)?)$/);
+    if (!match) {
+      return;
+    }
+    const desc = match[1].trim();
+    const amt = match[2];
+    const lower = desc.toLowerCase();
+    let category = 'Other';
+    for (const [keyword, cat] of Object.entries(KEYWORD_CATEGORIES)) {
+      if (lower.includes(keyword)) {
+        category = cat;
+        break;
+      }
+    }
+    setQuickEntryLoading(true);
+    try {
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      await api.post('/transactions', {
+        amount: parseFloat(amt),
+        description: desc,
+        categoryName: category,
+        type: 'expense',
+        date: new Date().toISOString(),
+      });
+      setQuickEntry('');
+      loadData(true);
+    } catch {
+      /* ignore */
+    } finally {
+      setQuickEntryLoading(false);
+    }
+  }
 
   const quickActions = useMemo(
     () => [
@@ -522,6 +563,324 @@ export function HomeScreen() {
           </View>
         </Animated.View>
 
+        {/* ── Safe to Spend ───────────────────────── */}
+        <Animated.View style={{ paddingHorizontal: 20, marginTop: 14, opacity: fadeAnim }}>
+          <View
+            style={[
+              s.safeCard,
+              { backgroundColor: colors.bg.card, borderColor: colors.border.default },
+            ]}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+              }}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={[s.safeLabel, { color: colors.text.tertiary }]}>
+                  Available Balance
+                </Text>
+                <Text style={[s.safeAmount, { color: colors.text.primary }]}>
+                  {fmt(totalBalance ?? 0)}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Settings', { screen: 'Reports' })}
+                style={[s.safeDetailBtn, { backgroundColor: `${colors.accent.primary}12` }]}
+              >
+                <Text style={[s.safeDetailBtnText, { color: colors.accent.primary }]}>Details</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={[s.safeDivider, { backgroundColor: colors.border.subtle }]} />
+            <View style={{ gap: 8 }}>
+              <View style={s.safeRow}>
+                <Ionicons name="receipt-outline" size={14} color={colors.text.tertiary} />
+                <Text style={[s.safeRowLabel, { color: colors.text.tertiary }]}>
+                  Upcoming Bills
+                </Text>
+                <Text style={[s.safeRowValue, { color: colors.text.primary }]}>
+                  -{fmt(upcomingBillsTotal)}
+                </Text>
+              </View>
+              <View style={s.safeRow}>
+                <Ionicons name="card-outline" size={14} color={colors.text.tertiary} />
+                <Text style={[s.safeRowLabel, { color: colors.text.tertiary }]}>Subscriptions</Text>
+                <Text style={[s.safeRowValue, { color: colors.text.primary }]}>
+                  -{fmt(subscriptionTotal)}
+                </Text>
+              </View>
+              <View style={s.safeRow}>
+                <Ionicons name="trending-down-outline" size={14} color={colors.text.tertiary} />
+                <Text style={[s.safeRowLabel, { color: colors.text.tertiary }]}>Loan EMIs</Text>
+                <Text style={[s.safeRowValue, { color: colors.text.primary }]}>
+                  -{fmt(loanEmiTotal)}
+                </Text>
+              </View>
+            </View>
+            <View
+              style={[
+                s.safeResult,
+                {
+                  backgroundColor: `${colors.status.success}12`,
+                  borderColor: `${colors.status.success}25`,
+                },
+              ]}
+            >
+              <Ionicons name="shield-checkmark" size={16} color={colors.status.success} />
+              <Text style={[s.safeResultLabel, { color: colors.text.tertiary }]}>
+                Safe to Spend
+              </Text>
+              <Text style={[s.safeResultValue, { color: colors.status.success }]}>
+                {fmt(
+                  Math.max(
+                    0,
+                    (totalBalance ?? 0) - upcomingBillsTotal - subscriptionTotal - loanEmiTotal,
+                  ),
+                )}
+              </Text>
+            </View>
+          </View>
+        </Animated.View>
+
+        {/* ── Quick Add ────────────────────────────── */}
+        <Animated.View style={{ paddingHorizontal: 20, marginTop: 16, opacity: fadeAnim }}>
+          <Text style={[s.sectionTitle, { color: colors.text.primary, marginBottom: 8 }]}>
+            Quick Add
+          </Text>
+          <View
+            style={[
+              s.quickAddCard,
+              { backgroundColor: colors.bg.card, borderColor: colors.accent.primary },
+            ]}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Ionicons name="flash" size={16} color={colors.accent.primary} />
+              <TextInput
+                style={[s.quickAddInput, { color: colors.text.primary }]}
+                placeholder='e.g. "Tea 20"'
+                placeholderTextColor={colors.text.tertiary}
+                value={quickEntry}
+                onChangeText={setQuickEntry}
+                onSubmitEditing={() => handleQuickAdd(quickEntry)}
+                returnKeyType="done"
+                editable={!quickEntryLoading}
+              />
+              {!quickEntryLoading ? (
+                <TouchableOpacity activeOpacity={0.7} onPress={() => handleQuickAdd(quickEntry)}>
+                  <Ionicons name="arrow-forward-circle" size={24} color={colors.accent.primary} />
+                </TouchableOpacity>
+              ) : (
+                <ActivityIndicator size="small" color={colors.accent.primary} />
+              )}
+            </View>
+            {quickEntry.length > 0 &&
+              (() => {
+                const m = quickEntry.match(/^(.+?)\s+(\d+(?:\.\d+)?)$/);
+                if (!m) {
+                  return null;
+                }
+                const lower = m[1].trim().toLowerCase();
+                let cat = 'Other';
+                for (const [kw, c] of Object.entries(KEYWORD_CATEGORIES)) {
+                  if (lower.includes(kw)) {
+                    cat = c;
+                    break;
+                  }
+                }
+                return (
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 6,
+                      marginTop: 8,
+                      paddingTop: 8,
+                      borderTopWidth: 1,
+                      borderTopColor: colors.border.subtle,
+                    }}
+                  >
+                    <Ionicons name="checkmark-circle" size={14} color={colors.status.success} />
+                    <Text style={{ fontSize: 12, color: colors.text.secondary }}>
+                      {m[1].trim()} → {cat} · ₹{m[2]}
+                    </Text>
+                  </View>
+                );
+              })()}
+          </View>
+        </Animated.View>
+
+        {/* ── Quick Insights ───────────────────────── */}
+        <Animated.View style={{ paddingHorizontal: 20, marginTop: 20, opacity: fadeAnim }}>
+          <Text style={[s.sectionTitle, { color: colors.text.primary, marginBottom: 12 }]}>
+            Quick Insights
+          </Text>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <TouchableOpacity
+              style={[
+                s.insightCard,
+                { backgroundColor: colors.bg.card, borderColor: colors.border.default },
+              ]}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('Settings', { screen: 'Reports' })}
+            >
+              <View style={[s.insightIcon, { backgroundColor: `${colors.status.error}12` }]}>
+                <Ionicons name="trending-down" size={18} color={colors.status.error} />
+              </View>
+              <Text style={[s.insightLabel, { color: colors.text.tertiary }]}>Top Spend</Text>
+              <Text style={[s.insightValue, { color: colors.text.primary }]} numberOfLines={1}>
+                {categories.length > 0 ? categories[0].name : '—'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                s.insightCard,
+                { backgroundColor: colors.bg.card, borderColor: colors.border.default },
+              ]}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('Reminders')}
+            >
+              <View style={[s.insightIcon, { backgroundColor: `${colors.status.warning}12` }]}>
+                <Ionicons name="calendar" size={18} color={colors.status.warning} />
+              </View>
+              <Text style={[s.insightLabel, { color: colors.text.tertiary }]}>Upcoming</Text>
+              <Text style={[s.insightValue, { color: colors.text.primary }]} numberOfLines={1}>
+                {reminders.length > 0 ? `${reminders.length} bills` : 'None'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                s.insightCard,
+                { backgroundColor: colors.bg.card, borderColor: colors.border.default },
+              ]}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('GoalsList')}
+            >
+              <View style={[s.insightIcon, { backgroundColor: `${colors.accent.primary}12` }]}>
+                <Ionicons name="flag" size={18} color={colors.accent.primary} />
+              </View>
+              <Text style={[s.insightLabel, { color: colors.text.tertiary }]}>Goals</Text>
+              <Text style={[s.insightValue, { color: colors.text.primary }]} numberOfLines={1}>
+                {goals.length > 0 ? `${goals.length} active` : 'None'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                s.insightCard,
+                { backgroundColor: colors.bg.card, borderColor: colors.border.default },
+              ]}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('GlobalSearch')}
+            >
+              <View style={[s.insightIcon, { backgroundColor: `${colors.status.info}12` }]}>
+                <Ionicons name="search" size={18} color={colors.status.info} />
+              </View>
+              <Text style={[s.insightLabel, { color: colors.text.tertiary }]}>Search</Text>
+              <Text style={[s.insightValue, { color: colors.text.primary }]}>Tap</Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+
+        {/* ── Net Worth / Subscriptions / Loans Mini Cards ── */}
+        <Animated.View style={{ paddingHorizontal: 20, marginTop: 20, opacity: fadeAnim }}>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <TouchableOpacity
+              style={[
+                s.miniCard,
+                { backgroundColor: colors.bg.card, borderColor: colors.border.default, flex: 1 },
+              ]}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('NetWorth')}
+            >
+              <View style={[s.miniCardIcon, { backgroundColor: `${colors.status.success}12` }]}>
+                <Ionicons name="wallet" size={18} color={colors.status.success} />
+              </View>
+              <Text style={[s.miniCardLabel, { color: colors.text.tertiary }]}>Net Worth</Text>
+              <Text style={[s.miniCardValue, { color: colors.text.primary }]}>
+                {fmt(totalBalance ?? 0)}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                s.miniCard,
+                { backgroundColor: colors.bg.card, borderColor: colors.border.default, flex: 1 },
+              ]}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('Expense', { screen: 'Subscription' })}
+            >
+              <View style={[s.miniCardIcon, { backgroundColor: `${colors.status.warning}12` }]}>
+                <Ionicons name="card" size={18} color={colors.status.warning} />
+              </View>
+              <Text style={[s.miniCardLabel, { color: colors.text.tertiary }]}>Subscriptions</Text>
+              <Text style={[s.miniCardValue, { color: colors.text.primary }]}>
+                {fmt(subscriptionTotal)}/mo
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                s.miniCard,
+                { backgroundColor: colors.bg.card, borderColor: colors.border.default, flex: 1 },
+              ]}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('LoanTracker')}
+            >
+              <View style={[s.miniCardIcon, { backgroundColor: `${colors.status.error}12` }]}>
+                <Ionicons name="trending-down" size={18} color={colors.status.error} />
+              </View>
+              <Text style={[s.miniCardLabel, { color: colors.text.tertiary }]}>Loans</Text>
+              <Text style={[s.miniCardValue, { color: colors.text.primary }]}>
+                {fmt(loanEmiTotal)}/mo
+              </Text>
+            </TouchableOpacity>
+          </View>
+          {/* ── Row 2: Budgets / Bills / Couple Space ── */}
+          <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
+            <TouchableOpacity
+              style={[
+                s.miniCard,
+                { backgroundColor: colors.bg.card, borderColor: colors.border.default, flex: 1 },
+              ]}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('Settings', { screen: 'BudgetsList' })}
+            >
+              <View style={[s.miniCardIcon, { backgroundColor: `${colors.status.info}12` }]}>
+                <Ionicons name="pie-chart" size={18} color={colors.status.info} />
+              </View>
+              <Text style={[s.miniCardLabel, { color: colors.text.tertiary }]}>Budgets</Text>
+              <Text style={[s.miniCardValue, { color: colors.text.primary }]}>Track</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                s.miniCard,
+                { backgroundColor: colors.bg.card, borderColor: colors.border.default, flex: 1 },
+              ]}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('Reminders')}
+            >
+              <View style={[s.miniCardIcon, { backgroundColor: `${colors.status.success}12` }]}>
+                <Ionicons name="receipt" size={18} color={colors.status.success} />
+              </View>
+              <Text style={[s.miniCardLabel, { color: colors.text.tertiary }]}>Bills</Text>
+              <Text style={[s.miniCardValue, { color: colors.text.primary }]}>Upcoming</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                s.miniCard,
+                { backgroundColor: colors.bg.card, borderColor: colors.border.default, flex: 1 },
+              ]}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('Settings', { screen: 'CoupleSpace' })}
+            >
+              <View style={[s.miniCardIcon, { backgroundColor: `${colors.status.warning}12` }]}>
+                <Ionicons name="heart" size={18} color={colors.status.warning} />
+              </View>
+              <Text style={[s.miniCardLabel, { color: colors.text.tertiary }]}>Couple</Text>
+              <Text style={[s.miniCardValue, { color: colors.text.primary }]}>Space</Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+
         {/* ── Upcoming Reminders ────────────────────── */}
         {reminders.length > 0 && (
           <Animated.View style={{ marginTop: 24, opacity: fadeAnim }}>
@@ -655,7 +1014,25 @@ export function HomeScreen() {
 
         {/* ── This Month Stats ──────────────────────── */}
         <Animated.View style={{ paddingHorizontal: 20, marginTop: 32, opacity: fadeAnim }}>
-          <Text style={[s.sectionTitle, { color: colors.text.primary }]}>This Month</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <Text style={[s.sectionTitle, { color: colors.text.primary }]}>This Month</Text>
+            {!isOnline && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                <Ionicons name="cloud-offline-outline" size={12} color={colors.status.warning} />
+                <Text style={{ fontSize: 11, fontWeight: '600', color: colors.status.warning }}>
+                  Cached
+                </Text>
+              </View>
+            )}
+            {pendingCount > 0 && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                <Ionicons name="cloud-upload-outline" size={12} color={colors.status.warning} />
+                <Text style={{ fontSize: 11, fontWeight: '600', color: colors.status.warning }}>
+                  {pendingCount} pending
+                </Text>
+              </View>
+            )}
+          </View>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
             {statCards.map((card) => (
               <TouchableOpacity
@@ -693,89 +1070,6 @@ export function HomeScreen() {
               </TouchableOpacity>
             ))}
           </View>
-        </Animated.View>
-
-        {/* ── AI Insights ──────────────────────────── */}
-        <Animated.View style={{ paddingHorizontal: 20, marginTop: 16, opacity: fadeAnim }}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('AiHomeDashboard')}
-            style={[
-              s.aiBanner,
-              {
-                backgroundColor: isDark ? '#1A0A2E' : '#FEFCE8',
-                borderColor: isDark ? 'rgba(255,215,0,0.2)' : 'rgba(234,179,8,0.3)',
-              },
-            ]}
-            activeOpacity={0.8}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <View
-                style={[
-                  s.aiBannerIcon,
-                  { backgroundColor: isDark ? 'rgba(255,215,0,0.15)' : 'rgba(234,179,8,0.2)' },
-                ]}
-              >
-                <Ionicons name="sparkles" size={22} color={isDark ? '#FFD700' : '#A16207'} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[s.aiBannerTitle, { color: isDark ? '#FFD700' : '#713F12' }]}>
-                  AI Financial Insights
-                </Text>
-                <Text
-                  style={[
-                    s.aiBannerSub,
-                    { color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(113,63,18,0.6)' },
-                  ]}
-                >
-                  Smart analysis, spending patterns & savings tips
-                </Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={isDark ? 'rgba(255,215,0,0.5)' : 'rgba(113,63,18,0.4)'}
-              />
-            </View>
-          </TouchableOpacity>
-        </Animated.View>
-
-        {/* ── SMS Intelligence ──────────────────────── */}
-        <Animated.View style={{ paddingHorizontal: 20, marginTop: 16, opacity: fadeAnim }}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('SMS')}
-            style={[
-              s.aiBanner,
-              {
-                backgroundColor: isDark ? '#1A1A2E' : '#F0F9FF',
-                borderColor: isDark ? 'rgba(96,165,250,0.2)' : 'rgba(37,99,235,0.2)',
-              },
-            ]}
-            activeOpacity={0.8}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <View
-                style={[
-                  s.aiBannerIcon,
-                  { backgroundColor: isDark ? 'rgba(96,165,250,0.15)' : 'rgba(37,99,235,0.12)' },
-                ]}
-              >
-                <Ionicons
-                  name="chatbubble-ellipses"
-                  size={22}
-                  color={isDark ? '#60A5FA' : '#2563EB'}
-                />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[s.aiBannerTitle, { color: colors.text.primary }]}>
-                  SMS Intelligence
-                </Text>
-                <Text style={[s.aiBannerSub, { color: colors.text.tertiary }]}>
-                  Detect expenses from your SMS messages
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
-            </View>
-          </TouchableOpacity>
         </Animated.View>
 
         {/* ── Spending by Category ──────────────────── */}
@@ -1010,59 +1304,8 @@ export function HomeScreen() {
           )}
         </Animated.View>
 
-        {/* ── Today Feed ────────────────────────────── */}
-        <Animated.View style={{ paddingHorizontal: 20, marginTop: 28, opacity: fadeAnim }}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('TodayFeed')}
-            activeOpacity={0.7}
-            style={{
-              backgroundColor: `${colors.accent.primary}10`,
-              borderRadius: 20,
-              borderWidth: 1,
-              borderColor: `${colors.accent.primary}20`,
-              padding: 18,
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 14,
-            }}
-          >
-            <View
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 14,
-                backgroundColor: colors.accent.primary,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Ionicons name="sparkles" size={22} color="#FFFFFF" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
-                AI Today Feed
-              </Text>
-              <Text style={{ fontSize: 12, color: colors.text.tertiary, marginTop: 2 }}>
-                Your financial intelligence, updated every 6 hours
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.text.tertiary} />
-          </TouchableOpacity>
-        </Animated.View>
-
         <View style={{ height: 40 }} />
       </ScrollView>
-
-      {/* AI FAB */}
-      <ReAnimated.View style={[s.aiFabWrap, aiPulseAnim]}>
-        <TouchableOpacity
-          activeOpacity={0.85}
-          onPress={() => navigation.navigate('AiHomeDashboard')}
-          style={s.aiFab}
-        >
-          <Ionicons name="sparkles" size={22} color="#0A0A0A" />
-        </TouchableOpacity>
-      </ReAnimated.View>
     </View>
   );
 }
@@ -1132,7 +1375,7 @@ const s = StyleSheet.create({
   heroBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
   heroBadgeText: { fontSize: 11, fontWeight: '700' },
   heroAmount: { fontSize: 38, fontWeight: '800', letterSpacing: -1.5, marginBottom: 4 },
-  heroCaption: { fontSize: 12, fontWeight: '500', marginBottom: 4 },
+  heroCaption: { fontSize: 14, fontWeight: '500', marginBottom: 4 },
   heroDivider: { height: 1, marginVertical: 18 },
   heroRow: { flexDirection: 'row', alignItems: 'center' },
   heroMetric: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
@@ -1184,7 +1427,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   statSub: { marginLeft: 'auto', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
-  statLabel: { fontSize: 11, fontWeight: '500', marginBottom: 2 },
+  statLabel: { fontSize: 14, fontWeight: '500', marginBottom: 2 },
   statValue: { fontSize: 22, fontWeight: '800', letterSpacing: -0.3 },
 
   catRow: {
@@ -1288,23 +1531,83 @@ const s = StyleSheet.create({
     fontSize: 12,
     marginTop: 2,
   },
-  aiFabWrap: {
-    position: 'absolute',
-    right: 20,
-    bottom: 96,
-    zIndex: 10,
+  safeCard: {
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 20,
   },
-  aiFab: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: '#FFD700',
+  safeLabel: { fontSize: 13, fontWeight: '600', marginBottom: 2 },
+  safeAmount: { fontSize: 32, fontWeight: '800', letterSpacing: -1 },
+  safeDetailBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
+  safeDetailBtnText: { fontSize: 12, fontWeight: '700' },
+  safeDivider: { height: 1, marginVertical: 16 },
+  safeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  safeRowLabel: { flex: 1, fontSize: 13, fontWeight: '500' },
+  safeRowValue: { fontSize: 14, fontWeight: '700' },
+  safeResult: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 14,
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  safeResultLabel: { flex: 1, fontSize: 13, fontWeight: '600' },
+  safeResultValue: { fontSize: 18, fontWeight: '800', letterSpacing: -0.5 },
+  insightCard: {
+    flex: 1,
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 12,
+    alignItems: 'center',
+    gap: 4,
+  },
+  insightIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#FFD700',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
+    marginBottom: 4,
+  },
+  insightLabel: { fontSize: 13, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.3 },
+  insightValue: { fontSize: 14, fontWeight: '700' },
+  miniCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+    gap: 4,
+  },
+  miniCardIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  miniCardLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  miniCardValue: { fontSize: 15, fontWeight: '800' },
+  quickAddCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  quickAddInput: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '500',
+    paddingVertical: 0,
   },
 });
