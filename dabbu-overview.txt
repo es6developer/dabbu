@@ -1,0 +1,560 @@
+================================================================================
+  DABBU — COMPLETE APP OVERVIEW
+  "Know Where Your Money Goes"
+================================================================================
+
+1. WHAT IS DABBU?
+--------------------------------------------------------------------------------
+Dabbu is a personal finance manager and expense-splitting platform — an
+all-in-one financial control center for individuals, couples, families,
+roommates, and friend groups.
+
+It solves:
+  • Personal finance blind spots — untracked spending, budget overruns,
+    forgotten subscriptions
+  • Group finance friction — awkward manual math when splitting bills,
+    tracking IOUs, settling up
+  • Collaborative money management — shared budgets, joint savings goals,
+    family/household finance
+  • Financial intelligence — AI-driven insights, anomaly detection, financial
+    health scoring (all rule-based, no external AI API)
+
+
+2. MOBILE APP SCREENS (120+ screens)
+--------------------------------------------------------------------------------
+
+  AUTH & ONBOARDING
+    SplashScreen         Animated launch with brand orbit animation
+    OnboardingScreen     First-run intro and feature walkthrough
+    LoginScreen          Email/password login with Google SSO option
+    SignupScreen         Email/password registration
+    OtpVerificationScreen Email OTP verification (mandatory after signup)
+    ForgotPasswordScreen Password reset via email/OTP
+    ResetPasswordScreen  New password entry
+    PhoneScreen          Phone number entry for contact sync
+    ProfileSetupScreen   Initial profile (name, avatar, UPI)
+    AppLockScreen        4-6 digit PIN lock
+    BiometricSetupScreen Fingerprint/Face ID enrollment
+    MaintenanceScreen    Shown when app is in maintenance mode
+    PremiumAuthScreen / PremiumLoginScreen / PremiumOtpScreen /
+      PremiumSignupScreen    Premium-tier auth flows
+
+  HOME & DASHBOARD
+    DashboardHub              Aggregated dashboard with widgets & stats
+    HomeScreen                Main landing with recent transactions & balances
+    NotificationCenterScreen  Smart notification center with priority sorting
+    NotificationsScreen       Full notification list with read/unread tracking
+
+  TRANSACTIONS
+    TransactionsList / TransactionsListScreen / TransactionsScreen
+                              Paginated, filterable transaction history
+    TransactionDetailScreen   Single transaction view with receipt, split info
+    AddExpenseScreen          Quick expense entry
+    CreateTransactionScreen   Full transaction creation (income/expense/transfer)
+    BillScannerScreen         Camera-based OCR receipt scanner
+    GroupExpensesScreen       Expenses organized by group
+    SharedCirclesScreen       Circle-based expense groups
+    MyWalletScreen            Personal wallet/summary
+    CreateExpenseGroupScreen  Create a group for shared expense tracking
+
+  BUDGETS
+    BudgetsListScreen    All budgets with progress indicators
+    BudgetDetailScreen   Single budget with transaction breakdown
+    CreateBudgetScreen   New budget with category, period, amount, notify-at
+
+  BILLS
+    BillsListScreen        All bills with payment status
+    BillDetailScreen       Single bill with due date, amount, payment tracking
+    MonthlyComparisonScreen Month-over-month bill comparison
+
+  GOALS
+    GoalsListScreen    All financial goals with progress rings
+    GoalDetailScreen   Single goal with target, deadline, monthly contribution
+
+  ACCOUNTS
+    AccountsListScreen  All financial accounts (checking, savings, credit card,
+                        cash, investment, loan, wallet)
+
+  INVESTMENTS
+    InvestmentsListScreen  Portfolio tracker (stocks, crypto, mutual funds,
+                           ETFs, bonds, real estate)
+
+  ANALYTICS
+    AnalyticsScreen       Category-wise spending breakdown,
+                          income vs. expense charts
+
+  SETTINGS
+    SettingsScreen              Main settings hub
+    ProfileScreen               User profile editing
+    SecurityScreen              Password change, sessions, 2FA
+    ThemeScreen                 Light/dark/system theme with accent color
+    CurrencyScreen              Default currency selection
+    NotificationSettingsScreen  Push/email/SMS notification toggles
+    CustomiseDashboardScreen    Reorder/toggle dashboard widgets
+    CustomiseBottomMenuScreen   Reorder/toggle bottom tab visibility
+    AvatarPickerScreen          Avatar selection
+    FavoriteContactsScreen      Favorites for quick expense splitting
+    PrivacyPolicyScreen         Legal/privacy document
+    HelpCenterScreen            Help articles
+    ContactUsScreen             Support ticket submission
+
+  SHARED FINANCE
+    SharedFinanceHomeScreen     All shared groups overview
+    CreateSharedGroupScreen     Create group (friends, trip, family, couple,
+                                roommates, office, event, apartment)
+    SharedGroupDetailScreen     Group with expenses, balances, chat, settings
+    SharedExpenseFormScreen     Add expense to group with split configuration
+    SettlementScreen            Settle up between members with UPI deep links
+    GroupWalletScreen           Multi-wallet per group (contribute/spend/
+                                reimburse/transfer)
+    WalletTransferScreen        Transfer between wallets
+    SplitTemplatesScreen        Reusable split templates for common scenarios
+    TripDashboardScreen / TripCompletedScreen
+                                Trip-specific view with destination, dates,
+                                budget, categories
+    CoupleFinanceScreen         Couple mode dashboard
+    FamilyDashboardScreen       Family financial dashboard
+    AccessExpiredScreen         Guest access expiration notice
+
+  EXPENSE SPLITTING
+    SplitExpenseScreen       Configure split (equal, percentage, exact,
+                             shares, weighted, multi-payer)
+    SettlementScreen         Settlement workflow
+    ExternalSplitLinkScreen  Shareable payment link for non-app users
+    AddExpenseScreen         Add expense to group
+    CategorySelectionScreen  Categorize expenses
+
+  CIRCLES
+    CirclesListScreen   Lightweight expense groups
+    CreateCircleScreen  Quick circle creation
+
+  COUPLE FINANCE
+    CoupleFinance              Main couple dashboard
+    CoupleExpensesScreen       Shared expenses between partners
+    CoupleBillsScreen          Shared bill tracking
+    CoupleBudgetsScreen        Couple budget categories
+    CoupleGoalsScreen          Joint savings goals
+    CoupleIncomeScreen         Per-partner income tracking
+    CoupleSavingsScreen        Shared savings contributions
+    CoupleSettlementsScreen    Settlement between partners
+    CoupleReportsScreen        Combined financial reports
+    CoupleSettingsScreen       Couple-specific settings
+    CoupleSpaceScreen          Couple space overview
+
+  FAMILY
+    CreateFamilyScreen     Create a family group
+    FamilyDashboardScreen  Family financial overview
+    FamilyChatScreen       Family group chat
+    FamilySavings          Family savings tracking
+    FamilySettingsScreen   Family settings
+    InviteMemberScreen     Invite members to family
+
+  CHAT
+    ChatListScreen    All conversation threads
+    ChatRoomScreen    Direct/group chat with reply threading
+    CreateChatScreen  Start new conversation
+
+  AI & INTELLIGENCE
+    FinancialCopilotScreen    Conversational AI chat for finance Q&A
+    AiHomeDashboardScreen / AIDashboard  AI-powered dashboard
+    AiInsightsScreen          AI-generated financial insights
+    AiSavingsScreen           Savings recommendations
+    AnomalyDetectionScreen    Detected unusual spending patterns
+    FinancialDnaScreen        Financial personality profile
+    SmartGoalCoachScreen      Goal achievement coaching
+    SmartNotificationScreen   Smart notification prioritization
+    TodayFeedScreen           Daily AI-generated feed cards
+    MonthlyAiReviewScreen     Monthly AI review
+    GroupSpaceAiScreen        AI for shared groups
+    CoupleAiScreen            Couple-specific AI insights
+    FamilyAiScreen            Family intelligence
+    PremiumAiPaywallScreen    Premium AI feature lock screen
+
+  DOCUMENTS
+    DocumentVaultScreen   Encrypted document vault (Aadhaar, PAN, passport)
+    DocumentDetailScreen  Single document view with permissions
+    BadgeWallScreen       Achievement badges display
+
+  REMINDERS
+    RemindersListScreen / RemindersScreen
+                          All reminders with upcoming/today/overdue filters
+    CreateReminderScreen  One-time or recurring reminder creation
+    ReminderDetailScreen  Single reminder view/edit
+
+  REPORTS
+    ReportsScreen  Exportable reports (PDF, Excel, CSV) — annual, trip,
+                   settlement, contribution
+
+  PREMIUM
+    PremiumScreen         Premium plan selection and subscription
+    BillingHistoryScreen  Payment transaction history
+
+  REFERRAL
+    ReferralScreen  Referral code sharing with reward tracking
+
+  SMS
+    SmsDashboardScreen  Auto-detected SMS transactions
+    SmsPermissionScreen SMS read permission request
+
+  SOCIAL
+    AddMemberScreen  Add members to groups by ID/email/phone
+
+  TASKS
+    TasksListScreen   Shared family tasks
+    CreateTaskScreen  Task creation with assignment
+
+  SUBSCRIPTIONS
+    SubscriptionScreen  Manage subscription plans
+
+
+3. WEB APPS
+--------------------------------------------------------------------------------
+
+  EXTERNAL WEB (Next.js PWA)
+    A Progressive Web App for non-mobile users and external sharing:
+    • /auth              Web-based authentication (Google SSO + email)
+    • /groups/[id]       Full group dashboard (expenses, settlements, chat)
+    • /invite/[token]    Group invite acceptance with guest access
+    • /referral/[code]   Referral landing page with app store links
+    • /pay/[token]       Pay Now link for settlements (UPI)
+    • /access-expired, /group-completed, /group-archived, /member-removed
+                         Status pages
+    • PWA: service worker, offline support, install prompt
+
+  MARKETING WEBSITE
+    Static site at dabbu.app:
+    • Hero section with phone mockup
+    • 6 core features showcase
+    • "How it Works" 5-step guide
+    • Platform segmentation (Individuals, Couples, Roommates, Friends,
+      Families, Freelancers)
+    • Testimonials, pricing, FAQ, contact/CMS
+
+  ADMIN PANEL (Next.js)
+    Back-office console:
+    • /login                 Admin authentication
+    • /dashboard             Platform-wide metrics and stats
+    • /users                 User management (search, activate/deactivate,
+                             delete)
+    • /families              Family management
+    • /plans                 Subscription plan CRUD
+    • /subscriptions         View/manage user subscriptions
+    • /feature-flags         Create and toggle feature flags
+    • /logs                  Audit log viewer
+    • /notifications         Broadcast push notifications
+    • /support               Support ticket system (assign, update, resolve)
+    • /revenue               Revenue analytics (Charts, MRR, churn)
+    • /churn                 Churn analysis
+    • /settings              App configuration (maintenance mode, signup
+                             toggle, etc.)
+    • /admins                Manage admin users
+
+
+4. TECH STACK
+--------------------------------------------------------------------------------
+
+  MOBILE APP
+    Expo SDK 50 (React Native 0.73)    Cross-platform mobile framework
+    React Navigation 6                  Navigation (native stacks + tabs)
+    NativeWind (Tailwind for RN)        Utility-first styling
+    Reanimated 3                        Animations
+    react-native-svg                    Progress rings, charts, graphics
+    Shopify FlashList                   High-performance list rendering
+    react-native-chart-kit              Charts and analytics
+    Zod                                 Schema validation
+    Socket.io-client                    Real-time group chat and updates
+    expo-secure-store                   Secure token storage
+    expo-local-authentication           Biometric (Face ID / fingerprint)
+    expo-notifications                  Push notification handling
+    expo-contacts                       Contact sync for friend matching
+    expo-image-picker /                 Receipt/document upload
+      expo-document-picker
+    expo-file-system / expo-sharing     Report export and sharing
+    expo-blur / expo-haptics            Visual effects / haptic feedback
+
+  EXTERNAL WEB (Next.js PWA)
+    Next.js 14 (App Router)             React framework with SSR
+    shadcn/ui + Radix UI                Accessible components
+    Tailwind CSS                        Styling
+    Zod + react-hook-form               Form validation
+    socket.io-client                    Real-time updates
+    next-pwa                            PWA service worker
+    @react-oauth/google                 Google SSO
+    qrcode / react-qrcode-logo          UPI QR code generation
+
+  ADMIN PANEL
+    Next.js 14 / shadcn/ui + Radix UI / Tailwind CSS + Tremor
+    @tanstack/react-query               Server state management
+    Recharts                            Charting
+    Zustand                             Client state management
+    react-hook-form + zod               Form handling
+
+  BACKEND (NestJS API)
+    NestJS 10                           Node.js framework
+    Prisma 5                            ORM for MySQL database
+    MySQL 8                             Primary database
+    Redis 7                             Caching, BullMQ queue backend
+    BullMQ                              Background job processing
+    Passport + JWT                      Authentication (access + refresh)
+    Swagger                             API documentation
+    Socket.io                           WebSocket gateway (group chat)
+    Firebase Admin SDK                  FCM push notifications
+    Razorpay SDK                        Payment gateway + subscriptions
+    Stripe SDK                          Secondary payment gateway
+    Nodemailer + Resend                 Email delivery
+    Tesseract.js                        OCR for receipt scanning
+    Sharp                               Image processing
+    PDFKit / ExcelJS                    Report generation
+    Google Auth Library                 Google SSO verification
+    class-validator/class-transformer   DTO validation
+    date-fns / date-fns-tz              Date manipulation
+
+  AI ENGINE (packages/ai-engine)
+    31 rule-based engines (no external AI API):
+    • InsightEngine, BehaviorEngine, RecommendationEngine
+    • FinancialHealthEngine, FinancialHealth2Engine
+    • PredictionEngine, AnomalyDetectionEngine
+    • GoalAchievementEngine, LifeEventDetectionEngine
+    • FinancialDnaEngine, SmartCategoryLearningEngine
+    • SettlementOptimizerEngine, GroupSpaceAiEngine
+    • CoupleAnalyticsEngine, CoupleIntelligenceEngine
+    • FamilyIntelligenceEngine, FamilyWealthForecastEngine
+    • InvestmentHealthEngine, RetirementProjectionEngine
+    • SmartNotificationEngine, SmartDashboardEngine
+    • SavingsOpportunityEngine, ReminderIntelligenceEngine
+    • GroupAnalyticsEngine, TripAnalyticsEngine
+    • FeedEngine, MonthlyAiReviewEngine
+    • JoyfulMomentsEngine, SmartOcrEngine
+    • AiTaxPreparationAssistant
+
+  INFRASTRUCTURE
+    Backend API               Render (primary) + Vercel (serverless)
+    Mobile App                Expo EAS Build, App Store / Play Store
+    External Web              Vercel
+    Admin Panel               Docker container behind Traefik
+    Marketing Site            Vercel
+    Database                  Aiven Cloud (MySQL 8)
+    Redis                     Self-hosted via Docker
+    CI/CD                     Husky + Commitlint + Turborepo
+
+
+5. ARCHITECTURE
+--------------------------------------------------------------------------------
+
+  MONOREPO STRUCTURE (Turborepo)
+
+    dabbu/
+    ├── apps/
+    │   ├── mobile/             Expo React Native mobile app
+    │   ├── backend/            NestJS REST API (33 modules, 66 models)
+    │   ├── admin/              Next.js admin panel
+    │   ├── external-web/       Next.js PWA for external sharing
+    │   └── web/                Static marketing site
+    │
+    ├── packages/
+    │   ├── ai-engine/          Rule-based AI engine (31 engines)
+    │   └── shared-types/       Shared TypeScript types
+    │
+    ├── turbo.json              Turborepo pipeline
+    └── docker-compose.yml      Local dev (MySQL 8, Redis 7, API)
+
+  DATA FLOW
+
+    MOBILE APP (Expo RN) ────── HTTP (REST JSON) ──────┐
+    EXTERNAL WEB (Next.js) ──── HTTP (REST JSON) ──────┤
+    ADMIN PANEL (Next.js) ───── HTTP (REST JSON) ──────┤
+                                                        ▼
+                                             NESTJS API
+                                                  │
+                                   ┌──────────────┼──────────────┐
+                                   ▼              ▼              ▼
+                              Auth Guard     Transform      Logging
+                              (JWT)        Interceptor    Interceptor
+                                   │
+                                   ▼
+                             33 MODULE SERVICES
+                                   │
+                      ┌────────────┼────────────┬──────────┐
+                      ▼            ▼            ▼          ▼
+                 Prisma ORM   BullMQ Queue   Socket.io   Firebase
+                      │            │            │          FCM
+                      ▼            ▼            ▼           │
+                  MySQL 8      Redis 7      WebSocket      ▼
+                      │         Cache/Queue  Gateway    Push Notif
+                      ▼                                       │
+                 Email (Resend + SMTP) ◄──────────────────────┘
+                      │
+                      ▼
+              AI Engine (Rule-Based)
+                      │
+                      ▼
+              Razorpay / Stripe
+
+  AUTH FLOW
+    Login/signup → JWT access (15 min) + refresh (7 day) tokens
+    Access token stored in expo-secure-store
+    Refresh token silently refreshes via a singleton queue
+    Biometric/PIN verified locally before accessing stored tokens
+
+  API PATTERNS
+    • Guard-based authorization (JWT on all endpoints)
+    • TransformInterceptor wraps responses in { data, success }
+    • Event-driven notifications via NotificationEventsService
+    • BullMQ for async jobs (reminders, AI, reports, email)
+    • State machine for groups: ACTIVE → PAUSED → COMPLETED → ARCHIVED → CLOSED
+    • Shadow/guest user system for non-app users (invite links, UPI settlements)
+
+
+6. DATABASE MODELS (66 models)
+--------------------------------------------------------------------------------
+
+  KEY MODEL CATEGORIES:
+    Auth & Users        User, Session, Device, LoginActivity, AdminUser,
+                        Settings
+
+    Social              Friend, ContactHash, FavoriteContact, Chat,
+                        ChatParticipant, ChatMessage
+
+    Personal Finance    Account, TransactionCategory, Transaction, Budget,
+                        Bill, Goal, Investment, ScannedBill
+
+    Shared Finance      SharedGroup, SharedGroupMember, SharedExpense,
+                        ExpenseSplit, Settlement, SettlementConfirmation,
+                        ContributionRule, GroupInvite, GuestMember,
+                        GroupChatMessage, GroupChatRead, GroupWallet,
+                        GroupWalletTransaction, GroupWalletMember,
+                        AdvanceContribution, AdvanceAdjustment,
+                        ExpenseApproval, ExpenseApprovalHistory,
+                        GroupDocument, DocumentPermission, DocumentAuditLog,
+                        CalendarEvent, CreditCardBill, BillSplit, CashPool,
+                        CashTransaction, EmergencyFund,
+                        EmergencyContribution, EmergencyWithdrawal
+
+    Couple Finance      CoupleFinanceProfile, CoupleFinanceInvite,
+                        CoupleFinanceIncome, CoupleFinanceSaving,
+                        CoupleBudgetCategory, CoupleIntelligence
+
+    Family              Family, FamilyMember, SharedTask, SharedReminder,
+                        FamilyNetWorthSnapshot, NetWorthItem,
+                        FamilyIntelligence
+
+    Trip                TripGroup, TripExpense
+    Bills               HouseholdBill, HouseholdContribution
+    Goals               SharedGoal, SharedGoalContribution, GoalPrediction
+
+    AI & Intelligence   FinancialDna, AiInsight, AiPrediction, AiAnomaly,
+                        AiRecommendation, AiScore, UserBehaviorMetric,
+                        LifeEvent, AiMilestone, DashboardAiCard,
+                        SmartCategoryMapping, SettlementSuggestion,
+                        AiFeedCard
+
+    Premium             SubscriptionPlan, Subscription, PaymentTransaction,
+                        PremiumEntitlement, WebhookEvent
+
+    Gamification        Badge, UserBadge, UserStreak
+    Referral            ReferralProgram, ReferralReward
+
+    System              ExpenseGroup, ExpenseGroupMember, AuditLog,
+                        AppConfiguration, FeatureFlag, SupportTicket,
+                        SplitTemplate, ExportHistory, SalaryProfile,
+                        PayNowLink, Reminder, RecurringReminder, Currency,
+                        Notification, NotificationLog, SmsDetection,
+                        UserDocument, GroupCalendar
+
+
+7. BACKEND MODULES (33 total)
+--------------------------------------------------------------------------------
+
+  Module               Key Capabilities
+  ─────────────────────────────────────────────────────────────────────
+  auth                 Register, login (email/Google), OTP verify,
+                       password reset, token refresh, session mgmt,
+                       biometric/PIN
+
+  users                Profile CRUD, avatar upload, deactivation,
+                       admin user management
+
+  accounts             Account CRUD (7 types), balance tracking, stats
+
+  transactions         Transaction CRUD, search/filter/paginate,
+                       recurring detection, receipt upload, multi-currency
+
+  categories           Hierarchical category tree (income/expense),
+                       CRUD, defaults
+
+  budgets              Budget CRUD, period-based, spend tracking,
+                       notify-at thresholds
+
+  bills                Bill CRUD, payment tracking, recurring bills
+
+  goals                Goal CRUD (8 types), progress tracking
+
+  investments          Portfolio CRUD (6 types), quantity/price tracking
+
+  sms-detection        Parse financial SMS, auto-categorize,
+                       create transactions
+
+  expense-groups       Legacy expense group management
+
+  shared-finance       Shared groups lifecycle, expense splitting,
+                       member management, contribution rules, invite links,
+                       Pay Now links, group wallets, advance contributions,
+                       expense approval workflow, credit card bill splitting,
+                       cash pools, emergency funds, group documents,
+                       group calendar, split templates, trip groups,
+                       household bills, export history
+
+  settlements          Settlement CRUD, payer/receiver confirmation,
+                       UPI deep linking
+
+  premium              Subscription plans, Razorpay integration,
+                       premium entitlement, webhook handling, billing history
+
+  referral             Referral codes, click tracking, reward payouts
+
+  gamification         Badge system (5 categories x 4 tiers),
+                       streak tracking
+
+  ai                   AI insight generation, intent detection,
+                       narrative generation, feed card generation
+
+  analytics            Pre-computed analytics (daily/weekly/monthly/yearly)
+
+  notification         Push notifications via FCM, notification preferences,
+                       in-app notification center
+
+  reminder             Reminder CRUD, recurring scheduling, snooze,
+                       cron-based BullMQ dispatch
+
+  chat                 WebSocket gateway, message CRUD, read receipts
+
+  family               Family CRUD, member management, shared tasks,
+                       shared reminders
+
+  email                Email template rendering, Resend + SMTP delivery,
+                       welcome emails, OTP delivery
+
+  documents            Document vault with encryption, OCR text extraction,
+                       document permissions, audit logs
+
+  admin                Admin auth, broadcast notifications, feature flags,
+                       app config, audit logs, support tickets
+
+  friends              Friend request system (pending/accepted/blocked),
+                       contact hash matching
+
+  favorites            One-directional favorite contacts
+
+  currency             Currency list and exchange rate management
+
+  user-preferences     Dashboard layout, bottom menu customization,
+                       theme preferences
+
+  external-sharing     Public group access, invite acceptance,
+                       guest session management
+
+  reports              Report generation (PDF/Excel/CSV)
+
+================================================================================
+  End of Dabbu Overview
+================================================================================

@@ -167,7 +167,46 @@ export function FinancialCopilotScreen() {
   const [loading, setLoading] = useState(false);
   const flatRef = useRef<FlatList>(null);
 
-  const handleSend = useCallback(async () => {
+  const sendMessage = useCallback(
+    async (text: string) => {
+      try {
+        if (accessToken) {
+          setAccessToken(accessToken);
+        }
+        const res = await api.post<any>('/ai/chat', { prompt: text });
+        const reply = res?.data?.reply ?? res?.data?.message ?? res?.reply ?? res?.message ?? '';
+        if (reply) {
+          setMessages((prev) => [
+            ...prev,
+            { id: (Date.now() + 1).toString(), role: 'assistant', text: reply },
+          ]);
+        } else {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: (Date.now() + 1).toString(),
+              role: 'assistant',
+              text: "I couldn't process that request. Please try again.",
+            },
+          ]);
+        }
+      } catch {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            text: "Sorry, I'm having trouble connecting right now. Please check your connection and try again.",
+          },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [accessToken],
+  );
+
+  const handleSend = useCallback(() => {
     const text = input.trim();
     if (!text || loading) {
       return;
@@ -176,41 +215,8 @@ export function FinancialCopilotScreen() {
     const userMsg: Message = { id: Date.now().toString(), role: 'user', text };
     setMessages((prev) => [...prev, userMsg]);
     setLoading(true);
-
-    try {
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
-      const res = await api.post<any>('/ai/chat', { prompt: text });
-      const reply = res?.data?.reply ?? res?.data?.message ?? res?.reply ?? res?.message ?? '';
-      if (reply) {
-        setMessages((prev) => [
-          ...prev,
-          { id: (Date.now() + 1).toString(), role: 'assistant', text: reply },
-        ]);
-      } else {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            role: 'assistant',
-            text: "I couldn't process that request. Please try again.",
-          },
-        ]);
-      }
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          text: "Sorry, I'm having trouble connecting right now. Please check your connection and try again.",
-        },
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  }, [input, loading, accessToken]);
+    sendMessage(text);
+  }, [input, loading, sendMessage]);
 
   const renderMessage = useCallback(({ item }: { item: Message }) => {
     if (item.role === 'user') {

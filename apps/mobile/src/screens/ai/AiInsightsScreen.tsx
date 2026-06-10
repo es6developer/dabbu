@@ -79,8 +79,51 @@ export function AiInsightsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  const fetchData = useCallback(async (section: string) => {
+    try {
+      const sectionMap: Record<string, string> = {
+        predictions: 'dashboard',
+        anomalies: 'transactions',
+        savings: 'budgets',
+        recommendations: 'goals',
+      };
+      const [insightsRes, narrativeRes] = await Promise.allSettled([
+        api.get<any>(`/ai/insights?section=${sectionMap[section] ?? 'dashboard'}`),
+        api.post<any>('/ai/narrative', {
+          section: sectionMap[section] ?? 'dashboard',
+          context: {},
+        }),
+      ]);
+
+      if (insightsRes.status === 'fulfilled') {
+        const list = insightsRes.value?.data ?? insightsRes.value;
+        if (Array.isArray(list)) {
+          setItems(
+            list.map((i: any) => ({
+              title: i.title ?? '',
+              message: i.message ?? '',
+              severity: i.severity ?? 'info',
+              confidence: i.confidence ?? undefined,
+              icon: i.icon ?? 'bulb-outline',
+            })),
+          );
+        } else {
+          setItems([]);
+        }
+      }
+      if (narrativeRes.status === 'fulfilled') {
+        setNarrative(narrativeRes.value?.data ?? null);
+      }
+    } catch {
+      setItems([]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
   const loadData = useCallback(
-    async (section: string, refresh = false) => {
+    (section: string, refresh = false) => {
       if (accessToken) {
         setAccessToken(accessToken);
       }
@@ -89,49 +132,9 @@ export function AiInsightsScreen() {
       } else {
         setLoading(true);
       }
-
-      try {
-        const sectionMap: Record<string, string> = {
-          predictions: 'dashboard',
-          anomalies: 'transactions',
-          savings: 'budgets',
-          recommendations: 'goals',
-        };
-        const [insightsRes, narrativeRes] = await Promise.allSettled([
-          api.get<any>(`/ai/insights?section=${sectionMap[section] ?? 'dashboard'}`),
-          api.post<any>('/ai/narrative', {
-            section: sectionMap[section] ?? 'dashboard',
-            context: {},
-          }),
-        ]);
-
-        if (insightsRes.status === 'fulfilled') {
-          const list = insightsRes.value?.data ?? insightsRes.value;
-          if (Array.isArray(list)) {
-            setItems(
-              list.map((i: any) => ({
-                title: i.title ?? '',
-                message: i.message ?? '',
-                severity: i.severity ?? 'info',
-                confidence: i.confidence ?? undefined,
-                icon: i.icon ?? 'bulb-outline',
-              })),
-            );
-          } else {
-            setItems([]);
-          }
-        }
-        if (narrativeRes.status === 'fulfilled') {
-          setNarrative(narrativeRes.value?.data ?? null);
-        }
-      } catch {
-        setItems([]);
-      } finally {
-        setLoading(false);
-        setRefreshing(false);
-      }
+      fetchData(section);
     },
-    [accessToken],
+    [accessToken, fetchData],
   );
 
   useFocusEffect(

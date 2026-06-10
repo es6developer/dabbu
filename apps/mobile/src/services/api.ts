@@ -414,7 +414,7 @@ function trackLoading<T>(promise: Promise<T>): Promise<T> {
 
 export const api = {
   get: <T>(path: string, signal?: AbortSignal, timeout?: number) =>
-    request<T>(path, { method: 'GET', ...(signal ? { signal } : {}) }, timeout),
+    trackLoading(request<T>(path, { method: 'GET', ...(signal ? { signal } : {}) }, timeout)),
   post: <T>(path: string, body?: any, signal?: AbortSignal, timeout?: number) =>
     trackLoading(
       request<T>(

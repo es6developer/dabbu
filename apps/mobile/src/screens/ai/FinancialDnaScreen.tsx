@@ -89,11 +89,7 @@ export function FinancialDnaScreen() {
   const [loading, setLoading] = useState(true);
   const [activePersonality, setActivePersonality] = useState('');
 
-  const loadData = useCallback(async () => {
-    if (accessToken) {
-      setAccessToken(accessToken);
-    }
-    setLoading(true);
+  const fetchData = useCallback(async () => {
     try {
       const res = await api.get<any>('/ai/dna');
       const d = res?.data ?? res;
@@ -109,7 +105,15 @@ export function FinancialDnaScreen() {
     } finally {
       setLoading(false);
     }
-  }, [accessToken]);
+  }, []);
+
+  const loadData = useCallback(() => {
+    if (accessToken) {
+      setAccessToken(accessToken);
+    }
+    setLoading(true);
+    fetchData();
+  }, [accessToken, fetchData]);
 
   useFocusEffect(
     useCallback(() => {

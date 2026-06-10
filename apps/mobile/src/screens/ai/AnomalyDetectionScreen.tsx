@@ -59,11 +59,7 @@ export function AnomalyDetectionScreen() {
   const [anomalies, setAnomalies] = useState<AnomalyItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadData = useCallback(async () => {
-    if (accessToken) {
-      setAccessToken(accessToken);
-    }
-    setLoading(true);
+  const fetchData = useCallback(async () => {
     try {
       const res = await api.get<any>('/ai/anomalies');
       const list = res?.data ?? res;
@@ -87,7 +83,15 @@ export function AnomalyDetectionScreen() {
     } finally {
       setLoading(false);
     }
-  }, [accessToken]);
+  }, []);
+
+  const loadData = useCallback(() => {
+    if (accessToken) {
+      setAccessToken(accessToken);
+    }
+    setLoading(true);
+    fetchData();
+  }, [accessToken, fetchData]);
 
   useFocusEffect(
     useCallback(() => {
