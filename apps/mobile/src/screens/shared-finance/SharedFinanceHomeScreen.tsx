@@ -43,7 +43,8 @@ const SPACE_TYPE_CONFIG: Record<
   default: { label: 'Group', icon: 'people', gradient: ['#4F6EF7', '#7C8FF8'] },
 };
 
-const MAX_SPACES = 3;
+const FREE_MAX = 3;
+const DEFAULT_PLAN = { tier: 'free' as const, maxGroups: FREE_MAX, maxMembersPerGroup: 10 };
 
 function fmt(v: number) {
   return '₹' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
@@ -389,6 +390,9 @@ export function SharedFinanceHomeScreen() {
     [groups, user?.id],
   );
 
+  const planInfo = useMemo(() => groups[0]?._plan || DEFAULT_PLAN, [groups]);
+  const maxSpaces = planInfo.maxGroups;
+
   const totalMembers = useMemo(() => {
     const ids = new Set<string>();
     groups.forEach((g) =>
@@ -427,10 +431,12 @@ export function SharedFinanceHomeScreen() {
       Alert.alert('Required', 'Space name is required');
       return;
     }
-    if (groups.length >= MAX_SPACES) {
+    if (groups.length >= maxSpaces) {
       Alert.alert(
-        'Upgrade Required',
-        "You've reached the free limit of 3 spaces. Upgrade to Premium to create more.",
+        planInfo.tier === 'free' ? 'Upgrade Required' : 'Limit Reached',
+        planInfo.tier === 'free'
+          ? `Free plan allows ${maxSpaces} spaces. Upgrade to Premium for unlimited spaces.`
+          : `You've used all ${maxSpaces} spaces.`,
       );
       return;
     }
@@ -642,9 +648,9 @@ export function SharedFinanceHomeScreen() {
                         style={[
                           flim.barFill,
                           {
-                            width: `${(groups.length / MAX_SPACES) * 100}%`,
+                            width: `${Math.min((groups.length / maxSpaces) * 100, 100)}%`,
                             backgroundColor:
-                              groups.length >= MAX_SPACES - 1
+                              groups.length >= maxSpaces - 1
                                 ? colors.status.warning
                                 : colors.accent.primary,
                           },
@@ -652,10 +658,10 @@ export function SharedFinanceHomeScreen() {
                       />
                     </View>
                     <Text style={[flim.text, { color: colors.text.secondary }]}>
-                      {groups.length} of {MAX_SPACES} spaces used
+                      {groups.length} of {maxSpaces} spaces used
                     </Text>
                   </View>
-                  {groups.length >= MAX_SPACES && (
+                  {planInfo.tier === 'free' && groups.length >= maxSpaces && (
                     <TouchableOpacity
                       onPress={() =>
                         Alert.alert(
@@ -681,10 +687,12 @@ export function SharedFinanceHomeScreen() {
           style={[fab.btn, { backgroundColor: colors.accent.primary, bottom: insets.bottom + 24 }]}
           activeOpacity={0.85}
           onPress={() => {
-            if (groups.length >= MAX_SPACES) {
+            if (groups.length >= maxSpaces) {
               Alert.alert(
-                'Upgrade Required',
-                "You've reached the free limit of 3 spaces. Upgrade to Premium to create more.",
+                planInfo.tier === 'free' ? 'Upgrade Required' : 'Limit Reached',
+                planInfo.tier === 'free'
+                  ? `Free plan allows ${maxSpaces} spaces. Upgrade to Premium for unlimited spaces.`
+                  : `You've used all ${maxSpaces} spaces.`,
               );
             } else {
               setShowCreateModal(true);
