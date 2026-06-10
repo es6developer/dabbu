@@ -115,10 +115,12 @@ export class SharedFinanceService {
     });
 
     if (dto.upiId) {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { upiId: dto.upiId },
-      }).catch(() => {});
+      await this.prisma.user
+        .update({
+          where: { id: userId },
+          data: { upiId: dto.upiId },
+        })
+        .catch(() => {});
     }
 
     await this.prisma.groupLifecycleEvent.create({
@@ -150,7 +152,14 @@ export class SharedFinanceService {
           where: { isActive: true },
           include: {
             user: {
-              select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true, upiId: true },
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatarUrl: true,
+                email: true,
+                upiId: true,
+              },
             },
           },
         },
@@ -831,7 +840,7 @@ export class SharedFinanceService {
       where: { groupId_userId: { groupId: invite.groupId, userId } },
     });
     if (existingMember) {
-      throw new BadRequestException('You are already a member of this group');
+      return { message: 'Already a member', group: invite.group };
     }
 
     await this.prisma.sharedGroupMember.create({
@@ -2156,9 +2165,16 @@ export class SharedFinanceService {
       this.prisma.sharedGroupMember.findMany({
         where: { groupId },
         include: {
-            user: {
-              select: { id: true, firstName: true, lastName: true, avatarUrl: true, email: true, upiId: true },
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatarUrl: true,
+              email: true,
+              upiId: true,
             },
+          },
         },
       }),
       this.prisma.sharedGoal.findMany({
