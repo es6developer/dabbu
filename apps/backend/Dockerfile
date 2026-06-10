@@ -19,13 +19,10 @@ RUN npm run build
 
 FROM base AS production
 RUN apk add --no-cache openssl
-COPY --from=build /app/apps/backend/node_modules ./node_modules
 COPY --from=build /app/apps/backend/dist ./dist
 COPY --from=build /app/apps/backend/package.json ./
 COPY --from=build /app/apps/backend/prisma ./prisma
-COPY --from=deps /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=deps /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=deps /app/node_modules/prisma ./node_modules/prisma
+COPY --from=deps /app/node_modules ./node_modules
 
 USER node
 EXPOSE 4000
