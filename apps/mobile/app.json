@@ -54,7 +54,7 @@
     ],
     "extra": {
       "apiUrl": "https://dabbu-zmkh.onrender.com/api/v1",
-      "inviteUrl": "https://external-web.vercel.app",
+      "inviteUrl": "https://dabbu-zmkh.onrender.com/api/v1",
       "environment": "development",
       "googleClientId": "407187036002-5hh2u40fa00m72oumrfrnnj8genlft9s.apps.googleusercontent.com",
       "androidGoogleClientId": "407187036002-emb73glp4cjdabsng81iod9ukt91ace0.apps.googleusercontent.com",

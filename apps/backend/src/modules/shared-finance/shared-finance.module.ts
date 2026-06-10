@@ -5,6 +5,7 @@ import { PrismaModule } from '../../common/prisma/prisma.module';
 import { NotificationModule } from '../notification/notification.module';
 import { EmailModule } from '../email/email.module';
 import { SharedFinanceController } from './shared-finance.controller';
+import { InvitePageController } from './invite-page.controller';
 import { SharedFinanceService } from './shared-finance.service';
 import { SettlementEngine } from './engines/settlement.engine';
 import { AiInsightsEngine } from './engines/ai-insights.engine';
@@ -33,7 +34,7 @@ import { GroupMemberGuard } from './guards/group-member.guard';
       }),
     }),
   ],
-  controllers: [SharedFinanceController],
+  controllers: [SharedFinanceController, InvitePageController],
   providers: [
     SharedFinanceService,
     SettlementEngine,

@@ -36,6 +36,8 @@ async function bootstrap(): Promise<void> {
       'https://admin.dabbu.app',
       'https://app.dabbu.app',
       'https://external-web-es6developers-projects.vercel.app',
+      'https://external-web.vercel.app',
+      'https://dabbu-zmkh.onrender.com',
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
