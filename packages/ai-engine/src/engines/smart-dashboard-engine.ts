@@ -48,9 +48,9 @@ type WidgetConfig = {
 const WIDGETS: WidgetConfig[] = [
   {
     type: 'overspend_warning',
-    condition: ctx => ctx.hasBudgetOverspend,
+    condition: (ctx) => ctx.hasBudgetOverspend,
     title: 'Budget Overspend Alert',
-    description: 'You\'ve exceeded a budget category. Review and adjust your spending.',
+    description: "You've exceeded a budget category. Review and adjust your spending.",
     priority: 100,
     size: 'large',
     icon: 'alert-triangle',
@@ -59,7 +59,7 @@ const WIDGETS: WidgetConfig[] = [
   },
   {
     type: 'anomaly_alert',
-    condition: ctx => ctx.hasAnomalies,
+    condition: (ctx) => ctx.hasAnomalies,
     title: 'Unusual Activity Detected',
     description: 'We found some unusual transactions that need your attention.',
     priority: 90,
@@ -70,9 +70,9 @@ const WIDGETS: WidgetConfig[] = [
   },
   {
     type: 'goal_milestone',
-    condition: ctx => ctx.hasGoalMilestone,
+    condition: (ctx) => ctx.hasGoalMilestone,
     title: 'Goal Milestone',
-    description: 'You\'ve reached a milestone on one of your goals!',
+    description: "You've reached a milestone on one of your goals!",
     priority: 80,
     size: 'medium',
     icon: 'award',
@@ -81,7 +81,7 @@ const WIDGETS: WidgetConfig[] = [
   },
   {
     type: 'savings_opportunity',
-    condition: ctx => ctx.hasSavingsOpportunities,
+    condition: (ctx) => ctx.hasSavingsOpportunities,
     title: 'Savings Opportunity',
     description: 'We found ways you could save money this month.',
     priority: 70,
@@ -92,7 +92,7 @@ const WIDGETS: WidgetConfig[] = [
   },
   {
     type: 'upcoming_bills',
-    condition: ctx => ctx.hasUpcomingBills,
+    condition: (ctx) => ctx.hasUpcomingBills,
     title: 'Upcoming Bills',
     description: 'You have bills due soon. Stay on top of payments.',
     priority: 60,
@@ -103,9 +103,9 @@ const WIDGETS: WidgetConfig[] = [
   },
   {
     type: 'family_summary',
-    condition: ctx => ctx.hasFamilyData,
+    condition: (ctx) => ctx.hasFamilyData,
     title: 'Family Summary',
-    description: 'Overview of your family\'s shared finances.',
+    description: "Overview of your family's shared finances.",
     priority: 50,
     size: 'medium',
     icon: 'users',
@@ -114,7 +114,7 @@ const WIDGETS: WidgetConfig[] = [
   },
   {
     type: 'couple_insight',
-    condition: ctx => ctx.hasCoupleData,
+    condition: (ctx) => ctx.hasCoupleData,
     title: 'Couple Insight',
     description: 'Insights on your shared financial journey.',
     priority: 40,
@@ -125,7 +125,7 @@ const WIDGETS: WidgetConfig[] = [
   },
   {
     type: 'settlement_reminder',
-    condition: ctx => ctx.hasSettlements,
+    condition: (ctx) => ctx.hasSettlements,
     title: 'Settlements Pending',
     description: 'You have pending settlements to resolve with your group.',
     priority: 30,
@@ -136,7 +136,7 @@ const WIDGETS: WidgetConfig[] = [
   },
   {
     type: 'financial_dna',
-    condition: ctx => ctx.dailyLoginCount % 7 === 0,
+    condition: (ctx) => ctx.dailyLoginCount % 7 === 0,
     title: 'Your Financial DNA',
     description: 'Discover your spending personality and financial patterns.',
     priority: 20,
@@ -149,7 +149,7 @@ const WIDGETS: WidgetConfig[] = [
     type: 'achievement',
     condition: () => true,
     title: 'Financial Achievement',
-    description: 'You\'re making great strides in your financial journey!',
+    description: "You're making great strides in your financial journey!",
     priority: 10,
     size: 'small',
     icon: 'star',
@@ -184,7 +184,7 @@ const ACHIEVEMENTS: Omit<WidgetConfig, 'condition'>[] = [
   {
     type: 'achievement',
     title: 'Bill Buster',
-    description: 'All bills paid on time this month. You\'re on a roll!',
+    description: "All bills paid on time this month. You're on a roll!",
     priority: 10,
     size: 'small',
     icon: 'clock',
@@ -202,10 +202,10 @@ export class SmartDashboardEngine {
     const rawCards = this.selectWidgets(context);
     const sorted = rawCards.sort((a, b) => b.priority - a.priority);
 
-    const hasPositiveCard = sorted.some(c =>
-      c.widgetType === 'goal_milestone' || c.widgetType === 'achievement'
+    const hasPositiveCard = sorted.some(
+      (c) => c.widgetType === 'goal_milestone' || c.widgetType === 'achievement',
     );
-    if (!hasPositiveCard && sorted.length > 0) {
+    if (!hasPositiveCard) {
       const achievement = this.pickRandomAchievement(context);
       sorted.push(achievement);
     }
@@ -229,15 +229,17 @@ export class SmartDashboardEngine {
     const cards: DashboardCard[] = [];
 
     for (const widget of WIDGETS) {
-      if (widget.type === 'achievement') continue;
+      if (widget.type === 'achievement') {
+        continue;
+      }
       if (widget.condition(context)) {
         cards.push(this.widgetToCard(widget, context));
       }
     }
 
     if (context.dailyLoginCount % 7 === 0) {
-      const dnaWidget = WIDGETS.find(w => w.type === 'financial_dna')!;
-      if (!cards.some(c => c.widgetType === 'financial_dna')) {
+      const dnaWidget = WIDGETS.find((w) => w.type === 'financial_dna')!;
+      if (!cards.some((c) => c.widgetType === 'financial_dna')) {
         cards.push(this.widgetToCard(dnaWidget, context));
       }
     }
@@ -248,9 +250,10 @@ export class SmartDashboardEngine {
   private widgetToCard(widget: WidgetConfig, context: DashboardUserContext): DashboardCard {
     return {
       widgetType: widget.type,
-      title: widget.type === 'financial_dna' && context.financialDna?.spendingPersonality
-        ? `Your ${context.financialDna.spendingPersonality} Personality`
-        : widget.title,
+      title:
+        widget.type === 'financial_dna' && context.financialDna?.spendingPersonality
+          ? `Your ${context.financialDna.spendingPersonality} Personality`
+          : widget.title,
       description: widget.description,
       priority: widget.priority,
       widgetSize: widget.size,
@@ -273,13 +276,19 @@ export class SmartDashboardEngine {
     };
   }
 
-  private shuffleSecondaryItems(cards: DashboardCard[], context: DashboardUserContext): DashboardCard[] {
-    if (cards.length <= 1) return cards;
+  private shuffleSecondaryItems(
+    cards: DashboardCard[],
+    context: DashboardUserContext,
+  ): DashboardCard[] {
+    if (cards.length <= 1) {
+      return cards;
+    }
 
     const primary = cards.slice(0, 1);
     const secondary = cards.slice(1);
 
-    const daySeed = (context.dailyLoginCount + new Date().getDate()) % Math.max(1, secondary.length);
+    const daySeed =
+      (context.dailyLoginCount + new Date().getDate()) % Math.max(1, secondary.length);
     if (secondary.length > 1) {
       const shuffled = [...secondary];
       const [moved] = shuffled.splice(daySeed, 1);

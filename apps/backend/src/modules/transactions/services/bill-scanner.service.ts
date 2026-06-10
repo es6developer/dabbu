@@ -1,6 +1,8 @@
 import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { createWorker, PSM, OEM } from 'tesseract.js';
-import sharp from 'sharp';
+import { execFile } from 'child_process';
+import * as path from 'path';
+import * as fs from 'fs';
 
 export interface BillScanResult {
   amount: number;
@@ -11,12 +13,6 @@ export interface BillScanResult {
   items: { name: string; price: number; quantity?: number }[];
   confidence: number;
   rawText: string;
-}
-
-interface OcrVariant {
-  name: string;
-  buffer: Buffer;
-  psmModes: PSM[];
 }
 
 const CATEGORY_KEYWORDS: { keywords: string[]; category: string }[] = [
@@ -33,7 +29,6 @@ const CATEGORY_KEYWORDS: { keywords: string[]; category: string }[] = [
       'dinner',
       'breakfast',
       'tiffin',
-      'hotel',
       'biryani',
       'curry',
       'snack',
@@ -115,43 +110,20 @@ const CATEGORY_KEYWORDS: { keywords: string[]; category: string }[] = [
       'dentist',
       'eye',
       'consultation',
-      'consulting',
-      'registration',
       'fees',
-      'fee',
       'checkup',
-      'check up',
       'lab',
       'test',
       'scan',
       'xray',
-      'x-ray',
       'mri',
       'ecg',
       'blood',
-      'urine',
       'prescription',
-      'consultant',
-      'surgeon',
-      'patient',
-      'opd',
-      'ipd',
-      'ward',
-      'bed',
-      'nursing',
-      'injection',
-      'dressing',
-      'operation',
       'surgery',
-      'theatre',
       'pathology',
-      'radiology',
-      'sonography',
-      'ultrasound',
       'vaccine',
-      'immunization',
       'health check',
-      'package',
     ],
     category: 'Healthcare',
   },
@@ -182,10 +154,8 @@ const DATE_PATTERNS = [
   /\b(\d{1,2})(?:st|nd|rd|th)?\s+(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{4})\b/i,
   /\b(\d{1,2})[.](\d{1,2})[.](\d{4})\b/,
   /\b(\d{1,2})[/-](\d{1,2})[/-](\d{2})\b/,
-  /\b(\d{1,2})\s*[-]\s*(\d{1,2})\s*[-]\s*(\d{4})\b/,
   /\bdate\s*:?\s*(\d{1,2})[/-](\d{1,2})[/-](\d{4})\b/i,
   /\bdate\s*:?\s*(\d{1,2})[/-](\d{1,2})[/-](\d{2})\b/i,
-  /\b(\d{2})[/-](\d{2})[/-](\d{4})\b/,
 ];
 
 const MONTH_MAP: Record<string, number> = {
@@ -220,59 +190,21 @@ const CURRENCY_PATTERN =
 @Injectable()
 export class BillScannerService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(BillScannerService.name);
-  private trainedDataLoaded = false;
-  private worker: any = null;
+  private tesseractWorker: any = null;
 
   async onModuleInit() {
-    try {
-      this.logger.log('Creating persistent Tesseract worker...');
-      this.worker = await createWorker('eng', OEM.LSTM_ONLY, {
-        logger: () => {},
-        cachePath: '/tmp',
-        cacheMethod: 'readWrite',
-      });
-      await this.worker.setParameters({
-        preserve_interword_spaces: '1',
-        user_defined_dpi: '300',
-      });
-      this.trainedDataLoaded = true;
-      this.logger.log('Persistent Tesseract worker ready');
-    } catch (err: any) {
-      this.logger.warn(
-        `Failed to create persistent worker (will create on first scan): ${err.message}`,
-      );
-    }
+    // lazy init - workers are created on first use
   }
 
   async onModuleDestroy() {
-    if (this.worker) {
+    if (this.tesseractWorker) {
       try {
-        await this.worker.terminate();
-      } catch {}
-      this.worker = null;
-    }
-  }
-
-  private async getWorker(): Promise<any> {
-    if (this.worker) {
-      try {
-        await this.worker.getParameters();
-        return this.worker;
+        await this.tesseractWorker.terminate();
       } catch {
-        this.logger.warn('Worker died, creating a new one');
+        /* ignore */
       }
+      this.tesseractWorker = null;
     }
-    const w = await createWorker('eng', OEM.LSTM_ONLY, {
-      logger: () => {},
-      cachePath: '/tmp',
-      cacheMethod: 'readWrite',
-    });
-    await w.setParameters({
-      preserve_interword_spaces: '1',
-      user_defined_dpi: '300',
-    });
-    this.worker = w;
-    return w;
   }
 
   async scanBill(base64Image: string, _mimeType: string = 'image/jpeg'): Promise<BillScanResult> {
@@ -283,9 +215,9 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
 
     try {
       const result = await Promise.race([
-        this.runOcr(imageBuffer),
+        this.runFastOcr(imageBuffer),
         new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('OCR processing timed out')), 110_000),
+          setTimeout(() => reject(new Error('OCR processing timed out')), 30_000),
         ),
       ]);
       return result;
@@ -304,6 +236,115 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  private async runFastOcr(imageBuffer: Buffer): Promise<BillScanResult> {
+    let text: string | null = null;
+
+    text = await this.tryPythonEasyOcr(imageBuffer);
+    if (text) {
+      this.logger.log(`EasyOCR extracted ${text.length} chars`);
+    }
+
+    if (!text) {
+      text = await this.tryTesseractSinglePass(imageBuffer);
+    }
+
+    if (!text) {
+      text = 'NO TEXT EXTRACTED';
+    }
+
+    const cleaned = this.normalizeOcrText(text);
+    return this.parseBillText(cleaned);
+  }
+
+  private async tryPythonEasyOcr(imageBuffer: Buffer): Promise<string | null> {
+    const scriptPath = path.resolve(__dirname, '../../../../scripts/ocr.py');
+    if (!fs.existsSync(scriptPath)) {
+      this.logger.warn('Python OCR script not found, skipping');
+      return null;
+    }
+
+    try {
+      const input = JSON.stringify({
+        image: imageBuffer.toString('base64'),
+        ext: '.jpg',
+      });
+
+      const result = await new Promise<string>((resolve, reject) => {
+        const proc = execFile(
+          '/usr/bin/env',
+          ['python3', scriptPath],
+          {
+            timeout: 25_000,
+            maxBuffer: 10 * 1024 * 1024,
+          },
+          (err, stdout) => {
+            if (err) {
+              reject(err);
+              return;
+            }
+            resolve(stdout.trim());
+          },
+        );
+        const stdin = proc.stdin;
+        if (stdin) {
+          stdin.write(input);
+          stdin.end();
+        }
+      });
+
+      const parsed = JSON.parse(result);
+      if (!parsed.success || !parsed.text) {
+        this.logger.warn(`EasyOCR returned: ${parsed.error || 'empty text'}`);
+        return null;
+      }
+
+      const elapsed = parsed.time_ms || 0;
+      this.logger.log(`EasyOCR completed in ${elapsed}ms (${parsed.line_count} lines)`);
+      return parsed.text;
+    } catch (err: any) {
+      this.logger.warn(`EasyOCR failed (${err.message}), falling back to Tesseract`);
+      return null;
+    }
+  }
+
+  private async tryTesseractSinglePass(imageBuffer: Buffer): Promise<string> {
+    try {
+      const worker = await this.getTesseractWorker();
+      await worker.setParameters({ tessedit_pageseg_mode: String(PSM.AUTO) });
+      const { data } = await worker.recognize(imageBuffer);
+      const text = (data.text || '').trim();
+      this.logger.log(
+        `Tesseract fallback extracted ${text.length} chars (conf: ${Math.round(data.confidence || 0)})`,
+      );
+      return text;
+    } catch (err: any) {
+      this.logger.error(`Tesseract fallback failed: ${err.message}`);
+      return '';
+    }
+  }
+
+  private async getTesseractWorker(): Promise<any> {
+    if (this.tesseractWorker) {
+      try {
+        await this.tesseractWorker.getParameters();
+        return this.tesseractWorker;
+      } catch {
+        this.logger.warn('Worker died, creating a new one');
+      }
+    }
+    const w = await createWorker('eng', OEM.LSTM_ONLY, {
+      logger: () => {},
+      cachePath: '/tmp',
+      cacheMethod: 'readWrite',
+    });
+    await w.setParameters({
+      preserve_interword_spaces: '1',
+      user_defined_dpi: '300',
+    });
+    this.tesseractWorker = w;
+    return w;
+  }
+
   async checkHealth(): Promise<{
     ok: boolean;
     workerOk: boolean;
@@ -311,22 +352,13 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
     preloaded: boolean;
     message: string;
   }> {
-    const health = {
-      ok: false,
-      workerOk: false,
-      sharpOk: false,
-      preloaded: this.trainedDataLoaded,
-      message: '',
-    };
-    try {
-      await sharp(
-        Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64'),
-      ).metadata();
-      health.sharpOk = true;
-    } catch (e: any) {
-      health.message = `sharp failed: ${e.message}`;
-      return health;
+    const health = { ok: false, workerOk: false, sharpOk: true, preloaded: false, message: '' };
+
+    const pythonOk = fs.existsSync(path.resolve(__dirname, '../../../../scripts/ocr.py'));
+    if (pythonOk) {
+      health.preloaded = true;
     }
+
     try {
       const worker = await createWorker('eng', OEM.LSTM_ONLY, {
         logger: () => {},
@@ -336,174 +368,46 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
       await worker.terminate();
       health.workerOk = true;
       health.ok = true;
-      health.message = 'OCR ready';
-      health.preloaded = this.trainedDataLoaded;
+      health.message = pythonOk
+        ? 'OCR ready (EasyOCR + Tesseract fallback)'
+        : 'OCR ready (Tesseract only)';
     } catch (e: any) {
       health.message = `tesseract worker init failed: ${e.message}`;
     }
+
+    if (pythonOk) {
+      health.ok = true;
+      health.message = 'OCR ready (EasyOCR primary)';
+    }
+
     return health;
-  }
-
-  private async runOcr(imageBuffer: Buffer): Promise<BillScanResult> {
-    const variants = await this.createOcrVariants(imageBuffer);
-
-    let ocrText = '';
-    let worker: any = null;
-
-    try {
-      worker = await this.getWorker();
-
-      let bestScore = -1;
-      for (const variant of variants) {
-        for (const psm of variant.psmModes) {
-          await worker.setParameters({ tessedit_pageseg_mode: String(psm) });
-          const { data } = await worker.recognize(variant.buffer);
-          const candidate = data.text.trim();
-          const score = this.ocrQualityScore(candidate, data.confidence || 0);
-          this.logger.log(
-            `OCR variant=${variant.name} psm=${psm} chars=${candidate.length} confidence=${Math.round(data.confidence || 0)} score=${Math.round(score)}`,
-          );
-
-          if (score > bestScore) {
-            bestScore = score;
-            ocrText = candidate;
-          }
-
-          if (score > 250 && /\b(total|amount|payable|net|grand|paid|rs|inr)\b/i.test(candidate)) {
-            break;
-          }
-        }
-      }
-    } catch (err: any) {
-      this.logger.error(`OCR processing error: ${err.message}`);
-      throw err;
-    }
-
-    if (!ocrText) {
-      ocrText = 'NO TEXT EXTRACTED';
-    }
-
-    this.logger.log(`Tesseract extracted ${ocrText.length} chars`);
-
-    const cleaned = this.normalizeOcrText(ocrText);
-    this.logger.log(`After normalization: ${cleaned.length} chars`);
-
-    const billResult = this.parseBillText(cleaned);
-    return billResult;
-  }
-
-  private async createOcrVariants(imageBuffer: Buffer): Promise<OcrVariant[]> {
-    const metadata = await sharp(imageBuffer).metadata();
-    const origWidth = metadata.width || 1000;
-    const targetWidth = Math.min(Math.max(origWidth, 2200), 3000);
-    const resizeOptions = { width: targetWidth, withoutEnlargement: false };
-
-    try {
-      const base = sharp(imageBuffer).rotate().resize(resizeOptions);
-      const highContrast = await base
-        .clone()
-        .greyscale()
-        .normalise({ lower: 1, upper: 99 })
-        .linear(1.22, -12)
-        .sharpen({ sigma: 1.1, m1: 1.2, m2: 2.0 })
-        .png()
-        .toBuffer();
-
-      const threshold = await base
-        .clone()
-        .greyscale()
-        .normalise({ lower: 1, upper: 99 })
-        .threshold(170)
-        .median(1)
-        .png()
-        .toBuffer();
-
-      const soft = await base.clone().greyscale().normalise().sharpen(0.6).png().toBuffer();
-
-      this.logger.log(
-        `Prepared OCR variants ${origWidth}->${targetWidth}px: high=${Math.round(highContrast.length / 1024)}KB threshold=${Math.round(threshold.length / 1024)}KB soft=${Math.round(soft.length / 1024)}KB`,
-      );
-
-      return [
-        { name: 'high-contrast', buffer: highContrast, psmModes: [PSM.AUTO, PSM.SPARSE_TEXT] },
-        { name: 'threshold', buffer: threshold, psmModes: [PSM.SPARSE_TEXT, PSM.SINGLE_BLOCK] },
-        { name: 'soft', buffer: soft, psmModes: [PSM.AUTO] },
-      ];
-    } catch (err) {
-      this.logger.warn('Preprocessing failed, using original image', err);
-      return [{ name: 'original', buffer: imageBuffer, psmModes: [PSM.AUTO, PSM.SPARSE_TEXT] }];
-    }
-  }
-
-  private ocrQualityScore(text: string, confidence: number): number {
-    const normalized = text.trim();
-    if (!normalized) {
-      return 0;
-    }
-
-    const lines = normalized
-      .split('\n')
-      .map((l) => l.trim())
-      .filter(Boolean);
-    const amountSignals = (
-      normalized.match(/\b(total|amount|payable|net|grand|paid|balance|rs|inr)\b/gi) || []
-    ).length;
-    const numericSignals = (normalized.match(/\d+[,.]?\d*/g) || []).length;
-    const alphaSignals = (normalized.match(/[a-zA-Z]{3,}/g) || []).length;
-
-    return (
-      normalized.length +
-      lines.length * 8 +
-      amountSignals * 35 +
-      numericSignals * 10 +
-      alphaSignals * 5 +
-      Math.max(0, confidence) * 1.5
-    );
   }
 
   private normalizeOcrText(text: string): string {
     let s = text;
-
     s = s.replace(/[^\t\n\r\x20-\x7E\u00A0-\uFFFF]/g, '');
-
     s = s.replace(/[•·●]/g, ' ');
-
     s = s.replace(/[–—−]/g, '-');
-
     s = s.replace(/\|/g, ' ');
-
     s = s.replace(/(?<=\d)\s*[lI!|]\s*(?=\d)/g, '1');
-
     s = s.replace(/(?<=\d)\s*O\s*(?=\d)/g, '0');
-
     s = s.replace(/(?<=\d)\s*S\s*(?=\d)/g, '5');
-
     s = s.replace(/\\n/g, '\n');
-
     s = s.replace(/[^\S\n]{2,}/g, ' ');
-
     s = s.replace(/\n{3,}/g, '\n\n');
-
     s = s.replace(/\s*,\s*/g, ', ');
-
     s = s.replace(/(?<=[a-zA-Z])0(?=[a-zA-Z])/g, 'O');
-
     s = s.replace(/(?<=\d)\s*\.\s*(?=\d{2}\b)/g, '.');
 
     const rawLines = s
       .split('\n')
       .map((l) => l.trim())
       .filter(Boolean);
-
     if (rawLines.length <= 3) {
       return rawLines.join('\n');
     }
 
-    const scoredLines = rawLines.map((line) => ({
-      line,
-      score: this.lineReadabilityScore(line),
-    }));
-
+    const scoredLines = rawLines.map((line) => ({ line, score: this.lineReadabilityScore(line) }));
     const maxScore = Math.max(...scoredLines.map((l) => l.score), 1);
     const filtered = scoredLines
       .filter((l) => {
@@ -521,7 +425,6 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
     if (filtered.length < Math.max(4, rawLines.length * 0.35)) {
       return rawLines.join('\n');
     }
-
     return filtered.join('\n');
   }
 
@@ -529,26 +432,20 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
     if (!line || line.length < 2) {
       return 0;
     }
-
     const alphaCount = (line.match(/[a-zA-Z]/g) || []).length;
     const digitCount = (line.match(/[0-9]/g) || []).length;
     const spaceCount = (line.match(/\s/g) || []).length;
     const goodChars = alphaCount + digitCount + spaceCount;
-
     const totalLen = line.length;
     if (totalLen === 0) {
       return 0;
     }
-
     const specialCount = (line.match(/[^a-zA-Z0-9\s.,;:!?'"()\-/@#$%&*+₹]/g) || []).length;
-
     if (specialCount > totalLen * 0.35) {
       return 0;
     }
-
     const hasWord = alphaCount >= 2;
     const hasNumber = digitCount >= 1;
-
     let score = (goodChars / totalLen) * 10;
     if (hasWord) {
       score += 5;
@@ -562,19 +459,15 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
     if (/[A-Z]/.test(line)) {
       score += 2;
     }
-
-    if (/error|fail|unable|exception|trace|undefined|null|NaN|\\[|\\]/.test(line.toLowerCase())) {
+    if (/error|fail|unable|exception|trace|undefined|null|NaN/.test(line.toLowerCase())) {
       score -= 3;
     }
-
     if (/total|amount|grand|subtotal|net|payable|due/i.test(line)) {
       score += 3;
     }
-
     if (/gstin|gst|invoice|bill no|receipt|tax/i.test(line.toLowerCase())) {
       score += 1;
     }
-
     return Math.max(0, score);
   }
 
@@ -583,7 +476,6 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
       .split('\n')
       .map((l) => l.trim())
       .filter(Boolean);
-
     const merchant = this.extractMerchant(lines);
     const amount = this.extractAmount(text, lines);
     const date = this.extractDate(text);
@@ -596,9 +488,7 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
             .map((i) => i.name)
             .join(', ')
         : merchant;
-
     const confidence = this.calculateConfidence(text, amount, merchant, date);
-
     return {
       amount,
       merchant,
@@ -643,7 +533,6 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
       'igst',
       'cess',
     ]);
-
     for (const line of lines) {
       const clean = line.replace(/[^a-zA-Z\s&.'\-/]/g, '').trim();
       if (clean.length < 3 || clean.length > 60) {
@@ -709,7 +598,6 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
       'total bill',
       'bill total',
     ];
-
     const candidates: { value: number; priority: number; source: string }[] = [];
 
     for (const label of totalLabels) {
@@ -770,8 +658,7 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
         for (const n of numbers) {
           const val = parseFloat(n.replace(/,/g, ''));
           if (!isNaN(val) && val >= 10 && val <= 99999 && !this.looksLikePhone(val)) {
-            const isLastThird = index >= lines.length * 0.66;
-            if (isLastThird) {
+            if (index >= lines.length * 0.66) {
               candidates.push({ value: val, priority: 2, source: 'integer' });
             }
           }
@@ -798,8 +685,7 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
       if (phoneA !== phoneB) {
         return phoneA - phoneB;
       }
-      const preferMid = Math.abs(b.value - 500) - Math.abs(a.value - 500);
-      return preferMid;
+      return Math.abs(b.value - 500) - Math.abs(a.value - 500);
     });
 
     return candidates.length > 0 ? candidates[0].value : 0;
@@ -815,11 +701,7 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
       const match = text.match(pattern);
       if (match) {
         if (match.length === 4 && /^\d+$/.test(match[3])) {
-          if (
-            pattern.source.includes('YYYY') ||
-            pattern.source.includes('yyyy') ||
-            pattern.source.includes('\\d{4}.*\\d{1,2}.*\\d{1,2}')
-          ) {
+          if (pattern.source.includes('\\d{4}.*\\d{1,2}.*\\d{1,2}')) {
             const y = parseInt(match[1]),
               m = parseInt(match[2]),
               d = parseInt(match[3]);
@@ -911,7 +793,6 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
       'cashier',
       'counter',
     ]);
-
     const priceEndRegex = /(\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?|\d+\.?\d{0,2})\s*$/;
     const priceAnywhere =
       /(?:₹|Rs\.?\s*|INR\s*)\s*(\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?|\d+(?:\.\d{1,2})?)/;
@@ -923,7 +804,6 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
         continue;
       }
       const lower = trimmed.toLowerCase();
-
       if (skipLineSet.has(lower)) {
         continue;
       }
@@ -946,7 +826,6 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
 
       const endsWithPrice = trimmed.match(priceEndRegex);
       const hasPriceAnywhere = trimmed.match(priceAnywhere);
-
       let price: number | null = null;
       let namePart = trimmed;
 
@@ -966,17 +845,15 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
           .replace(/@\s*\d+/g, '')
           .replace(/\b\d{4,8}\b/g, '')
           .trim();
-
         name = name
           .replace(/[|:;/]/g, ' ')
           .replace(/\s+/g, ' ')
           .trim();
-
         if (
           name.length > 1 &&
           name.length < 80 &&
           !/^\d+$/.test(name) &&
-          !/^[*/=+-]+$/.test(name)
+          !/^[*=/+-]+$/.test(name)
         ) {
           if (
             !items.some((i) => i.name.toLowerCase() === name.toLowerCase() && i.price === price)
@@ -986,7 +863,6 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
         }
       }
     }
-
     return items;
   }
 
@@ -994,7 +870,6 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
     const lower = text.toLowerCase();
     let bestCategory = 'Other';
     let bestScore = 0;
-
     for (const entry of CATEGORY_KEYWORDS) {
       let score = 0;
       for (const kw of entry.keywords) {
@@ -1011,7 +886,6 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
         bestCategory = entry.category;
       }
     }
-
     return bestCategory;
   }
 
@@ -1023,7 +897,6 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
   ): number {
     let score = 0;
     const factors = 4;
-
     if (amount > 0) {
       score += 1;
     }
@@ -1036,9 +909,7 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
     if (text.length > 50) {
       score += 1;
     }
-
     let confidence = score / factors;
-
     if (text.length < 10) {
       confidence *= 0.5;
     }
@@ -1048,17 +919,6 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
     if (/error|fail|unable/i.test(text)) {
       confidence *= 0.3;
     }
-
     return Math.round(Math.min(1, Math.max(0, confidence)) * 100) / 100;
-  }
-
-  private mimeToExt(mime: string): string {
-    const map: Record<string, string> = {
-      'image/jpeg': 'jpg',
-      'image/png': 'png',
-      'image/webp': 'webp',
-      'image/bmp': 'bmp',
-    };
-    return map[mime] || 'jpg';
   }
 }

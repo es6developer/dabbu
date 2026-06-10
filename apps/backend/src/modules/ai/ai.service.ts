@@ -1823,24 +1823,54 @@ ${JSON.stringify(context, null, 2)}`;
 
   async generateSmartDashboard(userId: string) {
     try {
-      const [insights, anomalies, recommendations, bills, goals] = await Promise.all([
-        this.prisma.aiInsight.findMany({
-          where: { userId, isRead: false, isDismissed: false },
-          take: 10,
-          orderBy: { createdAt: 'desc' },
-        }),
-        this.prisma.aiAnomaly.findMany({
-          where: { userId, isResolved: false },
-          take: 5,
-          orderBy: { detectedAt: 'desc' },
-        }),
-        this.prisma.aiRecommendation.findMany({
+      const [insightCount, anomalyCount, recCount, bills, goals] = await Promise.all([
+        this.prisma.aiInsight.count({ where: { userId, isRead: false, isDismissed: false } }),
+        this.prisma.aiAnomaly.count({ where: { userId, isResolved: false } }),
+        this.prisma.aiRecommendation.count({
           where: { userId, isImplemented: false, isDismissed: false },
-          take: 5,
         }),
         this.prisma.bill.findMany({ where: { userId, deletedAt: null, isPaid: false }, take: 10 }),
         this.prisma.goal.findMany({ where: { userId, deletedAt: null }, take: 10 }),
       ]);
+
+      if (anomalyCount === 0) {
+        await this.detectAnomalies(userId).catch(() => {});
+      }
+      if (recCount === 0) {
+        await this.findSavingsOpportunities(userId).catch(() => {});
+      }
+
+      const [insights, anomalies, recommendations, pendingSettlements, latestScore, latestDna] =
+        await Promise.all([
+          this.prisma.aiInsight.findMany({
+            where: { userId, isRead: false, isDismissed: false },
+            take: 10,
+            orderBy: { createdAt: 'desc' },
+          }),
+          this.prisma.aiAnomaly.findMany({
+            where: { userId, isResolved: false },
+            take: 5,
+            orderBy: { detectedAt: 'desc' },
+          }),
+          this.prisma.aiRecommendation.findMany({
+            where: { userId, isImplemented: false, isDismissed: false },
+            take: 5,
+          }),
+          this.prisma.settlement.count({
+            where: {
+              OR: [{ fromUserId: userId }, { toUserId: userId }],
+              status: { not: 'completed' },
+            },
+          }),
+          this.prisma.aiScore.findFirst({ where: { userId }, orderBy: { computedAt: 'desc' } }),
+          this.prisma.financialDna.findFirst({
+            where: { userId },
+            orderBy: { computedAt: 'desc' },
+          }),
+        ]);
+
+      const hasSettlements = pendingSettlements > 0;
+      const healthScore = latestScore?.overallScore ?? 0;
 
       const context = {
         userId,
@@ -1851,8 +1881,11 @@ ${JSON.stringify(context, null, 2)}`;
         hasAnomalies: anomalies.length > 0,
         hasFamilyData: false,
         hasCoupleData: false,
-        hasSettlements: false,
-        healthScore: 0,
+        hasSettlements,
+        financialDna: latestDna
+          ? { spendingPersonality: latestDna.spendingPersonality || '' }
+          : undefined,
+        healthScore,
         dailyLoginCount: 1,
       };
 
