@@ -367,7 +367,11 @@ export const api = {
         category: data.category,
         splitType: data.splitType,
         date: data.date || new Date().toISOString(),
-        splits: data.shares || [],
+        splits: (data.shares || []).map((s) => ({
+          userId: s.memberId,
+          amount: s.amount,
+          percentage: s.percentage,
+        })),
         notes: data.notes || '',
       });
     },
