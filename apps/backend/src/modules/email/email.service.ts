@@ -1,7 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
-import { Resend } from 'resend';
 
 import {
   welcomeEmail,
@@ -20,7 +19,7 @@ import { EMAIL_SUBJECTS, PASSWORD_RESET_EXPIRY_MINUTES } from './email.constants
 export class EmailService implements OnModuleInit {
   private readonly logger = new Logger(EmailService.name);
   private transporter: Transporter | null = null;
-  private resend: Resend | null = null;
+  private resend: any | null = null;
   private fromName: string;
   private fromEmail: string;
   private frontendUrl: string;
@@ -38,12 +37,7 @@ export class EmailService implements OnModuleInit {
       process.env.FRONTEND_URL || 'https://web-omega-snowy-80.vercel.app'
     ).replace(/\/+$/, '');
 
-    const resendKey = process.env.RESEND_API_KEY;
-    if (resendKey) {
-      this.resend = new Resend(resendKey);
-      this.resendInitialized = true;
-      this.logger.log('Resend email provider initialized');
-    }
+    this.initResend();
 
     const host = process.env.SMTP_HOST;
     const port = Number(process.env.SMTP_PORT) || 587;
@@ -65,6 +59,22 @@ export class EmailService implements OnModuleInit {
     if (!this.resendInitialized && !this.smtpInitialized) {
       this.logger.warn('No email provider configured — emails will be logged only');
     }
+  }
+
+  private initResend() {
+    const resendKey = process.env.RESEND_API_KEY;
+    if (!resendKey) {
+      return;
+    }
+    import('resend')
+      .then(({ Resend }) => {
+        this.resend = new Resend(resendKey);
+        this.resendInitialized = true;
+        this.logger.log('Resend email provider initialized');
+      })
+      .catch((err) => {
+        this.logger.warn(`Resend not available: ${err.message}. SMTP will be used if configured.`);
+      });
   }
 
   async onModuleInit() {
