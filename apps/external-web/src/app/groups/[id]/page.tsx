@@ -45,6 +45,10 @@ export default function GroupDashboard() {
   const [activeTab, setActiveTab] = useState('expenses');
   const [chatInput, setChatInput] = useState('');
   const [sharing, setSharing] = useState(false);
+  const [settlementPlan, setSettlementPlan] = useState<
+    { from: string; to: string; amount: number }[]
+  >([]);
+  const [settlingAll, setSettlingAll] = useState(false);
 
   const session = api.getTempSession();
   const currentUserId = (session?.id as string) || '';
@@ -82,13 +86,26 @@ export default function GroupDashboard() {
     }
   }, [groupId]);
 
+  const loadSettlementPlan = useCallback(async () => {
+    const res = await api.settlements.plan(groupId);
+    if (res.data) {
+      setSettlementPlan(res.data as any);
+    }
+  }, [groupId]);
+
   useEffect(() => {
     if (!groupId) {
       return;
     }
     const init = async () => {
       setLoading(true);
-      await Promise.all([loadGroup(), loadExpenses(), loadSettlements(), loadChat()]);
+      await Promise.all([
+        loadGroup(),
+        loadExpenses(),
+        loadSettlements(),
+        loadChat(),
+        loadSettlementPlan(),
+      ]);
       setLoading(false);
 
       connectToGroup(groupId);
@@ -145,6 +162,34 @@ export default function GroupDashboard() {
       offSocketEvent('member:updated', handleMemberUpdated);
     };
   }, [loadGroup, loadExpenses, loadSettlements]);
+
+  const handleSettleAll = async () => {
+    setSettlingAll(true);
+    try {
+      for (const plan of settlementPlan) {
+        if (plan.from === currentUserId) {
+          const res = await api.settlements.create(groupId, {
+            fromId: plan.from,
+            toId: plan.to,
+            amount: plan.amount,
+            method: 'cash',
+          });
+          if (res.error) {
+            toast.error(`Failed to settle with ${plan.to}: ${res.error}`);
+            setSettlingAll(false);
+            return;
+          }
+        }
+      }
+      toast.success('All settlements completed!');
+      loadSettlements();
+      loadGroup();
+      loadSettlementPlan();
+    } catch (e: any) {
+      toast.error(e.message || 'Failed to settle');
+    }
+    setSettlingAll(false);
+  };
 
   const handleSendChat = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -395,6 +440,9 @@ export default function GroupDashboard() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="animate-fade-in">
           <TabsList className="w-full">
+            <TabsTrigger value="overview" className="flex-1">
+              Overview
+            </TabsTrigger>
             <TabsTrigger value="expenses" className="flex-1">
               Expenses ({expenses.length})
             </TabsTrigger>
@@ -408,6 +456,206 @@ export default function GroupDashboard() {
               Chat ({chatMessages.length})
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="overview">
+            {(() => {
+              const totalSpent = expenses.reduce((s, e) => s + e.amount, 0);
+              const memberCount = group.members.length;
+              const perPersonAvg = memberCount > 0 ? totalSpent / memberCount : 0;
+              const perTxAvg = expenses.length > 0 ? totalSpent / expenses.length : 0;
+              const categoryTotals: Record<string, number> = {};
+              expenses.forEach((e) => {
+                categoryTotals[e.category] = (categoryTotals[e.category] || 0) + e.amount;
+              });
+              const topCategory = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])[0];
+              const pendingSettlementsCount = settlements.filter(
+                (s) => s.status === 'pending',
+              ).length;
+              const userOwed = group.members.filter((m) => m.balance > 0).length;
+              const youOweAmount = group.members.find((m) => m.id === currentUserId)?.balance || 0;
+
+              return (
+                <div className="space-y-4 animate-fade-in">
+                  {/* Stats cards row */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-4 rounded-xl border border-dabbu-border bg-gradient-to-b from-dabbu-surface to-transparent">
+                      <p className="text-[10px] uppercase tracking-wider text-dabbu-text-muted mb-1">
+                        Total Spent
+                      </p>
+                      <p className="text-xl font-bold text-dabbu-text">
+                        {formatCurrency(totalSpent)}
+                      </p>
+                      <p className="text-[10px] text-dabbu-text-muted mt-1">
+                        {expenses.length} expenses
+                      </p>
+                    </div>
+                    <div className="p-4 rounded-xl border border-dabbu-border bg-gradient-to-b from-dabbu-surface to-transparent">
+                      <p className="text-[10px] uppercase tracking-wider text-dabbu-text-muted mb-1">
+                        Your Balance
+                      </p>
+                      <p
+                        className={cn(
+                          'text-xl font-bold',
+                          youOweAmount > 0
+                            ? 'text-dabbu-green'
+                            : youOweAmount < 0
+                              ? 'text-dabbu-red'
+                              : 'text-dabbu-text',
+                        )}
+                      >
+                        {formatCurrency(Math.abs(youOweAmount))}
+                      </p>
+                      <p className="text-[10px] text-dabbu-text-muted mt-1">
+                        {youOweAmount > 0
+                          ? 'You are owed'
+                          : youOweAmount < 0
+                            ? 'You owe'
+                            : 'Settled up'}
+                      </p>
+                    </div>
+                    <div className="p-4 rounded-xl border border-dabbu-border bg-gradient-to-b from-dabbu-surface to-transparent">
+                      <p className="text-[10px] uppercase tracking-wider text-dabbu-text-muted mb-1">
+                        Per Person
+                      </p>
+                      <p className="text-xl font-bold text-dabbu-text">
+                        {formatCurrency(perPersonAvg)}
+                      </p>
+                      <p className="text-[10px] text-dabbu-text-muted mt-1">
+                        Average across {memberCount} members
+                      </p>
+                    </div>
+                    <div className="p-4 rounded-xl border border-dabbu-border bg-gradient-to-b from-dabbu-surface to-transparent">
+                      <p className="text-[10px] uppercase tracking-wider text-dabbu-text-muted mb-1">
+                        Settlements
+                      </p>
+                      <p className="text-xl font-bold text-dabbu-text">{pendingSettlementsCount}</p>
+                      <p className="text-[10px] text-dabbu-text-muted mt-1">
+                        Pending · {userOwed} members owed
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Category breakdown */}
+                  {Object.keys(categoryTotals).length > 0 && (
+                    <div className="p-4 rounded-xl border border-dabbu-border bg-gradient-to-b from-dabbu-surface to-transparent">
+                      <h3 className="text-sm font-medium text-dabbu-text mb-3">
+                        Category Breakdown
+                      </h3>
+                      <div className="space-y-2">
+                        {Object.entries(categoryTotals)
+                          .sort((a, b) => b[1] - a[1])
+                          .slice(0, 6)
+                          .map(([cat, amt]) => {
+                            const pct = totalSpent > 0 ? (amt / totalSpent) * 100 : 0;
+                            return (
+                              <div key={cat}>
+                                <div className="flex items-center justify-between text-xs mb-1">
+                                  <span className="text-dabbu-text-secondary capitalize">
+                                    {cat}
+                                  </span>
+                                  <span className="text-dabbu-text font-medium">
+                                    {formatCurrency(amt)}{' '}
+                                    <span className="text-dabbu-text-muted">
+                                      ({pct.toFixed(0)}%)
+                                    </span>
+                                  </span>
+                                </div>
+                                <div className="h-1.5 rounded-full bg-dabbu-surface2 overflow-hidden">
+                                  <div
+                                    className="h-full rounded-full bg-dabbu-accent/60 transition-all duration-500"
+                                    style={{ width: `${pct}%` }}
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Top category insight */}
+                  {topCategory && (
+                    <div className="p-4 rounded-xl border border-dabbu-accent/20 bg-gradient-to-b from-dabbu-accent/5 to-transparent">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-dabbu-accent/10 flex items-center justify-center">
+                          <svg
+                            className="w-5 h-5 text-dabbu-accent"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                            />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-xs text-dabbu-text-muted">Top Category</p>
+                          <p className="text-sm font-medium text-dabbu-text capitalize">
+                            {topCategory[0]}{' '}
+                            <span className="text-dabbu-accent">
+                              {formatCurrency(topCategory[1])}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Balance bars */}
+                  <div className="p-4 rounded-xl border border-dabbu-border bg-gradient-to-b from-dabbu-surface to-transparent">
+                    <h3 className="text-sm font-medium text-dabbu-text mb-3">Balances</h3>
+                    <div className="space-y-3">
+                      {group.members
+                        .filter((m) => m.balance !== 0)
+                        .sort((a, b) => Math.abs(b.balance) - Math.abs(a.balance))
+                        .slice(0, 5)
+                        .map((member) => {
+                          const isPositive = member.balance > 0;
+                          const pct =
+                            totalSpent > 0 ? (Math.abs(member.balance) / totalSpent) * 100 : 0;
+                          return (
+                            <div key={member.id}>
+                              <div className="flex items-center justify-between text-xs mb-1">
+                                <span className="text-dabbu-text-secondary">
+                                  {member.id === currentUserId ? 'You' : member.name}
+                                </span>
+                                <span
+                                  className={cn(
+                                    'font-medium',
+                                    isPositive ? 'text-dabbu-green' : 'text-dabbu-red',
+                                  )}
+                                >
+                                  {isPositive ? '+ ' : '- '}
+                                  {formatCurrency(Math.abs(member.balance))}
+                                </span>
+                              </div>
+                              <div className="h-2 rounded-full bg-dabbu-surface2 overflow-hidden">
+                                <div
+                                  className={cn(
+                                    'h-full rounded-full transition-all duration-500',
+                                    isPositive ? 'bg-dabbu-green' : 'bg-dabbu-red',
+                                  )}
+                                  style={{ width: `${Math.min(pct, 100)}%` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      {group.members.filter((m) => m.balance !== 0).length === 0 && (
+                        <p className="text-xs text-dabbu-text-muted text-center py-2">
+                          All settled up!
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </TabsContent>
 
           <TabsContent value="expenses">
             {pendingExpenses.length > 0 && (
@@ -462,68 +710,151 @@ export default function GroupDashboard() {
 
           <TabsContent value="members">
             <div className="space-y-1">
-              {group.members.map((member) => {
-                const memberExpenses = expenses.filter((e) => e.paidBy.id === member.id);
-                const totalPaid = memberExpenses.reduce((sum, e) => sum + e.amount, 0);
+              {(() => {
+                const totalExpenseAmount = expenses.reduce((s, e) => s + e.amount, 0);
+                return group.members.map((member) => {
+                  const memberExpenses = expenses.filter((e) => e.paidBy.id === member.id);
+                  const totalPaid = memberExpenses.reduce((sum, e) => sum + e.amount, 0);
+                  const contributionPct =
+                    totalExpenseAmount > 0 ? (totalPaid / totalExpenseAmount) * 100 : 0;
 
-                return (
-                  <div
-                    key={member.id}
-                    className="flex items-center justify-between p-3 rounded-xl hover:bg-dabbu-surface2 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <MemberAvatar
-                        name={member.name}
-                        size="lg"
-                        isOnline={member.isOnline}
-                        balance={member.balance}
-                      />
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium text-dabbu-text">
-                            {member.id === currentUserId ? 'You' : member.name}
-                          </p>
-                          {member.role === 'admin' && (
-                            <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-dabbu-accent-muted text-dabbu-accent">
-                              Admin
-                            </span>
-                          )}
-                          {member.role === 'guest' && (
-                            <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-dabbu-surface2 text-dabbu-text-muted">
-                              Guest
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-dabbu-text-muted">
-                          <span>Paid {formatCurrency(totalPaid)}</span>
-                          {member.email && (
-                            <>
-                              <span>·</span>
-                              <span>{member.email}</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <p
-                      className={cn(
-                        'text-sm font-semibold',
-                        member.balance > 0
-                          ? 'text-dabbu-green'
-                          : member.balance < 0
-                            ? 'text-dabbu-red'
-                            : 'text-dabbu-text-muted',
-                      )}
+                  return (
+                    <div
+                      key={member.id}
+                      className="p-3 rounded-xl hover:bg-dabbu-surface2 transition-colors"
                     >
-                      {member.balance === 0 ? 'Settled' : formatCurrency(member.balance)}
-                    </p>
-                  </div>
-                );
-              })}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <MemberAvatar
+                            name={member.name}
+                            size="lg"
+                            isOnline={member.isOnline}
+                            balance={member.balance}
+                          />
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-dabbu-text">
+                                {member.id === currentUserId ? 'You' : member.name}
+                              </p>
+                              {member.role === 'admin' && (
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-dabbu-accent-muted text-dabbu-accent">
+                                  Admin
+                                </span>
+                              )}
+                              {member.role === 'guest' && (
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-dabbu-surface2 text-dabbu-text-muted">
+                                  Guest
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-dabbu-text-muted">
+                              <span>Paid {formatCurrency(totalPaid)}</span>
+                              {member.email && (
+                                <>
+                                  <span>·</span>
+                                  <span>{member.email}</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <p
+                          className={cn(
+                            'text-sm font-semibold',
+                            member.balance > 0
+                              ? 'text-dabbu-green'
+                              : member.balance < 0
+                                ? 'text-dabbu-red'
+                                : 'text-dabbu-text-muted',
+                          )}
+                        >
+                          {member.balance === 0 ? 'Settled' : formatCurrency(member.balance)}
+                        </p>
+                      </div>
+                      {totalExpenseAmount > 0 && (
+                        <div className="mt-2 flex items-center gap-2">
+                          <div className="flex-1 h-1.5 rounded-full bg-dabbu-surface2 overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-dabbu-accent/60 transition-all duration-500"
+                              style={{ width: `${contributionPct}%` }}
+                            />
+                          </div>
+                          <span className="text-[10px] text-dabbu-text-muted w-8 text-right">
+                            {contributionPct.toFixed(0)}%
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </TabsContent>
 
           <TabsContent value="settlements">
+            {/* Settlement plan / Suggested settlements */}
+            {settlementPlan.length > 0 && (
+              <div className="mb-4 p-4 rounded-xl border border-dabbu-accent/20 bg-gradient-to-b from-dabbu-accent/5 to-transparent">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-dabbu-text">Suggested Settlements</h3>
+                  {settlementPlan.some((p) => p.from === currentUserId) && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleSettleAll}
+                      loading={settlingAll}
+                      className="h-8 text-xs"
+                    >
+                      Settle All
+                    </Button>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  {settlementPlan.map((plan, i) => {
+                    const fromMember = group.members.find((m) => m.id === plan.from);
+                    const toMember = group.members.find((m) => m.id === plan.to);
+                    const isMyPayment = plan.from === currentUserId;
+                    return (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between text-xs p-2 rounded-lg bg-dabbu-surface2"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-dabbu-text-secondary">
+                            {fromMember?.name || plan.from}
+                          </span>
+                          <svg
+                            className="w-4 h-4 text-dabbu-accent"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M14 5l7 7m0 0l-7 7m7-7H3"
+                            />
+                          </svg>
+                          <span className="text-dabbu-text-secondary">
+                            {toMember?.name || plan.to}
+                          </span>
+                        </div>
+                        <span
+                          className={cn(
+                            'font-medium',
+                            isMyPayment ? 'text-dabbu-red' : 'text-dabbu-green',
+                          )}
+                        >
+                          {formatCurrency(plan.amount)}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {pendingSettlements.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-sm font-medium text-dabbu-text-secondary mb-3">

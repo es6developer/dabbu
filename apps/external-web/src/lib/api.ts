@@ -386,6 +386,12 @@ export const api = {
       return { data: normalizeSettlementList(res.data || []), status: res.status };
     },
 
+    plan: async (groupId: string) => {
+      return get<{ from: string; to: string; amount: number }[]>(
+        `/shared-finance/groups/${groupId}/settlements/plan`,
+      );
+    },
+
     create: async (
       groupId: string,
       data: {
