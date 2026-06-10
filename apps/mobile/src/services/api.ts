@@ -88,17 +88,36 @@ const CACHE_TTL: Record<string, number> = {
   '/goals': 60_000,
   '/shared-finance': 60_000,
   '/shared-finance/groups': 120_000,
-  '/shared-finance/groups/couple/dashboard': 120_000,
+  '/shared-finance/groups/couple': 120_000,
+  '/shared-finance/groups/family': 120_000,
+  '/shared-finance/split-templates': 120_000,
   '/premium': 120_000,
   '/premium/check': 300_000,
   '/gamification': 300_000,
   '/settlements': 30_000,
+  '/settlements/activity': 30_000,
   '/features': 300_000,
   '/user': 120_000,
   '/referral': 120_000,
   '/analytics': 60_000,
   '/ai-insights': 60_000,
   '/subscriptions': 60_000,
+  '/trips': 60_000,
+  '/shared-expenses': 30_000,
+  '/ai/health-score': 60_000,
+  '/ai/dashboard': 60_000,
+  '/ai/dna': 120_000,
+  '/ai/anomalies': 30_000,
+  '/ai/insights': 60_000,
+  '/ai/monthly-review': 120_000,
+  '/ai/savings-opportunities': 60_000,
+  '/ai/today-feed': 30_000,
+  '/ai/feed-summary': 30_000,
+  '/ai/feed': 30_000,
+  '/ai/milestones': 60_000,
+  '/ai/life-events': 60_000,
+  '/ai/groups': 60_000,
+  '/ai/goals': 60_000,
 };
 
 interface CacheEntry {
@@ -113,12 +132,15 @@ function cacheKey(method: string, path: string): string {
 }
 
 function ttlForPath(path: string): number {
+  let best = '';
+  let bestTtl = 0;
   for (const [prefix, ttl] of Object.entries(CACHE_TTL)) {
-    if (path.startsWith(prefix)) {
-      return ttl;
+    if (path.startsWith(prefix) && prefix.length > best.length) {
+      best = prefix;
+      bestTtl = ttl;
     }
   }
-  return 0;
+  return bestTtl;
 }
 
 function getCached<T>(key: string): T | null {

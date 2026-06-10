@@ -226,7 +226,7 @@ export default function GroupDashboard() {
         setSharing(false);
         return;
       }
-      const inviteUrl = `${window.location.origin}/invite/${token}`;
+      const inviteUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://external-web.vercel.app'}/invite/${token}`;
       const shareText = `Join "${group?.name || 'my group'}" on Dabbu Split! Track shared expenses, split bills, and settle up easily.\n\n${inviteUrl}`;
 
       // Try native share first (mobile)

@@ -1413,7 +1413,7 @@ const s = StyleSheet.create({
   screen: { flex: 1 },
   loadWrap: { flex: 1 },
   emptyContainer: { flexGrow: 1, paddingTop: 60 },
-  headerRow: { flexDirection: 'row', alignItems: 'center' },
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   iconBtn: {
     width: 38,
     height: 38,
