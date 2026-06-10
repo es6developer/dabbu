@@ -3,10 +3,9 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { json, urlencoded } from 'express';
-import * as Sentry from '@sentry/node';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
-import { SentryFilter } from './common/filters/sentry.filter';
+import { SentryFilter } from './common/sentry/sentry.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { SecurityConfig } from './common/security/security.config';
@@ -31,17 +30,22 @@ async function bootstrap(): Promise<void> {
   const nodeEnv = configService.get<string>('app.nodeEnv', 'development');
   const frontendUrl = configService.get<string>('app.frontendUrl', 'http://localhost:8081');
 
-  // ─── Sentry ─────────────────────────────────────────
+  // ─── Sentry (dynamic import — optional dep) ─────────
   const sentryDsn = configService.get<string>('sentry.dsn', '');
   const sentryEnv = configService.get<string>('sentry.environment', 'development');
   const sentryTracesSampleRate = configService.get<number>('sentry.tracesSampleRate', 0.2);
   if (sentryDsn) {
-    Sentry.init({
-      dsn: sentryDsn,
-      environment: sentryEnv,
-      tracesSampleRate: sentryTracesSampleRate,
-    });
-    logger.log('Sentry initialized');
+    try {
+      const Sentry = await import('@sentry/node');
+      Sentry.init({
+        dsn: sentryDsn,
+        environment: sentryEnv,
+        tracesSampleRate: sentryTracesSampleRate,
+      });
+      logger.log('Sentry initialized');
+    } catch (e) {
+      logger.warn('Failed to initialize Sentry', (e as Error).message);
+    }
   }
 
   // ─── Security ───────────────────────────────────────
