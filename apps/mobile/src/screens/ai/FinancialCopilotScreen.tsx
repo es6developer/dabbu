@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -16,7 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import ReAnimated, { FadeInUp } from 'react-native-reanimated';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
-import { AI_COLORS } from './components/AiShared';
+import { useAiColors } from './components/AiShared';
 
 interface Message {
   id: string;
@@ -33,6 +33,132 @@ const SUGGESTIONS = [
 ];
 
 export function FinancialCopilotScreen() {
+  const AI_COLORS = useAiColors();
+  const s = useMemo(
+    () =>
+      StyleSheet.create({
+        screen: { flex: 1 },
+        header: { paddingHorizontal: 16, paddingBottom: 12 },
+        headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+        backBtn: {
+          width: 36,
+          height: 36,
+          borderRadius: 10,
+          backgroundColor: AI_COLORS.card,
+          justifyContent: 'center',
+          alignItems: 'center',
+          borderWidth: 1,
+          borderColor: AI_COLORS.border,
+        },
+        headerTitle: { fontSize: 18, fontWeight: '700', color: AI_COLORS.text },
+        headerSub: { fontSize: 11, color: AI_COLORS.textTertiary, marginTop: 1 },
+        clearBtn: { marginLeft: 'auto', padding: 6 },
+        emptyWrap: { paddingTop: 20, gap: 20 },
+        welcomeCard: {
+          marginHorizontal: 16,
+          backgroundColor: AI_COLORS.card,
+          borderRadius: 20,
+          padding: 24,
+          alignItems: 'center',
+          borderWidth: 1,
+        },
+        welcomeIcon: {
+          width: 64,
+          height: 64,
+          borderRadius: 20,
+          backgroundColor: `${AI_COLORS.primary}20`,
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginBottom: 12,
+        },
+        welcomeTitle: { fontSize: 20, fontWeight: '700', color: AI_COLORS.text },
+        welcomeDesc: {
+          fontSize: 13,
+          color: AI_COLORS.textSecondary,
+          textAlign: 'center',
+          marginTop: 6,
+          lineHeight: 18,
+        },
+        sugTitle: {
+          fontSize: 13,
+          fontWeight: '600',
+          color: AI_COLORS.textSecondary,
+          marginBottom: 4,
+        },
+        sugChip: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 8,
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+          borderRadius: 14,
+          borderWidth: 1,
+          backgroundColor: AI_COLORS.card,
+        },
+        sugText: { fontSize: 13, color: AI_COLORS.text, flex: 1 },
+        userMsgWrap: { alignItems: 'flex-end', paddingRight: 16, paddingLeft: 60, marginBottom: 8 },
+        userMsg: {
+          backgroundColor: AI_COLORS.primary,
+          borderRadius: 18,
+          borderBottomRightRadius: 4,
+          paddingHorizontal: 16,
+          paddingVertical: 10,
+        },
+        userMsgText: { fontSize: 14, color: '#FFF', lineHeight: 20 },
+        aiMsgWrap: { paddingLeft: 16, paddingRight: 60, marginBottom: 8 },
+        aiMsgRow: { flexDirection: 'row', gap: 8 },
+        aiAvatar: {
+          width: 28,
+          height: 28,
+          borderRadius: 14,
+          backgroundColor: `${AI_COLORS.primary}20`,
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginTop: 4,
+        },
+        aiMsg: {
+          flex: 1,
+          backgroundColor: AI_COLORS.card,
+          borderRadius: 18,
+          borderTopLeftRadius: 4,
+          padding: 14,
+          borderWidth: 1,
+        },
+        aiMsgText: { fontSize: 14, color: AI_COLORS.textSecondary, lineHeight: 20 },
+        typingDot: {
+          width: 8,
+          height: 8,
+          borderRadius: 4,
+          backgroundColor: AI_COLORS.textTertiary,
+        },
+        inputWrap: { paddingHorizontal: 16, paddingTop: 8 },
+        inputRow: {
+          flexDirection: 'row',
+          alignItems: 'flex-end',
+          gap: 8,
+          backgroundColor: AI_COLORS.card,
+          borderRadius: 16,
+          padding: 8,
+          borderWidth: 1,
+        },
+        input: {
+          flex: 1,
+          fontSize: 15,
+          color: AI_COLORS.text,
+          maxHeight: 100,
+          paddingHorizontal: 8,
+          paddingVertical: 6,
+        },
+        sendBtn: {
+          width: 40,
+          height: 40,
+          borderRadius: 12,
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
+      }),
+    [AI_COLORS],
+  );
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
@@ -222,115 +348,3 @@ export function FinancialCopilotScreen() {
     </View>
   );
 }
-
-const s = StyleSheet.create({
-  screen: { flex: 1 },
-  header: { paddingHorizontal: 16, paddingBottom: 12 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: AI_COLORS.card,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: AI_COLORS.border,
-  },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: AI_COLORS.text },
-  headerSub: { fontSize: 11, color: AI_COLORS.textTertiary, marginTop: 1 },
-  clearBtn: { marginLeft: 'auto', padding: 6 },
-  emptyWrap: { paddingTop: 20, gap: 20 },
-  welcomeCard: {
-    marginHorizontal: 16,
-    backgroundColor: AI_COLORS.card,
-    borderRadius: 20,
-    padding: 24,
-    alignItems: 'center',
-    borderWidth: 1,
-  },
-  welcomeIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
-    backgroundColor: `${AI_COLORS.primary}20`,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  welcomeTitle: { fontSize: 20, fontWeight: '700', color: AI_COLORS.text },
-  welcomeDesc: {
-    fontSize: 13,
-    color: AI_COLORS.textSecondary,
-    textAlign: 'center',
-    marginTop: 6,
-    lineHeight: 18,
-  },
-  sugTitle: { fontSize: 13, fontWeight: '600', color: AI_COLORS.textSecondary, marginBottom: 4 },
-  sugChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-    backgroundColor: AI_COLORS.card,
-  },
-  sugText: { fontSize: 13, color: AI_COLORS.text, flex: 1 },
-  userMsgWrap: { alignItems: 'flex-end', paddingRight: 16, paddingLeft: 60, marginBottom: 8 },
-  userMsg: {
-    backgroundColor: AI_COLORS.primary,
-    borderRadius: 18,
-    borderBottomRightRadius: 4,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
-  userMsgText: { fontSize: 14, color: '#FFF', lineHeight: 20 },
-  aiMsgWrap: { paddingLeft: 16, paddingRight: 60, marginBottom: 8 },
-  aiMsgRow: { flexDirection: 'row', gap: 8 },
-  aiAvatar: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: `${AI_COLORS.primary}20`,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  aiMsg: {
-    flex: 1,
-    backgroundColor: AI_COLORS.card,
-    borderRadius: 18,
-    borderTopLeftRadius: 4,
-    padding: 14,
-    borderWidth: 1,
-  },
-  aiMsgText: { fontSize: 14, color: AI_COLORS.textSecondary, lineHeight: 20 },
-  typingDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: AI_COLORS.textTertiary },
-  inputWrap: { paddingHorizontal: 16, paddingTop: 8 },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 8,
-    backgroundColor: AI_COLORS.card,
-    borderRadius: 16,
-    padding: 8,
-    borderWidth: 1,
-  },
-  input: {
-    flex: 1,
-    fontSize: 15,
-    color: AI_COLORS.text,
-    maxHeight: 100,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-  },
-  sendBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});

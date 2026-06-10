@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,34 +8,78 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import {
-  AI_COLORS, AnimatedProgressRing, AiCard, SectionHeader, HealthScoreCard, PremiumBadge,
+  useAiColors,
+  AnimatedProgressRing,
+  AiCard,
+  SectionHeader,
+  HealthScoreCard,
+  PremiumBadge,
 } from './components/AiShared';
 
 interface HealthData {
   overallScore: number;
-  components: { savingsRate: number; debtRatio: number; budgetDiscipline: number; goalProgress: number; billConsistency: number; emergencyFund: number };
+  components: {
+    savingsRate: number;
+    debtRatio: number;
+    budgetDiscipline: number;
+    goalProgress: number;
+    billConsistency: number;
+    emergencyFund: number;
+  };
   monthlyChange: number;
   financialLevel: string;
   improvementTips: string[];
 }
 
 export function FamilyAiScreen() {
+  const AI_COLORS = useAiColors();
+  const s = useMemo(
+    () =>
+      StyleSheet.create({
+        screen: { flex: 1 },
+        header: { paddingHorizontal: 20, paddingBottom: 8, gap: 6 },
+        headerTitle: {
+          fontSize: 28,
+          fontWeight: '800',
+          color: AI_COLORS.text,
+          letterSpacing: -0.5,
+        },
+        headerSub: { fontSize: 13, color: AI_COLORS.textSecondary },
+        gridLabel: {
+          fontSize: 11,
+          color: AI_COLORS.textSecondary,
+          marginTop: 8,
+          textAlign: 'center',
+        },
+      }),
+    [AI_COLORS],
+  );
   const insets = useSafeAreaInsets();
   const { accessToken } = useAuth();
   const [data, setData] = useState<HealthData | null>(null);
   const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(async () => {
-    if (accessToken) setAccessToken(accessToken);
+    if (accessToken) {
+      setAccessToken(accessToken);
+    }
     setLoading(true);
     try {
       const res = await api.get<any>('/ai/health-score');
       const d = res?.data ?? res;
       setData(d ?? null);
-    } catch { setData(null); } finally { setLoading(false); }
+    } catch {
+      setData(null);
+    } finally {
+      setLoading(false);
+    }
   }, [accessToken]);
 
-  useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData]),
+  );
 
   if (loading) {
     return (
@@ -54,8 +98,17 @@ export function FamilyAiScreen() {
       <View style={[s.screen, { backgroundColor: AI_COLORS.bg, paddingTop: insets.top + 60 }]}>
         <View style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
           <Ionicons name="people-outline" size={48} color={AI_COLORS.textTertiary} />
-          <Text style={{ fontSize: 18, fontWeight: '700', color: AI_COLORS.text }}>No family data yet</Text>
-          <Text style={{ fontSize: 13, color: AI_COLORS.textSecondary, textAlign: 'center', paddingHorizontal: 32 }}>
+          <Text style={{ fontSize: 18, fontWeight: '700', color: AI_COLORS.text }}>
+            No family data yet
+          </Text>
+          <Text
+            style={{
+              fontSize: 13,
+              color: AI_COLORS.textSecondary,
+              textAlign: 'center',
+              paddingHorizontal: 32,
+            }}
+          >
             Family financial intelligence will appear here once you set up family sharing.
           </Text>
         </View>
@@ -64,7 +117,11 @@ export function FamilyAiScreen() {
   }
 
   const scores = [
-    { label: 'Emergency Fund', value: data.components?.emergencyFund ?? 0, color: AI_COLORS.warning },
+    {
+      label: 'Emergency Fund',
+      value: data.components?.emergencyFund ?? 0,
+      color: AI_COLORS.warning,
+    },
     { label: 'Debt Ratio', value: data.components?.debtRatio ?? 0, color: AI_COLORS.success },
     { label: 'Savings Rate', value: data.components?.savingsRate ?? 0, color: AI_COLORS.info },
     { label: 'Goal Progress', value: data.components?.goalProgress ?? 0, color: AI_COLORS.purple },
@@ -72,9 +129,17 @@ export function FamilyAiScreen() {
 
   return (
     <View style={[s.screen, { backgroundColor: AI_COLORS.bg }]}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-        <ReAnimated.View entering={FadeInUp.duration(400)} style={[s.header, { paddingTop: insets.top + 16 }]}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
+        <ReAnimated.View
+          entering={FadeInUp.duration(400)}
+          style={[s.header, { paddingTop: insets.top + 16 }]}
+        >
+          <View
+            style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
+          >
             <View>
               <Text style={s.headerTitle}>Family AI</Text>
               <Text style={s.headerSub}>Family financial intelligence</Text>
@@ -84,17 +149,33 @@ export function FamilyAiScreen() {
         </ReAnimated.View>
 
         <ReAnimated.View entering={FadeInUp.duration(500)} style={{ paddingHorizontal: 16 }}>
-          <HealthScoreCard score={data.overallScore} trend={data.monthlyChange} title="Family Financial Health" subtitle={`Level: ${data.financialLevel}`} />
+          <HealthScoreCard
+            score={data.overallScore}
+            trend={data.monthlyChange}
+            title="Family Financial Health"
+            subtitle={`Level: ${data.financialLevel}`}
+          />
         </ReAnimated.View>
 
         <SectionHeader title="Family Scores" subtitle="Key health indicators" />
         <View style={{ paddingHorizontal: 16 }}>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             {scores.slice(0, 2).map((item, i) => (
-              <ReAnimated.View key={i} entering={FadeInUp.duration(300).delay(i * 50)} style={{ flex: 1 }}>
+              <ReAnimated.View
+                key={i}
+                entering={FadeInUp.duration(300).delay(i * 50)}
+                style={{ flex: 1 }}
+              >
                 <AiCard padding={16} style={{ alignItems: 'center' }}>
-                  <AnimatedProgressRing size={72} strokeWidth={5} progress={item.value} color={item.color}>
-                    <Text style={{ fontSize: 16, fontWeight: '800', color: item.color }}>{item.value}</Text>
+                  <AnimatedProgressRing
+                    size={72}
+                    strokeWidth={5}
+                    progress={item.value}
+                    color={item.color}
+                  >
+                    <Text style={{ fontSize: 16, fontWeight: '800', color: item.color }}>
+                      {item.value}
+                    </Text>
                   </AnimatedProgressRing>
                   <Text style={s.gridLabel}>{item.label}</Text>
                 </AiCard>
@@ -103,10 +184,21 @@ export function FamilyAiScreen() {
           </View>
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
             {scores.slice(2).map((item, i) => (
-              <ReAnimated.View key={i} entering={FadeInUp.duration(300).delay(i * 50 + 100)} style={{ flex: 1 }}>
+              <ReAnimated.View
+                key={i}
+                entering={FadeInUp.duration(300).delay(i * 50 + 100)}
+                style={{ flex: 1 }}
+              >
                 <AiCard padding={16} style={{ alignItems: 'center' }}>
-                  <AnimatedProgressRing size={72} strokeWidth={5} progress={item.value} color={item.color}>
-                    <Text style={{ fontSize: 16, fontWeight: '800', color: item.color }}>{item.value}</Text>
+                  <AnimatedProgressRing
+                    size={72}
+                    strokeWidth={5}
+                    progress={item.value}
+                    color={item.color}
+                  >
+                    <Text style={{ fontSize: 16, fontWeight: '800', color: item.color }}>
+                      {item.value}
+                    </Text>
                   </AnimatedProgressRing>
                   <Text style={s.gridLabel}>{item.label}</Text>
                 </AiCard>
@@ -124,7 +216,9 @@ export function FamilyAiScreen() {
                   <AiCard padding={12}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                       <Ionicons name="bulb-outline" size={16} color={AI_COLORS.primary} />
-                      <Text style={{ fontSize: 13, color: AI_COLORS.textSecondary, flex: 1 }}>{tip}</Text>
+                      <Text style={{ fontSize: 13, color: AI_COLORS.textSecondary, flex: 1 }}>
+                        {tip}
+                      </Text>
                     </View>
                   </AiCard>
                 </ReAnimated.View>
@@ -138,11 +232,3 @@ export function FamilyAiScreen() {
     </View>
   );
 }
-
-const s = StyleSheet.create({
-  screen: { flex: 1 },
-  header: { paddingHorizontal: 20, paddingBottom: 8, gap: 6 },
-  headerTitle: { fontSize: 28, fontWeight: '800', color: AI_COLORS.text, letterSpacing: -0.5 },
-  headerSub: { fontSize: 13, color: AI_COLORS.textSecondary },
-  gridLabel: { fontSize: 11, color: AI_COLORS.textSecondary, marginTop: 8, textAlign: 'center' },
-});

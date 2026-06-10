@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,7 +7,7 @@ import ReAnimated, { FadeInUp } from 'react-native-reanimated';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
-import { AI_COLORS, AiCard, SeverityBadge } from './components/AiShared';
+import { useAiColors, AiCard, SeverityBadge } from './components/AiShared';
 
 interface MilestoneItem {
   milestoneType: string;
@@ -30,17 +30,62 @@ interface NotificationSection {
   title: string;
   icon: keyof typeof Ionicons.glyphMap;
   color: string;
-  data: { title: string; desc: string; severity: 'critical' | 'warning' | 'success' | 'info'; time: string }[];
+  data: {
+    title: string;
+    desc: string;
+    severity: 'critical' | 'warning' | 'success' | 'info';
+    time: string;
+  }[];
 }
 
 export function SmartNotificationScreen() {
+  const AI_COLORS = useAiColors();
+  const s = useMemo(
+    () =>
+      StyleSheet.create({
+        screen: { flex: 1 },
+        header: { paddingHorizontal: 20, paddingBottom: 16, gap: 6 },
+        headerTitle: {
+          fontSize: 28,
+          fontWeight: '800',
+          color: AI_COLORS.text,
+          letterSpacing: -0.5,
+        },
+        headerSub: { fontSize: 13, color: AI_COLORS.textSecondary },
+        sectionHeader: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingHorizontal: 20,
+          paddingVertical: 10,
+          marginTop: 8,
+        },
+        sectionIcon: {
+          width: 30,
+          height: 30,
+          borderRadius: 8,
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
+        sectionTitle: { fontSize: 16, fontWeight: '700', color: AI_COLORS.text },
+        sectionCount: { paddingHorizontal: 10, paddingVertical: 2, borderRadius: 8 },
+        sectionCountText: { fontSize: 12, fontWeight: '700' },
+        notifDot: { width: 8, height: 8, borderRadius: 4, marginTop: 5 },
+        notifTitle: { fontSize: 14, fontWeight: '600', color: AI_COLORS.text, flex: 1 },
+        notifDesc: { fontSize: 12, color: AI_COLORS.textSecondary, marginTop: 4, lineHeight: 17 },
+        notifTime: { fontSize: 11, color: AI_COLORS.textTertiary, marginTop: 6 },
+      }),
+    [AI_COLORS],
+  );
   const insets = useSafeAreaInsets();
   const { accessToken } = useAuth();
   const [sections, setSections] = useState<NotificationSection[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(async () => {
-    if (accessToken) setAccessToken(accessToken);
+    if (accessToken) {
+      setAccessToken(accessToken);
+    }
     setLoading(true);
     try {
       const [milestonesRes, eventsRes] = await Promise.allSettled([
@@ -91,10 +136,18 @@ export function SmartNotificationScreen() {
       }
 
       setSections(result);
-    } catch { setSections([]); } finally { setLoading(false); }
+    } catch {
+      setSections([]);
+    } finally {
+      setLoading(false);
+    }
   }, [accessToken]);
 
-  useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData]),
+  );
 
   if (loading) {
     return (
@@ -113,8 +166,17 @@ export function SmartNotificationScreen() {
       <View style={[s.screen, { backgroundColor: AI_COLORS.bg, paddingTop: insets.top + 60 }]}>
         <View style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
           <Ionicons name="notifications-off-outline" size={48} color={AI_COLORS.textTertiary} />
-          <Text style={{ fontSize: 18, fontWeight: '700', color: AI_COLORS.text }}>No notifications</Text>
-          <Text style={{ fontSize: 13, color: AI_COLORS.textSecondary, textAlign: 'center', paddingHorizontal: 32 }}>
+          <Text style={{ fontSize: 18, fontWeight: '700', color: AI_COLORS.text }}>
+            No notifications
+          </Text>
+          <Text
+            style={{
+              fontSize: 13,
+              color: AI_COLORS.textSecondary,
+              textAlign: 'center',
+              paddingHorizontal: 32,
+            }}
+          >
             You're all caught up! AI notifications will appear here when there's something to know.
           </Text>
         </View>
@@ -124,8 +186,14 @@ export function SmartNotificationScreen() {
 
   return (
     <View style={[s.screen, { backgroundColor: AI_COLORS.bg }]}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-        <ReAnimated.View entering={FadeInUp.duration(400)} style={[s.header, { paddingTop: insets.top + 16 }]}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
+        <ReAnimated.View
+          entering={FadeInUp.duration(400)}
+          style={[s.header, { paddingTop: insets.top + 16 }]}
+        >
           <Text style={s.headerTitle}>Notifications</Text>
           <Text style={s.headerSub}>AI-powered smart alerts</Text>
         </ReAnimated.View>
@@ -140,20 +208,39 @@ export function SmartNotificationScreen() {
                 <Text style={s.sectionTitle}>{section.title}</Text>
               </View>
               <View style={[s.sectionCount, { backgroundColor: `${section.color}20` }]}>
-                <Text style={[s.sectionCountText, { color: section.color }]}>{section.data.length}</Text>
+                <Text style={[s.sectionCountText, { color: section.color }]}>
+                  {section.data.length}
+                </Text>
               </View>
             </View>
             <View style={{ paddingHorizontal: 16, gap: 8 }}>
               {section.data.map((item, i) => {
-                const clr = item.severity === 'critical' ? AI_COLORS.danger : item.severity === 'warning' ? AI_COLORS.warning : item.severity === 'success' ? AI_COLORS.success : AI_COLORS.info;
+                const clr =
+                  item.severity === 'critical'
+                    ? AI_COLORS.danger
+                    : item.severity === 'warning'
+                      ? AI_COLORS.warning
+                      : item.severity === 'success'
+                        ? AI_COLORS.success
+                        : AI_COLORS.info;
                 return (
-                  <ReAnimated.View key={`${si}-${i}`} entering={FadeInUp.duration(300).delay(i * 50)}>
+                  <ReAnimated.View
+                    key={`${si}-${i}`}
+                    entering={FadeInUp.duration(300).delay(i * 50)}
+                  >
                     <TouchableOpacity activeOpacity={0.8}>
                       <AiCard padding={14}>
                         <View style={{ flexDirection: 'row', gap: 10 }}>
                           <View style={[s.notifDot, { backgroundColor: clr }]} />
                           <View style={{ flex: 1 }}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                            <View
+                              style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: 6,
+                                marginBottom: 2,
+                              }}
+                            >
                               <Text style={s.notifTitle}>{item.title}</Text>
                               <SeverityBadge severity={item.severity} />
                             </View>
@@ -175,19 +262,3 @@ export function SmartNotificationScreen() {
     </View>
   );
 }
-
-const s = StyleSheet.create({
-  screen: { flex: 1 },
-  header: { paddingHorizontal: 20, paddingBottom: 16, gap: 6 },
-  headerTitle: { fontSize: 28, fontWeight: '800', color: AI_COLORS.text, letterSpacing: -0.5 },
-  headerSub: { fontSize: 13, color: AI_COLORS.textSecondary },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 10, marginTop: 8 },
-  sectionIcon: { width: 30, height: 30, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: AI_COLORS.text },
-  sectionCount: { paddingHorizontal: 10, paddingVertical: 2, borderRadius: 8 },
-  sectionCountText: { fontSize: 12, fontWeight: '700' },
-  notifDot: { width: 8, height: 8, borderRadius: 4, marginTop: 5 },
-  notifTitle: { fontSize: 14, fontWeight: '600', color: AI_COLORS.text, flex: 1 },
-  notifDesc: { fontSize: 12, color: AI_COLORS.textSecondary, marginTop: 4, lineHeight: 17 },
-  notifTime: { fontSize: 11, color: AI_COLORS.textTertiary, marginTop: 6 },
-});

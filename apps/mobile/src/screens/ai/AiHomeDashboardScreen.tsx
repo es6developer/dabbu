@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useState } from 'react';
+import React, { useRef, useCallback, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -17,7 +17,7 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import {
-  AI_COLORS,
+  useAiColors,
   HealthScoreCard,
   QuickActionBtn,
   SectionHeader,
@@ -46,6 +46,93 @@ interface DashboardData {
 }
 
 export function AiHomeDashboardScreen() {
+  const AI_COLORS = useAiColors();
+  const s = useMemo(
+    () =>
+      StyleSheet.create({
+        screen: { flex: 1 },
+        header: {
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingHorizontal: 20,
+          paddingBottom: 16,
+        },
+        greeting: { fontSize: 24, fontWeight: '700', color: AI_COLORS.text, letterSpacing: -0.3 },
+        date: { fontSize: 13, color: AI_COLORS.textSecondary, marginTop: 2 },
+        bellWrap: {
+          width: 40,
+          height: 40,
+          borderRadius: 12,
+          backgroundColor: AI_COLORS.card,
+          justifyContent: 'center',
+          alignItems: 'center',
+          borderWidth: 1,
+          borderColor: AI_COLORS.border,
+        },
+        bellDot: {
+          width: 8,
+          height: 8,
+          borderRadius: 4,
+          backgroundColor: AI_COLORS.danger,
+          position: 'absolute',
+          top: 8,
+          right: 8,
+        },
+        qaSection: {
+          flexDirection: 'row',
+          justifyContent: 'space-around',
+          paddingHorizontal: 16,
+          paddingVertical: 20,
+        },
+        carouselIcon: {
+          width: 40,
+          height: 40,
+          borderRadius: 12,
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
+        carouselType: {
+          fontSize: 10,
+          fontWeight: '700',
+          color: AI_COLORS.textTertiary,
+          letterSpacing: 1,
+        },
+        carouselTitle: {
+          fontSize: 17,
+          fontWeight: '700',
+          color: AI_COLORS.text,
+          letterSpacing: -0.2,
+        },
+        carouselMsg: { fontSize: 12, color: AI_COLORS.textSecondary, marginTop: 6, lineHeight: 17 },
+        carouselFooter: {
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginTop: 16,
+        },
+        carouselConf: { fontSize: 11, color: AI_COLORS.textTertiary },
+        aiFab: { position: 'absolute', right: 20 },
+        aiFabBtn: {
+          width: 56,
+          height: 56,
+          borderRadius: 18,
+          backgroundColor: AI_COLORS.primary,
+          justifyContent: 'center',
+          alignItems: 'center',
+          ...Platform.select({
+            ios: {
+              shadowColor: AI_COLORS.primaryGlow,
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: 0.5,
+              shadowRadius: 16,
+            },
+            android: { elevation: 10 },
+          }),
+        },
+      }),
+    [AI_COLORS],
+  );
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
@@ -335,81 +422,3 @@ export function AiHomeDashboardScreen() {
     </View>
   );
 }
-
-const s = StyleSheet.create({
-  screen: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  greeting: { fontSize: 24, fontWeight: '700', color: AI_COLORS.text, letterSpacing: -0.3 },
-  date: { fontSize: 13, color: AI_COLORS.textSecondary, marginTop: 2 },
-  bellWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: AI_COLORS.card,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: AI_COLORS.border,
-  },
-  bellDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: AI_COLORS.danger,
-    position: 'absolute',
-    top: 8,
-    right: 8,
-  },
-  qaSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-  },
-  carouselIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  carouselType: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: AI_COLORS.textTertiary,
-    letterSpacing: 1,
-  },
-  carouselTitle: { fontSize: 17, fontWeight: '700', color: AI_COLORS.text, letterSpacing: -0.2 },
-  carouselMsg: { fontSize: 12, color: AI_COLORS.textSecondary, marginTop: 6, lineHeight: 17 },
-  carouselFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  carouselConf: { fontSize: 11, color: AI_COLORS.textTertiary },
-  aiFab: { position: 'absolute', right: 20 },
-  aiFabBtn: {
-    width: 56,
-    height: 56,
-    borderRadius: 18,
-    backgroundColor: AI_COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: AI_COLORS.primaryGlow,
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.5,
-        shadowRadius: 16,
-      },
-      android: { elevation: 10 },
-    }),
-  },
-});

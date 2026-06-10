@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
@@ -17,12 +17,20 @@ interface AiInsightCardProps {
   type?: 'group' | 'split' | 'dashboard';
 }
 
-const SEVERITY_COLORS: Record<string, { bg: string; text: string; icon: string }> = {
-  critical: { bg: 'rgba(255, 69, 69, 0.12)', text: '#FF4545', icon: 'warning' },
-  warning: { bg: 'rgba(255, 159, 10, 0.12)', text: '#FF9F0A', icon: 'alert-circle' },
-  success: { bg: 'rgba(39, 211, 118, 0.12)', text: '#27D376', icon: 'checkmark-circle' },
-  info: { bg: 'rgba(20, 184, 166, 0.12)', text: '#14B8A6', icon: 'bulb' },
-};
+type ThemeColors = ReturnType<typeof useTheme>['colors'];
+
+function getSeverityColors(colors: ThemeColors) {
+  return {
+    critical: { bg: colors.status.errorLight, text: colors.status.error, icon: 'warning' },
+    warning: { bg: colors.status.warningLight, text: colors.status.warning, icon: 'alert-circle' },
+    success: {
+      bg: colors.status.successLight,
+      text: colors.status.success,
+      icon: 'checkmark-circle',
+    },
+    info: { bg: colors.status.infoLight, text: colors.status.info, icon: 'bulb' },
+  };
+}
 
 function NarrativePill({ icon, label, color }: { icon: string; label: string; color: string }) {
   return (
@@ -38,11 +46,13 @@ function InsightBlock({
   items,
   icon,
   color,
+  textColor,
 }: {
   title: string;
   items: string[];
   icon: string;
   color: string;
+  textColor?: string;
 }) {
   if (!items.length) {
     return null;
@@ -56,7 +66,7 @@ function InsightBlock({
       {items.map((item, i) => (
         <View key={i} style={styles.blockItem}>
           <View style={[styles.blockDot, { backgroundColor: color }]} />
-          <Text style={[styles.blockText, { color: '#8E8E93' }]}>{item}</Text>
+          <Text style={[styles.blockText, { color: textColor }]}>{item}</Text>
         </View>
       ))}
     </View>
@@ -70,6 +80,7 @@ export function AiInsightCard({
   type = 'group',
 }: AiInsightCardProps) {
   const { colors, isDark } = useTheme();
+  const SEVERITY_COLORS = useMemo(() => getSeverityColors(colors), [colors]);
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   if (loading) {
@@ -159,6 +170,7 @@ export function AiInsightCard({
           items={narrative.highlights}
           icon="bulb-outline"
           color={SEVERITY_COLORS.success.text}
+          textColor={colors.text.secondary}
         />
 
         {/* ─── Recommendations ─── */}
@@ -167,6 +179,7 @@ export function AiInsightCard({
           items={narrative.recommendations}
           icon="checkmark-done-outline"
           color={SEVERITY_COLORS.info.text}
+          textColor={colors.text.secondary}
         />
 
         {/* ─── Risk Flags ─── */}
@@ -176,6 +189,7 @@ export function AiInsightCard({
             items={narrative.riskFlags}
             icon="warning-outline"
             color={SEVERITY_COLORS.critical.text}
+            textColor={colors.text.secondary}
           />
         )}
 

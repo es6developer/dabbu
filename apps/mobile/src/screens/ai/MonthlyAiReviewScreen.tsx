@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,18 +8,36 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import {
-  AI_COLORS, AnimatedProgressRing, AiCard, SectionHeader, HealthScoreCard, PremiumBadge,
+  useAiColors,
+  AnimatedProgressRing,
+  AiCard,
+  SectionHeader,
+  HealthScoreCard,
+  PremiumBadge,
 } from './components/AiShared';
 
 interface ReviewData {
   period: string;
   summary: string;
   income: { total: number; sources: { name: string; amount: number }[]; vsLastMonth: number };
-  expenses: { total: number; byCategory: { category: string; amount: number; percentage: number }[]; vsLastMonth: number };
+  expenses: {
+    total: number;
+    byCategory: { category: string; amount: number; percentage: number }[];
+    vsLastMonth: number;
+  };
   savings: { total: number; rate: number; vsLastMonth: number };
-  budgets: { onTrack: number; exceeded: number; total: number; details: { name: string; status: string; spent: number; budget: number }[] };
+  budgets: {
+    onTrack: number;
+    exceeded: number;
+    total: number;
+    details: { name: string; status: string; spent: number; budget: number }[];
+  };
   goals: { progress: { name: string; progress: number; status: string }[]; highlight: string };
-  bills: { paid: number; pending: number; upcoming: { name: string; amount: number; dueDate: string }[] };
+  bills: {
+    paid: number;
+    pending: number;
+    upcoming: { name: string; amount: number; dueDate: string }[];
+  };
   healthScore: { current: number; change: number; level: string };
   insights: string[];
   recommendations: string[];
@@ -28,22 +46,87 @@ interface ReviewData {
 }
 
 export function MonthlyAiReviewScreen() {
+  const AI_COLORS = useAiColors();
+  const s = useMemo(
+    () =>
+      StyleSheet.create({
+        screen: { flex: 1 },
+        header: { paddingHorizontal: 20, paddingBottom: 16, gap: 6 },
+        headerBadge: {
+          fontSize: 12,
+          fontWeight: '800',
+          color: AI_COLORS.primary,
+          letterSpacing: 1,
+        },
+        headerTitle: {
+          fontSize: 28,
+          fontWeight: '800',
+          color: AI_COLORS.text,
+          letterSpacing: -0.5,
+        },
+        headerSub: { fontSize: 13, color: AI_COLORS.textSecondary },
+        heroCard: {
+          backgroundColor: AI_COLORS.card,
+          borderRadius: 24,
+          padding: 20,
+          borderWidth: 1,
+          borderColor: AI_COLORS.border,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 16,
+        },
+        heroLabel: {
+          fontSize: 11,
+          fontWeight: '800',
+          color: AI_COLORS.primary,
+          letterSpacing: 1.5,
+          marginBottom: 6,
+        },
+        heroTitle: { fontSize: 22, fontWeight: '700', color: AI_COLORS.text, letterSpacing: -0.3 },
+        heroDesc: { fontSize: 13, color: AI_COLORS.textSecondary, marginTop: 4, lineHeight: 18 },
+        heroStat: { alignItems: 'center', flex: 1 },
+        heroStatVal: { fontSize: 15, fontWeight: '700', color: AI_COLORS.text },
+        heroStatLabel: { fontSize: 10, color: AI_COLORS.textTertiary, marginTop: 2 },
+        heroScore: { fontSize: 22, fontWeight: '800' },
+        shareBtn: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+          backgroundColor: AI_COLORS.primary,
+          borderRadius: 16,
+          paddingVertical: 14,
+        },
+        shareBtnText: { fontSize: 15, fontWeight: '700', color: '#FFF' },
+      }),
+    [AI_COLORS],
+  );
   const insets = useSafeAreaInsets();
   const { accessToken } = useAuth();
   const [data, setData] = useState<ReviewData | null>(null);
   const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(async () => {
-    if (accessToken) setAccessToken(accessToken);
+    if (accessToken) {
+      setAccessToken(accessToken);
+    }
     setLoading(true);
     try {
       const res = await api.get<any>('/ai/monthly-review');
       const d = res?.data ?? res;
       setData(d ?? null);
-    } catch { setData(null); } finally { setLoading(false); }
+    } catch {
+      setData(null);
+    } finally {
+      setLoading(false);
+    }
   }, [accessToken]);
 
-  useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData]),
+  );
 
   if (loading) {
     return (
@@ -63,8 +146,17 @@ export function MonthlyAiReviewScreen() {
       <View style={[s.screen, { backgroundColor: AI_COLORS.bg, paddingTop: insets.top + 60 }]}>
         <View style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
           <Ionicons name="document-text-outline" size={48} color={AI_COLORS.textTertiary} />
-          <Text style={{ fontSize: 18, fontWeight: '700', color: AI_COLORS.text }}>No review available</Text>
-          <Text style={{ fontSize: 13, color: AI_COLORS.textSecondary, textAlign: 'center', paddingHorizontal: 32 }}>
+          <Text style={{ fontSize: 18, fontWeight: '700', color: AI_COLORS.text }}>
+            No review available
+          </Text>
+          <Text
+            style={{
+              fontSize: 13,
+              color: AI_COLORS.textSecondary,
+              textAlign: 'center',
+              paddingHorizontal: 32,
+            }}
+          >
             Your monthly review will be generated at the end of the month.
           </Text>
         </View>
@@ -74,9 +166,17 @@ export function MonthlyAiReviewScreen() {
 
   return (
     <View style={[s.screen, { backgroundColor: AI_COLORS.bg }]}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-        <ReAnimated.View entering={FadeInUp.duration(400)} style={[s.header, { paddingTop: insets.top + 16 }]}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
+        <ReAnimated.View
+          entering={FadeInUp.duration(400)}
+          style={[s.header, { paddingTop: insets.top + 16 }]}
+        >
+          <View
+            style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
+          >
             <View>
               <Text style={s.headerBadge}>Monthly AI Review</Text>
               <Text style={s.headerTitle}>{data.period}</Text>
@@ -90,25 +190,40 @@ export function MonthlyAiReviewScreen() {
           <View style={s.heroCard}>
             <View style={{ flex: 1 }}>
               <Text style={s.heroLabel}>YOUR MONTH</Text>
-              <Text style={s.heroTitle}>You saved ₹{(data.savings?.total ?? 0).toLocaleString('en-IN')} this month</Text>
+              <Text style={s.heroTitle}>
+                You saved ₹{(data.savings?.total ?? 0).toLocaleString('en-IN')} this month
+              </Text>
               <Text style={s.heroDesc}>{data.summary}</Text>
               <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
                 <View style={s.heroStat}>
-                  <Text style={s.heroStatVal}>₹{(data.income?.total ?? 0).toLocaleString('en-IN')}</Text>
+                  <Text style={s.heroStatVal}>
+                    ₹{(data.income?.total ?? 0).toLocaleString('en-IN')}
+                  </Text>
                   <Text style={s.heroStatLabel}>Income</Text>
                 </View>
                 <View style={s.heroStat}>
-                  <Text style={s.heroStatVal}>₹{(data.expenses?.total ?? 0).toLocaleString('en-IN')}</Text>
+                  <Text style={s.heroStatVal}>
+                    ₹{(data.expenses?.total ?? 0).toLocaleString('en-IN')}
+                  </Text>
                   <Text style={s.heroStatLabel}>Spent</Text>
                 </View>
                 <View style={s.heroStat}>
-                  <Text style={[s.heroStatVal, { color: AI_COLORS.success }]}>₹{(data.savings?.total ?? 0).toLocaleString('en-IN')}</Text>
+                  <Text style={[s.heroStatVal, { color: AI_COLORS.success }]}>
+                    ₹{(data.savings?.total ?? 0).toLocaleString('en-IN')}
+                  </Text>
                   <Text style={s.heroStatLabel}>Saved</Text>
                 </View>
               </View>
             </View>
-            <AnimatedProgressRing size={80} strokeWidth={6} progress={data.healthScore?.current ?? 0} color={AI_COLORS.success}>
-              <Text style={[s.heroScore, { color: AI_COLORS.success }]}>{data.healthScore?.current ?? 0}</Text>
+            <AnimatedProgressRing
+              size={80}
+              strokeWidth={6}
+              progress={data.healthScore?.current ?? 0}
+              color={AI_COLORS.success}
+            >
+              <Text style={[s.heroScore, { color: AI_COLORS.success }]}>
+                {data.healthScore?.current ?? 0}
+              </Text>
             </AnimatedProgressRing>
           </View>
         </ReAnimated.View>
@@ -133,21 +248,37 @@ export function MonthlyAiReviewScreen() {
 
         <SectionHeader title="Financial Health" subtitle="This month's score" />
         <ReAnimated.View entering={FadeInUp.duration(500)} style={{ paddingHorizontal: 16 }}>
-          <HealthScoreCard score={data.healthScore?.current ?? 0} trend={data.healthScore?.change ?? 0} title="Monthly Health Score" subtitle={data.healthScore?.level ?? ''} />
+          <HealthScoreCard
+            score={data.healthScore?.current ?? 0}
+            trend={data.healthScore?.change ?? 0}
+            title="Monthly Health Score"
+            subtitle={data.healthScore?.level ?? ''}
+          />
         </ReAnimated.View>
 
         {data.budgets && (
           <>
-            <SectionHeader title="Budget Overview" subtitle={`${data.budgets.onTrack ?? 0} on track, ${data.budgets.exceeded ?? 0} exceeded`} />
+            <SectionHeader
+              title="Budget Overview"
+              subtitle={`${data.budgets.onTrack ?? 0} on track, ${data.budgets.exceeded ?? 0} exceeded`}
+            />
             <View style={{ paddingHorizontal: 16, gap: 6 }}>
               {(data.budgets.details ?? []).map((b, i) => (
                 <ReAnimated.View key={i} entering={FadeInUp.duration(300).delay(i * 40)}>
                   <AiCard padding={12}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                      <Ionicons name={b.status === 'exceeded' ? 'alert-circle' : 'checkmark-circle'} size={18} color={b.status === 'exceeded' ? AI_COLORS.danger : AI_COLORS.success} />
+                      <Ionicons
+                        name={b.status === 'exceeded' ? 'alert-circle' : 'checkmark-circle'}
+                        size={18}
+                        color={b.status === 'exceeded' ? AI_COLORS.danger : AI_COLORS.success}
+                      />
                       <Text style={{ flex: 1, fontSize: 13, color: AI_COLORS.text }}>{b.name}</Text>
-                      <Text style={{ fontSize: 13, fontWeight: '600', color: AI_COLORS.text }}>₹{b.spent.toLocaleString('en-IN')}</Text>
-                      <Text style={{ fontSize: 11, color: AI_COLORS.textTertiary }}>/ ₹{b.budget.toLocaleString('en-IN')}</Text>
+                      <Text style={{ fontSize: 13, fontWeight: '600', color: AI_COLORS.text }}>
+                        ₹{b.spent.toLocaleString('en-IN')}
+                      </Text>
+                      <Text style={{ fontSize: 11, color: AI_COLORS.textTertiary }}>
+                        / ₹{b.budget.toLocaleString('en-IN')}
+                      </Text>
                     </View>
                   </AiCard>
                 </ReAnimated.View>
@@ -165,7 +296,9 @@ export function MonthlyAiReviewScreen() {
                   <AiCard padding={12}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                       <Ionicons name="bulb-outline" size={16} color={AI_COLORS.primary} />
-                      <Text style={{ fontSize: 13, color: AI_COLORS.textSecondary, flex: 1 }}>{r}</Text>
+                      <Text style={{ fontSize: 13, color: AI_COLORS.textSecondary, flex: 1 }}>
+                        {r}
+                      </Text>
                     </View>
                   </AiCard>
                 </ReAnimated.View>
@@ -175,20 +308,30 @@ export function MonthlyAiReviewScreen() {
         )}
 
         {data.nextMonthFocus && (
-          <ReAnimated.View entering={FadeInUp.duration(500)} style={{ paddingHorizontal: 16, marginTop: 16 }}>
+          <ReAnimated.View
+            entering={FadeInUp.duration(500)}
+            style={{ paddingHorizontal: 16, marginTop: 16 }}
+          >
             <AiCard padding={16} style={{ borderColor: AI_COLORS.primary, borderWidth: 1 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <Ionicons name="flag-outline" size={20} color={AI_COLORS.primary} />
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: AI_COLORS.primary }}>NEXT MONTH FOCUS</Text>
-                  <Text style={{ fontSize: 14, color: AI_COLORS.text, marginTop: 2 }}>{data.nextMonthFocus}</Text>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: AI_COLORS.primary }}>
+                    NEXT MONTH FOCUS
+                  </Text>
+                  <Text style={{ fontSize: 14, color: AI_COLORS.text, marginTop: 2 }}>
+                    {data.nextMonthFocus}
+                  </Text>
                 </View>
               </View>
             </AiCard>
           </ReAnimated.View>
         )}
 
-        <ReAnimated.View entering={FadeInUp.duration(500)} style={{ paddingHorizontal: 16, marginTop: 24 }}>
+        <ReAnimated.View
+          entering={FadeInUp.duration(500)}
+          style={{ paddingHorizontal: 16, marginTop: 24 }}
+        >
           <TouchableOpacity style={s.shareBtn}>
             <Ionicons name="download-outline" size={18} color="#FFF" />
             <Text style={s.shareBtnText}>Share as PDF</Text>
@@ -200,21 +343,3 @@ export function MonthlyAiReviewScreen() {
     </View>
   );
 }
-
-const s = StyleSheet.create({
-  screen: { flex: 1 },
-  header: { paddingHorizontal: 20, paddingBottom: 16, gap: 6 },
-  headerBadge: { fontSize: 12, fontWeight: '800', color: AI_COLORS.primary, letterSpacing: 1 },
-  headerTitle: { fontSize: 28, fontWeight: '800', color: AI_COLORS.text, letterSpacing: -0.5 },
-  headerSub: { fontSize: 13, color: AI_COLORS.textSecondary },
-  heroCard: { backgroundColor: AI_COLORS.card, borderRadius: 24, padding: 20, borderWidth: 1, borderColor: AI_COLORS.border, flexDirection: 'row', alignItems: 'center', gap: 16 },
-  heroLabel: { fontSize: 11, fontWeight: '800', color: AI_COLORS.primary, letterSpacing: 1.5, marginBottom: 6 },
-  heroTitle: { fontSize: 22, fontWeight: '700', color: AI_COLORS.text, letterSpacing: -0.3 },
-  heroDesc: { fontSize: 13, color: AI_COLORS.textSecondary, marginTop: 4, lineHeight: 18 },
-  heroStat: { alignItems: 'center', flex: 1 },
-  heroStatVal: { fontSize: 15, fontWeight: '700', color: AI_COLORS.text },
-  heroStatLabel: { fontSize: 10, color: AI_COLORS.textTertiary, marginTop: 2 },
-  heroScore: { fontSize: 22, fontWeight: '800' },
-  shareBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: AI_COLORS.primary, borderRadius: 16, paddingVertical: 14 },
-  shareBtnText: { fontSize: 15, fontWeight: '700', color: '#FFF' },
-});

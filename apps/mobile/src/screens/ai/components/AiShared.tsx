@@ -1,38 +1,53 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import Svg, { Circle, Line, Polygon, Text as SvgText } from 'react-native-svg';
 import ReAnimated, {
-  useSharedValue, useAnimatedProps, withTiming, withRepeat, withSequence, Easing, cancelAnimation,
-  FadeInUp, FadeIn, SlideInRight,
+  useSharedValue,
+  useAnimatedProps,
+  withTiming,
+  withRepeat,
+  withSequence,
+  Easing,
+  cancelAnimation,
+  FadeInUp,
+  FadeIn,
+  SlideInRight,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../../../theme';
 
 const AnimatedCircle = ReAnimated.createAnimatedComponent(Circle);
 const { width: SCREEN_W } = Dimensions.get('window');
 
-// ─── COLORS ────────────────────────────────────────────
-export const AI_COLORS = {
-  bg: '#0F1115',
-  card: '#171A21',
-  border: '#262A33',
-  primary: '#FF6B00',
-  primaryLight: 'rgba(255, 107, 0, 0.15)',
-  primaryGlow: 'rgba(255, 107, 0, 0.3)',
-  text: '#FFFFFF',
-  textSecondary: '#9CA3AF',
-  textTertiary: '#6B7280',
-  success: '#16A34A',
-  successLight: 'rgba(22, 163, 74, 0.15)',
-  warning: '#F59E0B',
-  warningLight: 'rgba(245, 158, 11, 0.15)',
-  danger: '#EF4444',
-  dangerLight: 'rgba(239, 68, 68, 0.15)',
-  info: '#3B82F6',
-  infoLight: 'rgba(59, 130, 246, 0.15)',
-  purple: '#8B5CF6',
-  purpleLight: 'rgba(139, 92, 246, 0.15)',
-  cardAlt: '#1C2128',
-};
+// ─── AI THEME HOOK ──────────────────────────────────
+export function useAiColors() {
+  const { colors } = useTheme();
+  return useMemo(
+    () => ({
+      bg: colors.bg.primary,
+      card: colors.bg.card,
+      border: colors.border.default,
+      primary: colors.accent.primary,
+      primaryLight: `${colors.accent.primary}18`,
+      primaryGlow: `${colors.accent.primary}40`,
+      text: colors.text.primary,
+      textSecondary: colors.text.secondary,
+      textTertiary: colors.text.tertiary,
+      success: colors.status.success,
+      successLight: colors.status.successLight,
+      warning: colors.status.warning,
+      warningLight: colors.status.warningLight,
+      danger: colors.status.error,
+      dangerLight: colors.status.errorLight,
+      info: colors.status.info,
+      infoLight: colors.status.infoLight,
+      purple: colors.accent.primary,
+      purpleLight: colors.brand.light,
+      cardAlt: colors.bg.tertiary,
+    }),
+    [colors],
+  );
+}
 
 // ─── ANIMATED PROGRESS RING ──────────────────────────
 interface ProgressRingProps {
@@ -45,14 +60,25 @@ interface ProgressRingProps {
 }
 
 export function AnimatedProgressRing({
-  size = 120, strokeWidth = 8, progress, color = AI_COLORS.primary, bgColor = AI_COLORS.border, children,
+  size = 120,
+  strokeWidth = 8,
+  progress,
+  color,
+  bgColor,
+  children,
 }: ProgressRingProps) {
+  const c = useAiColors();
+  const ringColor = color || c.primary;
+  const ringBgColor = bgColor || c.border;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const animatedProgress = useSharedValue(0);
 
   useEffect(() => {
-    animatedProgress.value = withTiming(progress, { duration: 1200, easing: Easing.out(Easing.cubic) });
+    animatedProgress.value = withTiming(progress, {
+      duration: 1200,
+      easing: Easing.out(Easing.cubic),
+    });
   }, [progress]);
 
   const animatedProps = useAnimatedProps(() => ({
@@ -62,12 +88,19 @@ export function AnimatedProgressRing({
   return (
     <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
       <Svg width={size} height={size} style={{ position: 'absolute' }}>
-        <Circle cx={size / 2} cy={size / 2} r={radius} stroke={bgColor} strokeWidth={strokeWidth} fill="none" />
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={ringBgColor}
+          strokeWidth={strokeWidth}
+          fill="none"
+        />
         <AnimatedCircle
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={color}
+          stroke={ringColor}
           strokeWidth={strokeWidth}
           fill="none"
           strokeDasharray={circumference}
@@ -91,7 +124,14 @@ interface AnimatedNumberProps {
   decimal?: number;
 }
 
-export function AnimatedNumber({ value, style, prefix = '', suffix = '', duration = 1000, decimal = 0 }: AnimatedNumberProps) {
+export function AnimatedNumber({
+  value,
+  style,
+  prefix = '',
+  suffix = '',
+  duration = 1000,
+  decimal = 0,
+}: AnimatedNumberProps) {
   const displayValue = useSharedValue(0);
 
   useEffect(() => {
@@ -99,7 +139,13 @@ export function AnimatedNumber({ value, style, prefix = '', suffix = '', duratio
   }, [value]);
 
   const formatted = value.toLocaleString('en-IN', { maximumFractionDigits: decimal });
-  return <Text style={style}>{prefix}{formatted}{suffix}</Text>;
+  return (
+    <Text style={style}>
+      {prefix}
+      {formatted}
+      {suffix}
+    </Text>
+  );
 }
 
 // ─── HEALTH SCORE CARD ───────────────────────────────
@@ -112,27 +158,42 @@ interface HealthScoreCardProps {
 }
 
 export function HealthScoreCard({ score, trend, title, subtitle, onPress }: HealthScoreCardProps) {
-  const ringColor = score >= 80 ? AI_COLORS.success : score >= 60 ? AI_COLORS.warning : AI_COLORS.danger;
+  const c = useAiColors();
+  const { spacing: sp } = useTheme();
+  const ringColor = score >= 80 ? c.success : score >= 60 ? c.warning : c.danger;
   const card = (
-    <View style={[as.healthCard, { borderColor: AI_COLORS.border }]}>
+    <View style={[localStyles.healthCard, { backgroundColor: c.card, borderColor: c.border }]}>
       <View style={{ flex: 1 }}>
-        {title && <Text style={as.healthTitle}>{title}</Text>}
-        {subtitle && <Text style={as.healthSub}>{subtitle}</Text>}
+        {title && <Text style={[localStyles.healthTitle, { color: c.text }]}>{title}</Text>}
+        {subtitle && (
+          <Text style={[localStyles.healthSub, { color: c.textSecondary }]}>{subtitle}</Text>
+        )}
         {trend !== undefined && (
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-            <Ionicons name={trend >= 0 ? 'trending-up' : 'trending-down'} size={14} color={trend >= 0 ? AI_COLORS.success : AI_COLORS.danger} />
-            <Text style={[as.healthTrend, { color: trend >= 0 ? AI_COLORS.success : AI_COLORS.danger }]}>
-              {trend >= 0 ? '+' : ''}{trend} points
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: sp.xs }}>
+            <Ionicons
+              name={trend >= 0 ? 'trending-up' : 'trending-down'}
+              size={14}
+              color={trend >= 0 ? c.success : c.danger}
+            />
+            <Text style={[localStyles.healthTrend, { color: trend >= 0 ? c.success : c.danger }]}>
+              {trend >= 0 ? '+' : ''}
+              {trend} points
             </Text>
           </View>
         )}
       </View>
       <AnimatedProgressRing size={88} strokeWidth={6} progress={score} color={ringColor}>
-        <Text style={[as.healthScoreText, { color: ringColor }]}>{score}</Text>
+        <Text style={[localStyles.healthScoreText, { color: ringColor }]}>{score}</Text>
       </AnimatedProgressRing>
     </View>
   );
-  if (onPress) return <TouchableOpacity onPress={onPress} activeOpacity={0.8}>{card}</TouchableOpacity>;
+  if (onPress) {
+    return (
+      <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
+        {card}
+      </TouchableOpacity>
+    );
+  }
   return card;
 }
 
@@ -144,13 +205,15 @@ interface QuickActionBtnProps {
   color?: string;
 }
 
-export function QuickActionBtn({ icon, label, onPress, color = AI_COLORS.primary }: QuickActionBtnProps) {
+export function QuickActionBtn({ icon, label, onPress, color }: QuickActionBtnProps) {
+  const c = useAiColors();
+  const btnColor = color || c.primary;
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={as.qaBtn}>
-      <View style={[as.qaIconWrap, { backgroundColor: `${color}20` }]}>
-        <Ionicons name={icon} size={22} color={color} />
+    <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={localStyles.qaBtn}>
+      <View style={[localStyles.qaIconWrap, { backgroundColor: `${btnColor}20` }]}>
+        <Ionicons name={icon} size={22} color={btnColor} />
       </View>
-      <Text style={as.qaLabel}>{label}</Text>
+      <Text style={[localStyles.qaLabel, { color: c.textSecondary }]}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -169,47 +232,63 @@ interface InsightCardProps {
 }
 
 export function InsightCard({
-  icon = 'bulb', title, message, type = 'default', confidence, impact, actionLabel, onAction, onPress,
+  icon = 'bulb',
+  title,
+  message,
+  type = 'default',
+  confidence,
+  impact,
+  actionLabel,
+  onAction,
+  onPress,
 }: InsightCardProps) {
+  const c = useAiColors();
   const colorMap = {
-    critical: AI_COLORS.danger,
-    warning: AI_COLORS.warning,
-    success: AI_COLORS.success,
-    info: AI_COLORS.info,
-    default: AI_COLORS.textSecondary,
+    critical: c.danger,
+    warning: c.warning,
+    success: c.success,
+    info: c.info,
+    default: c.textSecondary,
   };
   const lightMap = {
-    critical: AI_COLORS.dangerLight,
-    warning: AI_COLORS.warningLight,
-    success: AI_COLORS.successLight,
-    info: AI_COLORS.infoLight,
+    critical: c.dangerLight,
+    warning: c.warningLight,
+    success: c.successLight,
+    info: c.infoLight,
     default: 'transparent',
   };
   const badgeColor = colorMap[type];
   const badgeLight = lightMap[type];
   const card = (
-    <View style={[as.insightCard, { borderLeftColor: badgeColor }]}>
-      <View style={as.insightRow}>
-        <View style={[as.insightIcon, { backgroundColor: badgeLight }]}>
+    <View
+      style={[
+        localStyles.insightCard,
+        { backgroundColor: c.card, borderColor: c.border, borderLeftColor: badgeColor },
+      ]}
+    >
+      <View style={localStyles.insightRow}>
+        <View style={[localStyles.insightIcon, { backgroundColor: badgeLight }]}>
           <Ionicons name={icon} size={18} color={badgeColor} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={as.insightTitle}>{title}</Text>
-          <Text style={as.insightMsg}>{message}</Text>
+          <Text style={[localStyles.insightTitle, { color: c.text }]}>{title}</Text>
+          <Text style={[localStyles.insightMsg, { color: c.textSecondary }]}>{message}</Text>
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 6 }}>
             {confidence !== undefined && (
-              <View style={[as.badge, { backgroundColor: badgeLight }]}>
-                <Text style={[as.badgeText, { color: badgeColor }]}>{(confidence * 100).toFixed(0)}% confidence</Text>
+              <View style={[localStyles.badge, { backgroundColor: badgeLight }]}>
+                <Text style={[localStyles.badgeText, { color: badgeColor }]}>
+                  {(confidence * 100).toFixed(0)}% confidence
+                </Text>
               </View>
             )}
             {impact && (
-              <View style={[as.badge, { backgroundColor: badgeLight }]}>
-                <Text style={[as.badgeText, { color: badgeColor }]}>{impact} Impact</Text>
+              <View style={[localStyles.badge, { backgroundColor: badgeLight }]}>
+                <Text style={[localStyles.badgeText, { color: badgeColor }]}>{impact} Impact</Text>
               </View>
             )}
           </View>
         </View>
-        <Ionicons name="chevron-forward" size={16} color={AI_COLORS.textTertiary} />
+        <Ionicons name="chevron-forward" size={16} color={c.textTertiary} />
       </View>
     </View>
   );
@@ -217,8 +296,12 @@ export function InsightCard({
   return (
     <ReAnimated.View entering={FadeInUp.duration(400).springify()}>
       {onPress ? (
-        <TouchableOpacity onPress={onPress} activeOpacity={0.8}>{card}</TouchableOpacity>
-      ) : card}
+        <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
+          {card}
+        </TouchableOpacity>
+      ) : (
+        card
+      )}
     </ReAnimated.View>
   );
 }
@@ -232,15 +315,18 @@ interface SectionHeaderProps {
 }
 
 export function SectionHeader({ title, subtitle, action, onAction }: SectionHeaderProps) {
+  const c = useAiColors();
   return (
-    <View style={as.sectionHeader}>
+    <View style={localStyles.sectionHeader}>
       <View>
-        <Text style={as.sectionTitle}>{title}</Text>
-        {subtitle && <Text style={as.sectionSub}>{subtitle}</Text>}
+        <Text style={[localStyles.sectionTitle, { color: c.text }]}>{title}</Text>
+        {subtitle && (
+          <Text style={[localStyles.sectionSub, { color: c.textSecondary }]}>{subtitle}</Text>
+        )}
       </View>
       {action && (
         <TouchableOpacity onPress={onAction} activeOpacity={0.7}>
-          <Text style={as.sectionAction}>{action}</Text>
+          <Text style={[localStyles.sectionAction, { color: c.primary }]}>{action}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -248,17 +334,22 @@ export function SectionHeader({ title, subtitle, action, onAction }: SectionHead
 }
 
 // ─── SEVERITY BADGE ──────────────────────────────────
-export function SeverityBadge({ severity }: { severity: 'critical' | 'warning' | 'info' | 'success' }) {
+export function SeverityBadge({
+  severity,
+}: {
+  severity: 'critical' | 'warning' | 'info' | 'success';
+}) {
+  const c = useAiColors();
   const colorMap = {
-    critical: AI_COLORS.danger,
-    warning: AI_COLORS.warning,
-    info: AI_COLORS.info,
-    success: AI_COLORS.success,
+    critical: c.danger,
+    warning: c.warning,
+    info: c.info,
+    success: c.success,
   };
   return (
-    <View style={[as.sevBadge, { backgroundColor: `${colorMap[severity]}20` }]}>
-      <View style={[as.sevDot, { backgroundColor: colorMap[severity] }]} />
-      <Text style={[as.sevText, { color: colorMap[severity] }]}>{severity}</Text>
+    <View style={[localStyles.sevBadge, { backgroundColor: `${colorMap[severity]}20` }]}>
+      <View style={[localStyles.sevDot, { backgroundColor: colorMap[severity] }]} />
+      <Text style={[localStyles.sevText, { color: colorMap[severity] }]}>{severity}</Text>
     </View>
   );
 }
@@ -272,12 +363,30 @@ interface AiCardProps {
 }
 
 export function AiCard({ children, onPress, padding = 16, style }: AiCardProps) {
+  const c = useAiColors();
   const card = (
-    <View style={[as.aiCard, { padding, borderColor: AI_COLORS.border }, style]}>
+    <View
+      style={[
+        {
+          backgroundColor: c.card,
+          borderRadius: 16,
+          borderWidth: 1,
+          borderColor: c.border,
+          padding,
+        },
+        style,
+      ]}
+    >
       {children}
     </View>
   );
-  if (onPress) return <TouchableOpacity onPress={onPress} activeOpacity={0.8}>{card}</TouchableOpacity>;
+  if (onPress) {
+    return (
+      <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
+        {card}
+      </TouchableOpacity>
+    );
+  }
   return card;
 }
 
@@ -289,7 +398,9 @@ export function PulseView({ children, style }: { children: React.ReactNode; styl
       withSequence(
         withTiming(1.05, { duration: 1200, easing: Easing.inOut(Easing.quad) }),
         withTiming(1, { duration: 1200, easing: Easing.inOut(Easing.quad) }),
-      ), -1, true,
+      ),
+      -1,
+      true,
     );
     return () => cancelAnimation(pulse);
   }, []);
@@ -305,14 +416,16 @@ interface MetricRowProps {
   icon?: keyof typeof Ionicons.glyphMap;
 }
 
-export function MetricRow({ label, value, color = AI_COLORS.textSecondary, icon }: MetricRowProps) {
+export function MetricRow({ label, value, color, icon }: MetricRowProps) {
+  const c = useAiColors();
+  const valColor = color || c.textSecondary;
   return (
-    <View style={as.metricRow}>
+    <View style={[localStyles.metricRow, { borderBottomColor: c.border }]}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        {icon && <Ionicons name={icon} size={14} color={color} />}
-        <Text style={[as.metricLabel, { color: AI_COLORS.textSecondary }]}>{label}</Text>
+        {icon && <Ionicons name={icon} size={14} color={valColor} />}
+        <Text style={[localStyles.metricLabel, { color: c.textSecondary }]}>{label}</Text>
       </View>
-      <Text style={[as.metricValue, { color }]}>{value}</Text>
+      <Text style={[localStyles.metricValue, { color: valColor }]}>{value}</Text>
     </View>
   );
 }
@@ -324,6 +437,7 @@ interface RadarChartProps {
 }
 
 export function RadarChart({ size = 200, data }: RadarChartProps) {
+  const c = useAiColors();
   const cx = size / 2;
   const cy = size / 2;
   const radius = size * 0.38;
@@ -352,19 +466,25 @@ export function RadarChart({ size = 200, data }: RadarChartProps) {
             return `${cx + levelRadius * Math.cos(angle)},${cy + levelRadius * Math.sin(angle)}`;
           })
           .join(' ');
-        return <Polygon key={l} points={pts} fill="none" stroke={AI_COLORS.border} strokeWidth={1} />;
+        return <Polygon key={l} points={pts} fill="none" stroke={c.border} strokeWidth={1} />;
       })}
       {data.map((_, i) => {
         const p = getPoint(i, 1, radius);
-        return <Line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke={AI_COLORS.border} strokeWidth={1} />;
+        return <Line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke={c.border} strokeWidth={1} />;
       })}
-      <Polygon points={polygonPoints} fill={`${AI_COLORS.primary}25`} stroke={AI_COLORS.primary} strokeWidth={2} />
+      <Polygon points={polygonPoints} fill={`${c.primary}25`} stroke={c.primary} strokeWidth={2} />
       {data.map((d, i) => {
         const p = getPoint(i, d.value / 100, radius);
         return (
           <React.Fragment key={i}>
-            <Circle cx={p.x} cy={p.y} r={4} fill={d.color || AI_COLORS.primary} />
-            <SvgText x={p.x} y={p.y + (p.y < cy ? -14 : 18)} fontSize={10} fill={AI_COLORS.textSecondary} textAnchor="middle">
+            <Circle cx={p.x} cy={p.y} r={4} fill={d.color || c.primary} />
+            <SvgText
+              x={p.x}
+              y={p.y + (p.y < cy ? -14 : 18)}
+              fontSize={10}
+              fill={c.textSecondary}
+              textAnchor="middle"
+            >
               {d.label}
             </SvgText>
           </React.Fragment>
@@ -385,26 +505,50 @@ interface GoalCardProps {
   onPress?: () => void;
 }
 
-export function GoalCard({ emoji = '🎯', title, current, target, predictedDate, probability, onPress }: GoalCardProps) {
+export function GoalCard({
+  emoji = '🎯',
+  title,
+  current,
+  target,
+  predictedDate,
+  probability,
+  onPress,
+}: GoalCardProps) {
+  const c = useAiColors();
   const pct = Math.min(100, Math.round((current / target) * 100));
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
-      <View style={[as.goalCard, { borderColor: AI_COLORS.border }]}>
+      <View style={[localStyles.goalCard, { backgroundColor: c.card, borderColor: c.border }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <Text style={{ fontSize: 28 }}>{emoji}</Text>
           <View style={{ flex: 1 }}>
-            <Text style={as.goalTitle}>{title}</Text>
-            <Text style={as.goalAmount}>₹{current.toLocaleString('en-IN')} / ₹{target.toLocaleString('en-IN')}</Text>
+            <Text style={[localStyles.goalTitle, { color: c.text }]}>{title}</Text>
+            <Text style={[localStyles.goalAmount, { color: c.textSecondary }]}>
+              ₹{current.toLocaleString('en-IN')} / ₹{target.toLocaleString('en-IN')}
+            </Text>
           </View>
-          <Text style={[as.goalPct, { color: pct >= 80 ? AI_COLORS.success : AI_COLORS.primary }]}>{pct}%</Text>
+          <Text style={[localStyles.goalPct, { color: pct >= 80 ? c.success : c.primary }]}>
+            {pct}%
+          </Text>
         </View>
-        <View style={[as.progressBarBg, { backgroundColor: AI_COLORS.border }]}>
-          <View style={[as.progressBarFill, { width: `${pct}%`, backgroundColor: pct >= 80 ? AI_COLORS.success : AI_COLORS.primary }]} />
+        <View style={[localStyles.progressBarBg, { backgroundColor: c.border }]}>
+          <View
+            style={[
+              localStyles.progressBarFill,
+              { width: `${pct}%`, backgroundColor: pct >= 80 ? c.success : c.primary },
+            ]}
+          />
         </View>
         {probability !== undefined && (
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
-            {predictedDate && <Text style={as.goalPred}>By {predictedDate}</Text>}
-            <Text style={[as.goalProb, { color: probability >= 80 ? AI_COLORS.success : AI_COLORS.warning }]}>
+            {predictedDate && (
+              <Text style={[localStyles.goalPred, { color: c.textTertiary }]}>
+                By {predictedDate}
+              </Text>
+            )}
+            <Text
+              style={[localStyles.goalProb, { color: probability >= 80 ? c.success : c.warning }]}
+            >
               {probability}% success probability
             </Text>
           </View>
@@ -416,93 +560,122 @@ export function GoalCard({ emoji = '🎯', title, current, target, predictedDate
 
 // ─── FREE / PREMIUM BADGE ────────────────────────────
 export function PremiumBadge({ premium = false }: { premium?: boolean }) {
+  const c = useAiColors();
   return (
-    <View style={[as.premiumBadge, { backgroundColor: premium ? AI_COLORS.primaryLight : AI_COLORS.border }]}>
-      <Ionicons name={premium ? 'diamond' : 'sparkles'} size={10} color={premium ? AI_COLORS.primary : AI_COLORS.textTertiary} />
-      <Text style={[as.premiumBadgeText, { color: premium ? AI_COLORS.primary : AI_COLORS.textTertiary }]}>
+    <View
+      style={[localStyles.premiumBadge, { backgroundColor: premium ? c.primaryLight : c.border }]}
+    >
+      <Ionicons
+        name={premium ? 'diamond' : 'sparkles'}
+        size={10}
+        color={premium ? c.primary : c.textTertiary}
+      />
+      <Text style={[localStyles.premiumBadgeText, { color: premium ? c.primary : c.textTertiary }]}>
         {premium ? 'PREMIUM' : 'FREE'}
       </Text>
     </View>
   );
 }
 
-const as = StyleSheet.create({
+// ─── LAYOUT-ONLY STYLES ─────────────────────────────
+const localStyles = StyleSheet.create({
   healthCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: AI_COLORS.card,
     borderRadius: 20,
     padding: 20,
     borderWidth: 1,
-    borderColor: AI_COLORS.border,
   },
-  healthTitle: { fontSize: 20, fontWeight: '700', color: AI_COLORS.text, letterSpacing: -0.3 },
-  healthSub: { fontSize: 13, color: AI_COLORS.textSecondary, marginTop: 4, lineHeight: 18 },
+  healthTitle: { fontSize: 20, fontWeight: '700', letterSpacing: -0.3 },
+  healthSub: { fontSize: 13, marginTop: 4, lineHeight: 18 },
   healthTrend: { fontSize: 13, fontWeight: '600', marginLeft: 4 },
   healthScoreText: { fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
 
   qaBtn: { alignItems: 'center', gap: 6, width: 72 },
-  qaIconWrap: { width: 52, height: 52, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
-  qaLabel: { fontSize: 11, fontWeight: '500', color: AI_COLORS.textSecondary, textAlign: 'center' },
+  qaIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  qaLabel: { fontSize: 11, fontWeight: '500', textAlign: 'center' },
 
   insightCard: {
-    backgroundColor: AI_COLORS.card,
     borderRadius: 16,
     padding: 16,
     borderLeftWidth: 3,
     borderWidth: 1,
-    borderColor: AI_COLORS.border,
-    borderLeftColor: undefined,
     marginBottom: 8,
   },
   insightRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  insightIcon: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
-  insightTitle: { fontSize: 14, fontWeight: '700', color: AI_COLORS.text },
-  insightMsg: { fontSize: 12, color: AI_COLORS.textSecondary, marginTop: 2, lineHeight: 17 },
+  insightIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  insightTitle: { fontSize: 14, fontWeight: '700' },
+  insightMsg: { fontSize: 12, marginTop: 2, lineHeight: 17 },
   badge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
   badgeText: { fontSize: 10, fontWeight: '600' },
 
   sectionHeader: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end',
-    marginTop: 24, marginBottom: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginTop: 24,
+    marginBottom: 12,
   },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: AI_COLORS.text, letterSpacing: -0.2 },
-  sectionSub: { fontSize: 12, color: AI_COLORS.textSecondary, marginTop: 2 },
-  sectionAction: { fontSize: 13, fontWeight: '600', color: AI_COLORS.primary },
+  sectionTitle: { fontSize: 18, fontWeight: '700', letterSpacing: -0.2 },
+  sectionSub: { fontSize: 12, marginTop: 2 },
+  sectionAction: { fontSize: 13, fontWeight: '600' },
 
   sevBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
   },
   sevDot: { width: 6, height: 6, borderRadius: 3 },
   sevText: { fontSize: 10, fontWeight: '700', textTransform: 'capitalize' },
 
-  aiCard: {
-    backgroundColor: AI_COLORS.card, borderRadius: 16, borderWidth: 1, borderColor: AI_COLORS.border,
-  },
-
   metricRow: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: AI_COLORS.border,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
   },
   metricLabel: { fontSize: 13, fontWeight: '500' },
   metricValue: { fontSize: 14, fontWeight: '700' },
 
   goalCard: {
-    backgroundColor: AI_COLORS.card, borderRadius: 16, padding: 16, borderWidth: 1,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
     marginBottom: 10,
   },
-  goalTitle: { fontSize: 15, fontWeight: '700', color: AI_COLORS.text },
-  goalAmount: { fontSize: 12, color: AI_COLORS.textSecondary, marginTop: 2 },
+  goalTitle: { fontSize: 15, fontWeight: '700' },
+  goalAmount: { fontSize: 12, marginTop: 2 },
   goalPct: { fontSize: 22, fontWeight: '800' },
   progressBarBg: { height: 4, borderRadius: 2, marginTop: 12, overflow: 'hidden' },
   progressBarFill: { height: '100%', borderRadius: 2 },
-  goalPred: { fontSize: 11, color: AI_COLORS.textTertiary },
+  goalPred: { fontSize: 11 },
   goalProb: { fontSize: 11, fontWeight: '600' },
 
   premiumBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 3,
-    paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
   },
   premiumBadgeText: { fontSize: 9, fontWeight: '800', letterSpacing: 0.5 },
 });

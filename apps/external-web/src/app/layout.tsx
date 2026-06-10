@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Toaster } from 'sonner';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from '@/lib/auth-context';
+import { LoadingProvider } from '@/components/loaders';
 import './globals.css';
 
 const GOOGLE_CLIENT_ID =
@@ -46,7 +47,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen bg-dabbu-bg text-dabbu-text antialiased">
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
           <AuthProvider>
-            <ThemeProvider>{children}</ThemeProvider>
+            <LoadingProvider>
+              <ThemeProvider>{children}</ThemeProvider>
+            </LoadingProvider>
           </AuthProvider>
         </GoogleOAuthProvider>
         <Toaster

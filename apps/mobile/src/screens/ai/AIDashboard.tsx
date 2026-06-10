@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { AIMessage } from '../../types';
+import { useAiColors } from './components/AiShared';
 
 const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 72;
 
@@ -28,6 +29,110 @@ function generateId(): string {
 }
 
 export function AIDashboard() {
+  const AI_COLORS = useAiColors();
+  const s = useMemo(
+    () =>
+      StyleSheet.create({
+        root: { flex: 1, backgroundColor: AI_COLORS.bg },
+
+        header: {
+          backgroundColor: AI_COLORS.bg,
+          borderBottomWidth: 1,
+          borderBottomColor: AI_COLORS.card,
+        },
+        headerRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingHorizontal: 12,
+          paddingBottom: 10,
+        },
+        backBtn: {
+          width: 34,
+          height: 34,
+          borderRadius: 10,
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+        headerCenter: { flex: 1, marginLeft: 4 },
+        headerTitle: { fontSize: 17, fontWeight: '700', color: AI_COLORS.text },
+        headerSub: { fontSize: 11, color: AI_COLORS.textSecondary, marginTop: 1 },
+        newChatBtn: {
+          width: 34,
+          height: 34,
+          borderRadius: 10,
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+
+        listContent: { paddingVertical: 12, flexGrow: 1 },
+
+        emptyWrap: { paddingHorizontal: 16, paddingTop: 40, alignItems: 'center' },
+        emptyCard: {
+          alignItems: 'center',
+          backgroundColor: AI_COLORS.card,
+          borderRadius: 24,
+          padding: 32,
+          width: '100%',
+          marginBottom: 20,
+        },
+        emptyTitle: { fontSize: 20, fontWeight: '700', color: AI_COLORS.text, marginTop: 12 },
+        emptySub: { fontSize: 13, color: AI_COLORS.textSecondary, marginTop: 4 },
+        suggestionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
+        sugChip: {
+          backgroundColor: AI_COLORS.card,
+          borderRadius: 16,
+          paddingHorizontal: 16,
+          paddingVertical: 10,
+          borderWidth: 1,
+          borderColor: AI_COLORS.border,
+        },
+        sugText: { fontSize: 12, color: AI_COLORS.textSecondary },
+
+        typingRow: { paddingHorizontal: 16, marginBottom: 4 },
+        typingBubble: {
+          alignSelf: 'flex-start',
+          backgroundColor: AI_COLORS.card,
+          borderRadius: 20,
+          borderBottomLeftRadius: 4,
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+        },
+
+        inputWrap: {
+          backgroundColor: AI_COLORS.bg,
+          borderTopWidth: 1,
+          borderTopColor: AI_COLORS.card,
+          paddingHorizontal: 12,
+          paddingTop: 8,
+        },
+        inputRow: {
+          flexDirection: 'row',
+          alignItems: 'flex-end',
+          gap: 8,
+        },
+        input: {
+          flex: 1,
+          backgroundColor: AI_COLORS.card,
+          borderRadius: 16,
+          paddingHorizontal: 16,
+          paddingVertical: 10,
+          fontSize: 15,
+          color: AI_COLORS.text,
+          maxHeight: 100,
+          lineHeight: 20,
+        },
+        sendBtn: {
+          width: 40,
+          height: 40,
+          borderRadius: 20,
+          backgroundColor: AI_COLORS.warning,
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: 2,
+        },
+      }),
+    [AI_COLORS],
+  );
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
@@ -169,14 +274,14 @@ export function AIDashboard() {
       <View style={[s.header, { paddingTop: insets.top + 8 }]}>
         <View style={s.headerRow}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-            <Ionicons name="chevron-back" size={22} color="#FFF" />
+            <Ionicons name="chevron-back" size={22} color={AI_COLORS.text} />
           </TouchableOpacity>
           <View style={s.headerCenter}>
             <Text style={s.headerTitle}>Dabbu AI</Text>
             <Text style={s.headerSub}>Always here to help</Text>
           </View>
           <TouchableOpacity onPress={clearMessages} style={s.newChatBtn}>
-            <Ionicons name="add-circle-outline" size={22} color="#FFD700" />
+            <Ionicons name="add-circle-outline" size={22} color={AI_COLORS.warning} />
           </TouchableOpacity>
         </View>
       </View>
@@ -190,7 +295,7 @@ export function AIDashboard() {
         ListEmptyComponent={
           <View style={s.emptyWrap}>
             <View style={s.emptyCard}>
-              <Ionicons name="sparkles" size={32} color="#FFD700" />
+              <Ionicons name="sparkles" size={32} color={AI_COLORS.warning} />
               <Text style={s.emptyTitle}>How can I help you?</Text>
               <Text style={s.emptySub}>Ask me anything about your finances</Text>
             </View>
@@ -232,7 +337,7 @@ export function AIDashboard() {
             <TextInput
               style={s.input}
               placeholder="Ask anything..."
-              placeholderTextColor="#666"
+              placeholderTextColor={AI_COLORS.textTertiary}
               value={input}
               onChangeText={setInput}
               multiline
@@ -247,9 +352,9 @@ export function AIDashboard() {
               disabled={loading || !input.trim()}
             >
               {loading ? (
-                <ActivityIndicator size="small" color="#0A0A0A" />
+                <ActivityIndicator size="small" color={AI_COLORS.bg} />
               ) : (
-                <Ionicons name="arrow-up" size={20} color="#0A0A0A" />
+                <Ionicons name="arrow-up" size={20} color={AI_COLORS.bg} />
               )}
             </TouchableOpacity>
           </View>
@@ -258,103 +363,3 @@ export function AIDashboard() {
     </View>
   );
 }
-
-const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0A0A0A' },
-
-  header: {
-    backgroundColor: '#0D0D0D',
-    borderBottomWidth: 1,
-    borderBottomColor: '#1A1A1A',
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingBottom: 10,
-  },
-  backBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerCenter: { flex: 1, marginLeft: 4 },
-  headerTitle: { fontSize: 17, fontWeight: '700', color: '#FFF' },
-  headerSub: { fontSize: 11, color: '#888', marginTop: 1 },
-  newChatBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  listContent: { paddingVertical: 12, flexGrow: 1 },
-
-  emptyWrap: { paddingHorizontal: 16, paddingTop: 40, alignItems: 'center' },
-  emptyCard: {
-    alignItems: 'center',
-    backgroundColor: '#1A1A1A',
-    borderRadius: 24,
-    padding: 32,
-    width: '100%',
-    marginBottom: 20,
-  },
-  emptyTitle: { fontSize: 20, fontWeight: '700', color: '#FFF', marginTop: 12 },
-  emptySub: { fontSize: 13, color: '#888', marginTop: 4 },
-  suggestionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
-  sugChip: {
-    backgroundColor: '#1A1A1A',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: '#2A2A2A',
-  },
-  sugText: { fontSize: 12, color: '#CCC' },
-
-  typingRow: { paddingHorizontal: 16, marginBottom: 4 },
-  typingBubble: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#1A1A1A',
-    borderRadius: 20,
-    borderBottomLeftRadius: 4,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-
-  inputWrap: {
-    backgroundColor: '#0D0D0D',
-    borderTopWidth: 1,
-    borderTopColor: '#1A1A1A',
-    paddingHorizontal: 12,
-    paddingTop: 8,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 8,
-  },
-  input: {
-    flex: 1,
-    backgroundColor: '#1A1A1A',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: '#FFF',
-    maxHeight: 100,
-    lineHeight: 20,
-  },
-  sendBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#FFD700',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 2,
-  },
-});
