@@ -387,9 +387,12 @@ export class ExternalSharingService {
     picture?: string;
   } | null> {
     try {
-      const googleClientId = this.configService.get<string>('GOOGLE_CLIENT_ID') || '';
-      const client = new OAuth2Client(googleClientId);
-      const ticket = await client.verifyIdToken({ idToken, audience: googleClientId });
+      const audiences = [
+        this.configService.get<string>('GOOGLE_CLIENT_ID') || '',
+        this.configService.get<string>('GOOGLE_CLIENT_ID_EXT_WEB') || '',
+      ].filter(Boolean);
+      const client = new OAuth2Client();
+      const ticket = await client.verifyIdToken({ idToken, audience: audiences });
       const payload = ticket.getPayload();
       if (!payload) {
         return null;
