@@ -739,6 +739,45 @@ export function HomeScreen() {
           </TouchableOpacity>
         </Animated.View>
 
+        {/* ── SMS Intelligence ──────────────────────── */}
+        <Animated.View style={{ paddingHorizontal: 20, marginTop: 16, opacity: fadeAnim }}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('SMS')}
+            style={[
+              s.aiBanner,
+              {
+                backgroundColor: isDark ? '#1A1A2E' : '#F0F9FF',
+                borderColor: isDark ? 'rgba(96,165,250,0.2)' : 'rgba(37,99,235,0.2)',
+              },
+            ]}
+            activeOpacity={0.8}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <View
+                style={[
+                  s.aiBannerIcon,
+                  { backgroundColor: isDark ? 'rgba(96,165,250,0.15)' : 'rgba(37,99,235,0.12)' },
+                ]}
+              >
+                <Ionicons
+                  name="chatbubble-ellipses"
+                  size={22}
+                  color={isDark ? '#60A5FA' : '#2563EB'}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[s.aiBannerTitle, { color: colors.text.primary }]}>
+                  SMS Intelligence
+                </Text>
+                <Text style={[s.aiBannerSub, { color: colors.text.tertiary }]}>
+                  Detect expenses from your SMS messages
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
+            </View>
+          </TouchableOpacity>
+        </Animated.View>
+
         {/* ── Spending by Category ──────────────────── */}
         {categories.length > 0 && (
           <Animated.View style={{ paddingHorizontal: 20, marginTop: 32, opacity: fadeAnim }}>

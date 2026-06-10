@@ -108,7 +108,7 @@ function getStorage(): StorageInterface {
 
 async function authFetch(path: string, options: RequestInit = {}): Promise<Response> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000);
+  const timeout = setTimeout(() => controller.abort(), 45000);
   try {
     const merged = { ...options, signal: controller.signal };
     return await fetch(`${API_URL}${path}`, merged);

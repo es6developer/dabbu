@@ -72,7 +72,7 @@ function warmupBackend(): void {
   fetch(`${API_URL}/features`, { headers, signal: ctrl.signal }).catch(() => {});
 }
 
-const REQUEST_TIMEOUT = 15_000;
+const REQUEST_TIMEOUT = 45_000;
 
 const CACHE_TTL: Record<string, number> = {
   '/accounts': 120_000,
@@ -386,9 +386,7 @@ async function executeRequest<T>(
 
 function trackLoading<T>(promise: Promise<T>): Promise<T> {
   GlobalLoading.increment();
-  promise
-    .finally(() => GlobalLoading.decrement())
-    .catch(() => {});
+  promise.finally(() => GlobalLoading.decrement()).catch(() => {});
   return promise;
 }
 

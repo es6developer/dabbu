@@ -349,7 +349,7 @@ export function SecurityScreen() {
                     {
                       backgroundColor: colors.bg.tertiary,
                       color: colors.text.primary,
-                      borderColor: '#ac99d7',
+                      borderColor: colors.border.default,
                     },
                   ]}
                   value={pin}
@@ -366,7 +366,7 @@ export function SecurityScreen() {
                     {
                       backgroundColor: colors.bg.tertiary,
                       color: colors.text.primary,
-                      borderColor: '#ac99d7',
+                      borderColor: colors.border.default,
                     },
                   ]}
                   value={pinConfirm}
@@ -420,7 +420,7 @@ export function SecurityScreen() {
                     {
                       backgroundColor: colors.bg.tertiary,
                       color: colors.text.primary,
-                      borderColor: '#ac99d7',
+                      borderColor: colors.border.default,
                     },
                   ]}
                   value={oldPin}
@@ -437,7 +437,7 @@ export function SecurityScreen() {
                     {
                       backgroundColor: colors.bg.tertiary,
                       color: colors.text.primary,
-                      borderColor: '#ac99d7',
+                      borderColor: colors.border.default,
                     },
                   ]}
                   value={pin}
@@ -454,7 +454,7 @@ export function SecurityScreen() {
                     {
                       backgroundColor: colors.bg.tertiary,
                       color: colors.text.primary,
-                      borderColor: '#ac99d7',
+                      borderColor: colors.border.default,
                     },
                   ]}
                   value={pinConfirm}

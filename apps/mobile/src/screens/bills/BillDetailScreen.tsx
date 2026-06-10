@@ -273,7 +273,7 @@ export function BillDetailScreen() {
                 styles.textInput,
                 {
                   color: colors.text.primary,
-                  borderColor: '#ac99d7',
+                  borderColor: colors.border.default,
                   backgroundColor: colors.bg.tertiary,
                 },
               ]}
@@ -361,7 +361,7 @@ export function BillDetailScreen() {
                       styles.itemNameInput,
                       {
                         color: colors.text.primary,
-                        borderColor: '#ac99d7',
+                        borderColor: colors.border.default,
                         backgroundColor: colors.bg.tertiary,
                       },
                     ]}
@@ -376,7 +376,7 @@ export function BillDetailScreen() {
                         styles.itemNumericInput,
                         {
                           color: colors.text.primary,
-                          borderColor: '#ac99d7',
+                          borderColor: colors.border.default,
                           backgroundColor: colors.bg.tertiary,
                         },
                       ]}
@@ -391,7 +391,7 @@ export function BillDetailScreen() {
                         styles.itemNumericInput,
                         {
                           color: colors.text.primary,
-                          borderColor: '#ac99d7',
+                          borderColor: colors.border.default,
                           backgroundColor: colors.bg.tertiary,
                         },
                       ]}
@@ -436,7 +436,7 @@ export function BillDetailScreen() {
                 styles.textArea,
                 {
                   color: colors.text.primary,
-                  borderColor: '#ac99d7',
+                  borderColor: colors.border.default,
                   backgroundColor: colors.bg.tertiary,
                 },
               ]}
@@ -490,7 +490,7 @@ export function BillDetailScreen() {
 
           <View style={styles.buttonGroup}>
             <TouchableOpacity
-              style={styles.saveBtnWrap}
+              style={[styles.saveBtnWrap, { backgroundColor: colors.accent.primary }]}
               onPress={handleSave}
               disabled={saving}
               activeOpacity={0.85}

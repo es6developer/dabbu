@@ -58,39 +58,44 @@ export const shadows = {
   } as ViewStyle,
 };
 
+type ThemeColors = {
+  bg: { card: string };
+  border: { default: string };
+};
+
 export const cardPreset = {
-  default: {
+  default: (colors: ThemeColors): ViewStyle => ({
     borderRadius: borderRadius.xl,
     padding: spacing.xl,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.bg.card,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border.default,
     ...shadows.md,
-  } as ViewStyle,
-  compact: {
+  }),
+  compact: (colors: ThemeColors): ViewStyle => ({
     borderRadius: borderRadius.xl,
     padding: spacing.lg,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.bg.card,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border.default,
     ...shadows.md,
-  } as ViewStyle,
-  elevated: {
+  }),
+  elevated: (colors: ThemeColors): ViewStyle => ({
     borderRadius: borderRadius['2xl'],
     padding: spacing['2xl'],
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.bg.card,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border.default,
     ...shadows.lg,
-  } as ViewStyle,
-  highlight: {
+  }),
+  highlight: (colors: ThemeColors): ViewStyle => ({
     borderRadius: borderRadius['2xl'],
     padding: spacing['2xl'],
-    backgroundColor: '#F3E8FF',
+    backgroundColor: colors.bg.card,
     borderWidth: 1,
-    borderColor: 'rgba(139, 92, 246, 0.12)',
+    borderColor: colors.border.default,
     ...shadows.md,
-  } as ViewStyle,
+  }),
 };
 
 export const fabShadow = {

@@ -14,7 +14,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 
-const CATEGORY_CHIPS = ['Food', 'Travel', 'Bills', 'Shopping', 'Groceries', 'Entertainment', 'Sports'];
+const CATEGORY_CHIPS = [
+  'Food',
+  'Travel',
+  'Bills',
+  'Shopping',
+  'Groceries',
+  'Entertainment',
+  'Sports',
+];
 
 export function AddExpenseScreen() {
   const navigation = useNavigation<any>();
@@ -51,7 +59,10 @@ export function AddExpenseScreen() {
         >
           <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
             <View style={styles.headerRow}>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}>
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}
+              >
                 <Ionicons name="close" size={24} color={colors.text.primary} />
               </TouchableOpacity>
               <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Add Expense</Text>
@@ -178,7 +189,11 @@ export function AddExpenseScreen() {
             },
           ]}
         >
-          <TouchableOpacity style={styles.saveBtn} onPress={handleSave} activeOpacity={0.85}>
+          <TouchableOpacity
+            style={[styles.saveBtn, { backgroundColor: colors.accent.primary }]}
+            onPress={handleSave}
+            activeOpacity={0.85}
+          >
             <View style={styles.saveBtnGrad}>
               <Ionicons name="checkmark-circle" size={18} color="#FFF" />
               <Text style={[styles.saveBtnText, { color: colors.text.primary }]}>Save Expense</Text>

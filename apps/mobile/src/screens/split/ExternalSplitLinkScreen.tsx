@@ -69,10 +69,15 @@ export function ExternalSplitLinkScreen() {
           }}
         >
           <View style={styles.headerRow}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}
+            >
               <Ionicons name="close" size={24} color={colors.text.primary} />
             </TouchableOpacity>
-            <Text style={[styles.headerTitle, { color: colors.text.primary }]}>External Split Link</Text>
+            <Text style={[styles.headerTitle, { color: colors.text.primary }]}>
+              External Split Link
+            </Text>
             <View style={{ width: 32 }} />
           </View>
         </View>
@@ -119,7 +124,11 @@ export function ExternalSplitLinkScreen() {
                 <Text style={{ color: '#FF4D4F', fontSize: 12, textAlign: 'center' }}>{error}</Text>
               ) : null}
 
-              <TouchableOpacity style={styles.shareBtn} onPress={handleShare} activeOpacity={0.85}>
+              <TouchableOpacity
+                style={[styles.shareBtn, { backgroundColor: colors.accent.primary }]}
+                onPress={handleShare}
+                activeOpacity={0.85}
+              >
                 <View style={styles.shareBtnGrad}>
                   <Ionicons name="share-outline" size={18} color="#FFF" />
                   <Text style={[styles.shareBtnText, { color: colors.text.primary }]}>

@@ -59,9 +59,17 @@ const CAT_COLORS: Record<string, string> = {
 function DonutChart({
   data,
   size = 160,
+  bgColor = '#1E293B',
+  centerBg = '#0F172A',
+  totalColor = '#F8FAFC',
+  totalLabelColor = '#64748B',
 }: {
   data: { name: string; amount: number; color: string; pct: number }[];
   size?: number;
+  bgColor?: string;
+  centerBg?: string;
+  totalColor?: string;
+  totalLabelColor?: string;
 }) {
   const total = data.reduce((s, c) => s + c.amount, 0);
   if (total === 0) {
@@ -76,7 +84,7 @@ function DonutChart({
           width: size,
           height: size,
           borderRadius: size / 2,
-          backgroundColor: '#1E293B',
+          backgroundColor: bgColor,
           justifyContent: 'center',
           alignItems: 'center',
           overflow: 'hidden',
@@ -118,13 +126,13 @@ function DonutChart({
             width: size * 0.55,
             height: size * 0.55,
             borderRadius: (size * 0.55) / 2,
-            backgroundColor: '#0F172A',
+            backgroundColor: centerBg,
             justifyContent: 'center',
             alignItems: 'center',
           }}
         >
-          <Text style={{ fontSize: 16, fontWeight: '800', color: '#F8FAFC' }}>{fmt(total)}</Text>
-          <Text style={{ fontSize: 10, fontWeight: '600', color: '#64748B' }}>Total</Text>
+          <Text style={{ fontSize: 16, fontWeight: '800', color: totalColor }}>{fmt(total)}</Text>
+          <Text style={{ fontSize: 10, fontWeight: '600', color: totalLabelColor }}>Total</Text>
         </View>
       </View>
       <View
@@ -513,7 +521,14 @@ export function ReportsScreen() {
             >
               Where your money went
             </Text>
-            <DonutChart data={categoryData} size={160} />
+            <DonutChart
+              data={categoryData}
+              size={160}
+              bgColor={colors.bg.card}
+              centerBg={colors.bg.primary}
+              totalColor={colors.text.primary}
+              totalLabelColor={colors.text.secondary}
+            />
             {categoryData.map(
               (cat: { name: string; amount: number; color: string; pct: number }, i: number) => (
                 <View

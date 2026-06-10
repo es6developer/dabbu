@@ -35,7 +35,7 @@ interface Detection {
   category?: { name: string } | null;
 }
 
-type FilterMode = 'all' | 'categorized' | 'uncategorized';
+type FilterMode = 'all' | 'pending' | 'added';
 
 function getCatIcon(name: string | undefined | null): string {
   if (!name) {
@@ -53,10 +53,9 @@ export function SmsDashboardScreen() {
   const [detections, setDetections] = useState<Detection[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
-  const [autoCreating, setAutoCreating] = useState(false);
-  const [filter, setFilter] = useState<FilterMode>('all');
+  const [addingId, setAddingId] = useState<string | null>(null);
+  const [filter, setFilter] = useState<FilterMode>('pending');
   const [newBanner, setNewBanner] = useState<string | null>(null);
-  const creatingRef = useRef(false);
   const syncLockRef = useRef(false);
 
   useFocusEffect(
@@ -66,14 +65,8 @@ export function SmsDashboardScreen() {
       }
       loadDetections();
       const poll = setInterval(loadDetections, 5000);
-      const liveSync = setInterval(() => {
-        if (!syncLockRef.current) {
-          liveReadSync();
-        }
-      }, 45000);
       return () => {
         clearInterval(poll);
-        clearInterval(liveSync);
       };
     }, [accessToken]),
   );
@@ -100,29 +93,19 @@ export function SmsDashboardScreen() {
     }
   }
 
-  async function autoCreateFresh(pending: Detection[]) {
-    if (creatingRef.current || pending.length === 0) {
-      return;
-    }
-    creatingRef.current = true;
-    setAutoCreating(true);
-    const cutoff = Date.now() - 120000;
-    const fresh = pending.filter((d) => new Date(d.createdAt).getTime() > cutoff);
-    for (const d of fresh) {
-      try {
-        await api.post('/sms-detection/detect', {
-          message: d.messageBody,
-          sender: d.sender,
-        });
-      } catch (_e) {
-        /* ignore */
-      }
-    }
-    if (fresh.length > 0) {
+  async function handleAddTransaction(detectionId: string) {
+    setAddingId(detectionId);
+    try {
+      await api.post(`/sms-detection/${detectionId}/add-transaction`);
+      setNewBanner('Transaction added successfully');
+      setTimeout(() => setNewBanner(null), 3000);
       await loadDetections();
+    } catch (_e: any) {
+      const msg = _e?.response?.data?.message || _e?.message || 'Failed to add transaction';
+      Alert.alert('Error', msg);
+    } finally {
+      setAddingId(null);
     }
-    setAutoCreating(false);
-    creatingRef.current = false;
   }
 
   async function handleSync() {
@@ -144,25 +127,14 @@ export function SmsDashboardScreen() {
       }
       const result = await syncAndUpload();
       const msgCount = result.raw.length;
-      const uploadSuccess = result.upload.success;
-      const uploadFailed = result.upload.failed;
-      const uploadErrors = result.upload.errors;
       if (msgCount === 0) {
         setNewBanner('No financial messages found in inbox');
-      } else if (uploadFailed > 0) {
-        const topErrors = [...new Set(uploadErrors)].slice(0, 2).join(', ');
-        setNewBanner(
-          `Synced ${msgCount} — ${uploadSuccess} created, ${uploadFailed} failed (${topErrors})`,
-        );
       } else {
-        setNewBanner(`Synced ${msgCount} — ${uploadSuccess} created`);
+        setNewBanner(`${msgCount} message${msgCount > 1 ? 's' : ''} detected — review & add`);
       }
       setTimeout(() => setNewBanner(null), 6000);
 
-      const res = await api.get<any>('/sms-detection');
-      const data = Array.isArray(res) ? res : [];
-      setDetections(data);
-      autoCreateFresh(data.filter((d: Detection) => !d.isProcessed));
+      await loadDetections();
     } catch (_e) {
       setNewBanner('Sync failed — check SMS permission and backend connection');
       setTimeout(() => setNewBanner(null), 5000);
@@ -171,37 +143,11 @@ export function SmsDashboardScreen() {
     }
   }
 
-  async function liveReadSync() {
-    syncLockRef.current = true;
-    try {
-      const moduleOk = isSmsModuleAvailable();
-      if (!moduleOk) {
-        return;
-      }
-      const permission = await checkSmsPermission();
-      if (permission !== 'granted') {
-        return;
-      }
-      const result = await syncAndUpload();
-      if (result.raw.length === 0) {
-        return;
-      }
-      const res = await api.get<any>('/sms-detection');
-      const data = Array.isArray(res) ? res : [];
-      setDetections(data);
-      autoCreateFresh(data.filter((d: Detection) => !d.isProcessed));
-    } catch (_e) {
-      void _e;
-    } finally {
-      syncLockRef.current = false;
-    }
-  }
-
   function formatCurrency(val: number | null): string {
     if (val === null || val === undefined) {
       return '';
     }
-    const prefix = val >= 0 ? '₹' : '-₹';
+    const prefix = val >= 0 ? '\u20B9' : '-\u20B9';
     return (
       prefix +
       Math.abs(val).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -210,21 +156,16 @@ export function SmsDashboardScreen() {
 
   const stats = {
     total: detections.length,
-    categorized: detections.filter((d) => d.category?.name).length,
     pending: detections.filter((d) => !d.isProcessed).length,
-    thisMonth: detections.filter((d) => {
-      const dDate = new Date(d.createdAt);
-      const now = new Date();
-      return dDate.getMonth() === now.getMonth() && dDate.getFullYear() === now.getFullYear();
-    }).length,
+    added: detections.filter((d) => d.isProcessed).length,
   };
 
   const filtered = detections.filter((d) => {
-    if (filter === 'categorized') {
-      return !!d.category?.name;
+    if (filter === 'pending') {
+      return !d.isProcessed;
     }
-    if (filter === 'uncategorized') {
-      return !d.category?.name;
+    if (filter === 'added') {
+      return d.isProcessed;
     }
     return true;
   });
@@ -303,12 +244,28 @@ export function SmsDashboardScreen() {
             </Text>
           </View>
         </View>
+        {!item.isProcessed && item.detectedAmount !== null && (
+          <TouchableOpacity
+            style={[styles.addBtn, { backgroundColor: colors.accent.primary }]}
+            onPress={() => handleAddTransaction(item.id)}
+            disabled={addingId === item.id}
+          >
+            {addingId === item.id ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <>
+                <Ionicons name="add-circle-outline" size={16} color="#FFFFFF" />
+                <Text style={styles.addBtnText}>Add as {isIncome ? 'Income' : 'Expense'}</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
         <View style={[styles.cardFooter, { borderTopColor: colors.border.subtle }]}>
           {item.isProcessed ? (
             <View style={styles.badgeRow}>
               <View style={[styles.badge, { backgroundColor: `${colors.status.success}18` }]}>
                 <Ionicons name="checkmark-circle" size={12} color={colors.status.success} />
-                <Text style={[styles.badgeText, { color: colors.status.success }]}>Synced</Text>
+                <Text style={[styles.badgeText, { color: colors.status.success }]}>Added</Text>
               </View>
             </View>
           ) : (
@@ -334,19 +291,16 @@ export function SmsDashboardScreen() {
       <View style={[styles.header, { paddingTop: insets.top + 8, paddingBottom: 12 }]}>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>SMS Intelligence</Text>
         <View style={styles.headerRight}>
-          {autoCreating && (
-            <ActivityIndicator
-              color={colors.accent.primary}
-              size="small"
-              style={{ marginRight: 4 }}
-            />
-          )}
           <TouchableOpacity
             style={[styles.iconBtn, { backgroundColor: `${colors.accent.primary}15` }]}
             onPress={handleSync}
             disabled={syncing}
           >
-            <Ionicons name="sync" size={18} color={colors.accent.primary} />
+            {syncing ? (
+              <ActivityIndicator size="small" color={colors.accent.primary} />
+            ) : (
+              <Ionicons name="sync" size={18} color={colors.accent.primary} />
+            )}
           </TouchableOpacity>
           <TouchableOpacity
             style={[
@@ -388,9 +342,8 @@ export function SmsDashboardScreen() {
               <View style={styles.statsRow}>
                 {[
                   { label: 'Total', value: stats.total, color: colors.accent.primary },
-                  { label: 'Categorized', value: stats.categorized, color: colors.status.success },
                   { label: 'Pending', value: stats.pending, color: colors.status.warning },
-                  { label: 'This Month', value: stats.thisMonth, color: colors.text.secondary },
+                  { label: 'Added', value: stats.added, color: colors.status.success },
                 ].map((s, i) => (
                   <View
                     key={i}
@@ -408,7 +361,7 @@ export function SmsDashboardScreen() {
               </View>
 
               <View style={styles.filterRow}>
-                {(['all', 'categorized', 'uncategorized'] as FilterMode[]).map((f) => (
+                {(['pending', 'all', 'added'] as FilterMode[]).map((f) => (
                   <TouchableOpacity
                     key={f}
                     style={[
@@ -426,7 +379,7 @@ export function SmsDashboardScreen() {
                         { color: filter === f ? '#FFFFFF' : colors.text.secondary },
                       ]}
                     >
-                      {f === 'all' ? 'All' : f === 'categorized' ? 'Categorized' : 'Uncategorized'}
+                      {f === 'all' ? 'All' : f === 'pending' ? 'Pending' : 'Added'}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -441,21 +394,22 @@ export function SmsDashboardScreen() {
               <Ionicons name="chatbubbles-outline" size={40} color={colors.accent.primary} />
             </View>
             <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
-              Automatically track expenses
+              {filter === 'added' ? 'No added transactions yet' : 'No pending detections'}
             </Text>
             <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
-              Enable SMS sync to automatically detect and categorize financial transactions from
-              your messages. No manual entry needed.
+              {filter === 'pending'
+                ? 'Tap Sync to scan your SMS for financial transactions. Review each one and tap Add to record it.'
+                : 'Detected SMS messages will appear here for you to review and add.'}
             </Text>
-            <TouchableOpacity
-              style={[styles.emptyBtn, { backgroundColor: colors.accent.primary }]}
-              onPress={() => navigation.navigate('SmsPermission')}
-            >
-              <Ionicons name="settings-outline" size={16} color="#FFFFFF" />
-              <Text style={[styles.emptyBtnText, { color: colors.text.primary }]}>
-                Set Up SMS Sync
-              </Text>
-            </TouchableOpacity>
+            {detections.length === 0 && (
+              <TouchableOpacity
+                style={[styles.emptyBtn, { backgroundColor: colors.accent.primary }]}
+                onPress={() => navigation.navigate('SmsPermission')}
+              >
+                <Ionicons name="settings-outline" size={16} color="#FFFFFF" />
+                <Text style={styles.emptyBtnText}>Set Up SMS Sync</Text>
+              </TouchableOpacity>
+            )}
           </View>
         }
         windowSize={10}
@@ -523,6 +477,16 @@ const styles = StyleSheet.create({
   rightCol: { alignItems: 'flex-end', gap: 2 },
   amount: { fontSize: 17, fontWeight: '700' },
   date: { fontSize: 11 },
+  addBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 12,
+    marginTop: 12,
+  },
+  addBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
   cardFooter: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -543,7 +507,7 @@ const styles = StyleSheet.create({
   badgeText: { fontSize: 11, fontWeight: '600' },
   conf: { fontSize: 11, fontWeight: '500' },
   emptyContainer: { flexGrow: 1, paddingHorizontal: 16 },
-  empty: { alignItems: 'center', gap: 12, paddingHorizontal: 32 },
+  empty: { alignItems: 'center', gap: 12, paddingHorizontal: 32, paddingTop: 40 },
   emptyIcon: {
     width: 72,
     height: 72,
@@ -562,5 +526,5 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginTop: 8,
   },
-  emptyBtnText: { fontSize: 14, fontWeight: '600' },
+  emptyBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
 });

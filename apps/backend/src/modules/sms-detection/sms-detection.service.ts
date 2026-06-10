@@ -207,6 +207,63 @@ export class SmsDetectionService {
     }
   }
 
+  async addTransactionFromDetection(userId: string, detectionId: string) {
+    try {
+      const detection = await this.prisma.smsDetection.findFirst({
+        where: { id: detectionId, userId },
+      });
+
+      if (!detection) {
+        return { success: false, message: 'Detection not found' };
+      }
+
+      if (detection.isProcessed) {
+        return { success: false, message: 'Already processed' };
+      }
+
+      if (!detection.detectedAmount) {
+        return { success: false, message: 'No amount detected' };
+      }
+
+      const account = await this.prisma.account.findFirst({
+        where: { userId, isActive: true, isArchived: false, isDeleted: false },
+        orderBy: { sortOrder: 'asc' },
+      });
+
+      const transaction = await this.prisma.transaction.create({
+        data: {
+          userId,
+          accountId: account?.id || null,
+          categoryId: detection.categoryId,
+          amount: detection.detectedAmount,
+          type: detection.detectedType || 'expense',
+          status: 'completed',
+          date: new Date(),
+          description: `SMS: ${detection.sender}`,
+          notes: detection.messageBody.slice(0, 500),
+          metadata: { source: 'sms_detection_manual', sender: detection.sender },
+        },
+      });
+
+      await this.prisma.smsDetection.update({
+        where: { id: detection.id },
+        data: {
+          isProcessed: true,
+          processedAt: new Date(),
+          transactionId: transaction.id,
+        },
+      });
+
+      this.logger.log(
+        `Transaction manually created from SMS detection: ${transaction.id} amount=${detection.detectedAmount}`,
+      );
+      return { success: true, transaction, detection };
+    } catch (err) {
+      this.logger.error('Failed to create transaction from detection', err);
+      throw new InternalServerErrorException('Failed to create transaction');
+    }
+  }
+
   private async lookupCategoryId(userId: string, categorization: any): Promise<string | null> {
     if (!categorization?.categoryName) {
       return null;

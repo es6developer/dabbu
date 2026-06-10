@@ -257,8 +257,6 @@ function GroupCard({
             )}
           </View>
 
-          <View style={[gCard.dividerLine, { backgroundColor: colors.border.subtle }]} />
-
           <View style={gCard.balanceSection}>
             {!hasMembers ? (
               <Text style={[gCard.emptyText, { color: colors.text.tertiary }]}>No members yet</Text>
@@ -292,7 +290,7 @@ function GroupCard({
             </TouchableOpacity>
             {canSettle && (
               <TouchableOpacity
-                style={[gCard.settleBtn, { borderColor: cfg.gradient[0] }]}
+                style={[gCard.settleBtn, { backgroundColor: `${cfg.gradient[0]}15` }]}
                 activeOpacity={0.8}
                 onPress={() => Alert.alert('Settle Up', 'Opening settlement screen...')}
               >
@@ -548,9 +546,14 @@ export function SharedScreen() {
             <View style={s.headerActions}>
               {groups.length > 0 && (
                 <TouchableOpacity
-                  style={[s.iconBtn, {
-                    backgroundColor: isAtLimit ? `${colors.status.error}15` : `${colors.accent.primary}15`,
-                  }]}
+                  style={[
+                    s.iconBtn,
+                    {
+                      backgroundColor: isAtLimit
+                        ? `${colors.status.error}15`
+                        : `${colors.accent.primary}15`,
+                    },
+                  ]}
                   onPress={handleFabPress}
                   disabled={isAtLimit}
                 >
@@ -660,12 +663,11 @@ export function SharedScreen() {
                         s.usageFill,
                         {
                           width: `${(groups.length / MAX_SPACES) * 100}%`,
-                          backgroundColor:
-                            isAtLimit
-                              ? colors.status.error
-                              : groups.length >= MAX_SPACES - 1
-                                ? colors.status.warning
-                                : colors.accent.primary,
+                          backgroundColor: isAtLimit
+                            ? colors.status.error
+                            : groups.length >= MAX_SPACES - 1
+                              ? colors.status.warning
+                              : colors.accent.primary,
                         },
                       ]}
                     />
@@ -968,8 +970,8 @@ const gCard = StyleSheet.create({
   typeBadgeText: { color: '#FFF', fontSize: 11, fontWeight: '700' },
   coverName: { fontSize: 18, fontWeight: '800', color: '#FFF' },
   coverTime: { fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
-  body: { padding: 16 },
-  memberRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  body: { padding: 16, paddingTop: 14 },
+  memberRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
   memberBadge: {
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -978,8 +980,7 @@ const gCard = StyleSheet.create({
   },
   memberBadgeText: { fontSize: 11, fontWeight: '700' },
   memberCount: { fontSize: 12, fontWeight: '500' },
-  dividerLine: { height: 1, marginVertical: 12 },
-  balanceSection: { gap: 4 },
+  balanceSection: { gap: 2, marginTop: 10 },
   balanceLabel: { fontSize: 15, fontWeight: '700' },
   settlementRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   settlementDot: { width: 6, height: 6, borderRadius: 3 },
@@ -989,25 +990,24 @@ const gCard = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 12,
+    marginTop: 14,
   },
   actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 14,
   },
   actionBtnText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
   settleBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 12,
-    borderWidth: 1.5,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 14,
   },
   settleBtnText: { fontSize: 12, fontWeight: '700' },
   spentBadge: { flexDirection: 'row', alignItems: 'center', gap: 4 },
@@ -1019,7 +1019,11 @@ const cs = StyleSheet.create({
   avatarRow: { flexDirection: 'row', alignItems: 'center' },
   avatarRing: {
     borderRadius: 999,
-    borderWidth: 2.5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+    elevation: 2,
   },
   avatar: {
     width: 38,
@@ -1027,7 +1031,11 @@ const cs = StyleSheet.create({
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 0,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+    elevation: 2,
   },
   avatarText: { color: '#FFF', fontSize: 12, fontWeight: '800' },
 });

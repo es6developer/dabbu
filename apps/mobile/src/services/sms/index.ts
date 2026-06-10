@@ -18,21 +18,23 @@ export async function syncSmsTransactions(): Promise<SmsSyncResult> {
   return { raw: messages, errors: 0, timestamp: lastSyncTimestamp };
 }
 
-export async function sendToBackend(messages: SmsMessage[]): Promise<{ success: number; failed: number; errors: string[] }> {
+export async function sendToBackend(
+  messages: SmsMessage[],
+): Promise<{ success: number; failed: number; errors: string[] }> {
   let success = 0;
   let failed = 0;
   const errors: string[] = [];
 
   for (const msg of messages) {
     try {
-      const res = await api.post<any>('/sms-detection/detect', {
+      const res = await api.post<any>('/sms-detection/parse', {
         message: msg.body,
         sender: msg.address,
       });
       const body = res?.data ?? res;
-      if (body?.success === false) {
+      if (body?.parsed === null) {
         failed++;
-        errors.push(body.message || 'Unknown error');
+        errors.push(body.message || 'Could not parse');
       } else {
         success++;
       }
@@ -45,7 +47,9 @@ export async function sendToBackend(messages: SmsMessage[]): Promise<{ success: 
   return { success, failed, errors };
 }
 
-export async function syncAndUpload(): Promise<SmsSyncResult & { upload: { success: number; failed: number; errors: string[] } }> {
+export async function syncAndUpload(): Promise<
+  SmsSyncResult & { upload: { success: number; failed: number; errors: string[] } }
+> {
   const result = await syncSmsTransactions();
   const upload = await sendToBackend(result.raw);
   return { ...result, upload };

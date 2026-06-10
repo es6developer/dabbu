@@ -1,7 +1,18 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl,
-  Modal, TextInput, Switch, Platform, Alert, Dimensions, Animated,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  RefreshControl,
+  Modal,
+  TextInput,
+  Switch,
+  Platform,
+  Alert,
+  Dimensions,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -14,7 +25,17 @@ import { getCategoryIcon } from '../../config/categoryIcons';
 
 const { width } = Dimensions.get('window');
 
-const BILL_CATEGORIES = ['Utilities', 'Housing', 'Groceries', 'Healthcare', 'Transportation', 'Financial', 'Shopping', 'Entertainment', 'Other'];
+const BILL_CATEGORIES = [
+  'Utilities',
+  'Housing',
+  'Groceries',
+  'Healthcare',
+  'Transportation',
+  'Financial',
+  'Shopping',
+  'Entertainment',
+  'Other',
+];
 
 const RECURRING_OPTIONS = [
   { label: 'Weekly', value: 'weekly' },
@@ -63,7 +84,9 @@ export function CoupleBillsScreen() {
   const scaleAnim = useRef(new Animated.Value(0)).current;
 
   const fetchBills = useCallback(async (isRefresh = false) => {
-    if (!isRefresh) setLoading(true);
+    if (!isRefresh) {
+      setLoading(true);
+    }
     try {
       const groups: any[] = await api.get('/shared-finance/groups');
       const coupleGroup = Array.isArray(groups)
@@ -96,11 +119,18 @@ export function CoupleBillsScreen() {
     }
   }, []);
 
-  useEffect(() => { fetchBills(); }, [fetchBills]);
+  useEffect(() => {
+    fetchBills();
+  }, [fetchBills]);
 
   useEffect(() => {
     if (modalVisible) {
-      Animated.spring(scaleAnim, { toValue: 1, tension: 80, friction: 12, useNativeDriver: true }).start();
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        tension: 80,
+        friction: 12,
+        useNativeDriver: true,
+      }).start();
     } else {
       scaleAnim.setValue(0);
     }
@@ -112,10 +142,14 @@ export function CoupleBillsScreen() {
       const coupleGroup = Array.isArray(groups)
         ? groups.find((g: any) => g.type === 'couple' && g.status === 'ACTIVE')
         : null;
-      if (!coupleGroup) return;
+      if (!coupleGroup) {
+        return;
+      }
       await api.post(`/shared-finance/household/bills/${billId}/mark-paid`);
       setBills((prev) =>
-        prev.map((b) => (b.id === billId ? { ...b, status: 'paid', paidAt: new Date().toISOString() } : b)),
+        prev.map((b) =>
+          b.id === billId ? { ...b, status: 'paid', paidAt: new Date().toISOString() } : b,
+        ),
       );
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'Failed to mark bill as paid');
@@ -145,7 +179,9 @@ export function CoupleBillsScreen() {
       const payload: any = {
         name: formName.trim(),
         amount,
-        dueDate: formDueDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        dueDate:
+          formDueDate ||
+          new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         category: formCategory,
         status: 'upcoming',
       };
@@ -153,8 +189,13 @@ export function CoupleBillsScreen() {
         payload.recurring = true;
         payload.recurringInterval = formRecurringInterval;
       }
-      if (formAssignedTo) payload.assignedTo = formAssignedTo;
-      const created = await api.post(`/shared-finance/groups/${coupleGroup.id}/household/bills`, payload);
+      if (formAssignedTo) {
+        payload.assignedTo = formAssignedTo;
+      }
+      const created = await api.post(
+        `/shared-finance/groups/${coupleGroup.id}/household/bills`,
+        payload,
+      );
       setBills((prev) => [...prev, created]);
       setModalVisible(false);
       resetForm();
@@ -181,7 +222,10 @@ export function CoupleBillsScreen() {
 
   const paidBills = bills
     .filter((b) => b.status === 'paid')
-    .sort((a, b) => new Date(b.paidAt || b.updatedAt).getTime() - new Date(a.paidAt || b.updatedAt).getTime());
+    .sort(
+      (a, b) =>
+        new Date(b.paidAt || b.updatedAt).getTime() - new Date(a.paidAt || b.updatedAt).getTime(),
+    );
 
   const totalUpcoming = upcomingBills.reduce((sum, b) => sum + (b.amount || 0), 0);
   const totalPaid = paidBills.reduce((sum, b) => sum + (b.amount || 0), 0);
@@ -192,7 +236,9 @@ export function CoupleBillsScreen() {
   });
   const totalThisMonth = thisMonthBills.reduce((sum, b) => sum + (b.amount || 0), 0);
 
-  if (loading) return <LoadingScreen />;
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
@@ -202,23 +248,27 @@ export function CoupleBillsScreen() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => { setRefreshing(true); fetchBills(true); }}
+            onRefresh={() => {
+              setRefreshing(true);
+              fetchBills(true);
+            }}
             tintColor={colors.accent.primary}
           />
         }
       >
-        <View
-          
-          
-          
-          style={{ paddingTop: insets.top + 12, paddingBottom: 24, paddingHorizontal: 20 }}
-        >
+        <View style={{ paddingTop: insets.top + 12, paddingBottom: 24, paddingHorizontal: 20 }}>
           <View style={styles.headerRow}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}
+            >
               <Ionicons name="arrow-back" size={22} color={colors.text.primary} />
             </TouchableOpacity>
             <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Bills</Text>
-            <TouchableOpacity onPress={() => setModalVisible(true)} style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}>
+            <TouchableOpacity
+              onPress={() => setModalVisible(true)}
+              style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}
+            >
               <Ionicons name="add" size={24} color={colors.text.primary} />
             </TouchableOpacity>
           </View>
@@ -241,21 +291,36 @@ export function CoupleBillsScreen() {
 
           <View style={styles.tabRow}>
             <TouchableOpacity
-              style={[styles.tab, activeTab === 'upcoming' && [styles.tabActive, { borderBottomColor: colors.accent.primary }]]}
+              style={[
+                styles.tab,
+                activeTab === 'upcoming' && [
+                  styles.tabActive,
+                  { borderBottomColor: colors.accent.primary },
+                ],
+              ]}
               onPress={() => setActiveTab('upcoming')}
             >
               <Text
                 style={[
                   styles.tabText,
                   { color: colors.text.secondary },
-                  activeTab === 'upcoming' && [styles.tabTextActive, { color: colors.accent.primary }],
+                  activeTab === 'upcoming' && [
+                    styles.tabTextActive,
+                    { color: colors.accent.primary },
+                  ],
                 ]}
               >
                 Upcoming
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.tab, activeTab === 'paid' && [styles.tabActive, { borderBottomColor: colors.accent.primary }]]}
+              style={[
+                styles.tab,
+                activeTab === 'paid' && [
+                  styles.tabActive,
+                  { borderBottomColor: colors.accent.primary },
+                ],
+              ]}
               onPress={() => setActiveTab('paid')}
             >
               <Text
@@ -275,13 +340,17 @@ export function CoupleBillsScreen() {
               {error && !bills.length ? (
                 <View style={styles.emptyWrap}>
                   <Ionicons name="calendar-outline" size={48} color={colors.text.tertiary} />
-                  <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>No upcoming bills</Text>
+                  <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>
+                    No upcoming bills
+                  </Text>
                   <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>{error}</Text>
                 </View>
               ) : upcomingBills.length === 0 ? (
                 <View style={styles.emptyWrap}>
                   <Ionicons name="calendar-outline" size={48} color={colors.text.tertiary} />
-                  <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>No upcoming bills</Text>
+                  <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>
+                    No upcoming bills
+                  </Text>
                   <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
                     Tap + to add your first bill
                   </Text>
@@ -297,21 +366,40 @@ export function CoupleBillsScreen() {
                       style={[styles.billCard, { backgroundColor: colors.bg.card }]}
                     >
                       <View style={styles.billCardTop}>
-                        <View style={[styles.categoryIconWrap, { backgroundColor: isDark ? 'rgba(93,56,181,0.2)' : 'rgba(93,56,181,0.1)' }]}>
+                        <View
+                          style={[
+                            styles.categoryIconWrap,
+                            {
+                              backgroundColor: isDark
+                                ? 'rgba(93,56,181,0.2)'
+                                : 'rgba(93,56,181,0.1)',
+                            },
+                          ]}
+                        >
                           <Ionicons name={icon as any} size={20} color={colors.accent.primary} />
                         </View>
                         <View style={styles.billInfo}>
                           <View style={styles.billNameRow}>
-                            <Text style={[styles.billName, { color: colors.text.primary }]}>{bill.name}</Text>
+                            <Text style={[styles.billName, { color: colors.text.primary }]}>
+                              {bill.name}
+                            </Text>
                             {overdue && <View style={styles.overdueDot} />}
                           </View>
-                          <Text style={[styles.billCategory, { color: colors.text.tertiary }]}>{bill.category}</Text>
+                          <Text style={[styles.billCategory, { color: colors.text.tertiary }]}>
+                            {bill.category}
+                          </Text>
                         </View>
-                        <Text style={[styles.billAmount, { color: colors.text.primary }]}>{fmt(bill.amount)}</Text>
+                        <Text style={[styles.billAmount, { color: colors.text.primary }]}>
+                          {fmt(bill.amount)}
+                        </Text>
                       </View>
                       <View style={styles.billCardBottom}>
                         <View style={styles.dueDateWrap}>
-                          <Ionicons name="time-outline" size={14} color={overdue ? '#FF4D4F' : colors.text.tertiary} />
+                          <Ionicons
+                            name="time-outline"
+                            size={14}
+                            color={overdue ? '#FF4D4F' : colors.text.tertiary}
+                          />
                           <Text
                             style={[
                               styles.dueDateText,
@@ -346,7 +434,9 @@ export function CoupleBillsScreen() {
               {paidBills.length === 0 ? (
                 <View style={styles.emptyWrap}>
                   <Ionicons name="checkbox-outline" size={48} color={colors.text.tertiary} />
-                  <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>No paid bills yet</Text>
+                  <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>
+                    No paid bills yet
+                  </Text>
                   <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
                     Mark bills as paid to see them here
                   </Text>
@@ -360,17 +450,33 @@ export function CoupleBillsScreen() {
                       style={[styles.billCard, { backgroundColor: colors.bg.card }]}
                     >
                       <View style={styles.billCardTop}>
-                        <View style={[styles.categoryIconWrap, { backgroundColor: 'rgba(52,199,89,0.12)' }]}>
+                        <View
+                          style={[
+                            styles.categoryIconWrap,
+                            { backgroundColor: 'rgba(52,199,89,0.12)' },
+                          ]}
+                        >
                           <Ionicons name={icon as any} size={20} color="#34C759" />
                         </View>
                         <View style={styles.billInfo}>
                           <View style={styles.billNameRow}>
-                            <Ionicons name="checkmark-circle" size={16} color="#34C759" style={{ marginRight: 4 }} />
-                            <Text style={[styles.billName, { color: colors.text.primary }]}>{bill.name}</Text>
+                            <Ionicons
+                              name="checkmark-circle"
+                              size={16}
+                              color="#34C759"
+                              style={{ marginRight: 4 }}
+                            />
+                            <Text style={[styles.billName, { color: colors.text.primary }]}>
+                              {bill.name}
+                            </Text>
                           </View>
-                          <Text style={[styles.billCategory, { color: colors.text.tertiary }]}>{bill.category}</Text>
+                          <Text style={[styles.billCategory, { color: colors.text.tertiary }]}>
+                            {bill.category}
+                          </Text>
                         </View>
-                        <Text style={[styles.billAmount, { color: colors.text.primary }]}>{fmt(bill.amount)}</Text>
+                        <Text style={[styles.billAmount, { color: colors.text.primary }]}>
+                          {fmt(bill.amount)}
+                        </Text>
                       </View>
                       <View style={styles.billCardBottom}>
                         <View style={styles.dueDateWrap}>
@@ -417,16 +523,32 @@ export function CoupleBillsScreen() {
               <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
                 <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>Bill Name</Text>
                 <TextInput
-                  style={[styles.input, { backgroundColor: colors.bg.tertiary, color: colors.text.primary, borderColor: '#ac99d7' }]}
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: colors.bg.tertiary,
+                      color: colors.text.primary,
+                      borderColor: colors.border.default,
+                    },
+                  ]}
                   placeholder="e.g. Electricity Bill"
                   placeholderTextColor={colors.text.tertiary}
                   value={formName}
                   onChangeText={setFormName}
                 />
 
-                <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>Amount (₹)</Text>
+                <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>
+                  Amount (₹)
+                </Text>
                 <TextInput
-                  style={[styles.input, { backgroundColor: colors.bg.tertiary, color: colors.text.primary, borderColor: '#ac99d7' }]}
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: colors.bg.tertiary,
+                      color: colors.text.primary,
+                      borderColor: colors.border.default,
+                    },
+                  ]}
                   placeholder="e.g. 1500"
                   placeholderTextColor={colors.text.tertiary}
                   keyboardType="numeric"
@@ -434,9 +556,18 @@ export function CoupleBillsScreen() {
                   onChangeText={setFormAmount}
                 />
 
-                <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>Due Date (YYYY-MM-DD)</Text>
+                <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>
+                  Due Date (YYYY-MM-DD)
+                </Text>
                 <TextInput
-                  style={[styles.input, { backgroundColor: colors.bg.tertiary, color: colors.text.primary, borderColor: '#ac99d7' }]}
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: colors.bg.tertiary,
+                      color: colors.text.primary,
+                      borderColor: colors.border.default,
+                    },
+                  ]}
                   placeholder="e.g. 2026-07-15"
                   placeholderTextColor={colors.text.tertiary}
                   value={formDueDate}
@@ -451,8 +582,10 @@ export function CoupleBillsScreen() {
                       style={[
                         styles.categoryChip,
                         {
-                          backgroundColor: formCategory === cat ? colors.accent.primary : colors.bg.tertiary,
-                          borderColor: formCategory === cat ? colors.accent.primary : colors.border.default,
+                          backgroundColor:
+                            formCategory === cat ? colors.accent.primary : colors.bg.tertiary,
+                          borderColor:
+                            formCategory === cat ? colors.accent.primary : colors.border.default,
                         },
                       ]}
                       onPress={() => setFormCategory(cat)}
@@ -475,18 +608,25 @@ export function CoupleBillsScreen() {
                 </View>
 
                 <View style={styles.recurringRow}>
-                  <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>Recurring</Text>
+                  <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>
+                    Recurring
+                  </Text>
                   <Switch
                     value={formRecurring}
                     onValueChange={setFormRecurring}
-                    trackColor={{ false: colors.border.default, true: `${colors.accent.primary}80` }}
+                    trackColor={{
+                      false: colors.border.default,
+                      true: `${colors.accent.primary}80`,
+                    }}
                     thumbColor={formRecurring ? colors.accent.primary : '#f4f3f4'}
                   />
                 </View>
 
                 {formRecurring && (
                   <>
-                    <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>Repeat</Text>
+                    <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>
+                      Repeat
+                    </Text>
                     <View style={styles.categoryRow}>
                       {RECURRING_OPTIONS.map((opt) => (
                         <TouchableOpacity
@@ -494,8 +634,14 @@ export function CoupleBillsScreen() {
                           style={[
                             styles.categoryChip,
                             {
-                              backgroundColor: formRecurringInterval === opt.value ? colors.accent.primary : colors.bg.tertiary,
-                              borderColor: formRecurringInterval === opt.value ? colors.accent.primary : colors.border.default,
+                              backgroundColor:
+                                formRecurringInterval === opt.value
+                                  ? colors.accent.primary
+                                  : colors.bg.tertiary,
+                              borderColor:
+                                formRecurringInterval === opt.value
+                                  ? colors.accent.primary
+                                  : colors.border.default,
                             },
                           ]}
                           onPress={() => setFormRecurringInterval(opt.value)}
@@ -503,7 +649,12 @@ export function CoupleBillsScreen() {
                           <Text
                             style={[
                               styles.categoryChipText,
-                              { color: formRecurringInterval === opt.value ? '#FFF' : colors.text.secondary },
+                              {
+                                color:
+                                  formRecurringInterval === opt.value
+                                    ? '#FFF'
+                                    : colors.text.secondary,
+                              },
                             ]}
                           >
                             {opt.label}
@@ -522,8 +673,10 @@ export function CoupleBillsScreen() {
                       style={[
                         styles.categoryChip,
                         {
-                          backgroundColor: formAssignedTo === p.id ? colors.accent.primary : colors.bg.tertiary,
-                          borderColor: formAssignedTo === p.id ? colors.accent.primary : colors.border.default,
+                          backgroundColor:
+                            formAssignedTo === p.id ? colors.accent.primary : colors.bg.tertiary,
+                          borderColor:
+                            formAssignedTo === p.id ? colors.accent.primary : colors.border.default,
                         },
                       ]}
                       onPress={() => setFormAssignedTo(p.id === formAssignedTo ? '' : p.id)}
@@ -592,7 +745,13 @@ const styles = StyleSheet.create({
     height: 40,
     backgroundColor: 'rgba(93,56,181,0.15)',
   },
-  summaryLabel: { fontSize: 12, fontWeight: '600', color: '#F97316', letterSpacing: 0.3, marginBottom: 4 },
+  summaryLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#F97316',
+    letterSpacing: 0.3,
+    marginBottom: 4,
+  },
   summaryAmount: { fontSize: 24, fontWeight: '800', color: '#F97316', letterSpacing: -0.5 },
 
   tabRow: {

@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
+import { Resend } from 'resend';
 
 import {
   welcomeEmail,
@@ -16,13 +17,15 @@ import {
 import { EMAIL_SUBJECTS, PASSWORD_RESET_EXPIRY_MINUTES } from './email.constants';
 
 @Injectable()
-export class EmailService {
+export class EmailService implements OnModuleInit {
   private readonly logger = new Logger(EmailService.name);
-  private transporter: Transporter;
+  private transporter: Transporter | null = null;
+  private resend: Resend | null = null;
   private fromName: string;
   private fromEmail: string;
   private frontendUrl: string;
-  private initialized = false;
+  private smtpInitialized = false;
+  private resendInitialized = false;
 
   constructor() {
     this.fromName = process.env.EMAIL_FROM_NAME || 'Dabbu';
@@ -34,6 +37,13 @@ export class EmailService {
     this.frontendUrl = (
       process.env.FRONTEND_URL || 'https://web-omega-snowy-80.vercel.app'
     ).replace(/\/+$/, '');
+
+    const resendKey = process.env.RESEND_API_KEY;
+    if (resendKey) {
+      this.resend = new Resend(resendKey);
+      this.resendInitialized = true;
+      this.logger.log('Resend email provider initialized');
+    }
 
     const host = process.env.SMTP_HOST;
     const port = Number(process.env.SMTP_PORT) || 587;
@@ -48,10 +58,26 @@ export class EmailService {
         secure,
         auth: { user, pass: password },
       });
-      this.initialized = true;
-      this.logger.log(`Email transporter initialized: ${host}:${port}`);
-    } else {
-      this.logger.warn('SMTP not configured — emails will be logged only');
+      this.smtpInitialized = true;
+      this.logger.log(`SMTP email provider initialized: ${host}:${port}`);
+    }
+
+    if (!this.resendInitialized && !this.smtpInitialized) {
+      this.logger.warn('No email provider configured — emails will be logged only');
+    }
+  }
+
+  async onModuleInit() {
+    if (this.smtpInitialized && this.transporter) {
+      try {
+        await this.transporter.verify();
+        this.logger.log('SMTP connection verified successfully');
+      } catch (err) {
+        this.logger.warn(
+          `SMTP connection failed: ${(err as Error).message}. Will try Resend as fallback.`,
+        );
+        this.smtpInitialized = false;
+      }
     }
   }
 
@@ -61,30 +87,51 @@ export class EmailService {
     html: string;
     text?: string;
   }): Promise<void> {
-    if (!this.initialized) {
-      this.logger.log(
-        `[EMAIL LOG] To: ${options.to} | Subject: ${options.subject}${options.text ? ` | Body: ${options.text}` : ''}`,
-      );
-      return;
+    if (this.resendInitialized && this.resend) {
+      try {
+        const { data, error } = await this.resend.emails.send({
+          from: `${this.fromName} <${this.fromEmail}>`,
+          to: [options.to],
+          subject: options.subject,
+          html: options.html,
+          text: options.text,
+        });
+        if (error) {
+          throw new Error(error.message);
+        }
+        this.logger.log(
+          `Email sent via Resend: to=${options.to} subject="${options.subject}" id=${data?.id}`,
+        );
+        return;
+      } catch (err) {
+        this.logger.error(`Resend failed: ${(err as Error).message}. Falling back to SMTP.`);
+      }
     }
 
-    try {
-      const info = await this.transporter.sendMail({
-        from: `"${this.fromName}" <${this.fromEmail}>`,
-        to: options.to,
-        subject: options.subject,
-        html: options.html,
-        text: options.text,
-      });
-      this.logger.log(
-        `Email sent: to=${options.to} subject="${options.subject}" messageId=${info.messageId}`,
-      );
-    } catch (error) {
-      this.logger.error(
-        `Failed to send email: to=${options.to} subject="${options.subject}" error=${(error as Error).message}`,
-      );
-      throw error;
+    if (this.smtpInitialized && this.transporter) {
+      try {
+        const info = await this.transporter.sendMail({
+          from: `"${this.fromName}" <${this.fromEmail}>`,
+          to: options.to,
+          subject: options.subject,
+          html: options.html,
+          text: options.text,
+        });
+        this.logger.log(
+          `Email sent via SMTP: to=${options.to} subject="${options.subject}" messageId=${info.messageId}`,
+        );
+        return;
+      } catch (error) {
+        this.logger.error(
+          `SMTP failed: to=${options.to} subject="${options.subject}" error=${(error as Error).message}`,
+        );
+        throw error;
+      }
     }
+
+    this.logger.log(
+      `[EMAIL LOG] To: ${options.to} | Subject: ${options.subject}${options.text ? ` | Body: ${options.text}` : ''}`,
+    );
   }
 
   async sendOtpEmail(to: string, name: string, otpCode: string, purpose: string): Promise<void> {

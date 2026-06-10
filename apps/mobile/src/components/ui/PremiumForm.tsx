@@ -138,7 +138,7 @@ export function PremiumInput({
         style={[
           styles.inputShell,
           multiline && styles.inputShellMultiline,
-          { backgroundColor: colors.bg.card, borderColor: '#ac99d7' },
+          { backgroundColor: colors.bg.card, borderColor: colors.border.default },
         ]}
       >
         {icon ? (
@@ -186,7 +186,7 @@ export function PremiumAmountInput({
       <View
         style={[
           styles.amountShell,
-          { backgroundColor: colors.bg.card, borderColor: '#ac99d7' },
+          { backgroundColor: colors.bg.card, borderColor: colors.border.default },
         ]}
       >
         <Text style={[styles.amountSymbol, { color: colors.text.primary }]}>{symbol}</Text>
@@ -217,7 +217,7 @@ export function PremiumChip({ label, selected, icon, onPress }: PremiumChipProps
       activeOpacity={0.75}
       style={[
         styles.chip,
-        { backgroundColor: colors.bg.card, borderColor: '#ac99d7' },
+        { backgroundColor: colors.bg.card, borderColor: colors.border.default },
         selected && {
           backgroundColor: `${colors.accent.primary}1F`,
           borderColor: colors.accent.primary,

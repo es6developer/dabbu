@@ -19,6 +19,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
+import { INVITE_BASE_URL } from '../../config/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme, palette } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -847,14 +848,14 @@ export function SharedGroupDetailScreen() {
                   selectable
                   numberOfLines={2}
                 >
-                  {inviteToken ? `https://external-web.vercel.app/invite/${inviteToken}` : ''}
+                  {inviteToken ? `${INVITE_BASE_URL}/invite/${inviteToken}` : ''}
                 </Text>
               </View>
               <View style={s.modalActions}>
                 <TouchableOpacity
                   style={[s.modalBtn, { backgroundColor: colors.accent.primary }]}
                   onPress={async () => {
-                    const url = `https://external-web.vercel.app/invite/${inviteToken}`;
+                    const url = `${INVITE_BASE_URL}/invite/${inviteToken}`;
                     await Share.share({ message: `Join "${name}" on Dabbu! ${url}`, url }).catch(
                       () => {},
                     );
@@ -867,7 +868,7 @@ export function SharedGroupDetailScreen() {
                 <TouchableOpacity
                   style={[s.modalBtn, { backgroundColor: '#34C75920' }]}
                   onPress={async () => {
-                    const url = `https://external-web.vercel.app/invite/${inviteToken}`;
+                    const url = `${INVITE_BASE_URL}/invite/${inviteToken}`;
                     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Join "${name}" on Dabbu! ${url}`)}`;
                     const supported = await Linking.canOpenURL(whatsappUrl);
                     if (supported) {
@@ -1065,7 +1066,7 @@ export function SharedGroupDetailScreen() {
         return;
       }
       setInviteToken(token);
-      const inviteUrl = `https://external-web.vercel.app/invite/${token}`;
+      const inviteUrl = `${INVITE_BASE_URL}/invite/${token}`;
       try {
         await Share.share({
           message: `Join "${name}" on Dabbu! Track shared expenses, split bills, and settle up easily.\n\n${inviteUrl}`,
