@@ -1,7 +1,14 @@
 import React, { ReactNode } from 'react';
 import { View, TouchableOpacity, ViewStyle } from 'react-native';
 import { useTheme } from '../../theme';
-import { borderRadius, shadows, spacing } from '../../theme/design';
+import { borderRadius, spacing } from '../../theme/design';
+import { Shadow } from './Shadow';
+
+const SHADOW_MAP: Record<string, { offset: { width: number; height: number }; blur: number; opacity: number }> = {
+  sm: { offset: { width: 0, height: 2 }, blur: 6, opacity: 0.04 },
+  md: { offset: { width: 0, height: 4 }, blur: 12, opacity: 0.06 },
+  lg: { offset: { width: 0, height: 8 }, blur: 24, opacity: 0.08 },
+};
 
 interface FinCardProps {
   children: ReactNode;
@@ -22,26 +29,40 @@ export function FinCard({
   elevation = 'md',
   noPadding = false,
 }: FinCardProps) {
-  const { colors } = useTheme();
-  const shadow = shadows[elevation];
+  const { colors, isDark } = useTheme();
+  const s = SHADOW_MAP[elevation];
 
-  const cardStyle = {
-    backgroundColor: colors.bg.card,
-    borderRadius: radius,
-    ...shadow,
-  };
+  const cardContent = (
+    <View
+      style={[
+        { backgroundColor: colors.bg.card, borderRadius: radius },
+        !noPadding && { padding },
+        style,
+      ] as ViewStyle}
+    >
+      {children}
+    </View>
+  );
 
-  const content = (
-    <View style={[cardStyle, !noPadding && { padding }, style] as ViewStyle}>{children}</View>
+  const wrapped = (
+    <Shadow
+      radius={radius}
+      offset={s.offset}
+      opacity={isDark ? s.opacity * 5 : s.opacity}
+      color={isDark ? '#8B5CF6' : '#000'}
+      blur={s.blur}
+    >
+      {cardContent}
+    </Shadow>
   );
 
   if (onPress) {
     return (
       <TouchableOpacity activeOpacity={0.85} onPress={onPress}>
-        {content}
+        {wrapped}
       </TouchableOpacity>
     );
   }
 
-  return content;
+  return wrapped;
 }

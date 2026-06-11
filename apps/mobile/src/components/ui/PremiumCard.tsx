@@ -1,7 +1,8 @@
 import React, { ReactNode, useEffect, useRef } from 'react';
-import { View, TouchableOpacity, Animated, ViewStyle } from 'react-native';
+import { TouchableOpacity, Animated, ViewStyle } from 'react-native';
 import { useTheme } from '../../theme';
-import { borderRadius, shadows, spacing } from '../../theme/design';
+import { borderRadius, spacing } from '../../theme/design';
+import { Shadow } from './Shadow';
 
 interface PremiumCardProps {
   children: ReactNode;
@@ -12,6 +13,13 @@ interface PremiumCardProps {
   animate?: boolean;
 }
 
+const SHADOW_MAP: Record<string, { offset: { width: number; height: number }; blur: number; opacity: number }> = {
+  default: { offset: { width: 0, height: 4 }, blur: 12, opacity: 0.06 },
+  elevated: { offset: { width: 0, height: 8 }, blur: 24, opacity: 0.08 },
+  hero: { offset: { width: 0, height: 8 }, blur: 24, opacity: 0.12 },
+  compact: { offset: { width: 0, height: 2 }, blur: 6, opacity: 0.04 },
+};
+
 export function PremiumCard({
   children,
   variant = 'default',
@@ -20,9 +28,10 @@ export function PremiumCard({
   style,
   animate = false,
 }: PremiumCardProps) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const fadeAnim = useRef(new Animated.Value(animate ? 0 : 1)).current;
   const slideAnim = useRef(new Animated.Value(animate ? 20 : 0)).current;
+  const s = SHADOW_MAP[variant];
 
   useEffect(() => {
     if (animate) {
@@ -41,56 +50,46 @@ export function PremiumCard({
     }
   }, [animate]);
 
-  const variantStyles: Record<string, ViewStyle> = {
-    default: {
-      backgroundColor: colors.bg.card,
-      borderRadius: borderRadius.lg,
-      padding: spacing['2xl'],
-      ...shadows.md,
-    },
-    elevated: {
-      backgroundColor: colors.bg.card,
-      borderRadius: borderRadius.xl,
-      padding: spacing['2xl'],
-      ...shadows.lg,
-    },
-    hero: {
-      backgroundColor: color || colors.card.balance,
-      borderRadius: borderRadius['2xl'],
-      padding: spacing['3xl'],
-      ...shadows.lg,
-    },
-    compact: {
-      backgroundColor: colors.bg.card,
-      borderRadius: borderRadius.lg,
-      padding: spacing.lg,
-      ...shadows.sm,
-    },
-  };
+  const radii = variant === 'elevated' || variant === 'hero' ? borderRadius.xl : borderRadius.lg;
+  const pad = variant === 'hero' ? spacing['3xl'] : variant === 'compact' ? spacing.lg : spacing['2xl'];
 
-  const cardStyle = {
-    ...variantStyles[variant],
-    ...(color && !['hero'].includes(variant) ? { backgroundColor: color } : {}),
-    ...style,
-  };
-
-  const content = (
+  const cardContent = (
     <Animated.View
-      style={
-        [cardStyle, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }] as ViewStyle
-      }
+      style={[
+        {
+          backgroundColor: color || (variant === 'hero' ? colors.card.balance : colors.bg.card),
+          borderRadius: radii,
+          padding: pad,
+        },
+        style,
+        { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+      ] as ViewStyle}
     >
       {children}
     </Animated.View>
   );
 
+  const shadowOpacity = isDark ? Math.min(s.opacity * 5, 0.4) : s.opacity;
+
+  const wrapped = (
+    <Shadow
+      radius={radii}
+      offset={s.offset}
+      opacity={shadowOpacity}
+      color={isDark ? '#8B5CF6' : '#000'}
+      blur={s.blur}
+    >
+      {cardContent}
+    </Shadow>
+  );
+
   if (onPress) {
     return (
       <TouchableOpacity activeOpacity={0.85} onPress={onPress}>
-        {content}
+        {wrapped}
       </TouchableOpacity>
     );
   }
 
-  return content;
+  return wrapped;
 }
