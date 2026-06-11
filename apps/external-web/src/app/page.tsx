@@ -241,7 +241,7 @@ export default function LandingPage() {
                         value={inviteCode}
                         onChange={(e) => setInviteCode(e.target.value)}
                         className="invite-input"
-                        style={[s.input, { color: palette.text }] as any}
+                        style={{ color: palette.text }}
                       />
                     </View>
                     <PrimaryButton style={s.joinBtn}>Join Group</PrimaryButton>
@@ -285,7 +285,7 @@ export default function LandingPage() {
                       value={inviteCode}
                       onChange={(e) => setInviteCode(e.target.value)}
                       className="invite-input"
-                      style={[s.input, { color: palette.text }] as any}
+                      style={{ color: palette.text }}
                     />
                   </View>
                   <PrimaryButton style={s.joinBtn}>Join Group</PrimaryButton>
@@ -471,15 +471,7 @@ const s = StyleSheet.create({
     gap: 8,
     borderWidth: 1,
   },
-  input: {
-    flex: 1,
-    height: 48,
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-    letterSpacing: 3,
-    backgroundColor: 'transparent',
-  },
+
   joinBtn: { minWidth: 120 },
   miniAvatar: {
     width: 32,
