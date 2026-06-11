@@ -1,224 +1,100 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  FlatList,
   TextInput,
   ActivityIndicator,
   Alert,
-  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import {
-  requestRawPermission,
-  getRawPermissionStatus,
-  fetchDeviceContacts,
-  syncContacts,
-  DeviceContact,
-  ContactMatch,
-  PermissionStatusStr,
-} from '../../services/contacts';
 import { useTheme } from '../../theme';
-import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Avatar } from '../../components/ui/Avatar';
+import { COUPLE_COLORS } from '../../hooks/useCoupleMode';
 
 export function AddPartnerScreen() {
   const navigation = useNavigation<any>();
   const { colors, isDark } = useTheme();
-  const { accessToken, user } = useAuth();
+  const { user, addPartner, removePartner } = useAuth();
   const insets = useSafeAreaInsets();
 
-  const [step, setStep] = useState<'intro' | 'select'>('intro');
-  const [query, setQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [searching, setSearching] = useState(false);
-  const [permStatus, setPermStatus] = useState<PermissionStatusStr>('undetermined');
-  const [syncing, setSyncing] = useState(false);
-  const [hasSynced, setHasSynced] = useState(false);
-  const [syncError, setSyncError] = useState<string | null>(null);
-  const [matchedContacts, setMatchedContacts] = useState<ContactMatch[]>([]);
-  const [deviceContacts, setDeviceContacts] = useState<DeviceContact[]>([]);
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [selectedName, setSelectedName] = useState<string | null>(null);
-  const [selectedPhone, setSelectedPhone] = useState<string | null>(null);
-  const [creating, setCreating] = useState(false);
+  const [email, setEmail] = useState('');
+  const [adding, setAdding] = useState(false);
+  const [removing, setRemoving] = useState(false);
 
-  const didAutoSync = useRef(false);
+  const isInCouple = !!user?.isCouple;
+  const partner = user?.partner || null;
+  const partnerName = partner
+    ? `${partner.firstName || ''} ${partner.lastName || ''}`.trim() || partner.email
+    : '';
+  const linkedAt = user?.partnerLinkedAt
+    ? new Date(user.partnerLinkedAt).toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      })
+    : '';
 
-  useEffect(() => {
-    if (step === 'select') {
-      getRawPermissionStatus().then((s) => {
-        setPermStatus(s);
-        if (s === 'granted' && !hasSynced && !syncing && !syncError && !didAutoSync.current) {
-          didAutoSync.current = true;
-          handleSyncContacts();
-        }
-      });
-    }
-  }, [step]);
-
-  function handleStart() {
-    setStep('select');
-  }
-
-  async function handleSyncContacts() {
-    if (permStatus === 'denied') {
-      Alert.alert(
-        'Contacts Access Required',
-        'Enable contact access to find your partner on Dabbu.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Open Settings', onPress: () => Linking.openSettings() },
-        ],
-      );
+  async function handleAddPartner() {
+    const trimmed = email.trim();
+    if (!trimmed) {
+      Alert.alert('Error', 'Please enter your partner\'s email');
       return;
     }
-    if (permStatus === 'undetermined') {
-      const { granted, status } = await requestRawPermission();
-      setPermStatus(status);
-      if (!granted) {
-        return;
-      }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmed)) {
+      Alert.alert('Error', 'Please enter a valid email address');
+      return;
     }
-    setSyncError(null);
-    setSyncing(true);
+    setAdding(true);
     try {
-      const dev = await fetchDeviceContacts();
-      setDeviceContacts(dev);
-      const result = await syncContacts();
-      setMatchedContacts(result.matched || []);
-      setHasSynced(true);
-    } catch {
-      setSyncError('Could not sync contacts.');
-      setHasSynced(true);
-    } finally {
-      setSyncing(false);
-    }
-  }
-
-  useEffect(() => {
-    if (!query.trim() || query.length < 2) {
-      setSearchResults([]);
-      return;
-    }
-    setSearching(true);
-    const timer = setTimeout(async () => {
-      try {
-        const res = await api.get<any>(`/users/search?query=${encodeURIComponent(query.trim())}`);
-        setSearchResults(Array.isArray(res) ? res.filter((r: any) => r.id) : []);
-      } catch {
-        setSearchResults([]);
-      } finally {
-        setSearching(false);
-      }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [query]);
-
-  function handleSelect(userId: string, name: string, phone?: string) {
-    setSelectedUserId((prev) => (prev === userId ? null : userId));
-    setSelectedName((prev) => (prev === userId ? null : name));
-    setSelectedPhone((prev) => (prev === userId ? null : (phone || null)));
-  }
-
-  async function handleCreateCouple() {
-    if (!selectedUserId || !selectedName) {
-      return;
-    }
-    setCreating(true);
-    try {
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
-      const res = await api.post<any>('/shared-finance/groups', {
-        name: `${user?.firstName || 'My'} & ${selectedName}'s Space`,
-        type: 'couple',
-        currency: 'INR',
-      });
-      const newGroupId = res?.id || res?._id;
-      if (!newGroupId) {
-        throw new Error('Failed to create couple space');
-      }
-
-      await api.post(`/shared-finance/groups/${newGroupId}/members`, {
-        userId: selectedUserId,
-      });
-
-      navigation.replace('CoupleSpace');
+      await addPartner(trimmed);
+      Alert.alert('Connected!', 'You are now in a couple. Couple Mode is active.', [
+        { text: 'Go to Home', onPress: () => navigation.navigate('Dashboard') },
+      ]);
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to create couple space');
+      Alert.alert('Error', e?.message || 'Failed to add partner');
     } finally {
-      setCreating(false);
+      setAdding(false);
     }
   }
 
-  const allContacts = useMemo(() => {
-    const entries: any[] = [];
-    for (const m of matchedContacts) {
-      entries.push({ type: 'match', ...m });
-    }
-    for (const d of deviceContacts) {
-      if (!matchedContacts.some((m) => m.phone === d.phone)) {
-        entries.push({ type: 'device', name: d.name, phone: d.phone, email: d.email });
-      }
-    }
-    return entries;
-  }, [matchedContacts, deviceContacts]);
-
-  function renderContactRow(item: any) {
-    const isMatch = item.type === 'match';
-    const name = isMatch ? item.name : item.name;
-    const phone = isMatch ? item.phone : item.phone;
-    const email = isMatch ? item.email : item.email;
-    const userId = isMatch ? item.userId : null;
-    const isSelected = userId && selectedUserId === userId;
-
-    return (
-      <TouchableOpacity
-        style={styles.contactRow}
-        activeOpacity={0.7}
-        onPress={() => userId && handleSelect(userId, name, phone)}
-      >
-        <Avatar name={name} size={48} />
-        <View style={styles.contactInfo}>
-          <Text style={[styles.contactName, { color: colors.text.primary }]} numberOfLines={1}>
-            {name}
-          </Text>
-          <Text style={[styles.contactSub, { color: colors.text.tertiary }]} numberOfLines={1}>
-            {phone || email || ''}
-          </Text>
-        </View>
-        {isMatch ? (
-          <View
-            style={[
-              styles.selectCircle,
-              {
-                backgroundColor: isSelected ? '#8B5CF6' : 'transparent',
-                borderColor: isSelected ? '#8B5CF6' : colors.border.default,
-              },
-            ]}
-          >
-            {isSelected && <Ionicons name="checkmark" size={16} color="#FFF" />}
-          </View>
-        ) : (
-          <Text style={[styles.inviteLabel, { color: colors.text.tertiary }]}>Invite</Text>
-        )}
-      </TouchableOpacity>
+  function handleRemovePartner() {
+    Alert.alert(
+      'Remove Partner',
+      'This will break the couple relationship. Shared data will not be deleted.\n\nAre you sure?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: async () => {
+            setRemoving(true);
+            try {
+              await removePartner();
+              Alert.alert('Removed', 'Couple relationship has been removed.');
+            } catch (e: any) {
+              Alert.alert('Error', e?.message || 'Failed to remove partner');
+            } finally {
+              setRemoving(false);
+            }
+          },
+        },
+      ],
     );
   }
 
-  if (step === 'intro') {
+  if (isInCouple && partner) {
     return (
-      <View style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
+      <View style={[styles.screen, { backgroundColor: COUPLE_COLORS.bg }]}>
         <LinearGradient
-          colors={['#6D28D9', '#8B5CF6', '#A78BFA']}
-          style={[styles.heroGradient, { paddingTop: insets.top + 60, paddingBottom: 60 }]}
+          colors={[COUPLE_COLORS.primary, COUPLE_COLORS.accent]}
+          style={[styles.heroGradient, { paddingTop: insets.top + 60, paddingBottom: 40 }]}
         >
           <TouchableOpacity
             style={styles.backBtn}
@@ -229,68 +105,66 @@ export function AddPartnerScreen() {
           </TouchableOpacity>
           <View style={styles.heroContent}>
             <View style={styles.heroIconWrap}>
-              <Ionicons name="heart-circle" size={64} color="#FFF" />
+              <Ionicons name="heart" size={48} color="#FFF" />
             </View>
-            <Text style={styles.heroTitle}>Create Couple Profile</Text>
-            <Text style={styles.heroSub}>
-              Share expenses, track budgets, and achieve financial goals together.
-            </Text>
+            <Text style={[styles.heroTitle, { color: '#FFF' }]}>Your Partner</Text>
           </View>
         </LinearGradient>
 
-        <View style={styles.introBody}>
-          <View style={styles.featureRow}>
-            <View style={[styles.featureIcon, { backgroundColor: `${colors.accent.primary}12` }]}>
-              <Ionicons name="wallet-outline" size={22} color="#8B5CF6" />
+        <View style={styles.body}>
+          <View style={[styles.partnerCard, { backgroundColor: COUPLE_COLORS.card }]}>
+            <View style={styles.avatarRow}>
+              <Avatar name={user.firstName || 'You'} size={56} />
+              <View style={styles.heartSmall}>
+                <Ionicons name="heart" size={20} color={COUPLE_COLORS.heart} />
+              </View>
+              <Avatar name={partnerName} size={56} />
             </View>
-            <View style={styles.featureText}>
-              <Text style={[styles.featureTitle, { color: colors.text.primary }]}>
-                Shared Wallet
-              </Text>
-              <Text style={[styles.featureDesc, { color: colors.text.tertiary }]}>
-                Track joint expenses and income in one place
+            <Text style={[styles.partnerNames, { color: COUPLE_COLORS.text }]}>
+              {(user.firstName || 'You')} & {partnerName}
+            </Text>
+            <View style={[styles.infoRow, { borderTopColor: `${COUPLE_COLORS.border}80` }]}>
+              <Ionicons name="mail-outline" size={16} color={COUPLE_COLORS.textSecondary} />
+              <Text style={[styles.infoText, { color: COUPLE_COLORS.textSecondary }]}>
+                {partner.email}
               </Text>
             </View>
+            {linkedAt && (
+              <View style={styles.infoRow}>
+                <Ionicons name="calendar-outline" size={16} color={COUPLE_COLORS.textSecondary} />
+                <Text style={[styles.infoText, { color: COUPLE_COLORS.textSecondary }]}>
+                  Together since {linkedAt}
+                </Text>
+              </View>
+            )}
           </View>
-          <View style={styles.featureRow}>
-            <View style={[styles.featureIcon, { backgroundColor: `${colors.accent.primary}12` }]}>
-              <Ionicons name="trending-up-outline" size={22} color="#8B5CF6" />
-            </View>
-            <View style={styles.featureText}>
-              <Text style={[styles.featureTitle, { color: colors.text.primary }]}>
-                Goal Together
+
+          <View style={[styles.statusCard, { backgroundColor: COUPLE_COLORS.card }]}>
+            <View style={[styles.statusDot, { backgroundColor: '#10B981' }]} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.statusLabel, { color: COUPLE_COLORS.text }]}>
+                Couple Mode
               </Text>
-              <Text style={[styles.featureDesc, { color: colors.text.tertiary }]}>
-                Save for trips, home, or any shared dream
-              </Text>
-            </View>
-          </View>
-          <View style={styles.featureRow}>
-            <View style={[styles.featureIcon, { backgroundColor: `${colors.accent.primary}12` }]}>
-              <Ionicons name="pie-chart-outline" size={22} color="#8B5CF6" />
-            </View>
-            <View style={styles.featureText}>
-              <Text style={[styles.featureTitle, { color: colors.text.primary }]}>
-                Smart Reports
-              </Text>
-              <Text style={[styles.featureDesc, { color: colors.text.tertiary }]}>
-                See who spent what with AI-powered insights
+              <Text style={[styles.statusSub, { color: COUPLE_COLORS.textSecondary }]}>
+                Active — Pink theme enabled on Home
               </Text>
             </View>
           </View>
 
           <TouchableOpacity
-            style={styles.startBtn}
-            activeOpacity={0.85}
-            onPress={handleStart}
+            style={styles.removeBtn}
+            activeOpacity={0.7}
+            onPress={handleRemovePartner}
+            disabled={removing}
           >
-            <LinearGradient
-              colors={['#6D28D9', '#8B5CF6']}
-              style={styles.startBtnGradient}
-            >
-              <Text style={styles.startBtnText}>Add Your Partner</Text>
-              <Ionicons name="arrow-forward" size={20} color="#FFF" />
-            </LinearGradient>
+            {removing ? (
+              <ActivityIndicator size="small" color="#FF4757" />
+            ) : (
+              <>
+                <Ionicons name="heart-dislike-outline" size={20} color="#FF4757" />
+                <Text style={styles.removeText}>Remove Partner</Text>
+              </>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -300,170 +174,81 @@ export function AddPartnerScreen() {
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
       <LinearGradient
-        colors={[colors.bg.secondary, colors.bg.primary]}
-        style={[styles.selectHeader, { paddingTop: insets.top }]}
+        colors={['#6D28D9', '#8B5CF6', '#A78BFA']}
+        style={[styles.heroGradient, { paddingTop: insets.top + 60, paddingBottom: 50 }]}
       >
-        <View style={styles.selectHeaderRow}>
-          <TouchableOpacity
-            style={[styles.smallBackBtn, { backgroundColor: colors.bg.card }]}
-            onPress={() => navigation.goBack()}
-          >
-            <Ionicons name="arrow-back" size={20} color={colors.text.primary} />
-          </TouchableOpacity>
-          <Text style={[styles.selectTitle, { color: colors.text.primary }]}>
-            Choose Your Partner
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="arrow-back" size={22} color="#FFF" />
+        </TouchableOpacity>
+        <View style={styles.heroContent}>
+          <View style={styles.heroIconWrap}>
+            <Ionicons name="heart-circle" size={56} color="#FFF" />
+          </View>
+          <Text style={[styles.heroTitle, { color: '#FFF' }]}>Add Your Partner</Text>
+          <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.85)' }]}>
+            Enter your partner's email to create a couple space
           </Text>
-          <View style={{ width: 36 }} />
         </View>
       </LinearGradient>
 
-      <View style={styles.searchOuter}>
-        <View
-          style={[
-            styles.searchWrap,
-            { backgroundColor: colors.bg.card, borderColor: colors.border.default },
-          ]}
-        >
-          <Ionicons name="search" size={18} color={colors.text.tertiary} />
+      <View style={styles.body}>
+        <View style={[styles.emailCard, { backgroundColor: colors.bg.card }]}>
+          <Text style={[styles.emailLabel, { color: colors.text.primary }]}>
+            Partner's Email
+          </Text>
           <TextInput
-            style={[styles.searchInput, { color: colors.text.primary }]}
-            value={query}
-            onChangeText={setQuery}
-            placeholder="Search by name, phone or email"
+            style={[
+              styles.emailInput,
+              {
+                backgroundColor: colors.bg.primary,
+                color: colors.text.primary,
+                borderColor: colors.border.default,
+              },
+            ]}
+            value={email}
+            onChangeText={setEmail}
+            placeholder="partner@email.com"
             placeholderTextColor={colors.text.tertiary}
+            keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
           />
-          {searching && <ActivityIndicator size="small" color="#8B5CF6" />}
-          {query.length > 0 && !searching && (
-            <TouchableOpacity onPress={() => setQuery('')} hitSlop={8}>
-              <Ionicons name="close-circle" size={18} color={colors.text.tertiary} />
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-
-      {syncing ? (
-        <View style={styles.centerState}>
-          <ActivityIndicator size="large" color="#8B5CF6" />
-          <Text style={[styles.syncingText, { color: colors.text.tertiary }]}>
-            Syncing contacts...
-          </Text>
-        </View>
-      ) : syncError ? (
-        <View style={styles.centerState}>
-          <Ionicons name="cloud-offline-outline" size={40} color="#FF4545" />
-          <Text style={[styles.emptyTitle, { color: colors.status.error }]}>{syncError}</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={handleSyncContacts}>
-            <Text style={[styles.retryBtnText, { color: '#8B5CF6' }]}>Try Again</Text>
-          </TouchableOpacity>
-        </View>
-      ) : !hasSynced && permStatus !== 'granted' ? (
-        <View style={styles.centerState}>
-          <View style={[styles.emptyIcon, { backgroundColor: colors.bg.card }]}>
-            <Ionicons name="people-outline" size={36} color={colors.text.tertiary} />
-          </View>
-          <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>
-            Find your partner on Dabbu
-          </Text>
-          <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
-            Sync your contacts to see who's already here
-          </Text>
-          <TouchableOpacity style={styles.syncBtn} onPress={handleSyncContacts}>
-            <Ionicons name="people-outline" size={18} color="#FFF" />
-            <Text style={styles.syncBtnText}>Sync Contacts</Text>
-          </TouchableOpacity>
-        </View>
-      ) : allContacts.length === 0 && !query.trim() ? (
-        <View style={styles.centerState}>
-          <Ionicons name="person-outline" size={40} color={colors.text.tertiary} />
-          <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>
-            No contacts found
-          </Text>
-          <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
-            Search by name, phone, or email
-          </Text>
-        </View>
-      ) : null}
-
-      <FlatList
-        data={query.trim().length >= 2 ? searchResults : allContacts}
-        keyExtractor={(_: any, i: number) => String(i)}
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => {
-          if (query.trim().length >= 2) {
-            const name = [item.firstName, item.lastName].filter(Boolean).join(' ') || item.email;
-            const isSelected = selectedUserId === item.id;
-            return (
-              <TouchableOpacity
-                style={styles.contactRow}
-                activeOpacity={0.7}
-                onPress={() => handleSelect(item.id, name, item.phone)}
-              >
-                <Avatar
-                  uri={item.avatarUrl}
-                  name={`${item.firstName || ''} ${item.lastName || ''}`.trim()}
-                  size={48}
-                />
-                <View style={styles.contactInfo}>
-                  <Text
-                    style={[styles.contactName, { color: colors.text.primary }]}
-                    numberOfLines={1}
-                  >
-                    {name}
-                  </Text>
-                  <Text
-                    style={[styles.contactSub, { color: colors.text.tertiary }]}
-                    numberOfLines={1}
-                  >
-                    {item.phone || item.email || ''}
-                  </Text>
-                </View>
-                <View
-                  style={[
-                    styles.selectCircle,
-                    {
-                      backgroundColor: isSelected ? '#8B5CF6' : 'transparent',
-                      borderColor: isSelected ? '#8B5CF6' : colors.border.default,
-                    },
-                  ]}
-                >
-                  {isSelected && <Ionicons name="checkmark" size={16} color="#FFF" />}
-                </View>
-              </TouchableOpacity>
-            );
-          }
-          return renderContactRow(item);
-        }}
-        ListFooterComponent={
-          <View style={{ height: 100 }} />
-        }
-      />
-
-      {selectedUserId && (
-        <View style={[styles.footer, { backgroundColor: colors.bg.primary, borderTopColor: colors.border.subtle }]}>
           <TouchableOpacity
-            style={styles.confirmBtn}
+            style={[styles.addBtn, { opacity: adding ? 0.7 : 1 }]}
             activeOpacity={0.85}
-            onPress={handleCreateCouple}
-            disabled={creating}
+            onPress={handleAddPartner}
+            disabled={adding}
           >
-            <LinearGradient colors={['#6D28D9', '#8B5CF6']} style={styles.confirmBtnGradient}>
-              {creating ? (
+            <LinearGradient colors={['#6D28D9', '#8B5CF6']} style={styles.addBtnGradient}>
+              {adding ? (
                 <ActivityIndicator size="small" color="#FFF" />
               ) : (
                 <>
                   <Ionicons name="heart" size={20} color="#FFF" />
-                  <Text style={styles.confirmBtnText}>
-                    Create Space with {selectedName}
-                  </Text>
+                  <Text style={styles.addBtnText}>Connect with Partner</Text>
                 </>
               )}
             </LinearGradient>
           </TouchableOpacity>
         </View>
-      )}
+
+        <View style={styles.featuresList}>
+          {[
+            { icon: 'wallet-outline', text: 'Share expenses and track together' },
+            { icon: 'trending-up-outline', text: 'Save for shared goals' },
+            { icon: 'pie-chart-outline', text: 'Get AI-powered couple insights' },
+          ].map((f, i) => (
+            <View key={i} style={styles.featureRow}>
+              <Ionicons name={f.icon as any} size={18} color="#8B5CF6" />
+              <Text style={[styles.featureText, { color: colors.text.secondary }]}>{f.text}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
     </View>
   );
 }
@@ -484,184 +269,110 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heroContent: { alignItems: 'center', marginTop: 20 },
+  heroContent: { alignItems: 'center', marginTop: 16 },
   heroIconWrap: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: 88,
+    height: 88,
+    borderRadius: 44,
     backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
-  heroTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#FFF',
-    textAlign: 'center',
-    letterSpacing: -0.5,
-  },
-  heroSub: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.85)',
-    textAlign: 'center',
-    marginTop: 8,
-    lineHeight: 22,
-    maxWidth: 280,
-  },
+  heroTitle: { fontSize: 26, fontWeight: '800', textAlign: 'center' },
+  heroSub: { fontSize: 14, fontWeight: '500', textAlign: 'center', marginTop: 8, lineHeight: 20, maxWidth: 260 },
 
-  introBody: { flex: 1, paddingHorizontal: 24, paddingTop: 32, gap: 20 },
-  featureRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  featureIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  featureText: { flex: 1 },
-  featureTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  featureDesc: {
-    fontSize: 13,
-    fontWeight: '500',
-    marginTop: 2,
-    lineHeight: 18,
-  },
+  body: { flex: 1, paddingHorizontal: 24, paddingTop: 24, gap: 20 },
 
-  startBtn: {
-    marginTop: 20,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  startBtnGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    paddingVertical: 18,
-  },
-  startBtnText: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: '#FFF',
-  },
-
-  selectHeader: { paddingBottom: 8 },
-  selectHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    height: 52,
-  },
-  smallBackBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  selectTitle: { fontSize: 17, fontWeight: '700' },
-
-  searchOuter: { paddingHorizontal: 20, marginTop: 8, marginBottom: 4 },
-  searchWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    height: 44,
-    borderWidth: 1,
-  },
-  searchInput: { flex: 1, fontSize: 15, paddingVertical: 0 },
-
-  listContent: { paddingTop: 4, paddingBottom: 40 },
-
-  contactRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    gap: 12,
-  },
-  contactInfo: { flex: 1, justifyContent: 'center' },
-  contactName: { fontSize: 15, fontWeight: '600' },
-  contactSub: { fontSize: 12, fontWeight: '500', marginTop: 2 },
-
-  selectCircle: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  inviteLabel: { fontSize: 13, fontWeight: '600' },
-
-  centerState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 32,
-  },
-  emptyIcon: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
-  },
-  emptyTitle: { fontSize: 17, fontWeight: '700', textAlign: 'center' },
-  emptyDesc: { fontSize: 13, fontWeight: '500', textAlign: 'center', lineHeight: 18 },
-  syncingText: { fontSize: 14, fontWeight: '500', marginTop: 4 },
-
-  syncBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#8B5CF6',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    marginTop: 8,
-  },
-  syncBtnText: { fontSize: 15, fontWeight: '700', color: '#FFF' },
-  retryBtn: { paddingVertical: 10, paddingHorizontal: 20, borderRadius: 10, marginTop: 8 },
-  retryBtnText: { fontSize: 14, fontWeight: '700' },
-
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+  emailCard: {
+    borderRadius: 20,
     padding: 20,
-    paddingBottom: 34,
-    borderTopWidth: 1,
+    gap: 14,
   },
-  confirmBtn: {
-    borderRadius: 16,
-    overflow: 'hidden',
+  emailLabel: { fontSize: 14, fontWeight: '700' },
+  emailInput: {
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+    borderWidth: 1,
+    fontWeight: '500',
   },
-  confirmBtnGradient: {
+  addBtn: { borderRadius: 16, overflow: 'hidden', marginTop: 4 },
+  addBtnGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
     paddingVertical: 16,
   },
-  confirmBtnText: {
+  addBtnText: { fontSize: 16, fontWeight: '800', color: '#FFF' },
+
+  featuresList: { gap: 14, paddingHorizontal: 4 },
+  featureRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  featureText: { fontSize: 14, fontWeight: '500', flex: 1 },
+
+  partnerCard: {
+    borderRadius: 24,
+    padding: 24,
+    alignItems: 'center',
+    gap: 8,
+  },
+  avatarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 4,
+  },
+  heartSmall: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: `${COUPLE_COLORS.heart}20`,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  partnerNames: { fontSize: 20, fontWeight: '800', textAlign: 'center' },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingTop: 12,
+    marginTop: 4,
+    borderTopWidth: 1,
+    width: '100%',
+  },
+  infoText: { fontSize: 14, fontWeight: '500' },
+
+  statusCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderRadius: 16,
+    padding: 16,
+  },
+  statusDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  statusLabel: { fontSize: 15, fontWeight: '700' },
+  statusSub: { fontSize: 12, fontWeight: '500', marginTop: 1 },
+
+  removeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 16,
+    borderRadius: 16,
+    backgroundColor: '#FF475710',
+    borderWidth: 1,
+    borderColor: '#FF475730',
+  },
+  removeText: {
     fontSize: 16,
-    fontWeight: '800',
-    color: '#FFF',
+    fontWeight: '700',
+    color: '#FF4757',
   },
 });

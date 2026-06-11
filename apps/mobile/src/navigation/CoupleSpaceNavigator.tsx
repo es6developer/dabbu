@@ -12,6 +12,8 @@ import { CoupleBillsScreen } from '../screens/couple/CoupleBillsScreen';
 import { CoupleSettlementsScreen } from '../screens/couple/CoupleSettlementsScreen';
 import { CoupleReportsScreen } from '../screens/couple/CoupleReportsScreen';
 import { CoupleSettingsScreen } from '../screens/couple/CoupleSettingsScreen';
+import { SharedExpenseFormScreen } from '../screens/shared-finance/SharedExpenseFormScreen';
+import { CreateTransactionScreen } from '../screens/transactions/CreateTransactionScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -71,6 +73,16 @@ export function CoupleSpaceNavigator() {
         name="CoupleSettings"
         component={CoupleSettingsScreen}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="SharedExpenseForm"
+        component={SharedExpenseFormScreen}
+        options={{ headerShown: false, presentation: 'modal' }}
+      />
+      <Stack.Screen
+        name="CreateTransaction"
+        component={CreateTransactionScreen}
+        options={{ headerShown: false, presentation: 'modal' }}
       />
     </Stack.Navigator>
   );

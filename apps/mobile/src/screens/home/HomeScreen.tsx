@@ -17,6 +17,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api, setAccessToken, clearCache, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { useCoupleMode, COUPLE_COLORS } from '../../hooks/useCoupleMode';
+import { CoupleModeToggle } from '../../components/ui/CoupleModeToggle';
+import { CoupleDashboard } from '../../components/ui/CoupleDashboard';
 import { CATEGORY_ICONS, CATEGORY_COLORS } from '../../config/categoryIcons';
 import { Avatar } from '../../components/ui/Avatar';
 import { KEYWORD_CATEGORIES } from '../../constants/smartEntryKeywords';
@@ -154,6 +157,7 @@ export function HomeScreen() {
   const { colors } = useTheme();
   const { user, accessToken } = useAuth();
   const { isOnline, pendingCount } = useOffline();
+  const couple = useCoupleMode();
 
   const [totalBalance, setTotalBalance] = useState<number | null>(null);
   const [monthlyIncome, setMonthlyIncome] = useState(0);
@@ -478,6 +482,20 @@ export function HomeScreen() {
     );
   }
 
+  if (couple.showCoupleFeatures) {
+    return (
+      <View style={[page.screen, { backgroundColor: COUPLE_COLORS.bg }]}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: 100 }}
+        >
+          <CoupleModeToggle />
+          <CoupleDashboard />
+        </ScrollView>
+      </View>
+    );
+  }
+
   return (
     <View style={[page.screen, { backgroundColor: colors.bg.primary }]}>
       <ScrollView
@@ -494,8 +512,10 @@ export function HomeScreen() {
           />
         }
       >
+        <CoupleModeToggle />
+
         {/* ─── SECTION 1: HERO FINANCIAL SUMMARY ─── */}
-        <View style={{ paddingHorizontal: 20, paddingTop: insets.top + 12 }}>
+        <View style={{ paddingHorizontal: 20, paddingTop: 0 }}>
           {/* Header row */}
           <View
             style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}

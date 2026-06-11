@@ -182,6 +182,18 @@ export class AuthService {
         lockoutUntil: true,
         lastLoginAt: true,
         isActive: true,
+        isCouple: true,
+        isCoupleMode: true,
+        partnerLinkedAt: true,
+        partner: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            avatarUrl: true,
+          },
+        },
         settings: true,
         subscription: {
           select: { id: true, planId: true, status: true, plan: { select: { name: true } } },
@@ -906,6 +918,16 @@ export class AuthService {
       include: {
         settings: true,
         subscription: { include: { plan: true } },
+        partner: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            avatarUrl: true,
+            isCoupleMode: true,
+          },
+        },
         _count: {
           select: {
             sessions: true,

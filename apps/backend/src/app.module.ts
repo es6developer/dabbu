@@ -26,6 +26,7 @@ import { HealthController } from './common/health/health.controller';
 import { AuthModule } from './modules/auth/auth.module';
 import { FamilyModule } from './modules/family/family.module';
 import { ChatModule } from './modules/chat/chat.module';
+import { CoupleModule } from './modules/couple/couple.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
 import { CategoriesModule } from './modules/categories/categories.module';
@@ -113,6 +114,7 @@ import { ForecastModule } from './modules/forecast/forecast.module';
     AuthModule,
     FamilyModule,
     ChatModule,
+    CoupleModule,
     AccountsModule,
     TransactionsModule,
     CategoriesModule,

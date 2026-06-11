@@ -64,6 +64,7 @@ import { AddExpenseScreen } from '../screens/expense/AddExpenseScreen';
 import { useTheme } from '../theme';
 import { useAuth } from '../store/AuthContext';
 import { usePreferences } from '../store/PreferencesContext';
+import { useCoupleMode } from '../hooks/useCoupleMode';
 import { QuickActionSheet } from '../components/ui/QuickActionSheet';
 import { iosTransitionOptions } from './animations';
 
@@ -512,8 +513,10 @@ function GlossyTabBar({
   onCenterPress,
 }: any) {
   const { getTabVisibility } = usePreferences();
+  const { showCoupleFeatures } = useCoupleMode();
+  const coupleHiddenTabs = new Set(showCoupleFeatures ? ['Expense', 'Spaces'] : []);
   const visibleRoutes = state.routes.filter(
-    (r: any) => r.name !== 'Circles' && getTabVisibility(r.name),
+    (r: any) => r.name !== 'Circles' && getTabVisibility(r.name) && !coupleHiddenTabs.has(r.name),
   );
   const midIndex = Math.floor(visibleRoutes.length / 2);
   const leftRoutes = visibleRoutes.slice(0, midIndex);

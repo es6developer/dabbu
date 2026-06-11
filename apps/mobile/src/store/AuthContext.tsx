@@ -42,6 +42,15 @@ function getDeviceInfo(): { deviceName: string; platform: string } {
   return { deviceName, platform };
 }
 
+interface Partner {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl?: string;
+  isCoupleMode?: boolean;
+}
+
 interface User {
   id: string;
   email: string;
@@ -51,6 +60,10 @@ interface User {
   role: string;
   phone?: string | null;
   upiId?: string | null;
+  isCouple?: boolean;
+  isCoupleMode?: boolean;
+  partner?: Partner | null;
+  partnerLinkedAt?: string | null;
 }
 
 interface AuthState {
@@ -82,6 +95,10 @@ interface AuthContextType extends AuthState {
   updateAvatarUrl: (avatarUrl: string) => void;
   completeAuth: (token: string, user: User, wasNewUser: boolean) => void;
   refreshPremiumStatus: () => Promise<void>;
+  addPartner: (partnerEmail: string) => Promise<User>;
+  toggleCoupleMode: (isCoupleMode: boolean) => Promise<void>;
+  removePartner: () => Promise<void>;
+  fetchCoupleStatus: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -176,6 +193,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         'favorite_contacts',
         'offline_state',
         '@dabbu_dismissed_banners',
+        '@dabbu_couple_mode',
       ]);
     } catch {
       // ignore clear errors
@@ -308,6 +326,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (token && userData) {
         const parsedUser = JSON.parse(userData);
+        const storedCoupleMode = await AsyncStorage.getItem('@dabbu_couple_mode');
+        if (storedCoupleMode !== null && parsedUser.isCouple) {
+          parsedUser.isCoupleMode = storedCoupleMode === 'true';
+        }
         setAccessToken(token);
         setState({
           isAuthenticated: true,
@@ -614,6 +636,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const addPartner = useCallback(async (partnerEmail: string) => {
+    const res = await api.post<any>('/couple/add-partner', { partnerEmail });
+    const updatedUser = res?.data || res;
+    await storage.current.setItem('userData', JSON.stringify(updatedUser));
+    await AsyncStorage.setItem('@dabbu_couple_mode', 'true');
+    setState((prev) => ({
+      ...prev,
+      user: { ...prev.user, ...updatedUser, isCoupleMode: true },
+    }));
+    return updatedUser;
+  }, []);
+
+  const toggleCoupleMode = useCallback(async (isCoupleMode: boolean) => {
+    await api.post('/couple/toggle-mode', { isCoupleMode });
+    await AsyncStorage.setItem('@dabbu_couple_mode', String(isCoupleMode));
+    setState((prev) => ({
+      ...prev,
+      user: prev.user ? { ...prev.user, isCoupleMode } : null,
+    }));
+  }, []);
+
+  const removePartner = useCallback(async () => {
+    await api.post('/couple/remove-partner');
+    await AsyncStorage.setItem('@dabbu_couple_mode', 'false');
+    setState((prev) => ({
+      ...prev,
+      user: prev.user
+        ? { ...prev.user, isCouple: false, isCoupleMode: false, partner: null, partnerLinkedAt: null }
+        : null,
+    }));
+  }, []);
+
+  const fetchCoupleStatus = useCallback(async () => {
+    try {
+      const res = await api.get<any>('/couple/status');
+      const status = res?.data || res;
+      if (status) {
+        setState((prev) => ({
+          ...prev,
+          user: prev.user ? { ...prev.user, ...status } : null,
+        }));
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const value = React.useMemo(
     () => ({
       ...state,
@@ -629,8 +698,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       updateAvatarUrl,
       completeAuth,
       refreshPremiumStatus,
+      addPartner,
+      toggleCoupleMode,
+      removePartner,
+      fetchCoupleStatus,
     }),
-    [state, refreshToken, completeAuth, updateAvatarUrl, refreshPremiumStatus],
+    [state, refreshToken, completeAuth, updateAvatarUrl, refreshPremiumStatus, addPartner, toggleCoupleMode, removePartner, fetchCoupleStatus],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
