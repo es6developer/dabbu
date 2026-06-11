@@ -1,51 +1,27 @@
 let appHandler;
 
-function isHealthRequest(url) {
-  return url === '/api/v1/health' || url === '/health';
-}
-
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('UNHANDLED REJECTION at:', promise, 'reason:', reason);
+process.on('unhandledRejection', (reason) => {
+  console.error('UNHANDLED REJECTION:', reason);
 });
 
 process.on('uncaughtException', (err) => {
-  console.error('UNCAUGHT EXCEPTION:', err.message);
-  console.error('Stack:', err.stack);
+  console.error('UNCAUGHT EXCEPTION:', err);
 });
 
 async function loadApp() {
-  console.log('loadApp: starting...');
   const path = require('path');
-  const express = require('express');
-  require('reflect-metadata');
-
   const distPath = path.resolve(__dirname, '..', 'dist');
 
   try {
-    console.log('loadApp: resolving distPath:', distPath);
-
-    try {
-      const fs = require('fs');
-      const files = fs.readdirSync(distPath).slice(0, 20);
-      console.log('loadApp: dist contents (first 20):', files.join(', '));
-    } catch (e) {
-      console.error('loadApp: cannot read dist dir:', e.message);
-    }
-
-    console.log('loadApp: loading @nestjs/core...');
+    const express = require('express');
+    require('reflect-metadata');
     const { NestFactory } = require('@nestjs/core');
-    console.log('loadApp: loading @nestjs/platform-express...');
     const { ExpressAdapter } = require('@nestjs/platform-express');
-    console.log('loadApp: loading @nestjs/common...');
     const { ValidationPipe } = require('@nestjs/common');
-
-    console.log('loadApp: loading AppModule...');
     const { AppModule } = require(path.join(distPath, 'app.module'));
-    console.log('loadApp: loading filters...');
     const { AllExceptionsFilter } = require(
       path.join(distPath, 'common/filters/http-exception.filter'),
     );
-    console.log('loadApp: loading interceptors...');
     const { TransformInterceptor } = require(
       path.join(distPath, 'common/interceptors/transform.interceptor'),
     );
@@ -54,7 +30,6 @@ async function loadApp() {
     expressApp.use(express.json({ limit: '50mb' }));
     expressApp.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-    console.log('loadApp: creating NestJS app...');
     const app = await NestFactory.create(AppModule, new ExpressAdapter(expressApp), {
       bufferLogs: true,
       bodyParser: false,
@@ -66,23 +41,73 @@ async function loadApp() {
     app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalInterceptors(new TransformInterceptor());
 
-    console.log('loadApp: initializing NestJS...');
     await app.init();
-    console.log('loadApp: NestJS initialized successfully');
     return expressApp;
   } catch (err) {
-    console.error('loadApp: FAILED:', err.message);
-    console.error('loadApp: Stack:', err.stack);
+    console.error('loadApp error:', err.message, err.stack);
     return null;
   }
 }
 
 module.exports = async (req, res) => {
   try {
-    if (isHealthRequest(req.url)) {
-      return res
-        .status(200)
-        .json({ status: 'ok', mode: 'bootstrap', timestamp: new Date().toISOString() });
+    if (req.url === '/api/v1/health' || req.url === '/health') {
+      return res.status(200).json({ status: 'ok', mode: 'bootstrap' });
+    }
+
+    if (req.url === '/api/v1/debug') {
+      const results = {};
+
+      // Test require of each module
+      const modules_to_test = [
+        'path',
+        'fs',
+        'express',
+        'reflect-metadata',
+        '@nestjs/common',
+        '@nestjs/core',
+        '@nestjs/platform-express',
+      ];
+
+      for (const mod of modules_to_test) {
+        try {
+          require(mod);
+          results[mod] = 'OK';
+        } catch (e) {
+          results[mod] = e.message;
+        }
+      }
+
+      // Test dist file loading
+      const path = require('path');
+      const distPath = path.resolve(__dirname, '..', 'dist');
+      const fs = require('fs');
+
+      try {
+        results.distFiles = fs.readdirSync(distPath).join(', ');
+      } catch (e) {
+        results.distFiles = 'ERROR: ' + e.message;
+      }
+
+      try {
+        require(path.join(distPath, 'app.module'));
+        results.appModule = 'OK';
+      } catch (e) {
+        results.appModule = e.message;
+      }
+
+      results.nodeVersion = process.version;
+      results.platform = process.platform;
+      results.cwd = process.cwd();
+      results.envKeys = Object.keys(process.env).filter(
+        (k) =>
+          !k.toLowerCase().includes('key') &&
+          !k.toLowerCase().includes('token') &&
+          !k.toLowerCase().includes('secret') &&
+          !k.toLowerCase().includes('password'),
+      );
+
+      return res.status(200).json(results);
     }
 
     if (!appHandler) {
@@ -90,14 +115,12 @@ module.exports = async (req, res) => {
     }
 
     if (appHandler) {
-      console.log('handler: forwarding request to NestJS:', req.url);
       return appHandler(req, res);
     }
 
     res.status(200).json({ status: 'degraded', message: 'NestJS not initialized', url: req.url });
   } catch (err) {
-    console.error('Fatal error:', err.message);
-    console.error('Stack:', err.stack);
+    console.error('Handler error:', err.message);
     try {
       res.status(500).json({ status: 'error', error: err.message });
     } catch (_) {}
