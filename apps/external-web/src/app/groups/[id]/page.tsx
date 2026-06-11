@@ -226,7 +226,7 @@ export default function GroupDashboard() {
         setSharing(false);
         return;
       }
-      const inviteUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://external-web.vercel.app'}/invite/${token}`;
+      const inviteUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://external-web.vercel.app'}/i/${token}`;
       const shareText = `Join "${group?.name || 'my group'}" on Dabbu Split! Track shared expenses, split bills, and settle up easily.\n\n${inviteUrl}`;
 
       // Try native share first (mobile)
@@ -316,6 +316,17 @@ export default function GroupDashboard() {
       onErrorDismiss={loader.reset}
     >
       <div className="min-h-screen bg-dabbu-bg pb-32">
+        {loader.isLoading && (
+          <div className="sticky top-0 z-40 bg-gradient-to-r from-violet-600/90 via-dabbu-accent/90 to-violet-600/90 backdrop-blur-md border-b border-violet-400/20">
+            <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+              <div>
+                <p className="text-white text-sm font-semibold">Almost ready!</p>
+                <p className="text-violet-200 text-xs">Preparing your dashboard</p>
+              </div>
+            </div>
+          </div>
+        )}
         <header className="glass-effect sticky top-0 z-30">
           <div className="max-w-3xl mx-auto px-4">
             <div className="flex items-center gap-3 h-16">

@@ -858,14 +858,14 @@ export function SharedGroupDetailScreen() {
                   selectable
                   numberOfLines={2}
                 >
-                  {inviteToken ? `${INVITE_BASE_URL}/invite/${inviteToken}` : ''}
+                  {inviteToken ? `${INVITE_BASE_URL}/${inviteToken}` : ''}
                 </Text>
               </View>
               <View style={s.modalActions}>
                 <TouchableOpacity
                   style={[s.modalBtn, { backgroundColor: colors.accent.primary }]}
                   onPress={async () => {
-                    const url = `${INVITE_BASE_URL}/invite/${inviteToken}`;
+                    const url = `${INVITE_BASE_URL}/${inviteToken}`;
                     await Share.share({ message: `Join "${name}" on Dabbu! ${url}`, url }).catch(
                       () => {},
                     );
@@ -878,7 +878,7 @@ export function SharedGroupDetailScreen() {
                 <TouchableOpacity
                   style={[s.modalBtn, { backgroundColor: '#34C75920' }]}
                   onPress={async () => {
-                    const url = `${INVITE_BASE_URL}/invite/${inviteToken}`;
+                    const url = `${INVITE_BASE_URL}/${inviteToken}`;
                     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Join "${name}" on Dabbu! ${url}`)}`;
                     const supported = await Linking.canOpenURL(whatsappUrl);
                     if (supported) {
@@ -1076,7 +1076,7 @@ export function SharedGroupDetailScreen() {
         return;
       }
       setInviteToken(token);
-      const inviteUrl = `${INVITE_BASE_URL}/invite/${token}`;
+      const inviteUrl = `${INVITE_BASE_URL}/${token}`;
       try {
         await Share.share({
           message: `Join "${name}" on Dabbu! Track shared expenses, split bills, and settle up easily.\n\n${inviteUrl}`,

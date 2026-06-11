@@ -165,13 +165,12 @@ export function warmupBackend(): Promise<void> {
   if (accessToken) {
     headers['Authorization'] = `Bearer ${accessToken}`;
   }
-  // Track how many requests have finished; resolve when one succeeds or all fail
   let settled = 0;
   const total = warmupEndpoints.length;
   warmupPromise = new Promise<void>((resolve) => {
     for (const ep of warmupEndpoints) {
       const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 10000);
+      const timer = setTimeout(() => ctrl.abort(), 20000);
       fetch(`${API_URL}${ep}`, { headers, signal: ctrl.signal })
         .then((res) => {
           clearTimeout(timer);
@@ -202,8 +201,7 @@ async function waitForWarmup(): Promise<void> {
   if (!warmupPromise) {
     warmupBackend();
   }
-  // Brief pause to let warmup finish if it's almost done
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 20; i++) {
     if (warmupCompleted) {
       return;
     }
@@ -226,11 +224,10 @@ function startKeepAlive(): void {
   }, 240_000);
 }
 
-// Fire warmup immediately on app start (not waiting for login)
 warmupBackend();
 hydrateCache();
 
-const REQUEST_TIMEOUT = 8_000;
+const REQUEST_TIMEOUT = 20_000;
 
 const CACHE_TTL: Record<string, number> = {
   '/accounts': 300_000,

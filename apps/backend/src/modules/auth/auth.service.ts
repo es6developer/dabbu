@@ -493,6 +493,8 @@ export class AuthService {
       });
     }
 
+    await this.ensureDemoData(user.id);
+
     const tokens = await this.generateTokens(user.id, user.email);
     await this.createSession(
       user.id,
@@ -514,6 +516,257 @@ export class AuthService {
 
     const { password, ...userWithoutPassword } = user;
     return { user: userWithoutPassword, tokens };
+  }
+
+  private async ensureDemoData(userId: string): Promise<void> {
+    const existingAccounts = await this.prisma.account.count({
+      where: { userId, isDeleted: false },
+    });
+    if (existingAccounts > 0) {
+      return;
+    }
+
+    const demoCategories = [
+      { name: 'Food & Dining', icon: 'coffee', color: '#e74c3c', transactionType: 'expense' },
+      { name: 'Groceries', icon: 'shopping-cart', color: '#f39c12', transactionType: 'expense' },
+      { name: 'Shopping', icon: 'shopping-bag', color: '#e91e63', transactionType: 'expense' },
+      { name: 'Entertainment', icon: 'film', color: '#9c27b0', transactionType: 'expense' },
+      { name: 'Transportation', icon: 'car', color: '#ff5722', transactionType: 'expense' },
+      { name: 'Utilities', icon: 'zap', color: '#ffc107', transactionType: 'expense' },
+      { name: 'Rent', icon: 'home', color: '#795548', transactionType: 'expense' },
+      { name: 'Health', icon: 'activity', color: '#4caf50', transactionType: 'expense' },
+      { name: 'Subscriptions', icon: 'repeat', color: '#607d8b', transactionType: 'expense' },
+      { name: 'Salary', icon: 'briefcase', color: '#2ecc71', transactionType: 'income' },
+      { name: 'Freelance', icon: 'laptop', color: '#3498db', transactionType: 'income' },
+    ];
+
+    const catMap = new Map<string, string>();
+    for (const cat of demoCategories) {
+      const created = await this.prisma.transactionCategory.create({
+        data: {
+          userId,
+          name: cat.name,
+          icon: cat.icon,
+          color: cat.color,
+          transactionType: cat.transactionType,
+          isDefault: true,
+          isActive: true,
+          sortOrder: 0,
+        },
+      });
+      catMap.set(cat.name, created.id);
+    }
+
+    const demoAccounts = [
+      {
+        name: 'HDFC Salary Account',
+        type: 'bank',
+        balance: 85000,
+        currency: 'INR',
+        institution: 'HDFC Bank',
+        lastFourDigits: '4521',
+      },
+      {
+        name: 'ICICI Savings',
+        type: 'bank',
+        balance: 32000,
+        currency: 'INR',
+        institution: 'ICICI Bank',
+        lastFourDigits: '7834',
+      },
+      { name: 'Cash Wallet', type: 'cash', balance: 8500, currency: 'INR', institution: 'Cash' },
+      {
+        name: 'AMEX Platinum',
+        type: 'credit',
+        balance: -12000,
+        currency: 'INR',
+        institution: 'American Express',
+        lastFourDigits: '9901',
+      },
+    ];
+
+    const accountIds: string[] = [];
+    for (const acct of demoAccounts) {
+      const created = await this.prisma.account.create({
+        data: { ...acct, userId, isActive: true },
+      });
+      accountIds.push(created.id);
+    }
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const sampleTransactions = [
+      {
+        amount: 75000,
+        type: 'income',
+        description: 'Monthly Salary',
+        category: 'Salary',
+        accountIndex: 0,
+        daysAgo: 1,
+      },
+      {
+        amount: 1200,
+        type: 'expense',
+        description: 'Lunch at Pizza Hut',
+        category: 'Food & Dining',
+        accountIndex: 2,
+        daysAgo: 0,
+      },
+      {
+        amount: 450,
+        type: 'expense',
+        description: 'Metro Card Recharge',
+        category: 'Transportation',
+        accountIndex: 2,
+        daysAgo: 0,
+      },
+      {
+        amount: 3200,
+        type: 'expense',
+        description: 'Weekly Groceries',
+        category: 'Groceries',
+        accountIndex: 1,
+        daysAgo: 2,
+      },
+      {
+        amount: 15000,
+        type: 'expense',
+        description: 'Monthly Rent',
+        category: 'Rent',
+        accountIndex: 0,
+        daysAgo: 3,
+      },
+      {
+        amount: 850,
+        type: 'expense',
+        description: 'Netflix Subscription',
+        category: 'Subscriptions',
+        accountIndex: 0,
+        daysAgo: 5,
+      },
+      {
+        amount: 2200,
+        type: 'expense',
+        description: 'Electricity Bill',
+        category: 'Utilities',
+        accountIndex: 1,
+        daysAgo: 5,
+      },
+      {
+        amount: 1800,
+        type: 'expense',
+        description: 'Uber Ride to Airport',
+        category: 'Transportation',
+        accountIndex: 0,
+        daysAgo: 7,
+      },
+      {
+        amount: 4500,
+        type: 'expense',
+        description: 'New Sneakers',
+        category: 'Shopping',
+        accountIndex: 0,
+        daysAgo: 8,
+      },
+      {
+        amount: 600,
+        type: 'expense',
+        description: 'Movie Tickets',
+        category: 'Entertainment',
+        accountIndex: 2,
+        daysAgo: 10,
+      },
+      {
+        amount: 2500,
+        type: 'expense',
+        description: 'Dinner at Barbecue Nation',
+        category: 'Food & Dining',
+        accountIndex: 0,
+        daysAgo: 12,
+      },
+      {
+        amount: 15000,
+        type: 'income',
+        description: 'Freelance Project Payment',
+        category: 'Freelance',
+        accountIndex: 1,
+        daysAgo: 14,
+      },
+      {
+        amount: 950,
+        type: 'expense',
+        description: 'Gym Membership',
+        category: 'Health',
+        accountIndex: 0,
+        daysAgo: 15,
+      },
+      {
+        amount: 3400,
+        type: 'expense',
+        description: 'Amazon Order - Books',
+        category: 'Shopping',
+        accountIndex: 0,
+        daysAgo: 18,
+      },
+      {
+        amount: 1100,
+        type: 'expense',
+        description: 'Indian Oil Petrol',
+        category: 'Transportation',
+        accountIndex: 0,
+        daysAgo: 20,
+      },
+      {
+        amount: 750,
+        type: 'expense',
+        description: 'Zomato Order',
+        category: 'Food & Dining',
+        accountIndex: 2,
+        daysAgo: 22,
+      },
+      {
+        amount: 5000,
+        type: 'expense',
+        description: 'Mobile Bill Recharge (3 months)',
+        category: 'Utilities',
+        accountIndex: 0,
+        daysAgo: 25,
+      },
+      {
+        amount: 850,
+        type: 'expense',
+        description: 'Spotify + YouTube Premium',
+        category: 'Subscriptions',
+        accountIndex: 0,
+        daysAgo: 28,
+      },
+      {
+        amount: 2800,
+        type: 'expense',
+        description: 'Weekend Brunch',
+        category: 'Food & Dining',
+        accountIndex: 0,
+        daysAgo: 30,
+      },
+    ];
+
+    for (const tx of sampleTransactions) {
+      const txDate = new Date(today);
+      txDate.setDate(txDate.getDate() - tx.daysAgo);
+      await this.prisma.transaction.create({
+        data: {
+          userId,
+          accountId: accountIds[tx.accountIndex],
+          categoryId: catMap.get(tx.category)!,
+          amount: tx.amount,
+          type: tx.type,
+          description: tx.description,
+          date: txDate,
+          status: 'completed',
+        },
+      });
+    }
   }
 
   async googleAuth(

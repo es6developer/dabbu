@@ -553,6 +553,185 @@ async function main() {
   }
   console.log('  ✓ 1 demo user with accounts and categories');
 
+  // Demo transactions
+  const demoCatByName = new Map<string, string>();
+  for (let i = 0; i < demoCategories.length; i++) {
+    demoCatByName.set(demoCategories[i], demoCatIds[i]);
+  }
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const sampleTransactions = [
+    {
+      amount: 75000,
+      type: 'income',
+      description: 'Monthly Salary',
+      category: 'Salary',
+      accountIdx: 0,
+      daysAgo: 1,
+    },
+    {
+      amount: 1200,
+      type: 'expense',
+      description: 'Lunch at Pizza Hut',
+      category: 'Food & Dining',
+      accountIdx: 2,
+      daysAgo: 0,
+    },
+    {
+      amount: 450,
+      type: 'expense',
+      description: 'Metro Card Recharge',
+      category: 'Transportation',
+      accountIdx: 2,
+      daysAgo: 0,
+    },
+    {
+      amount: 3200,
+      type: 'expense',
+      description: 'Weekly Groceries',
+      category: 'Groceries',
+      accountIdx: 1,
+      daysAgo: 2,
+    },
+    {
+      amount: 15000,
+      type: 'expense',
+      description: 'Monthly Rent',
+      category: 'Rent',
+      accountIdx: 0,
+      daysAgo: 3,
+    },
+    {
+      amount: 850,
+      type: 'expense',
+      description: 'Netflix Subscription',
+      category: 'Subscriptions',
+      accountIdx: 0,
+      daysAgo: 5,
+    },
+    {
+      amount: 2200,
+      type: 'expense',
+      description: 'Electricity Bill',
+      category: 'Utilities',
+      accountIdx: 1,
+      daysAgo: 5,
+    },
+    {
+      amount: 1800,
+      type: 'expense',
+      description: 'Uber Ride to Airport',
+      category: 'Transportation',
+      accountIdx: 0,
+      daysAgo: 7,
+    },
+    {
+      amount: 4500,
+      type: 'expense',
+      description: 'New Sneakers',
+      category: 'Shopping',
+      accountIdx: 0,
+      daysAgo: 8,
+    },
+    {
+      amount: 600,
+      type: 'expense',
+      description: 'Movie Tickets',
+      category: 'Entertainment',
+      accountIdx: 2,
+      daysAgo: 10,
+    },
+    {
+      amount: 2500,
+      type: 'expense',
+      description: 'Dinner at Barbecue Nation',
+      category: 'Food & Dining',
+      accountIdx: 0,
+      daysAgo: 12,
+    },
+    {
+      amount: 15000,
+      type: 'income',
+      description: 'Freelance Project Payment',
+      category: 'Freelance',
+      accountIdx: 1,
+      daysAgo: 14,
+    },
+    {
+      amount: 950,
+      type: 'expense',
+      description: 'Gym Membership',
+      category: 'Health',
+      accountIdx: 0,
+      daysAgo: 15,
+    },
+    {
+      amount: 3400,
+      type: 'expense',
+      description: 'Books from Amazon',
+      category: 'Shopping',
+      accountIdx: 0,
+      daysAgo: 18,
+    },
+    {
+      amount: 1100,
+      type: 'expense',
+      description: 'Indian Oil Petrol',
+      category: 'Transportation',
+      accountIdx: 0,
+      daysAgo: 20,
+    },
+    {
+      amount: 750,
+      type: 'expense',
+      description: 'Zomato Order',
+      category: 'Food & Dining',
+      accountIdx: 2,
+      daysAgo: 22,
+    },
+    {
+      amount: 5000,
+      type: 'expense',
+      description: 'Mobile Bill Recharge (3 months)',
+      category: 'Utilities',
+      accountIdx: 0,
+      daysAgo: 25,
+    },
+    {
+      amount: 850,
+      type: 'expense',
+      description: 'Spotify + YouTube Premium',
+      category: 'Subscriptions',
+      accountIdx: 0,
+      daysAgo: 28,
+    },
+    {
+      amount: 2800,
+      type: 'expense',
+      description: 'Weekend Brunch',
+      category: 'Food & Dining',
+      accountIdx: 0,
+      daysAgo: 30,
+    },
+  ];
+  for (const tx of sampleTransactions) {
+    const txDate = new Date(today);
+    txDate.setDate(txDate.getDate() - tx.daysAgo);
+    await prisma.transaction.create({
+      data: {
+        userId: demoUser.id,
+        accountId: accountRecords[tx.accountIdx].id,
+        categoryId: demoCatByName.get(tx.category)!,
+        amount: tx.amount,
+        type: tx.type,
+        description: tx.description,
+        date: txDate,
+        status: 'completed',
+      },
+    });
+  }
+  console.log(`  ✓ ${sampleTransactions.length} demo transactions`);
+
   // ── Free Test User ──
   const freeUser = await prisma.user.create({
     data: {
