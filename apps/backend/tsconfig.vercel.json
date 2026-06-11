@@ -4,6 +4,8 @@
     "strict": false,
     "noEmitOnError": false,
     "skipLibCheck": true,
+    "ignoreDeprecations": "5.0",
+    "rootDir": "./src",
     "outDir": "./dist",
     "declaration": false,
     "sourceMap": true
