@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { BullModule } from '@nestjs/bullmq';
 import isRedisAvailable from '../../common/redis.util';
 import { ReportsController } from './reports.controller';
 import { ReportsService } from './reports.service';
@@ -10,11 +9,15 @@ import { PremiumModule } from '../premium/premium.module';
   imports: [
     PremiumModule,
     ...(isRedisAvailable()
-      ? [
-          BullModule.registerQueue({
-            name: 'report-queue',
-          }),
-        ]
+      ? (() => {
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
+          const { BullModule } = require('@nestjs/bullmq');
+          return [
+            BullModule.registerQueue({
+              name: 'report-queue',
+            }),
+          ];
+        })()
       : []),
   ],
   controllers: [ReportsController],

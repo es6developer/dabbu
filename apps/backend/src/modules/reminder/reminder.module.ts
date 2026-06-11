@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { BullModule } from '@nestjs/bullmq';
 import { PrismaModule } from '../../common/prisma/prisma.module';
 import isRedisAvailable from '../../common/redis.util';
 import { NotificationModule } from '../notification/notification.module';
@@ -14,11 +13,15 @@ import { ReminderNotificationService } from './reminder-notification.service';
     PrismaModule,
     NotificationModule,
     ...(isRedisAvailable()
-      ? [
-          BullModule.registerQueue({
-            name: 'reminder-queue',
-          }),
-        ]
+      ? (() => {
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
+          const { BullModule } = require('@nestjs/bullmq');
+          return [
+            BullModule.registerQueue({
+              name: 'reminder-queue',
+            }),
+          ];
+        })()
       : []),
   ],
   controllers: [ReminderController],

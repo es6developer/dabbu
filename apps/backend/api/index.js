@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 let appHandler;
 
 process.on('unhandledRejection', (reason) => {
@@ -53,61 +54,6 @@ module.exports = async (req, res) => {
   try {
     if (req.url === '/api/v1/health' || req.url === '/health') {
       return res.status(200).json({ status: 'ok', mode: 'bootstrap' });
-    }
-
-    if (req.url === '/api/v1/debug') {
-      const results = {};
-
-      // Test require of each module
-      const modules_to_test = [
-        'path',
-        'fs',
-        'express',
-        'reflect-metadata',
-        '@nestjs/common',
-        '@nestjs/core',
-        '@nestjs/platform-express',
-      ];
-
-      for (const mod of modules_to_test) {
-        try {
-          require(mod);
-          results[mod] = 'OK';
-        } catch (e) {
-          results[mod] = e.message;
-        }
-      }
-
-      // Test dist file loading
-      const path = require('path');
-      const distPath = path.resolve(__dirname, '..', 'dist');
-      const fs = require('fs');
-
-      try {
-        results.distFiles = fs.readdirSync(distPath).join(', ');
-      } catch (e) {
-        results.distFiles = 'ERROR: ' + e.message;
-      }
-
-      try {
-        require(path.join(distPath, 'app.module'));
-        results.appModule = 'OK';
-      } catch (e) {
-        results.appModule = e.message;
-      }
-
-      results.nodeVersion = process.version;
-      results.platform = process.platform;
-      results.cwd = process.cwd();
-      results.envKeys = Object.keys(process.env).filter(
-        (k) =>
-          !k.toLowerCase().includes('key') &&
-          !k.toLowerCase().includes('token') &&
-          !k.toLowerCase().includes('secret') &&
-          !k.toLowerCase().includes('password'),
-      );
-
-      return res.status(200).json(results);
     }
 
     if (!appHandler) {

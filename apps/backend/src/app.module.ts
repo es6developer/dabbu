@@ -3,7 +3,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
-import { BullModule } from '@nestjs/bullmq';
 import isRedisAvailable from './common/redis.util';
 
 // Config
@@ -93,19 +92,25 @@ import { ForecastModule } from './modules/forecast/forecast.module';
 
     // ─── Queue/BullMQ (only if Redis is configured) ──
     ...(isRedisAvailable()
-      ? [
-          BullModule.forRootAsync({
-            imports: [ConfigModule],
-            inject: [ConfigService],
-            useFactory: (config: ConfigService) => ({
-              connection: {
-                host: config.get<string>('database.redisHost', 'localhost'),
-                port: config.get<number>('database.redisPort', 6379),
-                password: config.get<string>('database.redisPassword', ''),
-              },
+      ? (() => {
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
+          const { BullModule } = require('@nestjs/bullmq');
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
+          const { ConfigModule } = require('@nestjs/config');
+          return [
+            BullModule.forRootAsync({
+              imports: [ConfigModule],
+              inject: [ConfigService],
+              useFactory: (config: ConfigService) => ({
+                connection: {
+                  host: config.get('database.redisHost', 'localhost') as string,
+                  port: config.get('database.redisPort', 6379) as number,
+                  password: config.get('database.redisPassword', '') as string,
+                },
+              }),
             }),
-          }),
-        ]
+          ];
+        })()
       : []),
 
     // ─── Scheduling ─────────────────────────────────

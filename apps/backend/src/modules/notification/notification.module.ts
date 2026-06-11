@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { BullModule } from '@nestjs/bullmq';
 import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from '../../common/prisma/prisma.module';
 import isRedisAvailable from '../../common/redis.util';
@@ -15,11 +14,15 @@ import { FcmService } from './fcm.service';
     PrismaModule,
     ScheduleModule.forRoot(),
     ...(isRedisAvailable()
-      ? [
-          BullModule.registerQueue({
-            name: 'notification-queue',
-          }),
-        ]
+      ? (() => {
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
+          const { BullModule } = require('@nestjs/bullmq');
+          return [
+            BullModule.registerQueue({
+              name: 'notification-queue',
+            }),
+          ];
+        })()
       : []),
   ],
   controllers: [NotificationController],
