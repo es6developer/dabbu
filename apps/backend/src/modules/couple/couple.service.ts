@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { SharedFinanceService } from '../shared-finance/shared-finance.service';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class CoupleService {
@@ -15,6 +16,7 @@ export class CoupleService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly sharedFinanceService: SharedFinanceService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async sendRequest(userId: string, phone: string) {
@@ -49,7 +51,7 @@ export class CoupleService {
       throw new ConflictException('You are already connected with this user');
     }
 
-    await this.prisma.coupleRequest.upsert({
+    const request = await this.prisma.coupleRequest.upsert({
       where: { senderId_receiverId: { senderId: userId, receiverId: receiver.id } },
       update: { status: 'pending' },
       create: {
@@ -58,6 +60,19 @@ export class CoupleService {
         status: 'pending',
       },
     });
+
+    this.notificationService
+      .sendPush(
+        receiver.id,
+        'Couple Request 💕',
+        `${user.firstName} wants to connect with you on Dabbu!`,
+        {
+          type: 'couple_request',
+          requestId: request.id,
+          screen: 'AddPartner',
+        },
+      )
+      .catch(() => {});
 
     return {
       message: 'Couple request sent! Waiting for approval.',
@@ -150,6 +165,15 @@ export class CoupleService {
         },
       },
     });
+
+    this.notificationService
+      .sendPush(
+        request.senderId,
+        'Request Approved 💕',
+        `${request.receiver.firstName} accepted your couple request!`,
+        { type: 'couple_approved', screen: 'Dashboard' },
+      )
+      .catch(() => {});
 
     return {
       message: 'Couple request approved! You are now connected.',

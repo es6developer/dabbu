@@ -373,53 +373,65 @@ export function MainTabNavigator() {
   const { colors } = theme;
   const { user, accessToken, isPremium } = useAuth();
   const { getTabVisibility } = usePreferences();
+  const { showCoupleFeatures, isInCouple } = useCoupleMode();
   const [showActions, setShowActions] = useState(false);
   const navigation = useNavigation<any>();
 
   const qaVisible = getTabVisibility('QuickAction');
 
   const quickActions = [
+    ...(showCoupleFeatures
+      ? []
+      : [
+          {
+            label: 'Add Expense' as const,
+            icon: 'add-circle-outline' as const,
+            color: '#F97316',
+            onPress: () => navigation.navigate('Expense', { screen: 'CategorySelection' }),
+          },
+          {
+            label: 'Create Circle' as const,
+            icon: 'people-outline' as const,
+            color: '#F97316',
+            onPress: () => navigation.navigate('Circles', { screen: 'CreateCircle' }),
+          },
+          {
+            label: 'Split Payment' as const,
+            icon: 'swap-horizontal-outline' as const,
+            color: '#34C759',
+            onPress: () => navigation.navigate('Circles', { screen: 'SplitExpense' }),
+          },
+          {
+            label: 'Settle Up' as const,
+            icon: 'cash-outline' as const,
+            color: '#34C759',
+            onPress: () => navigation.navigate('Circles', { screen: 'Settlement' }),
+          },
+          {
+            label: 'Add Goal' as const,
+            icon: 'trophy-outline' as const,
+            color: '#F59E0B',
+            onPress: () => navigation.navigate('Dashboard', { screen: 'GoalsList' }),
+          },
+        ]),
+    ...(isInCouple
+      ? [
+          {
+            label: 'Couple Space' as const,
+            icon: 'heart-outline' as const,
+            color: '#FF6B9D',
+            onPress: () => navigation.navigate('Settings', { screen: 'CoupleSpace' }),
+          },
+        ]
+      : []),
     {
-      label: 'Add Expense',
-      icon: 'add-circle-outline' as const,
-      color: '#F97316',
-      onPress: () => navigation.navigate('Expense', { screen: 'CategorySelection' }),
-    },
-    {
-      label: 'Create Circle',
-      icon: 'people-outline' as const,
-      color: '#F97316',
-      onPress: () => navigation.navigate('Circles', { screen: 'CreateCircle' }),
-    },
-    {
-      label: 'Split Payment',
-      icon: 'swap-horizontal-outline' as const,
-      color: '#34C759',
-      onPress: () => navigation.navigate('Circles', { screen: 'SplitExpense' }),
-    },
-    {
-      label: 'Reports',
+      label: 'Reports' as const,
       icon: 'stats-chart-outline' as const,
       color: '#14B8A6',
-      onPress: () => navigation.navigate('Settings', { screen: 'Reports' }),
-    },
-    {
-      label: 'Couple Space',
-      icon: 'heart-outline' as const,
-      color: '#FF6B9D',
-      onPress: () => navigation.navigate('Settings', { screen: 'CoupleSpace' }),
-    },
-    {
-      label: 'Settle Up',
-      icon: 'cash-outline' as const,
-      color: '#34C759',
-      onPress: () => navigation.navigate('Circles', { screen: 'Settlement' }),
-    },
-    {
-      label: 'Add Goal',
-      icon: 'trophy-outline' as const,
-      color: '#F59E0B',
-      onPress: () => navigation.navigate('Dashboard', { screen: 'GoalsList' }),
+      onPress: () =>
+        showCoupleFeatures
+          ? navigation.navigate('Settings', { screen: 'CoupleSpace' })
+          : navigation.navigate('Settings', { screen: 'Reports' }),
     },
   ];
 
@@ -513,7 +525,7 @@ function GlossyTabBar({
   onCenterPress,
 }: any) {
   const { getTabVisibility } = usePreferences();
-  const { showCoupleFeatures } = useCoupleMode();
+  const { showCoupleFeatures, isInCouple, isCoupleModeActive } = useCoupleMode();
   const coupleHiddenTabs = new Set(showCoupleFeatures ? ['Expense', 'Spaces'] : []);
   const visibleRoutes = state.routes.filter(
     (r: any) => r.name !== 'Circles' && getTabVisibility(r.name) && !coupleHiddenTabs.has(r.name),

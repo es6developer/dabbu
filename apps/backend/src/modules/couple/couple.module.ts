@@ -12,6 +12,7 @@ import { GroupLifecycleService } from '../shared-finance/engines/group-lifecycle
 import { TripCostForecastEngine } from '../shared-finance/engines/trip-forecast.engine';
 import { DuplicateDetectionEngine } from '../shared-finance/engines/duplicate-detection.engine';
 import { NotificationModule } from '../notification/notification.module';
+import { NotificationService } from '../notification/notification.service';
 import { EmailModule } from '../email/email.module';
 
 @Module({
@@ -42,6 +43,7 @@ import { EmailModule } from '../email/email.module';
     GroupLifecycleService,
     TripCostForecastEngine,
     DuplicateDetectionEngine,
+    NotificationService,
   ],
   exports: [CoupleService],
 })

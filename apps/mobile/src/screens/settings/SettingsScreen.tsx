@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { useAuth } from '../../store/AuthContext';
@@ -109,7 +109,9 @@ export function SettingsScreen() {
   const [processingReqId, setProcessingReqId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user?.isCouple) {
+    if (user?.isCouple) {
+      setPendingRequests([]);
+    } else {
       fetchCoupleRequests()
         .then((res: any) => {
           const pending = (res?.received || []).filter((r: any) => r.status === 'pending');
@@ -118,6 +120,21 @@ export function SettingsScreen() {
         .catch(() => {});
     }
   }, [user?.isCouple, fetchCoupleRequests]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!user?.isCouple) {
+        fetchCoupleRequests()
+          .then((res: any) => {
+            const pending = (res?.received || []).filter((r: any) => r.status === 'pending');
+            setPendingRequests(pending);
+          })
+          .catch(() => {});
+      } else {
+        setPendingRequests([]);
+      }
+    }, [user?.isCouple, fetchCoupleRequests]),
+  );
 
   useEffect(() => {
     loadSubscription();
