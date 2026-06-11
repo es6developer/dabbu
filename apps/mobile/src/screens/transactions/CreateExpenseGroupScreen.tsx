@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState, useEffect, useMemo } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,6 @@ import {
   Platform,
   UIManager,
   ScrollView,
-  Switch,
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -54,10 +53,7 @@ export function CreateExpenseGroupScreen() {
   const [members, setMembers] = useState<string[]>(['']);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [pullRecurring, setPullRecurring] = useState(false);
-  const [recurringTx, setRecurringTx] = useState<any[]>([]);
-  const [selectedRecurring, setSelectedRecurring] = useState<Set<string>>(new Set());
-  const [loadingRecurring, setLoadingRecurring] = useState(false);
+
   const inputsRef = useRef<(TextInput | null)[]>([]);
   const searchTimeoutRef = useRef<{ [key: number]: ReturnType<typeof setTimeout> }>({});
   const [searchResults, setSearchResults] = useState<{ [key: number]: any[] }>({});
@@ -132,42 +128,6 @@ export function CreateExpenseGroupScreen() {
 
   const isValidPhone = (phone: string) => phone.length === 10;
 
-  useEffect(() => {
-    if (pullRecurring && recurringTx.length === 0 && !loadingRecurring) {
-      loadRecurringTransactions();
-    }
-  }, [pullRecurring]);
-
-  async function loadRecurringTransactions() {
-    setLoadingRecurring(true);
-    try {
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
-      const now = new Date();
-      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
-      const res = await api.get<any>(
-        `/transactions?startDate=${lastMonth.toISOString()}&endDate=${lastMonthEnd.toISOString()}&recurring=true`,
-      );
-      const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
-      setRecurringTx(list);
-      setSelectedRecurring(new Set(list.map((t: any) => t.id)));
-    } catch {
-      /* silent */
-    } finally {
-      setLoadingRecurring(false);
-    }
-  }
-
-  function toggleRecurring(id: string) {
-    setSelectedRecurring((prev) => {
-      const n = new Set(prev);
-      n.has(id) ? n.delete(id) : n.add(id);
-      return n;
-    });
-  }
-
   async function handleCreate() {
     if (!name.trim()) {
       setError('Group name is required');
@@ -191,9 +151,6 @@ export function CreateExpenseGroupScreen() {
       }
       if (validPhones.length > 0) {
         payload.memberPhones = validPhones.map((p) => `${COUNTRY_CODE}${p}`);
-      }
-      if (pullRecurring && selectedRecurring.size > 0) {
-        payload.importRecurringIds = Array.from(selectedRecurring);
       }
       await api.post('/expense-groups', payload);
       navigation.goBack();
@@ -411,81 +368,6 @@ export function CreateExpenseGroupScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Recurring Import */}
-        <View
-          style={[
-            s.recurringCard,
-            { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
-          ]}
-        >
-          <View style={s.recurringHeader}>
-            <View style={{ flex: 1 }}>
-              <Text style={[s.recurringTitle, { color: colors.text.primary }]}>
-                Pull recurring from last month?
-              </Text>
-              <Text style={[s.recurringSub, { color: colors.text.tertiary }]}>
-                Import last month's recurring expenses into this circle
-              </Text>
-            </View>
-            <Switch
-              value={pullRecurring}
-              onValueChange={setPullRecurring}
-              trackColor={{ false: colors.border.subtle, true: PURPLE }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
-          {pullRecurring && (
-            <View style={{ marginTop: 12, gap: 8 }}>
-              {loadingRecurring ? (
-                <Text
-                  style={{
-                    fontSize: 13,
-                    textAlign: 'center',
-                    paddingVertical: 12,
-                    color: colors.text.tertiary,
-                  }}
-                >
-                  Loading...
-                </Text>
-              ) : recurringTx.length === 0 ? (
-                <Text
-                  style={{
-                    fontSize: 13,
-                    textAlign: 'center',
-                    paddingVertical: 12,
-                    color: colors.text.tertiary,
-                  }}
-                >
-                  No recurring transactions found
-                </Text>
-              ) : (
-                recurringTx.map((tx) => (
-                  <TouchableOpacity
-                    key={tx.id}
-                    style={s.recurringItem}
-                    onPress={() => toggleRecurring(tx.id)}
-                  >
-                    <Ionicons
-                      name={selectedRecurring.has(tx.id) ? 'checkbox' : 'square-outline'}
-                      size={20}
-                      color={selectedRecurring.has(tx.id) ? PURPLE : colors.text.tertiary}
-                    />
-                    <View style={{ flex: 1, marginLeft: 8 }}>
-                      <Text style={[s.recurringItemText, { color: colors.text.primary }]}>
-                        {tx.description || 'Transaction'}
-                      </Text>
-                      <Text style={[s.recurringItemSub, { color: colors.text.tertiary }]}>
-                        ₹{Number(tx.amount).toLocaleString('en-IN')} ·{' '}
-                        {tx.category?.name || tx.category || 'Other'}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                ))
-              )}
-            </View>
-          )}
-        </View>
-
         {/* Plan Info */}
         <View
           style={[
@@ -630,19 +512,6 @@ const s = StyleSheet.create({
   },
   suggestionName: { fontSize: 14, fontWeight: '700' },
   suggestionDetail: { fontSize: 11, marginTop: 1, fontWeight: '500' },
-
-  recurringCard: { borderRadius: 18, borderWidth: 1, padding: 16, marginBottom: 16 },
-  recurringHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  recurringTitle: { fontSize: 14, fontWeight: '700' },
-  recurringSub: { fontSize: 11, marginTop: 2, fontWeight: '500' },
-  recurringItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-  },
-  recurringItemText: { fontSize: 14, fontWeight: '600' },
-  recurringItemSub: { fontSize: 12, marginTop: 1, fontWeight: '500' },
 
   planInfo: {
     flexDirection: 'row',
