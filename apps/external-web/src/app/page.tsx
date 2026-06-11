@@ -200,12 +200,16 @@ export default function LandingPage() {
                         onPress={() => router.push(`/groups/${g.id}`)}
                       >
                         <View style={s.groupIcon}>
-                          <Text style={s.groupIconText}>{g.name.charAt(0).toUpperCase()}</Text>
+                          <Text style={s.groupIconText}>
+                            {(g.name || 'G').charAt(0).toUpperCase()}
+                          </Text>
                         </View>
                         <View style={{ flex: 1 }}>
-                          <Text style={[s.groupName, { color: palette.text }]}>{g.name}</Text>
+                          <Text style={[s.groupName, { color: palette.text }]}>
+                            {g.name || 'Unnamed Group'}
+                          </Text>
                           <Text style={[s.groupMeta, { color: palette.textMuted }]}>
-                            {g.memberCount} member{g.memberCount !== 1 ? 's' : ''} ·{' '}
+                            {g.memberCount || 0} member{(g.memberCount || 0) !== 1 ? 's' : ''} ·{' '}
                             {g.role === 'admin' ? 'Owner' : 'Member'}
                           </Text>
                         </View>

@@ -11,7 +11,7 @@ function AuthPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuth();
-  const redirect = searchParams.get('redirect') || '/groups';
+  const redirect = searchParams.get('redirect') || '/';
 
   const onSuccess = useCallback(
     async (credentialResponse: CredentialResponse) => {
