@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = 'wss://dabbu-zmkh.onrender.com';
+const SOCKET_URL = 'wss://dabbu-1ff9.onrender.com';
 
 let socket: Socket | null = null;
 

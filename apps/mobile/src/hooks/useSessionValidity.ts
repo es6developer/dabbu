@@ -5,7 +5,7 @@ import { api } from '../services/api';
 import { refreshTempSession } from '../services/external-sharing';
 
 const SESSION_CHECK_INTERVAL = 5 * 60 * 1000;
-const SOCKET_URL = 'wss://dabbu-zmkh.onrender.com';
+const SOCKET_URL = 'wss://dabbu-1ff9.onrender.com';
 
 interface SessionValidityState {
   isValid: boolean;

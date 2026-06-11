@@ -13,7 +13,7 @@ import { useTheme } from '../../theme';
 import io from 'socket.io-client';
 import { useAuth } from '../../store/AuthContext';
 
-const SOCKET_URL = 'wss://dabbu-zmkh.onrender.com';
+const SOCKET_URL = 'wss://dabbu-1ff9.onrender.com';
 
 export function FamilyChatScreen() {
   const { colors } = useTheme();
