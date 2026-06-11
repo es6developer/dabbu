@@ -52,7 +52,6 @@ export default function LandingPage() {
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuth();
   const { mode, toggleTheme, palette } = useTheme();
-  const [inviteCode, setInviteCode] = useState('');
   const [myGroups, setMyGroups] = useState<Group[]>([]);
   const [loadingGroups, setLoadingGroups] = useState(false);
 
@@ -68,13 +67,6 @@ export default function LandingPage() {
         .catch(() => setLoadingGroups(false));
     }
   }, [isAuthenticated]);
-
-  const handleJoin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (inviteCode.trim()) {
-      router.push(`/invite/${inviteCode.trim()}`);
-    }
-  };
 
   const themeBtn = {
     width: 36,
@@ -218,35 +210,6 @@ export default function LandingPage() {
                     ))}
                   </View>
                 )}
-                <Spacer size="lg" />
-                <View
-                  style={[
-                    s.inviteSection,
-                    { backgroundColor: palette.surface, borderColor: palette.border },
-                  ]}
-                >
-                  <Text style={[s.inviteLabel, { color: palette.textSecondary }]}>
-                    Have an invite code?
-                  </Text>
-                  <form onSubmit={handleJoin} style={s.joinForm}>
-                    <View
-                      style={[
-                        s.inputWrapper,
-                        { backgroundColor: palette.surface2, borderColor: palette.border },
-                      ]}
-                    >
-                      <Text style={{ fontSize: 16 }}>🔑</Text>
-                      <input
-                        placeholder="Enter invite code"
-                        value={inviteCode}
-                        onChange={(e) => setInviteCode(e.target.value)}
-                        className="invite-input"
-                        style={{ color: palette.text }}
-                      />
-                    </View>
-                    <PrimaryButton style={s.joinBtn}>Join Group</PrimaryButton>
-                  </form>
-                </View>
               </View>
             ) : (
               <View style={s.heroContent}>
@@ -271,25 +234,6 @@ export default function LandingPage() {
                   Split expenses, manage group trips, and settle debts in real-time. Dabbu brings
                   everyone together whether you have an account or not.
                 </Text>
-                <Spacer size="xl" />
-                <form onSubmit={handleJoin} style={s.joinForm}>
-                  <View
-                    style={[
-                      s.inputWrapper,
-                      { backgroundColor: palette.surface2, borderColor: palette.border },
-                    ]}
-                  >
-                    <Text style={{ fontSize: 16 }}>🔑</Text>
-                    <input
-                      placeholder="Enter invite code"
-                      value={inviteCode}
-                      onChange={(e) => setInviteCode(e.target.value)}
-                      className="invite-input"
-                      style={{ color: palette.text }}
-                    />
-                  </View>
-                  <PrimaryButton style={s.joinBtn}>Join Group</PrimaryButton>
-                </form>
                 <Spacer size="lg" />
                 <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 16 }}>
                   <View style={{ flexDirection: 'row', marginRight: 8 }}>
@@ -461,18 +405,6 @@ const s = StyleSheet.create({
     lineHeight: 48,
   },
   heroSubtitle: { fontSize: 17, textAlign: 'center', maxWidth: 520, lineHeight: 26 },
-  joinForm: { flexDirection: 'row', gap: 12, maxWidth: 420, width: '100%' },
-  inputWrapper: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: radii.lg,
-    paddingHorizontal: spacing.md,
-    gap: 8,
-    borderWidth: 1,
-  },
-
-  joinBtn: { minWidth: 120 },
   miniAvatar: {
     width: 32,
     height: 32,
@@ -522,12 +454,4 @@ const s = StyleSheet.create({
   groupMeta: { fontSize: 12, marginTop: 2 },
   spinner: { width: 32, height: 32, borderRadius: 16, borderWidth: 3 },
   centerBox: { alignItems: 'center', paddingVertical: 32 },
-  inviteSection: {
-    width: '100%',
-    maxWidth: 420,
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    padding: spacing.lg,
-  },
-  inviteLabel: { fontSize: 13, fontWeight: '600', marginBottom: spacing.md },
 });

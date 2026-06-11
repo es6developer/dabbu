@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -468,27 +467,44 @@ export default function GroupDashboard() {
             </Card>
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="animate-fade-in">
-            <TabsList className="w-full">
-              <TabsTrigger value="overview" className="flex-1">
-                Overview
-              </TabsTrigger>
-              <TabsTrigger value="expenses" className="flex-1">
-                Expenses ({expenses.length})
-              </TabsTrigger>
-              <TabsTrigger value="members" className="flex-1">
-                Members ({group.members.length})
-              </TabsTrigger>
-              <TabsTrigger value="settlements" className="flex-1">
-                Settlements ({settlements.length})
-              </TabsTrigger>
-              <TabsTrigger value="chat" className="flex-1">
-                Chat ({chatMessages.length})
-              </TabsTrigger>
-            </TabsList>
+          {/* Tab Bar */}
+          <div className="overflow-x-auto no-scrollbar -mx-4 px-4 mb-4">
+            <div className="flex gap-1 rounded-xl bg-dabbu-surface p-1 min-w-max">
+              {[
+                { key: 'overview', label: 'Overview', count: null },
+                { key: 'expenses', label: 'Expenses', count: expenses.length },
+                { key: 'members', label: 'Members', count: group.members.length },
+                { key: 'settlements', label: 'Settlements', count: settlements.length },
+                { key: 'chat', label: 'Chat', count: chatMessages.length },
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={cn(
+                    'relative px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap',
+                    activeTab === tab.key
+                      ? 'bg-dabbu-accent text-white shadow-sm'
+                      : 'text-dabbu-text-muted hover:text-dabbu-text hover:bg-dabbu-surface2',
+                  )}
+                >
+                  {tab.label}
+                  {tab.count != null && (
+                    <span
+                      className={cn(
+                        'ml-1.5 text-xs',
+                        activeTab === tab.key ? 'text-white/70' : 'text-dabbu-text-muted',
+                      )}
+                    >
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
 
-            <TabsContent value="overview">
-              {(() => {
+          {/* Overview Tab */}
+          {activeTab === 'overview' && (() => {
                 const totalSpent = expenses.reduce((s, e) => s + e.amount, 0);
                 const memberCount = group.members.length;
                 const perPersonAvg = memberCount > 0 ? totalSpent / memberCount : 0;
@@ -688,9 +704,9 @@ export default function GroupDashboard() {
                   </div>
                 );
               })()}
-            </TabsContent>
 
-            <TabsContent value="expenses">
+          {activeTab === 'expenses' && (
+            <>
               {pendingExpenses.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-sm font-medium text-dabbu-text-secondary mb-3">
@@ -747,9 +763,10 @@ export default function GroupDashboard() {
                 </div>
               )}
               <PremiumBanner variant="inline" trigger="split-type" />
-            </TabsContent>
+            </>
+          )}
 
-            <TabsContent value="members">
+          {activeTab === 'members' && (
               <div className="space-y-1">
                 {(() => {
                   const totalExpenseAmount = expenses.reduce((s, e) => s + e.amount, 0);
@@ -830,9 +847,10 @@ export default function GroupDashboard() {
                   });
                 })()}
               </div>
-            </TabsContent>
+            )}
 
-            <TabsContent value="settlements">
+          {activeTab === 'settlements' && (
+            <>
               {/* Settlement plan / Suggested settlements */}
               {settlementPlan.length > 0 && (
                 <div className="mb-4 p-4 rounded-xl border border-dabbu-accent/20 bg-gradient-to-b from-dabbu-accent/5 to-transparent">
@@ -955,9 +973,10 @@ export default function GroupDashboard() {
                   <p className="text-sm text-dabbu-text-muted">No pending settlements</p>
                 </div>
               )}
-            </TabsContent>
+            </>
+          )}
 
-            <TabsContent value="chat">
+          {activeTab === 'chat' && (
               <div className="flex flex-col h-[500px]">
                 <div className="flex-1 overflow-y-auto space-y-1 px-1 no-scrollbar">
                   {chatMessages.map((msg, i) => {
@@ -1022,8 +1041,7 @@ export default function GroupDashboard() {
                   </Button>
                 </form>
               </div>
-            </TabsContent>
-          </Tabs>
+            )}
         </main>
 
         <div className="fixed bottom-0 left-0 right-0 z-30 p-4">
