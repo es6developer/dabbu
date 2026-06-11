@@ -4,7 +4,7 @@ import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class RazorpayService {
-  private readonly razorpay: Razorpay;
+  private readonly razorpay: Razorpay | null;
   private readonly webhookSecret: string;
   private readonly logger = new Logger(RazorpayService.name);
 
@@ -14,13 +14,11 @@ export class RazorpayService {
     this.webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || '';
 
     if (!keyId || !keySecret) {
-      this.logger.error('RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET is not set!');
+      this.logger.warn('RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET not set — Razorpay disabled');
+      this.razorpay = null;
+    } else {
+      this.razorpay = new Razorpay({ key_id: keyId, key_secret: keySecret });
     }
-
-    this.razorpay = new Razorpay({
-      key_id: keyId,
-      key_secret: keySecret,
-    });
   }
 
   async createPlan(params: {
@@ -30,6 +28,7 @@ export class RazorpayService {
     name: string;
     description?: string;
   }) {
+    if (!this.razorpay) throw new InternalServerErrorException('Razorpay not configured');
     try {
       const plan: any = await this.razorpay.plans.create({
         period: params.period as 'daily' | 'weekly' | 'monthly' | 'yearly',
@@ -58,6 +57,7 @@ export class RazorpayService {
     notes?: Record<string, string>;
     addonAmount?: number;
   }) {
+    if (!this.razorpay) throw new InternalServerErrorException('Razorpay not configured');
     try {
       const body: any = {
         plan_id: params.planId,
@@ -90,6 +90,7 @@ export class RazorpayService {
   }
 
   async fetchSubscription(subscriptionId: string) {
+    if (!this.razorpay) return null;
     try {
       const subscription: any = await this.razorpay.subscriptions.fetch(subscriptionId);
       return subscription as any;
