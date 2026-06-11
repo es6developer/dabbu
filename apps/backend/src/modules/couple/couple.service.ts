@@ -134,13 +134,13 @@ export class CoupleService {
           partnerLinkedAt: now,
         },
       });
+    });
 
-      const groupName = `${request.sender.firstName} & ${request.receiver.firstName}'s Space`;
-      await this.sharedFinanceService.createGroup(request.senderId, {
-        name: groupName,
-        type: 'couple',
-        currency: 'INR',
-      });
+    const groupName = `${request.sender.firstName} & ${request.receiver.firstName}'s Space`;
+    await this.sharedFinanceService.createGroup(request.senderId, {
+      name: groupName,
+      type: 'couple',
+      currency: 'INR',
     });
 
     const updatedUser = await this.prisma.user.findUnique({
