@@ -7,12 +7,13 @@ import {
   TouchableOpacity,
   RefreshControl,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { api } from '../../services/api';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { useAuth } from '../../store/AuthContext';
-import { api } from '../../services/api';
 import { Avatar } from '../ui/Avatar';
 import { COUPLE_COLORS } from '../../hooks/useCoupleMode';
 
@@ -35,28 +36,34 @@ export function CoupleDashboard() {
     ? `${partner.firstName || ''} ${partner.lastName || ''}`.trim() || partner.email
     : 'Partner';
 
-  const loadData = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
-    try {
-      await fetchCoupleStatus();
-      const groups: any[] = await api.get('/shared-finance/groups');
-      const coupleGroup = Array.isArray(groups)
-        ? groups.find((g: any) => g.type === 'couple' && g.status === 'ACTIVE')
-        : null;
-      if (coupleGroup) {
-        const dashboard = await api.get<any>(
-          `/shared-finance/groups/${coupleGroup.id}/couple/dashboard`,
-        );
-        setData({ ...(dashboard || {}), group: coupleGroup });
+  const loadData = useCallback(
+    async (isRefresh = false) => {
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
       }
-    } catch {
-      // ignore
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [fetchCoupleStatus]);
+      try {
+        await fetchCoupleStatus();
+        const groups: any[] = await api.get('/shared-finance/groups');
+        const coupleGroup = Array.isArray(groups)
+          ? groups.find((g: any) => g.type === 'couple' && g.status === 'ACTIVE')
+          : null;
+        if (coupleGroup) {
+          const dashboard = await api.get<any>(
+            `/shared-finance/groups/${coupleGroup.id}/couple/dashboard`,
+          );
+          setData({ ...(dashboard || {}), group: coupleGroup });
+        }
+      } catch {
+        // ignore
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [fetchCoupleStatus],
+  );
 
   useEffect(() => {
     loadData();
@@ -91,11 +98,7 @@ export function CoupleDashboard() {
         <Text style={styles.welcomeTitle}>
           {myName} & {partnerName}
         </Text>
-        {daysTogether > 0 && (
-          <Text style={styles.welcomeSub}>
-            {daysTogether} days together
-          </Text>
-        )}
+        {daysTogether > 0 && <Text style={styles.welcomeSub}>{daysTogether} days together</Text>}
       </View>
 
       {/* Quick Actions */}
@@ -164,6 +167,44 @@ export function CoupleDashboard() {
         </View>
       </View>
 
+      {/* Partner Recent Activity */}
+      <View style={[styles.activityCard, { backgroundColor: COUPLE_COLORS.card }]}>
+        <View style={styles.activityHeader}>
+          <Ionicons name="pulse-outline" size={18} color={COUPLE_COLORS.primary} />
+          <Text style={[styles.activityTitle, { color: COUPLE_COLORS.text }]}>
+            {partnerName}'s Recent Activity
+          </Text>
+        </View>
+        {loading ? (
+          <ActivityIndicator
+            size="small"
+            color={COUPLE_COLORS.primary}
+            style={{ marginVertical: 16 }}
+          />
+        ) : data?.partnerRecent ? (
+          <View style={{ gap: 8 }}>
+            {data.partnerRecent.slice(0, 3).map((item: any, i: number) => (
+              <View key={i} style={styles.activityRow}>
+                <View style={[styles.activityDot, { backgroundColor: COUPLE_COLORS.primary }]} />
+                <Text
+                  style={[styles.activityText, { color: COUPLE_COLORS.text }]}
+                  numberOfLines={1}
+                >
+                  {item.description || item.title || 'Activity'}
+                </Text>
+                <Text style={[styles.activityAmount, { color: COUPLE_COLORS.textSecondary }]}>
+                  {item.amount ? fmt(item.amount) : ''}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ) : (
+          <Text style={[styles.activityEmpty, { color: COUPLE_COLORS.textTertiary }]}>
+            No recent activity
+          </Text>
+        )}
+      </View>
+
       {/* Couple Navigation Grid */}
       <View style={styles.grid}>
         {[
@@ -171,7 +212,12 @@ export function CoupleDashboard() {
           { label: 'Savings', icon: 'save', color: '#8B5CF6', screen: 'CoupleSavings' },
           { label: 'Bills', icon: 'calendar', color: '#FF9F43', screen: 'CoupleBills' },
           { label: 'Reports', icon: 'stats-chart', color: '#3B82F6', screen: 'CoupleReports' },
-          { label: 'Settle Up', icon: 'swap-horizontal', color: '#FF6B81', screen: 'CoupleSettlements' },
+          {
+            label: 'Settle Up',
+            icon: 'swap-horizontal',
+            color: '#FF6B81',
+            screen: 'CoupleSettlements',
+          },
           { label: 'Settings', icon: 'settings', color: '#64748B', screen: 'CoupleSettings' },
         ].map((item) => (
           <TouchableOpacity
@@ -314,5 +360,46 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     color: COUPLE_COLORS.text,
+  },
+  activityCard: {
+    marginHorizontal: 16,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+  },
+  activityHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  activityTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  activityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  activityDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  activityText: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  activityAmount: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  activityEmpty: {
+    fontSize: 13,
+    fontWeight: '500',
+    textAlign: 'center',
+    paddingVertical: 8,
   },
 });

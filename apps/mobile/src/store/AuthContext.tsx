@@ -649,12 +649,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const toggleCoupleMode = useCallback(async (isCoupleMode: boolean) => {
-    await api.post('/couple/toggle-mode', { isCoupleMode });
-    await AsyncStorage.setItem('@dabbu_couple_mode', String(isCoupleMode));
+    const prevUser = stateRef.current.user;
     setState((prev) => ({
       ...prev,
       user: prev.user ? { ...prev.user, isCoupleMode } : null,
     }));
+    await AsyncStorage.setItem('@dabbu_couple_mode', String(isCoupleMode));
+    try {
+      await api.post('/couple/toggle-mode', { isCoupleMode });
+    } catch {
+      setState((prev) => ({
+        ...prev,
+        user: prevUser || prev.user,
+      }));
+      await AsyncStorage.setItem('@dabbu_couple_mode', String(!isCoupleMode));
+    }
   }, []);
 
   const removePartner = useCallback(async () => {
@@ -663,7 +672,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({
       ...prev,
       user: prev.user
-        ? { ...prev.user, isCouple: false, isCoupleMode: false, partner: null, partnerLinkedAt: null }
+        ? {
+            ...prev.user,
+            isCouple: false,
+            isCoupleMode: false,
+            partner: null,
+            partnerLinkedAt: null,
+          }
         : null,
     }));
   }, []);
@@ -703,7 +718,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       removePartner,
       fetchCoupleStatus,
     }),
-    [state, refreshToken, completeAuth, updateAvatarUrl, refreshPremiumStatus, addPartner, toggleCoupleMode, removePartner, fetchCoupleStatus],
+    [
+      state,
+      refreshToken,
+      completeAuth,
+      updateAvatarUrl,
+      refreshPremiumStatus,
+      addPartner,
+      toggleCoupleMode,
+      removePartner,
+      fetchCoupleStatus,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

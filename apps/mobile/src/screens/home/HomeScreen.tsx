@@ -155,7 +155,7 @@ export function HomeScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
-  const { user, accessToken } = useAuth();
+  const { user, accessToken, toggleCoupleMode } = useAuth();
   const { isOnline, pendingCount } = useOffline();
   const couple = useCoupleMode();
 
@@ -485,6 +485,22 @@ export function HomeScreen() {
   if (couple.showCoupleFeatures) {
     return (
       <View style={[page.screen, { backgroundColor: COUPLE_COLORS.bg }]}>
+        <View style={page.heartOverlay} pointerEvents="none">
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <Ionicons
+              key={i}
+              name="heart"
+              size={24 + i * 8}
+              color={`${COUPLE_COLORS.heart}08`}
+              style={{
+                position: 'absolute',
+                top: 60 + (i % 3) * 120,
+                left: 20 + (i % 2) * (i * 30 + 40),
+                transform: [{ rotate: `${i * 15}deg` }],
+              }}
+            />
+          ))}
+        </View>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: 100 }}
@@ -513,6 +529,42 @@ export function HomeScreen() {
         }
       >
         <CoupleModeToggle />
+
+        {couple.isInCouple && !couple.isCoupleModeActive && (
+          <TouchableOpacity
+            style={[
+              page.coupleBanner,
+              {
+                backgroundColor: `${COUPLE_COLORS.primary}10`,
+                borderColor: `${COUPLE_COLORS.primary}30`,
+              },
+            ]}
+            activeOpacity={0.7}
+            onPress={() => toggleCoupleMode(true)}
+          >
+            <View
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                backgroundColor: COUPLE_COLORS.primary,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Ionicons name="heart" size={20} color="#FFF" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 15, fontWeight: '700', color: COUPLE_COLORS.primary }}>
+                Couple Mode
+              </Text>
+              <Text style={{ fontSize: 12, fontWeight: '500', color: COUPLE_COLORS.textSecondary }}>
+                Enable pink theme and couple features
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={COUPLE_COLORS.primary} />
+          </TouchableOpacity>
+        )}
 
         {/* ─── SECTION 1: HERO FINANCIAL SUMMARY ─── */}
         <View style={{ paddingHorizontal: 20, paddingTop: 0 }}>
@@ -1379,5 +1431,19 @@ const page = StyleSheet.create({
     paddingTop: 12,
     marginTop: 4,
     borderTopWidth: 1,
+  },
+  heartOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 0,
+  },
+  coupleBanner: {
+    marginHorizontal: 16,
+    marginBottom: 12,
+    borderRadius: 16,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 1,
   },
 });

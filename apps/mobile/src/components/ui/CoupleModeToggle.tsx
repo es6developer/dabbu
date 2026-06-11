@@ -1,13 +1,7 @@
 import React, { useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Switch,
-  Animated,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, StyleSheet, Switch, Animated, TouchableOpacity, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '../../theme';
 import { useAuth } from '../../store/AuthContext';
 import { COUPLE_COLORS } from '../../hooks/useCoupleMode';
@@ -33,6 +27,9 @@ export function CoupleModeToggle({ onToggle }: Props) {
       Animated.timing(pulseAnim, { toValue: 0.92, duration: 100, useNativeDriver: true }),
       Animated.timing(pulseAnim, { toValue: 1, duration: 100, useNativeDriver: true }),
     ]).start();
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    }
     toggleCoupleMode(value);
     onToggle?.(value);
   }
@@ -56,7 +53,9 @@ export function CoupleModeToggle({ onToggle }: Props) {
         <View
           style={[
             styles.iconWrap,
-            { backgroundColor: isCoupleMode ? COUPLE_COLORS.primary : `${colors.accent.primary}12` },
+            {
+              backgroundColor: isCoupleMode ? COUPLE_COLORS.primary : `${colors.accent.primary}12`,
+            },
           ]}
         >
           <Ionicons

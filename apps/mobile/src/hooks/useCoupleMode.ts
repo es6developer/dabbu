@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useAuth } from '../store/AuthContext';
 
 export const COUPLE_COLORS = {

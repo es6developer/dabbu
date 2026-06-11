@@ -43,7 +43,7 @@ export function AddPartnerScreen() {
   async function handleAddPartner() {
     const trimmed = email.trim();
     if (!trimmed) {
-      Alert.alert('Error', 'Please enter your partner\'s email');
+      Alert.alert('Error', "Please enter your partner's email");
       return;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -54,7 +54,7 @@ export function AddPartnerScreen() {
     setAdding(true);
     try {
       await addPartner(trimmed);
-      Alert.alert('Connected!', 'You are now in a couple. Couple Mode is active.', [
+      Alert.alert('Connected!', "You're in a couple! Couple Mode is active.", [
         { text: 'Go to Home', onPress: () => navigation.navigate('Dashboard') },
       ]);
     } catch (e: any) {
@@ -121,7 +121,7 @@ export function AddPartnerScreen() {
               <Avatar name={partnerName} size={56} />
             </View>
             <Text style={[styles.partnerNames, { color: COUPLE_COLORS.text }]}>
-              {(user.firstName || 'You')} & {partnerName}
+              {user.firstName || 'You'} & {partnerName}
             </Text>
             <View style={[styles.infoRow, { borderTopColor: `${COUPLE_COLORS.border}80` }]}>
               <Ionicons name="mail-outline" size={16} color={COUPLE_COLORS.textSecondary} />
@@ -142,9 +142,7 @@ export function AddPartnerScreen() {
           <View style={[styles.statusCard, { backgroundColor: COUPLE_COLORS.card }]}>
             <View style={[styles.statusDot, { backgroundColor: '#10B981' }]} />
             <View style={{ flex: 1 }}>
-              <Text style={[styles.statusLabel, { color: COUPLE_COLORS.text }]}>
-                Couple Mode
-              </Text>
+              <Text style={[styles.statusLabel, { color: COUPLE_COLORS.text }]}>Couple Mode</Text>
               <Text style={[styles.statusSub, { color: COUPLE_COLORS.textSecondary }]}>
                 Active — Pink theme enabled on Home
               </Text>
@@ -197,9 +195,7 @@ export function AddPartnerScreen() {
 
       <View style={styles.body}>
         <View style={[styles.emailCard, { backgroundColor: colors.bg.card }]}>
-          <Text style={[styles.emailLabel, { color: colors.text.primary }]}>
-            Partner's Email
-          </Text>
+          <Text style={[styles.emailLabel, { color: colors.text.primary }]}>Partner's Email</Text>
           <TextInput
             style={[
               styles.emailInput,
@@ -280,7 +276,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   heroTitle: { fontSize: 26, fontWeight: '800', textAlign: 'center' },
-  heroSub: { fontSize: 14, fontWeight: '500', textAlign: 'center', marginTop: 8, lineHeight: 20, maxWidth: 260 },
+  heroSub: {
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 20,
+    maxWidth: 260,
+  },
 
   body: { flex: 1, paddingHorizontal: 24, paddingTop: 24, gap: 20 },
 
