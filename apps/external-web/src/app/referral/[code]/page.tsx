@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dabbu-zmkh.onrender.com/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dabbu-1ff9.onrender.com/api/v1';
 const APP_STORE_URL = 'https://apps.apple.com/app/dabbu';
 const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.dabbu.app';
 

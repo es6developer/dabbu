@@ -53,7 +53,7 @@
       "expo-contacts"
     ],
     "extra": {
-      "apiUrl": "https://dabbu-zmkh.onrender.com/api/v1",
+      "apiUrl": "https://dabbu-1ff9.onrender.com/api/v1",
       "inviteUrl": "https://external-web.vercel.app/i",
       "environment": "development",
       "googleClientId": "407187036002-5hh2u40fa00m72oumrfrnnj8genlft9s.apps.googleusercontent.com",

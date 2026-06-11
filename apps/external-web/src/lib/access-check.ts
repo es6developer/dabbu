@@ -1,6 +1,6 @@
 'use client';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dabbu-zmkh.onrender.com/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dabbu-1ff9.onrender.com/api/v1';
 
 export type AccessStatus = 'valid' | 'expired' | 'completed' | 'archived' | 'removed' | 'closed';
 
