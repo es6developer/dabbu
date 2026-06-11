@@ -3,6 +3,7 @@ import { Toaster } from 'sonner';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from '@/lib/auth-context';
 import { LoadingProvider } from '@/components/loaders';
+import { View, palette } from '@/rn';
 import './globals.css';
 
 const GOOGLE_CLIENT_ID =
@@ -69,8 +70,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 function ThemeProvider({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative min-h-screen">
-      <div className="fixed inset-0 bg-gradient-radial from-dabbu-accent/3 via-transparent to-transparent pointer-events-none" />
+    <div style={{ minHeight: '100vh', position: 'relative' }}>
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundImage: 'radial-gradient(circle, rgba(139,92,246,0.03) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }}
+      />
       {children}
     </div>
   );
