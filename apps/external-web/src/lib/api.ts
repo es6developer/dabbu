@@ -272,6 +272,40 @@ export const api = {
   },
 
   groups: {
+    listMyGroups: async () => {
+      const res = await get<any[]>(`/shared-finance/groups`);
+      if (res.error) {
+        return res as ApiResponse<Group[]>;
+      }
+      const raw = Array.isArray(res.data) ? res.data : Array.isArray(res) ? res : [];
+      return {
+        data: raw.map((g: any) => ({
+          id: g.id,
+          name: g.name,
+          description: g.description,
+          type: g.type || 'shared',
+          memberCount: g._count?.members || g.members?.length || 0,
+          totalBalance: Number(g.totalBalance || 0),
+          members: (g.members || []).map((m: any) => ({
+            id: m.id,
+            name: m.user ? [m.user.firstName, m.user.lastName].filter(Boolean).join(' ') : m.name,
+            avatar: m.user?.avatarUrl,
+            balance: Number(m.balance || 0),
+            isOnline: false,
+            role: m.role || 'member',
+          })),
+          createdAt: g.createdAt || '',
+          currency: g.currency || 'INR',
+          role: g.role,
+          nickname: g.nickname,
+          totalSpent: g.totalSpent,
+          monthlyBudget: g.monthlyBudget,
+          status: g.status,
+        })),
+        status: res.status,
+      };
+    },
+
     get: async (groupId: string) => {
       const res = await get<any>(`/shared-finance/groups/${groupId}`);
       if (res.error) {
@@ -464,6 +498,11 @@ export interface Group {
   createdAt: string;
   currency: string;
   _count?: { members: number };
+  role?: string;
+  nickname?: string;
+  totalSpent?: number;
+  monthlyBudget?: number;
+  status?: string;
 }
 
 export interface Member {

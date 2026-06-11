@@ -11,7 +11,7 @@ function AuthPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuth();
-  const redirect = searchParams.get('redirect') || '/';
+  const redirect = searchParams.get('redirect') || '/groups';
 
   const onSuccess = useCallback(
     async (credentialResponse: CredentialResponse) => {
@@ -20,7 +20,7 @@ function AuthPage() {
         return;
       }
       let groupId: string | undefined;
-      const inviteMatch = redirect.match(/\/invite\/([a-f0-9]+)/);
+      const inviteMatch = redirect.match(/\/(?:i|invite)\/([a-f0-9]+)/);
       if (inviteMatch) {
         const inviteRes = await api.groups.getInvite(inviteMatch[1]);
         if (inviteRes.data?.group?.id) {
