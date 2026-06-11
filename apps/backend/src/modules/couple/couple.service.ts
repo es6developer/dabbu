@@ -4,6 +4,7 @@ import {
   NotFoundException,
   ConflictException,
   Logger,
+  Optional,
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { SharedFinanceService } from '../shared-finance/shared-finance.service';
@@ -16,7 +17,7 @@ export class CoupleService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly sharedFinanceService: SharedFinanceService,
-    private readonly notificationService: NotificationService,
+    @Optional() private readonly notificationService?: NotificationService,
   ) {}
 
   async sendRequest(userId: string, phone: string) {
@@ -62,7 +63,7 @@ export class CoupleService {
     });
 
     this.notificationService
-      .sendPush(
+      ?.sendPush(
         receiver.id,
         'Couple Request 💕',
         `${user.firstName} wants to connect with you on Dabbu!`,
@@ -167,7 +168,7 @@ export class CoupleService {
     });
 
     this.notificationService
-      .sendPush(
+      ?.sendPush(
         request.senderId,
         'Request Approved 💕',
         `${request.receiver.firstName} accepted your couple request!`,

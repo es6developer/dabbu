@@ -11,13 +11,11 @@ import { AccessRevocationEngine } from '../shared-finance/engines/access-revocat
 import { GroupLifecycleService } from '../shared-finance/engines/group-lifecycle.service';
 import { TripCostForecastEngine } from '../shared-finance/engines/trip-forecast.engine';
 import { DuplicateDetectionEngine } from '../shared-finance/engines/duplicate-detection.engine';
-import { NotificationModule } from '../notification/notification.module';
 import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [
     PrismaModule,
-    NotificationModule,
     EmailModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
