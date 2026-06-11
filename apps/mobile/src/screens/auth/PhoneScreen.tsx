@@ -50,7 +50,9 @@ export function PhoneScreen() {
         'phone already in use': 'This phone number is already linked to another account',
         'phone is required': 'Phone number is required',
       };
-      const matched = Object.keys(knownErrors).find((k) => msg.toLowerCase().includes(k.toLowerCase()));
+      const matched = Object.keys(knownErrors).find((k) =>
+        msg.toLowerCase().includes(k.toLowerCase()),
+      );
       setError(matched ? knownErrors[matched] : msg || 'Failed to save phone number');
     } finally {
       setSaving(false);
@@ -71,7 +73,7 @@ export function PhoneScreen() {
               resizeMode="contain"
             />
             <Text style={[styles.title, { color: colors.text.primary }]}>
-              Verify your phone number
+              Add your phone number
             </Text>
             <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>
               Your friends will use this to find you on Dabbu
@@ -104,7 +106,7 @@ export function PhoneScreen() {
                   borderColor: fieldError ? colors.status.error : colors.border.subtle,
                 },
               ]}
-              placeholder="+1 (555) 123-4567"
+              placeholder="+91 9876543210"
               placeholderTextColor={colors.text.tertiary}
               value={phone}
               onChangeText={(t) => {
@@ -116,7 +118,14 @@ export function PhoneScreen() {
               autoFocus
             />
             {fieldError ? (
-              <Text style={{ fontSize: 12, color: colors.status.error, marginTop: -12, marginBottom: 12 }}>
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: colors.status.error,
+                  marginTop: -12,
+                  marginBottom: 12,
+                }}
+              >
                 {fieldError}
               </Text>
             ) : null}

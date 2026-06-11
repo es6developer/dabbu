@@ -19,7 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { api, setAccessToken } from '../../services/api';
+import { api, setAccessToken, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { Avatar } from '../../components/ui/Avatar';
@@ -502,9 +502,11 @@ export function SharedScreen() {
       if (accessToken) {
         setAccessToken(accessToken);
       }
+      warmupBackend().catch(() => {});
       if (!isRefresh) {
         setLoading(true);
       }
+      const settleTimer = setTimeout(() => setLoading(false), 3000);
       try {
         const sharedRes = await api.get<any>('/shared-finance/groups');
         const groupList = listFromResponse(sharedRes);
@@ -549,6 +551,7 @@ export function SharedScreen() {
       } catch {
         /* ignore */
       } finally {
+        clearTimeout(settleTimer);
         setLoading(false);
         setRefreshing(false);
       }

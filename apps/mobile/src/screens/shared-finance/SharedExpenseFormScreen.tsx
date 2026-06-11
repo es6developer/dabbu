@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   View,
   Text,
   TextInput,
   StyleSheet,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   ActivityIndicator,
   ScrollView,
   Keyboard,
   Alert,
+  Dimensions,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -19,112 +20,35 @@ import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 import { EXPENSE_CATEGORIES } from '../../config/categoryIcons';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const { width: SCREEN_W } = Dimensions.get('window');
+const PURPLE = '#8B5CF6';
+const PURPLE_DARK = '#6D28D9';
+const PURPLE_LIGHT = '#A78BFA';
+const GREEN = '#10B981';
 
 const SPLIT_TYPES = [
-  { key: 'equal', label: 'Equal', icon: 'arrow-redo' },
-  { key: 'percentage', label: 'Percentage', icon: 'percent' },
-  { key: 'exact', label: 'Exact', icon: 'cash' },
-  { key: 'shares', label: 'Shares', icon: 'layers' },
+  { key: 'equal', label: 'Equal', icon: 'arrow-redo', desc: 'Everyone pays the same' },
+  { key: 'percentage', label: 'Percentage', icon: 'percent', desc: 'Custom percentages' },
+  { key: 'exact', label: 'Exact', icon: 'cash', desc: 'Custom amounts' },
+  { key: 'shares', label: 'Shares', icon: 'layers', desc: 'Split by shares' },
 ] as const;
 
-const STEPS = [
-  { key: 'amount', label: 'Amount' },
-  { key: 'details', label: 'Details' },
-  { key: 'split', label: 'Split' },
-  { key: 'review', label: 'Review' },
-] as const;
+const MM_COLORS = [
+  '#8B5CF6',
+  '#F97316',
+  '#10B981',
+  '#3B82F6',
+  '#EF4444',
+  '#EC4899',
+  '#14B8A6',
+  '#F59E0B',
+];
 
-function StepIndicator({ current, colors }: { current: number; colors: any }) {
-  return (
-    <View style={stepStyles.row}>
-      {STEPS.map((s, i) => {
-        const isActive = i === current;
-        const isPast = i < current;
-        return (
-          <View key={s.key} style={stepStyles.stepWrap}>
-            <View
-              style={[
-                stepStyles.circle,
-                {
-                  backgroundColor: isPast
-                    ? '#10B981'
-                    : isActive
-                      ? '#8B5CF6'
-                      : 'rgba(255,255,255,0.12)',
-                  borderColor: isActive ? '#A78BFA' : 'transparent',
-                },
-              ]}
-            >
-              {isPast ? (
-                <Ionicons name="checkmark" size={12} color="#FFFFFF" />
-              ) : (
-                <Text
-                  style={[
-                    stepStyles.circleText,
-                    { color: isActive ? '#FFFFFF' : 'rgba(255,255,255,0.5)' },
-                  ]}
-                >
-                  {i + 1}
-                </Text>
-              )}
-            </View>
-            <Text
-              style={[stepStyles.label, { color: isActive ? '#FFFFFF' : 'rgba(255,255,255,0.5)' }]}
-            >
-              {s.label}
-            </Text>
-            {i < STEPS.length - 1 && (
-              <View
-                style={[
-                  stepStyles.connector,
-                  { backgroundColor: isPast ? '#10B981' : 'rgba(255,255,255,0.12)' },
-                ]}
-              />
-            )}
-          </View>
-        );
-      })}
-    </View>
-  );
+function getMemberColor(idx: number) {
+  return MM_COLORS[idx % MM_COLORS.length];
 }
-
-const stepStyles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 16,
-    paddingHorizontal: 4,
-  },
-  stepWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  circle: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-  },
-  circleText: {
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  label: {
-    fontSize: 10,
-    fontWeight: '600',
-    marginLeft: 4,
-  },
-  connector: {
-    flex: 1,
-    height: 2,
-    marginHorizontal: 4,
-    borderRadius: 1,
-  },
-});
 
 export function SharedExpenseFormScreen() {
   const navigation = useNavigation<any>();
@@ -135,15 +59,16 @@ export function SharedExpenseFormScreen() {
   const { groupId, expenseId, edit } = route.params || {};
   const inputRef = useRef<TextInput>(null);
 
-  const [currentStep, setCurrentStep] = useState(0);
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [paidBy, setPaidBy] = useState<string | null>(null);
   const [category, setCategory] = useState('Food');
   const [splitType, setSplitType] = useState('equal');
   const [notes, setNotes] = useState('');
+  const [showNotes, setShowNotes] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [members, setMembers] = useState<any[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(true);
   const [splitValues, setSplitValues] = useState<Record<string, string>>({});
@@ -177,8 +102,7 @@ export function SharedExpenseFormScreen() {
 
   async function loadExpense() {
     try {
-      const res = await api.get<any>(`/shared-expenses/${expenseId}`);
-      const e = res;
+      const e = await api.get<any>(`/shared-expenses/${expenseId}`);
       if (e) {
         setDescription(e.description || '');
         setAmount(String(e.amount || ''));
@@ -209,7 +133,7 @@ export function SharedExpenseFormScreen() {
     }
   }
 
-  const splitPreview = React.useMemo(() => {
+  const splitPreview = useMemo(() => {
     const amt = Number(amount) || 0;
     if (members.length === 0) {
       return [];
@@ -259,20 +183,30 @@ export function SharedExpenseFormScreen() {
     return [];
   }, [amount, splitType, members, splitValues, sharesCount]);
 
-  async function handleSave() {
+  const totalSplit = splitPreview.reduce((s, i) => s + i.value, 0);
+  const diff = (Number(amount) || 0) - totalSplit;
+  const maxPreviewValue = Math.max(...splitPreview.map((i) => i.value), 0);
+
+  function validate(): boolean {
+    const errs: Record<string, string> = {};
     if (!description.trim()) {
-      setError('Description is required');
-      return;
+      errs.description = 'Add a short description';
     }
     if (!amount || Number(amount) <= 0) {
-      setError('Valid amount is required');
-      return;
+      errs.amount = 'Enter a valid amount';
     }
     if (!paidBy) {
-      setError('Select who paid');
+      errs.paidBy = 'Select who paid';
+    }
+    setFieldErrors(errs);
+    setError(Object.values(errs).join('\n'));
+    return Object.keys(errs).length === 0;
+  }
+
+  async function handleSave() {
+    if (!validate()) {
       return;
     }
-    setError('');
     setSaving(true);
     try {
       if (accessToken) {
@@ -317,10 +251,10 @@ export function SharedExpenseFormScreen() {
     }
   }
 
-  const maxPreviewValue = Math.max(...splitPreview.map((i) => i.value), 0);
+  const isMe = (userId: string) => userId === currentUser?.id;
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
+    <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
       <KeyboardAvoidingContainer>
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -328,160 +262,168 @@ export function SharedExpenseFormScreen() {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
         >
-          <View
-            style={{
-              paddingTop: insets.top + 12,
-              paddingBottom: 24,
-              paddingHorizontal: 20,
-              backgroundColor: '#14B8A6',
-            }}
+          {/* ── Header ── */}
+          <LinearGradient
+            colors={[PURPLE, PURPLE_DARK]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
           >
-            <View style={styles.headerRow}>
-              <TouchableOpacity
-                onPress={() => {
-                  Keyboard.dismiss();
-                  navigation.goBack();
-                }}
-                style={styles.backBtn}
-              >
-                <Ionicons name="close" size={22} color="#FFF" />
-              </TouchableOpacity>
-              <Text style={styles.headerTitle}>{edit ? 'Edit Expense' : 'Add Expense'}</Text>
-              <View style={{ width: 32 }} />
+            <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
+              <View style={s.headerRow}>
+                <TouchableOpacity
+                  onPress={() => {
+                    Keyboard.dismiss();
+                    navigation.goBack();
+                  }}
+                  style={s.backBtn}
+                >
+                  <Ionicons name="close" size={22} color="#FFF" />
+                </TouchableOpacity>
+                <Text style={s.headerTitle}>{edit ? 'Edit Expense' : 'New Expense'}</Text>
+                <View style={{ width: 34 }} />
+              </View>
+              <View style={s.headerMeta}>
+                <Ionicons name="people" size={14} color="rgba(255,255,255,0.65)" />
+                <Text style={s.headerSub}>
+                  Split with {members.length} member{members.length !== 1 ? 's' : ''}
+                </Text>
+              </View>
             </View>
-            <View style={styles.headerBadge}>
-              <Ionicons name="people" size={14} color="rgba(255,255,255,0.7)" />
-              <Text style={styles.headerSub}>
-                Split with {members.length} member{members.length !== 1 ? 's' : ''}
-              </Text>
-            </View>
-            <StepIndicator current={currentStep} colors={colors} />
-          </View>
+          </LinearGradient>
 
-          <View style={{ padding: 20, gap: 20 }}>
+          <View style={{ paddingHorizontal: 20, paddingTop: 20, gap: 20 }}>
+            {/* ── Error ── */}
             {error ? (
-              <View style={[styles.errorBox, { backgroundColor: `${colors.status.error}15` }]}>
-                <Ionicons name="alert-circle" size={16} color={colors.status.error} />
-                <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text>
+              <View style={[s.errorBox, { backgroundColor: `${colors.status.error}12` }]}>
+                <Ionicons name="alert-circle" size={18} color={colors.status.error} />
+                <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
               </View>
             ) : null}
 
-            {/* Amount Card */}
+            {/* ── Amount + Description ── */}
             <View
               style={[
-                styles.glassCard,
+                s.heroCard,
                 { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
               ]}
             >
-              <TouchableWithoutFeedback onPress={() => inputRef.current?.focus()}>
-                <View style={styles.amountSection}>
-                  <View style={styles.amountRow}>
-                    <Text style={[styles.amountCurrency, { color: colors.text.primary }]}>₹</Text>
-                    <TextInput
-                      ref={inputRef}
-                      style={[styles.amountInput, { color: colors.text.primary }]}
-                      value={amount}
-                      onChangeText={(text) => {
-                        const cleaned = text.replace(/[^0-9.]/g, '');
-                        const dotCount = cleaned.split('.').length - 1;
-                        if (dotCount > 1) {
-                          return;
-                        }
-                        setAmount(cleaned);
-                        setError('');
-                      }}
-                      keyboardType="decimal-pad"
-                      placeholder="0"
-                      placeholderTextColor={colors.text.tertiary}
-                      returnKeyType="done"
-                      onSubmitEditing={() => Keyboard.dismiss()}
-                    />
-                  </View>
-                  <View style={[styles.amountUnderline, { backgroundColor: colors.border.subtle }]}>
-                    <View
-                      style={[
-                        styles.amountUnderlineActive,
-                        {
-                          width: amount ? `${Math.min((Number(amount) / 100) * 100, 100)}%` : '0%',
-                          backgroundColor: colors.accent.primary,
-                        },
-                      ]}
-                    />
-                  </View>
-                </View>
-              </TouchableWithoutFeedback>
+              <View style={s.heroAmountRow}>
+                <Text style={[s.heroCurrency, { color: colors.text.primary }]}>₹</Text>
+                <TextInput
+                  ref={inputRef}
+                  style={[s.heroAmount, { color: colors.text.primary }]}
+                  value={amount}
+                  onChangeText={(text) => {
+                    const cleaned = text.replace(/[^0-9.]/g, '');
+                    const dotCount = cleaned.split('.').length - 1;
+                    if (dotCount > 1) {
+                      return;
+                    }
+                    setAmount(cleaned);
+                    setError('');
+                    setFieldErrors((p) => ({ ...p, amount: '' }));
+                  }}
+                  keyboardType="decimal-pad"
+                  placeholder="0"
+                  placeholderTextColor={colors.text.tertiary}
+                  returnKeyType="done"
+                  onSubmitEditing={() => Keyboard.dismiss()}
+                />
+              </View>
+              {fieldErrors.amount ? (
+                <Text style={[s.fieldError, { color: colors.status.error }]}>
+                  {fieldErrors.amount}
+                </Text>
+              ) : null}
+              <View style={[s.heroUnderline, { backgroundColor: colors.border.subtle }]}>
+                <View
+                  style={[
+                    s.heroUnderlineFill,
+                    {
+                      width: amount ? `${Math.min((Number(amount) / 10000) * 100, 100)}%` : '0%',
+                      backgroundColor: Number(amount) > 0 ? PURPLE : 'transparent',
+                    },
+                  ]}
+                />
+              </View>
+
+              <View style={[s.divider, { backgroundColor: colors.border.subtle }]} />
+
+              <View style={s.descRow}>
+                <Ionicons name="create-outline" size={18} color={colors.text.tertiary} />
+                <TextInput
+                  style={[s.descInput, { color: colors.text.primary }]}
+                  value={description}
+                  onChangeText={(v) => {
+                    setDescription(v);
+                    setFieldErrors((p) => ({ ...p, description: '' }));
+                  }}
+                  placeholder="What was this for?"
+                  placeholderTextColor={colors.text.tertiary}
+                />
+              </View>
+              {fieldErrors.description ? (
+                <Text style={[s.fieldError, { color: colors.status.error }]}>
+                  {fieldErrors.description}
+                </Text>
+              ) : null}
             </View>
 
-            {/* Description Card */}
-            <View
-              style={[
-                styles.glassCard,
-                { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
-              ]}
-            >
-              <Text style={[styles.cardLabel, { color: colors.text.tertiary }]}>Description</Text>
-              <TextInput
-                style={[styles.input, { color: colors.text.primary }]}
-                value={description}
-                onChangeText={setDescription}
-                placeholder="What was this for?"
-                placeholderTextColor={colors.text.tertiary}
-              />
-            </View>
-
-            {/* Paid By Card */}
-            <View
-              style={[
-                styles.glassCard,
-                { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
-              ]}
-            >
-              <Text style={[styles.cardLabel, { color: colors.text.tertiary }]}>Paid By</Text>
+            {/* ── Paid By ── */}
+            <View>
+              <Text style={[s.sectionLabel, { color: colors.text.primary }]}>Paid by</Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.chipRow}
+                contentContainerStyle={s.payerRow}
               >
-                {members.map((m: any) => {
+                {members.map((m: any, idx: number) => {
                   const selected = paidBy === m.userId;
-                  const initial = (m.user?.firstName?.[0] || '?').toUpperCase();
                   const name = m.user?.firstName || m.user?.email || 'Member';
+                  const initial = (name[0] || '?').toUpperCase();
+                  const color = getMemberColor(idx);
                   return (
                     <TouchableOpacity
                       key={m.userId}
+                      onPress={() => {
+                        setPaidBy(m.userId);
+                        setFieldErrors((p) => ({ ...p, paidBy: '' }));
+                      }}
+                      activeOpacity={0.7}
                       style={[
-                        styles.payerChip,
-                        {
-                          borderColor: selected ? colors.accent.primary : colors.border.subtle,
-                          backgroundColor: selected ? `${colors.accent.primary}15` : colors.bg.card,
-                        },
+                        s.payerCard,
+                        selected && { borderColor: color, backgroundColor: `${color}12` },
                       ]}
-                      onPress={() => setPaidBy(m.userId)}
                     >
-                      <View style={styles.payerDot}>
-                        <Text style={styles.payerInit}>{initial}</Text>
+                      <View style={[s.payerAvatar, { backgroundColor: color }]}>
+                        <Text style={s.payerInitial}>{initial}</Text>
                       </View>
                       <Text
-                        style={[
-                          styles.payerName,
-                          { color: selected ? colors.accent.primary : colors.text.secondary },
-                        ]}
+                        style={[s.payerName, { color: selected ? color : colors.text.secondary }]}
+                        numberOfLines={1}
                       >
-                        {name}
+                        {isMe(m.userId) ? 'You' : name}
                       </Text>
                       {selected && (
-                        <Ionicons name="checkmark-circle" size={14} color={colors.accent.primary} />
+                        <View style={[s.payerCheck, { backgroundColor: color }]}>
+                          <Ionicons name="checkmark" size={10} color="#FFF" />
+                        </View>
                       )}
                     </TouchableOpacity>
                   );
                 })}
               </ScrollView>
+              {fieldErrors.paidBy ? (
+                <Text style={[s.fieldError, { color: colors.status.error }]}>
+                  {fieldErrors.paidBy}
+                </Text>
+              ) : null}
             </View>
 
-            {/* Category Grid */}
+            {/* ── Category ── */}
             <View>
-              <Text style={[styles.sectionLabel, { color: colors.text.primary }]}>Category</Text>
-              <View style={styles.categoryGrid}>
+              <Text style={[s.sectionLabel, { color: colors.text.primary }]}>Category</Text>
+              <View style={s.catGrid}>
                 {EXPENSE_CATEGORIES.map((cat, i) => {
                   const selected = category === cat.name;
                   return (
@@ -489,7 +431,7 @@ export function SharedExpenseFormScreen() {
                       key={i}
                       activeOpacity={0.7}
                       style={[
-                        styles.categoryCard,
+                        s.catCard,
                         {
                           backgroundColor: selected ? `${cat.color}15` : colors.bg.card,
                           borderColor: selected ? cat.color : colors.border.subtle,
@@ -499,8 +441,8 @@ export function SharedExpenseFormScreen() {
                     >
                       <View
                         style={[
-                          styles.catIcon,
-                          { backgroundColor: selected ? cat.color : `${cat.color}12` },
+                          s.catIcon,
+                          { backgroundColor: selected ? cat.color : `${cat.color}10` },
                         ]}
                       >
                         <Ionicons
@@ -511,7 +453,7 @@ export function SharedExpenseFormScreen() {
                       </View>
                       <Text
                         style={[
-                          styles.catName,
+                          s.catName,
                           { color: selected ? colors.text.primary : colors.text.secondary },
                         ]}
                         numberOfLines={1}
@@ -524,80 +466,92 @@ export function SharedExpenseFormScreen() {
               </View>
             </View>
 
-            {/* Split Method */}
+            {/* ── Split Method ── */}
             <View>
-              <Text style={[styles.sectionLabel, { color: colors.text.primary }]}>
-                Split Method
-              </Text>
-              <View style={styles.splitTypeRow}>
+              <Text style={[s.sectionLabel, { color: colors.text.primary }]}>Split method</Text>
+              <View style={s.splitGrid}>
                 {SPLIT_TYPES.map((st) => {
                   const active = splitType === st.key;
                   return (
                     <TouchableOpacity
                       key={st.key}
                       style={[
-                        styles.splitTypeCard,
+                        s.splitCard,
                         {
-                          borderColor: active ? colors.accent.primary : colors.border.subtle,
-                          backgroundColor: active ? `${colors.accent.primary}15` : colors.bg.card,
+                          borderColor: active ? PURPLE : colors.border.subtle,
+                          backgroundColor: active ? `${PURPLE}10` : colors.bg.card,
                         },
                       ]}
                       onPress={() => setSplitType(st.key)}
+                      activeOpacity={0.7}
                     >
-                      <Ionicons
-                        name={st.icon as any}
-                        size={18}
-                        color={active ? colors.accent.primary : colors.text.tertiary}
-                      />
-                      <Text
+                      <View
                         style={[
-                          styles.splitTypeText,
-                          { color: active ? colors.accent.primary : colors.text.secondary },
+                          s.splitIcon,
+                          { backgroundColor: active ? PURPLE : colors.bg.tertiary },
                         ]}
                       >
-                        {st.label}
-                      </Text>
+                        <Ionicons
+                          name={st.icon as any}
+                          size={18}
+                          color={active ? '#FFF' : colors.text.tertiary}
+                        />
+                      </View>
+                      <View style={s.splitInfo}>
+                        <Text
+                          style={[s.splitLabel, { color: active ? PURPLE : colors.text.primary }]}
+                        >
+                          {st.label}
+                        </Text>
+                        <Text style={[s.splitDesc, { color: colors.text.tertiary }]}>
+                          {st.desc}
+                        </Text>
+                      </View>
+                      {active && <Ionicons name="checkmark-circle" size={18} color={PURPLE} />}
                     </TouchableOpacity>
                   );
                 })}
               </View>
             </View>
 
-            {/* Member Split Inputs */}
+            {/* ── Member Split Inputs ── */}
             {(splitType === 'percentage' || splitType === 'exact' || splitType === 'shares') && (
               <View
                 style={[
-                  styles.glassCard,
+                  s.splitInputsCard,
                   { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
                 ]}
               >
-                <Text style={[styles.cardLabel, { color: colors.text.tertiary }]}>
+                <Text style={[s.splitInputsTitle, { color: colors.text.primary }]}>
                   {splitType === 'percentage'
-                    ? 'Percentages'
+                    ? 'Enter percentages'
                     : splitType === 'exact'
-                      ? 'Exact Amounts'
-                      : 'Shares'}
+                      ? 'Enter amounts'
+                      : 'Enter shares'}
                 </Text>
-                {members.map((m: any) => {
+                {members.map((m: any, idx: number) => {
                   const mName = m.user?.firstName || m.user?.email || 'Member';
                   const val =
                     splitType === 'shares' ? sharesCount[m.id] || '' : splitValues[m.id] || '';
+                  const color = getMemberColor(idx);
                   return (
                     <View
                       key={m.id}
-                      style={[styles.splitMemberRow, { borderBottomColor: colors.border.subtle }]}
+                      style={[s.splitMemberRow, { borderBottomColor: colors.border.subtle }]}
                     >
-                      <View style={styles.splitMemberDot}>
-                        <Text style={styles.splitMemberInit}>
+                      <View style={[s.smAvatar, { backgroundColor: `${color}18` }]}>
+                        <Text style={[s.smInitial, { color }]}>
                           {(mName[0] || '?').toUpperCase()}
                         </Text>
                       </View>
-                      <Text style={[styles.splitMemberName, { color: colors.text.secondary }]}>
-                        {mName}
-                      </Text>
+                      <View style={s.smInfo}>
+                        <Text style={[s.smName, { color: colors.text.primary }]}>
+                          {isMe(m.userId) ? 'You' : mName}
+                        </Text>
+                      </View>
                       <View
                         style={[
-                          styles.splitInputWrap,
+                          s.smInputWrap,
                           {
                             backgroundColor: colors.bg.tertiary,
                             borderColor: colors.border.subtle,
@@ -605,12 +559,10 @@ export function SharedExpenseFormScreen() {
                         ]}
                       >
                         {splitType === 'exact' && (
-                          <Text style={[styles.splitPrefix, { color: colors.text.tertiary }]}>
-                            ₹
-                          </Text>
+                          <Text style={[s.smPrefix, { color: colors.text.tertiary }]}>₹</Text>
                         )}
                         <TextInput
-                          style={[styles.splitInput, { color: colors.text.primary }]}
+                          style={[s.smInput, { color: colors.text.primary }]}
                           value={val}
                           onChangeText={(v) => {
                             splitType === 'shares'
@@ -628,85 +580,147 @@ export function SharedExpenseFormScreen() {
               </View>
             )}
 
-            {/* Split Preview */}
+            {/* ── Split Preview ── */}
             <View
               style={[
-                styles.glassCard,
+                s.previewCard,
                 { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
               ]}
             >
-              <Text style={[styles.cardLabel, { color: colors.text.tertiary }]}>Split Preview</Text>
+              <View style={s.previewHeader}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Ionicons name="calculator-outline" size={16} color={PURPLE} />
+                  <Text style={[s.previewTitle, { color: colors.text.primary }]}>
+                    Split Preview
+                  </Text>
+                </View>
+                {splitPreview.length > 0 && Number(amount) > 0 && (
+                  <View
+                    style={[
+                      s.previewTotal,
+                      {
+                        backgroundColor:
+                          Math.abs(diff) < 0.01 ? `${GREEN}15` : `${colors.status.error}15`,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        s.previewTotalText,
+                        { color: Math.abs(diff) < 0.01 ? GREEN : colors.status.error },
+                      ]}
+                    >
+                      {Math.abs(diff) < 0.01 ? 'Balanced' : `₹${Math.round(diff)}`}
+                    </Text>
+                  </View>
+                )}
+              </View>
               {splitPreview.length > 0 && maxPreviewValue > 0 ? (
                 splitPreview.map((item, i) => {
-                  const barWidth = (item.value / maxPreviewValue) * 100;
+                  const barWidth = maxPreviewValue > 0 ? (item.value / maxPreviewValue) * 100 : 0;
                   return (
-                    <View key={i} style={styles.previewItem}>
-                      <View style={styles.previewInfo}>
-                        <Text style={[styles.previewName, { color: colors.text.primary }]}>
+                    <View key={i} style={s.previewRow}>
+                      <View style={s.previewBarRow}>
+                        <View style={[s.previewBarBg, { backgroundColor: colors.bg.tertiary }]}>
+                          <View
+                            style={[
+                              s.previewBarFill,
+                              {
+                                width: `${Math.max(barWidth, 2)}%`,
+                                backgroundColor: getMemberColor(i),
+                              },
+                            ]}
+                          />
+                        </View>
+                      </View>
+                      <View style={s.previewLabelRow}>
+                        <Text
+                          style={[s.previewName, { color: colors.text.secondary }]}
+                          numberOfLines={1}
+                        >
                           {item.name}
                         </Text>
-                        <Text style={[styles.previewAmount, { color: colors.text.primary }]}>
+                        <Text style={[s.previewValue, { color: colors.text.primary }]}>
                           {'detail' in item && item.detail
-                            ? `${item.detail} · ₹${Math.round(item.value)}`
+                            ? `${item.detail}`
                             : `₹${Math.round(item.value)}`}
                         </Text>
-                      </View>
-                      <View style={[styles.previewBarBg, { backgroundColor: colors.bg.tertiary }]}>
-                        <View style={[styles.previewBarFill, { width: `${barWidth}%` }]} />
                       </View>
                     </View>
                   );
                 })
               ) : (
-                <View style={styles.previewEmptyWrap}>
-                  <Ionicons name="calculator-outline" size={24} color={colors.text.tertiary} />
-                  <Text style={[styles.previewEmpty, { color: colors.text.tertiary }]}>
+                <View style={s.previewEmpty}>
+                  <Ionicons name="calculator-outline" size={28} color={colors.text.tertiary} />
+                  <Text style={[s.previewEmptyText, { color: colors.text.tertiary }]}>
                     Enter amount to see split preview
                   </Text>
                 </View>
               )}
             </View>
 
-            {/* Notes */}
-            <View
+            {/* ── Notes (collapsible) ── */}
+            <TouchableOpacity
               style={[
-                styles.glassCard,
+                s.notesToggle,
                 { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
               ]}
+              onPress={() => setShowNotes(!showNotes)}
+              activeOpacity={0.7}
             >
-              <Text style={[styles.cardLabel, { color: colors.text.tertiary }]}>
-                Notes (optional)
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Ionicons name="document-text-outline" size={18} color={colors.text.tertiary} />
+                <Text style={[s.notesToggleText, { color: colors.text.secondary }]}>
+                  {showNotes ? 'Hide notes' : notes ? `Notes (${notes.length})` : 'Add notes'}
+                </Text>
+              </View>
+              <Ionicons
+                name={showNotes ? 'chevron-up' : 'chevron-down'}
+                size={16}
+                color={colors.text.tertiary}
+              />
+            </TouchableOpacity>
+            {showNotes && (
               <TextInput
-                style={[styles.notesInput, { color: colors.text.primary }]}
+                style={[
+                  s.notesInput,
+                  {
+                    backgroundColor: colors.bg.card,
+                    borderColor: colors.border.subtle,
+                    color: colors.text.primary,
+                  },
+                ]}
                 value={notes}
                 onChangeText={setNotes}
                 placeholder="Any additional notes..."
                 placeholderTextColor={colors.text.tertiary}
                 multiline
               />
-            </View>
+            )}
 
-            {/* Save Button */}
-            <View style={[styles.saveBtn, saving && { opacity: 0.6 }]}>
-              <TouchableOpacity
-                onPress={handleSave}
-                disabled={saving}
-                activeOpacity={0.85}
-                style={[styles.saveBtnInner, { backgroundColor: colors.accent.primary }]}
+            {/* ── Save ── */}
+            <TouchableOpacity
+              onPress={handleSave}
+              disabled={saving}
+              activeOpacity={0.85}
+              style={[s.saveBtn, saving && { opacity: 0.6 }]}
+            >
+              <LinearGradient
+                colors={[PURPLE, PURPLE_DARK]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={s.saveGrad}
               >
                 {saving ? (
                   <ActivityIndicator color="#FFF" />
                 ) : (
                   <>
-                    <Ionicons name="checkmark-circle" size={18} color="#FFF" />
-                    <Text style={styles.saveBtnText}>
-                      {edit ? 'Update Expense' : 'Save Expense'}
-                    </Text>
+                    <Ionicons name="checkmark-circle" size={20} color="#FFF" />
+                    <Text style={s.saveText}>{edit ? 'Update Expense' : 'Save Expense'}</Text>
                   </>
                 )}
-              </TouchableOpacity>
-            </View>
+              </LinearGradient>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingContainer>
@@ -714,158 +728,221 @@ export function SharedExpenseFormScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   root: { flex: 1 },
+
+  /* ── Header ── */
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   backBtn: {
     width: 34,
     height: 34,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerTitle: { color: '#FFF', fontSize: 18, fontWeight: '700' },
-  headerBadge: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  headerMeta: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
   headerSub: { color: 'rgba(255,255,255,0.6)', fontSize: 13 },
-  errorBox: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 14, gap: 8 },
-  errorText: { fontSize: 13, flex: 1 },
 
-  glassCard: { borderRadius: 16, padding: 16, borderWidth: 1, marginBottom: 0 },
+  /* ── Error ── */
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: 14,
+    borderRadius: 14,
+    gap: 10,
+  },
+  errorText: { fontSize: 13, flex: 1, lineHeight: 18 },
 
-  amountSection: { alignItems: 'center', paddingVertical: 8, gap: 4 },
-  amountRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
-  amountCurrency: { fontSize: 36, fontWeight: '800' },
-  amountInput: {
-    fontSize: 40,
+  /* ── Hero Card (Amount + Description) ── */
+  heroCard: { borderRadius: 20, padding: 20, borderWidth: 1, gap: 0 },
+  heroAmountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingVertical: 4,
+  },
+  heroCurrency: { fontSize: 32, fontWeight: '700' },
+  heroAmount: {
+    fontSize: 44,
     fontWeight: '800',
-    letterSpacing: -1,
+    letterSpacing: -1.5,
     textAlign: 'center',
-    minWidth: 120,
+    minWidth: 140,
     paddingVertical: 0,
   },
-  amountUnderline: { height: 3, borderRadius: 2, width: '60%', marginTop: 4 },
-  amountUnderlineActive: { height: 3, borderRadius: 2 },
+  heroUnderline: { height: 3, borderRadius: 2, width: '50%', alignSelf: 'center', marginTop: 8 },
+  heroUnderlineFill: { height: 3, borderRadius: 2 },
+  divider: { height: 1, marginVertical: 16 },
+  descRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  descInput: { flex: 1, fontSize: 16, paddingVertical: 2, paddingHorizontal: 0 },
+  fieldError: { fontSize: 12, fontWeight: '500', marginTop: 4, marginLeft: 2 },
 
-  cardLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginBottom: 10,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  input: { fontSize: 16, paddingVertical: 4, paddingHorizontal: 0 },
+  /* ── Section Label ── */
+  sectionLabel: { fontSize: 14, fontWeight: '700', marginBottom: 12, letterSpacing: -0.2 },
 
-  sectionLabel: { fontSize: 15, fontWeight: '700', marginBottom: 12 },
-  categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  categoryCard: {
-    width: '23%',
+  /* ── Paid By ── */
+  payerRow: { gap: 10, paddingBottom: 4 },
+  payerCard: {
     alignItems: 'center',
     gap: 6,
-    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+    minWidth: 72,
+  },
+  payerAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  payerInitial: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+  payerName: { fontSize: 12, fontWeight: '600', maxWidth: 64 },
+  payerCheck: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#FFF',
+  },
+
+  /* ── Category Grid ── */
+  catGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  catCard: {
+    width: (SCREEN_W - 56) / 4,
+    alignItems: 'center',
+    gap: 6,
+    borderRadius: 18,
     borderWidth: 1,
     paddingVertical: 14,
-    paddingHorizontal: 4,
   },
   catIcon: {
-    width: 44,
-    height: 44,
+    width: 42,
+    height: 42,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
   catName: { fontSize: 10, fontWeight: '600', textAlign: 'center' },
 
-  chipRow: { gap: 8, paddingBottom: 4 },
-  payerChip: {
+  /* ── Split Method ── */
+  splitGrid: { gap: 8 },
+  splitCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
+    gap: 12,
+    padding: 14,
+    borderRadius: 16,
     borderWidth: 1,
-    marginRight: 8,
   },
-  payerDot: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  payerInit: { color: '#FFF', fontSize: 11, fontWeight: '700' },
-  payerName: { fontSize: 13, fontWeight: '600' },
-
-  splitTypeRow: { flexDirection: 'row', gap: 8 },
-  splitTypeCard: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 12,
+  splitIcon: {
+    width: 40,
+    height: 40,
     borderRadius: 14,
-    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  splitTypeText: { fontSize: 12, fontWeight: '600' },
+  splitInfo: { flex: 1 },
+  splitLabel: { fontSize: 14, fontWeight: '700' },
+  splitDesc: { fontSize: 11, marginTop: 1 },
 
+  /* ── Split Inputs ── */
+  splitInputsCard: { borderRadius: 20, padding: 16, borderWidth: 1, gap: 0 },
+  splitInputsTitle: { fontSize: 13, fontWeight: '700', marginBottom: 8 },
   splitMemberRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    paddingVertical: 12,
+    paddingVertical: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  splitMemberDot: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+  smAvatar: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  splitMemberInit: { color: '#FFF', fontSize: 11, fontWeight: '700' },
-  splitMemberName: { fontSize: 14, fontWeight: '500', flex: 1 },
-  splitInputWrap: {
+  smInitial: { fontSize: 12, fontWeight: '700' },
+  smInfo: { flex: 1 },
+  smName: { fontSize: 14, fontWeight: '600' },
+  smInputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 12,
     borderWidth: 1,
     paddingHorizontal: 12,
-    width: 100,
+    width: 96,
   },
-  splitPrefix: { fontSize: 13, fontWeight: '600', marginRight: 2 },
-  splitInput: { flex: 1, fontSize: 13, paddingVertical: 8, textAlign: 'right' },
+  smPrefix: { fontSize: 13, fontWeight: '600', marginRight: 2 },
+  smInput: { flex: 1, fontSize: 13, paddingVertical: 6, textAlign: 'right' },
 
-  previewItem: { marginBottom: 12 },
-  previewInfo: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
-  previewName: { fontSize: 14, fontWeight: '500' },
-  previewAmount: { fontSize: 14, fontWeight: '700' },
-  previewBarBg: { height: 6, borderRadius: 3, overflow: 'hidden' },
-  previewBarFill: { height: 6, borderRadius: 3, backgroundColor: '#F97316' },
-  previewEmptyWrap: { alignItems: 'center', gap: 8, paddingVertical: 12 },
-  previewEmpty: { fontSize: 13, textAlign: 'center' },
+  /* ── Split Preview ── */
+  previewCard: { borderRadius: 20, padding: 18, borderWidth: 1, gap: 12 },
+  previewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  previewTitle: { fontSize: 14, fontWeight: '700' },
+  previewTotal: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
+  previewTotalText: { fontSize: 11, fontWeight: '700' },
+  previewRow: { gap: 4 },
+  previewBarRow: { marginBottom: 2 },
+  previewBarBg: { height: 8, borderRadius: 4, overflow: 'hidden' },
+  previewBarFill: { height: 8, borderRadius: 4 },
+  previewLabelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  previewName: { fontSize: 12, fontWeight: '500', flex: 1 },
+  previewValue: { fontSize: 13, fontWeight: '700' },
+  previewEmpty: { alignItems: 'center', gap: 8, paddingVertical: 16 },
+  previewEmptyText: { fontSize: 13 },
 
+  /* ── Notes ── */
+  notesToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  notesToggleText: { fontSize: 14, fontWeight: '500' },
   notesInput: {
     fontSize: 15,
-    paddingVertical: 4,
-    paddingHorizontal: 0,
-    minHeight: 60,
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    minHeight: 80,
     textAlignVertical: 'top',
+    marginTop: -12,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
   },
 
-  saveBtn: { borderRadius: 16, overflow: 'hidden', marginTop: 4 },
-  saveBtnInner: {
+  /* ── Save ── */
+  saveBtn: { borderRadius: 18, overflow: 'hidden', marginTop: 4, marginBottom: 8 },
+  saveGrad: {
     flexDirection: 'row',
-    paddingVertical: 16,
+    paddingVertical: 18,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
   },
-  saveBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  saveText: { color: '#FFF', fontSize: 17, fontWeight: '700' },
 });

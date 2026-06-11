@@ -583,7 +583,7 @@ export async function generateFeedFromRealData(
   const TIMEOUT = 5000;
   const [txRes, bdRes, glRes, sbRes, acRes, grRes] = await Promise.allSettled([
     api.get<any>('/transactions?days=30&limit=100', undefined, TIMEOUT),
-    api.get<any>('/accounts/budgets', undefined, TIMEOUT),
+    api.get<any>('/budgets', undefined, TIMEOUT),
     api.get<any>('/goals', undefined, TIMEOUT),
     api.get<any>('/accounts/subscriptions', undefined, TIMEOUT),
     api.get<any>('/accounts/stats', undefined, TIMEOUT),

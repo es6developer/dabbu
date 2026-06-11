@@ -11,10 +11,9 @@ import {
   Alert,
   Animated,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { api, setAccessToken } from '../../services/api';
+import { api, setAccessToken, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,30 +23,17 @@ import { Avatar } from '../../components/ui/Avatar';
 const H_PADDING = 20;
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const CIRCLE_GRADIENTS: Record<string, [string, string]> = {
-  friends: ['#6366F1', '#8B5CF6'],
-  trip: ['#0EA5E9', '#06B6D4'],
-  family: ['#F59E0B', '#F97316'],
-  couple: ['#EC4899', '#F43F5E'],
-  roommates: ['#14B8A6', '#10B981'],
-  office: ['#3B82F6', '#2563EB'],
-  event: ['#8B5CF6', '#A855F7'],
-  apartment: ['#10B981', '#059669'],
-  sports: ['#EF4444', '#DC2626'],
-  default: ['#6366F1', '#8B5CF6'],
-};
-
-const CIRCLE_ICONS: Record<string, string> = {
-  friends: 'people',
-  trip: 'airplane',
-  family: 'home',
-  couple: 'heart',
-  roommates: 'business',
-  office: 'briefcase',
-  event: 'calendar',
-  apartment: 'building',
-  sports: 'football',
-  default: 'people',
+const CIRCLE_ACCENTS: Record<string, string> = {
+  friends: '#6366F1',
+  trip: '#0EA5E9',
+  family: '#F59E0B',
+  couple: '#EC4899',
+  roommates: '#14B8A6',
+  office: '#3B82F6',
+  event: '#8B5CF6',
+  apartment: '#10B981',
+  sports: '#EF4444',
+  default: '#6366F1',
 };
 
 function fmt(v: number) {
@@ -146,8 +132,7 @@ function CircleCard({
     }).start();
   }, []);
 
-  const cfg = CIRCLE_GRADIENTS[item.type] || CIRCLE_GRADIENTS.default;
-  const icon = CIRCLE_ICONS[item.type] || CIRCLE_ICONS.default;
+  const accentColor = CIRCLE_ACCENTS[item.type] || CIRCLE_ACCENTS.default;
   const ed = groupExpenses[item.id] || { total: 0, count: 0, latest: null };
   const balance = ed.total;
   const isPositive = balance >= 0;
@@ -161,121 +146,141 @@ function CircleCard({
       style={{
         opacity: fadeAnim,
         transform: [
-          { translateY: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) },
+          { translateY: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
         ],
       }}
     >
       <TouchableOpacity
-        activeOpacity={0.95}
+        activeOpacity={0.92}
         onPress={() =>
           navigation.navigate('GroupExpenses', { groupId: item.id, groupName: item.name })
         }
         onPressIn={() =>
-          Animated.spring(scaleAnim, { toValue: 0.97, useNativeDriver: true }).start()
+          Animated.spring(scaleAnim, { toValue: 0.985, useNativeDriver: true }).start()
         }
         onPressOut={() => Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }).start()}
       >
-        <Animated.View style={[card.outer, { transform: [{ scale: scaleAnim }] }]}>
-          <View style={card.inner}>
-            <LinearGradient
-              colors={cfg}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={card.cover}
-            >
-              <View style={card.coverOverlay}>
-                <View style={card.coverTop}>
-                  <View style={card.typePill}>
-                    <Ionicons name={icon as any} size={13} color="#FFF" />
-                    <Text style={card.typeText}>{item.type || 'circle'}</Text>
-                  </View>
-                  {item.updatedAt && <Text style={card.timeText}>{timeAgo(item.updatedAt)}</Text>}
-                </View>
-                <Text style={card.coverName} numberOfLines={1}>
-                  {item.name}
+        <Animated.View
+          style={[
+            card.outer,
+            {
+              transform: [{ scale: scaleAnim }],
+              backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
+              shadowColor: isDark ? '#000' : '#000',
+              shadowOpacity: isDark ? 0.3 : 0.06,
+            },
+          ]}
+        >
+          {/* Accent edge */}
+          <View style={[card.accentEdge, { backgroundColor: accentColor }]} />
+
+          <View style={{ flex: 1, padding: 18 }}>
+            {/* Top row: icon + type badge + time */}
+            <View style={card.topRow}>
+              <View style={card.typePill}>
+                <View style={[card.typeDot, { backgroundColor: accentColor }]} />
+                <Text style={[card.typeText, { color: colors.text.secondary }]}>
+                  {item.type || 'circle'}
                 </Text>
-                <View style={card.coverBottom}>
-                  <View style={card.avatarCluster}>
-                    {memberList.slice(0, displayAvatars).map((m: any, i: number) => {
-                      const u = m.user || m;
-                      return (
-                        <View
-                          key={u?.id || i}
-                          style={[
-                            card.avatarItem,
-                            { marginLeft: i > 0 ? -10 : 0, zIndex: displayAvatars - i },
-                          ]}
-                        >
-                          <Avatar
-                            uri={u.avatarUrl}
-                            name={`${u.firstName || ''} ${u.lastName || ''}`.trim()}
-                            size={24}
-                          />
-                        </View>
-                      );
-                    })}
-                    {overflow > 0 && (
-                      <View style={[card.overflowBadge, { marginLeft: -10 }]}>
-                        <Text style={card.overflowText}>+{overflow}</Text>
-                      </View>
-                    )}
+              </View>
+              {item.updatedAt && (
+                <Text style={[card.timeText, { color: colors.text.tertiary }]}>
+                  {timeAgo(item.updatedAt)}
+                </Text>
+              )}
+            </View>
+
+            {/* Circle name */}
+            <Text style={[card.name, { color: colors.text.primary }]} numberOfLines={1}>
+              {item.name}
+            </Text>
+
+            {/* Members row */}
+            <View style={card.memberRow}>
+              <View style={card.avatarCluster}>
+                {memberList.slice(0, displayAvatars).map((m: any, i: number) => {
+                  const u = m.user || m;
+                  return (
+                    <View
+                      key={u?.id || i}
+                      style={[
+                        card.avatarItem,
+                        { marginLeft: i > 0 ? -8 : 0, zIndex: displayAvatars - i },
+                      ]}
+                    >
+                      <Avatar
+                        uri={u.avatarUrl}
+                        name={`${u.firstName || ''} ${u.lastName || ''}`.trim()}
+                        size={22}
+                      />
+                    </View>
+                  );
+                })}
+                {overflow > 0 && (
+                  <View style={[card.overflowBadge, { marginLeft: -8 }]}>
+                    <Text style={card.overflowText}>+{overflow}</Text>
                   </View>
-                  <Text style={card.memberCount}>
-                    {members} member{members !== 1 ? 's' : ''}
-                  </Text>
-                </View>
+                )}
               </View>
-            </LinearGradient>
+              <Text style={[card.memberCount, { color: colors.text.tertiary }]}>
+                {members} member{members !== 1 ? 's' : ''}
+              </Text>
+            </View>
 
-            <View style={[card.body, { backgroundColor: isDark ? '#121214' : '#FFF' }]}>
-              <View style={card.statsRow}>
-                <View style={card.statItem}>
-                  <Text style={[card.statLabel, { color: colors.text.tertiary }]}>Total spent</Text>
-                  <Text style={[card.statValue, { color: colors.text.primary }]}>
-                    {fmt(ed.total)}
-                  </Text>
-                </View>
-                <View style={card.statItem}>
-                  <Text style={[card.statLabel, { color: colors.text.tertiary }]}>Expenses</Text>
-                  <Text style={[card.statValue, { color: colors.text.primary }]}>{ed.count}</Text>
-                </View>
-                <View style={card.statItem}>
-                  <Text style={[card.statLabel, { color: colors.text.tertiary }]}>Balance</Text>
-                  <Text
-                    style={[
-                      card.statValue,
-                      { color: isPositive ? colors.status.success : colors.status.error },
-                    ]}
-                  >
-                    {balance === 0 ? '—' : `${isPositive ? '+' : '-'}${fmt(Math.abs(balance))}`}
-                  </Text>
-                </View>
+            {/* Stats */}
+            <View style={[card.statsRow, { borderTopColor: colors.border.subtle }]}>
+              <View style={card.statItem}>
+                <Text style={[card.statValue, { color: colors.text.primary }]}>
+                  {fmt(ed.total)}
+                </Text>
+                <Text style={[card.statLabel, { color: colors.text.tertiary }]}>spent</Text>
               </View>
-
-              <View style={[card.divider, { backgroundColor: colors.border.subtle }]} />
-
-              <View style={card.actions}>
-                <TouchableOpacity
-                  style={[card.actionBtn, { backgroundColor: colors.accent.primary + '12' }]}
-                  onPress={() =>
-                    navigation.navigate('SharedExpenseForm', { groupId: item.id, edit: false })
-                  }
+              <View style={[card.statDivider, { backgroundColor: colors.border.subtle }]} />
+              <View style={card.statItem}>
+                <Text style={[card.statValue, { color: colors.text.primary }]}>{ed.count}</Text>
+                <Text style={[card.statLabel, { color: colors.text.tertiary }]}>expenses</Text>
+              </View>
+              <View style={[card.statDivider, { backgroundColor: colors.border.subtle }]} />
+              <View style={card.statItem}>
+                <Text
+                  style={[
+                    card.statValue,
+                    {
+                      color:
+                        balance === 0
+                          ? colors.text.tertiary
+                          : isPositive
+                            ? colors.status.success
+                            : colors.status.error,
+                    },
+                  ]}
                 >
-                  <Ionicons name="add-circle-outline" size={15} color={colors.accent.primary} />
-                  <Text style={[card.actionText, { color: colors.accent.primary }]}>Add</Text>
-                </TouchableOpacity>
+                  {balance === 0 ? '—' : `${isPositive ? '+' : ''}${fmt(Math.abs(balance))}`}
+                </Text>
+                <Text style={[card.statLabel, { color: colors.text.tertiary }]}>balance</Text>
+              </View>
+            </View>
+
+            {/* Actions */}
+            <View style={card.actions}>
+              <TouchableOpacity
+                style={[card.actionBtn, { backgroundColor: accentColor + '0F' }]}
+                onPress={() =>
+                  navigation.navigate('SharedExpenseForm', { groupId: item.id, edit: false })
+                }
+              >
+                <Ionicons name="add" size={14} color={accentColor} />
+                <Text style={[card.actionText, { color: accentColor }]}>Add Expense</Text>
+              </TouchableOpacity>
+              {ed.count > 0 && (
                 <TouchableOpacity
                   style={[card.actionBtn, { backgroundColor: colors.bg.tertiary }]}
                   onPress={() => navigation.navigate('Settlement', { groupId: item.id })}
                 >
-                  <Ionicons
-                    name="swap-horizontal-outline"
-                    size={15}
-                    color={colors.text.secondary}
-                  />
-                  <Text style={[card.actionText, { color: colors.text.secondary }]}>Settle</Text>
+                  <Ionicons name="arrow-forward" size={13} color={colors.text.secondary} />
+                  <Text style={[card.actionText, { color: colors.text.secondary }]}>Settle Up</Text>
                 </TouchableOpacity>
-              </View>
+              )}
             </View>
           </View>
         </Animated.View>
@@ -305,16 +310,21 @@ export function SharedCirclesScreen() {
       abortRef.current?.abort();
       const ctrl = new AbortController();
       abortRef.current = ctrl;
-      const hasCachedData = groups.length > 0;
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      warmupBackend().catch(() => {});
       if (refresh) {
         setRefreshing(true);
-      } else if (!hasCachedData) {
+      } else {
         setLoading(true);
       }
-      try {
-        if (accessToken) {
-          setAccessToken(accessToken);
+      const settleTimer = setTimeout(() => {
+        if (!ctrl.signal.aborted) {
+          setLoading(false);
         }
+      }, 3000);
+      try {
         const [grpResult] = await Promise.allSettled([
           api.get<any>('/expense-groups/dashboard', ctrl.signal),
         ]);
@@ -327,7 +337,7 @@ export function SharedCirclesScreen() {
               ? grpResult.value
               : []
             : [];
-        if (g.length > 0 || !hasCachedData) {
+        if (g.length > 0 || groups.length === 0) {
           setGroups(g);
         }
 
@@ -339,12 +349,11 @@ export function SharedCirclesScreen() {
         }
         setTransactions(allTx);
 
-        if (!hasCachedData) {
-          Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
-        }
+        Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
       } catch (e) {
         /* ignore */
       } finally {
+        clearTimeout(settleTimer);
         if (!ctrl.signal.aborted) {
           setLoading(false);
           setRefreshing(false);
@@ -777,66 +786,77 @@ const stat = StyleSheet.create({
 
 const card = StyleSheet.create({
   outer: {
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
+    flexDirection: 'row',
+    borderRadius: 16,
+    shadowOffset: { width: 0, height: 2 },
     shadowRadius: 12,
-    elevation: 4,
+    elevation: 3,
+    overflow: 'hidden',
   },
-  inner: { borderRadius: 20, overflow: 'hidden' },
-  cover: { height: 130 },
-  coverOverlay: { flex: 1, padding: 16, justifyContent: 'space-between' },
-  coverTop: {
+  accentEdge: {
+    width: 4,
+    borderTopLeftRadius: 16,
+    borderBottomLeftRadius: 16,
+  },
+  topRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: 4,
   },
   typePill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255,255,255,0.2)',
   },
-  typeText: { color: '#FFF', fontSize: 11, fontWeight: '700', textTransform: 'capitalize' },
-  timeText: { color: 'rgba(255,255,255,0.7)', fontSize: 11, fontWeight: '500' },
-  coverName: { fontSize: 20, fontWeight: '800', color: '#FFF' },
-  coverBottom: {
+  typeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  typeText: { fontSize: 12, fontWeight: '500', textTransform: 'capitalize' },
+  timeText: { fontSize: 11, fontWeight: '400' },
+  name: { fontSize: 20, fontWeight: '700', letterSpacing: -0.3, marginBottom: 10 },
+  memberRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 8,
+    marginBottom: 14,
   },
   avatarCluster: { flexDirection: 'row', alignItems: 'center' },
   avatarItem: {
     borderRadius: 999,
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.8)',
+    borderColor: '#FFFFFF',
   },
   overflowBadge: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#E5E5EA',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  overflowText: { color: '#FFF', fontSize: 9, fontWeight: '800' },
-  memberCount: { color: 'rgba(255,255,255,0.7)', fontSize: 11, fontWeight: '500' },
-  body: {
-    padding: 16,
-    gap: 12,
-  },
+  overflowText: { color: '#8E8E93', fontSize: 9, fontWeight: '700' },
+  memberCount: { fontSize: 12, fontWeight: '500' },
   statsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    paddingTop: 14,
+    marginBottom: 14,
   },
-  statItem: { alignItems: 'center', gap: 2 },
-  statLabel: { fontSize: 10, fontWeight: '500' },
-  statValue: { fontSize: 15, fontWeight: '800' },
-  divider: { height: 1 },
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 2,
+  },
+  statDivider: {
+    width: 1,
+    height: 24,
+  },
+  statLabel: { fontSize: 11, fontWeight: '400' },
+  statValue: { fontSize: 17, fontWeight: '700', letterSpacing: -0.2 },
   actions: {
     flexDirection: 'row',
     gap: 8,
@@ -844,10 +864,10 @@ const card = StyleSheet.create({
   actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 6,
     paddingHorizontal: 14,
-    paddingVertical: 9,
+    paddingVertical: 10,
     borderRadius: 10,
   },
-  actionText: { fontSize: 13, fontWeight: '700' },
+  actionText: { fontSize: 13, fontWeight: '600' },
 });

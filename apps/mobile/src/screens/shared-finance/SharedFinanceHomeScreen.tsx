@@ -16,7 +16,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { api, setAccessToken } from '../../services/api';
+import { api, setAccessToken, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { BaseScreen } from '../../components/ui/BaseScreen';
@@ -340,15 +340,21 @@ export function SharedFinanceHomeScreen() {
       abortRef.current?.abort();
       const ctrl = new AbortController();
       abortRef.current = ctrl;
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      warmupBackend().catch(() => {});
       if (refresh) {
         setRefreshing(true);
       } else {
         setLoading(true);
       }
-      try {
-        if (accessToken) {
-          setAccessToken(accessToken);
+      const settleTimer = setTimeout(() => {
+        if (!ctrl.signal.aborted) {
+          setLoading(false);
         }
+      }, 3000);
+      try {
         const [groupsRes] = await Promise.allSettled([
           api.get<any>('/shared-finance/groups', ctrl.signal),
         ]);
@@ -369,6 +375,7 @@ export function SharedFinanceHomeScreen() {
           setGroups([]);
         }
       } finally {
+        clearTimeout(settleTimer);
         if (!ctrl.signal.aborted) {
           setLoading(false);
           setRefreshing(false);

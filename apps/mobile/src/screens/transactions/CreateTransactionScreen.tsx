@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   Keyboard,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -18,8 +19,13 @@ import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../config/categoryIcons';
-import { PADDING, borderRadius, shadows, fabShadow } from '../../theme/design';
 import { KEYWORD_CATEGORIES } from '../../constants/smartEntryKeywords';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const { width: SCREEN_W } = Dimensions.get('window');
+const PURPLE = '#8B5CF6';
+const PURPLE_DARK = '#6D28D9';
+const GREEN = '#10B981';
 
 type PrefillParams = {
   prefill?: {
@@ -36,6 +42,9 @@ type PrefillParams = {
   transaction?: any;
 };
 
+const QUICK_AMOUNTS_EXPENSE = ['20', '50', '100', '200', '500', '1000', '2000', '5000'];
+const QUICK_AMOUNTS_INCOME = ['500', '1000', '5000', '10000', '25000', '50000'];
+
 export function CreateTransactionScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<RouteProp<{ CreateTransaction: PrefillParams }, 'CreateTransaction'>>();
@@ -45,6 +54,7 @@ export function CreateTransactionScreen() {
   const prefill = route.params?.prefill;
   const editingTransaction = route.params?.transaction;
   const isEditing = Boolean(editingTransaction?.id);
+  const inputRef = useRef<TextInput>(null);
 
   const [amount, setAmount] = useState(
     editingTransaction?.amount
@@ -59,17 +69,39 @@ export function CreateTransactionScreen() {
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const inputRef = useRef<TextInput>(null);
   const [loadingMeta, setLoadingMeta] = useState(true);
   const [categories, setCategories] = useState<any[]>([]);
-  const [selectedGroupId, setSelectedGroupId] = useState(
-    editingTransaction?.expenseGroupId || prefill?.groupId || '',
-  );
-  const [selectedGroupName, setSelectedGroupName] = useState(prefill?.groupName || '');
   const [description, setDescription] = useState(
     editingTransaction?.description || prefill?.description || '',
   );
   const [smartEntry, setSmartEntry] = useState('');
+
+  const date =
+    (editingTransaction?.date
+      ? new Date(editingTransaction.date).toISOString().split('T')[0]
+      : undefined) ||
+    prefill?.date ||
+    new Date().toISOString().split('T')[0];
+
+  useEffect(() => {
+    if (accessToken) {
+      setAccessToken(accessToken);
+    }
+    loadCategories();
+  }, [accessToken]);
+
+  async function loadCategories() {
+    try {
+      const res = await api.get<any[]>('/categories');
+      setCategories(
+        Array.isArray(res) ? res : Array.isArray((res as any)?.data) ? (res as any).data : [],
+      );
+    } catch {
+      /* empty */
+    } finally {
+      setLoadingMeta(false);
+    }
+  }
 
   function smartParse(text: string) {
     const match = text.match(/^(.+?)\s+(\d+(?:\.\d+)?)$/);
@@ -87,40 +119,26 @@ export function CreateTransactionScreen() {
       }
     }
   }
-  const [date] = useState(
-    (editingTransaction?.date
-      ? new Date(editingTransaction.date).toISOString().split('T')[0]
-      : undefined) ||
-      prefill?.date ||
-      new Date().toISOString().split('T')[0],
-  );
 
-  useEffect(() => {
-    if (accessToken) {
-      setAccessToken(accessToken);
+  const smartPreview = useMemo(() => {
+    const m = smartEntry.match(/^(.+?)\s+(\d+(?:\.\d+)?)$/);
+    if (!m) {
+      return null;
     }
-    loadCategories();
-  }, [accessToken]);
-
-  async function loadCategories() {
-    try {
-      const res = await api.get<any[]>('/categories');
-      const data = Array.isArray(res)
-        ? res
-        : Array.isArray((res as any)?.data)
-          ? (res as any).data
-          : [];
-      setCategories(data);
-    } catch (e) {
-      /* empty */
-    } finally {
-      setLoadingMeta(false);
+    const lower = m[1].trim().toLowerCase();
+    let cat = 'Other';
+    for (const [kw, c] of Object.entries(KEYWORD_CATEGORIES)) {
+      if (lower.includes(kw)) {
+        cat = c;
+        break;
+      }
     }
-  }
+    return { desc: m[1].trim(), amount: m[2], category: cat };
+  }, [smartEntry]);
 
   async function handleSave() {
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-      setError('Valid amount is required');
+      setError('Enter a valid amount');
       return;
     }
     setError('');
@@ -132,48 +150,41 @@ export function CreateTransactionScreen() {
       const data: any = {
         amount: Number(amount),
         type,
-        description: description.trim() || (category ? `${category} expense` : 'Expense'),
+        description: description.trim() || `${category} expense`,
         date,
       };
-      if (selectedGroupId) {
-        data.expenseGroupId = selectedGroupId;
-      }
       if (isEditing) {
         await api.patch(`/transactions/${editingTransaction.id}`, data);
       } else {
         await api.post('/transactions', data);
       }
-      if (prefill?.returnTo === 'GroupExpenses' && selectedGroupId) {
-        navigation.navigate('GroupExpenses', {
-          groupId: selectedGroupId,
-          groupName: selectedGroupName || prefill.groupName,
-        });
-      } else {
-        navigation.navigate(
-          isEditing ? 'TransactionDetail' : 'ExpenseHome',
-          isEditing ? { transactionId: editingTransaction.id } : undefined,
-        );
-      }
+      navigation.navigate(
+        isEditing ? 'TransactionDetail' : 'ExpenseHome',
+        isEditing ? { transactionId: editingTransaction.id } : undefined,
+      );
     } catch (e: any) {
-      setError(e.message || 'Failed to create transaction');
+      setError(e.message || 'Failed to save');
     } finally {
       setSaving(false);
     }
   }
 
   const currentCats = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+  const quickAmounts = type === 'income' ? QUICK_AMOUNTS_INCOME : QUICK_AMOUNTS_EXPENSE;
 
   if (loadingMeta) {
     return (
       <View style={[s.loading, { backgroundColor: colors.bg.primary }]}>
-        <View style={{ width: '100%', padding: PADDING, gap: 16 }}>
+        <View style={{ width: '100%', padding: 20, gap: 16 }}>
           <Skeleton width={140} height={22} />
-          <Skeleton width="100%" height={180} borderRadius={borderRadius.xl} />
-          <Skeleton width="100%" height={120} borderRadius={borderRadius.lg} />
+          <Skeleton width="100%" height={180} borderRadius={24} />
+          <Skeleton width="100%" height={120} borderRadius={16} />
         </View>
       </View>
     );
   }
+
+  const isExpense = type === 'expense';
 
   return (
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
@@ -188,439 +199,257 @@ export function CreateTransactionScreen() {
           keyboardDismissMode="interactive"
         >
           {/* Header */}
-          <View
-            style={{ paddingTop: insets.top + 8, paddingHorizontal: PADDING, paddingBottom: 8 }}
+          <LinearGradient
+            colors={[PURPLE, PURPLE_DARK]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
           >
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <TouchableOpacity
-                onPress={() => navigation.goBack()}
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 12,
-                  backgroundColor: `${colors.accent.primary}10`,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Ionicons name="close" size={20} color={colors.accent.primary} />
-              </TouchableOpacity>
-              <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text.primary }}>
-                {isEditing ? 'Edit' : type === 'income' ? 'Add Income' : 'Add Expense'}
-              </Text>
-              <View style={{ width: 40 }} />
-            </View>
-          </View>
-
-          {/* Type Toggle */}
-          <View style={{ paddingHorizontal: PADDING, marginBottom: 20 }}>
-            <View
-              style={{
-                flexDirection: 'row',
-                backgroundColor: colors.bg.tertiary,
-                borderRadius: 14,
-                padding: 3,
-              }}
-            >
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => {
-                  setType('expense');
-                  setError('');
-                }}
-                style={{
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  paddingVertical: 12,
-                  borderRadius: 12,
-                  backgroundColor: type === 'expense' ? colors.accent.primary : 'transparent',
-                }}
-              >
-                <Ionicons
-                  name="cart-outline"
-                  size={14}
-                  color={type === 'expense' ? '#FFF' : colors.text.secondary}
-                />
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: '700',
-                    color: type === 'expense' ? '#FFF' : colors.text.secondary,
-                  }}
-                >
-                  Expense
+            <View style={{ paddingTop: insets.top + 12, paddingBottom: 24, paddingHorizontal: 20 }}>
+              <View style={s.headerRow}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
+                  <Ionicons name="close" size={22} color="#FFF" />
+                </TouchableOpacity>
+                <Text style={s.headerTitle}>
+                  {isEditing ? 'Edit' : isExpense ? 'Add Expense' : 'Add Income'}
                 </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => {
-                  setType('income');
-                  setError('');
-                }}
-                style={{
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  paddingVertical: 12,
-                  borderRadius: 12,
-                  backgroundColor: type === 'income' ? '#34C759' : 'transparent',
-                }}
-              >
-                <Ionicons
-                  name="trending-up"
-                  size={14}
-                  color={type === 'income' ? '#FFF' : colors.text.secondary}
-                />
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: '700',
-                    color: type === 'income' ? '#FFF' : colors.text.secondary,
-                  }}
-                >
-                  Income
-                </Text>
-              </TouchableOpacity>
+                <View style={{ width: 34 }} />
+              </View>
             </View>
-          </View>
+          </LinearGradient>
 
-          {/* Smart Entry */}
-          <View style={{ paddingHorizontal: PADDING, marginBottom: 12 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-              <Ionicons name="flash" size={14} color={colors.accent.primary} />
-              <Text
-                style={{
-                  fontSize: 12,
-                  fontWeight: '700',
-                  color: colors.text.secondary,
-                  letterSpacing: 0.5,
-                  textTransform: 'uppercase',
-                }}
-              >
-                Smart Entry
-              </Text>
-            </View>
-            <TextInput
-              style={{
-                backgroundColor: colors.bg.card,
-                borderRadius: borderRadius.lg,
-                padding: 16,
-                fontSize: 15,
-                fontWeight: '500',
-                color: colors.text.primary,
-                borderWidth: 1,
-                borderColor: colors.accent.primary,
-              }}
-              value={smartEntry}
-              onChangeText={(text) => {
-                setSmartEntry(text);
-                smartParse(text);
-              }}
-              placeholder='e.g. "Tea 20" or "Petrol 1000"'
-              placeholderTextColor={colors.text.tertiary}
-              returnKeyType="done"
-              onSubmitEditing={() => Keyboard.dismiss()}
-            />
-            {smartEntry.length > 0 &&
-              (() => {
-                const m = smartEntry.match(/^(.+?)\s+(\d+(?:\.\d+)?)$/);
-                if (!m) {
-                  return null;
-                }
-                const lower = m[1].trim().toLowerCase();
-                let cat = 'Other';
-                for (const [kw, c] of Object.entries(KEYWORD_CATEGORIES)) {
-                  if (lower.includes(kw)) {
-                    cat = c;
-                    break;
-                  }
-                }
-                return (
-                  <View
-                    style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 }}
-                  >
-                    <Ionicons name="checkmark-circle" size={14} color={colors.status.success} />
-                    <Text style={{ fontSize: 12, color: colors.text.secondary }}>
-                      {m[1].trim()} → {cat} · ₹{m[2]}
-                    </Text>
-                  </View>
-                );
-              })()}
-          </View>
-
-          {/* Amount Card */}
-          <View
-            style={{
-              marginHorizontal: PADDING,
-              borderRadius: borderRadius.xl,
-              padding: 24,
-              backgroundColor:
-                type === 'income' ? `${colors.status.success}10` : `${colors.status.error}08`,
-              alignItems: 'center',
-              marginBottom: 12,
-              ...shadows.md,
-            }}
-          >
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'flex-start',
-                justifyContent: 'center',
-                gap: 2,
-                marginBottom: 4,
-                marginTop: 8,
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 36,
-                  fontWeight: '800',
-                  color: colors.text.primary,
-                  letterSpacing: -1,
-                }}
-              >
-                ₹
-              </Text>
-              <TextInput
-                ref={inputRef}
-                style={{
-                  fontSize: 48,
-                  fontWeight: '800',
-                  color: colors.text.primary,
-                  letterSpacing: -2,
-                  textAlign: 'center',
-                  minWidth: 120,
-                  paddingVertical: 0,
-                  height: 60,
-                  lineHeight: 60,
-                }}
-                value={amount}
-                onChangeText={(text) => {
-                  const c = text.replace(/[^0-9.]/g, '');
-                  if (c.split('.').length - 1 <= 1) {
-                    setAmount(c);
+          <View style={{ paddingHorizontal: 20, paddingTop: 20, gap: 20 }}>
+            {/* Type Toggle */}
+            <View style={[s.toggle, { backgroundColor: colors.bg.tertiary }]}>
+              {(['expense', 'income'] as const).map((t) => (
+                <TouchableOpacity
+                  key={t}
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    setType(t);
                     setError('');
-                  }
+                  }}
+                  style={[
+                    s.toggleBtn,
+                    {
+                      backgroundColor:
+                        type === t ? (t === 'income' ? GREEN : PURPLE) : 'transparent',
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name={t === 'expense' ? 'cart-outline' : 'trending-up'}
+                    size={14}
+                    color={type === t ? '#FFF' : colors.text.secondary}
+                  />
+                  <Text
+                    style={[s.toggleText, { color: type === t ? '#FFF' : colors.text.secondary }]}
+                  >
+                    {t === 'expense' ? 'Expense' : 'Income'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Smart Entry */}
+            <View>
+              <View style={s.smartLabel}>
+                <Ionicons name="flash" size={14} color={PURPLE} />
+                <Text style={[s.smartLabelText, { color: colors.text.secondary }]}>
+                  Quick Entry
+                </Text>
+              </View>
+              <TextInput
+                style={[
+                  s.smartInput,
+                  {
+                    backgroundColor: colors.bg.card,
+                    color: colors.text.primary,
+                    borderColor: PURPLE,
+                  },
+                ]}
+                value={smartEntry}
+                onChangeText={(text) => {
+                  setSmartEntry(text);
+                  smartParse(text);
                 }}
-                keyboardType="decimal-pad"
-                placeholder="0"
+                placeholder='e.g. "Tea 20" or "Petrol 1000"'
                 placeholderTextColor={colors.text.tertiary}
                 returnKeyType="done"
                 onSubmitEditing={() => Keyboard.dismiss()}
               />
+              {smartPreview && (
+                <View style={s.smartResult}>
+                  <Ionicons name="checkmark-circle" size={14} color={GREEN} />
+                  <Text style={[s.smartResultText, { color: colors.text.secondary }]}>
+                    {smartPreview.desc} → {smartPreview.category} · ₹{smartPreview.amount}
+                  </Text>
+                </View>
+              )}
             </View>
-            <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
-              {type === 'expense' ? 'How much did you spend?' : 'How much did you receive?'}
-            </Text>
-            {error ? (
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: 10,
-                  borderRadius: 10,
-                  backgroundColor: `${colors.status.error}15`,
-                  marginTop: 12,
-                  width: '100%',
-                }}
-              >
-                <Ionicons name="alert-circle" size={14} color={colors.status.error} />
-                <Text
-                  style={{ fontSize: 12, fontWeight: '600', color: colors.status.error, flex: 1 }}
-                >
-                  {error}
-                </Text>
-              </View>
-            ) : null}
-          </View>
 
-          {/* Quick Amount Chips */}
-          <View style={{ paddingHorizontal: PADDING, marginBottom: 20 }}>
+            {/* Amount */}
+            <View style={[s.amountCard, { backgroundColor: `${isExpense ? PURPLE : GREEN}08` }]}>
+              <View style={s.amountRow}>
+                <Text style={[s.amountCurrency, { color: colors.text.primary }]}>₹</Text>
+                <TextInput
+                  ref={inputRef}
+                  style={[s.amountInput, { color: colors.text.primary }]}
+                  value={amount}
+                  onChangeText={(text) => {
+                    const c = text.replace(/[^0-9.]/g, '');
+                    if (c.split('.').length - 1 <= 1) {
+                      setAmount(c);
+                      setError('');
+                    }
+                  }}
+                  keyboardType="decimal-pad"
+                  placeholder="0"
+                  placeholderTextColor={colors.text.tertiary}
+                  returnKeyType="done"
+                  onSubmitEditing={() => Keyboard.dismiss()}
+                />
+              </View>
+              <Text style={[s.amountHint, { color: colors.text.tertiary }]}>
+                {isExpense ? 'How much did you spend?' : 'How much did you receive?'}
+              </Text>
+              {error ? (
+                <View style={s.errorRow}>
+                  <Ionicons name="alert-circle" size={14} color={colors.status.error} />
+                  <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
+                </View>
+              ) : null}
+            </View>
+
+            {/* Quick Amounts */}
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={{ gap: 6 }}
             >
-              {['20', '50', '100', '200', '500', '1000', '2000', '5000'].map((val) => (
+              {quickAmounts.map((val) => (
                 <TouchableOpacity
                   key={val}
                   activeOpacity={0.7}
                   onPress={() => setAmount(val)}
-                  style={{
-                    paddingHorizontal: 14,
-                    paddingVertical: 8,
-                    borderRadius: 12,
-                    backgroundColor: amount === val ? `${colors.accent.primary}15` : colors.bg.card,
-                    borderWidth: 1,
-                    borderColor: amount === val ? colors.accent.primary : colors.border.subtle,
-                  }}
+                  style={[
+                    s.quickChip,
+                    {
+                      backgroundColor:
+                        amount === val ? `${isExpense ? PURPLE : GREEN}15` : colors.bg.card,
+                      borderColor:
+                        amount === val ? (isExpense ? PURPLE : GREEN) : colors.border.subtle,
+                    },
+                  ]}
                 >
                   <Text
-                    style={{
-                      fontSize: 13,
-                      fontWeight: '700',
-                      color: amount === val ? colors.accent.primary : colors.text.secondary,
-                    }}
+                    style={[
+                      s.quickChipText,
+                      {
+                        color:
+                          amount === val ? (isExpense ? PURPLE : GREEN) : colors.text.secondary,
+                      },
+                    ]}
                   >
                     ₹{val}
                   </Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
-          </View>
 
-          {/* Description */}
-          <View style={{ paddingHorizontal: PADDING, marginBottom: 24 }}>
-            <Text
-              style={{
-                fontSize: 12,
-                fontWeight: '700',
-                color: colors.text.secondary,
-                letterSpacing: 0.5,
-                marginBottom: 8,
-                textTransform: 'uppercase',
-              }}
-            >
-              Description
-            </Text>
-            <TextInput
-              style={{
-                backgroundColor: colors.bg.card,
-                borderRadius: borderRadius.lg,
-                padding: 16,
-                fontSize: 15,
-                fontWeight: '500',
-                color: colors.text.primary,
-                borderWidth: 1,
-                borderColor: colors.border.subtle,
-                ...shadows.sm,
-              }}
-              value={description}
-              onChangeText={setDescription}
-              placeholder="What was this for?"
-              placeholderTextColor={colors.text.tertiary}
-            />
-          </View>
-
-          {/* Category Grid */}
-          <View style={{ paddingHorizontal: PADDING, marginBottom: 28 }}>
-            <Text
-              style={{
-                fontSize: 12,
-                fontWeight: '700',
-                color: colors.text.secondary,
-                letterSpacing: 0.5,
-                marginBottom: 14,
-                textTransform: 'uppercase',
-              }}
-            >
-              Category
-            </Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-              {currentCats.map((cat, i) => {
-                const selected = category === cat.name;
-                return (
-                  <TouchableOpacity
-                    key={i}
-                    activeOpacity={0.7}
-                    style={{
-                      width: '30%',
-                      alignItems: 'center',
-                      gap: 8,
-                      borderRadius: borderRadius.lg,
-                      borderWidth: 1.5,
-                      borderColor: selected ? cat.color : colors.border.subtle,
-                      backgroundColor: selected ? `${cat.color}12` : colors.bg.card,
-                      paddingVertical: 16,
-                      paddingHorizontal: 4,
-                      ...(selected ? shadows.sm : {}),
-                    }}
-                    onPress={() => setCategory(selected ? '' : cat.name)}
-                  >
-                    <View
-                      style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 14,
-                        backgroundColor: selected ? cat.color : `${cat.color}10`,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Ionicons
-                        name={cat.icon as any}
-                        size={20}
-                        color={selected ? '#FFF' : cat.color}
-                      />
-                    </View>
-                    <Text
-                      style={{
-                        fontSize: 11,
-                        fontWeight: '600',
-                        color: selected ? colors.text.primary : colors.text.secondary,
-                        textAlign: 'center',
-                      }}
-                      numberOfLines={1}
-                    >
-                      {cat.name}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
+            {/* Description */}
+            <View>
+              <Text style={[s.fieldLabel, { color: colors.text.secondary }]}>Description</Text>
+              <TextInput
+                style={[
+                  s.textField,
+                  {
+                    backgroundColor: colors.bg.card,
+                    color: colors.text.primary,
+                    borderColor: colors.border.subtle,
+                  },
+                ]}
+                value={description}
+                onChangeText={setDescription}
+                placeholder="What was this for?"
+                placeholderTextColor={colors.text.tertiary}
+              />
             </View>
-          </View>
 
-          {/* Action Button */}
-          <View style={{ paddingHorizontal: PADDING, paddingTop: 8, paddingBottom: 20 }}>
+            {/* Category */}
+            <View>
+              <Text style={[s.fieldLabel, { color: colors.text.secondary }]}>Category</Text>
+              <View style={s.catGrid}>
+                {currentCats.map((cat, i) => {
+                  const selected = category === cat.name;
+                  return (
+                    <TouchableOpacity
+                      key={i}
+                      activeOpacity={0.7}
+                      style={[
+                        s.catCard,
+                        {
+                          width: (SCREEN_W - 56) / 3,
+                          borderColor: selected ? cat.color : colors.border.subtle,
+                          backgroundColor: selected ? `${cat.color}12` : colors.bg.card,
+                        },
+                      ]}
+                      onPress={() => setCategory(selected ? '' : cat.name)}
+                    >
+                      <View
+                        style={[
+                          s.catIcon,
+                          { backgroundColor: selected ? cat.color : `${cat.color}10` },
+                        ]}
+                      >
+                        <Ionicons
+                          name={cat.icon as any}
+                          size={20}
+                          color={selected ? '#FFF' : cat.color}
+                        />
+                      </View>
+                      <Text
+                        style={[
+                          s.catName,
+                          { color: selected ? colors.text.primary : colors.text.secondary },
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {cat.name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+
+            {/* Save */}
             <TouchableOpacity
-              style={{
-                borderRadius: 16,
-                overflow: 'hidden',
-                opacity: saving ? 0.7 : 1,
-                ...shadows.md,
-                shadowColor: type === 'income' ? colors.status.success : colors.accent.primary,
-              }}
               onPress={handleSave}
               disabled={saving}
               activeOpacity={0.85}
+              style={[s.saveBtnWrap, saving && { opacity: 0.6 }]}
             >
-              <View
-                style={{
-                  flexDirection: 'row',
-                  paddingVertical: 16,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                  backgroundColor: type === 'income' ? '#34C759' : colors.accent.primary,
-                }}
+              <LinearGradient
+                colors={isExpense ? [PURPLE, PURPLE_DARK] : [GREEN, '#059669']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={s.saveGrad}
               >
                 <Ionicons
-                  name={saving ? 'hourglass-outline' : 'wallet-outline'}
+                  name={saving ? 'hourglass-outline' : isExpense ? 'cart-outline' : 'trending-up'}
                   size={18}
                   color="#FFF"
                 />
-                <Text style={{ color: '#FFF', fontSize: 16, fontWeight: '700' }}>
+                <Text style={s.saveText}>
                   {saving
                     ? 'Saving...'
                     : isEditing
                       ? 'Update'
-                      : type === 'income'
-                        ? 'Add Income'
-                        : 'Add Expense'}
+                      : isExpense
+                        ? 'Add Expense'
+                        : 'Add Income'}
                 </Text>
-              </View>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -632,4 +461,96 @@ export function CreateTransactionScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  backBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: { color: '#FFF', fontSize: 18, fontWeight: '700' },
+
+  toggle: { flexDirection: 'row', borderRadius: 14, padding: 3 },
+  toggleBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  toggleText: { fontSize: 13, fontWeight: '700' },
+
+  smartLabel: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
+  smartLabelText: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  smartInput: { borderRadius: 16, padding: 16, fontSize: 15, fontWeight: '500', borderWidth: 1 },
+  smartResult: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
+  smartResultText: { fontSize: 12, fontWeight: '500' },
+
+  amountCard: { borderRadius: 24, padding: 24, alignItems: 'center', gap: 4 },
+  amountRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center', gap: 2 },
+  amountCurrency: { fontSize: 36, fontWeight: '800' },
+  amountInput: {
+    fontSize: 48,
+    fontWeight: '800',
+    letterSpacing: -2,
+    textAlign: 'center',
+    minWidth: 120,
+    paddingVertical: 0,
+    height: 60,
+    lineHeight: 60,
+  },
+  amountHint: { fontSize: 13, fontWeight: '500', marginTop: 4 },
+  errorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    padding: 10,
+    borderRadius: 10,
+    backgroundColor: 'rgba(239,68,68,0.1)',
+    marginTop: 12,
+    width: '100%',
+  },
+  errorText: { fontSize: 12, fontWeight: '600', flex: 1 },
+
+  quickChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, borderWidth: 1 },
+  quickChipText: { fontSize: 13, fontWeight: '700' },
+
+  fieldLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
+  textField: { borderRadius: 16, padding: 16, fontSize: 15, fontWeight: '500', borderWidth: 1 },
+
+  catGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  catCard: { alignItems: 'center', gap: 6, borderRadius: 18, borderWidth: 1, paddingVertical: 14 },
+  catIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  catName: { fontSize: 11, fontWeight: '600', textAlign: 'center' },
+
+  saveBtnWrap: { borderRadius: 18, overflow: 'hidden', marginTop: 4 },
+  saveGrad: {
+    flexDirection: 'row',
+    paddingVertical: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  saveText: { color: '#FFF', fontSize: 17, fontWeight: '700' },
 });

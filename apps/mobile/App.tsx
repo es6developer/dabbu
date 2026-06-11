@@ -22,6 +22,7 @@ import { OfflineBanner } from './src/components/ui/OfflineBanner';
 import { loadFeatures } from './src/config/features';
 import { useDeepLinks } from './src/hooks/useDeepLinks';
 import { useNotifications } from './src/hooks/useNotifications';
+import { warmupBackend } from './src/services/api';
 
 SplashScreen.preventAutoHideAsync();
 LogBox.ignoreLogs(['Reanimated', 'ViewPropTypes']);
@@ -109,6 +110,7 @@ export default function App(): React.ReactElement | null {
     async function prepare(): Promise<void> {
       try {
         loadFeatures();
+        warmupBackend();
       } catch (e) {
         console.warn('Load features error:', e);
       } finally {

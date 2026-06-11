@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,9 +15,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { api, setAccessToken } from '../../services/api';
+import { api, setAccessToken, clearCache, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
-import { getCategoryColor } from '../../config/categoryIcons';
+import { CATEGORY_ICONS, CATEGORY_COLORS } from '../../config/categoryIcons';
 import { Avatar } from '../../components/ui/Avatar';
 import { KEYWORD_CATEGORIES } from '../../constants/smartEntryKeywords';
 import { useOffline } from '../../store/OfflineContext';
@@ -167,10 +167,22 @@ export function HomeScreen() {
   const [spaces, setSpaces] = useState<any[]>([]);
   const [budgets, setBudgets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
   const [refreshing, setRefreshing] = useState(false);
   const [quickEntry, setQuickEntry] = useState('');
   const [quickEntryLoading, setQuickEntryLoading] = useState(false);
+  const [quickType, setQuickType] = useState<'expense' | 'income'>('expense');
+  const [quickSuccess, setQuickSuccess] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    const parsed = quickEntry.trim() ? parseQuickEntry(quickEntry) : null;
+    if (parsed) {
+      setQuickType(parsed.type);
+    } else {
+      setQuickType('expense');
+    }
+  }, [quickEntry]);
 
   const savings = Math.max(0, monthlyIncome - monthlySpent);
   const savingsRate = monthlyIncome > 0 ? (savings / monthlyIncome) * 100 : 0;
@@ -218,11 +230,21 @@ export function HomeScreen() {
         setAccessToken(accessToken);
       }
 
+      // Warm up backend in parallel so cold start begins immediately
+      warmupBackend().catch(() => {});
+
       if (isRefresh) {
         setRefreshing(true);
       } else {
         setLoading(true);
       }
+
+      // Force-settle loading after 3s so user never stares at a skeleton
+      const settleTimer = setTimeout(() => {
+        if (!ctrl.signal.aborted) {
+          setLoading(false);
+        }
+      }, 3000);
 
       try {
         const [balRes, statsRes, remRes, goalRes, notifRes, billsRes, spacesRes, budgetsRes] =
@@ -237,15 +259,17 @@ export function HomeScreen() {
             api.get<any>('/budgets', ctrl.signal).catch(() => []),
           ]);
 
+        clearTimeout(settleTimer);
+
         if (ctrl.signal.aborted) {
           return;
         }
 
         if (balRes.status === 'fulfilled') {
           const b = balRes.value;
-          setTotalBalance(b.totalBalance ?? b.data?.totalBalance ?? null);
+          setTotalBalance(b.totalBalance ?? b.data?.totalBalance ?? 0);
         } else {
-          setTotalBalance(null);
+          setTotalBalance(0);
         }
 
         if (statsRes.status === 'fulfilled') {
@@ -299,6 +323,7 @@ export function HomeScreen() {
       } catch {
         /* ignore */
       } finally {
+        clearTimeout(settleTimer);
         if (!ctrl.signal.aborted) {
           setLoading(false);
           setRefreshing(false);
@@ -314,35 +339,83 @@ export function HomeScreen() {
     }, [loadData]),
   );
 
-  async function handleQuickAdd(text: string) {
-    const match = text.match(/^(.+?)\s+(\d+(?:\.\d+)?)$/);
+  const INCOME_KEYWORDS = new Set([
+    'salary',
+    'freelance',
+    'freelancing',
+    'business',
+    'interest',
+    'dividend',
+    'refund',
+    'cashback',
+    'gift',
+    'donation',
+    'income',
+    'profit',
+    'bonus',
+    'commission',
+    'rental',
+    'investment',
+    'stipend',
+    'pension',
+  ]);
+
+  function parseQuickEntry(
+    text: string,
+  ): { desc: string; amt: number; type: 'expense' | 'income'; cat: string } | null {
+    let input = text.trim();
+    let forcedType: 'expense' | 'income' | null = null;
+    if (input.startsWith('+')) {
+      forcedType = 'income';
+      input = input.slice(1).trim();
+    } else if (input.startsWith('-')) {
+      forcedType = 'expense';
+      input = input.slice(1).trim();
+    }
+    const match = input.match(/^(.+?)\s+(\d+(?:\.\d+)?)$/);
     if (!match) {
-      return;
+      return null;
     }
     const desc = match[1].trim();
-    const amt = match[2];
-
-    setQuickEntry('');
-
+    const amt = parseFloat(match[2]);
+    if (amt <= 0) {
+      return null;
+    }
     const lower = desc.toLowerCase();
-    let category = 'Other';
-    for (const [keyword, cat] of Object.entries(KEYWORD_CATEGORIES)) {
+    let cat = 'Other';
+    let detectedType: 'expense' | 'income' = 'expense';
+    for (const [keyword, category] of Object.entries(KEYWORD_CATEGORIES)) {
       if (lower.includes(keyword)) {
-        category = cat;
+        cat = category;
+        if (INCOME_KEYWORDS.has(keyword)) {
+          detectedType = 'income';
+        }
         break;
       }
     }
+    return { desc, amt, type: forcedType || detectedType, cat };
+  }
+
+  async function handleQuickAdd(text: string) {
+    const parsed = parseQuickEntry(text);
+    if (!parsed) {
+      return;
+    }
+    const { desc, amt, cat } = parsed;
+    setQuickEntry('');
     setQuickEntryLoading(true);
     try {
       if (accessToken) {
         setAccessToken(accessToken);
       }
       await api.post('/transactions', {
-        amount: parseFloat(amt),
-        type: 'expense',
+        amount: amt,
+        type: quickType,
         description: desc,
         date: new Date().toISOString(),
       });
+      setQuickSuccess(true);
+      setTimeout(() => setQuickSuccess(false), 2000);
       loadData(true);
     } catch {
       Keyboard.dismiss();
@@ -353,7 +426,7 @@ export function HomeScreen() {
 
   const userName = user?.firstName || 'User';
 
-  if (loading && totalBalance === null && !monthlyIncome && !monthlySpent) {
+  if (loading && totalBalance === null) {
     return (
       <View style={[page.screen, { backgroundColor: colors.bg.primary }]}>
         <View style={{ paddingHorizontal: 20, paddingTop: insets.top + 12, gap: 4 }}>
@@ -415,7 +488,10 @@ export function HomeScreen() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => loadData(true)}
+            onRefresh={() => {
+              clearCache();
+              loadData(true);
+            }}
             tintColor={BRAND}
           />
         }
@@ -589,66 +665,102 @@ export function HomeScreen() {
                 <ActivityIndicator size="small" color={BRAND} />
               )}
             </View>
-            {quickEntry.length > 0 &&
-              (() => {
-                const m = quickEntry.match(/^(.+?)\s+(\d+(?:\.\d+)?)$/);
-                if (!m) {
-                  return null;
-                }
-                const lower = m[1].trim().toLowerCase();
-                let cat = 'Other';
-                for (const [kw, c] of Object.entries(KEYWORD_CATEGORIES)) {
-                  if (lower.includes(kw)) {
-                    cat = c;
-                    break;
-                  }
-                }
+            {(() => {
+              const parsed = quickEntry.trim() ? parseQuickEntry(quickEntry) : null;
+              if (quickSuccess) {
                 return (
-                  <View style={[page.quickCat, { borderTopColor: colors.border.subtle }]}>
-                    <Ionicons name="checkmark-circle" size={14} color="#10B981" />
-                    <Text style={{ fontSize: 12, color: colors.text.secondary }}>
-                      {m[1].trim()} → {cat} · ₹{m[2]}
+                  <View
+                    style={[
+                      page.quickCat,
+                      { borderTopColor: colors.border.subtle, justifyContent: 'center' },
+                    ]}
+                  >
+                    <Ionicons name="checkmark-circle" size={16} color="#10B981" />
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: '#10B981' }}>
+                      Added!
                     </Text>
                   </View>
                 );
-              })()}
-            {recentTxns.length > 0 && (
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={{ marginTop: 10 }}
-              >
-                {recentTxns.slice(0, 5).map((tx, i) => {
-                  const desc = tx.description || tx.note || '';
-                  const amt = Number(tx.amount || 0);
-                  const catColor = getCategoryColor(
-                    tx.category?.name || tx.category_name || tx.category || 'Other',
-                  );
-                  return (
-                    <TouchableOpacity
-                      key={tx.id || i}
-                      onPress={() => {
-                        setQuickEntry(`${desc} ${amt}`);
-                      }}
-                      style={[
-                        page.recentChip,
-                        { backgroundColor: `${catColor}10`, borderColor: `${catColor}20` },
-                      ]}
-                    >
-                      <Text
-                        style={{ fontSize: 12, fontWeight: '500', color: colors.text.secondary }}
-                        numberOfLines={1}
+              }
+              if (!parsed) {
+                return null;
+              }
+              const catIcon = (CATEGORY_ICONS as any)[parsed.cat] || 'ellipsis-horizontal';
+              const catColor = (CATEGORY_COLORS as any)[parsed.cat] || '#636E72';
+              return (
+                <View
+                  style={[
+                    page.quickCat,
+                    { borderTopColor: colors.border.subtle, flexDirection: 'column', gap: 8 },
+                  ]}
+                >
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <View
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: 8,
+                          backgroundColor: `${catColor}18`,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
                       >
-                        {desc.length > 12 ? desc.slice(0, 12) + '..' : desc}
+                        <Ionicons name={catIcon as any} size={14} color={catColor} />
+                      </View>
+                      <View>
+                        <Text
+                          style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}
+                        >
+                          {parsed.desc}
+                        </Text>
+                        <Text style={{ fontSize: 11, color: catColor, fontWeight: '500' }}>
+                          {parsed.cat}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          fontWeight: '700',
+                          color: quickType === 'expense' ? '#EF4444' : '#10B981',
+                        }}
+                      >
+                        {quickType === 'expense' ? '-' : '+'}₹{parsed.amt.toLocaleString('en-IN')}
                       </Text>
-                      <Text style={{ fontSize: 11, fontWeight: '700', color: catColor }}>
-                        ₹{Math.round(amt)}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            )}
+                      <TouchableOpacity
+                        onPress={() => setQuickType(quickType === 'expense' ? 'income' : 'expense')}
+                        style={[
+                          {
+                            paddingHorizontal: 8,
+                            paddingVertical: 3,
+                            borderRadius: 6,
+                            backgroundColor: quickType === 'expense' ? '#FEE2E2' : '#D1FAE5',
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 10,
+                            fontWeight: '700',
+                            color: quickType === 'expense' ? '#DC2626' : '#059669',
+                          }}
+                        >
+                          {quickType === 'expense' ? 'EXPENSE' : 'INCOME'}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              );
+            })()}
           </View>
         </View>
 

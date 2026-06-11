@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } 
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { api, setAccessToken } from '../../services/api';
+import { api, setAccessToken, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
@@ -23,20 +23,23 @@ export function SubscriptionScreen() {
 
   const loadData = useCallback(
     async (refresh = false) => {
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      warmupBackend().catch(() => {});
       if (refresh) {
         setRefreshing(true);
       } else {
         setLoading(true);
       }
+      const settleTimer = setTimeout(() => setLoading(false), 3000);
       try {
-        if (accessToken) {
-          setAccessToken(accessToken);
-        }
         const res = await api.get<any>('/accounts/subscriptions');
         setData(res);
       } catch {
         /* noop */
       } finally {
+        clearTimeout(settleTimer);
         setLoading(false);
         setRefreshing(false);
       }

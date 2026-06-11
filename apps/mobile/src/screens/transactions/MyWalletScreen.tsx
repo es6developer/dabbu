@@ -16,7 +16,7 @@ import {
 
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { api, setAccessToken } from '../../services/api';
+import { api, setAccessToken, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Skeleton, SkeletonList } from '../../components/ui/AnimatedSkeleton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -131,15 +131,21 @@ export function MyWalletScreen() {
       abortRef.current?.abort();
       const ctrl = new AbortController();
       abortRef.current = ctrl;
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      warmupBackend().catch(() => {});
       if (refresh) {
         setRefreshing(true);
       } else {
         setLoading(true);
       }
-      try {
-        if (accessToken) {
-          setAccessToken(accessToken);
+      const settleTimer = setTimeout(() => {
+        if (!ctrl.signal.aborted) {
+          setLoading(false);
         }
+      }, 3000);
+      try {
         const [txRes, statsRes] = await Promise.all([
           api.get<any>('/transactions', ctrl.signal),
           api.get<any>('/transactions/stats', ctrl.signal),
@@ -167,6 +173,7 @@ export function MyWalletScreen() {
       } catch {
         /* ignore */
       } finally {
+        clearTimeout(settleTimer);
         if (!ctrl.signal.aborted) {
           setLoading(false);
           setRefreshing(false);
@@ -175,6 +182,29 @@ export function MyWalletScreen() {
     },
     [accessToken, fadeAnim, cardTranslate],
   );
+
+  const [sendingTest, setSendingTest] = useState(false);
+
+  async function sendTestPush() {
+    if (sendingTest) {
+      return;
+    }
+    setSendingTest(true);
+    try {
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      await api.post('/devices/test-push', {
+        title: 'Test Push',
+        body: 'This is a test notification from Dabbu 🎉',
+      });
+      Alert.alert('Sent', 'Test push notification sent to your devices.');
+    } catch (e: any) {
+      Alert.alert('Error', e?.message || 'Failed to send test push');
+    } finally {
+      setSendingTest(false);
+    }
+  }
 
   useFocusEffect(
     useCallback(() => {
@@ -391,9 +421,15 @@ export function MyWalletScreen() {
               <TouchableOpacity
                 style={[s.headerBtn, { backgroundColor: `${PURPLE}15` }]}
                 onPress={() => navigation.navigate('AddExpense')}
+                onLongPress={sendTestPush}
+                delayLongPress={800}
                 activeOpacity={0.7}
               >
-                <Ionicons name="wallet-outline" size={20} color={PURPLE} />
+                <Ionicons
+                  name={sendingTest ? 'hourglass-outline' : 'wallet-outline'}
+                  size={20}
+                  color={PURPLE}
+                />
               </TouchableOpacity>
             </Animated.View>
 
@@ -449,7 +485,10 @@ export function MyWalletScreen() {
               {QUICK_ACTIONS.map((a) => (
                 <TouchableOpacity
                   key={a.label}
-                  style={[s.qaBtn, { backgroundColor: colors.bg.secondary }]}
+                  style={[
+                    s.qaBtn,
+                    { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
+                  ]}
                   onPress={() => navigation.navigate(a.screen)}
                   activeOpacity={0.7}
                 >
@@ -774,6 +813,7 @@ const s = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 22,
     gap: 8,
+    borderWidth: 1,
   },
   qaIcon: {
     width: 50,

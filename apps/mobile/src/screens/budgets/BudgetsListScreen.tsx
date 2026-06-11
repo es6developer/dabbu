@@ -12,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { api, setAccessToken } from '../../services/api';
+import { api, setAccessToken, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { PADDING, borderRadius, shadows, fabShadow } from '../../theme/design';
 import { SkeletonList } from '../../components/ui/AnimatedSkeleton';
@@ -48,17 +48,20 @@ export function BudgetsListScreen() {
       if (accessToken) {
         setAccessToken(accessToken);
       }
+      warmupBackend().catch(() => {});
       if (refresh) {
         setRefreshing(true);
       } else {
         setLoading(true);
       }
+      const settleTimer = setTimeout(() => setLoading(false), 3000);
       try {
         const res = await api.get<any>('/budgets');
         setBudgets(Array.isArray(res) ? res : []);
       } catch (e) {
         /* empty */
       } finally {
+        clearTimeout(settleTimer);
         setLoading(false);
         setRefreshing(false);
       }

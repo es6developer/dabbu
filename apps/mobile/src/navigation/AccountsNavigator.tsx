@@ -16,6 +16,7 @@ import { AnalyticsScreen } from '../screens/analytics/AnalyticsScreen';
 import { ExpenseTabNavigator } from './ExpenseTabNavigator';
 import { CategorySelectionScreen } from '../screens/expense/CategorySelectionScreen';
 import { AddExpenseScreen as NewAddExpenseScreen } from '../screens/expense/AddExpenseScreen';
+import { CreateCategoryScreen } from '../screens/expense/CreateCategoryScreen';
 import { SharedExpenseFormScreen } from '../screens/shared-finance/SharedExpenseFormScreen';
 import { SettlementScreen } from '../screens/shared-finance/SettlementScreen';
 import { AddMemberScreen } from '../screens/social/AddMemberScreen';
@@ -25,9 +26,7 @@ export function AccountsNavigator() {
   const theme = useTheme();
   const { colors } = theme;
   return (
-    <Stack.Navigator
-      screenOptions={iosTransitionOptions(theme)}
-    >
+    <Stack.Navigator screenOptions={iosTransitionOptions(theme)}>
       <Stack.Screen
         name="ExpenseHome"
         component={ExpenseTabNavigator}
@@ -47,6 +46,11 @@ export function AccountsNavigator() {
         name="NewAddExpense"
         component={NewAddExpenseScreen}
         options={{ title: 'Add Expense', headerShown: false, presentation: 'modal' }}
+      />
+      <Stack.Screen
+        name="CreateCategory"
+        component={CreateCategoryScreen}
+        options={{ title: 'Create Category', headerShown: false, presentation: 'modal' }}
       />
       <Stack.Screen
         name="BillScanner"
