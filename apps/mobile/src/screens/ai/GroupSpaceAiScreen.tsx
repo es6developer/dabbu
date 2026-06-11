@@ -69,15 +69,11 @@ export function GroupSpaceAiScreen() {
   const [settlements, setSettlements] = useState<SettlementData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadData = useCallback(async () => {
-    if (accessToken) {
-      setAccessToken(accessToken);
-    }
+  const fetchData = useCallback(async () => {
     if (!groupId) {
       setLoading(false);
       return;
     }
-    setLoading(true);
     try {
       const res = await api.get<any>(`/ai/groups/${groupId}/settlements/optimize`);
       const d = res?.data ?? res;
@@ -87,7 +83,15 @@ export function GroupSpaceAiScreen() {
     } finally {
       setLoading(false);
     }
-  }, [accessToken, groupId]);
+  }, [groupId]);
+
+  const loadData = useCallback(() => {
+    if (accessToken) {
+      setAccessToken(accessToken);
+    }
+    setLoading(true);
+    fetchData();
+  }, [accessToken, fetchData]);
 
   useFocusEffect(
     useCallback(() => {

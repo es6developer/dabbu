@@ -143,11 +143,7 @@ export function AiHomeDashboardScreen() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadData = useCallback(async () => {
-    if (accessToken) {
-      setAccessToken(accessToken);
-    }
-    setLoading(true);
+  const fetchData = useCallback(async () => {
     try {
       const [healthRes, dashRes, dnaRes, anomalyRes] = await Promise.allSettled([
         api.get<any>('/ai/health-score'),
@@ -232,7 +228,15 @@ export function AiHomeDashboardScreen() {
     } finally {
       setLoading(false);
     }
-  }, [accessToken]);
+  }, []);
+
+  const loadData = useCallback(() => {
+    if (accessToken) {
+      setAccessToken(accessToken);
+    }
+    setLoading(true);
+    fetchData();
+  }, [accessToken, fetchData]);
 
   useFocusEffect(
     useCallback(() => {

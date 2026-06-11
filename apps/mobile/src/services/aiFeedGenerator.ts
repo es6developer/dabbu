@@ -580,13 +580,14 @@ export async function generateFeedFromRealData(
 ): Promise<{ feed: FeedCard[]; summary: FeedSummary }> {
   setAccessToken(accessToken);
 
+  const TIMEOUT = 5000;
   const [txRes, bdRes, glRes, sbRes, acRes, grRes] = await Promise.allSettled([
-    api.get<any>('/transactions?days=30&limit=100'),
-    api.get<any>('/accounts/budgets'),
-    api.get<any>('/goals'),
-    api.get<any>('/accounts/subscriptions'),
-    api.get<any>('/accounts/stats'),
-    api.get<any>('/expense-groups'),
+    api.get<any>('/transactions?days=30&limit=100', undefined, TIMEOUT),
+    api.get<any>('/budgets', undefined, TIMEOUT),
+    api.get<any>('/goals', undefined, TIMEOUT),
+    api.get<any>('/accounts/subscriptions', undefined, TIMEOUT),
+    api.get<any>('/accounts/stats', undefined, TIMEOUT),
+    api.get<any>('/expense-groups', undefined, TIMEOUT),
   ]);
 
   const transactions = extractArray(txRes);

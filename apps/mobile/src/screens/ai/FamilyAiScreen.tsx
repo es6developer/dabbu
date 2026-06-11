@@ -59,11 +59,7 @@ export function FamilyAiScreen() {
   const [data, setData] = useState<HealthData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadData = useCallback(async () => {
-    if (accessToken) {
-      setAccessToken(accessToken);
-    }
-    setLoading(true);
+  const fetchData = useCallback(async () => {
     try {
       const res = await api.get<any>('/ai/health-score');
       const d = res?.data ?? res;
@@ -73,7 +69,15 @@ export function FamilyAiScreen() {
     } finally {
       setLoading(false);
     }
-  }, [accessToken]);
+  }, []);
+
+  const loadData = useCallback(() => {
+    if (accessToken) {
+      setAccessToken(accessToken);
+    }
+    setLoading(true);
+    fetchData();
+  }, [accessToken, fetchData]);
 
   useFocusEffect(
     useCallback(() => {

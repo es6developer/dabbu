@@ -12,6 +12,7 @@ import jwtConfig from './config/jwt.config';
 import mailConfig from './config/mail.config';
 import firebaseConfig from './config/firebase.config';
 import aiConfig from './modules/ai/ai.config';
+import sentryConfig from './config/sentry.config';
 
 // Database
 import { DatabaseModule } from './database/database.module';
@@ -50,13 +51,27 @@ import { UsersModule } from './modules/users/users.module';
 import { FriendsModule } from './modules/friends/friends.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
 import { AiModule } from './modules/ai/ai.module';
+import { LoansModule } from './modules/loans/loans.module';
+import { NetWorthModule } from './modules/net-worth/net-worth.module';
+import { BudgetsModule } from './modules/budgets/budgets.module';
+import { ReportsModule } from './modules/reports/reports.module';
+import { BillRemindersModule } from './modules/bill-reminders/bill-reminders.module';
+import { ForecastModule } from './modules/forecast/forecast.module';
 
 @Module({
   imports: [
     // ─── Configuration ─────────────────────────────
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, databaseConfig, jwtConfig, mailConfig, firebaseConfig, aiConfig],
+      load: [
+        appConfig,
+        databaseConfig,
+        jwtConfig,
+        mailConfig,
+        firebaseConfig,
+        aiConfig,
+        sentryConfig,
+      ],
       envFilePath: ['.env', '.env.local'],
     }),
 
@@ -123,6 +138,12 @@ import { AiModule } from './modules/ai/ai.module';
     UsersModule,
     FriendsModule,
     FavoritesModule,
+    LoansModule,
+    NetWorthModule,
+    BudgetsModule,
+    ReportsModule,
+    BillRemindersModule,
+    ForecastModule,
   ],
   controllers: [HealthController],
   providers: [

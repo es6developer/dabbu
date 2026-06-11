@@ -14,6 +14,11 @@ import { GoalDetailScreen } from '../screens/goals/GoalDetailScreen';
 import { DocumentVaultScreen } from '../screens/documents/DocumentVaultScreen';
 import { DocumentDetailScreen } from '../screens/documents/DocumentDetailScreen';
 import { BadgeWallScreen } from '../screens/documents/BadgeWallScreen';
+import { BudgetsListScreen } from '../screens/budgets/BudgetsListScreen';
+import { CreateBudgetScreen } from '../screens/budgets/CreateBudgetScreen';
+import { NetWorthScreen } from '../screens/home/NetWorthScreen';
+import { LoanTrackerScreen } from '../screens/home/LoanTrackerScreen';
+import { GlobalSearchScreen } from '../screens/home/GlobalSearchScreen';
 import { AiInsightsScreen } from '../screens/ai/AiInsightsScreen';
 import { AIDashboard } from '../screens/ai/AIDashboard';
 import { AiHomeDashboardScreen } from '../screens/ai/AiHomeDashboardScreen';
@@ -192,6 +197,21 @@ function DashboardNavigator() {
         component={TodayFeedScreen}
         options={{ headerShown: false }}
       />
+      <DashboardStack.Screen
+        name="NetWorth"
+        component={NetWorthScreen}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
+        name="LoanTracker"
+        component={LoanTrackerScreen}
+        options={{ headerShown: false }}
+      />
+      <DashboardStack.Screen
+        name="GlobalSearch"
+        component={GlobalSearchScreen}
+        options={{ headerShown: false }}
+      />
     </DashboardStack.Navigator>
   );
 }
@@ -255,6 +275,16 @@ function SettingsNavigator() {
         name="Reports"
         component={ReportsScreen}
         options={{ headerShown: false }}
+      />
+      <SettingsStack.Screen
+        name="BudgetsList"
+        component={BudgetsListScreen}
+        options={{ headerShown: false }}
+      />
+      <SettingsStack.Screen
+        name="CreateBudget"
+        component={CreateBudgetScreen}
+        options={{ headerShown: false, presentation: 'modal' }}
       />
       <SettingsStack.Screen
         name="CoupleSpace"
@@ -631,7 +661,7 @@ const tabStyles = StyleSheet.create({
     marginBottom: 1,
   },
   label: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '600',
     letterSpacing: 0.2,
   },

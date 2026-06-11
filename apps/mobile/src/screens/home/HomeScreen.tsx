@@ -5,29 +5,25 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
   RefreshControl,
-  Animated,
+  Keyboard,
   Dimensions,
 } from 'react-native';
-import ReAnimated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withTiming,
-  withSequence,
-  Easing as ReEasing,
-  cancelAnimation,
-} from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { api, setAccessToken } from '../../services/api';
+import { api, setAccessToken, clearCache, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
-import { getCategoryColor, getCategoryIcon } from '../../config/categoryIcons';
+import { CATEGORY_ICONS, CATEGORY_COLORS } from '../../config/categoryIcons';
 import { Avatar } from '../../components/ui/Avatar';
+import { KEYWORD_CATEGORIES } from '../../constants/smartEntryKeywords';
+import { useOffline } from '../../store/OfflineContext';
 
-const { width: SCREEN_W } = Dimensions.get('window');
+const W = Dimensions.get('window').width;
+const BRAND = '#4F46E5';
 
 function fmt(v: number) {
   return '\u20B9' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
@@ -44,6 +40,17 @@ function fmtShort(v: number) {
     return '\u20B9' + (v / 1000).toFixed(1) + 'K';
   }
   return fmt(v);
+}
+
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) {
+    return 'Good Morning';
+  }
+  if (h < 17) {
+    return 'Good Afternoon';
+  }
+  return 'Good Evening';
 }
 
 function fmtDate(d: string | null) {
@@ -63,69 +70,156 @@ function fmtDate(d: string | null) {
   return dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 }
 
-function getIcon(cat: string): keyof typeof Ionicons.glyphMap {
-  const map: Record<string, keyof typeof Ionicons.glyphMap> = {
-    Food: 'fast-food',
-    Transport: 'car',
-    Shopping: 'bag',
-    Bills: 'document-text',
-    Entertainment: 'film',
-    Health: 'fitness',
-    Education: 'school',
-    Travel: 'airplane',
-    Groceries: 'cart',
-    Rent: 'home',
-    Salary: 'cash',
-    Investment: 'trending-up',
-    Utilities: 'flash',
-    Insurance: 'shield',
-    Dining: 'restaurant',
-    Other: 'ellipsis-horizontal',
-  };
-  return map[cat] || getCategoryIcon(cat) || 'ellipsis-horizontal';
+function daysUntil(d: string) {
+  const diff = new Date(d).getTime() - Date.now();
+  const days = Math.ceil(diff / 86400000);
+  if (days <= 0) {
+    return 'Overdue';
+  }
+  if (days === 1) {
+    return 'Tomorrow';
+  }
+  return `${days} Days`;
 }
+
+function listFromResponse(res: any): any[] {
+  if (!res) {
+    return [];
+  }
+  if (Array.isArray(res)) {
+    return res;
+  }
+  if (res.items) {
+    return Array.isArray(res.items) ? res.items : [];
+  }
+  return [];
+}
+
+function deriveGroupBalance(group: any, currentUserId: string | undefined) {
+  const memberCount = group.members?.length || group._count?.members || 0;
+  const totalSpent = group.totalSpent ?? 0;
+  const balances = group.balances || [];
+  let owedToMe = 0,
+    iOwe = 0,
+    unsettledOthers = 0;
+  if (currentUserId && balances.length > 0) {
+    const myEntry = balances.find((b: any) => b.userId === currentUserId);
+    if (myEntry) {
+      const bal = Number(myEntry.balance);
+      if (bal > 0) {
+        owedToMe = bal;
+      } else if (bal < 0) {
+        iOwe = Math.abs(bal);
+      }
+    }
+    unsettledOthers = balances.filter(
+      (b: any) => b.userId !== currentUserId && Math.abs(Number(b.balance)) > 0.99,
+    ).length;
+  }
+  return { owedToMe, iOwe, totalSpent, memberCount, unsettledOthers };
+}
+
+const INSIGHT_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
+  'Net Worth': 'wallet',
+  Subscriptions: 'card',
+  Loans: 'trending-down',
+  'Active Goals': 'flag',
+  'Upcoming Bills': 'receipt',
+  'Budget Health': 'pie-chart',
+};
+
+const ACTION_ITEMS: {
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  route: string;
+  screen: string;
+  params?: any;
+}[] = [
+  { label: 'Add Expense', icon: 'add-circle', route: 'Expense', screen: 'CategorySelection' },
+  {
+    label: 'Add Income',
+    icon: 'cash',
+    route: 'Expense',
+    screen: 'CategorySelection',
+    params: { type: 'income' },
+  },
+  { label: 'Split Expense', icon: 'people', route: 'Spaces', screen: 'CreateSharedGroup' },
+  { label: 'Scan Receipt', icon: 'scan', route: 'Expense', screen: 'BillScanner' },
+  { label: 'Create Budget', icon: 'pie-chart', route: 'Settings', screen: 'BudgetsList' },
+];
 
 export function HomeScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const { user, accessToken } = useAuth();
+  const { isOnline, pendingCount } = useOffline();
 
   const [totalBalance, setTotalBalance] = useState<number | null>(null);
   const [monthlyIncome, setMonthlyIncome] = useState(0);
   const [monthlySpent, setMonthlySpent] = useState(0);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<{ name: string; amount: number }[]>([]);
   const [recentTxns, setRecentTxns] = useState<any[]>([]);
-  const [groupCount, setGroupCount] = useState(0);
   const [reminders, setReminders] = useState<any[]>([]);
   const [goals, setGoals] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [upcomingBillsTotal, setUpcomingBillsTotal] = useState(0);
+  const [spaces, setSpaces] = useState<any[]>([]);
+  const [budgets, setBudgets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [refreshing, setRefreshing] = useState(false);
+  const [quickEntry, setQuickEntry] = useState('');
+  const [quickEntryLoading, setQuickEntryLoading] = useState(false);
+  const [quickType, setQuickType] = useState<'expense' | 'income'>('expense');
+  const [quickSuccess, setQuickSuccess] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
-  const aiPulse = useSharedValue(1);
 
   useEffect(() => {
-    aiPulse.value = withRepeat(
-      withSequence(
-        withTiming(1.08, { duration: 1000, easing: ReEasing.inOut(ReEasing.quad) }),
-        withTiming(1, { duration: 1000, easing: ReEasing.inOut(ReEasing.quad) }),
-      ),
-      -1,
-      true,
-    );
-    return () => cancelAnimation(aiPulse);
-  }, []);
-
-  const aiPulseAnim = useAnimatedStyle(() => ({
-    transform: [{ scale: aiPulse.value }],
-  }));
+    const parsed = quickEntry.trim() ? parseQuickEntry(quickEntry) : null;
+    if (parsed) {
+      setQuickType(parsed.type);
+    } else {
+      setQuickType('expense');
+    }
+  }, [quickEntry]);
 
   const savings = Math.max(0, monthlyIncome - monthlySpent);
   const savingsRate = monthlyIncome > 0 ? (savings / monthlyIncome) * 100 : 0;
+
+  const subscriptionTotal = useMemo(() => {
+    const sub = categories.find((c) => c.name === 'Subscription');
+    return sub ? sub.amount : 0;
+  }, [categories]);
+
+  const safeToSpend = Math.max(0, (totalBalance ?? 0) - upcomingBillsTotal - subscriptionTotal);
+
+  const budgetHealth = useMemo(() => {
+    if (budgets.length === 0) {
+      return 100;
+    }
+    const totalBudget = budgets.reduce((s, b) => s + Number(b.limit || b.amount || 0), 0);
+    const totalSpent = budgets.reduce((s, b) => s + Number(b.spent || b.currentSpent || 0), 0);
+    if (totalBudget === 0) {
+      return 100;
+    }
+    return Math.round((1 - totalSpent / totalBudget) * 100);
+  }, [budgets]);
+
+  const insights = useMemo(
+    () => [
+      { label: 'Net Worth', value: fmt(totalBalance ?? 0), color: '#10B981' },
+      { label: 'Subscriptions', value: `${fmt(subscriptionTotal)}/mo`, color: '#F59E0B' },
+      { label: 'Active Goals', value: String(goals.length), color: BRAND },
+      { label: 'Upcoming Bills', value: String(reminders.length), color: '#EF4444' },
+      {
+        label: 'Budget Health',
+        value: `${budgetHealth}%`,
+        color: budgetHealth > 70 ? '#10B981' : budgetHealth > 40 ? '#F59E0B' : '#EF4444',
+      },
+    ],
+    [totalBalance, subscriptionTotal, goals.length, reminders.length, budgetHealth],
+  );
 
   const loadData = useCallback(
     async (isRefresh = false) => {
@@ -136,22 +230,36 @@ export function HomeScreen() {
         setAccessToken(accessToken);
       }
 
+      // Warm up backend in parallel so cold start begins immediately
+      warmupBackend().catch(() => {});
+
       if (isRefresh) {
         setRefreshing(true);
       } else {
         setLoading(true);
       }
-      setError(null);
+
+      // Force-settle loading after 3s so user never stares at a skeleton
+      const settleTimer = setTimeout(() => {
+        if (!ctrl.signal.aborted) {
+          setLoading(false);
+        }
+      }, 3000);
 
       try {
-        const [balRes, statsRes, grpRes, remRes, goalRes, notifRes] = await Promise.allSettled([
-          api.get<any>('/accounts/stats', ctrl.signal),
-          api.get<any>('/transactions/stats?months=1', ctrl.signal),
-          api.get<any>('/expense-groups', ctrl.signal),
-          api.get<any>('/reminders/upcoming?days=7', ctrl.signal),
-          api.get<any>('/goals', ctrl.signal),
-          api.get<any>('/notifications/unread-count', ctrl.signal),
-        ]);
+        const [balRes, statsRes, remRes, goalRes, notifRes, billsRes, spacesRes, budgetsRes] =
+          await Promise.allSettled([
+            api.get<any>('/accounts/stats', ctrl.signal),
+            api.get<any>('/transactions/stats?months=1', ctrl.signal),
+            api.get<any>('/reminders/upcoming?days=7', ctrl.signal),
+            api.get<any>('/goals', ctrl.signal),
+            api.get<any>('/notifications/unread-count', ctrl.signal),
+            api.get<any>('/bills?status=pending', ctrl.signal).catch(() => []),
+            api.get<any>('/shared-finance/groups', ctrl.signal).catch(() => []),
+            api.get<any>('/budgets', ctrl.signal).catch(() => []),
+          ]);
+
+        clearTimeout(settleTimer);
 
         if (ctrl.signal.aborted) {
           return;
@@ -159,19 +267,19 @@ export function HomeScreen() {
 
         if (balRes.status === 'fulfilled') {
           const b = balRes.value;
-          setTotalBalance(b.totalBalance ?? b.data?.totalBalance ?? null);
-        } else {
-          setTotalBalance(null);
+          setTotalBalance(b.totalBalance ?? b.data?.totalBalance ?? 0);
         }
 
         if (statsRes.status === 'fulfilled') {
           const s = statsRes.value?.data ?? statsRes.value;
           setMonthlyIncome(s.summary?.totalIncome ?? 0);
           setMonthlySpent(s.summary?.totalExpense ?? 0);
-          const cats: any[] = (s.categoryBreakdown || []).map((c: any) => ({
-            name: c.name === 'Uncategorized' || !c.name ? 'Other' : c.name,
-            amount: Number(c.amount || 0),
-          }));
+          const cats: { name: string; amount: number }[] = (s.categoryBreakdown || []).map(
+            (c: any) => ({
+              name: c.name === 'Uncategorized' || !c.name ? 'Other' : c.name,
+              amount: Number(c.amount || 0),
+            }),
+          );
           const grouped: Record<string, number> = {};
           cats.forEach((c) => {
             grouped[c.name] = (grouped[c.name] || 0) + c.amount;
@@ -180,30 +288,13 @@ export function HomeScreen() {
           setRecentTxns((s.recentTransactions || []).slice(0, 5));
         }
 
-        if (grpRes.status === 'fulfilled') {
-          const list = Array.isArray(grpRes.value)
-            ? grpRes.value
-            : Array.isArray(grpRes.value?.data)
-              ? grpRes.value.data
-              : [];
-          setGroupCount(list.length);
-        }
-
         if (remRes.status === 'fulfilled') {
-          const list = Array.isArray(remRes.value)
-            ? remRes.value
-            : Array.isArray(remRes.value?.data)
-              ? remRes.value.data
-              : [];
+          const list = listFromResponse(remRes.value);
           setReminders(list.slice(0, 5));
         }
 
         if (goalRes.status === 'fulfilled') {
-          const list = Array.isArray(goalRes.value)
-            ? goalRes.value
-            : Array.isArray(goalRes.value?.data)
-              ? goalRes.value.data
-              : [];
+          const list = listFromResponse(goalRes.value);
           setGoals(list.slice(0, 3));
         }
 
@@ -212,19 +303,32 @@ export function HomeScreen() {
           setUnreadCount(n.count ?? n.data?.count ?? 0);
         }
 
-        Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
-      } catch {
-        if (!ctrl.signal.aborted) {
-          setError('Unable to load data. Pull to refresh.');
+        if (billsRes.status === 'fulfilled') {
+          const billsData = billsRes.value?.data ?? billsRes.value ?? [];
+          const bills = Array.isArray(billsData) ? billsData : [];
+          setUpcomingBillsTotal(
+            bills.reduce((s: number, b: any) => s + (Number(b.amount) || 0), 0),
+          );
         }
+
+        if (spacesRes.status === 'fulfilled') {
+          setSpaces(listFromResponse(spacesRes.value));
+        }
+
+        if (budgetsRes.status === 'fulfilled') {
+          setBudgets(listFromResponse(budgetsRes.value));
+        }
+      } catch {
+        /* ignore */
       } finally {
+        clearTimeout(settleTimer);
         if (!ctrl.signal.aborted) {
           setLoading(false);
           setRefreshing(false);
         }
       }
     },
-    [accessToken, fadeAnim],
+    [accessToken],
   );
 
   useFocusEffect(
@@ -233,143 +337,139 @@ export function HomeScreen() {
     }, [loadData]),
   );
 
-  const quickActions = useMemo(
-    () => [
-      {
-        icon: 'add-circle' as const,
-        label: 'Add',
-        color: colors.accent.primary,
-        route: 'AddExpense',
-        tab: 'Expense' as const,
-      },
-      {
-        icon: 'scan' as const,
-        label: 'Scan',
-        color: isDark ? '#FBBF24' : '#F59E0B',
-        route: 'BillScanner',
-        tab: 'Expense' as const,
-      },
-      {
-        icon: 'people' as const,
-        label: 'Split',
-        color: isDark ? '#34D399' : '#14B8A6',
-        route: 'AddExpense',
-        tab: 'Expense' as const,
-      },
-      {
-        icon: 'receipt' as const,
-        label: 'Bills',
-        color: isDark ? '#60A5FA' : '#4A90D9',
-        route: 'BillsList',
-        tab: 'Expense' as const,
-      },
-    ],
-    [colors],
-  );
+  const INCOME_KEYWORDS = new Set([
+    'salary',
+    'freelance',
+    'freelancing',
+    'business',
+    'interest',
+    'dividend',
+    'refund',
+    'cashback',
+    'gift',
+    'donation',
+    'income',
+    'profit',
+    'bonus',
+    'commission',
+    'rental',
+    'investment',
+    'stipend',
+    'pension',
+  ]);
 
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  function parseQuickEntry(
+    text: string,
+  ): { desc: string; amt: number; type: 'expense' | 'income'; cat: string } | null {
+    let input = text.trim();
+    let forcedType: 'expense' | 'income' | null = null;
+    if (input.startsWith('+')) {
+      forcedType = 'income';
+      input = input.slice(1).trim();
+    } else if (input.startsWith('-')) {
+      forcedType = 'expense';
+      input = input.slice(1).trim();
+    }
+    const match = input.match(/^(.+?)\s+(\d+(?:\.\d+)?)$/);
+    if (!match) {
+      return null;
+    }
+    const desc = match[1].trim();
+    const amt = parseFloat(match[2]);
+    if (amt <= 0) {
+      return null;
+    }
+    const lower = desc.toLowerCase();
+    let cat = 'Other';
+    let detectedType: 'expense' | 'income' = 'expense';
+    for (const [keyword, category] of Object.entries(KEYWORD_CATEGORIES)) {
+      if (lower.includes(keyword)) {
+        cat = category;
+        if (INCOME_KEYWORDS.has(keyword)) {
+          detectedType = 'income';
+        }
+        break;
+      }
+    }
+    return { desc, amt, type: forcedType || detectedType, cat };
+  }
+
+  async function handleQuickAdd(text: string) {
+    const parsed = parseQuickEntry(text);
+    if (!parsed) {
+      return;
+    }
+    const { desc, amt, cat } = parsed;
+    setQuickEntry('');
+    setQuickEntryLoading(true);
+    try {
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      await api.post('/transactions', {
+        amount: amt,
+        type: quickType,
+        description: desc,
+        date: new Date().toISOString(),
+      });
+      setQuickSuccess(true);
+      setTimeout(() => setQuickSuccess(false), 2000);
+      loadData(true);
+    } catch {
+      Keyboard.dismiss();
+    } finally {
+      setQuickEntryLoading(false);
+    }
+  }
+
   const userName = user?.firstName || 'User';
 
-  const netBalance = totalBalance ?? 0;
-  const isOwed = netBalance > 0;
-  const isOwning = netBalance < 0;
-  const settled = netBalance === 0;
-
-  const statCards = useMemo(
-    () => [
-      {
-        label: 'Income',
-        value: fmtShort(monthlyIncome),
-        icon: 'trending-up' as const,
-        color: colors.status.success,
-        bg: `${colors.status.success}12`,
-      },
-      {
-        label: 'Spent',
-        value: fmtShort(monthlySpent),
-        icon: 'trending-down' as const,
-        color: colors.status.error,
-        bg: `${colors.status.error}12`,
-      },
-      {
-        label: 'Savings',
-        value: fmtShort(savings),
-        icon: 'save-outline' as const,
-        color: colors.status.success,
-        bg: `${colors.status.success}15`,
-      },
-      {
-        label: 'Groups',
-        value: String(groupCount),
-        icon: 'layers' as const,
-        color: colors.accent.primary,
-        bg: `${colors.accent.primary}12`,
-      },
-    ],
-    [monthlyIncome, monthlySpent, savings, groupCount, colors],
-  );
-
-  if (loading && !monthlyIncome && !monthlySpent && totalBalance === null) {
+  if (loading && totalBalance === null) {
     return (
-      <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
-        <View style={[s.header, { paddingTop: insets.top + 12 }]}>
-          <View style={{ gap: 4, flex: 1 }}>
-            <View
-              style={{
-                width: 80,
-                height: 12,
-                borderRadius: 6,
-                backgroundColor: colors.bg.tertiary,
-              }}
-            />
-            <View
-              style={{
-                width: 140,
-                height: 24,
-                borderRadius: 6,
-                backgroundColor: colors.bg.tertiary,
-                marginTop: 4,
-              }}
-            />
-          </View>
+      <View style={[page.screen, { backgroundColor: colors.bg.primary }]}>
+        <View style={{ paddingHorizontal: 20, paddingTop: insets.top + 12, gap: 4 }}>
           <View
-            style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: colors.bg.tertiary }}
+            style={{ width: 80, height: 12, borderRadius: 6, backgroundColor: colors.bg.tertiary }}
+          />
+          <View
+            style={{
+              width: 140,
+              height: 22,
+              borderRadius: 6,
+              backgroundColor: colors.bg.tertiary,
+              marginTop: 2,
+            }}
           />
         </View>
-        <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
+        <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
           <View
             style={{
               width: '100%',
-              height: 200,
+              height: 260,
               borderRadius: 24,
               backgroundColor: colors.bg.tertiary,
             }}
           />
         </View>
-        <View style={{ flexDirection: 'row', paddingHorizontal: 20, marginTop: 20, gap: 12 }}>
-          {[0, 1, 2, 3].map((i) => (
-            <View
-              key={i}
-              style={{ flex: 1, height: 52, borderRadius: 12, backgroundColor: colors.bg.tertiary }}
-            />
-          ))}
-        </View>
-        <View style={{ paddingHorizontal: 20, marginTop: 28 }}>
+        <View style={{ paddingHorizontal: 20, marginTop: 20, gap: 10 }}>
           <View
             style={{
-              width: 160,
-              height: 16,
-              borderRadius: 6,
+              width: '100%',
+              height: 48,
+              borderRadius: 16,
               backgroundColor: colors.bg.tertiary,
-              marginBottom: 12,
             }}
+          />
+        </View>
+        <View style={{ paddingHorizontal: 20, marginTop: 28, gap: 10 }}>
+          <View
+            style={{ width: 120, height: 14, borderRadius: 6, backgroundColor: colors.bg.tertiary }}
           />
           <View
             style={{
               width: '100%',
               height: 120,
-              borderRadius: 16,
+              borderRadius: 20,
               backgroundColor: colors.bg.tertiary,
             }}
           />
@@ -379,599 +479,530 @@ export function HomeScreen() {
   }
 
   return (
-    <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
+    <View style={[page.screen, { backgroundColor: colors.bg.primary }]}>
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => loadData(true)}
-            tintColor={colors.accent.primary}
+            onRefresh={() => {
+              clearCache();
+              loadData(true);
+            }}
+            tintColor={BRAND}
           />
         }
       >
-        {/* ── Header ─────────────────────────────────── */}
-        <View style={[s.header, { paddingTop: insets.top + 12 }]}>
-          <View style={{ flex: 1 }}>
-            <Text style={[s.greeting, { color: colors.text.tertiary }]}>{greeting}</Text>
-            <Text style={[s.userName, { color: colors.text.primary }]}>{userName}</Text>
-          </View>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Notifications')}
-            style={[s.iconBtn, { backgroundColor: `${colors.accent.primary}10` }]}
+        {/* ─── SECTION 1: HERO FINANCIAL SUMMARY ─── */}
+        <View style={{ paddingHorizontal: 20, paddingTop: insets.top + 12 }}>
+          {/* Header row */}
+          <View
+            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
           >
-            <Ionicons name="notifications-outline" size={20} color={colors.accent.primary} />
-            {unreadCount > 0 && (
-              <View style={s.badge}>
-                <Text style={s.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+            <View>
+              <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
+                {getGreeting()}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 20,
+                  fontWeight: '700',
+                  color: colors.text.primary,
+                  marginTop: 1,
+                }}
+              >
+                {userName}
+              </Text>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Notifications')}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  backgroundColor: `${BRAND}10`,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Ionicons name="notifications-outline" size={18} color={BRAND} />
+                {unreadCount > 0 && (
+                  <View style={page.badge}>
+                    <Text style={page.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+                <Avatar
+                  uri={user?.avatarUrl}
+                  name={`${user?.firstName || ''} ${user?.lastName || ''}`}
+                  size={36}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Hero Card */}
+          <View style={[page.heroCard, { backgroundColor: colors.bg.card }]}>
+            {/* Total Balance */}
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '600',
+                color: colors.text.tertiary,
+                letterSpacing: 0.3,
+              }}
+            >
+              Total Balance
+            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 2, marginTop: 2 }}>
+              <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.primary }}>₹</Text>
+              <Text
+                style={{
+                  fontSize: 36,
+                  fontWeight: '800',
+                  color: colors.text.primary,
+                  letterSpacing: -1.5,
+                }}
+              >
+                {(totalBalance ?? 0).toLocaleString('en-IN')}
+              </Text>
+            </View>
+
+            {/* This Month breakdown */}
+            <View style={[page.heroMonth, { backgroundColor: colors.bg.primary }]}>
+              <HeroMonthRow
+                label="Income"
+                value={fmtShort(monthlyIncome)}
+                color="#10B981"
+                pct={monthlyIncome > 0 ? 100 : 0}
+              />
+              <HeroMonthRow
+                label="Spent"
+                value={fmtShort(monthlySpent)}
+                color="#EF4444"
+                pct={monthlyIncome > 0 ? (monthlySpent / monthlyIncome) * 100 : 0}
+              />
+              <HeroMonthRow
+                label="Saved"
+                value={fmtShort(savings)}
+                color="#10B981"
+                pct={monthlyIncome > 0 ? (savings / monthlyIncome) * 100 : 0}
+                badge={savingsRate > 0 ? `${savingsRate.toFixed(0)}%` : undefined}
+              />
+            </View>
+
+            {/* Divider */}
+            <View
+              style={{ height: 1, backgroundColor: colors.border.subtle, marginVertical: 14 }}
+            />
+
+            {/* Obligations */}
+            <View style={{ gap: 8 }}>
+              <ObligationRow
+                icon="receipt-outline"
+                label="Upcoming Bills"
+                value={fmt(upcomingBillsTotal)}
+                valueColor={colors.text.primary}
+              />
+              <ObligationRow
+                icon="card-outline"
+                label="Subscriptions"
+                value={fmt(subscriptionTotal)}
+                valueColor={colors.text.primary}
+              />
+            </View>
+
+            {/* Safe to Spend */}
+            {totalBalance !== null && (
+              <View style={[page.safePill, { backgroundColor: `${BRAND}10` }]}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
+                    Safe to Spend
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 18,
+                      fontWeight: '800',
+                      color: BRAND,
+                      letterSpacing: -0.5,
+                      marginTop: 1,
+                    }}
+                  >
+                    {fmt(safeToSpend)}
+                  </Text>
+                </View>
+                <Ionicons name="shield-checkmark" size={22} color={BRAND} />
               </View>
             )}
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={[s.avatarBtn]}>
-            <Avatar
-              uri={user?.avatarUrl}
-              name={`${user?.firstName || ''} ${user?.lastName || ''}`}
-              size={40}
-            />
-          </TouchableOpacity>
+          </View>
         </View>
 
-        {error && (
-          <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
-            <View
-              style={[
-                s.errorCard,
-                {
-                  backgroundColor: `${colors.status.error}12`,
-                  borderColor: `${colors.status.error}30`,
-                },
-              ]}
-            >
-              <Ionicons name="alert-circle" size={16} color={colors.status.error} />
-              <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
+        {/* ─── SECTION 2: QUICK ADD ─── */}
+        <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
+          <View style={[page.quickAddCard, { backgroundColor: colors.bg.card }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Ionicons name="flash" size={16} color={BRAND} />
+              <TextInput
+                style={[page.quickAddInput, { color: colors.text.primary }]}
+                placeholder='e.g. "Tea 20"'
+                placeholderTextColor={colors.text.tertiary}
+                value={quickEntry}
+                onChangeText={setQuickEntry}
+                onSubmitEditing={() => handleQuickAdd(quickEntry)}
+                returnKeyType="done"
+                editable={!quickEntryLoading}
+              />
+              {!quickEntryLoading ? (
+                <TouchableOpacity onPress={() => handleQuickAdd(quickEntry)}>
+                  <Ionicons name="arrow-forward-circle" size={22} color={BRAND} />
+                </TouchableOpacity>
+              ) : (
+                <ActivityIndicator size="small" color={BRAND} />
+              )}
             </View>
-          </View>
-        )}
-
-        {/* ── Hero Balance Card ─────────────────────── */}
-        <Animated.View style={{ paddingHorizontal: 20, marginTop: 8, opacity: fadeAnim }}>
-          <View
-            style={[
-              s.heroCard,
-              { backgroundColor: colors.bg.card, borderColor: colors.border.default },
-            ]}
-          >
-            <View style={s.heroTop}>
-              <Text style={[s.heroLabel, { color: colors.text.secondary }]}>Total Balance</Text>
-              <View
-                style={[
-                  s.heroBadge,
-                  {
-                    backgroundColor: settled
-                      ? `${colors.text.tertiary}15`
-                      : isOwed
-                        ? `${colors.status.success}15`
-                        : `${colors.status.error}15`,
-                  },
-                ]}
-              >
-                <Text
+            {(() => {
+              const parsed = quickEntry.trim() ? parseQuickEntry(quickEntry) : null;
+              if (quickSuccess) {
+                return (
+                  <View
+                    style={[
+                      page.quickCat,
+                      { borderTopColor: colors.border.subtle, justifyContent: 'center' },
+                    ]}
+                  >
+                    <Ionicons name="checkmark-circle" size={16} color="#10B981" />
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: '#10B981' }}>
+                      Added!
+                    </Text>
+                  </View>
+                );
+              }
+              if (!parsed) {
+                return null;
+              }
+              const catIcon = (CATEGORY_ICONS as any)[parsed.cat] || 'ellipsis-horizontal';
+              const catColor = (CATEGORY_COLORS as any)[parsed.cat] || '#636E72';
+              return (
+                <View
                   style={[
-                    s.heroBadgeText,
-                    {
-                      color: settled
-                        ? colors.text.tertiary
-                        : isOwed
-                          ? colors.status.success
-                          : colors.status.error,
-                    },
+                    page.quickCat,
+                    { borderTopColor: colors.border.subtle, flexDirection: 'column', gap: 8 },
                   ]}
                 >
-                  {settled ? 'Settled' : isOwed ? 'You are owed' : 'You owe'}
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <View
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: 8,
+                          backgroundColor: `${catColor}18`,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Ionicons name={catIcon as any} size={14} color={catColor} />
+                      </View>
+                      <View>
+                        <Text
+                          style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}
+                        >
+                          {parsed.desc}
+                        </Text>
+                        <Text style={{ fontSize: 11, color: catColor, fontWeight: '500' }}>
+                          {parsed.cat}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          fontWeight: '700',
+                          color: quickType === 'expense' ? '#EF4444' : '#10B981',
+                        }}
+                      >
+                        {quickType === 'expense' ? '-' : '+'}₹{parsed.amt.toLocaleString('en-IN')}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => setQuickType(quickType === 'expense' ? 'income' : 'expense')}
+                        style={[
+                          {
+                            paddingHorizontal: 8,
+                            paddingVertical: 3,
+                            borderRadius: 6,
+                            backgroundColor: quickType === 'expense' ? '#FEE2E2' : '#D1FAE5',
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 10,
+                            fontWeight: '700',
+                            color: quickType === 'expense' ? '#DC2626' : '#059669',
+                          }}
+                        >
+                          {quickType === 'expense' ? 'EXPENSE' : 'INCOME'}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              );
+            })()}
+          </View>
+        </View>
+
+        {/* ─── SECTION 3: ACTION CENTER ─── */}
+        <View style={{ paddingHorizontal: 20, marginTop: 22 }}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8 }}
+          >
+            {ACTION_ITEMS.map((a) => (
+              <TouchableOpacity
+                key={a.label}
+                onPress={() => navigation.navigate(a.route, { screen: a.screen, params: a.params })}
+                style={[page.actionPill, { backgroundColor: `${BRAND}10` }]}
+                activeOpacity={0.7}
+              >
+                <Ionicons name={a.icon} size={16} color={BRAND} />
+                <Text style={{ fontSize: 13, fontWeight: '600', color: BRAND }}>{a.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* ─── SECTION 4: INSIGHTS CAROUSEL ─── */}
+        <View style={{ marginTop: 26 }}>
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: '700',
+              color: colors.text.primary,
+              paddingHorizontal: 20,
+              marginBottom: 12,
+            }}
+          >
+            Insights
+          </Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }}
+          >
+            {insights.map((ins) => (
+              <TouchableOpacity
+                key={ins.label}
+                style={[page.insightCard, { backgroundColor: colors.bg.card }]}
+                activeOpacity={0.7}
+              >
+                <View style={[page.insightIcon, { backgroundColor: `${ins.color}12` }]}>
+                  <Ionicons
+                    name={INSIGHT_ICONS[ins.label] || 'ellipsis-horizontal'}
+                    size={18}
+                    color={ins.color}
+                  />
+                </View>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '600',
+                    color: colors.text.tertiary,
+                    marginTop: 6,
+                  }}
+                >
+                  {ins.label}
                 </Text>
-              </View>
-            </View>
-            <Text
-              style={[
-                s.heroAmount,
-                {
-                  color: settled
-                    ? colors.text.tertiary
-                    : isOwed
-                      ? colors.status.success
-                      : colors.status.error,
-                },
-              ]}
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '800',
+                    color: colors.text.primary,
+                    marginTop: 2,
+                  }}
+                >
+                  {ins.value}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* ─── SECTION 5: THIS MONTH ─── */}
+        <View style={{ paddingHorizontal: 20, marginTop: 28 }}>
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: '700',
+              color: colors.text.primary,
+              marginBottom: 14,
+            }}
+          >
+            This Month
+          </Text>
+          <View style={[page.monthCard, { backgroundColor: colors.bg.card }]}>
+            <MonthBar
+              label="Income"
+              value={monthlyIncome}
+              max={monthlyIncome}
+              color="#10B981"
+              fmt={fmtShort}
+            />
+            <MonthBar
+              label="Spent"
+              value={monthlySpent}
+              max={monthlyIncome}
+              color="#EF4444"
+              fmt={fmtShort}
+            />
+            <View
+              style={{ height: 1, backgroundColor: colors.border.subtle, marginVertical: 12 }}
+            />
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
             >
-              {settled ? 'All settled up' : fmt(Math.abs(netBalance))}
-            </Text>
-            {!settled && (
-              <Text style={[s.heroCaption, { color: colors.text.tertiary }]}>
-                {isOwed
-                  ? `You've lent ${fmt(netBalance)} across groups`
-                  : `You need to pay back ${fmt(Math.abs(netBalance))}`}
+              <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }}>
+                Saved
               </Text>
-            )}
-            <View style={[s.heroDivider, { backgroundColor: colors.border.subtle }]} />
-            <View style={s.heroRow}>
-              <View style={s.heroMetric}>
-                <View style={[s.heroMetricIcon, { backgroundColor: `${colors.status.success}18` }]}>
-                  <Ionicons name="arrow-down" size={16} color={colors.status.success} />
-                </View>
-                <View>
-                  <Text style={[s.heroMetricLabel, { color: colors.text.tertiary }]}>Income</Text>
-                  <Text style={[s.heroMetricValue, { color: colors.status.success }]}>
-                    {fmtShort(monthlyIncome)}
-                  </Text>
-                </View>
-              </View>
-              <View style={[s.heroMetricDivider, { backgroundColor: colors.border.subtle }]} />
-              <View style={s.heroMetric}>
-                <View style={[s.heroMetricIcon, { backgroundColor: `${colors.status.error}18` }]}>
-                  <Ionicons name="arrow-up" size={16} color={colors.status.error} />
-                </View>
-                <View>
-                  <Text style={[s.heroMetricLabel, { color: colors.text.tertiary }]}>Spent</Text>
-                  <Text style={[s.heroMetricValue, { color: colors.status.error }]}>
-                    {fmtShort(monthlySpent)}
-                  </Text>
-                </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Text style={{ fontSize: 18, fontWeight: '800', color: '#10B981' }}>
+                  {fmtShort(savings)}
+                </Text>
+                {savingsRate > 0 && (
+                  <View
+                    style={{
+                      paddingHorizontal: 8,
+                      paddingVertical: 3,
+                      borderRadius: 6,
+                      backgroundColor: `${savingsRate >= 30 ? '#10B981' : '#F59E0B'}15`,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        fontWeight: '700',
+                        color: savingsRate >= 30 ? '#10B981' : '#F59E0B',
+                      }}
+                    >
+                      {savingsRate.toFixed(0)}%
+                    </Text>
+                  </View>
+                )}
               </View>
             </View>
           </View>
-        </Animated.View>
+        </View>
 
-        {/* ── Upcoming Reminders ────────────────────── */}
-        {reminders.length > 0 && (
-          <Animated.View style={{ marginTop: 24, opacity: fadeAnim }}>
+        {/* ─── SECTION 6: SPACES ─── */}
+        {spaces.length > 0 && (
+          <View style={{ marginTop: 28 }}>
             <View
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 paddingHorizontal: 20,
-                marginBottom: 10,
+                marginBottom: 12,
               }}
             >
-              <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Upcoming</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Reminders')}>
-                <Text style={{ fontSize: 13, fontWeight: '600', color: colors.accent.primary }}>
-                  See All
-                </Text>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
+                Spaces
+              </Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Spaces')}>
+                <Text style={{ fontSize: 13, fontWeight: '600', color: BRAND }}>See All</Text>
               </TouchableOpacity>
             </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }}
-            >
-              {reminders.map((r, i) => {
-                const remDate = new Date(r.dueDate || r.date);
-                const isOverdue = remDate < new Date() && r.status !== 'completed';
-                const day = remDate.getDate();
-                const month = remDate.toLocaleDateString('en-IN', { month: 'short' });
+            <View style={{ paddingHorizontal: 20, gap: 10 }}>
+              {spaces.slice(0, 4).map((g: any) => {
+                const { owedToMe, iOwe, totalSpent, memberCount } = deriveGroupBalance(g, user?.id);
+                const isOwed = owedToMe > 0;
+                const owes = iOwe > 0;
+                const activeAmount = isOwed ? owedToMe : owes ? iOwe : 0;
+                const amtColor = isOwed ? '#10B981' : owes ? '#EF4444' : colors.text.tertiary;
+                const statusLabel = isOwed ? 'You are owed' : owes ? 'You owe' : 'Settled';
                 return (
                   <TouchableOpacity
-                    key={r.id || i}
-                    style={[
-                      s.reminderCard,
-                      { backgroundColor: colors.bg.card, borderColor: colors.border.default },
-                    ]}
+                    key={g.id}
                     activeOpacity={0.7}
-                    onPress={() =>
-                      navigation.navigate('Reminders', {
-                        screen: 'ReminderDetail',
-                        params: { id: r.id },
-                      })
-                    }
+                    onPress={() => {
+                      if (g.type === 'couple') {
+                        navigation.navigate('CoupleFinance', { groupId: g.id, groupName: g.name });
+                      } else if (g.type === 'family') {
+                        navigation.navigate('FamilyDashboard', {
+                          groupId: g.id,
+                          groupName: g.name,
+                        });
+                      } else {
+                        navigation.navigate('SharedGroupDetail', {
+                          groupId: g.id,
+                          groupName: g.name,
+                        });
+                      }
+                    }}
+                    style={[page.spaceCard, { backgroundColor: colors.bg.card }]}
                   >
                     <View
-                      style={[
-                        s.reminderDate,
-                        {
-                          backgroundColor: isOverdue
-                            ? `${colors.status.error}15`
-                            : `${colors.accent.primary}12`,
-                        },
-                      ]}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
                     >
                       <Text
-                        style={[
-                          s.reminderDay,
-                          { color: isOverdue ? colors.status.error : colors.accent.primary },
-                        ]}
-                      >
-                        {day}
-                      </Text>
-                      <Text
-                        style={[
-                          s.reminderMonth,
-                          { color: isOverdue ? colors.status.error : colors.accent.primary },
-                        ]}
-                      >
-                        {month}
-                      </Text>
-                    </View>
-                    <View style={{ flex: 1, marginLeft: 10 }}>
-                      <Text
-                        style={[s.reminderTitle, { color: colors.text.primary }]}
+                        style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }}
                         numberOfLines={1}
                       >
-                        {r.title || r.name}
-                      </Text>
-                      <Text
-                        style={[s.reminderSub, { color: colors.text.tertiary }]}
-                        numberOfLines={1}
-                      >
-                        {r.category || r.type} {r.amount ? `· ${fmt(Number(r.amount))}` : ''}
-                      </Text>
-                    </View>
-                    {isOverdue && (
-                      <View style={[s.overdueDot, { backgroundColor: colors.status.error }]} />
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </Animated.View>
-        )}
-
-        {/* ── Quick Actions ─────────────────────────── */}
-        <Animated.View
-          style={{
-            flexDirection: 'row',
-            paddingHorizontal: 20,
-            marginTop: 24,
-            gap: 12,
-            opacity: fadeAnim,
-          }}
-        >
-          {quickActions.map((a) => (
-            <TouchableOpacity
-              key={a.label}
-              onPress={() => navigation.navigate(a.tab, { screen: a.route })}
-              style={{ flex: 1, alignItems: 'center', gap: 8 }}
-              activeOpacity={0.7}
-            >
-              <View
-                style={{
-                  width: 52,
-                  height: 52,
-                  borderRadius: 16,
-                  backgroundColor: `${a.color}12`,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Ionicons name={a.icon} size={24} color={a.color} />
-              </View>
-              <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.secondary }}>
-                {a.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </Animated.View>
-
-        {/* ── This Month Stats ──────────────────────── */}
-        <Animated.View style={{ paddingHorizontal: 20, marginTop: 32, opacity: fadeAnim }}>
-          <Text style={[s.sectionTitle, { color: colors.text.primary }]}>This Month</Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-            {statCards.map((card) => (
-              <TouchableOpacity
-                key={card.label}
-                style={[
-                  s.statCard,
-                  { backgroundColor: colors.bg.card, borderColor: colors.border.default },
-                ]}
-                activeOpacity={0.7}
-                onPress={() => {
-                  if (card.label === 'Groups') {
-                    navigation.navigate('Spaces');
-                  }
-                  if (card.label === 'Spent') {
-                    navigation.navigate('Settings', { screen: 'Reports' });
-                  }
-                }}
-              >
-                <View
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 }}
-                >
-                  <View style={[s.statIcon, { backgroundColor: card.bg }]}>
-                    <Ionicons name={card.icon} size={16} color={card.color} />
-                  </View>
-                  {card.label === 'Savings' && monthlyIncome > 0 && (
-                    <View style={[s.statSub, { backgroundColor: `${card.color}15` }]}>
-                      <Text style={{ fontSize: 11, fontWeight: '700', color: card.color }}>
-                        {savingsRate.toFixed(0)}%
-                      </Text>
-                    </View>
-                  )}
-                </View>
-                <Text style={[s.statLabel, { color: colors.text.tertiary }]}>{card.label}</Text>
-                <Text style={[s.statValue, { color: colors.text.primary }]}>{card.value}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </Animated.View>
-
-        {/* ── AI Insights ──────────────────────────── */}
-        <Animated.View style={{ paddingHorizontal: 20, marginTop: 16, opacity: fadeAnim }}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('AiHomeDashboard')}
-            style={[
-              s.aiBanner,
-              {
-                backgroundColor: isDark ? '#1A0A2E' : '#FEFCE8',
-                borderColor: isDark ? 'rgba(255,215,0,0.2)' : 'rgba(234,179,8,0.3)',
-              },
-            ]}
-            activeOpacity={0.8}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <View
-                style={[
-                  s.aiBannerIcon,
-                  { backgroundColor: isDark ? 'rgba(255,215,0,0.15)' : 'rgba(234,179,8,0.2)' },
-                ]}
-              >
-                <Ionicons name="sparkles" size={22} color={isDark ? '#FFD700' : '#A16207'} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[s.aiBannerTitle, { color: isDark ? '#FFD700' : '#713F12' }]}>
-                  AI Financial Insights
-                </Text>
-                <Text
-                  style={[
-                    s.aiBannerSub,
-                    { color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(113,63,18,0.6)' },
-                  ]}
-                >
-                  Smart analysis, spending patterns & savings tips
-                </Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={isDark ? 'rgba(255,215,0,0.5)' : 'rgba(113,63,18,0.4)'}
-              />
-            </View>
-          </TouchableOpacity>
-        </Animated.View>
-
-        {/* ── SMS Intelligence ──────────────────────── */}
-        <Animated.View style={{ paddingHorizontal: 20, marginTop: 16, opacity: fadeAnim }}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('SMS')}
-            style={[
-              s.aiBanner,
-              {
-                backgroundColor: isDark ? '#1A1A2E' : '#F0F9FF',
-                borderColor: isDark ? 'rgba(96,165,250,0.2)' : 'rgba(37,99,235,0.2)',
-              },
-            ]}
-            activeOpacity={0.8}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <View
-                style={[
-                  s.aiBannerIcon,
-                  { backgroundColor: isDark ? 'rgba(96,165,250,0.15)' : 'rgba(37,99,235,0.12)' },
-                ]}
-              >
-                <Ionicons
-                  name="chatbubble-ellipses"
-                  size={22}
-                  color={isDark ? '#60A5FA' : '#2563EB'}
-                />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[s.aiBannerTitle, { color: colors.text.primary }]}>
-                  SMS Intelligence
-                </Text>
-                <Text style={[s.aiBannerSub, { color: colors.text.tertiary }]}>
-                  Detect expenses from your SMS messages
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
-            </View>
-          </TouchableOpacity>
-        </Animated.View>
-
-        {/* ── Spending by Category ──────────────────── */}
-        {categories.length > 0 && (
-          <Animated.View style={{ paddingHorizontal: 20, marginTop: 32, opacity: fadeAnim }}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: 12,
-              }}
-            >
-              <Text style={[s.sectionTitle, { color: colors.text.primary }]}>
-                Spending by Category
-              </Text>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Settings', { screen: 'Reports' })}
-              >
-                <Text style={{ fontSize: 13, fontWeight: '600', color: colors.accent.primary }}>
-                  See All
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View style={{ gap: 3 }}>
-              {categories.slice(0, 5).map((cat, i) => {
-                const pct = monthlySpent > 0 ? (cat.amount / monthlySpent) * 100 : 0;
-                const cc = getCategoryColor(cat.name);
-                return (
-                  <View
-                    key={cat.name + i}
-                    style={[
-                      s.catRow,
-                      { backgroundColor: colors.bg.card, borderColor: colors.border.default },
-                    ]}
-                  >
-                    <View style={[s.catIcon, { backgroundColor: `${cc}15` }]}>
-                      <Ionicons name={getIcon(cat.name)} size={16} color={cc} />
-                    </View>
-                    <View style={{ flex: 1, marginLeft: 10 }}>
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                          marginBottom: 5,
-                        }}
-                      >
-                        <Text
-                          style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}
-                        >
-                          {cat.name}
-                        </Text>
-                        <Text
-                          style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}
-                        >
-                          {fmtShort(cat.amount)}
-                        </Text>
-                      </View>
-                      <View style={[s.catBarOuter, { backgroundColor: colors.bg.tertiary }]}>
-                        <View
-                          style={[
-                            s.catBarFill,
-                            { width: `${Math.min(pct, 100)}%`, backgroundColor: cc },
-                          ]}
-                        />
-                      </View>
-                    </View>
-                  </View>
-                );
-              })}
-            </View>
-          </Animated.View>
-        )}
-
-        {/* ── Goals at a Glance ─────────────────────── */}
-        {goals.length > 0 && (
-          <Animated.View style={{ paddingHorizontal: 20, marginTop: 28, opacity: fadeAnim }}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: 12,
-              }}
-            >
-              <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Goals</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('GoalsList')}>
-                <Text style={{ fontSize: 13, fontWeight: '600', color: colors.accent.primary }}>
-                  See All
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View style={{ gap: 8 }}>
-              {goals.map((g, i) => {
-                const saved = Number(g.savedAmount || g.saved || 0);
-                const target = Number(g.targetAmount || g.target || 1);
-                const pct = Math.min((saved / target) * 100, 100);
-                return (
-                  <TouchableOpacity
-                    key={g.id || i}
-                    style={[
-                      s.goalRow,
-                      { backgroundColor: colors.bg.card, borderColor: colors.border.default },
-                    ]}
-                    activeOpacity={0.7}
-                    onPress={() => navigation.navigate('GoalDetail', { goalId: g.id })}
-                  >
-                    <View style={[s.goalCircle, { borderColor: `${colors.accent.primary}25` }]}>
-                      <Text style={[s.goalPct, { color: colors.accent.primary }]}>
-                        {pct.toFixed(0)}%
-                      </Text>
-                    </View>
-                    <View style={{ flex: 1, marginLeft: 12 }}>
-                      <Text style={[s.goalName, { color: colors.text.primary }]} numberOfLines={1}>
                         {g.name || g.title}
                       </Text>
-                      <Text style={[s.goalMeta, { color: colors.text.tertiary }]}>
-                        {fmtShort(saved)} of {fmtShort(target)}
-                      </Text>
-                      <View
-                        style={[
-                          s.goalBarOuter,
-                          { backgroundColor: colors.bg.tertiary, marginTop: 6 },
-                        ]}
-                      >
-                        <View
-                          style={[
-                            s.goalBarFill,
-                            { width: `${pct}%`, backgroundColor: colors.accent.primary },
-                          ]}
-                        />
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </Animated.View>
-        )}
-
-        {/* ── Recent Transactions ───────────────────── */}
-        <Animated.View style={{ paddingHorizontal: 20, marginTop: 32, opacity: fadeAnim }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: 12,
-            }}
-          >
-            <Text style={[s.sectionTitle, { color: colors.text.primary }]}>
-              Recent Transactions
-            </Text>
-            {recentTxns.length > 0 && (
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Expense', { screen: 'ExpenseHome' })}
-              >
-                <Text style={{ fontSize: 13, fontWeight: '600', color: colors.accent.primary }}>
-                  See All
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
-          {recentTxns.length > 0 ? (
-            <View style={{ gap: 4 }}>
-              {recentTxns.map((tx, i) => {
-                const isIncome = tx.type === 'income';
-                const amount = Number(tx.amount || 0);
-                const txColor = isIncome ? colors.status.success : colors.status.error;
-                const catName = tx.category?.name || tx.category_name || tx.category || 'Other';
-                const catColor = getCategoryColor(catName);
-                return (
-                  <TouchableOpacity
-                    key={tx.id || i}
-                    activeOpacity={0.7}
-                    onPress={() =>
-                      navigation.navigate('Expense', {
-                        screen: 'TransactionDetail',
-                        params: { transactionId: tx.id },
-                      })
-                    }
-                    style={[
-                      s.txRow,
-                      { backgroundColor: colors.bg.card, borderColor: colors.border.default },
-                    ]}
-                  >
-                    <View style={[s.txIcon, { backgroundColor: `${catColor}15` }]}>
-                      <Ionicons name={getIcon(catName)} size={18} color={catColor} />
-                    </View>
-                    <View style={{ flex: 1, marginLeft: 10 }}>
                       <Text
-                        style={{ fontSize: 14, fontWeight: '600', color: colors.text.primary }}
-                        numberOfLines={1}
+                        style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary }}
                       >
-                        {tx.description || tx.note || catName}
+                        {memberCount} member{memberCount > 1 ? 's' : ''}
                       </Text>
+                    </View>
+                    <View
+                      style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4, marginTop: 4 }}
+                    >
+                      {activeAmount > 0 ? (
+                        <>
+                          <Text
+                            style={{
+                              fontSize: 20,
+                              fontWeight: '800',
+                              color: amtColor,
+                              letterSpacing: -0.3,
+                            }}
+                          >
+                            ₹{Math.round(activeAmount).toLocaleString('en-IN')}
+                          </Text>
+                          <Text style={{ fontSize: 12, fontWeight: '500', color: amtColor }}>
+                            {statusLabel}
+                          </Text>
+                        </>
+                      ) : (
+                        <Text
+                          style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}
+                        >
+                          {totalSpent > 0 ? 'All settled up' : 'No activity'}
+                        </Text>
+                      )}
+                    </View>
+                    {totalSpent > 0 && (
                       <Text
                         style={{
                           fontSize: 11,
@@ -980,331 +1011,353 @@ export function HomeScreen() {
                           marginTop: 2,
                         }}
                       >
-                        {fmtDate(tx.date || tx.createdAt)}{' '}
-                        {tx.category?.name ? `· ${tx.category.name}` : ''}
+                        ₹{(totalSpent || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}{' '}
+                        total
                       </Text>
-                    </View>
-                    <Text style={{ fontSize: 15, fontWeight: '700', color: txColor }}>
-                      {isIncome ? '+' : '-'}
-                      {fmt(amount)}
-                    </Text>
+                    )}
                   </TouchableOpacity>
                 );
               })}
             </View>
-          ) : (
-            <View
-              style={[
-                s.emptyCard,
-                { backgroundColor: colors.bg.card, borderColor: colors.border.default },
-              ]}
-            >
-              <Ionicons name="receipt-outline" size={32} color={colors.text.tertiary} />
-              <Text style={[s.emptyTitle, { color: colors.text.secondary }]}>
-                No transactions yet
-              </Text>
-              <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>
-                Tap + to add your first expense or income
-              </Text>
-            </View>
-          )}
-        </Animated.View>
+          </View>
+        )}
 
-        {/* ── Today Feed ────────────────────────────── */}
-        <Animated.View style={{ paddingHorizontal: 20, marginTop: 28, opacity: fadeAnim }}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('TodayFeed')}
-            activeOpacity={0.7}
-            style={{
-              backgroundColor: `${colors.accent.primary}10`,
-              borderRadius: 20,
-              borderWidth: 1,
-              borderColor: `${colors.accent.primary}20`,
-              padding: 18,
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 14,
-            }}
-          >
-            <View
+        {/* ─── SECTION 7: UPCOMING ─── */}
+        {reminders.length > 0 && (
+          <View style={{ paddingHorizontal: 20, marginTop: 28 }}>
+            <Text
               style={{
-                width: 44,
-                height: 44,
-                borderRadius: 14,
-                backgroundColor: colors.accent.primary,
-                alignItems: 'center',
-                justifyContent: 'center',
+                fontSize: 16,
+                fontWeight: '700',
+                color: colors.text.primary,
+                marginBottom: 12,
               }}
             >
-              <Ionicons name="sparkles" size={22} color="#FFFFFF" />
+              Upcoming
+            </Text>
+            <View style={[page.upcomingCard, { backgroundColor: colors.bg.card }]}>
+              {reminders.slice(0, 4).map((r, i) => {
+                const due = daysUntil(r.dueDate || r.date);
+                const isOverdue = due === 'Overdue';
+                const amt = Number(r.amount || 0);
+                return (
+                  <TouchableOpacity
+                    key={r.id || i}
+                    activeOpacity={0.7}
+                    onPress={() =>
+                      navigation.navigate('Reminders', {
+                        screen: 'ReminderDetail',
+                        params: { id: r.id },
+                      })
+                    }
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 12,
+                      paddingVertical: 10,
+                    }}
+                  >
+                    <View style={{ width: 56, alignItems: 'center' }}>
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          fontWeight: '700',
+                          color: isOverdue ? '#EF4444' : colors.text.tertiary,
+                        }}
+                      >
+                        {due}
+                      </Text>
+                    </View>
+                    <View
+                      style={{
+                        width: 1,
+                        height: 24,
+                        backgroundColor: isOverdue ? '#EF4444' : colors.border.subtle,
+                      }}
+                    />
+                    <Text
+                      style={{
+                        flex: 1,
+                        fontSize: 14,
+                        fontWeight: '600',
+                        color: isOverdue ? '#EF4444' : colors.text.primary,
+                      }}
+                      numberOfLines={1}
+                    >
+                      {r.title || r.name}
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontWeight: '700',
+                        color: isOverdue ? '#EF4444' : colors.text.primary,
+                      }}
+                    >
+                      {fmt(amt)}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+              {reminders.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Reminders')}
+                  style={[page.seeAllBtn, { borderTopColor: colors.border.subtle }]}
+                >
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: BRAND }}>View All</Text>
+                  <Ionicons name="chevron-forward" size={14} color={BRAND} />
+                </TouchableOpacity>
+              )}
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
-                AI Today Feed
-              </Text>
-              <Text style={{ fontSize: 12, color: colors.text.tertiary, marginTop: 2 }}>
-                Your financial intelligence, updated every 6 hours
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.text.tertiary} />
-          </TouchableOpacity>
-        </Animated.View>
+          </View>
+        )}
 
         <View style={{ height: 40 }} />
       </ScrollView>
-
-      {/* AI FAB */}
-      <ReAnimated.View style={[s.aiFabWrap, aiPulseAnim]}>
-        <TouchableOpacity
-          activeOpacity={0.85}
-          onPress={() => navigation.navigate('AiHomeDashboard')}
-          style={s.aiFab}
-        >
-          <Ionicons name="sparkles" size={22} color="#0A0A0A" />
-        </TouchableOpacity>
-      </ReAnimated.View>
     </View>
   );
 }
 
-const s = StyleSheet.create({
+function HeroMonthRow({
+  label,
+  value,
+  color,
+  pct,
+  badge,
+}: {
+  label: string;
+  value: string;
+  color: string;
+  pct: number;
+  badge?: string;
+}) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+      <Text style={{ width: 50, fontSize: 12, fontWeight: '600', color: '#9CA3AF' }}>{label}</Text>
+      <View
+        style={{
+          flex: 1,
+          height: 6,
+          borderRadius: 3,
+          backgroundColor: `${color}18`,
+          overflow: 'hidden',
+        }}
+      >
+        <View
+          style={{
+            width: `${Math.min(pct, 100)}%`,
+            height: '100%',
+            borderRadius: 3,
+            backgroundColor: color,
+          }}
+        />
+      </View>
+      <Text style={{ fontSize: 13, fontWeight: '700', color, minWidth: 60, textAlign: 'right' }}>
+        {value}
+      </Text>
+      {badge && (
+        <View
+          style={{
+            paddingHorizontal: 6,
+            paddingVertical: 2,
+            borderRadius: 4,
+            backgroundColor: `${color}15`,
+          }}
+        >
+          <Text style={{ fontSize: 10, fontWeight: '700', color }}>{badge}</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+function ObligationRow({
+  icon,
+  label,
+  value,
+  valueColor,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  value: string;
+  valueColor: string;
+}) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+      <Ionicons name={icon} size={14} color="#9CA3AF" />
+      <Text style={{ flex: 1, fontSize: 13, fontWeight: '500', color: '#9CA3AF' }}>{label}</Text>
+      <Text style={{ fontSize: 14, fontWeight: '700', color: valueColor }}>{value}</Text>
+    </View>
+  );
+}
+
+function MonthBar({
+  label,
+  value,
+  max,
+  color,
+  fmt: formatFn,
+}: {
+  label: string;
+  value: number;
+  max: number;
+  color: string;
+  fmt: (v: number) => string;
+}) {
+  const pct = max > 0 ? (value / max) * 100 : 0;
+  return (
+    <View style={{ marginBottom: 10 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+        <Text style={{ fontSize: 13, fontWeight: '600', color: '#9CA3AF' }}>{label}</Text>
+        <Text style={{ fontSize: 13, fontWeight: '700', color }}>{formatFn(value)}</Text>
+      </View>
+      <View
+        style={{ height: 8, borderRadius: 4, backgroundColor: `${color}15`, overflow: 'hidden' }}
+      >
+        <View
+          style={{
+            width: `${Math.min(pct, 100)}%`,
+            height: '100%',
+            borderRadius: 4,
+            backgroundColor: color,
+          }}
+        />
+      </View>
+    </View>
+  );
+}
+
+const page = StyleSheet.create({
   screen: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 8,
-  },
-  greeting: { fontSize: 14, fontWeight: '500' },
-  userName: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5, marginTop: 2 },
-  iconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-  },
-  avatarBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: { fontSize: 16, fontWeight: '700' },
   badge: {
     position: 'absolute',
-    top: -3,
-    right: -3,
-    minWidth: 16,
-    height: 16,
-    borderRadius: 8,
+    top: -2,
+    right: -2,
+    minWidth: 15,
+    height: 15,
+    borderRadius: 7.5,
     backgroundColor: '#FF4545',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 3,
   },
-  badgeText: { fontSize: 10, fontWeight: '700', color: '#FFF' },
-
-  errorCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    padding: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-  },
-  errorText: { fontSize: 13, fontWeight: '600', flex: 1 },
-
+  badgeText: { fontSize: 9, fontWeight: '700', color: '#FFF' },
   heroCard: {
     borderRadius: 24,
-    borderWidth: 1,
-    padding: 24,
+    padding: 22,
+    marginTop: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    elevation: 2,
   },
-  heroTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  heroLabel: { fontSize: 13, fontWeight: '600', letterSpacing: 0.3 },
-  heroBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  heroBadgeText: { fontSize: 11, fontWeight: '700' },
-  heroAmount: { fontSize: 38, fontWeight: '800', letterSpacing: -1.5, marginBottom: 4 },
-  heroCaption: { fontSize: 12, fontWeight: '500', marginBottom: 4 },
-  heroDivider: { height: 1, marginVertical: 18 },
-  heroRow: { flexDirection: 'row', alignItems: 'center' },
-  heroMetric: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  heroMetricIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 11,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heroMetricLabel: { fontSize: 11, fontWeight: '500', marginBottom: 1 },
-  heroMetricValue: { fontSize: 15, fontWeight: '700' },
-  heroMetricDivider: { width: 1, height: 34, marginHorizontal: 12 },
-
-  sectionTitle: { fontSize: 17, fontWeight: '700' },
-
-  reminderCard: {
-    width: SCREEN_W * 0.55,
-    flexDirection: 'row',
-    alignItems: 'center',
+  heroMonth: {
+    marginTop: 16,
+    borderRadius: 14,
     padding: 14,
-    borderRadius: 16,
-    borderWidth: 1,
+    gap: 10,
   },
-  reminderDate: {
-    width: 44,
-    height: 50,
-    borderRadius: 12,
+  safePill: {
+    marginTop: 14,
+    borderRadius: 14,
+    padding: 14,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 12,
   },
-  reminderDay: { fontSize: 16, fontWeight: '800' },
-  reminderMonth: { fontSize: 10, fontWeight: '600', marginTop: -1 },
-  reminderTitle: { fontSize: 14, fontWeight: '600' },
-  reminderSub: { fontSize: 11, fontWeight: '500', marginTop: 2 },
-  overdueDot: { width: 8, height: 8, borderRadius: 4, position: 'absolute', top: 10, right: 10 },
-
-  statCard: {
-    width: (SCREEN_W - 20 * 2 - 10) / 2,
+  quickAddCard: {
     borderRadius: 18,
-    borderWidth: 1,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  statIcon: {
-    width: 32,
-    height: 32,
+  quickAddInput: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '500',
+    paddingVertical: 0,
+  },
+  quickCat: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+  },
+  recentChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginRight: 6,
+  },
+  actionPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  insightCard: {
+    width: (W - 20 * 2 - 10 * 2) / 3,
+    borderRadius: 18,
+    padding: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  insightIcon: {
+    width: 36,
+    height: 36,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  statSub: { marginLeft: 'auto', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
-  statLabel: { fontSize: 11, fontWeight: '500', marginBottom: 2 },
-  statValue: { fontSize: 22, fontWeight: '800', letterSpacing: -0.3 },
-
-  catRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-  },
-  catIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 11,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  catBarOuter: { height: 4, borderRadius: 2, overflow: 'hidden' },
-  catBarFill: { height: '100%', borderRadius: 2 },
-
-  goalRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  goalCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 2.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  goalPct: { fontSize: 12, fontWeight: '800' },
-  goalName: { fontSize: 14, fontWeight: '600' },
-  goalMeta: { fontSize: 11, fontWeight: '500', marginTop: 1 },
-  goalBarOuter: { height: 4, borderRadius: 2, overflow: 'hidden' },
-  goalBarFill: { height: '100%', borderRadius: 2 },
-
-  txRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  txIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 13,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  emptyCard: {
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 32,
-    borderRadius: 18,
-    borderWidth: 1,
-  },
-  emptyTitle: { fontSize: 15, fontWeight: '600' },
-  emptyDesc: { fontSize: 12, textAlign: 'center', paddingHorizontal: 24, lineHeight: 17 },
-
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 100,
-    width: 56,
-    height: 56,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
+  monthCard: {
+    borderRadius: 20,
+    padding: 18,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
     shadowRadius: 8,
-    elevation: 6,
+    elevation: 2,
   },
-  aiBanner: {
+  spaceCard: {
     borderRadius: 16,
-    borderWidth: 1,
+    padding: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  upcomingCard: {
+    borderRadius: 20,
     padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  aiBannerIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  seeAllBtn: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  aiBannerTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  aiBannerSub: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  aiFabWrap: {
-    position: 'absolute',
-    right: 20,
-    bottom: 96,
-    zIndex: 10,
-  },
-  aiFab: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: '#FFD700',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#FFD700',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
+    gap: 4,
+    paddingTop: 12,
+    marginTop: 4,
+    borderTopWidth: 1,
   },
 });

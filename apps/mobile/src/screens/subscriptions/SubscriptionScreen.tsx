@@ -1,16 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { api, setAccessToken } from '../../services/api';
+import { api, setAccessToken, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
@@ -30,15 +23,23 @@ export function SubscriptionScreen() {
 
   const loadData = useCallback(
     async (refresh = false) => {
-      if (refresh) {setRefreshing(true);}
-      else {setLoading(true);}
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      warmupBackend().catch(() => {});
+      if (refresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+      const settleTimer = setTimeout(() => setLoading(false), 3000);
       try {
-        if (accessToken) {setAccessToken(accessToken);}
         const res = await api.get<any>('/accounts/subscriptions');
         setData(res);
       } catch {
         /* noop */
       } finally {
+        clearTimeout(settleTimer);
         setLoading(false);
         setRefreshing(false);
       }
@@ -84,10 +85,7 @@ export function SubscriptionScreen() {
         />
       }
     >
-      <View
-        
-        style={[s.heroSection, { paddingTop: insets.top + 8 }]}
-      >
+      <View style={[s.heroSection, { paddingTop: insets.top + 8 }]}>
         <Text style={s.heroEyebrow}>Subscriptions</Text>
         <Text style={s.heroTitle}>Subscription Intelligence</Text>
         <Text style={s.heroSub}>
@@ -109,9 +107,7 @@ export function SubscriptionScreen() {
 
       {upcomingRenewals.length > 0 && (
         <View style={s.section}>
-          <Text style={[s.sectionTitle, { color: colors.text.primary }]}>
-            Upcoming Renewals
-          </Text>
+          <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Upcoming Renewals</Text>
           {upcomingRenewals.slice(0, 5).map((sub: any, i: number) => (
             <View key={sub.id || i} style={[s.subCard, { backgroundColor: colors.bg.secondary }]}>
               <View style={[s.subIcon, { backgroundColor: `${colors.status.warning}18` }]}>
@@ -125,12 +121,47 @@ export function SubscriptionScreen() {
                     : sub.daysUntilDue === 1
                       ? 'Due tomorrow'
                       : `Due in ${sub.daysUntilDue} days`}
-                  {' · '}{sub.frequency}
+                  {' · '}
+                  {sub.frequency}
                 </Text>
               </View>
               <Text style={[s.subAmount, { color: colors.text.primary }]}>{fmt(sub.amount)}</Text>
             </View>
           ))}
+        </View>
+      )}
+
+      {/* Potential Savings */}
+      {monthlyTotal > 0 && (
+        <View style={[s.savingsCard, { backgroundColor: colors.bg.secondary }]}>
+          <View style={s.savingsHeader}>
+            <Ionicons name="cash-outline" size={20} color="#00E676" />
+            <Text style={s.savingsTitle}>Potential Savings</Text>
+          </View>
+          <Text style={s.savingsAmount}>
+            ₹{(monthlyTotal * 0.15).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+          </Text>
+          <Text style={s.savingsDesc}>
+            15% of your monthly subscription spend could be saved by reviewing unused services
+          </Text>
+          <View style={s.savingsRow}>
+            <View style={s.savingsStat}>
+              <Text style={s.savingsStatLabel}>Monthly</Text>
+              <Text style={[s.savingsStatValue, { color: colors.text.primary }]}>
+                {fmt(monthlyTotal)}
+              </Text>
+            </View>
+            <View style={s.savingsStat}>
+              <Text style={s.savingsStatLabel}>Yearly</Text>
+              <Text style={[s.savingsStatValue, { color: colors.text.primary }]}>
+                {fmt(yearlyTotal)}
+              </Text>
+            </View>
+            <View style={s.savingsStat}>
+              <Text style={s.savingsStatLabel}>Active</Text>
+              <Text style={[s.savingsStatValue, { color: '#00E676' }]}>{activeCount}</Text>
+            </View>
+          </View>
         </View>
       )}
 
@@ -172,6 +203,39 @@ export function SubscriptionScreen() {
           ))}
         </View>
       )}
+
+      {/* Common Subscriptions */}
+      <View style={s.section}>
+        <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Common Subscriptions</Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          {[
+            { name: 'Netflix', icon: 'tv' },
+            { name: 'Amazon Prime', icon: 'cart' },
+            { name: 'Spotify', icon: 'musical-notes' },
+            { name: 'Hotstar', icon: 'film' },
+            { name: 'YouTube Premium', icon: 'logo-youtube' },
+            { name: 'ChatGPT', icon: 'chatbubbles' },
+            { name: 'Google One', icon: 'cloud' },
+            { name: 'iCloud', icon: 'cloud' },
+            { name: 'Zomato Pro', icon: 'pizza' },
+            { name: 'Swiggy One', icon: 'bicycle' },
+          ].map((item) => (
+            <TouchableOpacity
+              key={item.name}
+              style={[
+                s.templateChip,
+                { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+              ]}
+              activeOpacity={0.7}
+            >
+              <Ionicons name={item.icon as any} size={14} color={colors.accent.primary} />
+              <Text style={[s.templateChipText, { color: colors.text.secondary }]}>
+                {item.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
 
       {activeCount === 0 && upcomingRenewals.length === 0 && (
         <View style={s.emptyState}>
@@ -252,4 +316,44 @@ const s = StyleSheet.create({
   emptyState: { alignItems: 'center', paddingTop: 80, gap: 12 },
   emptyTitle: { fontSize: 18, fontWeight: '700' },
   emptyDesc: { fontSize: 13, textAlign: 'center', paddingHorizontal: 40 },
+  savingsCard: {
+    marginHorizontal: 20,
+    marginTop: 24,
+    borderRadius: 20,
+    padding: 20,
+  },
+  savingsHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
+  savingsTitle: { fontSize: 16, fontWeight: '700', color: '#FFF' },
+  savingsAmount: {
+    fontSize: 36,
+    fontWeight: '800',
+    color: '#00E676',
+    letterSpacing: -1,
+    marginBottom: 6,
+  },
+  savingsDesc: { fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 16, marginBottom: 16 },
+  savingsRow: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 14,
+    padding: 14,
+  },
+  savingsStat: { flex: 1, alignItems: 'center' },
+  savingsStatLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.5)',
+    marginBottom: 2,
+  },
+  savingsStatValue: { fontSize: 18, fontWeight: '800' },
+  templateChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  templateChipText: { fontSize: 12, fontWeight: '600' },
 });

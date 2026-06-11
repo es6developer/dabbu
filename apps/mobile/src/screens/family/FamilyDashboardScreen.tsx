@@ -80,19 +80,25 @@ export function FamilyDashboardScreen() {
                 </View>
                 <Text style={[styles.actionLabel, { color: colors.text.tertiary }]}>Chat</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.action}>
+              <TouchableOpacity
+                style={styles.action}
+                onPress={() => navigation.navigate('TasksList')}
+              >
                 <View style={[styles.actionIcon, { backgroundColor: `${colors.status.info}15` }]}>
                   <Ionicons name="checkbox" size={18} color={colors.status.info} />
                 </View>
                 <Text style={[styles.actionLabel, { color: colors.text.tertiary }]}>Tasks</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.action}>
+              <TouchableOpacity
+                style={styles.action}
+                onPress={() => navigation.navigate('CreateTask')}
+              >
                 <View
                   style={[styles.actionIcon, { backgroundColor: `${colors.status.warning}15` }]}
                 >
                   <Ionicons name="alarm" size={18} color={colors.status.warning} />
                 </View>
-                <Text style={[styles.actionLabel, { color: colors.text.tertiary }]}>Reminders</Text>
+                <Text style={[styles.actionLabel, { color: colors.text.tertiary }]}>New Task</Text>
               </TouchableOpacity>
             </View>
           </View>

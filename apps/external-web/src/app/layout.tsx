@@ -3,6 +3,7 @@ import { Toaster } from 'sonner';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from '@/lib/auth-context';
 import { LoadingProvider } from '@/components/loaders';
+import { ThemeProvider as ThemeContextProvider } from '@/lib/theme-context';
 import './globals.css';
 
 const GOOGLE_CLIENT_ID =
@@ -48,7 +49,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
           <AuthProvider>
             <LoadingProvider>
-              <ThemeProvider>{children}</ThemeProvider>
+              <ThemeContextProvider>
+                <BackgroundGradient>{children}</BackgroundGradient>
+              </ThemeContextProvider>
             </LoadingProvider>
           </AuthProvider>
         </GoogleOAuthProvider>
@@ -67,10 +70,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   );
 }
 
-function ThemeProvider({ children }: { children: React.ReactNode }) {
+function BackgroundGradient({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative min-h-screen">
-      <div className="fixed inset-0 bg-gradient-radial from-dabbu-accent/3 via-transparent to-transparent pointer-events-none" />
+    <div style={{ minHeight: '100vh', position: 'relative' }}>
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundImage: 'radial-gradient(circle, rgba(139,92,246,0.03) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }}
+      />
       {children}
     </div>
   );

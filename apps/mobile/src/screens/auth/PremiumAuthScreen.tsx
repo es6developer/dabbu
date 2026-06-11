@@ -606,7 +606,9 @@ export function PremiumAuthScreen() {
 
       if (!registerRes.ok) {
         const err = await registerRes.json().catch(() => ({}));
-        throw new Error(err?.message?.[0] || err?.message || 'Registration failed');
+        throw new Error(
+          Array.isArray(err?.message) ? err?.message[0] : err?.message || 'Registration failed',
+        );
       }
 
       const registerJson = await registerRes.json();

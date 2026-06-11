@@ -164,77 +164,34 @@ export function TodayFeedScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [isLocal, setIsLocal] = useState(false);
 
+  const fetchData = useCallback(async (accessTokenValue: string) => {
+    try {
+      const generated = await generateFeedFromRealData(accessTokenValue);
+      setFeed(generated.feed);
+      setSummary(generated.summary);
+    } catch {
+      setFeed([]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
   const loadData = useCallback(
-    async (refresh = false) => {
-      if (accessToken) {
-        setAccessToken(accessToken);
+    (refresh = false) => {
+      const token = accessToken || '';
+      if (token) {
+        setAccessToken(token);
       }
       if (refresh) {
         setRefreshing(true);
       } else {
         setLoading(true);
       }
-      setIsLocal(false);
-
-      try {
-        const [feedRes, summaryRes] = await Promise.allSettled([
-          api.get<any>('/ai/today-feed'),
-          api.get<any>('/ai/feed-summary'),
-        ]);
-
-        let apiFeed: FeedCard[] = [];
-        if (feedRes.status === 'fulfilled') {
-          const f = feedRes.value?.feed ?? feedRes.value?.data?.feed ?? [];
-          if (Array.isArray(f)) {
-            apiFeed = f.map((c: any) => ({
-              id: c.id,
-              type: c.type ?? 'spending_insight',
-              priority: c.priority ?? 'medium',
-              title: c.title ?? '',
-              message: c.message ?? '',
-              impactValue: c.impactValue ?? null,
-              confidenceScore: c.confidenceScore ?? null,
-              category: c.category ?? 'spending',
-              actionType: c.actionType ?? null,
-              actionPayload: c.actionPayload ?? null,
-              isRead: c.isRead ?? false,
-              createdAt: c.createdAt ?? new Date().toISOString(),
-            }));
-          }
-        }
-
-        let apiSummary: FeedSummary | null = null;
-        if (summaryRes.status === 'fulfilled') {
-          const s = summaryRes.value?.data ?? summaryRes.value;
-          if (s && typeof s.totalInsightsToday === 'number') {
-            apiSummary = s;
-          }
-        }
-
-        if (apiFeed.length > 0) {
-          setFeed(apiFeed);
-          setSummary(apiSummary);
-        } else {
-          const generated = await generateFeedFromRealData(accessToken || '');
-          setFeed(generated.feed);
-          setSummary(generated.summary);
-          setIsLocal(true);
-        }
-      } catch {
-        try {
-          const generated = await generateFeedFromRealData(accessToken || '');
-          setFeed(generated.feed);
-          setSummary(generated.summary);
-          setIsLocal(true);
-        } catch {
-          setFeed([]);
-        }
-      } finally {
-        setLoading(false);
-        setRefreshing(false);
-      }
+      setIsLocal(true);
+      fetchData(token);
     },
-    [accessToken],
+    [accessToken, fetchData],
   );
 
   useFocusEffect(

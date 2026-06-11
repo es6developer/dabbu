@@ -19,6 +19,7 @@ const nextConfig = {
       },
     ],
   },
+  transpilePackages: ['react-native-web'],
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
@@ -28,6 +29,10 @@ const nextConfig = {
         crypto: require.resolve('crypto-browserify'),
       };
     }
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'react-native$': 'react-native-web',
+    };
     return config;
   },
   async headers() {

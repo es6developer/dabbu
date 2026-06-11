@@ -7,7 +7,7 @@
   <title>Features — Dabbu | Know Where Your Money Goes</title>
   <meta name="description" content="Explore all Dabbu features: expense tracking, OCR bill scanner, budget planning, split expenses, shared spaces, smart reminders, analytics, and more.">
   <link rel="canonical" href="https://dabbu.app/features.html">
-  <meta name="theme-color" content="#f7892c">
+  <meta name="theme-color" content="#8B5CF6">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -17,37 +17,40 @@
       theme: {
         extend: {
           fontFamily: { display: ['Poppins', 'Inter', 'system-ui', 'sans-serif'], sans: ['Inter', 'system-ui', 'sans-serif'] },
-          colors: { brand: { 50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa', 300: '#fdba74', 400: '#fb923c', 500: '#f97316', 600: '#ea580c', 700: '#c2410c', DEFAULT: '#f7892c' }, ink: '#11231a', muted: '#5c6b63' },
+          colors: { brand: { 50: '#F5F3FF', 100: '#EDE9FE', 200: '#DDD6FE', 300: '#C4B5FD', 400: '#A78BFA', 500: '#8B5CF6', 600: '#7C3AED', 700: '#6D28D9', DEFAULT: '#8B5CF6' }, ink: '#0F172A', muted: '#64748B' },
         },
       },
     };
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
-    :root { --brand: #f7892c; --brand-deep: #c2410c; --brand-mist: rgba(247,137,44,0.12); --brand-line: rgba(247,137,44,0.22); --ink: #11231a; --muted: #5c6b63; --line: rgba(17,35,26,0.08); }
+    :root { --brand: #8B5CF6; --brand-deep: #7C3AED; --brand-mist: rgba(139,92,246,0.12); --brand-line: rgba(139,92,246,0.22); --ink: #0F172A; --muted: #64748B; --line: rgba(15,23,42,0.08); }
+    .text-brand-deep { color: var(--brand-deep); }
+    .bg-brand-mist { background: var(--brand-mist); }
+    .text-brand { color: var(--brand); }
     html { scroll-behavior: smooth; }
     .marketing-nav { background: rgba(255,255,255,0.94); border-bottom: 1px solid var(--line); }
     .marketing-button { transition: transform 180ms ease, box-shadow 180ms ease; }
     .marketing-button:hover { transform: translateY(-1px); }
-    .marketing-logo-mark { box-shadow: 0 6px 14px rgba(247,137,44,0.2); }
+    .marketing-logo-mark { box-shadow: 0 6px 14px rgba(139,92,246,0.2); }
     .marketing-menu-button { display: inline-flex; align-items: center; justify-content: center; width: 2.9rem; height: 2.9rem; border-radius: 9999px; border: 1px solid var(--line); background: rgba(255,255,255,0.88); color: var(--ink); transition: all 180ms ease; }
-    .marketing-menu-button:hover { border-color: rgba(17,35,26,0.22); background: white; }
+    .marketing-menu-button:hover { border-color: rgba(15,23,42,0.22); background: white; }
     .marketing-nav-backdrop { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.3s ease, visibility 0.3s ease; }
     .marketing-nav-backdrop.is-open { opacity: 1; visibility: visible; pointer-events: auto; }
     .marketing-nav-drawer { transform: translateX(100%); pointer-events: none; transition: transform 0.32s cubic-bezier(0.32,0.72,0,1); }
     .marketing-nav-drawer.is-open { transform: translateX(0); pointer-events: auto; }
     .marketing-menu-link { display: block; border-radius: 0.75rem; padding: 0.75rem 0.9rem; color: var(--ink); transition: background-color 180ms ease, color 180ms ease; }
     .marketing-menu-link:hover { background: var(--brand-mist); color: var(--brand-deep); }
-    .page-hero { background: linear-gradient(180deg, rgba(247,137,44,0.98), rgba(247,137,44,0.9) 50%, rgba(251,180,100,0.5)); }
+    .page-hero { background: linear-gradient(180deg, rgba(139,92,246,0.98), rgba(139,92,246,0.9) 50%, rgba(251,180,100,0.5)); }
     .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2,0.8,0.2,1); }
     .reveal.visible { opacity: 1; transform: translateY(0); }
     .reveal-scale { opacity: 0; transform: scale(0.92); transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.2,0.8,0.2,1); }
     .reveal-scale.visible { opacity: 1; transform: scale(1); }
     .feature-card { border: 1px solid var(--line); background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,250,243,0.98)); box-shadow: 0 22px 60px rgba(15,23,42,0.06); transition: all 0.35s ease; }
     .feature-card:hover { transform: translateY(-4px); box-shadow: 0 28px 70px rgba(15,23,42,0.1); }
-    .phone-mock { width: min(200px, 50vw); aspect-ratio: 9/19; border-radius: 30px; padding: 6px; background: linear-gradient(160deg, #5a6980, #0b0d13 40%, #f7892c); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.15), 0 20px 50px rgba(0,0,0,0.25); position: relative; }
+    .phone-mock { width: min(200px, 50vw); aspect-ratio: 9/19; border-radius: 30px; padding: 6px; background: linear-gradient(160deg, #5a6980, #0b0d13 40%, #8B5CF6); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.15), 0 20px 50px rgba(0,0,0,0.25); position: relative; }
     .phone-mock::before { content: ''; position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 64px; height: 18px; border-radius: 0 0 14px 14px; background: #05070b; z-index: 5; }
-    .phone-screen { position: relative; height: 100%; overflow: hidden; border-radius: 24px; border: 1px solid rgba(255,255,255,0.08); background: radial-gradient(circle at 80% 0%, rgba(247,137,44,0.35), transparent 40%), linear-gradient(180deg, #171d28, #07090e); color: white; }
+    .phone-screen { position: relative; height: 100%; overflow: hidden; border-radius: 24px; border: 1px solid rgba(255,255,255,0.08); background: radial-gradient(circle at 80% 0%, rgba(139,92,246,0.35), transparent 40%), linear-gradient(180deg, #171d28, #07090e); color: white; }
     .feature-detail { border: 1px solid var(--line); border-radius: 1.5rem; background: rgba(255,255,255,0.98); box-shadow: 0 20px 48px rgba(15,23,42,0.06); }
     .marketing-input { border: 1px solid var(--line) !important; border-radius: 1rem; padding: 0.95rem 1rem; background: rgba(255,255,255,0.94); }
     .marketing-input:focus { outline: none; border-color: var(--brand) !important; box-shadow: 0 0 0 4px var(--brand-mist); }
@@ -61,7 +64,7 @@
   <div class="marketing-nav sticky top-0 z-50">
     <div class="max-w-7xl mx-auto flex items-center justify-between gap-4 px-6 py-4">
       <a href="index.html" class="flex items-center gap-3">
-        <div class="marketing-logo-mark flex h-12 w-12 items-center justify-center rounded-md bg-brand text-2xl font-bold text-white font-display">D</div>
+        <div class="marketing-logo-mark flex h-12 w-12 items-center justify-center rounded-md bg-purple-600 text-2xl font-bold text-white font-display">D</div>
         <div>
           <p class="text-xl font-semibold tracking-tight text-ink font-display">Dabbu</p>
           <p class="hidden text-xs font-light lowercase tracking-[0.06em] text-muted sm:block">Know where your money goes</p>
@@ -82,10 +85,10 @@
 
   <!-- Mobile drawer -->
   <div class="marketing-nav-backdrop fixed inset-0 z-[100] bg-slate-900/45" data-nav-backdrop></div>
-  <div class="marketing-nav-drawer fixed inset-y-0 right-0 z-[110] flex h-[100dvh] w-full max-w-sm flex-col border-l border-[rgba(17,35,26,0.08)] bg-[rgba(255,255,255,0.98)] shadow-2xl" data-nav-menu role="dialog" aria-modal="true">
-    <div class="flex items-center justify-between border-b border-[rgba(17,35,26,0.08)] px-4 py-3">
+  <div class="marketing-nav-drawer fixed inset-y-0 right-0 z-[110] flex h-[100dvh] w-full max-w-sm flex-col border-l border-[rgba(15,23,42,0.08)] bg-[rgba(255,255,255,0.98)] shadow-2xl" data-nav-menu role="dialog" aria-modal="true">
+    <div class="flex items-center justify-between border-b border-[rgba(15,23,42,0.08)] px-4 py-3">
       <h2 class="text-base font-semibold text-ink font-display">Dabbu</h2>
-      <button type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-full text-ink hover:bg-[rgba(247,137,44,0.1)]" data-nav-close><i class="fa-solid fa-xmark text-lg"></i></button>
+      <button type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-full text-ink hover:bg-[rgba(139,92,246,0.1)]" data-nav-close><i class="fa-solid fa-xmark text-lg"></i></button>
     </div>
     <div class="flex flex-col overflow-y-auto p-4">
       <a href="index.html#contact" class="mb-5 inline-flex w-full items-center justify-center rounded-full bg-black px-5 py-3.5 text-sm font-semibold text-white shadow-lg">Get Dabbu</a>
@@ -113,15 +116,15 @@
   <!-- ─── QUICK STATS ─── -->
   <section class="relative z-10 -mt-10 px-6 pb-16">
     <div class="max-w-6xl mx-auto grid gap-4 sm:grid-cols-3">
-      <div class="reveal-scale bg-white rounded-2xl border border-[rgba(17,35,26,0.08)] p-6 text-center shadow-sm">
+      <div class="reveal-scale bg-white rounded-2xl border border-[rgba(15,23,42,0.08)] p-6 text-center shadow-sm">
         <p class="text-3xl font-black text-brand-deep">12</p>
         <p class="text-sm text-muted mt-1">Powerful Features</p>
       </div>
-      <div class="reveal-scale bg-white rounded-2xl border border-[rgba(17,35,26,0.08)] p-6 text-center shadow-sm" style="transition-delay:90ms">
+      <div class="reveal-scale bg-white rounded-2xl border border-[rgba(15,23,42,0.08)] p-6 text-center shadow-sm" style="transition-delay:90ms">
         <p class="text-3xl font-black text-brand-deep">99.9%</p>
         <p class="text-sm text-muted mt-1">Uptime Guarantee</p>
       </div>
-      <div class="reveal-scale bg-white rounded-2xl border border-[rgba(17,35,26,0.08)] p-6 text-center shadow-sm" style="transition-delay:180ms">
+      <div class="reveal-scale bg-white rounded-2xl border border-[rgba(15,23,42,0.08)] p-6 text-center shadow-sm" style="transition-delay:180ms">
         <p class="text-3xl font-black text-brand-deep">Free</p>
         <p class="text-sm text-muted mt-1">Start at ₹0</p>
       </div>
@@ -151,7 +154,7 @@
               <div class="mt-6 flex items-center justify-between"><span class="text-xs font-semibold text-white/50">Today</span><span class="text-xs text-white/30">Nov 15</span></div>
               <div class="mt-3 space-y-2">
                 <div class="flex items-center gap-3 rounded-xl bg-white/[.06] p-3">
-                  <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand/20 text-brand text-xs">☕</span>
+                  <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-600/20 text-purple-600 text-xs">☕</span>
                   <div class="flex-1 min-w-0"><p class="text-sm font-bold text-white">Cafe &amp; Snacks</p><p class="text-[10px] text-white/40">11:30 AM</p></div>
                   <p class="text-sm font-bold text-white">-₹240</p>
                 </div>
@@ -176,8 +179,8 @@
         <div class="order-last lg:order-first flex justify-center lg:justify-start">
           <div class="phone-mock phone-float" style="animation-delay:-2s">
             <div class="phone-screen p-4 flex flex-col items-center justify-center text-center">
-              <div class="mt-8 w-16 h-16 rounded-2xl bg-brand/20 flex items-center justify-center">
-                <i class="fa-solid fa-camera text-2xl text-brand"></i>
+              <div class="mt-8 w-16 h-16 rounded-2xl bg-purple-600/20 flex items-center justify-center">
+                <i class="fa-solid fa-camera text-2xl text-purple-600"></i>
               </div>
               <p class="mt-4 text-sm font-bold text-white">Scan Receipt</p>
               <p class="text-[10px] text-white/50 mt-1">Point camera at bill</p>
@@ -223,9 +226,9 @@
             <div class="phone-screen p-4">
               <div class="mt-6"><p class="text-xs font-semibold text-white/50">Monthly Budget</p><p class="text-2xl font-black text-white mt-1">₹40,000</p></div>
               <div class="mt-4 space-y-3">
-                <div><div class="flex justify-between text-xs"><span class="text-white/70">Food</span><span class="text-white">₹8,200 / ₹10,000</span></div><div class="mt-1 h-2 rounded-full bg-white/10"><div class="h-2 rounded-full bg-brand" style="width:82%"></div></div></div>
+                <div><div class="flex justify-between text-xs"><span class="text-white/70">Food</span><span class="text-white">₹8,200 / ₹10,000</span></div><div class="mt-1 h-2 rounded-full bg-white/10"><div class="h-2 rounded-full bg-purple-600" style="width:82%"></div></div></div>
                 <div><div class="flex justify-between text-xs"><span class="text-white/70">Transport</span><span class="text-white">₹3,100 / ₹5,000</span></div><div class="mt-1 h-2 rounded-full bg-white/10"><div class="h-2 rounded-full bg-green-400" style="width:62%"></div></div></div>
-                <div><div class="flex justify-between text-xs"><span class="text-white/70">Shopping</span><span class="text-white">₹4,800 / ₹6,000</span></div><div class="mt-1 h-2 rounded-full bg-white/10"><div class="h-2 rounded-full bg-brand" style="width:80%"></div></div></div>
+                <div><div class="flex justify-between text-xs"><span class="text-white/70">Shopping</span><span class="text-white">₹4,800 / ₹6,000</span></div><div class="mt-1 h-2 rounded-full bg-white/10"><div class="h-2 rounded-full bg-purple-600" style="width:80%"></div></div></div>
               </div>
             </div>
           </div>
@@ -245,11 +248,11 @@
                 </div>
                 <div class="flex items-center justify-between rounded-xl bg-white/[.06] p-3">
                   <div><p class="text-xs font-bold text-white">Priya</p><p class="text-[10px] text-white/40">Owes ₹2,800</p></div>
-                  <p class="text-xs text-brand">Pending</p>
+                  <p class="text-xs text-purple-600">Pending</p>
                 </div>
                 <div class="flex items-center justify-between rounded-xl bg-white/[.06] p-3">
                   <div><p class="text-xs font-bold text-white">Amit</p><p class="text-[10px] text-white/40">Owes ₹3,100</p></div>
-                  <p class="text-xs text-brand">Pending</p>
+                  <p class="text-xs text-purple-600">Pending</p>
                 </div>
               </div>
             </div>
@@ -287,7 +290,7 @@
               <div class="mt-6"><p class="text-xs font-semibold text-white/50">My Spaces</p></div>
               <div class="mt-3 space-y-2">
                 <div class="flex items-center gap-3 rounded-xl bg-white/[.06] p-3">
-                  <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand/20 text-brand text-xs">❤️</span>
+                  <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-600/20 text-purple-600 text-xs">❤️</span>
                   <div><p class="text-sm font-bold text-white">Couple</p><p class="text-[10px] text-white/40">Me &amp; Ananya</p></div>
                 </div>
                 <div class="flex items-center gap-3 rounded-xl bg-white/[.06] p-3">
@@ -310,7 +313,7 @@
           <div class="phone-mock phone-float" style="animation-delay:-5s">
             <div class="phone-screen p-4">
               <div class="mt-6 flex items-center gap-3">
-                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/20 text-brand"><i class="fa-solid fa-bell"></i></span>
+                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-600/20 text-purple-600"><i class="fa-solid fa-bell"></i></span>
                 <div><p class="text-sm font-bold text-white">Upcoming</p><p class="text-[10px] text-white/50">3 reminders today</p></div>
               </div>
               <div class="mt-4 space-y-2">
@@ -357,7 +360,7 @@
             <div class="phone-screen p-4">
               <div class="mt-6"><p class="text-xs font-semibold text-white/50">November</p><p class="text-lg font-bold text-white mt-1">₹28,900</p></div>
               <div class="mt-4 space-y-2">
-                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-brand"></span><span class="text-xs text-white/70 flex-1">Food</span><span class="text-xs text-white font-bold">38%</span></div>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-purple-600"></span><span class="text-xs text-white/70 flex-1">Food</span><span class="text-xs text-white font-bold">38%</span></div>
                 <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-400"></span><span class="text-xs text-white/70 flex-1">Transport</span><span class="text-xs text-white font-bold">22%</span></div>
                 <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-green-400"></span><span class="text-xs text-white/70 flex-1">Shopping</span><span class="text-xs text-white font-bold">18%</span></div>
                 <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-purple-400"></span><span class="text-xs text-white/70 flex-1">Bills</span><span class="text-xs text-white font-bold">22%</span></div>
@@ -376,7 +379,7 @@
               <div class="mt-3 space-y-3">
                 <div class="rounded-xl bg-white/[.06] p-3">
                   <div class="flex justify-between"><span class="text-xs font-bold text-white">Emergency Fund</span><span class="text-[10px] text-white/40">₹50,000</span></div>
-                  <div class="mt-2 h-2 rounded-full bg-white/10"><div class="h-2 rounded-full bg-brand" style="width:64%"></div></div>
+                  <div class="mt-2 h-2 rounded-full bg-white/10"><div class="h-2 rounded-full bg-purple-600" style="width:64%"></div></div>
                   <p class="text-[10px] text-white/50 mt-1">₹32,000 saved (64%)</p>
                 </div>
                 <div class="rounded-xl bg-white/[.06] p-3">
@@ -441,16 +444,16 @@
 
   <!-- ─── CTA ─── -->
   <section class="px-6 py-20 bg-gray-50/50">
-    <div class="max-w-4xl mx-auto relative overflow-hidden rounded-2xl border border-brand/10 bg-gradient-to-br from-brand/10 via-brand/5 to-transparent p-10 text-center sm:p-16">
-      <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_0%,rgba(247,137,44,0.15),transparent_50%)]"></div>
+    <div class="max-w-4xl mx-auto relative overflow-hidden rounded-2xl border border-purple-500/10 bg-gradient-to-br from-brand/10 via-brand/5 to-transparent p-10 text-center sm:p-16">
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_0%,rgba(139,92,246,0.15),transparent_50%)]"></div>
       <div class="relative">
-        <h2 class="reveal font-display text-3xl font-bold tracking-tight sm:text-5xl text-ink">Ready to take <span class="text-brand">control</span>?</h2>
+        <h2 class="reveal font-display text-3xl font-bold tracking-tight sm:text-5xl text-ink">Ready to take <span class="text-purple-600">control</span>?</h2>
         <p class="reveal mt-4 text-muted max-w-md mx-auto">Start managing your money smarter with all these features — free to begin.</p>
         <div class="reveal mt-8 flex flex-col justify-center gap-3 sm:flex-row">
           <a href="#" class="marketing-button inline-flex items-center justify-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-semibold text-white shadow-lg hover:bg-gray-900">
             Download App <i class="fa-solid fa-arrow-right"></i>
           </a>
-          <a href="index.html#pricing" class="marketing-button inline-flex items-center justify-center gap-2 rounded-full border border-[rgba(17,35,26,0.12)] px-6 py-3 text-sm font-semibold text-ink shadow-sm hover:bg-gray-50">
+          <a href="index.html#pricing" class="marketing-button inline-flex items-center justify-center gap-2 rounded-full border border-[rgba(15,23,42,0.12)] px-6 py-3 text-sm font-semibold text-ink shadow-sm hover:bg-gray-50">
             See Pricing
           </a>
         </div>
@@ -459,10 +462,10 @@
   </section>
 
   <!-- ─── FOOTER ─── -->
-  <footer class="border-t border-[rgba(17,35,26,0.08)] py-10 px-6">
+  <footer class="border-t border-[rgba(15,23,42,0.08)] py-10 px-6">
     <div class="max-w-6xl mx-auto flex flex-col justify-between gap-6 md:flex-row md:items-center">
       <div class="flex items-center gap-3">
-        <div class="flex h-10 w-10 items-center justify-center rounded-md bg-brand text-base font-bold text-white font-display">D</div>
+        <div class="flex h-10 w-10 items-center justify-center rounded-md bg-purple-600 text-base font-bold text-white font-display">D</div>
         <span class="font-display text-lg font-bold text-ink">Dabbu</span>
         <span class="text-sm text-muted ml-2">Know Where Your Money Goes.</span>
       </div>

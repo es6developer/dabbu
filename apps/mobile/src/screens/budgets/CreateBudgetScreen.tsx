@@ -40,7 +40,7 @@ export function CreateBudgetScreen() {
 
   async function loadCategories() {
     try {
-      const res = await api.get<any>('/accounts/categories');
+      const res = await api.get<any>('/categories');
       setCategories(res?.map((c: any) => c.name) || res || []);
     } catch (_e) {
       /* ignore */
@@ -62,7 +62,7 @@ export function CreateBudgetScreen() {
       setAccessToken(accessToken);
     }
     try {
-      await api.post('/accounts/budgets', {
+      await api.post('/budgets', {
         name: name.trim(),
         amount: Number(amount),
         period,

@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   TextInput,
+  StyleSheet,
   TouchableOpacity,
   ScrollView,
   Alert,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -14,6 +15,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { SplitSummaryCard } from '../../components/ui/SplitSummaryCard';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const { width: SCREEN_W } = Dimensions.get('window');
+const PURPLE = '#8B5CF6';
+const PURPLE_DARK = '#6D28D9';
 
 const SPLIT_METHODS = [
   { key: 'equal', label: 'Equal', icon: 'reorder-three-outline', desc: 'Split equally among all' },
@@ -33,7 +39,7 @@ interface RouteParams {
 export function SplitExpenseScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const routeMembers = (route.params as RouteParams)?.members || [];
 
@@ -78,225 +84,211 @@ export function SplitExpenseScreen() {
   }
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
+    <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
       <KeyboardAvoidingContainer>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: Math.max(40, insets.bottom + 40) }}
         >
-          <View
-            style={{
-              paddingTop: insets.top + 12,
-              paddingBottom: 20,
-              paddingHorizontal: 20,
-              backgroundColor: colors.bg.primary,
-            }}
+          {/* Header */}
+          <LinearGradient
+            colors={[PURPLE, PURPLE_DARK]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
           >
-            <View style={styles.headerRow}>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}>
-                <Ionicons name="arrow-back" size={22} color={colors.text.primary} />
-              </TouchableOpacity>
-              <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Split Bill</Text>
-              <View style={{ width: 32 }} />
+            <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
+              <View style={s.headerRow}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
+                  <Ionicons name="close" size={22} color="#FFF" />
+                </TouchableOpacity>
+                <Text style={s.headerTitle}>Split Bill</Text>
+                <View style={{ width: 34 }} />
+              </View>
+              <Text style={s.headerSub}>Split expenses between members</Text>
             </View>
-          </View>
+          </LinearGradient>
 
           <View style={{ padding: 20, gap: 16 }}>
+            {/* Split Name + Amount */}
             <View
               style={[
-                styles.summaryCard,
-                {
-                  backgroundColor: colors.bg.card,
-                  borderColor: colors.border.default,
-                  shadowColor: isDark ? '#000' : 'rgba(0,0,0,0.06)',
-                },
+                s.summaryCard,
+                { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
               ]}
             >
-              <Text style={[styles.label, { color: colors.text.secondary }]}>Split Name</Text>
-              <TextInput
-                style={[styles.nameInput, { color: colors.text.primary }]}
-                placeholder="Dinner Split"
-                placeholderTextColor={colors.text.tertiary}
-                value={expenseName}
-                onChangeText={setExpenseName}
-              />
-              <View style={[styles.divider, { backgroundColor: colors.border.subtle }]} />
-              <Text style={[styles.label, { color: colors.text.secondary }]}>Total Amount</Text>
-              <Text style={[styles.totalAmount, { color: colors.text.primary }]}>
-                ₹{totalAmount.toLocaleString('en-IN')}
-              </Text>
+              <View style={s.flexRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={[s.label, { color: colors.text.tertiary }]}>SPLIT NAME</Text>
+                  <TextInput
+                    style={[s.nameInput, { color: colors.text.primary }]}
+                    placeholder="Dinner at Olive Garden"
+                    placeholderTextColor={colors.text.tertiary}
+                    value={expenseName}
+                    onChangeText={setExpenseName}
+                  />
+                </View>
+              </View>
+              <View style={[s.divider, { backgroundColor: colors.border.subtle }]} />
+              <Text style={[s.label, { color: colors.text.tertiary }]}>TOTAL AMOUNT</Text>
+              <View style={s.amountRow}>
+                <Text style={[s.currencyLabel, { color: colors.text.tertiary }]}>₹</Text>
+                <TextInput
+                  style={[s.amountInput, { color: colors.text.primary }]}
+                  value={amount}
+                  onChangeText={setAmount}
+                  keyboardType="decimal-pad"
+                  placeholder="0.00"
+                  placeholderTextColor={colors.text.tertiary}
+                />
+              </View>
             </View>
 
+            {/* Members */}
             <View
               style={[
-                styles.card,
-                {
-                  backgroundColor: colors.bg.card,
-                  borderColor: colors.border.default,
-                  shadowColor: isDark ? '#000' : 'rgba(0,0,0,0.06)',
-                },
+                s.card,
+                { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
               ]}
             >
-              <Text style={[styles.cardTitle, { color: colors.text.primary }]}>Members</Text>
+              <Text style={[s.cardTitle, { color: colors.text.primary }]}>Members</Text>
               {routeMembers.length === 0 && (
                 <View style={{ gap: 8, marginBottom: 12 }}>
                   {manualMembers.map((name, i) => (
-                    <TextInput
+                    <View
                       key={i}
-                      style={[
-                        styles.nameInput,
-                        {
-                          color: colors.text.primary,
-                          borderBottomWidth: 1,
-                          borderBottomColor: colors.border.subtle,
-                        },
-                      ]}
-                      placeholder="Enter name"
-                      placeholderTextColor={colors.text.tertiary}
-                      value={name}
-                      onChangeText={(t) => {
-                        const next = [...manualMembers];
-                        next[i] = t;
-                        setManualMembers(next);
-                      }}
-                      onSubmitEditing={() => setManualMembers((prev) => [...prev, ''])}
-                    />
+                      style={[s.manualRow, { borderBottomColor: colors.border.subtle }]}
+                    >
+                      <TextInput
+                        style={[s.manualInput, { color: colors.text.primary }]}
+                        placeholder="Enter name"
+                        placeholderTextColor={colors.text.tertiary}
+                        value={name}
+                        onChangeText={(t) => {
+                          const next = [...manualMembers];
+                          next[i] = t;
+                          setManualMembers(next);
+                        }}
+                        onSubmitEditing={() => setManualMembers((prev) => [...prev, ''])}
+                      />
+                      <Ionicons name="person-circle" size={20} color={colors.text.tertiary} />
+                    </View>
                   ))}
                   <TouchableOpacity
                     onPress={() => setManualMembers((prev) => [...prev, ''])}
-                    style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+                    style={s.addBtn}
                   >
-                    <Ionicons name="add-circle-outline" size={18} color={colors.accent.primary} />
-                    <Text style={{ color: colors.accent.primary, fontSize: 13, fontWeight: '600' }}>
-                      Add member
-                    </Text>
+                    <Ionicons name="add-circle" size={16} color={PURPLE} />
+                    <Text style={[s.addBtnText, { color: PURPLE }]}>Add member</Text>
                   </TouchableOpacity>
                 </View>
               )}
-              <View style={styles.memberRow}>
-                {members.map((m) => (
-                  <TouchableOpacity
-                    key={m.id}
-                    style={[
-                      styles.memberChip,
-                      {
-                        borderColor: selectedMembers.includes(m.id)
-                          ? colors.accent.primary
-                          : colors.border.subtle,
-                        backgroundColor: selectedMembers.includes(m.id)
-                          ? `${colors.accent.primary}10`
-                          : 'transparent',
-                      },
-                    ]}
-                    onPress={() => toggleMember(m.id)}
-                  >
-                    <View style={[styles.memberAvatar, { backgroundColor: colors.bg.secondary }]}>
-                      <Text style={styles.memberAvatarText}>{m.name[0]}</Text>
-                    </View>
-                    <Text
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ gap: 8 }}
+              >
+                {members.map((m) => {
+                  const selected = selectedMembers.includes(m.id);
+                  return (
+                    <TouchableOpacity
+                      key={m.id}
                       style={[
-                        styles.memberName,
+                        s.memberChip,
                         {
-                          color: selectedMembers.includes(m.id)
-                            ? colors.accent.primary
-                            : colors.text.secondary,
+                          borderColor: selected ? PURPLE : colors.border.subtle,
+                          backgroundColor: selected ? `${PURPLE}12` : colors.bg.tertiary,
                         },
                       ]}
+                      onPress={() => toggleMember(m.id)}
                     >
-                      {m.name}
-                    </Text>
-                    {selectedMembers.includes(m.id) && (
-                      <Ionicons name="checkmark-circle" size={16} color={colors.accent.primary} />
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
+                      <View
+                        style={[
+                          s.avatar,
+                          { backgroundColor: selected ? PURPLE : colors.text.tertiary },
+                        ]}
+                      >
+                        <Text style={s.avatarText}>{m.name[0]}</Text>
+                      </View>
+                      <Text
+                        style={[s.memberName, { color: selected ? PURPLE : colors.text.secondary }]}
+                      >
+                        {m.name}
+                      </Text>
+                      {selected && <Ionicons name="checkmark-circle" size={14} color={PURPLE} />}
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
             </View>
 
-            <Text style={[styles.sectionLabel, { color: colors.text.primary }]}>Split Mode</Text>
-            <View style={styles.methodRow}>
-              {SPLIT_METHODS.map((m) => (
-                <TouchableOpacity
-                  key={m.key}
-                  style={[
-                    styles.methodCard,
-                    {
-                      borderColor:
-                        splitMethod === m.key ? colors.accent.primary : colors.border.subtle,
-                      backgroundColor:
-                        splitMethod === m.key ? colors.accent.primary : colors.bg.card,
-                    },
-                  ]}
-                  onPress={() => setSplitMethod(m.key)}
-                >
-                  <Ionicons
-                    name={m.icon as any}
-                    size={24}
-                    color={splitMethod === m.key ? '#FFF' : colors.text.secondary}
-                  />
-                  <Text
+            {/* Split Method */}
+            <Text style={[s.sectionLabel, { color: colors.text.primary }]}>Split Method</Text>
+            <View style={s.methodRow}>
+              {SPLIT_METHODS.map((m) => {
+                const active = splitMethod === m.key;
+                return (
+                  <TouchableOpacity
+                    key={m.key}
                     style={[
-                      styles.methodLabel,
-                      { color: splitMethod === m.key ? '#FFF' : colors.text.primary },
-                    ]}
-                  >
-                    {m.label}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.methodDesc,
+                      s.methodCard,
                       {
-                        color:
-                          splitMethod === m.key ? 'rgba(255,255,255,0.7)' : colors.text.tertiary,
+                        borderColor: active ? PURPLE : colors.border.subtle,
+                        backgroundColor: active ? PURPLE : colors.bg.card,
                       },
                     ]}
+                    onPress={() => setSplitMethod(m.key)}
                   >
-                    {m.desc}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                    <Ionicons
+                      name={m.icon as any}
+                      size={22}
+                      color={active ? '#FFF' : colors.text.secondary}
+                    />
+                    <Text style={[s.methodLabel, { color: active ? '#FFF' : colors.text.primary }]}>
+                      {m.label}
+                    </Text>
+                    <Text
+                      style={[
+                        s.methodDesc,
+                        { color: active ? 'rgba(255,255,255,0.7)' : colors.text.tertiary },
+                      ]}
+                    >
+                      {m.desc}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
 
+            {/* Paid By + Tax */}
             <View
               style={[
-                styles.card,
-                {
-                  backgroundColor: colors.bg.card,
-                  borderColor: colors.border.default,
-                  shadowColor: isDark ? '#000' : 'rgba(0,0,0,0.06)',
-                },
+                s.card,
+                { backgroundColor: colors.bg.card, borderColor: colors.border.subtle, gap: 0 },
               ]}
             >
-              <View style={styles.paidRow}>
-                <Ionicons name="person-outline" size={18} color={colors.text.secondary} />
-                <Text style={[styles.paidLabel, { color: colors.text.secondary }]}>Paid By</Text>
-                <TouchableOpacity
-                  style={[styles.paidValue, { backgroundColor: colors.bg.tertiary }]}
-                >
-                  <Text style={[styles.paidText, { color: colors.text.primary }]}>You</Text>
-                  <Ionicons name="chevron-down" size={14} color={colors.text.tertiary} />
+              <View style={s.infoRow}>
+                <Ionicons name="person-outline" size={16} color={colors.text.tertiary} />
+                <Text style={[s.infoLabel, { color: colors.text.secondary }]}>Paid By</Text>
+                <TouchableOpacity style={[s.pill, { backgroundColor: colors.bg.tertiary }]}>
+                  <Text style={[s.pillText, { color: colors.text.primary }]}>You</Text>
+                  <Ionicons name="chevron-down" size={12} color={colors.text.tertiary} />
                 </TouchableOpacity>
               </View>
-              <View style={[styles.divider, { backgroundColor: colors.border.subtle }]} />
-              <View style={styles.paidRow}>
-                <Ionicons name="receipt-outline" size={18} color={colors.text.secondary} />
-                <Text style={[styles.paidLabel, { color: colors.text.secondary }]}>
-                  Tax (Optional)
-                </Text>
-                <TouchableOpacity
-                  style={[styles.paidValue, { backgroundColor: colors.bg.tertiary }]}
-                >
-                  <Text style={[styles.paidText, { color: colors.text.tertiary }]}>None</Text>
-                  <Ionicons name="chevron-down" size={14} color={colors.text.tertiary} />
+              <View style={[s.divider, { backgroundColor: colors.border.subtle }]} />
+              <View style={s.infoRow}>
+                <Ionicons name="receipt-outline" size={16} color={colors.text.tertiary} />
+                <Text style={[s.infoLabel, { color: colors.text.secondary }]}>Tax & Tip</Text>
+                <TouchableOpacity style={[s.pill, { backgroundColor: colors.bg.tertiary }]}>
+                  <Text style={[s.pillText, { color: colors.text.tertiary }]}>None</Text>
+                  <Ionicons name="chevron-down" size={12} color={colors.text.tertiary} />
                 </TouchableOpacity>
               </View>
             </View>
 
+            {/* Split Preview */}
             {totalAmount > 0 && activeMembers.length > 0 && (
               <View>
-                <Text style={[styles.sectionLabel, { color: colors.text.primary }]}>
-                  Split Preview
-                </Text>
+                <Text style={[s.sectionLabel, { color: colors.text.primary }]}>Preview</Text>
                 <SplitSummaryCard
                   totalAmount={totalAmount}
                   members={activeMembers.map((m) => ({
@@ -311,18 +303,21 @@ export function SplitExpenseScreen() {
               </View>
             )}
 
+            {/* Confirm */}
             <TouchableOpacity
-              style={[
-                styles.createBtn,
-                { backgroundColor: colors.accent.primary, borderColor: colors.border.default },
-              ]}
               onPress={handleCreateSplit}
               activeOpacity={0.85}
+              style={{ marginTop: 4 }}
             >
-              <Ionicons name="swap-horizontal" size={18} color="#FFF" />
-              <Text style={[styles.createBtnText, { color: colors.text.primary }]}>
-                Confirm Split
-              </Text>
+              <LinearGradient
+                colors={[PURPLE, PURPLE_DARK]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={s.createGrad}
+              >
+                <Ionicons name="swap-horizontal" size={18} color="#FFF" />
+                <Text style={s.createText}>Confirm Split</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -331,66 +326,68 @@ export function SplitExpenseScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   root: { flex: 1 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
   backBtn: {
     width: 34,
     height: 34,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: { color: '#FFF', fontSize: 17, fontWeight: '700' },
+  headerTitle: { color: '#FFF', fontSize: 18, fontWeight: '700' },
+  headerSub: { color: 'rgba(255,255,255,0.6)', fontSize: 13 },
 
-  summaryCard: {
-    borderRadius: 20,
-    padding: 18,
-    borderWidth: 1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    elevation: 2,
+  summaryCard: { borderRadius: 20, padding: 18, borderWidth: 1, gap: 4 },
+  flexRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  label: { fontSize: 10, fontWeight: '700', letterSpacing: 0.5, marginBottom: 4 },
+  nameInput: { fontSize: 16, fontWeight: '700', paddingVertical: 2 },
+  divider: { height: StyleSheet.hairlineWidth, marginVertical: 10 },
+  amountRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  currencyLabel: { fontSize: 28, fontWeight: '300' },
+  amountInput: { fontSize: 32, fontWeight: '800', letterSpacing: -1, flex: 1, paddingVertical: 0 },
+
+  card: { borderRadius: 20, padding: 18, borderWidth: 1, gap: 12 },
+  cardTitle: { fontSize: 13, fontWeight: '700', marginBottom: 4 },
+
+  manualRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingBottom: 8,
   },
-  label: { fontSize: 11, fontWeight: '600', letterSpacing: 0.3, marginBottom: 6 },
-  nameInput: { fontSize: 16, fontWeight: '600', paddingVertical: 4 },
-  divider: { height: StyleSheet.hairlineWidth, marginVertical: 12 },
-  totalAmount: { fontSize: 32, fontWeight: '800', letterSpacing: -1 },
+  manualInput: { flex: 1, fontSize: 14, fontWeight: '600', paddingVertical: 4 },
+  addBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4 },
+  addBtnText: { fontSize: 13, fontWeight: '700' },
 
-  card: {
-    borderRadius: 20,
-    padding: 18,
-    gap: 10,
-    borderWidth: 1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    elevation: 2,
-  },
-  cardTitle: { fontSize: 14, fontWeight: '700' },
-
-  memberRow: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
   memberChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
   },
-  memberAvatar: {
+  avatar: {
     width: 28,
     height: 28,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  memberAvatarText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
+  avatarText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
   memberName: { fontSize: 13, fontWeight: '600' },
 
-  sectionLabel: { fontSize: 15, fontWeight: '700', marginTop: 4 },
+  sectionLabel: { fontSize: 14, fontWeight: '700' },
 
   methodRow: { flexDirection: 'row', gap: 10 },
   methodCard: {
@@ -400,17 +397,13 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 18,
     borderWidth: 1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 1,
   },
   methodLabel: { fontSize: 13, fontWeight: '700', textAlign: 'center' },
   methodDesc: { fontSize: 10, fontWeight: '500', textAlign: 'center', lineHeight: 14 },
 
-  paidRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  paidLabel: { fontSize: 13, fontWeight: '500', flex: 1 },
-  paidValue: {
+  infoRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10 },
+  infoLabel: { fontSize: 13, fontWeight: '500', flex: 1 },
+  pill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
@@ -418,18 +411,15 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 10,
   },
-  paidText: { fontSize: 13, fontWeight: '600' },
+  pillText: { fontSize: 13, fontWeight: '600' },
 
-  createBtn: {
-    borderRadius: 16,
-    borderWidth: 1,
+  createGrad: {
     flexDirection: 'row',
-    paddingVertical: 16,
+    paddingVertical: 18,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    marginTop: 4,
-    overflow: 'hidden',
+    borderRadius: 18,
   },
-  createBtnText: { fontSize: 16, fontWeight: '700' },
+  createText: { color: '#FFF', fontSize: 17, fontWeight: '700' },
 });

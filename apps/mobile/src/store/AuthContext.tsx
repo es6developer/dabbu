@@ -22,6 +22,7 @@ import {
   setRefreshTokenHandler,
   setOnSessionExpiredHandler,
   clearCache,
+  resetWarmup,
   api,
 } from '../services/api';
 import { registerForPushNotifications } from '../services/notifications';
@@ -108,7 +109,7 @@ function getStorage(): StorageInterface {
 
 async function authFetch(path: string, options: RequestInit = {}): Promise<Response> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 45000);
+  const timeout = setTimeout(() => controller.abort(), 90000);
   try {
     const merged = { ...options, signal: controller.signal };
     const url = `${API_URL}${path}`;
@@ -116,7 +117,7 @@ async function authFetch(path: string, options: RequestInit = {}): Promise<Respo
     return res;
   } catch (err: any) {
     if (err?.name === 'AbortError') {
-      throw new Error('Request timed out. Check your internet connection.');
+      throw new Error('Request timed out. The server may be starting up — please try again.');
     }
     throw new Error('Unable to reach server. Please check your internet connection or try again.');
   } finally {
@@ -314,7 +315,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           user: parsedUser,
           accessToken: token,
           isNewUser: false,
-          needsPhone: !parsedUser.phone,
+          needsPhone: false,
           isPremium: false,
         });
         resetSessionTimeout();
@@ -329,6 +330,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   function applyAuth(token: string, user: User, wasNewUser: boolean) {
+    clearCache();
+    resetWarmup();
     setAccessToken(token);
     const p = storage.current.setItem('accessToken', token);
     const p2 = storage.current.setItem('userData', JSON.stringify(user));
@@ -339,7 +342,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       accessToken: token,
       isNewUser: wasNewUser,
-      needsPhone: !user.phone,
+      needsPhone: false,
       isPremium: false,
     });
     resetSessionTimeout();
@@ -360,7 +363,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err?.message?.[0] || err?.message || 'Login failed');
+      throw new Error(
+        Array.isArray(err?.message) ? err?.message[0] : err?.message || 'Login failed',
+      );
     }
 
     const json = await res.json().catch(() => {
@@ -406,7 +411,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err?.message?.[0] || err?.message || 'Registration failed');
+      throw new Error(
+        Array.isArray(err?.message) ? err?.message[0] : err?.message || 'Registration failed',
+      );
     }
 
     const json = await res.json().catch(() => {
@@ -440,7 +447,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err?.message?.[0] || err?.message || 'Google sign-in failed');
+      throw new Error(
+        Array.isArray(err?.message) ? err?.message[0] : err?.message || 'Google sign-in failed',
+      );
     }
 
     const json = await res.json().catch(() => {
@@ -474,7 +483,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err?.message?.[0] || err?.message || 'Guest login failed');
+      throw new Error(
+        Array.isArray(err?.message) ? err?.message[0] : err?.message || 'Guest login failed',
+      );
     }
 
     const json = await res.json().catch(() => {
@@ -507,7 +518,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err?.message?.[0] || err?.message || 'Demo login failed');
+      throw new Error(
+        Array.isArray(err?.message) ? err?.message[0] : err?.message || 'Demo login failed',
+      );
     }
 
     const json = await res.json().catch(() => {
@@ -559,7 +572,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err?.message?.[0] || err?.message || 'Failed to save phone');
+      throw new Error(
+        Array.isArray(err?.message) ? err?.message[0] : err?.message || 'Failed to save phone',
+      );
     }
 
     const json = await res.json();

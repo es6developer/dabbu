@@ -67,11 +67,7 @@ export function SmartGoalCoachScreen() {
   const [goals, setGoals] = useState<GoalWithPrediction[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadData = useCallback(async () => {
-    if (accessToken) {
-      setAccessToken(accessToken);
-    }
-    setLoading(true);
+  const fetchData = useCallback(async () => {
     try {
       const res = await api.get<any>('/goals');
       const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
@@ -119,7 +115,15 @@ export function SmartGoalCoachScreen() {
     } finally {
       setLoading(false);
     }
-  }, [accessToken]);
+  }, []);
+
+  const loadData = useCallback(() => {
+    if (accessToken) {
+      setAccessToken(accessToken);
+    }
+    setLoading(true);
+    fetchData();
+  }, [accessToken, fetchData]);
 
   useFocusEffect(
     useCallback(() => {

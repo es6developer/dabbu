@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState, useEffect, useMemo } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -10,37 +10,34 @@ import {
   Platform,
   UIManager,
   ScrollView,
-  Switch,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
 import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
-import {
-  PremiumFormScreen,
-  PremiumInput,
-  PremiumActionButton,
-  PremiumError,
-  premiumFormStyles,
-} from '../../components/ui/PremiumForm';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const { width: SCREEN_W } = Dimensions.get('window');
+const PURPLE = '#8B5CF6';
+const PURPLE_DARK = '#6D28D9';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
 const ICONS = [
-  { key: 'people', label: 'People', color: '#14B8A6' },
-  { key: 'home', label: 'Home', color: '#34C759' },
-  { key: 'heart', label: 'Heart', color: '#FF6B9D' },
-  { key: 'star', label: 'Star', color: '#14B8A6' },
-  { key: 'briefcase', label: 'Work', color: '#4F6EF7' },
-  { key: 'cart', label: 'Cart', color: '#FF6B6B' },
-  { key: 'airplane', label: 'Travel', color: '#60A5FA' },
-  { key: 'restaurant', label: 'Food', color: '#F59E0B' },
+  { key: 'people', label: 'People', color: '#8B5CF6' },
+  { key: 'home', label: 'Home', color: '#10B981' },
+  { key: 'heart', label: 'Heart', color: '#EC4899' },
+  { key: 'star', label: 'Star', color: '#F59E0B' },
+  { key: 'briefcase', label: 'Work', color: '#3B82F6' },
+  { key: 'cart', label: 'Cart', color: '#F97316' },
+  { key: 'airplane', label: 'Travel', color: '#06B6D4' },
+  { key: 'restaurant', label: 'Food', color: '#F97316' },
   { key: 'car', label: 'Car', color: '#14B8A6' },
-  { key: 'fitness', label: 'Fitness', color: '#34C759' },
+  { key: 'fitness', label: 'Fitness', color: '#22C55E' },
 ];
 
 const COUNTRY_CODE = '+91';
@@ -56,10 +53,7 @@ export function CreateExpenseGroupScreen() {
   const [members, setMembers] = useState<string[]>(['']);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [pullRecurring, setPullRecurring] = useState(false);
-  const [recurringTx, setRecurringTx] = useState<any[]>([]);
-  const [selectedRecurring, setSelectedRecurring] = useState<Set<string>>(new Set());
-  const [loadingRecurring, setLoadingRecurring] = useState(false);
+
   const inputsRef = useRef<(TextInput | null)[]>([]);
   const searchTimeoutRef = useRef<{ [key: number]: ReturnType<typeof setTimeout> }>({});
   const [searchResults, setSearchResults] = useState<{ [key: number]: any[] }>({});
@@ -67,9 +61,9 @@ export function CreateExpenseGroupScreen() {
   const updateMember = useCallback((index: number, value: string) => {
     const digits = value.replace(/[^0-9]/g, '');
     setMembers((prev) => {
-      const next = [...prev];
-      next[index] = digits;
-      return next;
+      const n = [...prev];
+      n[index] = digits;
+      return n;
     });
     if (searchTimeoutRef.current[index]) {
       clearTimeout(searchTimeoutRef.current[index]);
@@ -78,8 +72,10 @@ export function CreateExpenseGroupScreen() {
       searchTimeoutRef.current[index] = setTimeout(async () => {
         try {
           const res = await api.get<any>(`/users/search?query=${COUNTRY_CODE}${digits}`);
-          const users = Array.isArray(res) ? res : res?.data || [];
-          setSearchResults((prev) => ({ ...prev, [index]: users }));
+          setSearchResults((prev) => ({
+            ...prev,
+            [index]: Array.isArray(res) ? res : res?.data || [],
+          }));
         } catch {
           setSearchResults((prev) => ({ ...prev, [index]: [] }));
         }
@@ -132,55 +128,15 @@ export function CreateExpenseGroupScreen() {
 
   const isValidPhone = (phone: string) => phone.length === 10;
 
-  useEffect(() => {
-    if (pullRecurring && recurringTx.length === 0 && !loadingRecurring) {
-      loadRecurringTransactions();
-    }
-  }, [pullRecurring]);
-
-  async function loadRecurringTransactions() {
-    setLoadingRecurring(true);
-    try {
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
-      const now = new Date();
-      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
-      const res = await api.get<any>(
-        `/transactions?startDate=${lastMonth.toISOString()}&endDate=${lastMonthEnd.toISOString()}&recurring=true`,
-      );
-      const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
-      setRecurringTx(list);
-      setSelectedRecurring(new Set(list.map((t: any) => t.id)));
-    } catch {
-      /* silent */
-    } finally {
-      setLoadingRecurring(false);
-    }
-  }
-
-  function toggleRecurring(id: string) {
-    setSelectedRecurring((prev) => {
-      const n = new Set(prev);
-      if (n.has(id)) {
-        n.delete(id);
-      } else {
-        n.add(id);
-      }
-      return n;
-    });
-  }
-
   async function handleCreate() {
     if (!name.trim()) {
-      setError('Circle name is required');
+      setError('Group name is required');
       return;
     }
     const validPhones = members.map((m) => m.trim()).filter(Boolean);
     const invalid = validPhones.filter((p) => !isValidPhone(p));
     if (invalid.length > 0) {
-      setError(`Invalid phone number${invalid.length > 1 ? 's' : ''}: ${invalid.join(', ')}`);
+      setError(`Invalid phone${invalid.length > 1 ? 's' : ''}: ${invalid.join(', ')}`);
       return;
     }
     setError('');
@@ -196,11 +152,8 @@ export function CreateExpenseGroupScreen() {
       if (validPhones.length > 0) {
         payload.memberPhones = validPhones.map((p) => `${COUNTRY_CODE}${p}`);
       }
-      if (pullRecurring && selectedRecurring.size > 0) {
-        payload.importRecurringIds = Array.from(selectedRecurring);
-      }
       await api.post('/expense-groups', payload);
-      navigation.navigate('ExpenseHome', { screen: 'SharedCircles' });
+      navigation.goBack();
     } catch (e: any) {
       const msg = e.message || '';
       if (msg.includes('limit')) {
@@ -212,333 +165,336 @@ export function CreateExpenseGroupScreen() {
           { text: 'Cancel', style: 'cancel' },
         ]);
       } else {
-        setError(msg || 'Failed to create circle');
+        setError(msg || 'Failed to create group');
       }
     } finally {
       setSaving(false);
     }
   }
 
-  const footer = (
-    <View style={styles.footer}>
-      <PremiumActionButton
-        title="Create Split Group"
-        icon="add"
-        onPress={handleCreate}
-        loading={saving}
-      />
-    </View>
-  );
+  const activeIcon = ICONS.find((i) => i.key === icon);
 
   return (
-    <PremiumFormScreen
-      title="New Split Group"
-      subtitle="Create a circle to split expenses with your people"
-      icon="git-network"
-      footer={footer}
-    >
-      <PremiumError message={error} />
-
-      <PremiumInput
-        label="Group Name"
-        icon="text"
-        value={name}
-        onChangeText={setName}
-        placeholder="e.g. Goa Trip, Roommates"
-        required
-      />
-
-      <PremiumInput
-        label="Description"
-        icon="document-text"
-        value={description}
-        onChangeText={setDescription}
-        placeholder="What's this group for?"
-        multiline
-      />
-
-      <View style={styles.fieldBlock}>
-        <Text style={[styles.label, { color: colors.text.tertiary }]}>Choose Icon</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.iconRow}
-        >
-          {ICONS.map((ic) => {
-            const active = icon === ic.key;
-            return (
-              <TouchableOpacity
-                key={ic.key}
-                style={[
-                  styles.iconBtn,
-                  {
-                    borderColor: active ? ic.color : colors.border.default,
-                    backgroundColor: active ? `${ic.color}1A` : colors.bg.card,
-                  },
-                ]}
-                onPress={() => setIcon(ic.key)}
-                activeOpacity={0.7}
-              >
-                <Ionicons
-                  name={ic.key as any}
-                  size={20}
-                  color={active ? ic.color : colors.text.tertiary}
-                />
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-      </View>
-
-      <View style={styles.fieldBlock}>
-        <Text style={[styles.label, { color: colors.text.tertiary }]}>
-          Members{' '}
-          <Text
-            style={{
-              fontWeight: '400',
-              textTransform: 'none',
-              color: colors.text.tertiary,
-              fontSize: 10,
-            }}
-          >
-            (max 2 on Free)
-          </Text>
-        </Text>
-        {members.map((phone, index) => (
-          <View key={index} style={{ marginBottom: 8 }}>
-            <View
-              style={[
-                styles.memberRow,
-                { backgroundColor: colors.bg.card, borderColor: colors.border.default },
-              ]}
-            >
-              <Text style={[styles.countryCode, { color: colors.text.tertiary }]}>
-                {COUNTRY_CODE}
-              </Text>
-              <TextInput
-                ref={(ref) => {
-                  inputsRef.current[index] = ref;
-                }}
-                style={[styles.memberInput, { color: colors.text.primary }]}
-                value={phone}
-                onChangeText={(v) => updateMember(index, v)}
-                placeholder="9876543210"
-                placeholderTextColor={colors.text.tertiary}
-                keyboardType="phone-pad"
-                maxLength={10}
-                returnKeyType="done"
-                onSubmitEditing={() => {
-                  if (index === members.length - 1) {
-                    addRow();
-                  } else {
-                    inputsRef.current[index + 1]?.focus();
-                  }
-                }}
-              />
-              {phone.trim() ? (
-                <TouchableOpacity onPress={() => removeRow(index)} style={styles.removeBtn}>
-                  <Ionicons name="close-circle" size={18} color="#FF4D4F" />
-                </TouchableOpacity>
-              ) : null}
-            </View>
-            {searchResults[index]?.length > 0 && (
-              <View
-                style={[
-                  styles.suggestions,
-                  { backgroundColor: colors.bg.card, borderColor: colors.border.default },
-                ]}
-              >
-                {searchResults[index].map((user: any) => (
-                  <TouchableOpacity
-                    key={user.id}
-                    style={[styles.suggestionRow, { borderBottomColor: colors.border.default }]}
-                    onPress={() => selectUser(index, user)}
-                  >
-                    <View
-                      style={[
-                        styles.suggestionAvatar,
-                        { backgroundColor: `${colors.accent.primary}15` },
-                      ]}
-                    >
-                      <Text
-                        style={{ color: colors.accent.primary, fontSize: 12, fontWeight: '800' }}
-                      >
-                        {user.firstName?.[0] || user.phone?.[0] || '?'}
-                      </Text>
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.suggestionName, { color: colors.text.primary }]}>
-                        {user.firstName || ''} {user.lastName || ''}
-                      </Text>
-                      <Text style={[styles.suggestionDetail, { color: colors.text.tertiary }]}>
-                        {user.phone || ''}
-                        {user.email ? ` · ${user.email}` : ''}
-                      </Text>
-                    </View>
-                    <Ionicons name="add-circle" size={20} color={colors.accent.primary} />
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
+    <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
+      {/* Header */}
+      <LinearGradient colors={[PURPLE, PURPLE_DARK]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+        <View style={{ paddingHorizontal: 20, paddingTop: 52, paddingBottom: 28 }}>
+          <View style={s.headerRow}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
+              <Ionicons name="close" size={22} color="#FFF" />
+            </TouchableOpacity>
+            <Text style={s.headerTitle}>New Split Group</Text>
+            <View style={{ width: 34 }} />
           </View>
-        ))}
-        <TouchableOpacity style={styles.addMemberBtn} onPress={addRow} activeOpacity={0.7}>
-          <Ionicons name="add-circle-outline" size={18} color={colors.accent.primary} />
-          <Text style={[styles.addMemberText, { color: colors.accent.primary }]}>
-            Add another member
-          </Text>
-        </TouchableOpacity>
-      </View>
+          <Text style={s.headerSub}>Create a circle to split expenses with your people</Text>
+        </View>
+      </LinearGradient>
 
-      <View
-        style={[
-          styles.recurringCard,
-          { backgroundColor: colors.bg.card, borderColor: colors.border.default },
-        ]}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ padding: 20, paddingBottom: 60 }}
+        keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.recurringHeader}>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.recurringTitle, { color: colors.text.primary }]}>
-              Pull recurring from last month?
-            </Text>
-            <Text style={[styles.recurringSub, { color: colors.text.tertiary }]}>
-              Import last month's recurring expenses into this circle
-            </Text>
+        {error ? (
+          <View style={[s.errorBox, { backgroundColor: `${colors.status.error}12` }]}>
+            <Ionicons name="alert-circle" size={16} color={colors.status.error} />
+            <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
           </View>
-          <Switch
-            value={pullRecurring}
-            onValueChange={setPullRecurring}
-            trackColor={{ false: colors.border.default, true: colors.accent.primary }}
-            thumbColor="#FFFFFF"
+        ) : null}
+
+        {/* Group Name */}
+        <View style={s.fieldBlock}>
+          <Text style={[s.label, { color: colors.text.secondary }]}>Group Name</Text>
+          <TextInput
+            style={[
+              s.input,
+              {
+                backgroundColor: colors.bg.card,
+                color: colors.text.primary,
+                borderColor: colors.border.subtle,
+              },
+            ]}
+            value={name}
+            onChangeText={setName}
+            placeholder="e.g. Goa Trip, Roommates"
+            placeholderTextColor={colors.text.tertiary}
           />
         </View>
-        {pullRecurring && (
-          <View style={{ marginTop: 12, gap: 8 }}>
-            {loadingRecurring ? (
-              <Text style={[styles.recurringStatus, { color: colors.text.tertiary }]}>
-                Loading recurring transactions...
-              </Text>
-            ) : recurringTx.length === 0 ? (
-              <Text style={[styles.recurringStatus, { color: colors.text.tertiary }]}>
-                No recurring transactions found from last month
-              </Text>
-            ) : (
-              recurringTx.map((tx) => (
+
+        {/* Description */}
+        <View style={s.fieldBlock}>
+          <Text style={[s.label, { color: colors.text.secondary }]}>Description (optional)</Text>
+          <TextInput
+            style={[
+              s.input,
+              {
+                backgroundColor: colors.bg.card,
+                color: colors.text.primary,
+                borderColor: colors.border.subtle,
+                minHeight: 60,
+                textAlignVertical: 'top',
+              },
+            ]}
+            value={description}
+            onChangeText={setDescription}
+            placeholder="What's this group for?"
+            placeholderTextColor={colors.text.tertiary}
+            multiline
+          />
+        </View>
+
+        {/* Icon Picker */}
+        <View style={s.fieldBlock}>
+          <Text style={[s.label, { color: colors.text.secondary }]}>Icon</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={s.iconRow}
+          >
+            {ICONS.map((ic) => {
+              const active = icon === ic.key;
+              return (
                 <TouchableOpacity
-                  key={tx.id}
-                  style={styles.recurringItem}
-                  onPress={() => toggleRecurring(tx.id)}
+                  key={ic.key}
+                  style={[
+                    s.iconBtn,
+                    {
+                      borderColor: active ? ic.color : colors.border.subtle,
+                      backgroundColor: active ? `${ic.color}18` : colors.bg.card,
+                    },
+                  ]}
+                  onPress={() => setIcon(ic.key)}
+                  activeOpacity={0.7}
                 >
                   <Ionicons
-                    name={selectedRecurring.has(tx.id) ? 'checkbox' : 'square-outline'}
-                    size={20}
-                    color={
-                      selectedRecurring.has(tx.id) ? colors.accent.primary : colors.text.tertiary
-                    }
+                    name={ic.key as any}
+                    size={22}
+                    color={active ? ic.color : colors.text.tertiary}
                   />
-                  <View style={{ flex: 1, marginLeft: 8 }}>
-                    <Text style={[styles.recurringItemText, { color: colors.text.primary }]}>
-                      {tx.description || 'Transaction'}
-                    </Text>
-                    <Text style={[styles.recurringItemSub, { color: colors.text.tertiary }]}>
-                      ₹{Number(tx.amount).toLocaleString('en-IN')} ·{' '}
-                      {tx.category?.name || tx.category || 'Other'}
-                    </Text>
-                  </View>
                 </TouchableOpacity>
-              ))
-            )}
-          </View>
-        )}
-      </View>
+              );
+            })}
+          </ScrollView>
+        </View>
 
-      <View
-        style={[
-          styles.planInfo,
-          { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
-        ]}
-      >
-        <Ionicons name="shield-outline" size={14} color="#FF6B6B" />
-        <Text style={[styles.planInfoText, { color: colors.text.tertiary }]}>
-          Free plan: 5 circles max · 2 members per circle
-        </Text>
-        <TouchableOpacity
-          onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}
-        >
-          <Text style={{ color: colors.accent.primary, fontSize: 13, fontWeight: '800' }}>
-            Upgrade
+        {/* Members */}
+        <View style={s.fieldBlock}>
+          <Text style={[s.label, { color: colors.text.secondary }]}>
+            Members{' '}
+            <Text
+              style={{
+                fontWeight: '400',
+                textTransform: 'none',
+                color: colors.text.tertiary,
+                fontSize: 10,
+              }}
+            >
+              (max 2 on Free)
+            </Text>
           </Text>
+          {members.map((phone, index) => (
+            <View key={index} style={{ marginBottom: 8 }}>
+              <View
+                style={[
+                  s.memberRow,
+                  { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+                ]}
+              >
+                <View style={[s.memberAvatar, { backgroundColor: `${PURPLE}15` }]}>
+                  <Text style={{ color: PURPLE, fontSize: 12, fontWeight: '700' }}>
+                    {(phone || '?')[0]}
+                  </Text>
+                </View>
+                <Text style={[s.countryCode, { color: colors.text.tertiary }]}>{COUNTRY_CODE}</Text>
+                <TextInput
+                  ref={(ref) => {
+                    inputsRef.current[index] = ref;
+                  }}
+                  style={[s.memberInput, { color: colors.text.primary }]}
+                  value={phone}
+                  onChangeText={(v) => updateMember(index, v)}
+                  placeholder="9876543210"
+                  placeholderTextColor={colors.text.tertiary}
+                  keyboardType="phone-pad"
+                  maxLength={10}
+                  returnKeyType="done"
+                  onSubmitEditing={() => {
+                    index === members.length - 1 ? addRow() : inputsRef.current[index + 1]?.focus();
+                  }}
+                />
+                {phone.trim() ? (
+                  <TouchableOpacity onPress={() => removeRow(index)} style={{ padding: 4 }}>
+                    <Ionicons name="close-circle" size={18} color="#EF4444" />
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+              {searchResults[index]?.length > 0 && (
+                <View
+                  style={[
+                    s.suggestions,
+                    { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+                  ]}
+                >
+                  {searchResults[index].map((user: any) => (
+                    <TouchableOpacity
+                      key={user.id}
+                      style={[s.suggestionRow, { borderBottomColor: colors.border.subtle }]}
+                      onPress={() => selectUser(index, user)}
+                    >
+                      <View style={[s.suggestionAvatar, { backgroundColor: `${PURPLE}15` }]}>
+                        <Text style={{ color: PURPLE, fontSize: 12, fontWeight: '800' }}>
+                          {user.firstName?.[0] || user.phone?.[0] || '?'}
+                        </Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[s.suggestionName, { color: colors.text.primary }]}>
+                          {user.firstName || ''} {user.lastName || ''}
+                        </Text>
+                        <Text style={[s.suggestionDetail, { color: colors.text.tertiary }]}>
+                          {user.phone || ''}
+                          {user.email ? ` · ${user.email}` : ''}
+                        </Text>
+                      </View>
+                      <Ionicons name="add-circle" size={20} color={PURPLE} />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+          ))}
+          <TouchableOpacity style={s.addMemberBtn} onPress={addRow} activeOpacity={0.7}>
+            <Ionicons name="add-circle-outline" size={18} color={PURPLE} />
+            <Text style={[s.addMemberText, { color: PURPLE }]}>Add another member</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Plan Info */}
+        <View
+          style={[
+            s.planInfo,
+            { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+          ]}
+        >
+          <Ionicons name="shield-outline" size={14} color="#EF4444" />
+          <Text style={[s.planInfoText, { color: colors.text.tertiary }]}>
+            Free plan: 5 circles max · 2 members per circle
+          </Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}
+          >
+            <Text style={{ color: PURPLE, fontSize: 13, fontWeight: '800' }}>Upgrade</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Save */}
+        <TouchableOpacity
+          onPress={handleCreate}
+          disabled={saving}
+          activeOpacity={0.85}
+          style={{ marginTop: 8, opacity: saving ? 0.6 : 1 }}
+        >
+          <LinearGradient
+            colors={[PURPLE, PURPLE_DARK]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={s.saveGrad}
+          >
+            <Ionicons name={saving ? 'hourglass-outline' : 'add'} size={18} color="#FFF" />
+            <Text style={s.saveText}>{saving ? 'Creating...' : 'Create Split Group'}</Text>
+          </LinearGradient>
         </TouchableOpacity>
-      </View>
-    </PremiumFormScreen>
+      </ScrollView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  fieldBlock: {
-    marginBottom: 15,
+const s = StyleSheet.create({
+  root: { flex: 1 },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
   },
-  label: {
-    fontSize: 11,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    marginBottom: 8,
+  backBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  iconRow: {
-    gap: 8,
-    paddingVertical: 4,
-  },
-  iconBtn: {
-    width: 44,
-    height: 44,
+  headerTitle: { color: '#FFF', fontSize: 18, fontWeight: '700' },
+  headerSub: { color: 'rgba(255,255,255,0.6)', fontSize: 13, marginTop: 4 },
+
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
     borderRadius: 14,
+    gap: 8,
+    marginBottom: 16,
+  },
+  errorText: { fontSize: 13, flex: 1 },
+
+  fieldBlock: { marginBottom: 20 },
+  label: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
+  input: {
+    borderRadius: 16,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 15,
+    fontWeight: '500',
+  },
+
+  iconRow: { gap: 8, paddingVertical: 4 },
+  iconBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
   },
+
   memberRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 15,
+    borderRadius: 16,
     borderWidth: 1,
     paddingRight: 8,
     minHeight: 54,
+    gap: 6,
   },
-  countryCode: {
-    fontSize: 14,
-    fontWeight: '700',
-    paddingLeft: 14,
-    paddingRight: 4,
+  memberAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 10,
   },
-  memberInput: {
-    flex: 1,
-    fontSize: 15,
-    paddingHorizontal: 6,
-    fontWeight: '600',
-    paddingVertical: 13,
-  },
-  removeBtn: {
-    padding: 4,
-  },
+  countryCode: { fontSize: 14, fontWeight: '700' },
+  memberInput: { flex: 1, fontSize: 15, fontWeight: '600', paddingVertical: 13 },
+
   addMemberBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     marginTop: 4,
     paddingVertical: 10,
-    paddingHorizontal: 14,
+    paddingHorizontal: 4,
   },
-  addMemberText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  suggestions: {
-    marginTop: 4,
-    borderRadius: 14,
-    borderWidth: 1,
-    overflow: 'hidden',
-  },
+  addMemberText: { fontSize: 14, fontWeight: '600' },
+
+  suggestions: { marginTop: 4, borderRadius: 14, borderWidth: 1, overflow: 'hidden' },
   suggestionRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -554,56 +510,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  suggestionName: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  suggestionDetail: {
-    fontSize: 11,
-    marginTop: 1,
-    fontWeight: '500',
-  },
-  recurringCard: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 14,
-    marginBottom: 12,
-  },
-  recurringHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  recurringTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  recurringSub: {
-    fontSize: 11,
-    marginTop: 2,
-    fontWeight: '500',
-  },
-  recurringStatus: {
-    fontSize: 13,
-    textAlign: 'center',
-    paddingVertical: 12,
-    fontWeight: '500',
-  },
-  recurringItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-  },
-  recurringItemText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  recurringItemSub: {
-    fontSize: 12,
-    marginTop: 1,
-    fontWeight: '500',
-  },
+  suggestionName: { fontSize: 14, fontWeight: '700' },
+  suggestionDetail: { fontSize: 11, marginTop: 1, fontWeight: '500' },
+
   planInfo: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -611,13 +520,17 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 14,
     borderWidth: 1,
+    marginBottom: 16,
   },
-  planInfoText: {
-    flex: 1,
-    fontSize: 11,
-    fontWeight: '500',
+  planInfoText: { flex: 1, fontSize: 11, fontWeight: '500' },
+
+  saveGrad: {
+    flexDirection: 'row',
+    paddingVertical: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: 18,
   },
-  footer: {
-    marginTop: 8,
-  },
+  saveText: { color: '#FFF', fontSize: 17, fontWeight: '700' },
 });

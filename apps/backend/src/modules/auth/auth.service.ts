@@ -169,7 +169,24 @@ export class AuthService {
   ): Promise<{ user: any; tokens: TokenPair }> {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
-      include: { settings: true, subscription: { include: { plan: true } } },
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        firstName: true,
+        lastName: true,
+        avatarUrl: true,
+        role: true,
+        phone: true,
+        loginAttempts: true,
+        lockoutUntil: true,
+        lastLoginAt: true,
+        isActive: true,
+        settings: true,
+        subscription: {
+          select: { id: true, planId: true, status: true, plan: { select: { name: true } } },
+        },
+      },
     });
 
     if (!user) {
@@ -185,27 +202,23 @@ export class AuthService {
     const isPasswordValid = await bcrypt.compare(dto.password, user.password);
     if (!isPasswordValid) {
       await this.handleFailedLogin(user.id, user.loginAttempts);
-      await this.logLoginActivity(
+      this.logLoginActivity(
         user.id,
         'login_failed',
         ipAddress,
         userAgent,
         dto.deviceName,
         dto.platform,
-      );
+      ).catch(() => {});
       throw new UnauthorizedException('Invalid email or password');
-    }
-
-    if (user.loginAttempts > 0) {
-      await this.prisma.user.update({
-        where: { id: user.id },
-        data: { loginAttempts: 0, lockoutUntil: null },
-      });
     }
 
     await this.prisma.user.update({
       where: { id: user.id },
-      data: { lastLoginAt: new Date() },
+      data: {
+        ...(user.loginAttempts > 0 ? { loginAttempts: 0, lockoutUntil: null } : {}),
+        lastLoginAt: new Date(),
+      },
     });
 
     const tokens = await this.generateTokens(user.id, user.email);
@@ -218,14 +231,14 @@ export class AuthService {
       ipAddress,
       userAgent,
     );
-    await this.logLoginActivity(
+    this.logLoginActivity(
       user.id,
       'login_success',
       ipAddress,
       userAgent,
       dto.deviceName || undefined,
       dto.platform || undefined,
-    );
+    ).catch(() => {});
 
     const { password, ...userWithoutPassword } = user;
     return { user: userWithoutPassword, tokens };

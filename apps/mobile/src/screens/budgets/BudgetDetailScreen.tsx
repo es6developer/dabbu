@@ -54,7 +54,7 @@ export function BudgetDetailScreen() {
       setAccessToken(accessToken);
     }
     try {
-      const res = await api.get<any>(`/accounts/budgets/${budgetId}`);
+      const res = await api.get<any>(`/budgets/${budgetId}`);
       setBudget(res);
     } catch (e) {
       /* empty */
@@ -81,7 +81,7 @@ export function BudgetDetailScreen() {
             if (accessToken) {
               setAccessToken(accessToken);
             }
-            await api.delete(`/accounts/budgets/${budgetId}`);
+            await api.delete(`/budgets/${budgetId}`);
             navigation.goBack();
           } catch (e: any) {
             Alert.alert('Error', e.message || 'Failed to delete');

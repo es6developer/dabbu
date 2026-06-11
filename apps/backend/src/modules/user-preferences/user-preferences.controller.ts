@@ -1,6 +1,7 @@
 import { Controller, Get, Put, Body, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { PremiumGuard } from '../premium/guards/premium.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { UserPreferencesService } from './user-preferences.service';
 
@@ -33,5 +34,12 @@ export class UserPreferencesController {
   @ApiOperation({ summary: 'Update preferred primary color' })
   async updatePrimaryColor(@CurrentUser('id') userId: string, @Body('color') color: string | null) {
     return this.svc.updatePrimaryColor(userId, color);
+  }
+
+  @Get('widgets')
+  @ApiOperation({ summary: 'Get available dashboard widgets catalog' })
+  async getWidgetCatalog(@CurrentUser('id') userId: string) {
+    const catalog = this.svc.getWidgetCatalog(userId);
+    return { data: catalog };
   }
 }

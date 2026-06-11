@@ -5,9 +5,13 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { json, urlencoded } from 'express';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
+import { SentryFilter } from './common/sentry/sentry.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { SecurityConfig } from './common/security/security.config';
+import { initTelemetry } from './config/telemetry';
+
+initTelemetry(process.env.SERVICE_NAME || 'dabbu-api');
 
 async function bootstrap(): Promise<void> {
   const logger = new Logger('Bootstrap');
@@ -25,6 +29,24 @@ async function bootstrap(): Promise<void> {
   const prefix = configService.get<string>('app.prefix', '/api/v1');
   const nodeEnv = configService.get<string>('app.nodeEnv', 'development');
   const frontendUrl = configService.get<string>('app.frontendUrl', 'http://localhost:8081');
+
+  // ─── Sentry (dynamic import — optional dep) ─────────
+  const sentryDsn = configService.get<string>('sentry.dsn', '');
+  const sentryEnv = configService.get<string>('sentry.environment', 'development');
+  const sentryTracesSampleRate = configService.get<number>('sentry.tracesSampleRate', 0.2);
+  if (sentryDsn) {
+    try {
+      const Sentry = await import('@sentry/node');
+      Sentry.init({
+        dsn: sentryDsn,
+        environment: sentryEnv,
+        tracesSampleRate: sentryTracesSampleRate,
+      });
+      logger.log('Sentry initialized');
+    } catch (e) {
+      logger.warn('Failed to initialize Sentry', (e as Error).message);
+    }
+  }
 
   // ─── Security ───────────────────────────────────────
   app.use(securityConfig.getHelmetConfig());
@@ -66,7 +88,7 @@ async function bootstrap(): Promise<void> {
   );
 
   // ─── Global Filters ─────────────────────────────────
-  app.useGlobalFilters(new AllExceptionsFilter());
+  app.useGlobalFilters(new AllExceptionsFilter(), new SentryFilter());
 
   // ─── Global Interceptors ────────────────────────────
   app.useGlobalInterceptors(new LoggingInterceptor(), new TransformInterceptor());

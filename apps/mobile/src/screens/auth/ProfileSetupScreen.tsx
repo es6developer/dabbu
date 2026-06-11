@@ -29,37 +29,37 @@ export function ProfileSetupScreen() {
   const [error, setError] = useState('');
 
   async function handleSave() {
-    if (!phone.trim()) {
-      setError('Phone number is required');
-      return;
-    }
-    const phoneDigits = phone.replace(/[^0-9]/g, '');
-    if (phoneDigits.length < 8) {
-      setError('Please enter a valid phone number');
-      return;
-    }
-
     setSaving(true);
     setError('');
     try {
       const token = getAccessToken();
-      const fullPhone = phoneDigits.startsWith('91') ? `+${phoneDigits}` : `+91${phoneDigits}`;
+      const body: Record<string, any> = {};
+      if (firstName.trim()) {
+        body.firstName = firstName.trim();
+      }
+      if (lastName.trim()) {
+        body.lastName = lastName.trim();
+      }
+      if (phone.trim()) {
+        const phoneDigits = phone.replace(/[^0-9]/g, '');
+        if (phoneDigits.length >= 8) {
+          body.phone = phoneDigits.startsWith('91') ? `+${phoneDigits}` : `+91${phoneDigits}`;
+        }
+      }
       const res = await fetch(`${API_URL}/users/profile`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          firstName: firstName.trim() || undefined,
-          lastName: lastName.trim() || undefined,
-          phone: fullPhone,
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err?.message?.[0] || err?.message || 'Failed to save profile');
+        throw new Error(
+          Array.isArray(err?.message) ? err?.message[0] : err?.message || 'Failed to save profile',
+        );
       }
 
       const profileResult = await res.json().catch(() => ({}));
@@ -143,7 +143,9 @@ export function ProfileSetupScreen() {
                 />
               </View>
 
-              <Text style={[styles.label, { color: colors.text.secondary }]}>Phone number *</Text>
+              <Text style={[styles.label, { color: colors.text.secondary }]}>
+                Phone number (optional)
+              </Text>
               <TextInput
                 style={[
                   styles.input,
@@ -153,7 +155,7 @@ export function ProfileSetupScreen() {
                     borderColor: colors.border.subtle,
                   },
                 ]}
-                placeholder="+1 (555) 123-4567"
+                placeholder="+91 9876543210"
                 placeholderTextColor={colors.text.tertiary}
                 value={phone}
                 onChangeText={setPhone}

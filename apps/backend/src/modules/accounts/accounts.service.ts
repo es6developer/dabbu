@@ -189,4 +189,43 @@ export class AccountsService {
   async getSubscriptionIntelligence(userId: string): Promise<SubscriptionIntelligence> {
     return this.subscriptionEngine.analyze(userId);
   }
+
+  async getSafeToSpend(userId: string) {
+    const accounts = await this.prisma.account.findMany({
+      where: { userId, isDeleted: false },
+    });
+    const totalBalance = accounts.reduce((s, a) => s + Number(a.balance), 0);
+
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+    const [upcomingBills, activeLoans] = await Promise.all([
+      this.prisma.bill.findMany({
+        where: {
+          userId,
+          deletedAt: null,
+          isPaid: false,
+          dueDate: { gte: startOfMonth, lte: endOfMonth },
+        },
+      }),
+      this.prisma.userLoan.findMany({
+        where: { userId, deletedAt: null },
+      }),
+    ]);
+
+    const upcomingBillsTotal = upcomingBills.reduce((s, b) => s + Number(b.amount), 0);
+    const monthlyEmiTotal = activeLoans.reduce((s, l) => s + Number(l.monthlyEmi), 0);
+
+    const safeToSpend = Math.max(0, totalBalance - upcomingBillsTotal - monthlyEmiTotal);
+
+    return {
+      totalBalance,
+      upcomingBills: upcomingBillsTotal,
+      monthlyEmi: monthlyEmiTotal,
+      safeToSpend,
+      billsCount: upcomingBills.length,
+      loansCount: activeLoans.length,
+    };
+  }
 }

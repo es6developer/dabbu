@@ -7,6 +7,12 @@ import {
 } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { PrismaService } from '../../common/prisma/prisma.service';
+
+const PLAN_LIMITS = {
+  free: { maxGroups: 3, maxMembersPerGroup: 10 },
+  premium: { maxGroups: 100, maxMembersPerGroup: 100 },
+  gold: { maxGroups: 9999, maxMembersPerGroup: 9999 },
+};
 import { SettlementEngine } from './engines/settlement.engine';
 import { AiInsightsEngine } from './engines/ai-insights.engine';
 import { GroupLifecycleService } from './engines/group-lifecycle.service';
@@ -81,7 +87,56 @@ export class SharedFinanceService {
 
   // ─── Group Management ──────────────────────────────────────
 
+  private async getUserPlan(
+    userId: string,
+  ): Promise<{ maxGroups: number; maxMembersPerGroup: number; tier: string }> {
+    const [user, subscription] = await Promise.all([
+      this.prisma.user.findUnique({ where: { id: userId }, select: { role: true } }),
+      this.prisma.subscription.findUnique({
+        where: { userId },
+        include: { plan: { select: { name: true, code: true } } },
+      }),
+    ]);
+
+    const role = user?.role || 'user';
+    if (role === 'super_admin' || role === 'admin') {
+      return { ...PLAN_LIMITS.gold, tier: 'gold' };
+    }
+
+    const isActive =
+      subscription?.status === 'active' &&
+      subscription.currentPeriodEnd &&
+      new Date(subscription.currentPeriodEnd) > new Date();
+
+    if (!isActive) {
+      return { ...PLAN_LIMITS.free, tier: 'free' };
+    }
+
+    const isGold =
+      subscription?.plan?.name?.toLowerCase().includes('gold') ||
+      subscription?.plan?.code === 'GOLD';
+    if (isGold) {
+      return { ...PLAN_LIMITS.gold, tier: 'gold' };
+    }
+
+    const isPremium = subscription?.plan?.code !== 'FREE';
+    if (isPremium) {
+      return { ...PLAN_LIMITS.premium, tier: 'premium' };
+    }
+    return { ...PLAN_LIMITS.free, tier: 'free' };
+  }
+
   async createGroup(userId: string, dto: CreateGroupDto) {
+    const plan = await this.getUserPlan(userId);
+    const groupCount = await this.prisma.sharedGroupMember.count({
+      where: { userId, isActive: true, role: 'admin' },
+    });
+    if (groupCount >= plan.maxGroups) {
+      throw new BadRequestException(
+        `Free plan limit of ${plan.maxGroups} shared spaces reached. Upgrade to Premium for unlimited spaces.`,
+      );
+    }
+
     const group = await this.prisma.sharedGroup.create({
       data: {
         name: dto.name,
@@ -192,6 +247,7 @@ export class SharedFinanceService {
   }
 
   async getUserGroups(userId: string) {
+    const plan = await this.getUserPlan(userId);
     const memberships = await this.prisma.sharedGroupMember.findMany({
       where: { userId, isActive: true },
       include: {
@@ -222,6 +278,11 @@ export class SharedFinanceService {
       totalSpent: Number(m.group.totalSpent || 0),
       monthlyBudget: Number(m.group.monthlyBudget || 0),
       monthlyIncome: Number(m.group.monthlyIncome || 0),
+      _plan: {
+        tier: plan.tier,
+        maxGroups: plan.maxGroups,
+        maxMembersPerGroup: plan.maxMembersPerGroup,
+      },
     }));
   }
 

@@ -7,6 +7,7 @@ import {
   ScrollView,
   RefreshControl,
   Animated,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -714,6 +715,79 @@ export function ReportsScreen() {
             )}
           </View>
         )}
+
+        {/* Export */}
+        <View style={{ marginHorizontal: PADDING, marginBottom: 32 }}>
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: '700',
+              color: colors.text.primary,
+              marginBottom: 12,
+            }}
+          >
+            Export Report
+          </Text>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <TouchableOpacity
+              style={{
+                flex: 1,
+                backgroundColor: colors.bg.card,
+                borderRadius: borderRadius.lg,
+                padding: 16,
+                alignItems: 'center',
+                gap: 8,
+                borderWidth: 1,
+                borderColor: colors.border.subtle,
+              }}
+              activeOpacity={0.7}
+              onPress={() => Alert.alert('Export Report', 'PDF export will be available soon.')}
+            >
+              <Ionicons name="document-text" size={24} color={colors.accent.primary} />
+              <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.secondary }}>
+                PDF
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{
+                flex: 1,
+                backgroundColor: colors.bg.card,
+                borderRadius: borderRadius.lg,
+                padding: 16,
+                alignItems: 'center',
+                gap: 8,
+                borderWidth: 1,
+                borderColor: colors.border.subtle,
+              }}
+              activeOpacity={0.7}
+              onPress={() => Alert.alert('Export Report', 'Excel export will be available soon.')}
+            >
+              <Ionicons name="grid" size={24} color={colors.status.success} />
+              <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.secondary }}>
+                Excel
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{
+                flex: 1,
+                backgroundColor: colors.bg.card,
+                borderRadius: borderRadius.lg,
+                padding: 16,
+                alignItems: 'center',
+                gap: 8,
+                borderWidth: 1,
+                borderColor: colors.border.subtle,
+              }}
+              activeOpacity={0.7}
+              onPress={() => Alert.alert('Export Report', 'CSV export will be available soon.')}
+            >
+              <Ionicons name="code-slash" size={24} color={colors.status.warning} />
+              <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.secondary }}>
+                CSV
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </ScrollView>
     </View>
   );

@@ -1,55 +1,58 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { useAuth } from "@/lib/auth-context";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  SafeView,
+  MobileContainer,
+  Card,
+  PrimaryButton,
+  GhostButton,
+  Row,
+  Spacer,
+  spacing,
+  radii,
+  palette,
+} from '@/rn';
+import { useAuth } from '@/lib/auth-context';
+import { useTheme } from '@/lib/theme-context';
 
 const FEATURES = [
   {
-    icon: (
-      <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-      </svg>
-    ),
-    title: "Smart Splits",
-    description: "Split expenses equally, by percentage, or exact amounts. Real-time calculations for everyone.",
+    icon: '🪙',
+    title: 'Smart Splits',
+    description:
+      'Split expenses equally, by percentage, or exact amounts. Real-time calculations for everyone.',
   },
   {
-    icon: (
-      <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
-    title: "Trip Friendly",
-    description: "Perfect for group trips. Track who paid for what and settle up effortlessly when you're back.",
+    icon: '✈️',
+    title: 'Trip Friendly',
+    description:
+      "Perfect for group trips. Track who paid for what and settle up effortlessly when you're back.",
   },
   {
-    icon: (
-      <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
-    title: "Easy Settlements",
-    description: "See exactly who owes what and settle up with a tap. Track paid and pending amounts.",
+    icon: '✅',
+    title: 'Easy Settlements',
+    description:
+      'See exactly who owes what and settle up with a tap. Track paid and pending amounts.',
   },
   {
-    icon: (
-      <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-      </svg>
-    ),
-    title: "Real-time Chat",
-    description: "Discuss expenses and plans with built-in group chat. Messages, payments, and updates in one place.",
+    icon: '💬',
+    title: 'Real-time Chat',
+    description:
+      'Discuss expenses and plans with built-in group chat. Messages, payments, and updates in one place.',
   },
 ];
 
 export default function LandingPage() {
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuth();
-  const [inviteCode, setInviteCode] = useState("");
+  const { mode, toggleTheme } = useTheme();
+  const [inviteCode, setInviteCode] = useState('');
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,176 +62,412 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="relative min-h-screen">
-      <nav className="fixed top-0 left-0 right-0 z-50 glass-effect">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-dabbu-accent flex items-center justify-center">
-                <span className="text-white font-bold text-sm">D</span>
-              </div>
-              <span className="text-lg font-semibold text-dabbu-text">
-                Dabbu <span className="text-dabbu-accent">Split</span>
-              </span>
-            </div>
-            <div className="flex items-center gap-4">
-              {isAuthenticated ? (
-                <>
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-dabbu-accent/10 border border-dabbu-accent/20">
-                    <div className="w-6 h-6 rounded-full bg-dabbu-accent flex items-center justify-center text-xs font-bold text-white">
-                      {user?.name?.charAt(0).toUpperCase()}
-                    </div>
-                    <span className="text-sm font-medium text-dabbu-text">
-                      {user?.name}
-                    </span>
-                  </div>
-                  <Button variant="ghost" size="sm" onClick={() => { logout(); router.push('/'); }}>
-                    Sign Out
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button variant="ghost" size="sm" onClick={() => router.push("/auth")}>
-                    Sign In
-                  </Button>
-                  <Button size="sm" onClick={() => router.push("/auth")}>
-                    Get Started
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <section className="relative pt-32 pb-24 px-4">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-radial from-dabbu-accent/10 via-transparent to-transparent pointer-events-none" />
-        <div className="max-w-4xl mx-auto text-center relative">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-dabbu-border bg-dabbu-surface mb-8">
-            <span className="w-2 h-2 rounded-full bg-dabbu-green animate-pulse" />
-            <span className="text-sm text-dabbu-text-secondary">
-              No account required to join
-            </span>
-          </div>
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
-            Collaborative Finance,
-            <br />
-            <span className="text-gradient">Simplified</span>
-          </h1>
-          <p className="text-xl text-dabbu-text-secondary max-w-2xl mx-auto mb-10 leading-relaxed">
-            Split expenses, manage group trips, and settle debts in real-time.
-            Dabbu brings everyone together whether you have an account or not.
-          </p>
-          <form onSubmit={handleJoin} className="max-w-md mx-auto flex gap-3">
-            <Input
-              placeholder="Enter invite code"
-              value={inviteCode}
-              onChange={(e) => setInviteCode(e.target.value)}
-              className="text-center text-lg uppercase tracking-widest"
-              icon={
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                </svg>
-              }
-            />
-            <Button type="submit" size="lg" className="shrink-0">
-              Join Group
-            </Button>
-          </form>
-          <div className="flex items-center justify-center gap-4 mt-8">
-            <div className="flex -space-x-2">
-              {[1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  className="w-8 h-8 rounded-full border-2 border-dabbu-bg bg-dabbu-surface2 flex items-center justify-center text-xs font-medium text-dabbu-text-secondary"
+    <SafeView>
+      <View style={s.wrapper as any}>
+        {/* Nav */}
+        <View style={s.nav as any}>
+          <MobileContainer>
+            <Row style={s.navRow}>
+              <Row style={{ gap: 8 }}>
+                <View style={s.logo}>
+                  <Text style={s.logoText}>D</Text>
+                </View>
+                <Text style={s.brandText}>
+                  Dabbu <Text style={{ color: palette.brand }}>Split</Text>
+                </Text>
+              </Row>
+              <Row style={{ gap: 8 }}>
+                <TouchableOpacity
+                  onPress={toggleTheme}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: palette.surface2,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderWidth: 1,
+                    borderColor: palette.border,
+                  }}
                 >
-                  {String.fromCharCode(64 + i)}
-                </div>
+                  <Text style={{ fontSize: 16 }}>{mode === 'dark' ? '☀️' : '🌙'}</Text>
+                </TouchableOpacity>
+                {isAuthenticated ? (
+                  <>
+                    <Row style={s.userBadge as any}>
+                      <View style={s.userAvatar}>
+                        <Text style={s.userAvatarText}>{user?.name?.charAt(0).toUpperCase()}</Text>
+                      </View>
+                      <Text style={s.userName}>{user?.name}</Text>
+                    </Row>
+                    <GhostButton
+                      onPress={() => {
+                        logout();
+                        router.push('/');
+                      }}
+                    >
+                      Sign Out
+                    </GhostButton>
+                  </>
+                ) : (
+                  <>
+                    <GhostButton onPress={() => router.push('/auth')}>Sign In</GhostButton>
+                    <PrimaryButton onPress={() => router.push('/auth')}>Get Started</PrimaryButton>
+                  </>
+                )}
+              </Row>
+            </Row>
+          </MobileContainer>
+        </View>
+
+        {/* Hero */}
+        <View style={s.hero}>
+          <View style={s.glowOrb as any} />
+          <MobileContainer>
+            <View style={s.heroContent}>
+              <Row style={s.badge as any}>
+                <View style={s.pulseDot} />
+                <Text style={{ fontSize: 13, color: palette.textSecondary }}>
+                  No account required to join
+                </Text>
+              </Row>
+              <Spacer size="lg" />
+              <Text style={s.heroTitle}>
+                Collaborative Finance,{'\n'}
+                <Text style={s.gradientText as any}>Simplified</Text>
+              </Text>
+              <Spacer size="md" />
+              <Text style={s.heroSubtitle}>
+                Split expenses, manage group trips, and settle debts in real-time. Dabbu brings
+                everyone together whether you have an account or not.
+              </Text>
+              <Spacer size="xl" />
+              <form onSubmit={handleJoin} style={s.joinForm as any}>
+                <View style={s.inputWrapper as any}>
+                  <Text style={{ fontSize: 16 }}>🔑</Text>
+                  <input
+                    placeholder="Enter invite code"
+                    value={inviteCode}
+                    onChange={(e) => setInviteCode(e.target.value)}
+                    className="invite-input"
+                    style={s.input as any}
+                  />
+                </View>
+                <PrimaryButton style={s.joinBtn}>Join Group</PrimaryButton>
+              </form>
+              <Spacer size="lg" />
+              <Row style={{ justifyContent: 'center', gap: 16 }}>
+                <Row style={{ marginRight: 8 }}>
+                  {[1, 2, 3, 4].map((i) => (
+                    <View key={i} style={[s.miniAvatar, { marginLeft: i > 1 ? -8 : 0 }]}>
+                      <Text style={s.miniAvatarText}>{String.fromCharCode(64 + i)}</Text>
+                    </View>
+                  ))}
+                </Row>
+                <Text style={{ fontSize: 13, color: palette.textMuted }}>
+                  <Text style={{ color: palette.textSecondary, fontWeight: '600' }}>2.4k+</Text>{' '}
+                  active groups
+                </Text>
+              </Row>
+            </View>
+          </MobileContainer>
+        </View>
+
+        {/* Features */}
+        <View style={s.features}>
+          <MobileContainer>
+            <View style={{ alignItems: 'center', marginBottom: 40 }}>
+              <Text style={s.sectionTitle}>
+                Everything you need to <Text style={s.gradientText as any}>split together</Text>
+              </Text>
+              <Spacer size="sm" />
+              <Text style={s.sectionSubtitle}>
+                From weekend trips to shared households, Dabbu makes it effortless.
+              </Text>
+            </View>
+            <View style={s.featureGrid as any}>
+              {FEATURES.map((feature, i) => (
+                <Card key={i} variant="elevated" style={s.featureCard}>
+                  <Text style={{ fontSize: 28 }}>{feature.icon}</Text>
+                  <Spacer size="md" />
+                  <Text style={s.featureTitle}>{feature.title}</Text>
+                  <Spacer size="xs" />
+                  <Text style={s.featureDesc}>{feature.description}</Text>
+                </Card>
               ))}
-            </div>
-            <p className="text-sm text-dabbu-text-muted">
-              <span className="text-dabbu-text-secondary font-medium">2.4k+</span> active groups
-            </p>
-          </div>
-        </div>
-      </section>
+            </View>
+          </MobileContainer>
+        </View>
 
-      <section className="py-20 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Everything you need to{" "}
-              <span className="text-gradient">split together</span>
-            </h2>
-            <p className="text-dabbu-text-secondary text-lg max-w-2xl mx-auto">
-              From weekend trips to shared households, Dabbu makes it effortless.
-            </p>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {FEATURES.map((feature, i) => (
-              <Card
-                key={i}
-                className="hover:border-dabbu-accent/30 transition-all duration-300 group"
-              >
-                <div className="w-14 h-14 rounded-xl bg-dabbu-accent-muted flex items-center justify-center text-dabbu-accent mb-5 group-hover:scale-110 transition-transform">
-                  {feature.icon}
-                </div>
-                <h3 className="text-lg font-semibold mb-2 text-dabbu-text">
-                  {feature.title}
-                </h3>
-                <p className="text-sm text-dabbu-text-secondary leading-relaxed">
-                  {feature.description}
-                </p>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
+        {/* CTA */}
+        <View style={s.cta}>
+          <MobileContainer>
+            <View style={s.gradientCard as any}>
+              <Text style={s.ctaTitle}>
+                Ready to simplify your <Text style={s.gradientText as any}>shared finances</Text>?
+              </Text>
+              <Spacer size="md" />
+              <Text style={s.ctaSubtitle}>
+                Invite friends, split expenses, and settle up. No sign-up required for guests.
+              </Text>
+              <Spacer size="xl" />
+              <Row style={{ justifyContent: 'center', gap: 12 }}>
+                <PrimaryButton style={{ minWidth: 200 }} onPress={() => router.push('/auth')}>
+                  Create Your First Group
+                </PrimaryButton>
+              </Row>
+            </View>
+          </MobileContainer>
+        </View>
 
-      <section className="py-20 px-4 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-dabbu-accent/5 to-transparent" />
-        <div className="max-w-4xl mx-auto text-center relative">
-          <Card gradient className="p-12">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Ready to simplify your{" "}
-              <span className="text-gradient">shared finances</span>?
-            </h2>
-            <p className="text-dabbu-text-secondary text-lg mb-8 max-w-xl mx-auto">
-              Invite friends, split expenses, and settle up. No sign-up required for guests.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button size="xl" onClick={() => router.push("/auth")}>
-                Create Your First Group
-              </Button>
-              <Button
-                variant="outline"
-                size="xl"
-                onClick={() => router.push("/auth")}
-              >
-                Learn More
-              </Button>
-            </div>
-          </Card>
-        </div>
-      </section>
-
-      <footer className="py-8 px-4 border-t border-dabbu-border">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-dabbu-accent flex items-center justify-center">
-              <span className="text-white font-bold text-xs">D</span>
-            </div>
-            <span className="text-sm text-dabbu-text-muted">
-              Dabbu Split &copy; {new Date().getFullYear()}
-            </span>
-          </div>
-          <div className="flex items-center gap-6 text-sm text-dabbu-text-muted">
-            <span>Privacy</span>
-            <span>Terms</span>
-            <span>Support</span>
-          </div>
-        </div>
-      </footer>
-    </div>
+        {/* Footer */}
+        <View style={s.footer as any}>
+          <MobileContainer>
+            <Row style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+              <Row style={{ gap: 8 }}>
+                <View style={[s.logo, { width: 24, height: 24 }]}>
+                  <Text style={[s.logoText, { fontSize: 11 }]}>D</Text>
+                </View>
+                <Text style={{ fontSize: 13, color: palette.textMuted }}>
+                  Dabbu Split &copy; {new Date().getFullYear()}
+                </Text>
+              </Row>
+              <Row style={{ gap: 20 }}>
+                <Text style={{ fontSize: 13, color: palette.textMuted }}>Privacy</Text>
+                <Text style={{ fontSize: 13, color: palette.textMuted }}>Terms</Text>
+                <Text style={{ fontSize: 13, color: palette.textMuted }}>Support</Text>
+              </Row>
+            </Row>
+          </MobileContainer>
+        </View>
+      </View>
+    </SafeView>
   );
 }
+
+const s = StyleSheet.create({
+  wrapper: {
+    minHeight: '100%',
+    flex: 1,
+  },
+  nav: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 50,
+    backgroundColor: 'rgba(18, 18, 20, 0.8)',
+    borderBottomWidth: 1,
+    borderBottomColor: palette.border,
+  },
+  navRow: {
+    justifyContent: 'space-between',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+  },
+  logo: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: palette.brand,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 14,
+  },
+  brandText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: palette.text,
+  },
+  userBadge: {
+    gap: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    borderRadius: radii.full,
+    backgroundColor: palette.brandLight,
+    borderWidth: 1,
+    borderColor: 'rgba(139, 92, 246, 0.2)',
+  },
+  userAvatar: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: palette.brand,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  userAvatarText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  userName: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: palette.text,
+  },
+  hero: {
+    paddingTop: 120,
+    paddingBottom: 80,
+    paddingHorizontal: spacing.lg,
+  },
+  glowOrb: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: 600,
+  },
+  heroContent: {
+    alignItems: 'center',
+  },
+  badge: {
+    gap: 8,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 6,
+    borderRadius: radii.full,
+    borderWidth: 1,
+    borderColor: palette.border,
+    backgroundColor: palette.surface,
+  },
+  pulseDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: palette.success,
+  },
+  heroTitle: {
+    fontSize: 40,
+    fontWeight: '800',
+    color: palette.text,
+    textAlign: 'center',
+    letterSpacing: -0.5,
+    lineHeight: 48,
+  },
+  gradientText: {
+    fontWeight: '800',
+  },
+  heroSubtitle: {
+    fontSize: 17,
+    color: palette.textSecondary,
+    textAlign: 'center',
+    maxWidth: 520,
+    lineHeight: 26,
+  },
+  joinForm: {
+    flexDirection: 'row',
+    gap: 12,
+    maxWidth: 420,
+    width: '100%',
+  },
+  inputWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: palette.surface,
+    borderWidth: 1,
+    borderColor: palette.border,
+    borderRadius: radii.lg,
+    paddingHorizontal: spacing.md,
+    gap: 8,
+  },
+  input: {
+    flex: 1,
+    height: 48,
+    fontSize: 16,
+    fontWeight: '600',
+    color: palette.text,
+    textAlign: 'center',
+    letterSpacing: 3,
+  },
+  joinBtn: {
+    minWidth: 120,
+  },
+  miniAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: palette.bg,
+    backgroundColor: palette.surface2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  miniAvatarText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: palette.textSecondary,
+  },
+  features: {
+    paddingVertical: 80,
+    paddingHorizontal: spacing.lg,
+  },
+  sectionTitle: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: palette.text,
+    textAlign: 'center',
+    letterSpacing: -0.3,
+  },
+  sectionSubtitle: {
+    fontSize: 16,
+    color: palette.textSecondary,
+    textAlign: 'center',
+    maxWidth: 500,
+  },
+  featureGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+    justifyContent: 'center',
+  },
+  featureCard: {
+    width: '100%',
+    maxWidth: 280,
+  },
+  featureTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: palette.text,
+  },
+  featureDesc: {
+    fontSize: 14,
+    color: palette.textSecondary,
+    lineHeight: 21,
+  },
+  cta: {
+    paddingVertical: 80,
+    paddingHorizontal: spacing.lg,
+  },
+  gradientCard: {
+    backgroundColor: palette.surface,
+    borderRadius: radii.xxl,
+    borderWidth: 1,
+    borderColor: palette.border,
+    padding: spacing.xxl,
+    alignItems: 'center',
+  },
+  ctaTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: palette.text,
+    textAlign: 'center',
+  },
+  ctaSubtitle: {
+    fontSize: 16,
+    color: palette.textSecondary,
+    textAlign: 'center',
+    maxWidth: 480,
+    lineHeight: 24,
+  },
+  footer: {
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: palette.border,
+  },
+});

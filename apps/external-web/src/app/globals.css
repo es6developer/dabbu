@@ -10,17 +10,40 @@
   --dabbu-surface2: #1a1a1e;
   --dabbu-border: #2a2a2e;
   --dabbu-accent: #8b5cf6;
+  --dabbu-accent-hover: #7c3aed;
   --dabbu-text: #ffffff;
   --dabbu-text-secondary: #94a3b8;
   --dabbu-text-muted: #64748b;
   --dabbu-green: #10b981;
   --dabbu-red: #ef4444;
+  --dabbu-nav-bg: rgba(18, 18, 20, 0.8);
+  --dabbu-nav-border: #2a2a2e;
 
   --toast-bg: #1a1a1e;
   --toast-border: #2a2a2e;
   --toast-text: #ffffff;
 
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+[data-theme='light'] {
+  --dabbu-bg: #f3f4f6;
+  --dabbu-surface: #ffffff;
+  --dabbu-surface2: #f9fafb;
+  --dabbu-border: #e5e7eb;
+  --dabbu-accent: #8b5cf6;
+  --dabbu-accent-hover: #7c3aed;
+  --dabbu-text: #0f172a;
+  --dabbu-text-secondary: #64748b;
+  --dabbu-text-muted: #6b7280;
+  --dabbu-green: #10b981;
+  --dabbu-red: #ef4444;
+  --dabbu-nav-bg: rgba(255, 255, 255, 0.85);
+  --dabbu-nav-border: #e5e7eb;
+
+  --toast-bg: #ffffff;
+  --toast-border: #e5e7eb;
+  --toast-text: #0f172a;
 }
 
 * {
@@ -197,4 +220,88 @@ input[type='number']::-webkit-outer-spin-button {
 
 input[type='number'] {
   -moz-appearance: textfield;
+}
+
+/* Mobile-first container */
+.mobile-container {
+  max-width: 480px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Web-friendly wider layouts */
+@media (min-width: 768px) {
+  .mobile-container {
+    max-width: 600px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mobile-container {
+    max-width: 720px;
+  }
+}
+
+/* Notch-like rounded corners for mobile feel */
+.mobile-card {
+  border-radius: 20px;
+  border: 1px solid var(--dabbu-border);
+  background: var(--dabbu-surface);
+  overflow: hidden;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.mobile-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(139, 92, 246, 0.1);
+}
+
+/* Mobile-like header bar */
+.mobile-header {
+  background: var(--dabbu-surface);
+  border-bottom: 1px solid var(--dabbu-border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Invite input web styles */
+.invite-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+.invite-input::placeholder {
+  color: #64748b;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.glass-nav {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Stagger animation utility */
+.stagger-enter {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.stagger-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Bottom tab-like bar */
+.mobile-tab-bar {
+  background: var(--dabbu-surface);
+  border-top: 1px solid var(--dabbu-border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }

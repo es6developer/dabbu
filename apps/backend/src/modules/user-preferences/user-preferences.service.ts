@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 
 @Injectable()
@@ -45,6 +45,136 @@ export class UserPreferencesService {
       data: { preferredPrimaryColor: color },
     });
     return { message: 'Primary color updated' };
+  }
+
+  async getWidgetCatalog(userId: string) {
+    const sub = await this.prisma.subscription.findUnique({
+      where: { userId },
+      select: { status: true, currentPeriodEnd: true, plan: { select: { code: true } } },
+    });
+    const isPremium = !!(
+      sub &&
+      sub.status === 'active' &&
+      sub.currentPeriodEnd >= new Date() &&
+      sub.plan.code !== 'FREE'
+    );
+
+    const freeWidgets = [
+      {
+        id: 'balance',
+        name: 'Balance',
+        description: 'Current account balance',
+        size: 'small',
+        premium: false,
+      },
+      {
+        id: 'quickActions',
+        name: 'Quick Actions',
+        description: 'Add transaction, scan bill',
+        size: 'small',
+        premium: false,
+      },
+      {
+        id: 'features',
+        name: 'Feature Cards',
+        description: 'Budgets, Bills, Goals',
+        size: 'medium',
+        premium: false,
+      },
+      {
+        id: 'snapshots',
+        name: 'Monthly Snapshots',
+        description: 'Income vs Expense chart',
+        size: 'medium',
+        premium: false,
+      },
+      {
+        id: 'recentActivity',
+        name: 'Recent Activity',
+        description: 'Last 5 transactions',
+        size: 'medium',
+        premium: false,
+      },
+      {
+        id: 'upcomingBills',
+        name: 'Upcoming Bills',
+        description: 'Bills due soon',
+        size: 'small',
+        premium: false,
+      },
+      {
+        id: 'budgetStatus',
+        name: 'Budget Status',
+        description: 'Budget progress bars',
+        size: 'medium',
+        premium: false,
+      },
+    ];
+
+    const premiumWidgets = [
+      {
+        id: 'cashFlowForecast',
+        name: 'Cash Flow Forecast',
+        description: '30-day cash flow projection',
+        size: 'large',
+        premium: true,
+      },
+      {
+        id: 'savingsForecast',
+        name: 'Savings Growth',
+        description: 'Savings projection chart',
+        size: 'large',
+        premium: true,
+      },
+      {
+        id: 'loanPayoffTracker',
+        name: 'Loan Payoff',
+        description: 'Loan amortization tracker',
+        size: 'medium',
+        premium: true,
+      },
+      {
+        id: 'healthScore',
+        name: 'Financial Health',
+        description: 'Health score gauge',
+        size: 'small',
+        premium: true,
+      },
+      {
+        id: 'spendingInsights',
+        name: 'AI Insights',
+        description: 'Smart spending insights',
+        size: 'medium',
+        premium: true,
+      },
+      {
+        id: 'categoryAnalytics',
+        name: 'Deep Analytics',
+        description: 'Advanced category trends',
+        size: 'large',
+        premium: true,
+      },
+      {
+        id: 'goalForecast',
+        name: 'Goal Forecast',
+        description: 'Goal completion projections',
+        size: 'medium',
+        premium: true,
+      },
+      {
+        id: 'investmentHealth',
+        name: 'Investment Health',
+        description: 'Portfolio analysis',
+        size: 'medium',
+        premium: true,
+      },
+    ];
+
+    return {
+      free: freeWidgets,
+      premium: isPremium ? premiumWidgets : premiumWidgets.map((w) => ({ ...w, locked: true })),
+      isPremium,
+    };
   }
 
   private defaultDashboardLayout() {

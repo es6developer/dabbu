@@ -65,6 +65,13 @@ export class AccountsController {
     return { data: patterns };
   }
 
+  @Get('safe-to-spend')
+  @ApiOperation({ summary: 'Get safe-to-spend amount' })
+  async getSafeToSpend(@CurrentUser('id') userId: string) {
+    const result = await this.accountsService.getSafeToSpend(userId);
+    return { data: result };
+  }
+
   @Get('trends')
   @ApiOperation({ summary: 'Get monthly income/expense trends' })
   async getMonthlyTrends(@CurrentUser('id') userId: string, @Query('months') months?: number) {

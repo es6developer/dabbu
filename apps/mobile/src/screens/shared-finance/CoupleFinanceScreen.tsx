@@ -2,12 +2,14 @@ import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
+  TextInput,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
   RefreshControl,
   Dimensions,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -71,6 +73,35 @@ export function CoupleFinanceScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'activity'>('overview');
+  const [partnerPhone, setPartnerPhone] = useState('');
+  const [inviteLoading, setInviteLoading] = useState(false);
+
+  const handleInviteByPhone = useCallback(async () => {
+    const digits = partnerPhone.replace(/\D/g, '');
+    if (digits.length < 10) {
+      Alert.alert('Invalid Phone', 'Please enter a valid 10-digit phone number.');
+      return;
+    }
+    if (!groupId) {
+      return;
+    }
+    setInviteLoading(true);
+    try {
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      await api.post(`/shared-finance/groups/${groupId}/members/add-by-phone`, {
+        phone: `+91${digits}`,
+      });
+      setPartnerPhone('');
+      Alert.alert('Invite Sent', 'Your partner has been added to the couple space.');
+      loadData(true);
+    } catch (e: any) {
+      Alert.alert('Error', e?.message || 'Failed to add partner. They may need to sign up first.');
+    } finally {
+      setInviteLoading(false);
+    }
+  }, [partnerPhone, groupId, accessToken]);
 
   const loadData = useCallback(
     async (refresh = false) => {
@@ -212,8 +243,40 @@ export function CoupleFinanceScreen() {
             Connect with your Partner
           </Text>
           <Text style={[s.heroSub, { color: colors.text.secondary }]}>
-            Add your partner to start sharing finances
+            Add your partner by phone number to start sharing finances
           </Text>
+          <View
+            style={[
+              s.phoneRow,
+              { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+            ]}
+          >
+            <Text style={[s.countryCode, { color: colors.text.primary }]}>+91</Text>
+            <TextInput
+              style={[s.phoneInput, { color: colors.text.primary }]}
+              placeholder="Phone number"
+              placeholderTextColor={colors.text.tertiary}
+              keyboardType="phone-pad"
+              maxLength={10}
+              value={partnerPhone}
+              onChangeText={(t) => setPartnerPhone(t.replace(/\D/g, ''))}
+            />
+          </View>
+          <TouchableOpacity
+            style={[s.inviteBtn, { opacity: inviteLoading ? 0.6 : 1 }]}
+            onPress={handleInviteByPhone}
+            disabled={inviteLoading}
+            activeOpacity={0.8}
+          >
+            {inviteLoading ? (
+              <ActivityIndicator size="small" color="#FFF" />
+            ) : (
+              <>
+                <Ionicons name="person-add-outline" size={18} color="#FFF" />
+                <Text style={s.inviteBtnText}>Connect Partner</Text>
+              </>
+            )}
+          </TouchableOpacity>
         </View>
       </ScrollView>
     );
@@ -814,4 +877,29 @@ const s = StyleSheet.create({
   heartIconWrap: { marginBottom: 12 },
   heroTitle: { fontSize: 26, fontWeight: '800', color: '#FFF', marginBottom: 6 },
   heroSub: { fontSize: 14, color: 'rgba(255,255,255,0.7)', textAlign: 'center' },
+  phoneRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    marginTop: 20,
+    width: '100%',
+    height: 48,
+  },
+  countryCode: { fontSize: 16, fontWeight: '700', marginRight: 8 },
+  phoneInput: { flex: 1, fontSize: 16, height: '100%' },
+  inviteBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: palette.brand.primary,
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    marginTop: 16,
+    width: '100%',
+  },
+  inviteBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 });

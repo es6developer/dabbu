@@ -33,7 +33,7 @@ export class ExpenseGroupsService {
       this.prisma.user.findUnique({ where: { id: userId }, select: { role: true } }),
       this.prisma.subscription.findUnique({
         where: { userId },
-        include: { plan: { select: { features: true, name: true } } },
+        include: { plan: { select: { features: true, name: true, code: true } } },
       }),
     ]);
 
@@ -42,14 +42,24 @@ export class ExpenseGroupsService {
       return { ...PLAN_LIMITS.gold, tier: 'gold' };
     }
 
-    const planName = subscription?.plan?.name?.toLowerCase() || '';
-    if (planName.includes('gold')) {
+    const isActive =
+      subscription?.status === 'active' &&
+      subscription.currentPeriodEnd &&
+      new Date(subscription.currentPeriodEnd) > new Date();
+
+    if (!isActive) {
+      return { ...PLAN_LIMITS.free, tier: 'free' };
+    }
+
+    const isGold =
+      subscription?.plan?.name?.toLowerCase().includes('gold') ||
+      subscription?.plan?.code === 'GOLD';
+    if (isGold) {
       return { ...PLAN_LIMITS.gold, tier: 'gold' };
     }
-    if (
-      subscription &&
-      (subscription.plan?.name?.toLowerCase().includes('premium') || planName.includes('premium'))
-    ) {
+
+    const isPremium = subscription?.plan?.code !== 'FREE';
+    if (isPremium) {
       return { ...PLAN_LIMITS.premium, tier: 'premium' };
     }
     return { ...PLAN_LIMITS.free, tier: 'free' };

@@ -32,28 +32,41 @@ const PLANS = [
 ];
 
 const PREMIUM_FEATURES = [
-  { icon: 'git-branch', label: 'Unlimited Groups' },
-  { icon: 'people', label: 'Unlimited Members' },
-  { icon: 'scan', label: 'Unlimited OCR Scans' },
-  { icon: 'notifications', label: 'Unlimited Reminders' },
-  { icon: 'options', label: 'Customise Dashboard' },
-  { icon: 'menu', label: 'Customise Bottom Tabs' },
-  { icon: 'stats-chart', label: 'Advanced Analytics' },
-  { icon: 'trending-up', label: 'Financial Insights' },
-  { icon: 'color-palette', label: 'Premium Themes' },
-  { icon: 'flask', label: 'Early Access Features' },
-  { icon: 'sparkles', label: 'Future AI Features' },
-  { icon: 'wallet', label: 'Subscription Management' },
+  { icon: 'analytics', label: 'Financial Health Score' },
+  { icon: 'trending-up', label: 'Spending Analysis & Insights' },
+  { icon: 'cash', label: 'Savings Opportunities' },
+  { icon: 'stats-chart', label: 'Expense Pattern Analysis' },
+  { icon: 'options', label: 'Budget Optimization Suggestions' },
+  { icon: 'calendar', label: 'Cash Flow Forecasting' },
+  { icon: 'trending-up', label: 'Monthly Predictions' },
+  { icon: 'flag', label: 'Savings Forecast' },
+  { icon: 'timer', label: 'Goal Completion Forecast' },
+  { icon: 'card', label: 'Loan Payoff Forecast' },
+  { icon: 'people', label: 'Couple Financial Compatibility' },
+  { icon: 'home', label: 'Family Wealth Dashboard' },
+  { icon: 'grid', label: 'Unlimited Custom Dashboards' },
+  { icon: 'layers', label: 'Dashboard Widgets' },
+  { icon: 'funnel', label: 'Advanced Filters' },
+  { icon: 'chatbubbles', label: 'Priority Support' },
 ];
 
 const FREE_FEATURES = [
-  'Expense Management',
-  'Income Management',
-  'Basic Reports',
-  'Maximum 5 Groups',
-  '10 Members Per Group',
-  '5 OCR Scans/Month',
-  '10 Reminders',
+  'Unlimited Transactions',
+  'Unlimited Accounts',
+  'All Categories',
+  'Unlimited Budgets',
+  'Unlimited Bills',
+  'Unlimited Goals',
+  'Reports Export (PDF/Excel/CSV)',
+  'Expense Splitting',
+  'Shared Groups',
+  'Couple Space',
+  'Family Space',
+  'Reminders & Notifications',
+  'Loan Tracking',
+  'Subscription Tracking',
+  'Net Worth Tracking',
+  'Global Search',
 ];
 
 function CheckoutOverlay({ url, onClose }: { url: string; onClose: () => void }) {
@@ -325,8 +338,8 @@ export function PremiumScreen() {
             <Text style={styles.heroTitle}>Unlock the Full</Text>
             <Text style={styles.heroTitleAccent}>Dabbu Experience</Text>
             <Text style={styles.heroSubtitle}>
-              Premium gives your family unlimited access to all features, advanced analytics, and
-              future AI tools.
+              Premium unlocks financial intelligence, forecasts, and advanced insights. All basic
+              features are free forever.
             </Text>
           </View>
         </Animated.View>
