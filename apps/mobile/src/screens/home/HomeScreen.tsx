@@ -246,12 +246,6 @@ export function HomeScreen() {
         }
       }, 3000);
 
-      const settleTimer = setTimeout(() => {
-        if (!ctrl.signal.aborted) {
-          setLoading(false);
-        }
-      }, 15000);
-
       try {
         const [balRes, statsRes, remRes, goalRes, notifRes, billsRes, spacesRes, budgetsRes] =
           await Promise.allSettled([

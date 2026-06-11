@@ -2,7 +2,7 @@ import React, { useState, useCallback, useRef, useMemo } from 'react';
 import {
   View,
   Text,
-  FlatList,
+  SectionList,
   TouchableOpacity,
   Animated,
   StyleSheet,
@@ -23,7 +23,7 @@ import { Skeleton, SkeletonList } from '../../components/ui/AnimatedSkeleton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { LinearGradient } from 'expo-linear-gradient';
-import { UpgradeBanner } from '../../components/UpgradeBanner';
+import { UpgradeBanner } from '../../components/ui/UpgradeBanner';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -276,12 +276,12 @@ export function MyWalletScreen() {
 
   return (
     <View style={[s.wrapper, { backgroundColor: colors.bg.primary }]}>
-      <FlatList
-        data={filtered}
-        keyExtractor={(item, i) => `${item.title}-${i}`}
+      <SectionList
+        sections={filtered}
+        keyExtractor={(item, i) => `${(item as any).id || i}`}
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
-      useNativeDriver: true,
-    })}
+          useNativeDriver: true,
+        })}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -425,11 +425,15 @@ export function MyWalletScreen() {
                 onPress={() => {
                   const nextCat =
                     categories.length > 0
-                      ? categories[
-                          (categories.indexOf(selectedCategory) + 1) % categories.length
-                        ]
+                      ? categories[(categories.indexOf(selectedCategory) + 1) % categories.length]
                       : '';
-                  setSelectedCategory(selectedCategory ? (nextCat === selectedCategory ? '' : nextCat) : categories[0] || '');
+                  setSelectedCategory(
+                    selectedCategory
+                      ? nextCat === selectedCategory
+                        ? ''
+                        : nextCat
+                      : categories[0] || '',
+                  );
                 }}
                 activeOpacity={0.7}
               >
@@ -462,10 +466,7 @@ export function MyWalletScreen() {
             >
               <View style={s.txLeft}>
                 <View
-                  style={[
-                    s.txIcon,
-                    { backgroundColor: isExpense ? `${RED}15` : `${GREEN}15` },
-                  ]}
+                  style={[s.txIcon, { backgroundColor: isExpense ? `${RED}15` : `${GREEN}15` }]}
                 >
                   <Ionicons
                     name={isExpense ? 'arrow-up' : 'arrow-down'}
@@ -474,10 +475,7 @@ export function MyWalletScreen() {
                   />
                 </View>
                 <View style={s.txInfo}>
-                  <Text
-                    style={[s.txDesc, { color: colors.text.primary }]}
-                    numberOfLines={1}
-                  >
+                  <Text style={[s.txDesc, { color: colors.text.primary }]} numberOfLines={1}>
                     {item.description || 'No description'}
                   </Text>
                   <Text style={[s.txCat, { color: colors.text.tertiary }]}>
@@ -485,12 +483,7 @@ export function MyWalletScreen() {
                   </Text>
                 </View>
               </View>
-              <Text
-                style={[
-                  s.txAmount,
-                  { color: isExpense ? RED : GREEN },
-                ]}
-              >
+              <Text style={[s.txAmount, { color: isExpense ? RED : GREEN }]}>
                 {isExpense ? '-' : '+'}₹{Math.abs(Number(item.amount)).toLocaleString('en-IN')}
               </Text>
             </TouchableOpacity>
@@ -499,9 +492,7 @@ export function MyWalletScreen() {
         ListEmptyComponent={
           <View style={s.empty}>
             <Ionicons name="wallet-outline" size={56} color={colors.text.tertiary} />
-            <Text style={[s.emptyTitle, { color: colors.text.primary }]}>
-              No transactions yet
-            </Text>
+            <Text style={[s.emptyTitle, { color: colors.text.primary }]}>No transactions yet</Text>
             <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>
               Tap the + button to add your first expense or income.
             </Text>
@@ -570,7 +561,12 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  balanceLabel: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.7)', letterSpacing: 0.5 },
+  balanceLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.7)',
+    letterSpacing: 0.5,
+  },
   balanceRing: {
     width: 48,
     height: 48,
@@ -581,7 +577,13 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   balanceRingText: { fontSize: 13, fontWeight: '700', color: '#FFF' },
-  balanceAmount: { fontSize: 38, fontWeight: '800', color: '#FFF', marginTop: 6, letterSpacing: -1 },
+  balanceAmount: {
+    fontSize: 38,
+    fontWeight: '800',
+    color: '#FFF',
+    marginTop: 6,
+    letterSpacing: -1,
+  },
   balancePills: {
     flexDirection: 'row',
     marginTop: 20,
