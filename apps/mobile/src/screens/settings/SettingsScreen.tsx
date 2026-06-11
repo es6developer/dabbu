@@ -34,6 +34,7 @@ const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
     title: 'Account',
     items: [
       { label: 'Profile', icon: 'person-circle', screen: 'Profile' },
+      { label: 'Create Couple Profile', icon: 'heart-circle', screen: 'AddPartner' },
       { label: 'Favorite Contacts', icon: 'star', screen: 'FavoriteContacts' },
       { label: 'Subscription', icon: 'diamond', screen: 'Premium' },
       { label: 'Refer & Earn', icon: 'gift', screen: 'Referral' },
@@ -69,6 +70,7 @@ const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
 
 const ROW_META: Record<string, { icon: IconName }> = {
   Profile: { icon: 'person' },
+  'Create Couple Profile': { icon: 'heart-circle' },
   Subscription: { icon: 'diamond' },
   'Favorite Contacts': { icon: 'star' },
   'Refer & Earn': { icon: 'gift' },
@@ -120,6 +122,7 @@ export function SettingsScreen() {
     }
     const registered = [
       'Profile',
+      'AddPartner',
       'Security',
       'Premium',
       'Theme',
@@ -132,6 +135,7 @@ export function SettingsScreen() {
       'NotificationSettings',
       'FavoriteContacts',
       'Referral',
+      'CoupleSpace',
     ];
     if (!registered.includes(screen)) {
       Alert.alert('Coming Soon', `${screen} settings will be available soon`);

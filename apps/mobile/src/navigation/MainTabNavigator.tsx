@@ -55,6 +55,7 @@ import { CustomiseDashboardScreen } from '../screens/settings/CustomiseDashboard
 import { CustomiseBottomMenuScreen } from '../screens/settings/CustomiseBottomMenuScreen';
 import { NotificationSettingsScreen } from '../screens/settings/NotificationSettingsScreen';
 import { FavoriteContactsScreen } from '../screens/settings/FavoriteContactsScreen';
+import { AddPartnerScreen } from '../screens/settings/AddPartnerScreen';
 import { ReportsScreen } from '../screens/reports/ReportsScreen';
 import { CoupleSpaceNavigator } from './CoupleSpaceNavigator';
 import { CirclesNavigator } from './CirclesNavigator';
@@ -309,6 +310,11 @@ function SettingsNavigator() {
       <SettingsStack.Screen
         name="FavoriteContacts"
         component={FavoriteContactsScreen}
+        options={{ headerShown: false }}
+      />
+      <SettingsStack.Screen
+        name="AddPartner"
+        component={AddPartnerScreen}
         options={{ headerShown: false }}
       />
       <SettingsStack.Screen
