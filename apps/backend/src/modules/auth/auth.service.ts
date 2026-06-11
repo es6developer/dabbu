@@ -178,7 +178,6 @@ export class AuthService {
         avatarUrl: true,
         role: true,
         phone: true,
-        upiId: true,
         loginAttempts: true,
         lockoutUntil: true,
         lastLoginAt: true,
