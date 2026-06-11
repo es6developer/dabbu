@@ -3,7 +3,7 @@ import { Toaster } from 'sonner';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from '@/lib/auth-context';
 import { LoadingProvider } from '@/components/loaders';
-import { View, palette } from '@/rn';
+import { ThemeProvider as ThemeContextProvider } from '@/lib/theme-context';
 import './globals.css';
 
 const GOOGLE_CLIENT_ID =
@@ -49,7 +49,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
           <AuthProvider>
             <LoadingProvider>
-              <ThemeProvider>{children}</ThemeProvider>
+              <ThemeContextProvider>
+                <BackgroundGradient>{children}</BackgroundGradient>
+              </ThemeContextProvider>
             </LoadingProvider>
           </AuthProvider>
         </GoogleOAuthProvider>
@@ -68,7 +70,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   );
 }
 
-function ThemeProvider({ children }: { children: React.ReactNode }) {
+function BackgroundGradient({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ minHeight: '100vh', position: 'relative' }}>
       <div

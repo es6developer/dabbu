@@ -25,7 +25,16 @@ export {
   Row,
   Avatar,
 } from './components';
-export { palette, typography, spacing, radii } from './theme';
+export {
+  darkPalette,
+  lightPalette,
+  palettes,
+  darkPalette as palette,
+  spacing,
+  radii,
+  type Palette,
+  type ThemeMode,
+} from './theme';
 export {
   fadeIn,
   slideUp,

@@ -11,10 +11,14 @@ import {
   TouchableOpacityProps,
   ScrollViewProps,
 } from 'react-native';
-import { palette, typography, spacing, radii } from './theme';
+import { typography, spacing, radii } from './theme';
 
 export function SafeView({ children, style }: { children: React.ReactNode; style?: ViewStyle }) {
-  return <RNView style={[styles.safe, style]}>{children}</RNView>;
+  return (
+    <RNView style={[{ backgroundColor: 'var(--dabbu-bg)' as any }, styles.safe, style]}>
+      {children}
+    </RNView>
+  );
 }
 
 export function MobileContainer({
@@ -50,11 +54,11 @@ export function Card({
 }) {
   const bg =
     variant === 'elevated'
-      ? palette.elevated
+      ? ('var(--dabbu-surface)' as any)
       : variant === 'accent'
-        ? palette.brandLight
-        : palette.card;
-  const borderColor = variant === 'accent' ? palette.brandLine : palette.border;
+        ? ('var(--dabbu-accent-muted, rgba(139, 92, 246, 0.10))' as any)
+        : ('var(--dabbu-surface)' as any);
+  const borderColor = 'var(--dabbu-border)' as any;
   return (
     <RNView style={[styles.card, { backgroundColor: bg, borderColor }, style]}>{children}</RNView>
   );
@@ -83,7 +87,11 @@ export function Amount({ children, style }: TextProps) {
 }
 
 export function AccentText({ children, style }: TextProps) {
-  return <RNText style={[{ color: palette.brand, fontWeight: '700' }, style]}>{children}</RNText>;
+  return (
+    <RNText style={[{ color: 'var(--dabbu-accent)' as any, fontWeight: '700' }, style]}>
+      {children}
+    </RNText>
+  );
 }
 
 export function PrimaryButton({ children, style, ...props }: TouchableOpacityProps) {
@@ -180,7 +188,7 @@ export {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: palette.bg,
+    backgroundColor: 'var(--dabbu-bg)' as any,
   },
   container: {
     maxWidth: 480,
@@ -189,7 +197,7 @@ const styles = StyleSheet.create({
   },
   page: {
     flex: 1,
-    backgroundColor: palette.bg,
+    backgroundColor: 'var(--dabbu-bg)' as any,
   },
   pageContent: {
     padding: spacing.lg,
@@ -202,7 +210,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   primaryBtn: {
-    backgroundColor: palette.brand,
+    backgroundColor: 'var(--dabbu-accent)' as any,
     borderRadius: radii.lg,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xl,
@@ -219,7 +227,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderRadius: radii.lg,
     borderWidth: 1,
-    borderColor: palette.border,
+    borderColor: 'var(--dabbu-border)' as any,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xl,
     alignItems: 'center',
@@ -227,7 +235,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   secondaryBtnText: {
-    color: palette.text,
+    color: 'var(--dabbu-text)' as any,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -238,7 +246,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   ghostBtnText: {
-    color: palette.brand,
+    color: 'var(--dabbu-accent)' as any,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -246,25 +254,25 @@ const styles = StyleSheet.create({
     borderRadius: radii.full,
     paddingVertical: spacing.xs + 2,
     paddingHorizontal: spacing.lg,
-    backgroundColor: palette.surface,
+    backgroundColor: 'var(--dabbu-surface)' as any,
     borderWidth: 1,
-    borderColor: palette.border,
+    borderColor: 'var(--dabbu-border)' as any,
   },
   chipActive: {
-    backgroundColor: palette.brandLight,
-    borderColor: palette.brand,
+    backgroundColor: 'var(--dabbu-accent-muted, rgba(139, 92, 246, 0.10))' as any,
+    borderColor: 'var(--dabbu-accent)' as any,
   },
   chipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: palette.textSecondary,
+    color: 'var(--dabbu-text-secondary)' as any,
   },
   chipTextActive: {
-    color: palette.brand,
+    color: 'var(--dabbu-accent)' as any,
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: palette.border,
+    backgroundColor: 'var(--dabbu-border)' as any,
     marginVertical: spacing.md,
   },
   row: {
@@ -284,9 +292,9 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: palette.success,
+    backgroundColor: 'var(--dabbu-green, #10B981)' as any,
     borderWidth: 2,
-    borderColor: palette.bg,
+    borderColor: 'var(--dabbu-bg)' as any,
     position: 'absolute',
   },
 });

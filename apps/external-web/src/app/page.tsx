@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   View,
   Text,
+  TouchableOpacity,
   StyleSheet,
   SafeView,
   MobileContainer,
@@ -13,11 +14,12 @@ import {
   GhostButton,
   Row,
   Spacer,
-  palette,
   spacing,
   radii,
+  palette,
 } from '@/rn';
 import { useAuth } from '@/lib/auth-context';
+import { useTheme } from '@/lib/theme-context';
 
 const FEATURES = [
   {
@@ -49,6 +51,7 @@ const FEATURES = [
 export default function LandingPage() {
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuth();
+  const { mode, toggleTheme } = useTheme();
   const [inviteCode, setInviteCode] = useState('');
 
   const handleJoin = (e: React.FormEvent) => {
@@ -74,6 +77,21 @@ export default function LandingPage() {
                 </Text>
               </Row>
               <Row style={{ gap: 8 }}>
+                <TouchableOpacity
+                  onPress={toggleTheme}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: palette.surface2,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderWidth: 1,
+                    borderColor: palette.border,
+                  }}
+                >
+                  <Text style={{ fontSize: 16 }}>{mode === 'dark' ? '☀️' : '🌙'}</Text>
+                </TouchableOpacity>
                 {isAuthenticated ? (
                   <>
                     <Row style={s.userBadge as any}>
