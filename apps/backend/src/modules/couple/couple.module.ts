@@ -12,11 +12,13 @@ import { GroupLifecycleService } from '../shared-finance/engines/group-lifecycle
 import { TripCostForecastEngine } from '../shared-finance/engines/trip-forecast.engine';
 import { DuplicateDetectionEngine } from '../shared-finance/engines/duplicate-detection.engine';
 import { EmailModule } from '../email/email.module';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
     PrismaModule,
     EmailModule,
+    NotificationModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
