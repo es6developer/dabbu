@@ -96,7 +96,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { chatId: string; content: string; messageType?: string; replyToId?: string },
   ) {
-    if (!client.userId) throw new WsException('Unauthorized');
+    if (!client.userId) {throw new WsException('Unauthorized');}
 
     const message = await this.prisma.chatMessage.create({
       data: {
@@ -125,14 +125,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { messageId: string; emoji: string },
   ) {
-    if (!client.userId) throw new WsException('Unauthorized');
+    if (!client.userId) {throw new WsException('Unauthorized');}
 
     const message = await this.prisma.chatMessage.findUnique({
       where: { id: data.messageId },
       select: { chatId: true, metadata: true },
     });
 
-    if (!message) throw new WsException('Message not found');
+    if (!message) {throw new WsException('Message not found');}
 
     const reactions = (message.metadata as { reactions?: Record<string, string[]> } | null)?.reactions || {};
     const emoji = data.emoji;
@@ -141,7 +141,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const idx = users.indexOf(client.userId);
     if (idx > -1) {
       users.splice(idx, 1);
-      if (users.length === 0) delete reactions[emoji];
+      if (users.length === 0) {delete reactions[emoji];}
     } else {
       users.push(client.userId);
       reactions[emoji] = users;
@@ -165,12 +165,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { messageId: string; chatId: string },
   ) {
-    if (!client.userId) throw new WsException('Unauthorized');
+    if (!client.userId) {throw new WsException('Unauthorized');}
 
     const message = await this.prisma.chatMessage.findUnique({
       where: { id: data.messageId },
     });
-    if (!message) throw new WsException('Message not found');
+    if (!message) {throw new WsException('Message not found');}
 
     const metadata = (message.metadata as { isPinned?: boolean } | null) || {};
     metadata.isPinned = !metadata.isPinned;
@@ -192,7 +192,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { chatId: string },
   ) {
-    if (!client.userId) return;
+    if (!client.userId) {return;}
     client.to(`chat:${data.chatId}`).emit('typing:update', {
       chatId: data.chatId,
       userId: client.userId,
@@ -206,7 +206,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { chatId: string },
   ) {
-    if (!client.userId) return;
+    if (!client.userId) {return;}
     client.to(`chat:${data.chatId}`).emit('typing:update', {
       chatId: data.chatId,
       userId: client.userId,
@@ -220,7 +220,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { chatId: string; messageIds: string[] },
   ) {
-    if (!client.userId) return;
+    if (!client.userId) {return;}
 
     await this.prisma.chatMessage.updateMany({
       where: { id: { in: data.messageIds }, chatId: data.chatId, senderId: { not: client.userId } },

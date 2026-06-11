@@ -16,7 +16,7 @@ export class ReminderNotificationService {
       where: { id: reminderId, userId, deletedAt: null },
       include: { recurring: true },
     });
-    if (!reminder) return;
+    if (!reminder) {return;}
 
     const now = new Date();
     const dueDate = reminder.dueDate || reminder.remindAt;
@@ -87,7 +87,7 @@ export class ReminderNotificationService {
       where: { id: reminderId },
       select: { title: true, type: true, dueDate: true, priority: true, isSent: true },
     });
-    if (!reminder || reminder.isSent) return;
+    if (!reminder || reminder.isSent) {return;}
 
     const title = `${reminder.title} still overdue`;
     const message = reminder.type === 'bill' || reminder.type === 'subscription'
@@ -181,11 +181,11 @@ export class ReminderNotificationService {
     },
   ) {
     const where: any = { userId };
-    if (filters.category) where.category = filters.category;
-    if (filters.priority) where.priority = filters.priority;
-    if (filters.overdue !== undefined) where.overdue = filters.overdue;
-    if (filters.isRead !== undefined) where.isRead = filters.isRead;
-    if (filters.type) where.type = filters.type;
+    if (filters.category) {where.category = filters.category;}
+    if (filters.priority) {where.priority = filters.priority;}
+    if (filters.overdue !== undefined) {where.overdue = filters.overdue;}
+    if (filters.isRead !== undefined) {where.isRead = filters.isRead;}
+    if (filters.type) {where.type = filters.type;}
 
     const [notifications, total] = await Promise.all([
       this.prisma.notification.findMany({

@@ -352,7 +352,7 @@ export class NlpEngine {
     const bankMatch = this.identifyBank(sender, normalizedBody);
     if (!bankMatch) {
       const result = this.tryGenericParse(normalizedBody, sender);
-      if (!result) return null;
+      if (!result) {return null;}
       return this.enrichWithClassification(result, sender, normalizedBody);
     }
 
@@ -365,7 +365,7 @@ export class NlpEngine {
       if (match) {
         const amountStr = match[pattern.amountGroup]?.replace(/,/g, '');
         const amount = parseFloat(amountStr);
-        if (isNaN(amount)) continue;
+        if (isNaN(amount)) {continue;}
 
         const merchantName = pattern.merchantGroup ? match[pattern.merchantGroup]?.trim() : undefined;
         const balance = this.extractBalance(normalizedBody);
@@ -379,7 +379,7 @@ export class NlpEngine {
             .map((w) => w.replace(/[^a-zA-Z0-9]/g, '').toLowerCase())
             .filter((w) => w.length > 2 && !/^\d+$/.test(w));
           for (const w of senderWords) {
-            if (!keywords.includes(w)) keywords.push(w);
+            if (!keywords.includes(w)) {keywords.push(w);}
           }
         }
 
@@ -403,7 +403,7 @@ export class NlpEngine {
 
     // Step 4: Fallback to generic patterns
     const result = this.tryGenericParse(normalizedBody, sender);
-    if (!result) return null;
+    if (!result) {return null;}
     return this.enrichWithClassification(result, sender, normalizedBody);
   }
 
@@ -455,12 +455,12 @@ export class NlpEngine {
   }
 
   private identifyFrequency(body: string): string | undefined {
-    if (/daily/i.test(body)) return 'daily';
-    if (/weekly|every\s+week/i.test(body)) return 'weekly';
-    if (/biweekly|fortnight/i.test(body)) return 'biweekly';
-    if (/monthly|every\s+month/i.test(body)) return 'monthly';
-    if (/quarterly|every\s+quarter/i.test(body)) return 'quarterly';
-    if (/yearly|annual/i.test(body)) return 'yearly';
+    if (/daily/i.test(body)) {return 'daily';}
+    if (/weekly|every\s+week/i.test(body)) {return 'weekly';}
+    if (/biweekly|fortnight/i.test(body)) {return 'biweekly';}
+    if (/monthly|every\s+month/i.test(body)) {return 'monthly';}
+    if (/quarterly|every\s+quarter/i.test(body)) {return 'quarterly';}
+    if (/yearly|annual/i.test(body)) {return 'yearly';}
     return undefined;
   }
 
@@ -491,7 +491,7 @@ export class NlpEngine {
   }
 
   private sanitizeMerchant(name: string | undefined): string | undefined {
-    if (!name) return undefined;
+    if (!name) {return undefined;}
     return name
       .replace(/\s+/g, ' ')
       .replace(/\.$/, '')
@@ -511,7 +511,7 @@ export class NlpEngine {
         .map((w) => w.replace(/[^a-zA-Z0-9]/g, '').toLowerCase())
         .filter((w) => w.length > 2 && !/^\d+$/.test(w));
       for (const w of senderWords) {
-        if (!keywords.includes(w)) keywords.push(w);
+        if (!keywords.includes(w)) {keywords.push(w);}
       }
     }
 
@@ -520,7 +520,7 @@ export class NlpEngine {
       if (match) {
         const amountStr = match[pattern.amountGroup]?.replace(/,/g, '');
         const amount = parseFloat(amountStr);
-        if (isNaN(amount)) continue;
+        if (isNaN(amount)) {continue;}
 
         let merchantName = pattern.merchantGroup
           ? match[pattern.merchantGroup]?.trim()

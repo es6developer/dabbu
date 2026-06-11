@@ -76,8 +76,8 @@ export class AnalyticsService {
       const spent = b.spent.toNumber();
       const percentage = limit > 0 ? (spent / limit) * 100 : 0;
       let status: 'on_track' | 'overspent' | 'underspent' = 'on_track';
-      if (percentage >= 100) status = 'overspent';
-      else if (percentage < 50) status = 'underspent';
+      if (percentage >= 100) {status = 'overspent';}
+      else if (percentage < 50) {status = 'underspent';}
       return {
         id: b.id,
         name: b.name,
@@ -138,7 +138,7 @@ export class AnalyticsService {
       type: 'expense',
       date: { gte: startDate, lte: endDate },
     };
-    if (query.accountId) whereClause.accountId = query.accountId;
+    if (query.accountId) {whereClause.accountId = query.accountId;}
 
     const transactions = await this.prisma.transaction.findMany({
       where: whereClause,
@@ -194,8 +194,8 @@ export class AnalyticsService {
       const key = this.formatPeriodKey(t.date, period);
       const entry = grouped.get(key) || { income: 0, expense: 0 };
       const amount = t.amount.toNumber();
-      if (t.type === 'income') entry.income += amount;
-      else entry.expense += amount;
+      if (t.type === 'income') {entry.income += amount;}
+      else {entry.expense += amount;}
       grouped.set(key, entry);
     }
 
@@ -268,9 +268,9 @@ export class AnalyticsService {
       const percentage = limit > 0 ? (spent / limit) * 100 : 0;
 
       let status: 'on_track' | 'overspent' | 'underspent';
-      if (percentage >= 100) status = 'overspent';
-      else if (percentage > 80) status = 'on_track';
-      else status = 'underspent';
+      if (percentage >= 100) {status = 'overspent';}
+      else if (percentage > 80) {status = 'on_track';}
+      else {status = 'underspent';}
 
       return {
         id: b.id,
@@ -417,7 +417,7 @@ export class AnalyticsService {
       date: { gte: startDate, lte: endDate },
       deletedAt: null,
     };
-    if (query.groupId) whereBase.expenseGroupId = query.groupId;
+    if (query.groupId) {whereBase.expenseGroupId = query.groupId;}
 
     const [totalResult, categoryData, monthlyTrend] = await Promise.all([
       this.prisma.transaction.aggregate({
@@ -452,7 +452,7 @@ export class AnalyticsService {
       date: { gte: startDate, lte: endDate },
       deletedAt: null,
     };
-    if (query.groupId) whereBase.expenseGroupId = query.groupId;
+    if (query.groupId) {whereBase.expenseGroupId = query.groupId;}
 
     const [totalResult, monthlyTrend] = await Promise.all([
       this.prisma.transaction.aggregate({
@@ -613,10 +613,10 @@ export class AnalyticsService {
         },
       },
     });
-    if (!group) throw new NotFoundException('Group not found');
+    if (!group) {throw new NotFoundException('Group not found');}
 
     const memberIds = group.members.map((m) => m.userId);
-    if (!memberIds.includes(userId)) throw new ForbiddenException('Not a member of this group');
+    if (!memberIds.includes(userId)) {throw new ForbiddenException('Not a member of this group');}
 
     const [expenseAgg, txCount] = await Promise.all([
       this.prisma.transaction.aggregate({

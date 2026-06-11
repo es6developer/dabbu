@@ -28,7 +28,7 @@ export class NotificationSchedulerService {
     for (const user of users) {
       try {
         const settings = await this.prisma.settings.findUnique({ where: { userId: user.id } });
-        if (settings && settings.pushNotifications === false) continue;
+        if (settings && settings.pushNotifications === false) {continue;}
 
         const [todayTransactions, monthTransactions, budgets] = await Promise.all([
           this.prisma.transaction.aggregate({
@@ -82,7 +82,7 @@ export class NotificationSchedulerService {
     for (const user of users) {
       try {
         const settings = await this.prisma.settings.findUnique({ where: { userId: user.id } });
-        if (settings && (settings.pushNotifications === false || settings.weeklyReport === false)) continue;
+        if (settings && (settings.pushNotifications === false || settings.weeklyReport === false)) {continue;}
 
         const [weekExpenses, goals, upcomingReminders] = await Promise.all([
           this.prisma.transaction.aggregate({
@@ -135,7 +135,7 @@ export class NotificationSchedulerService {
     for (const user of users) {
       try {
         const settings = await this.prisma.settings.findUnique({ where: { userId: user.id } });
-        if (settings && (settings.pushNotifications === false || settings.monthlyReport === false)) continue;
+        if (settings && (settings.pushNotifications === false || settings.monthlyReport === false)) {continue;}
 
         const [expenses, incomes, categoryAgg, goals] = await Promise.all([
           this.prisma.transaction.aggregate({

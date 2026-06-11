@@ -128,11 +128,11 @@ export class HeuristicEngine {
 
   private generateTags(parsed: ParsedSmsResult, match: MerchantCategory | null): string[] {
     const tags: string[] = [...parsed.detectedKeywords];
-    if (parsed.bankName) tags.push(parsed.bankName);
-    if (parsed.isRecurring) tags.push('recurring');
-    if (parsed.transactionType === 'emi') tags.push('emi');
-    if (parsed.transactionType === 'subscription') tags.push('subscription');
-    if (match?.isSubscription) tags.push('subscription');
+    if (parsed.bankName) {tags.push(parsed.bankName);}
+    if (parsed.isRecurring) {tags.push('recurring');}
+    if (parsed.transactionType === 'emi') {tags.push('emi');}
+    if (parsed.transactionType === 'subscription') {tags.push('subscription');}
+    if (match?.isSubscription) {tags.push('subscription');}
     return [...new Set(tags)];
   }
 

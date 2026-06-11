@@ -46,7 +46,7 @@ export class FcmService {
   }
 
   private initializeApp(): void {
-    if (this.initialized) return;
+    if (this.initialized) {return;}
 
     const projectId = this.configService.get<string>('firebase.projectId');
     const clientEmail = this.configService.get<string>('firebase.clientEmail');

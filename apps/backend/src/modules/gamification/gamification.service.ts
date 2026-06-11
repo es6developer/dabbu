@@ -94,7 +94,7 @@ export class GamificationService implements OnModuleInit {
 
     for (const badge of badges) {
       const existing = userBadges.find((ub) => ub.badgeId === badge.id);
-      if (existing?.isEarned) continue;
+      if (existing?.isEarned) {continue;}
 
       const criteria = badge.criteria as any;
       let currentProgress = existing?.progress?.toNumber() || 0;
@@ -157,7 +157,7 @@ export class GamificationService implements OnModuleInit {
         });
       }
 
-      if (earned) awarded.push(badge.code);
+      if (earned) {awarded.push(badge.code);}
       progressUpdates.push({ code: badge.code, progress: currentProgress, earned });
     }
 
@@ -179,9 +179,9 @@ export class GamificationService implements OnModuleInit {
       const lastDay = new Date(last.getFullYear(), last.getMonth(), last.getDate());
       const diffDays = Math.round((today.getTime() - lastDay.getTime()) / (1000 * 60 * 60 * 24));
 
-      if (type === 'daily') isConsecutive = diffDays === 1 || diffDays === 0;
-      if (type === 'weekly') isConsecutive = diffDays <= 7;
-      if (type === 'monthly') isConsecutive = diffDays <= 31;
+      if (type === 'daily') {isConsecutive = diffDays === 1 || diffDays === 0;}
+      if (type === 'weekly') {isConsecutive = diffDays <= 7;}
+      if (type === 'monthly') {isConsecutive = diffDays <= 31;}
     }
 
     if (!streak) {

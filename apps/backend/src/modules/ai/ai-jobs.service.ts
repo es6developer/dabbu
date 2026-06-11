@@ -16,7 +16,7 @@ export class AiJobsService {
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async runDailyJobs() {
-    if (this.isRunning) return;
+    if (this.isRunning) {return;}
     this.isRunning = true;
     this.logger.log('Starting daily AI computation for all users...');
 
@@ -102,7 +102,7 @@ export class AiJobsService {
 
   @Cron(CronExpression.EVERY_6_HOURS)
   async regenerateDailyFeeds() {
-    if (this.isRunning) return;
+    if (this.isRunning) {return;}
     this.isRunning = true;
     this.logger.log('Starting feed regeneration for all users...');
 

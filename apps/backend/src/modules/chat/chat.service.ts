@@ -72,7 +72,7 @@ export class ChatService {
       where: { chatId_userId: { chatId, userId } },
     });
 
-    if (!participant) throw new NotFoundException('Chat not found');
+    if (!participant) {throw new NotFoundException('Chat not found');}
 
     const messages = await this.prisma.chatMessage.findMany({
       where: { chatId },

@@ -42,7 +42,7 @@ export class AccountInsightEngine {
       const currentSpend = await this.getSpending(userId, cat.id, currentStart, currentEnd);
       const previousSpend = await this.getSpending(userId, cat.id, prevStart, prevEnd);
 
-      if (currentSpend <= 0 && previousSpend <= 0) continue;
+      if (currentSpend <= 0 && previousSpend <= 0) {continue;}
 
       if (previousSpend > 0) {
         const change = ((currentSpend - previousSpend) / previousSpend) * 100;
@@ -146,7 +146,7 @@ export class AccountInsightEngine {
     }
 
     for (const [merchant, data] of merchantMap.entries()) {
-      if (data.dates.length < 2) continue;
+      if (data.dates.length < 2) {continue;}
 
       const intervals: number[] = [];
       for (let i = 1; i < data.dates.length; i++) {
@@ -161,10 +161,10 @@ export class AccountInsightEngine {
         const avgAmount = data.amounts.reduce((a, b) => a + b, 0) / data.amounts.length;
 
         let frequency: 'weekly' | 'monthly' | 'quarterly' | 'yearly';
-        if (avgInterval <= 10) frequency = 'weekly';
-        else if (avgInterval <= 40) frequency = 'monthly';
-        else if (avgInterval <= 100) frequency = 'quarterly';
-        else frequency = 'yearly';
+        if (avgInterval <= 10) {frequency = 'weekly';}
+        else if (avgInterval <= 40) {frequency = 'monthly';}
+        else if (avgInterval <= 100) {frequency = 'quarterly';}
+        else {frequency = 'yearly';}
 
         const confidence = Math.min(1, Math.max(0.5, 1 - variance / 100));
 

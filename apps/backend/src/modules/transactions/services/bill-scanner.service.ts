@@ -235,43 +235,43 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
     s = s.replace(/(?<=\d)\s*\.\s*(?=\d{2}\b)/g, '.');
 
     const rawLines = s.split('\n').map((l) => l.trim()).filter(Boolean);
-    if (rawLines.length <= 3) return rawLines.join('\n');
+    if (rawLines.length <= 3) {return rawLines.join('\n');}
 
     const scoredLines = rawLines.map((line) => ({ line, score: this.lineReadabilityScore(line) }));
     const maxScore = Math.max(...scoredLines.map((l) => l.score), 1);
     const filtered = scoredLines
       .filter((l) => {
         const ratio = l.score / maxScore;
-        if (l.line.length <= 3) return ratio > 0.25;
-        if (l.line.length <= 10) return ratio > 0.18;
+        if (l.line.length <= 3) {return ratio > 0.25;}
+        if (l.line.length <= 10) {return ratio > 0.18;}
         return ratio > 0.12;
       })
       .map((l) => l.line);
 
-    if (filtered.length < Math.max(4, rawLines.length * 0.35)) return rawLines.join('\n');
+    if (filtered.length < Math.max(4, rawLines.length * 0.35)) {return rawLines.join('\n');}
     return filtered.join('\n');
   }
 
   private lineReadabilityScore(line: string): number {
-    if (!line || line.length < 2) return 0;
+    if (!line || line.length < 2) {return 0;}
     const alphaCount = (line.match(/[a-zA-Z]/g) || []).length;
     const digitCount = (line.match(/[0-9]/g) || []).length;
     const spaceCount = (line.match(/\s/g) || []).length;
     const goodChars = alphaCount + digitCount + spaceCount;
     const totalLen = line.length;
-    if (totalLen === 0) return 0;
+    if (totalLen === 0) {return 0;}
     const specialCount = (line.match(/[^a-zA-Z0-9\s.,;:!?'"()\-/@#$%&*+₹]/g) || []).length;
-    if (specialCount > totalLen * 0.35) return 0;
+    if (specialCount > totalLen * 0.35) {return 0;}
     const hasWord = alphaCount >= 2;
     const hasNumber = digitCount >= 1;
     let score = (goodChars / totalLen) * 10;
-    if (hasWord) score += 5;
-    if (hasNumber) score += 3;
-    if (line.length > 5) score += 2;
-    if (/[A-Z]/.test(line)) score += 2;
-    if (/error|fail|unable|exception|trace|undefined|null|NaN/.test(line.toLowerCase())) score -= 3;
-    if (/total|amount|grand|subtotal|net|payable|due/i.test(line)) score += 3;
-    if (/gstin|gst|invoice|bill no|receipt|tax/i.test(line.toLowerCase())) score += 1;
+    if (hasWord) {score += 5;}
+    if (hasNumber) {score += 3;}
+    if (line.length > 5) {score += 2;}
+    if (/[A-Z]/.test(line)) {score += 2;}
+    if (/error|fail|unable|exception|trace|undefined|null|NaN/.test(line.toLowerCase())) {score -= 3;}
+    if (/total|amount|grand|subtotal|net|payable|due/i.test(line)) {score += 3;}
+    if (/gstin|gst|invoice|bill no|receipt|tax/i.test(line.toLowerCase())) {score += 1;}
     return Math.max(0, score);
   }
 
@@ -299,14 +299,14 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
     ]);
     for (const line of lines) {
       const clean = line.replace(/[^a-zA-Z\s&.'\-/]/g, '').trim();
-      if (clean.length < 3 || clean.length > 60) continue;
-      if (firstWordSkip.has(clean.toLowerCase().split(/\s+/)[0])) continue;
-      if (/^\d/.test(clean)) continue;
-      if (/^(?:www\.|http|\d{10,}|\d{6,})/i.test(clean)) continue;
-      if (/gstin|invoice|receipt|tax total|sub.?total|net.?amount|round.?off|change.?due|hsn|sac|mrp|cgst|sgst|igst|discount|saving/i.test(clean)) continue;
+      if (clean.length < 3 || clean.length > 60) {continue;}
+      if (firstWordSkip.has(clean.toLowerCase().split(/\s+/)[0])) {continue;}
+      if (/^\d/.test(clean)) {continue;}
+      if (/^(?:www\.|http|\d{10,}|\d{6,})/i.test(clean)) {continue;}
+      if (/gstin|invoice|receipt|tax total|sub.?total|net.?amount|round.?off|change.?due|hsn|sac|mrp|cgst|sgst|igst|discount|saving/i.test(clean)) {continue;}
       const lower = clean.toLowerCase();
-      if (lower.includes('visa') || lower.includes('mastercard') || lower.includes('rupay') || lower.includes('upi') || lower.includes('cashier')) continue;
-      if (/^(?:thank|have a|please|for|visit)/i.test(lower)) continue;
+      if (lower.includes('visa') || lower.includes('mastercard') || lower.includes('rupay') || lower.includes('upi') || lower.includes('cashier')) {continue;}
+      if (/^(?:thank|have a|please|for|visit)/i.test(lower)) {continue;}
       return clean;
     }
     return 'Unknown Merchant';
@@ -388,10 +388,10 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
     }
 
     candidates.sort((a, b) => {
-      if (b.priority !== a.priority) return b.priority - a.priority;
+      if (b.priority !== a.priority) {return b.priority - a.priority;}
       const phoneA = String(Math.round(a.value)).length >= 10 ? 1 : 0;
       const phoneB = String(Math.round(b.value)).length >= 10 ? 1 : 0;
-      if (phoneA !== phoneB) return phoneA - phoneB;
+      if (phoneA !== phoneB) {return phoneA - phoneB;}
       return Math.abs(b.value - 500) - Math.abs(a.value - 500);
     });
 
@@ -411,19 +411,19 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
           if (pattern.source.includes('\\d{4}.*\\d{1,2}.*\\d{1,2}')) {
             const y = parseInt(match[1]), m = parseInt(match[2]), d = parseInt(match[3]);
             if (y > 1900 && y < 2100 && m >= 1 && m <= 12 && d >= 1 && d <= 31)
-              return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+              {return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;}
           }
           const d2 = parseInt(match[1]), m2 = parseInt(match[2]), y = parseInt(match[3]);
           if (y > 1900 && y < 2100 && m2 >= 1 && m2 <= 12 && d2 >= 1 && d2 <= 31)
-            return `${y}-${String(m2).padStart(2, '0')}-${String(d2).padStart(2, '0')}`;
+            {return `${y}-${String(m2).padStart(2, '0')}-${String(d2).padStart(2, '0')}`;}
         } else if (match[2] && MONTH_MAP[match[2].toLowerCase().slice(0, 3)] !== undefined) {
           const d = parseInt(match[1]), monthIdx = MONTH_MAP[match[2].toLowerCase().slice(0, 3)], y = parseInt(match[3]);
           if (y > 1900 && y < 2100)
-            return `${y}-${String(monthIdx + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+            {return `${y}-${String(monthIdx + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;}
         } else if (match[2] && MONTH_MAP[match[2].toLowerCase()] !== undefined) {
           const d = parseInt(match[1]), monthIdx = MONTH_MAP[match[2].toLowerCase()], y = parseInt(match[3]);
           if (y > 1900 && y < 2100)
-            return `${y}-${String(monthIdx + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+            {return `${y}-${String(monthIdx + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;}
         }
       }
     }
@@ -447,15 +447,15 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
 
     for (const line of lines) {
       const trimmed = line.trim();
-      if (!trimmed) continue;
+      if (!trimmed) {continue;}
       const lower = trimmed.toLowerCase();
-      if (skipLineSet.has(lower)) continue;
-      if (/^\d+$/.test(trimmed)) continue;
-      if (/\b(gst|invoice|receipt|tax total|sub.?total|grand.?total|net.?amount|round.?off|change.?due|hsn|sac|mrp|cgst|sgst|igst|discount|savings|round.?up|round.?down|paid by|pay by)\b/i.test(lower)) continue;
+      if (skipLineSet.has(lower)) {continue;}
+      if (/^\d+$/.test(trimmed)) {continue;}
+      if (/\b(gst|invoice|receipt|tax total|sub.?total|grand.?total|net.?amount|round.?off|change.?due|hsn|sac|mrp|cgst|sgst|igst|discount|savings|round.?up|round.?down|paid by|pay by)\b/i.test(lower)) {continue;}
 
       let qty: number | undefined;
       const qtyMatch = trimmed.match(qtyRegex);
-      if (qtyMatch) qty = parseInt(qtyMatch[1]);
+      if (qtyMatch) {qty = parseInt(qtyMatch[1]);}
 
       const endsWithPrice = trimmed.match(priceEndRegex);
       const hasPriceAnywhere = trimmed.match(priceAnywhere);
@@ -498,8 +498,8 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
       for (const kw of entry.keywords) {
         const regex = new RegExp('\\b' + kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi');
         const matches = lower.match(regex);
-        if (matches) score += matches.length * 2;
-        else if (lower.includes(kw)) score += 1;
+        if (matches) {score += matches.length * 2;}
+        else if (lower.includes(kw)) {score += 1;}
       }
       if (score > bestScore) { bestScore = score; bestCategory = entry.category; }
     }
@@ -509,14 +509,14 @@ export class BillScannerService implements OnModuleInit, OnModuleDestroy {
   private calculateConfidence(text: string, amount: number, merchant: string, date: string): number {
     let score = 0;
     const factors = 4;
-    if (amount > 0) score += 1;
-    if (merchant && merchant !== 'Unknown Merchant') score += 1;
-    if (date && date !== new Date().toISOString().split('T')[0]) score += 1;
-    if (text.length > 50) score += 1;
+    if (amount > 0) {score += 1;}
+    if (merchant && merchant !== 'Unknown Merchant') {score += 1;}
+    if (date && date !== new Date().toISOString().split('T')[0]) {score += 1;}
+    if (text.length > 50) {score += 1;}
     let confidence = score / factors;
-    if (text.length < 10) confidence *= 0.5;
-    if (text.length < 3) confidence *= 0.3;
-    if (/error|fail|unable/i.test(text)) confidence *= 0.3;
+    if (text.length < 10) {confidence *= 0.5;}
+    if (text.length < 3) {confidence *= 0.3;}
+    if (/error|fail|unable/i.test(text)) {confidence *= 0.3;}
     return Math.round(Math.min(1, Math.max(0, confidence)) * 100) / 100;
   }
 }

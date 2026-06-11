@@ -86,7 +86,7 @@ export class SubscriptionIntelligenceEngine {
     for (const t of recurringTxns) {
       const name = t.description || 'Subscription';
       const key = `txn-${t.id}`;
-      if (subscriptionSet.has(key)) continue;
+      if (subscriptionSet.has(key)) {continue;}
       subscriptionSet.add(key);
 
       const freq = t.recurringFrequency || 'monthly';
@@ -111,7 +111,7 @@ export class SubscriptionIntelligenceEngine {
     for (const r of subscriptionReminders) {
       const name = r.title;
       const key = `rem-${r.id}`;
-      if (subscriptionSet.has(key)) continue;
+      if (subscriptionSet.has(key)) {continue;}
       subscriptionSet.add(key);
 
       const amount = Number((r.metadata as any)?.amount) || 0;
@@ -133,7 +133,7 @@ export class SubscriptionIntelligenceEngine {
     for (const b of recurringBills) {
       const name = b.name;
       const key = `bill-${b.id}`;
-      if (subscriptionSet.has(key)) continue;
+      if (subscriptionSet.has(key)) {continue;}
       subscriptionSet.add(key);
 
       const amount = Number(b.amount);
@@ -192,7 +192,7 @@ export class SubscriptionIntelligenceEngine {
   }
 
   private estimateNextDue(lastDate: Date, freq: string): Date | null {
-    if (!lastDate) return null;
+    if (!lastDate) {return null;}
     const d = new Date(lastDate);
     const f = freq?.toLowerCase() || 'monthly';
     switch (f) {

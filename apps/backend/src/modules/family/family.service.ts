@@ -67,7 +67,7 @@ export class FamilyService {
       },
     });
 
-    if (!family) throw new NotFoundException('Family not found');
+    if (!family) {throw new NotFoundException('Family not found');}
     this.validateMember(family, userId);
     return family;
   }
@@ -92,7 +92,7 @@ export class FamilyService {
       include: { _count: { select: { members: true } } },
     });
 
-    if (!family) throw new NotFoundException('Family not found');
+    if (!family) {throw new NotFoundException('Family not found');}
     await this.validateAdmin(family, userId);
 
     if (family._count.members >= family.maxMembers) {
@@ -103,13 +103,13 @@ export class FamilyService {
       where: { email: dto.email },
     });
 
-    if (!invitedUser) throw new NotFoundException('User not found');
+    if (!invitedUser) {throw new NotFoundException('User not found');}
 
     const existingMember = await this.prisma.familyMember.findUnique({
       where: { familyId_userId: { familyId, userId: invitedUser.id } },
     });
 
-    if (existingMember) throw new ConflictException('User is already a member');
+    if (existingMember) {throw new ConflictException('User is already a member');}
 
     const member = await this.prisma.familyMember.create({
       data: {
@@ -134,8 +134,8 @@ export class FamilyService {
       include: { _count: { select: { members: true } } },
     });
 
-    if (!family) throw new NotFoundException('Invalid invite code');
-    if (!family.isActive) throw new BadRequestException('Family is no longer active');
+    if (!family) {throw new NotFoundException('Invalid invite code');}
+    if (!family.isActive) {throw new BadRequestException('Family is no longer active');}
     if (family._count.members >= family.maxMembers) {
       throw new BadRequestException('Family is full');
     }
@@ -144,7 +144,7 @@ export class FamilyService {
       where: { familyId_userId: { familyId: family.id, userId } },
     });
 
-    if (existingMember) throw new ConflictException('Already a member');
+    if (existingMember) {throw new ConflictException('Already a member');}
 
     const member = await this.prisma.familyMember.create({
       data: { familyId: family.id, userId, role: 'member' },
@@ -161,7 +161,7 @@ export class FamilyService {
 
   async regenerateCode(familyId: string, userId: string) {
     const family = await this.prisma.family.findUnique({ where: { id: familyId } });
-    if (!family) throw new NotFoundException('Family not found');
+    if (!family) {throw new NotFoundException('Family not found');}
     await this.validateAdmin(family, userId);
 
     const code = crypto.randomBytes(4).toString('hex').toUpperCase();
@@ -173,14 +173,14 @@ export class FamilyService {
 
   async removeMember(familyId: string, userId: string, memberId: string) {
     const family = await this.prisma.family.findUnique({ where: { id: familyId } });
-    if (!family) throw new NotFoundException('Family not found');
+    if (!family) {throw new NotFoundException('Family not found');}
     await this.validateAdmin(family, userId);
 
     const member = await this.prisma.familyMember.findUnique({
       where: { id: memberId },
     });
 
-    if (!member) throw new NotFoundException('Member not found');
+    if (!member) {throw new NotFoundException('Member not found');}
     if (member.role === 'owner') {
       throw new BadRequestException('Cannot remove the owner');
     }
@@ -191,7 +191,7 @@ export class FamilyService {
 
   async updateMemberRole(familyId: string, userId: string, dto: UpdateMemberRoleDto) {
     const family = await this.prisma.family.findUnique({ where: { id: familyId } });
-    if (!family) throw new NotFoundException('Family not found');
+    if (!family) {throw new NotFoundException('Family not found');}
 
     const requester = await this.prisma.familyMember.findUnique({
       where: { familyId_userId: { familyId, userId } },
@@ -219,7 +219,7 @@ export class FamilyService {
       where: { familyId_userId: { familyId, userId } },
     });
 
-    if (!member) throw new NotFoundException('Not a member');
+    if (!member) {throw new NotFoundException('Not a member');}
     if (member.role === 'owner') {
       throw new BadRequestException('Transfer ownership before leaving');
     }
@@ -323,16 +323,16 @@ export class FamilyService {
   // ─── Helpers ─────────────────────────────────────
   private async getFamilyOrThrow(familyId: string) {
     const family = await this.prisma.family.findUnique({ where: { id: familyId } });
-    if (!family) throw new NotFoundException('Family not found');
+    if (!family) {throw new NotFoundException('Family not found');}
     return family;
   }
 
   private async validateMember(family: { id: string; isActive: boolean }, userId: string) {
-    if (!family.isActive) throw new BadRequestException('Family is inactive');
+    if (!family.isActive) {throw new BadRequestException('Family is inactive');}
     const member = await this.prisma.familyMember.findUnique({
       where: { familyId_userId: { familyId: family.id, userId } },
     });
-    if (!member) throw new ForbiddenException('Not a family member');
+    if (!member) {throw new ForbiddenException('Not a family member');}
   }
 
   private async validateAdmin(family: { id: string }, userId: string) {

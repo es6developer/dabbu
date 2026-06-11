@@ -80,7 +80,7 @@ export class DocumentsService {
     const doc = await this.prisma.userDocument.findFirst({
       where: { id, userId, deletedAt: null },
     });
-    if (!doc) throw new NotFoundException('Document not found');
+    if (!doc) {throw new NotFoundException('Document not found');}
     return this.sanitize(doc);
   }
 
@@ -88,7 +88,7 @@ export class DocumentsService {
     const doc = await this.prisma.userDocument.findFirst({
       where: { id, userId, deletedAt: null },
     });
-    if (!doc) throw new NotFoundException('Document not found');
+    if (!doc) {throw new NotFoundException('Document not found');}
 
     const updated = await this.prisma.userDocument.update({
       where: { id },
@@ -111,7 +111,7 @@ export class DocumentsService {
     const doc = await this.prisma.userDocument.findFirst({
       where: { id, userId, deletedAt: null },
     });
-    if (!doc) throw new NotFoundException('Document not found');
+    if (!doc) {throw new NotFoundException('Document not found');}
 
     await this.prisma.userDocument.update({
       where: { id },
@@ -125,7 +125,7 @@ export class DocumentsService {
     const doc = await this.prisma.userDocument.findFirst({
       where: { id, userId, deletedAt: null },
     });
-    if (!doc) throw new NotFoundException('Document not found');
+    if (!doc) {throw new NotFoundException('Document not found');}
 
     const encrypted = fs.readFileSync(doc.encryptedPath);
     const decrypted = this.encryption.decrypt(encrypted, doc.encryptionIv);
