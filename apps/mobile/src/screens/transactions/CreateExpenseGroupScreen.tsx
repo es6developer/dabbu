@@ -196,7 +196,7 @@ export function CreateExpenseGroupScreen() {
         payload.importRecurringIds = Array.from(selectedRecurring);
       }
       await api.post('/expense-groups', payload);
-      navigation.navigate('ExpenseHome', { screen: 'SharedCircles' });
+      navigation.goBack();
     } catch (e: any) {
       const msg = e.message || '';
       if (msg.includes('limit')) {

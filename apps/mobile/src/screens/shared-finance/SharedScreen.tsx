@@ -647,9 +647,6 @@ export function SharedScreen() {
         setAccessToken(accessToken);
       }
       const body: any = { name: newName.trim(), type: newType.toLowerCase(), currency: 'INR' };
-      if (inviteEmail.trim()) {
-        body.inviteEmail = inviteEmail.trim();
-      }
       const res = await api.post<any>('/shared-finance/groups', body);
       const newGroupId = res?.id || res?._id;
       resetModal();
@@ -661,8 +658,9 @@ export function SharedScreen() {
       } else {
         loadData(true);
       }
-    } catch {
-      /* ignore */
+    } catch (e: any) {
+      const msg = e?.message || 'Failed to create space. Please try again.';
+      Alert.alert('Error', msg);
     } finally {
       setSaving(false);
     }
