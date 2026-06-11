@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -19,12 +20,26 @@ import { COUPLE_COLORS } from '../../hooks/useCoupleMode';
 
 export function AddPartnerScreen() {
   const navigation = useNavigation<any>();
-  const { colors, isDark } = useTheme();
-  const { user, addPartner, removePartner } = useAuth();
+  const { colors } = useTheme();
+  const {
+    user,
+    sendCoupleRequest,
+    approveCoupleRequest,
+    rejectCoupleRequest,
+    cancelCoupleRequest,
+    fetchCoupleRequests,
+    removePartner,
+  } = useAuth();
   const insets = useSafeAreaInsets();
 
-  const [email, setEmail] = useState('');
-  const [adding, setAdding] = useState(false);
+  const [phone, setPhone] = useState('');
+  const [sending, setSending] = useState(false);
+  const [requests, setRequests] = useState<{ sent: any[]; received: any[] }>({
+    sent: [],
+    received: [],
+  });
+  const [loadingRequests, setLoadingRequests] = useState(true);
+  const [processingId, setProcessingId] = useState<string | null>(null);
   const [removing, setRemoving] = useState(false);
 
   const isInCouple = !!user?.isCouple;
@@ -40,27 +55,79 @@ export function AddPartnerScreen() {
       })
     : '';
 
-  async function handleAddPartner() {
-    const trimmed = email.trim();
-    if (!trimmed) {
-      Alert.alert('Error', "Please enter your partner's email");
-      return;
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(trimmed)) {
-      Alert.alert('Error', 'Please enter a valid email address');
-      return;
-    }
-    setAdding(true);
+  const loadRequests = useCallback(async () => {
+    setLoadingRequests(true);
     try {
-      await addPartner(trimmed);
+      const res = await fetchCoupleRequests();
+      setRequests(res);
+    } catch {
+      // ignore
+    } finally {
+      setLoadingRequests(false);
+    }
+  }, [fetchCoupleRequests]);
+
+  useEffect(() => {
+    if (!isInCouple) {
+      loadRequests();
+    }
+  }, [isInCouple, loadRequests]);
+
+  async function handleSendRequest() {
+    const trimmed = phone.trim().replace(/[^0-9]/g, '');
+    if (!trimmed || trimmed.length < 10) {
+      Alert.alert('Error', "Please enter your partner's valid phone number");
+      return;
+    }
+    setSending(true);
+    try {
+      await sendCoupleRequest(trimmed);
+      Alert.alert('Request Sent!', 'Your partner will need to approve the request.', [
+        { text: 'OK', onPress: () => loadRequests() },
+      ]);
+      setPhone('');
+    } catch (e: any) {
+      Alert.alert('Error', e?.message || 'Failed to send request');
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function handleApprove(requestId: string) {
+    setProcessingId(requestId);
+    try {
+      await approveCoupleRequest(requestId);
       Alert.alert('Connected!', "You're in a couple! Couple Mode is active.", [
         { text: 'Go to Home', onPress: () => navigation.navigate('Dashboard') },
       ]);
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Failed to add partner');
+      Alert.alert('Error', e?.message || 'Failed to approve request');
     } finally {
-      setAdding(false);
+      setProcessingId(null);
+    }
+  }
+
+  async function handleReject(requestId: string) {
+    setProcessingId(requestId);
+    try {
+      await rejectCoupleRequest(requestId);
+      loadRequests();
+    } catch (e: any) {
+      Alert.alert('Error', e?.message || 'Failed to reject request');
+    } finally {
+      setProcessingId(null);
+    }
+  }
+
+  async function handleCancel(requestId: string) {
+    setProcessingId(requestId);
+    try {
+      await cancelCoupleRequest(requestId);
+      loadRequests();
+    } catch (e: any) {
+      Alert.alert('Error', e?.message || 'Failed to cancel request');
+    } finally {
+      setProcessingId(null);
     }
   }
 
@@ -111,7 +178,7 @@ export function AddPartnerScreen() {
           </View>
         </LinearGradient>
 
-        <View style={styles.body}>
+        <ScrollView style={styles.body}>
           <View style={[styles.partnerCard, { backgroundColor: COUPLE_COLORS.card }]}>
             <View style={styles.avatarRow}>
               <Avatar name={user.firstName || 'You'} size={56} />
@@ -164,13 +231,13 @@ export function AddPartnerScreen() {
               </>
             )}
           </TouchableOpacity>
-        </View>
+        </ScrollView>
       </View>
     );
   }
 
   return (
-    <View style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
+    <ScrollView style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
       <LinearGradient
         colors={['#6D28D9', '#8B5CF6', '#A78BFA']}
         style={[styles.heroGradient, { paddingTop: insets.top + 60, paddingBottom: 50 }]}
@@ -188,50 +255,140 @@ export function AddPartnerScreen() {
           </View>
           <Text style={[styles.heroTitle, { color: '#FFF' }]}>Add Your Partner</Text>
           <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.85)' }]}>
-            Enter your partner's email to create a couple space
+            Enter your partner's phone number to send a request
           </Text>
         </View>
       </LinearGradient>
 
-      <View style={styles.body}>
-        <View style={[styles.emailCard, { backgroundColor: colors.bg.card }]}>
-          <Text style={[styles.emailLabel, { color: colors.text.primary }]}>Partner's Email</Text>
+      <View style={styles.bodyInner}>
+        {/* Incoming Requests */}
+        {loadingRequests ? (
+          <ActivityIndicator size="small" color="#8B5CF6" style={{ marginVertical: 16 }} />
+        ) : requests.received.length > 0 ? (
+          <View style={[styles.section, { backgroundColor: colors.bg.card }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+              Pending Requests ({requests.received.length})
+            </Text>
+            {requests.received
+              .filter((r: any) => r.status === 'pending')
+              .map((req: any) => (
+                <View key={req.id} style={styles.requestCard}>
+                  <Avatar
+                    name={`${req.sender.firstName || ''} ${req.sender.lastName || ''}`}
+                    size={40}
+                  />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.requestName, { color: colors.text.primary }]}>
+                      {req.sender.firstName || 'Someone'} wants to connect!
+                    </Text>
+                    <Text style={[styles.requestPhone, { color: colors.text.tertiary }]}>
+                      {req.sender.phone || req.sender.email || ''}
+                    </Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <TouchableOpacity
+                      style={styles.approveBtn}
+                      onPress={() => handleApprove(req.id)}
+                      disabled={processingId === req.id}
+                    >
+                      {processingId === req.id ? (
+                        <ActivityIndicator size="small" color="#FFF" />
+                      ) : (
+                        <Ionicons name="checkmark" size={20} color="#FFF" />
+                      )}
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.rejectBtn}
+                      onPress={() => handleReject(req.id)}
+                      disabled={processingId === req.id}
+                    >
+                      <Ionicons name="close" size={20} color="#FF4757" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
+          </View>
+        ) : null}
+
+        {/* Send Request Form */}
+        <View style={[styles.phoneCard, { backgroundColor: colors.bg.card }]}>
+          <Text style={[styles.phoneLabel, { color: colors.text.primary }]}>
+            Partner's Phone Number
+          </Text>
           <TextInput
             style={[
-              styles.emailInput,
+              styles.phoneInput,
               {
                 backgroundColor: colors.bg.primary,
                 color: colors.text.primary,
                 borderColor: colors.border.default,
               },
             ]}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="partner@email.com"
+            value={phone}
+            onChangeText={setPhone}
+            placeholder="+91 98765 43210"
             placeholderTextColor={colors.text.tertiary}
-            keyboardType="email-address"
+            keyboardType="phone-pad"
             autoCapitalize="none"
             autoCorrect={false}
           />
           <TouchableOpacity
-            style={[styles.addBtn, { opacity: adding ? 0.7 : 1 }]}
+            style={[styles.addBtn, { opacity: sending ? 0.7 : 1 }]}
             activeOpacity={0.85}
-            onPress={handleAddPartner}
-            disabled={adding}
+            onPress={handleSendRequest}
+            disabled={sending}
           >
             <LinearGradient colors={['#6D28D9', '#8B5CF6']} style={styles.addBtnGradient}>
-              {adding ? (
+              {sending ? (
                 <ActivityIndicator size="small" color="#FFF" />
               ) : (
                 <>
                   <Ionicons name="heart" size={20} color="#FFF" />
-                  <Text style={styles.addBtnText}>Connect with Partner</Text>
+                  <Text style={styles.addBtnText}>Send Request</Text>
                 </>
               )}
             </LinearGradient>
           </TouchableOpacity>
         </View>
 
+        {/* Sent Requests */}
+        {requests.sent.length > 0 && (
+          <View style={[styles.section, { backgroundColor: colors.bg.card }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Sent Requests</Text>
+            {requests.sent.map((req: any) => (
+              <View key={req.id} style={styles.requestCard}>
+                <Avatar
+                  name={`${req.receiver.firstName || ''} ${req.receiver.lastName || ''}`}
+                  size={40}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.requestName, { color: colors.text.primary }]}>
+                    {req.receiver.firstName || 'Unknown'} —{' '}
+                    {req.status === 'pending'
+                      ? 'Waiting for approval'
+                      : req.status === 'approved'
+                        ? 'Approved'
+                        : 'Rejected'}
+                  </Text>
+                  <Text style={[styles.requestPhone, { color: colors.text.tertiary }]}>
+                    {req.receiver.phone || req.receiver.email || ''}
+                  </Text>
+                </View>
+                {req.status === 'pending' && (
+                  <TouchableOpacity
+                    style={styles.cancelBtn}
+                    onPress={() => handleCancel(req.id)}
+                    disabled={processingId === req.id}
+                  >
+                    <Text style={styles.cancelText}>Cancel</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Features */}
         <View style={styles.featuresList}>
           {[
             { icon: 'wallet-outline', text: 'Share expenses and track together' },
@@ -245,7 +402,7 @@ export function AddPartnerScreen() {
           ))}
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -286,14 +443,71 @@ const styles = StyleSheet.create({
   },
 
   body: { flex: 1, paddingHorizontal: 24, paddingTop: 24, gap: 20 },
+  bodyInner: { paddingHorizontal: 24, paddingTop: 24, gap: 20, paddingBottom: 40 },
 
-  emailCard: {
+  section: {
+    borderRadius: 20,
+    padding: 16,
+    gap: 12,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  requestCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 8,
+  },
+  requestName: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  requestPhone: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: 1,
+  },
+  approveBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: '#10B981',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rejectBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: '#FF475720',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#FF475740',
+  },
+  cancelBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: '#FF475710',
+    borderWidth: 1,
+    borderColor: '#FF475730',
+  },
+  cancelText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FF4757',
+  },
+
+  phoneCard: {
     borderRadius: 20,
     padding: 20,
     gap: 14,
   },
-  emailLabel: { fontSize: 14, fontWeight: '700' },
-  emailInput: {
+  phoneLabel: { fontSize: 14, fontWeight: '700' },
+  phoneInput: {
     borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -311,7 +525,7 @@ const styles = StyleSheet.create({
   },
   addBtnText: { fontSize: 16, fontWeight: '800', color: '#FFF' },
 
-  featuresList: { gap: 14, paddingHorizontal: 4 },
+  featuresList: { gap: 14, paddingHorizontal: 4, paddingBottom: 24 },
   featureRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   featureText: { fontSize: 14, fontWeight: '500', flex: 1 },
 

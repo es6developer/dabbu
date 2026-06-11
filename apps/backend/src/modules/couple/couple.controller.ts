@@ -3,20 +3,21 @@ import {
   Post,
   Get,
   Body,
+  Param,
   UseGuards,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
-import { IsString, IsEmail, IsBoolean, IsNotEmpty } from 'class-validator';
+import { IsString, IsBoolean, IsNotEmpty } from 'class-validator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { CoupleService } from './couple.service';
 
-class AddPartnerDto {
-  @IsEmail()
+class SendRequestDto {
+  @IsString()
   @IsNotEmpty()
-  partnerEmail: string;
+  phone: string;
 }
 
 class ToggleModeDto {
@@ -32,11 +33,38 @@ class ToggleModeDto {
 export class CoupleController {
   constructor(private readonly coupleService: CoupleService) {}
 
-  @Post('add-partner')
+  @Post('send-request')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Add a partner by email to create a couple' })
-  async addPartner(@CurrentUser('id') userId: string, @Body() dto: AddPartnerDto) {
-    return this.coupleService.addPartner(userId, dto.partnerEmail);
+  @ApiOperation({ summary: 'Send a couple request by phone number' })
+  async sendRequest(@CurrentUser('id') userId: string, @Body() dto: SendRequestDto) {
+    return this.coupleService.sendRequest(userId, dto.phone);
+  }
+
+  @Post('approve-request/:id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Approve a pending couple request' })
+  async approveRequest(@CurrentUser('id') userId: string, @Param('id') requestId: string) {
+    return this.coupleService.approveRequest(userId, requestId);
+  }
+
+  @Post('reject-request/:id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reject a pending couple request' })
+  async rejectRequest(@CurrentUser('id') userId: string, @Param('id') requestId: string) {
+    return this.coupleService.rejectRequest(userId, requestId);
+  }
+
+  @Post('cancel-request/:id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Cancel a sent couple request' })
+  async cancelRequest(@CurrentUser('id') userId: string, @Param('id') requestId: string) {
+    return this.coupleService.cancelRequest(userId, requestId);
+  }
+
+  @Get('requests')
+  @ApiOperation({ summary: 'List sent and received couple requests' })
+  async listRequests(@CurrentUser('id') userId: string) {
+    return this.coupleService.listRequests(userId);
   }
 
   @Post('toggle-mode')

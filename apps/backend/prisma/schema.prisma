@@ -116,6 +116,10 @@ model User {
   partner         User?     @relation("CouplePartner", fields: [partnerId], references: [id])
   partnerOf       User[]    @relation("CouplePartner")
 
+  // Couple requests (sent and received)
+  sentCoupleRequests     CoupleRequest[] @relation("CoupleRequestSender")
+  receivedCoupleRequests CoupleRequest[] @relation("CoupleRequestReceiver")
+
   // Dashboard & navigation customization
   dashboardLayout       Json?   @db.Json // Array of widget configs [{id, visible, order}]
   bottomMenuConfig      Json?   @db.Json // Array of tab configs [{id, visible, order}]
@@ -245,6 +249,25 @@ model User {
   @@index([isActive])
   @@index([deletedAt])
   @@map("users")
+}
+
+// ─── COUPLE REQUESTS ──────────────────────────────────────
+// Invite-based couple linking with approval flow
+model CoupleRequest {
+  id         String   @id @default(uuid()) @db.VarChar(36)
+  senderId   String   @db.VarChar(36)
+  receiverId String   @db.VarChar(36)
+  status     String   @default("pending") @db.VarChar(20) // pending, approved, rejected
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  sender   User @relation("CoupleRequestSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("CoupleRequestReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+  @@index([receiverId, status])
+  @@index([senderId, status])
+  @@map("couple_requests")
 }
 
 // ─── SESSIONS ──────────────────────────────────────────────

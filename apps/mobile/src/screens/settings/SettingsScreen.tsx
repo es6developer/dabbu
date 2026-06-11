@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   Alert,
   Animated,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -18,6 +19,7 @@ import { useAppLock } from '../../store/LockContext';
 import { api, setAccessToken, getAccessToken } from '../../services/api';
 import { ConfirmDialog } from '../../components/ui';
 import { PADDING, borderRadius, shadows } from '../../theme/design';
+import { COUPLE_COLORS } from '../../hooks/useCoupleMode';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -89,13 +91,33 @@ const ROW_META: Record<string, { icon: IconName }> = {
 
 export function SettingsScreen() {
   const navigation = useNavigation<any>();
-  const { user, logout, refreshPremiumStatus } = useAuth();
+  const {
+    user,
+    logout,
+    refreshPremiumStatus,
+    fetchCoupleRequests,
+    approveCoupleRequest,
+    rejectCoupleRequest,
+  } = useAuth();
   const { lockApp } = useAppLock();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [subscription, setSubscription] = useState<any>(null);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
+  const [processingReqId, setProcessingReqId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user?.isCouple) {
+      fetchCoupleRequests()
+        .then((res: any) => {
+          const pending = (res?.received || []).filter((r: any) => r.status === 'pending');
+          setPendingRequests(pending);
+        })
+        .catch(() => {});
+    }
+  }, [user?.isCouple, fetchCoupleRequests]);
 
   useEffect(() => {
     loadSubscription();
@@ -269,6 +291,188 @@ export function SettingsScreen() {
         </View>
 
         <Animated.View style={{ opacity: fadeAnim }}>
+          {/* Pending Couple Requests */}
+          {pendingRequests.length > 0 && (
+            <View style={{ paddingHorizontal: PADDING, marginBottom: 16 }}>
+              <View
+                style={{
+                  backgroundColor: COUPLE_COLORS.bg,
+                  borderRadius: borderRadius.xl,
+                  borderWidth: 1,
+                  borderColor: COUPLE_COLORS.border,
+                  overflow: 'hidden',
+                }}
+              >
+                <View
+                  style={{
+                    paddingHorizontal: 16,
+                    paddingVertical: 12,
+                    borderBottomWidth: 1,
+                    borderBottomColor: COUPLE_COLORS.border,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 8,
+                  }}
+                >
+                  <Ionicons name="heart" size={18} color={COUPLE_COLORS.primary} />
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontWeight: '800',
+                      color: COUPLE_COLORS.text,
+                      flex: 1,
+                    }}
+                  >
+                    Couple Request{pendingRequests.length > 1 ? 's' : ''}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: '700',
+                      color: COUPLE_COLORS.primary,
+                    }}
+                  >
+                    {pendingRequests.length} pending
+                  </Text>
+                </View>
+                {pendingRequests.map((req: any) => (
+                  <View
+                    key={req.id}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 12,
+                      paddingHorizontal: 16,
+                      paddingVertical: 12,
+                      borderBottomWidth: 1,
+                      borderBottomColor: COUPLE_COLORS.border,
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 12,
+                        backgroundColor: `${COUPLE_COLORS.primary}15`,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Ionicons name="person" size={18} color={COUPLE_COLORS.primary} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={{
+                          fontSize: 13,
+                          fontWeight: '700',
+                          color: COUPLE_COLORS.text,
+                        }}
+                      >
+                        {req.sender?.firstName || 'Someone'} wants to connect!
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          fontWeight: '500',
+                          color: COUPLE_COLORS.textSecondary,
+                          marginTop: 1,
+                        }}
+                      >
+                        {req.sender?.phone || req.sender?.email || ''}
+                      </Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', gap: 6 }}>
+                      <TouchableOpacity
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: 10,
+                          backgroundColor: '#10B981',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                        disabled={processingReqId === req.id}
+                        onPress={async () => {
+                          setProcessingReqId(req.id);
+                          try {
+                            const result = await approveCoupleRequest(req.id);
+                            if (result?.user) {
+                              setPendingRequests((prev) => prev.filter((r) => r.id !== req.id));
+                              Alert.alert(
+                                'Connected!',
+                                "You're in a couple! Couple Mode is active.",
+                                [
+                                  {
+                                    text: 'Go to Home',
+                                    onPress: () => navigation.navigate('Dashboard'),
+                                  },
+                                ],
+                              );
+                            }
+                          } catch (e: any) {
+                            Alert.alert('Error', e?.message || 'Failed to approve');
+                          } finally {
+                            setProcessingReqId(null);
+                          }
+                        }}
+                      >
+                        {processingReqId === req.id ? (
+                          <ActivityIndicator size="small" color="#FFF" />
+                        ) : (
+                          <Ionicons name="checkmark" size={16} color="#FFF" />
+                        )}
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: 10,
+                          backgroundColor: '#FF475720',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderWidth: 1,
+                          borderColor: '#FF475740',
+                        }}
+                        onPress={async () => {
+                          try {
+                            await rejectCoupleRequest(req.id);
+                            setPendingRequests((prev) => prev.filter((r) => r.id !== req.id));
+                          } catch {
+                            // ignore
+                          }
+                        }}
+                      >
+                        <Ionicons name="close" size={16} color="#FF4757" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
+                <TouchableOpacity
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 4,
+                    paddingVertical: 10,
+                  }}
+                  onPress={() => navigation.navigate('AddPartner')}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: '700',
+                      color: COUPLE_COLORS.primary,
+                    }}
+                  >
+                    View All
+                  </Text>
+                  <Ionicons name="chevron-forward" size={14} color={COUPLE_COLORS.primary} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
           {/* Upgrade Banner */}
           {!isPremium && (
             <TouchableOpacity

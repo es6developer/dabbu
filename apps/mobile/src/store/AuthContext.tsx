@@ -76,6 +76,33 @@ interface AuthState {
   isPremium: boolean;
 }
 
+interface CoupleRequestItem {
+  id: string;
+  status: string;
+  createdAt: string;
+  sender?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+    avatarUrl?: string;
+  };
+  receiver?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+    avatarUrl?: string;
+  };
+}
+
+interface CoupleRequests {
+  sent: CoupleRequestItem[];
+  received: CoupleRequestItem[];
+}
+
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
   register: (
@@ -95,7 +122,11 @@ interface AuthContextType extends AuthState {
   updateAvatarUrl: (avatarUrl: string) => void;
   completeAuth: (token: string, user: User, wasNewUser: boolean) => void;
   refreshPremiumStatus: () => Promise<void>;
-  addPartner: (partnerEmail: string) => Promise<User>;
+  sendCoupleRequest: (phone: string) => Promise<any>;
+  approveCoupleRequest: (requestId: string) => Promise<any>;
+  rejectCoupleRequest: (requestId: string) => Promise<any>;
+  cancelCoupleRequest: (requestId: string) => Promise<any>;
+  fetchCoupleRequests: () => Promise<CoupleRequests>;
   toggleCoupleMode: (isCoupleMode: boolean) => Promise<void>;
   removePartner: () => Promise<void>;
   fetchCoupleStatus: () => Promise<void>;
@@ -636,16 +667,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const addPartner = useCallback(async (partnerEmail: string) => {
-    const res = await api.post<any>('/couple/add-partner', { partnerEmail });
-    const updatedUser = res?.data || res;
-    await storage.current.setItem('userData', JSON.stringify(updatedUser));
-    await AsyncStorage.setItem('@dabbu_couple_mode', 'true');
-    setState((prev) => ({
-      ...prev,
-      user: { ...prev.user, ...updatedUser, isCoupleMode: true },
-    }));
-    return updatedUser;
+  const sendCoupleRequest = useCallback(async (phone: string) => {
+    const res = await api.post<any>('/couple/send-request', { phone });
+    return res?.data || res;
+  }, []);
+
+  const approveCoupleRequest = useCallback(async (requestId: string) => {
+    const res = await api.post<any>(`/couple/approve-request/${requestId}`);
+    const result = res?.data || res;
+    if (result?.user) {
+      const updatedUser = result.user;
+      await storage.current.setItem('userData', JSON.stringify(updatedUser));
+      await AsyncStorage.setItem('@dabbu_couple_mode', 'true');
+      setState((prev) => ({
+        ...prev,
+        user: { ...prev.user, ...updatedUser, isCoupleMode: true },
+      }));
+    }
+    return result;
+  }, []);
+
+  const rejectCoupleRequest = useCallback(async (requestId: string) => {
+    const res = await api.post<any>(`/couple/reject-request/${requestId}`);
+    return res?.data || res;
+  }, []);
+
+  const cancelCoupleRequest = useCallback(async (requestId: string) => {
+    const res = await api.post<any>(`/couple/cancel-request/${requestId}`);
+    return res?.data || res;
+  }, []);
+
+  const fetchCoupleRequests = useCallback(async () => {
+    const res = await api.get<any>('/couple/requests');
+    return res?.data || res || { sent: [], received: [] };
   }, []);
 
   const toggleCoupleMode = useCallback(async (isCoupleMode: boolean) => {
@@ -713,7 +767,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       updateAvatarUrl,
       completeAuth,
       refreshPremiumStatus,
-      addPartner,
+      sendCoupleRequest,
+      approveCoupleRequest,
+      rejectCoupleRequest,
+      cancelCoupleRequest,
+      fetchCoupleRequests,
       toggleCoupleMode,
       removePartner,
       fetchCoupleStatus,
@@ -724,7 +782,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       completeAuth,
       updateAvatarUrl,
       refreshPremiumStatus,
-      addPartner,
+      sendCoupleRequest,
+      approveCoupleRequest,
+      rejectCoupleRequest,
+      cancelCoupleRequest,
+      fetchCoupleRequests,
       toggleCoupleMode,
       removePartner,
       fetchCoupleStatus,
