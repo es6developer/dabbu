@@ -1,12 +1,15 @@
 let appHandler;
 
+function isHealthRequest(url) {
+  return url === '/api/v1/health' || url === '/health';
+}
+
 async function loadApp() {
   const path = require('path');
   const express = require('express');
   require('reflect-metadata');
 
   const distPath = path.resolve(__dirname, '..', 'dist');
-  console.log('distPath:', distPath);
 
   try {
     const { NestFactory } = require('@nestjs/core');
@@ -45,21 +48,37 @@ async function loadApp() {
   }
 }
 
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled Rejection at:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err.message);
+  console.error('Stack:', err.stack);
+});
+
 module.exports = async (req, res) => {
   try {
+    if (isHealthRequest(req.url)) {
+      return res
+        .status(200)
+        .json({ status: 'ok', mode: 'bootstrap', timestamp: new Date().toISOString() });
+    }
+
     if (!appHandler) {
       appHandler = await loadApp();
     }
+
     if (appHandler) {
       return appHandler(req, res);
     }
-    if (req.url === '/api/v1/health') {
-      return res.status(200).json({ status: 'healthy', mode: 'fallback' });
-    }
+
     res.status(200).json({ status: 'degraded', message: 'NestJS not initialized', url: req.url });
   } catch (err) {
     console.error('Fatal error:', err.message);
     console.error('Stack:', err.stack);
-    res.status(200).json({ status: 'error', error: err.message });
+    try {
+      res.status(500).json({ status: 'error', error: err.message });
+    } catch (_) {}
   }
 };

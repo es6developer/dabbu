@@ -1,5 +1,9 @@
 import {
-  Injectable, NotFoundException, BadRequestException, Logger,
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Logger,
+  Optional,
 } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
@@ -19,10 +23,18 @@ export class NotificationService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly fcmService: FcmService,
-    @InjectQueue('notification-queue') private readonly notificationQueue: Queue,
+    @Optional() @InjectQueue('notification-queue') private readonly notificationQueue: Queue | null,
   ) {}
 
-  async create(dto: CreateNotificationDto & { priority?: string; category?: string; reminderId?: string; actionUrl?: string; overdue?: boolean }) {
+  async create(
+    dto: CreateNotificationDto & {
+      priority?: string;
+      category?: string;
+      reminderId?: string;
+      actionUrl?: string;
+      overdue?: boolean;
+    },
+  ) {
     const notification = await this.prisma.notification.create({
       data: {
         userId: dto.userId,
@@ -46,12 +58,10 @@ export class NotificationService {
       }
     }
 
-    await this._sendPushToDevices(
-      dto.userId,
-      dto.title,
-      dto.message || dto.body || '',
-      { notificationId: notification.id, type: dto.type },
-    );
+    await this._sendPushToDevices(dto.userId, dto.title, dto.message || dto.body || '', {
+      notificationId: notification.id,
+      type: dto.type,
+    });
 
     return notification;
   }
@@ -143,7 +153,7 @@ export class NotificationService {
     body: string,
     data?: Record<string, any>,
   ): Promise<void> {
-    const notificationType = data?.type as string || 'system';
+    const notificationType = (data?.type as string) || 'system';
 
     const notification = await this.prisma.notification.create({
       data: {
@@ -155,7 +165,10 @@ export class NotificationService {
       },
     });
 
-    await this._sendPushToDevices(userId, title, body, { ...data, notificationId: notification.id });
+    await this._sendPushToDevices(userId, title, body, {
+      ...data,
+      notificationId: notification.id,
+    });
   }
 
   private async _sendPushToDevices(
@@ -213,7 +226,14 @@ export class NotificationService {
       };
     }
 
-    const results: Array<{ deviceId: string; platform: string | null; deviceName: string | null; pushToken: string; success: boolean; error: string | null }> = [];
+    const results: Array<{
+      deviceId: string;
+      platform: string | null;
+      deviceName: string | null;
+      pushToken: string;
+      success: boolean;
+      error: string | null;
+    }> = [];
     for (const device of devices) {
       try {
         const payload = this.fcmService.buildPayload(
@@ -263,7 +283,9 @@ export class NotificationService {
     data?: Record<string, any>,
     type?: string,
   ): Promise<void> {
-    if (!device.pushToken) return;
+    if (!device.pushToken) {
+      return;
+    }
 
     const notification = await this.prisma.notification.create({
       data: {
@@ -283,12 +305,7 @@ export class NotificationService {
     );
 
     try {
-      const payload = this.fcmService.buildPayload(
-        title,
-        body,
-        data,
-        device.platform || undefined,
-      );
+      const payload = this.fcmService.buildPayload(title, body, data, device.platform || undefined);
 
       const result = await this.fcmService.sendPush(device.pushToken!, payload);
 
@@ -327,15 +344,18 @@ export class NotificationService {
       return;
     }
 
+    if (!this.notificationQueue) {
+      await this.sendScheduledNotification(notificationId);
+      return;
+    }
+
     await this.notificationQueue.add(
       'send-notification',
       { userId, notificationId },
       { delay, attempts: 3, backoff: { type: 'exponential', delay: 5000 } },
     );
 
-    this.logger.debug(
-      `Notification ${notificationId} scheduled for ${scheduledFor.toISOString()}`,
-    );
+    this.logger.debug(`Notification ${notificationId} scheduled for ${scheduledFor.toISOString()}`);
   }
 
   async sendScheduledNotification(notificationId: string): Promise<void> {
@@ -348,12 +368,10 @@ export class NotificationService {
       return;
     }
 
-    await this.sendPush(
-      notification.userId,
-      notification.title,
-      notification.message,
-      { notificationId: notification.id, type: notification.type },
-    );
+    await this.sendPush(notification.userId, notification.title, notification.message, {
+      notificationId: notification.id,
+      type: notification.type,
+    });
   }
 
   async registerDevice(
@@ -437,11 +455,21 @@ export class NotificationService {
   async updatePreferences(userId: string, dto: UpdateNotificationPreferencesDto) {
     const updateData: any = {};
 
-    if (dto.pushNotifications !== undefined) updateData.pushNotifications = dto.pushNotifications;
-    if (dto.emailNotifications !== undefined) updateData.emailNotifications = dto.emailNotifications;
-    if (dto.smsNotifications !== undefined) updateData.smsNotifications = dto.smsNotifications;
-    if (dto.weeklyReport !== undefined) updateData.weeklyReport = dto.weeklyReport;
-    if (dto.monthlyReport !== undefined) updateData.monthlyReport = dto.monthlyReport;
+    if (dto.pushNotifications !== undefined) {
+      updateData.pushNotifications = dto.pushNotifications;
+    }
+    if (dto.emailNotifications !== undefined) {
+      updateData.emailNotifications = dto.emailNotifications;
+    }
+    if (dto.smsNotifications !== undefined) {
+      updateData.smsNotifications = dto.smsNotifications;
+    }
+    if (dto.weeklyReport !== undefined) {
+      updateData.weeklyReport = dto.weeklyReport;
+    }
+    if (dto.monthlyReport !== undefined) {
+      updateData.monthlyReport = dto.monthlyReport;
+    }
 
     const settings = await this.prisma.settings.upsert({
       where: { userId },
@@ -486,11 +514,7 @@ export class NotificationService {
     });
   }
 
-  private async _updateLogStatus(
-    logId: string,
-    status: string,
-    errorMessage?: string,
-  ) {
+  private async _updateLogStatus(logId: string, status: string, errorMessage?: string) {
     const updateData: any = { status };
 
     if (status === 'sent') {
@@ -551,11 +575,21 @@ export class NotificationService {
     },
   ) {
     const where: any = { userId };
-    if (filters.category) where.category = filters.category;
-    if (filters.priority) where.priority = filters.priority;
-    if (filters.overdue !== undefined) where.overdue = filters.overdue;
-    if (filters.isRead !== undefined) where.isRead = filters.isRead;
-    if (filters.type) where.type = filters.type;
+    if (filters.category) {
+      where.category = filters.category;
+    }
+    if (filters.priority) {
+      where.priority = filters.priority;
+    }
+    if (filters.overdue !== undefined) {
+      where.overdue = filters.overdue;
+    }
+    if (filters.isRead !== undefined) {
+      where.isRead = filters.isRead;
+    }
+    if (filters.type) {
+      where.type = filters.type;
+    }
 
     const [notifications, total] = await Promise.all([
       this.prisma.notification.findMany({
@@ -579,13 +613,23 @@ export class NotificationService {
       await Promise.all([
         this.prisma.reminder.count({ where: { userId, deletedAt: null } }),
         this.prisma.reminder.count({
-          where: { userId, deletedAt: null, status: 'completed', updatedAt: { gte: startOfMonth, lte: endOfMonth } },
+          where: {
+            userId,
+            deletedAt: null,
+            status: 'completed',
+            updatedAt: { gte: startOfMonth, lte: endOfMonth },
+          },
         }),
         this.prisma.reminder.count({
           where: { userId, deletedAt: null, status: { not: 'completed' }, dueDate: { lt: now } },
         }),
         this.prisma.reminder.count({
-          where: { userId, deletedAt: null, status: 'pending', startDate: { gte: now, lte: endOfMonth } },
+          where: {
+            userId,
+            deletedAt: null,
+            status: 'pending',
+            startDate: { gte: now, lte: endOfMonth },
+          },
         }),
       ]);
 

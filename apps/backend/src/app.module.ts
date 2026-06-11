@@ -4,6 +4,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BullModule } from '@nestjs/bullmq';
+import isRedisAvailable from './common/redis.util';
 
 // Config
 import appConfig from './config/app.config';
@@ -90,18 +91,22 @@ import { ForecastModule } from './modules/forecast/forecast.module';
       }),
     }),
 
-    // ─── Queue/BullMQ ───────────────────────────────
-    BullModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        connection: {
-          host: config.get<string>('database.redisHost', 'localhost'),
-          port: config.get<number>('database.redisPort', 6379),
-          password: config.get<string>('database.redisPassword', ''),
-        },
-      }),
-    }),
+    // ─── Queue/BullMQ (only if Redis is configured) ──
+    ...(isRedisAvailable()
+      ? [
+          BullModule.forRootAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: (config: ConfigService) => ({
+              connection: {
+                host: config.get<string>('database.redisHost', 'localhost'),
+                port: config.get<number>('database.redisPort', 6379),
+                password: config.get<string>('database.redisPassword', ''),
+              },
+            }),
+          }),
+        ]
+      : []),
 
     // ─── Scheduling ─────────────────────────────────
     ScheduleModule.forRoot(),

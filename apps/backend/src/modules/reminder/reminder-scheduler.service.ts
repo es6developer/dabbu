@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
@@ -13,7 +13,7 @@ export class ReminderSchedulerService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly reminderNotificationService: ReminderNotificationService,
-    @InjectQueue('reminder-queue') private readonly reminderQueue: Queue,
+    @Optional() @InjectQueue('reminder-queue') private readonly reminderQueue: Queue | null,
   ) {}
 
   @Cron(CronExpression.EVERY_30_SECONDS)
@@ -26,30 +26,42 @@ export class ReminderSchedulerService {
           status: ReminderStatus.PENDING,
           deletedAt: null,
           startDate: { lte: now },
-          AND: [
-            { snoozedUntil: null },
-          ],
+          AND: [{ snoozedUntil: null }],
         } as any,
         take: 50,
       });
 
       for (const reminder of dueReminders) {
-        await this.reminderQueue.add('process-due-reminder', {
-          reminderId: reminder.id,
-          userId: reminder.userId,
-        }, {
-          attempts: 3,
-          backoff: { type: 'exponential', delay: 5000 },
-          removeOnComplete: true,
-          removeOnFail: false,
-        });
+        if (this.reminderQueue) {
+          await this.reminderQueue.add(
+            'process-due-reminder',
+            {
+              reminderId: reminder.id,
+              userId: reminder.userId,
+            },
+            {
+              attempts: 3,
+              backoff: { type: 'exponential', delay: 5000 },
+              removeOnComplete: true,
+              removeOnFail: false,
+            },
+          );
+        } else {
+          await this.reminderNotificationService.sendDueReminderNotification(
+            reminder.id,
+            reminder.userId!,
+          );
+        }
       }
 
       if (dueReminders.length > 0) {
-        this.logger.debug(`Queued ${dueReminders.length} due reminders for processing`);
+        this.logger.debug(`Processed ${dueReminders.length} due reminders`);
       }
     } catch (error) {
-      this.logger.error('Error checking due reminders', error.stack);
+      this.logger.error(
+        'Error checking due reminders',
+        (error as Error).stack || (error as Error).message,
+      );
     }
   }
 
@@ -62,10 +74,7 @@ export class ReminderSchedulerService {
         where: {
           isActive: true,
           nextTriggerAt: { lte: now },
-          OR: [
-            { endDate: null },
-            { endDate: { gte: now } },
-          ],
+          OR: [{ endDate: null }, { endDate: { gte: now } }],
         } as any,
         take: 50,
         include: {
@@ -74,27 +83,44 @@ export class ReminderSchedulerService {
       });
 
       for (const recurring of recurringDue) {
-        if (!recurring.reminder || recurring.reminder.deletedAt) continue;
+        if (!recurring.reminder || recurring.reminder.deletedAt) {
+          continue;
+        }
+        const reminder = recurring.reminder;
 
-        await this.reminderQueue.add('process-recurring-reminder', {
-          reminderId: recurring.reminderId,
-        }, {
-          attempts: 3,
-          backoff: { type: 'exponential', delay: 5000 },
-          removeOnComplete: true,
-          removeOnFail: false,
-        });
+        if (this.reminderQueue) {
+          await this.reminderQueue.add(
+            'process-recurring-reminder',
+            {
+              reminderId: recurring.reminderId,
+            },
+            {
+              attempts: 3,
+              backoff: { type: 'exponential', delay: 5000 },
+              removeOnComplete: true,
+              removeOnFail: false,
+            },
+          );
+        } else {
+          await this.reminderNotificationService.sendDueReminderNotification(
+            reminder.id,
+            reminder.userId!,
+          );
+        }
 
         this.logger.debug(
-          `Queued recurring reminder: "${recurring.reminder.title}" (${recurring.reminderId})`,
+          `Processed recurring reminder: "${reminder.title}" (${recurring.reminderId})`,
         );
       }
 
       if (recurringDue.length > 0) {
-        this.logger.log(`Queued ${recurringDue.length} recurring reminders for rescheduling`);
+        this.logger.log(`Processed ${recurringDue.length} recurring reminders`);
       }
     } catch (error) {
-      this.logger.error('Error rescheduling recurring reminders', error.stack);
+      this.logger.error(
+        'Error rescheduling recurring reminders',
+        (error as Error).stack || (error as Error).message,
+      );
     }
   }
 

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from '../../common/prisma/prisma.module';
+import isRedisAvailable from '../../common/redis.util';
 import { NotificationController } from './notification.controller';
 import { NotificationService } from './notification.service';
 import { NotificationEventsService } from './notification-events.service';
@@ -13,16 +14,20 @@ import { FcmService } from './fcm.service';
   imports: [
     PrismaModule,
     ScheduleModule.forRoot(),
-    BullModule.registerQueue({
-      name: 'notification-queue',
-    }),
+    ...(isRedisAvailable()
+      ? [
+          BullModule.registerQueue({
+            name: 'notification-queue',
+          }),
+        ]
+      : []),
   ],
   controllers: [NotificationController],
   providers: [
     NotificationService,
     NotificationEventsService,
     NotificationSchedulerService,
-    NotificationProcessor,
+    ...(isRedisAvailable() ? [NotificationProcessor] : []),
     FcmService,
   ],
   exports: [NotificationService, NotificationEventsService, FcmService],

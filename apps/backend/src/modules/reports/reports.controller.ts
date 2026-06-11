@@ -7,6 +7,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Optional,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { InjectQueue } from '@nestjs/bullmq';
@@ -24,7 +25,7 @@ import { ExportReportDto } from './dto/export-report.dto';
 export class ReportsController {
   constructor(
     private readonly reportsService: ReportsService,
-    @InjectQueue('report-queue') private readonly reportQueue: Queue,
+    @Optional() @InjectQueue('report-queue') private readonly reportQueue: Queue | null,
   ) {}
 
   @Get('monthly')
@@ -101,17 +102,26 @@ export class ReportsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Export report as PDF/Excel/CSV' })
   async exportReport(@CurrentUser('id') userId: string, @Body() dto: ExportReportDto) {
-    const job = await this.reportQueue.add('generate-report', {
-      userId,
-      type: dto.type,
-      format: dto.format,
-      options: {
-        startDate: dto.startDate,
-        endDate: dto.endDate,
-        categoryId: dto.categoryId,
-        groupId: dto.groupId,
-      },
+    if (this.reportQueue) {
+      const job = await this.reportQueue.add('generate-report', {
+        userId,
+        type: dto.type,
+        format: dto.format,
+        options: {
+          startDate: dto.startDate,
+          endDate: dto.endDate,
+          categoryId: dto.categoryId,
+          groupId: dto.groupId,
+        },
+      });
+      return { message: 'Report generation queued', jobId: job.id };
+    }
+    const buffer = await this.reportsService.generateReportFile(userId, dto.type, dto.format, {
+      startDate: dto.startDate,
+      endDate: dto.endDate,
+      categoryId: dto.categoryId,
+      groupId: dto.groupId,
     });
-    return { message: 'Report generation queued', jobId: job.id };
+    return { message: 'Report generated', size: buffer.length };
   }
 }
