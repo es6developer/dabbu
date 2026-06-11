@@ -268,8 +268,6 @@ export function HomeScreen() {
         if (balRes.status === 'fulfilled') {
           const b = balRes.value;
           setTotalBalance(b.totalBalance ?? b.data?.totalBalance ?? 0);
-        } else {
-          setTotalBalance(0);
         }
 
         if (statsRes.status === 'fulfilled') {

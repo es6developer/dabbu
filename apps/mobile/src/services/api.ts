@@ -143,6 +143,11 @@ let warmupPromise: Promise<void> | null = null;
 let warmupCompleted = false;
 let keepAliveTimer: ReturnType<typeof setInterval> | null = null;
 
+export function resetWarmup(): void {
+  warmupCompleted = false;
+  warmupPromise = null;
+}
+
 export function warmupBackend(): Promise<void> {
   if (warmupCompleted) {
     return Promise.resolve();

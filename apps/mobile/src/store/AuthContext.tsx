@@ -22,6 +22,7 @@ import {
   setRefreshTokenHandler,
   setOnSessionExpiredHandler,
   clearCache,
+  resetWarmup,
   api,
 } from '../services/api';
 import { registerForPushNotifications } from '../services/notifications';
@@ -330,6 +331,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   function applyAuth(token: string, user: User, wasNewUser: boolean) {
     clearCache();
+    resetWarmup();
     setAccessToken(token);
     const p = storage.current.setItem('accessToken', token);
     const p2 = storage.current.setItem('userData', JSON.stringify(user));

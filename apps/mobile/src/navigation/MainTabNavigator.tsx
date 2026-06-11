@@ -15,6 +15,7 @@ import { DocumentVaultScreen } from '../screens/documents/DocumentVaultScreen';
 import { DocumentDetailScreen } from '../screens/documents/DocumentDetailScreen';
 import { BadgeWallScreen } from '../screens/documents/BadgeWallScreen';
 import { BudgetsListScreen } from '../screens/budgets/BudgetsListScreen';
+import { CreateBudgetScreen } from '../screens/budgets/CreateBudgetScreen';
 import { NetWorthScreen } from '../screens/home/NetWorthScreen';
 import { LoanTrackerScreen } from '../screens/home/LoanTrackerScreen';
 import { GlobalSearchScreen } from '../screens/home/GlobalSearchScreen';
@@ -279,6 +280,11 @@ function SettingsNavigator() {
         name="BudgetsList"
         component={BudgetsListScreen}
         options={{ headerShown: false }}
+      />
+      <SettingsStack.Screen
+        name="CreateBudget"
+        component={CreateBudgetScreen}
+        options={{ headerShown: false, presentation: 'modal' }}
       />
       <SettingsStack.Screen
         name="CoupleSpace"
