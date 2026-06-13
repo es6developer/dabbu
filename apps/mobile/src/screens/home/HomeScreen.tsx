@@ -486,13 +486,15 @@ export function HomeScreen() {
   if (couple.showCoupleFeatures) {
     return (
       <View style={[page.screen, { backgroundColor: COUPLE_COLORS.bg }]}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: 100 }}
-        >
-          <CoupleModeToggle />
-          <CoupleDashboard />
-        </ScrollView>
+        <CoupleModeToggle />
+        <CoupleSpaceScreen
+          onModulePress={(routeName) =>
+            navigation.navigate('Settings', {
+              screen: 'CoupleSpace',
+              params: { screen: routeName },
+            })
+          }
+        />
       </View>
     );
   }

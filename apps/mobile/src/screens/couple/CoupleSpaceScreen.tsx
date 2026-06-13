@@ -20,6 +20,10 @@ import { PADDING, borderRadius, shadows, fabShadow } from '../../theme/design';
 
 const { width } = Dimensions.get('window');
 
+interface Props {
+  onModulePress?: (routeName: string) => void;
+}
+
 function fmt(v: number) {
   return `\u20B9${(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 }
@@ -97,17 +101,17 @@ const modules = [
 function ModuleCard({
   mod,
   colors,
-  navigation,
+  onPress,
 }: {
   mod: (typeof modules)[0];
   colors: any;
-  navigation: any;
+  onPress: () => void;
 }) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   return (
     <TouchableOpacity
       activeOpacity={0.95}
-      onPress={() => navigation.navigate(mod.key)}
+      onPress={onPress}
       onPressIn={() => Animated.spring(scaleAnim, { toValue: 0.95, useNativeDriver: true }).start()}
       onPressOut={() => Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }).start()}
       style={{ width: (width - PADDING * 2 - 12) / 3 }}
@@ -147,7 +151,7 @@ function ModuleCard({
   );
 }
 
-export function CoupleSpaceScreen() {
+export function CoupleSpaceScreen({ onModulePress }: Props) {
   const navigation = useNavigation<any>();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
@@ -186,6 +190,9 @@ export function CoupleSpaceScreen() {
   useEffect(() => {
     fetchCoupleData();
   }, [fetchCoupleData]);
+
+  const goTo = (route: string) =>
+    onModulePress ? onModulePress(route) : navigation.navigate(route);
 
   if (loading) {
     return <LoadingScreen />;
@@ -319,7 +326,7 @@ export function CoupleSpaceScreen() {
             </TouchableOpacity>
             <Text style={{ color: '#FFF', fontSize: 17, fontWeight: '700' }}>Couple Space</Text>
             <TouchableOpacity
-              onPress={() => navigation.navigate('CoupleSettings')}
+              onPress={() => goTo('CoupleSettings')}
               style={{
                 width: 40,
                 height: 40,
@@ -499,7 +506,11 @@ export function CoupleSpaceScreen() {
                 <TouchableOpacity
                   key={i}
                   activeOpacity={0.85}
-                  onPress={() => navigation.navigate(btn.screen, btn.params)}
+                  onPress={() =>
+                    onModulePress
+                      ? onModulePress(btn.screen)
+                      : navigation.navigate(btn.screen, btn.params)
+                  }
                   style={{
                     flex: 1,
                     flexDirection: 'row',
@@ -524,7 +535,7 @@ export function CoupleSpaceScreen() {
           {budgetTotal > 0 && (
             <TouchableOpacity
               activeOpacity={0.7}
-              onPress={() => navigation.navigate('CoupleBudgets')}
+              onPress={() => goTo('CoupleBudgets')}
               style={{
                 backgroundColor: colors.bg.card,
                 borderRadius: borderRadius.lg,
@@ -609,7 +620,7 @@ export function CoupleSpaceScreen() {
           {savingsTarget > 0 && (
             <TouchableOpacity
               activeOpacity={0.7}
-              onPress={() => navigation.navigate('CoupleSavings')}
+              onPress={() => goTo('CoupleSavings')}
               style={{
                 backgroundColor: colors.bg.card,
                 borderRadius: borderRadius.lg,
@@ -696,7 +707,7 @@ export function CoupleSpaceScreen() {
             </Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
               {modules.map((mod) => (
-                <ModuleCard key={mod.key} mod={mod} colors={colors} navigation={navigation} />
+                <ModuleCard key={mod.key} mod={mod} colors={colors} onPress={() => goTo(mod.key)} />
               ))}
             </View>
           </View>
@@ -736,7 +747,7 @@ export function CoupleSpaceScreen() {
                     Shared Wishlist
                   </Text>
                 </View>
-                <TouchableOpacity onPress={() => navigation.navigate('CoupleGoals')}>
+                <TouchableOpacity onPress={() => goTo('CoupleGoals')}>
                   <Text style={{ fontSize: 13, fontWeight: '600', color: colors.accent.primary }}>
                     View All
                   </Text>
@@ -778,7 +789,9 @@ export function CoupleSpaceScreen() {
       <TouchableOpacity
         activeOpacity={0.85}
         onPress={() =>
-          navigation.navigate('SharedExpenseForm', { groupId: group?.id, edit: false })
+          onModulePress
+            ? onModulePress('SharedExpenseForm')
+            : navigation.navigate('SharedExpenseForm', { groupId: group?.id, edit: false })
         }
         style={[s.fab, { backgroundColor: colors.accent.primary }, fabShadow]}
       >
