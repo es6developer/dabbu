@@ -746,7 +746,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (status) {
         setState((prev) => ({
           ...prev,
-          user: prev.user ? { ...prev.user, ...status } : null,
+          user: prev.user
+            ? {
+                ...prev.user,
+                isCouple: status.isCouple ?? prev.user.isCouple,
+                partner: status.partner ?? prev.user.partner,
+                partnerLinkedAt: status.partnerLinkedAt ?? prev.user.partnerLinkedAt,
+              }
+            : null,
         }));
       }
     } catch {
