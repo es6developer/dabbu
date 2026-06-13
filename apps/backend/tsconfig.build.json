@@ -5,7 +5,7 @@
     "noImplicitAny": false,
     "skipLibCheck": true,
     "outDir": "./dist",
-    "declaration": true,
+    "declaration": false,
     "sourceMap": true
   },
   "include": ["src/**/*"],

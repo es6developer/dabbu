@@ -866,7 +866,7 @@ export function SharedGroupDetailScreen() {
                   style={[s.modalBtn, { backgroundColor: colors.accent.primary }]}
                   onPress={async () => {
                     const url = `${INVITE_BASE_URL}/${inviteToken}`;
-                    await Share.share({ message: `Join "${name}" on Dabbu! ${url}`, url }).catch(
+                    await Share.share({ message: `Join "${name}" on Dabbu! ${url}` }).catch(
                       () => {},
                     );
                     setInviteModalVisible(false);
@@ -1080,7 +1080,6 @@ export function SharedGroupDetailScreen() {
       try {
         await Share.share({
           message: `Join "${name}" on Dabbu! Track shared expenses, split bills, and settle up easily.\n\n${inviteUrl}`,
-          url: inviteUrl,
         });
       } catch {
         Alert.alert('Invite Link', inviteUrl);
