@@ -337,4 +337,17 @@ export class CoupleService {
 
     return { message: 'Couple relationship removed' };
   }
+
+  async findCoupleGroup(userId: string) {
+    const group = await this.prisma.sharedGroup.findFirst({
+      where: {
+        type: 'couple',
+        members: { some: { userId, isActive: true } },
+      },
+    });
+    if (!group) {
+      throw new NotFoundException('Couple workspace not found');
+    }
+    return group;
+  }
 }
