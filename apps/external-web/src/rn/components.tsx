@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View as RNView,
   Text as RNText,
@@ -12,6 +12,8 @@ import {
   TextInputProps,
   TouchableOpacityProps,
   ScrollViewProps,
+  findNodeHandle,
+  UIManager,
 } from 'react-native';
 import { typography, spacing, radii } from './theme';
 
@@ -154,21 +156,52 @@ export function Select({
   style?: ViewStyle;
 }) {
   const [open, setOpen] = useState(false);
+  const [dropdownLayout, setDropdownLayout] = useState({ top: 0, left: 0, width: 0 });
+  const triggerRef = useRef<any>(null);
   const selected = options.find((o) => o.value === value);
+
+  const handlePress = () => {
+    if (open) {
+      setOpen(false);
+      return;
+    }
+    const node = findNodeHandle(triggerRef.current);
+    if (node) {
+      UIManager.measureInWindow(node, (x: number, y: number, w: number, h: number) => {
+        setDropdownLayout({ top: y + h + 4, left: x, width: w });
+        setOpen(true);
+      });
+    }
+  };
+
   return (
-    <RNView style={[{ position: 'relative', zIndex: open ? 100 : 1 }, style as any]}>
-      <RNTouchableOpacity
-        activeOpacity={0.7}
-        onPress={() => setOpen(!open)}
-        style={[styles.selectTrigger as any, open && styles.selectTriggerActive]}
-      >
-        <RNText style={[styles.selectText, !selected && styles.selectPlaceholder]}>
-          {selected ? selected.label : placeholder || 'Select...'}
-        </RNText>
-        <RNText style={styles.selectArrow}>{open ? '▲' : '▼'}</RNText>
-      </RNTouchableOpacity>
+    <>
+      <RNView style={[{ position: 'relative', zIndex: 1 }, style as any]}>
+        <RNTouchableOpacity
+          ref={triggerRef}
+          activeOpacity={0.7}
+          onPress={handlePress}
+          style={[styles.selectTrigger as any, open && styles.selectTriggerActive]}
+        >
+          <RNText style={[styles.selectText, !selected && styles.selectPlaceholder]}>
+            {selected ? selected.label : placeholder || 'Select...'}
+          </RNText>
+          <RNText style={styles.selectArrow}>{open ? '▲' : '▼'}</RNText>
+        </RNTouchableOpacity>
+      </RNView>
       {open && (
-        <RNView style={styles.selectDropdown}>
+        <RNView
+          style={[
+            styles.selectDropdown,
+            {
+              position: 'fixed',
+              top: dropdownLayout.top,
+              left: dropdownLayout.left,
+              width: dropdownLayout.width,
+              zIndex: 9999,
+            } as any,
+          ]}
+        >
           {options.map((opt) => (
             <RNTouchableOpacity
               key={opt.value}
@@ -194,12 +227,12 @@ export function Select({
       )}
       {open && (
         <RNTouchableOpacity
-          style={styles.selectOverlay}
+          style={[styles.selectOverlay, { zIndex: 9998 } as any]}
           onPress={() => setOpen(false)}
           activeOpacity={1}
         />
       )}
-    </RNView>
+    </>
   );
 }
 

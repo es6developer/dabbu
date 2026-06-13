@@ -7,21 +7,12 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  TextInput,
   Card,
-  H1,
-  H2,
   H3,
   Body,
-  Caption,
-  Label,
-  Amount,
   PrimaryButton,
-  SecondaryButton,
-  GhostButton,
   Row,
   Spacer,
-  Divider,
   Avatar,
   StyleSheet,
   spacing,
@@ -29,27 +20,18 @@ import {
 } from '@/rn';
 import { ExpenseCard } from '@/components/expense-card';
 import { SettlementCard } from '@/components/settlement-card';
-import { ChatBubble } from '@/components/chat-bubble';
-import { MemberAvatar } from '@/components/member-avatar';
-import { AuthGuard } from '@/components/auth-guard';
 import { PremiumBanner } from '@/components/premium-banner';
 import { InstallPrompt } from '@/components/install-prompt';
+import ExpenseFormModal from '@/components/expense-form-modal';
+import { Icon } from '@/components/icon';
 import { OverlayLoader, useLoader } from '@/components/loaders';
-import {
-  api,
-  type Group,
-  type Expense,
-  type Settlement,
-  type ChatMessage,
-  type Member,
-} from '@/lib/api';
+import { api, type Group, type Expense, type Settlement } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
 import {
   connectToGroup,
   disconnectSocket,
   onSocketEvent,
   offSocketEvent,
-  emitEvent,
   isConnected,
 } from '@/lib/socket';
 import { toast } from 'sonner';
@@ -62,7 +44,7 @@ export default function GroupDashboard() {
   const [group, setGroup] = useState<Group | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [settlements, setSettlements] = useState<Settlement[]>([]);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [showExpenseForm, setShowExpenseForm] = useState(false);
   const loader = useLoader({
     screenType: 'dashboard',
     minDuration: 1500,
@@ -70,7 +52,6 @@ export default function GroupDashboard() {
     premium: false,
   });
   const [activeTab, setActiveTab] = useState('expenses');
-  const [chatInput, setChatInput] = useState('');
   const [sharing, setSharing] = useState(false);
   const [settlementPlan, setSettlementPlan] = useState<
     { from: string; to: string; amount: number }[]
@@ -79,7 +60,6 @@ export default function GroupDashboard() {
 
   const session = api.getTempSession();
   const currentUserId = (session?.id as string) || '';
-  const currentUserName = (session?.name as string) || 'Guest';
 
   const myBalance = group?.members.find((m) => m.id === currentUserId)?.balance || 0;
 
@@ -106,13 +86,6 @@ export default function GroupDashboard() {
     }
   }, [groupId]);
 
-  const loadChat = useCallback(async () => {
-    const res = await api.chat.list(groupId);
-    if (res.data) {
-      setChatMessages(res.data);
-    }
-  }, [groupId]);
-
   const loadSettlementPlan = useCallback(async () => {
     const res = await api.settlements.plan(groupId);
     if (res.data) {
@@ -126,13 +99,7 @@ export default function GroupDashboard() {
     }
     const init = async () => {
       loader.start();
-      await Promise.all([
-        loadGroup(),
-        loadExpenses(),
-        loadSettlements(),
-        loadChat(),
-        loadSettlementPlan(),
-      ]);
+      await Promise.all([loadGroup(), loadExpenses(), loadSettlements(), loadSettlementPlan()]);
       loader.complete();
 
       connectToGroup(groupId);
@@ -142,7 +109,7 @@ export default function GroupDashboard() {
     return () => {
       disconnectSocket();
     };
-  }, [groupId, loadGroup, loadExpenses, loadSettlements, loadChat]);
+  }, [groupId, loadGroup, loadExpenses, loadSettlements]);
 
   useEffect(() => {
     const handleExpenseNew = (data: unknown) => {
@@ -165,10 +132,6 @@ export default function GroupDashboard() {
       loadSettlements();
       loadGroup();
     };
-    const handleChatMessage = (data: unknown) => {
-      const msg = data as ChatMessage;
-      setChatMessages((prev) => [...prev, msg]);
-    };
     const handleMemberUpdated = () => {
       loadGroup();
     };
@@ -177,7 +140,6 @@ export default function GroupDashboard() {
     onSocketEvent('expense:updated', handleExpenseUpdated);
     onSocketEvent('settlement:new', handleSettlementNew);
     onSocketEvent('settlement:updated', handleSettlementUpdated);
-    onSocketEvent('chat:message', handleChatMessage);
     onSocketEvent('member:updated', handleMemberUpdated);
 
     return () => {
@@ -185,7 +147,6 @@ export default function GroupDashboard() {
       offSocketEvent('expense:updated', handleExpenseUpdated);
       offSocketEvent('settlement:new', handleSettlementNew);
       offSocketEvent('settlement:updated', handleSettlementUpdated);
-      offSocketEvent('chat:message', handleChatMessage);
       offSocketEvent('member:updated', handleMemberUpdated);
     };
   }, [loadGroup, loadExpenses, loadSettlements]);
@@ -216,19 +177,6 @@ export default function GroupDashboard() {
       toast.error(e.message || 'Failed to settle');
     }
     setSettlingAll(false);
-  };
-
-  const handleSendChat = async () => {
-    if (!chatInput.trim()) {
-      return;
-    }
-    const res = await api.chat.send(groupId, chatInput.trim());
-    if (res.error) {
-      toast.error(res.error);
-      return;
-    }
-    emitEvent('chat:message', { groupId, message: res.data });
-    setChatInput('');
   };
 
   const handleShare = async () => {
@@ -441,27 +389,41 @@ export default function GroupDashboard() {
 
           <View style={styles.tabBar}>
             {[
-              { key: 'overview', label: 'Overview', count: null },
-              { key: 'expenses', label: 'Expenses', count: expenses.length },
-              { key: 'members', label: 'Members', count: group.members.length },
-              { key: 'settlements', label: 'Settlements', count: settlements.length },
-              { key: 'chat', label: 'Chat', count: chatMessages.length },
-            ].map((tab) => (
-              <TouchableOpacity
-                key={tab.key}
-                onPress={() => setActiveTab(tab.key)}
-                style={[styles.tab, activeTab === tab.key && styles.tabActive]}
-              >
-                <Text style={[styles.tabText, activeTab === tab.key && styles.tabTextActive]}>
-                  {tab.label}
-                </Text>
-                {tab.count !== null && tab.count !== undefined && (
-                  <Text style={[styles.tabCount, activeTab === tab.key && styles.tabCountActive]}>
-                    {tab.count}
+              { key: 'overview', label: 'Overview', icon: 'overview' },
+              { key: 'expenses', label: 'Expenses', icon: 'expenses', count: expenses.length },
+              { key: 'members', label: 'Members', icon: 'members', count: group.members.length },
+              {
+                key: 'settlements',
+                label: 'Settlements',
+                icon: 'settlements',
+                count: settlements.length,
+              },
+            ].map((tab) => {
+              const isActive = activeTab === tab.key;
+              return (
+                <TouchableOpacity
+                  key={tab.key}
+                  onPress={() => setActiveTab(tab.key)}
+                  style={[styles.tab, isActive && styles.tabActive]}
+                >
+                  <Icon
+                    name={tab.icon as any}
+                    size={16}
+                    color={isActive ? '#FFFFFF' : 'var(--dabbu-text-muted, #64748B)'}
+                  />
+                  <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
+                    {tab.label}
                   </Text>
-                )}
-              </TouchableOpacity>
-            ))}
+                  {tab.count !== undefined && (
+                    <View style={[styles.tabCountWrap, isActive && styles.tabCountWrapActive]}>
+                      <Text style={[styles.tabCount, isActive && styles.tabCountActive]}>
+                        {tab.count}
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
           {activeTab === 'overview' &&
@@ -806,57 +768,11 @@ export default function GroupDashboard() {
               )}
             </View>
           )}
-
-          {activeTab === 'chat' && (
-            <View style={styles.chatArea}>
-              <ScrollView style={styles.chatList}>
-                {chatMessages.map((msg, i) => {
-                  const prevMsg = i > 0 ? chatMessages[i - 1] : null;
-                  const showSender =
-                    !prevMsg || prevMsg.sender.id !== msg.sender.id || msg.type === 'system';
-                  return (
-                    <ChatBubble
-                      key={msg.id}
-                      message={msg}
-                      isOwn={msg.sender.id === currentUserId}
-                      showSender={showSender || msg.type !== 'text'}
-                    />
-                  );
-                })}
-                {chatMessages.length === 0 && (
-                  <View style={styles.emptyState}>
-                    <Text style={styles.emptyIcon}>💬</Text>
-                    <Text style={styles.emptyTitle}>No messages yet</Text>
-                    <Text style={styles.emptyDesc}>Start the conversation</Text>
-                  </View>
-                )}
-              </ScrollView>
-              <View style={styles.chatInputRow}>
-                <TextInput
-                  placeholder="Type a message..."
-                  value={chatInput}
-                  onChangeText={setChatInput}
-                  style={styles.chatInput}
-                  placeholderTextColor="var(--dabbu-text-muted, #64748B)"
-                />
-                <TouchableOpacity
-                  onPress={handleSendChat}
-                  disabled={!chatInput.trim()}
-                  style={[styles.sendBtn, !chatInput.trim() && styles.sendBtnDisabled]}
-                >
-                  <Text style={styles.sendIcon}>➤</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
         </ScrollView>
 
         <View style={styles.bottomBar}>
           <View style={styles.bottomBarInner}>
-            <TouchableOpacity
-              style={styles.bottomBtn}
-              onPress={() => router.push(`/groups/${groupId}/expenses/new`)}
-            >
+            <TouchableOpacity style={styles.bottomBtn} onPress={() => setShowExpenseForm(true)}>
               <Text style={styles.bottomBtnIcon}>➕</Text>
               <Text style={styles.bottomBtnText}>Add Expense</Text>
             </TouchableOpacity>
@@ -869,6 +785,17 @@ export default function GroupDashboard() {
             </TouchableOpacity>
           </View>
         </View>
+
+        <ExpenseFormModal
+          visible={showExpenseForm}
+          groupId={groupId}
+          onClose={() => setShowExpenseForm(false)}
+          onSuccess={() => {
+            loadExpenses();
+            loadGroup();
+            loadSettlementPlan();
+          }}
+        />
 
         <InstallPrompt />
         <PremiumBanner variant="slide-in" />
@@ -927,12 +854,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   loadingTitle: {
-    color: '#FFFFFF',
+    color: 'var(--dabbu-text, #FFFFFF)',
     fontSize: 14,
     fontWeight: '700',
   },
   loadingSub: {
-    color: 'rgba(255,255,255,0.7)',
+    color: 'var(--dabbu-text-secondary, #94A3B8)',
     fontSize: 12,
   },
   header: {
@@ -1097,36 +1024,51 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     backgroundColor: 'var(--dabbu-surface, #121214)',
-    borderRadius: radii.xl,
-    padding: 4,
+    borderRadius: radii.xl + 4,
+    padding: 6,
     marginBottom: spacing.lg,
+    gap: 4,
   },
   tab: {
     flex: 1,
-    paddingVertical: spacing.sm + 2,
-    borderRadius: radii.lg,
+    paddingVertical: spacing.sm + 4,
+    borderRadius: radii.xl,
     alignItems: 'center',
-    flexDirection: 'row',
     justifyContent: 'center',
+    gap: 2,
   },
   tabActive: {
     backgroundColor: 'var(--dabbu-accent, #8B5CF6)',
+    shadowColor: '#8B5CF6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
+
   tabText: {
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: '600',
     color: 'var(--dabbu-text-muted, #64748B)',
   },
   tabTextActive: {
     color: '#FFFFFF',
   },
+  tabCountWrap: {
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 8,
+    backgroundColor: 'var(--dabbu-surface2, #1A1A1E)',
+  },
+  tabCountWrapActive: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
   tabCount: {
-    fontSize: 11,
+    fontSize: 10,
+    fontWeight: '700',
     color: 'var(--dabbu-text-muted, #64748B)',
-    marginLeft: 4,
   },
   tabCountActive: {
-    color: 'rgba(255,255,255,0.7)',
+    color: '#FFFFFF',
   },
   statsGrid: {
     flexDirection: 'row',
@@ -1394,47 +1336,7 @@ const styles = StyleSheet.create({
   settleSection: {
     marginBottom: spacing.lg,
   },
-  chatArea: {
-    height: 500,
-  },
-  chatList: {
-    flex: 1,
-  },
-  chatInputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingTop: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: 'var(--dabbu-border, #2A2A2E)',
-    marginTop: spacing.md,
-  },
-  chatInput: {
-    flex: 1,
-    height: 40,
-    borderRadius: radii.md,
-    backgroundColor: 'var(--dabbu-surface2, #1A1A1E)',
-    paddingHorizontal: spacing.md,
-    fontSize: 14,
-    color: 'var(--dabbu-text, #FFFFFF)',
-    borderWidth: 1,
-    borderColor: 'var(--dabbu-border, #2A2A2E)',
-  },
-  sendBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: radii.md,
-    backgroundColor: 'var(--dabbu-accent, #8B5CF6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sendBtnDisabled: {
-    opacity: 0.5,
-  },
-  sendIcon: {
-    fontSize: 16,
-    color: '#FFFFFF',
-  },
+
   bottomBar: {
     position: 'absolute',
     bottom: 0,

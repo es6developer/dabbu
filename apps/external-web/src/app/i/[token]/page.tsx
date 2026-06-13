@@ -268,17 +268,9 @@ export default function InvitePage() {
               </Text>
             </TouchableOpacity>
           ) : (
-            <>
-              <TouchableOpacity style={styles.primaryBtn} onPress={handleJoin}>
-                <Text style={styles.primaryBtnText}>Sign in to Join</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.secondaryBtn}
-                onPress={() => router.push(`/auth?redirect=/i/${token}`)}
-              >
-                <Text style={styles.secondaryBtnText}>Continue as Guest</Text>
-              </TouchableOpacity>
-            </>
+            <TouchableOpacity style={styles.primaryBtn} onPress={handleJoin}>
+              <Text style={styles.primaryBtnText}>Sign in to Join</Text>
+            </TouchableOpacity>
           )}
         </View>
       </Card>
@@ -486,18 +478,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#FFFFFF',
-  },
-  secondaryBtn: {
-    height: 56,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: 'var(--dabbu-border, #2A2A2E)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  secondaryBtnText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'var(--dabbu-text, #FFFFFF)',
   },
 });

@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: 'var(--dabbu-text, #FFFFFF)',
     letterSpacing: -0.5,
     textAlign: 'center',
   },
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
   },
   desc: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.4)',
+    color: 'var(--dabbu-text-muted, #64748B)',
     textAlign: 'center',
     marginTop: spacing.sm,
     maxWidth: 260,
@@ -299,14 +299,14 @@ const styles = StyleSheet.create({
   },
   tos: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.2)',
+    color: 'var(--dabbu-text-muted, #64748B)',
     textAlign: 'center',
     paddingBottom: spacing.xxl,
     paddingHorizontal: spacing.xxl,
     lineHeight: 18,
   },
   tosLink: {
-    color: 'rgba(255,255,255,0.3)',
+    color: 'var(--dabbu-text-secondary, #94A3B8)',
     textDecorationLine: 'underline',
   },
 });
