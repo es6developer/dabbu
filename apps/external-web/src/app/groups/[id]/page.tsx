@@ -21,7 +21,6 @@ import {
 import { ExpenseCard } from '@/components/expense-card';
 import { SettlementCard } from '@/components/settlement-card';
 import { PremiumBanner } from '@/components/premium-banner';
-import { InstallPrompt } from '@/components/install-prompt';
 import ExpenseFormModal from '@/components/expense-form-modal';
 import { Icon } from '@/components/icon';
 import { OverlayLoader, useLoader } from '@/components/loaders';
@@ -797,7 +796,6 @@ export default function GroupDashboard() {
           }}
         />
 
-        <InstallPrompt />
         <PremiumBanner variant="slide-in" />
       </View>
     </OverlayLoader>

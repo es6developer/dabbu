@@ -1,10 +1,16 @@
 import type { Metadata, Viewport } from 'next';
+import dynamic from 'next/dynamic';
 import { Toaster } from 'sonner';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from '@/lib/auth-context';
 import { LoadingProvider } from '@/components/loaders';
 import { ThemeProvider as ThemeContextProvider } from '@/lib/theme-context';
 import './globals.css';
+
+const InstallPrompt = dynamic(
+  () => import('@/components/install-prompt').then((m) => m.InstallPrompt),
+  { ssr: false },
+);
 
 const GOOGLE_CLIENT_ID =
   process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
@@ -68,6 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             },
           }}
         />
+        <InstallPrompt />
       </body>
     </html>
   );

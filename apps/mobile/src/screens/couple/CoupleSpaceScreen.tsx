@@ -118,16 +118,16 @@ function ModuleCard({
     >
       <Animated.View
         style={{
-          backgroundColor: '#161224',
+          backgroundColor: colors.bg.card,
           borderRadius: 18,
           padding: 10,
           alignItems: 'center',
           justifyContent: 'center',
           gap: 6,
           aspectRatio: 1,
-          shadowColor: '#000',
+          shadowColor: colors.bg.shadow,
           shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.2,
+          shadowOpacity: 0.15,
           shadowRadius: 8,
           elevation: 4,
           transform: [{ scale: scaleAnim }],
@@ -145,7 +145,9 @@ function ModuleCard({
         >
           <Ionicons name={mod.icon as any} size={18} color={mod.color} />
         </View>
-        <Text style={{ fontSize: 11, fontWeight: '700', color: '#FFFFFF' }}>{mod.label}</Text>
+        <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text.primary }}>
+          {mod.label}
+        </Text>
       </Animated.View>
     </TouchableOpacity>
   );
@@ -227,7 +229,7 @@ export function CoupleSpaceScreen({ onModulePress }: Props) {
 
   if (error && !coupleData) {
     return (
-      <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
+      <View style={[s.root, { backgroundColor: colors.accent.primary }]}>
         <View style={[s.errorPanel, { paddingTop: insets.top + 50 }]}>
           <View style={{ paddingHorizontal: PADDING }}>
             <TouchableOpacity
@@ -453,7 +455,7 @@ export function CoupleSpaceScreen({ onModulePress }: Props) {
                 >
                   {partner1Name}
                 </Text>
-                <Text style={{ fontSize: 16, fontWeight: '800', color: '#34C759' }}>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: colors.status.success }}>
                   +{fmt(partnerStats?.partner1?.totalPaid || 0)}
                 </Text>
               </View>
@@ -476,7 +478,7 @@ export function CoupleSpaceScreen({ onModulePress }: Props) {
                 >
                   {partner2Name}
                 </Text>
-                <Text style={{ fontSize: 16, fontWeight: '800', color: '#34C759' }}>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: colors.status.success }}>
                   +{fmt(partnerStats?.partner2?.totalPaid || 0)}
                 </Text>
               </View>
@@ -803,7 +805,7 @@ export function CoupleSpaceScreen({ onModulePress }: Props) {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  errorPanel: { flex: 1, backgroundColor: '#4F46E5' },
+  errorPanel: { flex: 1 },
   fab: {
     position: 'absolute',
     right: PADDING,
