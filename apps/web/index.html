@@ -5,7 +5,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dabbu — Know Where Your Money Goes</title>
-  <meta name="description" content="Dabbu is a personal finance control center. Track expenses, manage budgets, split bills, and master your money with your family and friends.">
+  <meta name="description" content="Dabbu is a personal finance control center. Track expenses, manage budgets, split bills, couple mode, AI insights, and master your money with your family and friends.">
   <meta name="robots" content="index,follow">
   <link rel="canonical" href="https://dabbu.app">
   <meta property="og:title" content="Dabbu — Know Where Your Money Goes">
@@ -86,12 +86,14 @@
     /* ─── Phone mock ─── */
     .phone-mock {
       width: min(280px, 72vw); aspect-ratio: 9/19; border-radius: 36px; padding: 8px;
-      background: linear-gradient(160deg, #5a6980, #0b0d13 40%, #8B5CF6);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.15), 0 30px 80px rgba(0,0,0,0.3);
+      background: linear-gradient(160deg, #3a3a44, #0a0a0f 40%, #8B5CF6);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12), 0 30px 80px rgba(0,0,0,0.35);
       position: relative; margin: 0 auto;
     }
     .phone-mock::before { content: ''; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 80px; height: 22px; border-radius: 0 0 16px 16px; background: #05070b; z-index: 5; }
-    .phone-screen { position: relative; height: 100%; overflow: hidden; border-radius: 28px; border: 1px solid rgba(255,255,255,0.08); background: radial-gradient(circle at 80% 0%, rgba(139,92,246,0.35), transparent 40%), linear-gradient(180deg, #171d28, #07090e); color: white; }
+    .phone-screen { position: relative; height: 100%; overflow: hidden; border-radius: 28px; border: 1px solid rgba(42,42,46,0.6); background: #000000; color: white; }
+    .phone-app-surface { background: #121214; border: 1px solid #2A2A2E; border-radius: 16px; }
+    .phone-app-surface2 { background: #1A1A1E; border: 1px solid #2A2A2E; border-radius: 12px; }
     .phone-float { animation: phoneFloat 7s ease-in-out infinite; }
     @keyframes phoneFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-16px); } }
     @media (max-width: 767px) { .phone-mock { width: min(220px, 65vw); border-radius: 30px; } .phone-mock::before { width: 64px; height: 18px; } .phone-screen { border-radius: 22px; } }
@@ -225,16 +227,16 @@
             <span class="hero-copy-chip">Budget Planning</span>
             <span class="hero-copy-chip">Split Expenses</span>
             <span class="hero-copy-chip">OCR Scanner</span>
-            <span class="hero-copy-chip">Shared Groups</span>
-            <span class="hero-copy-chip">Analytics</span>
-            <span class="hero-copy-chip">Reminders</span>
-            <span class="hero-copy-chip">Goals</span>
+            <span class="hero-copy-chip">Couple Mode</span>
+            <span class="hero-copy-chip">AI Insights</span>
+            <span class="hero-copy-chip">Savings Goals</span>
+            <span class="hero-copy-chip">Smart Reminders</span>
           </div>
           <div class="hero-copy-mobile reveal">
             <span class="hero-copy-chip text-xs">Expense Tracking</span>
             <span class="hero-copy-chip text-xs">Budget Planning</span>
             <span class="hero-copy-chip text-xs">Split Expenses</span>
-            <span class="hero-copy-chip text-xs">Shared Groups</span>
+            <span class="hero-copy-chip text-xs">Couple Mode</span>
           </div>
 
           <div class="reveal mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
@@ -257,33 +259,40 @@
 
         <div class="reveal mt-12 flex justify-center">
           <div class="phone-mock phone-float">
-            <div class="phone-screen p-5">
-              <div class="mt-8 flex items-center justify-between">
-                <div><p class="text-xs font-semibold text-white/45">Total Balance</p><p class="mt-0.5 text-3xl font-black text-white">₹82,450</p></div>
-                <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-purple-600/20"><span class="text-purple-600 text-lg">★</span></div>
-              </div>
-              <div class="mt-4 rounded-2xl bg-white/[.08] p-4">
+            <div class="phone-screen p-4 flex flex-col">
+              <div class="phone-app-surface mt-8 p-4">
                 <div class="flex items-center justify-between">
-                  <span class="text-xs font-bold text-white/50">Monthly Budget</span>
+                  <div><p class="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">Total Balance</p><p class="mt-0.5 text-3xl font-black text-white">₹82,450</p></div>
+                  <div class="flex h-10 w-10 items-center justify-center" style="background:rgba(139,92,246,0.12);border-radius:12px"><span style="color:#8B5CF6" class="text-lg">★</span></div>
+                </div>
+              </div>
+              <div class="phone-app-surface mt-3 p-4">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-[#94A3B8]">Monthly Budget</span>
                   <span class="rounded-full bg-purple-600 px-2.5 py-0.5 text-[10px] font-black text-white">72%</span>
                 </div>
-                <div class="mt-3 h-2.5 rounded-full bg-white/10"><div class="h-2.5 rounded-full bg-purple-600" style="width:72%"></div></div>
+                <div class="mt-3 h-2 rounded-full" style="background:#2A2A2E"><div class="h-2 rounded-full bg-purple-600" style="width:72%"></div></div>
                 <div class="mt-4 grid grid-cols-2 gap-2">
-                  <div class="rounded-xl bg-white/10 p-3"><p class="text-[10px] font-bold text-white/60">Spent</p><p class="font-black text-white">₹28,900</p></div>
-                  <div class="rounded-xl bg-white/10 p-3"><p class="text-[10px] font-bold text-white/60">Left</p><p class="font-black text-white">₹11,100</p></div>
+                  <div class="phone-app-surface2 p-3"><p class="text-[10px] font-bold text-[#94A3B8]">Spent</p><p class="font-black text-white">₹28,900</p></div>
+                  <div class="phone-app-surface2 p-3"><p class="text-[10px] font-bold text-[#94A3B8]">Left</p><p class="font-black text-white">₹11,100</p></div>
                 </div>
               </div>
               <div class="mt-3 space-y-2">
-                <div class="flex items-center gap-3 rounded-xl bg-white/[.06] p-2.5">
-                  <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-600/20 text-purple-600 text-xs">☕</span>
-                  <div class="flex-1 min-w-0"><p class="truncate text-sm font-bold text-white">Cafe &amp; Snacks</p><p class="text-[10px] text-white/40">Today</p></div>
-                  <p class="text-sm font-bold text-white">-₹240</p>
+                <div class="phone-app-surface2 flex items-center gap-3 p-3">
+                  <span class="flex h-9 w-9 items-center justify-center" style="background:rgba(139,92,246,0.12);border-radius:12px;color:#8B5CF6;font-size:13px">☕</span>
+                  <div class="flex-1 min-w-0"><p class="truncate text-sm font-bold text-white">Cafe &amp; Snacks</p><p class="text-[10px] text-[#64748B]">Today</p></div>
+                  <p class="text-sm font-bold" style="color:#EF4444">-₹240</p>
                 </div>
-                <div class="flex items-center gap-3 rounded-xl bg-white/[.06] p-2.5">
-                  <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-white/60 text-xs">🚗</span>
-                  <div class="flex-1 min-w-0"><p class="truncate text-sm font-bold text-white">Transport</p><p class="text-[10px] text-white/40">Yesterday</p></div>
-                  <p class="text-sm font-bold text-white">-₹620</p>
+                <div class="phone-app-surface2 flex items-center gap-3 p-3">
+                  <span class="flex h-9 w-9 items-center justify-center" style="background:rgba(16,185,129,0.12);border-radius:12px;color:#10B981;font-size:13px">🚗</span>
+                  <div class="flex-1 min-w-0"><p class="truncate text-sm font-bold text-white">Transport</p><p class="text-[10px] text-[#64748B]">Yesterday</p></div>
+                  <p class="text-sm font-bold" style="color:#EF4444">-₹620</p>
                 </div>
+              </div>
+              <div class="mt-auto pt-2 flex justify-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
+                <span class="w-1.5 h-1.5 rounded-full" style="background:#2A2A2E"></span>
+                <span class="w-1.5 h-1.5 rounded-full" style="background:#2A2A2E"></span>
               </div>
             </div>
           </div>
@@ -379,27 +388,47 @@
           <h3 class="text-lg font-bold text-ink">Expense Tracking</h3>
           <p class="text-sm text-muted mt-2">Capture every spend with clean categories. Log in seconds, see where your money goes at a glance.</p>
         </div>
-        <div class="reveal-scale product-card rounded-2xl p-6" style="transition-delay:60ms">
+        <div class="reveal-scale product-card rounded-2xl p-6" style="transition-delay:50ms">
           <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-mist text-brand-deep mb-4"><i class="fa-solid fa-camera"></i></div>
           <h3 class="text-lg font-bold text-ink">OCR Bill Scanner</h3>
           <p class="text-sm text-muted mt-2">Snap a receipt — Dabbu auto-extracts amount, date, merchant &amp; items using AI-powered OCR.</p>
         </div>
-        <div class="reveal-scale product-card rounded-2xl p-6" style="transition-delay:120ms">
+        <div class="reveal-scale product-card rounded-2xl p-6" style="transition-delay:100ms">
           <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-mist text-brand-deep mb-4"><i class="fa-solid fa-chart-line"></i></div>
           <h3 class="text-lg font-bold text-ink">Budget Planning</h3>
           <p class="text-sm text-muted mt-2">Plan monthly limits without spreadsheet clutter. Watch progress update in real time.</p>
         </div>
-        <div class="reveal-scale product-card rounded-2xl p-6" style="transition-delay:60ms">
+        <div class="reveal-scale product-card rounded-2xl p-6" style="transition-delay:150ms">
           <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-mist text-brand-deep mb-4"><i class="fa-solid fa-people-group"></i></div>
           <h3 class="text-lg font-bold text-ink">Split Expenses</h3>
           <p class="text-sm text-muted mt-2">Share costs with friends, family, or roommates. Track who owes what and settle up instantly.</p>
         </div>
-        <div class="reveal-scale product-card rounded-2xl p-6" style="transition-delay:120ms">
+        <div class="reveal-scale product-card rounded-2xl p-6" style="transition-delay:200ms">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-mist text-brand-deep mb-4"><i class="fa-solid fa-heart"></i></div>
+          <h3 class="text-lg font-bold text-ink">Couple Mode</h3>
+          <p class="text-sm text-muted mt-2">Manage shared household expenses, track joint savings goals, and build financial trust together.</p>
+        </div>
+        <div class="reveal-scale product-card rounded-2xl p-6" style="transition-delay:250ms">
           <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-mist text-brand-deep mb-4"><i class="fa-solid fa-layer-group"></i></div>
           <h3 class="text-lg font-bold text-ink">Shared Spaces</h3>
-          <p class="text-sm text-muted mt-2">Create dedicated spaces for trips, roommates, family, couple &amp; more. Keep group finances organized.</p>
+          <p class="text-sm text-muted mt-2">Create dedicated spaces for trips, roommates, family, circles &amp; more. Keep group finances organized.</p>
         </div>
-        <div class="reveal-scale product-card rounded-2xl p-6" style="transition-delay:180ms">
+        <div class="reveal-scale product-card rounded-2xl p-6" style="transition-delay:300ms">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-mist text-brand-deep mb-4"><i class="fa-solid fa-brain"></i></div>
+          <h3 class="text-lg font-bold text-ink">AI Insights</h3>
+          <p class="text-sm text-muted mt-2">Get smart spending analysis, financial health scores, and personalised money tips powered by AI.</p>
+        </div>
+        <div class="reveal-scale product-card rounded-2xl p-6" style="transition-delay:350ms">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-mist text-brand-deep mb-4"><i class="fa-solid fa-bullseye"></i></div>
+          <h3 class="text-lg font-bold text-ink">Savings Goals</h3>
+          <p class="text-sm text-muted mt-2">Set custom savings targets, track progress visually, and hit your financial milestones faster.</p>
+        </div>
+        <div class="reveal-scale product-card rounded-2xl p-6" style="transition-delay:400ms">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-mist text-brand-deep mb-4"><i class="fa-solid fa-repeat"></i></div>
+          <h3 class="text-lg font-bold text-ink">Subscription Tracking</h3>
+          <p class="text-sm text-muted mt-2">Auto-detect recurring charges, see your monthly subscription burn, and cancel unused ones.</p>
+        </div>
+        <div class="reveal-scale product-card rounded-2xl p-6" style="transition-delay:450ms">
           <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-mist text-brand-deep mb-4"><i class="fa-solid fa-bell"></i></div>
           <h3 class="text-lg font-bold text-ink">Smart Reminders</h3>
           <p class="text-sm text-muted mt-2">Never miss a bill or subscription payment with recurring reminders, snooze controls &amp; alerts.</p>
@@ -418,27 +447,27 @@
       <div class="space-y-5 relative">
         <div class="reveal-left step-card flex items-start gap-5 relative">
           <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-600 text-white text-sm font-black relative z-10">1</span>
-          <div><h3 class="font-bold text-lg text-ink">Scan Bills</h3><p class="mt-1 text-sm text-muted">Snap a receipt with your camera — Dabbu auto-extracts amount, date, merchant, and items using OCR.</p></div>
+          <div><h3 class="font-bold text-lg text-ink">Track Every Rupee</h3><p class="mt-1 text-sm text-muted">Log spending manually or snap receipts with OCR. Categorise expenses and see where your money really goes.</p></div>
           <div class="step-line"></div>
         </div>
-        <div class="reveal-right step-card flex items-start gap-5 relative" style="transition-delay:90ms">
+        <div class="reveal-right step-card flex items-start gap-5 relative" style="transition-delay:60ms">
           <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-600 text-white text-sm font-black relative z-10">2</span>
-          <div><h3 class="font-bold text-lg text-ink">Track Expenses</h3><p class="mt-1 text-sm text-muted">Log spending in seconds with categories that match real life. See where your money goes at a glance.</p></div>
+          <div><h3 class="font-bold text-lg text-ink">Budget &amp; Plan</h3><p class="mt-1 text-sm text-muted">Set monthly budgets, create savings goals, and track subscriptions. Get real-time progress alerts.</p></div>
           <div class="step-line"></div>
         </div>
-        <div class="reveal-left step-card flex items-start gap-5 relative" style="transition-delay:180ms">
+        <div class="reveal-left step-card flex items-start gap-5 relative" style="transition-delay:120ms">
           <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-600 text-white text-sm font-black relative z-10">3</span>
-          <div><h3 class="font-bold text-lg text-ink">Set Budgets</h3><p class="mt-1 text-sm text-muted">Create monthly limits and watch progress update in real time without spreadsheet fatigue.</p></div>
+          <div><h3 class="font-bold text-lg text-ink">Go Couple Mode</h3><p class="mt-1 text-sm text-muted">Share finances with your partner. Track joint expenses, set shared goals, and manage household budgets together.</p></div>
           <div class="step-line"></div>
         </div>
-        <div class="reveal-right step-card flex items-start gap-5 relative" style="transition-delay:270ms">
+        <div class="reveal-right step-card flex items-start gap-5 relative" style="transition-delay:180ms">
           <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-600 text-white text-sm font-black relative z-10">4</span>
-          <div><h3 class="font-bold text-lg text-ink">Split with Friends</h3><p class="mt-1 text-sm text-muted">Share group expenses, track who owes what, and settle up — no awkward math required.</p></div>
+          <div><h3 class="font-bold text-lg text-ink">Split &amp; Settle</h3><p class="mt-1 text-sm text-muted">Share expenses with friends, roommates, or trip groups. Track who owes what and settle up seamlessly.</p></div>
           <div class="step-line"></div>
         </div>
-        <div class="reveal-left step-card flex items-start gap-5 relative" style="transition-delay:360ms">
+        <div class="reveal-left step-card flex items-start gap-5 relative" style="transition-delay:240ms">
           <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-600 text-white text-sm font-black relative z-10">5</span>
-          <div><h3 class="font-bold text-lg text-ink">Set Reminders</h3><p class="mt-1 text-sm text-muted">Never miss a bill or subscription payment with smart recurring reminders and snooze controls.</p></div>
+          <div><h3 class="font-bold text-lg text-ink">Get AI Insights</h3><p class="mt-1 text-sm text-muted">Receive smart spending analysis, financial health scores, and personalised recommendations powered by AI.</p></div>
         </div>
       </div>
     </div>
@@ -454,39 +483,39 @@
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-12 text-left">
         <div class="reveal-scale segment-card rounded-2xl p-6">
           <h3 class="text-lg font-bold text-ink">Individuals</h3>
-          <p class="text-sm text-muted mt-2">Track personal spending, set budgets, and build better money habits with clear daily visibility.</p>
+          <p class="text-sm text-muted mt-2">Track personal spending, set budgets, set savings goals, and build better money habits with clear daily visibility.</p>
           <div class="segment-divider mt-4"></div>
           <p class="text-xs font-semibold text-brand-deep mt-3"><i class="fa-solid fa-check mr-1"></i> Know where every rupee goes.</p>
         </div>
-        <div class="reveal-scale segment-card rounded-2xl p-6" style="transition-delay:90ms">
+        <div class="reveal-scale segment-card rounded-2xl p-6" style="transition-delay:60ms">
           <h3 class="text-lg font-bold text-ink">Couples</h3>
-          <p class="text-sm text-muted mt-2">Manage shared household expenses, track joint goals, and keep your finances transparent.</p>
+          <p class="text-sm text-muted mt-2">Dedicated couple mode with shared income tracking, joint budgets, shared savings goals, and transparent settlements.</p>
           <div class="segment-divider mt-4"></div>
-          <p class="text-xs font-semibold text-brand-deep mt-3"><i class="fa-solid fa-check mr-1"></i> Build financial trust together.</p>
+          <p class="text-xs font-semibold text-brand-deep mt-3"><i class="fa-solid fa-check mr-1"></i> Built for two, designed for trust.</p>
         </div>
-        <div class="reveal-scale segment-card rounded-2xl p-6" style="transition-delay:180ms">
+        <div class="reveal-scale segment-card rounded-2xl p-6" style="transition-delay:120ms">
           <h3 class="text-lg font-bold text-ink">Roommates</h3>
           <p class="text-sm text-muted mt-2">Split rent, utilities, and groceries. Track who paid what and settle up without awkward math.</p>
           <div class="segment-divider mt-4"></div>
           <p class="text-xs font-semibold text-brand-deep mt-3"><i class="fa-solid fa-check mr-1"></i> No more tracking on fridge notes.</p>
         </div>
-        <div class="reveal-scale segment-card rounded-2xl p-6" style="transition-delay:90ms">
+        <div class="reveal-scale segment-card rounded-2xl p-6" style="transition-delay:180ms">
           <h3 class="text-lg font-bold text-ink">Friends &amp; Groups</h3>
-          <p class="text-sm text-muted mt-2">Create groups for trips, events, and outings. Share expenses and settle up seamlessly.</p>
+          <p class="text-sm text-muted mt-2">Create spaces for trips, events, and outings. Share expenses, chat in real-time, and settle up seamlessly.</p>
           <div class="segment-divider mt-4"></div>
           <p class="text-xs font-semibold text-brand-deep mt-3"><i class="fa-solid fa-check mr-1"></i> Travel, dine, and split with ease.</p>
         </div>
-        <div class="reveal-scale segment-card rounded-2xl p-6" style="transition-delay:180ms">
+        <div class="reveal-scale segment-card rounded-2xl p-6" style="transition-delay:240ms">
           <h3 class="text-lg font-bold text-ink">Families</h3>
-          <p class="text-sm text-muted mt-2">Manage household budgets, track kids' expenses, and plan family financial goals together.</p>
+          <p class="text-sm text-muted mt-2">Manage household budgets, track kids' expenses, set shared goals, and plan family finances together.</p>
           <div class="segment-divider mt-4"></div>
           <p class="text-xs font-semibold text-brand-deep mt-3"><i class="fa-solid fa-check mr-1"></i> One app for the whole family.</p>
         </div>
-        <div class="reveal-scale segment-card rounded-2xl p-6" style="transition-delay:270ms">
-          <h3 class="text-lg font-bold text-ink">Freelancers</h3>
-          <p class="text-sm text-muted mt-2">Track business expenses, separate personal and professional finances, and simplify tax filing.</p>
+        <div class="reveal-scale segment-card rounded-2xl p-6" style="transition-delay:300ms">
+          <h3 class="text-lg font-bold text-ink">Circles</h3>
+          <p class="text-sm text-muted mt-2">Lightweight shared finance groups for quick splits. Perfect for casual groups without the full space setup.</p>
           <div class="segment-divider mt-4"></div>
-          <p class="text-xs font-semibold text-brand-deep mt-3"><i class="fa-solid fa-check mr-1"></i> Keep work &amp; life finances clean.</p>
+          <p class="text-xs font-semibold text-brand-deep mt-3"><i class="fa-solid fa-check mr-1"></i> Simple, fast, no commitment.</p>
         </div>
       </div>
     </div>
@@ -500,39 +529,68 @@
         <h2 class="reveal font-display text-3xl font-bold tracking-tight sm:text-5xl text-ink">Optimized for <span class="text-purple-600">mobile</span>.</h2>
       </div>
 
-      <div class="reveal showcase-card rounded-2xl mb-6">
-        <div class="p-6 lg:p-8">
-          <h3 class="font-display text-xl font-bold text-ink">Dashboard built for daily money clarity.</h3>
-          <p class="text-sm text-muted mt-2">See your balance, budget progress, recent transactions, and spending trends — all on one screen designed for quick glances.</p>
-        </div>
-        <div class="showcase-media p-6 flex items-center justify-center">
-          <div class="phone-mock" style="width:min(200px,50vw);animation:none">
-            <div class="phone-screen p-4">
-              <div class="mt-6"><p class="text-xs text-white/45">Total Balance</p><p class="text-2xl font-black text-white">₹82,450</p></div>
-              <div class="mt-3 rounded-xl bg-white/[.08] p-3">
-                <div class="flex justify-between text-xs"><span class="text-white/50">Budget</span><span class="text-purple-600 font-bold">72%</span></div>
-                <div class="mt-2 h-2 rounded-full bg-white/10"><div class="h-2 rounded-full bg-purple-600" style="width:72%"></div></div>
+        <div class="reveal showcase-card rounded-2xl mb-6">
+          <div class="p-6 lg:p-8">
+            <h3 class="font-display text-xl font-bold text-ink">Dashboard built for daily money clarity.</h3>
+            <p class="text-sm text-muted mt-2">See your balance, budget progress, recent transactions, and spending trends — all on one screen designed for quick glances.</p>
+          </div>
+          <div class="showcase-media p-6 flex items-center justify-center">
+            <div class="phone-mock" style="width:min(200px,50vw);animation:none">
+              <div class="phone-screen p-3 flex flex-col">
+                <div class="phone-app-surface mt-6 p-3">
+                  <p class="text-[10px] font-bold uppercase tracking-wider text-[#94A3B8]">Total Balance</p>
+                  <p class="text-xl font-black text-white mt-0.5">₹82,450</p>
+                </div>
+                <div class="phone-app-surface mt-2 p-3">
+                  <div class="flex justify-between text-xs"><span class="text-[#94A3B8] font-bold">Budget</span><span class="text-purple-600 font-bold">72%</span></div>
+                  <div class="mt-2 h-1.5 rounded-full" style="background:#2A2A2E"><div class="h-1.5 rounded-full bg-purple-600" style="width:72%"></div></div>
+                </div>
+                <div class="phone-app-surface2 mt-2 p-2.5 flex items-center gap-2">
+                  <span class="flex h-7 w-7 items-center justify-center" style="background:rgba(139,92,246,0.12);border-radius:8px;color:#8B5CF6;font-size:10px">☕</span>
+                  <div class="flex-1 min-w-0"><p class="truncate text-xs font-bold text-white">Cafe</p><p class="text-[9px] text-[#64748B]">Today</p></div>
+                  <p class="text-xs font-bold" style="color:#EF4444">-₹240</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="reveal showcase-card rounded-2xl" style="transition-delay:120ms">
-        <div class="p-6 lg:p-8">
-          <h3 class="font-display text-xl font-bold text-ink">Shared spaces for group finances.</h3>
-          <p class="text-sm text-muted mt-2">Create expense groups, track shared spending, and manage settlements — from couple mode to large trip groups.</p>
-        </div>
-        <div class="showcase-media p-6 flex items-center justify-center">
-          <div class="phone-mock" style="width:min(200px,50vw);animation:none">
-            <div class="phone-screen p-4 flex flex-col justify-center items-center text-center">
-              <div class="w-12 h-12 rounded-xl bg-purple-600/20 flex items-center justify-center text-purple-600 text-lg mb-3"><i class="fa-solid fa-users"></i></div>
-              <p class="text-sm font-bold text-white">Goa Trip 2025</p>
-              <p class="text-xs text-white/50 mt-1">4 members · ₹12,400</p>
+        <div class="reveal showcase-card rounded-2xl" style="transition-delay:120ms">
+          <div class="p-6 lg:p-8">
+            <h3 class="font-display text-xl font-bold text-ink">Couple mode for shared finances.</h3>
+            <p class="text-sm text-muted mt-2">Track shared household expenses, set joint savings goals, and manage budgets together. Built for two, designed for transparency.</p>
+          </div>
+          <div class="showcase-media p-6 flex items-center justify-center">
+            <div class="phone-mock" style="width:min(200px,50vw);animation:none">
+              <div class="phone-screen p-3 flex flex-col">
+                <div class="flex items-center justify-center gap-2 mt-6">
+                  <div class="flex" style="background:rgba(139,92,246,0.12);border-radius:12px;padding:8px 12px">
+                    <span class="text-purple-600 text-sm">❤️</span>
+                  </div>
+                </div>
+                <p class="text-center text-sm font-bold text-white mt-2">Me &amp; Ananya</p>
+                <div class="phone-app-surface mt-3 p-3">
+                  <div class="flex justify-between items-center">
+                    <span class="text-[10px] font-bold text-[#94A3B8]">Shared Savings</span>
+                    <span class="text-[10px] font-bold" style="color:#10B981">₹24,500</span>
+                  </div>
+                  <div class="mt-2 h-1.5 rounded-full" style="background:#2A2A2E"><div class="h-1.5 rounded-full" style="background:#10B981;width:62%"></div></div>
+                  <p class="text-[9px] text-[#64748B] mt-1">62% of ₹40,000 goal</p>
+                </div>
+                <div class="phone-app-surface2 mt-2 p-2.5 flex items-center gap-2">
+                  <span class="flex h-7 w-7 items-center justify-center" style="background:rgba(16,185,129,0.12);border-radius:8px;color:#10B981;font-size:10px">🛒</span>
+                  <div class="flex-1 min-w-0"><p class="truncate text-xs font-bold text-white">Groceries</p><p class="text-[9px] text-[#64748B]">Shared</p></div>
+                  <p class="text-xs font-bold" style="color:#EF4444">-₹1,280</p>
+                </div>
+                <div class="phone-app-surface2 mt-1.5 p-2.5 flex items-center gap-2">
+                  <span class="flex h-7 w-7 items-center justify-center" style="background:rgba(59,130,246,0.12);border-radius:8px;color:#3B82F6;font-size:10px">⚡</span>
+                  <div class="flex-1 min-w-0"><p class="truncate text-xs font-bold text-white">Electricity</p><p class="text-[9px] text-[#64748B]">Shared</p></div>
+                  <p class="text-xs font-bold" style="color:#EF4444">-₹2,400</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
     </div>
   </section>
 
@@ -709,10 +767,10 @@
         </div>
         <div class="reveal product-card rounded-xl p-5" data-faq>
           <button class="flex w-full items-center justify-between text-left" onclick="toggleFaq(this)">
-            <span class="font-semibold text-ink text-sm">Can I share expenses with my partner?</span>
+            <span class="font-semibold text-ink text-sm">What is Couple Mode?</span>
             <i class="fa-solid fa-plus text-muted text-xs transition-transform duration-300"></i>
           </button>
-          <div class="mt-3 text-sm text-muted hidden">Absolutely! Use our couple mode or create shared groups to split, track, and manage expenses together.</div>
+          <div class="mt-3 text-sm text-muted hidden">Couple Mode is a dedicated shared finance space for partners. Track joint expenses, set shared savings goals, manage household budgets, and get couple-specific financial reports.</div>
         </div>
         <div class="reveal product-card rounded-xl p-5" data-faq>
           <button class="flex w-full items-center justify-between text-left" onclick="toggleFaq(this)">
@@ -720,6 +778,13 @@
             <i class="fa-solid fa-plus text-muted text-xs transition-transform duration-300"></i>
           </button>
           <div class="mt-3 text-sm text-muted hidden">Just snap a photo of any receipt. Dabbu uses AI to automatically extract the amount, date, merchant, and line items.</div>
+        </div>
+        <div class="reveal product-card rounded-xl p-5" data-faq>
+          <button class="flex w-full items-center justify-between text-left" onclick="toggleFaq(this)">
+            <span class="font-semibold text-ink text-sm">Does Dabbu have AI features?</span>
+            <i class="fa-solid fa-plus text-muted text-xs transition-transform duration-300"></i>
+          </button>
+          <div class="mt-3 text-sm text-muted hidden">Yes! Dabbu's AI engine provides smart spending insights, financial health scoring, personalised recommendations, and AI-powered chat to answer your money questions.</div>
         </div>
         <div class="reveal product-card rounded-xl p-5" data-faq>
           <button class="flex w-full items-center justify-between text-left" onclick="toggleFaq(this)">
