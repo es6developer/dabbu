@@ -1592,6 +1592,23 @@ model CoupleFinanceInvite {
   @@map("couple_finance_invites")
 }
 
+model CoupleInviteCode {
+  id        String    @id @default(uuid()) @db.VarChar(36)
+  senderId  String    @db.VarChar(36)
+  code      String    @unique @db.VarChar(10)
+  groupId   String?   @db.VarChar(36)
+  status    String    @default("active") @db.VarChar(20) // active | used | expired
+  usedById  String?   @db.VarChar(36)
+  usedAt    DateTime?
+  expiredAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([code])
+  @@index([senderId])
+  @@index([usedById])
+  @@map("couple_invite_codes")
+}
+
 model CoupleFinanceIncome {
   id         String   @id @default(uuid()) @db.VarChar(36)
   groupId    String   @db.VarChar(36)
@@ -1651,12 +1668,15 @@ model CoupleBudgetCategory {
 model CouplePlanner {
   id           String   @id @default(uuid()) @db.VarChar(36)
   groupId      String   @db.VarChar(36)
-  plannerType  String   @db.VarChar(20) // BABY | HOUSE | CAR | RETIREMENT
+  plannerType  String   @db.VarChar(20) // BABY | HOUSE | CAR | RETIREMENT | DREAM
   status       String   @default("active") @db.VarChar(20) // active | completed | paused
   targetAmount Decimal? @db.Decimal(15, 2)
   currentSavings Decimal? @db.Decimal(15, 2)
   monthlyTarget Decimal? @db.Decimal(15, 2)
   deadline     DateTime?
+  title        String?  @db.VarChar(100)  // Dream board title
+  category     String?  @db.VarChar(30)   // home | travel | wedding | car | baby | etc
+  icon         String?  @db.VarChar(30)   // icon name
   startedAt    DateTime @default(now())
   completedAt  DateTime?
 
@@ -1701,7 +1721,7 @@ model CouplePlanner {
   updatedAt DateTime @updatedAt
 
   group SharedGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  @@unique([groupId, plannerType])
+  @@index([groupId, plannerType])
   @@map("couple_planners")
 }
 

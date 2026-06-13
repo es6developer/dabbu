@@ -229,6 +229,151 @@ export class CoupleDashboardService {
     };
   }
 
+  async getCoachInsights(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, firstName: true, partnerId: true },
+    });
+    if (!user || !user.partnerId) {
+      throw new Error('Couple not found');
+    }
+
+    const group = await this.prisma.sharedGroup.findFirst({
+      where: { type: 'couple', members: { some: { userId, isActive: true } } },
+    });
+    if (!group) {
+      throw new Error('Couple workspace not found');
+    }
+
+    const groupId = group.id;
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+    const [expenses, lastExpenses, incomes, budgets, savings, planners] = await Promise.all([
+      this.prisma.sharedExpense.aggregate({
+        where: { groupId, date: { gte: startOfMonth } },
+        _sum: { amount: true }, _count: true,
+      }),
+      this.prisma.sharedExpense.aggregate({
+        where: { groupId, date: { gte: startOfLastMonth, lt: startOfMonth } },
+        _sum: { amount: true },
+      }),
+      this.prisma.coupleFinanceIncome.aggregate({
+        where: { groupId, date: { gte: startOfMonth } },
+        _sum: { amount: true },
+      }),
+      this.prisma.coupleBudgetCategory.findMany({
+        where: { groupId, period: now.toISOString().slice(0, 7) },
+        orderBy: { budgetAmount: 'desc' },
+      }),
+      this.prisma.coupleFinanceSaving.aggregate({ where: { groupId }, _sum: { amount: true } }),
+      this.prisma.couplePlanner.findMany({ where: { groupId, status: 'active' } }),
+    ]);
+
+    const totalExpenses = Number(expenses._sum.amount || 0);
+    const lastMonthExpenses = Number(lastExpenses._sum.amount || 0);
+    const totalIncome = Number(incomes._sum.amount || 0);
+    const totalSavings = Number(savings._sum.amount || 0);
+    const expenseCount = expenses._count;
+    const savingsRate = totalIncome > 0 ? Math.round((totalSavings / totalIncome) * 100) : 0;
+
+    const insights: Array<{ type: 'positive' | 'warning' | 'info'; icon: string; title: string; description: string }> = [];
+    const suggestions: Array<{ icon: string; title: string; description: string; action: string; screen: string }> = [];
+
+    if (lastMonthExpenses > 0) {
+      const change = Math.round(((totalExpenses - lastMonthExpenses) / lastMonthExpenses) * 100);
+      if (change < 0) {
+        insights.push({
+          type: 'positive', icon: 'trending-down',
+          title: `Spending decreased ${Math.abs(change)}%`,
+          description: `You spent ${Math.abs(change)}% less this month compared to last month. Great job staying on track!`,
+        });
+      } else if (change > 0) {
+        insights.push({
+          type: 'warning', icon: 'trending-up',
+          title: `Spending increased ${change}%`,
+          description: `Your spending went up ${change}% this month. Review your expenses to identify where you can cut back.`,
+        });
+      }
+    }
+
+    if (savingsRate > 0) {
+      insights.push({
+        type: savingsRate >= 20 ? 'positive' : 'info',
+        icon: 'trending-up',
+        title: `Savings rate: ${savingsRate}%`,
+        description: savingsRate >= 20
+          ? `Excellent savings rate! You're saving ${savingsRate}% of your income. Keep it up!`
+          : `Your savings rate is ${savingsRate}%. Aim for 20% to build a strong financial future.`,
+      });
+    }
+
+    for (const budget of budgets) {
+      const spent = Number(budget.spentAmount || 0);
+      const budgeted = Number(budget.budgetAmount || 0);
+      if (spent > budgeted) {
+        const over = spent - budgeted;
+        insights.push({
+          type: 'warning', icon: 'alert-circle',
+          title: `${budget.category} exceeded budget`,
+          description: `You've spent ${this.formatCurrency(over)} over your ${budget.category} budget this month.`,
+        });
+      }
+    }
+
+    for (const planner of planners) {
+      const current = Number(planner.currentSavings || 0);
+      const target = Number(planner.targetAmount || 0);
+      const pct = target > 0 ? Math.round((current / target) * 100) : 0;
+      if (pct > 0 && pct < 100) {
+        insights.push({
+          type: 'info', icon: 'flag',
+          title: `${planner.plannerType} goal ${pct}% complete`,
+          description: `You're ${pct}% to your ${planner.plannerType.toLowerCase()} goal. Keep contributing to stay on track!`,
+        });
+      }
+    }
+
+    if (totalExpenses > 0 && totalIncome > 0 && (totalExpenses / totalIncome) > 0.7) {
+      suggestions.push({
+        icon: 'wallet', title: 'Reduce monthly expenses',
+        description: `You're spending ${Math.round((totalExpenses / totalIncome) * 100)}% of your income. Try to keep it under 70%.`,
+        action: 'Review', screen: 'CoupleBudgets',
+      });
+    }
+
+    if (savingsRate < 20) {
+      suggestions.push({
+        icon: 'save', title: 'Increase savings rate', action: 'Save More',
+        description: `Your current savings rate is ${savingsRate}%. Increasing it by 5% would add significant long-term value.`,
+        screen: 'CoupleSavings',
+      });
+    }
+
+    const hasEmergencyFund = planners.some((p: any) => p.plannerType === 'BABY' && Number(p.emergencyFund) > 0);
+    if (!hasEmergencyFund) {
+      suggestions.push({
+        icon: 'shield', title: 'Build an emergency fund', action: 'Start',
+        description: 'Aim for 6 months of expenses in an emergency fund. Start with a small monthly contribution.',
+        screen: 'CoupleSavings',
+      });
+    }
+
+    return {
+      insights,
+      suggestions,
+      updatedAt: now.toISOString(),
+      healthBreakdown: [
+        { label: 'Spending vs Budget', score: Math.min(100, Math.max(0, 100 - Math.round(totalExpenses / (totalIncome || 1) * 100))) },
+        { label: 'Savings Rate', score: Math.min(100, Math.max(0, savingsRate * 3)) },
+        { label: 'Debt Management', score: 90 }, // placeholder
+        { label: 'Goal Progress', score: Math.min(100, planners.length > 0 ? 50 : 0) },
+        { label: 'Emergency Fund', score: 33 }, // placeholder
+      ],
+    };
+  }
+
   private formatCurrency(amount: number): string {
     if (amount >= 100000) {
       return `₹${(amount / 100000).toFixed(1)}L`;

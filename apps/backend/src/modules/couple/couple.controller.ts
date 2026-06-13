@@ -147,12 +147,72 @@ export class CoupleController {
     return this.coupleService.removePartner(userId);
   }
 
+  // ─── Invite Code Flow ─────────────────────────────────────
+
+  @Post('create-invite')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Generate an invite code for partner to join' })
+  async createInvite(@CurrentUser('id') userId: string) {
+    return this.coupleService.createInviteCode(userId);
+  }
+
+  @Post('join')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Join a couple space using invite code' })
+  async join(@CurrentUser('id') userId: string, @Body('inviteCode') inviteCode: string) {
+    return this.coupleService.joinWithCode(userId, inviteCode);
+  }
+
+  // ─── Dream Boards ─────────────────────────────────────────
+
+  @Post('planners/dream')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Create a custom dream board planner' })
+  async createDreamBoard(
+    @CurrentUser('id') userId: string,
+    @Body() data: { title: string; targetAmount: number; category?: string; icon?: string; targetDate?: string },
+  ) {
+    const group = await this.coupleService.findCoupleGroup(userId);
+    return this.plannerService.createDreamBoard(group.id, data);
+  }
+
+  @Post('planners/:id/contribute')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Contribute amount to a dream board' })
+  async contributeToPlanner(
+    @CurrentUser('id') userId: string,
+    @Param('id') plannerId: string,
+    @Body('amount') amount: number,
+  ) {
+    const group = await this.coupleService.findCoupleGroup(userId);
+    return this.plannerService.contribute(group.id, plannerId, amount);
+  }
+
+  @Delete('planners/:id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete a planner by ID' })
+  async deletePlannerById(@CurrentUser('id') userId: string, @Param('id') id: string) {
+    const group = await this.coupleService.findCoupleGroup(userId);
+    return this.plannerService.deletePlannerById(id);
+  }
+
   // ─── Dashboard ───────────────────────────────────────────
 
   @Get('dashboard')
   @ApiOperation({ summary: 'Get couple financial GPS dashboard' })
   async getDashboard(@CurrentUser('id') userId: string) {
-    return this.dashboardService.getDashboard(userId);
+    const dashboard = await this.dashboardService.getDashboard(userId);
+    const planners = await this.coupleService
+      .findCoupleGroup(userId)
+      .then((g) => this.plannerService.getPlanners(g.id))
+      .catch(() => []);
+    return { ...dashboard, planners };
+  }
+
+  @Get('coach')
+  @ApiOperation({ summary: 'Get AI couple coach insights and suggestions' })
+  async getCoach(@CurrentUser('id') userId: string) {
+    return this.dashboardService.getCoachInsights(userId);
   }
 
   // ─── Financial Planners ──────────────────────────────────

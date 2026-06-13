@@ -338,6 +338,71 @@ export class CoupleService {
     return { message: 'Couple relationship removed' };
   }
 
+  async createInviteCode(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+    if (user.isCouple) throw new ConflictException('You are already in a couple');
+
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const existingGroup = await this.prisma.sharedGroup.findFirst({
+      where: { type: 'couple', members: { some: { userId, isActive: true } } },
+    });
+
+    const invite = await this.prisma.coupleInviteCode.create({
+      data: {
+        senderId: userId,
+        code,
+        groupId: existingGroup?.id,
+        expiredAt: new Date(Date.now() + 30 * 60 * 1000),
+      },
+    });
+
+    return { inviteCode: invite.code, expiresIn: '30 minutes' };
+  }
+
+  async joinWithCode(userId: string, code: string) {
+    const invite = await this.prisma.coupleInviteCode.findFirst({
+      where: { code: code.toUpperCase(), status: 'active', expiredAt: { gte: new Date() } },
+    });
+    if (!invite) throw new BadRequestException('Invalid or expired invite code');
+
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+    if (user.isCouple) throw new ConflictException('You are already in a couple');
+
+    const sender = await this.prisma.user.findUnique({ where: { id: invite.senderId } });
+    if (!sender || sender.isCouple) throw new BadRequestException('Inviter is no longer available');
+
+    const now = new Date();
+    await this.prisma.$transaction(async (tx) => {
+      await tx.coupleInviteCode.update({
+        where: { id: invite.id },
+        data: { status: 'used', usedById: userId, usedAt: now },
+      });
+      await tx.user.update({
+        where: { id: invite.senderId },
+        data: { partnerId: userId, isCouple: true, isCoupleMode: true, partnerLinkedAt: now },
+      });
+      await tx.user.update({
+        where: { id: userId },
+        data: { partnerId: invite.senderId, isCouple: true, isCoupleMode: true, partnerLinkedAt: now },
+      });
+    });
+
+    let group = invite.groupId
+      ? await this.prisma.sharedGroup.findUnique({ where: { id: invite.groupId } })
+      : null;
+
+    if (!group) {
+      const groupName = `${sender.firstName} & ${user.firstName}'s Space`;
+      group = await this.sharedFinanceService.createGroup(invite.senderId, {
+        name: groupName, type: 'couple', currency: 'INR',
+      });
+    }
+
+    return { message: 'Successfully joined couple space', groupId: group.id };
+  }
+
   async findCoupleGroup(userId: string) {
     const group = await this.prisma.sharedGroup.findFirst({
       where: {

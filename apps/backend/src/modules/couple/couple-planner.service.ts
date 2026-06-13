@@ -97,8 +97,8 @@ export class CouplePlannerService {
   }
 
   async getPlanner(groupId: string, plannerType: string) {
-    const planner = await this.prisma.couplePlanner.findUnique({
-      where: { groupId_plannerType: { groupId, plannerType } },
+    const planner = await this.prisma.couplePlanner.findFirst({
+      where: { groupId, plannerType },
     });
     if (!planner) {
       throw new NotFoundException('Planner not found');
@@ -110,6 +110,46 @@ export class CouplePlannerService {
     const planner = await this.getPlanner(groupId, plannerType);
     await this.prisma.couplePlanner.delete({ where: { id: planner.id } });
     return { message: 'Planner deleted' };
+  }
+
+  async deletePlannerById(id: string) {
+    await this.prisma.couplePlanner.delete({ where: { id } });
+    return { message: 'Planner deleted' };
+  }
+
+  async createDreamBoard(groupId: string, data: {
+    title: string;
+    targetAmount: number;
+    category?: string;
+    icon?: string;
+    targetDate?: string;
+  }) {
+    return this.prisma.couplePlanner.create({
+      data: {
+        groupId,
+        plannerType: 'DREAM',
+        title: data.title,
+        category: data.category || 'other',
+        icon: data.icon || 'flag',
+        targetAmount: data.targetAmount,
+        currentSavings: 0,
+        deadline: data.targetDate ? new Date(data.targetDate) : null,
+      },
+    });
+  }
+
+  async contribute(groupId: string, plannerId: string, amount: number) {
+    const planner = await this.prisma.couplePlanner.findFirst({
+      where: { id: plannerId, groupId },
+    });
+    if (!planner) {
+      throw new NotFoundException('Dream board not found');
+    }
+    const current = Number(planner.currentSavings || 0);
+    return this.prisma.couplePlanner.update({
+      where: { id: plannerId },
+      data: { currentSavings: current + amount },
+    });
   }
 
   async babyPlanner(groupId: string, partner1Id: string, input: BabyPlannerInput) {
@@ -132,8 +172,9 @@ export class CouplePlannerService {
       totalNeeded: Math.round(totalNeeded),
     };
 
+    const existing = await this.prisma.couplePlanner.findFirst({ where: { groupId, plannerType: 'BABY' } });
     await this.prisma.couplePlanner.upsert({
-      where: { groupId_plannerType: { groupId, plannerType: 'BABY' } },
+      where: { id: existing?.id || '00000000-0000-0000-0000-000000000000' },
       update: {
         targetAmount: totalNeeded,
         currentSavings: input.currentSavings,
@@ -214,8 +255,9 @@ export class CouplePlannerService {
       },
     };
 
+    const existingHouse = await this.prisma.couplePlanner.findFirst({ where: { groupId, plannerType: 'HOUSE' } });
     await this.prisma.couplePlanner.upsert({
-      where: { groupId_plannerType: { groupId, plannerType: 'HOUSE' } },
+      where: { id: existingHouse?.id || '00000000-0000-0000-0000-000000000000' },
       update: {
         targetAmount: input.propertyPrice,
         currentSavings: input.downPayment,
@@ -293,8 +335,9 @@ export class CouplePlannerService {
       runningCostPerKm: Math.round(runningCostPerKm * 100) / 100,
     };
 
+    const existingCar = await this.prisma.couplePlanner.findFirst({ where: { groupId, plannerType: 'CAR' } });
     await this.prisma.couplePlanner.upsert({
-      where: { groupId_plannerType: { groupId, plannerType: 'CAR' } },
+      where: { id: existingCar?.id || '00000000-0000-0000-0000-000000000000' },
       update: {
         targetAmount: input.carPrice,
         currentSavings: input.downPayment,
@@ -363,8 +406,9 @@ export class CouplePlannerService {
       inflationAdjustedExpense: Math.round(inflationAdjustedExpense),
     };
 
+    const existingRet = await this.prisma.couplePlanner.findFirst({ where: { groupId, plannerType: 'RETIREMENT' } });
     await this.prisma.couplePlanner.upsert({
-      where: { groupId_plannerType: { groupId, plannerType: 'RETIREMENT' } },
+      where: { id: existingRet?.id || '00000000-0000-0000-0000-000000000000' },
       update: {
         targetAmount: Math.round(targetCorpus),
         currentSavings: input.currentCorpus,

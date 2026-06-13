@@ -9,7 +9,7 @@
     "scheme": "dabbu",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "backgroundColor": "#070708",
+      "backgroundColor": "#F5EEFF",
       "image": "./src/assets/splash.png",
       "resizeMode": "contain"
     },

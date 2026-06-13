@@ -12,6 +12,7 @@ const PRELOAD_ENDPOINTS: string[] = [
   // Shared finance & expense groups
   '/expense-groups',
   '/shared-finance/groups',
+  '/couple/dashboard',
 
   // Bills screen
   '/bills/upcoming',
