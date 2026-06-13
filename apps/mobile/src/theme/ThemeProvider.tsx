@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { palette } from './colors';
 import { typography } from './typography';
 import { spacing, borderRadius, iconSizes } from './spacing';
+import { useAuth } from '../store/AuthContext';
 
 const THEME_MODE_KEY = '@dabbu_theme_mode';
 
@@ -60,6 +61,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const deviceScheme = useColorScheme();
   const [themeMode, setThemeModeState] = useState<ThemeMode>('dark');
   const [loaded, setLoaded] = useState(false);
+  let coupleUser: { isCouple?: boolean; isCoupleMode?: boolean } | null = null;
+  try {
+    const { user } = useAuth();
+    coupleUser = user;
+  } catch {
+    coupleUser = null;
+  }
+  const isCoupleMode = !!(coupleUser?.isCouple && coupleUser?.isCoupleMode);
 
   useEffect(() => {
     AsyncStorage.getItem(THEME_MODE_KEY).then((stored) => {
@@ -76,7 +85,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   };
 
   const isDark = themeMode === 'system' ? deviceScheme === 'dark' : themeMode === 'dark';
-  const theme = isDark ? darkTheme : lightTheme;
+  const baseTheme = isDark ? darkTheme : lightTheme;
+  const theme = isCoupleMode
+    ? {
+        ...baseTheme,
+        colors: (isDark
+          ? palette.coupleDark
+          : palette.coupleLight) as unknown as typeof palette.dark,
+      }
+    : baseTheme;
 
   useEffect(() => {
     Appearance.setColorScheme(isDark ? 'dark' : 'light');

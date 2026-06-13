@@ -134,8 +134,8 @@ export default function App(): React.ReactElement | null {
   return (
     <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <SafeAreaProvider>
-        <ThemeProvider>
-          <AuthProvider>
+        <AuthProvider>
+          <ThemeProvider>
             <PreferencesProvider>
               <LockProvider>
                 <FavoritesProvider>
@@ -155,8 +155,8 @@ export default function App(): React.ReactElement | null {
                 </FavoritesProvider>
               </LockProvider>
             </PreferencesProvider>
-          </AuthProvider>
-        </ThemeProvider>
+          </ThemeProvider>
+        </AuthProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

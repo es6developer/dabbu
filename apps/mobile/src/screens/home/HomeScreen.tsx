@@ -20,6 +20,7 @@ import { useAuth } from '../../store/AuthContext';
 import { useCoupleMode, COUPLE_COLORS } from '../../hooks/useCoupleMode';
 import { CoupleModeToggle } from '../../components/ui/CoupleModeToggle';
 import { CoupleDashboard } from '../../components/ui/CoupleDashboard';
+import { CoupleSpaceScreen } from '../couple/CoupleSpaceScreen';
 import { CATEGORY_ICONS, CATEGORY_COLORS } from '../../config/categoryIcons';
 import { Avatar } from '../../components/ui/Avatar';
 import { KEYWORD_CATEGORIES } from '../../constants/smartEntryKeywords';

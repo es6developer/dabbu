@@ -302,9 +302,7 @@ function GroupCard({
               onPress={onAddExpense}
             >
               <Ionicons name="add-circle-outline" size={14} color={colors.text.inverse} />
-              <Text style={[gCard.actionBtnText, { color: colors.text.inverse }]}>
-                Add expense
-              </Text>
+              <Text style={[gCard.actionBtnText, { color: colors.text.inverse }]}>Add expense</Text>
             </TouchableOpacity>
             {totalSpent > 0 && !isSettled && (
               <TouchableOpacity
@@ -509,9 +507,7 @@ export function SharedFinanceHomeScreen() {
         onAddExpense={() =>
           navigation.navigate('SharedExpenseForm', { groupId: item.id, edit: false })
         }
-        onSettleUp={() =>
-          navigation.navigate('Settlement', { groupId: item.id })
-        }
+        onSettleUp={() => navigation.navigate('Settlement', { groupId: item.id })}
       />
     ),
     [user?.id, colors, navigation, handleDeleteSpace],

@@ -4,8 +4,8 @@ import { useAuth } from '../store/AuthContext';
 export const COUPLE_COLORS = {
   bg: '#FFE4E8',
   card: '#FFF0F3',
-  primary: '#FF6B81',
-  accent: '#FF4757',
+  primary: '#FF6B9D',
+  accent: '#FF6B9D',
   heart: '#FF6B9D',
   text: '#4A1942',
   textSecondary: '#8B5F7A',

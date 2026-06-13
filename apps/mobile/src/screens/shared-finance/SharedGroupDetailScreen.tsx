@@ -931,7 +931,7 @@ export function SharedGroupDetailScreen() {
                   : item.type === 'member' || item.type === 'member_joined'
                     ? '#34C759'
                     : item.type?.includes('settlement')
-                      ? '#F59E0B'
+                      ? colors.status.warning
                       : item.type === 'payment_completed' || item.type === 'settlement_confirmed'
                         ? '#34C759'
                         : colors.accent.primary;
@@ -1206,13 +1206,13 @@ export function SharedGroupDetailScreen() {
                       myBalanceRow && myBalanceRow.balance >= 0
                         ? '#34C759'
                         : myBalanceRow && myBalanceRow.balance < 0
-                          ? '#FF4D4F'
+                          ? colors.status.error
                           : colors.text.primary,
                   },
                   {
                     label: 'Settlements Pending',
                     value: String(stats.pendingSettlements),
-                    color: '#F59E0B',
+                    color: colors.status.warning,
                   },
                   { label: 'Members', value: String(members.length), color: colors.accent.primary },
                 ].map((page, idx) => (

@@ -24,9 +24,6 @@ import { EXPENSE_CATEGORIES } from '../../config/categoryIcons';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { width: SCREEN_W } = Dimensions.get('window');
-const PURPLE = '#8B5CF6';
-const PURPLE_DARK = '#6D28D9';
-const PURPLE_LIGHT = '#A78BFA';
 const GREEN = '#10B981';
 
 const SPLIT_TYPES = [
@@ -268,7 +265,7 @@ export function SharedExpenseFormScreen() {
         >
           {/* ── Header ── */}
           <LinearGradient
-            colors={[PURPLE, PURPLE_DARK]}
+            colors={[colors.accent.primary, colors.accent.primary]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
@@ -279,16 +276,18 @@ export function SharedExpenseFormScreen() {
                     Keyboard.dismiss();
                     navigation.goBack();
                   }}
-                  style={s.backBtn}
+                  style={[s.backBtn, { backgroundColor: colors.accent.primary }]}
                 >
-                  <Ionicons name="close" size={22} color="#FFF" />
+                  <Ionicons name="close" size={22} color={colors.text.inverse} />
                 </TouchableOpacity>
-                <Text style={s.headerTitle}>{edit ? 'Edit Expense' : 'New Expense'}</Text>
+                <Text style={[s.headerTitle, { color: colors.text.inverse }]}>
+                  {edit ? 'Edit Expense' : 'New Expense'}
+                </Text>
                 <View style={{ width: 34 }} />
               </View>
               <View style={s.headerMeta}>
-                <Ionicons name="people" size={14} color="rgba(255,255,255,0.65)" />
-                <Text style={s.headerSub}>
+                <Ionicons name="people" size={14} color={colors.text.inverse + '99'} />
+                <Text style={[s.headerSub, { color: colors.text.inverse + '99' }]}>
                   Split with {members.length} member{members.length !== 1 ? 's' : ''}
                 </Text>
               </View>
@@ -345,7 +344,7 @@ export function SharedExpenseFormScreen() {
                     s.heroUnderlineFill,
                     {
                       width: amount ? `${Math.min((Number(amount) / 10000) * 100, 100)}%` : '0%',
-                      backgroundColor: Number(amount) > 0 ? PURPLE : 'transparent',
+                      backgroundColor: Number(amount) > 0 ? colors.accent.primary : 'transparent',
                     },
                   ]}
                 />
@@ -482,8 +481,8 @@ export function SharedExpenseFormScreen() {
                       style={[
                         s.splitCard,
                         {
-                          borderColor: active ? PURPLE : colors.border.subtle,
-                          backgroundColor: active ? `${PURPLE}10` : colors.bg.card,
+                          borderColor: active ? colors.accent.primary : colors.border.subtle,
+                          backgroundColor: active ? colors.accent.primary + '15' : colors.bg.card,
                         },
                       ]}
                       onPress={() => setSplitType(st.key)}
@@ -492,18 +491,21 @@ export function SharedExpenseFormScreen() {
                       <View
                         style={[
                           s.splitIcon,
-                          { backgroundColor: active ? PURPLE : colors.bg.tertiary },
+                          { backgroundColor: active ? colors.accent.primary : colors.bg.tertiary },
                         ]}
                       >
                         <Ionicons
                           name={st.icon as any}
                           size={18}
-                          color={active ? '#FFF' : colors.text.tertiary}
+                          color={active ? colors.text.inverse : colors.text.tertiary}
                         />
                       </View>
                       <View style={s.splitInfo}>
                         <Text
-                          style={[s.splitLabel, { color: active ? PURPLE : colors.text.primary }]}
+                          style={[
+                            s.splitLabel,
+                            { color: active ? colors.accent.primary : colors.text.primary },
+                          ]}
                         >
                           {st.label}
                         </Text>
@@ -511,7 +513,9 @@ export function SharedExpenseFormScreen() {
                           {st.desc}
                         </Text>
                       </View>
-                      {active && <Ionicons name="checkmark-circle" size={18} color={PURPLE} />}
+                      {active && (
+                        <Ionicons name="checkmark-circle" size={18} color={colors.accent.primary} />
+                      )}
                     </TouchableOpacity>
                   );
                 })}
@@ -593,7 +597,7 @@ export function SharedExpenseFormScreen() {
             >
               <View style={s.previewHeader}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Ionicons name="calculator-outline" size={16} color={PURPLE} />
+                  <Ionicons name="calculator-outline" size={16} color={colors.accent.primary} />
                   <Text style={[s.previewTitle, { color: colors.text.primary }]}>
                     Split Preview
                   </Text>
@@ -710,17 +714,19 @@ export function SharedExpenseFormScreen() {
               style={[s.saveBtn, saving && { opacity: 0.6 }]}
             >
               <LinearGradient
-                colors={[PURPLE, PURPLE_DARK]}
+                colors={[colors.accent.primary, colors.accent.primary]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={s.saveGrad}
               >
                 {saving ? (
-                  <ActivityIndicator color="#FFF" />
+                  <ActivityIndicator color={colors.text.inverse} />
                 ) : (
                   <>
-                    <Ionicons name="checkmark-circle" size={20} color="#FFF" />
-                    <Text style={s.saveText}>{edit ? 'Update Expense' : 'Save Expense'}</Text>
+                    <Ionicons name="checkmark-circle" size={20} color={colors.text.inverse} />
+                    <Text style={[s.saveText, { color: colors.text.inverse }]}>
+                      {edit ? 'Update Expense' : 'Save Expense'}
+                    </Text>
                   </>
                 )}
               </LinearGradient>

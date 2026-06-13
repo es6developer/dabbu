@@ -26,7 +26,6 @@ import { Avatar } from '../../components/ui/Avatar';
 import { useToast } from '../../store/ToastContext';
 
 const H_PADDING = 20;
-const BRAND = '#4F46E5';
 
 const FREE_MAX = 3;
 const DEFAULT_PLAN = { tier: 'free' as const, maxGroups: FREE_MAX, maxMembersPerGroup: 10 };
@@ -162,7 +161,7 @@ function TopSummary({
 }: any) {
   const isPositive = netBalance >= 0;
   const sign = isPositive ? '' : '-';
-  const statusColor = isPositive ? '#10B981' : '#EF4444';
+  const statusColor = isPositive ? colors.status.success : colors.status.error;
   const statusLabel = isPositive ? 'You are owed across spaces' : 'You owe across spaces';
 
   return (
@@ -185,12 +184,12 @@ function TopSummary({
             width: 36,
             height: 36,
             borderRadius: 10,
-            backgroundColor: `${BRAND}10`,
+            backgroundColor: `${colors.accent.primary}10`,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <Ionicons name="settings-outline" size={18} color={BRAND} />
+          <Ionicons name="settings-outline" size={18} color={colors.accent.primary} />
         </TouchableOpacity>
       </View>
 
@@ -231,26 +230,53 @@ function TopSummary({
             label="Total Spend"
             value={`₹${fmtIn(totalSpendAll)}`}
             color={colors.text.primary}
+            colors={colors}
           />
-          <SummaryStat label="Members" value={String(memberCount)} color={colors.text.primary} />
-          <SummaryStat label="Active" value={String(activeCount)} color="#10B981" />
-          <SummaryStat label="Pending" value={String(pendingCount)} color="#F59E0B" />
+          <SummaryStat
+            label="Members"
+            value={String(memberCount)}
+            color={colors.text.primary}
+            colors={colors}
+          />
+          <SummaryStat
+            label="Active"
+            value={String(activeCount)}
+            color={colors.status.success}
+            colors={colors}
+          />
+          <SummaryStat
+            label="Pending"
+            value={String(pendingCount)}
+            color={colors.status.warning}
+            colors={colors}
+          />
         </View>
       </View>
     </View>
   );
 }
 
-function SummaryStat({ label, value, color }: { label: string; value: string; color: string }) {
+function SummaryStat({
+  label,
+  value,
+  color,
+  colors,
+}: {
+  label: string;
+  value: string;
+  color: string;
+  colors: any;
+}) {
   return (
     <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
       <Text style={{ fontSize: 15, fontWeight: '700', color }}>{value}</Text>
-      <Text style={{ fontSize: 10, fontWeight: '500', color: '#9CA3AF' }}>{label}</Text>
+      <Text style={{ fontSize: 10, fontWeight: '500', color: colors.text.tertiary }}>{label}</Text>
     </View>
   );
 }
 
 function MemberAvatars({ members }: { members: any[] }) {
+  const { colors } = useTheme();
   const max = 5;
   const visible = members.slice(0, max);
   const remaining = members.length - max;
@@ -289,7 +315,7 @@ function MemberAvatars({ members }: { members: any[] }) {
             height: 28,
             borderRadius: 14,
             marginLeft: -12,
-            backgroundColor: BRAND,
+            backgroundColor: colors.accent.primary,
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 0,
@@ -297,7 +323,9 @@ function MemberAvatars({ members }: { members: any[] }) {
             borderColor: '#FFF',
           }}
         >
-          <Text style={{ color: '#FFF', fontSize: 9, fontWeight: '800' }}>+{remaining}</Text>
+          <Text style={{ color: colors.text.inverse, fontSize: 9, fontWeight: '800' }}>
+            +{remaining}
+          </Text>
         </View>
       )}
     </View>
@@ -323,14 +351,18 @@ function GroupCard({
   const owes = iOwe > 0;
   const activeAmount = isOwed ? owedToMe : owes ? iOwe : 0;
 
-  const amountColor = isOwed ? '#10B981' : owes ? '#EF4444' : colors.text.tertiary;
+  const amountColor = isOwed
+    ? colors.status.success
+    : owes
+      ? colors.status.error
+      : colors.text.tertiary;
   const statusText = isOwed ? 'You are owed' : owes ? 'You owe' : 'Settled';
 
   const settlementColor = isSettled
-    ? '#10B981'
+    ? colors.status.success
     : unsettledOthers > 0 && !owes
-      ? '#F59E0B'
-      : '#EF4444';
+      ? colors.status.warning
+      : colors.status.error;
   const settlementLabel = isSettled
     ? null
     : unsettledOthers > 0 && !owes
@@ -359,12 +391,12 @@ function GroupCard({
                 width: 32,
                 height: 32,
                 borderRadius: 10,
-                backgroundColor: `${BRAND}10`,
+                backgroundColor: `${colors.accent.primary}10`,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Ionicons name={icon as any} size={16} color={BRAND} />
+              <Ionicons name={icon as any} size={16} color={colors.accent.primary} />
             </View>
             <Text
               style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary, flex: 1 }}
@@ -431,10 +463,12 @@ function GroupCard({
                   paddingHorizontal: 10,
                   paddingVertical: 5,
                   borderRadius: 8,
-                  backgroundColor: `${BRAND}12`,
+                  backgroundColor: `${colors.accent.primary}12`,
                 }}
               >
-                <Text style={{ fontSize: 11, fontWeight: '700', color: BRAND }}>Add</Text>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: colors.accent.primary }}>
+                  Add
+                </Text>
               </View>
             </TouchableOpacity>
             {canSettle && (
@@ -705,7 +739,7 @@ export function SharedScreen() {
               setRefreshing(true);
               loadData(true);
             }}
-            tintColor={BRAND}
+            tintColor={colors.accent.primary}
           />
         }
       >
@@ -750,7 +784,9 @@ export function SharedScreen() {
                 width: 32,
                 height: 32,
                 borderRadius: 10,
-                backgroundColor: isAtLimit ? `${colors.status.error}15` : `${BRAND}12`,
+                backgroundColor: isAtLimit
+                  ? `${colors.status.error}15`
+                  : `${colors.accent.primary}12`,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
@@ -758,7 +794,7 @@ export function SharedScreen() {
               <Ionicons
                 name={isAtLimit ? 'lock-closed' : 'add'}
                 size={16}
-                color={isAtLimit ? colors.status.error : BRAND}
+                color={isAtLimit ? colors.status.error : colors.accent.primary}
               />
             </TouchableOpacity>
             <TouchableOpacity
@@ -770,11 +806,13 @@ export function SharedScreen() {
                 paddingHorizontal: 8,
                 paddingVertical: 6,
                 borderRadius: 8,
-                backgroundColor: `${BRAND}10`,
+                backgroundColor: `${colors.accent.primary}10`,
               }}
             >
-              <Ionicons name="diamond" size={11} color={BRAND} />
-              <Text style={{ fontSize: 11, fontWeight: '700', color: BRAND }}>Upgrade</Text>
+              <Ionicons name="diamond" size={11} color={colors.accent.primary} />
+              <Text style={{ fontSize: 11, fontWeight: '700', color: colors.accent.primary }}>
+                Upgrade
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -823,12 +861,12 @@ export function SharedScreen() {
                 width: 64,
                 height: 64,
                 borderRadius: 20,
-                backgroundColor: `${BRAND}12`,
+                backgroundColor: `${colors.accent.primary}12`,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Ionicons name="grid-outline" size={34} color={BRAND} />
+              <Ionicons name="grid-outline" size={34} color={colors.accent.primary} />
             </View>
             <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text.primary }}>
               No spaces yet
@@ -852,13 +890,15 @@ export function SharedScreen() {
                 paddingHorizontal: 20,
                 paddingVertical: 12,
                 borderRadius: 14,
-                backgroundColor: BRAND,
+                backgroundColor: colors.accent.primary,
                 marginTop: 6,
               }}
               onPress={() => setShowCreateModal(true)}
             >
-              <Ionicons name="add" size={16} color="#FFF" />
-              <Text style={{ color: '#FFF', fontSize: 14, fontWeight: '700' }}>Create Space</Text>
+              <Ionicons name="add" size={16} color={colors.text.inverse} />
+              <Text style={{ color: colors.text.inverse, fontSize: 14, fontWeight: '700' }}>
+                Create Space
+              </Text>
             </TouchableOpacity>
           </View>
         )}
@@ -896,7 +936,7 @@ export function SharedScreen() {
                         ? colors.status.error
                         : groups.length >= maxSpaces - 1
                           ? colors.status.warning
-                          : BRAND,
+                          : colors.accent.primary,
                     }}
                   />
                 </View>
@@ -911,10 +951,12 @@ export function SharedScreen() {
                     paddingHorizontal: 12,
                     paddingVertical: 7,
                     borderRadius: 8,
-                    backgroundColor: `${BRAND}10`,
+                    backgroundColor: `${colors.accent.primary}10`,
                   }}
                 >
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: BRAND }}>Upgrade</Text>
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: colors.accent.primary }}>
+                    Upgrade
+                  </Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -981,8 +1023,12 @@ export function SharedScreen() {
                                 style={[
                                   mod.typeChip,
                                   {
-                                    borderColor: active ? BRAND : colors.border.default,
-                                    backgroundColor: active ? `${BRAND}15` : colors.bg.card,
+                                    borderColor: active
+                                      ? colors.accent.primary
+                                      : colors.border.default,
+                                    backgroundColor: active
+                                      ? `${colors.accent.primary}15`
+                                      : colors.bg.card,
                                   },
                                 ]}
                                 onPress={() => setNewType(key)}
@@ -990,12 +1036,14 @@ export function SharedScreen() {
                                 <Ionicons
                                   name={icon as any}
                                   size={16}
-                                  color={active ? BRAND : colors.text.tertiary}
+                                  color={active ? colors.accent.primary : colors.text.tertiary}
                                 />
                                 <Text
                                   style={[
                                     mod.typeChipText,
-                                    { color: active ? BRAND : colors.text.secondary },
+                                    {
+                                      color: active ? colors.accent.primary : colors.text.secondary,
+                                    },
                                   ]}
                                 >
                                   {key.charAt(0).toUpperCase() + key.slice(1)}
@@ -1049,7 +1097,7 @@ export function SharedScreen() {
                         style={[
                           mod.submitBtn,
                           {
-                            backgroundColor: BRAND,
+                            backgroundColor: colors.accent.primary,
                             opacity: saving || !newName.trim() ? 0.5 : 1,
                           },
                         ]}
@@ -1060,11 +1108,13 @@ export function SharedScreen() {
                         disabled={saving || !newName.trim()}
                       >
                         {saving ? (
-                          <ActivityIndicator color="#FFF" size="small" />
+                          <ActivityIndicator color={colors.text.inverse} size="small" />
                         ) : (
                           <>
-                            <Ionicons name="add" size={18} color="#FFF" />
-                            <Text style={mod.submitBtnText}>Create</Text>
+                            <Ionicons name="add" size={18} color={colors.text.inverse} />
+                            <Text style={[mod.submitBtnText, { color: colors.text.inverse }]}>
+                              Create
+                            </Text>
                           </>
                         )}
                       </TouchableOpacity>
@@ -1151,5 +1201,5 @@ const mod = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 14,
   },
-  submitBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+  submitBtnText: { fontSize: 15, fontWeight: '700' },
 });

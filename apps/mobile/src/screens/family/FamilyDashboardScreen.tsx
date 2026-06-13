@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  RefreshControl,
-} from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
 import { DashboardSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -65,9 +58,7 @@ export function FamilyDashboardScreen() {
         contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 100 }]}
         ListHeaderComponent={
           <View style={styles.header}>
-            <Text style={[styles.headerTitle, { color: colors.text.primary }]}>
-              Family Groups
-            </Text>
+            <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Family Groups</Text>
             <Text style={[styles.headerSub, { color: colors.text.tertiary }]}>
               {families.length} {families.length === 1 ? 'group' : 'groups'}
             </Text>
@@ -108,10 +99,7 @@ export function FamilyDashboardScreen() {
                 onPress={() => navigation.navigate('FamilyChat', { familyId: item.id })}
               >
                 <View
-                  style={[
-                    styles.actionIcon,
-                    { backgroundColor: `${colors.accent.primary}18` },
-                  ]}
+                  style={[styles.actionIcon, { backgroundColor: `${colors.accent.primary}18` }]}
                 >
                   <Ionicons name="chatbubbles" size={18} color={colors.accent.primary} />
                 </View>
@@ -121,12 +109,7 @@ export function FamilyDashboardScreen() {
                 style={styles.action}
                 onPress={() => navigation.navigate('TasksList', { familyId: item.id })}
               >
-                <View
-                  style={[
-                    styles.actionIcon,
-                    { backgroundColor: `${colors.status.info}18` },
-                  ]}
-                >
+                <View style={[styles.actionIcon, { backgroundColor: `${colors.status.info}18` }]}>
                   <Ionicons name="checkbox" size={18} color={colors.status.info} />
                 </View>
                 <Text style={[styles.actionLabel, { color: colors.text.secondary }]}>Tasks</Text>
@@ -136,10 +119,7 @@ export function FamilyDashboardScreen() {
                 onPress={() => navigation.navigate('CreateTask', { familyId: item.id })}
               >
                 <View
-                  style={[
-                    styles.actionIcon,
-                    { backgroundColor: `${colors.status.warning}18` },
-                  ]}
+                  style={[styles.actionIcon, { backgroundColor: `${colors.status.warning}18` }]}
                 >
                   <Ionicons name="alarm" size={18} color={colors.status.warning} />
                 </View>
@@ -150,17 +130,10 @@ export function FamilyDashboardScreen() {
         )}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <View
-              style={[
-                styles.emptyIconWrap,
-                { backgroundColor: `${colors.accent.primary}12` },
-              ]}
-            >
+            <View style={[styles.emptyIconWrap, { backgroundColor: `${colors.accent.primary}12` }]}>
               <Ionicons name="people-outline" size={44} color={colors.accent.primary} />
             </View>
-            <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
-              No family group
-            </Text>
+            <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No family group</Text>
             <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
               Create a family to share reminders{'\n'}and tasks together
             </Text>
