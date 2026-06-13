@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, Switch, Animated, TouchableOpacity, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -17,22 +17,34 @@ export function CoupleModeToggle({ onToggle }: Props) {
 
   const isCouple = !!user?.isCouple;
   const isCoupleMode = !!user?.isCoupleMode;
+  const togglingRef = useRef(false);
 
   if (!isCouple) {
     return null;
   }
 
-  function handleToggle(value: boolean) {
-    Animated.sequence([
-      Animated.timing(pulseAnim, { toValue: 0.92, duration: 100, useNativeDriver: true }),
-      Animated.timing(pulseAnim, { toValue: 1, duration: 100, useNativeDriver: true }),
-    ]).start();
-    if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-    }
-    toggleCoupleMode(value);
-    onToggle?.(value);
-  }
+  const handleToggle = useCallback(
+    (value: boolean) => {
+      if (togglingRef.current) {
+        return;
+      }
+      togglingRef.current = true;
+      setTimeout(() => {
+        togglingRef.current = false;
+      }, 500);
+
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 0.92, duration: 100, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 100, useNativeDriver: true }),
+      ]).start();
+      if (Platform.OS !== 'web') {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+      }
+      toggleCoupleMode(value);
+      onToggle?.(value);
+    },
+    [toggleCoupleMode, onToggle, pulseAnim],
+  );
 
   return (
     <Animated.View
