@@ -125,7 +125,7 @@ function ModuleCard({
           justifyContent: 'center',
           gap: 6,
           aspectRatio: 1,
-          shadowColor: colors.bg.shadow,
+          shadowColor: '#000',
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.15,
           shadowRadius: 8,
@@ -357,7 +357,7 @@ export function CoupleSpaceScreen({ onModulePress }: Props) {
               >
                 <Text style={{ color: '#FFF', fontSize: 22, fontWeight: '800' }}>{p1Initial}</Text>
               </View>
-              <Ionicons name="heart" size={20} color="#FFEBB4" />
+              <Ionicons name="heart" size={20} color="#FFEBB4" style={{ opacity: 0.8 }} />
               <View
                 style={{
                   width: 50,
@@ -494,14 +494,14 @@ export function CoupleSpaceScreen({ onModulePress }: Props) {
                 {
                   icon: 'add-circle-outline',
                   label: 'Add',
-                  color: '#34C759',
+                  color: colors.status.success,
                   screen: 'SharedExpenseForm',
                   params: { groupId: group?.id, edit: false },
                 },
                 {
                   icon: 'swap-horizontal-outline',
                   label: 'Settle',
-                  color: '#60A5FA',
+                  color: colors.accent.secondary,
                   screen: 'CoupleSettlements',
                 },
               ].map((btn, i) => (
@@ -597,7 +597,7 @@ export function CoupleSpaceScreen({ onModulePress }: Props) {
                     height: '100%',
                     borderRadius: 4,
                     width: `${Math.min(budgetPct, 100)}%`,
-                    backgroundColor: budgetPct > 80 ? '#FF4545' : colors.accent.primary,
+                    backgroundColor: budgetPct > 80 ? colors.status.error : colors.accent.primary,
                   }}
                 />
               </View>
@@ -609,7 +609,7 @@ export function CoupleSpaceScreen({ onModulePress }: Props) {
                   style={{
                     fontSize: 12,
                     fontWeight: '700',
-                    color: budgetPct > 80 ? '#FF4545' : colors.text.tertiary,
+                    color: budgetPct > 80 ? colors.status.error : colors.text.tertiary,
                   }}
                 >
                   {budgetPct}%
@@ -644,12 +644,12 @@ export function CoupleSpaceScreen({ onModulePress }: Props) {
                       width: 38,
                       height: 38,
                       borderRadius: 12,
-                      backgroundColor: '#34C75915',
+                      backgroundColor: `${colors.status.success}15`,
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <Ionicons name="save-outline" size={18} color="#34C759" />
+                    <Ionicons name="save-outline" size={18} color={colors.status.success} />
                   </View>
                   <View>
                     <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>
@@ -682,7 +682,7 @@ export function CoupleSpaceScreen({ onModulePress }: Props) {
                     height: '100%',
                     borderRadius: 4,
                     width: `${Math.min(savingsPct, 100)}%`,
-                    backgroundColor: '#34C759',
+                    backgroundColor: colors.status.success,
                   }}
                 />
               </View>
