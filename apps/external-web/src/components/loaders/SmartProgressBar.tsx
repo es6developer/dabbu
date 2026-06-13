@@ -28,26 +28,31 @@ function HealthBar({
   const activeSegments = Math.floor((progress / 100) * segments);
   return (
     <div className={`flex gap-0.5 ${premium ? 'opacity-80' : ''}`} style={{ height: size }}>
-      {Array.from({ length: segments }).map((_, i) => (
-        <div
-          key={i}
-          className={`flex-1 rounded-sm transition-all duration-300 ${
-            i < activeSegments
-              ? i < activeSegments * 0.33
-                ? 'bg-red-500'
-                : i < activeSegments * 0.66
-                  ? 'bg-amber-500'
-                  : premium
-                    ? 'bg-gradient-to-b from-violet-400 to-violet-600'
-                    : 'bg-green-500'
-              : 'bg-gray-700'
-          }`}
-          style={{
-            height: i < activeSegments ? `${50 + (i / segments) * 50}%` : '30%',
-            alignSelf: 'flex-end',
-          }}
-        />
-      ))}
+      {Array.from({ length: segments }).map((_, i) => {
+        let bg: string;
+        if (i >= activeSegments) {
+          bg = 'var(--dabbu-surface2)';
+        } else if (i < activeSegments * 0.33) {
+          bg = '#EF4444';
+        } else if (i < activeSegments * 0.66) {
+          bg = '#F59E0B';
+        } else if (premium) {
+          bg = 'linear-gradient(180deg, #A78BFA, #7C3AED)';
+        } else {
+          bg = '#10B981';
+        }
+        return (
+          <div
+            key={i}
+            className="flex-1 rounded-sm transition-all duration-300"
+            style={{
+              height: i < activeSegments ? `${50 + (i / segments) * 50}%` : '30%',
+              alignSelf: 'flex-end',
+              background: bg,
+            }}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -66,7 +71,7 @@ function RingBar({
   const offset = circumference - (progress / 100) * circumference;
   return (
     <svg width={80} height={80} viewBox="0 0 80 80" className="rotate-[-90deg]">
-      <circle cx="40" cy="40" r={r} fill="none" stroke="#374151" strokeWidth="6" />
+      <circle cx="40" cy="40" r={r} fill="none" stroke="var(--dabbu-surface2)" strokeWidth="6" />
       <circle
         cx="40"
         cy="40"
@@ -93,7 +98,7 @@ function RingBar({
         y="40"
         textAnchor="middle"
         dominantBaseline="central"
-        fill="white"
+        fill="var(--dabbu-text)"
         fontSize="14"
         fontWeight="bold"
         transform="rotate(90, 40, 40)"
@@ -120,7 +125,7 @@ function ShieldBar({
           <path
             d="M22 2L4 12v14c0 12.48 7.76 24.14 18 26 10.24-1.86 18-13.52 18-26V12L22 2z"
             fill="none"
-            stroke="#374151"
+            stroke="var(--dabbu-surface2)"
             strokeWidth="2"
           />
           <path
@@ -133,11 +138,17 @@ function ShieldBar({
             className="transition-all duration-500"
           />
         </svg>
-        <div className="absolute inset-0 flex items-center justify-center text-white text-xs font-bold mt-2">
+        <div
+          className="absolute inset-0 flex items-center justify-center text-xs font-bold mt-2"
+          style={{ color: 'var(--dabbu-text)' }}
+        >
           {Math.round(progress)}%
         </div>
       </div>
-      <div className="flex-1 h-2 bg-gray-700 rounded-full overflow-hidden">
+      <div
+        className="flex-1 h-2 rounded-full overflow-hidden"
+        style={{ backgroundColor: 'var(--dabbu-surface2)' }}
+      >
         <div
           className={`h-full rounded-full transition-all duration-500 ${
             premium
@@ -164,22 +175,27 @@ function CashBar({
   const filledBills = Math.floor((progress / 100) * 10);
   return (
     <div className="flex items-end gap-1" style={{ height: size * 2.5 }}>
-      {Array.from({ length: 10 }).map((_, i) => (
-        <div
-          key={i}
-          className={`w-3 rounded-t transition-all duration-300 ${
-            i < filledBills
-              ? premium
-                ? 'bg-gradient-to-t from-violet-600 to-emerald-400'
-                : 'bg-gradient-to-t from-[#8B5CF6] to-green-400'
-              : 'bg-gray-700'
-          }`}
-          style={{
-            height: i < filledBills ? `${(i + 1) * 10}%` : '8%',
-            opacity: i < filledBills ? 0.5 + (i / 10) * 0.5 : 0.3,
-          }}
-        />
-      ))}
+      {Array.from({ length: 10 }).map((_, i) => {
+        let bg: string;
+        if (i >= filledBills) {
+          bg = 'var(--dabbu-surface2)';
+        } else if (premium) {
+          bg = 'linear-gradient(180deg, #7C3AED, #10B981)';
+        } else {
+          bg = 'linear-gradient(180deg, #8B5CF6, #10B981)';
+        }
+        return (
+          <div
+            key={i}
+            className="w-3 rounded-t transition-all duration-300"
+            style={{
+              height: i < filledBills ? `${(i + 1) * 10}%` : '8%',
+              opacity: i < filledBills ? 0.5 + (i / 10) * 0.5 : 0.3,
+              background: bg,
+            }}
+          />
+        );
+      })}
       {premium && (
         <div className="ml-1 self-center">
           <span className="text-emerald-400 text-[10px]">$</span>
@@ -205,14 +221,13 @@ function MeshBar({
       {Array.from({ length: dots * dots }).map((_, i) => (
         <div
           key={i}
-          className={`rounded-sm transition-all duration-300 ${
-            i < activeDots
-              ? premium
-                ? 'bg-violet-500 shadow-[0_0_4px_rgba(139,92,246,0.6)]'
-                : 'bg-[#8B5CF6]'
-              : 'bg-gray-700'
-          }`}
-          style={{ width: 12, height: 12 }}
+          className={`rounded-sm transition-all duration-300 ${i < activeDots && premium ? 'shadow-[0_0_4px_rgba(139,92,246,0.6)]' : ''}`}
+          style={{
+            width: 12,
+            height: 12,
+            backgroundColor:
+              i < activeDots ? (premium ? '#8B5CF6' : '#8B5CF6') : 'var(--dabbu-surface2)',
+          }}
         />
       ))}
     </div>
@@ -241,7 +256,9 @@ export default function SmartProgressBar({
     <div className={`flex flex-col items-center gap-2 ${className}`}>
       {variants[variant]}
       {showLabel && (
-        <span className="text-xs text-gray-400 font-mono">{Math.round(progress)}%</span>
+        <span className="text-xs font-mono" style={{ color: 'var(--dabbu-text-muted)' }}>
+          {Math.round(progress)}%
+        </span>
       )}
     </div>
   );

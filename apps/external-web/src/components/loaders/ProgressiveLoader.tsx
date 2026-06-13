@@ -87,7 +87,11 @@ export default function ProgressiveLoader({
             Stage {stageIndex + 1} / {stages.length}
           </div>
         )}
-        {currentStage && <div className="text-sm font-medium text-white">{currentStage.label}</div>}
+        {currentStage && (
+          <div className="text-sm font-medium" style={{ color: 'var(--dabbu-text)' }}>
+            {currentStage.label}
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col items-center gap-1.5 min-h-[40px]">
@@ -96,7 +100,9 @@ export default function ProgressiveLoader({
             <div
               className={`w-1.5 h-1.5 rounded-full ${premium ? 'bg-violet-500' : 'bg-[#8B5CF6]'} animate-pulse`}
             />
-            <span className="text-xs text-gray-400">{currentStep}</span>
+            <span className="text-xs" style={{ color: 'var(--dabbu-text-muted)' }}>
+              {currentStep}
+            </span>
           </div>
         )}
       </div>
@@ -106,13 +112,15 @@ export default function ProgressiveLoader({
           {stages.map((_, i) => (
             <div
               key={i}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                i < stageIndex
-                  ? 'bg-violet-500'
-                  : i === stageIndex
-                    ? 'bg-violet-400 animate-pulse'
-                    : 'bg-gray-700'
-              }`}
+              className="w-2 h-2 rounded-full transition-all duration-300"
+              style={{
+                backgroundColor:
+                  i < stageIndex
+                    ? '#8B5CF6'
+                    : i === stageIndex
+                      ? '#A78BFA'
+                      : 'var(--dabbu-surface2)',
+              }}
             />
           ))}
         </div>

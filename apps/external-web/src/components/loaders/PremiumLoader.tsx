@@ -36,7 +36,14 @@ export default function PremiumLoader({
         />
       </div>
 
-      {label && <h3 className="text-white font-semibold text-lg text-center relative">{label}</h3>}
+      {label && (
+        <h3
+          className="font-semibold text-lg text-center relative"
+          style={{ color: 'var(--dabbu-text)' }}
+        >
+          {label}
+        </h3>
+      )}
 
       <div className="w-full max-w-xs relative">
         <FactCarouselLoader category={category} interval={5000} premium />

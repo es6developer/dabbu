@@ -49,12 +49,17 @@ export default function ErrorLoadingScreen({
       </div>
 
       <div className="text-center">
-        <h3 className="text-white font-semibold text-lg mb-1">
+        <h3 className="font-semibold text-lg mb-1" style={{ color: 'var(--dabbu-text)' }}>
           {premium ? 'Premium Recovery Mode' : 'Something went wrong'}
         </h3>
-        <p className="text-gray-400 text-sm">{funny}</p>
+        <p className="text-sm" style={{ color: 'var(--dabbu-text-muted)' }}>
+          {funny}
+        </p>
         {error && (
-          <p className="text-gray-500 text-xs mt-2 font-mono max-w-[280px] mx-auto truncate">
+          <p
+            className="text-xs mt-2 font-mono max-w-[280px] mx-auto truncate"
+            style={{ color: 'var(--dabbu-text-muted)' }}
+          >
             {error}
           </p>
         )}
@@ -83,7 +88,10 @@ export default function ErrorLoadingScreen({
         {onDismiss && (
           <button
             onClick={onDismiss}
-            className="px-5 py-2 rounded-xl text-sm font-medium text-gray-400 hover:text-white transition-colors"
+            className="px-5 py-2 rounded-xl text-sm font-medium transition-colors"
+            style={{ color: 'var(--dabbu-text-muted)' }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--dabbu-text)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--dabbu-text-muted)')}
           >
             Dismiss
           </button>

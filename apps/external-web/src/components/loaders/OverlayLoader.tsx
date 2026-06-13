@@ -86,7 +86,7 @@ export default function OverlayLoader({
             <SmartProgressBar progress={progress} variant="health" size="lg" premium={premium} />
             {loadingSteps && (
               <div className="mt-4 text-center">
-                <p className="text-gray-400 text-sm">
+                <p className="text-sm" style={{ color: 'var(--dabbu-text-muted)' }}>
                   {
                     loadingSteps[
                       Math.floor((progress / 100) * loadingSteps.length) % loadingSteps.length

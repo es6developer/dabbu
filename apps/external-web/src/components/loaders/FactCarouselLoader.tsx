@@ -52,7 +52,7 @@ export default function FactCarouselLoader({
           visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
         }`}
       >
-        <p className={`text-sm leading-relaxed ${premium ? 'text-violet-200' : 'text-gray-300'}`}>
+        <p className="text-sm leading-relaxed" style={{ color: 'var(--dabbu-text-secondary)' }}>
           {fact || 'Loading insights...'}
         </p>
       </div>
@@ -65,12 +65,12 @@ export default function FactCarouselLoader({
           style={{ opacity: 0.6 }}
         />
         <div
-          className={`w-1.5 h-1.5 rounded-full bg-gray-600 animate-pulse`}
-          style={{ animationDuration: '1.5s' }}
+          className="w-1.5 h-1.5 rounded-full animate-pulse"
+          style={{ animationDuration: '1.5s', backgroundColor: 'var(--dabbu-text-muted)' }}
         />
         <div
-          className={`w-1.5 h-1.5 rounded-full bg-gray-600 animate-pulse`}
-          style={{ animationDuration: '2s' }}
+          className="w-1.5 h-1.5 rounded-full animate-pulse"
+          style={{ animationDuration: '2s', backgroundColor: 'var(--dabbu-text-muted)' }}
         />
       </div>
     </div>

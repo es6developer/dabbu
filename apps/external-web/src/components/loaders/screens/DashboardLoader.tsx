@@ -32,12 +32,12 @@ export default function DashboardLoader({ progress, premium, onComplete }: Dashb
       </div>
 
       <div className="text-center">
-        <h3 className="text-white font-semibold text-lg">
+        <h3 className="font-semibold text-lg" style={{ color: 'var(--dabbu-text)' }}>
           {phase === 'sync' && 'Syncing your expenses...'}
           {phase === 'analyze' && 'Analyzing spending patterns...'}
           {phase === 'done' && 'Almost ready!'}
         </h3>
-        <p className="text-gray-400 text-sm mt-1">
+        <p className="text-sm mt-1" style={{ color: 'var(--dabbu-text-muted)' }}>
           {phase === 'sync' && 'Gathering data from all group members'}
           {phase === 'analyze' && 'Running AI calculations'}
           {phase === 'done' && 'Preparing your dashboard'}
@@ -58,10 +58,18 @@ export default function DashboardLoader({ progress, premium, onComplete }: Dashb
 
 function SkeletonBar({ w, delay }: { w: string; delay: number }) {
   return (
-    <div className="h-3 bg-gray-800 rounded-full overflow-hidden" style={{ width: w }}>
+    <div
+      className="h-3 rounded-full overflow-hidden"
+      style={{ width: w, backgroundColor: 'var(--dabbu-surface2)' }}
+    >
       <div
-        className="h-full bg-gradient-to-r from-violet-500/20 via-violet-400/30 to-violet-500/20 rounded-full animate-shimmer"
-        style={{ animationDelay: `${delay}s` }}
+        className="h-full rounded-full animate-shimmer"
+        style={{
+          animationDelay: `${delay}s`,
+          background:
+            'linear-gradient(90deg, transparent 0%, rgba(139,92,246,0.1) 50%, transparent 100%)',
+          backgroundSize: '200% 100%',
+        }}
       />
     </div>
   );

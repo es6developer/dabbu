@@ -915,7 +915,7 @@ const styles = StyleSheet.create({
   loadingBar: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    backgroundColor: 'rgba(139, 92, 246, 0.9)',
+    backgroundColor: 'var(--dabbu-accent)',
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
