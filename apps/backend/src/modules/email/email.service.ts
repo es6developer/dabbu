@@ -20,11 +20,14 @@ export class EmailService implements OnModuleInit {
   private readonly logger = new Logger(EmailService.name);
   private transporter: Transporter | null = null;
   private resend: any | null = null;
+  private ethereal: Transporter | null = null;
   private fromName: string;
   private fromEmail: string;
   private frontendUrl: string;
   private smtpInitialized = false;
   private resendInitialized = false;
+  private etherealInitialized = false;
+  private etherealUrl = '';
 
   constructor() {
     this.fromName = process.env.EMAIL_FROM_NAME || 'Dabbu';
@@ -84,9 +87,26 @@ export class EmailService implements OnModuleInit {
         this.logger.log('SMTP connection verified successfully');
       } catch (err) {
         this.logger.warn(
-          `SMTP connection failed: ${(err as Error).message}. Will try Resend as fallback.`,
+          `SMTP connection failed: ${(err as Error).message}. Attempting Ethereal fallback.`,
         );
         this.smtpInitialized = false;
+      }
+    }
+
+    if (!this.resendInitialized && !this.smtpInitialized) {
+      try {
+        const testAccount = await nodemailer.createTestAccount();
+        this.ethereal = nodemailer.createTransport({
+          host: 'smtp.ethereal.email',
+          port: 587,
+          secure: false,
+          auth: { user: testAccount.user, pass: testAccount.pass },
+        });
+        this.etherealInitialized = true;
+        this.etherealUrl = `https://ethereal.email/login?user=${encodeURIComponent(testAccount.user)}`;
+        this.logger.log(`Ethereal email test account created. View emails at: ${this.etherealUrl}`);
+      } catch (err) {
+        this.logger.warn(`Failed to create Ethereal test account: ${(err as Error).message}`);
       }
     }
   }
@@ -136,6 +156,24 @@ export class EmailService implements OnModuleInit {
           `SMTP failed: to=${options.to} subject="${options.subject}" error=${(error as Error).message}`,
         );
         throw error;
+      }
+    }
+
+    if (this.etherealInitialized && this.ethereal) {
+      try {
+        const info = await this.ethereal.sendMail({
+          from: `"${this.fromName}" <${this.fromEmail}>`,
+          to: options.to,
+          subject: options.subject,
+          html: options.html,
+          text: options.text,
+        });
+        this.logger.log(
+          `Email sent via Ethereal: to=${options.to} subject="${options.subject}" preview=${nodemailer.getTestMessageUrl(info)}`,
+        );
+        return;
+      } catch (err) {
+        this.logger.warn(`Ethereal send failed: ${(err as Error).message}`);
       }
     }
 
