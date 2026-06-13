@@ -91,7 +91,7 @@ export function CoupleFinanceScreen() {
         setAccessToken(accessToken);
       }
       await api.post(`/shared-finance/groups/${groupId}/members/add-by-phone`, {
-        phone: `+91${digits}`,
+        phone: digits,
       });
       setPartnerPhone('');
       Alert.alert('Invite Sent', 'Your partner has been added to the couple space.');
@@ -251,7 +251,6 @@ export function CoupleFinanceScreen() {
               { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
             ]}
           >
-            <Text style={[s.countryCode, { color: colors.text.primary }]}>+91</Text>
             <TextInput
               style={[s.phoneInput, { color: colors.text.primary }]}
               placeholder="Phone number"

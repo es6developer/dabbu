@@ -40,8 +40,6 @@ const ICONS = [
   { key: 'fitness', label: 'Fitness', color: '#22C55E' },
 ];
 
-const COUNTRY_CODE = '+91';
-
 export function CreateExpenseGroupScreen() {
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
@@ -71,7 +69,7 @@ export function CreateExpenseGroupScreen() {
     if (digits.length >= 3) {
       searchTimeoutRef.current[index] = setTimeout(async () => {
         try {
-          const res = await api.get<any>(`/users/search?query=${COUNTRY_CODE}${digits}`);
+          const res = await api.get<any>(`/users/search?query=${digits}`);
           setSearchResults((prev) => ({
             ...prev,
             [index]: Array.isArray(res) ? res : res?.data || [],
@@ -102,10 +100,7 @@ export function CreateExpenseGroupScreen() {
 
   const selectUser = useCallback(
     (index: number, user: any) => {
-      const phone = (user.phone || '')
-        .replace(COUNTRY_CODE, '')
-        .replace(/[^0-9]/g, '')
-        .slice(0, 10);
+      const phone = (user.phone || '').replace(/[^0-9]/g, '').slice(-10);
       setMembers((prev) => {
         const n = [...prev];
         n[index] = phone;
@@ -150,7 +145,7 @@ export function CreateExpenseGroupScreen() {
         payload.description = description.trim();
       }
       if (validPhones.length > 0) {
-        payload.memberPhones = validPhones.map((p) => `${COUNTRY_CODE}${p}`);
+        payload.memberPhones = validPhones;
       }
       await api.post('/expense-groups', payload);
       navigation.goBack();
@@ -305,7 +300,6 @@ export function CreateExpenseGroupScreen() {
                     {(phone || '?')[0]}
                   </Text>
                 </View>
-                <Text style={[s.countryCode, { color: colors.text.tertiary }]}>{COUNTRY_CODE}</Text>
                 <TextInput
                   ref={(ref) => {
                     inputsRef.current[index] = ref;

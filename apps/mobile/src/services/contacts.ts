@@ -1,8 +1,6 @@
 import * as Contacts from 'expo-contacts';
 import { api } from './api';
 
-const COUNTRY_CODE = '+91';
-
 export interface ContactUser {
   id: string;
   firstName?: string;
@@ -77,7 +75,7 @@ export async function searchUsersByPhone(query: string): Promise<ContactUser[]> 
 
 export function displayName(user: ContactUser): string {
   const name = [user.firstName, user.lastName].filter(Boolean).join(' ');
-  const phone = user.phone ? user.phone.replace(COUNTRY_CODE, '') : '';
+  const phone = user.phone || '';
   return `${phone} - ${name || user.email || 'Unknown'}`;
 }
 

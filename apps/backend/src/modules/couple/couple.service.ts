@@ -29,8 +29,9 @@ export class CoupleService {
       throw new ConflictException('You are already in a couple');
     }
 
+    const digits = phone.replace(/\D/g, '').slice(-10);
     const receiver = await this.prisma.user.findFirst({
-      where: { phone, isActive: true },
+      where: { phone: { endsWith: digits }, isActive: true },
     });
     if (!receiver) {
       throw new NotFoundException('No user found with that phone number');

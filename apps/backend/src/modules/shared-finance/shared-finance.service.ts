@@ -521,10 +521,10 @@ export class SharedFinanceService {
   ) {
     await this.verifyAdmin(groupId, adminId);
 
-    const digits = phone.replace(/\D/g, '');
+    const digits = phone.replace(/\D/g, '').slice(-10);
     const user = await this.prisma.user.findFirst({
       where: {
-        phone: { contains: digits },
+        phone: { endsWith: digits },
         isActive: true,
         status: 'active',
       },

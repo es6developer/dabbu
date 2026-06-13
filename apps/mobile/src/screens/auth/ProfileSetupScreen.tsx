@@ -41,10 +41,7 @@ export function ProfileSetupScreen() {
         body.lastName = lastName.trim();
       }
       if (phone.trim()) {
-        const phoneDigits = phone.replace(/[^0-9]/g, '');
-        if (phoneDigits.length >= 8) {
-          body.phone = phoneDigits.startsWith('91') ? `+${phoneDigits}` : `+91${phoneDigits}`;
-        }
+        body.phone = phone.replace(/[^0-9]/g, '');
       }
       const res = await fetch(`${API_URL}/users/profile`, {
         method: 'PATCH',
@@ -155,7 +152,7 @@ export function ProfileSetupScreen() {
                     borderColor: colors.border.subtle,
                   },
                 ]}
-                placeholder="+91 9876543210"
+                placeholder="9876543210"
                 placeholderTextColor={colors.text.tertiary}
                 value={phone}
                 onChangeText={setPhone}

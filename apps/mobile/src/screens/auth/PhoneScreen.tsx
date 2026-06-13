@@ -106,7 +106,7 @@ export function PhoneScreen() {
                   borderColor: fieldError ? colors.status.error : colors.border.subtle,
                 },
               ]}
-              placeholder="+91 9876543210"
+              placeholder="9876543210"
               placeholderTextColor={colors.text.tertiary}
               value={phone}
               onChangeText={(t) => {

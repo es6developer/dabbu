@@ -78,7 +78,7 @@ export function CreateSharedGroupScreen() {
       if (type === 'couple' && newGroupId && partnerPhone.trim()) {
         await api
           .post(`/shared-finance/groups/${newGroupId}/members/add-by-phone`, {
-            phone: `+91${partnerPhone.trim()}`,
+            phone: partnerPhone.trim(),
           })
           .catch(() => {});
       }
@@ -179,7 +179,6 @@ export function CreateSharedGroupScreen() {
               { backgroundColor: colors.bg.card, borderColor: colors.border.default },
             ]}
           >
-            <Text style={[styles.countryCode, { color: colors.text.tertiary }]}>+91</Text>
             <TextInput
               style={[styles.phoneInput, { color: colors.text.primary }]}
               value={partnerPhone}

@@ -138,7 +138,7 @@ export function randomElements<T>(arr: T[], count: number): T[] {
 
 export function generateIndianPhone(): string {
   const prefixes = ['98', '99', '97', '96', '95', '90', '91', '92', '93', '94', '88', '89', '86', '87', '85', '84', '83', '82', '81', '80'];
-  return `+91${randomElement(prefixes)}${String(randomInt(10000000, 99999999))}`;
+  return `${randomElement(prefixes)}${String(randomInt(10000000, 99999999))}`;
 }
 
 export function generateGlobalEmail(firstName: string, lastName: string): string {

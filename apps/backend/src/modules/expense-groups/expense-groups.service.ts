@@ -383,8 +383,9 @@ export class ExpenseGroupsService {
       );
     }
 
+    const digits = phone.replace(/\D/g, '').slice(-10);
     const user = await this.prisma.user.findFirst({
-      where: { phone, isActive: true },
+      where: { phone: { endsWith: digits }, isActive: true },
     });
     if (!user) {
       throw new NotFoundException('User not found with this phone number');

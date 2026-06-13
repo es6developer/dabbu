@@ -326,7 +326,7 @@ export function AddPartnerScreen() {
             ]}
             value={phone}
             onChangeText={setPhone}
-            placeholder="+91 98765 43210"
+            placeholder="9876543210"
             placeholderTextColor={colors.text.tertiary}
             keyboardType="phone-pad"
             autoCapitalize="none"
