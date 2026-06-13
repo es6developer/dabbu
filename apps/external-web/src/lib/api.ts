@@ -132,7 +132,7 @@ function normalizeGroup(raw: any): Group {
 }
 
 function normalizeExpense(raw: any): Expense {
-  const paidByUser = raw.paidBy?.user;
+  const paidByUser = raw.payer;
   const paidByName = paidByUser
     ? [paidByUser.firstName, paidByUser.lastName].filter(Boolean).join(' ').trim()
     : 'Unknown';
@@ -143,7 +143,7 @@ function normalizeExpense(raw: any): Expense {
     amount: Number(raw.amount),
     category: raw.category,
     paidBy: {
-      id: paidByUser?.id || raw.paidBy?.userId,
+      id: paidByUser?.id || raw.paidBy,
       name: paidByName,
       email: paidByUser?.email,
       avatar: paidByUser?.avatarUrl,
@@ -153,28 +153,28 @@ function normalizeExpense(raw: any): Expense {
     },
     splitType: raw.splitType,
     shares: (raw.splits || []).map((s: any) => {
-      const shareUser = s.member?.user;
+      const shareUser = s.user;
       return {
-        memberId: shareUser?.id || s.memberId,
+        memberId: shareUser?.id || s.userId,
         memberName: shareUser
           ? [shareUser.firstName, shareUser.lastName].filter(Boolean).join(' ').trim()
           : 'Unknown',
         amount: Number(s.amount),
         percentage:
           s.percentage !== null && s.percentage !== undefined ? Number(s.percentage) : undefined,
-        settled: s.isSettled || false,
+        settled: s.isPaid || false,
       };
     }),
     date: raw.date,
-    settled: (raw.splits || []).length > 0 && (raw.splits || []).every((s: any) => s.isSettled),
+    settled: (raw.splits || []).length > 0 && (raw.splits || []).every((s: any) => s.isPaid),
     groupId: raw.groupId,
     createdAt: raw.createdAt,
   };
 }
 
 function normalizeSettlement(raw: any): Settlement {
-  const fromUser = raw.fromMember?.user;
-  const toUser = raw.toMember?.user;
+  const fromUser = raw.fromUser;
+  const toUser = raw.toUser;
   const fromName = fromUser
     ? [fromUser.firstName, fromUser.lastName].filter(Boolean).join(' ').trim()
     : 'Unknown';
@@ -185,7 +185,7 @@ function normalizeSettlement(raw: any): Settlement {
   return {
     id: raw.id,
     from: {
-      id: fromUser?.id || raw.fromMember?.userId,
+      id: fromUser?.id || raw.fromUserId,
       name: fromName,
       email: fromUser?.email,
       avatar: fromUser?.avatarUrl,
@@ -194,7 +194,7 @@ function normalizeSettlement(raw: any): Settlement {
       role: 'member',
     },
     to: {
-      id: toUser?.id || raw.toMember?.userId,
+      id: toUser?.id || raw.toUserId,
       name: toName,
       email: toUser?.email,
       avatar: toUser?.avatarUrl,
@@ -227,7 +227,7 @@ function normalizeSettlementList(raw: any): Settlement[] {
 }
 
 function normalizeChatMessage(raw: any): ChatMessage {
-  const senderUser = raw.sender?.user;
+  const senderUser = raw.sender;
   const senderName = senderUser
     ? [senderUser.firstName, senderUser.lastName].filter(Boolean).join(' ').trim()
     : raw.senderName || 'Unknown';

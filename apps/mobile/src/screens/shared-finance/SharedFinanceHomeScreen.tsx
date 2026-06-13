@@ -189,7 +189,15 @@ function MemberAvatars({
   );
 }
 
-function GroupCard({ group, currentUserId, colors, onPress, onLongPress }: any) {
+function GroupCard({
+  group,
+  currentUserId,
+  colors,
+  onPress,
+  onLongPress,
+  onAddExpense,
+  onSettleUp,
+}: any) {
   const cfg = SPACE_TYPE_CONFIG[group.type] || SPACE_TYPE_CONFIG.default;
   const { owedToMe, iOwe, isSettled, totalSpent, memberCount } = deriveGroupBalance(
     group,
@@ -291,14 +299,18 @@ function GroupCard({ group, currentUserId, colors, onPress, onLongPress }: any) 
             <TouchableOpacity
               style={[gCard.actionBtn, { backgroundColor: colors.accent.primary }]}
               activeOpacity={0.8}
+              onPress={onAddExpense}
             >
-              <Ionicons name="add-circle-outline" size={14} color="#FFF" />
-              <Text style={gCard.actionBtnText}>Add expense</Text>
+              <Ionicons name="add-circle-outline" size={14} color={colors.text.inverse} />
+              <Text style={[gCard.actionBtnText, { color: colors.text.inverse }]}>
+                Add expense
+              </Text>
             </TouchableOpacity>
             {totalSpent > 0 && !isSettled && (
               <TouchableOpacity
                 style={[gCard.settleBtn, { borderColor: colors.accent.primary }]}
                 activeOpacity={0.8}
+                onPress={onSettleUp}
               >
                 <Ionicons name="swap-horizontal" size={14} color={colors.accent.primary} />
                 <Text style={[gCard.settleBtnText, { color: colors.accent.primary }]}>
@@ -494,6 +506,12 @@ export function SharedFinanceHomeScreen() {
           navigation.navigate('SharedGroupDetail', { groupId: item.id, groupName: item.name })
         }
         onLongPress={() => handleDeleteSpace(item)}
+        onAddExpense={() =>
+          navigation.navigate('SharedExpenseForm', { groupId: item.id, edit: false })
+        }
+        onSettleUp={() =>
+          navigation.navigate('Settlement', { groupId: item.id })
+        }
       />
     ),
     [user?.id, colors, navigation, handleDeleteSpace],
