@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../../theme';
 import { useAuth } from '../../store/AuthContext';
+import { useToast } from '../../store/ToastContext';
 import { COUPLE_COLORS } from '../../hooks/useCoupleMode';
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
 export function CoupleModeToggle({ onToggle }: Props) {
   const { colors, isDark } = useTheme();
   const { user, toggleCoupleMode } = useAuth();
+  const { showToast } = useToast();
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   const isCouple = !!user?.isCouple;
@@ -42,8 +44,9 @@ export function CoupleModeToggle({ onToggle }: Props) {
       }
       toggleCoupleMode(value);
       onToggle?.(value);
+      showToast(value ? 'Couple Mode ON — pink theme active' : 'Couple Mode OFF', 'info');
     },
-    [toggleCoupleMode, onToggle, pulseAnim],
+    [toggleCoupleMode, onToggle, pulseAnim, showToast],
   );
 
   return (
