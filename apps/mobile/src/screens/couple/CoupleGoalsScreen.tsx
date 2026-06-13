@@ -20,6 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
+import { useToast } from '../../store/ToastContext';
 
 const { width } = Dimensions.get('window');
 
@@ -64,6 +65,7 @@ export function CoupleGoalsScreen() {
   const [formNotes, setFormNotes] = useState('');
   const [formAmount, setFormAmount] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const { showToast } = useToast();
 
   const fetchGoals = useCallback(async (isRefresh = false) => {
     if (!isRefresh) {
@@ -121,6 +123,7 @@ export function CoupleGoalsScreen() {
       setAddModalVisible(false);
       resetForm();
       fetchGoals(true);
+      showToast('Goal created');
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'Failed to create goal');
     } finally {
@@ -148,6 +151,7 @@ export function CoupleGoalsScreen() {
       setFormAmount('');
       setSelectedGoal(null);
       fetchGoals(true);
+      showToast('Contribution added');
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'Failed to add contribution');
     } finally {

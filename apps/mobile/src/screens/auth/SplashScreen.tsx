@@ -333,7 +333,11 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
           <Text style={styles.brandName}>Dabbu</Text>
         </Animated.View>
         <Animated.View style={taglineAnim}>
-          <Text style={styles.tagline}>Your Money. Your Life. Organized.</Text>
+          <Text style={styles.tagline}>Every Milestone. Every Rupee. Together.</Text>
+        </Animated.View>
+
+        <Animated.View style={taglineAnim}>
+          <Text style={styles.tagline1}>Track expenses, manage family finances, achieve goals, and build wealth together.</Text>
         </Animated.View>
       </View>
     </Animated.View>
@@ -382,6 +386,14 @@ const styles = StyleSheet.create({
   tagline: {
     color: '#8B5CF6',
     fontSize: 12,
+    fontWeight: '500',
+    letterSpacing: 1.2,
+    textAlign: 'center',
+    opacity: 0.55,
+  },
+  tagline1: {
+    color: '#8B5CF6',
+    fontSize: 10,
     fontWeight: '500',
     letterSpacing: 1.2,
     textAlign: 'center',

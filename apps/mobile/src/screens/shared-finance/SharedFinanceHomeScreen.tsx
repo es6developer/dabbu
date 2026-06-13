@@ -23,6 +23,7 @@ import { BaseScreen } from '../../components/ui/BaseScreen';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { Avatar } from '../../components/ui/Avatar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useToast } from '../../store/ToastContext';
 
 const H_PADDING = 20;
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -323,6 +324,7 @@ export function SharedFinanceHomeScreen() {
   const { accessToken, user } = useAuth();
   const { colors, typography } = useTheme();
   const insets = useSafeAreaInsets();
+  const { showToast } = useToast();
 
   const [groups, setGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -425,6 +427,7 @@ export function SharedFinanceHomeScreen() {
             }
             await api.delete(`/shared-finance/groups/${group.id}`);
             setGroups((prev) => prev.filter((g) => g.id !== group.id));
+            showToast('Space deleted');
           } catch (e: any) {
             Alert.alert('Error', e.message || 'Failed to delete space');
           }
@@ -457,6 +460,7 @@ export function SharedFinanceHomeScreen() {
         type: newType.toLowerCase(),
         currency: 'INR',
       });
+      showToast('Space created');
       const newGroupId = res?.id || res?._id;
       setShowCreateModal(false);
       setNewName('');

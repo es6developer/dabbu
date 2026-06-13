@@ -3,11 +3,13 @@ import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, 
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { useToast } from '../../store/ToastContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
 export function TasksListScreen() {
   const { colors } = useTheme();
   const { accessToken } = useAuth();
+  const { showToast } = useToast();
   const [families, setFamilies] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,6 +42,7 @@ export function TasksListScreen() {
     try {
       if (accessToken) {setAccessToken(accessToken);}
       await api.patch(`/family/tasks/${taskId}`, { completed: !completed });
+      showToast('Task updated');
       setTasks((prev) => prev.map((t) => t.id === taskId ? { ...t, completed: !completed } : t));
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to update task');

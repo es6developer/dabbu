@@ -18,6 +18,7 @@ import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/nativ
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { useToast } from '../../store/ToastContext';
 
 const CATEGORIES = [
   { key: 'aadhaar', label: 'Aadhaar', icon: 'id-card' },
@@ -47,6 +48,7 @@ export function DocumentDetailScreen() {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
   const { accessToken } = useAuth();
+  const { showToast } = useToast();
 
   const { id, mode, uri, mimeType, fileName: initialFileName } = route.params || {};
   const isUpload = mode === 'upload';
@@ -196,6 +198,7 @@ export function DocumentDetailScreen() {
               setAccessToken(accessToken);
             }
             await api.delete(`/documents/${id}`);
+            showToast('Document deleted');
             navigation.goBack();
           } catch {
             Alert.alert('Error', 'Failed to delete document');

@@ -19,6 +19,7 @@ import { DatePickerField } from '../../components/ui/DatePickerField';
 import { PageContainer } from '../../components/ui/PageContainer';
 import { DetailSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
+import { useToast } from '../../store/ToastContext';
 
 const CATEGORIES = [
   'Groceries',
@@ -77,6 +78,7 @@ export function BillDetailScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { accessToken } = useAuth();
+  const { showToast } = useToast();
   const { billId } = route.params;
 
   const [bill, setBill] = useState<Bill | null>(null);
@@ -190,6 +192,7 @@ export function BillDetailScreen() {
     setDeleting(true);
     try {
       await api.delete(`/bills/${billId}`);
+      showToast('Bill deleted');
       navigation.goBack();
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Could not delete bill.');

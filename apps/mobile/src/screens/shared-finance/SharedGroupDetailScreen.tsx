@@ -26,6 +26,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { EmptyState } from './components/EmptyState';
 import { SettleUpModal } from '../../components/ui/SettleUpModal';
+import { useToast } from '../../store/ToastContext';
 
 const TABS = ['overview', 'expenses', 'balances', 'members', 'activity'] as const;
 
@@ -75,6 +76,7 @@ export function SharedGroupDetailScreen() {
   const { accessToken, user: currentUser } = useAuth();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const { showToast } = useToast();
   const { groupId, groupName: routeGroupName } = route.params || {};
 
   const [group, setGroup] = useState<any>(null);
@@ -974,6 +976,7 @@ export function SharedGroupDetailScreen() {
         setAccessToken(accessToken);
       }
       await api.patch(`/shared-finance/groups/${groupId}/members/${member.id}/role`, { role });
+      showToast('Role updated');
       await loadData(true);
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to update role');
@@ -995,6 +998,7 @@ export function SharedGroupDetailScreen() {
                 setAccessToken(accessToken);
               }
               await api.delete(`/shared-finance/groups/${groupId}/members/${member.id}`);
+              showToast('Member removed');
               await loadData(true);
             } catch (e: any) {
               Alert.alert('Error', e.message || 'Failed to remove member');
@@ -1018,6 +1022,7 @@ export function SharedGroupDetailScreen() {
         name: editName.trim(),
         description: editDescription.trim(),
       });
+      showToast('Settings saved');
       await loadData(true);
       setSettingsOpen(false);
     } catch (e: any) {

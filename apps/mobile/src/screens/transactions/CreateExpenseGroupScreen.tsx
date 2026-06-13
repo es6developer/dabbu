@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { useToast } from '../../store/ToastContext';
 import { useTheme } from '../../theme';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -43,6 +44,7 @@ const ICONS = [
 export function CreateExpenseGroupScreen() {
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
+  const { showToast } = useToast();
   const { colors } = useTheme();
 
   const [name, setName] = useState('');
@@ -148,6 +150,7 @@ export function CreateExpenseGroupScreen() {
         payload.memberPhones = validPhones;
       }
       await api.post('/expense-groups', payload);
+      showToast('Group created');
       navigation.goBack();
     } catch (e: any) {
       const msg = e.message || '';

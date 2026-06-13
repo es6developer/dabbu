@@ -19,6 +19,7 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
+import { useToast } from '../../store/ToastContext';
 import { EXPENSE_CATEGORIES } from '../../config/categoryIcons';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -56,6 +57,7 @@ export function SharedExpenseFormScreen() {
   const { accessToken, user: currentUser } = useAuth();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const { showToast } = useToast();
   const { groupId, expenseId, edit } = route.params || {};
   const inputRef = useRef<TextInput>(null);
 
@@ -240,8 +242,10 @@ export function SharedExpenseFormScreen() {
       };
       if (edit && expenseId) {
         await api.patch(`/shared-finance/expenses/${expenseId}`, payload);
+        showToast('Expense updated');
       } else {
         await api.post(`/shared-finance/groups/${groupId}/expenses`, payload);
+        showToast('Expense added');
       }
       navigation.goBack();
     } catch (e: any) {

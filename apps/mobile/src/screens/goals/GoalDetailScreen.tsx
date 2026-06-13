@@ -19,6 +19,7 @@ import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { useToast } from '../../store/ToastContext';
 import { BaseScreen } from '../../components/ui/BaseScreen';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
@@ -353,6 +354,7 @@ function GoalDetailSkeleton() {
 export function GoalDetailScreen() {
   const { colors, typography, spacing: sp, borderRadius: br } = useTheme();
   const { accessToken } = useAuth();
+  const { showToast } = useToast();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const route = useRoute<RouteProp<{ GoalDetail: { goalId: string } }, 'GoalDetail'>>();
@@ -445,6 +447,7 @@ export function GoalDetailScreen() {
                 setAccessToken(accessToken);
               }
               await api.delete(`/goals/${goalId}`);
+              showToast('Goal deleted');
               navigation.goBack();
             } catch {
               Alert.alert('Error', 'Failed to delete goal');

@@ -22,6 +22,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { useToast } from '../../store/ToastContext';
 import { BaseScreen } from '../../components/ui/BaseScreen';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { EmptyState } from '../../components/ui/EmptyState';
@@ -743,6 +744,7 @@ function CreateGoalModal({
 }) {
   const { colors, typography } = useTheme();
   const { accessToken } = useAuth();
+  const { showToast } = useToast();
   const slideAnim = useRef(new Animated.Value(0)).current;
   const [name, setName] = useState('');
   const [targetStr, setTargetStr] = useState('');
@@ -806,6 +808,7 @@ function CreateGoalModal({
         payload.notes = notes.trim();
       }
       await api.post('/goals', payload);
+      showToast('Goal created');
       onClose();
       onCreated();
     } catch (e: any) {

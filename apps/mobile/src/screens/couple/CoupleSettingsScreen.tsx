@@ -18,6 +18,7 @@ import { useTheme } from '../../theme';
 import { Avatar } from '../../components/ui/Avatar';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
+import { useToast } from '../../store/ToastContext';
 
 const { width } = Dimensions.get('window');
 
@@ -55,6 +56,7 @@ export function CoupleSettingsScreen() {
   });
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [error, setError] = useState('');
+  const { showToast } = useToast();
 
   const fetchData = useCallback(async (isRefresh = false) => {
     if (!isRefresh) {
@@ -103,6 +105,7 @@ export function CoupleSettingsScreen() {
         await api.patch(`/shared-finance/groups/${groupId}/settings`, {
           notificationPreferences: { ...notifPrefs, [key]: value },
         });
+        showToast('Settings saved');
       } catch {
         setNotifPrefs(prev);
       } finally {
@@ -124,6 +127,7 @@ export function CoupleSettingsScreen() {
           onPress: async () => {
             try {
               await api.post(`/shared-finance/groups/${coupleData?.group?.id}/leave`);
+              showToast('Left the space');
               navigation.goBack();
             } catch (e: any) {
               Alert.alert('Error', e?.message || 'Failed to leave couple space');

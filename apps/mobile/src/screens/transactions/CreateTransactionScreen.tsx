@@ -16,6 +16,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { useToast } from '../../store/ToastContext';
 import { useTheme } from '../../theme';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../config/categoryIcons';
@@ -55,6 +56,7 @@ export function CreateTransactionScreen() {
   const editingTransaction = route.params?.transaction;
   const isEditing = Boolean(editingTransaction?.id);
   const inputRef = useRef<TextInput>(null);
+  const { showToast } = useToast();
 
   const [amount, setAmount] = useState(
     editingTransaction?.amount
@@ -155,8 +157,10 @@ export function CreateTransactionScreen() {
       };
       if (isEditing) {
         await api.patch(`/transactions/${editingTransaction.id}`, data);
+        showToast('Transaction updated');
       } else {
         await api.post('/transactions', data);
+        showToast('Transaction created');
       }
       navigation.navigate(
         isEditing ? 'TransactionDetail' : 'ExpenseHome',

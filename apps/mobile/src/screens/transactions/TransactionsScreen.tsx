@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { useToast } from '../../store/ToastContext';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { SkeletonCard } from '../../components/ui/AnimatedSkeleton';
@@ -57,6 +58,7 @@ export function TransactionsScreen() {
   const { colors, isDark } = useTheme();
   const { accessToken } = useAuth();
   const { trackScreen, trackFeature } = useAnalytics();
+  const { showToast } = useToast();
 
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -119,6 +121,7 @@ export function TransactionsScreen() {
             await api.delete(`/transactions/${tx.id}`);
             setTransactions((prev) => prev.filter((t) => t.id !== tx.id));
             trackFeature('Transaction', 'delete');
+            showToast('Transaction deleted');
           } catch {
             /* ignore */
           }

@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { useToast } from '../../store/ToastContext';
 import { PADDING, borderRadius, shadows } from '../../theme/design';
 
 function fmt(v: number) {
@@ -48,6 +49,7 @@ export function BudgetDetailScreen() {
   const [budget, setBudget] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const { showToast } = useToast();
 
   const loadBudget = useCallback(async () => {
     if (accessToken) {
@@ -83,6 +85,7 @@ export function BudgetDetailScreen() {
             }
             await api.delete(`/budgets/${budgetId}`);
             navigation.goBack();
+            showToast('Budget deleted');
           } catch (e: any) {
             Alert.alert('Error', e.message || 'Failed to delete');
           } finally {

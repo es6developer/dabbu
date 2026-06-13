@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { useToast } from '../../store/ToastContext';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { width: SCREEN_W } = Dimensions.get('window');
@@ -62,6 +63,7 @@ export function CreateCategoryScreen() {
   const [selectedIcon, setSelectedIcon] = useState<(typeof ICON_SET)[0] | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const { showToast } = useToast();
 
   async function handleSave() {
     const trimmed = name.trim();
@@ -86,6 +88,7 @@ export function CreateCategoryScreen() {
         color: selectedIcon.color,
       });
       navigation.goBack();
+      showToast('Category created');
     } catch (e: any) {
       setError(e.message || 'Failed to create category');
     } finally {

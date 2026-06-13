@@ -17,6 +17,7 @@ import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { useTheme } from '../../theme';
 import { PageContainer } from '../../components/ui/PageContainer';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
+import { useToast } from '../../store/ToastContext';
 
 const GROUP_TYPES = ['friends', 'couple', 'trip', 'family', 'roommates'] as const;
 const ICONS = [
@@ -39,6 +40,7 @@ export function SplitTemplatesScreen() {
   const route = useRoute<any>();
   const { accessToken } = useAuth();
   const { colors } = useTheme();
+  const { showToast } = useToast();
   const groupId = route.params?.groupId;
 
   const [templates, setTemplates] = useState<any[]>([]);
@@ -82,6 +84,7 @@ export function SplitTemplatesScreen() {
         icon,
         coverColor,
       });
+      showToast('Template created');
       setShowCreate(false);
       setName('');
       setDescription('');
@@ -123,6 +126,7 @@ export function SplitTemplatesScreen() {
         onPress: async () => {
           try {
             await api.delete(`/shared-finance/split-templates/${templateId}`);
+            showToast('Template deleted');
             loadTemplates();
           } catch (e: any) {
             Alert.alert('Error', e?.message || 'Failed to delete');

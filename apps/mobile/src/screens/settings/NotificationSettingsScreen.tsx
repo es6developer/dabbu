@@ -8,6 +8,7 @@ import { spacing } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
+import { useToast } from '../../store/ToastContext';
 
 type ToggleKey =
   | 'expenseAlerts'
@@ -188,6 +189,7 @@ export function NotificationSettingsScreen() {
   const insets = useSafeAreaInsets();
   const { accessToken } = useAuth();
 
+  const { showToast } = useToast();
   const [toggles, setToggles] = useState<Record<ToggleKey, boolean> | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -222,6 +224,7 @@ export function NotificationSettingsScreen() {
           setAccessToken(accessToken);
         }
         await api.patch('/preferences', body);
+        showToast('Preferences saved');
       } catch {
         setToggles(toggles);
         Alert.alert('Error', 'Failed to save preference');

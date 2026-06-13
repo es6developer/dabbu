@@ -19,6 +19,7 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Avatar } from '../../components/ui/Avatar';
 import { PADDING, borderRadius, shadows } from '../../theme/design';
+import { useToast } from '../../store/ToastContext';
 
 interface Preset {
   seed: string;
@@ -32,6 +33,7 @@ export function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { accessToken, user, logout, updateAvatarUrl, completeProfileSetup } = useAuth();
 
+  const { showToast } = useToast();
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
   const [phone, setPhone] = useState('');
@@ -125,6 +127,7 @@ export function ProfileScreen() {
           setAccessToken(accessToken);
         }
         await api.post('/auth/avatar/select', { seed: preset.seed });
+        showToast('Avatar regenerated');
         updateAvatarUrl(preset.url);
       } catch (e: any) {
         Alert.alert('Error', e.message || 'Failed to select avatar');
@@ -186,6 +189,7 @@ export function ProfileScreen() {
                       setAccessToken(accessToken);
                     }
                     await api.delete('/auth/profile');
+                    showToast('Profile deleted');
                     await logout();
                   } catch (e: any) {
                     Alert.alert('Error', e.message || 'Failed to delete account');

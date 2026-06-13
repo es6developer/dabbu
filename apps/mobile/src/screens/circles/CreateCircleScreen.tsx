@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { useToast } from '../../store/ToastContext';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 
 const CIRCLE_TYPES = [
@@ -42,6 +43,7 @@ export function CreateCircleScreen() {
   const [upiId, setUpiId] = useState('');
   const [upiStatus, setUpiStatus] = useState<'idle' | 'valid' | 'invalid' | 'checking'>('idle');
   const upiTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { showToast } = useToast();
 
   const showUpi = type === 'sports';
 
@@ -76,6 +78,7 @@ export function CreateCircleScreen() {
         upiId: type === 'sports' ? upiId.trim() || undefined : undefined,
       });
       navigation.goBack();
+      showToast('Circle created');
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to create circle');
     } finally {

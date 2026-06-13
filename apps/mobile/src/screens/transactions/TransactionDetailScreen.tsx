@@ -15,6 +15,7 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { useToast } from '../../store/ToastContext';
 import { useTheme } from '../../theme';
 import { getCategoryIcon } from '../../config/categoryIcons';
 
@@ -55,6 +56,7 @@ export function TransactionDetailScreen() {
   const [txn, setTxn] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const { showToast } = useToast();
 
   useEffect(() => {
     if (accessToken) {
@@ -87,6 +89,7 @@ export function TransactionDetailScreen() {
               setAccessToken(accessToken);
             }
             await api.delete(`/transactions/${transactionId}`);
+            showToast('Transaction deleted');
             navigation.goBack();
           } catch (e: any) {
             Alert.alert('Error', e.message || 'Failed to delete');

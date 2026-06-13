@@ -20,6 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
+import { useToast } from '../../store/ToastContext';
 
 import { getCategoryIcon } from '../../config/categoryIcons';
 
@@ -80,6 +81,7 @@ export function CoupleBillsScreen() {
   const [formRecurringInterval, setFormRecurringInterval] = useState('monthly');
   const [formAssignedTo, setFormAssignedTo] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const { showToast } = useToast();
 
   const scaleAnim = useRef(new Animated.Value(0)).current;
 
@@ -151,6 +153,7 @@ export function CoupleBillsScreen() {
           b.id === billId ? { ...b, status: 'paid', paidAt: new Date().toISOString() } : b,
         ),
       );
+      showToast('Bill marked as paid');
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'Failed to mark bill as paid');
     }
@@ -199,6 +202,7 @@ export function CoupleBillsScreen() {
       setBills((prev) => [...prev, created]);
       setModalVisible(false);
       resetForm();
+      showToast('Bill added');
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'Failed to add bill');
     } finally {

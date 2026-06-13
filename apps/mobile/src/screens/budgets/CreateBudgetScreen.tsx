@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { useToast } from '../../store/ToastContext';
 import { DatePickerField } from '../../components/ui/DatePickerField';
 import {
   PremiumActionButton,
@@ -30,6 +31,7 @@ export function CreateBudgetScreen() {
   const [categories, setCategories] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const { showToast } = useToast();
 
   useEffect(() => {
     if (accessToken) {
@@ -71,6 +73,7 @@ export function CreateBudgetScreen() {
         endDate: endDate || undefined,
       });
       navigation.goBack();
+      showToast('Budget created');
     } catch (e: any) {
       setError(e.message || 'Failed to create budget');
     } finally {

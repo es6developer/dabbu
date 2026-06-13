@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
+import { useToast } from '../../store/ToastContext';
 
 const { width } = Dimensions.get('window');
 const LEDGE_ICON = 40;
@@ -46,6 +47,7 @@ export function CoupleSavingsScreen() {
   const [addAmount, setAddAmount] = useState('');
   const [addNote, setAddNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const { showToast } = useToast();
 
   const fetchSavings = useCallback(async (isRefresh = false) => {
     if (!isRefresh) {
@@ -98,6 +100,7 @@ export function CoupleSavingsScreen() {
       setAddAmount('');
       setAddNote('');
       await fetchSavings(true);
+      showToast('Contribution added');
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'Failed to add savings');
     } finally {

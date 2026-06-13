@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { useToast } from '../../store/ToastContext';
 import { DatePickerField } from '../../components/ui/DatePickerField';
 import {
   PremiumActionButton,
@@ -31,6 +32,7 @@ export function CreateReminderScreen() {
   const { colors } = useTheme();
   const navigation = useNavigation<any>();
   const { accessToken } = useAuth();
+  const { showToast } = useToast();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [type, setType] = useState('general');
@@ -75,6 +77,7 @@ export function CreateReminderScreen() {
         };
       }
       await api.post('/reminders', data);
+      showToast('Reminder created');
       navigation.goBack();
     } catch (e: any) {
       setError(e.message || 'Failed to create reminder');

@@ -8,12 +8,14 @@ import { useTheme } from '../../theme';
 import { PageContainer } from '../../components/ui/PageContainer';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
+import { useToast } from '../../store/ToastContext';
 
 export function GroupWalletScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { accessToken } = useAuth();
   const { colors } = useTheme();
+  const { showToast } = useToast();
   const groupId = route.params?.groupId;
 
   const [wallets, setWallets] = useState<any[]>([]);
@@ -48,6 +50,7 @@ export function GroupWalletScreen() {
       name: walletName,
       description: walletDesc,
     });
+    showToast('Wallet created');
     setShowCreate(false);
     setWalletName('');
     setWalletDesc('');
@@ -61,6 +64,7 @@ export function GroupWalletScreen() {
     await api.post(`/shared-finance/groups/${groupId}/wallets/${selectedWallet.id}/contribute`, {
       amount: parseFloat(contributeAmount),
     });
+    showToast('Contribution added');
     setShowContribute(false);
     setContributeAmount('');
     loadWallets();
@@ -74,6 +78,7 @@ export function GroupWalletScreen() {
       amount: parseFloat(spendAmount),
       description: spendDesc,
     });
+    showToast('Spend recorded');
     setShowSpend(false);
     setSpendAmount('');
     setSpendDesc('');
@@ -82,6 +87,7 @@ export function GroupWalletScreen() {
 
   const toggleLock = async (walletId: string) => {
     await api.post(`/shared-finance/groups/${groupId}/wallets/${walletId}/toggle-lock`);
+    showToast('Wallet updated');
     loadWallets();
   };
 

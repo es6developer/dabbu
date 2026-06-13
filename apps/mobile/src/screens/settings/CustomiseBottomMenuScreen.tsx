@@ -11,6 +11,7 @@ import DraggableFlatList, {
 import { useTheme } from '../../theme';
 import { api, setAccessToken, getAccessToken } from '../../services/api';
 import { usePreferences, TabConfig } from '../../store/PreferencesContext';
+import { useToast } from '../../store/ToastContext';
 
 const TAB_META: Record<string, { label: string; icon: string; desc: string }> = {
   Dashboard: { label: 'Dashboard', icon: 'compass', desc: 'Home screen with overview' },
@@ -27,6 +28,7 @@ export function CustomiseBottomMenuScreen() {
   const { refresh, updateTabConfig } = usePreferences();
   const [tabs, setTabs] = useState<TabConfig[]>([]);
   const [loading, setLoading] = useState(true);
+  const { showToast } = useToast();
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
@@ -62,6 +64,7 @@ export function CustomiseBottomMenuScreen() {
     updateTabConfig(config);
     try {
       await api.put('/user/preferences/bottom-menu', { config });
+      showToast('Menu saved');
       await refresh();
       navigation.goBack();
     } catch (e: any) {

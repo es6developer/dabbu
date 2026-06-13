@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { useToast } from '../../store/ToastContext';
 
 interface Loan {
   id: string;
@@ -198,6 +199,7 @@ export function LoanTrackerScreen() {
   const { accessToken } = useAuth();
   const [loans, setLoans] = useState<Loan[]>([]);
   const [loading, setLoading] = useState(true);
+  const { showToast } = useToast();
   const [savingId, setSavingId] = useState<string | null>(null);
 
   useFocusEffect(
@@ -225,13 +227,14 @@ export function LoanTrackerScreen() {
       if (accessToken) {
         setAccessToken(accessToken);
       }
-      const res = await api.post('/loans', {
+      const res =       await api.post('/loans', {
         name,
         totalAmount: 0,
         paidAmount: 0,
         interestPaid: 0,
         monthlyEmi: 0,
       });
+      showToast('Loan created');
       const body = res as any;
       const created = body?.data ?? body;
       setLoans((prev) => [...prev, created]);
@@ -252,6 +255,7 @@ export function LoanTrackerScreen() {
         setAccessToken(accessToken);
       }
       await api.patch(`/loans/${loan.id}`, { [field]: num });
+      showToast('Loan updated');
     } catch {
       /* ignore */
     } finally {
@@ -267,6 +271,7 @@ export function LoanTrackerScreen() {
         setAccessToken(accessToken);
       }
       await api.delete(`/loans/${loan.id}`);
+      showToast('Loan deleted');
     } catch {
       /* ignore */
     }

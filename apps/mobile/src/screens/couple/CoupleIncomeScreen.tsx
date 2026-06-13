@@ -21,6 +21,7 @@ import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { UpgradeBanner } from '../../components/ui/UpgradeBanner';
+import { useToast } from '../../store/ToastContext';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
@@ -75,6 +76,7 @@ export function CoupleIncomeScreen() {
   const [selectedCategory, setSelectedCategory] = useState<IncomeCategory | null>(null);
   const [selectedPartner, setSelectedPartner] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const { showToast } = useToast();
 
   const fetchData = useCallback(async (isRefresh = false) => {
     if (!isRefresh) {
@@ -174,6 +176,7 @@ export function CoupleIncomeScreen() {
       }
       setModalVisible(false);
       resetForm();
+      showToast('Income added');
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to add income');
     } finally {

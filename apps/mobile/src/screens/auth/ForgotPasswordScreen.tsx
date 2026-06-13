@@ -16,6 +16,7 @@ import { api } from '../../services/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { PADDING, shadows } from '../../theme/design';
+import { useToast } from '../../store/ToastContext';
 
 export function ForgotPasswordScreen() {
   const navigation = useNavigation<any>();
@@ -25,6 +26,7 @@ export function ForgotPasswordScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [emailFocused, setEmailFocused] = useState(false);
+  const { showToast } = useToast();
 
   async function handleSendOtp() {
     if (!email.trim()) {
@@ -35,6 +37,7 @@ export function ForgotPasswordScreen() {
     setError('');
     try {
       await api.post('/auth/send-otp', { email: email.trim(), purpose: 'password_reset' });
+      showToast('OTP sent successfully');
       navigation.navigate('ResetPassword', { email: email.trim() });
     } catch (e: any) {
       setError(e.message || 'Failed to send reset code');

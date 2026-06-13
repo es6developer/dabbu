@@ -23,6 +23,7 @@ import { api, setAccessToken, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { Avatar } from '../../components/ui/Avatar';
+import { useToast } from '../../store/ToastContext';
 
 const H_PADDING = 20;
 const BRAND = '#4F46E5';
@@ -485,6 +486,7 @@ export function SharedScreen() {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
   const { accessToken, user } = useAuth();
+  const { showToast } = useToast();
 
   const [groups, setGroups] = useState<any[]>([]);
   const [groupBalances, setGroupBalances] = useState<Record<string, number>>({});
@@ -648,6 +650,7 @@ export function SharedScreen() {
       }
       const body: any = { name: newName.trim(), type: newType.toLowerCase(), currency: 'INR' };
       const res = await api.post<any>('/shared-finance/groups', body);
+      showToast('Group created');
       const newGroupId = res?.id || res?._id;
       resetModal();
       if (newGroupId) {

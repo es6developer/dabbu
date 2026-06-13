@@ -18,10 +18,12 @@ import { useAuth } from '../../store/AuthContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { PageContainer } from '../../components/ui/PageContainer';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
+import { useToast } from '../../store/ToastContext';
 
 export function SecurityScreen() {
   const { colors } = useTheme();
   const { accessToken } = useAuth();
+  const { showToast } = useToast();
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [lockEnabled, setLockEnabled] = useState(false);
   const [pin, setPin] = useState('');
@@ -217,6 +219,7 @@ export function SecurityScreen() {
   async function handleRevokeSession(sessionId: string) {
     try {
       await api.delete(`/auth/sessions/${sessionId}`);
+      showToast('Session removed');
       setSessions((prev) => prev.filter((s) => s.id !== sessionId));
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to revoke session');

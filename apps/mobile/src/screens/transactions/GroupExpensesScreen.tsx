@@ -18,6 +18,7 @@ import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/nativ
 
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { useToast } from '../../store/ToastContext';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Skeleton, SkeletonCard } from '../../components/ui/AnimatedSkeleton';
@@ -102,6 +103,7 @@ export function GroupExpensesScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { accessToken, user: currentUser } = useAuth();
+  const { showToast } = useToast();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { groupId, groupName: routeGroupName } = route.params || {};
@@ -347,6 +349,7 @@ export function GroupExpensesScreen() {
       });
       await loadData(true);
       setSettingsOpen(false);
+      showToast('Group saved');
     } catch (e: any) {
       Alert.alert('Unable to save', e.message || 'Try again');
     } finally {
@@ -387,6 +390,7 @@ export function GroupExpensesScreen() {
               }
               await api.delete(`/expense-groups/${groupId}/members/${member.id}`);
               await loadData(true);
+              showToast('Member removed');
             } catch (e: any) {
               Alert.alert('Unable to remove member', e.message || 'Try again');
             }
@@ -403,6 +407,7 @@ export function GroupExpensesScreen() {
       }
       await api.patch(`/expense-groups/${groupId}/members/${member.id}/role`, { role });
       await loadData(true);
+      showToast('Role updated');
     } catch (e: any) {
       Alert.alert('Unable to update role', e.message || 'Try again');
     }
@@ -424,6 +429,7 @@ export function GroupExpensesScreen() {
               }
               await api.post(`/expense-groups/${groupId}/leave`);
               navigation.goBack();
+              showToast('Left the group');
             } catch (e: any) {
               Alert.alert('Unable to leave group', e.message || 'Try again');
             }

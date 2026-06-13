@@ -15,6 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
+import { useToast } from '../../store/ToastContext';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 50) / 2;
@@ -115,6 +116,7 @@ export function CouplePlannerScreen() {
   const [contributeId, setContributeId] = useState<string | null>(null);
   const [contributeAmount, setContributeAmount] = useState('');
   const [contributing, setContributing] = useState(false);
+  const { showToast } = useToast();
 
   const fetchPlanners = useCallback(async (refresh = false) => {
     if (refresh) {
@@ -151,6 +153,7 @@ export function CouplePlannerScreen() {
       setShowCreate(false);
       setForm({});
       fetchPlanners(true);
+      showToast('Dream created');
     } catch {
       /* silently ignore */
     }
@@ -174,6 +177,7 @@ export function CouplePlannerScreen() {
       await api.post(`/couple/planners/${contributeId}/contribute`, { amount });
       setContributeId(null);
       fetchPlanners(true);
+      showToast('Contribution added');
     } catch {
       /* silently ignore */
     } finally {

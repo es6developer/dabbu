@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { PADDING, shadows } from '../../theme/design';
 import { api } from '../../services/api';
+import { useToast } from '../../store/ToastContext';
 
 const OTP_LENGTH = 6;
 
@@ -24,6 +25,7 @@ export function ResetPasswordScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const email = route.params?.email || '';
+  const { showToast } = useToast();
 
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''));
   const [password, setPassword] = useState('');
@@ -96,6 +98,7 @@ export function ResetPasswordScreen() {
         password,
         purpose: 'password_reset',
       });
+      showToast('Password reset successfully');
       navigation.navigate('Login', { passwordReset: true });
     } catch (e: any) {
       setError(e.message || 'Failed to reset password');

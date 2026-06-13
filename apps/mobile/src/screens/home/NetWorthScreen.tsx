@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { useToast } from '../../store/ToastContext';
 
 const ASSET_CATEGORIES = [
   { key: 'bank', label: 'Bank Balance', icon: 'wallet' },
@@ -55,6 +56,7 @@ export function NetWorthScreen() {
     creditCard: '',
     otherLoan: '',
   });
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -129,6 +131,7 @@ export function NetWorthScreen() {
         delete payload.creditCard;
         delete payload.otherLoan;
         await api.patch('/net-worth', payload);
+        showToast('Net worth updated');
       } catch {
         /* ignore */
       } finally {
