@@ -436,14 +436,38 @@ export class CoupleService {
   }
 
   async findCoupleGroup(userId: string) {
-    const group = await this.prisma.sharedGroup.findFirst({
+    let group = await this.prisma.sharedGroup.findFirst({
       where: {
         type: 'couple',
         members: { some: { userId, isActive: true } },
       },
     });
     if (!group) {
-      throw new NotFoundException('Couple workspace not found');
+      const user = await this.prisma.user.findUnique({ where: { id: userId } });
+      if (!user?.partnerId) {
+        throw new NotFoundException('Couple workspace not found');
+      }
+      const partner = await this.prisma.user.findUnique({ where: { id: user.partnerId } });
+      const groupName = `${user.firstName || 'You'} & ${partner?.firstName || 'Partner'}'s Space`;
+      try {
+        group = await this.sharedFinanceService.createGroup(userId, {
+          name: groupName,
+          type: 'couple',
+          currency: 'INR',
+        });
+        const joinerId = user.partnerId;
+        await this.prisma.sharedGroupMember.create({
+          data: { groupId: group.id, userId: joinerId, role: 'member', isActive: true },
+        });
+        await this.prisma.coupleFinanceProfile.upsert({
+          where: { groupId: group.id },
+          create: { groupId: group.id, partner1Id: userId, partner2Id: joinerId },
+          update: {},
+        });
+        this.logger.log(`Auto-created couple group ${group.id} for user ${userId}`);
+      } catch (err) {
+        throw new NotFoundException('Couple workspace not found');
+      }
     }
     return group;
   }
