@@ -866,7 +866,33 @@ export class SharedFinanceService {
     const invite = await this.prisma.groupInvite.findUnique({
       where: { token },
       include: {
-        group: { select: { id: true, name: true, icon: true, type: true } },
+        group: {
+          select: {
+            id: true,
+            name: true,
+            icon: true,
+            type: true,
+            description: true,
+            currency: true,
+            createdAt: true,
+            totalSpent: true,
+            _count: { select: { members: true } },
+            members: {
+              where: { isActive: true },
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    avatarUrl: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+          },
+        },
         inviter: { select: { firstName: true, lastName: true, email: true } },
       },
     });

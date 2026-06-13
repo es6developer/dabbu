@@ -126,24 +126,13 @@ export default function InvitePage() {
         return;
       }
       const raw = res.data!;
-      const g = raw.group as any;
-      let group: Group = {
-        id: g.id,
-        name: g.name,
-        type: g.type,
-        description: g.description,
-        memberCount: g._count?.members || 0,
-        totalBalance: 0,
-        members: [],
-        createdAt: '',
-        currency: g.currency || 'INR',
-        _count: g._count,
-      };
+      const group = raw.group;
       const full = await api.groups.get(group.id);
-      if (full.data) {
-        group = full.data;
-      }
-      setInvite({ group, inviter: raw.inviter || { name: 'Someone' }, permissions: [] });
+      setInvite({
+        group: full.data || group,
+        inviter: raw.inviter || { name: 'Someone' },
+        permissions: [],
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {

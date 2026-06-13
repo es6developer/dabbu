@@ -320,18 +320,28 @@ export const api = {
         return res;
       }
       const raw = res.data || res;
-      const groupInfo = raw.group as any;
+      const groupRaw = raw.group as any;
       const inviterInfo = raw.inviter as any;
+      const members: Member[] = (groupRaw.members || []).map((m: any) => ({
+        id: m.user?.id || m.userId,
+        name: [m.user?.firstName, m.user?.lastName].filter(Boolean).join(' ').trim() || 'Unknown',
+        email: m.user?.email,
+        avatar: m.user?.avatarUrl,
+        balance: 0,
+        isOnline: false,
+        role: m.role === 'owner' ? 'admin' : m.role || 'member',
+      }));
       const group: Group = {
-        id: groupInfo?.id,
-        name: groupInfo?.name || 'Group',
-        type: groupInfo?.type || 'shared',
-        description: groupInfo?.description,
-        memberCount: 0,
-        totalBalance: 0,
-        members: [],
-        createdAt: groupInfo?.createdAt || '',
-        currency: groupInfo?.currency || 'INR',
+        id: groupRaw?.id,
+        name: groupRaw?.name || 'Group',
+        type: groupRaw?.type || 'shared',
+        description: groupRaw?.description,
+        memberCount: groupRaw._count?.members || members.length,
+        totalBalance: Number(groupRaw.totalSpent || 0),
+        members,
+        createdAt: groupRaw?.createdAt || '',
+        currency: groupRaw?.currency || 'INR',
+        _count: groupRaw._count,
       };
       return {
         data: {
