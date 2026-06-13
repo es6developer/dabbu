@@ -44,8 +44,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
-      <body className="min-h-screen bg-dabbu-bg text-dabbu-text antialiased">
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className="min-h-screen antialiased"
+        style={{ backgroundColor: 'var(--dabbu-bg)', color: 'var(--dabbu-text)' }}
+      >
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
           <AuthProvider>
             <LoadingProvider>
