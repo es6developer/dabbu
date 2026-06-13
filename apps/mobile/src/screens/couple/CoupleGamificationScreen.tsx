@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View, Text, TouchableOpacity, ScrollView, RefreshControl, StyleSheet,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, RefreshControl, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -35,22 +33,42 @@ function LevelProgress({ xp }: { xp: number }) {
   const currentLevel = Math.floor(xp / XP_PER_LEVEL) + 1;
 
   const icons = ['🥉', '🥈', '🥇', '💎'];
-  const label = currentLevel >= 4 ? 'Platinum' : currentLevel === 3 ? 'Gold' : currentLevel === 2 ? 'Silver' : 'Bronze';
+  const label =
+    currentLevel >= 4
+      ? 'Platinum'
+      : currentLevel === 3
+        ? 'Gold'
+        : currentLevel === 2
+          ? 'Silver'
+          : 'Bronze';
 
   return (
     <View style={{ alignItems: 'center', padding: 20 }}>
       <Text style={{ fontSize: 48, marginBottom: 8 }}>{icons[Math.min(currentLevel - 1, 3)]}</Text>
       <Text style={{ fontSize: 22, fontWeight: '800', color: '#FFF' }}>Level {currentLevel}</Text>
-      <Text style={{ fontSize: 14, color: '#8B5CF6', fontWeight: '600', marginTop: 2 }}>{label} Couple</Text>
+      <Text style={{ fontSize: 14, color: '#8B5CF6', fontWeight: '600', marginTop: 2 }}>
+        {label} Couple
+      </Text>
       <Text style={{ fontSize: 12, color: '#64748B', marginTop: 4 }}>
         {xp % XP_PER_LEVEL} / {XP_PER_LEVEL} XP to next level
       </Text>
-      <View style={{
-        width: '80%', height: 6, backgroundColor: '#1E293B', borderRadius: 3, marginTop: 10,
-      }}>
-        <View style={{
-          width: `${progress * 100}%`, height: 6, backgroundColor: '#8B5CF6', borderRadius: 3,
-        }} />
+      <View
+        style={{
+          width: '80%',
+          height: 6,
+          backgroundColor: '#1E293B',
+          borderRadius: 3,
+          marginTop: 10,
+        }}
+      >
+        <View
+          style={{
+            width: `${progress * 100}%`,
+            height: 6,
+            backgroundColor: '#8B5CF6',
+            borderRadius: 3,
+          }}
+        />
       </View>
     </View>
   );
@@ -59,17 +77,32 @@ function LevelProgress({ xp }: { xp: number }) {
 function AchievementCard({ id, unlocked, data }: { id: string; unlocked: boolean; data: any }) {
   const meta = ACHIEVEMENTS_META[id] || { icon: 'trophy', desc: id };
   return (
-    <View style={{
-      flexDirection: 'row', alignItems: 'center', gap: 14,
-      padding: 14, backgroundColor: unlocked ? '#161224' : '#16122460',
-      borderRadius: 14, opacity: unlocked ? 1 : 0.4,
-    }}>
-      <View style={{
-        width: 40, height: 40, borderRadius: 12,
-        backgroundColor: unlocked ? '#8B5CF618' : '#1E293B',
-        alignItems: 'center', justifyContent: 'center',
-      }}>
-        <Ionicons name={unlocked ? (meta.icon as any) : 'lock-closed'} size={18} color={unlocked ? '#8B5CF6' : '#475569'} />
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 14,
+        padding: 14,
+        backgroundColor: unlocked ? '#161224' : '#16122460',
+        borderRadius: 14,
+        opacity: unlocked ? 1 : 0.4,
+      }}
+    >
+      <View
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: 12,
+          backgroundColor: unlocked ? '#8B5CF618' : '#1E293B',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Ionicons
+          name={unlocked ? (meta.icon as any) : 'lock-closed'}
+          size={18}
+          color={unlocked ? '#8B5CF6' : '#475569'}
+        />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={{ fontSize: 13, fontWeight: '700', color: unlocked ? '#FFF' : '#475569' }}>
@@ -77,7 +110,11 @@ function AchievementCard({ id, unlocked, data }: { id: string; unlocked: boolean
         </Text>
         {data?.unlockedAt && (
           <Text style={{ fontSize: 11, color: '#64748B', marginTop: 2 }}>
-            Unlocked {new Date(data.unlockedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+            Unlocked{' '}
+            {new Date(data.unlockedAt).toLocaleDateString('en-IN', {
+              day: 'numeric',
+              month: 'short',
+            })}
           </Text>
         )}
       </View>
@@ -94,33 +131,61 @@ export function CoupleGamificationScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchGamification = useCallback(async (refresh = false) => {
-    if (refresh) setRefreshing(true); else setLoading(true);
+    if (refresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
     try {
       const res = await api.get<any>('/couple/gamification');
       setData(res);
-    } catch {} finally {
+    } catch {
+      /* silently ignore */
+    } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }, []);
 
-  useEffect(() => { fetchGamification(); }, [fetchGamification]);
+  useEffect(() => {
+    fetchGamification();
+  }, [fetchGamification]);
 
-  if (loading) return <LoadingScreen />;
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
-  const achievements = data?.achievements || {};
+  const achievements: Record<string, any> = {};
+  if (Array.isArray(data?.achievements)) {
+    for (const ach of data.achievements) {
+      achievements[ach.code] = ach;
+    }
+  } else if (data?.achievements && typeof data?.achievements === 'object') {
+    Object.assign(achievements, data.achievements);
+  }
   const levels = data?.levels || [];
 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: '#0D0B1A' }}
       contentContainerStyle={{ paddingBottom: 40 }}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => fetchGamification(true)} tintColor="#8B5CF6" />}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={() => fetchGamification(true)}
+          tintColor="#8B5CF6"
+        />
+      }
     >
-      <View style={{
-        paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 12,
-        borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#1E293B',
-      }}>
+      <View
+        style={{
+          paddingTop: insets.top + 12,
+          paddingHorizontal: 20,
+          paddingBottom: 12,
+          borderBottomWidth: StyleSheet.hairlineWidth,
+          borderBottomColor: '#1E293B',
+        }}
+      >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="chevron-back" size={24} color="#FFF" />
@@ -137,7 +202,12 @@ export function CoupleGamificationScreen() {
         </Text>
         <View style={{ gap: 8 }}>
           {Object.entries(ACHIEVEMENTS_META).map(([id, meta]) => (
-            <AchievementCard key={id} id={id} unlocked={!!achievements[id]} data={achievements[id]} />
+            <AchievementCard
+              key={id}
+              id={id}
+              unlocked={!!achievements[id]}
+              data={achievements[id]}
+            />
           ))}
         </View>
       </View>

@@ -92,7 +92,7 @@ export function CoupleSavingsScreen() {
       }
       await api.post(`/shared-finance/groups/${couple.id}/couple/savings/contribute`, {
         amount: Number(addAmount),
-        note: addNote.trim() || undefined,
+        notes: addNote.trim() || undefined,
       });
       setModalVisible(false);
       setAddAmount('');

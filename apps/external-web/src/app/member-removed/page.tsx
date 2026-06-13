@@ -1,107 +1,199 @@
-"use client";
+'use client';
 
-import { Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { Info } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/utils";
+import { Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { View, Text, TouchableOpacity, Card, Row, StyleSheet, spacing, radii } from '@/rn';
+import { formatCurrency } from '@/lib/utils';
 
 function MemberRemovedPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const balance = searchParams.get("balance");
+  const balance = searchParams.get('balance');
 
   const outstandingBalance = balance ? parseFloat(balance) : 0;
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-radial from-dabbu-accent/3 via-transparent to-transparent pointer-events-none" />
-
-      <div className="w-full max-w-lg space-y-6 animate-fade-in-up">
-        <div className="text-center">
-          <div className="w-20 h-20 rounded-2xl bg-dabbu-accent-muted flex items-center justify-center mx-auto mb-6">
-            <Info className="w-10 h-10 text-dabbu-accent" />
-          </div>
-          <h1 className="text-2xl font-bold text-dabbu-text mb-3">
-            You&apos;ve Been Removed from the Group
-          </h1>
-          <p className="text-dabbu-text-secondary text-sm leading-relaxed max-w-sm mx-auto">
-            A group admin has removed you from this group.
-          </p>
-        </div>
+    <View style={styles.root}>
+      <View style={styles.glowBg} />
+      <View style={styles.content}>
+        <View style={styles.iconWrap}>
+          <Text style={styles.icon}>ℹ️</Text>
+        </View>
+        <Text style={styles.title}>You&apos;ve Been Removed from the Group</Text>
+        <Text style={styles.subtitle}>A group admin has removed you from this group.</Text>
 
         {outstandingBalance !== 0 && (
-          <Card className="border-dabbu-border/50">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-dabbu-red/10 flex items-center justify-center shrink-0">
-                  <svg className="w-5 h-5 text-dabbu-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm text-dabbu-text-secondary">
-                    You had an outstanding balance of{" "}
-                    <span
-                      className={`font-semibold ${
-                        outstandingBalance > 0
-                          ? "text-dabbu-green"
-                          : "text-dabbu-red"
-                      }`}
-                    >
-                      {formatCurrency(Math.abs(outstandingBalance))}
-                    </span>
-                    .
-                  </p>
-                  <p className="text-xs text-dabbu-text-muted mt-1">
-                    Please contact the group admin to settle.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
+          <Card style={styles.balanceCard}>
+            <Row style={{ gap: spacing.md }}>
+              <View style={styles.warningIcon}>
+                <Text style={styles.warningIconText}>!</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.balanceText}>
+                  You had an outstanding balance of{' '}
+                  <Text
+                    style={[
+                      styles.balanceValue,
+                      outstandingBalance > 0 ? styles.green : styles.red,
+                    ]}
+                  >
+                    {formatCurrency(Math.abs(outstandingBalance))}
+                  </Text>
+                  .
+                </Text>
+                <Text style={styles.balanceHint}>Please contact the group admin to settle.</Text>
+              </View>
+            </Row>
           </Card>
         )}
 
-        <div className="space-y-3">
-          <Button
-            size="lg"
-            className="w-full h-12"
-            onClick={() =>
-              (window.location.href = "mailto:support@dabbu.app")
-            }
-          >
-            Contact Admin
-          </Button>
-          <Button
-            variant="outline"
-            size="lg"
-            className="w-full h-12 gap-2"
-            onClick={() =>
-              window.open(
-                "https://apps.apple.com/app/dabbu-split",
-                "_blank"
-              )
-            }
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-            </svg>
-            Install Dabbu App
-          </Button>
-          <button
-            onClick={() => router.push("/")}
-            className="w-full text-sm text-dabbu-text-muted hover:text-dabbu-text-secondary transition-colors py-2"
-          >
-            Start your own group
-          </button>
-        </div>
-      </div>
-    </div>
+        <TouchableOpacity
+          style={styles.primaryBtn}
+          onPress={() => (window.location.href = 'mailto:support@dabbu.app')}
+        >
+          <Text style={styles.primaryBtnText}>Contact Admin</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.secondaryBtn}
+          onPress={() => window.open('https://apps.apple.com/app/dabbu-split', '_blank')}
+        >
+          <Text style={styles.secondaryBtnText}>Install Dabbu App</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => router.push('/')} style={styles.ghostBtn}>
+          <Text style={styles.ghostBtnText}>Start your own group</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
 
 export default function Page() {
-  return <Suspense><MemberRemovedPage /></Suspense>;
+  return (
+    <Suspense>
+      <MemberRemovedPage />
+    </Suspense>
+  );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
+    backgroundColor: 'var(--dabbu-bg, #000000)',
+    overflow: 'hidden',
+  },
+  glowBg: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(139, 92, 246, 0.02)',
+  },
+  content: {
+    width: '100%',
+    maxWidth: 500,
+    gap: spacing.lg,
+  },
+  iconWrap: {
+    width: 80,
+    height: 80,
+    borderRadius: radii.xl,
+    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginBottom: spacing.md,
+  },
+  icon: {
+    fontSize: 40,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: 'var(--dabbu-text, #FFFFFF)',
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: 'var(--dabbu-text-secondary, #94A3B8)',
+    textAlign: 'center',
+    lineHeight: 20,
+    maxWidth: 320,
+    alignSelf: 'center',
+  },
+  balanceCard: {
+    borderWidth: 1,
+    borderColor: 'var(--dabbu-border, #2A2A2E)',
+  },
+  warningIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  warningIconText: {
+    fontSize: 18,
+    color: 'var(--dabbu-red, #EF4444)',
+    fontWeight: '800',
+  },
+  balanceText: {
+    fontSize: 14,
+    color: 'var(--dabbu-text-secondary, #94A3B8)',
+  },
+  balanceValue: {
+    fontWeight: '700',
+  },
+  balanceHint: {
+    fontSize: 12,
+    color: 'var(--dabbu-text-muted, #64748B)',
+    marginTop: spacing.xs,
+  },
+  green: {
+    color: 'var(--dabbu-green, #10B981)',
+  },
+  red: {
+    color: 'var(--dabbu-red, #EF4444)',
+  },
+  primaryBtn: {
+    height: 48,
+    borderRadius: radii.lg,
+    backgroundColor: 'var(--dabbu-accent, #8B5CF6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  primaryBtnText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  secondaryBtn: {
+    height: 48,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: 'var(--dabbu-border, #2A2A2E)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  secondaryBtnText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: 'var(--dabbu-text, #FFFFFF)',
+  },
+  ghostBtn: {
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+  },
+  ghostBtnText: {
+    fontSize: 14,
+    color: 'var(--dabbu-text-muted, #64748B)',
+  },
+});

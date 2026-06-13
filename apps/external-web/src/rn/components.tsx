@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View as RNView,
   Text as RNText,
   ScrollView as RNScrollView,
   TouchableOpacity as RNTouchableOpacity,
+  TextInput as RNTextInput,
   StyleSheet,
   ViewStyle,
   TextStyle,
   TextProps,
+  TextInputProps,
   TouchableOpacityProps,
   ScrollViewProps,
 } from 'react-native';
@@ -138,6 +140,98 @@ export function Divider({ style }: { style?: ViewStyle }) {
   return <RNView style={[styles.divider, style]} />;
 }
 
+export function Select({
+  value,
+  onValueChange,
+  options,
+  placeholder,
+  style,
+}: {
+  value: string;
+  onValueChange: (value: string) => void;
+  options: { value: string; label: string }[];
+  placeholder?: string;
+  style?: ViewStyle;
+}) {
+  const [open, setOpen] = useState(false);
+  const selected = options.find((o) => o.value === value);
+  return (
+    <RNView style={[{ position: 'relative', zIndex: open ? 100 : 1 }, style as any]}>
+      <RNTouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => setOpen(!open)}
+        style={[styles.selectTrigger as any, open && styles.selectTriggerActive]}
+      >
+        <RNText style={[styles.selectText, !selected && styles.selectPlaceholder]}>
+          {selected ? selected.label : placeholder || 'Select...'}
+        </RNText>
+        <RNText style={styles.selectArrow}>{open ? '▲' : '▼'}</RNText>
+      </RNTouchableOpacity>
+      {open && (
+        <RNView style={styles.selectDropdown}>
+          {options.map((opt) => (
+            <RNTouchableOpacity
+              key={opt.value}
+              activeOpacity={0.7}
+              onPress={() => {
+                onValueChange(opt.value);
+                setOpen(false);
+              }}
+              style={[styles.selectOption, opt.value === value && styles.selectOptionActive]}
+            >
+              <RNText
+                style={[
+                  styles.selectOptionText,
+                  opt.value === value && styles.selectOptionTextActive,
+                ]}
+              >
+                {opt.label}
+              </RNText>
+              {opt.value === value && <RNText style={styles.selectCheck}>✓</RNText>}
+            </RNTouchableOpacity>
+          ))}
+        </RNView>
+      )}
+      {open && (
+        <RNTouchableOpacity
+          style={styles.selectOverlay}
+          onPress={() => setOpen(false)}
+          activeOpacity={1}
+        />
+      )}
+    </RNView>
+  );
+}
+
+export function AmountInput({
+  value,
+  onChangeText,
+  placeholder = '0',
+  autoFocus,
+  style,
+}: {
+  value: string;
+  onChangeText: (text: string) => void;
+  placeholder?: string;
+  autoFocus?: boolean;
+  style?: ViewStyle;
+}) {
+  return (
+    <RNView style={[styles.amountInputWrap, style as any]}>
+      <RNText style={styles.amountCurrency}>₹</RNText>
+      <RNTextInput
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor="var(--dabbu-text-muted, #64748B)"
+        keyboardType="numeric"
+        autoFocus={autoFocus}
+        style={styles.amountInputField}
+      />
+    </RNView>
+  );
+}
+
 export function Spacer({ size = 'md' }: { size?: keyof typeof spacing }) {
   return <RNView style={{ height: spacing[size] }} />;
 }
@@ -182,6 +276,7 @@ export {
   RNText as Text,
   RNScrollView as ScrollView,
   RNTouchableOpacity as TouchableOpacity,
+  RNTextInput as TextInput,
   StyleSheet,
 };
 
@@ -297,4 +392,100 @@ const styles = StyleSheet.create({
     borderColor: 'var(--dabbu-bg)' as any,
     position: 'absolute',
   },
+  selectTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    height: 48,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: 'var(--dabbu-border)' as any,
+    backgroundColor: 'var(--dabbu-surface)' as any,
+    paddingHorizontal: spacing.lg,
+  },
+  selectTriggerActive: {
+    borderColor: 'var(--dabbu-accent)' as any,
+    borderWidth: 2,
+  } as any,
+  selectText: {
+    fontSize: 15,
+    color: 'var(--dabbu-text)' as any,
+    fontWeight: '500',
+  },
+  selectPlaceholder: {
+    color: 'var(--dabbu-text-muted)' as any,
+  },
+  selectArrow: {
+    fontSize: 10,
+    color: 'var(--dabbu-text-muted)' as any,
+    marginLeft: spacing.sm,
+  },
+  selectDropdown: {
+    position: 'absolute',
+    top: 54,
+    left: 0,
+    right: 0,
+    backgroundColor: 'var(--dabbu-surface)' as any,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: 'var(--dabbu-border)' as any,
+    zIndex: 200,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    maxHeight: 240,
+  },
+  selectOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'var(--dabbu-border)' as any,
+  },
+  selectOptionActive: {
+    backgroundColor: 'rgba(139, 92, 246, 0.08)' as any,
+  },
+  selectOptionText: {
+    fontSize: 14,
+    color: 'var(--dabbu-text)' as any,
+  },
+  selectOptionTextActive: {
+    color: 'var(--dabbu-accent)' as any,
+    fontWeight: '600',
+  },
+  selectCheck: {
+    fontSize: 14,
+    color: 'var(--dabbu-accent)' as any,
+    fontWeight: '700',
+  },
+  selectOverlay: {
+    position: 'fixed' as any,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 99,
+    backgroundColor: 'transparent',
+  },
+  amountInputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  amountCurrency: {
+    fontSize: 24,
+    color: 'var(--dabbu-text-muted)' as any,
+    marginRight: 4,
+  },
+  amountInputField: {
+    fontSize: 48,
+    fontWeight: '800',
+    color: 'var(--dabbu-text)' as any,
+    textAlign: 'center',
+    minWidth: 160,
+  } as any,
 });

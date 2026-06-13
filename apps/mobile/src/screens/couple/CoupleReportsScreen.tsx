@@ -105,9 +105,9 @@ export function CoupleReportsScreen() {
     }
     const total = cats.reduce((s: number, c: any) => s + (c.amount || 0), 0) || 1;
     return cats.map((c: any) => ({
-      name: c.name || 'Uncategorized',
+      name: c.category || 'Uncategorized',
       amount: c.amount || 0,
-      color: CAT_COLORS[c.name] || colors.accent.primary,
+      color: CAT_COLORS[c.category] || colors.accent.primary,
       pct: Math.round((c.amount / total) * 100),
     }));
   }, [data]);
@@ -168,7 +168,10 @@ export function CoupleReportsScreen() {
             }}
           >
             <View style={styles.headerRow}>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}>
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}
+              >
                 <Ionicons name="arrow-back" size={22} color={colors.text.primary} />
               </TouchableOpacity>
               <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Reports</Text>
@@ -205,7 +208,10 @@ export function CoupleReportsScreen() {
       >
         <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
           <View style={styles.headerRow}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}
+            >
               <Ionicons name="arrow-back" size={22} color={colors.text.primary} />
             </TouchableOpacity>
             <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Reports</Text>

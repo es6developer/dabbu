@@ -341,8 +341,12 @@ export class CoupleService {
 
   async createInviteCode(userId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new NotFoundException('User not found');
-    if (user.isCouple) throw new ConflictException('You are already in a couple');
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (user.isCouple) {
+      throw new ConflictException('You are already in a couple');
+    }
 
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
     const existingGroup = await this.prisma.sharedGroup.findFirst({
@@ -365,14 +369,22 @@ export class CoupleService {
     const invite = await this.prisma.coupleInviteCode.findFirst({
       where: { code: code.toUpperCase(), status: 'active', expiredAt: { gte: new Date() } },
     });
-    if (!invite) throw new BadRequestException('Invalid or expired invite code');
+    if (!invite) {
+      throw new BadRequestException('Invalid or expired invite code');
+    }
 
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new NotFoundException('User not found');
-    if (user.isCouple) throw new ConflictException('You are already in a couple');
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (user.isCouple) {
+      throw new ConflictException('You are already in a couple');
+    }
 
     const sender = await this.prisma.user.findUnique({ where: { id: invite.senderId } });
-    if (!sender || sender.isCouple) throw new BadRequestException('Inviter is no longer available');
+    if (!sender || sender.isCouple) {
+      throw new BadRequestException('Inviter is no longer available');
+    }
 
     const now = new Date();
     await this.prisma.$transaction(async (tx) => {
@@ -386,7 +398,12 @@ export class CoupleService {
       });
       await tx.user.update({
         where: { id: userId },
-        data: { partnerId: invite.senderId, isCouple: true, isCoupleMode: true, partnerLinkedAt: now },
+        data: {
+          partnerId: invite.senderId,
+          isCouple: true,
+          isCoupleMode: true,
+          partnerLinkedAt: now,
+        },
       });
     });
 
@@ -397,7 +414,21 @@ export class CoupleService {
     if (!group) {
       const groupName = `${sender.firstName} & ${user.firstName}'s Space`;
       group = await this.sharedFinanceService.createGroup(invite.senderId, {
-        name: groupName, type: 'couple', currency: 'INR',
+        name: groupName,
+        type: 'couple',
+        currency: 'INR',
+      });
+      await this.prisma.sharedGroupMember.create({
+        data: { groupId: group.id, userId, role: 'member', isActive: true },
+      });
+      await this.prisma.coupleFinanceProfile.upsert({
+        where: { groupId: group.id },
+        create: {
+          groupId: group.id,
+          partner1Id: invite.senderId,
+          partner2Id: userId,
+        },
+        update: { partner2Id: userId },
       });
     }
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,7 @@ import { useAppLock } from '../../store/LockContext';
 import { api, setAccessToken, getAccessToken } from '../../services/api';
 import { ConfirmDialog } from '../../components/ui';
 import { PADDING, borderRadius, shadows } from '../../theme/design';
-import { COUPLE_COLORS } from '../../hooks/useCoupleMode';
+import { useCoupleMode, COUPLE_COLORS } from '../../hooks/useCoupleMode';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -107,6 +107,22 @@ export function SettingsScreen() {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [pendingRequests, setPendingRequests] = useState<any[]>([]);
   const [processingReqId, setProcessingReqId] = useState<string | null>(null);
+  const { isInCouple, showCoupleFeatures } = useCoupleMode();
+
+  const filteredSECTIONS: typeof SECTIONS = useMemo(() => {
+    return SECTIONS.map((section) => ({
+      ...section,
+      items: section.items.filter((item) => {
+        if (item.label === 'Create Couple Profile' && isInCouple) {
+          return false;
+        }
+        if (item.label === 'Couple Space' && !showCoupleFeatures) {
+          return false;
+        }
+        return true;
+      }),
+    })).filter((section) => section.items.length > 0);
+  }, [isInCouple, showCoupleFeatures]);
 
   useEffect(() => {
     if (user?.isCouple) {
@@ -576,7 +592,7 @@ export function SettingsScreen() {
           )}
 
           {/* Sections */}
-          {SECTIONS.map((section, i) => (
+          {filteredSECTIONS.map((section, i) => (
             <View key={i} style={{ marginBottom: 24, paddingHorizontal: PADDING }}>
               <Text
                 style={{

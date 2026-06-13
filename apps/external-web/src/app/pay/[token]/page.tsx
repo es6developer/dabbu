@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { View, Text, TouchableOpacity, Card, StyleSheet, spacing, radii } from '@/rn';
 import { api } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
+import { Row } from '@/rn';
 import { toast } from 'sonner';
 
 interface PayLinkData {
@@ -43,43 +43,29 @@ export default function PayLinkPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 rounded-xl bg-dabbu-accent flex items-center justify-center mx-auto mb-4 animate-pulse">
-            <span className="text-white font-bold text-lg">D</span>
-          </div>
-          <div className="w-48 h-4 rounded bg-dabbu-surface2 animate-pulse mx-auto mb-3" />
-          <div className="w-32 h-3 rounded bg-dabbu-surface2 animate-pulse mx-auto" />
-        </div>
-      </div>
+      <View style={styles.centered}>
+        <View style={styles.loader}>
+          <Text style={styles.loaderText}>D</Text>
+        </View>
+        <View style={styles.loaderBar} />
+        <View style={[styles.loaderBar, { width: 128 }]} />
+      </View>
     );
   }
 
   if (!data) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="w-full max-w-md text-center p-8">
-          <div className="w-16 h-16 rounded-full bg-dabbu-red-bg flex items-center justify-center mx-auto mb-4">
-            <svg
-              className="w-8 h-8 text-dabbu-red"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"
-              />
-            </svg>
-          </div>
-          <h2 className="text-xl font-semibold mb-2">Payment Link Expired</h2>
-          <p className="text-dabbu-text-secondary mb-6">
+      <View style={styles.centeredPad}>
+        <Card style={styles.errorCard}>
+          <View style={styles.errorIconWrap}>
+            <Text style={styles.errorIcon}>!</Text>
+          </View>
+          <Text style={styles.errorTitle}>Payment Link Expired</Text>
+          <Text style={styles.errorText}>
             This payment link is no longer valid. Please contact the group admin for a new link.
-          </p>
+          </Text>
         </Card>
-      </div>
+      </View>
     );
   }
 
@@ -98,108 +84,284 @@ export default function PayLinkPage() {
   };
 
   return (
-    <div className="min-h-screen bg-dabbu-bg flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-4">
-        <div className="text-center mb-2">
-          <div className="w-14 h-14 rounded-2xl bg-dabbu-accent flex items-center justify-center mx-auto mb-3">
-            <span className="text-white font-bold text-2xl">D</span>
-          </div>
-          <h1 className="text-xl font-semibold text-dabbu-text">{data.groupName}</h1>
-          <p className="text-sm text-dabbu-text-muted mt-1">Payment Request</p>
-        </div>
+    <View style={styles.centeredPad}>
+      <View style={styles.content}>
+        <View style={styles.logoWrap}>
+          <View style={styles.logo}>
+            <Text style={styles.logoText}>D</Text>
+          </View>
+          <Text style={styles.groupName}>{data.groupName}</Text>
+          <Text style={styles.paySubtitle}>Payment Request</Text>
+        </View>
 
-        <Card gradient className="overflow-hidden">
-          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-radial from-dabbu-accent/10 via-transparent to-transparent pointer-events-none" />
-          <CardContent className="relative">
-            <div className="text-center py-4">
-              <p className="text-sm text-dabbu-text-secondary mb-1">You owe</p>
-              <p className="text-4xl font-bold text-dabbu-red">{formatCurrency(data.amount)}</p>
-              <p className="text-sm text-dabbu-text-secondary mt-1">to {data.to}</p>
-            </div>
-
-            <div className="flex items-center justify-center gap-2 text-xs text-dabbu-text-muted border-t border-dabbu-border/50 pt-4 mt-2">
-              <span>From: {data.from}</span>
-              <span>·</span>
-              <span>Group: {data.groupName}</span>
-            </div>
-          </CardContent>
+        <Card style={styles.amountCard}>
+          <Text style={styles.youOweLabel}>You owe</Text>
+          <Text style={styles.amountValue}>{formatCurrency(data.amount)}</Text>
+          <Text style={styles.toLabel}>to {data.to}</Text>
+          <View style={styles.payMeta}>
+            <Text style={styles.metaText}>From: {data.from}</Text>
+            <Text style={styles.metaDot}>·</Text>
+            <Text style={styles.metaText}>Group: {data.groupName}</Text>
+          </View>
         </Card>
 
         {!paid ? (
-          <div className="space-y-3">
-            <Button
-              className="w-full h-14 text-base gap-2"
-              size="lg"
-              onClick={handlePay}
-              disabled={paying}
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
-                />
-              </svg>
-              {paying ? 'Opening UPI...' : 'Pay Now via UPI'}
-            </Button>
-
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                className="flex-1 h-12"
-                onClick={async () => {
+          <View style={styles.payActions}>
+            <TouchableOpacity style={styles.payBtn} onPress={handlePay} disabled={paying}>
+              <Text style={styles.payBtnText}>{paying ? 'Opening UPI...' : 'Pay Now via UPI'}</Text>
+            </TouchableOpacity>
+            <Row style={{ gap: spacing.md }}>
+              <TouchableOpacity
+                style={styles.secondaryBtn}
+                onPress={async () => {
                   await navigator.clipboard.writeText(data.upiLink);
                   toast.success('UPI link copied!');
                 }}
               >
-                Copy UPI Link
-              </Button>
-              <Button
-                variant="outline"
-                className="flex-1 h-12"
-                onClick={() => {
-                  setPaid(true);
-                }}
-              >
-                Mark as Paid
-              </Button>
-            </div>
-          </div>
+                <Text style={styles.secondaryBtnText}>Copy UPI Link</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.secondaryBtn} onPress={() => setPaid(true)}>
+                <Text style={styles.secondaryBtnText}>Mark as Paid</Text>
+              </TouchableOpacity>
+            </Row>
+          </View>
         ) : (
-          <Card>
-            <CardContent className="text-center py-6">
-              <div className="w-12 h-12 rounded-full bg-dabbu-green-bg flex items-center justify-center mx-auto mb-3">
-                <svg
-                  className="w-6 h-6 text-dabbu-green"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-dabbu-text mb-1">Payment Recorded</h3>
-              <p className="text-sm text-dabbu-text-muted mb-4">
-                Your payment of {formatCurrency(data.amount)} has been recorded. The receiver will
-                confirm shortly.
-              </p>
-              <Button variant="outline" onClick={() => setPaid(false)}>
-                Made a mistake? Undo
-              </Button>
-            </CardContent>
+          <Card style={styles.paidCard}>
+            <View style={styles.paidIconWrap}>
+              <Text style={styles.paidIcon}>✓</Text>
+            </View>
+            <Text style={styles.paidTitle}>Payment Recorded</Text>
+            <Text style={styles.paidText}>
+              Your payment of {formatCurrency(data.amount)} has been recorded. The receiver will
+              confirm shortly.
+            </Text>
+            <TouchableOpacity style={styles.undoBtn} onPress={() => setPaid(false)}>
+              <Text style={styles.undoBtnText}>Made a mistake? Undo</Text>
+            </TouchableOpacity>
           </Card>
         )}
 
-        <p className="text-center text-xs text-dabbu-text-muted">
+        <Text style={styles.expiryText}>
           This link will expire on {new Date(data.expiresAt).toLocaleDateString()}
-        </p>
-      </div>
-    </div>
+        </Text>
+      </View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'var(--dabbu-bg, #000000)',
+  },
+  centeredPad: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
+    backgroundColor: 'var(--dabbu-bg, #000000)',
+  },
+  loader: {
+    width: 48,
+    height: 48,
+    borderRadius: radii.xl,
+    backgroundColor: 'var(--dabbu-accent, #8B5CF6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  loaderText: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  loaderBar: {
+    width: 192,
+    height: 16,
+    borderRadius: radii.sm,
+    backgroundColor: 'var(--dabbu-surface2, #1A1A1E)',
+    marginBottom: spacing.md,
+  },
+  errorCard: {
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+    padding: spacing.xxl,
+  },
+  errorIconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  errorIcon: {
+    fontSize: 28,
+    color: 'var(--dabbu-red, #EF4444)',
+    fontWeight: '800',
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: 'var(--dabbu-text, #FFFFFF)',
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+  },
+  errorText: {
+    fontSize: 14,
+    color: 'var(--dabbu-text-secondary, #94A3B8)',
+    textAlign: 'center',
+  },
+  content: {
+    width: '100%',
+    maxWidth: 400,
+  },
+  logoWrap: {
+    alignItems: 'center',
+    marginBottom: spacing.xl,
+  },
+  logo: {
+    width: 56,
+    height: 56,
+    borderRadius: radii.xl,
+    backgroundColor: 'var(--dabbu-accent, #8B5CF6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  logoText: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  groupName: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: 'var(--dabbu-text, #FFFFFF)',
+  },
+  paySubtitle: {
+    fontSize: 14,
+    color: 'var(--dabbu-text-muted, #64748B)',
+    marginTop: spacing.xs,
+  },
+  amountCard: {
+    alignItems: 'center',
+    paddingVertical: spacing.xxl,
+    marginBottom: spacing.lg,
+    overflow: 'hidden',
+  },
+  youOweLabel: {
+    fontSize: 14,
+    color: 'var(--dabbu-text-secondary, #94A3B8)',
+    marginBottom: spacing.sm,
+  },
+  amountValue: {
+    fontSize: 40,
+    fontWeight: '800',
+    color: 'var(--dabbu-red, #EF4444)',
+    letterSpacing: -1,
+  },
+  toLabel: {
+    fontSize: 14,
+    color: 'var(--dabbu-text-secondary, #94A3B8)',
+    marginTop: spacing.xs,
+    marginBottom: spacing.lg,
+  },
+  payMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingTop: spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: 'var(--dabbu-border, #2A2A2E)',
+  },
+  metaText: {
+    fontSize: 12,
+    color: 'var(--dabbu-text-muted, #64748B)',
+  },
+  metaDot: {
+    fontSize: 12,
+    color: 'var(--dabbu-text-muted, #64748B)',
+  },
+  payActions: {
+    gap: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  payBtn: {
+    height: 56,
+    borderRadius: radii.lg,
+    backgroundColor: 'var(--dabbu-accent, #8B5CF6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  payBtnText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  secondaryBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: 'var(--dabbu-border, #2A2A2E)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  secondaryBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'var(--dabbu-text, #FFFFFF)',
+  },
+  paidCard: {
+    alignItems: 'center',
+    padding: spacing.xxl,
+    marginBottom: spacing.lg,
+  },
+  paidIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  paidIcon: {
+    fontSize: 24,
+    color: 'var(--dabbu-green, #10B981)',
+    fontWeight: '800',
+  },
+  paidTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: 'var(--dabbu-text, #FFFFFF)',
+    marginBottom: spacing.sm,
+  },
+  paidText: {
+    fontSize: 14,
+    color: 'var(--dabbu-text-secondary, #94A3B8)',
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  undoBtn: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+  },
+  undoBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'var(--dabbu-accent, #8B5CF6)',
+  },
+  expiryText: {
+    fontSize: 12,
+    color: 'var(--dabbu-text-muted, #64748B)',
+    textAlign: 'center',
+  },
+});

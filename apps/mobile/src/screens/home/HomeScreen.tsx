@@ -485,22 +485,6 @@ export function HomeScreen() {
   if (couple.showCoupleFeatures) {
     return (
       <View style={[page.screen, { backgroundColor: COUPLE_COLORS.bg }]}>
-        <View style={page.heartOverlay} pointerEvents="none">
-          {[0, 1, 2, 3, 4, 5].map((i) => (
-            <Ionicons
-              key={i}
-              name="heart"
-              size={24 + i * 8}
-              color={`${COUPLE_COLORS.heart}08`}
-              style={{
-                position: 'absolute',
-                top: 60 + (i % 3) * 120,
-                left: 20 + (i % 2) * (i * 30 + 40),
-                transform: [{ rotate: `${i * 15}deg` }],
-              }}
-            />
-          ))}
-        </View>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: 100 }}
@@ -1431,10 +1415,6 @@ const page = StyleSheet.create({
     paddingTop: 12,
     marginTop: 4,
     borderTopWidth: 1,
-  },
-  heartOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 0,
   },
   coupleBanner: {
     marginHorizontal: 16,

@@ -22,6 +22,8 @@ import { CoupleReportsScreen } from '../screens/couple/CoupleReportsScreen';
 import { CoupleSettingsScreen } from '../screens/couple/CoupleSettingsScreen';
 import { SharedExpenseFormScreen } from '../screens/shared-finance/SharedExpenseFormScreen';
 import { CreateTransactionScreen } from '../screens/transactions/CreateTransactionScreen';
+import { CouplePlannerFormScreen } from '../screens/couple/CouplePlannerFormScreen';
+import { CoupleBudgetAdjustScreen } from '../screens/couple/CoupleBudgetAdjustScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -29,10 +31,7 @@ export function CoupleSpaceNavigator() {
   const theme = useTheme();
 
   return (
-    <Stack.Navigator
-      screenOptions={iosTransitionOptions(theme)}
-      initialRouteName="CoupleSplash"
-    >
+    <Stack.Navigator screenOptions={iosTransitionOptions(theme)} initialRouteName="CoupleSplash">
       <Stack.Screen
         name="CoupleSplash"
         component={CoupleSplashScreen}
@@ -77,6 +76,16 @@ export function CoupleSpaceNavigator() {
         name="CouplePlannerDetail"
         component={CouplePlannerDetailScreen}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CouplePlannerForm"
+        component={CouplePlannerFormScreen}
+        options={{ headerShown: false, presentation: 'modal' }}
+      />
+      <Stack.Screen
+        name="CoupleBudgetAdjust"
+        component={CoupleBudgetAdjustScreen}
+        options={{ headerShown: false, presentation: 'modal' }}
       />
       <Stack.Screen
         name="CoupleIncome"

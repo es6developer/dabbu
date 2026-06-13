@@ -1,22 +1,20 @@
-"use client";
+'use client';
 
-import { Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { CheckCircle2, Download } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/utils";
+import { Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { View, Text, TouchableOpacity, Card, Row, StyleSheet, spacing, radii } from '@/rn';
+import { formatCurrency } from '@/lib/utils';
 
 function GroupCompletedPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const groupName = searchParams.get("groupName");
-  const totalSpent = searchParams.get("totalSpent");
-  const totalPaid = searchParams.get("totalPaid");
-  const totalOwed = searchParams.get("totalOwed");
-  const balance = searchParams.get("balance");
-  const settlementStatus = searchParams.get("settlement");
+  const groupName = searchParams.get('groupName');
+  const totalSpent = searchParams.get('totalSpent');
+  const totalPaid = searchParams.get('totalPaid');
+  const totalOwed = searchParams.get('totalOwed');
+  const balance = searchParams.get('balance');
+  const settlementStatus = searchParams.get('settlement');
 
   const spent = totalSpent ? parseFloat(totalSpent) : 0;
   const paid = totalPaid ? parseFloat(totalPaid) : 0;
@@ -24,144 +22,274 @@ function GroupCompletedPage() {
   const bal = balance ? parseFloat(balance) : 0;
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-radial from-dabbu-green/5 via-transparent to-transparent pointer-events-none" />
+    <View style={styles.root}>
+      <View style={styles.glowBg} />
+      <View style={styles.content}>
+        <View style={styles.iconWrap}>
+          <Text style={styles.icon}>✅</Text>
+        </View>
+        <Text style={styles.title}>Trip Completed Successfully!</Text>
+        <Text style={styles.subtitle}>
+          {groupName ? `${groupName} has been wrapped up. ` : 'The group has been wrapped up. '}
+          All expenses have been settled and finalized.
+        </Text>
 
-      <div className="w-full max-w-lg space-y-6 animate-fade-in-up">
-        <div className="text-center">
-          <div className="w-20 h-20 rounded-2xl bg-dabbu-green/10 flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="w-10 h-10 text-dabbu-green" />
-          </div>
-          <h1 className="text-3xl font-bold text-dabbu-text mb-3">
-            Trip Completed Successfully!
-          </h1>
-          <p className="text-dabbu-text-secondary text-sm leading-relaxed max-w-sm mx-auto">
-            {groupName
-              ? `${groupName} has been wrapped up. `
-              : "The group has been wrapped up. "}
-            All expenses have been settled and finalized.
-          </p>
-        </div>
-
-        <Card className="border-dabbu-border/50">
-          <CardContent className="pt-6 space-y-4">
-            <div className="text-center pb-3 border-b border-dabbu-border/50">
-              <p className="text-xs text-dabbu-text-muted mb-1">
-                Total Spent
-              </p>
-              <p className="text-3xl font-bold text-dabbu-text">
-                {formatCurrency(spent)}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-3 rounded-xl bg-dabbu-green/5">
-                <p className="text-xs text-dabbu-text-muted mb-1">
-                  You Paid
-                </p>
-                <p className="text-lg font-semibold text-dabbu-green">
-                  {formatCurrency(paid)}
-                </p>
-              </div>
-              <div className="text-center p-3 rounded-xl bg-dabbu-red/5">
-                <p className="text-xs text-dabbu-text-muted mb-1">
-                  You Owed
-                </p>
-                <p className="text-lg font-semibold text-dabbu-red">
-                  {formatCurrency(owed)}
-                </p>
-              </div>
-            </div>
-
-            {settlementStatus && (
-              <div className="text-center pt-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-dabbu-green/10 text-dabbu-green">
-                  <span className="w-1.5 h-1.5 rounded-full bg-dabbu-green" />
-                  {settlementStatus === "settled"
-                    ? "All Settled"
-                    : "Pending Settlement"}
-                </span>
-              </div>
-            )}
-          </CardContent>
+        <Card style={styles.summaryCard}>
+          <View style={styles.totalSpentWrap}>
+            <Text style={styles.totalLabel}>Total Spent</Text>
+            <Text style={styles.totalValue}>{formatCurrency(spent)}</Text>
+          </View>
+          <Row style={{ gap: spacing.lg }}>
+            <View style={styles.splitStat}>
+              <Text style={styles.statLabel}>You Paid</Text>
+              <Text style={[styles.statValue, styles.green]}>{formatCurrency(paid)}</Text>
+            </View>
+            <View style={styles.splitStat}>
+              <Text style={styles.statLabel}>You Owed</Text>
+              <Text style={[styles.statValue, styles.red]}>{formatCurrency(owed)}</Text>
+            </View>
+          </Row>
+          {settlementStatus && (
+            <View style={styles.statusWrap}>
+              <View style={styles.statusDot} />
+              <Text style={styles.statusText}>
+                {settlementStatus === 'settled' ? 'All Settled' : 'Pending Settlement'}
+              </Text>
+            </View>
+          )}
         </Card>
 
-        <div className="space-y-3">
-          <Button
-            size="lg"
-            className="w-full h-12 gap-2"
-            onClick={() => {
-              /* download settlement receipt */
-            }}
-          >
-            <Download className="w-4 h-4" />
-            Download Settlement Receipt
-          </Button>
-          <Button
-            variant="outline"
-            size="lg"
-            className="w-full h-12"
-            onClick={() => router.push("/auth")}
-          >
-            View Your Personal Summary
-          </Button>
-        </div>
+        <TouchableOpacity style={styles.primaryBtn}>
+          <Text style={styles.primaryBtnText}>Download Settlement Receipt</Text>
+        </TouchableOpacity>
 
-        <div className="relative pt-4">
-          <div className="absolute inset-x-0 top-0 border-t border-dabbu-border/50" />
-          <div className="pt-6">
-            <Card className="border-dabbu-accent/20 bg-gradient-to-r from-dabbu-accent-muted via-dabbu-surface2 to-dabbu-accent-muted">
-              <CardContent className="pt-6 text-center">
-                <h3 className="text-base font-semibold text-dabbu-text mb-1">
-                  Track all future trips with Dabbu
-                </h3>
-                <p className="text-xs text-dabbu-text-secondary mb-4">
-                  Your next trip deserves smarter finance tracking
-                </p>
-                <Button
-                  size="lg"
-                  className="w-full h-12"
-                  onClick={() => router.push("/auth")}
-                >
-                  <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                  Get 1 Month Premium Free
-                </Button>
-                <button
-                  onClick={() => router.push("/")}
-                  className="w-full text-xs text-dabbu-text-muted mt-3 hover:text-dabbu-text-secondary transition-colors"
-                >
-                  Start your own group
-                </button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        <TouchableOpacity style={styles.secondaryBtn} onPress={() => router.push('/auth')}>
+          <Text style={styles.secondaryBtnText}>View Your Personal Summary</Text>
+        </TouchableOpacity>
 
-        <div className="text-center pb-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-dabbu-text-muted gap-2"
-            onClick={() =>
-              window.open(
-                "https://apps.apple.com/app/dabbu-split",
-                "_blank"
-              )
-            }
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-            </svg>
-            Install Dabbu App
-          </Button>
-        </div>
-      </div>
-    </div>
+        <View style={styles.promoSection}>
+          <Card variant="accent" style={styles.promoCard}>
+            <Text style={styles.promoTitle}>Track all future trips with Dabbu</Text>
+            <Text style={styles.promoDesc}>Your next trip deserves smarter finance tracking</Text>
+            <TouchableOpacity style={styles.promoBtn} onPress={() => router.push('/auth')}>
+              <Text style={styles.promoBtnText}>Get 1 Month Premium Free</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/')} style={styles.startBtn}>
+              <Text style={styles.startBtnText}>Start your own group</Text>
+            </TouchableOpacity>
+          </Card>
+        </View>
+
+        <TouchableOpacity
+          style={styles.appBtn}
+          onPress={() => window.open('https://apps.apple.com/app/dabbu-split', '_blank')}
+        >
+          <Text style={styles.appBtnText}>Install Dabbu App</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
 
 export default function Page() {
-  return <Suspense><GroupCompletedPage /></Suspense>;
+  return (
+    <Suspense>
+      <GroupCompletedPage />
+    </Suspense>
+  );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
+    backgroundColor: 'var(--dabbu-bg, #000000)',
+    overflow: 'hidden',
+  },
+  glowBg: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(16, 185, 129, 0.03)',
+  },
+  content: {
+    width: '100%',
+    maxWidth: 500,
+    gap: spacing.lg,
+  },
+  iconWrap: {
+    width: 80,
+    height: 80,
+    borderRadius: radii.xl,
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginBottom: spacing.md,
+  },
+  icon: {
+    fontSize: 40,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: 'var(--dabbu-text, #FFFFFF)',
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: 'var(--dabbu-text-secondary, #94A3B8)',
+    textAlign: 'center',
+    lineHeight: 20,
+    maxWidth: 320,
+    alignSelf: 'center',
+  },
+  summaryCard: {
+    gap: spacing.lg,
+  },
+  totalSpentWrap: {
+    alignItems: 'center',
+    paddingBottom: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: 'var(--dabbu-border, #2A2A2E)',
+  },
+  totalLabel: {
+    fontSize: 12,
+    color: 'var(--dabbu-text-muted, #64748B)',
+    marginBottom: spacing.xs,
+  },
+  totalValue: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: 'var(--dabbu-text, #FFFFFF)',
+  },
+  splitStat: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    borderRadius: radii.xl,
+    backgroundColor: 'rgba(16, 185, 129, 0.05)',
+  },
+  statLabel: {
+    fontSize: 12,
+    color: 'var(--dabbu-text-muted, #64748B)',
+    marginBottom: spacing.xs,
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  green: {
+    color: 'var(--dabbu-green, #10B981)',
+  },
+  red: {
+    color: 'var(--dabbu-red, #EF4444)',
+  },
+  statusWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm - 2,
+    paddingVertical: spacing.sm,
+    borderRadius: radii.full,
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    alignSelf: 'center',
+    paddingHorizontal: spacing.lg,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'var(--dabbu-green, #10B981)',
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: 'var(--dabbu-green, #10B981)',
+  },
+  primaryBtn: {
+    height: 48,
+    borderRadius: radii.lg,
+    backgroundColor: 'var(--dabbu-accent, #8B5CF6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  primaryBtnText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  secondaryBtn: {
+    height: 48,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: 'var(--dabbu-border, #2A2A2E)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  secondaryBtnText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: 'var(--dabbu-text, #FFFFFF)',
+  },
+  promoSection: {
+    marginTop: spacing.md,
+  },
+  promoCard: {
+    alignItems: 'center',
+    padding: spacing.xl,
+  },
+  promoTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: 'var(--dabbu-text, #FFFFFF)',
+    textAlign: 'center',
+    marginBottom: spacing.xs,
+  },
+  promoDesc: {
+    fontSize: 12,
+    color: 'var(--dabbu-text-secondary, #94A3B8)',
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  promoBtn: {
+    height: 48,
+    borderRadius: radii.lg,
+    backgroundColor: 'var(--dabbu-accent, #8B5CF6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  promoBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  startBtn: {
+    paddingVertical: spacing.md,
+  },
+  startBtnText: {
+    fontSize: 12,
+    color: 'var(--dabbu-text-muted, #64748B)',
+  },
+  appBtn: {
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: spacing.sm,
+  },
+  appBtnText: {
+    fontSize: 14,
+    color: 'var(--dabbu-text-muted, #64748B)',
+  },
+});

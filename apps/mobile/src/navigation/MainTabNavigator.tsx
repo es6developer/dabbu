@@ -64,7 +64,7 @@ import { AddExpenseScreen } from '../screens/expense/AddExpenseScreen';
 import { useTheme } from '../theme';
 import { useAuth } from '../store/AuthContext';
 import { usePreferences } from '../store/PreferencesContext';
-import { useCoupleMode } from '../hooks/useCoupleMode';
+import { useCoupleMode, COUPLE_COLORS } from '../hooks/useCoupleMode';
 import { QuickActionSheet } from '../components/ui/QuickActionSheet';
 import { iosTransitionOptions } from './animations';
 
@@ -373,7 +373,7 @@ export function MainTabNavigator() {
   const { colors } = theme;
   const { user, accessToken, isPremium } = useAuth();
   const { getTabVisibility } = usePreferences();
-  const { showCoupleFeatures, isInCouple } = useCoupleMode();
+  const { showCoupleFeatures } = useCoupleMode();
   const [showActions, setShowActions] = useState(false);
   const navigation = useNavigation<any>();
 
@@ -414,7 +414,7 @@ export function MainTabNavigator() {
             onPress: () => navigation.navigate('Dashboard', { screen: 'GoalsList' }),
           },
         ]),
-    ...(isInCouple
+    ...(showCoupleFeatures
       ? [
           {
             label: 'Couple Space' as const,
@@ -439,6 +439,24 @@ export function MainTabNavigator() {
 
   return (
     <View style={{ flex: 1 }}>
+      {showCoupleFeatures && (
+        <View style={StyleSheet.absoluteFill} pointerEvents="none">
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <Ionicons
+              key={i}
+              name="heart"
+              size={24 + i * 8}
+              color={`${COUPLE_COLORS.heart}08`}
+              style={{
+                position: 'absolute',
+                top: 60 + (i % 3) * 120,
+                left: 20 + (i % 2) * (i * 30 + 40),
+                transform: [{ rotate: `${i * 15}deg` }],
+              }}
+            />
+          ))}
+        </View>
+      )}
       <Tab.Navigator
         tabBar={(props) => (
           <GlossyTabBar
@@ -557,10 +575,13 @@ function GlossyTabBar({
       navigation.navigate(route.name, { screen: homeScreens[route.name] || route.name });
     };
 
+    const focusedColor = showCoupleFeatures ? COUPLE_COLORS.primary : colors.accent.primary;
+    const unfocusedColor = showCoupleFeatures ? COUPLE_COLORS.textTertiary : colors.text.tertiary;
+
     const icon = options.tabBarIcon
       ? options.tabBarIcon({
           focused: isFocused,
-          color: isFocused ? colors.accent.primary : colors.text.tertiary,
+          color: isFocused ? focusedColor : unfocusedColor,
           size: 22,
         })
       : null;
@@ -576,18 +597,17 @@ function GlossyTabBar({
           style={[
             tabStyles.iconWrap,
             isFocused && {
-              backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)',
+              backgroundColor: showCoupleFeatures
+                ? `${COUPLE_COLORS.primary}15`
+                : isDark
+                  ? 'rgba(255,255,255,0.1)'
+                  : 'rgba(0,0,0,0.04)',
             },
           ]}
         >
           {icon}
         </View>
-        <Text
-          style={[
-            tabStyles.label,
-            { color: isFocused ? colors.accent.primary : colors.text.tertiary },
-          ]}
-        >
+        <Text style={[tabStyles.label, { color: isFocused ? focusedColor : unfocusedColor }]}>
           {options.tabBarLabel || route.name}
         </Text>
       </TouchableOpacity>
@@ -620,10 +640,35 @@ function GlossyTabBar({
               <View
                 style={[
                   tabStyles.centerBtn,
-                  { backgroundColor: colors.accent.primary, borderColor: colors.brand.hover },
+                  showCoupleFeatures
+                    ? { backgroundColor: COUPLE_COLORS.primary, borderColor: COUPLE_COLORS.accent }
+                    : { backgroundColor: colors.accent.primary, borderColor: colors.brand.hover },
                 ]}
               >
-                <Ionicons name="add" size={28} color="#FFF" />
+                {showCoupleFeatures ? (
+                  <View>
+                    <Ionicons name="heart" size={22} color="#FFF" />
+                    <View
+                      style={{
+                        position: 'absolute',
+                        bottom: -3,
+                        right: -7,
+                        width: 17,
+                        height: 17,
+                        borderRadius: 9,
+                        backgroundColor: '#FFF',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderWidth: 2,
+                        borderColor: COUPLE_COLORS.primary,
+                      }}
+                    >
+                      <Ionicons name="add" size={11} color={COUPLE_COLORS.primary} />
+                    </View>
+                  </View>
+                ) : (
+                  <Ionicons name="add" size={28} color="#FFF" />
+                )}
               </View>
             </TouchableOpacity>
           )}
@@ -634,6 +679,8 @@ function GlossyTabBar({
     </View>
   );
 }
+
+const TAB_FIXED_WIDTH = 60;
 
 const tabStyles = StyleSheet.create({
   outerWrapper: {
@@ -663,39 +710,41 @@ const tabStyles = StyleSheet.create({
   innerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 4,
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    gap: 2,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   tabItem: {
-    flex: 1,
+    width: TAB_FIXED_WIDTH,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 2,
+    paddingVertical: 4,
   },
   iconWrap: {
-    width: 40,
-    height: 26,
-    borderRadius: 13,
+    width: 44,
+    height: 28,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 1,
+    marginBottom: 2,
   },
   label: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
-    letterSpacing: 0.2,
+    letterSpacing: 0.1,
   },
   centerWrap: {
-    flex: 1,
+    width: TAB_FIXED_WIDTH + 8,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 2,
+    paddingVertical: 4,
   },
   centerBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: 48,
+    height: 48,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
