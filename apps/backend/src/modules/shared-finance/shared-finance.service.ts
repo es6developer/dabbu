@@ -248,7 +248,7 @@ export class SharedFinanceService {
 
   async getUserGroups(userId: string) {
     const plan = await this.getUserPlan(userId);
-    const memberships = await this.prisma.sharedGroupMember.findMany({
+    let memberships = await this.prisma.sharedGroupMember.findMany({
       where: { userId, isActive: true },
       include: {
         group: {
@@ -269,6 +269,55 @@ export class SharedFinanceService {
       },
       orderBy: { joinedAt: 'desc' },
     });
+
+    const hasCoupleGroup = memberships.some((m) => m.group.type === 'couple');
+    if (!hasCoupleGroup) {
+      const user = await this.prisma.user.findUnique({ where: { id: userId } });
+      if (user?.isCouple && user?.partnerId) {
+        try {
+          const partner = await this.prisma.user.findUnique({
+            where: { id: user.partnerId },
+            select: { firstName: true },
+          });
+          const group = await this.createGroup(userId, {
+            name: `${user.firstName || 'You'} & ${partner?.firstName || 'Partner'}'s Space`,
+            type: 'couple',
+            currency: 'INR',
+          });
+          await this.prisma.sharedGroupMember.create({
+            data: { groupId: group.id, userId: user.partnerId, role: 'member', isActive: true },
+          });
+          await this.prisma.coupleFinanceProfile.upsert({
+            where: { groupId: group.id },
+            create: { groupId: group.id, partner1Id: userId, partner2Id: user.partnerId },
+            update: {},
+          });
+          memberships = await this.prisma.sharedGroupMember.findMany({
+            where: { userId, isActive: true },
+            include: {
+              group: {
+                include: {
+                  members: {
+                    where: { isActive: true },
+                    include: {
+                      user: {
+                        select: { id: true, firstName: true, lastName: true, avatarUrl: true },
+                      },
+                    },
+                  },
+                  _count: {
+                    select: { members: true, expenses: true },
+                  },
+                },
+              },
+            },
+            orderBy: { joinedAt: 'desc' },
+          });
+        } catch (err) {
+          this.logger.warn(`Failed to auto-create couple group for user ${userId}: ${err}`);
+        }
+      }
+    }
 
     return memberships.map((m) => ({
       ...m.group,
