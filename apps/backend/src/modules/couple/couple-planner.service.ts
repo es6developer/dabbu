@@ -1,7 +1,7 @@
 import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 
-interface BabyPlannerInput {
+export interface BabyPlannerInput {
   timeline: '6months' | '1year' | '2years' | '3years' | 'flexible';
   currentSavings: number;
   monthlyIncome: number;
@@ -9,7 +9,7 @@ interface BabyPlannerInput {
   hospitalType: 'govt' | 'private' | 'corporate';
 }
 
-interface BabyPlannerOutput {
+export interface BabyPlannerOutput {
   recommendedSavings: number;
   medicalCosts: number;
   emergencyFund: number;
@@ -20,7 +20,7 @@ interface BabyPlannerOutput {
   totalNeeded: number;
 }
 
-interface HousePlannerInput {
+export interface HousePlannerInput {
   propertyPrice: number;
   downPayment: number;
   interestRate: number;
@@ -29,7 +29,7 @@ interface HousePlannerInput {
   existingEmi: number;
 }
 
-interface HousePlannerOutput {
+export interface HousePlannerOutput {
   loanAmount: number;
   downPaymentPercent: number;
   emiEstimate: number;
@@ -42,7 +42,7 @@ interface HousePlannerOutput {
   monthlyBreakdown: { emi: number; maintenance: number; insurance: number; total: number };
 }
 
-interface CarPlannerInput {
+export interface CarPlannerInput {
   carPrice: number;
   downPayment: number;
   interestRate: number;
@@ -51,7 +51,7 @@ interface CarPlannerInput {
   existingEmi: number;
 }
 
-interface CarPlannerOutput {
+export interface CarPlannerOutput {
   loanAmount: number;
   emi: number;
   insuranceAnnual: number;
@@ -63,7 +63,7 @@ interface CarPlannerOutput {
   runningCostPerKm: number;
 }
 
-interface RetirementPlannerInput {
+export interface RetirementPlannerInput {
   currentAge: number;
   retirementAge: number;
   monthlyExpense: number;
@@ -73,7 +73,7 @@ interface RetirementPlannerInput {
   expectedReturns: number;
 }
 
-interface RetirementPlannerOutput {
+export interface RetirementPlannerOutput {
   targetCorpus: number;
   monthlyTarget: number;
   gap: number;

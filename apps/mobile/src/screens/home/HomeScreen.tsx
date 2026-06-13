@@ -516,7 +516,7 @@ export function HomeScreen() {
     <View style={[page.screen, { backgroundColor: colors.bg.primary }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: 100 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
