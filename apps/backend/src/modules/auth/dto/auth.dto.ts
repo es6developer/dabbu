@@ -40,10 +40,11 @@ export class RegisterDto {
   @MaxLength(50)
   lastName: string;
 
-  @ApiPropertyOptional({ example: '+919876543210' })
+  @ApiProperty({ example: '+919876543210' })
   @IsString()
-  @IsOptional()
-  phone?: string;
+  @IsNotEmpty()
+  @Matches(/^\+?[1-9]\d{9,14}$/, { message: 'Invalid phone number format' })
+  phone: string;
 
   @ApiPropertyOptional({ example: 'DABBU-A1B2C3D4' })
   @IsString()

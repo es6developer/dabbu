@@ -23,7 +23,7 @@ interface InputFieldProps {
   value: string;
   onChangeText: (t: string) => void;
   secureTextEntry?: boolean;
-  keyboardType?: 'default' | 'email-address';
+  keyboardType?: 'default' | 'email-address' | 'phone-pad';
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   onSubmitEditing?: () => void;
   returnKeyType?: 'next' | 'done';
@@ -63,12 +63,22 @@ function InputField({
         backgroundColor: colors.bg.secondary,
         borderRadius: borderRadius.md,
         borderWidth: 1.5,
-        borderColor: error ? colors.status.error : focused ? colors.brand.primary : colors.border.default,
+        borderColor: error
+          ? colors.status.error
+          : focused
+            ? colors.brand.primary
+            : colors.border.default,
         paddingHorizontal: 14,
         marginBottom: 12,
       }}
     >
-      {icon && <Ionicons name={icon} size={18} color={focused ? colors.brand.primary : colors.text.tertiary} />}
+      {icon && (
+        <Ionicons
+          name={icon}
+          size={18}
+          color={focused ? colors.brand.primary : colors.text.tertiary}
+        />
+      )}
       <TextInput
         ref={inputRef}
         style={{
@@ -112,6 +122,7 @@ export function PremiumSignupScreen() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -128,6 +139,11 @@ export function PremiumSignupScreen() {
       errs.email = 'Invalid email format';
     } else if (field === 'email') {
       delete errs.email;
+    }
+    if (field === 'phone' && phone && !/^\+?[1-9]\d{9,14}$/.test(phone)) {
+      errs.phone = 'Enter a valid mobile number (10-15 digits)';
+    } else if (field === 'phone') {
+      delete errs.phone;
     }
     if (field === 'confirm' && confirmPassword && password !== confirmPassword) {
       errs.confirm = 'Passwords do not match';
@@ -146,6 +162,7 @@ export function PremiumSignupScreen() {
 
   const lastNameRef = useRef<TextInput>(null);
   const emailRef = useRef<TextInput>(null);
+  const phoneRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
   const confirmRef = useRef<TextInput>(null);
 
@@ -157,8 +174,18 @@ export function PremiumSignupScreen() {
   }, []);
 
   async function handleSignup() {
-    if (!firstName.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
+    if (
+      !firstName.trim() ||
+      !email.trim() ||
+      !phone.trim() ||
+      !password.trim() ||
+      !confirmPassword.trim()
+    ) {
       setError('Please fill in all fields');
+      return;
+    }
+    if (!/^\+?[1-9]\d{9,14}$/.test(phone.trim())) {
+      setError('Please enter a valid mobile number');
       return;
     }
     if (password !== confirmPassword) {
@@ -168,7 +195,7 @@ export function PremiumSignupScreen() {
     setLoading(true);
     setError('');
     try {
-      await register(email.trim(), password, firstName.trim(), lastName.trim());
+      await register(email.trim(), password, firstName.trim(), lastName.trim(), phone.trim());
     } catch (e: any) {
       setError(e.message || 'Registration failed');
     } finally {
@@ -202,7 +229,12 @@ export function PremiumSignupScreen() {
                 <View style={{ flex: 1 }}>
                   <Image
                     source={require('../../../assets/logo.png')}
-                    style={{ width: 48, height: 48, marginBottom: 14, tintColor: colors.brand.primary }}
+                    style={{
+                      width: 48,
+                      height: 48,
+                      marginBottom: 14,
+                      tintColor: colors.brand.primary,
+                    }}
                     resizeMode="contain"
                   />
                   <Text
@@ -253,7 +285,11 @@ export function PremiumSignupScreen() {
                     onChangeText={(t) => {
                       setFirstName(t);
                       if (fieldErrors.first) {
-                        setFieldErrors((prev) => { const n = {...prev}; delete n.first; return n; });
+                        setFieldErrors((prev) => {
+                          const n = { ...prev };
+                          delete n.first;
+                          return n;
+                        });
                       }
                     }}
                     autoCapitalize="words"
@@ -274,7 +310,11 @@ export function PremiumSignupScreen() {
                     onChangeText={(t) => {
                       setLastName(t);
                       if (fieldErrors.last) {
-                        setFieldErrors((prev) => { const n = {...prev}; delete n.last; return n; });
+                        setFieldErrors((prev) => {
+                          const n = { ...prev };
+                          delete n.last;
+                          return n;
+                        });
                       }
                     }}
                     autoCapitalize="words"
@@ -296,9 +336,13 @@ export function PremiumSignupScreen() {
                 onChangeText={(t) => {
                   setEmail(t);
                   if (t && !validateEmail(t)) {
-                    setFieldErrors((prev) => ({...prev, email: 'Invalid email format'}));
+                    setFieldErrors((prev) => ({ ...prev, email: 'Invalid email format' }));
                   } else {
-                    setFieldErrors((prev) => { const n = {...prev}; delete n.email; return n; });
+                    setFieldErrors((prev) => {
+                      const n = { ...prev };
+                      delete n.email;
+                      return n;
+                    });
                   }
                 }}
                 keyboardType="email-address"
@@ -306,7 +350,7 @@ export function PremiumSignupScreen() {
                 returnKeyType="next"
                 icon="mail-outline"
                 inputRef={emailRef}
-                onSubmitEditing={() => passwordRef.current?.focus()}
+                onSubmitEditing={() => phoneRef.current?.focus()}
                 colors={colors}
                 focused={focusedField === 'email'}
                 onFocus={() => setFocusedField('email')}
@@ -314,19 +358,53 @@ export function PremiumSignupScreen() {
                 error={!!fieldErrors.email}
               />
               <InputField
+                placeholder="Mobile number"
+                value={phone}
+                onChangeText={(t) => {
+                  setPhone(t);
+                  if (t && !/^\+?[1-9]\d{9,14}$/.test(t)) {
+                    setFieldErrors((prev) => ({ ...prev, phone: 'Enter a valid mobile number' }));
+                  } else {
+                    setFieldErrors((prev) => {
+                      const n = { ...prev };
+                      delete n.phone;
+                      return n;
+                    });
+                  }
+                }}
+                keyboardType="phone-pad"
+                returnKeyType="next"
+                icon="call-outline"
+                inputRef={phoneRef}
+                onSubmitEditing={() => passwordRef.current?.focus()}
+                colors={colors}
+                focused={focusedField === 'phone'}
+                onFocus={() => setFocusedField('phone')}
+                onBlur={() => handleBlur('phone')}
+                error={!!fieldErrors.phone}
+              />
+              <InputField
                 placeholder="Password"
                 value={password}
                 onChangeText={(t) => {
                   setPassword(t);
                   if (t && t.length < 6) {
-                    setFieldErrors((prev) => ({...prev, password: 'Min 6 characters'}));
+                    setFieldErrors((prev) => ({ ...prev, password: 'Min 6 characters' }));
                   } else {
-                    setFieldErrors((prev) => { const n = {...prev}; delete n.password; return n; });
+                    setFieldErrors((prev) => {
+                      const n = { ...prev };
+                      delete n.password;
+                      return n;
+                    });
                   }
                   if (confirmPassword && t !== confirmPassword) {
-                    setFieldErrors((prev) => ({...prev, confirm: 'Passwords do not match'}));
+                    setFieldErrors((prev) => ({ ...prev, confirm: 'Passwords do not match' }));
                   } else if (confirmPassword) {
-                    setFieldErrors((prev) => { const n = {...prev}; delete n.confirm; return n; });
+                    setFieldErrors((prev) => {
+                      const n = { ...prev };
+                      delete n.confirm;
+                      return n;
+                    });
                   }
                 }}
                 secureTextEntry
@@ -346,9 +424,13 @@ export function PremiumSignupScreen() {
                 onChangeText={(t) => {
                   setConfirmPassword(t);
                   if (t && password !== t) {
-                    setFieldErrors((prev) => ({...prev, confirm: 'Passwords do not match'}));
+                    setFieldErrors((prev) => ({ ...prev, confirm: 'Passwords do not match' }));
                   } else {
-                    setFieldErrors((prev) => { const n = {...prev}; delete n.confirm; return n; });
+                    setFieldErrors((prev) => {
+                      const n = { ...prev };
+                      delete n.confirm;
+                      return n;
+                    });
                   }
                 }}
                 secureTextEntry
@@ -377,7 +459,9 @@ export function PremiumSignupScreen() {
                   }}
                 >
                   <Ionicons name="alert-circle" size={16} color={colors.status.error} />
-                  <Text style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}>
+                  <Text
+                    style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}
+                  >
                     {error}
                   </Text>
                 </View>
@@ -423,7 +507,9 @@ export function PremiumSignupScreen() {
               {/* Google */}
               <TouchableOpacity
                 activeOpacity={0.85}
-                onPress={() => Alert.alert('Google Sign-In', 'Google sign-in will be available soon.')}
+                onPress={() =>
+                  Alert.alert('Google Sign-In', 'Google sign-in will be available soon.')
+                }
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -437,7 +523,9 @@ export function PremiumSignupScreen() {
                 }}
               >
                 <Ionicons name="logo-google" size={20} color={colors.text.primary} />
-                <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text.primary }}>Google</Text>
+                <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text.primary }}>
+                  Google
+                </Text>
               </TouchableOpacity>
 
               {/* Footer */}
@@ -446,7 +534,9 @@ export function PremiumSignupScreen() {
                   Already have an account?{' '}
                 </Text>
                 <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                  <Text style={{ fontSize: 13, fontWeight: '700', color: colors.brand.primary }}>Sign In</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: colors.brand.primary }}>
+                    Sign In
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -469,7 +559,10 @@ export function PremiumSignupScreen() {
               {Object.keys(fieldErrors).length > 0 && (
                 <View style={{ marginTop: -4, marginBottom: 8 }}>
                   {Object.entries(fieldErrors).map(([key, msg]) => (
-                    <Text key={key} style={{ fontSize: 12, color: colors.status.error, marginBottom: 2 }}>
+                    <Text
+                      key={key}
+                      style={{ fontSize: 12, color: colors.status.error, marginBottom: 2 }}
+                    >
                       {msg}
                     </Text>
                   ))}
@@ -482,5 +575,3 @@ export function PremiumSignupScreen() {
     </View>
   );
 }
-
-

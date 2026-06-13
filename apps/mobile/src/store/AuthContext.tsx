@@ -110,6 +110,7 @@ interface AuthContextType extends AuthState {
     password: string,
     firstName: string,
     lastName: string,
+    phone: string,
     referralCode?: string,
   ) => Promise<void>;
   googleLogin: (idToken: string) => Promise<void>;
@@ -447,9 +448,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string,
     firstName: string,
     lastName: string,
+    phone: string,
     referralCode?: string,
   ) {
-    const body: Record<string, any> = { email, password, firstName, lastName };
+    const body: Record<string, any> = { email, password, firstName, lastName, phone };
     if (referralCode) {
       body.referralCode = referralCode;
     }
