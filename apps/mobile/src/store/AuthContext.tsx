@@ -73,7 +73,7 @@ interface AuthState {
   accessToken: string | null;
   isNewUser: boolean;
   needsPhone: boolean;
-  isPremium: boolean;
+  isPremium: boolean | null;
 }
 
 interface CoupleRequestItem {
@@ -182,7 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     accessToken: null,
     isNewUser: false,
     needsPhone: false,
-    isPremium: false,
+    isPremium: null,
   });
 
   const tokenRefreshInFlight = useRef<Promise<boolean> | null>(null);
@@ -255,7 +255,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       accessToken: null,
       isNewUser: false,
       needsPhone: false,
-      isPremium: false,
+      isPremium: null,
     });
   }, [clearAuth_, clearSessionTimeout]);
 
@@ -335,7 +335,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           accessToken: null,
           isNewUser: false,
           needsPhone: false,
-          isPremium: false,
+          isPremium: null,
         });
       });
     });
@@ -370,7 +370,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           accessToken: token,
           isNewUser: false,
           needsPhone: false,
-          isPremium: false,
+          isPremium: null,
         });
         resetSessionTimeout();
         registerForPushNotifications(token).catch(() => {});
@@ -396,8 +396,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       accessToken: token,
       isNewUser: wasNewUser,
-      needsPhone: false,
-      isPremium: false,
+      needsPhone: user ? !user.phone : false,
+      isPremium: null,
     });
     resetSessionTimeout();
     refreshPremiumStatus();

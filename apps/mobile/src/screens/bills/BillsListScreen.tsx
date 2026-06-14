@@ -260,13 +260,13 @@ function EmptyState({ colors, onScan }: { colors: any; onScan: () => void }) {
   return (
     <View style={styles.emptyContainer}>
       <View style={[styles.emptyIconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
-        <Ionicons name="receipt-outline" size={56} color={colors.accent.primary} />
+        <Ionicons name="receipt-outline" size={56} color={colors.brand.primary} />
       </View>
       <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No Bills Yet</Text>
-      <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
+      <Text style={[styles.emptyDesc, { color: colors.text.primary }]}>
         Scan your first receipt or bill to start managing expenses automatically.
       </Text>
-      <View style={[styles.emptyBtn, { backgroundColor: colors.accent.primary }]}>
+      <View style={[styles.emptyBtn, { backgroundColor: colors.brand.primary }]}>
         <TouchableOpacity style={styles.emptyBtnInner} onPress={onScan} activeOpacity={0.8}>
           <Ionicons name="camera" size={20} color="#FFFFFF" />
           <Text style={styles.emptyBtnText}>Scan Your First Bill</Text>

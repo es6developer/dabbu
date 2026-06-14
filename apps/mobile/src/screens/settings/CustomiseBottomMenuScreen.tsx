@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -12,6 +13,8 @@ import { useTheme } from '../../theme';
 import { api, setAccessToken, getAccessToken } from '../../services/api';
 import { usePreferences, TabConfig } from '../../store/PreferencesContext';
 import { useToast } from '../../store/ToastContext';
+
+const BOTTOM_MENU_CACHE_KEY = '@dabbu_bottom_menu_config';
 
 const TAB_META: Record<string, { label: string; icon: string; desc: string }> = {
   Dashboard: { label: 'Dashboard', icon: 'compass', desc: 'Home screen with overview' },
@@ -43,8 +46,19 @@ export function CustomiseBottomMenuScreen() {
       } else {
         setTabs(getDefaultTabs());
       }
+      AsyncStorage.setItem(BOTTOM_MENU_CACHE_KEY, JSON.stringify(config)).catch(() => {});
     } catch {
-      setTabs(getDefaultTabs());
+      try {
+        const cached = await AsyncStorage.getItem(BOTTOM_MENU_CACHE_KEY);
+        if (cached) {
+          const parsed: TabConfig[] = JSON.parse(cached);
+          setTabs(migrateConfig(parsed).sort((a: any, b: any) => a.order - b.order));
+        } else {
+          setTabs(getDefaultTabs());
+        }
+      } catch {
+        setTabs(getDefaultTabs());
+      }
     }
     setLoading(false);
   }, []);
@@ -62,6 +76,7 @@ export function CustomiseBottomMenuScreen() {
       locked: t.locked,
     }));
     updateTabConfig(config);
+    AsyncStorage.setItem(BOTTOM_MENU_CACHE_KEY, JSON.stringify(config)).catch(() => {});
     try {
       await api.put('/user/preferences/bottom-menu', { config });
       showToast('Menu saved');
@@ -70,6 +85,7 @@ export function CustomiseBottomMenuScreen() {
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'Failed to save');
       await refresh();
+      navigation.goBack();
     } finally {
       setSaving(false);
     }

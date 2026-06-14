@@ -40,9 +40,27 @@ export function PremiumLoginScreen() {
     ]).start();
   }, []);
 
+  const loginErrorMap: Record<string, string> = {
+    'invalid email or password': 'Incorrect email or password. Please try again.',
+    'user not found': 'No account found with this email.',
+    'account disabled': 'This account has been disabled.',
+    'rate limit': 'Too many login attempts. Please wait a moment.',
+    'network': 'Unable to reach server. Please check your internet connection.',
+  };
+
+  function friendlyLoginError(msg: string): string {
+    const lower = msg.toLowerCase();
+    const matched = Object.keys(loginErrorMap).find((k) => lower.includes(k.toLowerCase()));
+    return matched ? loginErrorMap[matched] : msg;
+  }
+
   async function handleLogin() {
-    if (!email.trim() || !password.trim()) {
-      setError('Please enter your email and password');
+    if (!email.trim()) {
+      setError('Please enter your email address');
+      return;
+    }
+    if (!password.trim()) {
+      setError('Please enter your password');
       return;
     }
     setLoading(true);
@@ -50,7 +68,7 @@ export function PremiumLoginScreen() {
     try {
       await login(email.trim(), password);
     } catch (e: any) {
-      setError(e.message || 'Login failed');
+      setError(friendlyLoginError(e.message || 'Login failed'));
     } finally {
       setLoading(false);
     }

@@ -145,22 +145,13 @@ function getGreeting() {
   return 'Good Evening';
 }
 
-function fmtIn(v: number) {
-  return v.toLocaleString('en-IN', { maximumFractionDigits: 0 });
-}
-
-function TopSummary({
+function GreetingHeader({
   netBalance,
-  totalSpendAll,
-  memberCount,
-  activeCount,
-  pendingCount,
   userName,
   colors,
   onSettings,
 }: any) {
   const isPositive = netBalance >= 0;
-  const sign = isPositive ? '' : '-';
   const statusColor = isPositive ? colors.status.success : colors.status.error;
   const statusLabel = isPositive ? 'You are owed across spaces' : 'You owe across spaces';
 
@@ -193,84 +184,48 @@ function TopSummary({
         </TouchableOpacity>
       </View>
 
-      <View
-        style={{
-          marginTop: 20,
-          backgroundColor: colors.bg.card,
-          borderRadius: 20,
-          borderWidth: 1,
-          borderColor: colors.border.default,
-          padding: 20,
-        }}
-      >
-        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 2 }}>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: statusColor }}>₹</Text>
-          <Text
-            style={{ fontSize: 32, fontWeight: '800', color: statusColor, letterSpacing: -0.5 }}
-          >
-            {sign}
-            {Math.abs(Math.round(netBalance)).toLocaleString('en-IN')}
-          </Text>
-        </View>
-        <Text style={{ fontSize: 13, fontWeight: '500', color: statusColor, marginTop: 2 }}>
-          {statusLabel}
-        </Text>
-
-        <View
+      {netBalance !== 0 && (
+        <TouchableOpacity
+          activeOpacity={0.7}
           style={{
-            flexDirection: 'row',
             marginTop: 16,
-            backgroundColor: colors.bg.primary,
-            borderRadius: 14,
-            padding: 12,
-            gap: 0,
+            backgroundColor: colors.bg.card,
+            borderRadius: 20,
+            borderWidth: 1,
+            borderColor: isPositive ? `${colors.status.success}30` : `${colors.status.error}30`,
+            padding: 16,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 12,
           }}
         >
-          <SummaryStat
-            label="Total Spend"
-            value={`₹${fmtIn(totalSpendAll)}`}
-            color={colors.text.primary}
-            colors={colors}
-          />
-          <SummaryStat
-            label="Members"
-            value={String(memberCount)}
-            color={colors.text.primary}
-            colors={colors}
-          />
-          <SummaryStat
-            label="Active"
-            value={String(activeCount)}
-            color={colors.status.success}
-            colors={colors}
-          />
-          <SummaryStat
-            label="Pending"
-            value={String(pendingCount)}
-            color={colors.status.warning}
-            colors={colors}
-          />
-        </View>
-      </View>
-    </View>
-  );
-}
-
-function SummaryStat({
-  label,
-  value,
-  color,
-  colors,
-}: {
-  label: string;
-  value: string;
-  color: string;
-  colors: any;
-}) {
-  return (
-    <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
-      <Text style={{ fontSize: 15, fontWeight: '700', color }}>{value}</Text>
-      <Text style={{ fontSize: 10, fontWeight: '500', color: colors.text.tertiary }}>{label}</Text>
+          <View
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 14,
+              backgroundColor: `${statusColor}15`,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Ionicons
+              name={isPositive ? 'arrow-down-circle' : 'arrow-up-circle'}
+              size={24}
+              color={statusColor}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 18, fontWeight: '800', color: statusColor }}>
+              {isPositive ? '' : '-'}₹{Math.abs(Math.round(netBalance)).toLocaleString('en-IN')}
+            </Text>
+            <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
+              {statusLabel}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -337,6 +292,7 @@ function GroupCard({
   currentUserId,
   onPress,
   onAddExpense,
+  onSettle,
   colors,
   userBalance,
   balanceArray,
@@ -431,28 +387,10 @@ function GroupCard({
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            marginTop: 8,
+            justifyContent: 'flex-end',
+            marginTop: 10,
           }}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            {totalSpent > 0 && (
-              <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary }}>
-                ₹{fmtIn(totalSpent)} total
-              </Text>
-            )}
-            {memberCount > 0 && (
-              <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary }}>
-                {memberCount} member{memberCount > 1 ? 's' : ''}
-              </Text>
-            )}
-            {lastActivity && (
-              <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary }}>
-                {lastActivity}
-              </Text>
-            )}
-          </View>
-
           <View style={{ flexDirection: 'row', gap: 6 }}>
             <TouchableOpacity
               hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
@@ -460,56 +398,44 @@ function GroupCard({
             >
               <View
                 style={{
-                  paddingHorizontal: 10,
-                  paddingVertical: 5,
-                  borderRadius: 8,
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  borderRadius: 10,
                   backgroundColor: `${colors.accent.primary}12`,
                 }}
               >
-                <Text style={{ fontSize: 11, fontWeight: '700', color: colors.accent.primary }}>
-                  Add
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <Ionicons name="add" size={13} color={colors.accent.primary} />
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: colors.accent.primary }}>
+                    Add
+                  </Text>
+                </View>
               </View>
             </TouchableOpacity>
             {canSettle && (
               <TouchableOpacity
                 hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
-                onPress={() => Alert.alert('Settle Up', 'Opening settlement screen...')}
+                onPress={onSettle}
               >
                 <View
                   style={{
-                    paddingHorizontal: 10,
-                    paddingVertical: 5,
-                    borderRadius: 8,
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    borderRadius: 10,
                     backgroundColor: `${settlementColor}15`,
                   }}
                 >
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: settlementColor }}>
-                    Settle
-                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <Ionicons name="swap-horizontal" size={13} color={settlementColor} />
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: settlementColor }}>
+                      Settle
+                    </Text>
+                  </View>
                 </View>
               </TouchableOpacity>
             )}
           </View>
         </View>
-
-        {settlementLabel && (
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 4,
-              marginTop: 6,
-            }}
-          >
-            <View
-              style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: settlementColor }}
-            />
-            <Text style={{ fontSize: 11, fontWeight: '500', color: settlementColor }}>
-              {settlementLabel}
-            </Text>
-          </View>
-        )}
       </View>
     </TouchableOpacity>
   );
@@ -601,45 +527,9 @@ export function SharedScreen() {
     }, [loadData]),
   );
 
-  const totalMembers = useMemo(() => {
-    const ids = new Set<string>();
-    groups.forEach((g) =>
-      (g.members || []).forEach((m: any) => {
-        if (m.userId) {
-          ids.add(m.userId);
-        }
-      }),
-    );
-    return ids.size;
-  }, [groups]);
-
-  const activeCount = useMemo(
-    () =>
-      groups.filter((g: any) => {
-        const d = new Date(g.updatedAt || g.createdAt);
-        const now = new Date();
-        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-      }).length,
-    [groups],
-  );
-
-  const pendingCount = useMemo(
-    () =>
-      groups.filter((g: any) => {
-        const b = groupBalances[g.id];
-        return b !== undefined && Math.abs(b) > 0;
-      }).length,
-    [groups, groupBalances],
-  );
-
   const netBalance = useMemo(
     () => Object.values(groupBalances).reduce((s, b) => s + (b || 0), 0),
     [groupBalances],
-  );
-
-  const totalSpendAll = useMemo(
-    () => groups.reduce((s: number, g: any) => s + (g.totalSpent || 0), 0),
-    [groups],
   );
 
   const planInfo = useMemo(() => groups[0]?._plan || DEFAULT_PLAN, [groups]);
@@ -713,14 +603,12 @@ export function SharedScreen() {
   if (loading && groups.length === 0) {
     return (
       <View style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
-        <View style={{ paddingHorizontal: H_PADDING, paddingTop: insets.top + 12 }}>
+        <View style={{ paddingHorizontal: H_PADDING, paddingTop: insets.top + 12, gap: 12 }}>
           <Skeleton width={120} height={13} borderRadius={6} />
-          <Skeleton width={160} height={20} style={{ marginTop: 4 }} borderRadius={6} />
-        </View>
-        <View style={{ marginTop: 24, paddingHorizontal: H_PADDING, gap: 12 }}>
-          <Skeleton width="100%" height={160} borderRadius={20} />
+          <Skeleton width={160} height={20} borderRadius={6} />
+          <Skeleton width="100%" height={80} borderRadius={20} />
           {[0, 1].map((i) => (
-            <Skeleton key={i} width="100%" height={105} borderRadius={16} />
+            <Skeleton key={i} width="100%" height={90} borderRadius={16} />
           ))}
         </View>
       </View>
@@ -743,14 +631,10 @@ export function SharedScreen() {
           />
         }
       >
-        {/* ─── Top Summary ─── */}
+        {/* ─── Greeting Header ─── */}
         <View style={{ paddingHorizontal: H_PADDING, paddingTop: insets.top + 12 }}>
-          <TopSummary
+          <GreetingHeader
             netBalance={netBalance}
-            totalSpendAll={totalSpendAll}
-            memberCount={totalMembers}
-            activeCount={activeCount}
-            pendingCount={pendingCount}
             userName={userName}
             colors={colors}
             onSettings={() => navigation.navigate('Settings')}
@@ -771,50 +655,26 @@ export function SharedScreen() {
           <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text.primary }}>
             Your Spaces
           </Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            {groups.length > 0 && (
-              <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.tertiary }}>
-                {groups.length}
-              </Text>
-            )}
-            <TouchableOpacity
-              onPress={handleFabPress}
-              disabled={isAtLimit}
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 10,
-                backgroundColor: isAtLimit
-                  ? `${colors.status.error}15`
-                  : `${colors.accent.primary}12`,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Ionicons
-                name={isAtLimit ? 'lock-closed' : 'add'}
-                size={16}
-                color={isAtLimit ? colors.status.error : colors.accent.primary}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 3,
-                paddingHorizontal: 8,
-                paddingVertical: 6,
-                borderRadius: 8,
-                backgroundColor: `${colors.accent.primary}10`,
-              }}
-            >
-              <Ionicons name="diamond" size={11} color={colors.accent.primary} />
-              <Text style={{ fontSize: 11, fontWeight: '700', color: colors.accent.primary }}>
-                Upgrade
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            onPress={handleFabPress}
+            disabled={isAtLimit}
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 10,
+              backgroundColor: isAtLimit
+                ? `${colors.status.error}15`
+                : `${colors.accent.primary}12`,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Ionicons
+              name={isAtLimit ? 'lock-closed' : 'add'}
+              size={16}
+              color={isAtLimit ? colors.status.error : colors.accent.primary}
+            />
+          </TouchableOpacity>
         </View>
 
         {/* ─── Spaces List ─── */}
@@ -848,6 +708,9 @@ export function SharedScreen() {
                 }}
                 onAddExpense={() => {
                   navigation.navigate('SharedExpenseForm', { groupId: group.id, edit: false });
+                }}
+                onSettle={() => {
+                  navigation.navigate('Settlement', { groupId: group.id });
                 }}
               />
             ))}
@@ -903,64 +766,34 @@ export function SharedScreen() {
           </View>
         )}
 
-        {/* ─── Usage ─── */}
-        {groups.length > 0 && (
-          <View style={{ paddingHorizontal: H_PADDING, marginTop: 24 }}>
-            <View
-              style={{
-                backgroundColor: colors.bg.card,
-                borderRadius: 14,
-                borderWidth: 1,
-                borderColor: colors.border.default,
-                padding: 14,
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 10,
-              }}
-            >
-              <View style={{ flex: 1, gap: 6 }}>
-                <View
-                  style={{
-                    height: 4,
-                    borderRadius: 2,
-                    backgroundColor: colors.bg.tertiary,
-                    overflow: 'hidden',
-                  }}
-                >
-                  <View
-                    style={{
-                      height: '100%',
-                      borderRadius: 2,
-                      width: `${Math.min((groups.length / maxSpaces) * 100, 100)}%`,
-                      backgroundColor: isAtLimit
-                        ? colors.status.error
-                        : groups.length >= maxSpaces - 1
-                          ? colors.status.warning
-                          : colors.accent.primary,
-                    }}
-                  />
-                </View>
-                <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.secondary }}>
-                  {groups.length} of {maxSpaces} spaces used{isAtLimit ? ' — Full' : ''}
-                </Text>
-              </View>
-              {planInfo.tier === 'free' && (
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}
-                  style={{
-                    paddingHorizontal: 12,
-                    paddingVertical: 7,
-                    borderRadius: 8,
-                    backgroundColor: `${colors.accent.primary}10`,
-                  }}
-                >
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: colors.accent.primary }}>
-                    Upgrade
-                  </Text>
-                </TouchableOpacity>
-              )}
+        {/* ─── Upgrade Banner ─── */}
+        {planInfo.tier === 'free' && groups.length >= maxSpaces - 1 && (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}
+            style={{
+              marginHorizontal: H_PADDING,
+              marginTop: 20,
+              paddingVertical: 10,
+              paddingHorizontal: 14,
+              borderRadius: 12,
+              backgroundColor: `${colors.accent.primary}10`,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <Text style={{ fontSize: 12, fontWeight: '600', color: colors.accent.primary }}>
+              {groups.length >= maxSpaces
+                ? 'Space limit reached. Upgrade for more.'
+                : `${maxSpaces - groups.length} space${maxSpaces - groups.length > 1 ? 's' : ''} remaining on free plan`}
+            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: colors.accent.primary }}>
+                Upgrade
+              </Text>
+              <Ionicons name="chevron-forward" size={14} color={colors.accent.primary} />
             </View>
-          </View>
+          </TouchableOpacity>
         )}
       </ScrollView>
 

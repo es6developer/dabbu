@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,8 @@ import { useAuth } from '../../store/AuthContext';
 import { Avatar } from '../../components/ui/Avatar';
 import { PADDING, borderRadius, shadows } from '../../theme/design';
 import { useToast } from '../../store/ToastContext';
+
+const UPI_PATTERN = /^[\w.-]+@[\w.-]+$/;
 
 interface Preset {
   seed: string;
@@ -45,6 +47,24 @@ export function ProfileScreen() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [originalValues, setOriginalValues] = useState({ firstName: '', lastName: '', phone: '', upiId: '' });
+  const [upiError, setUpiError] = useState('');
+
+  const hasChanges =
+    firstName !== originalValues.firstName ||
+    lastName !== originalValues.lastName ||
+    phone !== originalValues.phone ||
+    upiId !== originalValues.upiId;
+
+  const isUpiValid = upiId.trim() === '' || UPI_PATTERN.test(upiId.trim());
+
+  function validateUpi(value: string) {
+    if (value.trim() && !UPI_PATTERN.test(value.trim())) {
+      setUpiError('Enter a valid UPI ID (e.g. user@bank)');
+    } else {
+      setUpiError('');
+    }
+  }
 
   useEffect(() => {
     loadProfile();
@@ -59,20 +79,17 @@ export function ProfileScreen() {
       const res = await api.get<any>('/users/profile');
       const data = res?.data || res;
       if (data) {
-        if (data.firstName) {
-          setFirstName(data.firstName);
-        }
-        if (data.lastName !== undefined) {
-          setLastName(data.lastName || '');
-        }
-        if (data.phone) {
-          setPhone(data.phone);
-        }
+        const origFirstName = data.firstName || '';
+        const origLastName = data.lastName || '';
+        const origPhone = data.phone || '';
+        const origUpiId = data.upiId || '';
+        setFirstName(origFirstName);
+        setLastName(origLastName);
+        setPhone(origPhone);
+        setUpiId(origUpiId);
+        setOriginalValues({ firstName: origFirstName, lastName: origLastName, phone: origPhone, upiId: origUpiId });
         if (data.email) {
           setEmail(data.email);
-        }
-        if (data.upiId) {
-          setUpiId(data.upiId);
         }
         completeProfileSetup({
           firstName: data.firstName || '',
@@ -216,7 +233,7 @@ export function ProfileScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingBottom: insets.bottom + 120 + tabBarHeight,
-            paddingTop: insets.top + 16,
+            paddingTop: insets.top + 4,
           }}
         >
           {/* Header */}
@@ -571,27 +588,44 @@ export function ProfileScreen() {
                     paddingVertical: 15,
                     borderRadius: borderRadius.md,
                     borderWidth: 1,
-                    borderColor: colors.border.default,
+                    borderColor: upiError ? colors.status.error : colors.border.default,
                     backgroundColor: colors.bg.tertiary,
                     color: colors.text.primary,
                   }}
                   value={upiId}
-                  onChangeText={setUpiId}
+                  onChangeText={(t) => {
+                    setUpiId(t);
+                    if (t.trim() && !UPI_PATTERN.test(t.trim())) {
+                      setUpiError('Enter a valid UPI ID (e.g. user@bank)');
+                    } else {
+                      setUpiError('');
+                    }
+                  }}
+                  onBlur={() => validateUpi(upiId)}
                   placeholder="example@upi"
                   placeholderTextColor={colors.text.tertiary}
                   autoCapitalize="none"
                 />
-                <Text
-                  style={{
-                    fontSize: 11,
-                    fontWeight: '500',
-                    color: colors.text.tertiary,
-                    marginTop: 6,
-                    lineHeight: 16,
-                  }}
-                >
-                  Set your UPI ID so group members can pay you directly.
-                </Text>
+                {upiError ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
+                    <Ionicons name="alert-circle" size={12} color={colors.status.error} />
+                    <Text style={{ fontSize: 11, fontWeight: '500', color: colors.status.error, lineHeight: 16 }}>
+                      {upiError}
+                    </Text>
+                  </View>
+                ) : (
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      fontWeight: '500',
+                      color: colors.text.tertiary,
+                      marginTop: 6,
+                      lineHeight: 16,
+                    }}
+                  >
+                    Set your UPI ID so group members can pay you directly.
+                  </Text>
+                )}
               </View>
 
               {/* Danger Zone */}
@@ -673,10 +707,10 @@ export function ProfileScreen() {
               backgroundColor: colors.accent.primary,
               ...shadows.md,
               shadowColor: colors.accent.primary,
-              opacity: saving || loading ? 0.6 : 1,
+              opacity: saving || loading || !hasChanges || !!upiError ? 0.6 : 1,
             }}
             onPress={handleSaveProfile}
-            disabled={saving || loading}
+            disabled={saving || loading || !hasChanges || !!upiError}
             activeOpacity={0.85}
           >
             {saving ? (

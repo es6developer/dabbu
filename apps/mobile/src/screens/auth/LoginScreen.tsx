@@ -18,7 +18,7 @@ import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useGoogleAuth, getGoogleIdToken, getGoogleError } from '../../services/google-auth';
-import { PADDING, borderRadius, shadows } from '../../theme/design';
+import { PADDING, shadows } from '../../theme/design';
 
 export function LoginScreen() {
   const navigation = useNavigation<any>();
@@ -55,6 +55,7 @@ export function LoginScreen() {
     } else {
       const errMsg = getGoogleError(response);
       if (errMsg) {
+        console.error('Google auth response error:', response);
         setError(errMsg);
         setLoading(false);
       }
@@ -106,7 +107,6 @@ export function LoginScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
-      "
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
@@ -116,23 +116,6 @@ export function LoginScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Back Button */}
-          <View style={{ paddingHorizontal: PADDING, marginBottom: 16 }}>
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 12,
-                backgroundColor: colors.bg.secondary,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
-            </TouchableOpacity>
-          </View>
-
           <Animated.View
             style={{
               opacity: fadeIn,
@@ -142,11 +125,23 @@ export function LoginScreen() {
           >
             {/* Brand */}
             <View style={{ alignItems: 'center', marginBottom: 36 }}>
-              <Image
-                source={require('../../../assets/logo.png')}
-                style={{ width: 72, height: 72, marginBottom: 14 }}
-                resizeMode="contain"
-              />
+              <View
+                style={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: 20,
+                  backgroundColor: colors.bg.secondary,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 14,
+                }}
+              >
+                <Image
+                  source={require('../../../assets/logo.png')}
+                  style={{ width: 56, height: 56 }}
+                  resizeMode="contain"
+                />
+              </View>
               <Text
                 style={{
                   fontSize: 28,
@@ -353,7 +348,15 @@ export function LoginScreen() {
               style={{ flexDirection: 'row', gap: 12, justifyContent: 'center', marginBottom: 24 }}
             >
               <TouchableOpacity
-                onPress={() => promptAsync()}
+                onPress={async () => {
+                  try {
+                    setError('');
+                    await promptAsync();
+                  } catch (e: any) {
+                    console.error('Google sign-in prompt failed:', e);
+                    setError(e?.message || 'Google sign-in could not be started');
+                  }
+                }}
                 activeOpacity={0.85}
                 style={{
                   width: 56,

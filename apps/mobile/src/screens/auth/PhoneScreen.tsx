@@ -26,17 +26,29 @@ export function PhoneScreen() {
 
   const validatePhone = (v: string) => {
     const digits = v.replace(/[^0-9+]/g, '');
-    if (v.length > 0 && digits.length < 8) {
-      setFieldError('Please enter a valid phone number (min 8 digits)');
+    if (v.length === 0) {
+      setFieldError('');
+    } else if (v.length <= 3) {
+      setFieldError('');
+    } else if (digits.length < 8) {
+      setFieldError('Number too short — include country code (e.g. +91)');
     } else {
       setFieldError('');
     }
   };
 
+  const saveErrorMap: Record<string, string> = {
+    'phone must be a valid phone number': 'Please enter a valid phone number with country code',
+    'phone already in use': 'This phone number is already linked to another account',
+    'phone is required': 'Phone number is required',
+    'network': 'Unable to reach server. Please check your internet connection.',
+    'timeout': 'Request timed out. Please try again.',
+  };
+
   async function handleSave() {
     const digits = phone.replace(/[^0-9+]/g, '');
     if (digits.length < 8) {
-      setError('Please enter a valid phone number');
+      setError('Please enter a valid phone number with country code');
       return;
     }
     setSaving(true);
@@ -45,15 +57,10 @@ export function PhoneScreen() {
       await updatePhone(digits);
     } catch (e: any) {
       const msg = e?.message || '';
-      const knownErrors: Record<string, string> = {
-        'phone must be a valid phone number': 'Please enter a valid phone number with country code',
-        'phone already in use': 'This phone number is already linked to another account',
-        'phone is required': 'Phone number is required',
-      };
-      const matched = Object.keys(knownErrors).find((k) =>
+      const matched = Object.keys(saveErrorMap).find((k) =>
         msg.toLowerCase().includes(k.toLowerCase()),
       );
-      setError(matched ? knownErrors[matched] : msg || 'Failed to save phone number');
+      setError(matched ? saveErrorMap[matched] : msg || 'Failed to save phone number');
     } finally {
       setSaving(false);
     }

@@ -18,14 +18,12 @@ import { useTheme } from '../../theme';
 import { api, setAccessToken, clearCache, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useCoupleMode, COUPLE_COLORS } from '../../hooks/useCoupleMode';
-import { CoupleModeToggle } from '../../components/ui/CoupleModeToggle';
 import { CATEGORY_ICONS, CATEGORY_COLORS } from '../../config/categoryIcons';
 import { Avatar } from '../../components/ui/Avatar';
 import { KEYWORD_CATEGORIES } from '../../constants/smartEntryKeywords';
 import { useOffline } from '../../store/OfflineContext';
 
 const W = Dimensions.get('window').width;
-const BRAND = '#4F46E5';
 
 function fmt(v: number) {
   return '\u20B9' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
@@ -145,7 +143,7 @@ const ACTION_ITEMS: {
     screen: 'CategorySelection',
     params: { type: 'income' },
   },
-  { label: 'Split Expense', icon: 'people', route: 'Spaces', screen: 'CreateSharedGroup' },
+  { label: 'Split Expense', icon: 'people', route: 'Circles', screen: 'SplitExpense' },
   { label: 'Scan Receipt', icon: 'scan', route: 'Expense', screen: 'BillScanner' },
   { label: 'Create Budget', icon: 'pie-chart', route: 'Settings', screen: 'BudgetsList' },
 ];
@@ -154,7 +152,7 @@ export function HomeScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
-  const { user, accessToken, toggleCoupleMode } = useAuth();
+  const { user, accessToken } = useAuth();
   const { isOnline, pendingCount } = useOffline();
   const couple = useCoupleMode();
 
@@ -213,7 +211,7 @@ export function HomeScreen() {
     () => [
       { label: 'Net Worth', value: fmt(totalBalance ?? 0), color: '#10B981' },
       { label: 'Subscriptions', value: `${fmt(subscriptionTotal)}/mo`, color: '#F59E0B' },
-      { label: 'Active Goals', value: String(goals.length), color: BRAND },
+      { label: 'Active Goals', value: String(goals.length), color: colors.brand.primary },
       { label: 'Upcoming Bills', value: String(reminders.length), color: '#EF4444' },
       {
         label: 'Budget Health',
@@ -488,7 +486,6 @@ export function HomeScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingTop: insets.top + 16, paddingBottom: 100 }}
         >
-          <CoupleModeToggle />
           <View style={{ paddingHorizontal: 20, paddingTop: 8, gap: 14 }}>
             <TouchableOpacity
               activeOpacity={0.85}
@@ -608,48 +605,10 @@ export function HomeScreen() {
               clearCache();
               loadData(true);
             }}
-            tintColor={BRAND}
+            tintColor={colors.brand.primary}
           />
         }
       >
-        <CoupleModeToggle />
-
-        {couple.isInCouple && !couple.isCoupleModeActive && (
-          <TouchableOpacity
-            style={[
-              page.coupleBanner,
-              {
-                backgroundColor: `${COUPLE_COLORS.primary}10`,
-                borderColor: `${COUPLE_COLORS.primary}30`,
-              },
-            ]}
-            activeOpacity={0.7}
-            onPress={() => toggleCoupleMode(true)}
-          >
-            <View
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 12,
-                backgroundColor: COUPLE_COLORS.primary,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Ionicons name="heart" size={20} color="#FFF" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: COUPLE_COLORS.primary }}>
-                Couple Mode
-              </Text>
-              <Text style={{ fontSize: 12, fontWeight: '500', color: COUPLE_COLORS.textSecondary }}>
-                Enable pink theme and couple features
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={COUPLE_COLORS.primary} />
-          </TouchableOpacity>
-        )}
-
         {/* ─── SECTION 1: HERO FINANCIAL SUMMARY ─── */}
         <View style={{ paddingHorizontal: 20, paddingTop: 0 }}>
           {/* Header row */}
@@ -678,12 +637,12 @@ export function HomeScreen() {
                   width: 36,
                   height: 36,
                   borderRadius: 10,
-                  backgroundColor: `${BRAND}10`,
+                  backgroundColor: `${colors.brand.primary}10`,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <Ionicons name="notifications-outline" size={18} color={BRAND} />
+                <Ionicons name="notifications-outline" size={18} color={colors.brand.primary} />
                 {unreadCount > 0 && (
                   <View style={page.badge}>
                     <Text style={page.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
@@ -773,7 +732,7 @@ export function HomeScreen() {
 
             {/* Safe to Spend */}
             {totalBalance !== null && (
-              <View style={[page.safePill, { backgroundColor: `${BRAND}10` }]}>
+              <View style={[page.safePill, { backgroundColor: `${colors.brand.primary}12` }]}>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
                     Safe to Spend
@@ -782,7 +741,7 @@ export function HomeScreen() {
                     style={{
                       fontSize: 18,
                       fontWeight: '800',
-                      color: BRAND,
+                      color: colors.brand.primary,
                       letterSpacing: -0.5,
                       marginTop: 1,
                     }}
@@ -790,7 +749,7 @@ export function HomeScreen() {
                     {fmt(safeToSpend)}
                   </Text>
                 </View>
-                <Ionicons name="shield-checkmark" size={22} color={BRAND} />
+                <Ionicons name="shield-checkmark" size={22} color={colors.brand.primary} />
               </View>
             )}
           </View>
@@ -800,7 +759,7 @@ export function HomeScreen() {
         <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
           <View style={[page.quickAddCard, { backgroundColor: colors.bg.card }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Ionicons name="flash" size={16} color={BRAND} />
+              <Ionicons name="flash" size={16} color={colors.brand.primary} />
               <TextInput
                 style={[page.quickAddInput, { color: colors.text.primary }]}
                 placeholder='e.g. "Tea 20"'
@@ -813,10 +772,10 @@ export function HomeScreen() {
               />
               {!quickEntryLoading ? (
                 <TouchableOpacity onPress={() => handleQuickAdd(quickEntry)}>
-                  <Ionicons name="arrow-forward-circle" size={22} color={BRAND} />
+                  <Ionicons name="arrow-forward-circle" size={22} color={colors.brand.primary} />
                 </TouchableOpacity>
               ) : (
-                <ActivityIndicator size="small" color={BRAND} />
+                <ActivityIndicator size="small" color={colors.brand.primary} />
               )}
             </View>
             {(() => {
@@ -929,17 +888,122 @@ export function HomeScreen() {
               <TouchableOpacity
                 key={a.label}
                 onPress={() => navigation.navigate(a.route, { screen: a.screen, params: a.params })}
-                style={[page.actionPill, { backgroundColor: `${BRAND}10` }]}
+                style={[page.actionPill, { backgroundColor: `${colors.brand.primary}12` }]}
                 activeOpacity={0.7}
               >
-                <Ionicons name={a.icon} size={16} color={BRAND} />
-                <Text style={{ fontSize: 13, fontWeight: '600', color: BRAND }}>{a.label}</Text>
+                <Ionicons name={a.icon} size={16} color={colors.brand.primary} />
+                <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>{a.label}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
 
-        {/* ─── SECTION 4: INSIGHTS CAROUSEL ─── */}
+        {/* ─── SECTION 4: RECENT TRANSACTIONS ─── */}
+        {recentTxns.length > 0 && (
+          <View style={{ marginTop: 26 }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingHorizontal: 20,
+                marginBottom: 12,
+              }}
+            >
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
+                Recent Activity
+              </Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Expense', { screen: 'ExpenseHome' })}
+              >
+                <Text style={{ fontSize: 13, fontWeight: '600', color: colors.brand.primary }}>
+                  See All
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              style={{
+                marginHorizontal: 20,
+                borderRadius: 20,
+                backgroundColor: colors.bg.card,
+                padding: 16,
+              }}
+            >
+              {recentTxns.slice(0, 5).map((tx: any, i: number) => {
+                const isExpense = tx.type === 'expense' || tx.amount < 0;
+                const amt = Math.abs(Number(tx.amount || 0));
+                return (
+                  <TouchableOpacity key={tx.id || i} activeOpacity={0.7}>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingVertical: 10,
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 12,
+                          backgroundColor: isExpense
+                            ? `${colors.status.error}14`
+                            : `${colors.status.success}14`,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Ionicons
+                          name={isExpense ? 'arrow-up' : 'arrow-down'}
+                          size={18}
+                          color={isExpense ? colors.status.error : colors.status.success}
+                        />
+                      </View>
+                      <View style={{ flex: 1, marginLeft: 12 }}>
+                        <Text
+                          style={{ fontSize: 14, fontWeight: '600', color: colors.text.primary }}
+                        >
+                          {tx.description || tx.title || tx.merchant || 'Transaction'}
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            fontWeight: '500',
+                            color: colors.text.tertiary,
+                            marginTop: 2,
+                          }}
+                        >
+                          {tx.category || tx.cat || ''}
+                          {tx.date ? ` · ${fmtDate(tx.date)}` : ''}
+                        </Text>
+                      </View>
+                      <Text
+                        style={{
+                          fontSize: 15,
+                          fontWeight: '700',
+                          color: isExpense ? colors.text.primary : '#10B981',
+                        }}
+                      >
+                        {isExpense ? '' : '+'}₹{amt.toLocaleString('en-IN')}
+                      </Text>
+                    </View>
+                    {i < recentTxns.length - 1 && (
+                      <View
+                        style={{
+                          height: 1,
+                          backgroundColor: colors.border.subtle,
+                          marginLeft: 52,
+                        }}
+                      />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        )}
+
+        {/* ─── SECTION 6: INSIGHTS CAROUSEL ─── */}
         <View style={{ marginTop: 26 }}>
           <Text
             style={{
@@ -995,7 +1059,7 @@ export function HomeScreen() {
           </ScrollView>
         </View>
 
-        {/* ─── SECTION 5: THIS MONTH ─── */}
+        {/* ─── SECTION 7: THIS MONTH ─── */}
         <View style={{ paddingHorizontal: 20, marginTop: 28 }}>
           <Text
             style={{
@@ -1064,7 +1128,7 @@ export function HomeScreen() {
           </View>
         </View>
 
-        {/* ─── SECTION 6: SPACES ─── */}
+        {/* ─── SECTION 8: SPACES ─── */}
         {spaces.length > 0 && (
           <View style={{ marginTop: 28 }}>
             <View
@@ -1079,8 +1143,8 @@ export function HomeScreen() {
               <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                 Spaces
               </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Spaces')}>
-                <Text style={{ fontSize: 13, fontWeight: '600', color: BRAND }}>See All</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Spaces', { screen: 'SharedFinanceHome' })}>
+                <Text style={{ fontSize: 13, fontWeight: '600', color: colors.brand.primary }}>See All</Text>
               </TouchableOpacity>
             </View>
             <View style={{ paddingHorizontal: 20, gap: 10 }}>
@@ -1178,7 +1242,7 @@ export function HomeScreen() {
           </View>
         )}
 
-        {/* ─── SECTION 7: UPCOMING ─── */}
+        {/* ─── SECTION 9: UPCOMING ─── */}
         {reminders.length > 0 && (
           <View style={{ paddingHorizontal: 20, marginTop: 28 }}>
             <Text
@@ -1259,8 +1323,8 @@ export function HomeScreen() {
                   onPress={() => navigation.navigate('Reminders')}
                   style={[page.seeAllBtn, { borderTopColor: colors.border.subtle }]}
                 >
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: BRAND }}>View All</Text>
-                  <Ionicons name="chevron-forward" size={14} color={BRAND} />
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: colors.brand.primary }}>View All</Text>
+                  <Ionicons name="chevron-forward" size={14} color={colors.brand.primary} />
                 </TouchableOpacity>
               )}
             </View>
@@ -1286,9 +1350,10 @@ function HeroMonthRow({
   pct: number;
   badge?: string;
 }) {
+  const { colors } = useTheme();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-      <Text style={{ width: 50, fontSize: 12, fontWeight: '600', color: '#9CA3AF' }}>{label}</Text>
+      <Text style={{ width: 50, fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>{label}</Text>
       <View
         style={{
           flex: 1,
@@ -1337,10 +1402,11 @@ function ObligationRow({
   value: string;
   valueColor: string;
 }) {
+  const { colors } = useTheme();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-      <Ionicons name={icon} size={14} color="#9CA3AF" />
-      <Text style={{ flex: 1, fontSize: 13, fontWeight: '500', color: '#9CA3AF' }}>{label}</Text>
+      <Ionicons name={icon} size={14} color={colors.text.tertiary} />
+      <Text style={{ flex: 1, fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>{label}</Text>
       <Text style={{ fontSize: 14, fontWeight: '700', color: valueColor }}>{value}</Text>
     </View>
   );
@@ -1359,11 +1425,12 @@ function MonthBar({
   color: string;
   fmt: (v: number) => string;
 }) {
+  const { colors } = useTheme();
   const pct = max > 0 ? (value / max) * 100 : 0;
   return (
     <View style={{ marginBottom: 10 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
-        <Text style={{ fontSize: 13, fontWeight: '600', color: '#9CA3AF' }}>{label}</Text>
+        <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.tertiary }}>{label}</Text>
         <Text style={{ fontSize: 13, fontWeight: '700', color }}>{formatFn(value)}</Text>
       </View>
       <View

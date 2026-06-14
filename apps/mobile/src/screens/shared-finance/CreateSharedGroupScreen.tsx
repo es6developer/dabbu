@@ -61,6 +61,10 @@ export function CreateSharedGroupScreen() {
       setError('Group name is required');
       return;
     }
+    if (type === 'couple' && !partnerPhone.trim()) {
+      setError('Partner phone number is required for couple spaces');
+      return;
+    }
     setError('');
     setSaving(true);
     try {
@@ -76,11 +80,15 @@ export function CreateSharedGroupScreen() {
       });
       const newGroupId = res?.id || res?._id;
       if (type === 'couple' && newGroupId && partnerPhone.trim()) {
-        await api
-          .post(`/shared-finance/groups/${newGroupId}/members/add-by-phone`, {
+        try {
+          await api.post(`/shared-finance/groups/${newGroupId}/members/add-by-phone`, {
             phone: partnerPhone.trim(),
-          })
-          .catch(() => {});
+          });
+        } catch (addErr: any) {
+          setSaving(false);
+          setError('Space created, but could not add partner: ' + (addErr.message || 'Phone number may be invalid or the user may not be registered'));
+          return;
+        }
       }
       if (newGroupId) {
         navigation.replace('SharedGroupDetail', { groupId: newGroupId, groupName: name.trim() });
@@ -88,7 +96,11 @@ export function CreateSharedGroupScreen() {
         navigation.goBack();
       }
     } catch (e: any) {
-      setError(e.message || 'Failed to create group');
+      if (e?.name === 'AbortError') {
+        setError('Request timed out. Please check your connection and try again.');
+      } else {
+        setError(e.message || 'Failed to create group');
+      }
     } finally {
       setSaving(false);
     }

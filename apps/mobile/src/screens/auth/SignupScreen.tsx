@@ -40,6 +40,7 @@ export function SignupScreen() {
       if (idToken) {
         handleGoogleSignup(idToken);
       } else if (response.type === 'error') {
+        console.error('Google auth response error:', response);
         setError('Google sign-in was cancelled or failed');
         setLoading(false);
       }
@@ -68,11 +69,18 @@ export function SignupScreen() {
           </TouchableOpacity>
 
           <View style={styles.brand}>
-            <Image
-              source={require('../../../assets/logo.png')}
-              style={styles.logoImage}
-              resizeMode="contain"
-            />
+            <View
+              style={[
+                styles.logoContainer,
+                { backgroundColor: colors.bg.secondary },
+              ]}
+            >
+              <Image
+                source={require('../../../assets/logo.png')}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
+            </View>
             <Text style={[styles.title, { color: colors.text.primary }]}>Create account</Text>
             <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>
               Start managing money together with your family and friends
@@ -91,7 +99,15 @@ export function SignupScreen() {
               styles.googleBtn,
               { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle },
             ]}
-            onPress={() => promptAsync()}
+            onPress={async () => {
+              try {
+                setError('');
+                await promptAsync();
+              } catch (e: any) {
+                console.error('Google sign-in prompt failed:', e);
+                setError(e?.message || 'Google sign-in could not be started');
+              }
+            }}
             disabled={loading}
             activeOpacity={0.8}
           >
@@ -139,7 +155,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   brand: { alignItems: 'center', marginBottom: 24 },
-  logoImage: { width: 80, height: 80, marginBottom: 12 },
+  logoContainer: {
+    width: 88,
+    height: 88,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  logoImage: { width: 60, height: 60 },
   title: { fontSize: 28, fontWeight: '700', marginBottom: 6 },
   subtitle: { fontSize: 14, marginBottom: 28 },
   errorBox: {

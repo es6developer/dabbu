@@ -42,32 +42,32 @@ export function SharedFinanceNavigator() {
       <Stack.Screen
         name="CreateSharedGroup"
         component={CreateSharedGroupScreen}
-        options={{ title: 'New Group', presentation: 'modal' }}
+        options={{ headerShown: false, presentation: 'modal' }}
       />
       <Stack.Screen
         name="SharedExpenseForm"
         component={SharedExpenseFormScreen}
-        options={{ title: 'Add Expense' }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="CoupleFinance"
         component={CoupleFinanceScreen}
-        options={{ title: 'Couple Finance' }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="FamilyDashboard"
         component={FamilyDashboardScreen}
-        options={{ title: 'Family Dashboard' }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="TripDashboard"
         component={TripDashboardScreen}
-        options={{ title: 'Trip Dashboard' }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="Settlement"
         component={SettlementScreen}
-        options={{ title: 'Settlements' }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="AccessExpired"

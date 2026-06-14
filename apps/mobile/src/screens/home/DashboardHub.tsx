@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { ProfileBubble } from '../../components/ui/ProfileBubble';
 import { ReferralPill } from '../../components/ui/ReferralPill';
@@ -26,6 +27,7 @@ const RECENT_TXNS = [
 
 export function DashboardHub() {
   const { colors, isDark } = useTheme();
+  const navigation = useNavigation<any>();
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: colors.bg.primary }}>
@@ -67,11 +69,11 @@ export function DashboardHub() {
         <View className="mt-5">
           <QuickActionBar
             actions={[
-              { icon: 'add-circle', label: 'Add Expense', onPress: () => {} },
+              { icon: 'add-circle', label: 'Add Expense', onPress: () => navigation.navigate('Expense', { screen: 'CategorySelection' }) },
               { icon: 'swap-horizontal', label: 'Transfer', onPress: () => {} },
-              { icon: 'people', label: 'Split', onPress: () => {} },
-              { icon: 'receipt', label: 'Bills', onPress: () => {} },
-              { icon: 'trending-up', label: 'Reports', onPress: () => {} },
+              { icon: 'people', label: 'Split', onPress: () => navigation.navigate('Circles', { screen: 'SplitExpense' }) },
+              { icon: 'receipt', label: 'Bills', onPress: () => navigation.navigate('Expense', { screen: 'BillsList' }) },
+              { icon: 'trending-up', label: 'Reports', onPress: () => navigation.navigate('Settings', { screen: 'Reports' }) },
             ]}
           />
         </View>
@@ -129,7 +131,7 @@ export function DashboardHub() {
             <Text className="text-[17px] font-bold" style={{ color: colors.text.primary }}>
               Recent Activity
             </Text>
-            <TouchableOpacity onPress={() => {}} activeOpacity={0.7}>
+            <TouchableOpacity onPress={() => navigation.navigate('Expense', { screen: 'ExpenseHome' })} activeOpacity={0.7}>
               <Text className="text-[13px] font-semibold" style={{ color: colors.brand.primary }}>
                 See All
               </Text>

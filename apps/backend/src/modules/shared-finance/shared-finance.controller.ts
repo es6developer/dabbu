@@ -388,7 +388,7 @@ export class SharedFinanceController {
     @CurrentUser('id') userId: string,
     @Body() dto: CompleteSettlementDto,
   ) {
-    return this.sf.completeSettlement(settlementId, userId);
+    return this.sf.completeSettlement(settlementId, userId, dto.method);
   }
 
   @Get('groups/:groupId/settlements')

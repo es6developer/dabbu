@@ -44,7 +44,7 @@ export function UpgradeBanner({
     ]).start();
   }, []);
 
-  if (!user || isPremium) {
+  if (!user || isPremium === true) {
     return null;
   }
 

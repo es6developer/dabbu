@@ -5,9 +5,7 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  ScrollView,
   Alert,
-  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -56,163 +54,161 @@ export function AddExpenseScreen() {
   const isExpense = activeTab === 'expense';
 
   return (
-    <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
-      <KeyboardAvoidingContainer>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 120 }}
+    <View style={[s.root, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}>
+      <KeyboardAvoidingContainer
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 140 }}
+        bounces
+      >
+        {/* Header */}
+        <LinearGradient
+          colors={[isExpense ? PURPLE : GREEN, isExpense ? PURPLE_DARK : '#059669']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
         >
-          {/* Header */}
-          <LinearGradient
-            colors={[isExpense ? PURPLE : GREEN, isExpense ? PURPLE_DARK : '#059669']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
-              <View style={s.headerRow}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-                  <Ionicons name="close" size={22} color="#FFF" />
-                </TouchableOpacity>
-                <Text style={s.headerTitle}>Add {isExpense ? 'Expense' : 'Income'}</Text>
-                <TouchableOpacity onPress={handleSave}>
-                  <Text style={s.saveText}>Save</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </LinearGradient>
-
-          {/* Type Tabs */}
-          <View style={s.tabRow}>
-            {(['expense', 'income'] as const).map((t) => (
-              <TouchableOpacity
-                key={t}
-                style={[
-                  s.tab,
-                  activeTab === t && { backgroundColor: `${t === 'income' ? GREEN : PURPLE}15` },
-                ]}
-                onPress={() => setActiveTab(t)}
-              >
-                <Text
-                  style={[
-                    s.tabText,
-                    {
-                      color:
-                        activeTab === t ? (t === 'income' ? GREEN : PURPLE) : colors.text.tertiary,
-                    },
-                  ]}
-                >
-                  {t === 'expense' ? 'Expenses' : 'Income'}
-                </Text>
+          <View style={{ paddingTop: 12, paddingBottom: 28, paddingHorizontal: 20 }}>
+            <View style={s.headerRow}>
+              <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
+                <Ionicons name="close" size={22} color="#FFF" />
               </TouchableOpacity>
-            ))}
+              <Text style={s.headerTitle}>Add {isExpense ? 'Expense' : 'Income'}</Text>
+              <TouchableOpacity onPress={handleSave}>
+                <Text style={s.saveText}>Save</Text>
+              </TouchableOpacity>
+            </View>
           </View>
+        </LinearGradient>
 
-          {/* Amount */}
-          <TouchableOpacity onPress={() => inputRef.current?.focus()} style={s.amountSection}>
-            <Text style={[s.amountDisplay, { color: isExpense ? PURPLE : GREEN }]}>
-              ₹
-              {amount
-                ? parseFloat(amount).toLocaleString('en-IN', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })
-                : '0.00'}
-            </Text>
-            <Text style={[s.amountHint, { color: colors.text.tertiary }]}>Tap to edit amount</Text>
-            <TextInput
-              ref={inputRef}
-              style={s.amountInput}
-              value={amount}
-              onChangeText={setAmount}
-              keyboardType="decimal-pad"
-              autoFocus
-            />
-          </TouchableOpacity>
-
-          {/* Category Chips */}
-          <View style={{ paddingHorizontal: 20 }}>
-            <View style={s.chipRow}>
-              {CATEGORY_CHIPS.map((c) => {
-                const selected = category === c.name;
-                return (
-                  <TouchableOpacity
-                    key={c.name}
-                    style={[
-                      s.chip,
-                      {
-                        backgroundColor: selected ? c.color : colors.bg.card,
-                        borderColor: selected ? c.color : colors.border.subtle,
-                      },
-                    ]}
-                    onPress={() => setCategory(c.name)}
-                  >
-                    <Ionicons name={c.icon as any} size={16} color={selected ? '#FFF' : c.color} />
-                    <Text
-                      style={[s.chipText, { color: selected ? '#FFF' : colors.text.secondary }]}
-                    >
-                      {c.name}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-
-            {/* Notes */}
-            <View
+        {/* Type Tabs */}
+        <View style={s.tabRow}>
+          {(['expense', 'income'] as const).map((t) => (
+            <TouchableOpacity
+              key={t}
               style={[
-                s.notesRow,
-                { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+                s.tab,
+                activeTab === t && { backgroundColor: `${t === 'income' ? GREEN : PURPLE}15` },
               ]}
+              onPress={() => setActiveTab(t)}
             >
-              <Ionicons name="create-outline" size={18} color={colors.text.tertiary} />
-              <TextInput
-                style={[s.notesInput, { color: colors.text.primary }]}
-                placeholder="Add a note..."
-                placeholderTextColor={colors.text.tertiary}
-                value={notes}
-                onChangeText={setNotes}
-              />
-            </View>
-
-            {/* Upload Bill */}
-            <TouchableOpacity style={[s.outlineBtn, { borderColor: colors.border.subtle }]}>
-              <Ionicons name="camera-outline" size={20} color={colors.text.secondary} />
-              <Text style={[s.outlineBtnText, { color: colors.text.secondary }]}>
-                Upload Bill Image
+              <Text
+                style={[
+                  s.tabText,
+                  {
+                    color:
+                      activeTab === t ? (t === 'income' ? GREEN : PURPLE) : colors.text.tertiary,
+                  },
+                ]}
+              >
+                {t === 'expense' ? 'Expenses' : 'Income'}
               </Text>
             </TouchableOpacity>
+          ))}
+        </View>
 
-            {/* Date */}
-            <TouchableOpacity style={[s.outlineBtn, { borderColor: colors.border.subtle }]}>
-              <Ionicons name="calendar-outline" size={20} color={colors.text.secondary} />
-              <Text style={[s.outlineBtnText, { color: colors.text.secondary }]}>Today</Text>
-            </TouchableOpacity>
+        {/* Amount */}
+        <TouchableOpacity onPress={() => inputRef.current?.focus()} style={s.amountSection}>
+          <Text style={[s.amountDisplay, { color: isExpense ? PURPLE : GREEN }]}>
+            ₹
+            {amount
+              ? parseFloat(amount).toLocaleString('en-IN', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })
+              : '0.00'}
+          </Text>
+          <Text style={[s.amountHint, { color: colors.text.tertiary }]}>Tap to edit amount</Text>
+          <TextInput
+            ref={inputRef}
+            style={s.amountInput}
+            value={amount}
+            onChangeText={setAmount}
+            keyboardType="decimal-pad"
+            autoFocus
+          />
+        </TouchableOpacity>
+
+        {/* Category Chips */}
+        <View style={{ paddingHorizontal: 20 }}>
+          <View style={s.chipRow}>
+            {CATEGORY_CHIPS.map((c) => {
+              const selected = category === c.name;
+              return (
+                <TouchableOpacity
+                  key={c.name}
+                  style={[
+                    s.chip,
+                    {
+                      backgroundColor: selected ? c.color : colors.bg.card,
+                      borderColor: selected ? c.color : colors.border.subtle,
+                    },
+                  ]}
+                  onPress={() => setCategory(c.name)}
+                >
+                  <Ionicons name={c.icon as any} size={16} color={selected ? '#FFF' : c.color} />
+                  <Text
+                    style={[s.chipText, { color: selected ? '#FFF' : colors.text.secondary }]}
+                  >
+                    {c.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
-        </ScrollView>
 
-        {/* Bottom Save */}
-        <View
-          style={[
-            s.bottomBar,
-            {
-              backgroundColor: colors.bg.secondary,
-              paddingBottom: Math.max(32, insets.bottom + 32),
-            },
-          ]}
-        >
-          <TouchableOpacity onPress={handleSave} activeOpacity={0.85}>
-            <LinearGradient
-              colors={[isExpense ? PURPLE : GREEN, isExpense ? PURPLE_DARK : '#059669']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={s.saveBtnGrad}
-            >
-              <Ionicons name="checkmark-circle" size={18} color="#FFF" />
-              <Text style={s.saveBtnText}>Save {isExpense ? 'Expense' : 'Income'}</Text>
-            </LinearGradient>
+          {/* Notes */}
+          <View
+            style={[
+              s.notesRow,
+              { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+            ]}
+          >
+            <Ionicons name="create-outline" size={18} color={colors.text.tertiary} />
+            <TextInput
+              style={[s.notesInput, { color: colors.text.primary }]}
+              placeholder="Add a note..."
+              placeholderTextColor={colors.text.tertiary}
+              value={notes}
+              onChangeText={setNotes}
+            />
+          </View>
+
+          {/* Upload Bill */}
+          <TouchableOpacity style={[s.outlineBtn, { borderColor: colors.border.subtle }]}>
+            <Ionicons name="camera-outline" size={20} color={colors.text.secondary} />
+            <Text style={[s.outlineBtnText, { color: colors.text.secondary }]}>
+              Upload Bill Image
+            </Text>
+          </TouchableOpacity>
+
+          {/* Date */}
+          <TouchableOpacity style={[s.outlineBtn, { borderColor: colors.border.subtle }]}>
+            <Ionicons name="calendar-outline" size={20} color={colors.text.secondary} />
+            <Text style={[s.outlineBtnText, { color: colors.text.secondary }]}>Today</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingContainer>
+
+      {/* Bottom Save - fixed at bottom, outside KeyboardAvoidingContainer */}
+      <View
+        style={[
+          s.bottomBar,
+          {
+            backgroundColor: colors.bg.secondary,
+            paddingBottom: Math.max(32, insets.bottom + 32),
+          },
+        ]}
+      >
+        <TouchableOpacity onPress={handleSave} activeOpacity={0.85}>
+          <LinearGradient
+            colors={[isExpense ? PURPLE : GREEN, isExpense ? PURPLE_DARK : '#059669']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={s.saveBtnGrad}
+          >
+            <Ionicons name="checkmark-circle" size={18} color="#FFF" />
+            <Text style={s.saveBtnText}>Save {isExpense ? 'Expense' : 'Income'}</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }

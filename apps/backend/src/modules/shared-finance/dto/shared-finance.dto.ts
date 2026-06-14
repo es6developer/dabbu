@@ -317,6 +317,11 @@ export class CompleteSettlementDto {
   @IsString()
   @IsOptional()
   proofUrl?: string;
+
+  @ApiPropertyOptional({ enum: ['cash', 'upi', 'other'] })
+  @IsString()
+  @IsOptional()
+  method?: string;
 }
 
 // ─── Couple Finance DTOs ────────────────────────────────────

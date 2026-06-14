@@ -27,53 +27,40 @@ export function SettlementScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { accessToken, user: currentUser } = useAuth();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const { groupId } = route.params || {};
 
   const [settlements, setSettlements] = useState<any[]>([]);
   const [history, setHistory] = useState<any[]>([]);
-  const [activity, setActivity] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [submitting, setSubmitting] = useState<string | null>(null);
-  const [activeSection, setActiveSection] = useState<'settle' | 'history' | 'activity'>('settle');
+  const [completedSettlementIds, setCompletedSettlementIds] = useState<Set<string>>(new Set());
+  const [activeSection, setActiveSection] = useState<'pending' | 'history'>('pending');
   const [settleModal, setSettleModal] = useState<{ visible: boolean; settlement: any }>({
     visible: false,
     settlement: null,
   });
+  const [batchSubmitting, setBatchSubmitting] = useState(false);
 
   const loadData = useCallback(
     async (refresh = false) => {
-      if (!groupId) {
-        return;
-      }
-      if (refresh) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
+      if (!groupId) return;
+      if (refresh) setRefreshing(true);
+      else setLoading(true);
       try {
-        if (accessToken) {
-          setAccessToken(accessToken);
-        }
-        const [optRes, histRes, actRes] = await Promise.allSettled([
+        if (accessToken) setAccessToken(accessToken);
+        const [optRes, histRes] = await Promise.allSettled([
           api.get<any>(`/shared-finance/groups/${groupId}/settlements/plan`),
           api.get<any>(`/shared-finance/groups/${groupId}/settlements`),
-          api.get<any>(`/settlements/activity/${groupId}?limit=30`),
         ]);
         if (optRes.status === 'fulfilled') {
-          const d = optRes.value;
-          setSettlements(Array.isArray(d) ? d : []);
+          setSettlements(Array.isArray(optRes.value) ? optRes.value : []);
         }
         if (histRes.status === 'fulfilled') {
-          const d = histRes.value;
-          setHistory(Array.isArray(d) ? d : []);
+          setHistory(Array.isArray(histRes.value) ? histRes.value : []);
         }
-        if (actRes.status === 'fulfilled') {
-          const d = actRes.value;
-          setActivity(Array.isArray(d) ? d : []);
-        }
-      } catch (e: any) {
+      } catch {
         // ignore
       } finally {
         setLoading(false);
@@ -89,56 +76,72 @@ export function SettlementScreen() {
     }, [loadData]),
   );
 
-  function promptSettleUp(settlement: any) {
-    setSettleModal({ visible: true, settlement });
-  }
-
-  async function confirmSettleUp() {
-    const s = settleModal.settlement;
-    if (!s) {
-      return;
-    }
-    setSettleModal({ visible: false, settlement: null });
-    setSubmitting(s.id);
-    try {
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
-      await api.post(`/shared-finance/settlements/${s.id}/complete`, { method: 'cash' });
-      Alert.alert(
-        'Settled Up!',
-        `${s.fromName || 'Someone'} settled ${fmt(s.amount || 0)} with ${s.toName || 'Someone'}`,
-      );
-      await loadData(true);
-    } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to settle up');
-    } finally {
-      setSubmitting(null);
-    }
-  }
+  const visibleSettlements = settlements.filter(
+    (s: any) => s.status !== 'completed' && !completedSettlementIds.has(s.settlementId || s.id),
+  );
 
   async function handlePayNowUpi(settlement: any) {
     setSubmitting(settlement.id);
     try {
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
-      const res = await api.post<any>('/settlements/pay-now', { settlementId: settlement.id });
-      const upiLink = res.upiLink || res.data?.upiLink;
-      if (!upiLink) {
-        Alert.alert('Error', 'No UPI link generated');
-        return;
-      }
+      if (accessToken) setAccessToken(accessToken);
+      const upiLink = `upi://pay?pa=${encodeURIComponent(settlement.toUpiId || settlement.toEmail || '')}&pn=${encodeURIComponent(settlement.toName || '')}&am=${settlement.amount || 0}&cu=INR&tn=Settling%20via%20Dabbu`;
       const supported = await Linking.canOpenURL(upiLink);
       if (supported) {
         await Linking.openURL(upiLink);
       } else {
-        Alert.alert('UPI Link', upiLink);
+        Alert.alert('Pay via UPI', `Pay ${fmt(settlement.amount || 0)} to ${settlement.toName || 'Someone'}\nUPI: ${upiLink}`);
       }
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to generate UPI link');
+      Alert.alert('Error', e.message || 'Failed to open UPI');
     } finally {
       setSubmitting(null);
+    }
+  }
+
+  async function handleMarkCash(settlement: any) {
+    setSubmitting(settlement.id);
+    try {
+      if (accessToken) setAccessToken(accessToken);
+      const settlementId = settlement.settlementId || settlement.id;
+      await api.post(`/shared-finance/groups/${groupId}/settlements/${settlementId}/complete`, { method: 'cash' });
+      setCompletedSettlementIds(prev => new Set(prev).add(settlementId));
+      showToast(`${fmt(settlement.amount || 0)} settled in cash`);
+      await loadData(true);
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to mark as settled');
+    } finally {
+      setSubmitting(null);
+    }
+  }
+
+  function showToast(msg: string) {
+    Alert.alert('', msg);
+  }
+
+  async function handleBatchSettle() {
+    const myPending = visibleSettlements.filter(
+      (s: any) => s.fromUserId === currentUser?.id,
+    );
+    if (myPending.length === 0) {
+      Alert.alert('Nothing to settle', 'You have no pending payments.');
+      return;
+    }
+    setBatchSubmitting(true);
+    try {
+      if (accessToken) setAccessToken(accessToken);
+      let settled = 0;
+      for (const s of myPending) {
+        const settlementId = s.settlementId || s.id;
+        try {
+      await api.post(`/shared-finance/settlements/${settlementId}/complete`, { method: 'cash' });
+          setCompletedSettlementIds(prev => new Set(prev).add(settlementId));
+          settled++;
+        } catch { /* skip failed ones */ }
+      }
+      Alert.alert('Done', `${settled} of ${myPending.length} settlements completed.`);
+      await loadData(true);
+    } finally {
+      setBatchSubmitting(false);
     }
   }
 
@@ -179,19 +182,15 @@ export function SettlementScreen() {
           <Text style={[s.headerTitle, { color: colors.text.primary }]}>Settlements</Text>
         </View>
 
-        {/* Section Tabs */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={[s.sectionRow, { paddingHorizontal: 20 }]}
         >
-          {(
-            [
-              { key: 'settle', label: 'Settle Up', icon: 'swap-horizontal' },
-              { key: 'history', label: 'History', icon: 'time-outline' },
-              { key: 'activity', label: 'Activity', icon: 'pulse-outline' },
-            ] as const
-          ).map((section) => (
+          {([
+            { key: 'pending' as const, label: 'Pending', icon: 'swap-horizontal' },
+            { key: 'history' as const, label: 'History', icon: 'time-outline' },
+          ]).map((section) => (
             <TouchableOpacity
               key={section.key}
               style={[
@@ -219,14 +218,30 @@ export function SettlementScreen() {
           ))}
         </ScrollView>
 
-        {activeSection === 'settle' && (
+        {activeSection === 'pending' && (
           <>
-            <Text style={[s.sectionTitle, { color: colors.text.tertiary }]}>
-              Pending Settlements
-            </Text>
-            {settlements.length > 0 ? (
+            {visibleSettlements.length > 0 && (
+              <TouchableOpacity
+                style={[s.batchBtn, { backgroundColor: colors.accent.primary }]}
+                onPress={handleBatchSettle}
+                disabled={batchSubmitting}
+              >
+                {batchSubmitting ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  <>
+                    <Ionicons name="checkmark-done" size={18} color="#FFF" />
+                    <Text style={s.batchBtnText}>
+                      Settle All ({visibleSettlements.length} pending)
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
+
+            {visibleSettlements.length > 0 ? (
               <View style={s.settlementsList}>
-                {settlements.map((item, i) => {
+                {visibleSettlements.map((item, i) => {
                   const isPayer = item.fromUserId === currentUser?.id;
                   return (
                     <View
@@ -261,64 +276,42 @@ export function SettlementScreen() {
                           </Text>
                         </View>
                       </View>
-                      {item.status !== 'completed' ? (
-                        <View style={s.actionRow}>
+                      <View style={s.actionRow}>
+                        <TouchableOpacity
+                          style={[
+                            s.payNowBtn,
+                            { backgroundColor: colors.accent.primary },
+                            submitting === item.id && { opacity: 0.6 },
+                          ]}
+                          onPress={() => handlePayNowUpi(item)}
+                          disabled={submitting === item.id}
+                        >
+                          {submitting === item.id ? (
+                            <ActivityIndicator size="small" color="#FFF" />
+                          ) : (
+                            <>
+                              <Ionicons name="phone-portrait-outline" size={16} color="#FFF" />
+                              <Text style={s.payNowBtnText}>Pay via UPI</Text>
+                            </>
+                          )}
+                        </TouchableOpacity>
+                        {isPayer && (
                           <TouchableOpacity
                             style={[
-                              s.settleBtn,
-                              { backgroundColor: colors.status.success },
+                              s.cashBtn,
+                              { backgroundColor: `${colors.status.success}15` },
                               submitting === item.id && { opacity: 0.6 },
                             ]}
-                            onPress={() => promptSettleUp(item)}
+                            onPress={() => handleMarkCash(item)}
                             disabled={submitting === item.id}
                           >
-                            {submitting === item.id ? (
-                              <ActivityIndicator size="small" color="#FFF" />
-                            ) : (
-                              <>
-                                <Ionicons name="checkmark-circle-outline" size={18} color="#FFF" />
-                                <Text style={s.settleBtnText}>Settle Up</Text>
-                              </>
-                            )}
+                            <Ionicons name="cash-outline" size={16} color={colors.status.success} />
+                            <Text style={[s.cashBtnText, { color: colors.status.success }]}>
+                              Cash
+                            </Text>
                           </TouchableOpacity>
-                          {isPayer && (
-                            <TouchableOpacity
-                              style={[
-                                s.payNowBtn,
-                                { backgroundColor: colors.accent.primary },
-                                submitting === item.id && { opacity: 0.6 },
-                              ]}
-                              onPress={() => handlePayNowUpi(item)}
-                              disabled={submitting === item.id}
-                            >
-                              {submitting === item.id ? (
-                                <ActivityIndicator size="small" color="#FFF" />
-                              ) : (
-                                <>
-                                  <Ionicons name="phone-portrait-outline" size={16} color="#FFF" />
-                                  <Text style={s.payNowBtnText}>PAY NOW</Text>
-                                </>
-                              )}
-                            </TouchableOpacity>
-                          )}
-                        </View>
-                      ) : (
-                        <View
-                          style={[
-                            s.completedBadge,
-                            { backgroundColor: `${colors.status.success}20` },
-                          ]}
-                        >
-                          <Ionicons
-                            name="checkmark-circle"
-                            size={16}
-                            color={colors.status.success}
-                          />
-                          <Text style={[s.completedText, { color: colors.status.success }]}>
-                            Settled via {item.method || 'cash'}
-                          </Text>
-                        </View>
-                      )}
+                        )}
+                      </View>
                     </View>
                   );
                 })}
@@ -335,21 +328,8 @@ export function SettlementScreen() {
           </>
         )}
 
-        <SettleUpModal
-          visible={settleModal.visible}
-          amount={settleModal.settlement?.amount || 0}
-          fromName={settleModal.settlement?.fromName || 'Someone'}
-          toName={settleModal.settlement?.toName || 'Someone'}
-          loading={submitting === settleModal.settlement?.id}
-          onConfirm={confirmSettleUp}
-          onCancel={() => setSettleModal({ visible: false, settlement: null })}
-        />
-
         {activeSection === 'history' && (
           <>
-            <Text style={[s.sectionTitle, { color: colors.text.tertiary }]}>
-              Settlement History
-            </Text>
             {history.length > 0 ? (
               <View style={s.historyList}>
                 {history.map((h: any, i: number) => (
@@ -420,65 +400,6 @@ export function SettlementScreen() {
             )}
           </>
         )}
-
-        {activeSection === 'activity' && (
-          <>
-            <Text style={[s.sectionTitle, { color: colors.text.tertiary }]}>Activity Timeline</Text>
-            {activity.length > 0 ? (
-              <View style={s.activityList}>
-                {activity.map((a: any) => {
-                  const iconMap: Record<string, string> = {
-                    expense_added: 'receipt-outline',
-                    member_joined: 'person-add-outline',
-                    settlement_requested: 'swap-horizontal-outline',
-                    settlement_confirmed: 'checkmark-circle-outline',
-                    guest_added_expense: 'person-outline',
-                    payment_completed: 'cash-outline',
-                    guest_approved: 'shield-checkmark-outline',
-                  };
-                  return (
-                    <View
-                      key={a.id}
-                      style={[s.activityCard, { backgroundColor: colors.bg.secondary }]}
-                    >
-                      <View
-                        style={[s.activityDot, { backgroundColor: `${colors.accent.primary}20` }]}
-                      >
-                        <Ionicons
-                          name={(iconMap[a.action] || 'ellipse-outline') as any}
-                          size={16}
-                          color={colors.accent.primary}
-                        />
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={[s.activityText, { color: colors.text.primary }]}>
-                          {a.description}
-                        </Text>
-                        <Text style={[s.activityMeta, { color: colors.text.tertiary }]}>
-                          {a.userName} ·{' '}
-                          {new Date(a.createdAt).toLocaleDateString('en-IN', {
-                            day: 'numeric',
-                            month: 'short',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </Text>
-                      </View>
-                    </View>
-                  );
-                })}
-              </View>
-            ) : (
-              <View style={[s.emptyCard, { backgroundColor: colors.bg.secondary }]}>
-                <Ionicons name="pulse-outline" size={36} color={colors.text.tertiary} />
-                <Text style={[s.emptyTitle, { color: colors.text.primary }]}>No activity yet</Text>
-                <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>
-                  Activity from expenses, members, and settlements will appear here
-                </Text>
-              </View>
-            )}
-          </>
-        )}
       </ScrollView>
     </PageContainer>
   );
@@ -486,140 +407,48 @@ export function SettlementScreen() {
 
 const s = StyleSheet.create({
   screen: { flex: 1 },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    marginBottom: 20,
-  },
-  backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 20 },
+  backBtn: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: 22, fontWeight: '800' },
   sectionRow: { gap: 8, marginBottom: 20 },
-  sectionChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 18,
-  },
+  sectionChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18 },
   sectionChipText: { fontSize: 12, fontWeight: '700' },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 12,
-    paddingHorizontal: 20,
-  },
-  settlementsList: { paddingHorizontal: 20, gap: 12, marginBottom: 24 },
-  settlementCard: {
-    borderRadius: 20,
-    padding: 18,
-    gap: 14,
-  },
-  settlementFlow: {
+  batchBtn: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  settlementParty: { alignItems: 'center', gap: 6, flex: 1 },
-  partyAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 8,
+    marginHorizontal: 20,
+    marginBottom: 16,
+    paddingVertical: 14,
+    borderRadius: 14,
   },
+  batchBtnText: { color: '#FFF', fontSize: 15, fontWeight: '800' },
+  settlementsList: { paddingHorizontal: 20, gap: 12, marginBottom: 24 },
+  settlementCard: { borderRadius: 20, padding: 18, gap: 14 },
+  settlementFlow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  settlementParty: { alignItems: 'center', gap: 6, flex: 1 },
+  partyAvatar: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   partyInit: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   partyName: { fontSize: 11, textAlign: 'center' },
   flowCenter: { alignItems: 'center', gap: 4, paddingHorizontal: 8 },
   flowAmount: { fontSize: 16, fontWeight: '800' },
   actionRow: { flexDirection: 'row', gap: 8 },
-  settleBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 14,
-  },
-  settleBtnText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
-  payNowBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 14,
-  },
+  payNowBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, borderRadius: 14 },
   payNowBtnText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
-  completedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 10,
-    borderRadius: 12,
-  },
-  completedText: { fontSize: 13, fontWeight: '700' },
-  emptyCard: {
-    marginHorizontal: 20,
-    borderRadius: 18,
-    padding: 28,
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 24,
-  },
+  cashBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 14, borderRadius: 14 },
+  cashBtnText: { fontSize: 14, fontWeight: '700' },
+  emptyCard: { marginHorizontal: 20, borderRadius: 18, padding: 28, alignItems: 'center', gap: 10, marginBottom: 24 },
   emptyTitle: { fontSize: 16, fontWeight: '700' },
   emptyDesc: { fontSize: 13, textAlign: 'center' },
   historyList: { paddingHorizontal: 20, gap: 8 },
-  historyCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 8,
-  },
+  historyCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 16, padding: 14, marginBottom: 8 },
   historyLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
-  historyIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  historyIcon: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   historyTitle: { fontSize: 14, fontWeight: '600' },
   historyMeta: { fontSize: 11, marginTop: 2 },
   historyRight: { alignItems: 'flex-end', gap: 4 },
   historyAmount: { fontSize: 15, fontWeight: '700' },
   statusBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
   statusText: { fontSize: 10, fontWeight: '700' },
-  activityList: { paddingHorizontal: 20, gap: 8 },
-  activityCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-    borderRadius: 16,
-    padding: 14,
-  },
-  activityDot: {
-    width: 34,
-    height: 34,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 2,
-  },
-  activityText: { fontSize: 14, fontWeight: '600' },
-  activityMeta: { fontSize: 11, marginTop: 4 },
 });

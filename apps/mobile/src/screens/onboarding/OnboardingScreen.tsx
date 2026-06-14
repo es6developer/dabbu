@@ -240,17 +240,8 @@ export function OnboardingScreen({ route }: any) {
           {!isLast && <Ionicons name="arrow-forward" size={18} color="#FFF" />}
         </TouchableOpacity>
 
-        {/* Back / Skip */}
-        {isFirst ? (
-          <TouchableOpacity
-            onPress={handleSkip}
-            style={{ alignItems: 'center', paddingVertical: 12, marginTop: 4 }}
-          >
-            <Text style={{ fontSize: 14, fontWeight: '600', color: colors.accent.primary }}>
-              Get Started
-            </Text>
-          </TouchableOpacity>
-        ) : (
+        {/* Back button - visible on all except first screen */}
+        {!isFirst && (
           <TouchableOpacity
             onPress={handlePrev}
             style={{ alignItems: 'center', paddingVertical: 12, marginTop: 4 }}

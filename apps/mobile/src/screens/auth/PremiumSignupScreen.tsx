@@ -197,7 +197,19 @@ export function PremiumSignupScreen() {
     try {
       await register(email.trim(), password, firstName.trim(), lastName.trim(), phone.trim());
     } catch (e: any) {
-      setError(e.message || 'Registration failed');
+      const msg = e?.message || '';
+      const knownErrors: Record<string, string> = {
+        'email already in use': 'An account with this email already exists.',
+        'phone already in use': 'This phone number is already registered.',
+        'invalid email': 'Please enter a valid email address.',
+        'password too weak': 'Password is too weak. Use at least 6 characters with mixed case.',
+        'rate limit': 'Too many attempts. Please wait a moment.',
+        'network': 'Unable to reach server. Please check your internet connection.',
+      };
+      const matched = Object.keys(knownErrors).find((k) =>
+        msg.toLowerCase().includes(k.toLowerCase()),
+      );
+      setError(matched ? knownErrors[matched] : msg || 'Registration failed');
     } finally {
       setLoading(false);
     }

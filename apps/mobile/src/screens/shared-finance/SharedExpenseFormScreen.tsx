@@ -15,6 +15,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
@@ -54,6 +56,7 @@ export function SharedExpenseFormScreen() {
   const { accessToken, user: currentUser } = useAuth();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
   const { showToast } = useToast();
   const { groupId, expenseId, edit } = route.params || {};
   const inputRef = useRef<TextInput>(null);
@@ -63,6 +66,9 @@ export function SharedExpenseFormScreen() {
   const [paidBy, setPaidBy] = useState<string | null>(null);
   const [category, setCategory] = useState('Food');
   const [splitType, setSplitType] = useState('equal');
+  const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split('T')[0]);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [notes, setNotes] = useState('');
   const [showNotes, setShowNotes] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -73,22 +79,28 @@ export function SharedExpenseFormScreen() {
   const [splitValues, setSplitValues] = useState<Record<string, string>>({});
   const [sharesCount, setSharesCount] = useState<Record<string, string>>({});
 
+  const loadExpenseRef = useRef(false);
+
   useEffect(() => {
     if (accessToken) {
       setAccessToken(accessToken);
     }
     loadMembers();
-    if (edit && expenseId) {
+  }, [accessToken]);
+
+  useEffect(() => {
+    if (edit && expenseId && members.length > 0 && !loadExpenseRef.current) {
+      loadExpenseRef.current = true;
       loadExpense();
     }
-  }, [accessToken]);
+  }, [edit, expenseId, members.length]);
 
   async function loadMembers() {
     try {
       const res = await api.get<any>(`/shared-finance/groups/${groupId}/members`);
       const data = Array.isArray(res) ? res : [];
       setMembers(data);
-      if (!paidBy && data.length > 0) {
+      if (data.length > 0) {
         const me = data.find((m: any) => m.userId === currentUser?.id);
         setPaidBy(me?.userId || data[0].userId);
       }
@@ -101,20 +113,25 @@ export function SharedExpenseFormScreen() {
 
   async function loadExpense() {
     try {
-      const e = await api.get<any>(`/shared-expenses/${expenseId}`);
+      const e = await api.get<any>(`/shared-finance/expenses/${expenseId}`);
       if (e) {
         setDescription(e.description || '');
         setAmount(String(e.amount || ''));
         setPaidBy(e.paidBy);
         setCategory(e.category || 'Food');
         setSplitType(e.splitType || 'equal');
+        if (e.date) {
+          setExpenseDate(e.date.split('T')[0]);
+        } else if (e.expenseDate) {
+          setExpenseDate(e.expenseDate.split('T')[0]);
+        }
         setNotes(e.notes || '');
         if (e.splits) {
           const vals: Record<string, string> = {};
           const shares: Record<string, string> = {};
           for (const s of e.splits) {
-            const member = members.find((m: any) => m.userId === s.userId);
-            const key = member?.id || s.userId;
+            const member = members.find((m: any) => m.userId === (s.userId || s.memberId));
+            const key = member?.id || s.userId || s.memberId;
             if (e.splitType === 'shares') {
               shares[key] = String(s.shares || '');
             } else if (e.splitType === 'percentage') {
@@ -186,6 +203,9 @@ export function SharedExpenseFormScreen() {
   const diff = (Number(amount) || 0) - totalSplit;
   const maxPreviewValue = Math.max(...splitPreview.map((i) => i.value), 0);
 
+  const totalPctEntered = Object.values(splitValues).reduce((s, v) => s + (Number(v) || 0), 0);
+  const percentageValid = splitType !== 'percentage' || (totalPctEntered > 0 && Math.abs(totalPctEntered - 100) < 0.01);
+
   function validate(): boolean {
     const errs: Record<string, string> = {};
     if (!description.trim()) {
@@ -228,20 +248,23 @@ export function SharedExpenseFormScreen() {
         }
         return splitBase;
       });
-      const payload = {
+      const basePayload = {
         description: description.trim(),
         amount: Number(amount),
-        paidBy,
         category,
-        splitType,
-        splits: splitType !== 'equal' ? splits : undefined,
+        date: expenseDate ? new Date(expenseDate).toISOString() : undefined,
         notes: notes.trim() || undefined,
       };
       if (edit && expenseId) {
-        await api.patch(`/shared-finance/expenses/${expenseId}`, payload);
+        await api.patch(`/shared-finance/expenses/${expenseId}`, basePayload);
         showToast('Expense updated');
       } else {
-        await api.post(`/shared-finance/groups/${groupId}/expenses`, payload);
+        await api.post(`/shared-finance/groups/${groupId}/expenses`, {
+          ...basePayload,
+          paidBy,
+          splitType,
+          splits: splitType !== 'equal' ? splits : undefined,
+        });
         showToast('Expense added');
       }
       navigation.goBack();
@@ -259,7 +282,7 @@ export function SharedExpenseFormScreen() {
       <KeyboardAvoidingContainer>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: Math.max(40, insets.bottom + 40) }}
+          contentContainerStyle={{ paddingBottom: Math.max(40, insets.bottom + tabBarHeight + 40) }}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
         >
@@ -372,6 +395,44 @@ export function SharedExpenseFormScreen() {
               ) : null}
             </View>
 
+            {/* ── Date ── */}
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => setShowDatePicker(true)}
+              style={[
+                s.datePicker,
+                { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+              ]}
+            >
+              <Ionicons name="calendar-outline" size={18} color={colors.accent.primary} />
+              <Text style={[s.dateText, { color: colors.text.primary }]}>
+                {new Date(expenseDate + 'T12:00:00').toLocaleDateString('en-IN', {
+                  weekday: 'short',
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                })}
+              </Text>
+              <Ionicons name="chevron-down" size={16} color={colors.text.tertiary} />
+            </TouchableOpacity>
+            {showDatePicker && (
+              <DateTimePicker
+                value={new Date(expenseDate + 'T12:00:00')}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                maximumDate={new Date()}
+                onChange={(_event: any, selectedDate?: Date) => {
+                  setShowDatePicker(Platform.OS === 'ios');
+                  if (selectedDate) {
+                    setExpenseDate(selectedDate.toISOString().split('T')[0]);
+                  }
+                  if (Platform.OS !== 'ios') {
+                    setShowDatePicker(false);
+                  }
+                }}
+              />
+            )}
+
             {/* ── Paid By ── */}
             <View>
               <Text style={[s.sectionLabel, { color: colors.text.primary }]}>Paid by</Text>
@@ -433,24 +494,27 @@ export function SharedExpenseFormScreen() {
                     <TouchableOpacity
                       key={i}
                       activeOpacity={0.7}
+                      onPress={() => setCategory(selected ? '' : cat.name)}
                       style={[
                         s.catCard,
                         {
-                          backgroundColor: selected ? `${cat.color}15` : colors.bg.card,
+                          backgroundColor: selected ? `${cat.color}12` : colors.bg.card,
                           borderColor: selected ? cat.color : colors.border.subtle,
                         },
                       ]}
-                      onPress={() => setCategory(selected ? '' : cat.name)}
                     >
                       <View
                         style={[
-                          s.catIcon,
-                          { backgroundColor: selected ? cat.color : `${cat.color}10` },
+                          s.catIconWrap,
+                          {
+                            backgroundColor: selected ? cat.color : `${cat.color}12`,
+                            shadowColor: selected ? cat.color : 'transparent',
+                          },
                         ]}
                       >
                         <Ionicons
                           name={cat.icon as any}
-                          size={20}
+                          size={selected ? 22 : 20}
                           color={selected ? '#FFF' : cat.color}
                         />
                       </View>
@@ -463,6 +527,11 @@ export function SharedExpenseFormScreen() {
                       >
                         {cat.name}
                       </Text>
+                      {selected && (
+                        <View style={[s.catCheck, { backgroundColor: cat.color }]}>
+                          <Ionicons name="checkmark" size={8} color="#FFF" />
+                        </View>
+                      )}
                     </TouchableOpacity>
                   );
                 })}
@@ -709,9 +778,9 @@ export function SharedExpenseFormScreen() {
             {/* ── Save ── */}
             <TouchableOpacity
               onPress={handleSave}
-              disabled={saving}
+              disabled={saving || !percentageValid}
               activeOpacity={0.85}
-              style={[s.saveBtn, saving && { opacity: 0.6 }]}
+              style={[s.saveBtn, (saving || !percentageValid) && { opacity: 0.6 }]}
             >
               <LinearGradient
                 colors={[colors.accent.primary, colors.accent.primary]}
@@ -731,6 +800,50 @@ export function SharedExpenseFormScreen() {
                 )}
               </LinearGradient>
             </TouchableOpacity>
+
+            {/* ── Delete (edit mode only) ── */}
+            {edit && expenseId && (
+              <TouchableOpacity
+                onPress={() => {
+                  Alert.alert(
+                    'Delete Expense',
+                    'Are you sure? This cannot be undone.',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Delete',
+                        style: 'destructive',
+                        onPress: async () => {
+                          try {
+                            setDeleting(true);
+                            if (accessToken) {
+                              setAccessToken(accessToken);
+                            }
+                            await api.delete(`/shared-finance/expenses/${expenseId}`);
+                            showToast('Expense deleted');
+                            navigation.goBack();
+                          } catch (e: any) {
+                            setError(e.message || 'Failed to delete');
+                          } finally {
+                            setDeleting(false);
+                          }
+                        },
+                      },
+                    ],
+                  );
+                }}
+                disabled={deleting}
+                activeOpacity={0.7}
+                style={[
+                  s.deleteBtn,
+                  { borderColor: colors.status.error + '30' },
+                  deleting && { opacity: 0.4 },
+                ]}
+              >
+                <Ionicons name="trash-outline" size={18} color={colors.status.error} />
+                <Text style={[s.deleteText, { color: colors.status.error }]}>Delete Expense</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingContainer>
@@ -832,24 +945,61 @@ const s = StyleSheet.create({
     borderColor: '#FFF',
   },
 
-  /* ── Category Grid ── */
-  catGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  catCard: {
-    width: (SCREEN_W - 56) / 4,
+  /* ── Date Picker ── */
+  datePicker: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  dateText: { flex: 1, fontSize: 15, fontWeight: '600' },
+
+  /* ── Category Grid ── */
+  catGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    justifyContent: 'flex-start',
+  },
+  catCard: {
+    width: (SCREEN_W - 60) / 3,
+    alignItems: 'center',
+    gap: 8,
     borderRadius: 18,
     borderWidth: 1,
-    paddingVertical: 14,
+    borderColor: 'transparent',
+    paddingVertical: 16,
+    paddingHorizontal: 4,
+    backgroundColor: 'transparent',
+    position: 'relative',
   },
-  catIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
+  catIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
-  catName: { fontSize: 10, fontWeight: '600', textAlign: 'center' },
+  catName: { fontSize: 11, fontWeight: '600', textAlign: 'center' },
+  catCheck: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#FFF',
+  },
 
   /* ── Split Method ── */
   splitGrid: { gap: 8 },
@@ -955,4 +1105,17 @@ const s = StyleSheet.create({
     gap: 8,
   },
   saveText: { color: '#FFF', fontSize: 17, fontWeight: '700' },
+
+  /* ── Delete ── */
+  deleteBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    marginBottom: 16,
+  },
+  deleteText: { fontSize: 15, fontWeight: '600' },
 });

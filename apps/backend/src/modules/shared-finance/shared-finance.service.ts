@@ -1241,7 +1241,7 @@ export class SharedFinanceService {
     return settlement;
   }
 
-  async completeSettlement(settlementId: string, userId: string) {
+  async completeSettlement(settlementId: string, userId: string, method?: string) {
     const settlement = await this.prisma.settlement.findUnique({
       where: { id: settlementId },
       include: {
@@ -1260,7 +1260,11 @@ export class SharedFinanceService {
 
     const updated = await this.prisma.settlement.update({
       where: { id: settlementId },
-      data: { status: 'completed', settledAt: new Date() },
+      data: {
+        status: 'completed',
+        settledAt: new Date(),
+        ...(method ? { method } : {}),
+      },
       include: {
         fromUser: { select: { id: true, firstName: true, lastName: true } },
         toUser: { select: { id: true, firstName: true, lastName: true } },

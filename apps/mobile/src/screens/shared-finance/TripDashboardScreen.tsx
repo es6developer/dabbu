@@ -7,6 +7,8 @@ import {
   ScrollView,
   ActivityIndicator,
   RefreshControl,
+  Linking,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
@@ -34,9 +36,9 @@ export function TripDashboardScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
-  const { accessToken } = useAuth();
-  const { colors, isDark } = useTheme();
-  const { tripId } = route.params || {};
+  const { accessToken, user: currentUser } = useAuth();
+  const { colors } = useTheme();
+  const { tripId, groupId: routeGroupId } = route.params || {};
 
   const [trip, setTrip] = useState<any>(null);
   const [expenses, setExpenses] = useState<any[]>([]);
@@ -45,31 +47,22 @@ export function TripDashboardScreen() {
 
   const loadData = useCallback(
     async (refresh = false) => {
-      if (!tripId) {
-        return;
-      }
-      if (refresh) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
+      if (!tripId) return;
+
+      if (refresh) setRefreshing(true);
+      else setLoading(true);
       try {
-        if (accessToken) {
-          setAccessToken(accessToken);
-        }
+        if (accessToken) setAccessToken(accessToken);
         const [tripRes, expRes] = await Promise.allSettled([
           api.get<any>(`/trips/${tripId}`),
           api.get<any>(`/shared-expenses?tripId=${tripId}`),
         ]);
-        if (tripRes.status === 'fulfilled') {
-          const d = tripRes.value?.data || tripRes.value;
-          setTrip(d);
-        }
+        if (tripRes.status === 'fulfilled') setTrip(tripRes.value?.data || tripRes.value);
         if (expRes.status === 'fulfilled') {
           const d = expRes.value?.data || expRes.value;
-          setExpenses(Array.isArray(d) ? d : []);
+          setExpenses(Array.isArray(d) ? d.sort((a: any, b: any) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime()) : []);
         }
-      } catch (e: any) {
+      } catch {
         // ignore
       } finally {
         setLoading(false);
@@ -85,11 +78,7 @@ export function TripDashboardScreen() {
     }, [loadData]),
   );
 
-  const totalSpent = useMemo(
-    () => expenses.reduce((s, e) => s + Number(e.amount || 0), 0),
-    [expenses],
-  );
-
+  const totalSpent = useMemo(() => expenses.reduce((s, e) => s + Number(e.amount || 0), 0), [expenses]);
   const budget = Number(trip?.budget || 0);
   const budgetUsed = budget > 0 ? (totalSpent / budget) * 100 : 0;
 
@@ -104,34 +93,17 @@ export function TripDashboardScreen() {
 
   const members: any[] = Array.isArray(trip?.members) ? trip.members : [];
 
-  const dailyTotals = useMemo(() => {
-    const map: Record<string, number> = {};
-    for (const e of expenses) {
-      const day = e.date
-        ? new Date(e.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
-        : 'Unknown';
-      map[day] = (map[day] || 0) + Number(e.amount || 0);
-    }
-    return Object.entries(map).sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime());
-  }, [expenses]);
-
   const balances = useMemo(() => {
-    if (members.length === 0) {
-      return [];
-    }
+    if (members.length === 0) return [];
     const share = totalSpent / members.length;
     return members.map((m: any) => {
-      const paid = expenses
-        .filter((e) => e.paidBy === m.userId)
-        .reduce((s, e) => s + Number(e.amount || 0), 0);
-      return {
-        id: m.id,
-        name: m.user?.firstName || m.user?.email || 'Member',
-        paid,
-        balance: paid - share,
-      };
+      const paid = expenses.filter((e) => e.paidBy === m.userId).reduce((s, e) => s + Number(e.amount || 0), 0);
+      return { id: m.id, userId: m.userId, name: m.user?.firstName || m.user?.email || 'Member', paid, balance: paid - share, upiId: m.user?.upiId || m.user?.email };
     });
   }, [members, totalSpent, expenses]);
+
+  const recentExpenses = useMemo(() => expenses.slice(0, 5), [expenses]);
+  const groupId = routeGroupId || trip?.groupId;
 
   if (loading) {
     return (
@@ -146,32 +118,14 @@ export function TripDashboardScreen() {
     );
   }
 
-  const startDate = trip?.startDate
-    ? new Date(trip.startDate).toLocaleDateString('en-IN', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      })
-    : 'N/A';
-  const endDate = trip?.endDate
-    ? new Date(trip.endDate).toLocaleDateString('en-IN', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      })
-    : 'N/A';
+  const startDate = trip?.startDate ? new Date(trip.startDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A';
+  const endDate = trip?.endDate ? new Date(trip.endDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A';
 
   return (
     <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
       <ScrollView
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => loadData(true)}
-            tintColor={colors.accent.primary}
-          />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} tintColor={colors.accent.primary} />}
       >
         <View style={[s.heroSection, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtnWrap}>
@@ -180,271 +134,169 @@ export function TripDashboardScreen() {
           <Text style={s.heroTitle}>{trip?.destination || 'Trip'}</Text>
           <View style={s.dateRow}>
             <Ionicons name="calendar-outline" size={14} color="rgba(255,255,255,0.7)" />
-            <Text style={s.dateText}>
-              {startDate} — {endDate}
-            </Text>
+            <Text style={s.dateText}>{startDate} — {endDate}</Text>
           </View>
           {trip?.description && <Text style={s.heroDesc}>{trip.description}</Text>}
         </View>
 
         <View style={s.content}>
-          <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Budget Progress</Text>
-          <View style={[s.budgetCard, { backgroundColor: colors.bg.secondary }]}>
-            <View style={s.budgetRow}>
-              <Text style={[s.budgetLabel, { color: colors.text.tertiary }]}>Spent</Text>
-              <Text style={[s.budgetValue, { color: colors.text.primary }]}>{fmt(totalSpent)}</Text>
-            </View>
-            <View style={s.budgetRow}>
-              <Text style={[s.budgetLabel, { color: colors.text.tertiary }]}>Budget</Text>
-              <Text style={[s.budgetValue, { color: colors.text.primary }]}>{fmt(budget)}</Text>
-            </View>
-            <View style={s.budgetBarOuter}>
-              <View
-                style={[
-                  s.budgetBarFill,
-                  {
-                    width: `${Math.min(budgetUsed, 100)}%`,
-                    backgroundColor:
-                      budgetUsed > 90
-                        ? colors.status.error
-                        : budgetUsed > 70
-                          ? colors.status.warning
-                          : colors.status.success,
-                  },
-                ]}
-              />
-            </View>
-            <Text
-              style={[
-                s.budgetPercent,
-                {
-                  color: budgetUsed > 90 ? colors.status.error : colors.text.tertiary,
-                },
-              ]}
-            >
-              {budgetUsed.toFixed(0)}% used
-            </Text>
-          </View>
-
-          <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Expenses by Category</Text>
-          {Object.keys(categoryTotals).length > 0 ? (
-            <View style={[s.chartCard, { backgroundColor: colors.bg.secondary }]}>
-              {Object.entries(categoryTotals)
-                .sort(([, a], [, b]) => b - a)
-                .map(([cat, amt]) => {
-                  const pct = totalSpent > 0 ? (amt / totalSpent) * 100 : 0;
-                  const barColor = CATEGORY_COLORS[cat] || colors.text.tertiary;
-                  return (
-                    <View key={cat} style={s.barRow}>
-                      <View style={s.barLabelRow}>
-                        <Text style={[s.barLabel, { color: colors.text.primary }]}>{cat}</Text>
-                        <Text style={[s.barValue, { color: colors.text.tertiary }]}>
-                          {fmt(amt)}
-                        </Text>
-                      </View>
-                      <View style={s.barTrack}>
-                        <View
-                          style={[
-                            s.barFill,
-                            {
-                              width: `${pct}%`,
-                              backgroundColor: barColor,
-                            },
-                          ]}
-                        />
-                      </View>
-                    </View>
-                  );
-                })}
-            </View>
-          ) : (
-            <View style={[s.emptyBox, { backgroundColor: colors.bg.secondary }]}>
-              <Text style={[s.emptyText, { color: colors.text.tertiary }]}>No expenses yet</Text>
-            </View>
-          )}
-
-          {dailyTotals.length > 0 && (
+          {budget > 0 && (
             <>
-              <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Daily Spending</Text>
-              <View style={[s.timelineCard, { backgroundColor: colors.bg.secondary }]}>
-                {dailyTotals.map(([day, amt], i) => (
-                  <View key={day} style={s.timelineRow}>
-                    <View style={s.timelineLeft}>
-                      <View style={[s.timelineDot, { backgroundColor: colors.accent.primary }]} />
-                      {i < dailyTotals.length - 1 && (
-                        <View style={[s.timelineLine, { backgroundColor: colors.border.subtle }]} />
-                      )}
-                    </View>
-                    <Text style={[s.timelineDay, { color: colors.text.secondary }]}>{day}</Text>
-                    <Text style={[s.timelineAmount, { color: colors.text.primary }]}>
-                      {fmt(amt)}
-                    </Text>
-                  </View>
-                ))}
+              <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Budget Progress</Text>
+              <View style={[s.budgetCard, { backgroundColor: colors.bg.secondary }]}>
+                <View style={s.budgetRow}>
+                  <Text style={[s.budgetLabel, { color: colors.text.tertiary }]}>Spent</Text>
+                  <Text style={[s.budgetValue, { color: colors.text.primary }]}>{fmt(totalSpent)}</Text>
+                </View>
+                <View style={s.budgetRow}>
+                  <Text style={[s.budgetLabel, { color: colors.text.tertiary }]}>Budget</Text>
+                  <Text style={[s.budgetValue, { color: colors.text.primary }]}>{fmt(budget)}</Text>
+                </View>
+                <View style={s.budgetBarOuter}>
+                  <View style={[s.budgetBarFill, { width: `${Math.min(budgetUsed, 100)}%`, backgroundColor: budgetUsed > 90 ? colors.status.error : budgetUsed > 70 ? colors.status.warning : colors.status.success }]} />
+                </View>
+                <Text style={[s.budgetPercent, { color: budgetUsed > 90 ? colors.status.error : colors.text.tertiary }]}>{budgetUsed.toFixed(0)}% used</Text>
               </View>
             </>
           )}
 
-          <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Member Balances</Text>
-          {balances.length > 0 ? (
-            balances.map((b) => (
-              <View key={b.id} style={[s.balanceCard, { backgroundColor: colors.bg.secondary }]}>
-                <View style={s.balanceAvatar}>
-                  <Text style={s.balanceAvatarText}>{b.name[0]?.toUpperCase() || '?'}</Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[s.balanceName, { color: colors.text.primary }]}>{b.name}</Text>
-                  <Text style={[s.balancePaid, { color: colors.text.tertiary }]}>
-                    Paid {fmt(b.paid)}
-                  </Text>
-                </View>
-                <Text
-                  style={[
-                    s.balanceAmt,
-                    {
-                      color: b.balance >= 0 ? colors.status.success : colors.status.error,
-                    },
-                  ]}
-                >
-                  {b.balance >= 0 ? 'Gets ' : 'Owes '}
-                  {fmt(Math.abs(b.balance))}
-                </Text>
+          {Object.keys(categoryTotals).length > 0 && (
+            <>
+              <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Expenses by Category</Text>
+              <View style={[s.chartCard, { backgroundColor: colors.bg.secondary }]}>
+                {Object.entries(categoryTotals)
+                  .sort(([, a], [, b]) => b - a)
+                  .map(([cat, amt]) => {
+                    const pct = totalSpent > 0 ? (amt / totalSpent) * 100 : 0;
+                    return (
+                      <View key={cat} style={s.barRow}>
+                        <View style={s.barLabelRow}>
+                          <Text style={[s.barLabel, { color: colors.text.primary }]}>{cat}</Text>
+                          <Text style={[s.barValue, { color: colors.text.tertiary }]}>{fmt(amt)}</Text>
+                        </View>
+                        <View style={s.barTrack}>
+                          <View style={[s.barFill, { width: `${pct}%`, backgroundColor: CATEGORY_COLORS[cat] || colors.text.tertiary }]} />
+                        </View>
+                      </View>
+                    );
+                  })}
               </View>
-            ))
-          ) : (
-            <View style={[s.emptyBox, { backgroundColor: colors.bg.secondary }]}>
-              <Text style={[s.emptyText, { color: colors.text.tertiary }]}>No members yet</Text>
-            </View>
+            </>
+          )}
+
+          {recentExpenses.length > 0 && (
+            <>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <Text style={[s.sectionTitle, { color: colors.text.primary, marginBottom: 0 }]}>Recent Expenses</Text>
+                {groupId && (
+                  <TouchableOpacity onPress={() => navigation.navigate('SharedGroupDetail', { groupId, groupName: trip?.destination || 'Trip' })}>
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: colors.accent.primary }}>View all</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+              {recentExpenses.map((exp: any) => {
+                const payer = members.find((m: any) => m.userId === exp.paidBy);
+                const payerName = payer?.user?.firstName || payer?.user?.email || 'Someone';
+                return (
+                  <View key={exp.id} style={[s.expenseCard, { backgroundColor: colors.bg.secondary }]}>
+                    <View style={[s.expenseAvatar, { backgroundColor: colors.accent.primary }]}>
+                      <Text style={s.expenseAvatarText}>{payerName[0]?.toUpperCase() || '?'}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[s.expenseDesc, { color: colors.text.primary }]} numberOfLines={1}>{exp.description || exp.category || 'Expense'}</Text>
+                      <Text style={[s.expenseMeta, { color: colors.text.tertiary }]}>{payerName} · {new Date(exp.date || exp.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</Text>
+                    </View>
+                    <Text style={[s.expenseAmount, { color: colors.text.primary }]}>{fmt(Number(exp.amount || 0))}</Text>
+                  </View>
+                );
+              })}
+            </>
+          )}
+
+          {balances.length > 0 && (
+            <>
+              <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Member Balances</Text>
+              {balances.map((b) => {
+                const owes = b.balance < 0;
+                return (
+                  <View key={b.id} style={[s.balanceCard, { backgroundColor: colors.bg.secondary }]}>
+                    <View style={[s.balanceAvatar, { backgroundColor: owes ? colors.status.error : colors.status.success }]}>
+                      <Text style={s.balanceAvatarText}>{b.name[0]?.toUpperCase() || '?'}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[s.balanceName, { color: colors.text.primary }]}>{b.name}</Text>
+                      <Text style={[s.balancePaid, { color: colors.text.tertiary }]}>Paid {fmt(b.paid)}</Text>
+                    </View>
+                    <Text style={[s.balanceAmt, { color: owes ? colors.status.error : colors.status.success }]}>
+                      {owes ? 'Owes ' : 'Gets '}{fmt(Math.abs(b.balance))}
+                    </Text>
+                    {owes && currentUser?.id !== b.userId && (
+                      <TouchableOpacity
+                        style={[s.settleBtn, { backgroundColor: colors.status.success }]}
+                        onPress={() => {
+                          const upiLink = `upi://pay?pa=${encodeURIComponent(b.upiId || '')}&pn=${encodeURIComponent(b.name)}&am=${Math.abs(b.balance)}&cu=INR&tn=Settling%20via%20Dabbu`;
+                          Linking.openURL(upiLink).catch(() => Alert.alert('Settle Up', `Pay ${fmt(Math.abs(b.balance))} to ${b.name}`));
+                        }}
+                      >
+                        <Text style={s.settleBtnText}>Settle</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                );
+              })}
+            </>
           )}
         </View>
       </ScrollView>
+
+      <TouchableOpacity
+        style={[s.fab, { backgroundColor: colors.accent.primary }]}
+        onPress={() => navigation.navigate('SharedExpenseForm', { groupId, tripId })}
+        activeOpacity={0.85}
+      >
+        <Ionicons name="add" size={26} color="#FFF" />
+      </TouchableOpacity>
     </View>
   );
 }
 
 const s = StyleSheet.create({
   screen: { flex: 1 },
-  heroSection: {
-    paddingHorizontal: 20,
-    paddingBottom: 32,
-  },
-  backBtnWrap: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    marginBottom: 16,
-  },
-  heroTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#FFF',
-    marginBottom: 8,
-  },
-  dateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
+  heroSection: { paddingHorizontal: 20, paddingBottom: 32 },
+  backBtnWrap: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.15)', marginBottom: 16 },
+  heroTitle: { fontSize: 28, fontWeight: '800', color: '#FFF', marginBottom: 8 },
+  dateRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   dateText: { fontSize: 13, color: 'rgba(255,255,255,0.7)' },
-  heroDesc: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.6)',
-    marginTop: 8,
-  },
+  heroDesc: { fontSize: 14, color: 'rgba(255,255,255,0.6)', marginTop: 8 },
   content: { padding: 20 },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 12,
-    marginTop: 8,
-  },
+  sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 12, marginTop: 8 },
   budgetCard: { borderRadius: 18, padding: 18, marginBottom: 16 },
-  budgetRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
+  budgetRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
   budgetLabel: { fontSize: 13 },
   budgetValue: { fontSize: 15, fontWeight: '700' },
-  budgetBarOuter: {
-    width: '100%',
-    height: 8,
-    backgroundColor: 'rgba(150,150,150,0.15)',
-    borderRadius: 4,
-    marginTop: 12,
-    overflow: 'hidden',
-  },
+  budgetBarOuter: { width: '100%', height: 8, backgroundColor: 'rgba(150,150,150,0.15)', borderRadius: 4, marginTop: 12, overflow: 'hidden' },
   budgetBarFill: { height: '100%', borderRadius: 4 },
   budgetPercent: { fontSize: 12, marginTop: 6, fontWeight: '600' },
   chartCard: { borderRadius: 18, padding: 18, marginBottom: 16 },
   barRow: { marginBottom: 12 },
-  barLabelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
+  barLabelRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
   barLabel: { fontSize: 13, fontWeight: '500' },
   barValue: { fontSize: 12 },
-  barTrack: {
-    width: '100%',
-    height: 6,
-    backgroundColor: 'rgba(150,150,150,0.1)',
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
+  barTrack: { width: '100%', height: 6, backgroundColor: 'rgba(150,150,150,0.1)', borderRadius: 3, overflow: 'hidden' },
   barFill: { height: '100%', borderRadius: 3 },
-  emptyBox: {
-    borderRadius: 18,
-    padding: 24,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  emptyText: { fontSize: 13 },
-  timelineCard: { borderRadius: 18, padding: 18, marginBottom: 16 },
-  timelineRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingVertical: 6,
-  },
-  timelineLeft: {
-    width: 20,
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  timelineDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginTop: 4,
-  },
-  timelineLine: {
-    width: 2,
-    flex: 1,
-    minHeight: 20,
-    marginTop: 4,
-  },
-  timelineDay: { flex: 1, fontSize: 13 },
-  timelineAmount: { fontSize: 14, fontWeight: '700' },
-  balanceCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 8,
-    gap: 12,
-  },
-  balanceAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  expenseCard: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 16, marginBottom: 8, gap: 12 },
+  expenseAvatar: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  expenseAvatarText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
+  expenseDesc: { fontSize: 14, fontWeight: '600' },
+  expenseMeta: { fontSize: 11, marginTop: 2 },
+  expenseAmount: { fontSize: 15, fontWeight: '700' },
+  balanceCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 16, padding: 14, marginBottom: 8, gap: 12 },
+  balanceAvatar: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   balanceAvatarText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
   balanceName: { fontSize: 14, fontWeight: '700' },
   balancePaid: { fontSize: 12, marginTop: 2 },
   balanceAmt: { fontSize: 14, fontWeight: '800' },
+  settleBtn: { paddingHorizontal: 14, paddingVertical: 9, borderRadius: 10 },
+  settleBtnText: { color: '#FFF', fontSize: 12, fontWeight: '800' },
+  fab: { position: 'absolute', right: 20, bottom: 28, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 6, zIndex: 100 },
 });

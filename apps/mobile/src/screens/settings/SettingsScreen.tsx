@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { useAuth } from '../../store/AuthContext';
 import { Avatar } from '../../components/ui/Avatar';
+import { CoupleModeToggle } from '../../components/ui/CoupleModeToggle';
 import { useAppLock } from '../../store/LockContext';
 import { api, setAccessToken, getAccessToken } from '../../services/api';
 import { ConfirmDialog } from '../../components/ui';
@@ -103,7 +104,7 @@ export function SettingsScreen() {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const [subscription, setSubscription] = useState<any>(null);
+  const [subscription, setSubscription] = useState<any | null>(undefined);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [pendingRequests, setPendingRequests] = useState<any[]>([]);
   const [processingReqId, setProcessingReqId] = useState<string | null>(null);
@@ -507,7 +508,7 @@ export function SettingsScreen() {
           )}
 
           {/* Upgrade Banner */}
-          {!isPremium && (
+          {subscription !== undefined && !isPremium && (
             <TouchableOpacity
               onPress={() => navigation.navigate('Premium')}
               activeOpacity={0.85}
@@ -590,6 +591,9 @@ export function SettingsScreen() {
               </View>
             </TouchableOpacity>
           )}
+
+          {/* Couple Mode Toggle */}
+          <CoupleModeToggle />
 
           {/* Sections */}
           {filteredSECTIONS.map((section, i) => (

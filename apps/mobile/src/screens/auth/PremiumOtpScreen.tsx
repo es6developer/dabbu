@@ -178,7 +178,18 @@ export function PremiumOtpScreen() {
     try {
       await api.post('/auth/send-otp', { email, purpose });
     } catch (e: any) {
-      setError(e?.message || 'Failed to send OTP. Please try again.');
+      const msg = e?.message || '';
+      const knownErrors: Record<string, string> = {
+        'rate limit': 'Too many requests. Please wait a moment before trying again.',
+        'already verified': 'This email is already verified. Please sign in.',
+        'invalid email': 'Please check your email address and try again.',
+        'user not found': 'No account found with this email address.',
+        'network': 'Unable to reach server. Please check your internet connection.',
+      };
+      const matched = Object.keys(knownErrors).find((k) =>
+        msg.toLowerCase().includes(k.toLowerCase()),
+      );
+      setError(matched ? knownErrors[matched] : msg || 'Failed to send code. Please try again.');
     }
   }
 
@@ -215,6 +226,21 @@ export function PremiumOtpScreen() {
     requestOtp();
   }
 
+  const otpErrorMap: Record<string, string> = {
+    'invalid otp': 'The code you entered is incorrect. Please try again.',
+    'expired': 'This code has expired. Please request a new one.',
+    'rate limit': 'Too many attempts. Please wait a moment.',
+    'network': 'Unable to reach server. Please check your internet connection.',
+    'already verified': 'This email is already verified.',
+    'not found': 'No OTP request found. Please go back and try again.',
+  };
+
+  function friendlyOtpError(msg: string): string {
+    const lower = msg.toLowerCase();
+    const matched = Object.keys(otpErrorMap).find((k) => lower.includes(k.toLowerCase()));
+    return matched ? otpErrorMap[matched] : msg;
+  }
+
   async function handleVerify() {
     const code = otp.join('');
     if (code.length !== OTP_LENGTH) {
@@ -236,10 +262,10 @@ export function PremiumOtpScreen() {
           navigation.navigate(purpose === 'password_reset' ? 'ResetPassword' : 'Login');
         }
       } else {
-        setError(result.message || 'Invalid OTP');
+        setError(friendlyOtpError(result.message || 'Invalid OTP'));
       }
     } catch (e: any) {
-      setError(e.message || 'Verification failed');
+      setError(friendlyOtpError(e.message || 'Verification failed'));
     } finally {
       setLoading(false);
     }

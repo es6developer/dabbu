@@ -46,6 +46,16 @@ const offlineQueue: {
   retries: number;
 }[] = [];
 
+// ─── Sync Event Callbacks ────────────────────────────
+let syncListeners: (() => void)[] = [];
+
+export function addSyncListener(fn: () => void) {
+  syncListeners.push(fn);
+  return () => {
+    syncListeners = syncListeners.filter((l) => l !== fn);
+  };
+}
+
 export function setOnlineStatus(online: boolean) {
   isOnline = online;
   if (online && offlineQueue.length > 0) {
@@ -84,6 +94,10 @@ async function processOfflineQueue() {
     } catch {
       break;
     }
+  }
+  // Notify listeners when queue is empty (all synced)
+  if (offlineQueue.length === 0) {
+    syncListeners.forEach((fn) => fn());
   }
 }
 

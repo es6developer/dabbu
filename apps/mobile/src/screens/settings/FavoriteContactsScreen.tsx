@@ -4,10 +4,11 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  FlatList,
+  ScrollView,
   Animated,
   TextInput,
   ActivityIndicator,
+  Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -24,6 +25,7 @@ export function FavoriteContactsScreen() {
   const { favorites, loading, refresh, addFavorite, removeFavorite } = useFavorites();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const searchInputRef = useRef<TextInput>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<favoritesApi.SearchUser[]>([]);
@@ -65,17 +67,22 @@ export function FavoriteContactsScreen() {
     setLoadingDevice(false);
   };
 
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const handleSearch = useCallback(
-    async (text: string) => {
+    (text: string) => {
       setSearchQuery(text);
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
       if (text.trim().length < 2) {
         setSearchResults([]);
         return;
       }
       setSearching(true);
-      const results = await favoritesApi.searchUsers(text);
-      setSearchResults(results.filter((r) => !favorites.some((f) => f.userId === r.id)));
-      setSearching(false);
+      searchTimerRef.current = setTimeout(async () => {
+        const results = await favoritesApi.searchUsers(text);
+        setSearchResults(results.filter((r) => !favorites.some((f) => f.userId === r.id)));
+        setSearching(false);
+      }, 300);
     },
     [favorites],
   );
@@ -343,16 +350,6 @@ export function FavoriteContactsScreen() {
     );
   };
 
-  const ListHeader = () => (
-    <>
-      {renderHeader()}
-      {renderSearchBar()}
-      {renderSearchResults()}
-      {renderDeviceContacts()}
-      {renderFavorites()}
-    </>
-  );
-
   if (loading) {
     return (
       <View style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
@@ -366,18 +363,21 @@ export function FavoriteContactsScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
-      <FlatList
-        data={[]}
-        renderItem={() => null}
-        ListHeaderComponent={ListHeader}
-        ListFooterComponent={() => <View style={{ height: 40 }} />}
+      <Animated.ScrollView
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
           useNativeDriver: false,
         })}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-      />
+        contentContainerStyle={{ paddingBottom: 40 }}
+      >
+        {renderHeader()}
+        {renderSearchBar()}
+        {renderSearchResults()}
+        {renderDeviceContacts()}
+        {renderFavorites()}
+      </Animated.ScrollView>
     </View>
   );
 }

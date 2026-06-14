@@ -1,13 +1,12 @@
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import {
   View,
   Text,
-  FlatList,
+  SectionList,
   StyleSheet,
   TouchableOpacity,
   Animated,
   RefreshControl,
-  ScrollView,
   Alert,
   Linking,
   Share,
@@ -18,7 +17,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
-import { api, setAccessToken } from '../../services/api';
+import { api, setAccessToken, addSyncListener } from '../../services/api';
+import { CATEGORY_COLORS } from '../../config/categoryIcons';
 import { INVITE_BASE_URL } from '../../config/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme, palette } from '../../theme';
@@ -28,7 +28,7 @@ import { EmptyState } from './components/EmptyState';
 import { SettleUpModal } from '../../components/ui/SettleUpModal';
 import { useToast } from '../../store/ToastContext';
 
-const TABS = ['overview', 'expenses', 'balances', 'members', 'activity'] as const;
+const TABS = ['summary', 'expenses', 'people'] as const;
 
 const TYPE_THEMES: Record<string, { gradient: [string, string]; chipColor: string; icon: string }> =
   {
@@ -70,6 +70,66 @@ function normalize<T>(res: any): T {
   return res as T;
 }
 
+function computeSmartSettlements(
+  balanceRows: Array<{ userId: string; name: string; balance: number; upiId?: string }>,
+  currentUserId?: string,
+) {
+  if (!currentUserId) return [];
+
+  const myBalance = balanceRows.find(r => r.userId === currentUserId);
+  if (!myBalance || myBalance.balance === 0) return [];
+
+  const settlements: Array<{
+    from: string;
+    fromName: string;
+    to: string;
+    toName: string;
+    amount: number;
+    upiId?: string;
+    type: 'pay' | 'collect' | 'remind';
+  }> = [];
+
+  if (myBalance.balance < 0) {
+    const owed = Math.abs(myBalance.balance);
+    const creditors = balanceRows
+      .filter(r => r.userId !== currentUserId && r.balance > 0)
+      .sort((a, b) => b.balance - a.balance);
+
+    let remaining = owed;
+    for (const creditor of creditors) {
+      if (remaining <= 0) break;
+      const payAmount = Math.min(remaining, Math.round(creditor.balance));
+      settlements.push({
+        from: currentUserId,
+        fromName: 'You',
+        to: creditor.userId,
+        toName: creditor.name,
+        amount: payAmount,
+        upiId: creditor.upiId,
+        type: 'pay',
+      });
+      remaining -= payAmount;
+    }
+  } else {
+    const debtors = balanceRows
+      .filter(r => r.userId !== currentUserId && r.balance < 0)
+      .sort((a, b) => a.balance - b.balance);
+
+    for (const debtor of debtors) {
+      settlements.push({
+        from: debtor.userId,
+        fromName: debtor.name,
+        to: currentUserId,
+        toName: 'You',
+        amount: Math.abs(Math.round(debtor.balance)),
+        type: 'remind',
+      });
+    }
+  }
+
+  return settlements;
+}
+
 export function SharedGroupDetailScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
@@ -85,7 +145,7 @@ export function SharedGroupDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>('overview');
+  const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>('summary');
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const abortRef = useRef<AbortController | null>(null);
   const [inviteToken, setInviteToken] = useState<string | null>(null);
@@ -95,8 +155,9 @@ export function SharedGroupDetailScreen() {
   const [editName, setEditName] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [savingSettings, setSavingSettings] = useState(false);
-  const [activeStatPage, setActiveStatPage] = useState(0);
-  const [settleModalVisible, setSettleModalVisible] = useState(false);
+  const [insights, setInsights] = useState<any[]>([]);
+  const [insightsLoading, setInsightsLoading] = useState(false);
+  const [insightsOpen, setInsightsOpen] = useState(false);
 
   const loadData = useCallback(
     async (refresh = false) => {
@@ -154,50 +215,89 @@ export function SharedGroupDetailScreen() {
     useCallback(() => {
       if (expenses.length === 0 && group === null) {
         setLoading(true);
+        loadData();
+      } else {
+        loadData(true);
       }
-      loadData();
       return () => abortRef.current?.abort();
     }, [loadData]),
   );
+
+  useEffect(() => {
+    const unsub = addSyncListener(() => {
+      loadData(true);
+    });
+    return unsub;
+  }, [loadData]);
+
+  useEffect(() => {
+    if (activeTab !== 'summary' || !groupId) return;
+    setInsightsLoading(true);
+    api
+      .get<any[]>(`/shared-finance/groups/${groupId}/insights`)
+      .then((res) => setInsights(Array.isArray(res) ? res : []))
+      .catch(() => setInsights([]))
+      .finally(() => setInsightsLoading(false));
+  }, [activeTab, groupId, expenses.length]);
 
   const members: any[] = Array.isArray(group?.members) ? group.members : [];
   const type = group?.type || 'default';
   const theme = TYPE_THEMES[type] || TYPE_THEMES.default;
   const name = group?.name || routeGroupName || 'Group';
   const currentMember = members.find((m: any) => m.userId === currentUser?.id);
-  const adminMember = members.find((m: any) => m.role === 'admin');
   const isAdmin = currentMember?.role === 'admin' || group?.createdBy === currentUser?.id;
+  const hasSettingsChanged = editName !== name || editDescription !== (group?.description || '');
 
   const stats = useMemo(() => {
-    const now = new Date();
-    const monthly = expenses.filter((t) => {
-      const d = new Date(t.date || t.createdAt);
-      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-    });
     const totalAmount = expenses.reduce((s, t) => s + Number(t.amount || 0), 0);
-    const monthlyAmount = monthly.reduce((s, t) => s + Number(t.amount || 0), 0);
-    const unsettledMembers = expenses.length > 0 ? Math.max(members.length - 1, 0) : 0;
-    const pendingSettlements = group?.pendingSettlements ?? unsettledMembers;
-    const count = expenses.length;
     return {
       totalSpent: totalAmount,
-      totalTransactions: count,
-      pendingSettlements,
-      monthlySpending: monthlyAmount,
+      totalTransactions: expenses.length,
+      pendingSettlements: group?.pendingSettlements ?? 0,
     };
-  }, [expenses, group, members.length]);
+  }, [expenses, group]);
 
-  const topCategory = useMemo(() => {
-    const cats: Record<string, number> = {};
-    expenses.forEach((e) => {
-      const c = (e.category || 'Other').toLowerCase();
-      cats[c] = (cats[c] || 0) + Number(e.amount || 0);
+  const sortedExpenses = useMemo(() => {
+    return [...expenses].sort((a, b) => {
+      const dateA = new Date(a.date || a.expenseDate || a.createdAt || 0).getTime();
+      const dateB = new Date(b.date || b.expenseDate || b.createdAt || 0).getTime();
+      return dateB - dateA;
     });
-    const entries = Object.entries(cats).sort(([, a], [, b]) => b - a);
-    return entries.length > 0
-      ? entries[0][0].charAt(0).toUpperCase() + entries[0][0].slice(1)
-      : 'None';
   }, [expenses]);
+
+  const dateGroupedExpenses = useMemo(() => {
+    const groups: { title: string; data: any[] }[] = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    let currentTitle = '';
+    let currentItems: any[] = [];
+    for (const exp of sortedExpenses) {
+      const d = new Date(exp.date || exp.expenseDate || exp.createdAt);
+      d.setHours(0, 0, 0, 0);
+      let title: string;
+      if (d.getTime() === today.getTime()) {
+        title = 'Today';
+      } else if (d.getTime() === yesterday.getTime()) {
+        title = 'Yesterday';
+      } else {
+        title = d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+      }
+      if (title !== currentTitle) {
+        if (currentItems.length > 0) {
+          groups.push({ title: currentTitle, data: [...currentItems] });
+        }
+        currentTitle = title;
+        currentItems = [];
+      }
+      currentItems.push(exp);
+    }
+    if (currentItems.length > 0) {
+      groups.push({ title: currentTitle, data: currentItems });
+    }
+    return groups;
+  }, [sortedExpenses]);
 
   const balanceRows = useMemo(() => {
     if (members.length === 0) {
@@ -236,6 +336,8 @@ export function SharedGroupDetailScreen() {
         balance: e.paid - e.owes,
         email: member.user?.email,
         upiId: member.user?.upiId || member.user?.email,
+        role: member.role || 'member',
+        isGuest: member.user?.status === 'temporary',
       };
     });
   }, [members, expenses]);
@@ -282,40 +384,6 @@ export function SharedGroupDetailScreen() {
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [activityData, expenses, members]);
 
-  const groupedActivity = useMemo(() => {
-    const groups: { title: string; data: any[] }[] = [];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    let currentTitle = '';
-    let currentItems: any[] = [];
-    activity.forEach((item) => {
-      const d = new Date(item.date);
-      d.setHours(0, 0, 0, 0);
-      let title: string;
-      if (d.getTime() === today.getTime()) {
-        title = 'Today';
-      } else if (d.getTime() === yesterday.getTime()) {
-        title = 'Yesterday';
-      } else {
-        title = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-      }
-      if (title !== currentTitle) {
-        if (currentItems.length > 0) {
-          groups.push({ title: currentTitle, data: [...currentItems] });
-        }
-        currentTitle = title;
-        currentItems = [];
-      }
-      currentItems.push(item);
-    });
-    if (currentItems.length > 0) {
-      groups.push({ title: currentTitle, data: currentItems });
-    }
-    return groups;
-  }, [activity]);
-
   if (loading) {
     return (
       <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
@@ -324,21 +392,19 @@ export function SharedGroupDetailScreen() {
             style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20 }}
           >
             <Skeleton width={38} height={38} borderRadius={12} />
-            <Skeleton width={52} height={52} borderRadius={16} />
             <View style={{ flex: 1, gap: 6 }}>
-              <Skeleton width="60%" height={18} />
+              <Skeleton width="50%" height={20} />
               <Skeleton width="30%" height={12} />
             </View>
+            <Skeleton width={38} height={38} borderRadius={12} />
           </View>
-          <View style={{ flexDirection: 'row', paddingHorizontal: 20, gap: 10, marginTop: 18 }}>
-            {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} style={{ flex: 1 }} width="100%" height={80} borderRadius={18} />
-            ))}
+          <View style={{ paddingHorizontal: 20, marginTop: 18 }}>
+            <Skeleton width="100%" height={100} borderRadius={18} />
           </View>
           <View style={{ marginTop: 20, paddingHorizontal: 20, gap: 10 }}>
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} width="100%" height={60} borderRadius={16} />
-            ))}
+            <Skeleton width="100%" height={60} borderRadius={16} />
+            <Skeleton width="100%" height={60} borderRadius={16} />
+            <Skeleton width="100%" height={60} borderRadius={16} />
           </View>
         </View>
       </View>
@@ -369,184 +435,280 @@ export function SharedGroupDetailScreen() {
     );
   }
 
-  function renderOverview() {
+  function renderSummary() {
+    const settlements = computeSmartSettlements(balanceRows, currentUser?.id);
+    const catEntries = (() => {
+      const cats: Record<string, number> = {};
+      expenses.forEach((e) => {
+        const c = (e.category || 'Other').toLowerCase();
+        cats[c] = (cats[c] || 0) + Number(e.amount || 0);
+      });
+      return Object.entries(cats).sort(([, a], [, b]) => b - a);
+    })();
+
+    const recentActivity = activity.slice(0, 5);
+
     return (
       <View style={s.tabPanel}>
-        <View style={[s.card, { backgroundColor: colors.bg.card }]}>
-          <Text style={[s.infoTitle, { color: colors.text.primary }]}>
-            {group?.description || 'No description added'}
-          </Text>
-          {group?.description ? null : (
-            <Text style={[s.infoSub, { color: colors.text.tertiary }]}>
-              Add a description in group settings
-            </Text>
-          )}
-        </View>
-
-        <View style={[s.card, { backgroundColor: colors.bg.card }]}>
-          <Text style={[s.secTitle, { color: colors.text.tertiary }]}>This Month</Text>
-          <Text style={[s.monthlyAmount, { color: colors.text.primary }]}>
-            {fmt(stats.monthlySpending)}
-          </Text>
-          <Text style={[s.monthlyLabel, { color: colors.text.tertiary }]}>
-            {stats.totalTransactions} transactions this month
-          </Text>
-        </View>
-
-        <View style={[s.card, { backgroundColor: colors.bg.card }]}>
-          <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Financial Summary</Text>
-          <View style={s.finSumRow}>
-            <Text style={[s.finSumLabel, { color: colors.text.tertiary }]}>All-time Total</Text>
-            <Text style={[s.finSumValue, { color: colors.text.primary }]}>
-              {fmt(stats.totalSpent)}
-            </Text>
-          </View>
-          <View style={s.divider} />
-          <View style={s.finSumRow}>
-            <Text style={[s.finSumLabel, { color: colors.text.tertiary }]}>Per Person</Text>
-            <Text style={[s.finSumValue, { color: colors.text.primary }]}>
-              {fmt(Math.round(stats.totalSpent / Math.max(members.length, 1)))}
-            </Text>
-          </View>
-          <View style={s.divider} />
-          <View style={s.finSumRow}>
-            <Text style={[s.finSumLabel, { color: colors.text.tertiary }]}>Per Transaction</Text>
-            <Text style={[s.finSumValue, { color: colors.text.primary }]}>
-              {fmt(Math.round(stats.totalSpent / Math.max(stats.totalTransactions, 1)))}
-            </Text>
-          </View>
-          <View style={s.divider} />
-          <View style={s.finSumRow}>
-            <Text style={[s.finSumLabel, { color: colors.text.tertiary }]}>Top Category</Text>
-            <Text style={[s.finSumValue, { color: colors.accent.primary }]}>{topCategory}</Text>
-          </View>
-        </View>
-
-        <View style={[s.card, { backgroundColor: colors.bg.card }]}>
-          <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Category Breakdown</Text>
-          <View style={s.chipRow}>
-            {(() => {
-              const cats: Record<string, number> = {};
-              expenses.forEach((e) => {
-                const c = (e.category || 'Other').toLowerCase();
-                cats[c] = (cats[c] || 0) + Number(e.amount || 0);
-              });
-              return Object.entries(cats)
-                .sort(([, a], [, b]) => b - a)
-                .slice(0, 6);
-            })().map(([cat, amt]) => (
-              <View
-                key={cat}
-                style={[s.categoryChip, { backgroundColor: `${colors.accent.primary}15` }]}
-              >
-                <Text style={[s.categoryChipText, { color: colors.accent.primary }]}>
-                  {cat.charAt(0).toUpperCase() + cat.slice(1)} · {fmt(amt)}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        <View style={[s.card, { backgroundColor: colors.bg.card }]}>
-          <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Balances</Text>
-          {balanceRows.length === 0 && (
-            <Text style={[s.finSumLabel, { color: colors.text.tertiary }]}>No data yet</Text>
-          )}
-          {balanceRows.map((row, idx) => {
-            const isLast = idx === balanceRows.length - 1;
-            const pct = Math.max(...balanceRows.map((r) => Math.abs(r.balance)), 1);
-            const barPct = Math.abs(row.balance) / pct;
-            return (
-              <View
-                key={row.id}
-                style={[
-                  s.balChartRow,
-                  !isLast && {
-                    borderBottomWidth: StyleSheet.hairlineWidth,
-                    borderBottomColor: colors.border.subtle,
-                  },
-                ]}
-              >
-                <Text style={[s.balChartName, { color: colors.text.primary }]} numberOfLines={1}>
-                  {row.name}
-                </Text>
-                <View style={s.balChartBarWrap}>
-                  <View style={[s.balChartBarBg, { backgroundColor: colors.bg.tertiary }]}>
-                    <View
-                      style={[
-                        s.balChartBar,
-                        {
-                          width: `${barPct * 100}%`,
-                          backgroundColor: row.balance >= 0 ? '#34C759' : '#FF4D4F',
-                        },
-                      ]}
-                    />
-                  </View>
-                </View>
-                <Text style={[s.balChartAmt, { color: row.balance >= 0 ? '#34C759' : '#FF4D4F' }]}>
-                  {row.balance >= 0 ? '+' : ''}
-                  {fmt(Math.round(row.balance))}
-                </Text>
-              </View>
-            );
-          })}
-        </View>
-
-        {balanceRows.length > 0 && (
-          <TouchableOpacity
-            style={[s.insightCard, { backgroundColor: `${colors.accent.primary}12` }]}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate('Settlement', { groupId })}
-          >
-            <Ionicons name="bulb-outline" size={20} color={colors.accent.primary} />
-            <View style={{ flex: 1 }}>
-              <Text style={[s.insightTitle, { color: colors.text.primary }]}>
-                Settlement Status
-              </Text>
-              <Text style={[s.insightText, { color: colors.text.tertiary }]}>
-                {balanceRows.filter((r) => r.balance < 0).length} member
-                {balanceRows.filter((r) => r.balance < 0).length !== 1 ? 's' : ''} need to settle up
+        {settlements.length > 0 && (
+          <View style={[s.settlementHero, { backgroundColor: colors.bg.card }]}>
+            <View style={s.settlementHeroHeader}>
+              <Ionicons name="swap-horizontal-outline" size={18} color={colors.accent.primary} />
+              <Text style={[s.settlementHeroTitle, { color: colors.text.primary }]}>
+                {myBalanceRow && myBalanceRow.balance < 0
+                  ? `You owe ${fmt(Math.abs(myBalanceRow.balance))}`
+                  : `You are owed ${fmt(myBalanceRow?.balance || 0)}`}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.accent.primary} />
-          </TouchableOpacity>
+            {settlements.map((st, i) => (
+              <View key={i} style={s.settlementRow}>
+                <View style={[s.settlementAvatar, { backgroundColor: colors.accent.primary }]}>
+                  <Text style={s.settlementAvatarText}>
+                    {st.fromName === 'You' ? st.toName[0]?.toUpperCase() : st.fromName[0]?.toUpperCase()}
+                  </Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[s.settlementLabel, { color: colors.text.primary }]}>
+                    {st.type === 'pay'
+                      ? `Pay ${st.toName}`
+                      : `${st.fromName} pays you`}
+                  </Text>
+                  <Text style={[s.settlementAmount, { color: colors.text.tertiary }]}>
+                    {fmt(st.amount)}
+                  </Text>
+                </View>
+                {st.type === 'pay' && st.upiId ? (
+                  <TouchableOpacity
+                    style={[s.upiBtn, { backgroundColor: '#34C759' }]}
+                    onPress={() => {
+                      const upiLink = `upi://pay?pa=${encodeURIComponent(st.upiId!)}&pn=${encodeURIComponent(st.toName)}&am=${st.amount}&cu=INR&tn=Settling%20via%20Dabbu`;
+                      Linking.openURL(upiLink).catch(() =>
+                        Alert.alert(
+                          'Unable to open UPI',
+                          'No UPI app found. Please try GPay, PhonePe, or Paytm.',
+                        ),
+                      );
+                    }}
+                  >
+                    <Ionicons name="wallet-outline" size={14} color="#FFF" />
+                    <Text style={s.upiBtnText}>Pay</Text>
+                  </TouchableOpacity>
+                ) : st.type === 'remind' ? (
+                  <TouchableOpacity
+                    style={[s.upiBtn, { backgroundColor: colors.status.warning }]}
+                    onPress={() => {
+                      const msg = `Hey ${st.fromName}, just a reminder to pay me ${fmt(st.amount)} on Dabbu!`;
+                      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+                      Linking.openURL(whatsappUrl).catch(() =>
+                        Alert.alert('Reminder', msg),
+                      );
+                    }}
+                  >
+                    <Ionicons name="notifications-outline" size={14} color="#FFF" />
+                    <Text style={s.upiBtnText}>Remind</Text>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+            ))}
+            {settlements.length > 0 && (
+              <TouchableOpacity
+                style={[s.viewAllSettlements, { borderTopColor: colors.border.subtle }]}
+                onPress={() => navigation.navigate('Settlement', { groupId })}
+              >
+                <Text style={[s.viewAllSettlementsText, { color: colors.accent.primary }]}>
+                  View all settlements
+                </Text>
+                <Ionicons name="chevron-forward" size={14} color={colors.accent.primary} />
+              </TouchableOpacity>
+            )}
+          </View>
         )}
 
-        {(type === 'couple' || type === 'family') && (
-          <TouchableOpacity
-            style={[s.typeDashBtn, { backgroundColor: colors.accent.primary }]}
-            onPress={() =>
-              type === 'couple'
-                ? navigation.navigate('CoupleFinance', { groupId, groupName: name })
-                : navigation.navigate('FamilyDashboard', { groupId, groupName: name })
-            }
-          >
-            <Ionicons name={type === 'couple' ? 'heart' : 'home'} size={18} color="#FFF" />
-            <Text style={s.typeDashBtnText}>
-              Open {type === 'couple' ? 'Couple' : 'Family'} Dashboard
-            </Text>
-            <Ionicons name="arrow-forward" size={16} color="#FFF" />
-          </TouchableOpacity>
-        )}
-
-        {type === 'sports' && adminMember?.user?.upiId && !isAdmin && (
-          <TouchableOpacity
-            style={[s.typeDashBtn, { backgroundColor: '#FF6B6B' }]}
-            activeOpacity={0.85}
-            onPress={() => {
-              const upiLink = `upi://pay?pa=${encodeURIComponent(adminMember.user.upiId)}&pn=${encodeURIComponent(adminMember.user.firstName || 'Admin')}&cu=INR&tn=Payment%20for%20${encodeURIComponent(name)}`;
-              Linking.openURL(upiLink).catch(() =>
-                Alert.alert(
-                  'Unable to open UPI',
-                  'No UPI app found. Please try GPay, PhonePe, or Paytm.',
-                ),
+        {type === 'trip' && expenses.length > 0 && (
+          <View style={[s.tripSummaryCard, { backgroundColor: colors.bg.card }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <View style={[s.tripIconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
+                <Ionicons name="airplane" size={20} color={colors.accent.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[s.tripSummaryTitle, { color: colors.text.primary }]}>
+                  {name}
+                </Text>
+                <Text style={[s.tripSummaryMeta, { color: colors.text.tertiary }]}>
+                  {members.length} member{members.length !== 1 ? 's' : ''} · {fmt(stats.totalSpent)} total
+                </Text>
+              </View>
+            </View>
+            {(() => {
+              if (expenses.length === 0) return null;
+              const dates = sortedExpenses
+                .map(e => new Date(e.date || e.expenseDate || e.createdAt).getTime())
+                .filter(t => !isNaN(t))
+                .sort();
+              if (dates.length === 0) return null;
+              const firstDay = new Date(dates[0]);
+              const lastDay = new Date(dates[dates.length - 1]);
+              const days = Math.max(1, Math.round((lastDay.getTime() - firstDay.getTime()) / 86400000) + 1);
+              return (
+                <View style={s.tripStatsRow}>
+                  <View style={s.tripStat}>
+                    <Text style={[s.tripStatValue, { color: colors.text.primary }]}>{days} days</Text>
+                    <Text style={[s.tripStatLabel, { color: colors.text.tertiary }]}>Duration</Text>
+                  </View>
+                  <View style={s.tripStat}>
+                    <Text style={[s.tripStatValue, { color: colors.text.primary }]}>{expenses.length}</Text>
+                    <Text style={[s.tripStatLabel, { color: colors.text.tertiary }]}>Expenses</Text>
+                  </View>
+                  <View style={s.tripStat}>
+                    <Text style={[s.tripStatValue, { color: colors.accent.primary }]}>{fmt(stats.totalSpent)}</Text>
+                    <Text style={[s.tripStatLabel, { color: colors.text.tertiary }]}>Total</Text>
+                  </View>
+                </View>
               );
-            }}
-          >
-            <Ionicons name="football" size={18} color="#FFF" />
-            <Text style={s.typeDashBtnText}>Pay to Admin</Text>
-            <Ionicons name="arrow-forward" size={16} color="#FFF" />
-          </TouchableOpacity>
+            })()}
+          </View>
+        )}
+
+        {catEntries.length > 0 && (
+          <View style={[s.card, { backgroundColor: colors.bg.card }]}>
+            <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Categories</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {catEntries.slice(0, 4).map(([cat, amt]) => {
+                const pct = Math.round((amt / stats.totalSpent) * 100);
+                return (
+                  <View
+                    key={cat}
+                    style={[s.categoryChip, { backgroundColor: `${colors.accent.primary}12` }]}
+                  >
+                    <Text style={[s.categoryChipText, { color: colors.accent.primary }]}>
+                      {cat.charAt(0).toUpperCase() + cat.slice(1)} · {pct}%
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        )}
+
+        <TouchableOpacity
+          style={[s.insightToggle, { backgroundColor: colors.bg.card }]}
+          onPress={() => {
+            if (!insightsOpen && insights.length === 0 && !insightsLoading) {
+              setInsightsLoading(true);
+              api
+                .get<any[]>(`/shared-finance/groups/${groupId}/insights`)
+                .then((res) => setInsights(Array.isArray(res) ? res : []))
+                .catch(() => setInsights([]))
+                .finally(() => setInsightsLoading(false));
+            }
+            setInsightsOpen(!insightsOpen);
+          }}
+          activeOpacity={0.7}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Ionicons name="bulb-outline" size={18} color={colors.status.warning} />
+            <Text style={[s.insightToggleTitle, { color: colors.text.primary }]}>
+              AI Insights
+            </Text>
+          </View>
+          <Ionicons
+            name={insightsOpen ? 'chevron-up' : 'chevron-down'}
+            size={18}
+            color={colors.text.tertiary}
+          />
+        </TouchableOpacity>
+
+        {insightsOpen && (
+          <View style={[s.card, { backgroundColor: colors.bg.card }]}>
+            {insightsLoading ? (
+              <ActivityIndicator size="small" color={colors.accent.primary} style={{ marginVertical: 12 }} />
+            ) : insights.length === 0 ? (
+              <Text style={[{ fontSize: 13, color: colors.text.tertiary, textAlign: 'center', marginVertical: 12 }]}>
+                No insights available yet. Add more expenses to get personalized recommendations.
+              </Text>
+            ) : (
+              insights.slice(0, 5).map((insight: any, i: number) => {
+                const sevColor =
+                  insight.severity === 'critical'
+                    ? '#EF4444'
+                    : insight.severity === 'warning'
+                      ? '#F59E0B'
+                      : insight.severity === 'success'
+                        ? '#10B981'
+                        : '#3B82F6';
+                return (
+                  <View
+                    key={i}
+                    style={[
+                      s.insightItem,
+                      {
+                        backgroundColor: `${sevColor}10`,
+                        borderLeftColor: sevColor,
+                      },
+                    ]}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text style={[{ fontSize: 13, fontWeight: '700', color: colors.text.primary }]}>
+                        {insight.title}
+                      </Text>
+                      <Text style={[{ fontSize: 12, color: colors.text.secondary, marginTop: 2 }]}>
+                        {insight.message}
+                      </Text>
+                    </View>
+                    {insight.actionable && (
+                      <TouchableOpacity
+                        style={[{ backgroundColor: sevColor, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 }]}
+                        onPress={() => {
+                          if (insight.actionRoute === '/expenses/add') {
+                            navigation.navigate('SharedExpenseForm', { groupId, edit: false });
+                          }
+                        }}
+                      >
+                        <Text style={[{ color: '#FFF', fontSize: 11, fontWeight: '700' }]}>
+                          {insight.actionLabel || 'Go'}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                );
+              })
+            )}
+          </View>
+        )}
+
+        {recentActivity.length > 0 && (
+          <View style={[s.card, { backgroundColor: colors.bg.card }]}>
+            <Text style={[s.secTitle, { color: colors.text.tertiary }]}>
+              Recent Activity
+            </Text>
+            {recentActivity.map((item) => {
+              const typeColor =
+                item.type === 'expense' || item.type === 'expense_added'
+                  ? '#60A5FA'
+                  : item.type === 'member' || item.type === 'member_joined'
+                    ? '#34C759'
+                    : item.type?.includes('settlement')
+                      ? colors.status.warning
+                      : item.type === 'payment_completed' || item.type === 'settlement_confirmed'
+                        ? '#34C759'
+                        : colors.accent.primary;
+              return (
+                <View key={item.id} style={[s.activityRow, { borderLeftColor: typeColor }]}>
+                  <View style={[s.activityIcon, { backgroundColor: colors.bg.tertiary }]}>
+                    <Ionicons name={item.icon as any} size={16} color={colors.accent.primary} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[s.activityTitle, { color: colors.text.primary }]}>
+                      {item.title}
+                    </Text>
+                    <Text style={[s.activityDetail, { color: colors.text.tertiary }]}>
+                      {item.detail}
+                    </Text>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
         )}
       </View>
     );
@@ -556,21 +718,43 @@ export function SharedGroupDetailScreen() {
     const payer = members.find((m: any) => m.userId === item.paidBy);
     const payerName = payer?.user?.firstName || payer?.user?.email || 'Someone';
     const date = new Date(item.date || item.createdAt || '');
-    const splitType = item.splitType || 'equal';
     const category = item.category || 'Other';
+    const canModify = item.paidBy === currentUser?.id || isAdmin;
+
+    const mySplit = item.splits?.find((s: any) => s.userId === currentUser?.id);
+    const myShare = mySplit ? Number(mySplit.amount) : 0;
+    const iPaid = item.paidBy === currentUser?.id;
+
     return (
       <TouchableOpacity
         style={[s.expenseCard, { backgroundColor: colors.bg.card }]}
-        onPress={() =>
-          navigation.navigate('SharedExpenseForm', { groupId, expenseId: item.id, edit: true })
-        }
-        activeOpacity={0.8}
+        onPress={() => {
+          if (!canModify) return;
+          navigation.navigate('SharedExpenseForm', { groupId, expenseId: item.id, edit: true });
+        }}
+        onLongPress={() => {
+          if (!canModify) return;
+          Alert.alert(item.description || 'Expense', 'Choose action', [
+            {
+              text: 'Edit',
+              onPress: () =>
+                navigation.navigate('SharedExpenseForm', { groupId, expenseId: item.id, edit: true }),
+            },
+            {
+              text: 'Delete',
+              style: 'destructive',
+              onPress: () => confirmDeleteExpense(item.id),
+            },
+            { text: 'Cancel', style: 'cancel' },
+          ]);
+        }}
+        activeOpacity={canModify ? 0.8 : 1}
       >
         <View style={[s.expenseAvatar, { backgroundColor: colors.accent.primary }]}>
           <Text style={s.expenseAvatarText}>{payerName[0]?.toUpperCase() || '?'}</Text>
         </View>
-        <View style={{ flex: 1 }}>
-          <View style={s.expenseTop}>
+        <View style={{ flex: 1, gap: 2 }}>
+          <View style={s.expenseTopRow}>
             <Text style={[s.expenseDesc, { color: colors.text.primary }]} numberOfLines={1}>
               {item.description || category}
             </Text>
@@ -578,85 +762,46 @@ export function SharedGroupDetailScreen() {
               {fmt(Number(item.amount || 0))}
             </Text>
           </View>
-          <View style={s.expenseBottom}>
-            <Text style={[s.expenseMeta, { color: colors.text.tertiary }]}>{payerName}</Text>
-            {!isNaN(date.getTime()) && (
-              <Text style={[s.expenseMeta, { color: colors.text.tertiary }]}>
-                {date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-              </Text>
-            )}
-          </View>
-          <View style={s.expenseTags}>
-            <View style={[s.splitBadge, { backgroundColor: `${colors.accent.primary}15` }]}>
-              <Text style={[s.splitBadgeText, { color: colors.accent.primary }]}>
-                {splitType.charAt(0).toUpperCase() + splitType.slice(1)}
-              </Text>
-            </View>
-            <View style={[s.catBadge, { backgroundColor: '#60A5FA15' }]}>
-              <Text style={[s.catBadgeText, { color: '#60A5FA' }]}>{category}</Text>
-            </View>
-          </View>
+          <Text style={[s.expenseDateLine, { color: colors.text.tertiary }]}>
+            {payerName}
+            {!isNaN(date.getTime()) &&
+              ` · ${date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`}
+          </Text>
+          {iPaid ? (
+            <Text style={[s.yourShareText, { color: colors.accent.primary }]}>
+              You paid {fmt(Number(item.amount || 0))}
+            </Text>
+          ) : myShare > 0 ? (
+            <Text style={[s.yourShareText, { color: colors.text.tertiary }]}>
+              Your share: {fmt(myShare)}
+            </Text>
+          ) : null}
         </View>
       </TouchableOpacity>
     );
   }
 
-  function renderBalances() {
-    if (members.length === 0) {
-      return (
-        <View style={s.tabPanel}>
-          <EmptyState
-            icon="cash-outline"
-            title="Invite your people"
-            message="Add members to start splitting expenses. Shared finance works better together."
-          />
-        </View>
-      );
-    }
-    return (
-      <View style={s.tabPanel}>
-        {balanceRows.map((row) => {
-          const owes = row.balance < 0;
-          const currentUserOwes = owes && row.userId !== currentUser?.id;
-          return (
-            <View key={row.id} style={[s.balanceCard, { backgroundColor: colors.bg.card }]}>
-              <View style={[s.balanceAvatar, { backgroundColor: colors.accent.primary }]}>
-                <Text style={s.balanceAvatarText}>{row.name[0]?.toUpperCase() || '?'}</Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[s.balanceName, { color: colors.text.primary }]}>{row.name}</Text>
-                <Text style={[s.balanceStatus, { color: colors.text.tertiary }]}>
-                  Paid {fmt(row.paid)}
-                </Text>
-              </View>
-              <Text style={[s.balanceAmount, { color: row.balance >= 0 ? '#34C759' : '#FF4D4F' }]}>
-                {row.balance >= 0 ? 'Gets ' : 'Owes '}
-                {fmt(Math.abs(row.balance))}
-              </Text>
-              {currentUserOwes && (
-                <TouchableOpacity
-                  style={[s.settleBtn, { backgroundColor: '#34C759' }]}
-                  onPress={() => {
-                    const upiLink = `upi://pay?pa=${encodeURIComponent(row.upiId || row.email || '')}&pn=${encodeURIComponent(row.name)}&am=${Math.abs(row.balance)}&cu=INR&tn=Settling%20via%20Dabbu`;
-                    Linking.openURL(upiLink).catch(() =>
-                      Alert.alert(
-                        'Unable to open UPI',
-                        'No UPI app found. Please try GPay, PhonePe, or Paytm.',
-                      ),
-                    );
-                  }}
-                >
-                  <Text style={s.settleBtnText}>Settle Up</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          );
-        })}
-      </View>
-    );
+  async function confirmDeleteExpense(expenseId: string) {
+    Alert.alert('Delete Expense', 'Are you sure? This cannot be undone.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            if (accessToken) setAccessToken(accessToken);
+            await api.delete(`/shared-finance/expenses/${expenseId}`);
+            showToast('Expense deleted');
+            loadData(true);
+          } catch (e: any) {
+            Alert.alert('Error', e.message || 'Failed to delete');
+          }
+        },
+      },
+    ]);
   }
 
-  function renderMembers() {
+  function renderPeople() {
     if (members.length === 0) {
       return (
         <View style={s.tabPanel}>
@@ -670,132 +815,78 @@ export function SharedGroupDetailScreen() {
         </View>
       );
     }
+
+    const sortedByBalance = [...balanceRows].sort((a, b) => {
+      if (a.userId === currentUser?.id) return 1;
+      if (b.userId === currentUser?.id) return -1;
+      return Math.abs(b.balance) - Math.abs(a.balance);
+    });
+
     return (
       <View style={s.tabPanel}>
-        {members.map((member: any) => {
-          const role = member.role || 'member';
-          const isMemberCurrentUser = member.userId === currentUser?.id;
-          const row = balanceRows.find((r) => r.userId === member.userId);
+        {sortedByBalance.map((row) => {
+          const owes = row.balance < 0;
+          const isMe = row.userId === currentUser?.id;
           return (
-            <TouchableOpacity
-              key={member.id}
-              style={[s.memberCard, { backgroundColor: colors.bg.card }]}
-              onLongPress={() => {
-                if (!isAdmin || isMemberCurrentUser) {
-                  return;
-                }
-                Alert.alert(member.user?.firstName || 'Member', 'Choose action', [
-                  {
-                    text: role === 'admin' ? 'Make Member' : 'Make Admin',
-                    onPress: () => changeMemberRole(member, role === 'admin' ? 'member' : 'admin'),
-                  },
-                  { text: 'Remove', style: 'destructive', onPress: () => removeMember(member) },
-                  { text: 'Cancel', style: 'cancel' },
-                ]);
-              }}
-              activeOpacity={0.7}
-            >
-              <View style={[s.memberAvatar, { backgroundColor: colors.accent.primary }]}>
-                <Text style={s.memberAvatarText}>
-                  {(member.user?.firstName?.[0] || member.firstName?.[0] || '?').toUpperCase()}
+            <View key={row.id} style={[s.peopleCard, { backgroundColor: colors.bg.card }]}>
+              <View style={[s.peopleAvatar, { backgroundColor: isMe ? colors.accent.primary : colors.bg.tertiary }]}>
+                <Text style={[s.peopleAvatarText, { color: isMe ? '#FFF' : colors.text.primary }]}>
+                  {row.name[0]?.toUpperCase() || '?'}
                 </Text>
               </View>
               <View style={{ flex: 1 }}>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <Text style={[s.memberName, { color: colors.text.primary }]}>
-                    {member.user?.firstName || member.user?.email || member.firstName || 'Member'}
-                    {isMemberCurrentUser ? ' (You)' : ''}
+                <Text style={[s.peopleName, { color: colors.text.primary }]}>
+                  {row.name}
+                  {isMe ? ' (You)' : ''}
+                </Text>
+                {Math.abs(row.balance) < 1 ? (
+                  <Text style={[s.peopleStatusSettled, { color: '#34C759' }]}>
+                    All settled
                   </Text>
-                  {member.user?.status === 'temporary' && (
-                    <View
-                      style={[
-                        s.roleBadge,
-                        { backgroundColor: `${colors.text.tertiary}18`, marginLeft: 6 },
-                      ]}
-                    >
-                      <Text style={[s.roleBadgeText, { color: colors.text.tertiary }]}>Guest</Text>
-                    </View>
-                  )}
-                  <View
-                    style={[
-                      s.roleBadge,
-                      {
-                        backgroundColor:
-                          role === 'admin'
-                            ? `${colors.accent.primary}15`
-                            : `${colors.text.tertiary}18`,
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        s.roleBadgeText,
-                        { color: role === 'admin' ? colors.accent.primary : colors.text.tertiary },
-                      ]}
-                    >
-                      {role === 'admin' ? 'Admin' : 'Member'}
-                    </Text>
-                  </View>
-                </View>
-                {row && (
-                  <View style={{ marginTop: 6, gap: 4 }}>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <Text style={{ fontSize: 12, color: colors.text.tertiary }}>
-                        Paid {fmt(row.paid)}
-                      </Text>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        {Math.abs(row.balance) < 1 ? (
-                          <Text style={{ fontSize: 11, fontWeight: '700', color: '#34C759' }}>
-                            Settled ✅
-                          </Text>
-                        ) : row.balance < 0 ? (
-                          <Text style={{ fontSize: 11, fontWeight: '700', color: '#FF4D4F' }}>
-                            Owes {fmt(Math.abs(Math.round(row.balance)))}
-                          </Text>
-                        ) : (
-                          <Text style={{ fontSize: 11, fontWeight: '700', color: '#34C759' }}>
-                            Gets {fmt(Math.round(row.balance))}
-                          </Text>
-                        )}
-                      </View>
-                    </View>
-                    <View style={[s.contBarBg, { backgroundColor: colors.bg.tertiary }]}>
-                      <View
-                        style={[
-                          s.contBarFill,
-                          {
-                            width: `${stats.totalSpent > 0 ? Math.min((row.paid / stats.totalSpent) * 100, 100) : 0}%`,
-                            backgroundColor: colors.accent.primary,
-                          },
-                        ]}
-                      />
-                    </View>
-                  </View>
-                )}
-                {!row && (
-                  <Text style={{ fontSize: 12, color: colors.text.tertiary, marginTop: 4 }}>
-                    No expenses yet
+                ) : (
+                  <Text style={[s.peopleStatus, { color: owes ? '#FF4D4F' : '#34C759' }]}>
+                    {owes ? `Owes ${fmt(Math.abs(Math.round(row.balance)))}` : `Gets ${fmt(Math.round(row.balance))}`}
                   </Text>
                 )}
               </View>
-            </TouchableOpacity>
+              {!isMe && owes && (
+                <TouchableOpacity
+                  style={[s.peopleSettleBtn, { backgroundColor: '#34C759' }]}
+                  onPress={() => {
+                    const upiLink = `upi://pay?pa=${encodeURIComponent(row.upiId || row.email || '')}&pn=${encodeURIComponent(row.name)}&am=${Math.abs(row.balance)}&cu=INR&tn=Settling%20via%20Dabbu`;
+                    Linking.openURL(upiLink).catch(() =>
+                      Alert.alert(
+                        'Unable to open UPI',
+                        'No UPI app found. Please try GPay, PhonePe, or Paytm.',
+                      ),
+                    );
+                  }}
+                >
+                  <Text style={s.peopleSettleBtnText}>Settle Up</Text>
+                </TouchableOpacity>
+              )}
+              {!isMe && !owes && row.balance > 0 && (
+                <TouchableOpacity
+                  style={[s.peopleSettleBtn, { backgroundColor: colors.status.warning }]}
+                  onPress={() => {
+                    const msg = `Hey ${row.name}, just a reminder to settle up ${fmt(Math.round(row.balance))} on Dabbu!`;
+                    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+                    Linking.openURL(whatsappUrl).catch(() =>
+                      Alert.alert('Reminder', msg),
+                    );
+                  }}
+                >
+                  <Ionicons name="notifications-outline" size={14} color="#FFF" />
+                  <Text style={s.peopleSettleBtnText}>Remind</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           );
         })}
+
         {!(type === 'couple' && members.length >= 2) && (
           <>
-            <View style={{ flexDirection: 'row', gap: 10 }}>
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 8 }}>
               <TouchableOpacity
                 style={[s.inviteBtn, { backgroundColor: colors.accent.primary, flex: 1 }]}
                 onPress={() =>
@@ -905,71 +996,6 @@ export function SharedGroupDetailScreen() {
     );
   }
 
-  function renderActivity() {
-    if (groupedActivity.length === 0) {
-      return (
-        <View style={s.tabPanel}>
-          <EmptyState
-            icon="timer-outline"
-            title="Track your group's activity"
-            message="Expenses, settlements, and member updates will appear here."
-          />
-        </View>
-      );
-    }
-    return (
-      <View style={s.tabPanel}>
-        {groupedActivity.map((group) => (
-          <View key={group.title}>
-            <Text style={[s.activitySectionTitle, { color: colors.text.tertiary }]}>
-              {group.title}
-            </Text>
-            {group.data.map((item) => {
-              const typeColor =
-                item.type === 'expense' || item.type === 'expense_added'
-                  ? '#60A5FA'
-                  : item.type === 'member' || item.type === 'member_joined'
-                    ? '#34C759'
-                    : item.type?.includes('settlement')
-                      ? colors.status.warning
-                      : item.type === 'payment_completed' || item.type === 'settlement_confirmed'
-                        ? '#34C759'
-                        : colors.accent.primary;
-              return (
-                <View
-                  key={item.id}
-                  style={[s.activityRow, { borderLeftWidth: 3, borderLeftColor: typeColor }]}
-                >
-                  <View style={[s.activityIcon, { backgroundColor: colors.bg.tertiary }]}>
-                    <Ionicons name={item.icon as any} size={16} color={colors.accent.primary} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[s.activityTitle, { color: colors.text.primary }]}>
-                      {item.title}
-                    </Text>
-                    <Text style={[s.activityDetail, { color: colors.text.tertiary }]}>
-                      {item.detail}
-                    </Text>
-                  </View>
-                  {item.date && (
-                    <Text style={[s.activityDate, { color: colors.text.tertiary }]}>
-                      {new Date(item.date).toLocaleDateString('en-IN', {
-                        day: 'numeric',
-                        month: 'short',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </Text>
-                  )}
-                </View>
-              );
-            })}
-          </View>
-        ))}
-      </View>
-    );
-  }
-
   async function changeMemberRole(member: any, role: 'admin' | 'member') {
     try {
       if (accessToken) {
@@ -1032,37 +1058,6 @@ export function SharedGroupDetailScreen() {
     }
   }
 
-  function handleSettleUp() {
-    setSettleModalVisible(true);
-  }
-
-  async function confirmAllSettlements() {
-    setSettleModalVisible(false);
-    try {
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
-      const plan = await api.get<any>(`/shared-finance/groups/${groupId}/settlements/plan`);
-      const items = Array.isArray(plan) ? plan : [];
-      if (items.length === 0) {
-        Alert.alert('All Settled', 'No pending settlements.');
-        return;
-      }
-      for (const s of items) {
-        if (currentUser?.id && (s.fromUserId === currentUser.id || s.toUserId === currentUser.id)) {
-          await api.post(`/shared-finance/settlements/${s.id}/complete`, {}).catch(() => {});
-        }
-      }
-      Alert.alert(
-        'Settled Up!',
-        'Your pending balances have been settled. The space admin has been notified.',
-      );
-      loadData(true);
-    } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to settle up');
-    }
-  }
-
   async function handleGenerateInvite() {
     if (!groupId) {
       return;
@@ -1098,8 +1093,8 @@ export function SharedGroupDetailScreen() {
 
   return (
     <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
-      <FlatList
-        data={activeTab === 'expenses' ? expenses : []}
+      <SectionList
+        sections={activeTab === 'expenses' ? dateGroupedExpenses : []}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         initialNumToRender={8}
@@ -1115,7 +1110,26 @@ export function SharedGroupDetailScreen() {
         contentContainerStyle={
           activeTab === 'expenses' && expenses.length === 0
             ? s.emptyContainer
-            : { paddingBottom: insets.bottom + 96 }
+            : { paddingBottom: insets.bottom + 120 }
+        }
+        stickySectionHeadersEnabled={false}
+        renderSectionHeader={({ section }) =>
+          activeTab === 'expenses' && section.data.length > 0 ? (
+            <Text
+              style={[
+                s.activitySectionTitle,
+                {
+                  color: colors.text.tertiary,
+                  paddingHorizontal: 24,
+                  paddingTop: 16,
+                  paddingBottom: 4,
+                  backgroundColor: colors.bg.primary,
+                },
+              ]}
+            >
+              {section.title}
+            </Text>
+          ) : null
         }
         ListHeaderComponent={
           <Animated.View style={{ opacity: fadeAnim }}>
@@ -1149,6 +1163,30 @@ export function SharedGroupDetailScreen() {
                     </View>
                   </View>
                 </View>
+                {myBalanceRow && Math.abs(myBalanceRow.balance) > 0 && (
+                  <View style={[s.headerBalanceChip, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
+                    <Ionicons
+                      name={myBalanceRow.balance >= 0 ? 'arrow-down' : 'arrow-up'}
+                      size={12}
+                      color="#FFF"
+                    />
+                    <Text style={s.headerBalanceText}>
+                      {myBalanceRow.balance >= 0 ? '' : '-'}
+                      {fmt(Math.abs(Math.round(myBalanceRow.balance)))}
+                    </Text>
+                  </View>
+                )}
+                <TouchableOpacity
+                  style={[s.iconBtn, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
+                  onPress={() => loadData(true)}
+                >
+                  <Ionicons
+                    name={refreshing ? 'sync-outline' : 'refresh-outline'}
+                    size={20}
+                    color="#FFF"
+                    style={refreshing ? { transform: [{ rotate: '45deg' }] } : undefined}
+                  />
+                </TouchableOpacity>
                 {isAdmin && (
                   <TouchableOpacity
                     style={[s.iconBtn, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
@@ -1187,73 +1225,8 @@ export function SharedGroupDetailScreen() {
               </View>
             </View>
 
-            <View style={{ marginTop: -16, paddingHorizontal: 16 }}>
-              <View style={{ flexDirection: 'row', gap: 10 }}>
-                {[
-                  {
-                    label: 'Total Spent',
-                    value: fmt(stats.totalSpent),
-                    color: colors.text.primary,
-                  },
-                  {
-                    label: myBalanceRow && myBalanceRow.balance >= 0 ? 'You Are Owed' : 'You Owe',
-                    value: myBalanceRow
-                      ? myBalanceRow.balance >= 0
-                        ? fmt(myBalanceRow.balance)
-                        : fmt(Math.abs(myBalanceRow.balance))
-                      : fmt(0),
-                    color:
-                      myBalanceRow && myBalanceRow.balance >= 0
-                        ? '#34C759'
-                        : myBalanceRow && myBalanceRow.balance < 0
-                          ? colors.status.error
-                          : colors.text.primary,
-                  },
-                  {
-                    label: 'Settlements Pending',
-                    value: String(stats.pendingSettlements),
-                    color: colors.status.warning,
-                  },
-                  { label: 'Members', value: String(members.length), color: colors.accent.primary },
-                ].map((page, idx) => (
-                  <View key={idx} style={[s.statCard, { backgroundColor: colors.bg.card }]}>
-                    <Text style={[s.statLabel, { color: colors.text.tertiary }]}>{page.label}</Text>
-                    <Text style={[s.statValue, { color: page.color }]}>{page.value}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-
-            <View style={s.quickActions}>
-              <TouchableOpacity
-                style={[s.quickAction, { backgroundColor: colors.accent.primary }]}
-                onPress={() => navigation.navigate('SharedExpenseForm', { groupId, edit: false })}
-              >
-                <Ionicons name="add-circle-outline" size={18} color="#FFF" />
-                <Text style={s.quickActionText}>Add Expense</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[s.quickAction, { backgroundColor: '#34C759' }]}
-                onPress={handleSettleUp}
-              >
-                <Ionicons name="swap-horizontal-outline" size={18} color="#FFF" />
-                <Text style={s.quickActionText}>Settle Up</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[s.quickAction, { backgroundColor: colors.bg.card }]}
-                onPress={() => setActiveTab('members')}
-              >
-                <Ionicons name="people-outline" size={18} color={colors.text.primary} />
-                <Text style={[s.quickActionText, { color: colors.text.primary }]}>Members</Text>
-              </TouchableOpacity>
-            </View>
-
             <View style={s.tabRowOuter}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={s.tabRow}
-              >
+              <View style={s.tabRow}>
                 {TABS.map((tab) => (
                   <TouchableOpacity
                     key={tab}
@@ -1271,32 +1244,19 @@ export function SharedGroupDetailScreen() {
                         { color: activeTab === tab ? '#FFF' : colors.text.secondary },
                       ]}
                     >
-                      {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                      {tab === 'summary'
+                        ? 'Summary'
+                        : tab === 'expenses'
+                          ? 'Expenses'
+                          : 'People'}
                     </Text>
                   </TouchableOpacity>
                 ))}
-              </ScrollView>
+              </View>
             </View>
 
-            {activeTab === 'overview' && renderOverview()}
-            {activeTab === 'balances' && renderBalances()}
-            {activeTab === 'members' && renderMembers()}
-            {activeTab === 'activity' && renderActivity()}
-            {activeTab === 'expenses' && expenses.length > 0 && (
-              <Text
-                style={[
-                  s.secTitle,
-                  {
-                    color: colors.text.tertiary,
-                    paddingHorizontal: 24,
-                    paddingTop: 20,
-                    paddingBottom: 8,
-                  },
-                ]}
-              >
-                All Expenses
-              </Text>
-            )}
+            {activeTab === 'summary' && renderSummary()}
+            {activeTab === 'people' && renderPeople()}
           </Animated.View>
         }
         renderItem={({ item }) => renderExpenseItem(item)}
@@ -1314,6 +1274,14 @@ export function SharedGroupDetailScreen() {
           ) : null
         }
       />
+
+      <TouchableOpacity
+        style={[s.fab, { backgroundColor: colors.accent.primary }]}
+        onPress={() => navigation.navigate('SharedExpenseForm', { groupId, edit: false })}
+        activeOpacity={0.85}
+      >
+        <Ionicons name="add" size={26} color="#FFF" />
+      </TouchableOpacity>
 
       <Modal
         visible={settingsOpen}
@@ -1369,9 +1337,13 @@ export function SharedGroupDetailScreen() {
             />
             <View style={s.modalActions}>
               <TouchableOpacity
-                style={[s.modalBtn, { backgroundColor: colors.accent.primary }]}
+                style={[
+                  s.modalBtn,
+                  { backgroundColor: colors.accent.primary },
+                  !hasSettingsChanged && { opacity: 0.5 },
+                ]}
                 onPress={handleSaveSettings}
-                disabled={savingSettings}
+                disabled={savingSettings || !hasSettingsChanged}
               >
                 {savingSettings ? (
                   <ActivityIndicator size="small" color="#FFF" />
@@ -1392,23 +1364,6 @@ export function SharedGroupDetailScreen() {
           </View>
         </TouchableOpacity>
       </Modal>
-
-      <SettleUpModal
-        visible={settleModalVisible}
-        amount={Math.abs(myBalanceRow?.balance || 0)}
-        fromName={
-          myBalanceRow && myBalanceRow.balance < 0
-            ? currentUser?.firstName || 'You'
-            : myBalanceRow?.name || 'Someone'
-        }
-        toName={
-          myBalanceRow && myBalanceRow.balance < 0
-            ? myBalanceRow?.name || 'Someone'
-            : currentUser?.firstName || 'You'
-        }
-        onConfirm={confirmAllSettlements}
-        onCancel={() => setSettleModalVisible(false)}
-      />
     </View>
   );
 }
@@ -1430,42 +1385,23 @@ const s = StyleSheet.create({
   groupMeta: { color: 'rgba(255,255,255,0.6)', fontSize: 12 },
   typeBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
   typeBadgeText: { color: '#FFF', fontSize: 10, fontWeight: '700' },
-  statCard: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 1,
-  },
-  statLabel: {
-    fontSize: 9,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
-    marginBottom: 4,
-  },
-  statValue: { fontSize: 16, fontWeight: '800' },
-  quickActions: { flexDirection: 'row', gap: 8, paddingHorizontal: 20, marginTop: 16 },
-  quickAction: {
+  headerBalanceChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderRadius: 12,
   },
-  quickActionText: { color: '#FFF', fontSize: 11, fontWeight: '700' },
+  headerBalanceText: { color: '#FFF', fontSize: 13, fontWeight: '800' },
   tabRowOuter: { paddingHorizontal: 20, marginTop: 16 },
-  tabRow: { gap: 8 },
-  tabChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18 },
-  tabText: { fontSize: 12, fontWeight: '700' },
-  tabPanel: { paddingHorizontal: 20, paddingTop: 14, gap: 10 },
+  tabRow: { flexDirection: 'row', gap: 8 },
+  tabChip: { paddingHorizontal: 18, paddingVertical: 10, borderRadius: 20 },
+  tabText: { fontSize: 13, fontWeight: '700' },
+  tabPanel: { paddingHorizontal: 20, paddingTop: 14, gap: 12 },
   secTitle: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 8,
@@ -1479,22 +1415,112 @@ const s = StyleSheet.create({
     shadowRadius: 6,
     elevation: 1,
   },
-  infoTitle: { fontSize: 15, fontWeight: '700' },
-  infoSub: { fontSize: 12, marginTop: 6 },
-  monthlyAmount: { fontSize: 28, fontWeight: '800' },
-  monthlyLabel: { fontSize: 12, marginTop: 4 },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  settlementHero: {
+    borderRadius: 20,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 2,
+  },
+  settlementHeroHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  settlementHeroTitle: { fontSize: 16, fontWeight: '800' },
+  settlementRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(128,128,128,0.15)',
+  },
+  settlementAvatar: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  settlementAvatarText: { color: '#FFF', fontSize: 13, fontWeight: '800' },
+  settlementLabel: { fontSize: 13, fontWeight: '600' },
+  settlementAmount: { fontSize: 12, marginTop: 1 },
+  upiBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 10,
+  },
+  upiBtnText: { color: '#FFF', fontSize: 11, fontWeight: '800' },
+  viewAllSettlements: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingTop: 12,
+    marginTop: 4,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  viewAllSettlementsText: { fontSize: 13, fontWeight: '600' },
+  tripSummaryCard: {
+    borderRadius: 18,
+    padding: 16,
+    gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  tripIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tripSummaryTitle: { fontSize: 15, fontWeight: '700' },
+  tripSummaryMeta: { fontSize: 12, marginTop: 2 },
+  tripStatsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(128,128,128,0.15)',
+  },
+  tripStat: { alignItems: 'center' },
+  tripStatValue: { fontSize: 16, fontWeight: '800' },
+  tripStatLabel: { fontSize: 11, marginTop: 2 },
   categoryChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
   categoryChipText: { fontSize: 12, fontWeight: '600' },
-  insightCard: {
+  insightToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderRadius: 18,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  insightToggleTitle: { fontSize: 14, fontWeight: '700' },
+  insightItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    borderRadius: 16,
-    padding: 14,
+    borderRadius: 12,
+    padding: 12,
+    borderLeftWidth: 3,
+    marginBottom: 8,
   },
-  insightTitle: { fontSize: 14, fontWeight: '700' },
-  insightText: { fontSize: 12, marginTop: 2 },
   expenseCard: {
     flexDirection: 'row',
     marginHorizontal: 16,
@@ -1521,48 +1547,12 @@ const s = StyleSheet.create({
     elevation: 3,
   },
   expenseAvatarText: { color: '#FFF', fontSize: 15, fontWeight: '800', letterSpacing: -0.3 },
-  expenseTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  expenseTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   expenseDesc: { fontSize: 14, fontWeight: '600', flex: 1 },
   expenseAmount: { fontSize: 16, fontWeight: '700', marginLeft: 8 },
-  expenseBottom: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
-  expenseMeta: { fontSize: 11 },
-  expenseTags: { flexDirection: 'row', gap: 6, marginTop: 6 },
-  splitBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
-  splitBadgeText: { fontSize: 10, fontWeight: '700' },
-  catBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
-  catBadgeText: { fontSize: 10, fontWeight: '700' },
-  balanceCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 18,
-    padding: 14,
-    marginBottom: 8,
-    gap: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  balanceAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  balanceAvatarText: { color: '#FFF', fontSize: 14, fontWeight: '800', letterSpacing: -0.3 },
-  balanceName: { fontSize: 14, fontWeight: '700' },
-  balanceStatus: { fontSize: 12, marginTop: 2 },
-  balanceAmount: { fontSize: 14, fontWeight: '800' },
-  settleBtn: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10 },
-  settleBtnText: { color: '#FFF', fontSize: 11, fontWeight: '800' },
-  memberCard: {
+  expenseDateLine: { fontSize: 11, marginTop: 1 },
+  yourShareText: { fontSize: 11, fontWeight: '600', marginTop: 1 },
+  peopleCard: {
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 18,
@@ -1575,23 +1565,35 @@ const s = StyleSheet.create({
     shadowRadius: 4,
     elevation: 1,
   },
-  memberAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  peopleAvatar: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  memberAvatarText: { color: '#FFF', fontSize: 14, fontWeight: '800', letterSpacing: -0.3 },
-  memberName: { fontSize: 14, fontWeight: '600' },
-  roleBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  roleBadgeText: { fontSize: 11, fontWeight: '700' },
-  activityRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10 },
+  peopleAvatarText: { fontSize: 14, fontWeight: '800' },
+  peopleName: { fontSize: 14, fontWeight: '700' },
+  peopleStatus: { fontSize: 13, fontWeight: '700', marginTop: 2 },
+  peopleStatusSettled: { fontSize: 12, fontWeight: '600', marginTop: 2 },
+  peopleSettleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 10,
+  },
+  peopleSettleBtnText: { color: '#FFF', fontSize: 12, fontWeight: '800' },
+  activityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 10,
+    borderLeftWidth: 3,
+    paddingLeft: 10,
+    marginBottom: 2,
+  },
   activityIcon: {
     width: 34,
     height: 34,
@@ -1601,7 +1603,6 @@ const s = StyleSheet.create({
   },
   activityTitle: { fontSize: 14, fontWeight: '600' },
   activityDetail: { fontSize: 12, marginTop: 2 },
-  activityDate: { fontSize: 11 },
   activitySectionTitle: {
     fontSize: 12,
     fontWeight: '700',
@@ -1612,6 +1613,22 @@ const s = StyleSheet.create({
   },
   errText: { fontSize: 16, textAlign: 'center', paddingHorizontal: 24 },
   retry: { marginTop: 18, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 14 },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 28,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
+    zIndex: 100,
+  },
   inviteBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1664,52 +1681,5 @@ const s = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
-  },
-  typeDashBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 14,
-    marginTop: 16,
-  },
-  typeDashBtnText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
-  finSumRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  finSumLabel: { fontSize: 13, fontWeight: '500' },
-  finSumValue: { fontSize: 15, fontWeight: '700' },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(128,128,128,0.2)',
-    marginVertical: 2,
-  },
-  balChartRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, gap: 10 },
-  balChartName: { width: 80, fontSize: 12, fontWeight: '600' },
-  balChartBarWrap: { flex: 1 },
-  balChartBarBg: { height: 6, borderRadius: 3, overflow: 'hidden' },
-  balChartBar: { height: 6, borderRadius: 3 },
-  balChartAmt: { width: 70, fontSize: 12, fontWeight: '700', textAlign: 'right' },
-  contBarBg: { height: 4, borderRadius: 2, overflow: 'hidden' },
-  contBarFill: { height: 4, borderRadius: 2 },
-  suggestions: { borderRadius: 12, overflow: 'hidden' },
-  suggestionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  suggestionAvatar: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
