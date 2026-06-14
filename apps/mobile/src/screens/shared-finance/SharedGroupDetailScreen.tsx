@@ -1148,7 +1148,7 @@ export function SharedGroupDetailScreen() {
                 >
                   <Ionicons name="chevron-back" size={22} color="#FFF" />
                 </TouchableOpacity>
-                <View style={{ flex: 1, marginLeft: 10 }}>
+                <View style={{ flex: 1, marginHorizontal: 10, minWidth: 0 }}>
                   <Text style={s.groupName} numberOfLines={1}>
                     {name}
                   </Text>
@@ -1161,32 +1161,22 @@ export function SharedGroupDetailScreen() {
                         {type.charAt(0).toUpperCase() + type.slice(1)}
                       </Text>
                     </View>
+                    {myBalanceRow && Math.abs(myBalanceRow.balance) > 0 && (
+                      <>
+                        <Text style={s.groupMeta}>·</Text>
+                        <Ionicons
+                          name={myBalanceRow.balance >= 0 ? 'arrow-down' : 'arrow-up'}
+                          size={10}
+                          color="rgba(255,255,255,0.6)"
+                        />
+                        <Text style={[s.groupMeta, { fontWeight: '600' }]}>
+                          {myBalanceRow.balance >= 0 ? '' : '-'}
+                          {fmt(Math.abs(Math.round(myBalanceRow.balance)))}
+                        </Text>
+                      </>
+                    )}
                   </View>
                 </View>
-                {myBalanceRow && Math.abs(myBalanceRow.balance) > 0 && (
-                  <View style={[s.headerBalanceChip, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-                    <Ionicons
-                      name={myBalanceRow.balance >= 0 ? 'arrow-down' : 'arrow-up'}
-                      size={12}
-                      color="#FFF"
-                    />
-                    <Text style={s.headerBalanceText}>
-                      {myBalanceRow.balance >= 0 ? '' : '-'}
-                      {fmt(Math.abs(Math.round(myBalanceRow.balance)))}
-                    </Text>
-                  </View>
-                )}
-                <TouchableOpacity
-                  style={[s.iconBtn, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
-                  onPress={() => loadData(true)}
-                >
-                  <Ionicons
-                    name={refreshing ? 'sync-outline' : 'refresh-outline'}
-                    size={20}
-                    color="#FFF"
-                    style={refreshing ? { transform: [{ rotate: '45deg' }] } : undefined}
-                  />
-                </TouchableOpacity>
                 {isAdmin && (
                   <TouchableOpacity
                     style={[s.iconBtn, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
