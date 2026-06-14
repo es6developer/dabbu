@@ -21,10 +21,6 @@ export function CoupleModeToggle({ onToggle }: Props) {
   const isCoupleMode = !!user?.isCoupleMode;
   const togglingRef = useRef(false);
 
-  if (!isCouple) {
-    return null;
-  }
-
   const handleToggle = useCallback(
     (value: boolean) => {
       if (togglingRef.current) {
@@ -48,6 +44,10 @@ export function CoupleModeToggle({ onToggle }: Props) {
     },
     [toggleCoupleMode, onToggle, pulseAnim, showToast],
   );
+
+  if (!isCouple) {
+    return null;
+  }
 
   return (
     <Animated.View

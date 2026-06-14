@@ -1,12 +1,20 @@
 import React, { useEffect } from 'react';
 import { View, Text, Image, StyleSheet, Dimensions, StatusBar } from 'react-native';
-import Svg, { Circle, Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
+import Svg, {
+  Circle,
+  Defs,
+  LinearGradient,
+  RadialGradient,
+  Stop,
+  Rect,
+} from 'react-native-svg';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   useAnimatedProps,
   withTiming,
   withDelay,
+  withRepeat,
   cancelAnimation,
   interpolate,
   runOnJS,
@@ -14,23 +22,22 @@ import Animated, {
 } from 'react-native-reanimated';
 
 const { width: W, height: H } = Dimensions.get('window');
-
 const CX = W / 2;
-const CENTER_Y = H * 0.38;
+const CENTER_Y = H * 0.42;
 
-const RING_R = 62;
-const RING_SZ = (RING_R + 3) * 2;
+const RING_R = 58;
+const RING_SZ = (RING_R + 4) * 2;
 const RING_C = 2 * Math.PI * RING_R;
 
-const OUTER_R = 76;
-const OUTER_SZ = (OUTER_R + 3) * 2;
+const INNER_R = 44;
+const INNER_SZ = (INNER_R + 4) * 2;
 
-const LOGO_SZ = 88;
-const LOGO_IMG = 56;
+const LOGO_SZ = 96;
+const LOGO_IMG = 60;
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
-function DecoCircle({
+function Particle({
   size,
   left,
   top,
@@ -45,20 +52,28 @@ function DecoCircle({
   delay: number;
   duration?: number;
 }) {
-  const opacity = useSharedValue(0.3);
-  const scale = useSharedValue(1);
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(0);
 
   useEffect(() => {
     const t = setTimeout(() => {
-      opacity.value = withTiming(0.6, { duration: 1500, easing: Easing.inOut(Easing.sin) });
-      scale.value = withTiming(1.15, { duration, easing: Easing.inOut(Easing.sin) });
+      opacity.value = withRepeat(
+        withTiming(0.5, { duration: duration / 2, easing: Easing.inOut(Easing.sin) }),
+        -1,
+        true,
+      );
+      translateY.value = withRepeat(
+        withTiming(-12, { duration, easing: Easing.inOut(Easing.sin) }),
+        -1,
+        true,
+      );
     }, delay);
     return () => clearTimeout(t);
   }, []);
 
   const anim = useAnimatedStyle(() => ({
     opacity: opacity.value,
-    transform: [{ scale: scale.value }],
+    transform: [{ translateY: translateY.value }],
   }));
 
   return (
@@ -72,7 +87,6 @@ function DecoCircle({
           height: size,
           borderRadius: size / 2,
           backgroundColor: color,
-          opacity: 0.3,
         },
         anim,
       ]}
@@ -81,68 +95,98 @@ function DecoCircle({
 }
 
 export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
-  const progress = useSharedValue(0);
   const fadeOpacity = useSharedValue(1);
   const contentOpacity = useSharedValue(0);
-  const brandScale = useSharedValue(0.8);
-  const logoScale = useSharedValue(0.6);
+  const logoScale = useSharedValue(0.3);
   const logoOpacity = useSharedValue(0);
+  const logoRotate = useSharedValue(-20);
+  const ringProgress = useSharedValue(0);
   const ringOpacity = useSharedValue(0);
   const brandOpacity = useSharedValue(0);
+  const brandTranslate = useSharedValue(20);
+  const pulseScale = useSharedValue(0.8);
+  const pulseOpacity = useSharedValue(0);
   const taglineOpacity = useSharedValue(0);
-  const glowScale = useSharedValue(0);
+  const taglineTranslate = useSharedValue(12);
 
   useEffect(() => {
     const easeOut = Easing.bezier(0.16, 1, 0.3, 1);
     const spring = Easing.bezier(0.34, 1.56, 0.64, 1);
 
-    contentOpacity.value = withTiming(1, { duration: 400, easing: easeOut });
-    glowScale.value = withTiming(1.5, { duration: 2000, easing: Easing.inOut(Easing.quad) });
+    contentOpacity.value = withTiming(1, { duration: 500, easing: easeOut });
 
     logoOpacity.value = withDelay(
       200,
-      withTiming(1, { duration: 500, easing: easeOut }),
+      withTiming(1, { duration: 600, easing: easeOut }),
     );
     logoScale.value = withDelay(
       200,
-      withTiming(1, { duration: 700, easing: spring }),
+      withTiming(1, { duration: 900, easing: spring }),
     );
+    logoRotate.value = withDelay(
+      200,
+      withTiming(0, { duration: 800, easing: spring }),
+    );
+
+    pulseOpacity.value = withDelay(
+      300,
+      withRepeat(
+        withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.sin) }),
+        -1,
+        true,
+      ),
+    );
+    pulseScale.value = withDelay(
+      300,
+      withRepeat(
+        withTiming(1.6, { duration: 2000, easing: Easing.inOut(Easing.sin) }),
+        -1,
+        true,
+      ),
+    );
+
     ringOpacity.value = withDelay(
-      350,
-      withTiming(1, { duration: 400, easing: easeOut }),
+      400,
+      withTiming(1, { duration: 500, easing: easeOut }),
     );
-    progress.value = withDelay(
-      350,
-      withTiming(1, { duration: 2200, easing: Easing.inOut(Easing.quad) }),
+    ringProgress.value = withDelay(
+      400,
+      withTiming(1, { duration: 2500, easing: Easing.inOut(Easing.quad) }),
     );
+
+
     brandOpacity.value = withDelay(
-      600,
+      700,
       withTiming(1, { duration: 600, easing: easeOut }),
     );
-    brandScale.value = withDelay(
-      600,
-      withTiming(1, { duration: 700, easing: spring }),
+    brandTranslate.value = withDelay(
+      700,
+      withTiming(0, { duration: 800, easing: spring }),
     );
+
     taglineOpacity.value = withDelay(
-      900,
+      1000,
       withTiming(1, { duration: 500, easing: easeOut }),
+    );
+    taglineTranslate.value = withDelay(
+      1000,
+      withTiming(0, { duration: 600, easing: easeOut }),
     );
 
     const timer = setTimeout(() => {
-      fadeOpacity.value = withTiming(0, { duration: 400, easing: easeOut }, (finished) => {
+      fadeOpacity.value = withTiming(0, { duration: 500, easing: easeOut }, (finished) => {
         if (finished && onFinish) {
           runOnJS(onFinish)();
         }
       });
-    }, 2800);
+    }, 3500);
 
     return () => {
       clearTimeout(timer);
-      cancelAnimation(progress);
+      cancelAnimation(ringProgress);
       cancelAnimation(fadeOpacity);
       cancelAnimation(contentOpacity);
-      cancelAnimation(brandScale);
-      cancelAnimation(logoScale);
+      cancelAnimation(pulseScale);
     };
   }, []);
 
@@ -150,40 +194,37 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
     opacity: fadeOpacity.value,
   }));
 
-  const fadeInAnim = useAnimatedStyle(() => ({
-    opacity: contentOpacity.value,
-  }));
-
-  const brandAnim = useAnimatedStyle(() => ({
-    opacity: brandOpacity.value,
-    transform: [{ scale: brandScale.value }],
-  }));
 
   const logoAnim = useAnimatedStyle(() => ({
     opacity: logoOpacity.value,
-    transform: [{ scale: logoScale.value }],
+    transform: [
+      { scale: logoScale.value },
+      { rotate: `${logoRotate.value}deg` },
+    ],
   }));
 
   const ringFadeAnim = useAnimatedStyle(() => ({
     opacity: ringOpacity.value,
   }));
 
+  const brandAnim = useAnimatedStyle(() => ({
+    opacity: brandOpacity.value,
+    transform: [{ translateY: brandTranslate.value }],
+  }));
+
   const taglineAnim = useAnimatedStyle(() => ({
     opacity: taglineOpacity.value,
-    transform: [{ translateY: interpolate(taglineOpacity.value, [0, 1], [8, 0]) }],
+    transform: [{ translateY: taglineTranslate.value }],
   }));
 
-  const glowAnim = useAnimatedStyle(() => ({
-    transform: [{ scale: glowScale.value }],
-    opacity: interpolate(glowScale.value, [1, 1.5], [0.4, 0]),
+  const pulseAnim = useAnimatedStyle(() => ({
+    opacity: interpolate(pulseOpacity.value, [0, 1], [0.25, 0.08]),
+    transform: [{ scale: pulseScale.value }],
   }));
+
 
   const progressProps = useAnimatedProps(() => ({
-    strokeDashoffset: interpolate(progress.value, [0, 1], [RING_C, 0]),
-  }));
-
-  const outerProgressProps = useAnimatedProps(() => ({
-    strokeDashoffset: interpolate(progress.value, [0, 1], [2 * Math.PI * OUTER_R, 0]),
+    strokeDashoffset: interpolate(ringProgress.value, [0, 1], [RING_C, 0]),
   }));
 
   return (
@@ -192,31 +233,40 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
 
       <Svg width={W} height={H} style={StyleSheet.absoluteFill}>
         <Defs>
-          <RadialGradient id="splashBg" cx="50%" cy="40%" r="80%">
-            <Stop offset="0%" stopColor="#F8F4FF" />
-            <Stop offset="50%" stopColor="#F0E8FF" />
-            <Stop offset="100%" stopColor="#E8DDFF" />
+          <LinearGradient id="splashBg" x1="0" y1="0" x2="1" y2="1">
+            <Stop offset="0%" stopColor="#0F0720" />
+            <Stop offset="40%" stopColor="#1A0A2E" />
+            <Stop offset="70%" stopColor="#12081E" />
+            <Stop offset="100%" stopColor="#0A0514" />
+          </LinearGradient>
+          <RadialGradient id="centerGlow" cx="50%" cy="45%" r="60%">
+            <Stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.15} />
+            <Stop offset="50%" stopColor="#6D28D9" stopOpacity={0.06} />
+            <Stop offset="100%" stopColor="#4C1D95" stopOpacity={0} />
           </RadialGradient>
-          <RadialGradient id="glow" cx="50%" cy="50%" r="50%">
-            <Stop offset="0%" stopColor="#C4B5FD" stopOpacity={0.3} />
+          <RadialGradient id="ringGlow" cx="50%" cy="50%" r="50%">
+            <Stop offset="0%" stopColor="#C4B5FD" stopOpacity={0.2} />
             <Stop offset="100%" stopColor="#C4B5FD" stopOpacity={0} />
           </RadialGradient>
         </Defs>
         <Rect x={0} y={0} width={W} height={H} fill="url(#splashBg)" />
+        <Rect x={0} y={0} width={W} height={H} fill="url(#centerGlow)" />
       </Svg>
 
-      <DecoCircle size={120} left={W * 0.08} top={H * 0.12} color="#DDD6FE" delay={200} />
-      <DecoCircle size={80} left={W * 0.78} top={H * 0.2} color="#C4B5FD" delay={400} />
-      <DecoCircle size={60} left={W * 0.72} top={H * 0.65} color="#DDD6FE" delay={600} />
-      <DecoCircle size={100} left={W * 0.05} top={H * 0.72} color="#EDE9FE" delay={300} />
+      <Particle size={4} left={W * 0.15} top={H * 0.2} color="#A78BFA" delay={100} />
+      <Particle size={3} left={W * 0.82} top={H * 0.15} color="#C4B5FD" delay={300} />
+      <Particle size={5} left={W * 0.75} top={H * 0.7} color="#8B5CF6" delay={500} />
+      <Particle size={3} left={W * 0.1} top={H * 0.78} color="#DDD6FE" delay={200} />
+      <Particle size={4} left={W * 0.5} top={H * 0.08} color="#A78BFA" delay={400} />
+      <Particle size={3} left={W * 0.88} top={H * 0.5} color="#C4B5FD" delay={600} />
 
       <View
         style={{
           position: 'absolute',
-          top: CENTER_Y - 120,
-          left: CX - 120,
-          width: 240,
-          height: 240,
+          top: CENTER_Y - 100,
+          left: CX - 100,
+          width: 200,
+          height: 200,
           alignItems: 'center',
           justifyContent: 'center',
         }}
@@ -225,13 +275,12 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
           style={[
             {
               position: 'absolute',
-              width: 240,
-              height: 240,
-              borderRadius: 120,
-              backgroundColor: '#C4B5FD',
-              opacity: 0.15,
+              width: 200,
+              height: 200,
+              borderRadius: 100,
+              backgroundColor: '#8B5CF6',
             },
-            glowAnim,
+            pulseAnim,
           ]}
         />
       </View>
@@ -239,25 +288,23 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
       <View
         style={{
           position: 'absolute',
-          top: CENTER_Y - OUTER_R - 3,
-          left: CX - OUTER_R - 3,
-          width: OUTER_SZ,
-          height: OUTER_SZ,
+          top: CENTER_Y - INNER_R - 4,
+          left: CX - INNER_R - 4,
+          width: INNER_SZ,
+          height: INNER_SZ,
         }}
       >
-        <Animated.View style={[StyleSheet.absoluteFill, ringFadeAnim]}>
-          <Svg width={OUTER_SZ} height={OUTER_SZ}>
-            <AnimatedCircle
-              cx={OUTER_R + 3}
-              cy={OUTER_R + 3}
-              r={OUTER_R}
+        <Animated.View style={[StyleSheet.absoluteFill, { opacity: 0.3 }, ringFadeAnim]}>
+          <Svg width={INNER_SZ} height={INNER_SZ}>
+            <Circle
+              cx={INNER_R + 4}
+              cy={INNER_R + 4}
+              r={INNER_R}
               stroke="#C4B5FD"
-              strokeWidth={0.8}
+              strokeWidth={0.6}
               fill="transparent"
-              strokeDasharray={2 * Math.PI * OUTER_R * 0.15}
+              strokeDasharray={`${2 * Math.PI * INNER_R * 0.3} ${2 * Math.PI * INNER_R * 0.7}`}
               strokeLinecap="round"
-              animatedProps={outerProgressProps}
-              transform={`rotate(-90, ${OUTER_R + 3}, ${OUTER_R + 3})`}
               opacity={0.4}
             />
           </Svg>
@@ -267,34 +314,41 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
       <View
         style={{
           position: 'absolute',
-          top: CENTER_Y - (RING_R + 3),
-          left: CX - (RING_R + 3),
+          top: CENTER_Y - RING_R - 4,
+          left: CX - RING_R - 4,
           width: RING_SZ,
           height: RING_SZ,
         }}
       >
         <Animated.View style={[StyleSheet.absoluteFill, ringFadeAnim]}>
           <Svg width={RING_SZ} height={RING_SZ}>
+            <Defs>
+              <LinearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="0">
+                <Stop offset="0%" stopColor="#8B5CF6" />
+                <Stop offset="50%" stopColor="#C4B5FD" />
+                <Stop offset="100%" stopColor="#8B5CF6" />
+              </LinearGradient>
+            </Defs>
             <Circle
-              cx={RING_R + 3}
-              cy={RING_R + 3}
+              cx={RING_R + 4}
+              cy={RING_R + 4}
               r={RING_R}
               stroke="rgba(139,92,246,0.08)"
               strokeWidth={3}
               fill="transparent"
             />
             <AnimatedCircle
-              cx={RING_R + 3}
-              cy={RING_R + 3}
+              cx={RING_R + 4}
+              cy={RING_R + 4}
               r={RING_R}
-              stroke="#8B5CF6"
+              stroke="url(#ringGrad)"
               strokeWidth={3}
               fill="transparent"
               strokeDasharray={RING_C}
               strokeLinecap="round"
               animatedProps={progressProps}
-              transform={`rotate(-90, ${RING_R + 3}, ${RING_R + 3})`}
-              opacity={0.7}
+              transform={`rotate(-90, ${RING_R + 4}, ${RING_R + 4})`}
+              opacity={0.8}
             />
           </Svg>
         </Animated.View>
@@ -325,7 +379,7 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
           position: 'absolute',
           left: 0,
           right: 0,
-          top: CENTER_Y + LOGO_SZ / 2 + 32,
+          top: CENTER_Y + LOGO_SZ / 2 + 36,
           alignItems: 'center',
         }}
       >
@@ -335,9 +389,12 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
         <Animated.View style={taglineAnim}>
           <Text style={styles.tagline}>Every Milestone. Every Rupee. Together.</Text>
         </Animated.View>
+      </View>
 
-        <Animated.View style={taglineAnim}>
-          <Text style={styles.tagline1}>Track expenses, manage family finances, achieve goals, and build wealth together.</Text>
+      <View style={styles.footer}>
+        <Animated.View style={[{ alignItems: 'center' }, taglineAnim]}>
+          <View style={styles.footerLine} />
+          <Text style={styles.footerText}>Collaborative Finance</Text>
         </Animated.View>
       </View>
     </Animated.View>
@@ -351,52 +408,67 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#F5EEFF',
+    backgroundColor: '#0F0720',
   },
   logoInner: {
     flex: 1,
     borderRadius: LOGO_SZ / 2,
-    backgroundColor: 'rgba(255,255,255,0.5)',
+    backgroundColor: 'rgba(255,255,255,0.04)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(139,92,246,0.12)',
+    borderColor: 'rgba(139,92,246,0.2)',
     shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 24,
+    elevation: 12,
   },
   logoImg: {
     width: LOGO_IMG,
     height: LOGO_IMG,
   },
   brandName: {
-    color: '#5B21B6',
-    fontSize: 26,
+    color: '#FFFFFF',
+    fontSize: 30,
     fontWeight: '800',
-    letterSpacing: 2.5,
-    marginBottom: 6,
+    letterSpacing: 3,
+    marginBottom: 8,
     shadowColor: '#8B5CF6',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
     textAlign: 'center',
   },
   tagline: {
-    color: '#8B5CF6',
+    color: '#C4B5FD',
     fontSize: 12,
     fontWeight: '500',
-    letterSpacing: 1.2,
+    letterSpacing: 1.5,
     textAlign: 'center',
-    opacity: 0.55,
+    opacity: 0.6,
   },
-  tagline1: {
+  footer: {
+    position: 'absolute',
+    bottom: 60,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  footerLine: {
+    width: 24,
+    height: 2,
+    backgroundColor: '#8B5CF6',
+    borderRadius: 1,
+    marginBottom: 8,
+    opacity: 0.4,
+  },
+  footerText: {
     color: '#8B5CF6',
-    fontSize: 10,
-    fontWeight: '500',
-    letterSpacing: 1.2,
-    textAlign: 'center',
-    opacity: 0.55,
+    fontSize: 9,
+    fontWeight: '600',
+    letterSpacing: 2.5,
+    textTransform: 'uppercase',
+    opacity: 0.35,
   },
 });

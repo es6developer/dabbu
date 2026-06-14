@@ -3,9 +3,9 @@ import { View, Text, TouchableOpacity, ScrollView, RefreshControl, StyleSheet } 
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
+import { useTheme } from '../../theme';
 
 const LEVEL_COLORS: Record<string, string> = {
   'Platinum Couple': '#E2E8F0',
@@ -29,6 +29,7 @@ const ACHIEVEMENTS_META: Record<string, { icon: string; desc: string }> = {
 };
 
 function LevelProgress({ xp }: { xp: number }) {
+  const { colors } = useTheme();
   const progress = (xp % XP_PER_LEVEL) / XP_PER_LEVEL;
   const currentLevel = Math.floor(xp / XP_PER_LEVEL) + 1;
 
@@ -45,18 +46,18 @@ function LevelProgress({ xp }: { xp: number }) {
   return (
     <View style={{ alignItems: 'center', padding: 20 }}>
       <Text style={{ fontSize: 48, marginBottom: 8 }}>{icons[Math.min(currentLevel - 1, 3)]}</Text>
-      <Text style={{ fontSize: 22, fontWeight: '800', color: '#FFF' }}>Level {currentLevel}</Text>
-      <Text style={{ fontSize: 14, color: '#8B5CF6', fontWeight: '600', marginTop: 2 }}>
+      <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary }}>Level {currentLevel}</Text>
+      <Text style={{ fontSize: 14, color: colors.accent.primary, fontWeight: '600', marginTop: 2 }}>
         {label} Couple
       </Text>
-      <Text style={{ fontSize: 12, color: '#64748B', marginTop: 4 }}>
+      <Text style={{ fontSize: 12, color: colors.text.tertiary, marginTop: 4 }}>
         {xp % XP_PER_LEVEL} / {XP_PER_LEVEL} XP to next level
       </Text>
       <View
         style={{
           width: '80%',
           height: 6,
-          backgroundColor: '#1E293B',
+          backgroundColor: colors.bg.tertiary,
           borderRadius: 3,
           marginTop: 10,
         }}
@@ -65,7 +66,7 @@ function LevelProgress({ xp }: { xp: number }) {
           style={{
             width: `${progress * 100}%`,
             height: 6,
-            backgroundColor: '#8B5CF6',
+            backgroundColor: colors.accent.primary,
             borderRadius: 3,
           }}
         />
@@ -75,6 +76,7 @@ function LevelProgress({ xp }: { xp: number }) {
 }
 
 function AchievementCard({ id, unlocked, data }: { id: string; unlocked: boolean; data: any }) {
+  const { colors } = useTheme();
   const meta = ACHIEVEMENTS_META[id] || { icon: 'trophy', desc: id };
   return (
     <View
@@ -83,7 +85,7 @@ function AchievementCard({ id, unlocked, data }: { id: string; unlocked: boolean
         alignItems: 'center',
         gap: 14,
         padding: 14,
-        backgroundColor: unlocked ? '#161224' : '#16122460',
+        backgroundColor: colors.bg.card,
         borderRadius: 14,
         opacity: unlocked ? 1 : 0.4,
       }}
@@ -93,7 +95,7 @@ function AchievementCard({ id, unlocked, data }: { id: string; unlocked: boolean
           width: 40,
           height: 40,
           borderRadius: 12,
-          backgroundColor: unlocked ? '#8B5CF618' : '#1E293B',
+          backgroundColor: unlocked ? colors.brand.light : colors.bg.tertiary,
           alignItems: 'center',
           justifyContent: 'center',
         }}
@@ -101,15 +103,15 @@ function AchievementCard({ id, unlocked, data }: { id: string; unlocked: boolean
         <Ionicons
           name={unlocked ? (meta.icon as any) : 'lock-closed'}
           size={18}
-          color={unlocked ? '#8B5CF6' : '#475569'}
+          color={unlocked ? colors.accent.primary : colors.text.tertiary}
         />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 13, fontWeight: '700', color: unlocked ? '#FFF' : '#475569' }}>
+        <Text style={{ fontSize: 13, fontWeight: '700', color: unlocked ? colors.text.primary : colors.text.tertiary }}>
           {data?.name || meta.desc}
         </Text>
         {data?.unlockedAt && (
-          <Text style={{ fontSize: 11, color: '#64748B', marginTop: 2 }}>
+          <Text style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2 }}>
             Unlocked{' '}
             {new Date(data.unlockedAt).toLocaleDateString('en-IN', {
               day: 'numeric',
@@ -118,7 +120,7 @@ function AchievementCard({ id, unlocked, data }: { id: string; unlocked: boolean
           </Text>
         )}
       </View>
-      {unlocked && <Ionicons name="checkmark-circle" size={18} color="#34C759" />}
+      {unlocked && <Ionicons name="checkmark-circle" size={18} color={colors.status.success} />}
     </View>
   );
 }
@@ -126,6 +128,7 @@ function AchievementCard({ id, unlocked, data }: { id: string; unlocked: boolean
 export function CoupleGamificationScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -167,13 +170,13 @@ export function CoupleGamificationScreen() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: '#0D0B1A' }}
+      style={{ flex: 1, backgroundColor: colors.bg.primary }}
       contentContainerStyle={{ paddingBottom: 40 }}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
           onRefresh={() => fetchGamification(true)}
-          tintColor="#8B5CF6"
+          tintColor={colors.accent.primary}
         />
       }
     >
@@ -183,21 +186,21 @@ export function CoupleGamificationScreen() {
           paddingHorizontal: 20,
           paddingBottom: 12,
           borderBottomWidth: StyleSheet.hairlineWidth,
-          borderBottomColor: '#1E293B',
+          borderBottomColor: colors.border.default,
         }}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="chevron-back" size={24} color="#FFF" />
+            <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
           </TouchableOpacity>
-          <Text style={{ fontSize: 18, fontWeight: '800', color: '#FFF' }}>Couple Journey</Text>
+          <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text.primary }}>Couple Journey</Text>
         </View>
       </View>
 
       <LevelProgress xp={data?.xp || 0} />
 
       <View style={{ paddingHorizontal: 20, marginTop: 10 }}>
-        <Text style={{ fontSize: 16, fontWeight: '700', color: '#FFF', marginBottom: 12 }}>
+        <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary, marginBottom: 12 }}>
           Achievements
         </Text>
         <View style={{ gap: 8 }}>

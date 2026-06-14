@@ -19,8 +19,6 @@ import { api, setAccessToken, clearCache, warmupBackend } from '../../services/a
 import { useAuth } from '../../store/AuthContext';
 import { useCoupleMode, COUPLE_COLORS } from '../../hooks/useCoupleMode';
 import { CoupleModeToggle } from '../../components/ui/CoupleModeToggle';
-import { CoupleDashboard } from '../../components/ui/CoupleDashboard';
-import { CoupleSpaceScreen } from '../couple/CoupleSpaceScreen';
 import { CATEGORY_ICONS, CATEGORY_COLORS } from '../../config/categoryIcons';
 import { Avatar } from '../../components/ui/Avatar';
 import { KEYWORD_CATEGORIES } from '../../constants/smartEntryKeywords';
@@ -486,15 +484,114 @@ export function HomeScreen() {
   if (couple.showCoupleFeatures) {
     return (
       <View style={[page.screen, { backgroundColor: COUPLE_COLORS.bg }]}>
-        <CoupleModeToggle />
-        <CoupleSpaceScreen
-          onModulePress={(routeName) =>
-            navigation.navigate('Settings', {
-              screen: 'CoupleSpace',
-              params: { screen: routeName },
-            })
-          }
-        />
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingTop: insets.top + 16, paddingBottom: 100 }}
+        >
+          <CoupleModeToggle />
+          <View style={{ paddingHorizontal: 20, paddingTop: 8, gap: 14 }}>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => navigation.navigate('Settings', { screen: 'CoupleSpace' })}
+              style={{
+                backgroundColor: colors.bg.card,
+                borderRadius: 20,
+                padding: 20,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 14,
+              }}
+            >
+              <View style={{
+                width: 52, height: 52, borderRadius: 16,
+                backgroundColor: `${COUPLE_COLORS.primary}20`,
+                alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Ionicons name="heart-circle" size={28} color={COUPLE_COLORS.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
+                  Couple Space
+                </Text>
+                <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text.tertiary, marginTop: 2 }}>
+                  Budgets, expenses, goals & more
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.text.tertiary} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => navigation.navigate('Settings', { screen: 'CoupleSpace', params: { screen: 'CoupleIncome' } })}
+              style={{
+                backgroundColor: colors.bg.card,
+                borderRadius: 20,
+                padding: 20,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 14,
+              }}
+            >
+              <View style={{
+                width: 52, height: 52, borderRadius: 16,
+                backgroundColor: `${colors.status.success}18`,
+                alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Ionicons name="trending-up" size={24} color={colors.status.success} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>Income</Text>
+                <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text.tertiary, marginTop: 2 }}>
+                  Track earnings together
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.text.tertiary} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => navigation.navigate('Settings', { screen: 'CoupleSpace', params: { screen: 'CoupleExpenses' } })}
+              style={{
+                backgroundColor: colors.bg.card,
+                borderRadius: 20,
+                padding: 20,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 14,
+              }}
+            >
+              <View style={{
+                width: 52, height: 52, borderRadius: 16,
+                backgroundColor: `${colors.status.error}18`,
+                alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Ionicons name="cart" size={24} color={colors.status.error} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>Expenses</Text>
+                <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text.tertiary, marginTop: 2 }}>
+                  Shared & personal spending
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.text.tertiary} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => navigation.navigate('Settings', { screen: 'CoupleSpace' })}
+              style={{
+                backgroundColor: COUPLE_COLORS.primary,
+                borderRadius: 20,
+                padding: 18,
+                alignItems: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFF' }}>
+                Open Couple Space
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
       </View>
     );
   }

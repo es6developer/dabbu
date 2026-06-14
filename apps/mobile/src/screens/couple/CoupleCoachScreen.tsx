@@ -11,7 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { UpgradeBanner } from '../../components/ui/UpgradeBanner';
@@ -29,10 +29,11 @@ function InsightCard({
   color: string;
   type: 'positive' | 'warning' | 'info';
 }) {
+  const { colors } = useTheme();
   return (
     <View
       style={{
-        backgroundColor: '#161224',
+        backgroundColor: colors.bg.primary,
         borderRadius: 16,
         padding: 16,
         marginBottom: 10,
@@ -55,8 +56,8 @@ function InsightCard({
           <Ionicons name={icon as any} size={18} color={color} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFF' }}>{title}</Text>
-          <Text style={{ fontSize: 13, color: '#94A3B8', marginTop: 4, lineHeight: 18 }}>
+          <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }}>{title}</Text>
+          <Text style={{ fontSize: 13, color: colors.text.secondary, marginTop: 4, lineHeight: 18 }}>
             {desc}
           </Text>
         </View>
@@ -78,12 +79,13 @@ function SuggestionCard({
   action: string;
   onPress: () => void;
 }) {
+  const { colors } = useTheme();
   return (
     <TouchableOpacity
       activeOpacity={0.85}
       onPress={onPress}
       style={{
-        backgroundColor: '#1E1030',
+        backgroundColor: colors.bg.card,
         borderRadius: 16,
         padding: 16,
         marginBottom: 10,
@@ -105,18 +107,18 @@ function SuggestionCard({
         <Ionicons name={icon as any} size={20} color="#8B5CF6" />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFF' }}>{title}</Text>
-        <Text style={{ fontSize: 12, color: '#94A3B8', marginTop: 2 }}>{desc}</Text>
+        <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>{title}</Text>
+        <Text style={{ fontSize: 12, color: colors.text.secondary, marginTop: 2 }}>{desc}</Text>
       </View>
       <View
         style={{
-          backgroundColor: '#8B5CF6',
+          backgroundColor: colors.accent.primary,
           paddingHorizontal: 12,
           paddingVertical: 6,
           borderRadius: 10,
         }}
       >
-        <Text style={{ fontSize: 11, fontWeight: '700', color: '#FFF' }}>{action}</Text>
+        <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text.primary }}>{action}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -125,6 +127,7 @@ function SuggestionCard({
 export function CoupleCoachScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [data, setData] = useState<any>(null);
@@ -156,19 +159,18 @@ export function CoupleCoachScreen() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: '#0D0B1A' }}
+      style={{ flex: 1, backgroundColor: colors.bg.primary }}
       contentContainerStyle={{ paddingBottom: 40 }}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
           onRefresh={() => fetchCoach(true)}
-          tintColor="#8B5CF6"
+          tintColor={colors.accent.primary}
         />
       }
     >
-      <LinearGradient
-        colors={['#1a1428', '#0D0B1A']}
-        style={{ paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 20 }}
+      <View
+        style={{ backgroundColor: colors.bg.secondary, paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 20 }}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <TouchableOpacity
@@ -177,23 +179,23 @@ export function CoupleCoachScreen() {
               width: 36,
               height: 36,
               borderRadius: 12,
-              backgroundColor: '#1E293B',
+              backgroundColor: colors.bg.tertiary,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <Ionicons name="chevron-back" size={20} color="#FFF" />
+            <Ionicons name="chevron-back" size={20} color={colors.text.primary} />
           </TouchableOpacity>
           <View>
-            <Text style={{ fontSize: 18, fontWeight: '800', color: '#FFF' }}>AI Couple Coach</Text>
-            <Text style={{ fontSize: 12, color: '#64748B' }}>Personalized daily insights</Text>
+            <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text.primary }}>AI Couple Coach</Text>
+            <Text style={{ fontSize: 12, color: colors.text.tertiary }}>Personalized daily insights</Text>
           </View>
         </View>
-      </LinearGradient>
+      </View>
 
       {data?.insights?.length > 0 && (
         <View style={{ padding: 20 }}>
-          <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFF', marginBottom: 12 }}>
+          <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary, marginBottom: 12 }}>
             Today's Insights
           </Text>
           {data.insights.map((insight: any, i: number) => (
@@ -217,7 +219,7 @@ export function CoupleCoachScreen() {
 
       {data?.suggestions?.length > 0 && (
         <View style={{ paddingHorizontal: 20 }}>
-          <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFF', marginBottom: 12 }}>
+          <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary, marginBottom: 12 }}>
             Suggested Actions
           </Text>
           {data.suggestions.map((sugg: any, i: number) => (
@@ -235,18 +237,18 @@ export function CoupleCoachScreen() {
 
       {data?.healthBreakdown?.length > 0 && (
         <View style={{ padding: 20, marginTop: 10 }}>
-          <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFF', marginBottom: 12 }}>
+          <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary, marginBottom: 12 }}>
             Financial Health Breakdown
           </Text>
           {data.healthBreakdown.map((item: any, i: number) => {
-            const hColor = item.score >= 80 ? '#34C759' : item.score >= 60 ? '#F59E0B' : '#FF6B6B';
+            const hColor = item.score >= 80 ? colors.status.success : item.score >= 60 ? colors.status.warning : colors.status.error;
             return (
               <View
                 key={i}
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10 }}
               >
-                <Text style={{ width: 130, fontSize: 12, color: '#94A3B8' }}>{item.label}</Text>
-                <View style={{ flex: 1, height: 6, backgroundColor: '#1E293B', borderRadius: 3 }}>
+                <Text style={{ width: 130, fontSize: 12, color: colors.text.secondary }}>{item.label}</Text>
+                <View style={{ flex: 1, height: 6, backgroundColor: colors.border.default, borderRadius: 3 }}>
                   <View
                     style={{
                       width: `${item.score}%`,
@@ -261,7 +263,7 @@ export function CoupleCoachScreen() {
                     width: 30,
                     fontSize: 12,
                     fontWeight: '700',
-                    color: '#FFF',
+                    color: colors.text.primary,
                     textAlign: 'right',
                   }}
                 >

@@ -6,7 +6,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { UpgradeBanner } from '../../components/ui/UpgradeBanner';
@@ -37,12 +37,13 @@ const PLANNERS = [
 function PlannerCard({ planner, onPress, progress }: {
   planner: typeof PLANNERS[0]; onPress: () => void; progress: number;
 }) {
+  const { colors } = useTheme();
   return (
     <TouchableOpacity
       activeOpacity={0.85}
       onPress={onPress}
       style={{
-        backgroundColor: '#161224', borderRadius: 20, padding: 20, marginBottom: 12,
+        backgroundColor: colors.bg.primary, borderRadius: 20, padding: 20, marginBottom: 12,
         shadowColor: planner.color, shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1, shadowRadius: 8, elevation: 4,
       }}
@@ -55,22 +56,22 @@ function PlannerCard({ planner, onPress, progress }: {
           <Ionicons name={planner.icon as any} size={24} color={planner.color} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 16, fontWeight: '800', color: '#FFF' }}>{planner.title}</Text>
-          <Text style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>{planner.subtitle}</Text>
-          <View style={{ height: 4, backgroundColor: '#1E293B', borderRadius: 2, marginTop: 10 }}>
+          <Text style={{ fontSize: 16, fontWeight: '800', color: colors.text.primary }}>{planner.title}</Text>
+          <Text style={{ fontSize: 12, color: colors.text.tertiary, marginTop: 2 }}>{planner.subtitle}</Text>
+          <View style={{ height: 4, backgroundColor: colors.border.default, borderRadius: 2, marginTop: 10 }}>
             <View style={{
               width: `${Math.min(progress, 100)}%`, height: 4,
               backgroundColor: planner.color, borderRadius: 2,
             }} />
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
-            <Text style={{ fontSize: 11, color: '#64748B' }}>{planner.fields.length} inputs needed</Text>
+            <Text style={{ fontSize: 11, color: colors.text.tertiary }}>{planner.fields.length} inputs needed</Text>
             <Text style={{ fontSize: 11, fontWeight: '600', color: planner.color }}>
               {progress > 0 ? `${Math.round(progress)}% complete` : 'Not started'}
             </Text>
           </View>
         </View>
-        <Ionicons name="chevron-forward" size={18} color="#64748B" />
+        <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
       </View>
     </TouchableOpacity>
   );
@@ -79,6 +80,7 @@ function PlannerCard({ planner, onPress, progress }: {
 export function CouplePlannerHubScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const [planners, setPlanners] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -108,24 +110,24 @@ export function CouplePlannerHubScreen() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: '#0D0B1A' }}
+      style={{ flex: 1, backgroundColor: colors.bg.primary }}
       contentContainerStyle={{ paddingBottom: 40 }}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => fetchPlanners(true)} tintColor="#8B5CF6" />}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => fetchPlanners(true)} tintColor={colors.accent.primary} />}
     >
-      <LinearGradient colors={['#1a1428', '#0D0B1A']} style={{ paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 20 }}>
+      <View style={{ backgroundColor: colors.bg.secondary, paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 20 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={{
-            width: 36, height: 36, borderRadius: 12, backgroundColor: '#1E293B',
+            width: 36, height: 36, borderRadius: 12, backgroundColor: colors.bg.tertiary,
             alignItems: 'center', justifyContent: 'center',
           }}>
-            <Ionicons name="chevron-back" size={20} color="#FFF" />
+            <Ionicons name="chevron-back" size={20} color={colors.text.primary} />
           </TouchableOpacity>
           <View>
-            <Text style={{ fontSize: 18, fontWeight: '800', color: '#FFF' }}>Life Planners</Text>
-            <Text style={{ fontSize: 12, color: '#64748B' }}>Plan your biggest life decisions together</Text>
+            <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text.primary }}>Life Planners</Text>
+            <Text style={{ fontSize: 12, color: colors.text.tertiary }}>Plan your biggest life decisions together</Text>
           </View>
         </View>
-      </LinearGradient>
+      </View>
 
       <UpgradeBanner
         variant="inline"
@@ -133,7 +135,7 @@ export function CouplePlannerHubScreen() {
       />
 
       <View style={{ padding: 20 }}>
-        <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFF', marginBottom: 14 }}>
+        <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary, marginBottom: 14 }}>
           Financial Life Planners
         </Text>
 
@@ -148,30 +150,30 @@ export function CouplePlannerHubScreen() {
       </View>
 
       <View style={{ paddingHorizontal: 20 }}>
-        <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFF', marginBottom: 12 }}>
+        <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary, marginBottom: 12 }}>
           Dream Boards
         </Text>
         <TouchableOpacity
           activeOpacity={0.85}
           onPress={() => navigation.navigate('CouplePlanners')}
           style={{
-            backgroundColor: '#161224', borderRadius: 16, padding: 16,
+            backgroundColor: colors.bg.primary, borderRadius: 16, padding: 16,
             flexDirection: 'row', alignItems: 'center', gap: 12,
           }}
         >
           <View style={{
-            width: 44, height: 44, borderRadius: 14, backgroundColor: '#8B5CF620',
+            width: 44, height: 44, borderRadius: 14, backgroundColor: `${colors.accent.primary}20`,
             alignItems: 'center', justifyContent: 'center',
           }}>
-            <Ionicons name="sparkles-outline" size={22} color="#8B5CF6" />
+            <Ionicons name="sparkles-outline" size={22} color={colors.accent.primary} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFF' }}>Custom Dream Boards</Text>
-            <Text style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>
+            <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }}>Custom Dream Boards</Text>
+            <Text style={{ fontSize: 12, color: colors.text.tertiary, marginTop: 2 }}>
               Create boards for any goal - vacation, wedding, or anything else
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={18} color="#64748B" />
+        <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
         </TouchableOpacity>
       </View>
     </ScrollView>

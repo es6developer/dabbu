@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
@@ -125,9 +126,9 @@ function ModuleCard({
           justifyContent: 'center',
           gap: 6,
           aspectRatio: 1,
-          shadowColor: '#000',
+          shadowColor: colors.border.default,
           shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.15,
+          shadowOpacity: 0.3,
           shadowRadius: 8,
           elevation: 4,
           transform: [{ scale: scaleAnim }],
@@ -157,6 +158,7 @@ export function CoupleSpaceScreen({ onModulePress }: Props) {
   const navigation = useNavigation<any>();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [coupleData, setCoupleData] = useState<any>(null);
@@ -229,7 +231,7 @@ export function CoupleSpaceScreen({ onModulePress }: Props) {
 
   if (error && !coupleData) {
     return (
-      <View style={[s.root, { backgroundColor: colors.accent.primary }]}>
+      <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
         <View style={[s.errorPanel, { paddingTop: insets.top + 50 }]}>
           <View style={{ paddingHorizontal: PADDING }}>
             <TouchableOpacity
@@ -238,20 +240,20 @@ export function CoupleSpaceScreen({ onModulePress }: Props) {
                 width: 40,
                 height: 40,
                 borderRadius: 12,
-                backgroundColor: 'rgba(255,255,255,0.2)',
+                backgroundColor: colors.bg.tertiary,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Ionicons name="chevron-back" size={20} color="#FFF" />
+              <Ionicons name="chevron-back" size={20} color={colors.text.secondary} />
             </TouchableOpacity>
           </View>
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 }}>
-            <Ionicons name="heart-dislike-outline" size={56} color="rgba(255,255,255,0.4)" />
-            <Text style={{ color: '#FFF', fontSize: 22, fontWeight: '800' }}>No Couple Space</Text>
+            <Ionicons name="heart-dislike-outline" size={56} color={colors.text.tertiary} />
+            <Text style={{ color: colors.text.primary, fontSize: 22, fontWeight: '800' }}>No Couple Space</Text>
             <Text
               style={{
-                color: 'rgba(255,255,255,0.7)',
+                color: colors.text.secondary,
                 fontSize: 14,
                 textAlign: 'center',
                 lineHeight: 20,
@@ -263,14 +265,14 @@ export function CoupleSpaceScreen({ onModulePress }: Props) {
             <TouchableOpacity
               onPress={() => fetchCoupleData()}
               style={{
-                backgroundColor: 'rgba(255,255,255,0.2)',
+                backgroundColor: colors.accent.primary,
                 paddingHorizontal: 24,
                 paddingVertical: 12,
                 borderRadius: 14,
                 marginTop: 8,
               }}
             >
-              <Text style={{ color: '#FFF', fontSize: 15, fontWeight: '700' }}>Retry</Text>
+              <Text style={{ color: colors.text.inverse, fontSize: 15, fontWeight: '700' }}>Retry</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -282,7 +284,7 @@ export function CoupleSpaceScreen({ onModulePress }: Props) {
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: tabBarHeight + 24 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -294,15 +296,15 @@ export function CoupleSpaceScreen({ onModulePress }: Props) {
           />
         }
       >
-        {/* Header */}
+        {/* Header Card */}
         <View
           style={{
-            backgroundColor: colors.accent.primary,
-            paddingTop: insets.top + 12,
-            paddingBottom: 24,
-            paddingHorizontal: PADDING,
-            borderBottomLeftRadius: borderRadius.xl,
-            borderBottomRightRadius: borderRadius.xl,
+            backgroundColor: colors.bg.card,
+            marginTop: insets.top + 12,
+            marginHorizontal: PADDING,
+            borderRadius: borderRadius.xl,
+            padding: 20,
+            ...shadows.lg,
           }}
         >
           <View
@@ -319,26 +321,26 @@ export function CoupleSpaceScreen({ onModulePress }: Props) {
                 width: 40,
                 height: 40,
                 borderRadius: 12,
-                backgroundColor: 'rgba(255,255,255,0.2)',
+                backgroundColor: colors.bg.tertiary,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Ionicons name="chevron-back" size={20} color="#FFF" />
+              <Ionicons name="chevron-back" size={20} color={colors.text.secondary} />
             </TouchableOpacity>
-            <Text style={{ color: '#FFF', fontSize: 17, fontWeight: '700' }}>Couple Space</Text>
+            <Text style={{ color: colors.text.primary, fontSize: 17, fontWeight: '700' }}>Couple Space</Text>
             <TouchableOpacity
               onPress={() => goTo('CoupleSettings')}
               style={{
                 width: 40,
                 height: 40,
                 borderRadius: 12,
-                backgroundColor: 'rgba(255,255,255,0.2)',
+                backgroundColor: colors.bg.tertiary,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Ionicons name="settings-outline" size={20} color="#FFF" />
+              <Ionicons name="settings-outline" size={20} color={colors.text.secondary} />
             </TouchableOpacity>
           </View>
           <View style={{ alignItems: 'center' }}>
@@ -348,38 +350,38 @@ export function CoupleSpaceScreen({ onModulePress }: Props) {
                   width: 50,
                   height: 50,
                   borderRadius: 16,
-                  backgroundColor: 'rgba(255,255,255,0.2)',
+                  backgroundColor: `${colors.accent.primary}15`,
                   alignItems: 'center',
                   justifyContent: 'center',
                   borderWidth: 2,
-                  borderColor: 'rgba(255,255,255,0.15)',
+                  borderColor: `${colors.accent.primary}30`,
                 }}
               >
-                <Text style={{ color: '#FFF', fontSize: 22, fontWeight: '800' }}>{p1Initial}</Text>
+                <Text style={{ color: colors.accent.primary, fontSize: 22, fontWeight: '800' }}>{p1Initial}</Text>
               </View>
-              <Ionicons name="heart" size={20} color="#FFEBB4" style={{ opacity: 0.8 }} />
+              <Ionicons name="heart" size={20} color={colors.accent.primary} style={{ opacity: 0.8 }} />
               <View
                 style={{
                   width: 50,
                   height: 50,
                   borderRadius: 16,
-                  backgroundColor: 'rgba(255,255,255,0.2)',
+                  backgroundColor: `${colors.accent.primary}15`,
                   alignItems: 'center',
                   justifyContent: 'center',
                   borderWidth: 2,
-                  borderColor: 'rgba(255,255,255,0.15)',
+                  borderColor: `${colors.accent.primary}30`,
                 }}
               >
-                <Text style={{ color: '#FFF', fontSize: 22, fontWeight: '800' }}>{p2Initial}</Text>
+                <Text style={{ color: colors.accent.primary, fontSize: 22, fontWeight: '800' }}>{p2Initial}</Text>
               </View>
             </View>
-            <Text style={{ color: '#FFF', fontSize: 22, fontWeight: '800', letterSpacing: -0.5 }}>
+            <Text style={{ color: colors.text.primary, fontSize: 22, fontWeight: '800', letterSpacing: -0.5 }}>
               {partner1Name} & {partner2Name}
             </Text>
             {togetherSince && (
               <Text
                 style={{
-                  color: 'rgba(255,255,255,0.6)',
+                  color: colors.text.tertiary,
                   fontSize: 13,
                   fontWeight: '500',
                   marginTop: 4,
@@ -524,8 +526,8 @@ export function CoupleSpaceScreen({ onModulePress }: Props) {
                     backgroundColor: btn.color,
                   }}
                 >
-                  <Ionicons name={btn.icon as any} size={14} color="#FFF" />
-                  <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '700' }}>
+                  <Ionicons name={btn.icon as any} size={14} color={colors.text.inverse} />
+                  <Text style={{ color: colors.text.inverse, fontSize: 12, fontWeight: '700' }}>
                     {btn.label}
                   </Text>
                 </TouchableOpacity>
@@ -797,7 +799,7 @@ export function CoupleSpaceScreen({ onModulePress }: Props) {
         }
         style={[s.fab, { backgroundColor: colors.accent.primary }, fabShadow]}
       >
-        <Ionicons name="add" size={28} color="#FFFFFF" />
+        <Ionicons name="add" size={28} color={colors.text.inverse} />
       </TouchableOpacity>
     </View>
   );

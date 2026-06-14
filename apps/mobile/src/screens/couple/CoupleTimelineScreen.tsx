@@ -27,6 +27,7 @@ const EVENT_ICONS: Record<string, { icon: string; color: string }> = {
 };
 
 function EventCard({ event }: { event: any }) {
+  const { colors } = useTheme();
   const cfg = EVENT_ICONS[event.eventType] || { icon: 'ellipsis-horizontal', color: '#64748B' };
   const date = new Date(event.createdAt);
   const timeStr = date.toLocaleDateString('en-IN', {
@@ -39,7 +40,7 @@ function EventCard({ event }: { event: any }) {
   return (
     <View style={{
       flexDirection: 'row', gap: 14, paddingVertical: 14, paddingHorizontal: 20,
-      borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#1E293B',
+      borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border.default,
     }}>
       <View style={{
         width: 42, height: 42, borderRadius: 14,
@@ -49,20 +50,21 @@ function EventCard({ event }: { event: any }) {
         <Ionicons name={cfg.icon as any} size={20} color={cfg.color} />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 14, fontWeight: '600', color: '#FFF' }}>{event.title}</Text>
+        <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.primary }}>{event.title}</Text>
         {event.description && (
-          <Text style={{ fontSize: 12, color: '#94A3B8', marginTop: 2 }}>{event.description}</Text>
+          <Text style={{ fontSize: 12, color: colors.text.secondary, marginTop: 2 }}>{event.description}</Text>
         )}
         {amount ? (
           <Text style={{ fontSize: 15, fontWeight: '700', color: cfg.color, marginTop: 4 }}>{amount}</Text>
         ) : null}
-        <Text style={{ fontSize: 11, color: '#475569', marginTop: 4 }}>{timeStr}</Text>
+        <Text style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 4 }}>{timeStr}</Text>
       </View>
     </View>
   );
 }
 
 export function CoupleTimelineScreen() {
+  const { colors } = useTheme();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const [events, setEvents] = useState<any[]>([]);
@@ -103,18 +105,18 @@ export function CoupleTimelineScreen() {
   if (loading) return <LoadingScreen />;
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0D0B1A' }}>
+    <View style={{ flex: 1, backgroundColor: colors.bg.primary }}>
       <View style={{
         paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 12,
-        borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#1E293B',
+        borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border.default,
       }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="chevron-back" size={24} color="#FFF" />
+            <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
           </TouchableOpacity>
           <View>
-            <Text style={{ fontSize: 18, fontWeight: '800', color: '#FFF' }}>Timeline</Text>
-            <Text style={{ fontSize: 12, color: '#64748B' }}>Your financial story</Text>
+            <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text.primary }}>Timeline</Text>
+            <Text style={{ fontSize: 12, color: colors.text.tertiary }}>Your financial story</Text>
           </View>
         </View>
       </View>
@@ -123,22 +125,22 @@ export function CoupleTimelineScreen() {
         data={events}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <EventCard event={item} />}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#8B5CF6" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent.primary} />}
         onEndReached={onEndReached}
         onEndReachedThreshold={0.3}
         ListEmptyComponent={
           <View style={{ padding: 40, alignItems: 'center', gap: 12 }}>
-            <Ionicons name="time-outline" size={48} color="#475569" />
-            <Text style={{ fontSize: 15, fontWeight: '600', color: '#64748B', textAlign: 'center' }}>
+            <Ionicons name="time-outline" size={48} color={colors.text.tertiary} />
+            <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text.tertiary, textAlign: 'center' }}>
               No activity yet
             </Text>
-            <Text style={{ fontSize: 12, color: '#475569', textAlign: 'center' }}>
+            <Text style={{ fontSize: 12, color: colors.text.tertiary, textAlign: 'center' }}>
               Timeline will show expenses, goals, bills, and more as you use Couple Mode.
             </Text>
           </View>
         }
         ListFooterComponent={
-          loadingMore ? <ActivityIndicator size="small" color="#8B5CF6" style={{ padding: 16 }} /> : null
+          loadingMore ? <ActivityIndicator size="small" color={colors.accent.primary} style={{ padding: 16 }} /> : null
         }
       />
     </View>

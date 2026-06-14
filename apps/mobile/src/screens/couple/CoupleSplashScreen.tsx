@@ -5,12 +5,13 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 
 export function CoupleSplashScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
 
   const [step, setStep] = useState<'loading' | 'intro' | 'create' | 'join' | 'invite'>('loading');
   const [inviteCode, setInviteCode] = useState('');
@@ -67,25 +68,25 @@ export function CoupleSplashScreen() {
 
   if (step === 'loading') {
     return (
-      <LinearGradient colors={['#161224', '#0D0B1A']} style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#8B5CF6" />
-      </LinearGradient>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg.primary }}>
+        <ActivityIndicator size="large" color={colors.accent.primary} />
+      </View>
     );
   }
 
   return (
-    <LinearGradient colors={['#161224', '#0D0B1A']} style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: colors.bg.primary }}>
       <View style={{ flex: 1, paddingTop: insets.top, paddingHorizontal: 24 }}>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12 }}>
           {step !== 'intro' && (
             <TouchableOpacity onPress={() => setStep('intro')}>
-              <Ionicons name="chevron-back" size={24} color="#FFF" />
+              <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
             </TouchableOpacity>
           )}
           <View style={{ flex: 1 }} />
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={{ fontSize: 14, color: '#64748B' }}>Skip</Text>
+            <Text style={{ fontSize: 14, color: colors.text.tertiary }}>Skip</Text>
           </TouchableOpacity>
         </View>
 
@@ -93,76 +94,76 @@ export function CoupleSplashScreen() {
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 20 }}>
             <View style={{
               width: 96, height: 96, borderRadius: 28,
-              backgroundColor: '#8B5CF620', alignItems: 'center', justifyContent: 'center',
+              backgroundColor: `${colors.accent.primary}20`, alignItems: 'center', justifyContent: 'center',
             }}>
-              <Ionicons name="heart-circle" size={48} color="#FF4D8C" />
+              <Ionicons name="heart-circle" size={48} color={colors.accent.primary} />
             </View>
-            <Text style={{ fontSize: 28, fontWeight: '800', color: '#FFF', textAlign: 'center' }}>
+            <Text style={{ fontSize: 28, fontWeight: '800', color: colors.text.primary, textAlign: 'center' }}>
               Together{'\n'}Financial Journey
             </Text>
-            <Text style={{ fontSize: 14, color: '#94A3B8', textAlign: 'center', lineHeight: 20, paddingHorizontal: 20 }}>
+            <Text style={{ fontSize: 14, color: colors.text.secondary, textAlign: 'center', lineHeight: 20, paddingHorizontal: 20 }}>
               Manage finances as a couple. Save for dreams, track expenses together, and build your future as a team.
             </Text>
-            {error ? <Text style={{ fontSize: 12, color: '#FF6B6B' }}>{error}</Text> : null}
+            {error ? <Text style={{ fontSize: 12, color: colors.status.error }}>{error}</Text> : null}
             <TouchableOpacity
               style={{
-                width: '100%', backgroundColor: '#8B5CF6', padding: 16, borderRadius: 16,
+                width: '100%', backgroundColor: colors.accent.primary, padding: 16, borderRadius: 16,
                 alignItems: 'center', marginTop: 20,
               }}
               onPress={createCouple}
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator size="small" color="#FFF" />
+                <ActivityIndicator size="small" color={colors.text.inverse} />
               ) : (
-                <Text style={{ fontSize: 16, fontWeight: '700', color: '#FFF' }}>Create Couple Space</Text>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.inverse }}>Create Couple Space</Text>
               )}
             </TouchableOpacity>
             <TouchableOpacity
               style={{
                 width: '100%', padding: 16, borderRadius: 16,
-                borderWidth: 1, borderColor: '#1E293B', alignItems: 'center',
+                borderWidth: 1, borderColor: colors.border.default, alignItems: 'center',
               }}
               onPress={() => setStep('join')}
             >
-              <Text style={{ fontSize: 16, fontWeight: '600', color: '#8B5CF6' }}>Join Existing Space</Text>
+              <Text style={{ fontSize: 16, fontWeight: '600', color: colors.accent.primary }}>Join Existing Space</Text>
             </TouchableOpacity>
           </View>
         )}
 
         {step === 'invite' && (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 20 }}>
-            <Ionicons name="checkmark-circle" size={64} color="#34C759" />
-            <Text style={{ fontSize: 22, fontWeight: '800', color: '#FFF', textAlign: 'center' }}>
+            <Ionicons name="checkmark-circle" size={64} color={colors.status.success} />
+            <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary, textAlign: 'center' }}>
               Couple Space Created!
             </Text>
-            <Text style={{ fontSize: 13, color: '#94A3B8', textAlign: 'center', paddingHorizontal: 20 }}>
+            <Text style={{ fontSize: 13, color: colors.text.secondary, textAlign: 'center', paddingHorizontal: 20 }}>
               Share this invite code with your partner. It expires in 30 minutes.
             </Text>
 
             <TouchableOpacity
               onPress={copyCode}
               style={{
-                backgroundColor: '#1E293B', borderRadius: 16, padding: 20,
+                backgroundColor: colors.bg.card, borderRadius: 16, padding: 20,
                 width: '100%', alignItems: 'center',
               }}
             >
-              <Text style={{ fontSize: 36, fontWeight: '900', color: '#8B5CF6', letterSpacing: 6 }}>
+              <Text style={{ fontSize: 36, fontWeight: '900', color: colors.accent.primary, letterSpacing: 6 }}>
                 {generatedCode}
               </Text>
-              <Text style={{ fontSize: 12, color: '#64748B', marginTop: 8 }}>
+              <Text style={{ fontSize: 12, color: colors.text.tertiary, marginTop: 8 }}>
                 Tap to copy
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={{
-                width: '100%', backgroundColor: '#8B5CF6', padding: 16, borderRadius: 16,
+                width: '100%', backgroundColor: colors.accent.primary, padding: 16, borderRadius: 16,
                 alignItems: 'center', marginTop: 10,
               }}
               onPress={() => navigation.replace('CoupleHome')}
             >
-              <Text style={{ fontSize: 16, fontWeight: '700', color: '#FFF' }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.inverse }}>
                 Enter Couple Space
               </Text>
             </TouchableOpacity>
@@ -171,21 +172,21 @@ export function CoupleSplashScreen() {
 
         {step === 'join' && (
           <View style={{ flex: 1, justifyContent: 'center', gap: 16 }}>
-            <Text style={{ fontSize: 22, fontWeight: '800', color: '#FFF', textAlign: 'center' }}>
+            <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary, textAlign: 'center' }}>
               Join Your Partner
             </Text>
-            <Text style={{ fontSize: 13, color: '#94A3B8', textAlign: 'center' }}>
+            <Text style={{ fontSize: 13, color: colors.text.secondary, textAlign: 'center' }}>
               Enter the invite code your partner shared with you.
             </Text>
 
             <TextInput
               placeholder="Enter invite code"
-              placeholderTextColor="#475569"
+              placeholderTextColor={colors.text.tertiary}
               autoCapitalize="characters"
               maxLength={8}
               style={{
-                backgroundColor: '#1E293B', borderRadius: 16, padding: 18,
-                fontSize: 24, fontWeight: '800', color: '#FFF', textAlign: 'center',
+                backgroundColor: colors.bg.card, borderRadius: 16, padding: 18,
+                fontSize: 24, fontWeight: '800', color: colors.text.primary, textAlign: 'center',
                 letterSpacing: 8, marginTop: 12,
               }}
               value={inviteCode}
@@ -193,23 +194,23 @@ export function CoupleSplashScreen() {
             />
 
             {error ? (
-              <Text style={{ fontSize: 12, color: '#FF6B6B', textAlign: 'center' }}>{error}</Text>
+              <Text style={{ fontSize: 12, color: colors.status.error, textAlign: 'center' }}>{error}</Text>
             ) : null}
 
             <TouchableOpacity
               style={{
-                width: '100%', backgroundColor: inviteCode.trim() ? '#8B5CF6' : '#1E293B',
+                width: '100%', backgroundColor: inviteCode.trim() ? colors.accent.primary : colors.bg.tertiary,
                 padding: 16, borderRadius: 16, alignItems: 'center', marginTop: 8,
               }}
               disabled={!inviteCode.trim() || loading}
               onPress={joinCouple}
             >
               {loading ? (
-                <ActivityIndicator size="small" color="#FFF" />
+                <ActivityIndicator size="small" color={colors.text.inverse} />
               ) : (
                 <Text style={{
                   fontSize: 16, fontWeight: '700',
-                  color: inviteCode.trim() ? '#FFF' : '#475569',
+                  color: inviteCode.trim() ? colors.text.inverse : colors.text.tertiary,
                 }}>
                   Join
                 </Text>
@@ -219,6 +220,6 @@ export function CoupleSplashScreen() {
         )}
 
       </View>
-    </LinearGradient>
+    </View>
   );
 }
