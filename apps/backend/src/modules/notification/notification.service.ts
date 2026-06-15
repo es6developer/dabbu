@@ -251,7 +251,15 @@ export class NotificationService {
           success: result.success,
           error: result.error || null,
         });
+        if (!result.success) {
+          this.logger.warn(
+            `[testPush] Device ${device.id} (${device.platform}, ${device.deviceName}) failed: ${result.error}`,
+          );
+        }
       } catch (err: any) {
+        this.logger.error(
+          `[testPush] Device ${device.id} (${device.platform}, ${device.deviceName}) threw: ${err.message}`,
+        );
         results.push({
           deviceId: device.id,
           platform: device.platform,

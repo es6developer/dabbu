@@ -25,7 +25,7 @@ import {
   resetWarmup,
   api,
 } from '../services/api';
-import { registerForPushNotifications } from '../services/notifications';
+import { registerForPushNotifications, resetPushRegistration } from '../services/notifications';
 import { trackEventImmediate } from '../hooks/useAnalytics';
 
 const SESSION_TIMEOUT_MS = 24 * 60 * 60 * 1000;
@@ -235,6 +235,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     clearSessionTimeout();
+    resetPushRegistration();
     const tok = getAccessToken();
     const refresh = await storage.current.getItem('refreshToken').catch(() => null);
     if (tok && refresh) {
@@ -316,6 +317,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setState((prev) => ({ ...prev, accessToken: tokens.accessToken }));
       resetSessionTimeout();
+      registerForPushNotifications(tokens.accessToken).catch(() => {});
       return true;
     } catch {
       return false;
@@ -327,6 +329,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setRefreshTokenHandler(refreshToken);
     setOnSessionExpiredHandler(() => {
+      resetPushRegistration();
       clearAuth_().then(() => {
         setState({
           isAuthenticated: false,

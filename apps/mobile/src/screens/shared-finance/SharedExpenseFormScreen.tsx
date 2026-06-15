@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
-  Keyboard,
   Alert,
   Dimensions,
   Platform,
@@ -286,37 +285,7 @@ export function SharedExpenseFormScreen() {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
         >
-          {/* ── Header ── */}
-          <LinearGradient
-            colors={[colors.accent.primary, colors.accent.primary]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
-              <View style={s.headerRow}>
-                <TouchableOpacity
-                  onPress={() => {
-                    Keyboard.dismiss();
-                    navigation.goBack();
-                  }}
-                  style={[s.backBtn, { backgroundColor: colors.accent.primary }]}
-                >
-                  <Ionicons name="close" size={22} color={colors.text.inverse} />
-                </TouchableOpacity>
-                <Text style={[s.headerTitle, { color: colors.text.inverse }]}>
-                  {edit ? 'Edit Expense' : 'New Expense'}
-                </Text>
-                <View style={{ width: 34 }} />
-              </View>
-              <View style={s.headerMeta}>
-                <Ionicons name="people" size={14} color={colors.text.inverse + '99'} />
-                <Text style={[s.headerSub, { color: colors.text.inverse + '99' }]}>
-                  Split with {members.length} member{members.length !== 1 ? 's' : ''}
-                </Text>
-              </View>
-            </View>
-          </LinearGradient>
-
+          <View style={{ paddingTop: insets.top + 4 }} />
           <View style={{ paddingHorizontal: 20, paddingTop: 20, gap: 20 }}>
             {/* ── Error ── */}
             {error ? (
@@ -353,7 +322,7 @@ export function SharedExpenseFormScreen() {
                   placeholder="0"
                   placeholderTextColor={colors.text.tertiary}
                   returnKeyType="done"
-                  onSubmitEditing={() => Keyboard.dismiss()}
+                  onSubmitEditing={() => inputRef.current?.blur()}
                 />
               </View>
               {fieldErrors.amount ? (
@@ -853,25 +822,6 @@ export function SharedExpenseFormScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-
-  /* ── Header ── */
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
-  backBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: { color: '#FFF', fontSize: 18, fontWeight: '700' },
-  headerMeta: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
-  headerSub: { color: 'rgba(255,255,255,0.6)', fontSize: 13 },
 
   /* ── Error ── */
   errorBox: {

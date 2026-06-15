@@ -217,167 +217,169 @@ export function DocumentDetailScreen() {
   }
 
   return (
-    <ScrollView
-      style={[s.screen, { backgroundColor: colors.bg.primary }]}
-      contentContainerStyle={{ paddingBottom: 40, paddingTop: insets.top + 8 }}
-      keyboardShouldPersistTaps="handled"
-    >
-      <View style={s.form}>
-        <Text style={[s.sectionTitle, { color: colors.text.primary }]}>
-          {isUpload ? 'Upload Document' : 'Document Details'}
-        </Text>
+    <View style={{ flex: 1, backgroundColor: colors.bg.primary }}>
+      <ScrollView
+        style={s.screen}
+        contentContainerStyle={{ paddingTop: insets.top + 8 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={s.form}>
+          <Text style={[s.sectionTitle, { color: colors.text.primary }]}>
+            {isUpload ? 'Upload Document' : 'Document Details'}
+          </Text>
 
-        <Text style={[s.label, { color: colors.text.secondary }]}>Name *</Text>
-        <TextInput
-          style={[s.input, { backgroundColor: colors.bg.secondary, color: colors.text.primary }]}
-          value={name}
-          onChangeText={setName}
-          placeholder="e.g. My Aadhaar Card"
-          placeholderTextColor={colors.text.tertiary}
-        />
+          <Text style={[s.label, { color: colors.text.secondary }]}>Name *</Text>
+          <TextInput
+            style={[s.input, { backgroundColor: colors.bg.secondary, color: colors.text.primary }]}
+            value={name}
+            onChangeText={setName}
+            placeholder="e.g. My Aadhaar Card"
+            placeholderTextColor={colors.text.tertiary}
+          />
 
-        <Text style={[s.label, { color: colors.text.secondary }]}>Category</Text>
-        <View style={s.categoryRow}>
-          {CATEGORIES.map((cat) => {
-            const active = category === cat.key;
-            return (
-              <TouchableOpacity
-                key={cat.key}
-                style={[
-                  s.categoryChip,
-                  {
-                    backgroundColor: active ? colors.accent.primary : colors.bg.secondary,
-                  },
-                ]}
-                onPress={() => setCategory(cat.key)}
-                activeOpacity={0.7}
-              >
-                <Ionicons
-                  name={cat.icon as any}
-                  size={14}
-                  color={active ? '#FFF' : colors.text.tertiary}
-                />
-                <Text
-                  style={[s.categoryChipLabel, { color: active ? '#FFF' : colors.text.tertiary }]}
+          <Text style={[s.label, { color: colors.text.secondary }]}>Category</Text>
+          <View style={s.categoryRow}>
+            {CATEGORIES.map((cat) => {
+              const active = category === cat.key;
+              return (
+                <TouchableOpacity
+                  key={cat.key}
+                  style={[
+                    s.categoryChip,
+                    {
+                      backgroundColor: active ? colors.accent.primary : colors.bg.secondary,
+                    },
+                  ]}
+                  onPress={() => setCategory(cat.key)}
+                  activeOpacity={0.7}
                 >
-                  {cat.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        <Text style={[s.label, { color: colors.text.secondary }]}>Document Number</Text>
-        <TextInput
-          style={[s.input, { backgroundColor: colors.bg.secondary, color: colors.text.primary }]}
-          value={documentNumber}
-          onChangeText={setDocumentNumber}
-          placeholder="e.g. XXXX-XXXX-XXXX"
-          placeholderTextColor={colors.text.tertiary}
-        />
-
-        <View style={s.row}>
-          <View style={{ flex: 1 }}>
-            <Text style={[s.label, { color: colors.text.secondary }]}>Issued Date</Text>
-            <TextInput
-              style={[
-                s.input,
-                { backgroundColor: colors.bg.secondary, color: colors.text.primary },
-              ]}
-              value={issuedDate}
-              onChangeText={setIssuedDate}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor={colors.text.tertiary}
-            />
+                  <Ionicons
+                    name={cat.icon as any}
+                    size={14}
+                    color={active ? '#FFF' : colors.text.tertiary}
+                  />
+                  <Text
+                    style={[s.categoryChipLabel, { color: active ? '#FFF' : colors.text.tertiary }]}
+                  >
+                    {cat.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
-          <View style={{ width: 12 }} />
-          <View style={{ flex: 1 }}>
-            <Text style={[s.label, { color: colors.text.secondary }]}>Expiry Date</Text>
-            <TextInput
-              style={[
-                s.input,
-                { backgroundColor: colors.bg.secondary, color: colors.text.primary },
-              ]}
-              value={expiryDate}
-              onChangeText={setExpiryDate}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor={colors.text.tertiary}
-            />
+
+          <Text style={[s.label, { color: colors.text.secondary }]}>Document Number</Text>
+          <TextInput
+            style={[s.input, { backgroundColor: colors.bg.secondary, color: colors.text.primary }]}
+            value={documentNumber}
+            onChangeText={setDocumentNumber}
+            placeholder="e.g. XXXX-XXXX-XXXX"
+            placeholderTextColor={colors.text.tertiary}
+          />
+
+          <View style={s.row}>
+            <View style={{ flex: 1 }}>
+              <Text style={[s.label, { color: colors.text.secondary }]}>Issued Date</Text>
+              <TextInput
+                style={[
+                  s.input,
+                  { backgroundColor: colors.bg.secondary, color: colors.text.primary },
+                ]}
+                value={issuedDate}
+                onChangeText={setIssuedDate}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor={colors.text.tertiary}
+              />
+            </View>
+            <View style={{ width: 12 }} />
+            <View style={{ flex: 1 }}>
+              <Text style={[s.label, { color: colors.text.secondary }]}>Expiry Date</Text>
+              <TextInput
+                style={[
+                  s.input,
+                  { backgroundColor: colors.bg.secondary, color: colors.text.primary },
+                ]}
+                value={expiryDate}
+                onChangeText={setExpiryDate}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor={colors.text.tertiary}
+              />
+            </View>
           </View>
+
+          <Text style={[s.label, { color: colors.text.secondary }]}>Issuing Authority</Text>
+          <TextInput
+            style={[s.input, { backgroundColor: colors.bg.secondary, color: colors.text.primary }]}
+            value={issuer}
+            onChangeText={setIssuer}
+            placeholder="e.g. Government of India"
+            placeholderTextColor={colors.text.tertiary}
+          />
+
+          <Text style={[s.label, { color: colors.text.secondary }]}>Notes</Text>
+          <TextInput
+            style={[
+              s.input,
+              s.textArea,
+              { backgroundColor: colors.bg.secondary, color: colors.text.primary },
+            ]}
+            value={notes}
+            onChangeText={setNotes}
+            placeholder="Any additional notes..."
+            placeholderTextColor={colors.text.tertiary}
+            multiline
+            numberOfLines={3}
+          />
         </View>
+      </ScrollView>
 
-        <Text style={[s.label, { color: colors.text.secondary }]}>Issuing Authority</Text>
-        <TextInput
-          style={[s.input, { backgroundColor: colors.bg.secondary, color: colors.text.primary }]}
-          value={issuer}
-          onChangeText={setIssuer}
-          placeholder="e.g. Government of India"
-          placeholderTextColor={colors.text.tertiary}
-        />
-
-        <Text style={[s.label, { color: colors.text.secondary }]}>Notes</Text>
-        <TextInput
-          style={[
-            s.input,
-            s.textArea,
-            { backgroundColor: colors.bg.secondary, color: colors.text.primary },
-          ]}
-          value={notes}
-          onChangeText={setNotes}
-          placeholder="Any additional notes..."
-          placeholderTextColor={colors.text.tertiary}
-          multiline
-          numberOfLines={3}
-        />
-
-        <View style={{ marginTop: 24, gap: 12 }}>
-          <TouchableOpacity
-            style={[s.button, { backgroundColor: colors.accent.primary }]}
-            onPress={handleSave}
-            disabled={saving}
-            activeOpacity={0.7}
-          >
-            {saving ? (
-              <ActivityIndicator size="small" color="#FFF" />
-            ) : (
-              <>
-                <Ionicons name={isUpload ? 'cloud-upload' : 'checkmark'} size={18} color="#FFF" />
-                <Text style={s.buttonText}>{isUpload ? 'Upload & Save' : 'Save Changes'}</Text>
-              </>
-            )}
-          </TouchableOpacity>
-
-          {!isUpload && (
+      <View style={{ paddingBottom: insets.bottom + 16, paddingHorizontal: 20, paddingTop: 12 }}>
+        <TouchableOpacity
+          style={[s.button, { backgroundColor: colors.accent.primary }]}
+          onPress={handleSave}
+          disabled={saving}
+          activeOpacity={0.7}
+        >
+          {saving ? (
+            <ActivityIndicator size="small" color="#FFF" />
+          ) : (
             <>
-              <TouchableOpacity
-                style={[s.button, { backgroundColor: colors.bg.secondary }]}
-                onPress={handleDownload}
-                disabled={downloading}
-                activeOpacity={0.7}
-              >
-                {downloading ? (
-                  <ActivityIndicator size="small" color={colors.text.primary} />
-                ) : (
-                  <>
-                    <Ionicons name="download" size={18} color={colors.text.primary} />
-                    <Text style={[s.buttonText, { color: colors.text.primary }]}>Download</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[s.button, { backgroundColor: '#FF3B3018' }]}
-                onPress={handleDelete}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="trash-outline" size={18} color="#FF3B30" />
-                <Text style={[s.buttonText, { color: '#FF3B30' }]}>Delete Document</Text>
-              </TouchableOpacity>
+              <Ionicons name={isUpload ? 'cloud-upload' : 'checkmark'} size={18} color="#FFF" />
+              <Text style={s.buttonText}>{isUpload ? 'Upload & Save' : 'Save Changes'}</Text>
             </>
           )}
-        </View>
+        </TouchableOpacity>
+
+        {!isUpload && (
+          <>
+            <TouchableOpacity
+              style={[s.button, { backgroundColor: colors.bg.secondary, marginTop: 8 }]}
+              onPress={handleDownload}
+              disabled={downloading}
+              activeOpacity={0.7}
+            >
+              {downloading ? (
+                <ActivityIndicator size="small" color={colors.text.primary} />
+              ) : (
+                <>
+                  <Ionicons name="download" size={18} color={colors.text.primary} />
+                  <Text style={[s.buttonText, { color: colors.text.primary }]}>Download</Text>
+                </>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[s.button, { backgroundColor: '#FF3B3018', marginTop: 8 }]}
+              onPress={handleDelete}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="trash-outline" size={18} color="#FF3B30" />
+              <Text style={[s.buttonText, { color: '#FF3B30' }]}>Delete Document</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
-    </ScrollView>
+    </View>
   );
 }
 

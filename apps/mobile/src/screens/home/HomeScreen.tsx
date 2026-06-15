@@ -20,6 +20,7 @@ import { useAuth } from '../../store/AuthContext';
 import { useCoupleMode, COUPLE_COLORS } from '../../hooks/useCoupleMode';
 import { CATEGORY_ICONS, CATEGORY_COLORS } from '../../config/categoryIcons';
 import { Avatar } from '../../components/ui/Avatar';
+import { PremiumLoaderScreen } from '../../components/ui/PremiumLoaderScreen';
 import { KEYWORD_CATEGORIES } from '../../constants/smartEntryKeywords';
 import { useOffline } from '../../store/OfflineContext';
 
@@ -142,6 +143,34 @@ const QUICK_ACTIONS: {
   { label: 'Create Space', icon: 'planet', desc: 'Shared finance space', route: 'Spaces', screen: 'CreateSharedGroup' },
 ];
 
+const COMMON_INDIAN_SUGGESTIONS = [
+  'Chai',
+  'Auto rickshaw',
+  'Vegetable vendor',
+  'Milk',
+  'Kirana store',
+  'Petrol',
+  'Dosa',
+  'Biryani',
+  'Metro recharge',
+  'Mobile recharge',
+  'Electricity bill',
+  'House help',
+  'Newspaper',
+  'Tiffin service',
+  'Parking fee',
+  'Temple donation',
+  'Cable TV',
+  'Groceries',
+  'Ola',
+  'Swiggy',
+  'Zomato',
+  'Medical store',
+  'Gym fee',
+  'Salon',
+  'Rent',
+];
+
 export function HomeScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
@@ -185,6 +214,7 @@ export function HomeScreen() {
     return tips[Math.floor(Math.random() * tips.length)];
   });
   const abortRef = useRef<AbortController | null>(null);
+  const hasLoadedOnce = useRef(false);
 
   useEffect(() => {
     try {
@@ -194,19 +224,24 @@ export function HomeScreen() {
       } else {
         setQuickType('expense');
       }
-      if (quickEntry.length >= 1 && recentTxns.length > 0) {
-        const lower = quickEntry.toLowerCase();
-        const matches = recentTxns
-          .map((t: any) => String(t.description || t.title || t.merchant || '').trim())
-          .filter(Boolean)
-          .filter((d: string) => d.toLowerCase().includes(lower))
-          .filter((v: string, i: number, a: string[]) => a.indexOf(v) === i)
-          .slice(0, 4);
-        setSuggestions(matches);
-        setShowSuggestions(matches.length > 0);
+      if (quickEntry.length < 1) {
+        setShowSuggestions(false);
         return;
       }
-      setShowSuggestions(false);
+      const lower = quickEntry.toLowerCase();
+      const fromRecent = recentTxns
+        .map((t: any) => String(t.description || t.title || t.merchant || '').trim())
+        .filter(Boolean)
+        .filter((d: string) => d.toLowerCase().includes(lower))
+        .filter((v: string, i: number, a: string[]) => a.indexOf(v) === i);
+      const fromIndian = COMMON_INDIAN_SUGGESTIONS.filter((s) =>
+        s.toLowerCase().includes(lower),
+      );
+      const combined = [...fromRecent, ...fromIndian]
+        .filter((v, i, a) => a.indexOf(v) === i)
+        .slice(0, 5);
+      setSuggestions(combined);
+      setShowSuggestions(combined.length > 0);
     } catch { /* ignore suggestion errors */ }
   }, [quickEntry, recentTxns]);
 
@@ -259,41 +294,34 @@ export function HomeScreen() {
       // Warm up backend in parallel so cold start begins immediately
       warmupBackend().catch(() => {});
 
+      const isFirstLoad = totalBalance === null && !hasLoadedOnce.current;
       if (isRefresh) {
         setRefreshing(true);
-      } else {
+      } else if (isFirstLoad) {
         setLoading(true);
+        hasLoadedOnce.current = true;
       }
 
       const totalCalls = 8;
       let completedCalls = 0;
-      const tickProgress = () => {
+      const tickProgress = isFirstLoad ? () => {
         completedCalls++;
         const pct = Math.min(Math.round((completedCalls / totalCalls) * 100), 95);
         setLoadingProgress(pct);
-      };
-
-      // Minimum display time so the loading screen feels substantial
-      const settleTimer = setTimeout(() => {
-        if (!ctrl.signal.aborted) {
-          setLoading(false);
-        }
-      }, 3000);
+      } : () => {};
 
       try {
-        const [balRes, statsRes, remRes, goalRes, notifRes, billsRes, spacesRes, budgetsRes] =
-          await Promise.allSettled([
-            api.get<any>('/accounts/stats', ctrl.signal),
-            api.get<any>('/transactions/stats?months=1', ctrl.signal),
-            api.get<any>('/reminders/upcoming?days=7', ctrl.signal),
-            api.get<any>('/goals', ctrl.signal),
-            api.get<any>('/notifications/unread-count', ctrl.signal),
-            api.get<any>('/bills?status=pending', ctrl.signal).catch(() => []),
-            api.get<any>('/shared-finance/groups', ctrl.signal).catch(() => []),
-            api.get<any>('/budgets', ctrl.signal).catch(() => []),
-          ]);
+        const balP = api.get<any>('/accounts/stats', ctrl.signal).finally(tickProgress);
+        const statsP = api.get<any>('/transactions/stats?months=1', ctrl.signal).finally(tickProgress);
+        const remP = api.get<any>('/reminders/upcoming?days=7', ctrl.signal).finally(tickProgress);
+        const goalP = api.get<any>('/goals', ctrl.signal).finally(tickProgress);
+        const notifP = api.get<any>('/notifications/unread-count', ctrl.signal).finally(tickProgress);
+        const billsP = api.get<any>('/bills?status=pending', ctrl.signal).catch(() => []).finally(tickProgress);
+        const spacesP = api.get<any>('/shared-finance/groups', ctrl.signal).catch(() => []).finally(tickProgress);
+        const budgetsP = api.get<any>('/budgets', ctrl.signal).catch(() => []).finally(tickProgress);
 
-        clearTimeout(settleTimer);
+        const [balRes, statsRes, remRes, goalRes, notifRes, billsRes, spacesRes, budgetsRes] =
+          await Promise.allSettled([balP, statsP, remP, goalP, notifP, billsP, spacesP, budgetsP]);
 
         if (ctrl.signal.aborted) {
           return;
@@ -303,7 +331,6 @@ export function HomeScreen() {
           const b = balRes.value;
           setTotalBalance(b.totalBalance ?? b.data?.totalBalance ?? 0);
         }
-        tickProgress();
 
         if (statsRes.status === 'fulfilled') {
           const s = statsRes.value?.data ?? statsRes.value;
@@ -322,25 +349,21 @@ export function HomeScreen() {
           setCategories(Object.entries(grouped).map(([name, amount]) => ({ name, amount })));
           setRecentTxns((s.recentTransactions || []).slice(0, 10));
         }
-        tickProgress();
 
         if (remRes.status === 'fulfilled') {
           const list = listFromResponse(remRes.value);
           setReminders(list.slice(0, 5));
         }
-        tickProgress();
 
         if (goalRes.status === 'fulfilled') {
           const list = listFromResponse(goalRes.value);
           setGoals(list.slice(0, 3));
         }
-        tickProgress();
 
         if (notifRes.status === 'fulfilled') {
           const n = notifRes.value;
           setUnreadCount(n.count ?? n.data?.count ?? 0);
         }
-        tickProgress();
 
         if (billsRes.status === 'fulfilled') {
           const billsData = billsRes.value?.data ?? billsRes.value ?? [];
@@ -349,29 +372,29 @@ export function HomeScreen() {
             bills.reduce((s: number, b: any) => s + (Number(b.amount) || 0), 0),
           );
         }
-        tickProgress();
 
         if (spacesRes.status === 'fulfilled') {
           setSpaces(listFromResponse(spacesRes.value));
         }
-        tickProgress();
 
         if (budgetsRes.status === 'fulfilled') {
           setBudgets(listFromResponse(budgetsRes.value));
         }
-        tickProgress();
       } catch {
         /* ignore */
       } finally {
-        clearTimeout(settleTimer);
         if (!ctrl.signal.aborted) {
-          setLoadingProgress(100);
-          setTimeout(() => {
-            if (!ctrl.signal.aborted) {
-              setLoading(false);
-              setRefreshing(false);
-            }
-          }, 400);
+          if (isFirstLoad) {
+            setLoadingProgress(100);
+            setTimeout(() => {
+              if (!ctrl.signal.aborted) {
+                setLoading(false);
+                setRefreshing(false);
+              }
+            }, 400);
+          } else {
+            setRefreshing(false);
+          }
         }
       }
     },
@@ -394,7 +417,6 @@ export function HomeScreen() {
     'refund',
     'cashback',
     'gift',
-    'donation',
     'income',
     'profit',
     'bonus',
@@ -446,7 +468,7 @@ export function HomeScreen() {
     if (!parsed) {
       return;
     }
-    const { desc, amt, cat } = parsed;
+    const { desc, amt } = parsed;
     setQuickEntry('');
     setQuickEntryLoading(true);
     try {
@@ -471,45 +493,9 @@ export function HomeScreen() {
 
   const userName = user?.firstName || 'User';
 
-  if (loading && totalBalance === null) {
+  if (loading) {
     return (
-      <View style={[page.screen, { backgroundColor: colors.bg.primary, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top + 80, paddingHorizontal: 40 }]}>
-        <View style={{
-          width: 88, height: 88, borderRadius: 28,
-          backgroundColor: `${colors.brand.primary}12`,
-          alignItems: 'center', justifyContent: 'center', marginBottom: 28,
-        }}>
-          <Ionicons name="layers-outline" size={40} color={colors.brand.primary} />
-        </View>
-        <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary, textAlign: 'center', letterSpacing: -0.5 }}>
-          Building your Dashboard
-        </Text>
-        <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text.tertiary, textAlign: 'center', marginTop: 8, lineHeight: 20 }}>
-          {loadingTip}
-        </Text>
-        <View style={{
-          width: '100%', height: 6, borderRadius: 3,
-          backgroundColor: `${colors.brand.primary}12`, marginTop: 36, overflow: 'hidden',
-        }}>
-          <View style={{
-            height: '100%', borderRadius: 3, backgroundColor: colors.brand.primary,
-            width: `${loadingProgress}%`,
-          }} />
-        </View>
-        <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.tertiary, marginTop: 10, fontVariant: ['tabular-nums'] }}>
-          {loadingProgress}%
-        </Text>
-        <View style={{
-          marginTop: 48, paddingHorizontal: 20, paddingVertical: 16,
-          borderRadius: 16, backgroundColor: `${colors.brand.primary}08`,
-          width: '100%', alignItems: 'center',
-        }}>
-          <Ionicons name="bulb-outline" size={18} color={colors.brand.primary} />
-          <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text.tertiary, textAlign: 'center', marginTop: 6, lineHeight: 17 }}>
-            Did you know?{'\n'}Track recurring expenses to spot savings opportunities
-          </Text>
-        </View>
-      </View>
+      <PremiumLoaderScreen progress={loadingProgress} title="Building your Dashboard" icon="layers-outline" tip={loadingTip} />
     );
   }
 
@@ -793,7 +779,7 @@ export function HomeScreen() {
         <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
           <View style={[page.quickAddCard, { backgroundColor: colors.bg.card }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Ionicons name="flash" size={16} color={colors.brand.primary} />
+              <Ionicons name="flash" size={16} color={colors.accent.primary} />
               <TextInput
                 ref={quickInputRef}
                 style={[page.quickAddInput, { color: colors.text.primary }]}
@@ -809,10 +795,10 @@ export function HomeScreen() {
               />
               {!quickEntryLoading ? (
                 <TouchableOpacity onPress={() => { setShowSuggestions(false); handleQuickAdd(quickEntry); }}>
-                  <Ionicons name="arrow-forward-circle" size={22} color={colors.brand.primary} />
+                  <Ionicons name="arrow-forward-circle" size={22} color={colors.accent.primary} />
                 </TouchableOpacity>
               ) : (
-                <ActivityIndicator size="small" color={colors.brand.primary} />
+                <ActivityIndicator size="small" color={colors.accent.primary} />
               )}
             </View>
             {showSuggestions && suggestions.length > 0 && (
@@ -849,8 +835,8 @@ export function HomeScreen() {
                       { borderTopColor: colors.border.subtle, justifyContent: 'center' },
                     ]}
                   >
-                    <Ionicons name="checkmark-circle" size={16} color="#10B981" />
-                    <Text style={{ fontSize: 13, fontWeight: '600', color: '#10B981' }}>
+                    <Ionicons name="checkmark-circle" size={16} color={colors.status.success} />
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: colors.status.success }}>
                       Added!
                     </Text>
                   </View>
@@ -865,72 +851,70 @@ export function HomeScreen() {
                 <View
                   style={[
                     page.quickCat,
-                    { borderTopColor: colors.border.subtle, flexDirection: 'column', gap: 8 },
+                    { borderTopColor: colors.border.subtle },
                   ]}
                 >
                   <View
                     style={{
+                      flex: 1,
                       flexDirection: 'row',
                       alignItems: 'center',
-                      justifyContent: 'space-between',
+                      gap: 8,
                     }}
                   >
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      <View
-                        style={{
-                          width: 28,
-                          height: 28,
-                          borderRadius: 8,
-                          backgroundColor: `${catColor}18`,
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <Ionicons name={catIcon as any} size={14} color={catColor} />
-                      </View>
-                      <View>
-                        <Text
-                          style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}
-                        >
-                          {parsed.desc}
-                        </Text>
-                        <Text style={{ fontSize: 11, color: catColor, fontWeight: '500' }}>
-                          {parsed.cat}
-                        </Text>
-                      </View>
+                    <View
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: 8,
+                        backgroundColor: `${catColor}18`,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Ionicons name={catIcon as any} size={14} color={catColor} />
                     </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <Text
+                        style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}
+                        numberOfLines={1}
+                      >
+                        {parsed.desc}
+                      </Text>
+                      <Text style={{ fontSize: 11, color: catColor, fontWeight: '500' }}>
+                        {parsed.cat}
+                      </Text>
+                    </View>
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        fontWeight: '700',
+                        color: quickType === 'expense' ? colors.status.error : colors.status.success,
+                      }}
+                    >
+                      {quickType === 'expense' ? '-' : '+'}₹{parsed.amt.toLocaleString('en-IN')}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => setQuickType(quickType === 'expense' ? 'income' : 'expense')}
+                      style={[
+                        {
+                          paddingHorizontal: 8,
+                          paddingVertical: 4,
+                          borderRadius: 6,
+                          backgroundColor: quickType === 'expense' ? colors.status.error + '18' : colors.status.success + '18',
+                        },
+                      ]}
+                    >
                       <Text
                         style={{
-                          fontSize: 16,
+                          fontSize: 10,
                           fontWeight: '700',
-                          color: quickType === 'expense' ? '#EF4444' : '#10B981',
+                          color: quickType === 'expense' ? colors.status.error : colors.status.success,
                         }}
                       >
-                        {quickType === 'expense' ? '-' : '+'}₹{parsed.amt.toLocaleString('en-IN')}
+                        {quickType === 'expense' ? 'EXPENSE' : 'INCOME'}
                       </Text>
-                      <TouchableOpacity
-                        onPress={() => setQuickType(quickType === 'expense' ? 'income' : 'expense')}
-                        style={[
-                          {
-                            paddingHorizontal: 8,
-                            paddingVertical: 3,
-                            borderRadius: 6,
-                            backgroundColor: quickType === 'expense' ? '#FEE2E2' : '#D1FAE5',
-                          },
-                        ]}
-                      >
-                        <Text
-                          style={{
-                            fontSize: 10,
-                            fontWeight: '700',
-                            color: quickType === 'expense' ? '#DC2626' : '#059669',
-                          }}
-                        >
-                          {quickType === 'expense' ? 'EXPENSE' : 'INCOME'}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
+                    </TouchableOpacity>
                   </View>
                 </View>
               );
@@ -1041,7 +1025,7 @@ export function HomeScreen() {
                             marginTop: 2,
                           }}
                         >
-                          {tx.category || tx.cat || ''}
+                          {((tx.category as any)?.name || tx.category || tx.cat || '')}
                           {tx.date ? ` · ${fmtDate(tx.date)}` : ''}
                         </Text>
                       </View>

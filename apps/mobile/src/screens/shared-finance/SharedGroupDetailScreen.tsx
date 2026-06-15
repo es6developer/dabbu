@@ -18,6 +18,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken, addSyncListener } from '../../services/api';
+import { PremiumLoaderScreen } from '../../components/ui/PremiumLoaderScreen';
 import { CATEGORY_COLORS } from '../../config/categoryIcons';
 import { INVITE_BASE_URL } from '../../config/api';
 import { useAuth } from '../../store/AuthContext';
@@ -143,6 +144,7 @@ export function SharedGroupDetailScreen() {
   const [expenses, setExpenses] = useState<any[]>([]);
   const [activityData, setActivityData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>('summary');
@@ -173,17 +175,23 @@ export function SharedGroupDetailScreen() {
         setRefreshing(true);
       } else {
         setLoading(true);
+        setLoadingProgress(0);
       }
       setError(null);
+      const totalCalls = 3;
+      let completed = 0;
+      const tick = () => {
+        completed++;
+        setLoadingProgress(Math.min(Math.round((completed / totalCalls) * 100), 95));
+      };
       try {
         if (accessToken) {
           setAccessToken(accessToken);
         }
-        const [groupRes, expensesRes, activityRes] = await Promise.allSettled([
-          api.get<any>(`/shared-finance/groups/${groupId}`, ctrl.signal),
-          api.get<any>(`/shared-finance/groups/${groupId}/expenses`, ctrl.signal),
-          api.get<any>(`/shared-finance/groups/${groupId}/settlements`, ctrl.signal),
-        ]);
+        const groupP = api.get<any>(`/shared-finance/groups/${groupId}`, ctrl.signal).finally(tick);
+        const expensesP = api.get<any>(`/shared-finance/groups/${groupId}/expenses`, ctrl.signal).finally(tick);
+        const activityP = api.get<any>(`/shared-finance/groups/${groupId}/settlements`, ctrl.signal).finally(tick);
+        const [groupRes, expensesRes, activityRes] = await Promise.allSettled([groupP, expensesP, activityP]);
         if (ctrl.signal.aborted) {
           return;
         }
@@ -203,6 +211,7 @@ export function SharedGroupDetailScreen() {
         }
       } finally {
         if (!ctrl.signal.aborted) {
+          setLoadingProgress(100);
           setLoading(false);
           setRefreshing(false);
         }
@@ -376,28 +385,7 @@ export function SharedGroupDetailScreen() {
 
   if (loading) {
     return (
-      <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
-        <View style={[s.loadWrap, { paddingTop: insets.top + 8 }]}>
-          <View
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20 }}
-          >
-            <Skeleton width={38} height={38} borderRadius={12} />
-            <View style={{ flex: 1, gap: 6 }}>
-              <Skeleton width="50%" height={20} />
-              <Skeleton width="30%" height={12} />
-            </View>
-            <Skeleton width={38} height={38} borderRadius={12} />
-          </View>
-          <View style={{ paddingHorizontal: 20, marginTop: 18 }}>
-            <Skeleton width="100%" height={100} borderRadius={18} />
-          </View>
-          <View style={{ marginTop: 20, paddingHorizontal: 20, gap: 10 }}>
-            <Skeleton width="100%" height={60} borderRadius={16} />
-            <Skeleton width="100%" height={60} borderRadius={16} />
-            <Skeleton width="100%" height={60} borderRadius={16} />
-          </View>
-        </View>
-      </View>
+      <PremiumLoaderScreen progress={loadingProgress} title="Loading Space" icon="people-outline" />
     );
   }
 

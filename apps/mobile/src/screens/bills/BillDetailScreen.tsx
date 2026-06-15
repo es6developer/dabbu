@@ -20,6 +20,7 @@ import { PageContainer } from '../../components/ui/PageContainer';
 import { DetailSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 import { useToast } from '../../store/ToastContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const CATEGORIES = [
   'Groceries',
@@ -78,6 +79,7 @@ export function BillDetailScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { accessToken } = useAuth();
+  const insets = useSafeAreaInsets();
   const { showToast } = useToast();
   const { billId } = route.params;
 
@@ -216,6 +218,7 @@ export function BillDetailScreen() {
   return (
     <PageContainer noPadding>
       <KeyboardAvoidingContainer>
+        <View style={{ flex: 1 }}>
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
@@ -491,6 +494,9 @@ export function BillDetailScreen() {
             </TouchableOpacity>
           ) : null}
 
+        </ScrollView>
+
+        <View style={{ paddingBottom: insets.bottom + 16, paddingHorizontal: 20 }}>
           <View style={styles.buttonGroup}>
             <TouchableOpacity
               style={[styles.saveBtnWrap, { backgroundColor: colors.accent.primary }]}
@@ -531,7 +537,8 @@ export function BillDetailScreen() {
               )}
             </TouchableOpacity>
           </View>
-        </ScrollView>
+        </View>
+      </View>
       </KeyboardAvoidingContainer>
     </PageContainer>
   );
@@ -539,7 +546,7 @@ export function BillDetailScreen() {
 
 const styles = StyleSheet.create({
   scroll: { flex: 1 },
-  scrollContent: { paddingBottom: 40 },
+  scrollContent: {},
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   headerGradient: {
     paddingTop: Platform.OS === 'ios' ? 60 : 40,

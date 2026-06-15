@@ -210,7 +210,7 @@ export function ReminderDetailScreen() {
           <View style={[styles.detailRow, { borderBottomColor: colors.border.subtle }]}>
             <Text style={[styles.detailLabel, { color: colors.text.tertiary }]}>Category</Text>
             <Text style={[styles.detailValue, { color: colors.text.primary }]}>
-              {reminder.category}
+              {((reminder.category as any)?.name || reminder.category || '')}
             </Text>
           </View>
         )}

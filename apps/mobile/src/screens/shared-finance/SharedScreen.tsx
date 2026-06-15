@@ -23,6 +23,7 @@ import { api, setAccessToken, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { Avatar } from '../../components/ui/Avatar';
+import { PremiumLoaderScreen } from '../../components/ui/PremiumLoaderScreen';
 import { useToast } from '../../store/ToastContext';
 
 const H_PADDING = 20;
@@ -452,6 +453,7 @@ export function SharedScreen() {
   const [groupBalances, setGroupBalances] = useState<Record<string, number>>({});
   const [groupBalanceArrays, setGroupBalanceArrays] = useState<Record<string, any[]>>({});
   const [loading, setLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newName, setNewName] = useState('');
@@ -467,19 +469,27 @@ export function SharedScreen() {
       warmupBackend().catch(() => {});
       if (!isRefresh) {
         setLoading(true);
+        setLoadingProgress(0);
       }
-      const settleTimer = setTimeout(() => setLoading(false), 3000);
       try {
         const sharedRes = await api.get<any>('/shared-finance/groups');
         const groupList = listFromResponse(sharedRes);
         setGroups(groupList);
 
         const allGroupIds = groupList.map((g: any) => g.id).filter(Boolean);
+        const totalCalls = 1 + allGroupIds.length;
+        let completed = 0;
+        const tick = () => {
+          completed++;
+          setLoadingProgress(Math.min(Math.round((completed / totalCalls) * 100), 95));
+        };
+
+        tick(); // groups fetch done
 
         if (allGroupIds.length > 0) {
           const balanceResults = await Promise.allSettled(
             allGroupIds.map((gid: string) =>
-              api.get<any>(`/shared-finance/groups/${gid}/balances`),
+              api.get<any>(`/shared-finance/groups/${gid}/balances`).finally(tick),
             ),
           );
 
@@ -513,7 +523,7 @@ export function SharedScreen() {
       } catch {
         /* ignore */
       } finally {
-        clearTimeout(settleTimer);
+        setLoadingProgress(100);
         setLoading(false);
         setRefreshing(false);
       }
@@ -600,18 +610,9 @@ export function SharedScreen() {
     setInviteEmail('');
   }
 
-  if (loading && groups.length === 0) {
+  if (loading) {
     return (
-      <View style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
-        <View style={{ paddingHorizontal: H_PADDING, paddingTop: insets.top + 12, gap: 12 }}>
-          <Skeleton width={120} height={13} borderRadius={6} />
-          <Skeleton width={160} height={20} borderRadius={6} />
-          <Skeleton width="100%" height={80} borderRadius={20} />
-          {[0, 1].map((i) => (
-            <Skeleton key={i} width="100%" height={90} borderRadius={16} />
-          ))}
-        </View>
-      </View>
+      <PremiumLoaderScreen progress={loadingProgress} title="Loading Your Spaces" icon="layers-outline" />
     );
   }
 

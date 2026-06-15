@@ -220,27 +220,7 @@ export function CoupleIncomeScreen() {
           />
         }
       >
-        <View
-          style={{
-            paddingTop: insets.top + 12,
-            paddingBottom: 28,
-            paddingHorizontal: 20,
-            backgroundColor: colors.accent.primary,
-          }}
-        >
-          <View style={styles.headerRow}>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('CoupleSpaceHome')}
-              style={styles.backBtn}
-            >
-              <Ionicons name="arrow-back" size={22} color="#FFF" />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>Income</Text>
-            <View style={{ width: 34 }} />
-          </View>
-        </View>
-
-        <View style={{ paddingHorizontal: 20, marginTop: -16 }}>
+        <View style={{ paddingHorizontal: 20, marginTop: 12 }}>
           <View style={[styles.summaryCard, { backgroundColor: '#FFEBB4' }]}>
             <Text style={styles.summaryTotalLabel}>Total Monthly Income</Text>
             <Text style={styles.summaryTotalAmount}>{fmt(totalIncome)}</Text>
@@ -543,16 +523,7 @@ export function CoupleIncomeScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  backBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: { color: '#FFF', fontSize: 17, fontWeight: '700' },
+
 
   summaryCard: {
     borderRadius: 24,

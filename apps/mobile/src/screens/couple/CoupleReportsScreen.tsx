@@ -156,28 +156,6 @@ export function CoupleReportsScreen() {
             padding: 20,
           }}
         >
-          <View
-            style={{
-              paddingTop: insets.top + 12,
-              paddingBottom: 28,
-              paddingHorizontal: 20,
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-            }}
-          >
-            <View style={styles.headerRow}>
-              <TouchableOpacity
-                onPress={() => navigation.goBack()}
-                style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}
-              >
-                <Ionicons name="arrow-back" size={22} color={colors.text.primary} />
-              </TouchableOpacity>
-              <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Reports</Text>
-              <View style={{ width: 32 }} />
-            </View>
-          </View>
           <Ionicons name="stats-chart-outline" size={48} color={colors.accent.primary} />
           <Text style={[styles.emptyTitle, { color: colors.text.secondary, marginTop: 12 }]}>
             No Data
@@ -206,24 +184,6 @@ export function CoupleReportsScreen() {
           />
         }
       >
-        <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
-          <View style={styles.headerRow}>
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}
-            >
-              <Ionicons name="arrow-back" size={22} color={colors.text.primary} />
-            </TouchableOpacity>
-            <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Reports</Text>
-            <TouchableOpacity
-              onPress={() => Alert.alert('Coming Soon', 'Export feature will be available soon.')}
-              style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}
-            >
-              <Ionicons name="download-outline" size={20} color={colors.text.primary} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
         <View style={{ paddingHorizontal: 20, paddingTop: 12, gap: 12 }}>
           <View
             style={[
@@ -454,16 +414,7 @@ export function CoupleReportsScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  backBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: { color: '#FFF', fontSize: 17, fontWeight: '700' },
+
 
   periodRow: {
     flexDirection: 'row',

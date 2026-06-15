@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
+import { PremiumLoaderScreen } from '../../components/ui/PremiumLoaderScreen';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
 function fmt(v: number) {
@@ -43,6 +44,7 @@ export function TripDashboardScreen() {
   const [trip, setTrip] = useState<any>(null);
   const [expenses, setExpenses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = useCallback(
@@ -50,13 +52,18 @@ export function TripDashboardScreen() {
       if (!groupId) return;
 
       if (refresh) setRefreshing(true);
-      else setLoading(true);
+      else { setLoading(true); setLoadingProgress(0); }
+      const totalCalls = 2;
+      let completed = 0;
+      const tick = () => {
+        completed++;
+        setLoadingProgress(Math.min(Math.round((completed / totalCalls) * 100), 95));
+      };
       try {
         if (accessToken) setAccessToken(accessToken);
-        const [tripRes, expRes] = await Promise.allSettled([
-          api.get<any>(`/shared-finance/groups/${groupId}/trip/dashboard`),
-          api.get<any>(`/shared-finance/groups/${groupId}/expenses`),
-        ]);
+        const tripP = api.get<any>(`/shared-finance/groups/${groupId}/trip/dashboard`).finally(tick);
+        const expP = api.get<any>(`/shared-finance/groups/${groupId}/expenses`).finally(tick);
+        const [tripRes, expRes] = await Promise.allSettled([tripP, expP]);
         if (tripRes.status === 'fulfilled') setTrip(tripRes.value?.data || tripRes.value);
         if (expRes.status === 'fulfilled') {
           const d = expRes.value?.data || expRes.value;
@@ -69,6 +76,7 @@ export function TripDashboardScreen() {
       } catch {
         // ignore
       } finally {
+        setLoadingProgress(100);
         setLoading(false);
         setRefreshing(false);
       }
@@ -110,14 +118,7 @@ export function TripDashboardScreen() {
 
   if (loading) {
     return (
-      <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
-        <View style={{ padding: 24, paddingTop: insets.top + 8, gap: 16 }}>
-          <Skeleton width={120} height={14} />
-          <Skeleton width="100%" height={180} borderRadius={24} />
-          <Skeleton width="100%" height={100} borderRadius={18} />
-          <Skeleton width="100%" height={120} borderRadius={18} />
-        </View>
-      </View>
+      <PremiumLoaderScreen progress={loadingProgress} title="Loading Trip Dashboard" icon="airplane-outline" />
     );
   }
 

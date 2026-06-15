@@ -13,6 +13,7 @@ import mailConfig from './config/mail.config';
 import firebaseConfig from './config/firebase.config';
 import aiConfig from './modules/ai/ai.config';
 import sentryConfig from './config/sentry.config';
+import expoConfig from './config/expo.config';
 
 // Database
 import { DatabaseModule } from './database/database.module';
@@ -72,6 +73,7 @@ import { ForecastModule } from './modules/forecast/forecast.module';
         firebaseConfig,
         aiConfig,
         sentryConfig,
+        expoConfig,
       ],
       envFilePath: ['.env', '.env.local'],
     }),

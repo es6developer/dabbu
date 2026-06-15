@@ -236,36 +236,6 @@ export function ProfileScreen() {
             paddingTop: insets.top + 4,
           }}
         >
-          {/* Header */}
-          <View style={{ paddingHorizontal: PADDING, marginBottom: 24 }}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: 16,
-              }}
-            >
-              <TouchableOpacity
-                onPress={() => navigation.goBack()}
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 12,
-                  backgroundColor: `${colors.accent.primary}10`,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Ionicons name="chevron-back" size={20} color={colors.accent.primary} />
-              </TouchableOpacity>
-              <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text.primary }}>
-                Edit Profile
-              </Text>
-              <View style={{ width: 40 }} />
-            </View>
-          </View>
-
           {loading ? (
             <View
               style={{

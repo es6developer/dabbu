@@ -10,9 +10,11 @@ import {
   Alert,
   Linking,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
+import { PremiumLoaderScreen } from '../../components/ui/PremiumLoaderScreen';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
@@ -28,11 +30,13 @@ export function SettlementScreen() {
   const route = useRoute<any>();
   const { accessToken, user: currentUser } = useAuth();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const { groupId } = route.params || {};
 
   const [settlements, setSettlements] = useState<any[]>([]);
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [completedSettlementIds, setCompletedSettlementIds] = useState<Set<string>>(new Set());
@@ -47,13 +51,18 @@ export function SettlementScreen() {
     async (refresh = false) => {
       if (!groupId) return;
       if (refresh) setRefreshing(true);
-      else setLoading(true);
+      else { setLoading(true); setLoadingProgress(0); }
+      const totalCalls = 2;
+      let completed = 0;
+      const tick = () => {
+        completed++;
+        setLoadingProgress(Math.min(Math.round((completed / totalCalls) * 100), 95));
+      };
       try {
         if (accessToken) setAccessToken(accessToken);
-        const [optRes, histRes] = await Promise.allSettled([
-          api.get<any>(`/shared-finance/groups/${groupId}/settlements/plan`),
-          api.get<any>(`/shared-finance/groups/${groupId}/settlements`),
-        ]);
+        const optP = api.get<any>(`/shared-finance/groups/${groupId}/settlements/plan`).finally(tick);
+        const histP = api.get<any>(`/shared-finance/groups/${groupId}/settlements`).finally(tick);
+        const [optRes, histRes] = await Promise.allSettled([optP, histP]);
         if (optRes.status === 'fulfilled') {
           setSettlements(Array.isArray(optRes.value) ? optRes.value : []);
         }
@@ -63,6 +72,7 @@ export function SettlementScreen() {
       } catch {
         // ignore
       } finally {
+        setLoadingProgress(100);
         setLoading(false);
         setRefreshing(false);
       }
@@ -147,23 +157,16 @@ export function SettlementScreen() {
 
   if (loading) {
     return (
-      <PageContainer>
-        <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
-          <View style={{ padding: 24, gap: 16 }}>
-            <Skeleton width={120} height={14} />
-            <Skeleton width="100%" height={120} borderRadius={18} />
-            <Skeleton width="100%" height={180} borderRadius={18} />
-          </View>
-        </View>
-      </PageContainer>
+      <PremiumLoaderScreen progress={loadingProgress} title="Loading Settlements" icon="swap-horizontal-outline" />
     );
   }
 
   return (
     <PageContainer noPadding>
-      <ScrollView
-        style={[s.screen, { backgroundColor: colors.bg.primary }]}
-        contentContainerStyle={{ paddingBottom: 40 }}
+      <View style={{ flex: 1 }}>
+        <ScrollView
+          style={[s.screen, { backgroundColor: colors.bg.primary }]}
+          contentContainerStyle={{}}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -172,16 +175,6 @@ export function SettlementScreen() {
           />
         }
       >
-        <View style={[s.headerRow, { paddingHorizontal: 20 }]}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={[s.backBtn, { backgroundColor: colors.bg.glassLight }]}
-          >
-            <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
-          </TouchableOpacity>
-          <Text style={[s.headerTitle, { color: colors.text.primary }]}>Settlements</Text>
-        </View>
-
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -220,25 +213,6 @@ export function SettlementScreen() {
 
         {activeSection === 'pending' && (
           <>
-            {visibleSettlements.length > 0 && (
-              <TouchableOpacity
-                style={[s.batchBtn, { backgroundColor: colors.accent.primary }]}
-                onPress={handleBatchSettle}
-                disabled={batchSubmitting}
-              >
-                {batchSubmitting ? (
-                  <ActivityIndicator size="small" color="#FFF" />
-                ) : (
-                  <>
-                    <Ionicons name="checkmark-done" size={18} color="#FFF" />
-                    <Text style={s.batchBtnText}>
-                      Settle All ({visibleSettlements.length} pending)
-                    </Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            )}
-
             {visibleSettlements.length > 0 ? (
               <View style={s.settlementsList}>
                 {visibleSettlements.map((item, i) => {
@@ -401,15 +375,35 @@ export function SettlementScreen() {
           </>
         )}
       </ScrollView>
+
+      {activeSection === 'pending' && visibleSettlements.length > 0 && (
+        <View style={{ paddingBottom: insets.bottom + 16, paddingHorizontal: 20 }}>
+          <TouchableOpacity
+            style={[s.batchBtn, { backgroundColor: colors.accent.primary }]}
+            onPress={handleBatchSettle}
+            disabled={batchSubmitting}
+          >
+            {batchSubmitting ? (
+              <ActivityIndicator size="small" color="#FFF" />
+            ) : (
+              <>
+                <Ionicons name="checkmark-done" size={18} color="#FFF" />
+                <Text style={s.batchBtnText}>
+                  Settle All ({visibleSettlements.length} pending)
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+      )}
+      </View>
     </PageContainer>
   );
 }
 
 const s = StyleSheet.create({
   screen: { flex: 1 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 20 },
-  backBtn: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 22, fontWeight: '800' },
+
   sectionRow: { gap: 8, marginBottom: 20 },
   sectionChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18 },
   sectionChipText: { fontSize: 12, fontWeight: '700' },

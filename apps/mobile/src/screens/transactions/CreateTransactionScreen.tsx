@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
   TextInput,
   Platform,
   KeyboardAvoidingView,
-  Keyboard,
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,7 +19,6 @@ import { useToast } from '../../store/ToastContext';
 import { useTheme } from '../../theme';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../config/categoryIcons';
-import { KEYWORD_CATEGORIES } from '../../constants/smartEntryKeywords';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { width: SCREEN_W } = Dimensions.get('window');
@@ -76,7 +74,6 @@ export function CreateTransactionScreen() {
   const [description, setDescription] = useState(
     editingTransaction?.description || prefill?.description || '',
   );
-  const [smartEntry, setSmartEntry] = useState('');
 
   const date =
     (editingTransaction?.date
@@ -104,39 +101,6 @@ export function CreateTransactionScreen() {
       setLoadingMeta(false);
     }
   }
-
-  function smartParse(text: string) {
-    const match = text.match(/^(.+?)\s+(\d+(?:\.\d+)?)$/);
-    if (match) {
-      const desc = match[1].trim();
-      const amt = match[2];
-      setAmount(amt);
-      setDescription(desc);
-      const lower = desc.toLowerCase();
-      for (const [keyword, cat] of Object.entries(KEYWORD_CATEGORIES)) {
-        if (lower.includes(keyword)) {
-          setCategory(cat);
-          return;
-        }
-      }
-    }
-  }
-
-  const smartPreview = useMemo(() => {
-    const m = smartEntry.match(/^(.+?)\s+(\d+(?:\.\d+)?)$/);
-    if (!m) {
-      return null;
-    }
-    const lower = m[1].trim().toLowerCase();
-    let cat = 'Other';
-    for (const [kw, c] of Object.entries(KEYWORD_CATEGORIES)) {
-      if (lower.includes(kw)) {
-        cat = c;
-        break;
-      }
-    }
-    return { desc: m[1].trim(), amount: m[2], category: cat };
-  }, [smartEntry]);
 
   async function handleSave() {
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
@@ -196,32 +160,14 @@ export function CreateTransactionScreen() {
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
+
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: Math.max(40, insets.bottom + 40) }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
         >
-          {/* Header */}
-          <LinearGradient
-            colors={[PURPLE, PURPLE_DARK]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <View style={{ paddingTop: insets.top + 12, paddingBottom: 24, paddingHorizontal: 20 }}>
-              <View style={s.headerRow}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-                  <Ionicons name="close" size={22} color="#FFF" />
-                </TouchableOpacity>
-                <Text style={s.headerTitle}>
-                  {isEditing ? 'Edit' : isExpense ? 'Add Expense' : 'Add Income'}
-                </Text>
-                <View style={{ width: 34 }} />
-              </View>
-            </View>
-          </LinearGradient>
-
-          <View style={{ paddingHorizontal: 20, paddingTop: 20, gap: 20 }}>
+          <View style={{ gap: 20 }}>
             {/* Type Toggle */}
             <View style={[s.toggle, { backgroundColor: colors.bg.tertiary }]}>
               {(['expense', 'income'] as const).map((t) => (
@@ -254,43 +200,6 @@ export function CreateTransactionScreen() {
               ))}
             </View>
 
-            {/* Smart Entry */}
-            <View>
-              <View style={s.smartLabel}>
-                <Ionicons name="flash" size={14} color={PURPLE} />
-                <Text style={[s.smartLabelText, { color: colors.text.secondary }]}>
-                  Quick Entry
-                </Text>
-              </View>
-              <TextInput
-                style={[
-                  s.smartInput,
-                  {
-                    backgroundColor: colors.bg.card,
-                    color: colors.text.primary,
-                    borderColor: PURPLE,
-                  },
-                ]}
-                value={smartEntry}
-                onChangeText={(text) => {
-                  setSmartEntry(text);
-                  smartParse(text);
-                }}
-                placeholder='e.g. "Tea 20" or "Petrol 1000"'
-                placeholderTextColor={colors.text.tertiary}
-                returnKeyType="done"
-                onSubmitEditing={() => Keyboard.dismiss()}
-              />
-              {smartPreview && (
-                <View style={s.smartResult}>
-                  <Ionicons name="checkmark-circle" size={14} color={GREEN} />
-                  <Text style={[s.smartResultText, { color: colors.text.secondary }]}>
-                    {smartPreview.desc} → {smartPreview.category} · ₹{smartPreview.amount}
-                  </Text>
-                </View>
-              )}
-            </View>
-
             {/* Amount */}
             <View style={[s.amountCard, { backgroundColor: `${isExpense ? PURPLE : GREEN}08` }]}>
               <View style={s.amountRow}>
@@ -310,7 +219,7 @@ export function CreateTransactionScreen() {
                   placeholder="0"
                   placeholderTextColor={colors.text.tertiary}
                   returnKeyType="done"
-                  onSubmitEditing={() => Keyboard.dismiss()}
+                  onSubmitEditing={() => (inputRef.current as any)?.blur?.()}
                 />
               </View>
               <Text style={[s.amountHint, { color: colors.text.tertiary }]}>
@@ -425,38 +334,39 @@ export function CreateTransactionScreen() {
                 })}
               </View>
             </View>
-
-            {/* Save */}
-            <TouchableOpacity
-              onPress={handleSave}
-              disabled={saving}
-              activeOpacity={0.85}
-              style={[s.saveBtnWrap, saving && { opacity: 0.6 }]}
-            >
-              <LinearGradient
-                colors={isExpense ? [PURPLE, PURPLE_DARK] : [GREEN, '#059669']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={s.saveGrad}
-              >
-                <Ionicons
-                  name={saving ? 'hourglass-outline' : isExpense ? 'cart-outline' : 'trending-up'}
-                  size={18}
-                  color="#FFF"
-                />
-                <Text style={s.saveText}>
-                  {saving
-                    ? 'Saving...'
-                    : isEditing
-                      ? 'Update'
-                      : isExpense
-                        ? 'Add Expense'
-                        : 'Add Income'}
-                </Text>
-              </LinearGradient>
-            </TouchableOpacity>
           </View>
         </ScrollView>
+        {/* Save */}
+        <View style={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 16 }}>
+          <TouchableOpacity
+            onPress={handleSave}
+            disabled={saving}
+            activeOpacity={0.85}
+            style={[s.saveBtnWrap, saving && { opacity: 0.6 }]}
+          >
+            <LinearGradient
+              colors={isExpense ? [PURPLE, PURPLE_DARK] : [GREEN, '#059669']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={s.saveGrad}
+            >
+              <Ionicons
+                name={saving ? 'hourglass-outline' : isExpense ? 'cart-outline' : 'trending-up'}
+                size={18}
+                color="#FFF"
+              />
+              <Text style={s.saveText}>
+                {saving
+                  ? 'Saving...'
+                  : isEditing
+                    ? 'Update'
+                    : isExpense
+                      ? 'Add Expense'
+                      : 'Add Income'}
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
       </KeyboardAvoidingView>
     </View>
   );
@@ -465,16 +375,7 @@ export function CreateTransactionScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  backBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: { color: '#FFF', fontSize: 18, fontWeight: '700' },
+
 
   toggle: { flexDirection: 'row', borderRadius: 14, padding: 3 },
   toggleBtn: {
@@ -487,17 +388,6 @@ const s = StyleSheet.create({
     borderRadius: 12,
   },
   toggleText: { fontSize: 13, fontWeight: '700' },
-
-  smartLabel: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
-  smartLabelText: {
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-  },
-  smartInput: { borderRadius: 16, padding: 16, fontSize: 15, fontWeight: '500', borderWidth: 1 },
-  smartResult: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
-  smartResultText: { fontSize: 12, fontWeight: '500' },
 
   amountCard: { borderRadius: 24, padding: 24, alignItems: 'center', gap: 4 },
   amountRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center', gap: 2 },

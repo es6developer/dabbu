@@ -20,6 +20,11 @@ let deviceId: string | null = null;
 let isRegistering = false;
 let lastRegisteredToken: string | null = null;
 
+export function resetPushRegistration(): void {
+  lastRegisteredToken = null;
+  isRegistering = false;
+}
+
 const EAS_PROJECT_ID = '57a858a9-aa05-47d4-b908-e3d887e07597';
 
 function getProjectId(): string {
@@ -169,10 +174,12 @@ export async function registerForPushNotifications(accessToken: string): Promise
         platform: Platform.OS,
         token: pushToken,
         deviceName,
-      });
+      }, undefined, 5000);
       lastRegisteredToken = accessToken;
     } catch (e) {
-      console.warn('Push notification registration failed:', e);
+      if ((e as any)?.name !== 'AbortError') {
+        console.warn('Push notification registration failed:', e);
+      }
     }
 
     if (Platform.OS === 'android') {

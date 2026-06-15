@@ -86,9 +86,10 @@ export function SplitExpenseScreen() {
   return (
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
       <KeyboardAvoidingContainer>
+        <View style={{ flex: 1 }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: Math.max(40, insets.bottom + 40) }}
+          contentContainerStyle={{}}
         >
           {/* Header */}
           <LinearGradient
@@ -303,24 +304,26 @@ export function SplitExpenseScreen() {
               </View>
             )}
 
-            {/* Confirm */}
-            <TouchableOpacity
-              onPress={handleCreateSplit}
-              activeOpacity={0.85}
-              style={{ marginTop: 4 }}
-            >
-              <LinearGradient
-                colors={[PURPLE, PURPLE_DARK]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={s.createGrad}
-              >
-                <Ionicons name="swap-horizontal" size={18} color="#FFF" />
-                <Text style={s.createText}>Confirm Split</Text>
-              </LinearGradient>
-            </TouchableOpacity>
           </View>
         </ScrollView>
+
+        <View style={{ paddingBottom: insets.bottom + 16, paddingHorizontal: 20, paddingTop: 12 }}>
+          <TouchableOpacity
+            onPress={handleCreateSplit}
+            activeOpacity={0.85}
+          >
+            <LinearGradient
+              colors={[PURPLE, PURPLE_DARK]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={s.createGrad}
+            >
+              <Ionicons name="swap-horizontal" size={18} color="#FFF" />
+              <Text style={s.createText}>Confirm Split</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </View>
       </KeyboardAvoidingContainer>
     </View>
   );

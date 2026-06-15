@@ -102,9 +102,10 @@ export function CreateCircleScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
       <KeyboardAvoidingContainer>
+        <View style={{ flex: 1 }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: Math.max(40, insets.bottom + 40) }}
+          contentContainerStyle={{}}
         >
           <View style={[styles.headerBg, { backgroundColor: colors.accent.primary }]}>
             <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
@@ -297,24 +298,28 @@ export function CreateCircleScreen() {
               )}
             </View>
 
-            <View
-              style={[
-                styles.createBtn,
-                { backgroundColor: colors.accent.primary, opacity: loading ? 0.6 : 1 },
-              ]}
-            >
-              <TouchableOpacity
-                onPress={handleCreate}
-                disabled={loading}
-                activeOpacity={0.85}
-                style={styles.createBtnInner}
-              >
-                <Ionicons name="people" size={18} color="#FFF" />
-                <Text style={styles.createBtnText}>Create Circle</Text>
-              </TouchableOpacity>
-            </View>
           </View>
         </ScrollView>
+
+        <View style={{ paddingBottom: insets.bottom + 16, paddingHorizontal: 20 }}>
+          <View
+            style={[
+              styles.createBtn,
+              { backgroundColor: colors.accent.primary, opacity: loading ? 0.6 : 1 },
+            ]}
+          >
+            <TouchableOpacity
+              onPress={handleCreate}
+              disabled={loading}
+              activeOpacity={0.85}
+              style={styles.createBtnInner}
+            >
+              <Ionicons name="people" size={18} color="#FFF" />
+              <Text style={styles.createBtnText}>Create Circle</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
       </KeyboardAvoidingContainer>
     </View>
   );

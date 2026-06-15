@@ -390,7 +390,7 @@ export function CoupleBillsScreen() {
                             {overdue && <View style={styles.overdueDot} />}
                           </View>
                           <Text style={[styles.billCategory, { color: colors.text.tertiary }]}>
-                            {bill.category}
+                            {((bill.category as any)?.name || bill.category || '')}
                           </Text>
                         </View>
                         <Text style={[styles.billAmount, { color: colors.text.primary }]}>
@@ -475,7 +475,7 @@ export function CoupleBillsScreen() {
                             </Text>
                           </View>
                           <Text style={[styles.billCategory, { color: colors.text.tertiary }]}>
-                            {bill.category}
+                            {((bill.category as any)?.name || bill.category || '')}
                           </Text>
                         </View>
                         <Text style={[styles.billAmount, { color: colors.text.primary }]}>

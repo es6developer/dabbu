@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
-import { Skeleton } from '../../components/ui/AnimatedSkeleton';
+import { PremiumLoaderScreen } from '../../components/ui/PremiumLoaderScreen';
 
 function fmt(v: number) {
   return '₹' + v.toLocaleString('en-IN', { maximumFractionDigits: 0 });
@@ -46,21 +46,27 @@ export function FamilyDashboardScreen() {
   const [data, setData] = useState<any>(null);
   const [expenses, setExpenses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadData = useCallback(
     async (refresh = false) => {
       if (refresh) setRefreshing(true);
-      else setLoading(true);
+      else { setLoading(true); setLoadingProgress(0); }
       setError(null);
+      const totalCalls = 2;
+      let completed = 0;
+      const tick = () => {
+        completed++;
+        setLoadingProgress(Math.min(Math.round((completed / totalCalls) * 100), 95));
+      };
       try {
         if (accessToken) setAccessToken(accessToken);
         if (groupId) {
-          const [dashRes, expRes] = await Promise.allSettled([
-            api.get<any>(`/shared-finance/groups/${groupId}/family-dashboard`),
-            api.get<any>(`/shared-finance/groups/${groupId}/expenses`),
-          ]);
+          const dashP = api.get<any>(`/shared-finance/groups/${groupId}/family-dashboard`).finally(tick);
+          const expP = api.get<any>(`/shared-finance/groups/${groupId}/expenses`).finally(tick);
+          const [dashRes, expRes] = await Promise.allSettled([dashP, expP]);
           if (dashRes.status === 'fulfilled') setData(dashRes.value);
           if (expRes.status === 'fulfilled') {
             const e = Array.isArray(expRes.value) ? expRes.value : [];
@@ -72,6 +78,7 @@ export function FamilyDashboardScreen() {
           setError(e.message || 'Unable to load');
         }
       } finally {
+        setLoadingProgress(100);
         setLoading(false);
         setRefreshing(false);
       }
@@ -89,15 +96,7 @@ export function FamilyDashboardScreen() {
 
   if (loading) {
     return (
-      <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
-        <View style={{ padding: 24, paddingTop: insets.top + 8, gap: 16 }}>
-          <Skeleton width={120} height={14} />
-          <Skeleton width="100%" height={180} borderRadius={24} />
-          <Skeleton width="100%" height={80} borderRadius={18} />
-          <Skeleton width="100%" height={80} borderRadius={18} />
-          <Skeleton width="100%" height={80} borderRadius={18} />
-        </View>
-      </View>
+      <PremiumLoaderScreen progress={loadingProgress} title="Loading Family Dashboard" icon="people-outline" />
     );
   }
 

@@ -40,8 +40,10 @@ interface PushPayload {
 export class FcmService {
   private readonly logger = new Logger(FcmService.name);
   private initialized = false;
+  private expoAccessToken: string;
 
   constructor(private readonly configService: ConfigService) {
+    this.expoAccessToken = this.configService.get<string>('expo.accessToken', '');
     this.initializeApp();
   }
 
@@ -131,13 +133,17 @@ export class FcmService {
     payload: PushPayload,
   ): Promise<{ success: boolean; error?: string }> {
     try {
+      const headers: Record<string, string> = {
+        Accept: 'application/json',
+        'Accept-Encoding': 'gzip, deflate',
+        'Content-Type': 'application/json',
+      };
+      if (this.expoAccessToken) {
+        headers['Authorization'] = `Bearer ${this.expoAccessToken}`;
+      }
       const response = await fetch('https://exp.host/--/api/v2/push/send', {
         method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Accept-Encoding': 'gzip, deflate',
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           to: deviceToken,
           title: payload.notification.title,
@@ -149,14 +155,20 @@ export class FcmService {
         }),
       });
       const result = await response.json().catch(() => null);
+      if (!response.ok) {
+        const errMsg = result?.errors?.[0]?.message || result?.message || `HTTP ${response.status}`;
+        this.logger.warn(`Expo push API error [${response.status}]: ${errMsg}`);
+        return { success: false, error: errMsg };
+      }
       const ticket = result?.data;
-      if (response.ok && ticket?.status !== 'error') {
+      if (ticket?.status !== 'error') {
         return { success: true };
       }
-      const error = ticket?.details?.error || ticket?.message || result?.errors?.[0]?.message || 'Expo push failed';
+      const error = ticket?.details?.error || ticket?.message || 'Expo push failed';
       if (error === 'DeviceNotRegistered') {
         return { success: false, error: 'INVALID_TOKEN' };
       }
+      this.logger.warn(`Expo push ticket error: ${error}`);
       return { success: false, error };
     } catch (error: any) {
       this.logger.error(`Expo push error: ${error.message}`);

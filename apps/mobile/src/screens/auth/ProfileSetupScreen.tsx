@@ -76,89 +76,93 @@ export function ProfileSetupScreen() {
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-            <View style={styles.brand}>
-              <Image
-                source={require('../../../assets/logo.png')}
-                style={styles.logo}
-                resizeMode="contain"
-              />
-              <Text style={[styles.title, { color: colors.text.primary }]}>
-                Complete your profile
-              </Text>
-              <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>
-                Add your phone number so friends can find you on Dabbu
-              </Text>
-            </View>
-
-            {error ? (
-              <View style={[styles.errorBox, { backgroundColor: `${colors.status.error}12` }]}>
-                <Ionicons name="alert-circle" size={16} color={colors.status.error} />
-                <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text>
-              </View>
-            ) : null}
-
-            <View
-              style={[
-                styles.card,
-                {
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.7)',
-                  borderColor: colors.border.subtle,
-                },
-              ]}
-            >
-              <View style={styles.row}>
-                <TextInput
-                  style={[
-                    styles.input,
-                    styles.half,
-                    {
-                      backgroundColor: colors.bg.tertiary,
-                      color: colors.text.primary,
-                      borderColor: colors.border.subtle,
-                    },
-                  ]}
-                  placeholder="First name"
-                  placeholderTextColor={colors.text.tertiary}
-                  value={firstName}
-                  onChangeText={setFirstName}
+          <View style={{ flex: 1 }}>
+            <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24 }} keyboardShouldPersistTaps="handled">
+              <View style={styles.brand}>
+                <Image
+                  source={require('../../../assets/logo.png')}
+                  style={styles.logo}
+                  resizeMode="contain"
                 />
-                <TextInput
-                  style={[
-                    styles.input,
-                    styles.half,
-                    {
-                      backgroundColor: colors.bg.tertiary,
-                      color: colors.text.primary,
-                      borderColor: colors.border.subtle,
-                    },
-                  ]}
-                  placeholder="Last name"
-                  placeholderTextColor={colors.text.tertiary}
-                  value={lastName}
-                  onChangeText={setLastName}
-                />
+                <Text style={[styles.title, { color: colors.text.primary }]}>
+                  Complete your profile
+                </Text>
+                <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>
+                  Add your phone number so friends can find you on Dabbu
+                </Text>
               </View>
 
-              <Text style={[styles.label, { color: colors.text.secondary }]}>
-                Phone number (optional)
-              </Text>
-              <TextInput
+              {error ? (
+                <View style={[styles.errorBox, { backgroundColor: `${colors.status.error}12` }]}>
+                  <Ionicons name="alert-circle" size={16} color={colors.status.error} />
+                  <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text>
+                </View>
+              ) : null}
+
+              <View
                 style={[
-                  styles.input,
+                  styles.card,
                   {
-                    backgroundColor: colors.bg.tertiary,
-                    color: colors.text.primary,
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.7)',
                     borderColor: colors.border.subtle,
                   },
                 ]}
-                placeholder="9876543210"
-                placeholderTextColor={colors.text.tertiary}
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-              />
+              >
+                <View style={styles.row}>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      styles.half,
+                      {
+                        backgroundColor: colors.bg.tertiary,
+                        color: colors.text.primary,
+                        borderColor: colors.border.subtle,
+                      },
+                    ]}
+                    placeholder="First name"
+                    placeholderTextColor={colors.text.tertiary}
+                    value={firstName}
+                    onChangeText={setFirstName}
+                  />
+                  <TextInput
+                    style={[
+                      styles.input,
+                      styles.half,
+                      {
+                        backgroundColor: colors.bg.tertiary,
+                        color: colors.text.primary,
+                        borderColor: colors.border.subtle,
+                      },
+                    ]}
+                    placeholder="Last name"
+                    placeholderTextColor={colors.text.tertiary}
+                    value={lastName}
+                    onChangeText={setLastName}
+                  />
+                </View>
 
+                <Text style={[styles.label, { color: colors.text.secondary }]}>
+                  Phone number (optional)
+                </Text>
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: colors.bg.tertiary,
+                      color: colors.text.primary,
+                      borderColor: colors.border.subtle,
+                    },
+                  ]}
+                  placeholder="9876543210"
+                  placeholderTextColor={colors.text.tertiary}
+                  value={phone}
+                  onChangeText={setPhone}
+                  keyboardType="phone-pad"
+                />
+              </View>
+            </ScrollView>
+
+            <View style={{ paddingBottom: insets.bottom + 16, paddingHorizontal: 20, paddingTop: 12 }}>
               <TouchableOpacity
                 style={[
                   styles.saveBtn,
@@ -175,7 +179,7 @@ export function ProfileSetupScreen() {
                 )}
               </TouchableOpacity>
             </View>
-          </ScrollView>
+          </View>
         </KeyboardAvoidingView>
       </SafeAreaWrapper>
     </View>

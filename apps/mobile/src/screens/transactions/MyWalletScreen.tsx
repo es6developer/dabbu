@@ -18,6 +18,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken, warmupBackend } from '../../services/api';
+import { PremiumLoaderScreen } from '../../components/ui/PremiumLoaderScreen';
 import { useAuth } from '../../store/AuthContext';
 import { Skeleton, SkeletonList } from '../../components/ui/AnimatedSkeleton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -26,6 +27,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { UpgradeBanner } from '../../components/ui/UpgradeBanner';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const AnimatedSectionList = Animated.createAnimatedComponent(SectionList);
 
 const PURPLE = '#7C3AED';
 const PURPLE_DARK = '#5B21B6';
@@ -115,6 +117,7 @@ export function MyWalletScreen() {
 
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -138,17 +141,23 @@ export function MyWalletScreen() {
         setRefreshing(true);
       } else {
         setLoading(true);
+        setLoadingProgress(0);
       }
+      const totalCalls = 2;
+      let completed = 0;
+      const tick = () => {
+        completed++;
+        setLoadingProgress(Math.min(Math.round((completed / totalCalls) * 100), 95));
+      };
       const settleTimer = setTimeout(() => {
         if (!ctrl.signal.aborted) {
           setLoading(false);
         }
       }, 15000);
       try {
-        const [txRes, statsRes] = await Promise.all([
-          api.get<any>('/transactions', ctrl.signal),
-          api.get<any>('/transactions/stats', ctrl.signal),
-        ]);
+        const txP = api.get<any>('/transactions', ctrl.signal).finally(tick);
+        const statsP = api.get<any>('/transactions/stats', ctrl.signal).finally(tick);
+        const [txRes, statsRes] = await Promise.all([txP, statsP]);
         if (ctrl.signal.aborted) {
           return;
         }
@@ -174,6 +183,7 @@ export function MyWalletScreen() {
       } finally {
         clearTimeout(settleTimer);
         if (!ctrl.signal.aborted) {
+          setLoadingProgress(100);
           setLoading(false);
           setRefreshing(false);
         }
@@ -193,11 +203,15 @@ export function MyWalletScreen() {
       if (accessToken) {
         setAccessToken(accessToken);
       }
-      await api.post('/devices/test-push', {
+      const res: any = await api.post('/devices/test-push', {
         title: 'Test Push',
         body: 'This is a test notification from Dabbu 🎉',
       });
-      Alert.alert('Sent', 'Test push notification sent to your devices.');
+      const detailLines = (res?.devices || [])
+        .filter((d: any) => !d.success)
+        .map((d: any) => `  ${d.deviceName || d.platform}: ${d.error}`);
+      const msg = res?.message || 'Request sent.';
+      Alert.alert('Test Push', detailLines.length > 0 ? `${msg}\n\nErrors:\n${detailLines.join('\n')}` : msg,);
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'Failed to send test push');
     } finally {
@@ -262,9 +276,7 @@ export function MyWalletScreen() {
 
   if (loading) {
     return (
-      <View style={[s.loading, { backgroundColor: colors.bg.primary }]}>
-        <SkeletonList count={5} />
-      </View>
+      <PremiumLoaderScreen progress={loadingProgress} title="Loading Wallet" icon="wallet-outline" />
     );
   }
 
@@ -276,7 +288,7 @@ export function MyWalletScreen() {
 
   return (
     <View style={[s.wrapper, { backgroundColor: colors.bg.primary }]}>
-      <SectionList
+      <AnimatedSectionList
         sections={filtered}
         keyExtractor={(item, i) => `${(item as any).id || i}`}
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {

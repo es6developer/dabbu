@@ -247,272 +247,364 @@ export function PremiumSignupScreen() {
         <Animated.View
           style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
         >
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{
-              paddingTop: insets.top + 16,
-              paddingBottom: insets.bottom + 24,
-            }}
-          >
-            {/* Header */}
-            <View style={{ paddingHorizontal: PADDING, marginBottom: 12 }}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'flex-start',
-                }}
-              >
-                <View style={{ flex: 1 }}>
-                  <View
-                    style={{
-                      width: 80,
-                      height: 80,
-                      borderRadius: 20,
-                      backgroundColor: colors.bg.secondary,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginBottom: 14,
-                    }}
-                  >
-                    <Image
-                      source={require('../../../assets/logo.png')}
-                      style={{ width: 56, height: 56 }}
-                      resizeMode="contain"
-                    />
-                  </View>
-                  <Text
-                    style={{
-                      fontSize: 28,
-                      fontWeight: '800',
-                      color: colors.text.primary,
-                      letterSpacing: -0.5,
-                    }}
-                  >
-                    Create your account
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 15,
-                      fontWeight: '500',
-                      color: colors.text.secondary,
-                      marginTop: 6,
-                      lineHeight: 20,
-                    }}
-                  >
-                    Join millions managing money smarter with Dabbu
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  onPress={() => navigation.goBack()}
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 12,
-                    backgroundColor: colors.bg.secondary,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Ionicons name="close" size={22} color={colors.text.primary} />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View style={{ paddingHorizontal: PADDING }}>
-              {/* Name Row */}
-              <View style={{ flexDirection: 'row', gap: 12 }}>
-                <View style={{ flex: 1 }}>
-                  <InputField
-                    placeholder="First name"
-                    value={firstName}
-                    onChangeText={(t) => {
-                      setFirstName(t);
-                      if (fieldErrors.first) {
-                        setFieldErrors((prev) => {
-                          const n = { ...prev };
-                          delete n.first;
-                          return n;
-                        });
-                      }
-                    }}
-                    autoCapitalize="words"
-                    returnKeyType="next"
-                    icon="person-outline"
-                    onSubmitEditing={() => lastNameRef.current?.focus()}
-                    colors={colors}
-                    focused={focusedField === 'first'}
-                    onFocus={() => setFocusedField('first')}
-                    onBlur={() => handleBlur('first')}
-                    error={!!fieldErrors.first}
-                  />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <InputField
-                    placeholder="Last name"
-                    value={lastName}
-                    onChangeText={(t) => {
-                      setLastName(t);
-                      if (fieldErrors.last) {
-                        setFieldErrors((prev) => {
-                          const n = { ...prev };
-                          delete n.last;
-                          return n;
-                        });
-                      }
-                    }}
-                    autoCapitalize="words"
-                    returnKeyType="next"
-                    inputRef={lastNameRef}
-                    onSubmitEditing={() => emailRef.current?.focus()}
-                    colors={colors}
-                    focused={focusedField === 'last'}
-                    onFocus={() => setFocusedField('last')}
-                    onBlur={() => handleBlur('last')}
-                    error={!!fieldErrors.last}
-                  />
-                </View>
-              </View>
-
-              <InputField
-                placeholder="Email address"
-                value={email}
-                onChangeText={(t) => {
-                  setEmail(t);
-                  if (t && !validateEmail(t)) {
-                    setFieldErrors((prev) => ({ ...prev, email: 'Invalid email format' }));
-                  } else {
-                    setFieldErrors((prev) => {
-                      const n = { ...prev };
-                      delete n.email;
-                      return n;
-                    });
-                  }
-                }}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                returnKeyType="next"
-                icon="mail-outline"
-                inputRef={emailRef}
-                onSubmitEditing={() => phoneRef.current?.focus()}
-                colors={colors}
-                focused={focusedField === 'email'}
-                onFocus={() => setFocusedField('email')}
-                onBlur={() => handleBlur('email')}
-                error={!!fieldErrors.email}
-              />
-              <InputField
-                placeholder="Mobile number"
-                value={phone}
-                onChangeText={(t) => {
-                  setPhone(t);
-                  if (t && !/^\+?[1-9]\d{9,14}$/.test(t)) {
-                    setFieldErrors((prev) => ({ ...prev, phone: 'Enter a valid mobile number' }));
-                  } else {
-                    setFieldErrors((prev) => {
-                      const n = { ...prev };
-                      delete n.phone;
-                      return n;
-                    });
-                  }
-                }}
-                keyboardType="phone-pad"
-                returnKeyType="next"
-                icon="call-outline"
-                inputRef={phoneRef}
-                onSubmitEditing={() => passwordRef.current?.focus()}
-                colors={colors}
-                focused={focusedField === 'phone'}
-                onFocus={() => setFocusedField('phone')}
-                onBlur={() => handleBlur('phone')}
-                error={!!fieldErrors.phone}
-              />
-              <InputField
-                placeholder="Password"
-                value={password}
-                onChangeText={(t) => {
-                  setPassword(t);
-                  if (t && t.length < 6) {
-                    setFieldErrors((prev) => ({ ...prev, password: 'Min 6 characters' }));
-                  } else {
-                    setFieldErrors((prev) => {
-                      const n = { ...prev };
-                      delete n.password;
-                      return n;
-                    });
-                  }
-                  if (confirmPassword && t !== confirmPassword) {
-                    setFieldErrors((prev) => ({ ...prev, confirm: 'Passwords do not match' }));
-                  } else if (confirmPassword) {
-                    setFieldErrors((prev) => {
-                      const n = { ...prev };
-                      delete n.confirm;
-                      return n;
-                    });
-                  }
-                }}
-                secureTextEntry
-                returnKeyType="next"
-                icon="lock-closed-outline"
-                inputRef={passwordRef}
-                onSubmitEditing={() => confirmRef.current?.focus()}
-                colors={colors}
-                focused={focusedField === 'password'}
-                onFocus={() => setFocusedField('password')}
-                onBlur={() => handleBlur('password')}
-                error={!!fieldErrors.password}
-              />
-              <InputField
-                placeholder="Confirm password"
-                value={confirmPassword}
-                onChangeText={(t) => {
-                  setConfirmPassword(t);
-                  if (t && password !== t) {
-                    setFieldErrors((prev) => ({ ...prev, confirm: 'Passwords do not match' }));
-                  } else {
-                    setFieldErrors((prev) => {
-                      const n = { ...prev };
-                      delete n.confirm;
-                      return n;
-                    });
-                  }
-                }}
-                secureTextEntry
-                returnKeyType="done"
-                icon="lock-closed-outline"
-                inputRef={confirmRef}
-                onSubmitEditing={handleSignup}
-                colors={colors}
-                focused={focusedField === 'confirm'}
-                onFocus={() => setFocusedField('confirm')}
-                onBlur={() => handleBlur('confirm')}
-                error={!!fieldErrors.confirm}
-              />
-
-              {/* Error */}
-              {error ? (
+          <View style={{ flex: 1 }}>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={{
+                paddingTop: insets.top + 16,
+                paddingBottom: 16,
+              }}
+            >
+              {/* Header */}
+              <View style={{ paddingHorizontal: PADDING, marginBottom: 12 }}>
                 <View
                   style={{
                     flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 8,
-                    padding: 12,
-                    borderRadius: 12,
-                    backgroundColor: colors.status.errorLight,
-                    marginBottom: 12,
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
                   }}
                 >
-                  <Ionicons name="alert-circle" size={16} color={colors.status.error} />
-                  <Text
-                    style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}
+                  <View style={{ flex: 1 }}>
+                    <View
+                      style={{
+                        width: 80,
+                        height: 80,
+                        borderRadius: 20,
+                        backgroundColor: colors.bg.secondary,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: 14,
+                      }}
+                    >
+                      <Image
+                        source={require('../../../assets/logo.png')}
+                        style={{ width: 56, height: 56 }}
+                        resizeMode="contain"
+                      />
+                    </View>
+                    <Text
+                      style={{
+                        fontSize: 28,
+                        fontWeight: '800',
+                        color: colors.text.primary,
+                        letterSpacing: -0.5,
+                      }}
+                    >
+                      Create your account
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        fontWeight: '500',
+                        color: colors.text.secondary,
+                        marginTop: 6,
+                        lineHeight: 20,
+                      }}
+                    >
+                      Join millions managing money smarter with Dabbu
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => navigation.goBack()}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 12,
+                      backgroundColor: colors.bg.secondary,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
                   >
-                    {error}
+                    <Ionicons name="close" size={22} color={colors.text.primary} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={{ paddingHorizontal: PADDING }}>
+                {/* Name Row */}
+                <View style={{ flexDirection: 'row', gap: 12 }}>
+                  <View style={{ flex: 1 }}>
+                    <InputField
+                      placeholder="First name"
+                      value={firstName}
+                      onChangeText={(t) => {
+                        setFirstName(t);
+                        if (fieldErrors.first) {
+                          setFieldErrors((prev) => {
+                            const n = { ...prev };
+                            delete n.first;
+                            return n;
+                          });
+                        }
+                      }}
+                      autoCapitalize="words"
+                      returnKeyType="next"
+                      icon="person-outline"
+                      onSubmitEditing={() => lastNameRef.current?.focus()}
+                      colors={colors}
+                      focused={focusedField === 'first'}
+                      onFocus={() => setFocusedField('first')}
+                      onBlur={() => handleBlur('first')}
+                      error={!!fieldErrors.first}
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <InputField
+                      placeholder="Last name"
+                      value={lastName}
+                      onChangeText={(t) => {
+                        setLastName(t);
+                        if (fieldErrors.last) {
+                          setFieldErrors((prev) => {
+                            const n = { ...prev };
+                            delete n.last;
+                            return n;
+                          });
+                        }
+                      }}
+                      autoCapitalize="words"
+                      returnKeyType="next"
+                      inputRef={lastNameRef}
+                      onSubmitEditing={() => emailRef.current?.focus()}
+                      colors={colors}
+                      focused={focusedField === 'last'}
+                      onFocus={() => setFocusedField('last')}
+                      onBlur={() => handleBlur('last')}
+                      error={!!fieldErrors.last}
+                    />
+                  </View>
+                </View>
+
+                <InputField
+                  placeholder="Email address"
+                  value={email}
+                  onChangeText={(t) => {
+                    setEmail(t);
+                    if (t && !validateEmail(t)) {
+                      setFieldErrors((prev) => ({ ...prev, email: 'Invalid email format' }));
+                    } else {
+                      setFieldErrors((prev) => {
+                        const n = { ...prev };
+                        delete n.email;
+                        return n;
+                      });
+                    }
+                  }}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  returnKeyType="next"
+                  icon="mail-outline"
+                  inputRef={emailRef}
+                  onSubmitEditing={() => phoneRef.current?.focus()}
+                  colors={colors}
+                  focused={focusedField === 'email'}
+                  onFocus={() => setFocusedField('email')}
+                  onBlur={() => handleBlur('email')}
+                  error={!!fieldErrors.email}
+                />
+                <InputField
+                  placeholder="Mobile number"
+                  value={phone}
+                  onChangeText={(t) => {
+                    setPhone(t);
+                    if (t && !/^\+?[1-9]\d{9,14}$/.test(t)) {
+                      setFieldErrors((prev) => ({ ...prev, phone: 'Enter a valid mobile number' }));
+                    } else {
+                      setFieldErrors((prev) => {
+                        const n = { ...prev };
+                        delete n.phone;
+                        return n;
+                      });
+                    }
+                  }}
+                  keyboardType="phone-pad"
+                  returnKeyType="next"
+                  icon="call-outline"
+                  inputRef={phoneRef}
+                  onSubmitEditing={() => passwordRef.current?.focus()}
+                  colors={colors}
+                  focused={focusedField === 'phone'}
+                  onFocus={() => setFocusedField('phone')}
+                  onBlur={() => handleBlur('phone')}
+                  error={!!fieldErrors.phone}
+                />
+                <InputField
+                  placeholder="Password"
+                  value={password}
+                  onChangeText={(t) => {
+                    setPassword(t);
+                    if (t && t.length < 6) {
+                      setFieldErrors((prev) => ({ ...prev, password: 'Min 6 characters' }));
+                    } else {
+                      setFieldErrors((prev) => {
+                        const n = { ...prev };
+                        delete n.password;
+                        return n;
+                      });
+                    }
+                    if (confirmPassword && t !== confirmPassword) {
+                      setFieldErrors((prev) => ({ ...prev, confirm: 'Passwords do not match' }));
+                    } else if (confirmPassword) {
+                      setFieldErrors((prev) => {
+                        const n = { ...prev };
+                        delete n.confirm;
+                        return n;
+                      });
+                    }
+                  }}
+                  secureTextEntry
+                  returnKeyType="next"
+                  icon="lock-closed-outline"
+                  inputRef={passwordRef}
+                  onSubmitEditing={() => confirmRef.current?.focus()}
+                  colors={colors}
+                  focused={focusedField === 'password'}
+                  onFocus={() => setFocusedField('password')}
+                  onBlur={() => handleBlur('password')}
+                  error={!!fieldErrors.password}
+                />
+                <InputField
+                  placeholder="Confirm password"
+                  value={confirmPassword}
+                  onChangeText={(t) => {
+                    setConfirmPassword(t);
+                    if (t && password !== t) {
+                      setFieldErrors((prev) => ({ ...prev, confirm: 'Passwords do not match' }));
+                    } else {
+                      setFieldErrors((prev) => {
+                        const n = { ...prev };
+                        delete n.confirm;
+                        return n;
+                      });
+                    }
+                  }}
+                  secureTextEntry
+                  returnKeyType="done"
+                  icon="lock-closed-outline"
+                  inputRef={confirmRef}
+                  onSubmitEditing={handleSignup}
+                  colors={colors}
+                  focused={focusedField === 'confirm'}
+                  onFocus={() => setFocusedField('confirm')}
+                  onBlur={() => handleBlur('confirm')}
+                  error={!!fieldErrors.confirm}
+                />
+
+                {/* Error */}
+                {error ? (
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: 12,
+                      borderRadius: 12,
+                      backgroundColor: colors.status.errorLight,
+                      marginBottom: 12,
+                    }}
+                  >
+                    <Ionicons name="alert-circle" size={16} color={colors.status.error} />
+                    <Text
+                      style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}
+                    >
+                      {error}
+                    </Text>
+                  </View>
+                ) : null}
+
+                {/* Divider */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 24 }}>
+                  <View style={{ flex: 1, height: 1, backgroundColor: colors.border.default }} />
+                  <Text
+                    style={{
+                      marginHorizontal: 12,
+                      fontSize: 12,
+                      fontWeight: '600',
+                      color: colors.text.tertiary,
+                    }}
+                  >
+                    or sign up with
+                  </Text>
+                  <View style={{ flex: 1, height: 1, backgroundColor: colors.border.default }} />
+                </View>
+
+                {/* Google */}
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={async () => {
+                    try {
+                      setError('');
+                      await promptAsync();
+                    } catch (e: any) {
+                      console.error('Google sign-in prompt failed:', e);
+                      setError(e?.message || 'Google sign-in could not be started');
+                    }
+                  }}
+                  disabled={loading}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 10,
+                    paddingVertical: 14,
+                    borderRadius: borderRadius.md,
+                    backgroundColor: colors.bg.secondary,
+                    borderWidth: 1,
+                    borderColor: colors.border.default,
+                    opacity: loading ? 0.5 : 1,
+                  }}
+                >
+                  <Ionicons name="logo-google" size={20} color={colors.text.primary} />
+                  <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text.primary }}>
+                    Google
+                  </Text>
+                </TouchableOpacity>
+
+                {/* Footer */}
+                <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 24 }}>
+                  <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.secondary }}>
+                    Already have an account?{' '}
+                  </Text>
+                  <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: colors.brand.primary }}>
+                      Sign In
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: 6,
+                    marginTop: 16,
+                    marginBottom: 8,
+                  }}
+                >
+                  <Ionicons name="shield-checkmark-outline" size={12} color={colors.text.tertiary} />
+                  <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary }}>
+                    256-bit encrypted connection
                   </Text>
                 </View>
-              ) : null}
+                {/* Field Errors */}
+                {Object.keys(fieldErrors).length > 0 && (
+                  <View style={{ marginTop: -4, marginBottom: 8 }}>
+                    {Object.entries(fieldErrors).map(([key, msg]) => (
+                      <Text
+                        key={key}
+                        style={{ fontSize: 12, color: colors.status.error, marginBottom: 2 }}
+                      >
+                        {msg}
+                      </Text>
+                    ))}
+                  </View>
+                )}
+              </View>
+            </ScrollView>
 
-              {/* Create Account Button */}
+            <View style={{ paddingBottom: insets.bottom + 16, paddingHorizontal: PADDING, paddingTop: 12 }}>
               <TouchableOpacity
                 activeOpacity={0.85}
                 onPress={handleSignup}
@@ -532,97 +624,8 @@ export function PremiumSignupScreen() {
                   {loading ? 'Creating account...' : 'Create Account'}
                 </Text>
               </TouchableOpacity>
-
-              {/* Divider */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 24 }}>
-                <View style={{ flex: 1, height: 1, backgroundColor: colors.border.default }} />
-                <Text
-                  style={{
-                    marginHorizontal: 12,
-                    fontSize: 12,
-                    fontWeight: '600',
-                    color: colors.text.tertiary,
-                  }}
-                >
-                  or sign up with
-                </Text>
-                <View style={{ flex: 1, height: 1, backgroundColor: colors.border.default }} />
-              </View>
-
-              {/* Google */}
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={async () => {
-                  try {
-                    setError('');
-                    await promptAsync();
-                  } catch (e: any) {
-                    console.error('Google sign-in prompt failed:', e);
-                    setError(e?.message || 'Google sign-in could not be started');
-                  }
-                }}
-                disabled={loading}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 10,
-                  paddingVertical: 14,
-                  borderRadius: borderRadius.md,
-                  backgroundColor: colors.bg.secondary,
-                  borderWidth: 1,
-                  borderColor: colors.border.default,
-                  opacity: loading ? 0.5 : 1,
-                }}
-              >
-                <Ionicons name="logo-google" size={20} color={colors.text.primary} />
-                <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text.primary }}>
-                  Google
-                </Text>
-              </TouchableOpacity>
-
-              {/* Footer */}
-              <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 24 }}>
-                <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.secondary }}>
-                  Already have an account?{' '}
-                </Text>
-                <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                  <Text style={{ fontSize: 13, fontWeight: '700', color: colors.brand.primary }}>
-                    Sign In
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  gap: 6,
-                  marginTop: 16,
-                  marginBottom: 8,
-                }}
-              >
-                <Ionicons name="shield-checkmark-outline" size={12} color={colors.text.tertiary} />
-                <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary }}>
-                  256-bit encrypted connection
-                </Text>
-              </View>
-              {/* Field Errors */}
-              {Object.keys(fieldErrors).length > 0 && (
-                <View style={{ marginTop: -4, marginBottom: 8 }}>
-                  {Object.entries(fieldErrors).map(([key, msg]) => (
-                    <Text
-                      key={key}
-                      style={{ fontSize: 12, color: colors.status.error, marginBottom: 2 }}
-                    >
-                      {msg}
-                    </Text>
-                  ))}
-                </View>
-              )}
             </View>
-          </ScrollView>
+          </View>
         </Animated.View>
       </TouchableWithoutFeedback>
     </View>

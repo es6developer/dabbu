@@ -135,7 +135,10 @@ export function CoupleSpaceNavigator() {
       <Stack.Screen
         name="SharedExpenseForm"
         component={SharedExpenseFormScreen}
-        options={{ headerShown: false, presentation: 'modal' }}
+        options={({ route }: any) => ({
+          title: route.params?.edit ? 'Edit Expense' : 'New Expense',
+          presentation: 'modal',
+        })}
       />
       <Stack.Screen
         name="CreateTransaction"

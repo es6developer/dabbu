@@ -213,7 +213,7 @@ export function TransactionsList() {
                       className="text-[11px] font-medium mt-0.5"
                       style={{ color: colors.text.tertiary }}
                     >
-                      {tx.category}
+                      {((tx.category as any)?.name || tx.category || '')}
                       {tx.from ? ` · ${tx.from}` : ''}
                     </Text>
                   </View>

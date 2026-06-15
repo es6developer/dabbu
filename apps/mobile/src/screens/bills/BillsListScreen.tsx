@@ -154,7 +154,7 @@ function BillCard({ bill, colors, onPress }: { bill: BillItem; colors: any; onPr
           <View style={styles.billCardMeta}>
             <View style={[styles.categoryBadge, { backgroundColor: `${colors.accent.primary}18` }]}>
               <Text style={[styles.categoryBadgeText, { color: colors.accent.primary }]}>
-                {bill.category}
+                {((bill.category as any)?.name || bill.category || '')}
               </Text>
             </View>
             {bill.itemCount > 0 && (
