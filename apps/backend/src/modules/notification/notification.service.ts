@@ -253,7 +253,7 @@ export class NotificationService {
         });
         if (!result.success) {
           this.logger.warn(
-            `[testPush] Device ${device.id} (${device.platform}, ${device.deviceName}) failed: ${result.error}`,
+            `[testPush] Device ${device.id} (${device.platform}, ${device.deviceName}) token=${device.pushToken?.substring(0, 40)}... failed: ${result.error}`,
           );
         }
       } catch (err: any) {

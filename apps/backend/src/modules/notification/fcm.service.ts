@@ -161,6 +161,7 @@ export class FcmService {
         return { success: false, error: errMsg };
       }
       const ticket = result?.data;
+      this.logger.debug(`Expo push response: ${JSON.stringify(result)}`);
       if (ticket?.status !== 'error') {
         return { success: true };
       }
@@ -168,7 +169,7 @@ export class FcmService {
       if (error === 'DeviceNotRegistered') {
         return { success: false, error: 'INVALID_TOKEN' };
       }
-      this.logger.warn(`Expo push ticket error: ${error}`);
+      this.logger.warn(`Expo push ticket error: ${error} (token: ${deviceToken.substring(0, 30)}..., response: ${JSON.stringify(result)})`);
       return { success: false, error };
     } catch (error: any) {
       this.logger.error(`Expo push error: ${error.message}`);
