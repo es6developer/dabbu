@@ -146,12 +146,7 @@ function getGreeting() {
   return 'Good Evening';
 }
 
-function GreetingHeader({
-  netBalance,
-  userName,
-  colors,
-  onSettings,
-}: any) {
+function GreetingHeader({ netBalance, userName, colors, onSettings }: any) {
   const isPositive = netBalance >= 0;
   const statusColor = isPositive ? colors.status.success : colors.status.error;
   const statusLabel = isPositive ? 'You are owed across spaces' : 'You owe across spaces';
@@ -446,7 +441,7 @@ export function SharedScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
-  const { accessToken, user } = useAuth();
+  const { accessToken, user, isPremium } = useAuth();
   const { showToast } = useToast();
 
   const [groups, setGroups] = useState<any[]>([]);
@@ -542,7 +537,12 @@ export function SharedScreen() {
     [groupBalances],
   );
 
-  const planInfo = useMemo(() => groups[0]?._plan || DEFAULT_PLAN, [groups]);
+  const planInfo = useMemo(() => {
+    if (isPremium) {
+      return { tier: 'premium' as const, maxGroups: 100, maxMembersPerGroup: 100 };
+    }
+    return groups[0]?._plan || DEFAULT_PLAN;
+  }, [groups, isPremium]);
   const maxSpaces = planInfo.maxGroups;
   const userName = user?.firstName || user?.email?.[0]?.toUpperCase() || 'User';
   const isAtLimit = groups.length >= maxSpaces;
@@ -612,7 +612,11 @@ export function SharedScreen() {
 
   if (loading) {
     return (
-      <PremiumLoaderScreen progress={loadingProgress} title="Loading Your Spaces" icon="layers-outline" />
+      <PremiumLoaderScreen
+        progress={loadingProgress}
+        title="Loading Your Spaces"
+        icon="layers-outline"
+      />
     );
   }
 

@@ -2,10 +2,13 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as admin from 'firebase-admin';
 
+const BRAND_COLOR = '#4F46E5';
+
 interface PushPayload {
   notification: {
     title: string;
     body: string;
+    image?: string;
   };
   data?: Record<string, string>;
   android?: {
@@ -14,6 +17,18 @@ interface PushPayload {
       channelId: string;
       priority: 'default' | 'high' | 'max';
       sound?: string;
+      color?: string;
+      tag?: string;
+      group?: string;
+      image?: string;
+      ticker?: string;
+      sticky?: boolean;
+      visibility?: 'public' | 'private' | 'secret';
+      notificationCount?: number;
+      notificationTimeout?: string;
+    };
+    fcmOptions?: {
+      analyticsLabel?: string;
     };
   };
   apns?: {
@@ -23,6 +38,9 @@ interface PushPayload {
         sound: string;
         badge: number;
         'content-available': number;
+        'mutable-content'?: number;
+        'thread-id'?: string;
+        category?: string;
       };
     };
   };
@@ -32,6 +50,9 @@ interface PushPayload {
       body: string;
       icon: string;
       vibrate: number[];
+      badge?: string;
+      image?: string;
+      requireInteraction?: boolean;
     };
   };
 }
@@ -48,7 +69,9 @@ export class FcmService {
   }
 
   private initializeApp(): void {
-    if (this.initialized) {return;}
+    if (this.initialized) {
+      return;
+    }
 
     const projectId = this.configService.get<string>('firebase.projectId');
     const clientEmail = this.configService.get<string>('firebase.clientEmail');
@@ -169,7 +192,9 @@ export class FcmService {
       if (error === 'DeviceNotRegistered') {
         return { success: false, error: 'INVALID_TOKEN' };
       }
-      this.logger.warn(`Expo push ticket error: ${error} (token: ${deviceToken.substring(0, 30)}..., response: ${JSON.stringify(result)})`);
+      this.logger.warn(
+        `Expo push ticket error: ${error} (token: ${deviceToken.substring(0, 30)}..., response: ${JSON.stringify(result)})`,
+      );
       return { success: false, error };
     } catch (error: any) {
       this.logger.error(`Expo push error: ${error.message}`);
@@ -229,6 +254,118 @@ export class FcmService {
     }
   }
 
+  private getChannelForType(type?: string): {
+    channelId: string;
+    priority: 'default' | 'high' | 'max';
+    tag: string;
+    color: string;
+  } {
+    const map: Record<
+      string,
+      { channelId: string; priority: 'default' | 'high' | 'max'; tag: string; color: string }
+    > = {
+      expense: { channelId: 'transactions', priority: 'high', tag: 'expense', color: '#F7892C' },
+      group_expense: {
+        channelId: 'transactions',
+        priority: 'high',
+        tag: 'group_expense',
+        color: '#F7892C',
+      },
+      expense_alert: {
+        channelId: 'budgets',
+        priority: 'high',
+        tag: 'expense_alert',
+        color: '#EF4444',
+      },
+      settlement_request: {
+        channelId: 'settlements',
+        priority: 'high',
+        tag: 'settlement',
+        color: '#4F46E5',
+      },
+      settlement_complete: {
+        channelId: 'settlements',
+        priority: 'high',
+        tag: 'settlement',
+        color: '#4F46E5',
+      },
+      payment_sent: {
+        channelId: 'settlements',
+        priority: 'high',
+        tag: 'settlement',
+        color: '#4F46E5',
+      },
+      budget_exceeded: { channelId: 'budgets', priority: 'high', tag: 'budget', color: '#EF4444' },
+      budget_alert: { channelId: 'budgets', priority: 'high', tag: 'budget', color: '#F7892C' },
+      goal_created: { channelId: 'goals', priority: 'default', tag: 'goal', color: '#10B981' },
+      goal_milestone: { channelId: 'goals', priority: 'default', tag: 'goal', color: '#10B981' },
+      goal_complete: { channelId: 'goals', priority: 'high', tag: 'goal', color: '#10B981' },
+      goal_behind: { channelId: 'goals', priority: 'default', tag: 'goal', color: '#EF4444' },
+      group_invite: {
+        channelId: 'groups',
+        priority: 'high',
+        tag: 'group_invite',
+        color: '#3B82F6',
+      },
+      group_join: { channelId: 'groups', priority: 'default', tag: 'group', color: '#3B82F6' },
+      group_remove: { channelId: 'groups', priority: 'default', tag: 'group', color: '#EF4444' },
+      group_leave: { channelId: 'groups', priority: 'default', tag: 'group', color: '#3B82F6' },
+      member_added: { channelId: 'groups', priority: 'default', tag: 'group', color: '#3B82F6' },
+      emi_reminder: { channelId: 'reminders', priority: 'high', tag: 'reminder', color: '#8B5CF6' },
+      emi_overdue: {
+        channelId: 'reminders',
+        priority: 'max',
+        tag: 'reminder_overdue',
+        color: '#EF4444',
+      },
+      subscription_reminder: {
+        channelId: 'reminders',
+        priority: 'default',
+        tag: 'subscription',
+        color: '#8B5CF6',
+      },
+      bill_reminder: { channelId: 'reminders', priority: 'high', tag: 'bill', color: '#8B5CF6' },
+      friend_request: { channelId: 'social', priority: 'default', tag: 'friend', color: '#4F46E5' },
+      friend_accepted: {
+        channelId: 'social',
+        priority: 'default',
+        tag: 'friend',
+        color: '#10B981',
+      },
+      family_invite: { channelId: 'social', priority: 'default', tag: 'family', color: '#4F46E5' },
+      family_remove: { channelId: 'social', priority: 'default', tag: 'family', color: '#EF4444' },
+      family_leave: { channelId: 'social', priority: 'default', tag: 'family', color: '#4F46E5' },
+      daily_digest: { channelId: 'insights', priority: 'default', tag: 'digest', color: '#14B8A6' },
+      weekly_digest: {
+        channelId: 'insights',
+        priority: 'default',
+        tag: 'digest',
+        color: '#14B8A6',
+      },
+      monthly_report: {
+        channelId: 'insights',
+        priority: 'default',
+        tag: 'report',
+        color: '#14B8A6',
+      },
+      ai_insight: {
+        channelId: 'insights',
+        priority: 'default',
+        tag: 'ai_insight',
+        color: '#14B8A6',
+      },
+      system: { channelId: 'system', priority: 'default', tag: 'system', color: '#6B7280' },
+    };
+    return (
+      map[type || ''] || {
+        channelId: 'transactions',
+        priority: 'high',
+        tag: 'general',
+        color: BRAND_COLOR,
+      }
+    );
+  }
+
   buildPayload(
     title: string,
     body: string,
@@ -240,6 +377,9 @@ export class FcmService {
       data: data ? this.serializeData(data) : undefined,
     };
 
+    const notifType = data?.type as string | undefined;
+    const channel = this.getChannelForType(notifType);
+
     if (platform === 'ios') {
       payload.apns = {
         payload: {
@@ -248,16 +388,25 @@ export class FcmService {
             sound: 'default',
             badge: 1,
             'content-available': 1,
+            'mutable-content': 1,
+            'thread-id': channel.tag,
+            category: notifType || 'default',
           },
         },
       };
     } else if (platform === 'android') {
       payload.android = {
-        priority: 'high',
+        priority:
+          channel.priority === 'max' ? 'high' : channel.priority === 'high' ? 'high' : 'normal',
         notification: {
-          channelId: 'default',
-          priority: 'high',
+          channelId: channel.channelId,
+          priority: channel.priority,
           sound: 'default',
+          color: channel.color,
+          tag: channel.tag,
+          group: channel.channelId,
+          notificationCount: 0,
+          visibility: 'public',
         },
       };
     } else {
@@ -267,6 +416,8 @@ export class FcmService {
           body,
           icon: '/favicon.ico',
           vibrate: [200, 100, 200],
+          badge: '/favicon.ico',
+          requireInteraction: notifType === 'emi_overdue' || notifType === 'budget_exceeded',
         },
       };
     }

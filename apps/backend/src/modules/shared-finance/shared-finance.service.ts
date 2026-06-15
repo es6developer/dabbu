@@ -770,6 +770,27 @@ export class SharedFinanceService {
         `Balance outstanding: ${hasOutstandingBalance}. Sessions invalidated: ${revocationResult.sessionsTerminated}`,
     );
 
+    const [groupInfo, adminUser] = await Promise.all([
+      this.prisma.sharedGroup.findUnique({
+        where: { id: groupId },
+        select: { name: true },
+      }),
+      this.prisma.user.findUnique({
+        where: { id: adminId },
+        select: { firstName: true, lastName: true },
+      }),
+    ]);
+    const adminName =
+      [adminUser?.firstName, adminUser?.lastName].filter(Boolean).join(' ') || 'An admin';
+    this.notificationService
+      .sendPush(
+        member.userId,
+        'Removed from Group',
+        `You were removed from "${groupInfo?.name || 'a group'}" by ${adminName}`,
+        { type: 'group_remove', groupId },
+      )
+      .catch((err) => this.logger.error(`Push failed for member removal: ${err.message}`));
+
     return {
       message: 'Member removed successfully. Access revoked.',
       sessionsTerminated: revocationResult.sessionsTerminated,
@@ -819,6 +840,33 @@ export class SharedFinanceService {
         metadata: { userId, leftAt: new Date().toISOString() },
       },
     });
+
+    const [groupInfo, leaverUser] = await Promise.all([
+      this.prisma.sharedGroup.findUnique({
+        where: { id: groupId },
+        select: { name: true },
+      }),
+      this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { firstName: true, lastName: true },
+      }),
+    ]);
+    const leaverName =
+      [leaverUser?.firstName, leaverUser?.lastName].filter(Boolean).join(' ') || 'A member';
+    const admins = await this.prisma.sharedGroupMember.findMany({
+      where: { groupId, role: 'admin', isActive: true, userId: { not: userId } },
+      select: { userId: true },
+    });
+    for (const admin of admins) {
+      this.notificationService
+        .sendPush(
+          admin.userId,
+          'Member Left',
+          `${leaverName} left "${groupInfo?.name || 'a group'}"`,
+          { type: 'group_leave', groupId },
+        )
+        .catch((err) => this.logger.error(`Push failed for member leave: ${err.message}`));
+    }
 
     return { message: 'Left group successfully' };
   }
@@ -1224,6 +1272,11 @@ export class SharedFinanceService {
       throw new ForbiddenException('Creditor is not an active member');
     }
 
+    const group = await this.prisma.sharedGroup.findUnique({
+      where: { id: groupId },
+      select: { name: true },
+    });
+
     const settlement = await this.prisma.settlement.create({
       data: {
         groupId,
@@ -1237,6 +1290,16 @@ export class SharedFinanceService {
         toUser: { select: { id: true, firstName: true, lastName: true } },
       },
     });
+
+    const fromName = `${settlement.fromUser.firstName} ${settlement.fromUser.lastName}`.trim();
+    this.notificationService
+      .sendPush(
+        toUserId,
+        'Settlement Requested',
+        `${fromName} requested ₹${amount.toLocaleString('en-IN')} from you in ${group?.name || 'a group'}`,
+        { type: 'settlement_request', settlementId: settlement.id, groupId },
+      )
+      .catch((err) => this.logger.error(`Push failed for settlement request: ${err.message}`));
 
     return settlement;
   }

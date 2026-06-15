@@ -1,17 +1,32 @@
-import { Injectable, Logger, ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  ConflictException,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class FriendsService {
   private readonly logger = new Logger(FriendsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationService: NotificationService,
+  ) {}
 
   async sendRequest(userId: string, friendId: string) {
     if (userId === friendId) {
       throw new BadRequestException('Cannot add yourself as a friend');
     }
-    const friend = await this.prisma.user.findUnique({ where: { id: friendId, isActive: true, status: 'active' } });
+    const sender = await this.prisma.user.findUnique({
+      where: { id: userId, isActive: true, status: 'active' },
+    });
+    const friend = await this.prisma.user.findUnique({
+      where: { id: friendId, isActive: true, status: 'active' },
+    });
     if (!friend) {
       throw new NotFoundException('User not found');
     }
@@ -43,11 +58,32 @@ export class FriendsService {
       await this.prisma.friend.create({
         data: { userId, friendId, status: 'accepted' },
       });
+
+      const senderName = sender ? `${sender.firstName} ${sender.lastName}`.trim() : 'Someone';
+      this.notificationService
+        .sendPush(
+          userId,
+          'Friend Request Accepted',
+          `${senderName}, your friend request was accepted!`,
+          { type: 'friend_accepted', friendId },
+        )
+        .catch((err) => this.logger.error(`Push failed for friend accept: ${err.message}`));
+
       return { status: 'accepted' };
     }
+
     await this.prisma.friend.create({
       data: { userId, friendId, status: 'pending' },
     });
+
+    const senderName = sender ? `${sender.firstName} ${sender.lastName}`.trim() : 'Someone';
+    this.notificationService
+      .sendPush(friendId, 'Friend Request', `${senderName} sent you a friend request`, {
+        type: 'friend_request',
+        userId,
+      })
+      .catch((err) => this.logger.error(`Push failed for friend request: ${err.message}`));
+
     return { status: 'pending' };
   }
 
@@ -62,6 +98,12 @@ export class FriendsService {
     if (request.status !== 'pending') {
       throw new BadRequestException('Friend request is not pending');
     }
+
+    const accepter = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { firstName: true, lastName: true },
+    });
+
     await this.prisma.friend.update({
       where: { id: requestId },
       data: { status: 'accepted' },
@@ -69,6 +111,18 @@ export class FriendsService {
     await this.prisma.friend.create({
       data: { userId, friendId: request.userId, status: 'accepted' },
     });
+
+    const accepterName =
+      [accepter?.firstName, accepter?.lastName].filter(Boolean).join(' ') || 'Someone';
+    this.notificationService
+      .sendPush(
+        request.userId,
+        'Friend Request Accepted',
+        `${accepterName} accepted your friend request`,
+        { type: 'friend_accepted', userId },
+      )
+      .catch((err) => this.logger.error(`Push failed for accept notification: ${err.message}`));
+
     return { status: 'accepted' };
   }
 

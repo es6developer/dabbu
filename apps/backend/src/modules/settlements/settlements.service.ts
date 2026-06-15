@@ -9,6 +9,7 @@ import * as crypto from 'crypto';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { SharedFinanceService } from '../shared-finance/shared-finance.service';
 import { SettlementEngine } from '../shared-finance/engines/settlement.engine';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class SettlementsService {
@@ -18,6 +19,7 @@ export class SettlementsService {
     private readonly prisma: PrismaService,
     private readonly sharedFinance: SharedFinanceService,
     private readonly settlementEngine: SettlementEngine,
+    private readonly notificationService: NotificationService,
   ) {}
 
   /**
@@ -110,6 +112,16 @@ export class SettlementsService {
       metadata: { settlementId, amount, upiLink, toUserId: settlement.toUserId },
     });
 
+    const fromName = `${settlement.fromUser.firstName} ${settlement.fromUser.lastName}`.trim();
+    this.notificationService
+      .sendPush(
+        settlement.toUserId,
+        'Settlement Requested',
+        `${fromName} initiated a ₹${amount.toLocaleString('en-IN')} settlement in ${settlement.group.name}`,
+        { type: 'settlement_request', settlementId, groupId: settlement.groupId },
+      )
+      .catch((err) => this.logger.error(`Push failed for settlement request: ${err.message}`));
+
     return {
       upiLink,
       settlement: {
@@ -133,6 +145,7 @@ export class SettlementsService {
     const settlement = await this.prisma.settlement.findUnique({
       where: { id: settlementId },
       include: {
+        group: { select: { id: true, name: true } },
         fromUser: { select: { id: true, firstName: true, lastName: true } },
         toUser: { select: { id: true, firstName: true, lastName: true } },
       },
@@ -182,6 +195,16 @@ export class SettlementsService {
         transactionId: dto.upiTransactionId,
       },
     });
+
+    const payerName = `${settlement.fromUser.firstName} ${settlement.fromUser.lastName}`.trim();
+    this.notificationService
+      .sendPush(
+        settlement.toUserId,
+        'Payment Sent',
+        `${payerName} sent ₹${Number(settlement.amount).toLocaleString('en-IN')} to you in ${settlement.group.name}`,
+        { type: 'payment_sent', settlementId, groupId: settlement.groupId },
+      )
+      .catch((err) => this.logger.error(`Push failed for payment sent: ${err.message}`));
 
     return { data: confirmation };
   }

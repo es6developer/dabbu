@@ -1,11 +1,17 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { CreateGoalDto } from './dto/create-goal.dto';
 import { UpdateGoalDto } from './dto/update-goal.dto';
+import { NotificationEventsService } from '../notification/notification-events.service';
 
 @Injectable()
 export class GoalsService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(GoalsService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationEvents: NotificationEventsService,
+  ) {}
 
   async create(userId: string, dto: CreateGoalDto) {
     const goal = await this.prisma.goal.create({
@@ -22,6 +28,15 @@ export class GoalsService {
         accountId: dto.accountId || null,
       },
     });
+
+    this.notificationEvents
+      .goalCreated(userId, {
+        goalId: goal.id,
+        name: goal.name,
+        targetAmount: Number(goal.targetAmount),
+      })
+      .catch((err) => this.logger.warn(`Failed to notify goal created: ${err.message}`));
+
     return this.formatGoal(goal);
   }
 
@@ -83,6 +98,8 @@ export class GoalsService {
 
     const currentAmount = Number(existing.currentAmount) + amount;
     const targetAmount = Number(existing.targetAmount);
+    const prevProgress = Math.round((Number(existing.currentAmount) / targetAmount) * 100);
+    const newProgress = Math.round((currentAmount / targetAmount) * 100);
 
     const goal = await this.prisma.goal.update({
       where: { id },
@@ -92,6 +109,44 @@ export class GoalsService {
         completedAt: currentAmount >= targetAmount ? new Date() : null,
       },
     });
+
+    if (currentAmount >= targetAmount) {
+      this.notificationEvents
+        .goalCompleted(userId, {
+          goalId: id,
+          name: existing.name,
+          savedAmount: currentAmount,
+        })
+        .catch((err) => this.logger.warn(`Failed to notify goal completed: ${err.message}`));
+    } else if (newProgress >= 75 && prevProgress < 75) {
+      this.notificationEvents
+        .goalMilestone(userId, {
+          goalId: id,
+          name: existing.name,
+          progress: newProgress,
+          milestone: 75,
+        })
+        .catch((err) => this.logger.warn(`Failed to notify goal milestone: ${err.message}`));
+    } else if (newProgress >= 50 && prevProgress < 50) {
+      this.notificationEvents
+        .goalMilestone(userId, {
+          goalId: id,
+          name: existing.name,
+          progress: newProgress,
+          milestone: 50,
+        })
+        .catch((err) => this.logger.warn(`Failed to notify goal milestone: ${err.message}`));
+    } else if (newProgress >= 25 && prevProgress < 25) {
+      this.notificationEvents
+        .goalMilestone(userId, {
+          goalId: id,
+          name: existing.name,
+          progress: newProgress,
+          milestone: 25,
+        })
+        .catch((err) => this.logger.warn(`Failed to notify goal milestone: ${err.message}`));
+    }
+
     return this.formatGoal(goal);
   }
 
@@ -103,13 +158,25 @@ export class GoalsService {
       throw new NotFoundException('Goal not found');
     }
 
+    const wasCompleted = existing.isCompleted;
     const goal = await this.prisma.goal.update({
       where: { id },
       data: {
-        isCompleted: !existing.isCompleted,
-        completedAt: !existing.isCompleted ? new Date() : null,
+        isCompleted: !wasCompleted,
+        completedAt: !wasCompleted ? new Date() : null,
       },
     });
+
+    if (!wasCompleted && goal.isCompleted) {
+      this.notificationEvents
+        .goalCompleted(userId, {
+          goalId: id,
+          name: existing.name,
+          savedAmount: Number(existing.currentAmount),
+        })
+        .catch((err) => this.logger.warn(`Failed to notify goal completed: ${err.message}`));
+    }
+
     return this.formatGoal(goal);
   }
 

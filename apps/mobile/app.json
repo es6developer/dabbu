@@ -13,9 +13,7 @@
       "image": "./src/assets/splash.png",
       "resizeMode": "contain"
     },
-    "assetBundlePatterns": [
-      "src/assets/**/*"
-    ],
+    "assetBundlePatterns": ["src/assets/**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.dabbu.mobile",
@@ -23,15 +21,11 @@
         "NSFaceIDUsageDescription": "Use Face ID to unlock Dabbu and authenticate payments",
         "NSCameraUsageDescription": "Scan receipts and documents",
         "NSContactsUsageDescription": "Dabbu accesses your contacts to help find friends who are already using the app, making it easy to connect and share expenses.",
-        "UIBackgroundModes": [
-          "remote-notification"
-        ],
+        "UIBackgroundModes": ["remote-notification"],
         "NSNotificationUsageDescription": "Dabbu sends notifications for expense updates, payment reminders, and shared finance activity.",
         "NSLocalNotificationUsageDescription": "Dabbu uses local notifications for reminders and alerts."
       },
-      "associatedDomains": [
-        "applinks:dabbu.app"
-      ]
+      "associatedDomains": ["applinks:dabbu.app"]
     },
     "android": {
       "adaptiveIcon": {
@@ -39,6 +33,9 @@
         "backgroundColor": "#4F46E5"
       },
       "package": "app.dabbu.mobile",
+      "googleServicesFile": "./google-services.json",
+      "notificationIcon": "./src/assets/notification-icon.png",
+      "notificationColor": "#4F46E5",
       "permissions": [
         "USE_BIOMETRIC",
         "CAMERA",

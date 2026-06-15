@@ -48,6 +48,14 @@ export class TransactionsService {
       this.notifyGroupMembers(userId, dto.expenseGroupId, tx).catch((err) =>
         this.logger.warn(`Failed to notify group members: ${err.message}`),
       );
+    } else {
+      this.notificationEvents
+        .expenseAdded(userId, {
+          amount: Number(tx.amount),
+          description: tx.description || '',
+          category: tx.category?.name || 'Uncategorized',
+        })
+        .catch((err) => this.logger.warn(`Failed to notify expense added: ${err.message}`));
     }
 
     return tx;

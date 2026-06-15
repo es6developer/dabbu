@@ -3,8 +3,10 @@ import { BudgetsController } from './budgets.controller';
 import { BudgetsService } from './budgets.service';
 import { BudgetsRepository } from './budgets.repository';
 import { BudgetSchedulerService } from './budget-scheduler.service';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
+  imports: [NotificationModule],
   controllers: [BudgetsController],
   providers: [BudgetsService, BudgetsRepository, BudgetSchedulerService],
   exports: [BudgetsService],

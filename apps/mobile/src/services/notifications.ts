@@ -4,6 +4,23 @@ import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import { api, setAccessToken } from './api';
 
+const BRAND_COLOR = '#4F46E5';
+const ACCENT_ORANGE = '#F7892C';
+const ACCENT_GREEN = '#10B981';
+const ACCENT_RED = '#EF4444';
+const ACCENT_BLUE = '#3B82F6';
+const ACCENT_PURPLE = '#8B5CF6';
+const ACCENT_TEAL = '#14B8A6';
+const ACCENT_GRAY = '#6B7280';
+
+const CHANNEL_GROUPS: Record<string, { name: string; description?: string }> = {
+  transactions: { name: 'Transactions', description: 'Expenses, payments & settlements' },
+  social: { name: 'Social', description: 'Groups, family & friends activity' },
+  goals: { name: 'Goals & Savings', description: 'Goal progress & savings insights' },
+  reminders: { name: 'Reminders & Alerts', description: 'Payment reminders & budget alerts' },
+  insights: { name: 'Insights', description: 'AI-powered insights & reports' },
+};
+
 try {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -50,67 +67,96 @@ function getStableDeviceId(): string {
 async function setupAndroidChannels(): Promise<void> {
   const channels = [
     {
-      id: 'default',
-      name: 'default',
+      id: 'transactions',
+      name: 'Expenses & Payments',
+      description: 'Personal expenses, shared expenses & payment confirmations',
       importance: Notifications.AndroidImportance.HIGH,
-      color: '#f7892c',
-    },
-    {
-      id: 'expenses',
-      name: 'Expenses',
-      importance: Notifications.AndroidImportance.HIGH,
-      color: '#f7892c',
-    },
-    {
-      id: 'shared',
-      name: 'Shared Finance',
-      importance: Notifications.AndroidImportance.HIGH,
-      color: '#4A90D9',
-    },
-    {
-      id: 'goals',
-      name: 'Goals',
-      importance: Notifications.AndroidImportance.DEFAULT,
-      color: '#34C759',
-    },
-    {
-      id: 'emi',
-      name: 'EMI & Payments',
-      importance: Notifications.AndroidImportance.HIGH,
-      color: '#FF3B30',
-    },
-    {
-      id: 'subscriptions',
-      name: 'Subscriptions',
-      importance: Notifications.AndroidImportance.DEFAULT,
-      color: '#AF52DE',
+      color: ACCENT_ORANGE,
+      sound: 'default',
+      vibration: true,
     },
     {
       id: 'settlements',
       name: 'Settlements',
+      description: 'Settlement requests, payments & receipts',
       importance: Notifications.AndroidImportance.HIGH,
-      color: '#F7892C',
+      color: BRAND_COLOR,
+      sound: 'default',
+      vibration: true,
     },
     {
-      id: 'reports',
-      name: 'Reports & Digests',
-      importance: Notifications.AndroidImportance.LOW,
-      color: '#8E8E93',
+      id: 'groups',
+      name: 'Groups & Social',
+      description: 'Group invitations, member activity & shared finance',
+      importance: Notifications.AndroidImportance.HIGH,
+      color: ACCENT_BLUE,
+      sound: 'default',
+      vibration: true,
+    },
+    {
+      id: 'goals',
+      name: 'Goals & Milestones',
+      description: 'Goal progress, milestones & achievements',
+      importance: Notifications.AndroidImportance.DEFAULT,
+      color: ACCENT_GREEN,
+      sound: 'default',
+      vibration: false,
+    },
+    {
+      id: 'budgets',
+      name: 'Budgets & Alerts',
+      description: 'Budget thresholds, spending alerts & warnings',
+      importance: Notifications.AndroidImportance.HIGH,
+      color: ACCENT_RED,
+      sound: 'default',
+      vibration: true,
     },
     {
       id: 'reminders',
-      name: 'Reminders',
+      name: 'Reminders & Due Dates',
+      description: 'EMI, subscription & bill reminders',
       importance: Notifications.AndroidImportance.HIGH,
-      color: '#FF9500',
+      color: ACCENT_PURPLE,
+      sound: 'default',
+      vibration: true,
+    },
+    {
+      id: 'insights',
+      name: 'AI Insights & Reports',
+      description: 'Daily AI insights, weekly digests & monthly reports',
+      importance: Notifications.AndroidImportance.DEFAULT,
+      color: ACCENT_TEAL,
+      sound: 'default',
+      vibration: false,
+    },
+    {
+      id: 'social',
+      name: 'Friends & Family',
+      description: 'Friend requests, family invites & referrals',
+      importance: Notifications.AndroidImportance.DEFAULT,
+      color: BRAND_COLOR,
+      sound: 'default',
+      vibration: false,
+    },
+    {
+      id: 'system',
+      name: 'System Updates',
+      description: 'App updates, account changes & security alerts',
+      importance: Notifications.AndroidImportance.LOW,
+      color: ACCENT_GRAY,
+      sound: 'default',
+      vibration: false,
     },
   ];
   for (const ch of channels) {
     try {
       await Notifications.setNotificationChannelAsync(ch.id, {
         name: ch.name,
+        description: ch.description,
         importance: ch.importance,
-        vibrationPattern: [0, 250, 250, 250],
+        vibrationPattern: ch.vibration ? [0, 200, 150, 200] : undefined,
         lightColor: ch.color,
+        sound: ch.sound,
       });
     } catch (_e) {
       void _e;
@@ -150,18 +196,38 @@ export async function registerForPushNotifications(accessToken: string): Promise
     }
 
     let pushToken: string;
-    try {
-      const projectId = getProjectId();
-      const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
-      pushToken = tokenData.data;
-    } catch (e) {
-      console.warn('Expo push token failed, falling back to native FCM token:', e);
+    if (Platform.OS === 'android') {
       try {
         const deviceToken = await Notifications.getDevicePushTokenAsync();
         pushToken = deviceToken.data;
-      } catch (e2) {
-        console.warn('Native FCM token also failed:', e2);
-        return;
+      } catch (e) {
+        console.warn('Android native FCM token failed, falling back to Expo push token:', e);
+        try {
+          const projectId = getProjectId();
+          const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
+          pushToken = tokenData.data;
+        } catch (e2) {
+          console.warn('Expo push token also failed:', e2);
+          return;
+        }
+      }
+    } else {
+      try {
+        const projectId = getProjectId();
+        console.log('iOS: fetching Expo push token with projectId:', projectId);
+        const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
+        pushToken = tokenData.data;
+        console.log('iOS: got Expo push token:', pushToken.substring(0, 40) + '...');
+      } catch (e) {
+        console.warn('iOS Expo push token failed, falling back to native APNs token:', e);
+        try {
+          const deviceToken = await Notifications.getDevicePushTokenAsync();
+          pushToken = deviceToken.data;
+          console.log('iOS: got native APNs token:', pushToken.substring(0, 40) + '...');
+        } catch (e2) {
+          console.warn('iOS native APNs token also failed:', e2);
+          return;
+        }
       }
     }
 
@@ -169,12 +235,17 @@ export async function registerForPushNotifications(accessToken: string): Promise
     const deviceName = Device.modelName || (Platform.OS === 'ios' ? 'iPhone' : 'Android');
 
     try {
-      await api.post('/devices/register', {
-        deviceId: storedId,
-        platform: Platform.OS,
-        token: pushToken,
-        deviceName,
-      }, undefined, 5000);
+      await api.post(
+        '/devices/register',
+        {
+          deviceId: storedId,
+          platform: Platform.OS,
+          token: pushToken,
+          deviceName,
+        },
+        undefined,
+        5000,
+      );
       lastRegisteredToken = accessToken;
     } catch (e) {
       if ((e as any)?.name !== 'AbortError') {

@@ -2,9 +2,10 @@ import { Module } from '@nestjs/common';
 import { FamilyController } from './family.controller';
 import { FamilyService } from './family.service';
 import { PrismaModule } from '../../common/prisma/prisma.module';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, NotificationModule],
   controllers: [FamilyController],
   providers: [FamilyService],
   exports: [FamilyService],

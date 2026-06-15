@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from '../../common/prisma/prisma.module';
 import { PremiumModule } from '../premium/premium.module';
+import { NotificationModule } from '../notification/notification.module';
 import { AiController } from './ai.controller';
 import { AiService } from './ai.service';
 import { AiJobsService } from './ai-jobs.service';
@@ -14,6 +15,7 @@ import aiConfig from './ai.config';
     PrismaModule,
     ScheduleModule.forRoot(),
     PremiumModule,
+    NotificationModule,
   ],
   controllers: [AiController],
   providers: [AiService, AiJobsService],

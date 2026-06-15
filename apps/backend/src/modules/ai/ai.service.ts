@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { NotificationService } from '../notification/notification.service';
 import {
   PredictionEngine,
   AnomalyDetectionEngine,
@@ -82,6 +83,7 @@ export class AiService {
   constructor(
     private readonly config: ConfigService,
     private readonly prisma: PrismaService,
+    private readonly notificationService: NotificationService,
   ) {
     const aiConfig = this.config.get('ai');
     this.enabled = aiConfig?.enabled ?? false;
@@ -2189,6 +2191,165 @@ ${JSON.stringify(context, null, 2)}`;
       this.generateTodayFeed(userId).catch(() => null),
     ]);
     return { anomalies, dashboard, milestones, feed };
+  }
+
+  async generateDailyPushNotificationsForUser(userId: string) {
+    if (!this.enabled) {
+      return;
+    }
+
+    try {
+      const now = new Date();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      const [settings, todayTx, weekTx, monthTx, budgets, goals, anomalies, milestones] =
+        await Promise.all([
+          this.prisma.settings.findUnique({ where: { userId } }),
+          this.prisma.transaction.aggregate({
+            where: { userId, date: { gte: todayStart }, type: 'expense', deletedAt: null },
+            _sum: { amount: true },
+            _count: true,
+          }),
+          this.prisma.transaction.findMany({
+            where: { userId, date: { gte: weekAgo }, type: 'expense', deletedAt: null },
+            select: { amount: true, description: true, date: true },
+            orderBy: { date: 'desc' },
+            take: 20,
+          }),
+          this.prisma.transaction.aggregate({
+            where: { userId, date: { gte: monthStart }, type: 'expense', deletedAt: null },
+            _sum: { amount: true },
+          }),
+          this.prisma.budget.findMany({
+            where: { userId, isActive: true },
+            select: { name: true, amount: true, spent: true },
+          }),
+          this.prisma.goal.findMany({
+            where: { userId, deletedAt: null },
+            select: {
+              id: true,
+              name: true,
+              targetAmount: true,
+              currentAmount: true,
+              deadline: true,
+            },
+          }),
+          this.prisma.aiAnomaly.findMany({
+            where: { userId, createdAt: { gte: weekAgo } },
+            orderBy: { severity: 'desc' },
+            take: 3,
+          }),
+          this.prisma.aiMilestone.findMany({
+            where: { userId, createdAt: { gte: weekAgo } },
+            take: 3,
+          }),
+        ]);
+
+      if (settings && settings.pushNotifications === false) {
+        return;
+      }
+      if (
+        !settings &&
+        todayTx._count === 0 &&
+        weekTx.length === 0 &&
+        budgets.length === 0 &&
+        goals.length === 0
+      ) {
+        return;
+      }
+
+      const anomaliesSummary = anomalies.map((a) => ({
+        type: a.type,
+        description: a.description,
+        severity: a.severity,
+        actualValue: Number(a.actualValue),
+        expectedValue: Number(a.expectedValue),
+      }));
+      const milestonesSummary = milestones.map((m) => ({
+        type: m.milestoneType,
+        title: m.title,
+        description: m.description,
+      }));
+
+      const context = {
+        todaySpent: Number(todayTx._sum.amount || 0),
+        todayTxCount: todayTx._count,
+        monthSpent: Number(monthTx._sum.amount || 0),
+        recentTransactions: weekTx.map((t) => ({
+          amount: Number(t.amount),
+          description: t.description,
+        })),
+        budgets: budgets.map((b) => ({
+          name: b.name,
+          budget: Number(b.amount),
+          spent: Number(b.spent),
+          usagePercent:
+            Number(b.amount) > 0 ? Math.round((Number(b.spent) / Number(b.amount)) * 100) : 0,
+        })),
+        goals: goals.map((g) => ({
+          name: g.name,
+          target: Number(g.targetAmount),
+          saved: Number(g.currentAmount),
+          progressPercent:
+            Number(g.targetAmount) > 0
+              ? Math.round((Number(g.currentAmount) / Number(g.targetAmount)) * 100)
+              : 0,
+          deadline: g.deadline?.toISOString()?.split('T')[0],
+        })),
+        anomalies: anomaliesSummary,
+        milestones: milestonesSummary,
+      };
+
+      const prompt = `You are a friendly financial companion. Generate 1-2 short, personalized push notifications for this user based on their data.
+Rules:
+- Each notification must be a single sentence under 120 characters
+- Mix of insights, encouragement, gentle nudges, and useful tips
+- Never repeat the same type of notification daily
+- Be specific using their actual numbers
+- Use casual, warm tone (not robotic)
+- If data is minimal, generate a single general tip
+
+Return ONLY a JSON array of objects with fields: title (4-6 words) and message (1 sentence, under 120 chars).
+
+User Data:
+${JSON.stringify(context, null, 2)}`;
+
+      const response = await this.callLlm(prompt);
+      if (!response.trim()) {
+        return;
+      }
+
+      let notifications: { title: string; message: string }[];
+      try {
+        const cleaned = response
+          .replace(/```json\s*/g, '')
+          .replace(/```\s*/g, '')
+          .trim();
+        notifications = JSON.parse(cleaned);
+        if (!Array.isArray(notifications)) {
+          notifications = [notifications];
+        }
+      } catch {
+        this.logger.warn(`Failed to parse AI push notification response for user ${userId}`);
+        return;
+      }
+
+      for (const n of notifications) {
+        if (!n.title || !n.message) {
+          continue;
+        }
+        this.notificationService
+          .sendPush(userId, n.title.trim(), n.message.trim(), {
+            type: 'ai_insight',
+            source: 'ai_daily',
+          })
+          .catch((err) => this.logger.error(`Push failed for AI notification: ${err.message}`));
+      }
+    } catch (err: any) {
+      this.logger.error(`AI push notifications failed for user ${userId}: ${err.message}`);
+    }
   }
 
   async computeWeeklyForUser(userId: string) {

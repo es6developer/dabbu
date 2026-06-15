@@ -16,7 +16,9 @@ export class AiJobsService {
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async runDailyJobs() {
-    if (this.isRunning) {return;}
+    if (this.isRunning) {
+      return;
+    }
     this.isRunning = true;
     this.logger.log('Starting daily AI computation for all users...');
 
@@ -29,13 +31,15 @@ export class AiJobsService {
       for (let i = 0; i < users.length; i += this.BATCH_SIZE) {
         const batch = users.slice(i, i + this.BATCH_SIZE);
         await Promise.allSettled(
-          batch.map(u =>
-            this.aiService.computeDailyForUser(u.id).catch(e =>
-              this.logger.error(`Daily AI failed for user ${u.id}: ${e.message}`)
-            )
-          )
+          batch.map((u) =>
+            this.aiService
+              .computeDailyForUser(u.id)
+              .catch((e) => this.logger.error(`Daily AI failed for user ${u.id}: ${e.message}`)),
+          ),
         );
-        this.logger.log(`Daily AI: processed ${Math.min(i + this.BATCH_SIZE, users.length)}/${users.length} users`);
+        this.logger.log(
+          `Daily AI: processed ${Math.min(i + this.BATCH_SIZE, users.length)}/${users.length} users`,
+        );
       }
 
       this.logger.log('Daily AI computation completed');
@@ -59,11 +63,11 @@ export class AiJobsService {
       for (let i = 0; i < users.length; i += this.BATCH_SIZE) {
         const batch = users.slice(i, i + this.BATCH_SIZE);
         await Promise.allSettled(
-          batch.map(u =>
-            this.aiService.computeWeeklyForUser(u.id).catch(e =>
-              this.logger.error(`Weekly AI failed for user ${u.id}: ${e.message}`)
-            )
-          )
+          batch.map((u) =>
+            this.aiService
+              .computeWeeklyForUser(u.id)
+              .catch((e) => this.logger.error(`Weekly AI failed for user ${u.id}: ${e.message}`)),
+          ),
         );
       }
 
@@ -86,11 +90,11 @@ export class AiJobsService {
       for (let i = 0; i < users.length; i += this.BATCH_SIZE) {
         const batch = users.slice(i, i + this.BATCH_SIZE);
         await Promise.allSettled(
-          batch.map(u =>
-            this.aiService.computeMonthlyForUser(u.id).catch(e =>
-              this.logger.error(`Monthly AI failed for user ${u.id}: ${e.message}`)
-            )
-          )
+          batch.map((u) =>
+            this.aiService
+              .computeMonthlyForUser(u.id)
+              .catch((e) => this.logger.error(`Monthly AI failed for user ${u.id}: ${e.message}`)),
+          ),
         );
       }
 
@@ -100,9 +104,42 @@ export class AiJobsService {
     }
   }
 
+  @Cron('0 10 * * *')
+  async sendDailyAiPushNotifications() {
+    this.logger.log('Starting daily AI push notifications...');
+
+    try {
+      const users = await this.prisma.user.findMany({
+        where: { isActive: true, deletedAt: null },
+        select: { id: true },
+      });
+
+      let sent = 0;
+      for (let i = 0; i < users.length; i += this.BATCH_SIZE) {
+        const batch = users.slice(i, i + this.BATCH_SIZE);
+        const results = await Promise.allSettled(
+          batch.map((u) =>
+            this.aiService.generateDailyPushNotificationsForUser(u.id).then(() => sent++),
+          ),
+        );
+        for (const r of results) {
+          if (r.status === 'rejected') {
+            this.logger.error(`AI push notification failed: ${r.reason?.message || r.reason}`);
+          }
+        }
+      }
+
+      this.logger.log(`Daily AI push notifications completed for ${sent} users`);
+    } catch (error) {
+      this.logger.error(`Daily AI push notification job failed: ${(error as Error).message}`);
+    }
+  }
+
   @Cron(CronExpression.EVERY_6_HOURS)
   async regenerateDailyFeeds() {
-    if (this.isRunning) {return;}
+    if (this.isRunning) {
+      return;
+    }
     this.isRunning = true;
     this.logger.log('Starting feed regeneration for all users...');
 
@@ -115,13 +152,17 @@ export class AiJobsService {
       for (let i = 0; i < users.length; i += this.BATCH_SIZE) {
         const batch = users.slice(i, i + this.BATCH_SIZE);
         await Promise.allSettled(
-          batch.map(u =>
-            this.aiService.generateTodayFeed(u.id).catch(e =>
-              this.logger.error(`Feed generation failed for user ${u.id}: ${e.message}`)
-            )
-          )
+          batch.map((u) =>
+            this.aiService
+              .generateTodayFeed(u.id)
+              .catch((e) =>
+                this.logger.error(`Feed generation failed for user ${u.id}: ${e.message}`),
+              ),
+          ),
         );
-        this.logger.log(`Feed regen: processed ${Math.min(i + this.BATCH_SIZE, users.length)}/${users.length} users`);
+        this.logger.log(
+          `Feed regen: processed ${Math.min(i + this.BATCH_SIZE, users.length)}/${users.length} users`,
+        );
       }
 
       this.logger.log('Feed regeneration completed');
