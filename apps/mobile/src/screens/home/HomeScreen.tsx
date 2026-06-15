@@ -187,25 +187,27 @@ export function HomeScreen() {
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    const parsed = quickEntry.trim() ? parseQuickEntry(quickEntry) : null;
-    if (parsed) {
-      setQuickType(parsed.type);
-    } else {
-      setQuickType('expense');
-    }
-    if (quickEntry.length >= 1 && recentTxns.length > 0) {
-      const lower = quickEntry.toLowerCase();
-      const matches = recentTxns
-        .map((t: any) => (t.description || t.title || t.merchant || '').trim())
-        .filter(Boolean)
-        .filter((d: string) => d.toLowerCase().includes(lower))
-        .filter((v: string, i: number, a: string[]) => a.indexOf(v) === i)
-        .slice(0, 4);
-      setSuggestions(matches);
-      setShowSuggestions(matches.length > 0);
-    } else {
+    try {
+      const parsed = quickEntry.trim() ? parseQuickEntry(quickEntry) : null;
+      if (parsed) {
+        setQuickType(parsed.type);
+      } else {
+        setQuickType('expense');
+      }
+      if (quickEntry.length >= 1 && recentTxns.length > 0) {
+        const lower = quickEntry.toLowerCase();
+        const matches = recentTxns
+          .map((t: any) => String(t.description || t.title || t.merchant || '').trim())
+          .filter(Boolean)
+          .filter((d: string) => d.toLowerCase().includes(lower))
+          .filter((v: string, i: number, a: string[]) => a.indexOf(v) === i)
+          .slice(0, 4);
+        setSuggestions(matches);
+        setShowSuggestions(matches.length > 0);
+        return;
+      }
       setShowSuggestions(false);
-    }
+    } catch { /* ignore suggestion errors */ }
   }, [quickEntry, recentTxns]);
 
   const savings = Math.max(0, monthlyIncome - monthlySpent);
