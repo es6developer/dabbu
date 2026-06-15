@@ -10,8 +10,10 @@ import {
   RefreshControl,
   Keyboard,
   Dimensions,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -128,24 +130,18 @@ const INSIGHT_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   'Budget Health': 'pie-chart',
 };
 
-const ACTION_ITEMS: {
+const QUICK_ACTIONS: {
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
+  desc: string;
   route: string;
   screen: string;
   params?: any;
 }[] = [
-  { label: 'Add Expense', icon: 'add-circle', route: 'Expense', screen: 'CategorySelection' },
-  {
-    label: 'Add Income',
-    icon: 'cash',
-    route: 'Expense',
-    screen: 'CategorySelection',
-    params: { type: 'income' },
-  },
-  { label: 'Split Expense', icon: 'people', route: 'Circles', screen: 'SplitExpense' },
-  { label: 'Scan Receipt', icon: 'scan', route: 'Expense', screen: 'BillScanner' },
-  { label: 'Create Budget', icon: 'pie-chart', route: 'Settings', screen: 'BudgetsList' },
+  { label: 'Add Expense', icon: 'add-circle', desc: 'Record a new expense', route: 'Expense', screen: 'CategorySelection' },
+  { label: 'Add Income', icon: 'cash', desc: 'Money received', route: 'Expense', screen: 'CategorySelection', params: { type: 'income' } },
+  { label: 'Create Circle', icon: 'people', desc: 'Group expenses', route: 'Circles', screen: 'CreateCircle' },
+  { label: 'Create Space', icon: 'planet', desc: 'Shared finance space', route: 'Spaces', screen: 'CreateSharedGroup' },
 ];
 
 export function HomeScreen() {
@@ -174,6 +170,25 @@ export function HomeScreen() {
   const [quickEntryLoading, setQuickEntryLoading] = useState(false);
   const [quickType, setQuickType] = useState<'expense' | 'income'>('expense');
   const [quickSuccess, setQuickSuccess] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const quickInputRef = useRef<TextInput>(null);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingTip] = useState(() => {
+    const tips = [
+      'Analyzing your spending patterns...',
+      'Calculating monthly trends...',
+      'Checking upcoming bills...',
+      'Syncing shared expenses...',
+      'Preparing your insights...',
+      'Reviewing budget health...',
+      'Fetching recent transactions...',
+    ];
+    return tips[Math.floor(Math.random() * tips.length)];
+  });
+  const spinAnim = useRef(new Animated.Value(0)).current;
+  const loadBarAnim = useRef(new Animated.Value(0)).current;
+  const loadFadeAnim = useRef(new Animated.Value(0)).current;
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -183,7 +198,47 @@ export function HomeScreen() {
     } else {
       setQuickType('expense');
     }
-  }, [quickEntry]);
+    if (quickEntry.length >= 1 && recentTxns.length > 0) {
+      const lower = quickEntry.toLowerCase();
+      const matches = recentTxns
+        .map((t: any) => (t.description || t.title || t.merchant || '').trim())
+        .filter(Boolean)
+        .filter((d: string) => d.toLowerCase().includes(lower))
+        .filter((v: string, i: number, a: string[]) => a.indexOf(v) === i)
+        .slice(0, 4);
+      setSuggestions(matches);
+      setShowSuggestions(matches.length > 0);
+    } else {
+      setShowSuggestions(false);
+    }
+  }, [quickEntry, recentTxns]);
+
+  useEffect(() => {
+    const spin = Animated.loop(
+      Animated.timing(spinAnim, {
+        toValue: 1,
+        duration: 2000,
+        useNativeDriver: true,
+      }),
+    );
+    if (loading && totalBalance === null) {
+      spin.start();
+    } else {
+      spinAnim.setValue(0);
+      spin.stop();
+    }
+    return () => spin.stop();
+  }, [loading, totalBalance]);
+
+  useEffect(() => {
+    if (loading && totalBalance === null) {
+      Animated.timing(loadFadeAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [loading]);
 
   const savings = Math.max(0, monthlyIncome - monthlySpent);
   const savingsRate = monthlyIncome > 0 ? (savings / monthlyIncome) * 100 : 0;
@@ -240,7 +295,20 @@ export function HomeScreen() {
         setLoading(true);
       }
 
-      // Force-settle loading after 3s so user never stares at a skeleton
+      const totalCalls = 8;
+      let completedCalls = 0;
+      const tickProgress = () => {
+        completedCalls++;
+        const pct = Math.min(Math.round((completedCalls / totalCalls) * 100), 95);
+        setLoadingProgress(pct);
+        Animated.timing(loadBarAnim, {
+          toValue: pct / 100,
+          duration: 300,
+          useNativeDriver: false,
+        }).start();
+      };
+
+      // Minimum display time so the loading screen feels substantial
       const settleTimer = setTimeout(() => {
         if (!ctrl.signal.aborted) {
           setLoading(false);
@@ -270,6 +338,7 @@ export function HomeScreen() {
           const b = balRes.value;
           setTotalBalance(b.totalBalance ?? b.data?.totalBalance ?? 0);
         }
+        tickProgress();
 
         if (statsRes.status === 'fulfilled') {
           const s = statsRes.value?.data ?? statsRes.value;
@@ -286,23 +355,27 @@ export function HomeScreen() {
             grouped[c.name] = (grouped[c.name] || 0) + c.amount;
           });
           setCategories(Object.entries(grouped).map(([name, amount]) => ({ name, amount })));
-          setRecentTxns((s.recentTransactions || []).slice(0, 5));
+          setRecentTxns((s.recentTransactions || []).slice(0, 10));
         }
+        tickProgress();
 
         if (remRes.status === 'fulfilled') {
           const list = listFromResponse(remRes.value);
           setReminders(list.slice(0, 5));
         }
+        tickProgress();
 
         if (goalRes.status === 'fulfilled') {
           const list = listFromResponse(goalRes.value);
           setGoals(list.slice(0, 3));
         }
+        tickProgress();
 
         if (notifRes.status === 'fulfilled') {
           const n = notifRes.value;
           setUnreadCount(n.count ?? n.data?.count ?? 0);
         }
+        tickProgress();
 
         if (billsRes.status === 'fulfilled') {
           const billsData = billsRes.value?.data ?? billsRes.value ?? [];
@@ -311,21 +384,34 @@ export function HomeScreen() {
             bills.reduce((s: number, b: any) => s + (Number(b.amount) || 0), 0),
           );
         }
+        tickProgress();
 
         if (spacesRes.status === 'fulfilled') {
           setSpaces(listFromResponse(spacesRes.value));
         }
+        tickProgress();
 
         if (budgetsRes.status === 'fulfilled') {
           setBudgets(listFromResponse(budgetsRes.value));
         }
+        tickProgress();
       } catch {
         /* ignore */
       } finally {
         clearTimeout(settleTimer);
         if (!ctrl.signal.aborted) {
-          setLoading(false);
-          setRefreshing(false);
+          Animated.timing(loadBarAnim, {
+            toValue: 1,
+            duration: 200,
+            useNativeDriver: false,
+          }).start();
+          setLoadingProgress(100);
+          setTimeout(() => {
+            if (!ctrl.signal.aborted) {
+              setLoading(false);
+              setRefreshing(false);
+            }
+          }, 400);
         }
       }
     },
@@ -426,55 +512,113 @@ export function HomeScreen() {
   const userName = user?.firstName || 'User';
 
   if (loading && totalBalance === null) {
+    const spinDeg = spinAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['0deg', '360deg'],
+    });
     return (
       <View style={[page.screen, { backgroundColor: colors.bg.primary }]}>
-        <View style={{ paddingHorizontal: 20, paddingTop: insets.top + 12, gap: 4 }}>
-          <View
-            style={{ width: 80, height: 12, borderRadius: 6, backgroundColor: colors.bg.tertiary }}
-          />
-          <View
-            style={{
-              width: 140,
-              height: 22,
-              borderRadius: 6,
-              backgroundColor: colors.bg.tertiary,
-              marginTop: 2,
-            }}
-          />
-        </View>
-        <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
-          <View
-            style={{
+        <LinearGradient
+          colors={[`${colors.brand.primary}08`, `${colors.bg.primary}`, `${colors.bg.primary}`]}
+          locations={[0, 0.6, 1]}
+          style={{ flex: 1 }}
+        >
+          <Animated.View
+            style={{ flex: 1, opacity: loadFadeAnim, paddingTop: insets.top + 80, alignItems: 'center', paddingHorizontal: 40 }}
+          >
+            {/* Animated icon */}
+            <View style={{
+              width: 88,
+              height: 88,
+              borderRadius: 28,
+              backgroundColor: `${colors.brand.primary}12`,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 28,
+            }}>
+              <Animated.View style={{ transform: [{ rotate: spinDeg }] }}>
+                <Ionicons name="layers-outline" size={40} color={colors.brand.primary} />
+              </Animated.View>
+            </View>
+
+            {/* Title */}
+            <Text style={{
+              fontSize: 22,
+              fontWeight: '800',
+              color: colors.text.primary,
+              textAlign: 'center',
+              letterSpacing: -0.5,
+            }}>
+              Building your Dashboard
+            </Text>
+
+            {/* Subtitle */}
+            <Text style={{
+              fontSize: 14,
+              fontWeight: '500',
+              color: colors.text.tertiary,
+              textAlign: 'center',
+              marginTop: 8,
+              lineHeight: 20,
+            }}>
+              {loadingTip}
+            </Text>
+
+            {/* Progress bar */}
+            <View style={{
               width: '100%',
-              height: 260,
-              borderRadius: 24,
-              backgroundColor: colors.bg.tertiary,
-            }}
-          />
-        </View>
-        <View style={{ paddingHorizontal: 20, marginTop: 20, gap: 10 }}>
-          <View
-            style={{
-              width: '100%',
-              height: 48,
+              height: 6,
+              borderRadius: 3,
+              backgroundColor: `${colors.brand.primary}12`,
+              marginTop: 36,
+              overflow: 'hidden',
+            }}>
+              <Animated.View style={{
+                height: '100%',
+                borderRadius: 3,
+                backgroundColor: colors.brand.primary,
+                width: loadBarAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: ['0%', '100%'],
+                }),
+              }} />
+            </View>
+
+            {/* Percentage */}
+            <Text style={{
+              fontSize: 13,
+              fontWeight: '700',
+              color: colors.text.tertiary,
+              marginTop: 10,
+              fontVariant: ['tabular-nums'],
+            }}>
+              {loadingProgress}%
+            </Text>
+
+            {/* Fun fact area */}
+            <View style={{
+              marginTop: 48,
+              paddingHorizontal: 20,
+              paddingVertical: 16,
               borderRadius: 16,
-              backgroundColor: colors.bg.tertiary,
-            }}
-          />
-        </View>
-        <View style={{ paddingHorizontal: 20, marginTop: 28, gap: 10 }}>
-          <View
-            style={{ width: 120, height: 14, borderRadius: 6, backgroundColor: colors.bg.tertiary }}
-          />
-          <View
-            style={{
+              backgroundColor: `${colors.brand.primary}08`,
               width: '100%',
-              height: 120,
-              borderRadius: 20,
-              backgroundColor: colors.bg.tertiary,
-            }}
-          />
-        </View>
+              alignItems: 'center',
+            }}>
+              <Ionicons name="bulb-outline" size={18} color={colors.brand.primary} />
+              <Text style={{
+                fontSize: 12,
+                fontWeight: '500',
+                color: colors.text.tertiary,
+                textAlign: 'center',
+                marginTop: 6,
+                lineHeight: 17,
+              }}>
+                Did you know?{'\n'}Track recurring expenses to spot savings opportunities
+              </Text>
+            </View>
+          </Animated.View>
+        </LinearGradient>
       </View>
     );
   }
@@ -761,23 +905,50 @@ export function HomeScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Ionicons name="flash" size={16} color={colors.brand.primary} />
               <TextInput
+                ref={quickInputRef}
                 style={[page.quickAddInput, { color: colors.text.primary }]}
                 placeholder='e.g. "Tea 20"'
                 placeholderTextColor={colors.text.tertiary}
                 value={quickEntry}
                 onChangeText={setQuickEntry}
-                onSubmitEditing={() => handleQuickAdd(quickEntry)}
+                onSubmitEditing={() => { setShowSuggestions(false); handleQuickAdd(quickEntry); }}
                 returnKeyType="done"
                 editable={!quickEntryLoading}
+                onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               />
               {!quickEntryLoading ? (
-                <TouchableOpacity onPress={() => handleQuickAdd(quickEntry)}>
+                <TouchableOpacity onPress={() => { setShowSuggestions(false); handleQuickAdd(quickEntry); }}>
                   <Ionicons name="arrow-forward-circle" size={22} color={colors.brand.primary} />
                 </TouchableOpacity>
               ) : (
                 <ActivityIndicator size="small" color={colors.brand.primary} />
               )}
             </View>
+            {showSuggestions && suggestions.length > 0 && (
+              <View style={[page.suggestionsWrap, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
+                {suggestions.map((s: string, i: number) => (
+                  <TouchableOpacity
+                    key={s}
+                    style={[
+                      page.suggestionRow,
+                      i < suggestions.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border.subtle },
+                    ]}
+                    onPress={() => {
+                      setQuickEntry(s + ' ');
+                      setShowSuggestions(false);
+                      quickInputRef.current?.focus();
+                    }}
+                  >
+                    <Ionicons name="time-outline" size={14} color={colors.text.tertiary} />
+                    <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.primary, flex: 1 }} numberOfLines={1}>
+                      {s}
+                    </Text>
+                    <Ionicons name="arrow-up" size={12} color={colors.text.tertiary} />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
             {(() => {
               const parsed = quickEntry.trim() ? parseQuickEntry(quickEntry) : null;
               if (quickSuccess) {
@@ -877,25 +1048,28 @@ export function HomeScreen() {
           </View>
         </View>
 
-        {/* ─── SECTION 3: ACTION CENTER ─── */}
+        {/* ─── SECTION 3: QUICK ACTIONS GRID ─── */}
         <View style={{ paddingHorizontal: 20, marginTop: 22 }}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 8 }}
-          >
-            {ACTION_ITEMS.map((a) => (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+            {QUICK_ACTIONS.map((a) => (
               <TouchableOpacity
                 key={a.label}
                 onPress={() => navigation.navigate(a.route, { screen: a.screen, params: a.params })}
-                style={[page.actionPill, { backgroundColor: `${colors.brand.primary}12` }]}
+                style={[page.actionCard, { backgroundColor: colors.bg.card }]}
                 activeOpacity={0.7}
               >
-                <Ionicons name={a.icon} size={16} color={colors.brand.primary} />
-                <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>{a.label}</Text>
+                <View style={[page.actionIconWrap, { backgroundColor: `${colors.brand.primary}12` }]}>
+                  <Ionicons name={a.icon} size={22} color={colors.brand.primary} />
+                </View>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary, marginTop: 8 }}>
+                  {a.label}
+                </Text>
+                <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary, marginTop: 1 }}>
+                  {a.desc}
+                </Text>
               </TouchableOpacity>
             ))}
-          </ScrollView>
+          </View>
         </View>
 
         {/* ─── SECTION 4: RECENT TRANSACTIONS ─── */}
@@ -914,7 +1088,7 @@ export function HomeScreen() {
                 Recent Activity
               </Text>
               <TouchableOpacity
-                onPress={() => navigation.navigate('Expense', { screen: 'ExpenseHome' })}
+                onPress={() => navigation.navigate('Expense', { screen: 'ExpenseHome', params: { initialTab: 'MyWallet' } })}
               >
                 <Text style={{ fontSize: 13, fontWeight: '600', color: colors.brand.primary }}>
                   See All
@@ -933,7 +1107,11 @@ export function HomeScreen() {
                 const isExpense = tx.type === 'expense' || tx.amount < 0;
                 const amt = Math.abs(Number(tx.amount || 0));
                 return (
-                  <TouchableOpacity key={tx.id || i} activeOpacity={0.7}>
+                  <TouchableOpacity
+                    key={tx.id || i}
+                    activeOpacity={0.7}
+                    onPress={() => navigation.navigate('Expense', { screen: 'TransactionDetail', params: { transactionId: tx.id } })}
+                  >
                     <View
                       style={{
                         flexDirection: 'row',
@@ -1125,6 +1303,27 @@ export function HomeScreen() {
                 )}
               </View>
             </View>
+            {monthlyIncome > 0 && (
+              <View style={{ marginTop: 8 }}>
+                <View
+                  style={{
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: '#10B98115',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <View
+                    style={{
+                      width: `${Math.min(savingsRate, 100)}%`,
+                      height: '100%',
+                      borderRadius: 4,
+                      backgroundColor: savingsRate >= 30 ? '#10B981' : '#F59E0B',
+                    }}
+                  />
+                </View>
+              </View>
+            )}
           </View>
         </View>
 
@@ -1522,13 +1721,35 @@ const page = StyleSheet.create({
     borderWidth: 1,
     marginRight: 6,
   },
-  actionPill: {
+  actionCard: {
+    width: (W - 20 * 2 - 10) / 2,
+    borderRadius: 18,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  actionIconWrap: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  suggestionsWrap: {
+    marginTop: 10,
+    borderRadius: 14,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  suggestionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
   },
   insightCard: {
     width: (W - 20 * 2 - 10 * 2) / 3,

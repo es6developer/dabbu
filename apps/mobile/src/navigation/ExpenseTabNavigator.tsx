@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -6,8 +6,10 @@ import {
   Animated,
   StyleSheet,
   Dimensions,
-  Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useRoute, RouteProp } from '@react-navigation/native';
 import { useTheme } from '../theme';
 import { MyWalletScreen } from '../screens/transactions/MyWalletScreen';
 import { SharedCirclesScreen } from '../screens/transactions/SharedCirclesScreen';
@@ -18,8 +20,14 @@ const TAB_W = (SCREEN_WIDTH - 48) / 2;
 
 export function ExpenseTabNavigator() {
   const { colors, isDark } = useTheme();
-  const [active, setActive] = useState(1);
-  const [screen, setScreen] = useState<'MyWallet' | 'SharedCircles'>('SharedCircles');
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
+  const route = useRoute<RouteProp<{ params: { initialTab?: string } }>>();
+  const initialTab = route.params?.initialTab;
+  const defaultTab = initialTab === 'MyWallet' ? 0 : 1;
+  const defaultScreen = initialTab === 'MyWallet' ? 'MyWallet' as const : 'SharedCircles' as const;
+  const [active, setActive] = useState(defaultTab);
+  const [screen, setScreen] = useState<'MyWallet' | 'SharedCircles'>(defaultScreen);
   const slideAnim = useRef(new Animated.Value(1)).current;
   const contentFade = useRef(new Animated.Value(1)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -70,6 +78,7 @@ export function ExpenseTabNavigator() {
           {
             backgroundColor: isDark ? 'rgba(26,26,38,0.95)' : 'rgba(240,240,245,0.95)',
             borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+            marginBottom: tabBarHeight + insets.bottom + 8,
           },
         ]}
       >
@@ -120,7 +129,6 @@ export function ExpenseTabNavigator() {
 const s = StyleSheet.create({
   segWrapper: {
     marginHorizontal: 12,
-    marginBottom: Platform.OS === 'ios' ? 80 : 72,
     borderRadius: 16,
     padding: 3,
     borderWidth: 1,
