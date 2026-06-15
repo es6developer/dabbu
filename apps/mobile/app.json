@@ -13,7 +13,9 @@
       "image": "./src/assets/splash.png",
       "resizeMode": "contain"
     },
-    "assetBundlePatterns": ["src/assets/**/*"],
+    "assetBundlePatterns": [
+      "src/assets/**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.dabbu.mobile",
@@ -21,11 +23,15 @@
         "NSFaceIDUsageDescription": "Use Face ID to unlock Dabbu and authenticate payments",
         "NSCameraUsageDescription": "Scan receipts and documents",
         "NSContactsUsageDescription": "Dabbu accesses your contacts to help find friends who are already using the app, making it easy to connect and share expenses.",
-        "UIBackgroundModes": ["remote-notification"],
+        "UIBackgroundModes": [
+          "remote-notification"
+        ],
         "NSNotificationUsageDescription": "Dabbu sends notifications for expense updates, payment reminders, and shared finance activity.",
         "NSLocalNotificationUsageDescription": "Dabbu uses local notifications for reminders and alerts."
       },
-      "associatedDomains": ["applinks:dabbu.app"]
+      "associatedDomains": [
+        "applinks:dabbu.app"
+      ]
     },
     "android": {
       "adaptiveIcon": {
@@ -40,7 +46,11 @@
         "READ_SMS",
         "POST_NOTIFICATIONS",
         "RECEIVE_BOOT_COMPLETED",
-        "READ_CONTACTS"
+        "READ_CONTACTS",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.READ_CONTACTS",
+        "android.permission.WRITE_CONTACTS"
       ]
     },
     "web": {
@@ -64,6 +74,7 @@
         "projectId": "57a858a9-aa05-47d4-b908-e3d887e07597"
       }
     },
-    "projectId": "57a858a9-aa05-47d4-b908-e3d887e07597"
+    "projectId": "57a858a9-aa05-47d4-b908-e3d887e07597",
+    "owner": "dabbu1s-team"
   }
 }
