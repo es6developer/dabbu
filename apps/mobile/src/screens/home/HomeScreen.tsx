@@ -186,8 +186,6 @@ export function HomeScreen() {
     ];
     return tips[Math.floor(Math.random() * tips.length)];
   });
-  const spinAnim = useRef(new Animated.Value(0)).current;
-  const loadBarAnim = useRef(new Animated.Value(0)).current;
   const loadFadeAnim = useRef(new Animated.Value(0)).current;
   const abortRef = useRef<AbortController | null>(null);
 
@@ -212,23 +210,6 @@ export function HomeScreen() {
       setShowSuggestions(false);
     }
   }, [quickEntry, recentTxns]);
-
-  useEffect(() => {
-    const spin = Animated.loop(
-      Animated.timing(spinAnim, {
-        toValue: 1,
-        duration: 2000,
-        useNativeDriver: true,
-      }),
-    );
-    if (loading && totalBalance === null) {
-      spin.start();
-    } else {
-      spinAnim.setValue(0);
-      spin.stop();
-    }
-    return () => spin.stop();
-  }, [loading, totalBalance]);
 
   useEffect(() => {
     if (loading && totalBalance === null) {
@@ -301,11 +282,6 @@ export function HomeScreen() {
         completedCalls++;
         const pct = Math.min(Math.round((completedCalls / totalCalls) * 100), 95);
         setLoadingProgress(pct);
-        Animated.timing(loadBarAnim, {
-          toValue: pct / 100,
-          duration: 300,
-          useNativeDriver: false,
-        }).start();
       };
 
       // Minimum display time so the loading screen feels substantial
@@ -400,11 +376,6 @@ export function HomeScreen() {
       } finally {
         clearTimeout(settleTimer);
         if (!ctrl.signal.aborted) {
-          Animated.timing(loadBarAnim, {
-            toValue: 1,
-            duration: 200,
-            useNativeDriver: false,
-          }).start();
           setLoadingProgress(100);
           setTimeout(() => {
             if (!ctrl.signal.aborted) {
@@ -512,10 +483,6 @@ export function HomeScreen() {
   const userName = user?.firstName || 'User';
 
   if (loading && totalBalance === null) {
-    const spinDeg = spinAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: ['0deg', '360deg'],
-    });
     return (
       <View style={[page.screen, { backgroundColor: colors.bg.primary }]}>
         <LinearGradient
@@ -526,7 +493,7 @@ export function HomeScreen() {
           <Animated.View
             style={{ flex: 1, opacity: loadFadeAnim, paddingTop: insets.top + 80, alignItems: 'center', paddingHorizontal: 40 }}
           >
-            {/* Animated icon */}
+            {/* Static icon */}
             <View style={{
               width: 88,
               height: 88,
@@ -536,9 +503,7 @@ export function HomeScreen() {
               justifyContent: 'center',
               marginBottom: 28,
             }}>
-              <Animated.View style={{ transform: [{ rotate: spinDeg }] }}>
-                <Ionicons name="layers-outline" size={40} color={colors.brand.primary} />
-              </Animated.View>
+              <Ionicons name="layers-outline" size={40} color={colors.brand.primary} />
             </View>
 
             {/* Title */}
@@ -564,7 +529,7 @@ export function HomeScreen() {
               {loadingTip}
             </Text>
 
-            {/* Progress bar */}
+            {/* Progress bar — safe simple width */}
             <View style={{
               width: '100%',
               height: 6,
@@ -573,14 +538,11 @@ export function HomeScreen() {
               marginTop: 36,
               overflow: 'hidden',
             }}>
-              <Animated.View style={{
+              <View style={{
                 height: '100%',
                 borderRadius: 3,
                 backgroundColor: colors.brand.primary,
-                width: loadBarAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: ['0%', '100%'],
-                }),
+                width: `${loadingProgress}%`,
               }} />
             </View>
 
