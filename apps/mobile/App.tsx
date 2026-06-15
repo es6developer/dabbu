@@ -19,6 +19,7 @@ import { LockProvider } from './src/store/LockContext';
 import { FavoritesProvider } from './src/store/FavoritesContext';
 import { OfflineProvider } from './src/store/OfflineContext';
 import { ToastProvider } from './src/store/ToastContext';
+import { AlertProvider } from './src/components/ui/CustomAlert';
 import { OfflineBanner } from './src/components/ui/OfflineBanner';
 import { loadFeatures } from './src/config/features';
 import { useDeepLinks } from './src/hooks/useDeepLinks';
@@ -145,7 +146,9 @@ export default function App(): React.ReactElement | null {
                       <NotificationInitializer />
                       <View style={{ flex: 1 }}>
                         <ToastProvider>
-                          <RootNavigator />
+                          <AlertProvider>
+                            <RootNavigator />
+                          </AlertProvider>
                         </ToastProvider>
                         <OfflineBanner />
                         <ApiProgressBar />

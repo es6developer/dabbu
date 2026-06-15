@@ -46,7 +46,11 @@ export function AuthNavigator(): React.ReactElement | null {
       screenOptions={{ ...iosTransitionOptions(theme), headerShown: false }}
     >
       <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-      <Stack.Screen name="Login" component={PremiumLoginScreen} />
+      <Stack.Screen
+        name="Login"
+        component={PremiumLoginScreen}
+        options={{ gestureEnabled: false }}
+      />
       <Stack.Screen name="Signup" component={PremiumSignupScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />

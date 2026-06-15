@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { PADDING, borderRadius, shadows } from '../../theme/design';
-import { Alert } from 'react-native';
+import { useGoogleAuth, getGoogleIdToken, getGoogleError } from '../../services/google-auth';
 
 interface InputFieldProps {
   placeholder: string;
@@ -117,8 +117,9 @@ function InputField({
 export function PremiumSignupScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const { register } = useAuth();
+  const { register, googleLogin } = useAuth();
   const { colors } = useTheme();
+  const { response, promptAsync } = useGoogleAuth();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -172,6 +173,31 @@ export function PremiumSignupScreen() {
       Animated.spring(slideAnim, { toValue: 0, friction: 10, tension: 60, useNativeDriver: true }),
     ]).start();
   }, []);
+
+  useEffect(() => {
+    if (!response) return;
+    const idToken = getGoogleIdToken(response);
+    if (idToken) {
+      handleGoogleSignup(idToken);
+    } else {
+      const errMsg = getGoogleError(response);
+      if (errMsg) {
+        setError(errMsg);
+        setLoading(false);
+      }
+    }
+  }, [response]);
+
+  async function handleGoogleSignup(idToken: string) {
+    setLoading(true);
+    setError('');
+    try {
+      await googleLogin(idToken);
+    } catch (e: any) {
+      setError(e.message || 'Google sign-up failed');
+      setLoading(false);
+    }
+  }
 
   async function handleSignup() {
     if (
@@ -239,16 +265,23 @@ export function PremiumSignupScreen() {
                 }}
               >
                 <View style={{ flex: 1 }}>
-                  <Image
-                    source={require('../../../assets/logo.png')}
+                  <View
                     style={{
-                      width: 48,
-                      height: 48,
+                      width: 80,
+                      height: 80,
+                      borderRadius: 20,
+                      backgroundColor: colors.bg.secondary,
+                      alignItems: 'center',
+                      justifyContent: 'center',
                       marginBottom: 14,
-                      tintColor: colors.brand.primary,
                     }}
-                    resizeMode="contain"
-                  />
+                  >
+                    <Image
+                      source={require('../../../assets/logo.png')}
+                      style={{ width: 56, height: 56 }}
+                      resizeMode="contain"
+                    />
+                  </View>
                   <Text
                     style={{
                       fontSize: 28,
@@ -519,9 +552,16 @@ export function PremiumSignupScreen() {
               {/* Google */}
               <TouchableOpacity
                 activeOpacity={0.85}
-                onPress={() =>
-                  Alert.alert('Google Sign-In', 'Google sign-in will be available soon.')
-                }
+                onPress={async () => {
+                  try {
+                    setError('');
+                    await promptAsync();
+                  } catch (e: any) {
+                    console.error('Google sign-in prompt failed:', e);
+                    setError(e?.message || 'Google sign-in could not be started');
+                  }
+                }}
+                disabled={loading}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -532,6 +572,7 @@ export function PremiumSignupScreen() {
                   backgroundColor: colors.bg.secondary,
                   borderWidth: 1,
                   borderColor: colors.border.default,
+                  opacity: loading ? 0.5 : 1,
                 }}
               >
                 <Ionicons name="logo-google" size={20} color={colors.text.primary} />

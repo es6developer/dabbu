@@ -127,7 +127,7 @@ export function OnboardingScreen({ route }: any) {
 
   const handleNext = useCallback(async () => {
     if (index < slides.length - 1) {
-      flatRef.current?.scrollToOffset({ offset: width * (index + 1), animated: true });
+      flatRef.current?.scrollToIndex({ index: index + 1, animated: true });
     } else {
       await markSeen();
       navigation.replace('Login');
@@ -136,7 +136,7 @@ export function OnboardingScreen({ route }: any) {
 
   const handlePrev = useCallback(() => {
     if (index > 0) {
-      flatRef.current?.scrollToOffset({ offset: width * (index - 1), animated: true });
+      flatRef.current?.scrollToIndex({ index: index - 1, animated: true });
     }
   }, [index]);
 

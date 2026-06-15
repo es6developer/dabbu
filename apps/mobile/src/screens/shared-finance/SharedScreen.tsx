@@ -549,7 +549,7 @@ export function SharedScreen() {
               { text: 'Not now', style: 'cancel' },
               {
                 text: 'Upgrade',
-                onPress: () => navigation.navigate('Settings', { screen: 'Subscription' }),
+                onPress: () => navigation.navigate('Settings', { screen: 'Premium' }),
               },
             ]
           : [{ text: 'OK' }],
@@ -769,7 +769,7 @@ export function SharedScreen() {
         {/* ─── Upgrade Banner ─── */}
         {planInfo.tier === 'free' && groups.length >= maxSpaces - 1 && (
           <TouchableOpacity
-            onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}
+            onPress={() => navigation.navigate('Settings', { screen: 'Premium' })}
             style={{
               marginHorizontal: H_PADDING,
               marginTop: 20,

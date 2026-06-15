@@ -17,12 +17,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { PADDING, borderRadius, shadows } from '../../theme/design';
+import { useGoogleAuth, getGoogleIdToken, getGoogleError } from '../../services/google-auth';
 
 export function PremiumLoginScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const { login } = useAuth();
+  const { login, googleLogin } = useAuth();
   const { colors } = useTheme();
+  const { response, promptAsync } = useGoogleAuth();
   const [email, setEmail] = useState('demo@dabbu.app');
   const [password, setPassword] = useState('Demo123!');
   const [loading, setLoading] = useState(false);
@@ -39,6 +41,28 @@ export function PremiumLoginScreen() {
       Animated.spring(slideAnim, { toValue: 0, friction: 10, tension: 60, useNativeDriver: true }),
     ]).start();
   }, []);
+
+  useEffect(() => {
+    if (!response) return;
+    const idToken = getGoogleIdToken(response);
+    if (idToken) {
+      handleGoogleLogin(idToken);
+    } else {
+      const errMsg = getGoogleError(response);
+      if (errMsg) setError(errMsg);
+    }
+  }, [response]);
+
+  async function handleGoogleLogin(idToken: string) {
+    setLoading(true);
+    setError('');
+    try {
+      await googleLogin(idToken);
+    } catch (e: any) {
+      setError(e.message || 'Google sign-in failed');
+      setLoading(false);
+    }
+  }
 
   const loginErrorMap: Record<string, string> = {
     'invalid email or password': 'Incorrect email or password. Please try again.',
@@ -84,12 +108,23 @@ export function PremiumLoginScreen() {
         >
           {/* Back + Brand */}
           <View style={{ paddingHorizontal: PADDING, marginBottom: 12 }}>
-
-            <Image
-              source={require('../../../assets/logo.png')}
-              style={{ width: 48, height: 48, marginBottom: 14, tintColor: colors.brand.primary }}
-              resizeMode="contain"
-            />
+            <View
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: 20,
+                backgroundColor: colors.bg.secondary,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 14,
+              }}
+            >
+              <Image
+                source={require('../../../assets/logo.png')}
+                style={{ width: 56, height: 56 }}
+                resizeMode="contain"
+              />
+            </View>
             <Text
               style={{
                 fontSize: 28,
@@ -303,10 +338,16 @@ export function PremiumLoginScreen() {
             {/* Google */}
             <TouchableOpacity
               activeOpacity={0.85}
-              onPress={() => {
-                const { GoogleAuth } = require('expo-auth-session/providers/google');
-                Alert.alert('Google Sign-In', 'Google sign-in will be available soon.');
+              onPress={async () => {
+                try {
+                  setError('');
+                  await promptAsync();
+                } catch (e: any) {
+                  console.error('Google sign-in prompt failed:', e);
+                  setError(e?.message || 'Google sign-in could not be started');
+                }
               }}
+              disabled={loading}
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -317,6 +358,7 @@ export function PremiumLoginScreen() {
                 backgroundColor: colors.bg.secondary,
                 borderWidth: 1,
                 borderColor: colors.border.default,
+                opacity: loading ? 0.5 : 1,
               }}
             >
               <Ionicons name="logo-google" size={20} color={colors.text.primary} />

@@ -182,7 +182,7 @@ export function SharedGroupDetailScreen() {
         const [groupRes, expensesRes, activityRes] = await Promise.allSettled([
           api.get<any>(`/shared-finance/groups/${groupId}`, ctrl.signal),
           api.get<any>(`/shared-finance/groups/${groupId}/expenses`, ctrl.signal),
-          api.get<any>(`/settlements/activity/${groupId}?limit=50`, ctrl.signal),
+          api.get<any>(`/shared-finance/groups/${groupId}/settlements`, ctrl.signal),
         ]);
         if (ctrl.signal.aborted) {
           return;
@@ -230,16 +230,6 @@ export function SharedGroupDetailScreen() {
     return unsub;
   }, [loadData]);
 
-  useEffect(() => {
-    if (activeTab !== 'summary' || !groupId) return;
-    setInsightsLoading(true);
-    api
-      .get<any[]>(`/shared-finance/groups/${groupId}/insights`)
-      .then((res) => setInsights(Array.isArray(res) ? res : []))
-      .catch(() => setInsights([]))
-      .finally(() => setInsightsLoading(false));
-  }, [activeTab, groupId, expenses.length]);
-
   const members: any[] = Array.isArray(group?.members) ? group.members : [];
   const type = group?.type || 'default';
   const theme = TYPE_THEMES[type] || TYPE_THEMES.default;
@@ -253,7 +243,7 @@ export function SharedGroupDetailScreen() {
     return {
       totalSpent: totalAmount,
       totalTransactions: expenses.length,
-      pendingSettlements: group?.pendingSettlements ?? 0,
+      pendingSettlements: activityData.filter((s: any) => s.status === 'pending').length,
     };
   }, [expenses, group]);
 
@@ -1193,7 +1183,7 @@ export function SharedGroupDetailScreen() {
                   <TouchableOpacity
                     style={[s.iconBtn, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
                     onPress={() =>
-                      navigation.navigate('AiGroupSpace', { groupId, groupName: name })
+                      navigation.getParent()?.navigate('Dashboard', { screen: 'AiGroupSpace', params: { groupId, groupName: name } })
                     }
                   >
                     <Ionicons name="sparkles" size={20} color="#FFD700" />

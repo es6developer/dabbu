@@ -39,7 +39,7 @@ export function TripDashboardScreen() {
   const { accessToken, user: currentUser } = useAuth();
   const { colors } = useTheme();
   const { tripId, groupId: routeGroupId } = route.params || {};
-
+  const [groupId, setGroupId] = useState(routeGroupId);
   const [trip, setTrip] = useState<any>(null);
   const [expenses, setExpenses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,20 +47,24 @@ export function TripDashboardScreen() {
 
   const loadData = useCallback(
     async (refresh = false) => {
-      if (!tripId) return;
+      if (!groupId) return;
 
       if (refresh) setRefreshing(true);
       else setLoading(true);
       try {
         if (accessToken) setAccessToken(accessToken);
         const [tripRes, expRes] = await Promise.allSettled([
-          api.get<any>(`/trips/${tripId}`),
-          api.get<any>(`/shared-expenses?tripId=${tripId}`),
+          api.get<any>(`/shared-finance/groups/${groupId}/trip/dashboard`),
+          api.get<any>(`/shared-finance/groups/${groupId}/expenses`),
         ]);
         if (tripRes.status === 'fulfilled') setTrip(tripRes.value?.data || tripRes.value);
         if (expRes.status === 'fulfilled') {
           const d = expRes.value?.data || expRes.value;
           setExpenses(Array.isArray(d) ? d.sort((a: any, b: any) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime()) : []);
+        }
+        if (tripRes.status === 'fulfilled') {
+          const td = tripRes.value?.data || tripRes.value;
+          setGroupId(td?.groupId || groupId);
         }
       } catch {
         // ignore
@@ -69,7 +73,7 @@ export function TripDashboardScreen() {
         setRefreshing(false);
       }
     },
-    [accessToken, tripId],
+    [accessToken, groupId],
   );
 
   useFocusEffect(
@@ -103,7 +107,6 @@ export function TripDashboardScreen() {
   }, [members, totalSpent, expenses]);
 
   const recentExpenses = useMemo(() => expenses.slice(0, 5), [expenses]);
-  const groupId = routeGroupId || trip?.groupId;
 
   if (loading) {
     return (

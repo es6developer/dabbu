@@ -103,7 +103,7 @@ export function SettlementScreen() {
     try {
       if (accessToken) setAccessToken(accessToken);
       const settlementId = settlement.settlementId || settlement.id;
-      await api.post(`/shared-finance/groups/${groupId}/settlements/${settlementId}/complete`, { method: 'cash' });
+      await api.post(`/shared-finance/settlements/${settlementId}/complete`, { method: 'cash' });
       setCompletedSettlementIds(prev => new Set(prev).add(settlementId));
       showToast(`${fmt(settlement.amount || 0)} settled in cash`);
       await loadData(true);

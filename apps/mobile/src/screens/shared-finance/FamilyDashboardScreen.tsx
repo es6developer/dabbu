@@ -3,12 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
+  Dimensions,
   ScrollView,
-  ActivityIndicator,
+  TouchableOpacity,
   RefreshControl,
-  Linking,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
@@ -133,7 +133,7 @@ export function FamilyDashboardScreen() {
             <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
           </TouchableOpacity>
           <View style={{ flexDirection: 'row', gap: 8 }}>
-            <TouchableOpacity onPress={() => navigation.navigate('AiFamily', { groupId, groupName })} style={[s.backBtn, { backgroundColor: colors.bg.glassLight }]}>
+            <TouchableOpacity onPress={() => navigation.getParent()?.navigate('Dashboard', { screen: 'AiFamily', params: { groupId, groupName } })} style={[s.backBtn, { backgroundColor: colors.bg.glassLight }]}>
               <Ionicons name="sparkles" size={20} color="#FFD700" />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('SharedExpenseForm', { groupId })} style={[s.backBtn, { backgroundColor: colors.bg.glassLight }]}>
@@ -185,16 +185,7 @@ export function FamilyDashboardScreen() {
               </View>
             </View>
             {memberStats.map((member: any, i: number) => (
-              <TouchableOpacity
-                key={member.userId || i}
-                style={[s.memberCard, { backgroundColor: colors.bg.secondary }]}
-                onPress={() => {
-                  if (member.userId && member.userId !== currentUser?.id && member.balance != null && member.balance > 0) {
-                    const upiLink = `upi://pay?pa=${encodeURIComponent(member.upiId || member.email || '')}&pn=${encodeURIComponent(member.name)}&am=${Math.round(Math.abs(member.balance))}&cu=INR&tn=Settling%20via%20Dabbu`;
-                    Linking.openURL(upiLink).catch(() => Alert.alert('Settle Up', `Pay ${fmt(Math.abs(member.balance))} to ${member.name}`));
-                  }
-                }}
-              >
+              <View key={member.userId || i} style={[s.memberCard, { backgroundColor: colors.bg.secondary }]}>
                 <View style={[s.memberAvatar, { backgroundColor: `${ROLE_COLORS[member.role] || '#666'}20` }]}>
                   <Text style={[s.memberInit, { color: ROLE_COLORS[member.role] || '#666' }]}>
                     {(member.name || '?')[0]?.toUpperCase()}
@@ -209,12 +200,7 @@ export function FamilyDashboardScreen() {
                     Paid {fmt(member.totalPaid)} · {member.expenseCount} expenses
                   </Text>
                 </View>
-                {member.balance != null && Math.abs(member.balance) > 0 && (
-                  <Text style={{ fontSize: 13, fontWeight: '800', color: member.balance >= 0 ? colors.status.success : colors.status.error }}>
-                    {member.balance >= 0 ? 'Gets ' : 'Owes '}{fmt(Math.abs(member.balance))}
-                  </Text>
-                )}
-              </TouchableOpacity>
+              </View>
             ))}
           </View>
         )}
