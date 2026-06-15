@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../../store/ToastContext';
@@ -49,7 +49,7 @@ export function CreateTransactionScreen() {
   const route = useRoute<RouteProp<{ CreateTransaction: PrefillParams }, 'CreateTransaction'>>();
   const { accessToken } = useAuth();
   const { colors, isDark } = useTheme();
-  const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
   const prefill = route.params?.prefill;
   const editingTransaction = route.params?.transaction;
   const isEditing = Boolean(editingTransaction?.id);
@@ -337,7 +337,7 @@ export function CreateTransactionScreen() {
           </View>
         </ScrollView>
         {/* Save */}
-        <View style={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 16 }}>
+        <View style={{ paddingHorizontal: 20, paddingBottom: tabBarHeight + 12 }}>
           <TouchableOpacity
             onPress={handleSave}
             disabled={saving}

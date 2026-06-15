@@ -473,7 +473,7 @@ export function MyWalletScreen() {
           return (
             <TouchableOpacity
               style={[s.txCard, { backgroundColor: colors.bg.tertiary }]}
-              onPress={() => navigation.navigate('TransactionDetail', { transaction: item })}
+              onPress={() => navigation.navigate('TransactionDetail', { transactionId: item.id })}
               activeOpacity={0.7}
             >
               <View style={s.txLeft}>
