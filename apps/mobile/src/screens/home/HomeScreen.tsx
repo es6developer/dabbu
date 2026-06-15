@@ -10,10 +10,8 @@ import {
   RefreshControl,
   Keyboard,
   Dimensions,
-  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -186,7 +184,6 @@ export function HomeScreen() {
     ];
     return tips[Math.floor(Math.random() * tips.length)];
   });
-  const loadFadeAnim = useRef(new Animated.Value(0)).current;
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -210,16 +207,6 @@ export function HomeScreen() {
       setShowSuggestions(false);
     }
   }, [quickEntry, recentTxns]);
-
-  useEffect(() => {
-    if (loading && totalBalance === null) {
-      Animated.timing(loadFadeAnim, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [loading]);
 
   const savings = Math.max(0, monthlyIncome - monthlySpent);
   const savingsRate = monthlyIncome > 0 ? (savings / monthlyIncome) * 100 : 0;
@@ -484,103 +471,42 @@ export function HomeScreen() {
 
   if (loading && totalBalance === null) {
     return (
-      <View style={[page.screen, { backgroundColor: colors.bg.primary }]}>
-        <LinearGradient
-          colors={[`${colors.brand.primary}08`, `${colors.bg.primary}`, `${colors.bg.primary}`]}
-          locations={[0, 0.6, 1]}
-          style={{ flex: 1 }}
-        >
-          <Animated.View
-            style={{ flex: 1, opacity: loadFadeAnim, paddingTop: insets.top + 80, alignItems: 'center', paddingHorizontal: 40 }}
-          >
-            {/* Static icon */}
-            <View style={{
-              width: 88,
-              height: 88,
-              borderRadius: 28,
-              backgroundColor: `${colors.brand.primary}12`,
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: 28,
-            }}>
-              <Ionicons name="layers-outline" size={40} color={colors.brand.primary} />
-            </View>
-
-            {/* Title */}
-            <Text style={{
-              fontSize: 22,
-              fontWeight: '800',
-              color: colors.text.primary,
-              textAlign: 'center',
-              letterSpacing: -0.5,
-            }}>
-              Building your Dashboard
-            </Text>
-
-            {/* Subtitle */}
-            <Text style={{
-              fontSize: 14,
-              fontWeight: '500',
-              color: colors.text.tertiary,
-              textAlign: 'center',
-              marginTop: 8,
-              lineHeight: 20,
-            }}>
-              {loadingTip}
-            </Text>
-
-            {/* Progress bar — safe simple width */}
-            <View style={{
-              width: '100%',
-              height: 6,
-              borderRadius: 3,
-              backgroundColor: `${colors.brand.primary}12`,
-              marginTop: 36,
-              overflow: 'hidden',
-            }}>
-              <View style={{
-                height: '100%',
-                borderRadius: 3,
-                backgroundColor: colors.brand.primary,
-                width: `${loadingProgress}%`,
-              }} />
-            </View>
-
-            {/* Percentage */}
-            <Text style={{
-              fontSize: 13,
-              fontWeight: '700',
-              color: colors.text.tertiary,
-              marginTop: 10,
-              fontVariant: ['tabular-nums'],
-            }}>
-              {loadingProgress}%
-            </Text>
-
-            {/* Fun fact area */}
-            <View style={{
-              marginTop: 48,
-              paddingHorizontal: 20,
-              paddingVertical: 16,
-              borderRadius: 16,
-              backgroundColor: `${colors.brand.primary}08`,
-              width: '100%',
-              alignItems: 'center',
-            }}>
-              <Ionicons name="bulb-outline" size={18} color={colors.brand.primary} />
-              <Text style={{
-                fontSize: 12,
-                fontWeight: '500',
-                color: colors.text.tertiary,
-                textAlign: 'center',
-                marginTop: 6,
-                lineHeight: 17,
-              }}>
-                Did you know?{'\n'}Track recurring expenses to spot savings opportunities
-              </Text>
-            </View>
-          </Animated.View>
-        </LinearGradient>
+      <View style={[page.screen, { backgroundColor: colors.bg.primary, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top + 80, paddingHorizontal: 40 }]}>
+        <View style={{
+          width: 88, height: 88, borderRadius: 28,
+          backgroundColor: `${colors.brand.primary}12`,
+          alignItems: 'center', justifyContent: 'center', marginBottom: 28,
+        }}>
+          <Ionicons name="layers-outline" size={40} color={colors.brand.primary} />
+        </View>
+        <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary, textAlign: 'center', letterSpacing: -0.5 }}>
+          Building your Dashboard
+        </Text>
+        <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text.tertiary, textAlign: 'center', marginTop: 8, lineHeight: 20 }}>
+          {loadingTip}
+        </Text>
+        <View style={{
+          width: '100%', height: 6, borderRadius: 3,
+          backgroundColor: `${colors.brand.primary}12`, marginTop: 36, overflow: 'hidden',
+        }}>
+          <View style={{
+            height: '100%', borderRadius: 3, backgroundColor: colors.brand.primary,
+            width: `${loadingProgress}%`,
+          }} />
+        </View>
+        <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.tertiary, marginTop: 10, fontVariant: ['tabular-nums'] }}>
+          {loadingProgress}%
+        </Text>
+        <View style={{
+          marginTop: 48, paddingHorizontal: 20, paddingVertical: 16,
+          borderRadius: 16, backgroundColor: `${colors.brand.primary}08`,
+          width: '100%', alignItems: 'center',
+        }}>
+          <Ionicons name="bulb-outline" size={18} color={colors.brand.primary} />
+          <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text.tertiary, textAlign: 'center', marginTop: 6, lineHeight: 17 }}>
+            Did you know?{'\n'}Track recurring expenses to spot savings opportunities
+          </Text>
+        </View>
       </View>
     );
   }
