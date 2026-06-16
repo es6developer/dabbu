@@ -9,7 +9,7 @@ const ACCENT_ORANGE = '#F7892C';
 const ACCENT_GREEN = '#10B981';
 const ACCENT_RED = '#EF4444';
 const ACCENT_BLUE = '#3B82F6';
-const ACCENT_PURPLE = '#8B5CF6';
+const ACCENT_PURPLE = '#7C3AED';
 const ACCENT_TEAL = '#14B8A6';
 const ACCENT_GRAY = '#6B7280';
 
@@ -36,10 +36,13 @@ try {
 let deviceId: string | null = null;
 let isRegistering = false;
 let lastRegisteredToken: string | null = null;
+let lastFailedAt = 0;
+let consecutiveFailures = 0;
 
 export function resetPushRegistration(): void {
   lastRegisteredToken = null;
   isRegistering = false;
+  consecutiveFailures = 0;
 }
 
 const EAS_PROJECT_ID = '57a858a9-aa05-47d4-b908-e3d887e07597';
@@ -164,11 +167,28 @@ async function setupAndroidChannels(): Promise<void> {
   }
 }
 
+let lastAttemptAt = 0;
+
 export async function registerForPushNotifications(accessToken: string): Promise<void> {
   if (isRegistering || lastRegisteredToken === accessToken) {
     return;
   }
+  const now = Date.now();
+  if (now - lastAttemptAt < 10_000) {
+    console.log(`Push registration throttled: <10s since last attempt, skipping`);
+    return;
+  }
+  const backoffMs = Math.min(2_000 * Math.pow(2, consecutiveFailures), 120_000);
+  if (lastFailedAt > 0 && now - lastFailedAt < backoffMs) {
+    console.log(`Push registration backoff: ${backoffMs}ms, skipping`);
+    return;
+  }
+  if (consecutiveFailures >= 5) {
+    console.log(`Push registration max retries (${consecutiveFailures}) reached, skipping`);
+    return;
+  }
   isRegistering = true;
+  lastAttemptAt = now;
 
   try {
     setAccessToken(accessToken);
@@ -247,8 +267,11 @@ export async function registerForPushNotifications(accessToken: string): Promise
         5000,
       );
       lastRegisteredToken = accessToken;
+      consecutiveFailures = 0;
     } catch (e) {
       if ((e as any)?.name !== 'AbortError') {
+        lastFailedAt = Date.now();
+        consecutiveFailures++;
         console.warn('Push notification registration failed:', e);
       }
     }
