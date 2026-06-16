@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 
 const FAQS = [
@@ -40,7 +40,7 @@ export function HelpCenterScreen() {
         style={[styles.supportBtn, { backgroundColor: colors.accent.primary }]}
         onPress={() => Linking.openURL('mailto:support@dabbu.app')}
       >
-        <Ionicons name="mail-outline" size={20} color="#FFFFFF" />
+        <AntDesign  name="mail" size={20} color="#FFFFFF" />
         <Text style={[styles.supportBtnText, { color: colors.text.primary }]}>Contact Support</Text>
       </TouchableOpacity>
 
@@ -59,7 +59,7 @@ export function HelpCenterScreen() {
         >
           <View style={styles.faqHeader}>
             <Text style={[styles.faqQ, { color: colors.text.primary }]}>{faq.q}</Text>
-            <Ionicons
+            <AntDesign
               name={expanded === i ? 'chevron-up' : 'chevron-down'}
               size={18}
               color={colors.text.tertiary}

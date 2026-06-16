@@ -11,7 +11,7 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -24,7 +24,7 @@ import { getCategoryColor } from '../../config/categoryIcons';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const categoryIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
+const categoryIcons: Record<string, string> = {
   Food: 'fast-food',
   Transport: 'car',
   Shopping: 'bag',
@@ -43,7 +43,7 @@ const categoryIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
   Other: 'ellipsis-horizontal',
 };
 
-function getIcon(cat: string): keyof typeof Ionicons.glyphMap {
+function getIcon(cat: string): string {
   return categoryIcons[cat] || 'ellipsis-horizontal';
 }
 
@@ -241,7 +241,7 @@ export function TransactionsListScreen() {
               justifyContent: 'center',
             }}
           >
-            <Ionicons name={getIcon(catName)} size={20} color={catColor} />
+            <AntDesign name={getIcon(catName)} size={20} color={catColor} />
           </View>
           <View style={{ flex: 1, marginLeft: 12 }}>
             <Text
@@ -379,7 +379,7 @@ export function TransactionsListScreen() {
                 justifyContent: 'center',
               }}
             >
-              <Ionicons name="search-outline" size={20} color={colors.accent.primary} />
+              <AntDesign  name="search1" size={20} color={colors.accent.primary} />
             </TouchableOpacity>
           </View>
 
@@ -413,7 +413,7 @@ export function TransactionsListScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <Ionicons name="arrow-down-outline" size={14} color={colors.status.success} />
+                <AntDesign  name="down" size={14} color={colors.status.success} />
               </View>
               <View>
                 <Text
@@ -453,7 +453,7 @@ export function TransactionsListScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <Ionicons name="arrow-up-outline" size={14} color={colors.status.error} />
+                <AntDesign  name="up" size={14} color={colors.status.error} />
               </View>
               <View>
                 <Text
@@ -538,10 +538,10 @@ export function TransactionsListScreen() {
             <PremiumEmptyState
               icon={
                 activeFilter === 'income'
-                  ? 'cash-outline'
+                  ? 'wallet'
                   : activeFilter === 'expense'
-                    ? 'receipt-outline'
-                    : 'receipt-outline'
+                    ? 'filetext1'
+                    : 'filetext1'
               }
               title={searchQuery ? 'No matching transactions' : 'No transactions yet'}
               message={
@@ -578,7 +578,7 @@ export function TransactionsListScreen() {
         onPress={() => navigation.navigate('AddExpense')}
         style={[s.fab, { backgroundColor: colors.accent.primary }, fabShadow]}
       >
-        <Ionicons name="add-outline" size={28} color="#FFFFFF" />
+        <AntDesign  name="plus" size={28} color="#FFFFFF" />
       </TouchableOpacity>
     </View>
   );

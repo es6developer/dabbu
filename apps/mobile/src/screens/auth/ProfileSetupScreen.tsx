@@ -11,7 +11,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
@@ -94,7 +94,7 @@ export function ProfileSetupScreen() {
 
               {error ? (
                 <View style={[styles.errorBox, { backgroundColor: `${colors.status.error}12` }]}>
-                  <Ionicons name="alert-circle-outline" size={16} color={colors.status.error} />
+                  <AntDesign  name="exclamationcircle" size={16} color={colors.status.error} />
                   <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text>
                 </View>
               ) : null}

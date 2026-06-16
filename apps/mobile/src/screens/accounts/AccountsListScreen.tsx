@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { Card } from '../../components/ui/Card';
 
-const TYPE_META: Record<string, { icon: keyof typeof Ionicons.glyphMap; color: string }> = {
-  savings: { icon: 'wallet-outline', color: '#00B894' },
+const TYPE_META: Record<string, { icon: string; color: string }> = {
+  savings: { icon: 'wallet', color: '#00B894' },
   checking: { icon: 'card', color: '#0984E3' },
   credit_card: { icon: 'card', color: '#E17055' },
   cash: { icon: 'cash', color: '#FDCB6E' },
@@ -88,7 +88,7 @@ export function AccountsListScreen() {
               activeOpacity={0.7}
             >
               <View style={[styles.iconWrap, { backgroundColor: `${meta.color}18` }]}>
-                <Ionicons name={meta.icon} size={20} color={meta.color} />
+                <AntDesign name={meta.icon} size={20} color={meta.color} />
               </View>
               <View style={styles.cardInfo}>
                 <Text style={[styles.cardName, { color: colors.text.primary }]}>{item.name}</Text>
@@ -134,7 +134,7 @@ export function AccountsListScreen() {
         }}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Ionicons name="wallet-outline" size={56} color={colors.text.tertiary} />
+            <AntDesign  name="wallet" size={56} color={colors.text.tertiary} />
             <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
               Your accounts, one place
             </Text>

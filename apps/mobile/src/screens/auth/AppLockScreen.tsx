@@ -8,7 +8,7 @@ import {
   Alert,
   Dimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as SecureStore from 'expo-secure-store';
 import * as LocalAuthentication from 'expo-local-authentication';
@@ -111,7 +111,7 @@ export function AppLockScreen({ onUnlock }: Props) {
 
       <View style={styles.topSection}>
         <View style={styles.iconRing}>
-          <Ionicons name="lock-closed-outline" size={28} color="#14B8A6" />
+          <AntDesign  name="lock" size={28} color="#14B8A6" />
         </View>
         <Text style={styles.title}>Welcome back</Text>
         <Text style={styles.subtitle}>{user?.firstName || 'User'} · Enter PIN</Text>
@@ -152,7 +152,7 @@ export function AppLockScreen({ onUnlock }: Props) {
                 onPress={handleDelete}
                 activeOpacity={0.5}
               >
-                <Ionicons name="backspace-outline" size={22} color="rgba(255,255,255,0.5)" />
+                <AntDesign  name="back" size={22} color="rgba(255,255,255,0.5)" />
               </TouchableOpacity>
             );
           }
@@ -173,7 +173,7 @@ export function AppLockScreen({ onUnlock }: Props) {
 
       <View style={styles.bottomSection}>
         <TouchableOpacity style={styles.biometricBtn} onPress={handleBiometric} activeOpacity={0.7}>
-          <Ionicons name="finger-print-outline" size={22} color="#14B8A6" />
+          <AntDesign  name="fingerprint" size={22} color="#14B8A6" />
           <Text style={styles.biometricText}>Use Biometric</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={handleForgotPin} activeOpacity={0.6}>
@@ -187,7 +187,7 @@ export function AppLockScreen({ onUnlock }: Props) {
         message="You'll need to sign out and set a new PIN after logging back in."
         confirmLabel="Sign Out"
         destructive
-        icon="log-out-outline"
+        icon="logout"
         onConfirm={() => {
           setShowLogoutDialog(false);
           logout().catch(() => {});

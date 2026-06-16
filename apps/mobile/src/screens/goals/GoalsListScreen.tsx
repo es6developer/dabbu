@@ -16,7 +16,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
@@ -311,7 +311,7 @@ function MilestoneDot({
                 transform: [{ scale: scaleAnim }],
               }}
             >
-              <Ionicons name="checkmark-outline" size={14} color="#FFF" />
+              <AntDesign  name="check" size={14} color="#FFF" />
             </Animated.View>
           </>
         ) : (
@@ -412,7 +412,7 @@ function GoalCard({
         <View style={s.cardTopRow}>
           <View style={s.cardLeftCol}>
             <View style={[s.cardIcon, { borderRadius: 12 }]}>
-              <Ionicons name={config.icon as any} size={22} color={config.color} />
+              <AntDesign name={config.icon as any} size={22} color={config.color} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={[typography.h4, { color: colors.text.primary }]} numberOfLines={1}>
@@ -480,8 +480,8 @@ function GoalCard({
           <View style={{ flex: 1, alignItems: 'flex-end', gap: 2 }}>
             {daysLeft !== null && (
               <View style={s.footerBadge}>
-                <Ionicons
-                  name="calendar-outline"
+                <AntDesign
+                   name="calendar"
                   size={11}
                   color={daysLeft <= 30 ? colors.status.error : colors.text.tertiary}
                 />
@@ -500,7 +500,7 @@ function GoalCard({
             )}
             {monthly > 0 && (
               <View style={s.footerBadge}>
-                <Ionicons name="repeat-outline" size={11} color={colors.text.tertiary} />
+                <AntDesign  name="retweet" size={11} color={colors.text.tertiary} />
                 <Text style={[typography.footnote, { color: colors.text.secondary }]}>
                   {fmt(monthly)}/mo
                 </Text>
@@ -508,7 +508,7 @@ function GoalCard({
             )}
             {prediction && (
               <View style={s.footerBadge}>
-                <Ionicons name="pulse-outline" size={11} color={paceColor} />
+                <AntDesign  name="hearto" size={11} color={paceColor} />
                 <Text style={[typography.footnote, { color: paceColor, fontWeight: '700' }]}>
                   {prediction.currentPace}
                 </Text>
@@ -528,7 +528,7 @@ function GoalCard({
 
         {prediction?.improvementTip && (
           <View style={[s.taglineRow, { backgroundColor: colors.bg.tertiary }]}>
-            <Ionicons name="bulb-outline" size={13} color={config.color} />
+            <AntDesign  name="bulb1" size={13} color={config.color} />
             <Text style={[typography.footnote, { color: colors.text.secondary, flex: 1 }]} numberOfLines={2}>
               {prediction.improvementTip}
             </Text>
@@ -536,7 +536,7 @@ function GoalCard({
         )}
         {!prediction?.improvementTip && (
           <View style={[s.taglineRow, { backgroundColor: 'transparent' }]}>
-            <Ionicons name="sparkles-outline" size={13} color={config.color} />
+            <AntDesign  name="star" size={13} color={config.color} />
             <Text style={[typography.footnote, { color: config.color, fontWeight: '600' }]}>
               {tagline}
             </Text>
@@ -545,7 +545,7 @@ function GoalCard({
 
         {flashMilestone !== null && (
           <View style={[StyleSheet.absoluteFill, s.celebrationFlash]}>
-            <Ionicons name="checkmark-circle-outline" size={56} color={config.color} />
+            <AntDesign  name="checkcircleo" size={56} color={config.color} />
             <Text style={[typography.h4, { color: '#FFF', marginTop: 4 }]}>
               {flashMilestone}% Reached!
             </Text>
@@ -711,7 +711,7 @@ function GoalsEmptyState({
   return (
     <View style={s.emptyWrap}>
       <EmptyState
-        icon="trophy-outline"
+        icon="trophy"
         title="Set your first goal"
         message="Goals turn your dreams into a plan. Save for a vacation, build an emergency fund, or buy your dream home \u2014 Dabbu helps you track every step."
         actionLabel="Create Goal"
@@ -747,7 +747,7 @@ function GoalsEmptyState({
               onPress={() => onSuggestionPress(sg)}
             >
               <View style={[s.suggestionIcon, { borderRadius: 10 }]}>
-                <Ionicons name={cfg.icon as any} size={20} color={cfg.color} />
+                <AntDesign name={cfg.icon as any} size={20} color={cfg.color} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[typography.h4, { color: colors.text.primary }]}>{sg.name}</Text>
@@ -755,7 +755,7 @@ function GoalsEmptyState({
                   Target: {fmt(sg.target)}
                 </Text>
               </View>
-              <Ionicons name="add-circle-outline" size={24} color={colors.accent.primary} />
+              <AntDesign  name="pluscircleo" size={24} color={colors.accent.primary} />
             </TouchableOpacity>
           );
         })}
@@ -928,7 +928,7 @@ function CreateGoalModal({
                       onPress={() => setType(gt.key)}
                       activeOpacity={0.7}
                     >
-                      <Ionicons
+                      <AntDesign
                         name={gt.icon as any}
                         size={16}
                         color={type === gt.key ? gt.color : colors.text.secondary}
@@ -1049,7 +1049,7 @@ function CreateGoalModal({
                       <ActivityIndicator size="small" color="#FFF" />
                     ) : (
                       <>
-                        <Ionicons name="sparkles-outline" size={18} color="#FFF" />
+                        <AntDesign  name="star" size={18} color="#FFF" />
                         <Text style={[typography.button, { color: '#FFF' }]}>Create Goal</Text>
                       </>
                     )}
@@ -1192,7 +1192,7 @@ export function GoalsListScreen() {
                     style={[s.addBtn, { backgroundColor: colors.accent.primary + '20' }]}
                     activeOpacity={0.7}
                   >
-                    <Ionicons name="add-outline" size={22} color={colors.accent.primary} />
+                    <AntDesign  name="plus" size={22} color={colors.accent.primary} />
                   </TouchableOpacity>
                 }
               />
@@ -1207,13 +1207,13 @@ export function GoalsListScreen() {
                 <View style={{ marginTop: 8, marginBottom: 4 }}>
                   <View style={[s.rebalCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                      <Ionicons name="shuffle-outline" size={16} color="#7C3AED" />
+                      <AntDesign  name="swap" size={16} color="#7C3AED" />
                       <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>AI Rebalance Suggestions</Text>
                     </View>
                     {rebalanceData.slice(0, 3).map((s: any) => (
                       <View key={s.goalId} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6, borderTopWidth: 1, borderTopColor: colors.border.subtle }}>
                         <View style={{ width: 24, height: 24, borderRadius: 6, backgroundColor: (s.goalColor || '#7C3AED') + '20', alignItems: 'center', justifyContent: 'center' }}>
-                          <Ionicons name={s.goalIcon as any} size={12} color={s.goalColor || '#7C3AED'} />
+                          <AntDesign name={s.goalIcon as any} size={12} color={s.goalColor || '#7C3AED'} />
                         </View>
                         <Text style={{ flex: 1, fontSize: 12, fontWeight: '600', color: colors.text.primary }} numberOfLines={1}>{s.goalName}</Text>
                         <Text style={{ fontSize: 11, fontWeight: '700', color: s.action === 'increase' ? '#16A34A' : '#DC2626' }}>

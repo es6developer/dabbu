@@ -12,7 +12,7 @@ import {
   Platform,
   Keyboard,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
@@ -171,7 +171,7 @@ export function LoginScreen() {
                   marginBottom: 16,
                 }}
               >
-                <Ionicons name="alert-circle-outline" size={16} color={colors.status.error} />
+                <AntDesign  name="exclamationcircle" size={16} color={colors.status.error} />
                 <Text
                   style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}
                 >
@@ -205,8 +205,8 @@ export function LoginScreen() {
                   paddingHorizontal: 16,
                 }}
               >
-                <Ionicons
-                  name="mail-outline"
+                <AntDesign
+                   name="mail"
                   size={18}
                   color={emailFocused ? colors.brand.primary : colors.text.tertiary}
                 />
@@ -257,8 +257,8 @@ export function LoginScreen() {
                   paddingHorizontal: 16,
                 }}
               >
-                <Ionicons
-                  name="lock-closed-outline"
+                <AntDesign
+                   name="lock"
                   size={18}
                   color={passFocused ? colors.brand.primary : colors.text.tertiary}
                 />
@@ -281,8 +281,8 @@ export function LoginScreen() {
                   onBlur={() => setPassFocused(false)}
                 />
                 <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                  <Ionicons
-                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                  <AntDesign
+                    name={showPassword ? 'eyeo' : 'eye'}
                     size={20}
                     color={colors.text.tertiary}
                   />
@@ -367,7 +367,7 @@ export function LoginScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <Ionicons name="logo-google" size={24} color={colors.text.primary} />
+                <AntDesign  name="google" size={24} color={colors.text.primary} />
               </TouchableOpacity>
               <TouchableOpacity
                 activeOpacity={0.85}
@@ -380,7 +380,7 @@ export function LoginScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <Ionicons name="logo-facebook" size={24} color={colors.text.primary} />
+                <AntDesign  name="facebook-square" size={24} color={colors.text.primary} />
               </TouchableOpacity>
               <TouchableOpacity
                 activeOpacity={0.85}
@@ -393,7 +393,7 @@ export function LoginScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <Ionicons name="logo-apple" size={24} color={colors.text.primary} />
+                <AntDesign  name="apple1" size={24} color={colors.text.primary} />
               </TouchableOpacity>
             </View>
 

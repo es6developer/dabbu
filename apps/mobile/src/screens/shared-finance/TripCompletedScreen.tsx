@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CelebrationOverlay } from '../../components/ui/CelebrationOverlay';
@@ -53,7 +53,7 @@ export function TripCompletedScreen({ route, navigation }: TripCompletedScreenPr
           
           style={styles.iconWrap}
         >
-          <Ionicons name="checkmark-circle-outline" size={64} color={colors.status.success} />
+          <AntDesign  name="checkcircleo" size={64} color={colors.status.success} />
         </View>
 
         <Text style={[styles.heroTitle, { color: colors.text.primary }]}>
@@ -98,7 +98,7 @@ export function TripCompletedScreen({ route, navigation }: TripCompletedScreenPr
               {formatAmount(yourShare)}
             </Text>
           </View>
-          <Ionicons name="wallet-outline" size={28} color={colors.accent.primary} />
+          <AntDesign  name="wallet" size={28} color={colors.accent.primary} />
         </View>
       </View>
 
@@ -108,19 +108,19 @@ export function TripCompletedScreen({ route, navigation }: TripCompletedScreenPr
         </Text>
 
         <View style={styles.perkRow}>
-          <Ionicons name="sparkles-outline" size={20} color={colors.status.warning} />
+          <AntDesign  name="star" size={20} color={colors.status.warning} />
           <Text style={[styles.perkText, { color: colors.text.secondary }]}>
             Get 1 month premium free
           </Text>
         </View>
         <View style={styles.perkRow}>
-          <Ionicons name="globe-outline" size={20} color={colors.accent.primary} />
+          <AntDesign  name="earth" size={20} color={colors.accent.primary} />
           <Text style={[styles.perkText, { color: colors.text.secondary }]}>
             Manage all future trips with Dabbu
           </Text>
         </View>
         <View style={styles.perkRow}>
-          <Ionicons name="people-outline" size={20} color={colors.status.success} />
+          <AntDesign  name="team" size={20} color={colors.status.success} />
           <Text style={[styles.perkText, { color: colors.text.secondary }]}>
             Invite friends for realtime expense splitting
           </Text>
@@ -137,7 +137,7 @@ export function TripCompletedScreen({ route, navigation }: TripCompletedScreenPr
             
             style={styles.ctaGradient}
           >
-            <Ionicons name="rocket-outline" size={20} color="#FFF" />
+            <AntDesign  name="rocket" size={20} color="#FFF" />
             <Text style={styles.ctaText}>Claim Your Free Premium Trial</Text>
           </View>
         </TouchableOpacity>

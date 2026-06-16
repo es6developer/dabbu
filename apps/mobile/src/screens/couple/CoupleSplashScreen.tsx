@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, TouchableOpacity, TextInput, ActivityIndicator, Clipboard,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -81,7 +81,7 @@ export function CoupleSplashScreen() {
         <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12 }}>
           {step !== 'intro' && (
             <TouchableOpacity onPress={() => setStep('intro')}>
-              <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+              <AntDesign  name="left" size={24} color={colors.text.primary} />
             </TouchableOpacity>
           )}
           <View style={{ flex: 1 }} />
@@ -96,7 +96,7 @@ export function CoupleSplashScreen() {
               width: 96, height: 96, borderRadius: 28,
               backgroundColor: `${colors.accent.primary}20`, alignItems: 'center', justifyContent: 'center',
             }}>
-              <Ionicons name="heart-circle-outline" size={48} color={colors.accent.primary} />
+              <AntDesign  name="heart" size={48} color={colors.accent.primary} />
             </View>
             <Text style={{ fontSize: 28, fontWeight: '800', color: colors.text.primary, textAlign: 'center' }}>
               Together{'\n'}Financial Journey
@@ -133,7 +133,7 @@ export function CoupleSplashScreen() {
 
         {step === 'invite' && (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 20 }}>
-            <Ionicons name="checkmark-circle-outline" size={64} color={colors.status.success} />
+            <AntDesign  name="checkcircleo" size={64} color={colors.status.success} />
             <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary, textAlign: 'center' }}>
               Couple Space Created!
             </Text>

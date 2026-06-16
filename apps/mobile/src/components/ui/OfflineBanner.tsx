@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { useOffline } from '../../store/OfflineContext';
@@ -16,7 +16,7 @@ export function OfflineBanner() {
 
   const bg = isOnline ? colors.status.warning : colors.status.error;
   const text = '#FFFFFF';
-  const icon = isOnline ? 'cloud-upload-outline' : 'cloud-offline-outline';
+  const icon = isOnline ? 'clouduploado' : 'cloudo';
   const message = isOnline
     ? `${pendingCount} change${pendingCount !== 1 ? 's' : ''} pending sync`
     : 'You are offline — changes will sync automatically';
@@ -38,7 +38,7 @@ export function OfflineBanner() {
         paddingHorizontal: 16,
       }}
     >
-      <Ionicons name={icon} size={14} color={text} />
+      <AntDesign name={icon} size={14} color={text} />
       <Text style={{ fontSize: 12, fontWeight: '600', color: text }}>{message}</Text>
     </View>
   );

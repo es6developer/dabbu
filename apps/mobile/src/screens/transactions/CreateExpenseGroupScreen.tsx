@@ -12,7 +12,7 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -181,7 +181,7 @@ export function CreateExpenseGroupScreen() {
         <View style={{ paddingHorizontal: 20, paddingTop: 52, paddingBottom: 28 }}>
           <View style={s.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-              <Ionicons name="close-outline" size={22} color="#FFF" />
+              <AntDesign  name="close" size={22} color="#FFF" />
             </TouchableOpacity>
             <Text style={s.headerTitle}>New Split Group</Text>
             <View style={{ width: 34 }} />
@@ -198,7 +198,7 @@ export function CreateExpenseGroupScreen() {
         >
           {error ? (
             <View style={[s.errorBox, { backgroundColor: `${colors.status.error}12` }]}>
-              <Ionicons name="alert-circle-outline" size={16} color={colors.status.error} />
+              <AntDesign  name="exclamationcircle" size={16} color={colors.status.error} />
               <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
             </View>
           ) : null}
@@ -267,7 +267,7 @@ export function CreateExpenseGroupScreen() {
                     onPress={() => setIcon(ic.key)}
                     activeOpacity={0.7}
                   >
-                    <Ionicons
+                    <AntDesign
                       name={ic.key as any}
                       size={22}
                       color={active ? ic.color : colors.text.tertiary}
@@ -324,7 +324,7 @@ export function CreateExpenseGroupScreen() {
                   />
                   {phone.trim() ? (
                     <TouchableOpacity onPress={() => removeRow(index)} style={{ padding: 4 }}>
-                      <Ionicons name="close-circle-outline" size={18} color="#EF4444" />
+                      <AntDesign  name="closecircleo" size={18} color="#EF4444" />
                     </TouchableOpacity>
                   ) : null}
                 </View>
@@ -355,7 +355,7 @@ export function CreateExpenseGroupScreen() {
                             {user.email ? ` · ${user.email}` : ''}
                           </Text>
                         </View>
-                        <Ionicons name="add-circle-outline" size={20} color={PURPLE} />
+                        <AntDesign  name="pluscircleo" size={20} color={PURPLE} />
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -363,7 +363,7 @@ export function CreateExpenseGroupScreen() {
               </View>
             ))}
             <TouchableOpacity style={s.addMemberBtn} onPress={addRow} activeOpacity={0.7}>
-              <Ionicons name="add-circle-outline" size={18} color={PURPLE} />
+              <AntDesign  name="pluscircleo" size={18} color={PURPLE} />
               <Text style={[s.addMemberText, { color: PURPLE }]}>Add another member</Text>
             </TouchableOpacity>
           </View>
@@ -375,7 +375,7 @@ export function CreateExpenseGroupScreen() {
               { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
             ]}
           >
-            <Ionicons name="shield-outline" size={14} color="#EF4444" />
+            <AntDesign  name="Safety" size={14} color="#EF4444" />
             <Text style={[s.planInfoText, { color: colors.text.tertiary }]}>
               Free plan: 5 circles max · 2 members per circle
             </Text>
@@ -400,7 +400,7 @@ export function CreateExpenseGroupScreen() {
               end={{ x: 1, y: 0 }}
               style={s.saveGrad}
             >
-              <Ionicons name={saving ? 'hourglass-outline' : 'add'} size={18} color="#FFF" />
+              <AntDesign name={saving ? 'hourglass' : 'add'} size={18} color="#FFF" />
               <Text style={s.saveText}>{saving ? 'Creating...' : 'Create Split Group'}</Text>
             </LinearGradient>
           </TouchableOpacity>

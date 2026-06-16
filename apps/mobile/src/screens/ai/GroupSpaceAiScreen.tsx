@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 import ReAnimated, { FadeInUp } from 'react-native-reanimated';
@@ -115,7 +115,7 @@ export function GroupSpaceAiScreen() {
     return (
       <View style={[s.screen, { backgroundColor: AI_COLORS.bg, paddingTop: insets.top + 60 }]}>
         <View style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
-          <Ionicons name="airplane-outline" size={48} color={AI_COLORS.textTertiary} />
+          <AntDesign  name="airplane" size={48} color={AI_COLORS.textTertiary} />
           <Text style={{ fontSize: 18, fontWeight: '700', color: AI_COLORS.text }}>
             No trip data
           </Text>
@@ -152,7 +152,7 @@ export function GroupSpaceAiScreen() {
           <AiCard padding={20}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 }}>
               <View style={[s.heroIcon, { backgroundColor: `${AI_COLORS.primary}20` }]}>
-                <Ionicons name="cash-outline" size={24} color={AI_COLORS.primary} />
+                <AntDesign  name="wallet" size={24} color={AI_COLORS.primary} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.heroTitle}>Settlement Optimizer</Text>
@@ -197,7 +197,7 @@ export function GroupSpaceAiScreen() {
                           {settle.fromName?.[0] ?? '?'}
                         </Text>
                       </View>
-                      <Ionicons name="arrow-forward-outline" size={16} color={AI_COLORS.primary} />
+                      <AntDesign  name="arrowright" size={16} color={AI_COLORS.primary} />
                       <View style={[s.avatar, { backgroundColor: `${AI_COLORS.success}20` }]}>
                         <Text style={[s.avatarText, { color: AI_COLORS.success }]}>
                           {settle.toName?.[0] ?? '?'}
@@ -222,7 +222,7 @@ export function GroupSpaceAiScreen() {
               style={{ paddingHorizontal: 16, marginTop: 16 }}
             >
               <TouchableOpacity style={s.settleBtn}>
-                <Ionicons name="checkmark-circle-outline" size={18} color="#FFF" />
+                <AntDesign  name="checkcircleo" size={18} color="#FFF" />
                 <Text style={s.settleBtnText}>Apply Settlements</Text>
               </TouchableOpacity>
             </ReAnimated.View>

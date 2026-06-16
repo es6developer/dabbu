@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import ReAnimated, { FadeInUp } from 'react-native-reanimated';
@@ -28,7 +28,7 @@ interface LifeEventItem {
 
 interface NotificationSection {
   title: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: string;
   color: string;
   data: {
     title: string;
@@ -98,7 +98,7 @@ export function SmartNotificationScreen() {
           if (achieved.length > 0) {
             result.push({
               title: 'Milestones',
-              icon: 'trophy-outline',
+              icon: 'trophy',
               color: AI_COLORS.warning,
               data: achieved.map((m: MilestoneItem) => ({
                 title: m.title,
@@ -118,7 +118,7 @@ export function SmartNotificationScreen() {
           if (unconfirmed.length > 0) {
             result.push({
               title: 'Life Events',
-              icon: 'calendar-outline',
+              icon: 'calendar',
               color: AI_COLORS.primary,
               data: unconfirmed.map((e: LifeEventItem) => ({
                 title: e.title ?? e.eventType,
@@ -169,7 +169,7 @@ export function SmartNotificationScreen() {
     return (
       <View style={[s.screen, { backgroundColor: AI_COLORS.bg, paddingTop: insets.top + 60 }]}>
         <View style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
-          <Ionicons name="notifications-off-outline" size={48} color={AI_COLORS.textTertiary} />
+          <AntDesign  name="bells" size={48} color={AI_COLORS.textTertiary} />
           <Text style={{ fontSize: 18, fontWeight: '700', color: AI_COLORS.text }}>
             No notifications
           </Text>
@@ -207,7 +207,7 @@ export function SmartNotificationScreen() {
             <View style={s.sectionHeader}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <View style={[s.sectionIcon, { backgroundColor: `${section.color}20` }]}>
-                  <Ionicons name={section.icon} size={16} color={section.color} />
+                  <AntDesign name={section.icon} size={16} color={section.color} />
                 </View>
                 <Text style={s.sectionTitle}>{section.title}</Text>
               </View>

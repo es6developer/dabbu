@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { getCategoryIcon } from '../../config/categoryIcons';
 import { Avatar } from './Avatar';
@@ -31,7 +31,7 @@ export function TransactionCard({
   const isExpense = amount < 0;
   const absAmount = Math.abs(amount);
 
-  const iconName = getCategoryIcon(category, 'ellipse-outline');
+  const iconName = getCategoryIcon(category, 'minuscirlceo');
 
   return (
     <TouchableOpacity

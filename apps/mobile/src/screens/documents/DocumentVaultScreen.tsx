@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
@@ -213,11 +213,11 @@ export function DocumentVaultScreen() {
                 activeOpacity={0.7}
                 onPress={() => navigation.navigate('DocumentDetail', { mode: 'list' })}
               >
-                <Ionicons name="alert-circle-outline" size={18} color={colors.status.warning} />
+                <AntDesign  name="exclamationcircle" size={18} color={colors.status.warning} />
                 <Text style={[s.expiryText, { color: colors.status.warning }]}>
                   {expiringDocs.length} document{expiringDocs.length !== 1 ? 's' : ''} expiring soon
                 </Text>
-                <Ionicons name="chevron-forward" size={14} color={colors.status.warning} />
+                <AntDesign  name="right" size={14} color={colors.status.warning} />
               </TouchableOpacity>
             )}
 
@@ -239,7 +239,7 @@ export function DocumentVaultScreen() {
                     <View
                       style={[s.categoryIcon, { backgroundColor: `${colors.accent.primary}18` }]}
                     >
-                      <Ionicons
+                      <AntDesign
                         name={(CATEGORY_ICONS[cat.key] || 'document') as any}
                         size={18}
                         color={colors.accent.primary}
@@ -301,7 +301,7 @@ export function DocumentVaultScreen() {
               onPress={() => navigation.navigate('DocumentDetail', { id: item.id, mode: 'view' })}
             >
               <View style={[s.docIcon, { backgroundColor: `${colors.accent.primary}18` }]}>
-                <Ionicons
+                <AntDesign
                   name={
                     ext === 'pdf'
                       ? 'document'
@@ -341,13 +341,13 @@ export function DocumentVaultScreen() {
                   </Text>
                 )}
               </View>
-              <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+              <AntDesign  name="right" size={16} color={colors.text.tertiary} />
             </TouchableOpacity>
           );
         }}
         ListEmptyComponent={
           <View style={s.emptyState}>
-            <Ionicons name="folder-open-outline" size={48} color={colors.text.tertiary} />
+            <AntDesign  name="folderopen" size={48} color={colors.text.tertiary} />
             <Text style={[s.emptyTitle, { color: colors.text.primary }]}>No Documents</Text>
             <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>
               {selectedCategory

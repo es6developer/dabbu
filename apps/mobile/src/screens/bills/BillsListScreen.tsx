@@ -11,7 +11,7 @@ import {
   Platform,
   UIManager,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
@@ -118,7 +118,7 @@ function AccordionSection({
           </View>
         </View>
         <Animated.View style={{ transform: [{ rotate }] }}>
-          <Ionicons name="chevron-down" size={20} color={colors.text.tertiary} />
+          <AntDesign  name="down" size={20} color={colors.text.tertiary} />
         </Animated.View>
       </TouchableOpacity>
 
@@ -145,7 +145,7 @@ function BillCard({ bill, colors, onPress }: { bill: BillItem; colors: any; onPr
     >
       <View style={styles.billCardLeft}>
         <View style={styles.categoryDot}>
-          <Ionicons name="receipt-outline" size={14} color="#FFFFFF" />
+          <AntDesign  name="filetext1" size={14} color="#FFFFFF" />
         </View>
         <View style={styles.billCardInfo}>
           <Text style={[styles.billMerchant, { color: colors.text.primary }]} numberOfLines={1}>
@@ -206,11 +206,11 @@ function ComparisonCard({
       activeOpacity={0.7}
     >
       <View style={styles.comparisonHeader}>
-        <Ionicons name="trending-up-outline" size={18} color={colors.accent.primary} />
+        <AntDesign  name="linechart" size={18} color={colors.accent.primary} />
         <Text style={[styles.comparisonTitle, { color: colors.text.primary }]}>
           {getMonthName(latest.month)} vs {getMonthName(previous.month)}
         </Text>
-        <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+        <AntDesign  name="right" size={16} color={colors.text.tertiary} />
       </View>
       <View style={styles.comparisonBody}>
         <View style={styles.comparisonCol}>
@@ -237,7 +237,7 @@ function ComparisonCard({
         </View>
       </View>
       <View style={[styles.comparisonFooter, { borderTopColor: colors.border.subtle }]}>
-        <Ionicons
+        <AntDesign
           name={isUp ? 'arrow-up' : 'arrow-down'}
           size={14}
           color={isUp ? colors.status.error : colors.status.success}
@@ -260,7 +260,7 @@ function EmptyState({ colors, onScan }: { colors: any; onScan: () => void }) {
   return (
     <View style={styles.emptyContainer}>
       <View style={[styles.emptyIconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
-        <Ionicons name="receipt-outline" size={56} color={colors.brand.primary} />
+        <AntDesign  name="filetext1" size={56} color={colors.brand.primary} />
       </View>
       <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No Bills Yet</Text>
       <Text style={[styles.emptyDesc, { color: colors.text.primary }]}>
@@ -268,7 +268,7 @@ function EmptyState({ colors, onScan }: { colors: any; onScan: () => void }) {
       </Text>
       <View style={[styles.emptyBtn, { backgroundColor: colors.brand.primary }]}>
         <TouchableOpacity style={styles.emptyBtnInner} onPress={onScan} activeOpacity={0.8}>
-          <Ionicons name="camera-outline" size={20} color="#FFFFFF" />
+          <AntDesign  name="camera" size={20} color="#FFFFFF" />
           <Text style={styles.emptyBtnText}>Scan Your First Bill</Text>
         </TouchableOpacity>
       </View>
@@ -378,7 +378,7 @@ export function BillsListScreen() {
         <View style={[styles.headerContent, { paddingTop: insets.top + 12 }]}>
           <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Bills</Text>
           <TouchableOpacity style={[styles.headerBtn, { backgroundColor: colors.bg.tertiary }]}>
-            <Ionicons name="options-outline" size={22} color={colors.text.tertiary} />
+            <AntDesign  name="setting" size={22} color={colors.text.tertiary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -395,7 +395,7 @@ export function BillsListScreen() {
         <Animated.View style={{ opacity: fadeAnim }}>
           {error && groups.length === 0 ? (
             <View style={styles.errorContainer}>
-              <Ionicons name="cloud-offline-outline" size={56} color={colors.status.error} />
+              <AntDesign  name="cloudo" size={56} color={colors.status.error} />
               <Text style={[styles.errorTitle, { color: colors.text.primary }]}>
                 Failed to Load
               </Text>
@@ -407,7 +407,7 @@ export function BillsListScreen() {
                   loadBills();
                 }}
               >
-                <Ionicons name="refresh-outline" size={20} color="#FFFFFF" />
+                <AntDesign  name="reload1" size={20} color="#FFFFFF" />
                 <Text style={styles.emptyBtnText}>Try Again</Text>
               </TouchableOpacity>
             </View>

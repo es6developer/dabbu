@@ -1,6 +1,6 @@
 import React, { useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, Switch, Animated, TouchableOpacity, Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../../theme';
 import { useAuth } from '../../store/AuthContext';
@@ -73,8 +73,8 @@ export function CoupleModeToggle({ onToggle }: Props) {
             },
           ]}
         >
-          <Ionicons
-            name={isCoupleMode ? 'heart' : 'heart-outline'}
+          <AntDesign
+            name={isCoupleMode ? 'heart' : 'hearto'}
             size={18}
             color={isCoupleMode ? '#FFF' : colors.accent.primary}
           />

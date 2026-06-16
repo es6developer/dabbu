@@ -1,11 +1,10 @@
 import React from 'react';
 import { FlatList, Text, TouchableOpacity, View, useColorScheme } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-
+import { AntDesign } from '@expo/vector-icons';
 export interface QuickCategoryNode {
   id: string;
   label: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: string;
   color?: string;
 }
 
@@ -52,7 +51,7 @@ export const QuickScrollCategoryGrid: React.FC<QuickScrollCategoryGridProps> = (
             backgroundColor: isSelected ? nodeColor : bgColor,
           }}
         >
-          <Ionicons
+          <AntDesign
             name={item.icon}
             size={ICON_SIZE}
             color={isSelected ? selectedIconColor : defaultIconColor}

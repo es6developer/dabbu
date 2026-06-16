@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { DetailSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { useRoute } from '@react-navigation/native';
 import { useTheme } from '../../theme';
@@ -107,7 +107,7 @@ function ItemRow({ name, price, colors }: { name: string; price?: number; colors
   return (
     <View style={[styles.itemRow, { borderBottomColor: colors.border.subtle }]}>
       <View style={[styles.itemDot, { backgroundColor: `${colors.accent.primary}20` }]}>
-        <Ionicons name="cube-outline" size={14} color={colors.accent.primary} />
+        <AntDesign  name="appstore1" size={14} color={colors.accent.primary} />
       </View>
       <View style={styles.itemInfo}>
         <Text style={[styles.itemName, { color: colors.text.primary }]}>{name}</Text>
@@ -138,7 +138,7 @@ function PriceChangeRow({ item, colors }: { item: PriceChange; colors: any }) {
             },
           ]}
         >
-          <Ionicons
+          <AntDesign
             name={isIncrease ? 'arrow-up' : 'arrow-down'}
             size={14}
             color={isIncrease ? colors.status.error : colors.status.success}
@@ -151,8 +151,8 @@ function PriceChangeRow({ item, colors }: { item: PriceChange; colors: any }) {
           <Text style={[styles.priceOld, { color: colors.text.tertiary }]}>
             {formatCurrency(item.month1Price)}
           </Text>
-          <Ionicons
-            name="arrow-forward-outline"
+          <AntDesign
+             name="arrowright"
             size={12}
             color={colors.text.tertiary}
             style={{ marginHorizontal: 4 }}
@@ -238,7 +238,7 @@ export function MonthlyComparisonScreen() {
     return (
       <View style={[styles.centered, { backgroundColor: colors.bg.primary }]}>
         <View style={[styles.errorIconWrap, { backgroundColor: `${colors.status.error}18` }]}>
-          <Ionicons name="alert-circle-outline" size={32} color={colors.status.error} />
+          <AntDesign  name="exclamationcircle" size={32} color={colors.status.error} />
         </View>
         <Text style={[styles.errorText, { color: colors.text.primary }]}>{error}</Text>
       </View>
@@ -342,7 +342,7 @@ export function MonthlyComparisonScreen() {
             ]}
           >
             <View style={styles.emptyIconWrap}>
-              <Ionicons name="analytics-outline" size={28} color="#FFFFFF" />
+              <AntDesign  name="linechart" size={28} color="#FFFFFF" />
             </View>
             <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
               No Differences Found

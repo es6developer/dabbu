@@ -13,7 +13,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { useTheme } from '../../theme';
@@ -307,7 +307,7 @@ function QuickContributeModal({
                 onPress={handleSubmit}
                 activeOpacity={0.8}
               >
-                <Ionicons name="add-circle-outline" size={20} color="#FFF" />
+                <AntDesign  name="pluscircleo" size={20} color="#FFF" />
                 <Text style={[typography.button, { color: '#FFF' }]}>Add Amount</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -520,7 +520,7 @@ export function GoalDetailScreen() {
                 style={[s.iconBtn, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
                 activeOpacity={0.7}
               >
-                <Ionicons name="arrow-back-outline" size={22} color="#FFF" />
+                <AntDesign  name="arrowleft" size={22} color="#FFF" />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
@@ -533,12 +533,12 @@ export function GoalDetailScreen() {
                 style={[s.iconBtn, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
                 activeOpacity={0.7}
               >
-                <Ionicons name="pencil-outline" size={20} color="#FFF" />
+                <AntDesign  name="edit" size={20} color="#FFF" />
               </TouchableOpacity>
             </View>
             <View style={s.headerContent}>
               <View style={[s.goalIconCircle, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-                <Ionicons name={(config.icon || 'trophy') as any} size={36} color="#FFF" />
+                <AntDesign name={(config.icon || 'trophy') as any} size={36} color="#FFF" />
               </View>
               <Text style={[typography.h1, { color: '#FFF', marginTop: sp.md }]}>{goal.name}</Text>
               <View style={[s.typeBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
@@ -552,7 +552,7 @@ export function GoalDetailScreen() {
                 </Text>
               </View>
               <View style={s.taglinePill}>
-                <Ionicons name="sparkles-outline" size={14} color="rgba(255,255,255,0.9)" />
+                <AntDesign  name="star" size={14} color="rgba(255,255,255,0.9)" />
                 <Text style={[typography.footnote, { color: '#FFF', fontWeight: '600' }]}>
                   {tagline}
                 </Text>
@@ -620,7 +620,7 @@ export function GoalDetailScreen() {
             ]}
           >
             <View style={[s.statIconWrap, { backgroundColor: colors.bg.tertiary }]}>
-              <Ionicons name="wallet-outline" size={18} color={colors.status.success} />
+              <AntDesign  name="wallet" size={18} color={colors.status.success} />
             </View>
             <Text style={[typography.amountSmall, { color: colors.text.primary }]}>
               {fmt(saved)}
@@ -634,7 +634,7 @@ export function GoalDetailScreen() {
             ]}
           >
             <View style={[s.statIconWrap, { backgroundColor: colors.bg.tertiary }]}>
-              <Ionicons name="trending-up-outline" size={18} color={colors.status.warning} />
+              <AntDesign  name="linechart" size={18} color={colors.status.warning} />
             </View>
             <Text style={[typography.amountSmall, { color: colors.status.warning }]}>
               {fmt(remaining)}
@@ -648,7 +648,7 @@ export function GoalDetailScreen() {
             ]}
           >
             <View style={[s.statIconWrap, { backgroundColor: colors.bg.tertiary }]}>
-              <Ionicons name="repeat-outline" size={18} color={colors.status.info} />
+              <AntDesign  name="retweet" size={18} color={colors.status.info} />
             </View>
             <Text style={[typography.amountSmall, { color: colors.status.info }]}>
               {monthlyContrib > 0 ? fmt(monthlyContrib) : '—'}
@@ -679,7 +679,7 @@ export function GoalDetailScreen() {
           <View style={[s.glassBg, { backgroundColor: config.color + '08' }]} />
           <View style={s.completionRow}>
             <View style={[s.completionIcon, { backgroundColor: colors.bg.secondary }]}>
-              <Ionicons name="calendar-outline" size={22} color={config.color} />
+              <AntDesign  name="calendar" size={22} color={config.color} />
             </View>
             <View style={{ flex: 1 }}>
               {prediction?.predictedCompletionDate ? (
@@ -820,7 +820,7 @@ export function GoalDetailScreen() {
                     <View style={s.timelineNode}>
                       {reached ? (
                         <View style={[s.nodeReached, { backgroundColor: config.color }]}>
-                          <Ionicons name="checkmark-outline" size={14} color="#FFF" />
+                          <AntDesign  name="check" size={14} color="#FFF" />
                         </View>
                       ) : (
                         <View style={[s.nodeEmpty, { borderColor: colors.border.default }]} />
@@ -878,7 +878,7 @@ export function GoalDetailScreen() {
             ]}
           >
             <View style={{ flexDirection: 'row', gap: sp.sm, alignItems: 'flex-start' }}>
-              <Ionicons name="bulb-outline" size={18} color={colors.accent.primary} />
+              <AntDesign  name="bulb1" size={18} color={colors.accent.primary} />
               <View style={{ flex: 1 }}>
                 <Text style={[typography.callout, { color: colors.text.primary, fontWeight: '600' }]}>
                   AI Suggestion
@@ -913,7 +913,7 @@ export function GoalDetailScreen() {
           >
             <View style={[s.glassBg, { backgroundColor: colors.accent.primary + '06' }]} />
             <View style={{ flexDirection: 'row', gap: sp.sm }}>
-              <Ionicons name="document-text-outline" size={18} color={colors.text.tertiary} />
+              <AntDesign  name="filetext1" size={18} color={colors.text.tertiary} />
               <View style={{ flex: 1 }}>
                 <Text style={[typography.callout, { color: colors.text.primary }]}>
                   {goal.notes}
@@ -945,7 +945,7 @@ export function GoalDetailScreen() {
           onPress={() => setShowContribute(true)}
           activeOpacity={0.8}
         >
-          <Ionicons name="add-circle-outline" size={20} color="#FFF" />
+          <AntDesign  name="pluscircleo" size={20} color="#FFF" />
           <Text style={[typography.button, { color: '#FFF' }]}>Add to Goal</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -959,7 +959,7 @@ export function GoalDetailScreen() {
           }}
           activeOpacity={0.7}
         >
-          <Ionicons name="pencil-outline" size={20} color={colors.text.primary} />
+          <AntDesign  name="edit" size={20} color={colors.text.primary} />
           <Text style={[typography.button, { color: colors.text.primary }]}>Edit</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -967,7 +967,7 @@ export function GoalDetailScreen() {
           onPress={handleDelete}
           activeOpacity={0.7}
         >
-          <Ionicons name="trash-outline" size={20} color={colors.status.error} />
+          <AntDesign  name="delete" size={20} color={colors.status.error} />
         </TouchableOpacity>
       </Animated.View>
 

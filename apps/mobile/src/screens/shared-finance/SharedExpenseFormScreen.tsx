@@ -11,7 +11,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -290,7 +290,7 @@ export function SharedExpenseFormScreen() {
             {/* ── Error ── */}
             {error ? (
               <View style={[s.errorBox, { backgroundColor: `${colors.status.error}12` }]}>
-                <Ionicons name="alert-circle-outline" size={18} color={colors.status.error} />
+                <AntDesign  name="exclamationcircle" size={18} color={colors.status.error} />
                 <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
               </View>
             ) : null}
@@ -345,7 +345,7 @@ export function SharedExpenseFormScreen() {
               <View style={[s.divider, { backgroundColor: colors.border.subtle }]} />
 
               <View style={s.descRow}>
-                <Ionicons name="create-outline" size={18} color={colors.text.tertiary} />
+                <AntDesign  name="edit" size={18} color={colors.text.tertiary} />
                 <TextInput
                   style={[s.descInput, { color: colors.text.primary }]}
                   value={description}
@@ -373,7 +373,7 @@ export function SharedExpenseFormScreen() {
                 { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
               ]}
             >
-              <Ionicons name="calendar-outline" size={18} color={colors.accent.primary} />
+              <AntDesign  name="calendar" size={18} color={colors.accent.primary} />
               <Text style={[s.dateText, { color: colors.text.primary }]}>
                 {new Date(expenseDate + 'T12:00:00').toLocaleDateString('en-IN', {
                   weekday: 'short',
@@ -382,7 +382,7 @@ export function SharedExpenseFormScreen() {
                   year: 'numeric',
                 })}
               </Text>
-              <Ionicons name="chevron-down" size={16} color={colors.text.tertiary} />
+              <AntDesign  name="down" size={16} color={colors.text.tertiary} />
             </TouchableOpacity>
             {showDatePicker && (
               <DateTimePicker
@@ -439,7 +439,7 @@ export function SharedExpenseFormScreen() {
                       </Text>
                       {selected && (
                         <View style={[s.payerCheck, { backgroundColor: color }]}>
-                          <Ionicons name="checkmark-outline" size={10} color="#FFF" />
+                          <AntDesign  name="check" size={10} color="#FFF" />
                         </View>
                       )}
                     </TouchableOpacity>
@@ -481,7 +481,7 @@ export function SharedExpenseFormScreen() {
                           },
                         ]}
                       >
-                        <Ionicons
+                        <AntDesign
                           name={cat.icon as any}
                           size={selected ? 22 : 20}
                           color={selected ? '#FFF' : cat.color}
@@ -498,7 +498,7 @@ export function SharedExpenseFormScreen() {
                       </Text>
                       {selected && (
                         <View style={[s.catCheck, { backgroundColor: cat.color }]}>
-                          <Ionicons name="checkmark-outline" size={8} color="#FFF" />
+                          <AntDesign  name="check" size={8} color="#FFF" />
                         </View>
                       )}
                     </TouchableOpacity>
@@ -532,7 +532,7 @@ export function SharedExpenseFormScreen() {
                           { backgroundColor: active ? colors.accent.primary : colors.bg.tertiary },
                         ]}
                       >
-                        <Ionicons
+                        <AntDesign
                           name={st.icon as any}
                           size={18}
                           color={active ? colors.text.inverse : colors.text.tertiary}
@@ -552,7 +552,7 @@ export function SharedExpenseFormScreen() {
                         </Text>
                       </View>
                       {active && (
-                        <Ionicons name="checkmark-circle-outline" size={18} color={colors.accent.primary} />
+                        <AntDesign  name="checkcircleo" size={18} color={colors.accent.primary} />
                       )}
                     </TouchableOpacity>
                   );
@@ -635,7 +635,7 @@ export function SharedExpenseFormScreen() {
             >
               <View style={s.previewHeader}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Ionicons name="calculator-outline" size={16} color={colors.accent.primary} />
+                  <AntDesign  name="calculator" size={16} color={colors.accent.primary} />
                   <Text style={[s.previewTitle, { color: colors.text.primary }]}>
                     Split Preview
                   </Text>
@@ -697,7 +697,7 @@ export function SharedExpenseFormScreen() {
                 })
               ) : (
                 <View style={s.previewEmpty}>
-                  <Ionicons name="calculator-outline" size={28} color={colors.text.tertiary} />
+                  <AntDesign  name="calculator" size={28} color={colors.text.tertiary} />
                   <Text style={[s.previewEmptyText, { color: colors.text.tertiary }]}>
                     Enter amount to see split preview
                   </Text>
@@ -715,12 +715,12 @@ export function SharedExpenseFormScreen() {
               activeOpacity={0.7}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <Ionicons name="document-text-outline" size={18} color={colors.text.tertiary} />
+                <AntDesign  name="filetext1" size={18} color={colors.text.tertiary} />
                 <Text style={[s.notesToggleText, { color: colors.text.secondary }]}>
                   {showNotes ? 'Hide notes' : notes ? `Notes (${notes.length})` : 'Add notes'}
                 </Text>
               </View>
-              <Ionicons
+              <AntDesign
                 name={showNotes ? 'chevron-up' : 'chevron-down'}
                 size={16}
                 color={colors.text.tertiary}
@@ -761,7 +761,7 @@ export function SharedExpenseFormScreen() {
                   <ActivityIndicator color={colors.text.inverse} />
                 ) : (
                   <>
-                    <Ionicons name="checkmark-circle-outline" size={20} color={colors.text.inverse} />
+                    <AntDesign  name="checkcircleo" size={20} color={colors.text.inverse} />
                     <Text style={[s.saveText, { color: colors.text.inverse }]}>
                       {edit ? 'Update Expense' : 'Save Expense'}
                     </Text>
@@ -809,7 +809,7 @@ export function SharedExpenseFormScreen() {
                   deleting && { opacity: 0.4 },
                 ]}
               >
-                <Ionicons name="trash-outline" size={18} color={colors.status.error} />
+                <AntDesign  name="delete" size={18} color={colors.status.error} />
                 <Text style={[s.deleteText, { color: colors.status.error }]}>Delete Expense</Text>
               </TouchableOpacity>
             )}

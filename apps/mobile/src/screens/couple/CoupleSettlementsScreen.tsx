@@ -9,7 +9,7 @@ import {
   Alert,
   Dimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -170,7 +170,7 @@ export function CoupleSettlementsScreen() {
         >
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <Ionicons name="arrow-back-outline" size={22} color="#FFF" />
+              <AntDesign  name="arrowleft" size={22} color="#FFF" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Settlements</Text>
             <View style={{ width: 34 }} />
@@ -260,12 +260,12 @@ export function CoupleSettlementsScreen() {
                   onPress={handleSettleUp}
                   disabled={settling}
                 >
-                  <Ionicons name="swap-horizontal-outline" size={18} color="#FFF" />
+                  <AntDesign  name="swap" size={18} color="#FFF" />
                   <Text style={styles.settleBtnText}>{settling ? 'Settling...' : 'Settle Up'}</Text>
                 </TouchableOpacity>
               ) : (
                 <View style={styles.settlePending}>
-                  <Ionicons name="time-outline" size={16} color={colors.accent.primary} />
+                  <AntDesign  name="clockcircleo" size={16} color={colors.accent.primary} />
                   <Text style={styles.settlePendingText}>Waiting for partner to settle</Text>
                 </View>
               )}
@@ -275,7 +275,7 @@ export function CoupleSettlementsScreen() {
           {data?.outstanding && data.outstanding.length > 0 && (
             <View style={[styles.sectionCard, { backgroundColor: colors.bg.card }]}>
               <View style={styles.sectionHeaderRow}>
-                <Ionicons name="receipt-outline" size={18} color={colors.accent.primary} />
+                <AntDesign  name="filetext1" size={18} color={colors.accent.primary} />
                 <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
                   Outstanding Transactions
                 </Text>
@@ -314,7 +314,7 @@ export function CoupleSettlementsScreen() {
           {data?.settlements && data.settlements.length > 0 && (
             <View style={[styles.sectionCard, { backgroundColor: colors.bg.card }]}>
               <View style={styles.sectionHeaderRow}>
-                <Ionicons name="swap-horizontal-outline" size={18} color={colors.accent.primary} />
+                <AntDesign  name="swap" size={18} color={colors.accent.primary} />
                 <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
                   Settlement History
                 </Text>
@@ -377,8 +377,8 @@ export function CoupleSettlementsScreen() {
 
           {error && !data && (
             <View style={[styles.errorCard, { backgroundColor: colors.bg.card }]}>
-              <Ionicons
-                name="alert-circle-outline"
+              <AntDesign
+                 name="exclamationcircle"
                 size={32}
                 color={colors.status?.error || '#FF4D4F'}
               />
@@ -388,7 +388,7 @@ export function CoupleSettlementsScreen() {
 
           {data && !bal && (
             <View style={[styles.errorCard, { backgroundColor: colors.bg.card }]}>
-              <Ionicons name="cash-outline" size={32} color={colors.text.tertiary} />
+              <AntDesign  name="wallet" size={32} color={colors.text.tertiary} />
               <Text style={[styles.errorText, { color: colors.text.secondary }]}>
                 No balance data available
               </Text>

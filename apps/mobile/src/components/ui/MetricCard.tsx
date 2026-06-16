@@ -1,13 +1,13 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { FinCard } from './FinCard';
 
 interface MetricCardProps {
   label: string;
   value: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: string;
   trend?: { value: string; positive: boolean };
   color?: string;
   cardBg?: string;
@@ -37,7 +37,7 @@ export function MetricCard({ label, value, icon, trend, color, cardBg, onPress }
             justifyContent: 'center',
           }}
         >
-          <Ionicons name={icon} size={18} color={accentColor} />
+          <AntDesign name={icon} size={18} color={accentColor} />
         </View>
         {trend && (
           <View
@@ -54,7 +54,7 @@ export function MetricCard({ label, value, icon, trend, color, cardBg, onPress }
               marginLeft: 'auto',
             }}
           >
-            <Ionicons
+            <AntDesign
               name={trend.positive ? 'trending-up' : 'trending-down'}
               size={12}
               color={trend.positive ? colors.status.success : colors.status.error}

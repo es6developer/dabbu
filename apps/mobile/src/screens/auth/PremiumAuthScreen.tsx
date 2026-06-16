@@ -12,7 +12,7 @@ import {
   Dimensions,
   ViewStyle,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PremiumAuthLayout } from '../../components/ui/PremiumAuthLayout';
@@ -317,7 +317,7 @@ const InputField = React.forwardRef<TextInput, InputFieldProps>(
     return (
       <View style={[styles.inputContainer, { borderColor }]}>
         {icon && (
-          <Ionicons
+          <AntDesign
             name={icon as any}
             size={18}
             color={focused ? colors.brand.primary : colors.text.tertiary}
@@ -345,8 +345,8 @@ const InputField = React.forwardRef<TextInput, InputFieldProps>(
             style={styles.iconBtn}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons
-              name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+            <AntDesign
+              name={showPassword ? 'eyeo' : 'eye'}
               size={20}
               color={colors.text.tertiary}
             />
@@ -358,7 +358,7 @@ const InputField = React.forwardRef<TextInput, InputFieldProps>(
             style={styles.iconBtn}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons name="close-circle-outline" size={18} color={colors.text.tertiary} />
+            <AntDesign  name="closecircleo" size={18} color={colors.text.tertiary} />
           </TouchableOpacity>
         )}
       </View>
@@ -379,7 +379,7 @@ function ErrorBox({ message, colors }: { message: string; colors: typeof palette
         gap: 10,
       }}
     >
-      <Ionicons name="alert-circle-outline" size={16} color={colors.status.error} />
+      <AntDesign  name="exclamationcircle" size={16} color={colors.status.error} />
       <Text
         style={{
           color: colors.status.error,
@@ -724,7 +724,7 @@ export function PremiumAuthScreen() {
                       autoCapitalize="none"
                       returnKeyType="next"
                       onSubmitEditing={() => loginPwRef.current?.focus()}
-                      icon="mail-outline"
+                      icon="mail"
                       colors={colors}
                       styles={styles}
                     />
@@ -736,7 +736,7 @@ export function PremiumAuthScreen() {
                       secureTextEntry
                       returnKeyType="done"
                       onSubmitEditing={handleLogin}
-                      icon="lock-closed-outline"
+                      icon="lock"
                       colors={colors}
                       styles={styles}
                     />
@@ -751,7 +751,7 @@ export function PremiumAuthScreen() {
                       >
                         <View style={[styles.checkbox, rememberMe && styles.checkboxActive]}>
                           {rememberMe && (
-                            <Ionicons name="checkmark-outline" size={12} color={colors.text.inverse} />
+                            <AntDesign  name="check" size={12} color={colors.text.inverse} />
                           )}
                         </View>
                         <Text style={styles.checkboxLabel}>Remember me</Text>
@@ -788,7 +788,7 @@ export function PremiumAuthScreen() {
                           autoCapitalize="words"
                           returnKeyType="next"
                           onSubmitEditing={() => lastNameRef.current?.focus()}
-                          icon="person-outline"
+                          icon="user"
                           colors={colors}
                           styles={styles}
                         />
@@ -816,7 +816,7 @@ export function PremiumAuthScreen() {
                       autoCapitalize="none"
                       returnKeyType="next"
                       onSubmitEditing={() => signupPwRef.current?.focus()}
-                      icon="mail-outline"
+                      icon="mail"
                       colors={colors}
                       styles={styles}
                     />
@@ -828,7 +828,7 @@ export function PremiumAuthScreen() {
                       secureTextEntry
                       returnKeyType="next"
                       onSubmitEditing={() => confirmRef.current?.focus()}
-                      icon="lock-closed-outline"
+                      icon="lock"
                       colors={colors}
                       styles={styles}
                     />
@@ -840,7 +840,7 @@ export function PremiumAuthScreen() {
                       secureTextEntry
                       returnKeyType="done"
                       onSubmitEditing={handleSignup}
-                      icon="lock-closed-outline"
+                      icon="lock"
                       colors={colors}
                       styles={styles}
                     />
@@ -879,7 +879,7 @@ export function PremiumAuthScreen() {
               disabled={loading}
               activeOpacity={0.8}
             >
-              <Ionicons name="logo-google" size={20} color={colors.text.secondary} />
+              <AntDesign  name="google" size={20} color={colors.text.secondary} />
               <Text style={styles.googleButtonText}>Continue with Google</Text>
             </TouchableOpacity>
 
@@ -899,7 +899,7 @@ export function PremiumAuthScreen() {
               disabled={loading}
               activeOpacity={0.8}
             >
-              <Ionicons name="rocket-outline" size={20} color={colors.brand.primary} />
+              <AntDesign  name="rocket" size={20} color={colors.brand.primary} />
               <Text style={styles.demoButtonText}>Demo Login</Text>
             </TouchableOpacity>
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, Pressable } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme, borderRadius } from '../../theme';
 
 interface ConfirmDialogProps {
@@ -11,7 +11,7 @@ interface ConfirmDialogProps {
   confirmLabel?: string;
   cancelLabel?: string;
   destructive?: boolean;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: string;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -40,7 +40,7 @@ export function ConfirmDialog({
             <View style={styles.handleBar} />
 
             {icon && (
-              <Ionicons
+              <AntDesign
                 name={icon}
                 size={28}
                 color={destructive ? colors.status.error : colors.accent.primary}

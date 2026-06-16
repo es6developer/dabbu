@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -127,7 +127,7 @@ export function SettlementScreen() {
         >
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}>
-              <Ionicons name="arrow-back-outline" size={24} color={colors.text.primary} />
+              <AntDesign  name="arrowleft" size={24} color={colors.text.primary} />
             </TouchableOpacity>
             <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Settlements</Text>
             <View style={{ width: 32 }} />
@@ -167,7 +167,7 @@ export function SettlementScreen() {
                     ]}
                   >
                     <View style={[styles.groupAvatar, { backgroundColor: 'transparent' }]}>
-                      <Ionicons name={`${cfg.icon}-outline` as any} size={20} color={cfg.color} />
+                      <AntDesign name={`${cfg.icon}` as any} size={20} color={cfg.color} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={[styles.groupName, { color: colors.text.primary }]}>
@@ -271,8 +271,8 @@ export function SettlementScreen() {
                     >
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                         <View style={[styles.settlementAvatar, { backgroundColor: 'transparent' }]}>
-                          <Ionicons
-                            name="checkmark-circle-outline"
+                          <AntDesign
+                             name="checkcircleo"
                             size={22}
                             color={colors.text.secondary}
                           />
@@ -289,7 +289,7 @@ export function SettlementScreen() {
           ) : (
             <View style={styles.emptyState}>
               <View style={[styles.emptyIcon, { backgroundColor: 'transparent' }]}>
-                <Ionicons name="checkmark-circle-outline" size={40} color={colors.text.secondary} />
+                <AntDesign  name="checkcircleo" size={40} color={colors.text.secondary} />
               </View>
               <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>
                 All settled up!

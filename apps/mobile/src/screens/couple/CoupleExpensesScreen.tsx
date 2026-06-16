@@ -8,7 +8,7 @@ import {
   RefreshControl,
   Dimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -18,7 +18,7 @@ import { getCategoryIcon, getCategoryColor } from '../../config/categoryIcons';
 
 const { width } = Dimensions.get('window');
 
-const DEFAULT_CAT = { icon: 'ellipse-outline', color: '#9CA3AF' };
+const DEFAULT_CAT = { icon: 'minuscirlceo', color: '#9CA3AF' };
 
 function fmt(v: number) {
   return `₹${(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
@@ -53,9 +53,9 @@ export function CoupleExpensesScreen() {
   const [error, setError] = useState('');
 
   const tabs = [
-    { key: 'personal' as const, label: 'Personal', icon: 'person-outline' },
-    { key: 'shared' as const, label: 'Shared', icon: 'people-outline' },
-    { key: 'split' as const, label: 'Split', icon: 'git-branch-outline' },
+    { key: 'personal' as const, label: 'Personal', icon: 'user' },
+    { key: 'shared' as const, label: 'Shared', icon: 'team' },
+    { key: 'split' as const, label: 'Split', icon: 'codesquareo' },
   ];
 
   useEffect(() => {}, []);
@@ -115,7 +115,7 @@ export function CoupleExpensesScreen() {
   function renderExpenseRow(item: any) {
     const catName = item.category?.name || item.category;
     const catInfo = {
-      icon: getCategoryIcon(catName, 'ellipse-outline'),
+      icon: getCategoryIcon(catName, 'minuscirlceo'),
       color: getCategoryColor(catName),
     };
     const isOwn =
@@ -131,7 +131,7 @@ export function CoupleExpensesScreen() {
         onPress={() => navigation.navigate('TransactionDetail', { transactionId: item.id })}
       >
         <View style={[styles.catIconCircle, { backgroundColor: `${catInfo.color}18` }]}>
-          <Ionicons name={catInfo.icon as any} size={20} color={catInfo.color} />
+          <AntDesign name={catInfo.icon as any} size={20} color={catInfo.color} />
         </View>
         <View style={styles.expenseInfo}>
           <View style={styles.expenseTop}>
@@ -156,7 +156,7 @@ export function CoupleExpensesScreen() {
               ) : null}
               {showPaidBy ? (
                 <View style={[styles.paidByChip, { backgroundColor: colors.bg.tertiary }]}>
-                  <Ionicons name="person-outline" size={10} color={colors.text.secondary} />
+                  <AntDesign  name="user" size={10} color={colors.text.secondary} />
                   <Text style={[styles.paidByText, { color: colors.text.secondary }]}>
                     {paidByName}
                   </Text>
@@ -207,7 +207,7 @@ export function CoupleExpensesScreen() {
         >
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <Ionicons name="arrow-back-outline" size={22} color="#FFF" />
+              <AntDesign  name="arrowleft" size={22} color="#FFF" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Expenses</Text>
             <TouchableOpacity
@@ -223,7 +223,7 @@ export function CoupleExpensesScreen() {
               }
               style={styles.backBtn}
             >
-              <Ionicons name="add-outline" size={22} color="#FFF" />
+              <AntDesign  name="plus" size={22} color="#FFF" />
             </TouchableOpacity>
           </View>
         </View>
@@ -239,7 +239,7 @@ export function CoupleExpensesScreen() {
                   onPress={() => setActiveTab(tab.key)}
                   style={[styles.segmentBtn, active && { backgroundColor: colors.accent.primary }]}
                 >
-                  <Ionicons
+                  <AntDesign
                     name={tab.icon as any}
                     size={14}
                     color={active ? '#FFF' : colors.text.secondary}
@@ -275,7 +275,7 @@ export function CoupleExpensesScreen() {
 
           {error && !filteredExpenses.length ? (
             <View style={styles.emptyWrap}>
-              <Ionicons name="receipt-outline" size={48} color={colors.text.tertiary} />
+              <AntDesign  name="filetext1" size={48} color={colors.text.tertiary} />
               <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>
                 No expenses yet
               </Text>
@@ -283,7 +283,7 @@ export function CoupleExpensesScreen() {
             </View>
           ) : !filteredExpenses.length ? (
             <View style={styles.emptyWrap}>
-              <Ionicons name="receipt-outline" size={48} color={colors.text.tertiary} />
+              <AntDesign  name="filetext1" size={48} color={colors.text.tertiary} />
               <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>
                 No {activeTab} expenses
               </Text>

@@ -11,7 +11,7 @@ import {
   Share,
   Dimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -25,14 +25,14 @@ const { width } = Dimensions.get('window');
 interface NotificationPref {
   key: string;
   label: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: string;
 }
 
 const NOTIFICATION_ITEMS: NotificationPref[] = [
-  { key: 'newExpenses', label: 'New Expenses', icon: 'card-outline' },
-  { key: 'budgetAlerts', label: 'Budget Alerts', icon: 'alert-circle-outline' },
-  { key: 'billReminders', label: 'Bill Reminders', icon: 'calendar-outline' },
-  { key: 'goalProgress', label: 'Goal Progress', icon: 'trophy-outline' },
+  { key: 'newExpenses', label: 'New Expenses', icon: 'creditcard' },
+  { key: 'budgetAlerts', label: 'Budget Alerts', icon: 'exclamationcircle' },
+  { key: 'billReminders', label: 'Bill Reminders', icon: 'calendar' },
+  { key: 'goalProgress', label: 'Goal Progress', icon: 'trophy' },
 ];
 
 function daysSince(date: string): number {
@@ -198,7 +198,7 @@ export function CoupleSettingsScreen() {
             onPress={() => navigation.goBack()}
             activeOpacity={0.7}
           >
-            <Ionicons name="arrow-back-outline" size={22} color={colors.text.primary} />
+            <AntDesign  name="arrowleft" size={22} color={colors.text.primary} />
           </TouchableOpacity>
           <Text style={[styles.heroTitle, { color: colors.text.primary }]}>Settings</Text>
           <Text style={[styles.heroSub, { color: colors.text.tertiary }]}>Couple space preferences</Text>
@@ -207,7 +207,7 @@ export function CoupleSettingsScreen() {
 
         {error ? (
           <View style={styles.errorBanner}>
-            <Ionicons name="alert-circle-outline" size={16} color="#FF4D4F" />
+            <AntDesign  name="exclamationcircle" size={16} color="#FF4D4F" />
             <Text style={styles.errorText}>{error}</Text>
           </View>
         ) : null}
@@ -217,7 +217,7 @@ export function CoupleSettingsScreen() {
             <View style={styles.profileRow}>
               <Avatar name={partner1Name} size={56} />
               <View style={styles.heartWrap}>
-                <Ionicons name="heart-outline" size={20} color="#FF4D4F" />
+                <AntDesign  name="hearto" size={20} color="#FF4D4F" />
               </View>
               <Avatar name={partner2Joined ? partner2Name : '?'} size={56} />
             </View>
@@ -238,7 +238,7 @@ export function CoupleSettingsScreen() {
             <View style={[styles.settingRow, styles.settingRowBorder]}>
               <View style={styles.settingIconWrap}>
                 <View style={[styles.settingIcon, { backgroundColor: colors.accent.primary }]}>
-                  <Ionicons name="wallet-outline" size={16} color="#FFF" />
+                  <AntDesign  name="wallet" size={16} color="#FFF" />
                 </View>
               </View>
               <View style={styles.settingContent}>
@@ -259,7 +259,7 @@ export function CoupleSettingsScreen() {
             <View style={[styles.settingRow, styles.settingRowBorder]}>
               <View style={styles.settingIconWrap}>
                 <View style={[styles.settingIcon, { backgroundColor: colors.accent.secondary }]}>
-                  <Ionicons name="pie-chart-outline" size={16} color="#FFF" />
+                  <AntDesign  name="piechart" size={16} color="#FFF" />
                 </View>
               </View>
               <View style={styles.settingContent}>
@@ -278,7 +278,7 @@ export function CoupleSettingsScreen() {
             <View style={styles.settingRow}>
               <View style={styles.settingIconWrap}>
                 <View style={[styles.settingIcon, { backgroundColor: colors.status.success }]}>
-                  <Ionicons name="save-outline" size={16} color="#FFF" />
+                  <AntDesign  name="save" size={16} color="#FFF" />
                 </View>
               </View>
               <View style={styles.settingContent}>
@@ -308,7 +308,7 @@ export function CoupleSettingsScreen() {
               return (
                 <View key={item.key} style={[styles.notifRow, !isLast && styles.notifRowBorder]}>
                   <View style={[styles.notifIcon, { backgroundColor: colors.accent.primary }]}>
-                    <Ionicons name={item.icon} size={14} color="#FFF" />
+                    <AntDesign name={item.icon} size={14} color="#FFF" />
                   </View>
                   <Text style={[styles.notifLabel, { color: colors.text.primary }]}>
                     {item.label}
@@ -329,7 +329,7 @@ export function CoupleSettingsScreen() {
         {!partner2Joined ? (
           <TouchableOpacity style={styles.inviteBtn} activeOpacity={0.8} onPress={handleInvite}>
             <View style={[styles.inviteGradient, { backgroundColor: colors.accent.primary }]}>
-              <Ionicons name="person-add-outline" size={20} color="#FFF" />
+              <AntDesign  name="adduser" size={20} color="#FFF" />
               <Text style={styles.inviteText}>Invite Partner</Text>
             </View>
           </TouchableOpacity>
@@ -337,10 +337,10 @@ export function CoupleSettingsScreen() {
 
         <TouchableOpacity style={styles.leaveBtn} activeOpacity={0.7} onPress={handleLeaveCouple}>
           <View style={styles.leaveIcon}>
-            <Ionicons name="heart-dislike-outline" size={18} color="#FF4D4F" />
+            <AntDesign  name="hearto" size={18} color="#FF4D4F" />
           </View>
           <Text style={styles.leaveText}>Leave Couple Space</Text>
-          <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+          <AntDesign  name="right" size={16} color={colors.text.tertiary} />
         </TouchableOpacity>
 
         <Text style={[styles.version, { color: colors.text.tertiary }]}>Dabbu v1.0.0</Text>

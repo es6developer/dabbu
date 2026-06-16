@@ -15,7 +15,7 @@ import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/nativ
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { Avatar } from '../../components/ui/Avatar';
 import { useTheme, palette } from '../../theme';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
@@ -44,18 +44,18 @@ function fmtDate(dateStr: string) {
 
 function getCategoryIcon(cat: string): { icon: string; color: string } {
   const map: Record<string, { icon: string; color: string }> = {
-    Food: { icon: 'fast-food-outline', color: '#FF6B6B' },
-    Groceries: { icon: 'cart-outline', color: '#34C759' },
-    Travel: { icon: 'airplane-outline', color: '#60A5FA' },
-    Rent: { icon: 'home-outline', color: '#FB923C' },
-    Bills: { icon: 'receipt-outline', color: '#F59E0B' },
-    Shopping: { icon: 'bag-outline', color: '#F472B6' },
-    Entertainment: { icon: 'film-outline', color: '#14B8A6' },
-    Medical: { icon: 'medkit-outline', color: '#FF4D4F' },
-    salary: { icon: 'briefcase-outline', color: '#34C759' },
-    income: { icon: 'trending-up-outline', color: '#34C759' },
+    Food: { icon: 'restaurant', color: '#FF6B6B' },
+    Groceries: { icon: 'shoppingcart', color: '#34C759' },
+    Travel: { icon: 'airplane', color: '#60A5FA' },
+    Rent: { icon: 'home', color: '#FB923C' },
+    Bills: { icon: 'filetext1', color: '#F59E0B' },
+    Shopping: { icon: 'shoppingcart', color: '#F472B6' },
+    Entertainment: { icon: 'play', color: '#14B8A6' },
+    Medical: { icon: 'medicinebox', color: '#FF4D4F' },
+    salary: { icon: 'briefcase', color: '#34C759' },
+    income: { icon: 'linechart', color: '#34C759' },
   };
-  return map[cat] || { icon: 'ellipse-outline', color: '#9CA3AF' };
+  return map[cat] || { icon: 'minuscirlceo', color: '#9CA3AF' };
 }
 
 export function CoupleFinanceScreen() {
@@ -232,12 +232,12 @@ export function CoupleFinanceScreen() {
             onPress={() => navigation.goBack()}
             style={[s.backBtn, { backgroundColor: colors.bg.glassLight }]}
           >
-            <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
+            <AntDesign  name="left" size={22} color={colors.text.primary} />
           </TouchableOpacity>
         </View>
         <View style={[s.heroEmpty, { backgroundColor: colors.bg.secondary }]}>
           <View style={s.heartIconWrap}>
-            <Ionicons name="heart-circle-outline" size={64} color={colors.accent.primary} />
+            <AntDesign  name="heart" size={64} color={colors.accent.primary} />
           </View>
           <Text style={[s.heroTitle, { color: colors.text.primary }]}>
             Connect with your Partner
@@ -271,7 +271,7 @@ export function CoupleFinanceScreen() {
               <ActivityIndicator size="small" color="#FFF" />
             ) : (
               <>
-                <Ionicons name="person-add-outline" size={18} color="#FFF" />
+                <AntDesign  name="adduser" size={18} color="#FFF" />
                 <Text style={s.inviteBtnText}>Connect Partner</Text>
               </>
             )}
@@ -303,20 +303,20 @@ export function CoupleFinanceScreen() {
         >
           <View style={s.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={s.headerBtn}>
-              <Ionicons name="arrow-back-outline" size={22} color="#FFF" />
+              <AntDesign  name="arrowleft" size={22} color="#FFF" />
             </TouchableOpacity>
             <Text style={s.headerTitle}>Couple Finance</Text>
             <TouchableOpacity
               style={s.headerBtn}
               onPress={() => navigation.navigate('AiCouple', { groupId, groupName })}
             >
-              <Ionicons name="sparkles-outline" size={20} color="#FFD700" />
+              <AntDesign  name="star" size={20} color="#FFD700" />
             </TouchableOpacity>
             <TouchableOpacity
               style={s.headerBtn}
               onPress={() => navigation.navigate('CoupleReports', { groupId })}
             >
-              <Ionicons name="stats-chart-outline" size={20} color="#FFF" />
+              <AntDesign  name="bar-chart" size={20} color="#FFF" />
             </TouchableOpacity>
           </View>
           <View style={s.partnerHero}>
@@ -327,7 +327,7 @@ export function CoupleFinanceScreen() {
                 size={46}
               />
               <View style={[s.heartBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-                <Ionicons name="heart-outline" size={16} color="#FFEBB4" />
+                <AntDesign  name="hearto" size={16} color="#FFEBB4" />
               </View>
               <Avatar
                 uri={partner2?.avatarUrl}
@@ -390,7 +390,7 @@ export function CoupleFinanceScreen() {
                   },
                 ]}
               >
-                <Ionicons
+                <AntDesign
                   name={totalIncome >= totalExpenses ? 'trending-up' : 'trending-down'}
                   size={14}
                   color={totalIncome >= totalExpenses ? '#34C759' : '#FF4D4F'}
@@ -460,7 +460,7 @@ export function CoupleFinanceScreen() {
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <View style={[s.statCard, { backgroundColor: colors.bg.card, flex: 1 }]}>
                 <View style={[s.statIconWrap, { backgroundColor: `${colors.accent.primary}18` }]}>
-                  <Ionicons name="wallet-outline" size={18} color={colors.accent.primary} />
+                  <AntDesign  name="wallet" size={18} color={colors.accent.primary} />
                 </View>
                 <Text style={[s.statValue, { color: colors.text.primary }]}>
                   {fmt(monthlySpent)}
@@ -469,7 +469,7 @@ export function CoupleFinanceScreen() {
               </View>
               <View style={[s.statCard, { backgroundColor: colors.bg.card, flex: 1 }]}>
                 <View style={[s.statIconWrap, { backgroundColor: '#34C75918' }]}>
-                  <Ionicons name="save-outline" size={18} color="#34C759" />
+                  <AntDesign  name="save" size={18} color="#34C759" />
                 </View>
                 <Text style={[s.statValue, { color: colors.text.primary }]}>
                   {fmt(savingsSaved)}
@@ -478,7 +478,7 @@ export function CoupleFinanceScreen() {
               </View>
               <View style={[s.statCard, { backgroundColor: colors.bg.card, flex: 1 }]}>
                 <View style={[s.statIconWrap, { backgroundColor: '#F59E0B18' }]}>
-                  <Ionicons name="calendar-outline" size={18} color="#F59E0B" />
+                  <AntDesign  name="calendar" size={18} color="#F59E0B" />
                 </View>
                 <Text style={[s.statValue, { color: colors.text.primary }]}>
                   {totalExpenses > 0 ? expenses.length : 0}
@@ -537,7 +537,7 @@ export function CoupleFinanceScreen() {
                   <Text style={[s.cardTitle, { color: colors.text.primary }]}>
                     Monthly Comparison
                   </Text>
-                  <Ionicons name="trending-up-outline" size={18} color={colors.text.tertiary} />
+                  <AntDesign  name="linechart" size={18} color={colors.text.tertiary} />
                 </View>
                 <View style={{ marginTop: 8, gap: 6 }}>
                   <View style={s.compRow}>
@@ -572,8 +572,8 @@ export function CoupleFinanceScreen() {
                         { backgroundColor: isPositive ? '#34C75912' : '#F59E0B12' },
                       ]}
                     >
-                      <Ionicons
-                        name={isPositive ? 'bulb-outline' : 'trending-up-outline'}
+                      <AntDesign
+                        name={isPositive ? 'bulb1' : 'linechart'}
                         size={16}
                         color={isPositive ? '#34C759' : '#F59E0B'}
                       />
@@ -590,7 +590,7 @@ export function CoupleFinanceScreen() {
                 {goals.slice(0, 3).map((goal: any, i: number) => (
                   <View key={goal.id || i} style={{ marginTop: 12 }}>
                     <View style={s.goalTopRow}>
-                      <Ionicons name="flag-outline" size={16} color={colors.accent.primary} />
+                      <AntDesign  name="flag" size={16} color={colors.accent.primary} />
                       <Text
                         style={[s.goalName, { color: colors.text.primary, marginLeft: 8, flex: 1 }]}
                       >
@@ -616,7 +616,7 @@ export function CoupleFinanceScreen() {
           <View style={{ paddingHorizontal: 20, gap: 10, paddingTop: 8 }}>
             {allActivity.length === 0 ? (
               <View style={s.emptyWrap}>
-                <Ionicons name="timer-outline" size={48} color={colors.text.tertiary} />
+                <AntDesign  name="clockcircleo" size={48} color={colors.text.tertiary} />
                 <Text style={[s.emptyTitle, { color: colors.text.secondary }]}>
                   No activity yet
                 </Text>
@@ -650,7 +650,7 @@ export function CoupleFinanceScreen() {
                     }}
                   >
                     <View style={s.activityIcon}>
-                      <Ionicons
+                      <AntDesign
                         name={isIncome ? 'trending-up' : (cat.icon as any)}
                         size={18}
                         color="#FFF"

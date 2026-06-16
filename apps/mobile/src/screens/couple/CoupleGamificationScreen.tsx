@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, RefreshControl, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../../services/api';
@@ -100,7 +100,7 @@ function AchievementCard({ id, unlocked, data }: { id: string; unlocked: boolean
           justifyContent: 'center',
         }}
       >
-        <Ionicons
+        <AntDesign
           name={unlocked ? (meta.icon as any) : 'lock-closed'}
           size={18}
           color={unlocked ? colors.accent.primary : colors.text.tertiary}
@@ -120,7 +120,7 @@ function AchievementCard({ id, unlocked, data }: { id: string; unlocked: boolean
           </Text>
         )}
       </View>
-      {unlocked && <Ionicons name="checkmark-circle-outline" size={18} color={colors.status.success} />}
+      {unlocked && <AntDesign  name="checkcircleo" size={18} color={colors.status.success} />}
     </View>
   );
 }
@@ -191,7 +191,7 @@ export function CoupleGamificationScreen() {
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+            <AntDesign  name="left" size={24} color={colors.text.primary} />
           </TouchableOpacity>
           <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text.primary }}>Couple Journey</Text>
         </View>

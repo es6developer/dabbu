@@ -11,7 +11,7 @@ import {
   Image,
 } from 'react-native';
 import { DetailSkeleton } from '../../components/ui/AnimatedSkeleton';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { API_URL } from '../../config/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -253,7 +253,7 @@ export function DocumentDetailScreen() {
                   onPress={() => setCategory(cat.key)}
                   activeOpacity={0.7}
                 >
-                  <Ionicons
+                  <AntDesign
                     name={cat.icon as any}
                     size={14}
                     color={active ? '#FFF' : colors.text.tertiary}
@@ -344,7 +344,7 @@ export function DocumentDetailScreen() {
             <ActivityIndicator size="small" color="#FFF" />
           ) : (
             <>
-              <Ionicons name={isUpload ? 'cloud-upload' : 'checkmark'} size={18} color="#FFF" />
+              <AntDesign name={isUpload ? 'cloud-upload' : 'checkmark'} size={18} color="#FFF" />
               <Text style={s.buttonText}>{isUpload ? 'Upload & Save' : 'Save Changes'}</Text>
             </>
           )}
@@ -362,7 +362,7 @@ export function DocumentDetailScreen() {
                 <ActivityIndicator size="small" color={colors.text.primary} />
               ) : (
                 <>
-                  <Ionicons name="download-outline" size={18} color={colors.text.primary} />
+                  <AntDesign  name="download" size={18} color={colors.text.primary} />
                   <Text style={[s.buttonText, { color: colors.text.primary }]}>Download</Text>
                 </>
               )}
@@ -373,7 +373,7 @@ export function DocumentDetailScreen() {
               onPress={handleDelete}
               activeOpacity={0.7}
             >
-              <Ionicons name="trash-outline" size={18} color="#FF3B30" />
+              <AntDesign  name="delete" size={18} color="#FF3B30" />
               <Text style={[s.buttonText, { color: '#FF3B30' }]}>Delete Document</Text>
             </TouchableOpacity>
           </>

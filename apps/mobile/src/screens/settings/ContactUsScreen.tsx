@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 
 const CONTACT_OPTIONS = [
@@ -17,7 +17,7 @@ export function ContactUsScreen() {
     <ScrollView style={[styles.container, { backgroundColor: colors.bg.primary }]} contentContainerStyle={styles.content}>
       <View style={styles.hero}>
 <View style={[styles.heroIcon, { backgroundColor: colors.bg.secondary }]}>
-          <Ionicons name="chatbubbles-outline" size={40} color={colors.accent.primary} />
+          <AntDesign  name="message1" size={40} color={colors.accent.primary} />
         </View>
         <Text style={[styles.title, { color: colors.text.primary }]}>Get in Touch</Text>
         <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>We'd love to hear from you</Text>
@@ -31,18 +31,18 @@ export function ContactUsScreen() {
           activeOpacity={0.7}
         >
           <View style={[styles.iconWrap, { backgroundColor: colors.bg.secondary }]}>
-            <Ionicons name={opt.icon} size={22} color={colors.accent.primary} />
+            <AntDesign name={opt.icon} size={22} color={colors.accent.primary} />
           </View>
           <View style={styles.info}>
             <Text style={[styles.label, { color: colors.text.primary }]}>{opt.label}</Text>
             <Text style={[styles.value, { color: colors.text.tertiary }]}>{opt.value}</Text>
           </View>
-          <Ionicons name="open-outline" size={18} color={colors.text.tertiary} />
+          <AntDesign  name="newwindow" size={18} color={colors.text.tertiary} />
         </TouchableOpacity>
       ))}
 
       <View style={[styles.responseCard, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}>
-        <Ionicons name="time-outline" size={20} color={colors.accent.primary} />
+        <AntDesign  name="clockcircleo" size={20} color={colors.accent.primary} />
         <Text style={[styles.responseText, { color: colors.text.secondary }]}>
           We typically respond within 24 hours during business days.
         </Text>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -15,13 +15,13 @@ export function CoupleBudgetAdjustScreen() {
       <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 12 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={[s.backBtn, { backgroundColor: colors.bg.tertiary }]}>
-            <Ionicons name="chevron-back" size={20} color={colors.text.secondary} />
+            <AntDesign  name="left" size={20} color={colors.text.secondary} />
           </TouchableOpacity>
           <Text style={[s.title, { color: colors.text.primary }]}>Adjust Budget</Text>
         </View>
       </View>
       <View style={s.placeholder}>
-        <Ionicons name="options-outline" size={48} color={colors.accent.primary} />
+        <AntDesign  name="setting" size={48} color={colors.accent.primary} />
         <Text style={[s.placeholderTitle, { color: colors.text.primary }]}>Coming Soon</Text>
         <Text style={[s.placeholderText, { color: colors.text.secondary }]}>
           Budget adjustment form will be available in the next update.

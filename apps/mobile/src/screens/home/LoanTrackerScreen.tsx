@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -136,7 +136,7 @@ function AddLoanModal({ visible, colors, onClose, onAdd }: {
           {LOAN_TYPES.map((lt) => (
             <TouchableOpacity key={lt.type} activeOpacity={0.7} onPress={() => { setSelected(lt.type); setCustomName(''); }}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, borderWidth: 1.5, borderColor: selected === lt.type ? lt.color : colors.border.subtle, backgroundColor: selected === lt.type ? lt.color + '15' : colors.bg.card }}>
-              <Ionicons name={lt.icon as any} size={16} color={selected === lt.type ? lt.color : colors.text.secondary} />
+              <AntDesign name={lt.icon as any} size={16} color={selected === lt.type ? lt.color : colors.text.secondary} />
               <Text style={{ fontSize: 13, fontWeight: '600', color: selected === lt.type ? lt.color : colors.text.primary }}>{lt.name}</Text>
             </TouchableOpacity>
           ))}
@@ -230,7 +230,7 @@ function LoanDetailScreen({ loan, colors, onBack, onRefresh }: {
     <View style={{ flex: 1 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 8 }}>
         <TouchableOpacity onPress={onBack} style={{ width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 8 }}>
-          <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+          <AntDesign  name="left" size={24} color={colors.text.primary} />
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text.primary, flex: 1 }}>{loan.name}</Text>
       </View>
@@ -238,7 +238,7 @@ function LoanDetailScreen({ loan, colors, onBack, onRefresh }: {
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 }}>
           <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: config.color + '20', alignItems: 'center', justifyContent: 'center' }}>
-            <Ionicons name={config.icon as any} size={24} color={config.color} />
+            <AntDesign name={config.icon as any} size={24} color={config.color} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary, textTransform: 'uppercase', letterSpacing: 0.5 }}>{config.name}</Text>
@@ -249,11 +249,11 @@ function LoanDetailScreen({ loan, colors, onBack, onRefresh }: {
 
         <View style={{ flexDirection: 'row', gap: 8, marginBottom: 20 }}>
           <TouchableOpacity onPress={() => setShowRecordEmi(true)} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: colors.accent.success + '15', borderRadius: 12, paddingVertical: 12 }}>
-            <Ionicons name="checkmark-circle-outline" size={18} color={colors.accent.success} />
+            <AntDesign  name="checkcircleo" size={18} color={colors.accent.success} />
             <Text style={{ fontSize: 13, fontWeight: '700', color: colors.accent.success }}>Pay EMI</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setShowEmiHistory(true)} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: colors.bg.tertiary, borderRadius: 12, paddingVertical: 12 }}>
-            <Ionicons name="time-outline" size={18} color={colors.text.secondary} />
+            <AntDesign  name="clockcircleo" size={18} color={colors.text.secondary} />
             <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.secondary }}>History</Text>
           </TouchableOpacity>
         </View>
@@ -324,7 +324,7 @@ function LoanDetailScreen({ loan, colors, onBack, onRefresh }: {
           <TouchableOpacity onPress={() => setShowAmort(!showAmort)} style={{ backgroundColor: colors.bg.card, borderRadius: 20, borderWidth: 1, borderColor: colors.border.default, padding: 16, marginBottom: 16 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.primary }}>Amortization Schedule</Text>
-              <Ionicons name={showAmort ? 'chevron-up' : 'chevron-down'} size={18} color={colors.text.tertiary} />
+              <AntDesign name={showAmort ? 'chevron-up' : 'chevron-down'} size={18} color={colors.text.tertiary} />
             </View>
             {showAmort && (
               <View style={{ marginTop: 12 }}>
@@ -450,11 +450,11 @@ export function LoanTrackerScreen() {
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+          <AntDesign  name="left" size={24} color={colors.text.primary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Loan Tracker</Text>
         <TouchableOpacity onPress={() => setShowAdd(true)} style={[styles.backBtn, { backgroundColor: colors.accent.primary + '15' }]}>
-          <Ionicons name="add-outline" size={22} color={colors.accent.primary} />
+          <AntDesign  name="plus" size={22} color={colors.accent.primary} />
         </TouchableOpacity>
       </View>
 
@@ -496,7 +496,7 @@ export function LoanTrackerScreen() {
                     <View style={styles.loanCardHeader}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                         <View style={[styles.loanIcon, { backgroundColor: config.color + '15' }]}>
-                          <Ionicons name={config.icon as any} size={18} color={config.color} />
+                          <AntDesign name={config.icon as any} size={18} color={config.color} />
                         </View>
                         <View>
                           <Text style={[styles.loanName, { color: colors.text.primary }]}>{loan.name}</Text>
@@ -505,10 +505,10 @@ export function LoanTrackerScreen() {
                       </View>
                       <View style={{ flexDirection: 'row', gap: 4 }}>
                         <TouchableOpacity onPress={() => startEdit(loan)} style={{ padding: 4 }}>
-                          <Ionicons name="create-outline" size={18} color={colors.text.tertiary} />
+                          <AntDesign  name="edit" size={18} color={colors.text.tertiary} />
                         </TouchableOpacity>
                         <TouchableOpacity onPress={() => removeLoan(loan.id)} style={{ padding: 4 }}>
-                          <Ionicons name="trash-outline" size={18} color={colors.status.error} />
+                          <AntDesign  name="delete" size={18} color={colors.status.error} />
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -557,7 +557,7 @@ export function LoanTrackerScreen() {
 
           {loans.length === 0 && (
             <View style={[styles.emptyCard, { backgroundColor: colors.bg.card, borderColor: colors.border.default }]}>
-              <Ionicons name="trending-down-outline" size={48} color={colors.text.tertiary} />
+              <AntDesign  name="linechart" size={48} color={colors.text.tertiary} />
               <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>No Loans Tracked</Text>
               <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
                 Track your home, car, personal, and education loans with amortization, payoff projections, and EMI history

@@ -8,7 +8,7 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -22,30 +22,30 @@ const PURPLE = '#8B5CF6';
 const PURPLE_DARK = '#6D28D9';
 
 const ICON_SET: { name: string; icon: string; color: string }[] = [
-  { name: 'Food & Dining', icon: 'fast-food-outline', color: '#FF6B6B' },
-  { name: 'Groceries', icon: 'cart-outline', color: '#34C759' },
-  { name: 'Shopping', icon: 'bag-outline', color: '#F472B6' },
-  { name: 'Transport', icon: 'car-outline', color: '#38BDF8' },
-  { name: 'Bills', icon: 'receipt-outline', color: '#F59E0B' },
-  { name: 'Housing', icon: 'home-outline', color: '#FB923C' },
-  { name: 'Entertainment', icon: 'film-outline', color: '#14B8A6' },
-  { name: 'Healthcare', icon: 'medkit-outline', color: '#FF4D4F' },
-  { name: 'Education', icon: 'school-outline', color: '#8B5CF6' },
-  { name: 'Travel', icon: 'airplane-outline', color: '#60A5FA' },
-  { name: 'Sports', icon: 'football-outline', color: '#22C55E' },
-  { name: 'Subscription', icon: 'repeat-outline', color: '#8B5CF6' },
-  { name: 'Utilities', icon: 'flash-outline', color: '#FBBF24' },
-  { name: 'Salary', icon: 'cash-outline', color: '#00B894' },
-  { name: 'Business', icon: 'storefront-outline', color: '#14B8A6' },
-  { name: 'Rental', icon: 'key-outline', color: '#FB923C' },
-  { name: 'Gift', icon: 'gift-outline', color: '#F472B6' },
-  { name: 'Insurance', icon: 'shield-outline', color: '#00CEC9' },
-  { name: 'Pets', icon: 'paw-outline', color: '#FDCB6E' },
-  { name: 'Clothing', icon: 'shirt-outline', color: '#F472B6' },
-  { name: 'Fitness', icon: 'fitness-outline', color: '#14B8A6' },
-  { name: 'Coffee', icon: 'cafe-outline', color: '#D4A574' },
-  { name: 'Phone', icon: 'call-outline', color: '#00B894' },
-  { name: 'Investment', icon: 'trending-up-outline', color: '#14B8A6' },
+  { name: 'Food & Dining', icon: 'restaurant', color: '#FF6B6B' },
+  { name: 'Groceries', icon: 'shoppingcart', color: '#34C759' },
+  { name: 'Shopping', icon: 'shoppingcart', color: '#F472B6' },
+  { name: 'Transport', icon: 'car', color: '#38BDF8' },
+  { name: 'Bills', icon: 'filetext1', color: '#F59E0B' },
+  { name: 'Housing', icon: 'home', color: '#FB923C' },
+  { name: 'Entertainment', icon: 'play', color: '#14B8A6' },
+  { name: 'Healthcare', icon: 'medicinebox', color: '#FF4D4F' },
+  { name: 'Education', icon: 'book', color: '#8B5CF6' },
+  { name: 'Travel', icon: 'airplane', color: '#60A5FA' },
+  { name: 'Sports', icon: 'play', color: '#22C55E' },
+  { name: 'Subscription', icon: 'retweet', color: '#8B5CF6' },
+  { name: 'Utilities', icon: 'thunder', color: '#FBBF24' },
+  { name: 'Salary', icon: 'wallet', color: '#00B894' },
+  { name: 'Business', icon: 'shop', color: '#14B8A6' },
+  { name: 'Rental', icon: 'key', color: '#FB923C' },
+  { name: 'Gift', icon: 'gift', color: '#F472B6' },
+  { name: 'Insurance', icon: 'Safety', color: '#00CEC9' },
+  { name: 'Pets', icon: 'paw', color: '#FDCB6E' },
+  { name: 'Clothing', icon: 'skin', color: '#F472B6' },
+  { name: 'Fitness', icon: 'hearto', color: '#14B8A6' },
+  { name: 'Coffee', icon: 'coffee', color: '#D4A574' },
+  { name: 'Phone', icon: 'phone', color: '#00B894' },
+  { name: 'Investment', icon: 'linechart', color: '#14B8A6' },
 ];
 
 export function CreateCategoryScreen() {
@@ -107,7 +107,7 @@ export function CreateCategoryScreen() {
         <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
           <View style={s.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-              <Ionicons name="close-outline" size={22} color="#FFF" />
+              <AntDesign  name="close" size={22} color="#FFF" />
             </TouchableOpacity>
             <Text style={s.headerTitle}>Create Category</Text>
             <View style={{ width: 34 }} />
@@ -118,7 +118,7 @@ export function CreateCategoryScreen() {
 
       {error ? (
         <View style={[s.errorBox, { backgroundColor: `${colors.status.error}12` }]}>
-          <Ionicons name="alert-circle-outline" size={16} color={colors.status.error} />
+          <AntDesign  name="exclamationcircle" size={16} color={colors.status.error} />
           <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
         </View>
       ) : null}
@@ -160,7 +160,7 @@ export function CreateCategoryScreen() {
                 ]}
                 onPress={() => setType(t)}
               >
-                <Ionicons
+                <AntDesign
                   name={t === 'expense' ? 'arrow-up-circle' : 'arrow-down-circle'}
                   size={16}
                   color={type === t ? '#FFF' : colors.text.tertiary}
@@ -181,7 +181,7 @@ export function CreateCategoryScreen() {
             <Text style={[s.label, { color: colors.text.secondary }]}>Choose Icon</Text>
             {selectedIcon && (
               <View style={[s.previewBadge, { backgroundColor: `${selectedIcon.color}18` }]}>
-                <Ionicons name={selectedIcon.icon as any} size={22} color={selectedIcon.color} />
+                <AntDesign name={selectedIcon.icon as any} size={22} color={selectedIcon.color} />
                 <Text style={[s.previewName, { color: selectedIcon.color }]}>
                   {selectedIcon.name}
                 </Text>
@@ -203,7 +203,7 @@ export function CreateCategoryScreen() {
                   ]}
                   onPress={() => setSelectedIcon(item)}
                 >
-                  <Ionicons
+                  <AntDesign
                     name={item.icon as any}
                     size={22}
                     color={active ? item.color : colors.text.tertiary}
@@ -232,8 +232,8 @@ export function CreateCategoryScreen() {
             end={{ x: 1, y: 0 }}
             style={s.saveGrad}
           >
-            <Ionicons
-              name={saving ? 'hourglass-outline' : 'checkmark-circle'}
+            <AntDesign
+              name={saving ? 'hourglass' : 'checkmark-circle'}
               size={18}
               color="#FFF"
             />

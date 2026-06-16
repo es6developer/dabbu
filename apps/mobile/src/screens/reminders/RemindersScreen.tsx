@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
@@ -77,18 +77,18 @@ export function RemindersScreen() {
     }
   };
 
-  const getTypeIcon = (t: string): keyof typeof Ionicons.glyphMap => {
+  const getTypeIcon = (t: string): string => {
     switch (t) {
       case 'payment':
-        return 'card-outline';
+        return 'creditcard';
       case 'bill':
-        return 'receipt-outline';
+        return 'filetext1';
       case 'subscription':
-        return 'repeat-outline';
+        return 'retweet';
       case 'goal':
-        return 'trophy-outline';
+        return 'trophy';
       default:
-        return 'alarm-outline';
+        return 'clockcircleo';
     }
   };
 
@@ -111,7 +111,7 @@ export function RemindersScreen() {
     >
       <View style={styles.row}>
         <View style={[styles.iconBox, { backgroundColor: getPriorityColor(item.priority) + '20' }]}>
-          <Ionicons
+          <AntDesign
             name={getTypeIcon(item.type)}
             size={20}
             color={getPriorityColor(item.priority)}
@@ -151,7 +151,7 @@ export function RemindersScreen() {
             style={[styles.headerBtn, { backgroundColor: colors.bg.tertiary }]}
             onPress={() => navigation.navigate('NotificationCenter' as never)}
           >
-            <Ionicons name="notifications-outline" size={20} color={colors.accent.primary} />
+            <AntDesign  name="bells" size={20} color={colors.accent.primary} />
             {unreadCount > 0 && (
               <View style={[styles.badge, { backgroundColor: colors.accent.primary }]}>
                 <Text style={styles.badgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
@@ -166,7 +166,7 @@ export function RemindersScreen() {
       ) : reminders.length === 0 ? (
         <View style={{ paddingTop: spacing['4xl'] }}>
           <EmptyState
-            icon="alarm-outline"
+            icon="clockcircleo"
             title="No reminders yet"
             message="Create your first reminder to get started"
             actionLabel="Create Reminder"

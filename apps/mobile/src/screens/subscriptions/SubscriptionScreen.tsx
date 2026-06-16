@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken, warmupBackend } from '../../services/api';
@@ -111,7 +111,7 @@ export function SubscriptionScreen() {
           {upcomingRenewals.slice(0, 5).map((sub: any, i: number) => (
             <View key={sub.id || i} style={[s.subCard, { backgroundColor: colors.bg.secondary }]}>
               <View style={[s.subIcon, { backgroundColor: `${colors.status.warning}18` }]}>
-                <Ionicons name="refresh-outline" size={16} color={colors.status.warning} />
+                <AntDesign  name="reload1" size={16} color={colors.status.warning} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[s.subName, { color: colors.text.primary }]}>{sub.name}</Text>
@@ -135,7 +135,7 @@ export function SubscriptionScreen() {
       {monthlyTotal > 0 && (
         <View style={[s.savingsCard, { backgroundColor: colors.bg.secondary }]}>
           <View style={s.savingsHeader}>
-            <Ionicons name="cash-outline" size={20} color="#00E676" />
+            <AntDesign  name="wallet" size={20} color="#00E676" />
             <Text style={s.savingsTitle}>Potential Savings</Text>
           </View>
           <Text style={s.savingsAmount}>
@@ -192,7 +192,7 @@ export function SubscriptionScreen() {
           {inactiveSubs.map((sub: any, i: number) => (
             <View key={sub.id || i} style={[s.subCard, { backgroundColor: colors.bg.secondary }]}>
               <View style={[s.subIcon, { backgroundColor: `${colors.text.tertiary}18` }]}>
-                <Ionicons name="pause-circle-outline" size={16} color={colors.text.tertiary} />
+                <AntDesign  name="pausecircleo" size={16} color={colors.text.tertiary} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[s.subName, { color: colors.text.secondary }]}>{sub.name}</Text>
@@ -228,7 +228,7 @@ export function SubscriptionScreen() {
               ]}
               activeOpacity={0.7}
             >
-              <Ionicons name={item.icon as any} size={14} color={colors.accent.primary} />
+              <AntDesign name={item.icon as any} size={14} color={colors.accent.primary} />
               <Text style={[s.templateChipText, { color: colors.text.secondary }]}>
                 {item.name}
               </Text>
@@ -239,7 +239,7 @@ export function SubscriptionScreen() {
 
       {activeCount === 0 && upcomingRenewals.length === 0 && (
         <View style={s.emptyState}>
-          <Ionicons name="card-outline" size={48} color={colors.text.tertiary} />
+          <AntDesign  name="creditcard" size={48} color={colors.text.tertiary} />
           <Text style={[s.emptyTitle, { color: colors.text.primary }]}>No Subscriptions</Text>
           <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>
             Recurring transactions and subscription reminders will appear here.

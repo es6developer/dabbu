@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 
 interface QuickAction {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: string;
   label: string;
   color: string;
   onPress: () => void;
@@ -28,7 +28,7 @@ export function QuickActions({ actions }: QuickActionsProps) {
             onPress={action.onPress}
           >
             <View style={[styles.iconWrap, { backgroundColor: `${action.color}15` }]}>
-              <Ionicons name={action.icon} size={22} color={action.color} />
+              <AntDesign name={action.icon} size={22} color={action.color} />
             </View>
             <Text style={[styles.label, { color: colors.text.secondary }]} numberOfLines={1}>
               {action.label}

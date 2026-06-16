@@ -14,7 +14,7 @@ import {
   Platform,
 } from 'react-native';
 
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme';
@@ -215,7 +215,7 @@ function ShareSheet({
               activeOpacity={0.7}
             >
               <View style={[styles.shareIconWrap, { backgroundColor: `${opt.color}18` }]}>
-                <Ionicons name={opt.icon as any} size={24} color={opt.color} />
+                <AntDesign name={opt.icon as any} size={24} color={opt.color} />
               </View>
               <Text style={[styles.shareLabel, { color: colors.text.secondary }]}>{opt.label}</Text>
             </TouchableOpacity>
@@ -358,7 +358,7 @@ export function ReferralScreen() {
           >
             <Text style={[styles.codeText, { color: colors.text.primary }]}>{referralCode || 'LOADING...'}</Text>
             <View style={[styles.codeShare, { backgroundColor: colors.bg.tertiary }]}>
-              <Ionicons name="share-outline" size={16} color={colors.text.primary} />
+              <AntDesign  name="sharealt" size={16} color={colors.text.primary} />
               <Text style={[styles.codeShareText, { color: colors.text.primary }]}>Share</Text>
             </View>
           </TouchableOpacity>
@@ -412,7 +412,7 @@ export function ReferralScreen() {
                   style={[styles.rewardCard, { backgroundColor: colors.bg.secondary }]}
                 >
                   <View style={[styles.rewardIcon, { backgroundColor: `${typeInfo.color}18` }]}>
-                    <Ionicons name="cash-outline" size={20} color={typeInfo.color} />
+                    <AntDesign  name="wallet" size={20} color={typeInfo.color} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.rewardTitle, { color: colors.text.primary }]}>
@@ -506,7 +506,7 @@ export function ReferralScreen() {
                 { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' },
               ]}
             >
-              <Ionicons name="gift-outline" size={48} color={colors.text.tertiary} />
+              <AntDesign  name="gift" size={48} color={colors.text.tertiary} />
             </View>
             <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
               Start Referring!
@@ -520,7 +520,7 @@ export function ReferralScreen() {
               onPress={() => setShowShare(true)}
               activeOpacity={0.8}
             >
-              <Ionicons name="share-outline" size={18} color="#FFF" />
+              <AntDesign  name="sharealt" size={18} color="#FFF" />
               <Text style={[styles.emptyBtnText, { color: colors.text.primary }]}>
                 Share Your Code
               </Text>
@@ -546,7 +546,7 @@ export function ReferralScreen() {
             onPress={() => setShowShare(true)}
             activeOpacity={0.85}
           >
-            <Ionicons name="share-social-outline" size={20} color="#FFF" />
+            <AntDesign  name="sharealt" size={20} color="#FFF" />
             <Text style={[styles.shareBtnText, { color: colors.text.primary }]}>
               Share Referral Code
             </Text>

@@ -96,14 +96,14 @@ export function CreateReminderScreen() {
       <PremiumError message={error} />
       <PremiumInput
         label="Title"
-        icon="notifications-outline"
+        icon="bells"
         value={title}
         onChangeText={setTitle}
         placeholder="Reminder title"
       />
       <PremiumInput
         label="Description"
-        icon="document-text-outline"
+        icon="filetext1"
         value={description}
         onChangeText={setDescription}
         placeholder="Description"
@@ -128,7 +128,7 @@ export function CreateReminderScreen() {
             key={p}
             label={p.charAt(0).toUpperCase() + p.slice(1)}
             selected={priority === p}
-            icon={p === 'urgent' ? 'flame' : p === 'high' ? 'alert-circle' : 'flag-outline'}
+            icon={p === 'urgent' ? 'flame' : p === 'high' ? 'alert-circle' : 'flag'}
             onPress={() => setPriority(p)}
           />
         ))}
@@ -137,7 +137,7 @@ export function CreateReminderScreen() {
       <DatePickerField label="Due Date" value={dueDate} onChange={setDueDate} optional />
       <PremiumInput
         label="Category"
-        icon="pricetag-outline"
+        icon="tag"
         value={category}
         onChangeText={setCategory}
         placeholder="e.g. Work, Personal"
@@ -166,7 +166,7 @@ export function CreateReminderScreen() {
           </View>
           <PremiumInput
             label="Interval"
-            icon="repeat-outline"
+            icon="retweet"
             value={interval}
             onChangeText={setInterval}
             placeholder="1"

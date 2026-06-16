@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { PremiumCard } from './PremiumCard';
 
 interface PremiumEmptyStateProps {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: string;
   title: string;
   message: string;
   action?: React.ReactNode;
@@ -30,7 +30,7 @@ export function PremiumEmptyState({ icon, title, message, action }: PremiumEmpty
           marginBottom: 20,
         }}
       >
-        <Ionicons name={icon} size={28} color={`${colors.accent.primary}50`} />
+        <AntDesign name={icon} size={28} color={`${colors.accent.primary}50`} />
       </View>
       <Text
         style={{

@@ -1,8 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-
+import { AntDesign } from '@expo/vector-icons';
 const GRADIENT: [string, string] = ['#1A0B2E', '#3D1B6D'];
 
 interface BalanceCardProps {
@@ -41,7 +40,7 @@ export function BalanceCard({
         <View style={styles.labelRow}>
           <Text style={styles.label}>Joint Wallet</Text>
           <View style={styles.premiumDot}>
-            <Ionicons name="diamond-outline" size={10} color="#FFFFFF" />
+            <AntDesign  name="diamond" size={10} color="#FFFFFF" />
             <Text style={styles.premiumDotText}>PREMIUM</Text>
           </View>
         </View>
@@ -51,15 +50,15 @@ export function BalanceCard({
 
         <View style={styles.actionsRow}>
           <TouchableOpacity style={styles.pill} activeOpacity={0.8} onPress={onSend}>
-            <Ionicons name="arrow-up-outline" size={14} color="#FFFFFF" />
+            <AntDesign  name="up" size={14} color="#FFFFFF" />
             <Text style={styles.pillText}>Send</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.pill} activeOpacity={0.8} onPress={onDeposit}>
-            <Ionicons name="arrow-down-outline" size={14} color="#FFFFFF" />
+            <AntDesign  name="down" size={14} color="#FFFFFF" />
             <Text style={styles.pillText}>Deposit</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.pill} activeOpacity={0.8} onPress={onRequest}>
-            <Ionicons name="arrow-back-outline" size={14} color="#FFFFFF" />
+            <AntDesign  name="arrowleft" size={14} color="#FFFFFF" />
             <Text style={styles.pillText}>Request</Text>
           </TouchableOpacity>
         </View>

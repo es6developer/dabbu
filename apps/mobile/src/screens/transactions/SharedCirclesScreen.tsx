@@ -11,7 +11,7 @@ import {
   Alert,
   Animated,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -97,7 +97,7 @@ function StatCard({
   return (
     <View style={stat.card}>
       <View style={[stat.iconWrap, { backgroundColor: color + '15' }]}>
-        <Ionicons name={icon as any} size={18} color={color} />
+        <AntDesign name={icon as any} size={18} color={color} />
       </View>
       <Text style={[stat.value, { color }]}>{value}</Text>
       <Text style={stat.label}>{label}</Text>
@@ -269,7 +269,7 @@ function CircleCard({
                   navigation.navigate('SharedExpenseForm', { groupId: item.id, edit: false })
                 }
               >
-                <Ionicons name="add-outline" size={14} color={accentColor} />
+                <AntDesign  name="plus" size={14} color={accentColor} />
                 <Text style={[card.actionText, { color: accentColor }]}>Add Expense</Text>
               </TouchableOpacity>
               {ed.count > 0 && (
@@ -277,7 +277,7 @@ function CircleCard({
                   style={[card.actionBtn, { backgroundColor: colors.bg.tertiary }]}
                   onPress={() => navigation.navigate('Settlement', { groupId: item.id })}
                 >
-                  <Ionicons name="arrow-forward-outline" size={13} color={colors.text.secondary} />
+                  <AntDesign  name="arrowright" size={13} color={colors.text.secondary} />
                   <Text style={[card.actionText, { color: colors.text.secondary }]}>Settle Up</Text>
                 </TouchableOpacity>
               )}
@@ -507,13 +507,13 @@ export function SharedCirclesScreen() {
                 style={[s.iconBtn, { backgroundColor: colors.accent.primary + '12' }]}
                 onPress={() => navigation.navigate('Analytics')}
               >
-                <Ionicons name="bar-chart-outline" size={20} color={colors.accent.primary} />
+                <AntDesign  name="bar-chart" size={20} color={colors.accent.primary} />
               </TouchableOpacity>
               <TouchableOpacity
                 style={[s.iconBtn, { backgroundColor: colors.accent.primary }]}
                 onPress={handleCreateGroup}
               >
-                <Ionicons name="add-outline" size={22} color="#FFF" />
+                <AntDesign  name="plus" size={22} color="#FFF" />
               </TouchableOpacity>
             </View>
           </View>
@@ -586,7 +586,7 @@ export function SharedCirclesScreen() {
         {groups.length === 0 && !loading && (
           <View style={s.emptyWrap}>
             <View style={[s.emptyIcon, { backgroundColor: colors.accent.primary + '12' }]}>
-              <Ionicons name="people-circle-outline" size={52} color={colors.accent.primary} />
+              <AntDesign  name="team" size={52} color={colors.accent.primary} />
             </View>
             <Text style={[s.emptyTitle, { color: colors.text.primary }]}>No circles yet</Text>
             <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>
@@ -596,7 +596,7 @@ export function SharedCirclesScreen() {
               style={[s.emptyCta, { backgroundColor: colors.accent.primary }]}
               onPress={handleCreateGroup}
             >
-              <Ionicons name="add-outline" size={18} color="#FFF" />
+              <AntDesign  name="plus" size={18} color="#FFF" />
               <Text style={s.emptyCtaText}>Create Circle</Text>
             </TouchableOpacity>
           </View>
@@ -611,7 +611,7 @@ export function SharedCirclesScreen() {
                 { backgroundColor: colors.bg.card, borderColor: colors.border.default },
               ]}
             >
-              <Ionicons name="search-outline" size={18} color={colors.text.tertiary} />
+              <AntDesign  name="search1" size={18} color={colors.text.tertiary} />
               <TextInput
                 style={[s.searchInput, { color: colors.text.primary }]}
                 value={search}
@@ -621,7 +621,7 @@ export function SharedCirclesScreen() {
               />
               {search ? (
                 <TouchableOpacity onPress={() => setSearch('')}>
-                  <Ionicons name="close-circle-outline" size={18} color={colors.text.tertiary} />
+                  <AntDesign  name="closecircleo" size={18} color={colors.text.tertiary} />
                 </TouchableOpacity>
               ) : null}
             </View>
@@ -679,7 +679,7 @@ export function SharedCirclesScreen() {
         {filtered.length === 0 && groups.length > 0 && (
           <View style={s.emptyWrap}>
             <View style={[s.emptyIcon, { backgroundColor: colors.accent.primary + '12' }]}>
-              <Ionicons name="search-outline" size={44} color={colors.accent.primary} />
+              <AntDesign  name="search1" size={44} color={colors.accent.primary} />
             </View>
             <Text style={[s.emptyTitle, { color: colors.text.primary }]}>No circles found</Text>
             <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>

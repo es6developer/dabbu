@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { typography } from '../../theme/typography';
 
@@ -16,7 +16,7 @@ export default function MaintenanceScreen({ message }: MaintenanceScreenProps) {
       style={[styles.container, { paddingTop: insets.top + 40, paddingBottom: insets.bottom + 20 }]}
     >
       <View style={styles.iconContainer}>
-        <Ionicons name="build-outline" size={64} color="#14B8A6" />
+        <AntDesign  name="tool" size={64} color="#14B8A6" />
       </View>
       <Text style={styles.title}>Under Maintenance</Text>
       <Text style={styles.subtitle}>

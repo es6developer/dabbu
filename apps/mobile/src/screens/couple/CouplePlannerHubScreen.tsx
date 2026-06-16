@@ -3,7 +3,7 @@ import {
   View, Text, TouchableOpacity, ScrollView, RefreshControl,
   StyleSheet,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -14,22 +14,22 @@ import { UpgradeBanner } from '../../components/ui/UpgradeBanner';
 const PLANNERS = [
   {
     type: 'BABY', title: 'Baby Planner', subtitle: 'Plan for your growing family',
-    icon: 'happy-outline', color: '#FF8A65', gradient: ['#FF8A6520', '#161224'],
+    icon: 'smileo', color: '#FF8A65', gradient: ['#FF8A6520', '#161224'],
     fields: ['Expected Timeline', 'Current Savings', 'Monthly Income', 'Hospital Type'],
   },
   {
     type: 'HOUSE', title: 'House Planner', subtitle: 'Own your dream home together',
-    icon: 'home-outline', color: '#60A5FA', gradient: ['#60A5FA20', '#161224'],
+    icon: 'home', color: '#60A5FA', gradient: ['#60A5FA20', '#161224'],
     fields: ['Property Price', 'Down Payment', 'Interest Rate', 'Loan Tenure'],
   },
   {
     type: 'CAR', title: 'Car Planner', subtitle: 'Drive your dream car',
-    icon: 'car-outline', color: '#34C759', gradient: ['#34C75920', '#161224'],
+    icon: 'car', color: '#34C759', gradient: ['#34C75920', '#161224'],
     fields: ['Car Price', 'Down Payment', 'Interest Rate', 'Loan Tenure'],
   },
   {
     type: 'RETIREMENT', title: 'Retirement Planner', subtitle: 'Secure your future together',
-    icon: 'umbrella-outline', color: '#A78BFA', gradient: ['#A78BFA20', '#161224'],
+    icon: 'Safety', color: '#A78BFA', gradient: ['#A78BFA20', '#161224'],
     fields: ['Current Age', 'Retirement Age', 'Monthly Expense', 'Current Corpus'],
   },
 ];
@@ -53,7 +53,7 @@ function PlannerCard({ planner, onPress, progress }: {
           width: 48, height: 48, borderRadius: 16, backgroundColor: `${planner.color}20`,
           alignItems: 'center', justifyContent: 'center',
         }}>
-          <Ionicons name={planner.icon as any} size={24} color={planner.color} />
+          <AntDesign name={planner.icon as any} size={24} color={planner.color} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 16, fontWeight: '800', color: colors.text.primary }}>{planner.title}</Text>
@@ -71,7 +71,7 @@ function PlannerCard({ planner, onPress, progress }: {
             </Text>
           </View>
         </View>
-        <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
+        <AntDesign  name="right" size={18} color={colors.text.tertiary} />
       </View>
     </TouchableOpacity>
   );
@@ -120,7 +120,7 @@ export function CouplePlannerHubScreen() {
             width: 36, height: 36, borderRadius: 12, backgroundColor: colors.bg.tertiary,
             alignItems: 'center', justifyContent: 'center',
           }}>
-            <Ionicons name="chevron-back" size={20} color={colors.text.primary} />
+            <AntDesign  name="left" size={20} color={colors.text.primary} />
           </TouchableOpacity>
           <View>
             <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text.primary }}>Life Planners</Text>
@@ -165,7 +165,7 @@ export function CouplePlannerHubScreen() {
             width: 44, height: 44, borderRadius: 14, backgroundColor: `${colors.accent.primary}20`,
             alignItems: 'center', justifyContent: 'center',
           }}>
-            <Ionicons name="sparkles-outline" size={22} color={colors.accent.primary} />
+            <AntDesign  name="star" size={22} color={colors.accent.primary} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }}>Custom Dream Boards</Text>
@@ -173,7 +173,7 @@ export function CouplePlannerHubScreen() {
               Create boards for any goal - vacation, wedding, or anything else
             </Text>
           </View>
-        <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
+        <AntDesign  name="right" size={18} color={colors.text.tertiary} />
         </TouchableOpacity>
       </View>
     </ScrollView>

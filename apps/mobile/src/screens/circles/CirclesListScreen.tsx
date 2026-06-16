@@ -8,7 +8,7 @@ import {
   Animated,
   RefreshControl,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
@@ -164,7 +164,7 @@ export function CirclesListScreen() {
                   style={[styles.addBtn, { backgroundColor: colors.bg.tertiary }]}
                   onPress={() => navigation.navigate('CreateCircle')}
                 >
-                  <Ionicons name="add-outline" size={22} color={colors.text.primary} />
+                  <AntDesign  name="plus" size={22} color={colors.text.primary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -192,7 +192,7 @@ export function CirclesListScreen() {
                       style={styles.settleBtn}
                       onPress={() => navigation.navigate('Settlement')}
                     >
-                      <Ionicons name="swap-horizontal-outline" size={12} color="#FFF" />
+                      <AntDesign  name="swap" size={12} color="#FFF" />
                       <Text style={[styles.settleBtnText, { color: colors.text.primary }]}>
                         Settle Up
                       </Text>
@@ -201,7 +201,7 @@ export function CirclesListScreen() {
                       style={styles.splitBtn}
                       onPress={() => navigation.navigate('SplitExpense')}
                     >
-                      <Ionicons name="add-circle-outline" size={12} color={colors.accent.primary} />
+                      <AntDesign  name="pluscircleo" size={12} color={colors.accent.primary} />
                       <Text style={[styles.splitBtnText, { color: colors.accent.primary }]}>
                         Split
                       </Text>
@@ -253,19 +253,19 @@ export function CirclesListScreen() {
               activeOpacity={0.7}
             >
               <View style={styles.createCardIcon}>
-                <Ionicons name="add-outline" size={24} color="#FFF" />
+                <AntDesign  name="plus" size={24} color="#FFF" />
               </View>
               <Text style={[styles.createCardText, { color: colors.text.primary }]}>
                 Create New Circle
               </Text>
-              <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+              <AntDesign  name="right" size={16} color={colors.text.tertiary} />
             </TouchableOpacity>
           ) : null
         }
         ListEmptyComponent={
           <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: H_PADDING }}>
             <EmptyState
-              icon="grid-outline"
+              icon="appstore1"
               title="No circles yet"
               message="Create a circle to split expenses with your people"
               actionLabel="Create Circle"

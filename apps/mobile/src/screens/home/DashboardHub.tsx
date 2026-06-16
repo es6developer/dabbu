@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { ProfileBubble } from '../../components/ui/ProfileBubble';
@@ -86,7 +86,7 @@ export function DashboardHub() {
                 className="w-10 h-10 rounded-xl items-center justify-center"
                 style={{ backgroundColor: colors.status.successLight }}
               >
-                <Ionicons name="arrow-down-outline" size={18} color={colors.status.success} />
+                <AntDesign  name="down" size={18} color={colors.status.success} />
               </View>
               <View>
                 <Text className="text-[11px] font-medium" style={{ color: colors.text.secondary }}>
@@ -108,7 +108,7 @@ export function DashboardHub() {
                 className="w-10 h-10 rounded-xl items-center justify-center"
                 style={{ backgroundColor: colors.status.errorLight }}
               >
-                <Ionicons name="arrow-up-outline" size={18} color={colors.status.error} />
+                <AntDesign  name="up" size={18} color={colors.status.error} />
               </View>
               <View>
                 <Text className="text-[11px] font-medium" style={{ color: colors.text.secondary }}>
@@ -149,7 +149,7 @@ export function DashboardHub() {
                         tx.amount < 0 ? 'rgba(239, 68, 68, 0.10)' : 'rgba(16, 185, 129, 0.10)',
                     }}
                   >
-                    <Ionicons
+                    <AntDesign
                       name={tx.amount < 0 ? 'remove' : 'add'}
                       size={18}
                       color={tx.amount < 0 ? '#EF4444' : '#10B981'}
@@ -199,7 +199,7 @@ export function DashboardHub() {
                   className="w-12 h-12 rounded-2xl items-center justify-center"
                   style={{ backgroundColor: 'rgba(139, 92, 246, 0.15)' }}
                 >
-                  <Ionicons name="people-outline" size={22} color={colors.brand.primary} />
+                  <AntDesign  name="team" size={22} color={colors.brand.primary} />
                 </View>
                 <View>
                   <Text
@@ -216,7 +216,7 @@ export function DashboardHub() {
                   </Text>
                 </View>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.brand.primary} />
+              <AntDesign  name="right" size={18} color={colors.brand.primary} />
             </View>
 
             {/* Progress bar */}

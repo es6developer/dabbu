@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { AnalyticsSkeleton } from '../../components/ui/AnimatedSkeleton';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { LineChart, BarChart, PieChart } from 'react-native-chart-kit';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -297,7 +297,7 @@ export function AnalyticsScreen() {
                   style={[styles.summaryCard, { backgroundColor: colors.bg.secondary }]}
                 >
                   <View style={[styles.summaryIcon, { backgroundColor: `${item.color}18` }]}>
-                    <Ionicons name={item.icon as any} size={18} color={item.color} />
+                    <AntDesign name={item.icon as any} size={18} color={item.color} />
                   </View>
                   <Text style={[styles.summaryLabel, { color: colors.text.tertiary }]}>
                     {item.label}
@@ -306,7 +306,7 @@ export function AnalyticsScreen() {
                     {fmt(item.value)}
                   </Text>
                   <View style={styles.trendRow}>
-                    <Ionicons
+                    <AntDesign
                       name={
                         i === 0
                           ? incomeTrend >= 0
@@ -369,7 +369,7 @@ export function AnalyticsScreen() {
                   style={[styles.summaryCard, { backgroundColor: colors.bg.secondary }]}
                 >
                   <View style={[styles.summaryIcon, { backgroundColor: `${item.color}18` }]}>
-                    <Ionicons name={item.icon as any} size={18} color={item.color} />
+                    <AntDesign name={item.icon as any} size={18} color={item.color} />
                   </View>
                   <Text style={[styles.summaryLabel, { color: colors.text.tertiary }]}>
                     {item.label}
@@ -499,7 +499,7 @@ export function AnalyticsScreen() {
             {/* Empty state */}
             {!mi && !me && catData.length === 0 && (
               <View style={styles.emptyState}>
-                <Ionicons name="stats-chart-outline" size={48} color={colors.text.tertiary} />
+                <AntDesign  name="bar-chart" size={48} color={colors.text.tertiary} />
                 <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
                   No analytics data yet
                 </Text>
@@ -545,7 +545,7 @@ export function AnalyticsScreen() {
                   <ActivityIndicator size="small" color={colors.status.error} />
                 ) : (
                   <>
-                    <Ionicons name="document-text-outline" size={16} color={colors.status.error} />
+                    <AntDesign  name="filetext1" size={16} color={colors.status.error} />
                     <Text style={[styles.exportText, { color: colors.status.error }]}>PDF</Text>
                   </>
                 )}
@@ -559,7 +559,7 @@ export function AnalyticsScreen() {
                   <ActivityIndicator size="small" color={colors.status.success} />
                 ) : (
                   <>
-                    <Ionicons name="grid-outline" size={16} color={colors.status.success} />
+                    <AntDesign  name="appstore1" size={16} color={colors.status.success} />
                     <Text style={[styles.exportText, { color: colors.status.success }]}>Excel</Text>
                   </>
                 )}

@@ -9,7 +9,7 @@ import {
   Animated,
   Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import ReAnimated, { FadeInUp, FadeInRight } from 'react-native-reanimated';
@@ -34,7 +34,7 @@ const QUICK_ACTIONS = [
   { icon: 'camera' as const, label: 'Scan Receipt' },
   { icon: 'swap-horizontal' as const, label: 'Split Expense' },
   { icon: 'sparkles' as const, label: 'Ask AI' },
-  { icon: 'newspaper-outline' as const, label: 'Today Feed' },
+  { icon: 'file1' as const, label: 'Today Feed' },
 ];
 
 interface DashboardData {
@@ -285,7 +285,7 @@ export function AiHomeDashboardScreen() {
             </Text>
           </View>
           <TouchableOpacity onPress={() => navigateTo('AiNotifications')} style={s.bellWrap}>
-            <Ionicons name="notifications-outline" size={22} color={AI_COLORS.text} />
+            <AntDesign  name="bells" size={22} color={AI_COLORS.text} />
             <View style={s.bellDot} />
           </TouchableOpacity>
         </ReAnimated.View>
@@ -370,7 +370,7 @@ export function AiHomeDashboardScreen() {
                                 { backgroundColor: `${AI_COLORS.primary}20` },
                               ]}
                             >
-                              <Ionicons name="bulb-outline" size={20} color={AI_COLORS.primary} />
+                              <AntDesign  name="bulb1" size={20} color={AI_COLORS.primary} />
                             </View>
                             <Text style={s.carouselType}>{insight.severity.toUpperCase()}</Text>
                           </View>
@@ -380,7 +380,7 @@ export function AiHomeDashboardScreen() {
                             <Text style={s.carouselConf}>
                               {Math.round((insight.confidence || 0.8) * 100)}% confidence
                             </Text>
-                            <Ionicons name="arrow-forward-outline" size={16} color={AI_COLORS.primary} />
+                            <AntDesign  name="arrowright" size={16} color={AI_COLORS.primary} />
                           </View>
                         </AiCard>
                       </TouchableOpacity>
@@ -394,7 +394,7 @@ export function AiHomeDashboardScreen() {
 
         {!data && (
           <View style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
-            <Ionicons name="sparkles-outline" size={48} color={AI_COLORS.textTertiary} />
+            <AntDesign  name="star" size={48} color={AI_COLORS.textTertiary} />
             <Text style={{ fontSize: 18, fontWeight: '700', color: AI_COLORS.text }}>
               No data yet
             </Text>
@@ -420,7 +420,7 @@ export function AiHomeDashboardScreen() {
           activeOpacity={0.8}
           style={s.aiFabBtn}
         >
-          <Ionicons name="sparkles-outline" size={24} color="#FFF" />
+          <AntDesign  name="star" size={24} color="#FFF" />
         </TouchableOpacity>
       </PulseView>
     </View>

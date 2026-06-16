@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { Card } from '../../components/ui/Card';
 import { ProfileBubble } from '../../components/ui/ProfileBubble';
@@ -35,7 +35,7 @@ export function CoupleFinance() {
         {/* ── Header ──────────────────────────────── */}
         <View className="flex-row items-center justify-between px-5 pt-2 pb-2">
           <TouchableOpacity onPress={() => {}} activeOpacity={0.7}>
-            <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+            <AntDesign  name="left" size={24} color={colors.text.primary} />
           </TouchableOpacity>
           <Text className="text-[17px] font-bold" style={{ color: colors.text.primary }}>
             Couple Space
@@ -46,7 +46,7 @@ export function CoupleFinance() {
             className="w-9 h-9 rounded-full items-center justify-center"
             style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : colors.bg.tertiary }}
           >
-            <Ionicons name="ellipsis-vertical-outline" size={18} color={colors.text.secondary} />
+            <AntDesign  name="ellipsis1" size={18} color={colors.text.secondary} />
           </TouchableOpacity>
         </View>
 
@@ -134,7 +134,7 @@ export function CoupleFinance() {
                 className="flex-row items-center justify-center mt-4 py-3 rounded-xl gap-2"
                 style={{ backgroundColor: colors.status.successLight }}
               >
-                <Ionicons name="cash-outline" size={18} color={colors.status.success} />
+                <AntDesign  name="wallet" size={18} color={colors.status.success} />
                 <Text className="text-[13px] font-bold" style={{ color: '#10B981' }}>
                   Settle Up · {fmt(balance)}
                 </Text>
@@ -203,8 +203,8 @@ export function CoupleFinance() {
                         : 'rgba(16, 185, 129, 0.10)',
                     }}
                   >
-                    <Ionicons
-                      name={isYou ? 'person-outline' : 'person'}
+                    <AntDesign
+                      name={isYou ? 'user' : 'person'}
                       size={16}
                       color={isYou ? colors.brand.primary : colors.status.success}
                     />

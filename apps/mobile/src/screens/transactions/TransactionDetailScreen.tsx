@@ -9,8 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { DetailSkeleton } from '../../components/ui/AnimatedSkeleton';
-import { Ionicons } from '@expo/vector-icons';
-
+import { AntDesign } from '@expo/vector-icons';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
@@ -130,11 +129,11 @@ export function TransactionDetailScreen() {
             onPress={() => navigation.goBack()}
             style={[s.backBtn, { backgroundColor: colors.bg.tertiary }]}
           >
-            <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
+            <AntDesign  name="left" size={22} color={colors.text.primary} />
           </TouchableOpacity>
         </View>
         <View style={[s.heroIcon, { backgroundColor: catColors[0] }]}>
-          <Ionicons name={getIcon(cat) as any} size={32} color="#FFF" />
+          <AntDesign name={getIcon(cat) as any} size={32} color="#FFF" />
         </View>
         <Text style={[s.heroLabel, { color: colors.text.secondary }]}>
           {isCredit ? 'Income' : 'Expense'}
@@ -173,7 +172,7 @@ export function TransactionDetailScreen() {
             colors={colors}
             label="Payment"
             value={txn.paymentMethod || txn.metadata?.paymentType || '-'}
-            icon="card-outline"
+            icon="creditcard"
             color={colors.text.secondary}
           />
           <Row
@@ -186,14 +185,14 @@ export function TransactionDetailScreen() {
               hour: '2-digit',
               minute: '2-digit',
             })}
-            icon="calendar-outline"
+            icon="calendar"
             color={colors.text.secondary}
           />
           <Row
             colors={colors}
             label="Type"
             value={txn.type}
-            icon="swap-horizontal-outline"
+            icon="swap"
             color={isCredit ? '#34C759' : '#FF4D4F'}
           />
           {txn.reference && (
@@ -201,7 +200,7 @@ export function TransactionDetailScreen() {
               colors={colors}
               label="Reference"
               value={txn.reference}
-              icon="receipt-outline"
+              icon="filetext1"
               color={colors.text.secondary}
             />
           )}
@@ -210,7 +209,7 @@ export function TransactionDetailScreen() {
               style={[s.row, { borderBottomWidth: 0, borderBottomColor: colors.border.subtle }]}
             >
               <View style={s.rowLeft}>
-                <Ionicons name="document-text-outline" size={18} color={colors.text.tertiary} />
+                <AntDesign  name="filetext1" size={18} color={colors.text.tertiary} />
                 <Text style={[s.rowLabel, { color: colors.text.secondary }]}>Notes</Text>
               </View>
               <Text
@@ -229,7 +228,7 @@ export function TransactionDetailScreen() {
             activeOpacity={0.7}
           >
             <View style={[s.actionIcon, { backgroundColor: `${colors.accent.primary}15` }]}>
-              <Ionicons name="create-outline" size={20} color={colors.accent.primary} />
+              <AntDesign  name="edit" size={20} color={colors.accent.primary} />
             </View>
             <Text style={[s.actionLabel, { color: colors.text.primary }]}>Edit</Text>
           </TouchableOpacity>
@@ -249,7 +248,7 @@ export function TransactionDetailScreen() {
             activeOpacity={0.7}
           >
             <View style={[s.actionIcon, { backgroundColor: `${colors.accent.primary}15` }]}>
-              <Ionicons name="copy-outline" size={20} color={colors.accent.primary} />
+              <AntDesign  name="copy1" size={20} color={colors.accent.primary} />
             </View>
             <Text style={[s.actionLabel, { color: colors.text.primary }]}>Duplicate</Text>
           </TouchableOpacity>
@@ -263,7 +262,7 @@ export function TransactionDetailScreen() {
               {deleting ? (
                 <ActivityIndicator color="#FF4D4F" />
               ) : (
-                <Ionicons name="trash-outline" size={20} color="#FF4D4F" />
+                <AntDesign  name="delete" size={20} color="#FF4D4F" />
               )}
             </View>
             <Text style={[s.actionLabel, { color: '#FF4D4F' }]}>
@@ -292,7 +291,7 @@ function Row({
   return (
     <View style={[s.row, { borderBottomColor: colors.border.subtle }]}>
       <View style={s.rowLeft}>
-        <Ionicons name={icon as any} size={18} color={color} />
+        <AntDesign name={icon as any} size={18} color={color} />
         <Text style={[s.rowLabel, { color: colors.text.secondary }]}>{label}</Text>
       </View>
       <Text style={[s.rowValue, { color }]}>{value}</Text>

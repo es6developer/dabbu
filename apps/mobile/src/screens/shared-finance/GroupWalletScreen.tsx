@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert, TextInput } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -113,7 +113,7 @@ export function GroupWalletScreen() {
               onPress={() => setShowCreate(true)}
               style={[styles.addBtn, { backgroundColor: colors.accent.primary }]}
             >
-              <Ionicons name="add-outline" size={22} color="#FFF" />
+              <AntDesign  name="plus" size={22} color="#FFF" />
             </TouchableOpacity>
           </View>
 
@@ -123,7 +123,7 @@ export function GroupWalletScreen() {
             contentContainerStyle={{ padding: 16, gap: 12 }}
             ListEmptyComponent={
               <View style={{ alignItems: 'center', paddingVertical: 60 }}>
-                <Ionicons name="wallet-outline" size={48} color={colors.text.tertiary} />
+                <AntDesign  name="wallet" size={48} color={colors.text.tertiary} />
                 <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
                   No wallets yet. Create one!
                 </Text>
@@ -140,7 +140,7 @@ export function GroupWalletScreen() {
               >
                 <View style={styles.walletHeader}>
                   <View style={styles.walletIcon}>
-                    <Ionicons
+                    <AntDesign
                       name={item.isLocked ? 'lock-closed' : 'wallet'}
                       size={24}
                       color={colors.accent.primary}
@@ -155,7 +155,7 @@ export function GroupWalletScreen() {
                     </Text>
                   </View>
                   <TouchableOpacity onPress={() => toggleLock(item.id)} style={styles.lockBtn}>
-                    <Ionicons
+                    <AntDesign
                       name={item.isLocked ? 'lock-closed' : 'lock-open'}
                       size={18}
                       color={item.isLocked ? colors.status.error : colors.text.tertiary}
@@ -176,7 +176,7 @@ export function GroupWalletScreen() {
                         setShowContribute(true);
                       }}
                     >
-                      <Ionicons name="add-circle-outline" size={16} color={colors.status.success} />
+                      <AntDesign  name="pluscircleo" size={16} color={colors.status.success} />
                       <Text style={[styles.actionText, { color: colors.status.success }]}>
                         Contribute
                       </Text>
@@ -188,7 +188,7 @@ export function GroupWalletScreen() {
                         setShowSpend(true);
                       }}
                     >
-                      <Ionicons name="remove-circle-outline" size={16} color={colors.status.error} />
+                      <AntDesign  name="minuscircle" size={16} color={colors.status.error} />
                       <Text style={[styles.actionText, { color: colors.status.error }]}>Spend</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -197,7 +197,7 @@ export function GroupWalletScreen() {
                         navigation.navigate('WalletTransfer', { fromWalletId: item.id, groupId })
                       }
                     >
-                      <Ionicons name="swap-horizontal-outline" size={16} color={colors.accent.primary} />
+                      <AntDesign  name="swap" size={16} color={colors.accent.primary} />
                       <Text style={[styles.actionText, { color: colors.accent.primary }]}>
                         Transfer
                       </Text>

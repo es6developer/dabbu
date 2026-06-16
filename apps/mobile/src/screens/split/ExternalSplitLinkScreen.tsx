@@ -8,7 +8,7 @@ import {
   Share,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -73,7 +73,7 @@ export function ExternalSplitLinkScreen() {
               onPress={() => navigation.goBack()}
               style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}
             >
-              <Ionicons name="close-outline" size={24} color={colors.text.primary} />
+              <AntDesign  name="close" size={24} color={colors.text.primary} />
             </TouchableOpacity>
             <Text style={[styles.headerTitle, { color: colors.text.primary }]}>
               External Split Link
@@ -85,7 +85,7 @@ export function ExternalSplitLinkScreen() {
         <View style={{ paddingHorizontal: 20, paddingTop: 12, gap: 12 }}>
           <View style={[styles.card, { backgroundColor: colors.bg.card }]}>
             <View style={[styles.iconWrap, { backgroundColor: colors.bg.secondary }]}>
-              <Ionicons name="link-outline" size={32} color={colors.accent.primary} />
+              <AntDesign  name="link" size={32} color={colors.accent.primary} />
             </View>
             <Text style={[styles.title, { color: colors.text.primary }]}>Share Expense Link</Text>
             <Text style={[styles.desc, { color: colors.text.tertiary }]}>
@@ -110,7 +110,7 @@ export function ExternalSplitLinkScreen() {
                 ]}
               >
                 <View style={styles.linkHeader}>
-                  <Ionicons name="globe-outline" size={16} color={colors.accent.primary} />
+                  <AntDesign  name="earth" size={16} color={colors.accent.primary} />
                   <Text style={[styles.linkLabel, { color: colors.accent.primary }]}>
                     Public Link
                   </Text>
@@ -130,7 +130,7 @@ export function ExternalSplitLinkScreen() {
                 activeOpacity={0.85}
               >
                 <View style={styles.shareBtnGrad}>
-                  <Ionicons name="share-outline" size={18} color="#FFF" />
+                  <AntDesign  name="sharealt" size={18} color="#FFF" />
                   <Text style={[styles.shareBtnText, { color: colors.text.primary }]}>
                     Share Link
                   </Text>
@@ -151,8 +151,8 @@ export function ExternalSplitLinkScreen() {
               },
             ].map((item, i) => (
               <View key={i} style={styles.infoRow}>
-                <Ionicons
-                  name={`${item.icon}-outline` as any}
+                <AntDesign
+                  name={`${item.icon}` as any}
                   size={16}
                   color={colors.accent.primary}
                 />

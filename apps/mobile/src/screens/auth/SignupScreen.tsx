@@ -8,7 +8,7 @@ import {
   Image,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
@@ -64,7 +64,7 @@ export function SignupScreen() {
         <View style={styles.container}>
           <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
             <View style={[styles.backCircle, { backgroundColor: colors.bg.tertiary }]}>
-              <Ionicons name="arrow-back-outline" size={20} color={colors.text.secondary} />
+              <AntDesign  name="arrowleft" size={20} color={colors.text.secondary} />
             </View>
           </TouchableOpacity>
 
@@ -89,7 +89,7 @@ export function SignupScreen() {
 
           {error ? (
             <View style={[styles.errorBox, { backgroundColor: `${colors.status.error}12` }]}>
-              <Ionicons name="alert-circle-outline" size={16} color={colors.status.error} />
+              <AntDesign  name="exclamationcircle" size={16} color={colors.status.error} />
               <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text>
             </View>
           ) : null}
@@ -115,7 +115,7 @@ export function SignupScreen() {
               <ActivityIndicator size="small" color={colors.text.primary} />
             ) : (
               <>
-                <Ionicons name="logo-google" size={20} color={colors.text.primary} />
+                <AntDesign  name="google" size={20} color={colors.text.primary} />
                 <Text style={[styles.googleBtnText, { color: colors.text.primary }]}>
                   Continue with Google
                 </Text>
@@ -125,7 +125,7 @@ export function SignupScreen() {
 
           {referralCode && (
             <View style={[styles.referralBadge, { backgroundColor: `${colors.accent.primary}12` }]}>
-              <Ionicons name="gift-outline" size={14} color={colors.accent.primary} />
+              <AntDesign  name="gift" size={14} color={colors.accent.primary} />
               <Text style={[styles.referralBadgeText, { color: colors.accent.primary }]}>
                 Referral code applied: {referralCode}
               </Text>

@@ -9,7 +9,7 @@ import {
   Animated,
   StyleSheet,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../../services/api';
@@ -36,25 +36,25 @@ function daysSince(date: string): number {
 }
 
 const PLANNER_BADGES = [
-  { type: 'BABY', label: 'Baby', icon: 'happy-outline', color: '#FF8A65' },
-  { type: 'HOUSE', label: 'House', icon: 'home-outline', color: '#60A5FA' },
-  { type: 'CAR', label: 'Car', icon: 'car-outline', color: '#34C759' },
-  { type: 'RETIREMENT', label: 'Retire', icon: 'umbrella-outline', color: '#A78BFA' },
+  { type: 'BABY', label: 'Baby', icon: 'smileo', color: '#FF8A65' },
+  { type: 'HOUSE', label: 'House', icon: 'home', color: '#60A5FA' },
+  { type: 'CAR', label: 'Car', icon: 'car', color: '#34C759' },
+  { type: 'RETIREMENT', label: 'Retire', icon: 'Safety', color: '#A78BFA' },
 ];
 
 const QUICK_ACTIONS = [
-  { key: 'CoupleSpaceHome', icon: 'wallet-outline', label: 'Wallet', color: '#F97316' },
-  { key: 'CoupleIncome', icon: 'trending-up-outline', label: 'Income', color: '#34C759' },
-  { key: 'CoupleExpenses', icon: 'cart-outline', label: 'Expenses', color: '#FF6B6B' },
-  { key: 'CoupleBudgets', icon: 'wallet-outline', label: 'Budgets', color: '#F59E0B' },
-  { key: 'CoupleSavings', icon: 'save-outline', label: 'Savings', color: '#60A5FA' },
-  { key: 'CoupleGoals', icon: 'trophy-outline', label: 'Goals', color: '#A78BFA' },
-  { key: 'CoupleBills', icon: 'calendar-outline', label: 'Bills', color: '#FF8A65' },
-  { key: 'CoupleSettlements', icon: 'cash-outline', label: 'Settle', color: '#14B8A6' },
-  { key: 'CoupleReports', icon: 'stats-chart-outline', label: 'Reports', color: '#4F46E5' },
-  { key: 'CouplePlanners', icon: 'map-outline', label: 'Planners', color: '#60A5FA' },
-  { key: 'CoupleTimeline', icon: 'time-outline', label: 'Timeline', color: '#34C759' },
-  { key: 'CoupleCoach', icon: 'bulb-outline', label: 'AI Coach', color: '#8B5CF6' },
+  { key: 'CoupleSpaceHome', icon: 'wallet', label: 'Wallet', color: '#F97316' },
+  { key: 'CoupleIncome', icon: 'linechart', label: 'Income', color: '#34C759' },
+  { key: 'CoupleExpenses', icon: 'shoppingcart', label: 'Expenses', color: '#FF6B6B' },
+  { key: 'CoupleBudgets', icon: 'wallet', label: 'Budgets', color: '#F59E0B' },
+  { key: 'CoupleSavings', icon: 'save', label: 'Savings', color: '#60A5FA' },
+  { key: 'CoupleGoals', icon: 'trophy', label: 'Goals', color: '#A78BFA' },
+  { key: 'CoupleBills', icon: 'calendar', label: 'Bills', color: '#FF8A65' },
+  { key: 'CoupleSettlements', icon: 'wallet', label: 'Settle', color: '#14B8A6' },
+  { key: 'CoupleReports', icon: 'bar-chart', label: 'Reports', color: '#4F46E5' },
+  { key: 'CouplePlanners', icon: 'find', label: 'Planners', color: '#60A5FA' },
+  { key: 'CoupleTimeline', icon: 'clockcircleo', label: 'Timeline', color: '#34C759' },
+  { key: 'CoupleCoach', icon: 'bulb1', label: 'AI Coach', color: '#8B5CF6' },
 ];
 
 function HealthRing({ score, size = 88, strokeWidth = 6 }: { score: number; size?: number; strokeWidth?: number }) {
@@ -116,7 +116,7 @@ function StatCard({
   const { colors } = useTheme();
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg.card, borderRadius: 14, padding: 12, alignItems: 'center', gap: 6 }}>
-      <Ionicons name={icon as any} size={16} color={color} />
+      <AntDesign name={icon as any} size={16} color={color} />
       <Text style={{ fontSize: 15, fontWeight: '800', color: colors.text.primary }}>{value}</Text>
       <Text style={{ fontSize: 10, color: colors.text.tertiary }}>{label}</Text>
     </View>
@@ -193,10 +193,10 @@ export function CoupleHomeScreen() {
             </View>
             <View style={{ flexDirection: 'row', gap: 8 }}>
               <TouchableOpacity onPress={() => navigation.navigate('CoupleCoach')} style={[styles.iconBtn, { backgroundColor: colors.bg.tertiary }]}>
-                <Ionicons name="bulb-outline" size={20} color={colors.accent.primary} />
+                <AntDesign  name="bulb1" size={20} color={colors.accent.primary} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => navigation.navigate('CoupleSettings')} style={[styles.iconBtn, { backgroundColor: colors.bg.tertiary }]}>
-                <Ionicons name="settings-outline" size={20} color={colors.text.tertiary} />
+                <AntDesign  name="setting" size={20} color={colors.text.tertiary} />
               </TouchableOpacity>
             </View>
           </View>
@@ -238,7 +238,7 @@ export function CoupleHomeScreen() {
                     <TouchableOpacity style={{ marginTop: 12 }} onPress={() => navigation.navigate('CoupleReports')}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                         <Text style={{ fontSize: 12, color: colors.accent.primary, fontWeight: '600' }}>View Breakdown</Text>
-                        <Ionicons name="chevron-forward" size={12} color={colors.accent.primary} />
+                        <AntDesign  name="right" size={12} color={colors.accent.primary} />
                       </View>
                     </TouchableOpacity>
                   </View>
@@ -284,7 +284,7 @@ export function CoupleHomeScreen() {
                     backgroundColor: `${colors.status.success}15`,
                     alignItems: 'center', justifyContent: 'center',
                   }}>
-                    <Ionicons name="wallet-outline" size={22} color={colors.status.success} />
+                    <AntDesign  name="wallet" size={22} color={colors.status.success} />
                   </View>
                   <View>
                     <Text style={{ fontSize: 12, color: colors.text.tertiary }}>Shared Balance</Text>
@@ -318,7 +318,7 @@ export function CoupleHomeScreen() {
               </View>
               {data?.monthlySnapshot?.change !== null && data.monthlySnapshot.change !== 0 && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
-                  <Ionicons
+                  <AntDesign
                     name={data.monthlySnapshot.change > 0 ? 'trending-up' : 'trending-down'}
                     size={14}
                     color={data.monthlySnapshot.change > 0 ? colors.status.error : colors.status.success}
@@ -348,7 +348,7 @@ export function CoupleHomeScreen() {
                       backgroundColor: `${colors.accent.primary}20`,
                       alignItems: 'center', justifyContent: 'center',
                     }}>
-                      <Ionicons name="bulb-outline" size={16} color={colors.accent.primary} />
+                      <AntDesign  name="bulb1" size={16} color={colors.accent.primary} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={{ fontSize: 12, fontWeight: '700', color: colors.accent.primary }}>AI Couple Coach</Text>
@@ -361,7 +361,7 @@ export function CoupleHomeScreen() {
                         </Text>
                       )}
                     </View>
-                    <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} style={{ marginTop: 2 }} />
+                    <AntDesign  name="right" size={16} color={colors.text.tertiary} style={{ marginTop: 2 }} />
                   </View>
                 </TouchableOpacity>
               </View>
@@ -393,7 +393,7 @@ export function CoupleHomeScreen() {
                         backgroundColor: `${colors.accent.secondary}18`,
                         alignItems: 'center', justifyContent: 'center',
                       }}>
-                        <Ionicons name="trophy-outline" size={16} color={colors.accent.secondary} />
+                        <AntDesign  name="trophy" size={16} color={colors.accent.secondary} />
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>
@@ -425,7 +425,7 @@ export function CoupleHomeScreen() {
                     const current = Number(pl.currentSavings || 0);
                     const pct = target > 0 ? Math.round((current / target) * 100) : 0;
                     const badge = PLANNER_BADGES.find((b) => b.type === pl.plannerType) || {
-                      label: pl.plannerType, icon: 'flag-outline', color: colors.text.tertiary,
+                      label: pl.plannerType, icon: 'flag', color: colors.text.tertiary,
                     };
                     return (
                       <TouchableOpacity key={pl.id} style={{
@@ -435,7 +435,7 @@ export function CoupleHomeScreen() {
                           width: 32, height: 32, borderRadius: 10,
                           backgroundColor: `${badge.color}18`, alignItems: 'center', justifyContent: 'center', marginBottom: 8,
                         }}>
-                          <Ionicons name={badge.icon as any} size={16} color={badge.color} />
+                          <AntDesign name={badge.icon as any} size={16} color={badge.color} />
                         </View>
                         <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>{badge.label}</Text>
                         <Text style={{ fontSize: 15, fontWeight: '800', color: colors.text.primary, marginTop: 4 }}>
@@ -469,7 +469,7 @@ export function CoupleHomeScreen() {
                       backgroundColor: `${colors.status.warning}20`,
                       alignItems: 'center', justifyContent: 'center',
                     }}>
-                      <Ionicons name="diamond-outline" size={18} color={colors.status.warning} />
+                      <AntDesign  name="diamond" size={18} color={colors.status.warning} />
                     </View>
                     <View>
                       <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>{g.level}</Text>
@@ -485,7 +485,7 @@ export function CoupleHomeScreen() {
                         height: 4, backgroundColor: colors.accent.primary, borderRadius: 2,
                       }} />
                     </View>
-                    <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+                    <AntDesign  name="right" size={16} color={colors.text.tertiary} />
                   </View>
                 </TouchableOpacity>
               </View>
@@ -510,7 +510,7 @@ export function CoupleHomeScreen() {
                       width: 36, height: 36, borderRadius: 12,
                       backgroundColor: `${mod.color}18`, alignItems: 'center', justifyContent: 'center',
                     }}>
-                      <Ionicons name={mod.icon as any} size={16} color={mod.color} />
+                      <AntDesign name={mod.icon as any} size={16} color={mod.color} />
                     </View>
                     <Text style={{ fontSize: 10, fontWeight: '700', color: colors.text.primary }}>{mod.label}</Text>
                   </TouchableOpacity>

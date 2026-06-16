@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { api } from '../../services/api';
@@ -50,7 +50,7 @@ export function BillingHistoryScreen() {
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+          <AntDesign  name="left" size={24} color={colors.text.primary} />
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text.primary }}>
           Billing History
@@ -72,7 +72,7 @@ export function BillingHistoryScreen() {
       >
         {payments.length === 0 ? (
           <View style={styles.emptyState}>
-            <Ionicons name="receipt-outline" size={48} color={colors.text.tertiary} />
+            <AntDesign  name="filetext1" size={48} color={colors.text.tertiary} />
             <Text style={{ fontSize: 14, color: colors.text.tertiary }}>
               No billing history yet
             </Text>

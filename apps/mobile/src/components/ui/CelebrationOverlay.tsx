@@ -7,7 +7,7 @@ import {
   Dimensions,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -128,7 +128,7 @@ export function CelebrationOverlay({
       <Animated.View style={[styles.overlay, { backgroundColor: colors.bg.overlay, opacity }]}>
         <View style={styles.content}>
           <Animated.View style={[styles.iconContainer, { transform: [{ scale: checkScale }] }]}>
-            <Ionicons name={icon as any} size={80} color={colors.status.success} />
+            <AntDesign name={icon as any} size={80} color={colors.status.success} />
           </Animated.View>
           <Animated.Text
             style={[

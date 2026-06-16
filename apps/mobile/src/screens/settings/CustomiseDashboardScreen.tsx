@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DraggableFlatList, {
@@ -137,22 +137,22 @@ export function CustomiseDashboardScreen() {
             },
           ]}
         >
-          <Ionicons
-            name="menu-outline"
+          <AntDesign
+             name="menufold"
             size={20}
             color={colors.text.tertiary}
             style={{ marginRight: 12 }}
           />
           <View style={[styles.widgetIcon, { backgroundColor: colors.bg.tertiary }]}>
-            <Ionicons name={meta.icon as any} size={20} color={colors.accent.primary} />
+            <AntDesign name={meta.icon as any} size={20} color={colors.accent.primary} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[styles.widgetLabel, { color: colors.text.primary }]}>{meta.label}</Text>
             <Text style={[styles.widgetDesc, { color: colors.text.tertiary }]}>{meta.desc}</Text>
           </View>
           <TouchableOpacity onPress={() => toggleVisibility(idx)} style={styles.eyeBtn}>
-            <Ionicons
-              name={item.visible ? 'eye-outline' : 'eye-off-outline'}
+            <AntDesign
+              name={item.visible ? 'eye' : 'eyeo'}
               size={20}
               color={item.visible ? colors.accent.primary : colors.text.tertiary}
             />
@@ -176,7 +176,7 @@ export function CustomiseDashboardScreen() {
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+          <AntDesign  name="left" size={24} color={colors.text.primary} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text.primary }]}>Customise Dashboard</Text>
         <View style={{ width: 40 }} />

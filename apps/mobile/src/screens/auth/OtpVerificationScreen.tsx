@@ -7,7 +7,7 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { PageContainer } from '../../components/ui/PageContainer';
@@ -65,7 +65,7 @@ export function OtpVerificationScreen() {
         <View style={StyleSheet.absoluteFill} />
         <View style={styles.container}>
           <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back-outline" size={22} color={colors.text.secondary} />
+            <AntDesign  name="arrowleft" size={22} color={colors.text.secondary} />
           </TouchableOpacity>
           <Text style={[styles.title, { color: colors.text.primary }]}>Verify OTP</Text>
           <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>
@@ -74,7 +74,7 @@ export function OtpVerificationScreen() {
 
           {error ? (
             <View style={[styles.errorBox, { backgroundColor: colors.status.errorLight }]}>
-              <Ionicons name="alert-circle-outline" size={16} color={colors.status.error} />
+              <AntDesign  name="exclamationcircle" size={16} color={colors.status.error} />
               <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text>
             </View>
           ) : null}

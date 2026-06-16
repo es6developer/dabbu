@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 
 interface ReferralPillProps {
@@ -21,7 +21,7 @@ export function ReferralPill({ onPress }: ReferralPillProps) {
         borderColor: isDark ? 'rgba(167, 139, 250, 0.20)' : 'rgba(139, 92, 246, 0.15)',
       }}
     >
-      <Ionicons name="gift-outline" size={13} color={colors.brand.primary} />
+      <AntDesign  name="gift" size={13} color={colors.brand.primary} />
       <Text
         className="ml-1.5 text-[12px] font-semibold tracking-tight"
         style={{ color: colors.brand.primary }}

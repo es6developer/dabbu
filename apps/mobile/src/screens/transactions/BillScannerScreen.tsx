@@ -12,7 +12,7 @@ import {
   Dimensions,
   Animated,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import Svg, { Rect, Line } from 'react-native-svg';
 
 import { useNavigation } from '@react-navigation/native';
@@ -314,7 +314,7 @@ export function BillScannerScreen() {
           {scanState === 'idle' && (
             <>
               <View style={[styles.iconWrap, { backgroundColor: `${colors.accent.primary}18` }]}>
-                <Ionicons name="camera-outline" size={44} color={colors.accent.primary} />
+                <AntDesign  name="camera" size={44} color={colors.accent.primary} />
               </View>
               <Text style={[styles.title, { color: colors.text.primary }]}>Scan a Bill</Text>
               <Text style={[styles.desc, { color: colors.text.tertiary }]}>
@@ -329,7 +329,7 @@ export function BillScannerScreen() {
                   onPress={openCamera}
                   activeOpacity={0.8}
                 >
-                  <Ionicons name="camera-outline" size={20} color="#FFFFFF" />
+                  <AntDesign  name="camera" size={20} color="#FFFFFF" />
                   <Text style={styles.actionBtnText}>Open Camera</Text>
                 </TouchableOpacity>
               </View>
@@ -345,7 +345,7 @@ export function BillScannerScreen() {
                 ]}
                 onPress={pickFromGallery}
               >
-                <Ionicons name="images-outline" size={20} color={colors.accent.primary} />
+                <AntDesign  name="picture" size={20} color={colors.accent.primary} />
                 <Text style={[styles.actionBtnText, { color: colors.accent.primary }]}>
                   Choose from Gallery
                 </Text>
@@ -358,7 +358,7 @@ export function BillScannerScreen() {
                 ]}
                 onPress={() => navigation.navigate('BillsList')}
               >
-                <Ionicons name="receipt-outline" size={18} color={colors.accent.primary} />
+                <AntDesign  name="filetext1" size={18} color={colors.accent.primary} />
                 <Text style={[styles.viewBillsText, { color: colors.accent.primary }]}>
                   View Scanned Bills
                 </Text>
@@ -401,7 +401,7 @@ export function BillScannerScreen() {
                     ]}
                     onPress={handleRetry}
                   >
-                    <Ionicons name="close-outline" size={20} color={colors.text.primary} />
+                    <AntDesign  name="close" size={20} color={colors.text.primary} />
                     <Text style={[styles.cancelBtnText, { color: colors.text.primary }]}>
                       Cancel
                     </Text>
@@ -424,7 +424,7 @@ export function BillScannerScreen() {
                 ]}
               >
                 <View style={styles.resultHeader}>
-                  <Ionicons name="document-text-outline" size={20} color={colors.accent.primary} />
+                  <AntDesign  name="filetext1" size={20} color={colors.accent.primary} />
                   <Text style={[styles.resultTitle, { color: colors.text.primary }]}>
                     OCR Prediction
                   </Text>
@@ -512,7 +512,7 @@ export function BillScannerScreen() {
                               },
                             ]}
                           >
-                            <Ionicons
+                            <AntDesign
                               name={cat.icon as any}
                               size={14}
                               color={selected ? cat.color : colors.text.tertiary}
@@ -655,7 +655,7 @@ export function BillScannerScreen() {
                   }
                 >
                   <View style={styles.actionBtnInner}>
-                    <Ionicons name="add-circle-outline" size={20} color="#FFFFFF" />
+                    <AntDesign  name="pluscircleo" size={20} color="#FFFFFF" />
                     <Text style={styles.actionBtnText}>Add to Expenses</Text>
                   </View>
                 </TouchableOpacity>
@@ -673,7 +673,7 @@ export function BillScannerScreen() {
                   onPress={handleRetry}
                 >
                   <View style={styles.actionBtnInner}>
-                    <Ionicons name="close-outline" size={20} color={colors.text.secondary} />
+                    <AntDesign  name="close" size={20} color={colors.text.secondary} />
                     <Text style={[styles.actionBtnText, { color: colors.text.secondary }]}>
                       Discard & Scan Again
                     </Text>
@@ -694,7 +694,7 @@ export function BillScannerScreen() {
                   },
                 ]}
               >
-                <Ionicons name="alert-circle-outline" size={56} color={colors.status.error} />
+                <AntDesign  name="exclamationcircle" size={56} color={colors.status.error} />
                 <Text style={[styles.errorTitle, { color: colors.text.primary }]}>Scan Failed</Text>
                 <Text style={[styles.errorDesc, { color: colors.text.tertiary }]}>
                   {errorMessage}
@@ -706,7 +706,7 @@ export function BillScannerScreen() {
                       onPress={handleRetry}
                       activeOpacity={0.8}
                     >
-                      <Ionicons name="refresh-outline" size={20} color="#FFFFFF" />
+                      <AntDesign  name="reload1" size={20} color="#FFFFFF" />
                       <Text style={styles.actionBtnText}>Try Again</Text>
                     </TouchableOpacity>
                   </View>
@@ -721,7 +721,7 @@ export function BillScannerScreen() {
                     ]}
                     onPress={() => navigation.navigate('CreateTransaction' as any)}
                   >
-                    <Ionicons name="create-outline" size={20} color={colors.text.secondary} />
+                    <AntDesign  name="edit" size={20} color={colors.text.secondary} />
                     <Text style={[styles.actionBtnText, { color: colors.text.secondary }]}>
                       Enter Manually
                     </Text>

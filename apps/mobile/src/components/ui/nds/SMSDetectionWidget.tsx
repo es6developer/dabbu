@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, useColorScheme } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-
+import { AntDesign } from '@expo/vector-icons';
 export interface ParsedSms {
   id: string;
   transaction: string;
@@ -54,7 +53,7 @@ export const SMSDetectionWidget: React.FC<SMSDetectionWidgetProps> = ({
             className="w-10 h-10 rounded-full items-center justify-center mr-4"
             style={{ backgroundColor: bgIcon }}
           >
-            <Ionicons name="scan-outline" size={20} color={brandColor} />
+            <AntDesign  name="scan1" size={20} color={brandColor} />
           </View>
           <View className="flex-1">
             <Text style={{ color: textPrimary }} className="text-sm font-semibold">
@@ -86,7 +85,7 @@ export const SMSDetectionWidget: React.FC<SMSDetectionWidgetProps> = ({
           className="w-10 h-10 rounded-full items-center justify-center mr-4"
           style={{ backgroundColor: bgIcon }}
         >
-          <Ionicons name="chatbubble-ellipses-outline" size={20} color={brandColor} />
+          <AntDesign  name="message1" size={20} color={brandColor} />
         </View>
 
         <View className="flex-1">
@@ -133,7 +132,7 @@ export const SMSDetectionWidget: React.FC<SMSDetectionWidgetProps> = ({
           className="px-4 py-2 rounded-full border flex-row items-center"
           style={{ borderColor: borderColor }}
         >
-          <Ionicons name="pencil-outline" size={14} color={textSecondary} />
+          <AntDesign  name="edit" size={14} color={textSecondary} />
           <Text style={{ color: textSecondary }} className="text-xs font-semibold ml-1.5">
             Recategorize
           </Text>
@@ -145,7 +144,7 @@ export const SMSDetectionWidget: React.FC<SMSDetectionWidgetProps> = ({
           className="px-4 py-2 rounded-full flex-row items-center"
           style={{ backgroundColor: '#34D399' }}
         >
-          <Ionicons name="checkmark-outline" size={14} color={iconColor} />
+          <AntDesign  name="check" size={14} color={iconColor} />
           <Text style={{ color: iconColor }} className="text-xs font-semibold ml-1.5">
             Approve
           </Text>

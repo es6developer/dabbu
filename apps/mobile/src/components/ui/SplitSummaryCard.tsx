@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { Avatar } from './Avatar';
 
@@ -25,9 +25,9 @@ export function SplitSummaryCard({ totalAmount, members, splitMethod }: SplitSum
   const { colors } = useTheme();
 
   const methodIcons: Record<string, string> = {
-    equal: 'reorder-three-outline',
-    percentage: 'pie-chart-outline',
-    manual: 'create-outline',
+    equal: 'menufold',
+    percentage: 'piechart',
+    manual: 'edit',
   };
 
   return (
@@ -35,8 +35,8 @@ export function SplitSummaryCard({ totalAmount, members, splitMethod }: SplitSum
       <View style={styles.gradientBg}>
         <View style={styles.header}>
           <View style={[styles.methodBadge, { backgroundColor: `${colors.accent.primary}15` }]}>
-            <Ionicons
-              name={(methodIcons[splitMethod] || 'reorder-three-outline') as any}
+            <AntDesign
+              name={(methodIcons[splitMethod] || 'menufold') as any}
               size={12}
               color={colors.accent.primary}
             />
@@ -66,8 +66,8 @@ export function SplitSummaryCard({ totalAmount, members, splitMethod }: SplitSum
                 {fmt(member.amount)}
               </Text>
               {member.isPaid !== undefined && (
-                <Ionicons
-                  name={member.isPaid ? 'checkmark-circle' : 'time-outline'}
+                <AntDesign
+                  name={member.isPaid ? 'checkmark-circle' : 'clockcircleo'}
                   size={14}
                   color={member.isPaid ? '#34C759' : '#F59E0B'}
                 />

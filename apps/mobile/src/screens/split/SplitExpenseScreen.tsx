@@ -9,7 +9,7 @@ import {
   Alert,
   Dimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -22,14 +22,14 @@ const PURPLE = '#8B5CF6';
 const PURPLE_DARK = '#6D28D9';
 
 const SPLIT_METHODS = [
-  { key: 'equal', label: 'Equal', icon: 'reorder-three-outline', desc: 'Split equally among all' },
+  { key: 'equal', label: 'Equal', icon: 'menufold', desc: 'Split equally among all' },
   {
     key: 'percentage',
     label: 'Percentage',
-    icon: 'pie-chart-outline',
+    icon: 'piechart',
     desc: 'Split by percentage',
   },
-  { key: 'manual', label: 'Manual', icon: 'create-outline', desc: 'Enter custom amounts' },
+  { key: 'manual', label: 'Manual', icon: 'edit', desc: 'Enter custom amounts' },
 ];
 
 interface RouteParams {
@@ -100,7 +100,7 @@ export function SplitExpenseScreen() {
             <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
               <View style={s.headerRow}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-                  <Ionicons name="close-outline" size={22} color="#FFF" />
+                  <AntDesign  name="close" size={22} color="#FFF" />
                 </TouchableOpacity>
                 <Text style={s.headerTitle}>Split Bill</Text>
                 <View style={{ width: 34 }} />
@@ -171,14 +171,14 @@ export function SplitExpenseScreen() {
                         }}
                         onSubmitEditing={() => setManualMembers((prev) => [...prev, ''])}
                       />
-                      <Ionicons name="person-circle-outline" size={20} color={colors.text.tertiary} />
+                      <AntDesign  name="user" size={20} color={colors.text.tertiary} />
                     </View>
                   ))}
                   <TouchableOpacity
                     onPress={() => setManualMembers((prev) => [...prev, ''])}
                     style={s.addBtn}
                   >
-                    <Ionicons name="add-circle-outline" size={16} color={PURPLE} />
+                    <AntDesign  name="pluscircleo" size={16} color={PURPLE} />
                     <Text style={[s.addBtnText, { color: PURPLE }]}>Add member</Text>
                   </TouchableOpacity>
                 </View>
@@ -215,7 +215,7 @@ export function SplitExpenseScreen() {
                       >
                         {m.name}
                       </Text>
-                      {selected && <Ionicons name="checkmark-circle-outline" size={14} color={PURPLE} />}
+                      {selected && <AntDesign  name="checkcircleo" size={14} color={PURPLE} />}
                     </TouchableOpacity>
                   );
                 })}
@@ -239,7 +239,7 @@ export function SplitExpenseScreen() {
                     ]}
                     onPress={() => setSplitMethod(m.key)}
                   >
-                    <Ionicons
+                    <AntDesign
                       name={m.icon as any}
                       size={22}
                       color={active ? '#FFF' : colors.text.secondary}
@@ -268,20 +268,20 @@ export function SplitExpenseScreen() {
               ]}
             >
               <View style={s.infoRow}>
-                <Ionicons name="person-outline" size={16} color={colors.text.tertiary} />
+                <AntDesign  name="user" size={16} color={colors.text.tertiary} />
                 <Text style={[s.infoLabel, { color: colors.text.secondary }]}>Paid By</Text>
                 <TouchableOpacity style={[s.pill, { backgroundColor: colors.bg.tertiary }]}>
                   <Text style={[s.pillText, { color: colors.text.primary }]}>You</Text>
-                  <Ionicons name="chevron-down" size={12} color={colors.text.tertiary} />
+                  <AntDesign  name="down" size={12} color={colors.text.tertiary} />
                 </TouchableOpacity>
               </View>
               <View style={[s.divider, { backgroundColor: colors.border.subtle }]} />
               <View style={s.infoRow}>
-                <Ionicons name="receipt-outline" size={16} color={colors.text.tertiary} />
+                <AntDesign  name="filetext1" size={16} color={colors.text.tertiary} />
                 <Text style={[s.infoLabel, { color: colors.text.secondary }]}>Tax & Tip</Text>
                 <TouchableOpacity style={[s.pill, { backgroundColor: colors.bg.tertiary }]}>
                   <Text style={[s.pillText, { color: colors.text.tertiary }]}>None</Text>
-                  <Ionicons name="chevron-down" size={12} color={colors.text.tertiary} />
+                  <AntDesign  name="down" size={12} color={colors.text.tertiary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -318,7 +318,7 @@ export function SplitExpenseScreen() {
               end={{ x: 1, y: 0 }}
               style={s.createGrad}
             >
-              <Ionicons name="swap-horizontal-outline" size={18} color="#FFF" />
+              <AntDesign  name="swap" size={18} color="#FFF" />
               <Text style={s.createText}>Confirm Split</Text>
             </LinearGradient>
           </TouchableOpacity>

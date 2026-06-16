@@ -10,7 +10,7 @@ import {
   Linking,
   Alert,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
@@ -118,7 +118,7 @@ export function TripDashboardScreen() {
 
   if (loading) {
     return (
-      <PremiumLoaderScreen progress={loadingProgress} title="Loading Trip Dashboard" icon="airplane-outline" />
+      <PremiumLoaderScreen progress={loadingProgress} title="Loading Trip Dashboard" icon="airplane" />
     );
   }
 
@@ -133,11 +133,11 @@ export function TripDashboardScreen() {
       >
         <View style={[s.heroSection, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtnWrap}>
-            <Ionicons name="chevron-back" size={22} color="#FFF" />
+            <AntDesign  name="left" size={22} color="#FFF" />
           </TouchableOpacity>
           <Text style={s.heroTitle}>{trip?.destination || 'Trip'}</Text>
           <View style={s.dateRow}>
-            <Ionicons name="calendar-outline" size={14} color="rgba(255,255,255,0.7)" />
+            <AntDesign  name="calendar" size={14} color="rgba(255,255,255,0.7)" />
             <Text style={s.dateText}>{startDate} — {endDate}</Text>
           </View>
           {trip?.description && <Text style={s.heroDesc}>{trip.description}</Text>}
@@ -258,7 +258,7 @@ export function TripDashboardScreen() {
         onPress={() => navigation.navigate('SharedExpenseForm', { groupId, tripId })}
         activeOpacity={0.85}
       >
-        <Ionicons name="add-outline" size={26} color="#FFF" />
+        <AntDesign  name="plus" size={26} color="#FFF" />
       </TouchableOpacity>
     </View>
   );

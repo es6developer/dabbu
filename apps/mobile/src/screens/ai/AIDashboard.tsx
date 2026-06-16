@@ -10,7 +10,7 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
 import { MessageBubble } from '../../components/MessageBubble';
@@ -274,14 +274,14 @@ export function AIDashboard() {
       <View style={[s.header, { paddingTop: insets.top + 8 }]}>
         <View style={s.headerRow}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-            <Ionicons name="chevron-back" size={22} color={AI_COLORS.text} />
+            <AntDesign  name="left" size={22} color={AI_COLORS.text} />
           </TouchableOpacity>
           <View style={s.headerCenter}>
             <Text style={s.headerTitle}>Dabbu AI</Text>
             <Text style={s.headerSub}>Always here to help</Text>
           </View>
           <TouchableOpacity onPress={clearMessages} style={s.newChatBtn}>
-            <Ionicons name="add-circle-outline" size={22} color={AI_COLORS.warning} />
+            <AntDesign  name="pluscircleo" size={22} color={AI_COLORS.warning} />
           </TouchableOpacity>
         </View>
       </View>
@@ -295,7 +295,7 @@ export function AIDashboard() {
         ListEmptyComponent={
           <View style={s.emptyWrap}>
             <View style={s.emptyCard}>
-              <Ionicons name="sparkles-outline" size={32} color={AI_COLORS.warning} />
+              <AntDesign  name="star" size={32} color={AI_COLORS.warning} />
               <Text style={s.emptyTitle}>How can I help you?</Text>
               <Text style={s.emptySub}>Ask me anything about your finances</Text>
             </View>
@@ -354,7 +354,7 @@ export function AIDashboard() {
               {loading ? (
                 <ActivityIndicator size="small" color={AI_COLORS.bg} />
               ) : (
-                <Ionicons name="arrow-up-outline" size={20} color={AI_COLORS.bg} />
+                <AntDesign  name="up" size={20} color={AI_COLORS.bg} />
               )}
             </TouchableOpacity>
           </View>

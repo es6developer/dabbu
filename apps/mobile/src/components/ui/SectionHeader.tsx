@@ -1,13 +1,13 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 
 interface SectionHeaderProps {
   title: string;
   action?: string;
   onAction?: () => void;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: string;
 }
 
 export function SectionHeader({ title, action, onAction, icon }: SectionHeaderProps) {
@@ -34,7 +34,7 @@ export function SectionHeader({ title, action, onAction, icon }: SectionHeaderPr
               justifyContent: 'center',
             }}
           >
-            <Ionicons name={icon} size={14} color={colors.accent.primary} />
+            <AntDesign name={icon} size={14} color={colors.accent.primary} />
           </View>
         )}
         <Text
@@ -58,7 +58,7 @@ export function SectionHeader({ title, action, onAction, icon }: SectionHeaderPr
           <Text style={{ fontSize: 13, fontWeight: '600', color: colors.accent.primary }}>
             {action}
           </Text>
-          <Ionicons name="chevron-forward" size={14} color={colors.accent.primary} />
+          <AntDesign  name="right" size={14} color={colors.accent.primary} />
         </TouchableOpacity>
       )}
     </View>

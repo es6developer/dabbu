@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { DetailSkeleton } from '../../components/ui/AnimatedSkeleton';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -22,7 +22,7 @@ function fmt(v: number) {
   return `\u20B9${(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 }
 
-const categoryIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
+const categoryIcons: Record<string, string> = {
   Food: 'fast-food',
   Transport: 'car',
   Shopping: 'bag',
@@ -106,7 +106,7 @@ export function BudgetDetailScreen() {
   if (!budget) {
     return (
       <View style={[s.loading, { backgroundColor: colors.bg.primary }]}>
-        <Ionicons name="alert-circle-outline" size={48} color={colors.status.error} />
+        <AntDesign  name="exclamationcircle" size={48} color={colors.status.error} />
         <Text
           style={{ fontSize: 16, fontWeight: '600', color: colors.status.error, marginTop: 12 }}
         >
@@ -139,7 +139,7 @@ export function BudgetDetailScreen() {
               justifyContent: 'center',
             }}
           >
-            <Ionicons name="chevron-back" size={20} color={colors.accent.primary} />
+            <AntDesign  name="left" size={20} color={colors.accent.primary} />
           </TouchableOpacity>
           <Text style={{ fontSize: 20, fontWeight: '700', color: colors.text.primary, flex: 1 }}>
             Budget Details
@@ -159,7 +159,7 @@ export function BudgetDetailScreen() {
             {deleting ? (
               <ActivityIndicator size="small" color={colors.status.error} />
             ) : (
-              <Ionicons name="trash-outline" size={18} color={colors.status.error} />
+              <AntDesign  name="delete" size={18} color={colors.status.error} />
             )}
           </TouchableOpacity>
         </View>
@@ -232,8 +232,8 @@ export function BudgetDetailScreen() {
               justifyContent: 'center',
             }}
           >
-            <Ionicons
-              name={categoryIcons[catName] || 'wallet-outline'}
+            <AntDesign
+              name={categoryIcons[catName] || 'wallet'}
               size={22}
               color={colors.accent.primary}
             />
@@ -559,7 +559,7 @@ export function BudgetDetailScreen() {
           onPress={() => navigation.navigate('CreateBudget', { budget })}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Ionicons name="create-outline" size={16} color="#FFF" />
+            <AntDesign  name="edit" size={16} color="#FFF" />
             <Text style={{ color: '#FFF', fontSize: 15, fontWeight: '700' }}>Edit Budget</Text>
           </View>
         </TouchableOpacity>

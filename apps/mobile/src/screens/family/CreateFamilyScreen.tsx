@@ -51,14 +51,14 @@ export function CreateFamilyScreen() {
       <PremiumError message={error} />
       <PremiumInput
         label="Family name"
-        icon="home-outline"
+        icon="home"
         value={name}
         onChangeText={setName}
         placeholder="e.g. Sharma Family"
       />
       <PremiumInput
         label="Description"
-        icon="document-text-outline"
+        icon="filetext1"
         value={description}
         onChangeText={setDescription}
         placeholder="A short description..."

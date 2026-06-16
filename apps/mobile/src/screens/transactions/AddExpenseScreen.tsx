@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -13,7 +13,7 @@ const CARD_W = (SCREEN_W - 60) / 2;
 
 interface OptionCard {
   type: 'manual' | 'camera' | 'group';
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: string;
   title: string;
   description: string;
   badge?: string;
@@ -24,7 +24,7 @@ interface OptionCard {
 const OPTIONS: OptionCard[] = [
   {
     type: 'manual',
-    icon: 'create-outline',
+    icon: 'edit',
     title: 'Manual Entry',
     description: 'Enter amount, category & description by hand.',
     color: PURPLE,
@@ -32,7 +32,7 @@ const OPTIONS: OptionCard[] = [
   },
   {
     type: 'camera',
-    icon: 'camera-outline',
+    icon: 'camera',
     title: 'Scan Bill',
     description: 'Snap a receipt. AI extracts everything automatically.',
     badge: 'AI',
@@ -41,7 +41,7 @@ const OPTIONS: OptionCard[] = [
   },
   {
     type: 'group',
-    icon: 'people-outline',
+    icon: 'team',
     title: 'Create Group',
     description: 'Set up a circle to split expenses with friends & family.',
     color: '#14B8A6',
@@ -83,13 +83,13 @@ export function AddExpenseScreen() {
         {/* Header */}
         <View style={s.headerRow}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={s.closeBtn}>
-            <Ionicons name="close-outline" size={22} color={PURPLE} />
+            <AntDesign  name="close" size={22} color={PURPLE} />
           </TouchableOpacity>
         </View>
 
         <View style={s.hero}>
           <View style={s.heroIcon}>
-            <Ionicons name="wallet-outline" size={32} color={PURPLE} />
+            <AntDesign  name="wallet" size={32} color={PURPLE} />
           </View>
           <Text style={s.heroTitle}>Add expense</Text>
           <Text style={s.heroDesc}>Choose how you'd like to capture this spend.</Text>
@@ -127,7 +127,7 @@ export function AddExpenseScreen() {
                     end={{ x: 1, y: 1 }}
                     style={s.cardIcon}
                   >
-                    <Ionicons name={option.icon} size={26} color="#FFF" />
+                    <AntDesign name={option.icon} size={26} color="#FFF" />
                   </LinearGradient>
                   <View style={{ flex: 1 }}>
                     <View style={s.cardTitleRow}>
@@ -142,7 +142,7 @@ export function AddExpenseScreen() {
                       {option.description}
                     </Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
+                  <AntDesign  name="right" size={18} color={colors.text.tertiary} />
                 </TouchableOpacity>
               </Animated.View>
             );

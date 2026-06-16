@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../../theme';
 
 interface EmptyStateProps {
@@ -12,7 +12,7 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({
-  icon = 'file-tray-outline',
+  icon = 'inbox',
   title,
   message,
   actionLabel,
@@ -26,7 +26,7 @@ export function EmptyState({
         
         style={styles.iconWrap}
       >
-        <Ionicons name={icon as any} size={44} color={colors.accent.primary} />
+        <AntDesign name={icon as any} size={44} color={colors.accent.primary} />
       </View>
       <Text style={[styles.title, { color: colors.text.primary }]}>{title}</Text>
       <Text style={[styles.message, { color: colors.text.tertiary }]}>{message}</Text>
@@ -36,7 +36,7 @@ export function EmptyState({
           onPress={onAction}
           activeOpacity={0.8}
         >
-          <Ionicons name="add-outline" size={18} color="#FFF" />
+          <AntDesign  name="plus" size={18} color="#FFF" />
           <Text style={styles.actionLabel}>{actionLabel}</Text>
         </TouchableOpacity>
       )}

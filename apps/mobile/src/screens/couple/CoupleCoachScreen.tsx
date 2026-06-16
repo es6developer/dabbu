@@ -8,7 +8,7 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -53,7 +53,7 @@ function InsightCard({
             marginTop: 2,
           }}
         >
-          <Ionicons name={icon as any} size={18} color={color} />
+          <AntDesign name={icon as any} size={18} color={color} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }}>{title}</Text>
@@ -104,7 +104,7 @@ function SuggestionCard({
           justifyContent: 'center',
         }}
       >
-        <Ionicons name={icon as any} size={20} color="#8B5CF6" />
+        <AntDesign name={icon as any} size={20} color="#8B5CF6" />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>{title}</Text>
@@ -184,7 +184,7 @@ export function CoupleCoachScreen() {
               justifyContent: 'center',
             }}
           >
-            <Ionicons name="chevron-back" size={20} color={colors.text.primary} />
+            <AntDesign  name="left" size={20} color={colors.text.primary} />
           </TouchableOpacity>
           <View>
             <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text.primary }}>AI Couple Coach</Text>

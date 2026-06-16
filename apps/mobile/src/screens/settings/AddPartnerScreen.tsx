@@ -9,7 +9,7 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -168,11 +168,11 @@ export function AddPartnerScreen() {
             onPress={() => navigation.goBack()}
             activeOpacity={0.7}
           >
-            <Ionicons name="arrow-back-outline" size={22} color="#FFF" />
+            <AntDesign  name="arrowleft" size={22} color="#FFF" />
           </TouchableOpacity>
           <View style={styles.heroContent}>
             <View style={styles.heroIconWrap}>
-              <Ionicons name="heart-outline" size={48} color="#FFF" />
+              <AntDesign  name="hearto" size={48} color="#FFF" />
             </View>
             <Text style={[styles.heroTitle, { color: '#FFF' }]}>Your Partner</Text>
           </View>
@@ -183,7 +183,7 @@ export function AddPartnerScreen() {
             <View style={styles.avatarRow}>
               <Avatar name={user.firstName || 'You'} size={56} />
               <View style={styles.heartSmall}>
-                <Ionicons name="heart-outline" size={20} color={COUPLE_COLORS.heart} />
+                <AntDesign  name="hearto" size={20} color={COUPLE_COLORS.heart} />
               </View>
               <Avatar name={partnerName} size={56} />
             </View>
@@ -191,14 +191,14 @@ export function AddPartnerScreen() {
               {user.firstName || 'You'} & {partnerName}
             </Text>
             <View style={[styles.infoRow, { borderTopColor: `${COUPLE_COLORS.border}80` }]}>
-              <Ionicons name="mail-outline" size={16} color={COUPLE_COLORS.textSecondary} />
+              <AntDesign  name="mail" size={16} color={COUPLE_COLORS.textSecondary} />
               <Text style={[styles.infoText, { color: COUPLE_COLORS.textSecondary }]}>
                 {partner.email}
               </Text>
             </View>
             {linkedAt && (
               <View style={styles.infoRow}>
-                <Ionicons name="calendar-outline" size={16} color={COUPLE_COLORS.textSecondary} />
+                <AntDesign  name="calendar" size={16} color={COUPLE_COLORS.textSecondary} />
                 <Text style={[styles.infoText, { color: COUPLE_COLORS.textSecondary }]}>
                   Together since {linkedAt}
                 </Text>
@@ -226,7 +226,7 @@ export function AddPartnerScreen() {
               <ActivityIndicator size="small" color="#FF4757" />
             ) : (
               <>
-                <Ionicons name="heart-dislike-outline" size={20} color="#FF4757" />
+                <AntDesign  name="hearto" size={20} color="#FF4757" />
                 <Text style={styles.removeText}>Remove Partner</Text>
               </>
             )}
@@ -247,11 +247,11 @@ export function AddPartnerScreen() {
           onPress={() => navigation.goBack()}
           activeOpacity={0.7}
         >
-          <Ionicons name="arrow-back-outline" size={22} color="#FFF" />
+          <AntDesign  name="arrowleft" size={22} color="#FFF" />
         </TouchableOpacity>
         <View style={styles.heroContent}>
           <View style={styles.heroIconWrap}>
-            <Ionicons name="heart-circle-outline" size={56} color="#FFF" />
+            <AntDesign  name="heart" size={56} color="#FFF" />
           </View>
           <Text style={[styles.heroTitle, { color: '#FFF' }]}>Add Your Partner</Text>
           <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.85)' }]}>
@@ -294,7 +294,7 @@ export function AddPartnerScreen() {
                       {processingId === req.id ? (
                         <ActivityIndicator size="small" color="#FFF" />
                       ) : (
-                        <Ionicons name="checkmark-outline" size={20} color="#FFF" />
+                        <AntDesign  name="check" size={20} color="#FFF" />
                       )}
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -302,7 +302,7 @@ export function AddPartnerScreen() {
                       onPress={() => handleReject(req.id)}
                       disabled={processingId === req.id}
                     >
-                      <Ionicons name="close-outline" size={20} color="#FF4757" />
+                      <AntDesign  name="close" size={20} color="#FF4757" />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -343,7 +343,7 @@ export function AddPartnerScreen() {
                 <ActivityIndicator size="small" color="#FFF" />
               ) : (
                 <>
-                  <Ionicons name="heart-outline" size={20} color="#FFF" />
+                  <AntDesign  name="hearto" size={20} color="#FFF" />
                   <Text style={styles.addBtnText}>Send Request</Text>
                 </>
               )}
@@ -391,12 +391,12 @@ export function AddPartnerScreen() {
         {/* Features */}
         <View style={styles.featuresList}>
           {[
-            { icon: 'wallet-outline', text: 'Share expenses and track together' },
-            { icon: 'trending-up-outline', text: 'Save for shared goals' },
-            { icon: 'pie-chart-outline', text: 'Get AI-powered couple insights' },
+            { icon: 'wallet', text: 'Share expenses and track together' },
+            { icon: 'linechart', text: 'Save for shared goals' },
+            { icon: 'piechart', text: 'Get AI-powered couple insights' },
           ].map((f, i) => (
             <View key={i} style={styles.featureRow}>
-              <Ionicons name={f.icon as any} size={18} color="#8B5CF6" />
+              <AntDesign name={f.icon as any} size={18} color="#8B5CF6" />
               <Text style={[styles.featureText, { color: colors.text.secondary }]}>{f.text}</Text>
             </View>
           ))}

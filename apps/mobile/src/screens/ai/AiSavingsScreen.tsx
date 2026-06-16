@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import ReAnimated, { FadeInUp, FadeInLeft } from 'react-native-reanimated';
@@ -117,7 +117,7 @@ export function AiSavingsScreen() {
     return (
       <View style={[s.screen, { backgroundColor: AI_COLORS.bg, paddingTop: insets.top + 60 }]}>
         <View style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
-          <Ionicons name="cash-outline" size={48} color={AI_COLORS.textTertiary} />
+          <AntDesign  name="wallet" size={48} color={AI_COLORS.textTertiary} />
           <Text style={{ fontSize: 18, fontWeight: '700', color: AI_COLORS.text }}>
             No savings opportunities found
           </Text>
@@ -166,7 +166,7 @@ export function AiSavingsScreen() {
                   alignItems: 'center',
                 }}
               >
-                <Ionicons name="cash-outline" size={30} color={AI_COLORS.success} />
+                <AntDesign  name="wallet" size={30} color={AI_COLORS.success} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 13, color: AI_COLORS.textSecondary }}>
@@ -210,13 +210,13 @@ export function AiSavingsScreen() {
                   >
                     <View style={{ flexDirection: 'row', gap: 12 }}>
                       <View style={[s.oppIcon, { backgroundColor: `${typeColor}20` }]}>
-                        <Ionicons
+                        <AntDesign
                           name={
                             opp.type.includes('subscription')
-                              ? 'card-outline'
+                              ? 'creditcard'
                               : opp.type.includes('food')
-                                ? 'fast-food-outline'
-                                : 'cash-outline'
+                                ? 'restaurant'
+                                : 'wallet'
                           }
                           size={22}
                           color={typeColor}

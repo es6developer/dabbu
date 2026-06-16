@@ -9,7 +9,7 @@ import {
   Platform,
   Animated,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import ReAnimated, { FadeInUp, FadeIn } from 'react-native-reanimated';
@@ -210,7 +210,7 @@ export function PremiumAiPaywallScreen() {
           onPress={() => navigation.goBack()}
           style={[s.closeBtn, { top: insets.top + 12 }]}
         >
-          <Ionicons name="close-outline" size={24} color={AI_COLORS.text} />
+          <AntDesign  name="close" size={24} color={AI_COLORS.text} />
         </TouchableOpacity>
 
         {/* Hero */}
@@ -219,7 +219,7 @@ export function PremiumAiPaywallScreen() {
           style={[s.heroSection, { paddingTop: insets.top + 60 }]}
         >
           <View style={s.heroIconWrap}>
-            <Ionicons name="diamond-outline" size={40} color={AI_COLORS.primary} />
+            <AntDesign  name="diamond" size={40} color={AI_COLORS.primary} />
           </View>
           <Text style={s.heroTitle}>Unlock Dabbu AI</Text>
           <Text style={s.heroDesc}>
@@ -248,7 +248,7 @@ export function PremiumAiPaywallScreen() {
                 ]}
               >
                 <View style={[s.previewIcon, { backgroundColor: `${card.color}25` }]}>
-                  <Ionicons name={card.icon} size={28} color={card.color} />
+                  <AntDesign name={card.icon} size={28} color={card.color} />
                 </View>
                 <Text style={s.previewTitle}>{card.title}</Text>
                 <Text style={[s.previewDesc, { color: card.color }]}>{card.desc}</Text>
@@ -359,13 +359,13 @@ export function PremiumAiPaywallScreen() {
                 <Text style={{ flex: 1, fontSize: 13, color: AI_COLORS.text }}>{f.name}</Text>
                 <View style={{ width: 50, alignItems: 'center' }}>
                   {f.free ? (
-                    <Ionicons name="checkmark-outline" size={18} color={AI_COLORS.success} />
+                    <AntDesign  name="check" size={18} color={AI_COLORS.success} />
                   ) : (
-                    <Ionicons name="close-outline" size={18} color={AI_COLORS.textTertiary} />
+                    <AntDesign  name="close" size={18} color={AI_COLORS.textTertiary} />
                   )}
                 </View>
                 <View style={{ width: 50, alignItems: 'center' }}>
-                  <Ionicons name="checkmark-outline" size={18} color={AI_COLORS.primary} />
+                  <AntDesign  name="check" size={18} color={AI_COLORS.primary} />
                 </View>
               </View>
             ))}
@@ -378,7 +378,7 @@ export function PremiumAiPaywallScreen() {
           style={{ paddingHorizontal: 16, marginTop: 24 }}
         >
           <TouchableOpacity style={s.ctaBtn}>
-            <Ionicons name="sparkles-outline" size={20} color="#FFF" />
+            <AntDesign  name="star" size={20} color="#FFF" />
             <Text style={s.ctaText}>Start Free Trial</Text>
           </TouchableOpacity>
           <Text style={s.ctaSub}>7-day free trial, cancel anytime</Text>

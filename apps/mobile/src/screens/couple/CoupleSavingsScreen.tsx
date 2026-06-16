@@ -13,7 +13,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -157,13 +157,13 @@ export function CoupleSavingsScreen() {
         >
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <Ionicons name="arrow-back-outline" size={22} color="#FFF" />
+              <AntDesign  name="arrowleft" size={22} color="#FFF" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Savings</Text>
             <View style={{ width: 34 }} />
           </View>
           <View style={styles.headerSub}>
-            <Ionicons name="save-outline" size={28} color="rgba(255,255,255,0.6)" />
+            <AntDesign  name="save" size={28} color="rgba(255,255,255,0.6)" />
             <Text style={styles.headerSubText}>Save together, grow together</Text>
           </View>
         </View>
@@ -171,7 +171,7 @@ export function CoupleSavingsScreen() {
         <View style={{ paddingHorizontal: 20, marginTop: -16, gap: 16 }}>
           <View style={[styles.goalCard, { backgroundColor: '#FFEBB4' }]}>
             <View style={styles.goalHeader}>
-              <Ionicons name="trophy-outline" size={22} color={colors.accent.primary} />
+              <AntDesign  name="trophy" size={22} color={colors.accent.primary} />
               <Text style={styles.goalTitle}>Savings Goal</Text>
             </View>
             <View style={styles.goalRow}>
@@ -260,7 +260,7 @@ export function CoupleSavingsScreen() {
             onPress={() => setModalVisible(true)}
           >
             <View style={[styles.addBtnGradient, { backgroundColor: colors.accent.primary }]}>
-              <Ionicons name="add-circle-outline" size={20} color="#FFF" />
+              <AntDesign  name="pluscircleo" size={20} color="#FFF" />
               <Text style={styles.addBtnText}>Add to Savings</Text>
             </View>
           </TouchableOpacity>

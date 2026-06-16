@@ -46,7 +46,7 @@ export function CreateChatScreen() {
     >
       <PremiumInput
         label="Chat name"
-        icon="chatbubble-outline"
+        icon="message1"
         value={title}
         onChangeText={setTitle}
         placeholder="Enter chat name"

@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, RefreshControl } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme';
@@ -65,7 +65,7 @@ export function ChallengesScreen() {
 
         {!loading && challenges.totalActive === 0 && (
           <View style={{ alignItems: 'center', paddingTop: 60 }}>
-            <Ionicons name="trophy-outline" size={48} color={colors.text.tertiary} />
+            <AntDesign  name="trophy" size={48} color={colors.text.tertiary} />
             <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.secondary, marginTop: 12 }}>No challenges yet</Text>
           </View>
         )}

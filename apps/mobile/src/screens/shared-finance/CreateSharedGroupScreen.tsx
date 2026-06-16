@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -157,7 +157,7 @@ export function CreateSharedGroupScreen() {
                 onPress={() => setType(t.key)}
                 activeOpacity={0.7}
               >
-                <Ionicons
+                <AntDesign
                   name={t.icon as any}
                   size={15}
                   color={active ? t.color : colors.text.tertiary}
@@ -234,9 +234,9 @@ export function CreateSharedGroupScreen() {
               autoCapitalize="none"
               returnKeyType="done"
             />
-            {upiStatus === 'valid' && <Ionicons name="checkmark-circle-outline" size={20} color="#34C759" style={{ marginRight: 10 }} />}
-            {upiStatus === 'invalid' && <Ionicons name="alert-circle-outline" size={20} color="#FF4D4F" style={{ marginRight: 10 }} />}
-            {upiStatus === 'checking' && <Ionicons name="sync-outline" size={18} color={colors.text.tertiary} style={{ marginRight: 10 }} />}
+            {upiStatus === 'valid' && <AntDesign  name="checkcircleo" size={20} color="#34C759" style={{ marginRight: 10 }} />}
+            {upiStatus === 'invalid' && <AntDesign  name="exclamationcircle" size={20} color="#FF4D4F" style={{ marginRight: 10 }} />}
+            {upiStatus === 'checking' && <AntDesign  name="sync" size={18} color={colors.text.tertiary} style={{ marginRight: 10 }} />}
           </View>
           {upiStatus === 'invalid' && (
             <Text style={{ fontSize: 11, color: '#FF4D4F', marginTop: 4, marginLeft: 2 }}>

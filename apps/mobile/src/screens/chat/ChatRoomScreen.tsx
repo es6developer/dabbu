@@ -10,7 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -162,7 +162,7 @@ export function ChatRoomScreen() {
         }}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Ionicons name="chatbubble-ellipses-outline" size={44} color={colors.text.tertiary} />
+            <AntDesign  name="message1" size={44} color={colors.text.tertiary} />
             <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>No messages yet</Text>
           </View>
         }
@@ -201,7 +201,7 @@ export function ChatRoomScreen() {
           onPress={handleSend}
           disabled={!input.trim() || sending}
         >
-          <Ionicons name="send-outline" size={18} color="#FFFFFF" />
+          <AntDesign  name="enviroment" size={18} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>

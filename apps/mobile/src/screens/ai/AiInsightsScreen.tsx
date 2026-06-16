@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import ReAnimated, { FadeInUp } from 'react-native-reanimated';
@@ -11,9 +11,9 @@ import { useAiColors, AiCard, SectionHeader, PremiumBadge } from './components/A
 
 const SECTIONS = [
   { key: 'predictions', label: 'Predictions', icon: 'trending-up' as const },
-  { key: 'anomalies', label: 'Anomalies', icon: 'warning-outline' as const },
-  { key: 'savings', label: 'Savings', icon: 'cash-outline' as const },
-  { key: 'recommendations', label: 'Recommendations', icon: 'bulb-outline' as const },
+  { key: 'anomalies', label: 'Anomalies', icon: 'warning' as const },
+  { key: 'savings', label: 'Savings', icon: 'wallet' as const },
+  { key: 'recommendations', label: 'Recommendations', icon: 'bulb1' as const },
 ];
 
 interface InsightItem {
@@ -104,7 +104,7 @@ export function AiInsightsScreen() {
               message: i.message ?? '',
               severity: i.severity ?? 'info',
               confidence: i.confidence ?? undefined,
-              icon: i.icon ?? 'bulb-outline',
+              icon: i.icon ?? 'bulb1',
             })),
           );
         } else {
@@ -201,7 +201,7 @@ export function AiInsightsScreen() {
               }}
               activeOpacity={0.7}
             >
-              <Ionicons
+              <AntDesign
                 name={sec.icon}
                 size={16}
                 color={activeSection === sec.key ? '#FFF' : AI_COLORS.textSecondary}
@@ -235,7 +235,7 @@ export function AiInsightsScreen() {
                   <View
                     style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}
                   >
-                    <Ionicons name="sparkles-outline" size={16} color={AI_COLORS.primary} />
+                    <AntDesign  name="star" size={16} color={AI_COLORS.primary} />
                     <Text style={{ fontSize: 15, fontWeight: '700', color: AI_COLORS.text }}>
                       AI Analysis
                     </Text>
@@ -287,8 +287,8 @@ export function AiInsightsScreen() {
                       >
                         <View style={{ flexDirection: 'row', gap: 12 }}>
                           <View style={[s.insightIcon, { backgroundColor: `${clr}20` }]}>
-                            <Ionicons
-                              name={(item.icon as any) || 'bulb-outline'}
+                            <AntDesign
+                              name={(item.icon as any) || 'bulb1'}
                               size={18}
                               color={clr}
                             />
@@ -331,7 +331,7 @@ export function AiInsightsScreen() {
               <View
                 style={{ alignItems: 'center', paddingTop: 60, gap: 12, paddingHorizontal: 32 }}
               >
-                <Ionicons name="sparkles-outline" size={48} color={AI_COLORS.textTertiary} />
+                <AntDesign  name="star" size={48} color={AI_COLORS.textTertiary} />
                 <Text style={{ fontSize: 18, fontWeight: '700', color: AI_COLORS.text }}>
                   No insights yet
                 </Text>

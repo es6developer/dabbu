@@ -8,7 +8,7 @@ import {
   RefreshControl,
   Animated,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -126,7 +126,7 @@ export function BudgetsListScreen() {
               justifyContent: 'center',
             }}
           >
-            <Ionicons name="add-outline" size={20} color={colors.accent.primary} />
+            <AntDesign  name="plus" size={20} color={colors.accent.primary} />
           </TouchableOpacity>
         </View>
         {budgets.length > 0 && (
@@ -317,7 +317,7 @@ export function BudgetsListScreen() {
         />
       ) : (
         <PremiumEmptyState
-          icon="wallet-outline"
+          icon="wallet"
           title="No budgets yet"
           message="Take control of your spending. Create a budget to track every category."
           action={
@@ -345,7 +345,7 @@ export function BudgetsListScreen() {
         onPress={() => navigation.navigate('CreateBudget')}
         style={[s.fab, { backgroundColor: colors.accent.primary }, fabShadow]}
       >
-        <Ionicons name="add-outline" size={28} color="#FFFFFF" />
+        <AntDesign  name="plus" size={28} color="#FFFFFF" />
       </TouchableOpacity>
     </View>
   );

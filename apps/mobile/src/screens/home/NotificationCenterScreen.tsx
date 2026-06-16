@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
@@ -31,13 +31,13 @@ interface NotificationItem {
 
 type FilterKey = 'all' | 'overdue' | 'upcoming' | 'paid' | 'bill' | 'subscription';
 
-const FILTERS: { key: FilterKey; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
-  { key: 'all', label: 'All', icon: 'notifications-outline' },
-  { key: 'overdue', label: 'Overdue', icon: 'alert-circle-outline' },
-  { key: 'upcoming', label: 'Upcoming', icon: 'calendar-outline' },
-  { key: 'paid', label: 'Completed', icon: 'checkmark-circle-outline' },
-  { key: 'bill', label: 'Bills', icon: 'receipt-outline' },
-  { key: 'subscription', label: 'Subscriptions', icon: 'repeat-outline' },
+const FILTERS: { key: FilterKey; label: string; icon: string }[] = [
+  { key: 'all', label: 'All', icon: 'bells' },
+  { key: 'overdue', label: 'Overdue', icon: 'exclamationcircle' },
+  { key: 'upcoming', label: 'Upcoming', icon: 'calendar' },
+  { key: 'paid', label: 'Completed', icon: 'checkcircleo' },
+  { key: 'bill', label: 'Bills', icon: 'filetext1' },
+  { key: 'subscription', label: 'Subscriptions', icon: 'retweet' },
 ];
 
 export function NotificationCenterScreen() {
@@ -177,20 +177,20 @@ export function NotificationCenterScreen() {
     }
   };
 
-  const getCategoryIcon = (category?: string): keyof typeof Ionicons.glyphMap => {
+  const getCategoryIcon = (category?: string): string => {
     switch (category) {
       case 'bill':
-        return 'receipt-outline';
+        return 'filetext1';
       case 'subscription':
-        return 'repeat-outline';
+        return 'retweet';
       case 'payment':
-        return 'card-outline';
+        return 'creditcard';
       case 'task':
-        return 'checkbox-outline';
+        return 'check';
       case 'goal':
-        return 'trophy-outline';
+        return 'trophy';
       default:
-        return 'notifications-outline';
+        return 'bells';
     }
   };
 
@@ -241,7 +241,7 @@ export function NotificationCenterScreen() {
               { backgroundColor: item.overdue ? '#FF3B3020' : priorityColor + '20' },
             ]}
           >
-            <Ionicons
+            <AntDesign
               name={getCategoryIcon(item.category)}
               size={18}
               color={item.overdue ? '#FF3B30' : priorityColor}
@@ -282,21 +282,21 @@ export function NotificationCenterScreen() {
               }
             }}
           >
-            <Ionicons name="checkmark-outline" size={14} color={colors.status.success} />
+            <AntDesign  name="check" size={14} color={colors.status.success} />
             <Text style={[styles.actionText, { color: colors.status.success }]}>Mark Paid</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.actionBtn, { backgroundColor: colors.bg.tertiary }]}
             onPress={() => handlePress(item)}
           >
-            <Ionicons name="open-outline" size={14} color={colors.accent.primary} />
+            <AntDesign  name="newwindow" size={14} color={colors.accent.primary} />
             <Text style={[styles.actionText, { color: colors.accent.primary }]}>Open</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.actionBtn, { backgroundColor: colors.bg.tertiary }]}
             onPress={() => handleDelete(item.id)}
           >
-            <Ionicons name="trash-outline" size={14} color={colors.status.error} />
+            <AntDesign  name="delete" size={14} color={colors.status.error} />
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
@@ -307,7 +307,7 @@ export function NotificationCenterScreen() {
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+          <AntDesign  name="left" size={24} color={colors.text.primary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Notifications</Text>
         <View style={styles.headerRight}>
@@ -343,7 +343,7 @@ export function NotificationCenterScreen() {
                 ]}
                 onPress={() => setActiveFilter(f.key)}
               >
-                <Ionicons
+                <AntDesign
                   name={f.icon}
                   size={14}
                   color={isActive ? '#FFFFFF' : colors.text.secondary}
@@ -369,7 +369,7 @@ export function NotificationCenterScreen() {
       ) : notifications.length === 0 ? (
         <View style={styles.center}>
           <View style={[styles.emptyIcon, { backgroundColor: colors.bg.tertiary }]}>
-            <Ionicons name="notifications-off-outline" size={40} color={colors.text.tertiary} />
+            <AntDesign  name="bells" size={40} color={colors.text.tertiary} />
           </View>
           <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
             {activeFilter === 'all' ? 'No notifications yet' : 'No matching notifications'}

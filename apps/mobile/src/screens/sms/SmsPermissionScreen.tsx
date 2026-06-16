@@ -9,7 +9,7 @@ import {
   Platform,
   Animated,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { PageContainer } from '../../components/ui/PageContainer';
@@ -102,7 +102,7 @@ export function SmsPermissionScreen() {
           <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
             <View style={styles.header}>
               <View style={[styles.iconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
-                <Ionicons name="chatbubbles-outline" size={32} color={colors.accent.primary} />
+                <AntDesign  name="message1" size={32} color={colors.accent.primary} />
               </View>
               <Text style={[styles.title, { color: colors.text.primary }]}>SMS Sync</Text>
               <Text style={[styles.desc, { color: colors.text.tertiary }]}>
@@ -120,7 +120,7 @@ export function SmsPermissionScreen() {
                   },
                 ]}
               >
-                <Ionicons name="information-circle-outline" size={20} color={colors.status.warning} />
+                <AntDesign  name="infocirlceo" size={20} color={colors.status.warning} />
                 <Text style={[styles.infoText, { color: colors.text.secondary }]}>
                   SMS detection is only available on Android devices.
                 </Text>
@@ -191,7 +191,7 @@ export function SmsPermissionScreen() {
                   onPress={handleGrant}
                   disabled={!moduleAvailable}
                 >
-                  <Ionicons name="shield-checkmark-outline" size={20} color="#FFFFFF" />
+                  <AntDesign  name="checkcircle" size={20} color="#FFFFFF" />
                   <Text style={[styles.primaryBtnText, { color: colors.text.primary }]}>
                     Grant SMS Permission
                   </Text>
@@ -207,7 +207,7 @@ export function SmsPermissionScreen() {
                       },
                     ]}
                   >
-                    <Ionicons name="alert-circle-outline" size={18} color={colors.status.error} />
+                    <AntDesign  name="exclamationcircle" size={18} color={colors.status.error} />
                     <Text style={[styles.infoText, { color: colors.text.secondary }]}>
                       Permission was permanently denied. Open system Settings to enable it, or paste
                       SMS manually below.
@@ -233,7 +233,7 @@ export function SmsPermissionScreen() {
                       },
                     ]}
                   >
-                    <Ionicons name="information-circle-outline" size={18} color={colors.status.warning} />
+                    <AntDesign  name="infocirlceo" size={18} color={colors.status.warning} />
                     <Text style={[styles.infoText, { color: colors.text.secondary }]}>
                       Android {apiLevel}+ restricts SMS access. Grant via Settings or ADB.
                     </Text>
@@ -266,7 +266,7 @@ export function SmsPermissionScreen() {
                   <View
                     style={[styles.checkCircle, { backgroundColor: `${colors.status.success}20` }]}
                   >
-                    <Ionicons name="checkmark-circle-outline" size={40} color={colors.status.success} />
+                    <AntDesign  name="checkcircleo" size={40} color={colors.status.success} />
                   </View>
                   <Text style={[styles.resultTitle, { color: colors.text.primary }]}>
                     Sync Complete
@@ -303,7 +303,7 @@ export function SmsPermissionScreen() {
                     style={[styles.secondaryBtn, { borderColor: colors.accent.primary }]}
                     onPress={() => navigation.navigate('SmsDashboard')}
                   >
-                    <Ionicons name="list-outline" size={18} color={colors.accent.primary} />
+                    <AntDesign  name="unorderedlist" size={18} color={colors.accent.primary} />
                     <Text style={[styles.secondaryBtnText, { color: colors.accent.primary }]}>
                       View Detections
                     </Text>
@@ -356,7 +356,7 @@ export function SmsPermissionScreen() {
                   <ActivityIndicator color="#FFFFFF" size="small" />
                 ) : (
                   <>
-                    <Ionicons name="document-text-outline" size={18} color="#FFFFFF" />
+                    <AntDesign  name="filetext1" size={18} color="#FFFFFF" />
                     <Text style={[styles.primaryBtnText, { color: colors.text.primary }]}>
                       Parse SMS
                     </Text>
@@ -451,11 +451,11 @@ export function SmsPermissionScreen() {
               style={[styles.troubleToggle, { borderColor: colors.border.subtle }]}
               onPress={() => setShowTrouble(!showTrouble)}
             >
-              <Ionicons name="bug-outline" size={16} color={colors.text.tertiary} />
+              <AntDesign  name="bug" size={16} color={colors.text.tertiary} />
               <Text style={[styles.troubleToggleText, { color: colors.text.tertiary }]}>
                 Troubleshooting
               </Text>
-              <Ionicons
+              <AntDesign
                 name={showTrouble ? 'chevron-up' : 'chevron-down'}
                 size={14}
                 color={colors.text.tertiary}

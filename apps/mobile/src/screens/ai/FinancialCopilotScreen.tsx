@@ -10,7 +10,7 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import ReAnimated, { FadeInUp } from 'react-native-reanimated';
@@ -232,7 +232,7 @@ export function FinancialCopilotScreen() {
       <ReAnimated.View entering={FadeInUp.duration(400)} style={s.aiMsgWrap}>
         <View style={s.aiMsgRow}>
           <View style={s.aiAvatar}>
-            <Ionicons name="sparkles-outline" size={16} color={AI_COLORS.primary} />
+            <AntDesign  name="star" size={16} color={AI_COLORS.primary} />
           </View>
           <View style={[s.aiMsg, { borderColor: AI_COLORS.border }]}>
             <Text style={s.aiMsgText}>{item.text}</Text>
@@ -247,14 +247,14 @@ export function FinancialCopilotScreen() {
       <View style={[s.header, { paddingTop: insets.top + 12 }]}>
         <View style={s.headerRow}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-            <Ionicons name="chevron-back" size={22} color={AI_COLORS.text} />
+            <AntDesign  name="left" size={22} color={AI_COLORS.text} />
           </TouchableOpacity>
           <View>
             <Text style={s.headerTitle}>Financial Copilot</Text>
             <Text style={s.headerSub}>AI-powered financial assistant</Text>
           </View>
           <TouchableOpacity onPress={() => setMessages([])} style={s.clearBtn}>
-            <Ionicons name="refresh-outline" size={20} color={AI_COLORS.textSecondary} />
+            <AntDesign  name="reload1" size={20} color={AI_COLORS.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -268,7 +268,7 @@ export function FinancialCopilotScreen() {
           <ReAnimated.View entering={FadeInUp.duration(500)} style={s.emptyWrap}>
             <View style={[s.welcomeCard, { borderColor: AI_COLORS.border }]}>
               <View style={s.welcomeIcon}>
-                <Ionicons name="sparkles-outline" size={36} color={AI_COLORS.primary} />
+                <AntDesign  name="star" size={36} color={AI_COLORS.primary} />
               </View>
               <Text style={s.welcomeTitle}>Hi, I'm Dabbu AI</Text>
               <Text style={s.welcomeDesc}>
@@ -283,7 +283,7 @@ export function FinancialCopilotScreen() {
                   style={[s.sugChip, { borderColor: AI_COLORS.border }]}
                   onPress={() => setInput(sug)}
                 >
-                  <Ionicons name="chatbubble-ellipses-outline" size={14} color={AI_COLORS.primary} />
+                  <AntDesign  name="message1" size={14} color={AI_COLORS.primary} />
                   <Text style={s.sugText}>{sug}</Text>
                 </TouchableOpacity>
               ))}
@@ -295,7 +295,7 @@ export function FinancialCopilotScreen() {
             <ReAnimated.View entering={FadeInUp.duration(300)} style={s.aiMsgWrap}>
               <View style={s.aiMsgRow}>
                 <View style={s.aiAvatar}>
-                  <Ionicons name="sparkles-outline" size={16} color={AI_COLORS.primary} />
+                  <AntDesign  name="star" size={16} color={AI_COLORS.primary} />
                 </View>
                 <View style={[s.aiMsg, { borderColor: AI_COLORS.border }]}>
                   <View style={{ flexDirection: 'row', gap: 4 }}>
@@ -345,7 +345,7 @@ export function FinancialCopilotScreen() {
               {loading ? (
                 <ActivityIndicator size="small" color="#FFF" />
               ) : (
-                <Ionicons name="arrow-up-outline" size={20} color="#FFF" />
+                <AntDesign  name="up" size={20} color="#FFF" />
               )}
             </TouchableOpacity>
           </View>

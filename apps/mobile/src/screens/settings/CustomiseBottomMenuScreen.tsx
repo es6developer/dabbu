@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DraggableFlatList, {
@@ -114,14 +114,14 @@ export function CustomiseBottomMenuScreen() {
             },
           ]}
         >
-          <Ionicons
+          <AntDesign
             name={isSettings ? 'lock-closed' : isQa ? 'flash' : 'menu'}
             size={20}
             color={isSettings ? colors.text.tertiary : colors.text.tertiary}
             style={{ marginRight: 12 }}
           />
           <View style={[styles.tabIcon, { backgroundColor: `${colors.accent.primary}18` }]}>
-            <Ionicons name={meta.icon as any} size={20} color={colors.accent.primary} />
+            <AntDesign name={meta.icon as any} size={20} color={colors.accent.primary} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[styles.tabLabel, { color: colors.text.primary }]}>
@@ -134,8 +134,8 @@ export function CustomiseBottomMenuScreen() {
             onPress={() => !isSettings && toggleVisibility(idx)}
             style={styles.eyeBtn}
           >
-            <Ionicons
-              name={item.visible ? 'eye-outline' : 'eye-off-outline'}
+            <AntDesign
+              name={item.visible ? 'eye' : 'eyeo'}
               size={20}
               color={
                 isSettings
@@ -165,7 +165,7 @@ export function CustomiseBottomMenuScreen() {
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+          <AntDesign  name="left" size={24} color={colors.text.primary} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text.primary }]}>Customise Bottom Menu</Text>
         <View style={{ width: 40 }} />

@@ -13,7 +13,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 
 import { api, setAccessToken } from '../../services/api';
@@ -578,10 +578,10 @@ export function GroupExpensesScreen() {
                   },
                 ]}
               >
-                <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
+                <AntDesign  name="left" size={22} color={colors.text.primary} />
               </TouchableOpacity>
               <View style={[s.avatar, { backgroundColor: colors.accent.primary }]}>
-                <Ionicons
+                <AntDesign
                   name={(GROUP_ICONS_MAP[group?.icon] || 'people') as any}
                   size={24}
                   color="#FFF"
@@ -599,7 +599,7 @@ export function GroupExpensesScreen() {
                 onPress={() => setSettingsOpen(true)}
                 style={[s.iconBtn, { backgroundColor: colors.bg.tertiary }]}
               >
-                <Ionicons name="settings-outline" size={20} color={colors.text.primary} />
+                <AntDesign  name="setting" size={20} color={colors.text.primary} />
               </TouchableOpacity>
             </View>
 
@@ -612,7 +612,7 @@ export function GroupExpensesScreen() {
                 }
                 style={[s.actionBtn, { backgroundColor: colors.accent.primary }]}
               >
-                <Ionicons name="add-outline" size={22} color="#FFF" />
+                <AntDesign  name="plus" size={22} color="#FFF" />
                 <Text style={s.actionLabel}>Add</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -626,7 +626,7 @@ export function GroupExpensesScreen() {
                   },
                 ]}
               >
-                <Ionicons name="bar-chart-outline" size={22} color={colors.text.primary} />
+                <AntDesign  name="bar-chart" size={22} color={colors.text.primary} />
                 <Text style={[s.actionLabel, { color: colors.text.primary }]}>Analytics</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -646,7 +646,7 @@ export function GroupExpensesScreen() {
                   },
                 ]}
               >
-                <Ionicons name="people-outline" size={22} color={colors.text.primary} />
+                <AntDesign  name="team" size={22} color={colors.text.primary} />
                 <Text style={[s.actionLabel, { color: colors.text.primary }]}>Members</Text>
               </TouchableOpacity>
             </View>
@@ -810,7 +810,7 @@ export function GroupExpensesScreen() {
                   { backgroundColor: colors.bg.secondary, borderColor: colors.status.warning },
                 ]}
               >
-                <Ionicons name="lock-closed-outline" size={16} color={colors.status.warning} />
+                <AntDesign  name="lock" size={16} color={colors.status.warning} />
                 <Text style={[s.expiredBannerText, { color: colors.text.secondary }]}>
                   This circle expired on {new Date(group.expiresAt).toLocaleDateString('en-IN')}. It
                   is now read-only.
@@ -835,7 +835,7 @@ export function GroupExpensesScreen() {
                   onPress={() => handleExport()}
                   style={[s.addTinyBtn, { backgroundColor: colors.accent.primary }]}
                 >
-                  <Ionicons name="download-outline" size={14} color="#FFF" />
+                  <AntDesign  name="download" size={14} color="#FFF" />
                   <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '700' }}>Export</Text>
                 </TouchableOpacity>
               )}
@@ -910,7 +910,7 @@ export function GroupExpensesScreen() {
             {transactions.length === 0 && (
               <View style={s.empty}>
                 <View style={[s.emptyIcon, { backgroundColor: colors.bg.secondary }]}>
-                  <Ionicons name="receipt-outline" size={44} color={colors.text.tertiary} />
+                  <AntDesign  name="filetext1" size={44} color={colors.text.tertiary} />
                 </View>
                 <Text style={[s.emptyTitle, { color: colors.text.primary }]}>No expenses yet</Text>
                 <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>
@@ -942,7 +942,7 @@ export function GroupExpensesScreen() {
                     onPress={() => setSettingsOpen(false)}
                     style={[s.sheetClose, { backgroundColor: colors.bg.tertiary }]}
                   >
-                    <Ionicons name="close-outline" size={20} color={colors.text.primary} />
+                    <AntDesign  name="close" size={20} color={colors.text.primary} />
                   </TouchableOpacity>
                 </View>
                 <Text style={[s.inputLabel, { color: colors.text.tertiary }]}>Name</Text>
@@ -1038,8 +1038,8 @@ export function GroupExpensesScreen() {
 
           <View style={[s.planBar, { backgroundColor: colors.bg.secondary }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Ionicons
-                name={planInfo.tier === 'free' ? 'shield-outline' : 'shield-checkmark'}
+              <AntDesign
+                name={planInfo.tier === 'free' ? 'Safety' : 'shield-checkmark'}
                 size={16}
                 color={planInfo.tier === 'free' ? '#FF6B6B' : '#00B894'}
               />
@@ -1059,7 +1059,7 @@ export function GroupExpensesScreen() {
           {sectionedGroups.length === 0 ? (
             <View style={s.emptyHub}>
               <View style={[s.emptyHubIcon, { backgroundColor: `${colors.accent.primary}20` }]}>
-                <Ionicons name="layers-outline" size={44} color={colors.accent.primary} />
+                <AntDesign  name="layers" size={44} color={colors.accent.primary} />
               </View>
               <Text style={[s.emptyHubTitle, { color: colors.text.primary }]}>No spaces yet</Text>
               <Text style={[s.emptyHubDesc, { color: colors.text.tertiary }]}>
@@ -1069,7 +1069,7 @@ export function GroupExpensesScreen() {
                 style={[s.emptyHubCta, { backgroundColor: colors.accent.primary }]}
                 onPress={handleCreateGroup}
               >
-                <Ionicons name="add-outline" size={18} color="#FFF" />
+                <AntDesign  name="plus" size={18} color="#FFF" />
                 <Text style={s.emptyHubCtaText}>Create Space</Text>
               </TouchableOpacity>
             </View>
@@ -1079,7 +1079,7 @@ export function GroupExpensesScreen() {
                 <View style={s.sectionHeader}>
                   <View style={s.sectionHeaderLeft}>
                     <View style={[s.sectionIconWrap, { backgroundColor: colors.bg.tertiary }]}>
-                      <Ionicons
+                      <AntDesign
                         name={section.icon as any}
                         size={16}
                         color={colors.text.secondary}
@@ -1132,7 +1132,7 @@ export function GroupExpensesScreen() {
                         >
                           <View style={s.cardTop}>
                             <View style={[s.cardAvatar, { backgroundColor: colors.bg.secondary }]}>
-                              <Ionicons
+                              <AntDesign
                                 name={(GROUP_ICONS_MAP[item.icon] || 'people') as any}
                                 size={22}
                                 color={colors.text.secondary}
@@ -1146,8 +1146,8 @@ export function GroupExpensesScreen() {
                                 {item.name}
                               </Text>
                               <Text style={[s.cardMembers, { color: colors.text.secondary }]}>
-                                <Ionicons
-                                  name="people-outline"
+                                <AntDesign
+                                   name="team"
                                   size={11}
                                   color={colors.text.secondary}
                                 />{' '}
@@ -1155,8 +1155,8 @@ export function GroupExpensesScreen() {
                                 {(item._count?.members || 0) !== 1 ? 's' : ''}
                               </Text>
                             </View>
-                            <Ionicons
-                              name="chevron-forward"
+                            <AntDesign
+                               name="right"
                               size={18}
                               color={colors.text.tertiary}
                             />
@@ -1247,7 +1247,7 @@ export function GroupExpensesScreen() {
                                 })
                               }
                             >
-                              <Ionicons name="add-outline" size={14} color="#FFF" />
+                              <AntDesign  name="plus" size={14} color="#FFF" />
                               <Text style={s.quickActionText}>Add</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
@@ -1259,8 +1259,8 @@ export function GroupExpensesScreen() {
                                 })
                               }
                             >
-                              <Ionicons
-                                name="git-branch-outline"
+                              <AntDesign
+                                 name="codesquareo"
                                 size={14}
                                 color={colors.text.secondary}
                               />
@@ -1277,8 +1277,8 @@ export function GroupExpensesScreen() {
                                 })
                               }
                             >
-                              <Ionicons
-                                name="people-outline"
+                              <AntDesign
+                                 name="team"
                                 size={14}
                                 color={colors.text.secondary}
                               />
@@ -1295,8 +1295,8 @@ export function GroupExpensesScreen() {
                                 })
                               }
                             >
-                              <Ionicons
-                                name="swap-horizontal-outline"
+                              <AntDesign
+                                 name="swap"
                                 size={14}
                                 color={colors.text.secondary}
                               />

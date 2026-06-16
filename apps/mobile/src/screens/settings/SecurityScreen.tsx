@@ -610,7 +610,7 @@ export function SecurityScreen() {
         message="This will log out all other devices. Are you sure?"
         confirmLabel="Logout"
         destructive
-        icon="phone-portrait-outline"
+        icon="mobile1"
         onConfirm={async () => {
           setShowLogoutAllDialog(false);
           try {

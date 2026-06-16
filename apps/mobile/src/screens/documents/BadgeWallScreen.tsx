@@ -8,7 +8,7 @@ import {
   RefreshControl,
   Dimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme';
@@ -18,7 +18,7 @@ import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-type IconName = keyof typeof Ionicons.glyphMap;
+type IconName = string;
 
 const TIER_COLORS: Record<string, string> = {
   bronze: '#CD7F32',
@@ -114,7 +114,7 @@ export function BadgeWallScreen() {
       >
         <View style={s.heroRow}>
           <View style={s.heroBadgeWrap}>
-            <Ionicons name="trophy-outline" size={32} color="#FDCB6E" />
+            <AntDesign  name="trophy" size={32} color="#FDCB6E" />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={s.heroTitle}>Achievements</Text>
@@ -132,7 +132,7 @@ export function BadgeWallScreen() {
           <View style={s.streakRow}>
             {streaks.map((s: any) => (
               <View key={s.id} style={[s.streakCard, { backgroundColor: colors.bg.tertiary }]}>
-                <Ionicons
+                <AntDesign
                   name={STREAK_ICONS[s.streakType] || 'flame'}
                   size={20}
                   color={s.currentStreak > 0 ? '#FDCB6E' : colors.text.tertiary}
@@ -165,7 +165,7 @@ export function BadgeWallScreen() {
               return (
                 <View key={ub.id} style={[s.badgeCard, { backgroundColor: colors.bg.secondary }]}>
                   <View style={[s.badgeIconWrap, { backgroundColor: `${tierColor}25`, borderColor: tierColor }]}>
-                    <Ionicons name={(b.icon || 'trophy') as IconName} size={24} color={tierColor} />
+                    <AntDesign name={(b.icon || 'trophy') as IconName} size={24} color={tierColor} />
                   </View>
                   <Text style={[s.badgeName, { color: colors.text.primary }]}>{b.name}</Text>
                   <Text style={[s.badgeDesc, { color: colors.text.tertiary }]}>{b.description}</Text>
@@ -205,7 +205,7 @@ export function BadgeWallScreen() {
                   <View
                     style={[s.progressIcon, { backgroundColor: `${colors.text.tertiary}18` }]}
                   >
-                    <Ionicons
+                    <AntDesign
                       name={(b.icon || 'trophy') as IconName}
                       size={18}
                       color={colors.text.tertiary}
@@ -255,7 +255,7 @@ export function BadgeWallScreen() {
                       { backgroundColor: `${colors.text.tertiary}12`, borderColor: 'transparent' },
                     ]}
                   >
-                    <Ionicons
+                    <AntDesign
                       name={(b.icon || 'trophy') as IconName}
                       size={24}
                       color={colors.text.tertiary}
@@ -277,7 +277,7 @@ export function BadgeWallScreen() {
 
       {totalBadges === 0 && (
         <View style={s.emptyState}>
-          <Ionicons name="trophy-outline" size={48} color={colors.text.tertiary} />
+          <AntDesign  name="trophy" size={48} color={colors.text.tertiary} />
           <Text style={[s.emptyTitle, { color: colors.text.primary }]}>No Badges Yet</Text>
           <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>
             Complete goals, track expenses, and save money to earn achievements.

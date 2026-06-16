@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -74,13 +74,13 @@ export function CoupleSpaceScreen() {
       <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
         <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+            <AntDesign  name="left" size={24} color={colors.text.primary} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Couple Space</Text>
           <View style={{ width: 24 }} />
         </View>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 }}>
-          <Ionicons name="heart-dislike-outline" size={48} color={colors.text.tertiary} />
+          <AntDesign  name="hearto" size={48} color={colors.text.tertiary} />
           <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.secondary, marginTop: 12 }}>Not Connected</Text>
           <Text style={{ fontSize: 13, color: colors.text.tertiary, textAlign: 'center', marginTop: 4 }}>Connect with your partner to see shared finances</Text>
           <TouchableOpacity
@@ -100,11 +100,11 @@ export function CoupleSpaceScreen() {
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+          <AntDesign  name="left" size={24} color={colors.text.primary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Couple Space</Text>
         <TouchableOpacity onPress={() => (navigation as any).navigate('Settings', { screen: 'AddPartner' })}>
-          <Ionicons name="settings-outline" size={22} color={colors.text.tertiary} />
+          <AntDesign  name="setting" size={22} color={colors.text.tertiary} />
         </TouchableOpacity>
       </View>
 
@@ -117,7 +117,7 @@ export function CoupleSpaceScreen() {
               <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text.tertiary }}>You</Text>
               <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>{user?.firstName || 'You'}</Text>
             </View>
-            <Ionicons name="heart-outline" size={20} color="#FF6B9D" />
+            <AntDesign  name="hearto" size={20} color="#FF6B9D" />
             <View style={{ flex: 1, alignItems: 'flex-end' }}>
               <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text.tertiary }}>Partner</Text>
               <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>{partner?.firstName || 'Partner'}</Text>
@@ -182,7 +182,7 @@ export function CoupleSpaceScreen() {
             {upcomingBills.slice(0, 3).map((bill: any) => (
               <View key={bill.id} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.border.subtle }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <Ionicons name="receipt-outline" size={16} color={colors.text.tertiary} />
+                  <AntDesign  name="filetext1" size={16} color={colors.text.tertiary} />
                   <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text.primary }}>{bill.name}</Text>
                 </View>
                 <Text style={{ fontSize: 14, fontWeight: '700', color: colors.status.warning }}>{fmt(bill.amount)}</Text>
@@ -195,19 +195,19 @@ export function CoupleSpaceScreen() {
         <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Quick Actions</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
           {[
-            { icon: 'add-circle-outline', label: 'Add Expense', color: '#DC2626', screen: 'Expense', params: { screen: 'CategorySelection', params: { type: 'expense' } } },
-            { icon: 'trending-up-outline', label: 'Add Income', color: '#16A34A', screen: 'Expense', params: { screen: 'CategorySelection', params: { type: 'income' } } },
-            { icon: 'wallet-outline', label: 'Wallet', color: '#2563EB', screen: 'Spaces', params: { screen: 'GroupWallet' } },
-            { icon: 'stats-chart-outline', label: 'Net Worth', color: '#7C3AED', screen: 'Dashboard', params: { screen: 'NetWorth' } },
-            { icon: 'flag-outline', label: 'Create Goal', color: '#F59E0B', screen: 'Goals', params: {} },
-            { icon: 'people-outline', label: 'Expense Group', color: '#14B8A6', screen: 'Expense', params: { screen: 'CreateExpenseGroup' } },
+            { icon: 'pluscircleo', label: 'Add Expense', color: '#DC2626', screen: 'Expense', params: { screen: 'CategorySelection', params: { type: 'expense' } } },
+            { icon: 'linechart', label: 'Add Income', color: '#16A34A', screen: 'Expense', params: { screen: 'CategorySelection', params: { type: 'income' } } },
+            { icon: 'wallet', label: 'Wallet', color: '#2563EB', screen: 'Spaces', params: { screen: 'GroupWallet' } },
+            { icon: 'bar-chart', label: 'Net Worth', color: '#7C3AED', screen: 'Dashboard', params: { screen: 'NetWorth' } },
+            { icon: 'flag', label: 'Create Goal', color: '#F59E0B', screen: 'Goals', params: {} },
+            { icon: 'team', label: 'Expense Group', color: '#14B8A6', screen: 'Expense', params: { screen: 'CreateExpenseGroup' } },
           ].map((action) => (
             <TouchableOpacity key={action.label} activeOpacity={0.7}
               onPress={() => (navigation as any).navigate(action.screen, action.params)}
               style={{ width: '31%', alignItems: 'center', gap: 6, paddingVertical: 14, borderRadius: 16, backgroundColor: colors.bg.card, borderWidth: 1, borderColor: colors.border.subtle }}
             >
               <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: action.color + '15', alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name={action.icon as any} size={20} color={action.color} />
+                <AntDesign name={action.icon as any} size={20} color={action.color} />
               </View>
               <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.secondary, textAlign: 'center' }}>{action.label}</Text>
             </TouchableOpacity>

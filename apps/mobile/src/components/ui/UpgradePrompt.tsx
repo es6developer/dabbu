@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
 interface UpgradePromptProps {
@@ -26,7 +26,7 @@ export function UpgradePrompt({ feature, compact = false }: UpgradePromptProps) 
           width: 36, height: 36, borderRadius: 12, backgroundColor: '#8B5CF620',
           alignItems: 'center', justifyContent: 'center',
         }}>
-          <Ionicons name="diamond-outline" size={18} color="#8B5CF6" />
+          <AntDesign  name="diamond" size={18} color="#8B5CF6" />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFF' }}>
@@ -36,7 +36,7 @@ export function UpgradePrompt({ feature, compact = false }: UpgradePromptProps) 
             Get AI insights, unlimited goals, and more
           </Text>
         </View>
-        <Ionicons name="chevron-forward" size={16} color="#8B5CF6" />
+        <AntDesign  name="right" size={16} color="#8B5CF6" />
       </TouchableOpacity>
     );
   }
@@ -50,7 +50,7 @@ export function UpgradePrompt({ feature, compact = false }: UpgradePromptProps) 
         width: 56, height: 56, borderRadius: 18, backgroundColor: '#8B5CF620',
         alignItems: 'center', justifyContent: 'center',
       }}>
-        <Ionicons name="diamond-outline" size={28} color="#8B5CF6" />
+        <AntDesign  name="diamond" size={28} color="#8B5CF6" />
       </View>
       <Text style={{ fontSize: 18, fontWeight: '800', color: '#FFF', textAlign: 'center' }}>
         {feature ? `${feature}` : 'Dabbu Premium'}

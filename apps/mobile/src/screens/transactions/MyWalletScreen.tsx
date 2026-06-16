@@ -15,7 +15,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken, warmupBackend } from '../../services/api';
 import { PremiumLoaderScreen } from '../../components/ui/PremiumLoaderScreen';
@@ -276,7 +276,7 @@ export function MyWalletScreen() {
 
   if (loading) {
     return (
-      <PremiumLoaderScreen progress={loadingProgress} title="Loading Wallet" icon="wallet-outline" />
+      <PremiumLoaderScreen progress={loadingProgress} title="Loading Wallet" icon="wallet" />
     );
   }
 
@@ -335,8 +335,8 @@ export function MyWalletScreen() {
                 delayLongPress={800}
                 activeOpacity={0.7}
               >
-                <Ionicons
-                  name={sendingTest ? 'hourglass-outline' : 'wallet-outline'}
+                <AntDesign
+                  name={sendingTest ? 'hourglass' : 'wallet'}
                   size={20}
                   color={PURPLE}
                 />
@@ -402,7 +402,7 @@ export function MyWalletScreen() {
                   activeOpacity={0.7}
                 >
                   <View style={[s.qaIcon, { backgroundColor: `${a.color}18` }]}>
-                    <Ionicons name={a.icon as any} size={24} color={a.color} />
+                    <AntDesign name={a.icon as any} size={24} color={a.color} />
                   </View>
                   <Text style={[s.qaLabel, { color: colors.text.secondary }]}>{a.label}</Text>
                 </TouchableOpacity>
@@ -412,7 +412,7 @@ export function MyWalletScreen() {
             {/* Filter bar */}
             <View style={[s.filterRow, { paddingHorizontal: 20 }]}>
               <View style={[s.searchBox, { backgroundColor: colors.bg.secondary }]}>
-                <Ionicons name="search-outline" size={16} color={colors.text.tertiary} />
+                <AntDesign  name="search1" size={16} color={colors.text.tertiary} />
                 <TextInput
                   placeholder="Search transactions..."
                   placeholderTextColor={colors.text.tertiary}
@@ -422,7 +422,7 @@ export function MyWalletScreen() {
                 />
                 {search.length > 0 && (
                   <TouchableOpacity onPress={() => setSearch('')}>
-                    <Ionicons name="close-circle-outline" size={16} color={colors.text.tertiary} />
+                    <AntDesign  name="closecircleo" size={16} color={colors.text.tertiary} />
                   </TouchableOpacity>
                 )}
               </View>
@@ -449,8 +449,8 @@ export function MyWalletScreen() {
                 }}
                 activeOpacity={0.7}
               >
-                <Ionicons
-                  name="funnel"
+                <AntDesign
+                   name="filter"
                   size={16}
                   color={selectedCategory ? '#FFF' : colors.text.tertiary}
                 />
@@ -480,7 +480,7 @@ export function MyWalletScreen() {
                 <View
                   style={[s.txIcon, { backgroundColor: isExpense ? `${RED}15` : `${GREEN}15` }]}
                 >
-                  <Ionicons
+                  <AntDesign
                     name={isExpense ? 'arrow-up' : 'arrow-down'}
                     size={16}
                     color={isExpense ? RED : GREEN}
@@ -503,7 +503,7 @@ export function MyWalletScreen() {
         }}
         ListEmptyComponent={
           <View style={s.empty}>
-            <Ionicons name="wallet-outline" size={56} color={colors.text.tertiary} />
+            <AntDesign  name="wallet" size={56} color={colors.text.tertiary} />
             <Text style={[s.emptyTitle, { color: colors.text.primary }]}>No transactions yet</Text>
             <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>
               Tap the + button to add your first expense or income.

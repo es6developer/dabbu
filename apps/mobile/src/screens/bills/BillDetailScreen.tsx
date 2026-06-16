@@ -10,7 +10,7 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
@@ -244,8 +244,8 @@ export function BillDetailScreen() {
                   { backgroundColor: `${getConfidenceColor(bill.confidence, colors)}25` },
                 ]}
               >
-                <Ionicons
-                  name="shield-checkmark-outline"
+                <AntDesign
+                   name="checkcircle"
                   size={16}
                   color={getConfidenceColor(bill.confidence, colors)}
                 />
@@ -354,7 +354,7 @@ export function BillDetailScreen() {
                 onPress={addItem}
                 style={[styles.addItemBtn, { backgroundColor: `${colors.accent.primary}15` }]}
               >
-                <Ionicons name="add-outline" size={16} color={colors.accent.primary} />
+                <AntDesign  name="plus" size={16} color={colors.accent.primary} />
                 <Text style={[styles.addItemText, { color: colors.accent.primary }]}>Add Item</Text>
               </TouchableOpacity>
             </View>
@@ -410,7 +410,7 @@ export function BillDetailScreen() {
                   </View>
                 </View>
                 <TouchableOpacity onPress={() => removeItem(index)} style={styles.removeItem}>
-                  <Ionicons name="trash-outline" size={18} color={colors.status.error} />
+                  <AntDesign  name="delete" size={18} color={colors.status.error} />
                 </TouchableOpacity>
               </View>
             ))}
@@ -470,12 +470,12 @@ export function BillDetailScreen() {
                 <View
                   style={[styles.ocrIconWrap, { backgroundColor: `${colors.accent.primary}15` }]}
                 >
-                  <Ionicons name="document-text-outline" size={16} color={colors.accent.primary} />
+                  <AntDesign  name="filetext1" size={16} color={colors.accent.primary} />
                 </View>
                 <Text style={[styles.ocrTitle, { color: colors.text.secondary }]}>
                   Raw OCR Text
                 </Text>
-                <Ionicons
+                <AntDesign
                   name={showOcr ? 'chevron-up' : 'chevron-down'}
                   size={16}
                   color={colors.text.tertiary}
@@ -509,7 +509,7 @@ export function BillDetailScreen() {
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
                   <>
-                    <Ionicons name="checkmark-circle-outline" size={20} color="#FFFFFF" />
+                    <AntDesign  name="checkcircleo" size={20} color="#FFFFFF" />
                     <Text style={styles.saveBtnText}>Save Changes</Text>
                   </>
                 )}
@@ -529,7 +529,7 @@ export function BillDetailScreen() {
                 <ActivityIndicator size="small" color={colors.status.error} />
               ) : (
                 <>
-                  <Ionicons name="trash-outline" size={20} color={colors.status.error} />
+                  <AntDesign  name="delete" size={20} color={colors.status.error} />
                   <Text style={[styles.deleteBtnText, { color: colors.status.error }]}>
                     Delete Bill
                   </Text>

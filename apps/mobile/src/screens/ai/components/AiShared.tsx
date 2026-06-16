@@ -13,7 +13,7 @@ import ReAnimated, {
   FadeIn,
   SlideInRight,
 } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../../theme';
 
 const AnimatedCircle = ReAnimated.createAnimatedComponent(Circle);
@@ -170,7 +170,7 @@ export function HealthScoreCard({ score, trend, title, subtitle, onPress }: Heal
         )}
         {trend !== undefined && (
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: sp.xs }}>
-            <Ionicons
+            <AntDesign
               name={trend >= 0 ? 'trending-up' : 'trending-down'}
               size={14}
               color={trend >= 0 ? c.success : c.danger}
@@ -199,7 +199,7 @@ export function HealthScoreCard({ score, trend, title, subtitle, onPress }: Heal
 
 // ─── QUICK ACTION BUTTON ─────────────────────────────
 interface QuickActionBtnProps {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: string;
   label: string;
   onPress?: () => void;
   color?: string;
@@ -211,7 +211,7 @@ export function QuickActionBtn({ icon, label, onPress, color }: QuickActionBtnPr
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={localStyles.qaBtn}>
       <View style={[localStyles.qaIconWrap, { backgroundColor: `${btnColor}20` }]}>
-        <Ionicons name={icon} size={22} color={btnColor} />
+        <AntDesign name={icon} size={22} color={btnColor} />
       </View>
       <Text style={[localStyles.qaLabel, { color: c.textSecondary }]}>{label}</Text>
     </TouchableOpacity>
@@ -220,7 +220,7 @@ export function QuickActionBtn({ icon, label, onPress, color }: QuickActionBtnPr
 
 // ─── INSIGHT CARD ────────────────────────────────────
 interface InsightCardProps {
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: string;
   title: string;
   message: string;
   type?: 'critical' | 'warning' | 'success' | 'info' | 'default';
@@ -268,7 +268,7 @@ export function InsightCard({
     >
       <View style={localStyles.insightRow}>
         <View style={[localStyles.insightIcon, { backgroundColor: badgeLight }]}>
-          <Ionicons name={icon} size={18} color={badgeColor} />
+          <AntDesign name={icon} size={18} color={badgeColor} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={[localStyles.insightTitle, { color: c.text }]}>{title}</Text>
@@ -288,7 +288,7 @@ export function InsightCard({
             )}
           </View>
         </View>
-        <Ionicons name="chevron-forward" size={16} color={c.textTertiary} />
+        <AntDesign  name="right" size={16} color={c.textTertiary} />
       </View>
     </View>
   );
@@ -413,7 +413,7 @@ interface MetricRowProps {
   label: string;
   value: string;
   color?: string;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: string;
 }
 
 export function MetricRow({ label, value, color, icon }: MetricRowProps) {
@@ -422,7 +422,7 @@ export function MetricRow({ label, value, color, icon }: MetricRowProps) {
   return (
     <View style={[localStyles.metricRow, { borderBottomColor: c.border }]}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        {icon && <Ionicons name={icon} size={14} color={valColor} />}
+        {icon && <AntDesign name={icon} size={14} color={valColor} />}
         <Text style={[localStyles.metricLabel, { color: c.textSecondary }]}>{label}</Text>
       </View>
       <Text style={[localStyles.metricValue, { color: valColor }]}>{value}</Text>
@@ -565,7 +565,7 @@ export function PremiumBadge({ premium = false }: { premium?: boolean }) {
     <View
       style={[localStyles.premiumBadge, { backgroundColor: premium ? c.primaryLight : c.border }]}
     >
-      <Ionicons
+      <AntDesign
         name={premium ? 'diamond' : 'sparkles'}
         size={10}
         color={premium ? c.primary : c.textTertiary}

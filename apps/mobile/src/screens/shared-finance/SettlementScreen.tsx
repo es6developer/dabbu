@@ -11,7 +11,7 @@ import {
   Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { PremiumLoaderScreen } from '../../components/ui/PremiumLoaderScreen';
@@ -157,7 +157,7 @@ export function SettlementScreen() {
 
   if (loading) {
     return (
-      <PremiumLoaderScreen progress={loadingProgress} title="Loading Settlements" icon="swap-horizontal-outline" />
+      <PremiumLoaderScreen progress={loadingProgress} title="Loading Settlements" icon="swap" />
     );
   }
 
@@ -182,7 +182,7 @@ export function SettlementScreen() {
         >
           {([
             { key: 'pending' as const, label: 'Pending', icon: 'swap-horizontal' },
-            { key: 'history' as const, label: 'History', icon: 'time-outline' },
+            { key: 'history' as const, label: 'History', icon: 'clockcircleo' },
           ]).map((section) => (
             <TouchableOpacity
               key={section.key}
@@ -194,7 +194,7 @@ export function SettlementScreen() {
               ]}
               onPress={() => setActiveSection(section.key)}
             >
-              <Ionicons
+              <AntDesign
                 name={section.icon as any}
                 size={14}
                 color={activeSection === section.key ? '#FFF' : colors.text.secondary}
@@ -234,7 +234,7 @@ export function SettlementScreen() {
                           </Text>
                         </View>
                         <View style={s.flowCenter}>
-                          <Ionicons name="arrow-forward-outline" size={20} color={colors.accent.primary} />
+                          <AntDesign  name="arrowright" size={20} color={colors.accent.primary} />
                           <Text style={[s.flowAmount, { color: colors.accent.primary }]}>
                             {fmt(item.amount || 0)}
                           </Text>
@@ -264,7 +264,7 @@ export function SettlementScreen() {
                             <ActivityIndicator size="small" color="#FFF" />
                           ) : (
                             <>
-                              <Ionicons name="phone-portrait-outline" size={16} color="#FFF" />
+                              <AntDesign  name="mobile1" size={16} color="#FFF" />
                               <Text style={s.payNowBtnText}>Pay via UPI</Text>
                             </>
                           )}
@@ -279,7 +279,7 @@ export function SettlementScreen() {
                             onPress={() => handleMarkCash(item)}
                             disabled={submitting === item.id}
                           >
-                            <Ionicons name="cash-outline" size={16} color={colors.status.success} />
+                            <AntDesign  name="wallet" size={16} color={colors.status.success} />
                             <Text style={[s.cashBtnText, { color: colors.status.success }]}>
                               Cash
                             </Text>
@@ -292,7 +292,7 @@ export function SettlementScreen() {
               </View>
             ) : (
               <View style={[s.emptyCard, { backgroundColor: colors.bg.secondary }]}>
-                <Ionicons name="checkmark-done-outline" size={36} color={colors.status.success} />
+                <AntDesign  name="checkcircle" size={36} color={colors.status.success} />
                 <Text style={[s.emptyTitle, { color: colors.text.primary }]}>All settled up!</Text>
                 <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>
                   No pending settlements. Everyone is square.
@@ -315,7 +315,7 @@ export function SettlementScreen() {
                       <View
                         style={[s.historyIcon, { backgroundColor: `${colors.status.success}15` }]}
                       >
-                        <Ionicons name="swap-horizontal-outline" size={18} color={colors.status.success} />
+                        <AntDesign  name="swap" size={18} color={colors.status.success} />
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={[s.historyTitle, { color: colors.text.primary }]}>
@@ -387,7 +387,7 @@ export function SettlementScreen() {
               <ActivityIndicator size="small" color="#FFF" />
             ) : (
               <>
-                <Ionicons name="checkmark-done-outline" size={18} color="#FFF" />
+                <AntDesign  name="checkcircle" size={18} color="#FFF" />
                 <Text style={s.batchBtnText}>
                   Settle All ({visibleSettlements.length} pending)
                 </Text>

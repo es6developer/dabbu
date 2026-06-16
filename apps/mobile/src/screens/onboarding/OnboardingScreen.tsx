@@ -9,7 +9,7 @@ import {
   Animated,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,22 +19,22 @@ const { width } = Dimensions.get('window');
 
 const slides = [
   {
-    icon: 'wallet-outline',
+    icon: 'wallet',
     title: 'Build Wealth Together',
     desc: 'Track net worth, set shared goals, and grow your money as a couple or family — all in one place.',
   },
   {
-    icon: 'stats-chart-outline',
+    icon: 'bar-chart',
     title: 'Smart Goal Planning',
     desc: 'Set savings goals, track progress, and let AI suggest the best way to reach each milestone faster.',
   },
   {
-    icon: 'people-outline',
+    icon: 'team',
     title: 'Shared Money. Shared Dreams.',
     desc: 'Create private spaces with your partner, split expenses, track shared budgets, and align on financial priorities.',
   },
   {
-    icon: 'shield-checkmark-outline',
+    icon: 'checkcircle',
     title: 'Your Financial Health',
     desc: 'Monitor your health score, get AI-powered insights, and earn achievements as you build better habits.',
   },
@@ -79,7 +79,7 @@ function SlideContent({
             marginBottom: 40,
           }}
         >
-          <Ionicons name={item.icon as any} size={72} color={colors.accent.primary} />
+          <AntDesign name={item.icon as any} size={72} color={colors.accent.primary} />
         </View>
         <Text
           style={{
@@ -242,7 +242,7 @@ export function OnboardingScreen({ route }: any) {
           <Text style={{ color: '#FFF', fontSize: 17, fontWeight: '700' }}>
             {isLast ? 'Get Started' : 'Next'}
           </Text>
-          {!isLast && <Ionicons name="arrow-forward-outline" size={18} color="#FFF" />}
+          {!isLast && <AntDesign  name="arrowright" size={18} color="#FFF" />}
         </TouchableOpacity>
 
         {/* Back button - visible on all except first screen */}

@@ -9,7 +9,7 @@ import {
   Animated,
   Alert,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -247,7 +247,7 @@ export function ReportsScreen() {
                 justifyContent: 'center',
               }}
             >
-              <Ionicons name="calendar-outline" size={20} color={colors.accent.primary} />
+              <AntDesign  name="calendar" size={20} color={colors.accent.primary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -275,7 +275,7 @@ export function ReportsScreen() {
                   marginBottom: 10,
                 }}
               >
-                <Ionicons name="arrow-up-outline" size={16} color={colors.status.error} />
+                <AntDesign  name="up" size={16} color={colors.status.error} />
               </View>
               <Text
                 style={{
@@ -313,7 +313,7 @@ export function ReportsScreen() {
                   marginBottom: 10,
                 }}
               >
-                <Ionicons name="arrow-down-outline" size={16} color={colors.status.success} />
+                <AntDesign  name="down" size={16} color={colors.status.success} />
               </View>
               <Text
                 style={{
@@ -353,7 +353,7 @@ export function ReportsScreen() {
                   marginBottom: 10,
                 }}
               >
-                <Ionicons name="trending-up-outline" size={16} color={colors.accent.primary} />
+                <AntDesign  name="linechart" size={16} color={colors.accent.primary} />
               </View>
               <Text
                 style={{
@@ -396,7 +396,7 @@ export function ReportsScreen() {
                   marginBottom: 10,
                 }}
               >
-                <Ionicons name="pie-chart-outline" size={16} color={colors.status.warning} />
+                <AntDesign  name="piechart" size={16} color={colors.status.warning} />
               </View>
               <Text
                 style={{
@@ -678,7 +678,7 @@ export function ReportsScreen() {
                     justifyContent: 'center',
                   }}
                 >
-                  <Ionicons name="checkmark-circle-outline" size={18} color="#34C759" />
+                  <AntDesign  name="checkcircleo" size={18} color="#34C759" />
                 </View>
                 <Text style={{ fontSize: 13, fontWeight: '600', color: '#34C759', flex: 1 }}>
                   You saved {fmt(savings)} this period ({savingsRate}% of income)
@@ -706,7 +706,7 @@ export function ReportsScreen() {
                     justifyContent: 'center',
                   }}
                 >
-                  <Ionicons name="alert-circle-outline" size={18} color="#FF4D4F" />
+                  <AntDesign  name="exclamationcircle" size={18} color="#FF4D4F" />
                 </View>
                 <Text style={{ fontSize: 13, fontWeight: '600', color: '#FF4D4F', flex: 1 }}>
                   You spent {fmt(Math.abs(savings))} more than you earned
@@ -743,7 +743,7 @@ export function ReportsScreen() {
               activeOpacity={0.7}
               onPress={() => Alert.alert('Export Report', 'PDF export will be available soon.')}
             >
-              <Ionicons name="document-text-outline" size={24} color={colors.accent.primary} />
+              <AntDesign  name="filetext1" size={24} color={colors.accent.primary} />
               <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.secondary }}>
                 PDF
               </Text>
@@ -762,7 +762,7 @@ export function ReportsScreen() {
               activeOpacity={0.7}
               onPress={() => Alert.alert('Export Report', 'Excel export will be available soon.')}
             >
-              <Ionicons name="grid-outline" size={24} color={colors.status.success} />
+              <AntDesign  name="appstore1" size={24} color={colors.status.success} />
               <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.secondary }}>
                 Excel
               </Text>
@@ -781,7 +781,7 @@ export function ReportsScreen() {
               activeOpacity={0.7}
               onPress={() => Alert.alert('Export Report', 'CSV export will be available soon.')}
             >
-              <Ionicons name="code-slash-outline" size={24} color={colors.status.warning} />
+              <AntDesign  name="codesquareo" size={24} color={colors.status.warning} />
               <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.secondary }}>
                 CSV
               </Text>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -79,7 +79,7 @@ export function ChatListScreen() {
           onPress={() => navigation.navigate('CreateChat')}
           style={[styles.headerBtn, { backgroundColor: `${colors.accent.primary}15` }]}
         >
-          <Ionicons name="create-outline" size={20} color={colors.accent.primary} />
+          <AntDesign  name="edit" size={20} color={colors.accent.primary} />
         </TouchableOpacity>
       </View>
       <FlatList
@@ -110,13 +110,13 @@ export function ChatListScreen() {
                   {getLastMessage(item)}
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+              <AntDesign  name="right" size={16} color={colors.text.tertiary} />
             </TouchableOpacity>
           );
         }}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Ionicons name="chatbubbles-outline" size={52} color={colors.text.tertiary} />
+            <AntDesign  name="message1" size={52} color={colors.text.tertiary} />
             <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
               No conversations
             </Text>

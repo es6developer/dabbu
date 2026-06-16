@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
 import { DashboardSkeleton } from '../../components/ui/AnimatedSkeleton';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -85,13 +85,13 @@ export function FamilyDashboardScreen() {
                   {item.name}
                 </Text>
                 <View style={styles.cardMetaRow}>
-                  <Ionicons name="people-outline" size={12} color={colors.text.tertiary} />
+                  <AntDesign  name="team" size={12} color={colors.text.tertiary} />
                   <Text style={[styles.cardMeta, { color: colors.text.tertiary }]}>
                     {item._count?.members || 0} members
                   </Text>
                 </View>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
+              <AntDesign  name="right" size={18} color={colors.text.tertiary} />
             </TouchableOpacity>
             <View style={[styles.cardActions, { borderTopColor: colors.border.subtle }]}>
               <TouchableOpacity
@@ -101,7 +101,7 @@ export function FamilyDashboardScreen() {
                 <View
                   style={[styles.actionIcon, { backgroundColor: `${colors.accent.primary}18` }]}
                 >
-                  <Ionicons name="chatbubbles-outline" size={18} color={colors.accent.primary} />
+                  <AntDesign  name="message1" size={18} color={colors.accent.primary} />
                 </View>
                 <Text style={[styles.actionLabel, { color: colors.text.secondary }]}>Chat</Text>
               </TouchableOpacity>
@@ -110,7 +110,7 @@ export function FamilyDashboardScreen() {
                 onPress={() => navigation.navigate('TasksList', { familyId: item.id })}
               >
                 <View style={[styles.actionIcon, { backgroundColor: `${colors.status.info}18` }]}>
-                  <Ionicons name="checkbox-outline" size={18} color={colors.status.info} />
+                  <AntDesign  name="check" size={18} color={colors.status.info} />
                 </View>
                 <Text style={[styles.actionLabel, { color: colors.text.secondary }]}>Tasks</Text>
               </TouchableOpacity>
@@ -121,7 +121,7 @@ export function FamilyDashboardScreen() {
                 <View
                   style={[styles.actionIcon, { backgroundColor: `${colors.status.warning}18` }]}
                 >
-                  <Ionicons name="alarm-outline" size={18} color={colors.status.warning} />
+                  <AntDesign  name="clockcircleo" size={18} color={colors.status.warning} />
                 </View>
                 <Text style={[styles.actionLabel, { color: colors.text.secondary }]}>New Task</Text>
               </TouchableOpacity>
@@ -131,7 +131,7 @@ export function FamilyDashboardScreen() {
         ListEmptyComponent={
           <View style={styles.empty}>
             <View style={[styles.emptyIconWrap, { backgroundColor: `${colors.accent.primary}12` }]}>
-              <Ionicons name="people-outline" size={44} color={colors.accent.primary} />
+              <AntDesign  name="team" size={44} color={colors.accent.primary} />
             </View>
             <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No family group</Text>
             <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
@@ -142,7 +142,7 @@ export function FamilyDashboardScreen() {
               onPress={() => navigation.navigate('CreateFamily')}
               activeOpacity={0.85}
             >
-              <Ionicons name="add-outline" size={18} color={colors.text.inverse} />
+              <AntDesign  name="plus" size={18} color={colors.text.inverse} />
               <Text style={[styles.emptyBtnText, { color: colors.text.inverse }]}>
                 Create Family
               </Text>

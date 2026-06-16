@@ -11,7 +11,7 @@ import {
   Alert,
    Image,
  } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../store/AuthContext';
@@ -180,8 +180,8 @@ export function PremiumLoginScreen() {
                   paddingHorizontal: 14,
                 }}
               >
-                <Ionicons
-                  name="mail-outline"
+                <AntDesign
+                   name="mail"
                   size={18}
                   color={emailFocused ? colors.brand.primary : colors.text.tertiary}
                 />
@@ -232,8 +232,8 @@ export function PremiumLoginScreen() {
                   paddingHorizontal: 14,
                 }}
               >
-                <Ionicons
-                  name="lock-closed-outline"
+                <AntDesign
+                   name="lock"
                   size={18}
                   color={passFocused ? colors.brand.primary : colors.text.tertiary}
                 />
@@ -257,8 +257,8 @@ export function PremiumLoginScreen() {
                   onSubmitEditing={handleLogin}
                 />
                 <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                  <Ionicons
-                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                  <AntDesign
+                    name={showPassword ? 'eyeo' : 'eye'}
                     size={20}
                     color={colors.text.tertiary}
                   />
@@ -279,7 +279,7 @@ export function PremiumLoginScreen() {
                   marginBottom: 12,
                 }}
               >
-                <Ionicons name="alert-circle-outline" size={16} color={colors.status.error} />
+                <AntDesign  name="exclamationcircle" size={16} color={colors.status.error} />
                 <Text
                   style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}
                 >
@@ -361,7 +361,7 @@ export function PremiumLoginScreen() {
                 opacity: loading ? 0.5 : 1,
               }}
             >
-              <Ionicons name="logo-google" size={20} color={colors.text.primary} />
+              <AntDesign  name="google" size={20} color={colors.text.primary} />
               <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text.primary }}>
                 Google
               </Text>
@@ -388,7 +388,7 @@ export function PremiumLoginScreen() {
                 marginTop: 16,
               }}
             >
-              <Ionicons name="shield-checkmark-outline" size={12} color={colors.text.tertiary} />
+              <AntDesign  name="checkcircle" size={12} color={colors.text.tertiary} />
               <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary }}>
                 256-bit encrypted connection
               </Text>

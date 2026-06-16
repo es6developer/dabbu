@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { borderRadius, shadows } from '../../theme/design';
 
@@ -9,7 +9,7 @@ interface FinButtonProps {
   onPress: () => void;
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
   size?: 'sm' | 'md' | 'lg';
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: string;
   loading?: boolean;
   disabled?: boolean;
   style?: ViewStyle;
@@ -75,7 +75,7 @@ export function FinButton({
         <ActivityIndicator size="small" color={txtColor} />
       ) : (
         <>
-          {icon && <Ionicons name={icon} size={iconSize} color={txtColor} />}
+          {icon && <AntDesign name={icon} size={iconSize} color={txtColor} />}
           <Text
             style={[
               {

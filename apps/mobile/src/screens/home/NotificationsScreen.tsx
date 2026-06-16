@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
@@ -134,7 +134,7 @@ export function NotificationsScreen() {
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+          <AntDesign  name="left" size={24} color={colors.text.primary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Notifications</Text>
         {unreadCount > 0 && (
@@ -148,7 +148,7 @@ export function NotificationsScreen() {
         <ListSkeleton count={5} />
       ) : notifications.length === 0 ? (
         <View style={styles.center}>
-          <Ionicons name="notifications-off-outline" size={48} color={colors.text.tertiary} />
+          <AntDesign  name="bells" size={48} color={colors.text.tertiary} />
           <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>No notifications</Text>
         </View>
       ) : (

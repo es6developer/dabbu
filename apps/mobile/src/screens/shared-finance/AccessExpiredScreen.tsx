@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -29,7 +29,7 @@ export function AccessExpiredScreen({ route, navigation }: AccessExpiredScreenPr
           
           style={styles.iconWrap}
         >
-          <Ionicons name="lock-closed-outline" size={52} color={colors.status.error} />
+          <AntDesign  name="lock" size={52} color={colors.status.error} />
         </View>
 
         <Text style={[styles.title, { color: colors.text.primary }]}>Access Expired</Text>
@@ -51,7 +51,7 @@ export function AccessExpiredScreen({ route, navigation }: AccessExpiredScreenPr
             onPress={() => Linking.openURL('https://dabbu.app')}
             activeOpacity={0.8}
           >
-            <Ionicons name="download-outline" size={18} color="#FFF" />
+            <AntDesign  name="download" size={18} color="#FFF" />
             <Text style={styles.primaryBtnText}>Install Dabbu App</Text>
           </TouchableOpacity>
 
@@ -64,7 +64,7 @@ export function AccessExpiredScreen({ route, navigation }: AccessExpiredScreenPr
             }}
             activeOpacity={0.8}
           >
-            <Ionicons name="refresh-outline" size={18} color={colors.accent.primary} />
+            <AntDesign  name="reload1" size={18} color={colors.accent.primary} />
             <Text style={[styles.secondaryBtnText, { color: colors.accent.primary }]}>
               Request Access Again
             </Text>
@@ -87,7 +87,7 @@ export function AccessExpiredScreen({ route, navigation }: AccessExpiredScreenPr
       </View>
 
       <View style={[styles.footer, { borderTopColor: colors.border.subtle }]}>
-        <Ionicons name="shield-checkmark-outline" size={16} color={colors.text.tertiary} />
+        <AntDesign  name="checkcircle" size={16} color={colors.text.tertiary} />
         <Text style={[styles.footerText, { color: colors.text.tertiary }]}>
           Your data is secure. No group information was exposed.
         </Text>

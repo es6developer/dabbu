@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Share, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import ReAnimated, { FadeInUp } from 'react-native-reanimated';
@@ -149,7 +149,7 @@ export function MonthlyAiReviewScreen() {
     return (
       <View style={[s.screen, { backgroundColor: AI_COLORS.bg, paddingTop: insets.top + 60 }]}>
         <View style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
-          <Ionicons name="document-text-outline" size={48} color={AI_COLORS.textTertiary} />
+          <AntDesign  name="filetext1" size={48} color={AI_COLORS.textTertiary} />
           <Text style={{ fontSize: 18, fontWeight: '700', color: AI_COLORS.text }}>
             No review available
           </Text>
@@ -240,7 +240,7 @@ export function MonthlyAiReviewScreen() {
                 <ReAnimated.View key={i} entering={FadeInUp.duration(300).delay(i * 60)}>
                   <AiCard padding={14}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                      <Ionicons name="trophy-outline" size={20} color={AI_COLORS.warning} />
+                      <AntDesign  name="trophy" size={20} color={AI_COLORS.warning} />
                       <Text style={{ fontSize: 13, color: AI_COLORS.text, flex: 1 }}>{a}</Text>
                     </View>
                   </AiCard>
@@ -271,7 +271,7 @@ export function MonthlyAiReviewScreen() {
                 <ReAnimated.View key={i} entering={FadeInUp.duration(300).delay(i * 40)}>
                   <AiCard padding={12}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                      <Ionicons
+                      <AntDesign
                         name={b.status === 'exceeded' ? 'alert-circle' : 'checkmark-circle'}
                         size={18}
                         color={b.status === 'exceeded' ? AI_COLORS.danger : AI_COLORS.success}
@@ -299,7 +299,7 @@ export function MonthlyAiReviewScreen() {
                 <ReAnimated.View key={i} entering={FadeInUp.duration(300).delay(i * 40)}>
                   <AiCard padding={12}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      <Ionicons name="bulb-outline" size={16} color={AI_COLORS.primary} />
+                      <AntDesign  name="bulb1" size={16} color={AI_COLORS.primary} />
                       <Text style={{ fontSize: 13, color: AI_COLORS.textSecondary, flex: 1 }}>
                         {r}
                       </Text>
@@ -318,7 +318,7 @@ export function MonthlyAiReviewScreen() {
           >
             <AiCard padding={16} style={{ borderColor: AI_COLORS.primary, borderWidth: 1 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <Ionicons name="flag-outline" size={20} color={AI_COLORS.primary} />
+                <AntDesign  name="flag" size={20} color={AI_COLORS.primary} />
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 12, fontWeight: '700', color: AI_COLORS.primary }}>
                     NEXT MONTH FOCUS
@@ -397,8 +397,8 @@ export function MonthlyAiReviewScreen() {
                 <ReAnimated.View key={i} entering={FadeInUp.duration(300).delay(i * 40)}>
                   <AiCard padding={12}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                      <Ionicons
-                        name={g.status === 'completed' ? 'checkmark-circle' : 'time-outline'}
+                      <AntDesign
+                        name={g.status === 'completed' ? 'checkmark-circle' : 'clockcircleo'}
                         size={18}
                         color={g.status === 'completed' ? AI_COLORS.success : AI_COLORS.warning}
                       />
@@ -463,7 +463,7 @@ export function MonthlyAiReviewScreen() {
                 <ReAnimated.View key={i} entering={FadeInUp.duration(300).delay(i * 60)}>
                   <AiCard padding={12}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      <Ionicons name="bulb-outline" size={16} color={AI_COLORS.warning} />
+                      <AntDesign  name="bulb1" size={16} color={AI_COLORS.warning} />
                       <Text style={{ fontSize: 12, color: AI_COLORS.textSecondary, flex: 1 }}>
                         {insight}
                       </Text>
@@ -499,7 +499,7 @@ export function MonthlyAiReviewScreen() {
               }
             }}
           >
-            <Ionicons name="download-outline" size={18} color="#FFF" />
+            <AntDesign  name="download" size={18} color="#FFF" />
             <Text style={s.shareBtnText}>Share as PDF</Text>
           </TouchableOpacity>
         </ReAnimated.View>

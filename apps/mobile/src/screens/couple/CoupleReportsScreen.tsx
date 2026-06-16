@@ -9,7 +9,7 @@ import {
   Dimensions,
   Alert,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -90,9 +90,9 @@ export function CoupleReportsScreen() {
     const totalExpense = d.totalExpense ?? 0;
     const netSavings = d.netSavings ?? totalIncome - totalExpense;
     return [
-      { label: 'Total Income', amount: totalIncome, icon: 'trending-up-outline', color: '#34C759' },
-      { label: 'Total Expenses', amount: totalExpense, icon: 'cart-outline', color: '#FF4D4F' },
-      { label: 'Net Savings', amount: netSavings, icon: 'save-outline', color: '#14B8A6' },
+      { label: 'Total Income', amount: totalIncome, icon: 'linechart', color: '#34C759' },
+      { label: 'Total Expenses', amount: totalExpense, icon: 'shoppingcart', color: '#FF4D4F' },
+      { label: 'Net Savings', amount: netSavings, icon: 'save', color: '#14B8A6' },
     ] as const;
   }, [data]);
 
@@ -156,7 +156,7 @@ export function CoupleReportsScreen() {
             padding: 20,
           }}
         >
-          <Ionicons name="stats-chart-outline" size={48} color={colors.accent.primary} />
+          <AntDesign  name="bar-chart" size={48} color={colors.accent.primary} />
           <Text style={[styles.emptyTitle, { color: colors.text.secondary, marginTop: 12 }]}>
             No Data
           </Text>
@@ -220,7 +220,7 @@ export function CoupleReportsScreen() {
             {summaryCards.map((card, i) => (
               <View key={i} style={[styles.summaryCard, { borderColor: colors.border.subtle }]}>
                 <View style={[styles.summaryIcon, { backgroundColor: `${card.color}15` }]}>
-                  <Ionicons name={card.icon as any} size={20} color={card.color} />
+                  <AntDesign name={card.icon as any} size={20} color={card.color} />
                 </View>
                 <Text style={[styles.summaryLabel, { color: colors.text.tertiary }]}>
                   {card.label}
@@ -333,8 +333,8 @@ export function CoupleReportsScreen() {
                   {fmt(partnerData.p1.amount)}
                 </Text>
               </View>
-              <Ionicons
-                name="heart-outline"
+              <AntDesign
+                 name="hearto"
                 size={18}
                 color="#14B8A6"
                 style={{ marginHorizontal: 8, marginTop: 8 }}
@@ -365,7 +365,7 @@ export function CoupleReportsScreen() {
           <View style={[styles.budgetCard, { borderColor: colors.border.subtle }]}>
             <View style={styles.budgetTop}>
               <View style={styles.budgetLabelRow}>
-                <Ionicons name={statusIcon as any} size={18} color={statusColor} />
+                <AntDesign name={statusIcon as any} size={18} color={statusColor} />
                 <Text style={[styles.budgetTitle, { color: colors.text.primary }]}>
                   Budget Performance
                 </Text>
@@ -402,9 +402,9 @@ export function CoupleReportsScreen() {
               Alert.alert('Coming Soon', 'Export reports as PDF or CSV will be available soon.')
             }
           >
-            <Ionicons name="download-outline" size={20} color={colors.accent.primary} />
+            <AntDesign  name="download" size={20} color={colors.accent.primary} />
             <Text style={styles.exportText}>Export Report</Text>
-            <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+            <AntDesign  name="right" size={16} color={colors.text.tertiary} />
           </TouchableOpacity>
         </View>
       </ScrollView>

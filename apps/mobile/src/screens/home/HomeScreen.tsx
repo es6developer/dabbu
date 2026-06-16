@@ -12,7 +12,7 @@ import {
   Dimensions,
   Alert,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -121,7 +121,7 @@ function deriveGroupBalance(group: any, currentUserId: string | undefined) {
   return { owedToMe, iOwe, totalSpent, memberCount, unsettledOthers };
 }
 
-const INSIGHT_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
+const INSIGHT_ICONS: Record<string, string> = {
   'Net Worth': 'wallet',
   Subscriptions: 'card',
   Loans: 'trending-down',
@@ -132,7 +132,7 @@ const INSIGHT_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
 
 const QUICK_ACTIONS: {
   label: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: string;
   desc: string;
   route: string;
   screen: string;
@@ -587,7 +587,7 @@ export function HomeScreen() {
 
   if (loading) {
     return (
-      <PremiumLoaderScreen progress={loadingProgress} title="Building your Dashboard" icon="layers-outline" tip={loadingTip} />
+      <PremiumLoaderScreen progress={loadingProgress} title="Building your Dashboard" icon="layers" tip={loadingTip} />
     );
   }
 
@@ -616,7 +616,7 @@ export function HomeScreen() {
                 backgroundColor: `${COUPLE_COLORS.primary}20`,
                 alignItems: 'center', justifyContent: 'center',
               }}>
-                <Ionicons name="heart-circle-outline" size={28} color={COUPLE_COLORS.primary} />
+                <AntDesign  name="heart" size={28} color={COUPLE_COLORS.primary} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
@@ -626,7 +626,7 @@ export function HomeScreen() {
                   Budgets, expenses, goals & more
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.text.tertiary} />
+              <AntDesign  name="right" size={20} color={colors.text.tertiary} />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -646,7 +646,7 @@ export function HomeScreen() {
                 backgroundColor: `${colors.status.success}18`,
                 alignItems: 'center', justifyContent: 'center',
               }}>
-                <Ionicons name="trending-up-outline" size={24} color={colors.status.success} />
+                <AntDesign  name="linechart" size={24} color={colors.status.success} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>Income</Text>
@@ -654,7 +654,7 @@ export function HomeScreen() {
                   Track earnings together
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.text.tertiary} />
+              <AntDesign  name="right" size={20} color={colors.text.tertiary} />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -674,7 +674,7 @@ export function HomeScreen() {
                 backgroundColor: `${colors.status.error}18`,
                 alignItems: 'center', justifyContent: 'center',
               }}>
-                <Ionicons name="cart-outline" size={24} color={colors.status.error} />
+                <AntDesign  name="shoppingcart" size={24} color={colors.status.error} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>Expenses</Text>
@@ -682,7 +682,7 @@ export function HomeScreen() {
                   Shared & personal spending
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.text.tertiary} />
+              <AntDesign  name="right" size={20} color={colors.text.tertiary} />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -760,7 +760,7 @@ export function HomeScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <Ionicons name="notifications-outline" size={18} color={colors.brand.primary} />
+                <AntDesign  name="bells" size={18} color={colors.brand.primary} />
                 {unreadCount > 0 && (
                   <View style={page.badge}>
                     <Text style={page.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
@@ -806,7 +806,7 @@ export function HomeScreen() {
             {/* Monthly Growth */}
             {monthlyIncome > 0 && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                <Ionicons
+                <AntDesign
                   name={savings > 0 ? 'trending-up' : 'trending-down'}
                   size={14}
                   color={savings > 0 ? '#10B981' : '#EF4444'}
@@ -851,13 +851,13 @@ export function HomeScreen() {
             {/* Obligations */}
             <View style={{ gap: 8 }}>
               <ObligationRow
-                icon="receipt-outline"
+                icon="filetext1"
                 label="Upcoming Bills"
                 value={fmt(upcomingBillsTotal)}
                 valueColor={colors.text.primary}
               />
               <ObligationRow
-                icon="card-outline"
+                icon="creditcard"
                 label="Subscriptions"
                 value={fmt(subscriptionTotal)}
                 valueColor={colors.text.primary}
@@ -883,7 +883,7 @@ export function HomeScreen() {
                     {fmt(safeToSpend)}
                   </Text>
                 </View>
-                <Ionicons name="shield-checkmark-outline" size={22} color={colors.brand.primary} />
+                <AntDesign  name="checkcircle" size={22} color={colors.brand.primary} />
               </View>
             )}
 
@@ -931,7 +931,7 @@ export function HomeScreen() {
             <View style={{ backgroundColor: colors.bg.card, borderRadius: 16, borderWidth: 1, borderColor: colors.border.default, padding: 14, borderLeftWidth: 3, borderLeftColor: colors.brand.primary }}>
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
                 <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: colors.brand.primary + '15', alignItems: 'center', justifyContent: 'center' }}>
-                  <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.brand.primary} />
+                  <AntDesign  name="message1" size={16} color={colors.brand.primary} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }} numberOfLines={2}>
@@ -943,7 +943,7 @@ export function HomeScreen() {
                     ))}
                   </View>
                 </View>
-                <Ionicons name="sparkles-outline" size={16} color={colors.brand.primary} />
+                <AntDesign  name="star" size={16} color={colors.brand.primary} />
               </View>
             </View>
           </View>
@@ -953,7 +953,7 @@ export function HomeScreen() {
         <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
           <View style={[page.quickAddCard, { backgroundColor: colors.bg.card }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Ionicons name="flash-outline" size={16} color={colors.accent.primary} />
+              <AntDesign  name="thunder" size={16} color={colors.accent.primary} />
               <TextInput
                 ref={quickInputRef}
                 style={[page.quickAddInput, { color: colors.text.primary }]}
@@ -969,7 +969,7 @@ export function HomeScreen() {
               />
               {!quickEntryLoading ? (
                 <TouchableOpacity onPress={() => { setShowSuggestions(false); handleQuickAdd(quickEntry); }}>
-                  <Ionicons name="arrow-forward-circle-outline" size={22} color={colors.accent.primary} />
+                  <AntDesign  name="arrowright" size={22} color={colors.accent.primary} />
                 </TouchableOpacity>
               ) : (
                 <ActivityIndicator size="small" color={colors.accent.primary} />
@@ -990,11 +990,11 @@ export function HomeScreen() {
                       quickInputRef.current?.focus();
                     }}
                   >
-                    <Ionicons name="time-outline" size={14} color={colors.text.tertiary} />
+                    <AntDesign  name="clockcircleo" size={14} color={colors.text.tertiary} />
                     <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.primary, flex: 1 }} numberOfLines={1}>
                       {s}
                     </Text>
-                    <Ionicons name="arrow-up-outline" size={12} color={colors.text.tertiary} />
+                    <AntDesign  name="up" size={12} color={colors.text.tertiary} />
                   </TouchableOpacity>
                 ))}
               </View>
@@ -1009,7 +1009,7 @@ export function HomeScreen() {
                       { borderTopColor: colors.border.subtle, justifyContent: 'center' },
                     ]}
                   >
-                    <Ionicons name="checkmark-circle-outline" size={16} color={colors.status.success} />
+                    <AntDesign  name="checkcircleo" size={16} color={colors.status.success} />
                     <Text style={{ fontSize: 13, fontWeight: '600', color: colors.status.success }}>
                       Added!
                     </Text>
@@ -1046,7 +1046,7 @@ export function HomeScreen() {
                         justifyContent: 'center',
                       }}
                     >
-                      <Ionicons name={catIcon as any} size={14} color={catColor} />
+                      <AntDesign name={catIcon as any} size={14} color={catColor} />
                     </View>
                     <View style={{ flex: 1, minWidth: 0 }}>
                       <Text
@@ -1130,7 +1130,7 @@ export function HomeScreen() {
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                     <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: config.color + '15', alignItems: 'center', justifyContent: 'center' }}>
-                      <Ionicons name={config.icon as any} size={18} color={config.color} />
+                      <AntDesign name={config.icon as any} size={18} color={config.color} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.primary }} numberOfLines={1}>{g.name || 'Goal'}</Text>
@@ -1158,7 +1158,7 @@ export function HomeScreen() {
                 activeOpacity={0.7}
               >
                 <View style={[page.actionIconWrap, { backgroundColor: `${colors.brand.primary}12` }]}>
-                  <Ionicons name={a.icon} size={22} color={colors.brand.primary} />
+                  <AntDesign name={a.icon} size={22} color={colors.brand.primary} />
                 </View>
                 <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary, marginTop: 8 }}>
                   {a.label}
@@ -1232,7 +1232,7 @@ export function HomeScreen() {
                           justifyContent: 'center',
                         }}
                       >
-                        <Ionicons
+                        <AntDesign
                           name={isExpense ? 'arrow-up' : 'arrow-down'}
                           size={18}
                           color={isExpense ? colors.status.error : colors.status.success}
@@ -1307,7 +1307,7 @@ export function HomeScreen() {
                 activeOpacity={0.7}
               >
                 <View style={[page.insightIcon, { backgroundColor: `${ins.color}12` }]}>
-                  <Ionicons
+                  <AntDesign
                     name={INSIGHT_ICONS[ins.label] || 'ellipsis-horizontal'}
                     size={18}
                     color={ins.color}
@@ -1624,7 +1624,7 @@ export function HomeScreen() {
                   style={[page.seeAllBtn, { borderTopColor: colors.border.subtle }]}
                 >
                   <Text style={{ fontSize: 13, fontWeight: '600', color: colors.brand.primary }}>View All</Text>
-                  <Ionicons name="chevron-forward" size={14} color={colors.brand.primary} />
+                  <AntDesign  name="right" size={14} color={colors.brand.primary} />
                 </TouchableOpacity>
               )}
             </View>
@@ -1719,7 +1719,7 @@ function ObligationRow({
   value,
   valueColor,
 }: {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: string;
   label: string;
   value: string;
   valueColor: string;
@@ -1727,7 +1727,7 @@ function ObligationRow({
   const { colors } = useTheme();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-      <Ionicons name={icon} size={14} color={colors.text.tertiary} />
+      <AntDesign name={icon} size={14} color={colors.text.tertiary} />
       <Text style={{ flex: 1, fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>{label}</Text>
       <Text style={{ fontSize: 14, fontWeight: '700', color: valueColor }}>{value}</Text>
     </View>

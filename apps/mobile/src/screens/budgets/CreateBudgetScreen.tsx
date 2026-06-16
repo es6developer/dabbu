@@ -91,7 +91,7 @@ export function CreateBudgetScreen() {
       <PremiumError message={error} />
       <PremiumInput
         label="Budget name"
-        icon="bookmark-outline"
+        icon="book"
         value={name}
         onChangeText={setName}
         placeholder="e.g. Monthly groceries"
@@ -126,7 +126,7 @@ export function CreateBudgetScreen() {
       </View>
       <PremiumInput
         label="Custom category"
-        icon="pricetag-outline"
+        icon="tag"
         value={category}
         onChangeText={setCategory}
         placeholder="Or type custom"

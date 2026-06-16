@@ -8,7 +8,7 @@ import {
   FlatList,
   Dimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -44,7 +44,7 @@ export function CategorySelectionScreen() {
         <View style={{ paddingTop: insets.top + 12, paddingBottom: 24, paddingHorizontal: 20 }}>
           <View style={s.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-              <Ionicons name="close-outline" size={22} color="#FFF" />
+              <AntDesign  name="close" size={22} color="#FFF" />
             </TouchableOpacity>
             <Text style={s.headerTitle}>Select Category</Text>
             <View style={{ width: 34 }} />
@@ -60,7 +60,7 @@ export function CategorySelectionScreen() {
             { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
           ]}
         >
-          <Ionicons name="search-outline" size={16} color={colors.text.tertiary} />
+          <AntDesign  name="search1" size={16} color={colors.text.tertiary} />
           <TextInput
             style={[s.searchInput, { color: colors.text.primary }]}
             placeholder="Search categories"
@@ -88,7 +88,7 @@ export function CategorySelectionScreen() {
                 onPress={() => navigation.navigate('CreateCategory', { type: transactionType })}
               >
                 <View style={[s.catIcon, { backgroundColor: `${PURPLE}15` }]}>
-                  <Ionicons name="add-outline" size={24} color={PURPLE} />
+                  <AntDesign  name="plus" size={24} color={PURPLE} />
                 </View>
                 <Text style={[s.catName, { color: colors.text.secondary }]}>Add New</Text>
               </TouchableOpacity>
@@ -103,7 +103,7 @@ export function CategorySelectionScreen() {
               }
             >
               <View style={[s.catIcon, { backgroundColor: `${item.color}18` }]}>
-                <Ionicons name={item.icon as any} size={24} color={item.color} />
+                <AntDesign name={item.icon as any} size={24} color={item.color} />
               </View>
               <Text style={[s.catName, { color: colors.text.primary }]} numberOfLines={1}>
                 {item.name}

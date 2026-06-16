@@ -10,7 +10,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { api } from '../../services/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -74,7 +74,7 @@ export function ForgotPasswordScreen() {
                 marginBottom: 24,
               }}
             >
-              <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
+              <AntDesign  name="left" size={22} color={colors.text.primary} />
             </TouchableOpacity>
 
             {/* Header */}
@@ -115,7 +115,7 @@ export function ForgotPasswordScreen() {
                   marginBottom: 16,
                 }}
               >
-                <Ionicons name="alert-circle-outline" size={16} color={colors.status.error} />
+                <AntDesign  name="exclamationcircle" size={16} color={colors.status.error} />
                 <Text
                   style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}
                 >
@@ -138,8 +138,8 @@ export function ForgotPasswordScreen() {
                 marginBottom: 24,
               }}
             >
-              <Ionicons
-                name="mail-outline"
+              <AntDesign
+                 name="mail"
                 size={20}
                 color={emailFocused ? colors.brand.primary : colors.text.tertiary}
                 style={{ marginRight: 12 }}

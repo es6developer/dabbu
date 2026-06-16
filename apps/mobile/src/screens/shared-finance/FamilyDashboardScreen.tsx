@@ -10,7 +10,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
@@ -25,7 +25,7 @@ function fmt(v: number) {
 const ROLE_ICONS: Record<string, string> = {
   admin: 'shield-checkmark',
   member: 'person',
-  viewer: 'eye-outline',
+  viewer: 'eye',
 };
 const ROLE_COLORS: Record<string, string> = {
   admin: '#FFD700',
@@ -96,14 +96,14 @@ export function FamilyDashboardScreen() {
 
   if (loading) {
     return (
-      <PremiumLoaderScreen progress={loadingProgress} title="Loading Family Dashboard" icon="people-outline" />
+      <PremiumLoaderScreen progress={loadingProgress} title="Loading Family Dashboard" icon="team" />
     );
   }
 
   if (error) {
     return (
       <View style={[s.screen, { backgroundColor: colors.bg.primary, justifyContent: 'center', alignItems: 'center', paddingTop: insets.top }]}>
-        <Ionicons name="alert-circle-outline" size={48} color={colors.status.error} />
+        <AntDesign  name="exclamationcircle" size={48} color={colors.status.error} />
         <Text style={[s.errorText, { color: colors.text.primary, marginTop: 12 }]}>{error}</Text>
         <TouchableOpacity style={[s.retry, { backgroundColor: colors.accent.primary }]} onPress={() => loadData()}>
           <Text style={{ color: '#FFF', fontWeight: '700' }}>Retry</Text>
@@ -129,21 +129,21 @@ export function FamilyDashboardScreen() {
       >
         <View style={{ paddingTop: insets.top + 8, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between' }}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={[s.backBtn, { backgroundColor: colors.bg.glassLight }]}>
-            <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
+            <AntDesign  name="left" size={22} color={colors.text.primary} />
           </TouchableOpacity>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <TouchableOpacity onPress={() => navigation.getParent()?.navigate('Dashboard', { screen: 'AiFamily', params: { groupId, groupName } })} style={[s.backBtn, { backgroundColor: colors.bg.glassLight }]}>
-              <Ionicons name="sparkles-outline" size={20} color="#FFD700" />
+              <AntDesign  name="star" size={20} color="#FFD700" />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('SharedExpenseForm', { groupId })} style={[s.backBtn, { backgroundColor: colors.bg.glassLight }]}>
-              <Ionicons name="add-outline" size={22} color={colors.accent.primary} />
+              <AntDesign  name="plus" size={22} color={colors.accent.primary} />
             </TouchableOpacity>
           </View>
         </View>
 
         <View style={[s.heroSection, { backgroundColor: colors.bg.primary }]}>
           <View style={[s.heroIconWrap, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-            <Ionicons name="people-outline" size={28} color="#FFF" />
+            <AntDesign  name="team" size={28} color="#FFF" />
           </View>
           <Text style={s.heroTitle}>{groupName}</Text>
           <View style={s.heroMeta}>
@@ -157,7 +157,7 @@ export function FamilyDashboardScreen() {
         <View style={s.widgetsGrid}>
           <View style={[s.widgetCard, { backgroundColor: colors.bg.secondary }]}>
             <View style={s.widgetHeader}>
-              <Ionicons name="cash-outline" size={18} color={colors.accent.primary} />
+              <AntDesign  name="wallet" size={18} color={colors.accent.primary} />
               <Text style={[s.widgetTitle, { color: colors.text.primary }]}>Family Spending</Text>
             </View>
             <Text style={[s.widgetAmount, { color: colors.text.primary }]}>{fmt(totalMonthlySpending)}</Text>
@@ -165,7 +165,7 @@ export function FamilyDashboardScreen() {
           </View>
           <View style={[s.widgetCard, { backgroundColor: colors.bg.secondary }]}>
             <View style={s.widgetHeader}>
-              <Ionicons name="wallet-outline" size={18} color={colors.status.success} />
+              <AntDesign  name="wallet" size={18} color={colors.status.success} />
               <Text style={[s.widgetTitle, { color: colors.text.primary }]}>Family Savings</Text>
             </View>
             <Text style={[s.widgetAmount, { color: colors.status.success }]}>{fmt(data?.goalsTotalSaved || 0)}</Text>
@@ -193,7 +193,7 @@ export function FamilyDashboardScreen() {
                 <View style={{ flex: 1 }}>
                   <View style={s.memberNameRow}>
                     <Text style={[s.memberName, { color: colors.text.primary }]}>{member.name}</Text>
-                    <Ionicons name={(ROLE_ICONS[member.role] || 'person') as any} size={12} color={ROLE_COLORS[member.role] || '#666'} />
+                    <AntDesign name={(ROLE_ICONS[member.role] || 'person') as any} size={12} color={ROLE_COLORS[member.role] || '#666'} />
                   </View>
                   <Text style={[s.memberMeta, { color: colors.text.tertiary }]}>
                     Paid {fmt(member.totalPaid)} · {member.expenseCount} expenses
@@ -210,7 +210,7 @@ export function FamilyDashboardScreen() {
             {upcomingBills.map((bill: any, i: number) => (
               <View key={bill.id || i} style={[s.billCard, { backgroundColor: colors.bg.secondary }]}>
                 <View style={[s.billIcon, { backgroundColor: `${colors.status.warning}18` }]}>
-                  <Ionicons name="receipt-outline" size={16} color={colors.status.warning} />
+                  <AntDesign  name="filetext1" size={16} color={colors.status.warning} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[s.billName, { color: colors.text.primary }]}>{bill.type}</Text>
@@ -259,7 +259,7 @@ export function FamilyDashboardScreen() {
             {goals.map((goal: any, i: number) => (
               <View key={goal.id || i} style={[s.goalCard, { backgroundColor: colors.bg.secondary }]}>
                 <View style={s.goalTop}>
-                  <Ionicons name="flag-outline" size={20} color={colors.accent.primary} />
+                  <AntDesign  name="flag" size={20} color={colors.accent.primary} />
                   <View style={{ flex: 1, marginLeft: 12 }}>
                     <Text style={[s.goalName, { color: colors.text.primary }]}>{goal.name}</Text>
                     <Text style={[s.goalTarget, { color: colors.text.tertiary }]}>{fmt(goal.savedAmount)} / {fmt(goal.targetAmount)}</Text>
@@ -295,7 +295,7 @@ export function FamilyDashboardScreen() {
         onPress={() => navigation.navigate('SharedExpenseForm', { groupId })}
         activeOpacity={0.85}
       >
-        <Ionicons name="add-outline" size={26} color="#FFF" />
+        <AntDesign  name="plus" size={26} color="#FFF" />
       </TouchableOpacity>
     </View>
   );

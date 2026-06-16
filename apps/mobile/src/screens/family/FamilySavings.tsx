@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { Card } from '../../components/ui/Card';
 import { ProfileBubble } from '../../components/ui/ProfileBubble';
@@ -30,7 +30,7 @@ export function FamilySavings() {
         {/* ── Header ──────────────────────────────── */}
         <View className="flex-row items-center justify-between px-5 pt-2 pb-4">
           <TouchableOpacity onPress={() => {}} activeOpacity={0.7}>
-            <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+            <AntDesign  name="left" size={24} color={colors.text.primary} />
           </TouchableOpacity>
           <Text className="text-[17px] font-bold" style={{ color: colors.text.primary }}>
             Family Savings
@@ -184,7 +184,7 @@ export function FamilySavings() {
                 className="w-12 h-12 rounded-2xl items-center justify-center"
                 style={{ backgroundColor: colors.status.successLight }}
               >
-                <Ionicons name="add-circle-outline" size={24} color={colors.status.success} />
+                <AntDesign  name="pluscircleo" size={24} color={colors.status.success} />
               </View>
               <View className="flex-1">
                 <Text className="text-[14px] font-semibold" style={{ color: colors.text.primary }}>
@@ -197,7 +197,7 @@ export function FamilySavings() {
                   Add funds to reach your family goal faster
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
+              <AntDesign  name="right" size={18} color={colors.text.tertiary} />
             </View>
           </Card>
         </View>

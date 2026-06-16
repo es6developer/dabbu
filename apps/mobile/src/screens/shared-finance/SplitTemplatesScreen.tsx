@@ -9,7 +9,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -163,14 +163,14 @@ export function SplitTemplatesScreen() {
         <View style={[s.container, { backgroundColor: colors.bg.primary }]}>
           <View style={s.header}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-              <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+              <AntDesign  name="left" size={24} color={colors.text.primary} />
             </TouchableOpacity>
             <Text style={[s.title, { color: colors.text.primary }]}>Split Templates</Text>
             <TouchableOpacity
               onPress={() => setShowCreate(true)}
               style={[s.addBtn, { backgroundColor: colors.accent.primary }]}
             >
-              <Ionicons name="add-outline" size={22} color="#FFF" />
+              <AntDesign  name="plus" size={22} color="#FFF" />
             </TouchableOpacity>
           </View>
 
@@ -185,7 +185,7 @@ export function SplitTemplatesScreen() {
             }}
             ListEmptyComponent={
               <View style={{ alignItems: 'center', paddingVertical: 60 }}>
-                <Ionicons name="documents-outline" size={48} color={colors.text.tertiary} />
+                <AntDesign  name="files" size={48} color={colors.text.tertiary} />
                 <Text style={[s.emptyText, { color: colors.text.tertiary }]}>
                   No templates yet. Create one!
                 </Text>
@@ -200,7 +200,7 @@ export function SplitTemplatesScreen() {
               >
                 <View style={s.cardTop}>
                   <View style={s.iconWrap}>
-                    <Ionicons
+                    <AntDesign
                       name={item.icon as any}
                       size={24}
                       color={item.coverColor || coverColor}
@@ -215,12 +215,12 @@ export function SplitTemplatesScreen() {
                     )}
                   </View>
                   <TouchableOpacity onPress={() => handleDelete(item.id)} style={s.deleteBtn}>
-                    <Ionicons name="trash-outline" size={16} color={colors.status.error} />
+                    <AntDesign  name="delete" size={16} color={colors.status.error} />
                   </TouchableOpacity>
                 </View>
                 <View style={s.metaRow}>
                   <View style={[s.badge, { backgroundColor: `${colors.accent.primary}15` }]}>
-                    <Ionicons name="people-outline" size={11} color={colors.accent.primary} />
+                    <AntDesign  name="team" size={11} color={colors.accent.primary} />
                     <Text style={[s.badgeText, { color: colors.accent.primary }]}>
                       {item.groupType}
                     </Text>
@@ -230,7 +230,7 @@ export function SplitTemplatesScreen() {
                   </Text>
                   {item.isOfficial && (
                     <View style={[s.badge, { backgroundColor: `${colors.status.success}15` }]}>
-                      <Ionicons name="checkmark-circle-outline" size={11} color={colors.status.success} />
+                      <AntDesign  name="checkcircleo" size={11} color={colors.status.success} />
                       <Text style={[s.badgeText, { color: colors.status.success }]}>Official</Text>
                     </View>
                   )}
@@ -245,7 +245,7 @@ export function SplitTemplatesScreen() {
                       <ActivityIndicator size="small" color="#FFF" />
                     ) : (
                       <>
-                        <Ionicons name="download-outline" size={16} color="#FFF" />
+                        <AntDesign  name="download" size={16} color="#FFF" />
                         <Text style={s.applyText}>Apply to Group</Text>
                       </>
                     )}
@@ -333,7 +333,7 @@ export function SplitTemplatesScreen() {
                       ]}
                       onPress={() => setIcon(ic)}
                     >
-                      <Ionicons
+                      <AntDesign
                         name={ic as any}
                         size={18}
                         color={icon === ic ? colors.accent.primary : colors.text.secondary}

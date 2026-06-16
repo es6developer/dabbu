@@ -12,7 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -88,7 +88,7 @@ function CheckoutOverlay({ url, onClose }: { url: string; onClose: () => void })
         }}
       />
       <TouchableOpacity style={styles.checkoutCloseBtn} onPress={onClose} activeOpacity={0.7}>
-        <Ionicons name="close-outline" size={22} color="#FFF" />
+        <AntDesign  name="close" size={22} color="#FFF" />
       </TouchableOpacity>
     </View>
   );
@@ -290,21 +290,21 @@ export function PremiumScreen() {
         <ScrollView style={[styles.container, { backgroundColor: '#0A0A1A' }]}>
           <View style={[styles.activeHeader, { paddingTop: insets.top }]}>
             <View style={styles.premiumBadgeLarge}>
-              <Ionicons name="diamond-outline" size={24} color="#FFD700" />
+              <AntDesign  name="diamond" size={24} color="#FFD700" />
               <Text style={styles.premiumBadgeText}>DABBU PREMIUM</Text>
             </View>
             <Text style={styles.activeTitle}>You're on Premium</Text>
           </View>
           <View style={styles.activeDetails}>
             <View style={styles.detailCard}>
-              <Ionicons name="calendar-outline" size={20} color="#FFD700" />
+              <AntDesign  name="calendar" size={20} color="#FFD700" />
               <View>
                 <Text style={styles.detailLabel}>Current Period Ends</Text>
                 <Text style={styles.detailValue}>{endDate}</Text>
               </View>
             </View>
             <View style={styles.detailCard}>
-              <Ionicons name="card-outline" size={20} color="#FFD700" />
+              <AntDesign  name="creditcard" size={20} color="#FFD700" />
               <View>
                 <Text style={styles.detailLabel}>Plan</Text>
                 <Text style={styles.detailValue}>{currentSub.plan?.name || 'Premium'}</Text>
@@ -312,7 +312,7 @@ export function PremiumScreen() {
             </View>
             {currentSub.cancelAtPeriodEnd && (
               <View style={styles.detailCard}>
-                <Ionicons name="alert-circle-outline" size={20} color="#FF5050" />
+                <AntDesign  name="exclamationcircle" size={20} color="#FF5050" />
                 <View>
                   <Text style={[styles.detailLabel, { color: '#FF5050' }]}>
                     Cancellation Scheduled
@@ -325,7 +325,7 @@ export function PremiumScreen() {
               style={styles.billingBtn}
               onPress={() => navigation.navigate('BillingHistory')}
             >
-              <Ionicons name="receipt-outline" size={18} color="#FFFFFF" />
+              <AntDesign  name="filetext1" size={18} color="#FFFFFF" />
               <Text style={styles.billingBtnText}> Billing History</Text>
             </TouchableOpacity>
             {!currentSub.cancelAtPeriodEnd && (
@@ -348,7 +348,7 @@ export function PremiumScreen() {
         >
           <View style={[styles.heroGradient, { paddingTop: insets.top }]}>
             <View style={styles.premiumBadgeSmall}>
-              <Ionicons name="diamond-outline" size={14} color="#FFD700" />
+              <AntDesign  name="diamond" size={14} color="#FFD700" />
               <Text style={styles.premiumBadgeSmallText}>PREMIUM</Text>
             </View>
             <Text style={styles.heroTitle}>Unlock the Full</Text>
@@ -374,7 +374,7 @@ export function PremiumScreen() {
               <View style={styles.featureList}>
                 {FREE_FEATURES.map((f, i) => (
                   <View key={i} style={styles.featureRow}>
-                    <Ionicons name="checkmark-circle-outline" size={16} color="#00A86B" />
+                    <AntDesign  name="checkcircleo" size={16} color="#00A86B" />
                     <Text style={styles.featureText}>{f}</Text>
                   </View>
                 ))}
@@ -390,7 +390,7 @@ export function PremiumScreen() {
               <View style={styles.featureList}>
                 {PREMIUM_FEATURES.map((f, i) => (
                   <View key={i} style={styles.featureRow}>
-                    <Ionicons name="checkmark-circle-outline" size={16} color="#00A86B" />
+                    <AntDesign  name="checkcircleo" size={16} color="#00A86B" />
                     <Text style={styles.featureText}>{f.label}</Text>
                   </View>
                 ))}
@@ -436,7 +436,7 @@ export function PremiumScreen() {
                     </Text>
                     {isSelected && (
                       <View style={styles.selectedDot}>
-                        <Ionicons name="checkmark-circle-outline" size={18} color="#C084FC" />
+                        <AntDesign  name="checkcircleo" size={18} color="#C084FC" />
                       </View>
                     )}
                   </View>
@@ -466,7 +466,7 @@ export function PremiumScreen() {
             <ActivityIndicator size="small" color="#000" />
           ) : (
             <>
-              <Ionicons name="diamond-outline" size={18} color="#000" style={{ marginRight: 8 }} />
+              <AntDesign  name="diamond" size={18} color="#000" style={{ marginRight: 8 }} />
               <Text style={styles.upgradeText}>Go Premium • {plans[selectedPlan].price}</Text>
             </>
           )}

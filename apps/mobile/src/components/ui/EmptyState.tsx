@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 
 interface EmptyStateProps {
   title?: string;
   message?: string;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: string;
   actionLabel?: string;
   onAction?: () => void;
 }
@@ -17,13 +17,13 @@ export function EmptyState({ title = 'No activity yet', message, icon, actionLab
   return (
     <View style={styles.container}>
       <View style={styles.iconContainer}>
-        <Ionicons
-          name="document-text-outline"
+        <AntDesign
+           name="filetext1"
           size={56}
           color={colors.accent.primary}
           style={{ opacity: 0.2, position: 'absolute', transform: [{ rotate: '-5deg' }] }}
         />
-        <Ionicons name="receipt-outline" size={72} color={colors.text.tertiary} />
+        <AntDesign  name="filetext1" size={72} color={colors.text.tertiary} />
       </View>
       <Text style={[styles.title, { color: colors.text.secondary }]}>{title}</Text>
       {message && (

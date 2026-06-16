@@ -8,7 +8,7 @@ import {
   RefreshControl,
   Dimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -124,13 +124,13 @@ export function CoupleBudgetsScreen() {
           >
             <View style={styles.headerRow}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                <Ionicons name="arrow-back-outline" size={22} color="#FFF" />
+                <AntDesign  name="arrowleft" size={22} color="#FFF" />
               </TouchableOpacity>
               <Text style={styles.headerTitle}>Budgets</Text>
               <View style={{ width: 32 }} />
             </View>
           </View>
-          <Ionicons name="wallet-outline" size={48} color={colors.accent.primary} />
+          <AntDesign  name="wallet" size={48} color={colors.accent.primary} />
           <Text style={[styles.emptyTitle, { color: colors.text.secondary, marginTop: 12 }]}>
             No Budget Data
           </Text>
@@ -168,7 +168,7 @@ export function CoupleBudgetsScreen() {
         >
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <Ionicons name="arrow-back-outline" size={22} color="#FFF" />
+              <AntDesign  name="arrowleft" size={22} color="#FFF" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Budgets</Text>
             <View style={{ width: 32 }} />
@@ -180,7 +180,7 @@ export function CoupleBudgetsScreen() {
             <View style={styles.heroTop}>
               <Text style={styles.heroLabel}>{monthLabel()}</Text>
               <View style={styles.heroBadge}>
-                <Ionicons name="calendar-outline" size={12} color={colors.accent.primary} />
+                <AntDesign  name="calendar" size={12} color={colors.accent.primary} />
                 <Text style={styles.heroBadgeText}> Monthly Budget</Text>
               </View>
             </View>
@@ -229,7 +229,7 @@ export function CoupleBudgetsScreen() {
 
           {categories.length === 0 && (
             <View style={[styles.emptyCard, { backgroundColor: colors.bg.card }]}>
-              <Ionicons name="layers-outline" size={32} color={colors.text.tertiary} />
+              <AntDesign  name="layers" size={32} color={colors.text.tertiary} />
               <Text style={[styles.emptyCardText, { color: colors.text.secondary }]}>
                 No categories set up yet
               </Text>
@@ -244,14 +244,14 @@ export function CoupleBudgetsScreen() {
             const catSpent = cat.spent ?? 0;
             const catPct = catBudget > 0 ? Math.round((catSpent / catBudget) * 100) : 0;
             const badge = statusBadge(catPct);
-            const icon = getCategoryIcon(cat.category, 'wallet-outline');
+            const icon = getCategoryIcon(cat.category, 'wallet');
 
             return (
               <View key={cat.id || i} style={[styles.catCard, { backgroundColor: colors.bg.card }]}>
                 <View style={styles.catTop}>
                   <View style={styles.catLeft}>
                     <View style={[styles.catIcon, { backgroundColor: colors.accent.primary }]}>
-                      <Ionicons name={icon as any} size={16} color="#FFF" />
+                      <AntDesign name={icon as any} size={16} color="#FFF" />
                     </View>
                     <View>
                       <Text style={[styles.catName, { color: colors.text.primary }]}>
@@ -263,7 +263,7 @@ export function CoupleBudgetsScreen() {
                     </View>
                   </View>
                   <View style={[styles.badge, { backgroundColor: badge.bg }]}>
-                    <Ionicons name={badge.icon as any} size={10} color={badge.text} />
+                    <AntDesign name={badge.icon as any} size={10} color={badge.text} />
                     <Text style={[styles.badgeText, { color: badge.text }]}>{badge.label}</Text>
                   </View>
                 </View>
@@ -302,7 +302,7 @@ export function CoupleBudgetsScreen() {
             activeOpacity={0.85}
             onPress={() => navigation.navigate('CoupleBudgetAdjust')}
           >
-            <Ionicons name="options-outline" size={18} color="#FFF" />
+            <AntDesign  name="setting" size={18} color="#FFF" />
             <Text style={styles.adjustBtnText}>Adjust Budget</Text>
           </TouchableOpacity>
         </View>

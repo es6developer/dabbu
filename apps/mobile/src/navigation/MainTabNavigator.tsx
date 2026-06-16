@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { HomeScreen } from '../screens/home/HomeScreen';
 import { NotificationsScreen } from '../screens/home/NotificationsScreen';
 import { NotificationCenterScreen } from '../screens/home/NotificationCenterScreen';
@@ -383,38 +383,38 @@ export function MainTabNavigator() {
   const quickActions = [
     {
       label: 'Add Expense',
-      icon: 'add-circle-outline',
+      icon: 'pluscircleo',
       color: '#DC2626',
       onPress: () => navigation.navigate('Expense', { screen: 'CategorySelection', params: { type: 'expense' } }),
     },
     {
       label: 'Add Income',
-      icon: 'trending-up-outline',
+      icon: 'linechart',
       color: '#16A34A',
       onPress: () =>
         navigation.navigate('Expense', { screen: 'CategorySelection', params: { type: 'income' } }),
     },
     {
       label: 'Wallet',
-      icon: 'wallet-outline',
+      icon: 'wallet',
       color: '#2563EB',
       onPress: () => navigation.navigate('Spaces', { screen: 'GroupWallet' }),
     },
     {
       label: 'Net Worth',
-      icon: 'stats-chart-outline',
+      icon: 'bar-chart',
       color: '#7C3AED',
       onPress: () => navigation.navigate('Dashboard', { screen: 'NetWorth' }),
     },
     {
       label: 'Create Goal',
-      icon: 'flag-outline',
+      icon: 'flag',
       color: '#F59E0B',
       onPress: () => navigation.navigate('Goals'),
     },
     {
       label: 'Expense Group',
-      icon: 'people-outline',
+      icon: 'team',
       color: '#14B8A6',
       onPress: () => navigation.navigate('Expense', { screen: 'CreateExpenseGroup' }),
     },
@@ -427,9 +427,9 @@ export function MainTabNavigator() {
       {showCoupleFeatures && (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
           {[0, 1, 2, 3, 4, 5].map((i) => (
-            <Ionicons
+            <AntDesign
               key={i}
-              name="heart-outline"
+               name="hearto"
               size={24 + i * 8}
               color={`${COUPLE_COLORS.heart}08`}
               style={{
@@ -465,7 +465,7 @@ export function MainTabNavigator() {
           options={{
             tabBarLabel: 'Home',
             tabBarIcon: ({ focused, color, size }) => (
-              <Ionicons name={focused ? 'home' : 'home-outline'} size={22} color={color} />
+              <AntDesign name={focused ? 'home' : 'home'} size={22} color={color} />
             ),
           }}
         />
@@ -485,7 +485,7 @@ export function MainTabNavigator() {
           options={{
             tabBarLabel: 'Spaces',
             tabBarIcon: ({ focused, color }) => (
-              <Ionicons name={focused ? 'planet' : 'planet-outline'} size={22} color={color} />
+              <AntDesign name={focused ? 'planet' : 'earth'} size={22} color={color} />
             ),
           }}
         />
@@ -495,7 +495,7 @@ export function MainTabNavigator() {
           options={{
             tabBarLabel: 'Goals',
             tabBarIcon: ({ focused, color }) => (
-              <Ionicons name={focused ? 'trophy' : 'trophy-outline'} size={22} color={color} />
+              <AntDesign name={focused ? 'trophy' : 'trophy'} size={22} color={color} />
             ),
           }}
         />
@@ -505,7 +505,7 @@ export function MainTabNavigator() {
           options={{
             tabBarLabel: 'Profile',
             tabBarIcon: ({ focused, color }) => (
-              <Ionicons name={focused ? 'person' : 'person-outline'} size={22} color={color} />
+              <AntDesign name={focused ? 'person' : 'user'} size={22} color={color} />
             ),
           }}
         />
@@ -639,7 +639,7 @@ function GlossyTabBar({
               >
                 {showCoupleFeatures ? (
                   <View>
-                    <Ionicons name="heart-outline" size={22} color="#FFF" />
+                    <AntDesign  name="hearto" size={22} color="#FFF" />
                     <View
                       style={{
                         position: 'absolute',
@@ -655,11 +655,11 @@ function GlossyTabBar({
                         borderColor: COUPLE_COLORS.primary,
                       }}
                     >
-                      <Ionicons name="add-outline" size={11} color={COUPLE_COLORS.primary} />
+                      <AntDesign  name="plus" size={11} color={COUPLE_COLORS.primary} />
                     </View>
                   </View>
                 ) : (
-                  <Ionicons name="add-outline" size={28} color="#FFF" />
+                  <AntDesign  name="plus" size={28} color="#FFF" />
                 )}
               </View>
             </TouchableOpacity>

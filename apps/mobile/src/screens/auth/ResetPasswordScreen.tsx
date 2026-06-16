@@ -9,7 +9,7 @@ import {
   TouchableWithoutFeedback,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -139,7 +139,7 @@ export function ResetPasswordScreen() {
               marginBottom: 24,
             }}
           >
-            <Ionicons name="chevron-back" size={22} color={colors.text.primary} />
+            <AntDesign  name="left" size={22} color={colors.text.primary} />
           </TouchableOpacity>
 
           {/* Header */}
@@ -181,7 +181,7 @@ export function ResetPasswordScreen() {
                 marginBottom: 16,
               }}
             >
-              <Ionicons name="alert-circle-outline" size={16} color={colors.status.error} />
+              <AntDesign  name="exclamationcircle" size={16} color={colors.status.error} />
               <Text
                 style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}
               >
@@ -268,8 +268,8 @@ export function ResetPasswordScreen() {
                   marginBottom: 14,
                 }}
               >
-                <Ionicons
-                  name="lock-closed-outline"
+                <AntDesign
+                   name="lock"
                   size={20}
                   color={colors.text.tertiary}
                   style={{ marginRight: 12 }}
@@ -290,8 +290,8 @@ export function ResetPasswordScreen() {
                   returnKeyType="next"
                 />
                 <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                  <Ionicons
-                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                  <AntDesign
+                    name={showPassword ? 'eyeo' : 'eye'}
                     size={20}
                     color={colors.text.tertiary}
                   />
@@ -312,8 +312,8 @@ export function ResetPasswordScreen() {
                   marginBottom: 24,
                 }}
               >
-                <Ionicons
-                  name="lock-closed-outline"
+                <AntDesign
+                   name="lock"
                   size={20}
                   color={colors.text.tertiary}
                   style={{ marginRight: 12 }}

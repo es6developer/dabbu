@@ -7,7 +7,7 @@ import {
   Animated,
   StyleSheet,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { borderRadius } from '../../theme/design';
 
@@ -34,7 +34,7 @@ interface AlertOptions {
   onDismiss?: () => void;
 }
 
-const ICON_MAP: Record<AlertType, keyof typeof Ionicons.glyphMap> = {
+const ICON_MAP: Record<AlertType, string> = {
   success: 'checkmark-circle',
   error: 'alert-circle',
   warning: 'warning',
@@ -98,7 +98,7 @@ function CustomAlert({
             },
           ]}
         >
-          <Ionicons
+          <AntDesign
             name={iconName}
             size={48}
             color={accentColor}

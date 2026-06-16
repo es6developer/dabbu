@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 
 export function CurrencyScreen() {
@@ -10,7 +10,7 @@ export function CurrencyScreen() {
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={styles.content}>
         <View style={[styles.iconWrap, { backgroundColor: colors.bg.secondary }]}>
-          <Ionicons name="cash-outline" size={40} color={colors.accent.primary} />
+          <AntDesign  name="wallet" size={40} color={colors.accent.primary} />
         </View>
         <Text style={[styles.title, { color: colors.text.primary }]}>Indian Rupee (INR)</Text>
         <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>

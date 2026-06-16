@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import { Animated, Text, StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type ToastType = 'success' | 'error' | 'info';
@@ -66,7 +66,7 @@ function ToastDisplay({ message, type }: { message: string; type: ToastType }) {
     success: '#34C759',
     info: '#14B8A6',
   };
-  const iconMap: Record<string, keyof typeof Ionicons.glyphMap> = {
+  const iconMap: Record<string, string> = {
     error: 'alert-circle',
     success: 'checkmark-circle',
     info: 'information-circle',
@@ -84,7 +84,7 @@ function ToastDisplay({ message, type }: { message: string; type: ToastType }) {
         },
       ]}
     >
-      <Ionicons name={iconMap[type]} size={18} color={colorMap[type]} style={styles.icon} />
+      <AntDesign name={iconMap[type]} size={18} color={colorMap[type]} style={styles.icon} />
       <Text style={[styles.text, { color: colorMap[type] }]}>{message}</Text>
     </Animated.View>
   );

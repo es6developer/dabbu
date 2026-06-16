@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, Modal } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme, spacing, borderRadius } from '../../theme';
 
 interface DatePickerFieldProps {
@@ -143,8 +143,8 @@ export function DatePickerField({
         onPress={openDatePicker}
         activeOpacity={0.7}
       >
-        <Ionicons
-          name={mode === 'time' ? 'time-outline' : 'calendar-outline'}
+        <AntDesign
+          name={mode === 'time' ? 'clockcircleo' : 'calendar'}
           size={18}
           color={value ? colors.text.primary : colors.text.tertiary}
           style={styles.icon}
@@ -152,7 +152,7 @@ export function DatePickerField({
         <Text style={[styles.text, { color: value ? colors.text.primary : colors.text.tertiary }]}>
           {value ? formatDisplayDate(value, mode) : placeholder}
         </Text>
-        <Ionicons name="chevron-down" size={16} color={colors.text.tertiary} />
+        <AntDesign  name="down" size={16} color={colors.text.tertiary} />
       </TouchableOpacity>
       {show && Platform.OS === 'ios' && (
         <Modal transparent animationType="fade" visible={show} onRequestClose={handleCancel}>

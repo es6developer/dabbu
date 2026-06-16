@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme, useThemeContext, ThemeMode } from '../../theme';
 
-const THEME_OPTIONS: Array<{ mode: ThemeMode; icon: keyof typeof Ionicons.glyphMap; label: string; desc: string }> = [
+const THEME_OPTIONS: Array<{ mode: ThemeMode; icon: string; label: string; desc: string }> = [
   { mode: 'dark', icon: 'moon', label: 'Dark', desc: 'Dark mode — easy on the eyes' },
   { mode: 'light', icon: 'sunny', label: 'Light', desc: 'Bright and clean interface' },
   { mode: 'system', icon: 'settings', label: 'System', desc: 'Follow your device settings' },
@@ -26,14 +26,14 @@ export function ThemeScreen() {
           activeOpacity={0.7}
         >
           <View style={[styles.iconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
-            <Ionicons name={opt.icon} size={24} color={colors.accent.primary} />
+            <AntDesign name={opt.icon} size={24} color={colors.accent.primary} />
           </View>
           <View style={styles.info}>
             <Text style={[styles.label, { color: colors.text.primary }]}>{opt.label}</Text>
             <Text style={[styles.desc, { color: colors.text.tertiary }]}>{opt.desc}</Text>
           </View>
           {themeMode === opt.mode && (
-            <Ionicons name="checkmark-circle-outline" size={24} color={colors.accent.primary} />
+            <AntDesign  name="checkcircleo" size={24} color={colors.accent.primary} />
           )}
         </TouchableOpacity>
       ))}

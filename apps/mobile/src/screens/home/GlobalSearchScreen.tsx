@@ -8,7 +8,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -18,8 +18,8 @@ function fmt(v: number) {
   return '\u20B9' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 }
 
-function getCategoryIcon(cat: string): keyof typeof Ionicons.glyphMap {
-  const map: Record<string, keyof typeof Ionicons.glyphMap> = {
+function getCategoryIcon(cat: string): string {
+  const map: Record<string, string> = {
     Food: 'fast-food',
     Transport: 'car',
     Shopping: 'bag',
@@ -147,7 +147,7 @@ export function GlobalSearchScreen() {
     return (
       <View style={{ marginTop: 20 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-          <Ionicons name={icon as any} size={16} color={colors.text.tertiary} />
+          <AntDesign name={icon as any} size={16} color={colors.text.tertiary} />
           <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>{title}</Text>
           <Text style={[styles.sectionCount, { color: colors.text.tertiary }]}>
             ({data.length})
@@ -167,7 +167,7 @@ export function GlobalSearchScreen() {
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+          <AntDesign  name="left" size={24} color={colors.text.primary} />
         </TouchableOpacity>
         <View
           style={[
@@ -175,7 +175,7 @@ export function GlobalSearchScreen() {
             { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
           ]}
         >
-          <Ionicons name="search-outline" size={18} color={colors.text.tertiary} />
+          <AntDesign  name="search1" size={18} color={colors.text.tertiary} />
           <TextInput
             ref={inputRef}
             style={[styles.searchInput, { color: colors.text.primary }]}
@@ -188,7 +188,7 @@ export function GlobalSearchScreen() {
           />
           {query.length > 0 && (
             <TouchableOpacity onPress={() => setQuery('')}>
-              <Ionicons name="close-circle-outline" size={18} color={colors.text.tertiary} />
+              <AntDesign  name="closecircleo" size={18} color={colors.text.tertiary} />
             </TouchableOpacity>
           )}
         </View>
@@ -211,7 +211,7 @@ export function GlobalSearchScreen() {
               { backgroundColor: colors.bg.card, borderColor: colors.border.default },
             ]}
           >
-            <Ionicons name="search-outline" size={48} color={colors.text.tertiary} />
+            <AntDesign  name="search1" size={48} color={colors.text.tertiary} />
             <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>
               No results found
             </Text>
@@ -228,7 +228,7 @@ export function GlobalSearchScreen() {
               { backgroundColor: colors.bg.card, borderColor: colors.border.default },
             ]}
           >
-            <Ionicons name="search-outline" size={48} color={colors.text.tertiary} />
+            <AntDesign  name="search1" size={48} color={colors.text.tertiary} />
             <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>Global Search</Text>
             <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>
               Search across transactions, groups, bills, and goals
@@ -237,7 +237,7 @@ export function GlobalSearchScreen() {
         )}
 
         {!searching &&
-          renderSection('Transactions', 'receipt-outline', results.transactions, (tx: any, i) => {
+          renderSection('Transactions', 'filetext1', results.transactions, (tx: any, i) => {
             const isIncome = tx.type === 'income';
             const txColor = isIncome ? colors.status.success : colors.status.error;
             const amount = Number(tx.amount || 0);
@@ -257,7 +257,7 @@ export function GlobalSearchScreen() {
                 }
               >
                 <View style={[styles.resultIcon, { backgroundColor: `${txColor}12` }]}>
-                  <Ionicons
+                  <AntDesign
                     name={getCategoryIcon(tx.category?.name || tx.category)}
                     size={16}
                     color={txColor}
@@ -284,7 +284,7 @@ export function GlobalSearchScreen() {
           })}
 
         {!searching &&
-          renderSection('Groups', 'people-outline', results.groups, (g: any, i) => (
+          renderSection('Groups', 'team', results.groups, (g: any, i) => (
             <TouchableOpacity
               key={g.id || i}
               style={[
@@ -300,7 +300,7 @@ export function GlobalSearchScreen() {
               }
             >
               <View style={[styles.resultIcon, { backgroundColor: `${colors.accent.primary}12` }]}>
-                <Ionicons name="people-outline" size={16} color={colors.accent.primary} />
+                <AntDesign  name="team" size={16} color={colors.accent.primary} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text
@@ -313,12 +313,12 @@ export function GlobalSearchScreen() {
                   {g.description || g.type || 'Group'}
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+              <AntDesign  name="right" size={16} color={colors.text.tertiary} />
             </TouchableOpacity>
           ))}
 
         {!searching &&
-          renderSection('Bills', 'document-text-outline', results.bills, (b: any, i) => (
+          renderSection('Bills', 'filetext1', results.bills, (b: any, i) => (
             <TouchableOpacity
               key={b.id || i}
               style={[
@@ -331,7 +331,7 @@ export function GlobalSearchScreen() {
               }
             >
               <View style={[styles.resultIcon, { backgroundColor: `${colors.status.warning}12` }]}>
-                <Ionicons name="document-text-outline" size={16} color={colors.status.warning} />
+                <AntDesign  name="filetext1" size={16} color={colors.status.warning} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text
@@ -352,7 +352,7 @@ export function GlobalSearchScreen() {
           ))}
 
         {!searching &&
-          renderSection('Goals', 'flag-outline', results.goals, (g: any, i) => {
+          renderSection('Goals', 'flag', results.goals, (g: any, i) => {
             const saved = Number(g.savedAmount || g.saved || 0);
             const target = Number(g.targetAmount || g.target || 1);
             const pct = Math.min((saved / target) * 100, 100);
@@ -369,7 +369,7 @@ export function GlobalSearchScreen() {
                 <View
                   style={[styles.resultIcon, { backgroundColor: `${colors.accent.primary}12` }]}
                 >
-                  <Ionicons name="flag-outline" size={16} color={colors.accent.primary} />
+                  <AntDesign  name="flag" size={16} color={colors.accent.primary} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text

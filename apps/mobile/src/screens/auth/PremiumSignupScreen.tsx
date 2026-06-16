@@ -10,7 +10,7 @@ import {
   ScrollView,
   Image,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../store/AuthContext';
@@ -28,7 +28,7 @@ interface InputFieldProps {
   onSubmitEditing?: () => void;
   returnKeyType?: 'next' | 'done';
   inputRef?: React.RefObject<TextInput>;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: string;
   focused: boolean;
   onFocus: () => void;
   onBlur: () => void;
@@ -73,7 +73,7 @@ function InputField({
       }}
     >
       {icon && (
-        <Ionicons
+        <AntDesign
           name={icon}
           size={18}
           color={focused ? colors.brand.primary : colors.text.tertiary}
@@ -103,8 +103,8 @@ function InputField({
       />
       {isPassword && value.length > 0 && (
         <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-          <Ionicons
-            name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+          <AntDesign
+            name={showPassword ? 'eyeo' : 'eye'}
             size={20}
             color={colors.text.tertiary}
           />
@@ -316,7 +316,7 @@ export function PremiumSignupScreen() {
                       justifyContent: 'center',
                     }}
                   >
-                    <Ionicons name="close-outline" size={22} color={colors.text.primary} />
+                    <AntDesign  name="close" size={22} color={colors.text.primary} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -340,7 +340,7 @@ export function PremiumSignupScreen() {
                       }}
                       autoCapitalize="words"
                       returnKeyType="next"
-                      icon="person-outline"
+                      icon="user"
                       onSubmitEditing={() => lastNameRef.current?.focus()}
                       colors={colors}
                       focused={focusedField === 'first'}
@@ -394,7 +394,7 @@ export function PremiumSignupScreen() {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   returnKeyType="next"
-                  icon="mail-outline"
+                  icon="mail"
                   inputRef={emailRef}
                   onSubmitEditing={() => phoneRef.current?.focus()}
                   colors={colors}
@@ -420,7 +420,7 @@ export function PremiumSignupScreen() {
                   }}
                   keyboardType="phone-pad"
                   returnKeyType="next"
-                  icon="call-outline"
+                  icon="phone"
                   inputRef={phoneRef}
                   onSubmitEditing={() => passwordRef.current?.focus()}
                   colors={colors}
@@ -455,7 +455,7 @@ export function PremiumSignupScreen() {
                   }}
                   secureTextEntry
                   returnKeyType="next"
-                  icon="lock-closed-outline"
+                  icon="lock"
                   inputRef={passwordRef}
                   onSubmitEditing={() => confirmRef.current?.focus()}
                   colors={colors}
@@ -481,7 +481,7 @@ export function PremiumSignupScreen() {
                   }}
                   secureTextEntry
                   returnKeyType="done"
-                  icon="lock-closed-outline"
+                  icon="lock"
                   inputRef={confirmRef}
                   onSubmitEditing={handleSignup}
                   colors={colors}
@@ -504,7 +504,7 @@ export function PremiumSignupScreen() {
                       marginBottom: 12,
                     }}
                   >
-                    <Ionicons name="alert-circle-outline" size={16} color={colors.status.error} />
+                    <AntDesign  name="exclamationcircle" size={16} color={colors.status.error} />
                     <Text
                       style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}
                     >
@@ -555,7 +555,7 @@ export function PremiumSignupScreen() {
                     opacity: loading ? 0.5 : 1,
                   }}
                 >
-                  <Ionicons name="logo-google" size={20} color={colors.text.primary} />
+                  <AntDesign  name="google" size={20} color={colors.text.primary} />
                   <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text.primary }}>
                     Google
                   </Text>
@@ -583,7 +583,7 @@ export function PremiumSignupScreen() {
                     marginBottom: 8,
                   }}
                 >
-                  <Ionicons name="shield-checkmark-outline" size={12} color={colors.text.tertiary} />
+                  <AntDesign  name="checkcircle" size={12} color={colors.text.tertiary} />
                   <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary }}>
                     256-bit encrypted connection
                   </Text>

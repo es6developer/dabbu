@@ -9,7 +9,7 @@ import {
   Dimensions,
   Alert,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -145,7 +145,7 @@ export function TransactionsScreen() {
         onLongPress={() => handleDelete(item)}
       >
         <View style={[styles.txIcon, { backgroundColor: isIncome ? '#00B89418' : '#FF6B6B18' }]}>
-          <Ionicons
+          <AntDesign
             name={isIncome ? 'arrow-down' : 'arrow-up'}
             size={16}
             color={isIncome ? '#00B894' : '#FF6B6B'}
@@ -185,7 +185,7 @@ export function TransactionsScreen() {
             style={[styles.filterToggle, { backgroundColor: colors.bg.secondary }]}
             onPress={() => setShowFilters(!showFilters)}
           >
-            <Ionicons name="options-outline" size={20} color={colors.text.secondary} />
+            <AntDesign  name="setting" size={20} color={colors.text.secondary} />
           </TouchableOpacity>
         </View>
 
@@ -257,7 +257,7 @@ export function TransactionsScreen() {
         </View>
       ) : filtered.length === 0 ? (
         <View style={styles.centerState}>
-          <Ionicons name="receipt-outline" size={48} color={colors.text.tertiary} />
+          <AntDesign  name="filetext1" size={48} color={colors.text.tertiary} />
           <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>Start tracking</Text>
           <Text style={[styles.emptySub, { color: colors.text.tertiary }]}>
             Add your first transaction to begin your financial journey with Dabbu.
@@ -267,7 +267,7 @@ export function TransactionsScreen() {
               style={[styles.addBtn, { backgroundColor: colors.accent.primary }]}
               onPress={() => navigation.navigate('Expense', { screen: 'CreateTransaction' })}
             >
-              <Ionicons name="add-outline" size={18} color="#FFF" />
+              <AntDesign  name="plus" size={18} color="#FFF" />
               <Text style={styles.addBtnText}>Add Transaction</Text>
             </TouchableOpacity>
           )}

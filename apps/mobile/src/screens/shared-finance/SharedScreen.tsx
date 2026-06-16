@@ -15,7 +15,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -202,7 +202,7 @@ function GreetingHeader({ netBalance, userName, colors, onSettings }: any) {
             justifyContent: 'center',
           }}
         >
-          <Ionicons name="settings-outline" size={18} color={colors.accent.primary} />
+          <AntDesign  name="setting" size={18} color={colors.accent.primary} />
         </TouchableOpacity>
       </View>
 
@@ -231,7 +231,7 @@ function GreetingHeader({ netBalance, userName, colors, onSettings }: any) {
               justifyContent: 'center',
             }}
           >
-            <Ionicons
+            <AntDesign
               name={isPositive ? 'arrow-down-circle' : 'arrow-up-circle'}
               size={24}
               color={statusColor}
@@ -245,7 +245,7 @@ function GreetingHeader({ netBalance, userName, colors, onSettings }: any) {
               {statusLabel}
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
+          <AntDesign  name="right" size={18} color={colors.text.tertiary} />
         </TouchableOpacity>
       )}
     </View>
@@ -400,24 +400,24 @@ function GroupCard({
           <View style={{ flexDirection: 'row', gap: 16 }}>
             {memberCount > 0 && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Ionicons name="people-outline" size={13} color={colors.text.tertiary} />
+                <AntDesign  name="team" size={13} color={colors.text.tertiary} />
                 <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>{memberCount}</Text>
               </View>
             )}
             {totalSpent > 0 && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Ionicons name="cash-outline" size={13} color={colors.text.tertiary} />
+                <AntDesign  name="wallet" size={13} color={colors.text.tertiary} />
                 <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>₹{Math.round(totalSpent).toLocaleString('en-IN')}</Text>
               </View>
             )}
             {goalCount > 0 && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Ionicons name="flag-outline" size={13} color={colors.text.tertiary} />
+                <AntDesign  name="flag" size={13} color={colors.text.tertiary} />
                 <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>{goalCount} goals</Text>
               </View>
             )}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Ionicons name="time-outline" size={13} color={colors.text.tertiary} />
+              <AntDesign  name="clockcircleo" size={13} color={colors.text.tertiary} />
               <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>{lastActivity}</Text>
             </View>
           </View>
@@ -425,7 +425,7 @@ function GroupCard({
           {/* AI Insight */}
           {aiTip && (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: `${colors.accent.primary}08`, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8 }}>
-              <Ionicons name="bulb-outline" size={13} color={colors.accent.primary} />
+              <AntDesign  name="bulb1" size={13} color={colors.accent.primary} />
               <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.secondary, flex: 1 }} numberOfLines={1}>
                 {aiTip}
               </Text>
@@ -437,7 +437,7 @@ function GroupCard({
             <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }} onPress={onAddExpense}>
               <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, backgroundColor: `${colors.accent.primary}12` }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                  <Ionicons name="add-outline" size={13} color={colors.accent.primary} />
+                  <AntDesign  name="plus" size={13} color={colors.accent.primary} />
                   <Text style={{ fontSize: 12, fontWeight: '700', color: colors.accent.primary }}>Add</Text>
                 </View>
               </View>
@@ -446,7 +446,7 @@ function GroupCard({
               <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }} onPress={onSettle}>
                 <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, backgroundColor: `${settlementColor}15` }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <Ionicons name="swap-horizontal-outline" size={13} color={settlementColor} />
+                    <AntDesign  name="swap" size={13} color={settlementColor} />
                     <Text style={{ fontSize: 12, fontWeight: '700', color: settlementColor }}>Settle</Text>
                   </View>
                 </View>
@@ -637,7 +637,7 @@ export function SharedScreen() {
       <PremiumLoaderScreen
         progress={loadingProgress}
         title="Loading Your Spaces"
-        icon="layers-outline"
+        icon="layers"
       />
     );
   }
@@ -696,7 +696,7 @@ export function SharedScreen() {
               justifyContent: 'center',
             }}
           >
-            <Ionicons
+            <AntDesign
               name={isAtLimit ? 'lock-closed' : 'add'}
               size={16}
               color={isAtLimit ? colors.status.error : colors.accent.primary}
@@ -756,7 +756,7 @@ export function SharedScreen() {
                 justifyContent: 'center',
               }}
             >
-              <Ionicons name="grid-outline" size={34} color={colors.accent.primary} />
+              <AntDesign  name="appstore1" size={34} color={colors.accent.primary} />
             </View>
             <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text.primary }}>
               No spaces yet
@@ -785,7 +785,7 @@ export function SharedScreen() {
               }}
               onPress={() => setShowCreateModal(true)}
             >
-              <Ionicons name="add-outline" size={16} color={colors.text.inverse} />
+              <AntDesign  name="plus" size={16} color={colors.text.inverse} />
               <Text style={{ color: colors.text.inverse, fontSize: 14, fontWeight: '700' }}>
                 Create Space
               </Text>
@@ -818,7 +818,7 @@ export function SharedScreen() {
               <Text style={{ fontSize: 12, fontWeight: '700', color: colors.accent.primary }}>
                 Upgrade
               </Text>
-              <Ionicons name="chevron-forward" size={14} color={colors.accent.primary} />
+              <AntDesign  name="right" size={14} color={colors.accent.primary} />
             </View>
           </TouchableOpacity>
         )}
@@ -916,8 +916,8 @@ export function SharedScreen() {
                           { backgroundColor: colors.bg.card, borderColor: colors.border.default },
                         ]}
                       >
-                        <Ionicons
-                          name="person-add-outline"
+                        <AntDesign
+                           name="adduser"
                           size={18}
                           color={colors.text.tertiary}
                         />
@@ -963,7 +963,7 @@ export function SharedScreen() {
                           <ActivityIndicator color={colors.text.inverse} size="small" />
                         ) : (
                           <>
-                            <Ionicons name="add-outline" size={18} color={colors.text.inverse} />
+                            <AntDesign  name="plus" size={18} color={colors.text.inverse} />
                             <Text style={[mod.submitBtnText, { color: colors.text.inverse }]}>
                               Create
                             </Text>

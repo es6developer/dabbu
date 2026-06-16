@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 
 interface QuickActionBarProps {
   actions: Array<{
-    icon: keyof typeof Ionicons.glyphMap;
+    icon: string;
     label: string;
     onPress: () => void;
   }>;
@@ -30,7 +30,7 @@ export function QuickActionBar({ actions }: QuickActionBarProps) {
               borderColor: isDark ? 'rgba(255,255,255,0.06)' : colors.border.default,
             }}
           >
-            <Ionicons name={action.icon} size={16} color={colors.brand.primary} />
+            <AntDesign name={action.icon} size={16} color={colors.brand.primary} />
             <Text className="ml-2 text-[13px] font-semibold" style={{ color: colors.text.primary }}>
               {action.label}
             </Text>

@@ -14,7 +14,7 @@ import {
   Platform,
   Dimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -252,14 +252,14 @@ export function CoupleIncomeScreen() {
             activeOpacity={0.8}
             onPress={() => setModalVisible(true)}
           >
-            <Ionicons name="add-circle-outline" size={20} color="#FFF" />
+            <AntDesign  name="pluscircleo" size={20} color="#FFF" />
             <Text style={styles.addBtnText}>Add Income</Text>
           </TouchableOpacity>
         </View>
 
         {incomes.length === 0 ? (
           <View style={{ alignItems: 'center', paddingTop: 60 }}>
-            <Ionicons name="wallet-outline" size={52} color={colors.text.tertiary} />
+            <AntDesign  name="wallet" size={52} color={colors.text.tertiary} />
             <Text style={[styles.emptyText, { color: colors.text.secondary, marginTop: 12 }]}>
               No income entries yet
             </Text>
@@ -271,7 +271,7 @@ export function CoupleIncomeScreen() {
           <View style={{ paddingHorizontal: 20, marginTop: 20, gap: 10 }}>
             {incomes.map((item) => {
               const cat = item.category;
-              const iconName = cat?.icon || (item.categoryId ? 'cash-outline' : 'cash-outline');
+              const iconName = cat?.icon || (item.categoryId ? 'wallet' : 'wallet');
               const catColor = cat?.color || colors.text.secondary;
               return (
                 <View
@@ -279,7 +279,7 @@ export function CoupleIncomeScreen() {
                   style={[styles.incomeCard, { backgroundColor: colors.bg.card }]}
                 >
                   <View style={[styles.incomeIconWrap, { backgroundColor: `${catColor}18` }]}>
-                    <Ionicons name={iconName as any} size={20} color={catColor} />
+                    <AntDesign name={iconName as any} size={20} color={catColor} />
                   </View>
                   <View style={styles.incomeInfo}>
                     <Text style={[styles.incomeSource, { color: colors.text.primary }]}>
@@ -406,8 +406,8 @@ export function CoupleIncomeScreen() {
                       ]}
                       onPress={() => setSelectedCategory(isSelected ? null : cat)}
                     >
-                      <Ionicons
-                        name={(cat.icon || 'cash-outline') as any}
+                      <AntDesign
+                        name={(cat.icon || 'wallet') as any}
                         size={16}
                         color={isSelected ? '#FFF' : catColor}
                       />
@@ -442,8 +442,8 @@ export function CoupleIncomeScreen() {
                     ]}
                     onPress={() => setSelectedPartner(groupInfo.partner1Id)}
                   >
-                    <Ionicons
-                      name="person-outline"
+                    <AntDesign
+                       name="user"
                       size={16}
                       color={
                         selectedPartner === groupInfo.partner1Id ? '#FFF' : colors.text.secondary
@@ -475,8 +475,8 @@ export function CoupleIncomeScreen() {
                     ]}
                     onPress={() => setSelectedPartner(groupInfo.partner2Id)}
                   >
-                    <Ionicons
-                      name="person-outline"
+                    <AntDesign
+                       name="user"
                       size={16}
                       color={
                         selectedPartner === groupInfo.partner2Id ? '#FFF' : colors.text.secondary

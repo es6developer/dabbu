@@ -11,7 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -274,7 +274,7 @@ export function ProfileScreen() {
                     activeOpacity={0.8}
                     onPress={() => navigation.navigate('AvatarPicker')}
                   >
-                    <Ionicons name="pencil-outline" size={14} color="#FFFFFF" />
+                    <AntDesign  name="edit" size={14} color="#FFFFFF" />
                   </TouchableOpacity>
                 </View>
                 <Text
@@ -345,7 +345,7 @@ export function ProfileScreen() {
                                   borderColor: colors.bg.primary,
                                 }}
                               >
-                                <Ionicons name="checkmark-outline" size={12} color="#FFFFFF" />
+                                <AntDesign  name="check" size={12} color="#FFFFFF" />
                               </View>
                             )}
                           </View>
@@ -390,7 +390,7 @@ export function ProfileScreen() {
                       marginBottom: 16,
                     }}
                   >
-                    <Ionicons name="alert-circle-outline" size={16} color={colors.status.error} />
+                    <AntDesign  name="exclamationcircle" size={16} color={colors.status.error} />
                     <Text
                       style={{
                         fontSize: 13,
@@ -578,7 +578,7 @@ export function ProfileScreen() {
                 />
                 {upiError ? (
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
-                    <Ionicons name="alert-circle-outline" size={12} color={colors.status.error} />
+                    <AntDesign  name="exclamationcircle" size={12} color={colors.status.error} />
                     <Text style={{ fontSize: 11, fontWeight: '500', color: colors.status.error, lineHeight: 16 }}>
                       {upiError}
                     </Text>
@@ -612,7 +612,7 @@ export function ProfileScreen() {
                 <View
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}
                 >
-                  <Ionicons name="warning-outline" size={18} color={colors.status.error} />
+                  <AntDesign  name="warning" size={18} color={colors.status.error} />
                   <Text style={{ fontSize: 15, fontWeight: '700', color: colors.status.error }}>
                     Danger Zone
                   </Text>
@@ -643,7 +643,7 @@ export function ProfileScreen() {
                   onPress={handleDeleteAccount}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="trash-outline" size={16} color={colors.status.error} />
+                  <AntDesign  name="delete" size={16} color={colors.status.error} />
                   <Text style={{ fontSize: 14, fontWeight: '700', color: colors.status.error }}>
                     Delete Account
                   </Text>
@@ -687,7 +687,7 @@ export function ProfileScreen() {
               <ActivityIndicator color="#FFFFFF" />
             ) : (
               <>
-                <Ionicons name="checkmark-circle-outline" size={18} color="#FFFFFF" />
+                <AntDesign  name="checkcircleo" size={18} color="#FFFFFF" />
                 <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>
                   Save Changes
                 </Text>

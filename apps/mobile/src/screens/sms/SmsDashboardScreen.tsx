@@ -10,7 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -214,7 +214,7 @@ export function SmsDashboardScreen() {
       >
         <View style={styles.cardRow}>
           <View style={[styles.iconBox, { backgroundColor: `${catColor}18` }]}>
-            <Ionicons name={iconName as any} size={18} color={catColor} />
+            <AntDesign name={iconName as any} size={18} color={catColor} />
           </View>
           <View style={styles.cardInfo}>
             <Text style={[styles.merchant, { color: colors.text.primary }]} numberOfLines={1}>
@@ -254,7 +254,7 @@ export function SmsDashboardScreen() {
               <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
               <>
-                <Ionicons name="add-circle-outline" size={16} color="#FFFFFF" />
+                <AntDesign  name="pluscircleo" size={16} color="#FFFFFF" />
                 <Text style={styles.addBtnText}>Add as {isIncome ? 'Income' : 'Expense'}</Text>
               </>
             )}
@@ -264,14 +264,14 @@ export function SmsDashboardScreen() {
           {item.isProcessed ? (
             <View style={styles.badgeRow}>
               <View style={[styles.badge, { backgroundColor: `${colors.status.success}18` }]}>
-                <Ionicons name="checkmark-circle-outline" size={12} color={colors.status.success} />
+                <AntDesign  name="checkcircleo" size={12} color={colors.status.success} />
                 <Text style={[styles.badgeText, { color: colors.status.success }]}>Added</Text>
               </View>
             </View>
           ) : (
             <View style={styles.badgeRow}>
               <View style={[styles.badge, { backgroundColor: `${colors.status.warning}18` }]}>
-                <Ionicons name="time-outline" size={12} color={colors.status.warning} />
+                <AntDesign  name="clockcircleo" size={12} color={colors.status.warning} />
                 <Text style={[styles.badgeText, { color: colors.status.warning }]}>Pending</Text>
               </View>
             </View>
@@ -299,7 +299,7 @@ export function SmsDashboardScreen() {
             {syncing ? (
               <ActivityIndicator size="small" color={colors.accent.primary} />
             ) : (
-              <Ionicons name="sync-outline" size={18} color={colors.accent.primary} />
+              <AntDesign  name="sync" size={18} color={colors.accent.primary} />
             )}
           </TouchableOpacity>
           <TouchableOpacity
@@ -309,14 +309,14 @@ export function SmsDashboardScreen() {
             ]}
             onPress={() => navigation.navigate('SmsPermission')}
           >
-            <Ionicons name="settings-outline" size={18} color={colors.text.secondary} />
+            <AntDesign  name="setting" size={18} color={colors.text.secondary} />
           </TouchableOpacity>
         </View>
       </View>
 
       {newBanner && (
         <View style={[styles.newBanner, { backgroundColor: colors.accent.primary }]}>
-          <Ionicons name="sparkles-outline" size={14} color="#FFFFFF" />
+          <AntDesign  name="star" size={14} color="#FFFFFF" />
           <Text style={styles.newBannerText}>{newBanner}</Text>
         </View>
       )}
@@ -391,7 +391,7 @@ export function SmsDashboardScreen() {
         ListEmptyComponent={
           <View style={styles.empty}>
             <View style={[styles.emptyIcon, { backgroundColor: `${colors.accent.primary}15` }]}>
-              <Ionicons name="chatbubbles-outline" size={40} color={colors.accent.primary} />
+              <AntDesign  name="message1" size={40} color={colors.accent.primary} />
             </View>
             <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
               {filter === 'added' ? 'No added transactions yet' : 'No pending detections'}
@@ -406,7 +406,7 @@ export function SmsDashboardScreen() {
                 style={[styles.emptyBtn, { backgroundColor: colors.accent.primary }]}
                 onPress={() => navigation.navigate('SmsPermission')}
               >
-                <Ionicons name="settings-outline" size={16} color="#FFFFFF" />
+                <AntDesign  name="setting" size={16} color="#FFFFFF" />
                 <Text style={styles.emptyBtnText}>Set Up SMS Sync</Text>
               </TouchableOpacity>
             )}

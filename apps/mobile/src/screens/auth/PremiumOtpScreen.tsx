@@ -9,7 +9,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PremiumAuthLayout } from '../../components/ui/PremiumAuthLayout';
@@ -280,7 +280,7 @@ export function PremiumOtpScreen() {
             style={styles.backButton}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons name="arrow-back-outline" size={24} color={colors.text.secondary} />
+            <AntDesign  name="arrowleft" size={24} color={colors.text.secondary} />
           </TouchableOpacity>
 
           <Text style={styles.title}>Check your Email</Text>
@@ -300,7 +300,7 @@ export function PremiumOtpScreen() {
                 gap: 10,
               }}
             >
-              <Ionicons name="alert-circle-outline" size={16} color={colors.status.error} />
+              <AntDesign  name="exclamationcircle" size={16} color={colors.status.error} />
               <Text
                 style={{
                   color: colors.status.error,

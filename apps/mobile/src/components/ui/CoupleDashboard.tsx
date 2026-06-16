@@ -9,7 +9,7 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { api } from '../../services/api';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
@@ -91,7 +91,7 @@ export function CoupleDashboard() {
         <View style={styles.avatarRow}>
           <Avatar name={myName} size={52} />
           <View style={styles.heartWrap}>
-            <Ionicons name="heart-outline" size={22} color={COUPLE_COLORS.heart} />
+            <AntDesign  name="hearto" size={22} color={COUPLE_COLORS.heart} />
           </View>
           <Avatar name={partnerName} size={52} />
         </View>
@@ -109,7 +109,7 @@ export function CoupleDashboard() {
           onPress={() => navigation.navigate('CoupleFinance')}
         >
           <View style={[styles.actionIcon, { backgroundColor: COUPLE_COLORS.primary }]}>
-            <Ionicons name="wallet-outline" size={22} color="#FFF" />
+            <AntDesign  name="wallet" size={22} color="#FFF" />
           </View>
           <Text style={styles.actionLabel}>Wallet</Text>
         </TouchableOpacity>
@@ -119,7 +119,7 @@ export function CoupleDashboard() {
           onPress={() => navigation.navigate('CoupleExpenses')}
         >
           <View style={[styles.actionIcon, { backgroundColor: COUPLE_COLORS.accent }]}>
-            <Ionicons name="card-outline" size={22} color="#FFF" />
+            <AntDesign  name="creditcard" size={22} color="#FFF" />
           </View>
           <Text style={styles.actionLabel}>Expenses</Text>
         </TouchableOpacity>
@@ -129,7 +129,7 @@ export function CoupleDashboard() {
           onPress={() => navigation.navigate('CoupleGoals')}
         >
           <View style={[styles.actionIcon, { backgroundColor: COUPLE_COLORS.heart }]}>
-            <Ionicons name="trophy-outline" size={22} color="#FFF" />
+            <AntDesign  name="trophy" size={22} color="#FFF" />
           </View>
           <Text style={styles.actionLabel}>Goals</Text>
         </TouchableOpacity>
@@ -139,7 +139,7 @@ export function CoupleDashboard() {
           onPress={() => navigation.navigate('CoupleBudgets')}
         >
           <View style={[styles.actionIcon, { backgroundColor: '#FF9F43' }]}>
-            <Ionicons name="pie-chart-outline" size={22} color="#FFF" />
+            <AntDesign  name="piechart" size={22} color="#FFF" />
           </View>
           <Text style={styles.actionLabel}>Budget</Text>
         </TouchableOpacity>
@@ -170,7 +170,7 @@ export function CoupleDashboard() {
       {/* Partner Recent Activity */}
       <View style={[styles.activityCard, { backgroundColor: COUPLE_COLORS.card }]}>
         <View style={styles.activityHeader}>
-          <Ionicons name="pulse-outline" size={18} color={COUPLE_COLORS.primary} />
+          <AntDesign  name="hearto" size={18} color={COUPLE_COLORS.primary} />
           <Text style={[styles.activityTitle, { color: COUPLE_COLORS.text }]}>
             {partnerName}'s Recent Activity
           </Text>
@@ -227,7 +227,7 @@ export function CoupleDashboard() {
             onPress={() => navigation.navigate(item.screen)}
           >
             <View style={[styles.gridIcon, { backgroundColor: `${item.color}20` }]}>
-              <Ionicons name={item.icon as any} size={22} color={item.color} />
+              <AntDesign name={item.icon as any} size={22} color={item.color} />
             </View>
             <Text style={styles.gridLabel}>{item.label}</Text>
           </TouchableOpacity>

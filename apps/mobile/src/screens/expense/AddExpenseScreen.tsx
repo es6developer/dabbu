@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -68,7 +68,7 @@ export function AddExpenseScreen() {
           <View style={{ paddingTop: 12, paddingBottom: 28, paddingHorizontal: 20 }}>
             <View style={s.headerRow}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-                <Ionicons name="close-outline" size={22} color="#FFF" />
+                <AntDesign  name="close" size={22} color="#FFF" />
               </TouchableOpacity>
               <Text style={s.headerTitle}>Add {isExpense ? 'Expense' : 'Income'}</Text>
               <TouchableOpacity onPress={handleSave}>
@@ -143,7 +143,7 @@ export function AddExpenseScreen() {
                   ]}
                   onPress={() => setCategory(c.name)}
                 >
-                  <Ionicons name={c.icon as any} size={16} color={selected ? '#FFF' : c.color} />
+                  <AntDesign name={c.icon as any} size={16} color={selected ? '#FFF' : c.color} />
                   <Text
                     style={[s.chipText, { color: selected ? '#FFF' : colors.text.secondary }]}
                   >
@@ -161,7 +161,7 @@ export function AddExpenseScreen() {
               { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
             ]}
           >
-            <Ionicons name="create-outline" size={18} color={colors.text.tertiary} />
+            <AntDesign  name="edit" size={18} color={colors.text.tertiary} />
             <TextInput
               style={[s.notesInput, { color: colors.text.primary }]}
               placeholder="Add a note..."
@@ -173,7 +173,7 @@ export function AddExpenseScreen() {
 
           {/* Upload Bill */}
           <TouchableOpacity style={[s.outlineBtn, { borderColor: colors.border.subtle }]}>
-            <Ionicons name="camera-outline" size={20} color={colors.text.secondary} />
+            <AntDesign  name="camera" size={20} color={colors.text.secondary} />
             <Text style={[s.outlineBtnText, { color: colors.text.secondary }]}>
               Upload Bill Image
             </Text>
@@ -181,7 +181,7 @@ export function AddExpenseScreen() {
 
           {/* Date */}
           <TouchableOpacity style={[s.outlineBtn, { borderColor: colors.border.subtle }]}>
-            <Ionicons name="calendar-outline" size={20} color={colors.text.secondary} />
+            <AntDesign  name="calendar" size={20} color={colors.text.secondary} />
             <Text style={[s.outlineBtnText, { color: colors.text.secondary }]}>Today</Text>
           </TouchableOpacity>
         </View>
@@ -204,7 +204,7 @@ export function AddExpenseScreen() {
             end={{ x: 1, y: 0 }}
             style={s.saveBtnGrad}
           >
-            <Ionicons name="checkmark-circle-outline" size={18} color="#FFF" />
+            <AntDesign  name="checkcircleo" size={18} color="#FFF" />
             <Text style={s.saveBtnText}>Save {isExpense ? 'Expense' : 'Income'}</Text>
           </LinearGradient>
         </TouchableOpacity>

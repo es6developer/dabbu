@@ -14,7 +14,7 @@ import {
   Dimensions,
   Animated,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -266,14 +266,14 @@ export function CoupleBillsScreen() {
               onPress={() => navigation.goBack()}
               style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}
             >
-              <Ionicons name="arrow-back-outline" size={22} color={colors.text.primary} />
+              <AntDesign  name="arrowleft" size={22} color={colors.text.primary} />
             </TouchableOpacity>
             <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Bills</Text>
             <TouchableOpacity
               onPress={() => setModalVisible(true)}
               style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}
             >
-              <Ionicons name="add-outline" size={24} color={colors.text.primary} />
+              <AntDesign  name="plus" size={24} color={colors.text.primary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -343,7 +343,7 @@ export function CoupleBillsScreen() {
             <>
               {error && !bills.length ? (
                 <View style={styles.emptyWrap}>
-                  <Ionicons name="calendar-outline" size={48} color={colors.text.tertiary} />
+                  <AntDesign  name="calendar" size={48} color={colors.text.tertiary} />
                   <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>
                     No upcoming bills
                   </Text>
@@ -351,7 +351,7 @@ export function CoupleBillsScreen() {
                 </View>
               ) : upcomingBills.length === 0 ? (
                 <View style={styles.emptyWrap}>
-                  <Ionicons name="calendar-outline" size={48} color={colors.text.tertiary} />
+                  <AntDesign  name="calendar" size={48} color={colors.text.tertiary} />
                   <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>
                     No upcoming bills
                   </Text>
@@ -363,7 +363,7 @@ export function CoupleBillsScreen() {
                 upcomingBills.map((bill) => {
                   const due = daysUntil(bill.dueDate);
                   const overdue = due < 0;
-                  const icon = getCategoryIcon(bill.category, 'receipt-outline');
+                  const icon = getCategoryIcon(bill.category, 'filetext1');
                   return (
                     <View
                       key={bill.id || bill._id}
@@ -380,7 +380,7 @@ export function CoupleBillsScreen() {
                             },
                           ]}
                         >
-                          <Ionicons name={icon as any} size={20} color={colors.accent.primary} />
+                          <AntDesign name={icon as any} size={20} color={colors.accent.primary} />
                         </View>
                         <View style={styles.billInfo}>
                           <View style={styles.billNameRow}>
@@ -399,8 +399,8 @@ export function CoupleBillsScreen() {
                       </View>
                       <View style={styles.billCardBottom}>
                         <View style={styles.dueDateWrap}>
-                          <Ionicons
-                            name="time-outline"
+                          <AntDesign
+                             name="clockcircleo"
                             size={14}
                             color={overdue ? '#FF4D4F' : colors.text.tertiary}
                           />
@@ -437,7 +437,7 @@ export function CoupleBillsScreen() {
             <>
               {paidBills.length === 0 ? (
                 <View style={styles.emptyWrap}>
-                  <Ionicons name="checkbox-outline" size={48} color={colors.text.tertiary} />
+                  <AntDesign  name="check" size={48} color={colors.text.tertiary} />
                   <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>
                     No paid bills yet
                   </Text>
@@ -447,7 +447,7 @@ export function CoupleBillsScreen() {
                 </View>
               ) : (
                 paidBills.map((bill) => {
-                  const icon = getCategoryIcon(bill.category, 'receipt-outline');
+                  const icon = getCategoryIcon(bill.category, 'filetext1');
                   return (
                     <View
                       key={bill.id || bill._id}
@@ -460,12 +460,12 @@ export function CoupleBillsScreen() {
                             { backgroundColor: 'rgba(52,199,89,0.12)' },
                           ]}
                         >
-                          <Ionicons name={icon as any} size={20} color="#34C759" />
+                          <AntDesign name={icon as any} size={20} color="#34C759" />
                         </View>
                         <View style={styles.billInfo}>
                           <View style={styles.billNameRow}>
-                            <Ionicons
-                              name="checkmark-circle-outline"
+                            <AntDesign
+                               name="checkcircleo"
                               size={16}
                               color="#34C759"
                               style={{ marginRight: 4 }}
@@ -484,7 +484,7 @@ export function CoupleBillsScreen() {
                       </View>
                       <View style={styles.billCardBottom}>
                         <View style={styles.dueDateWrap}>
-                          <Ionicons name="checkmark-done-outline" size={14} color="#34C759" />
+                          <AntDesign  name="checkcircle" size={14} color="#34C759" />
                           <Text style={[styles.dueDateText, { color: colors.text.tertiary }]}>
                             Paid {bill.paidAt ? formatDate(bill.paidAt) : ''}
                           </Text>
@@ -520,7 +520,7 @@ export function CoupleBillsScreen() {
               <View style={styles.modalHeader}>
                 <Text style={[styles.modalTitle, { color: colors.text.primary }]}>Add Bill</Text>
                 <TouchableOpacity onPress={() => setModalVisible(false)}>
-                  <Ionicons name="close-outline" size={24} color={colors.text.secondary} />
+                  <AntDesign  name="close" size={24} color={colors.text.secondary} />
                 </TouchableOpacity>
               </View>
 
@@ -594,8 +594,8 @@ export function CoupleBillsScreen() {
                       ]}
                       onPress={() => setFormCategory(cat)}
                     >
-                      <Ionicons
-                        name={getCategoryIcon(cat, 'receipt-outline') as any}
+                      <AntDesign
+                        name={getCategoryIcon(cat, 'filetext1') as any}
                         size={14}
                         color={formCategory === cat ? '#FFF' : colors.text.secondary}
                       />

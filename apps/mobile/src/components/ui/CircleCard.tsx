@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 
 interface CircleCardProps {
@@ -49,7 +49,7 @@ export function CircleCard({ name, membersCount, totalExpenses, yourBalance, typ
         <View style={styles.coverOverlay}>
           <View style={styles.coverTop}>
             <View style={styles.typeBadge}>
-              <Ionicons name={cfg.icon as any} size={12} color="#FFF" />
+              <AntDesign name={cfg.icon as any} size={12} color="#FFF" />
               <Text style={styles.typeLabel}>{type}</Text>
             </View>
           </View>
@@ -70,7 +70,7 @@ export function CircleCard({ name, membersCount, totalExpenses, yourBalance, typ
         </View>
 
         <View style={[styles.balanceRow, { backgroundColor: isPositive ? colors.status.successLight : colors.status.errorLight }]}>
-          <Ionicons
+          <AntDesign
             name={isPositive ? 'arrow-down' : 'arrow-up'}
             size={12}
             color={isPositive ? colors.status.success : colors.status.error}

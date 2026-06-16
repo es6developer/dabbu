@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../../services/api';
@@ -67,7 +67,7 @@ export function WalletTransferScreen() {
         <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
           <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+              <AntDesign  name="left" size={24} color={colors.text.primary} />
             </TouchableOpacity>
             <Text style={[styles.title, { color: colors.text.primary }]}>Transfer Funds</Text>
             <View style={{ width: 40 }} />
@@ -88,7 +88,7 @@ export function WalletTransferScreen() {
               contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }}
               ListEmptyComponent={
                 <View style={{ alignItems: 'center', paddingVertical: 40 }}>
-                  <Ionicons name="wallet-outline" size={40} color={colors.text.tertiary} />
+                  <AntDesign  name="wallet" size={40} color={colors.text.tertiary} />
                   <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
                     No other wallets available
                   </Text>
@@ -110,7 +110,7 @@ export function WalletTransferScreen() {
                   onPress={() => setTargetWalletId(item.id)}
                 >
                   <View style={styles.iconWrap}>
-                    <Ionicons name="wallet-outline" size={22} color={colors.accent.primary} />
+                    <AntDesign  name="wallet" size={22} color={colors.accent.primary} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.walletName, { color: colors.text.primary }]}>
@@ -121,7 +121,7 @@ export function WalletTransferScreen() {
                     </Text>
                   </View>
                   {targetWalletId === item.id && (
-                    <Ionicons name="checkmark-circle-outline" size={22} color={colors.status.success} />
+                    <AntDesign  name="checkcircleo" size={22} color={colors.status.success} />
                   )}
                 </TouchableOpacity>
               )}

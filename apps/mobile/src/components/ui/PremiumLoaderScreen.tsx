@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 
@@ -8,7 +8,7 @@ interface PremiumLoaderScreenProps {
   progress: number;
   tip?: string;
   title?: string;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: string;
 }
 
 const TIPS = [
@@ -28,7 +28,7 @@ export function PremiumLoaderScreen({
   progress,
   tip,
   title = 'Loading',
-  icon = 'layers-outline',
+  icon = 'layers',
 }: PremiumLoaderScreenProps) {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -54,7 +54,7 @@ export function PremiumLoaderScreen({
         <View
           style={[s.iconWrap, { backgroundColor: `${colors.brand.primary}12` }]}
         >
-          <Ionicons name={icon} size={40} color={colors.brand.primary} />
+          <AntDesign name={icon} size={40} color={colors.brand.primary} />
         </View>
 
         <Text style={[s.title, { color: colors.text.primary }]}>

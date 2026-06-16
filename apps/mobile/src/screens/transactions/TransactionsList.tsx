@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { Card } from '../../components/ui/Card';
 import { ProfileBubble } from '../../components/ui/ProfileBubble';
@@ -67,7 +67,7 @@ export function TransactionsList() {
         {/* ── Header ──────────────────────────────── */}
         <View className="flex-row items-center justify-between px-5 pt-2 pb-4">
           <TouchableOpacity onPress={() => {}} activeOpacity={0.7}>
-            <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+            <AntDesign  name="left" size={24} color={colors.text.primary} />
           </TouchableOpacity>
           <Text className="text-[17px] font-bold" style={{ color: colors.text.primary }}>
             Transactions
@@ -79,7 +79,7 @@ export function TransactionsList() {
               className="w-9 h-9 rounded-full items-center justify-center"
               style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : colors.bg.tertiary }}
             >
-              <Ionicons name="search-outline" size={18} color={colors.text.secondary} />
+              <AntDesign  name="search1" size={18} color={colors.text.secondary} />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {}}
@@ -87,7 +87,7 @@ export function TransactionsList() {
               className="w-9 h-9 rounded-full items-center justify-center"
               style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : colors.bg.tertiary }}
             >
-              <Ionicons name="filter-outline" size={18} color={colors.text.secondary} />
+              <AntDesign  name="filter" size={18} color={colors.text.secondary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -140,7 +140,7 @@ export function TransactionsList() {
                 June 2026
               </Text>
               <View className="flex-row items-center gap-1">
-                <Ionicons name="calendar-outline" size={13} color={colors.text.tertiary} />
+                <AntDesign  name="calendar" size={13} color={colors.text.tertiary} />
                 <Text className="text-[11px] font-medium" style={{ color: colors.text.tertiary }}>
                   This Month
                 </Text>
@@ -191,8 +191,8 @@ export function TransactionsList() {
                         tx.amount < 0 ? 'rgba(239, 68, 68, 0.10)' : 'rgba(16, 185, 129, 0.10)',
                     }}
                   >
-                    <Ionicons
-                      name={tx.amount < 0 ? 'arrow-down-outline' : 'arrow-up-outline'}
+                    <AntDesign
+                      name={tx.amount < 0 ? 'down' : 'up'}
                       size={18}
                       color={tx.amount < 0 ? '#EF4444' : '#10B981'}
                     />
@@ -206,7 +206,7 @@ export function TransactionsList() {
                         {tx.name}
                       </Text>
                       {tx.shared && (
-                        <Ionicons name="people-outline" size={12} color={colors.brand.primary} />
+                        <AntDesign  name="team" size={12} color={colors.brand.primary} />
                       )}
                     </View>
                     <Text
@@ -247,7 +247,7 @@ export function TransactionsList() {
           elevation: 4,
         }}
       >
-        <Ionicons name="add-outline" size={28} color="#FFFFFF" />
+        <AntDesign  name="plus" size={28} color="#FFFFFF" />
       </TouchableOpacity>
     </SafeAreaView>
   );

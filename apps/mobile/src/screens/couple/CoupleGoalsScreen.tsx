@@ -14,7 +14,7 @@ import {
   FlatList,
   Alert,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -199,7 +199,7 @@ export function CoupleGoalsScreen() {
           <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
             <View style={styles.headerRow}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}>
-                <Ionicons name="arrow-back-outline" size={22} color={colors.text.primary} />
+                <AntDesign  name="arrowleft" size={22} color={colors.text.primary} />
               </TouchableOpacity>
               <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Shared Goals</Text>
               <TouchableOpacity
@@ -209,7 +209,7 @@ export function CoupleGoalsScreen() {
                 }}
                 style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}
               >
-                <Ionicons name="add-outline" size={24} color={colors.text.primary} />
+                <AntDesign  name="plus" size={24} color={colors.text.primary} />
               </TouchableOpacity>
             </View>
             <Text style={[styles.headerSubtitle, { color: colors.text.tertiary }]}>
@@ -222,7 +222,7 @@ export function CoupleGoalsScreen() {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <View style={styles.emptyIllustration}>
-              <Ionicons name="gift-outline" size={56} color={colors.accent.primary} />
+              <AntDesign  name="gift" size={56} color={colors.accent.primary} />
             </View>
             <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
               Add your first shared goal
@@ -238,7 +238,7 @@ export function CoupleGoalsScreen() {
                 setAddModalVisible(true);
               }}
             >
-              <Ionicons name="add-circle-outline" size={20} color="#FFF" />
+              <AntDesign  name="pluscircleo" size={20} color="#FFF" />
               <Text style={styles.emptyBtnText}>Create Goal</Text>
             </TouchableOpacity>
           </View>
@@ -277,7 +277,7 @@ export function CoupleGoalsScreen() {
             >
               <View style={styles.goalTopRow}>
                 <View style={styles.goalIconWrap}>
-                  <Ionicons name={(item.icon || 'gift') as any} size={22} color="#FFF" />
+                  <AntDesign name={(item.icon || 'gift') as any} size={22} color="#FFF" />
                 </View>
                 <View style={styles.goalTitleWrap}>
                   <Text
@@ -311,7 +311,7 @@ export function CoupleGoalsScreen() {
               </View>
 
               <View style={styles.goalMetaRow}>
-                <Ionicons name="calendar-outline" size={13} color={colors.text.tertiary} />
+                <AntDesign  name="calendar" size={13} color={colors.text.tertiary} />
                 <Text style={[styles.goalMetaText, { color: colors.text.tertiary }]}>
                   {hasDate ? dateStr : 'No deadline'}
                 </Text>
@@ -353,7 +353,7 @@ export function CoupleGoalsScreen() {
                 activeOpacity={0.8}
                 onPress={() => openContribution(item)}
               >
-                <Ionicons name="add-circle-outline" size={16} color="#FFF" />
+                <AntDesign  name="pluscircleo" size={16} color="#FFF" />
                 <Text style={styles.contributeBtnText}>Add Contribution</Text>
               </TouchableOpacity>
             </View>
@@ -448,7 +448,7 @@ export function CoupleGoalsScreen() {
                   ]}
                   onPress={() => setFormIcon(g.key)}
                 >
-                  <Ionicons
+                  <AntDesign
                     name={g.icon as any}
                     size={22}
                     color={formIcon === g.key ? colors.accent.primary : colors.text.secondary}

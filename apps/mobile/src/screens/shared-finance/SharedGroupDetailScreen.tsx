@@ -15,7 +15,7 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken, addSyncListener } from '../../services/api';
 import { PremiumLoaderScreen } from '../../components/ui/PremiumLoaderScreen';
@@ -346,20 +346,20 @@ export function SharedGroupDetailScreen() {
 
   const activity = useMemo(() => {
     const iconMap: Record<string, string> = {
-      expense_added: 'receipt-outline',
-      member_joined: 'person-add-outline',
-      settlement_requested: 'swap-horizontal-outline',
-      settlement_confirmed: 'checkmark-circle-outline',
-      guest_added_expense: 'person-outline',
-      payment_completed: 'cash-outline',
-      guest_approved: 'shield-checkmark-outline',
+      expense_added: 'filetext1',
+      member_joined: 'adduser',
+      settlement_requested: 'swap',
+      settlement_confirmed: 'checkcircleo',
+      guest_added_expense: 'user',
+      payment_completed: 'wallet',
+      guest_approved: 'checkcircle',
     };
     const apiActivity = activityData.map((a: any) => ({
       id: a.id,
       title: a.description,
       detail: `${a.userName} · ${new Date(a.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`,
       date: a.createdAt,
-      icon: (iconMap[a.action] || 'ellipse-outline') as any,
+      icon: (iconMap[a.action] || 'minuscirlceo') as any,
       type: a.action as any,
     }));
     const expenseActivity = expenses.slice(0, 20).map((tx) => ({
@@ -367,7 +367,7 @@ export function SharedGroupDetailScreen() {
       title: 'Expense added',
       detail: `${tx.description || tx.category?.name || tx.category || 'Expense'} · ${fmt(Number(tx.amount || 0))}`,
       date: tx.createdAt || tx.date,
-      icon: 'receipt-outline' as const,
+      icon: 'filetext1' as const,
       type: 'expense' as const,
     }));
     const memberActivity = members.slice(0, 10).map((member: any) => ({
@@ -375,7 +375,7 @@ export function SharedGroupDetailScreen() {
       title: 'Member joined',
       detail: member.user?.firstName || member.user?.email || 'Member',
       date: member.addedAt || member.joinedAt,
-      icon: 'person-add-outline' as const,
+      icon: 'adduser' as const,
       type: 'member' as const,
     }));
     return [...apiActivity, ...expenseActivity, ...memberActivity]
@@ -385,7 +385,7 @@ export function SharedGroupDetailScreen() {
 
   if (loading) {
     return (
-      <PremiumLoaderScreen progress={loadingProgress} title="Loading Space" icon="people-outline" />
+      <PremiumLoaderScreen progress={loadingProgress} title="Loading Space" icon="team" />
     );
   }
 
@@ -431,7 +431,7 @@ export function SharedGroupDetailScreen() {
         {settlements.length > 0 && (
           <View style={[s.settlementHero, { backgroundColor: colors.bg.card }]}>
             <View style={s.settlementHeroHeader}>
-              <Ionicons name="swap-horizontal-outline" size={18} color={colors.accent.primary} />
+              <AntDesign  name="swap" size={18} color={colors.accent.primary} />
               <Text style={[s.settlementHeroTitle, { color: colors.text.primary }]}>
                 {myBalanceRow && myBalanceRow.balance < 0
                   ? `You owe ${fmt(Math.abs(myBalanceRow.balance))}`
@@ -468,7 +468,7 @@ export function SharedGroupDetailScreen() {
                       );
                     }}
                   >
-                    <Ionicons name="wallet-outline" size={14} color="#FFF" />
+                    <AntDesign  name="wallet" size={14} color="#FFF" />
                     <Text style={s.upiBtnText}>Pay</Text>
                   </TouchableOpacity>
                 ) : st.type === 'remind' ? (
@@ -482,7 +482,7 @@ export function SharedGroupDetailScreen() {
                       );
                     }}
                   >
-                    <Ionicons name="notifications-outline" size={14} color="#FFF" />
+                    <AntDesign  name="bells" size={14} color="#FFF" />
                     <Text style={s.upiBtnText}>Remind</Text>
                   </TouchableOpacity>
                 ) : null}
@@ -496,7 +496,7 @@ export function SharedGroupDetailScreen() {
                 <Text style={[s.viewAllSettlementsText, { color: colors.accent.primary }]}>
                   View all settlements
                 </Text>
-                <Ionicons name="chevron-forward" size={14} color={colors.accent.primary} />
+                <AntDesign  name="right" size={14} color={colors.accent.primary} />
               </TouchableOpacity>
             )}
           </View>
@@ -506,7 +506,7 @@ export function SharedGroupDetailScreen() {
           <View style={[s.tripSummaryCard, { backgroundColor: colors.bg.card }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <View style={[s.tripIconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
-                <Ionicons name="airplane-outline" size={20} color={colors.accent.primary} />
+                <AntDesign  name="airplane" size={20} color={colors.accent.primary} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[s.tripSummaryTitle, { color: colors.text.primary }]}>
@@ -584,12 +584,12 @@ export function SharedGroupDetailScreen() {
           activeOpacity={0.7}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Ionicons name="bulb-outline" size={18} color={colors.status.warning} />
+            <AntDesign  name="bulb1" size={18} color={colors.status.warning} />
             <Text style={[s.insightToggleTitle, { color: colors.text.primary }]}>
               AI Insights
             </Text>
           </View>
-          <Ionicons
+          <AntDesign
             name={insightsOpen ? 'chevron-up' : 'chevron-down'}
             size={18}
             color={colors.text.tertiary}
@@ -673,7 +673,7 @@ export function SharedGroupDetailScreen() {
               return (
                 <View key={item.id} style={[s.activityRow, { borderLeftColor: typeColor }]}>
                   <View style={[s.activityIcon, { backgroundColor: colors.bg.tertiary }]}>
-                    <Ionicons name={item.icon as any} size={16} color={colors.accent.primary} />
+                    <AntDesign name={item.icon as any} size={16} color={colors.accent.primary} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[s.activityTitle, { color: colors.text.primary }]}>
@@ -784,7 +784,7 @@ export function SharedGroupDetailScreen() {
       return (
         <View style={s.tabPanel}>
           <EmptyState
-            icon="people-outline"
+            icon="team"
             title="Invite your people"
             message="Add members to start splitting expenses."
             actionLabel="Invite Members"
@@ -854,7 +854,7 @@ export function SharedGroupDetailScreen() {
                     );
                   }}
                 >
-                  <Ionicons name="notifications-outline" size={14} color="#FFF" />
+                  <AntDesign  name="bells" size={14} color="#FFF" />
                   <Text style={s.peopleSettleBtnText}>Remind</Text>
                 </TouchableOpacity>
               )}
@@ -875,7 +875,7 @@ export function SharedGroupDetailScreen() {
                   })
                 }
               >
-                <Ionicons name="person-add-outline" size={18} color="#FFF" />
+                <AntDesign  name="adduser" size={18} color="#FFF" />
                 <Text style={s.inviteBtnText}>Add Member</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -883,8 +883,8 @@ export function SharedGroupDetailScreen() {
                 onPress={handleGenerateInvite}
                 disabled={inviteLoading}
               >
-                <Ionicons
-                  name={inviteLoading ? 'hourglass-outline' : 'share-outline'}
+                <AntDesign
+                  name={inviteLoading ? 'hourglass' : 'sharealt'}
                   size={18}
                   color={colors.text.primary}
                 />
@@ -898,7 +898,7 @@ export function SharedGroupDetailScreen() {
                 style={[s.viewLinkBtn, { borderColor: colors.border.default }]}
                 onPress={() => setInviteModalVisible(true)}
               >
-                <Ionicons name="link-outline" size={16} color={colors.accent.primary} />
+                <AntDesign  name="link" size={16} color={colors.accent.primary} />
                 <Text style={[s.viewLinkText, { color: colors.accent.primary }]}>
                   View invite link
                 </Text>
@@ -943,7 +943,7 @@ export function SharedGroupDetailScreen() {
                     setInviteModalVisible(false);
                   }}
                 >
-                  <Ionicons name="share-outline" size={18} color="#FFF" />
+                  <AntDesign  name="sharealt" size={18} color="#FFF" />
                   <Text style={s.modalBtnText}>Share</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -960,7 +960,7 @@ export function SharedGroupDetailScreen() {
                     setInviteModalVisible(false);
                   }}
                 >
-                  <Ionicons name="logo-whatsapp" size={18} color="#34C759" />
+                  <AntDesign  name="whatsapp" size={18} color="#34C759" />
                   <Text style={[s.modalBtnText, { color: '#34C759' }]}>WhatsApp</Text>
                 </TouchableOpacity>
               </View>
@@ -1124,7 +1124,7 @@ export function SharedGroupDetailScreen() {
                   onPress={() => navigation.goBack()}
                   style={[s.iconBtn, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
                 >
-                  <Ionicons name="chevron-back" size={22} color="#FFF" />
+                  <AntDesign  name="left" size={22} color="#FFF" />
                 </TouchableOpacity>
                 <View style={{ flex: 1, marginHorizontal: 10, minWidth: 0 }}>
                   <Text style={s.groupName} numberOfLines={1}>
@@ -1142,7 +1142,7 @@ export function SharedGroupDetailScreen() {
                     {myBalanceRow && Math.abs(myBalanceRow.balance) > 0 && (
                       <>
                         <Text style={s.groupMeta}>·</Text>
-                        <Ionicons
+                        <AntDesign
                           name={myBalanceRow.balance >= 0 ? 'arrow-down' : 'arrow-up'}
                           size={10}
                           color="rgba(255,255,255,0.6)"
@@ -1164,7 +1164,7 @@ export function SharedGroupDetailScreen() {
                       setSettingsOpen(true);
                     }}
                   >
-                    <Ionicons name="settings-outline" size={20} color="#FFF" />
+                    <AntDesign  name="setting" size={20} color="#FFF" />
                   </TouchableOpacity>
                 )}
                 {!(type === 'couple' && members.length >= 2) && (
@@ -1174,7 +1174,7 @@ export function SharedGroupDetailScreen() {
                       navigation.getParent()?.navigate('Dashboard', { screen: 'AiGroupSpace', params: { groupId, groupName: name } })
                     }
                   >
-                    <Ionicons name="sparkles-outline" size={20} color="#FFD700" />
+                    <AntDesign  name="star" size={20} color="#FFD700" />
                   </TouchableOpacity>
                 )}
                 {!(type === 'couple' && members.length >= 2) && (
@@ -1183,8 +1183,8 @@ export function SharedGroupDetailScreen() {
                     onPress={handleGenerateInvite}
                     disabled={inviteLoading}
                   >
-                    <Ionicons
-                      name={inviteLoading ? 'hourglass-outline' : 'share-outline'}
+                    <AntDesign
+                      name={inviteLoading ? 'hourglass' : 'sharealt'}
                       size={20}
                       color="#FFF"
                     />
@@ -1232,7 +1232,7 @@ export function SharedGroupDetailScreen() {
           activeTab === 'expenses' ? (
             <View style={s.tabPanel}>
               <EmptyState
-                icon="receipt-outline"
+                icon="filetext1"
                 title="Split your first expense"
                 message="Add an expense to get started. Dabbu makes splitting fair and effortless."
                 actionLabel="Add Expense"
@@ -1248,7 +1248,7 @@ export function SharedGroupDetailScreen() {
         onPress={() => navigation.navigate('SharedExpenseForm', { groupId, edit: false })}
         activeOpacity={0.85}
       >
-        <Ionicons name="add-outline" size={26} color="#FFF" />
+        <AntDesign  name="plus" size={26} color="#FFF" />
       </TouchableOpacity>
 
       <Modal
@@ -1317,7 +1317,7 @@ export function SharedGroupDetailScreen() {
                   <ActivityIndicator size="small" color="#FFF" />
                 ) : (
                   <>
-                    <Ionicons name="checkmark-outline" size={18} color="#FFF" />
+                    <AntDesign  name="check" size={18} color="#FFF" />
                     <Text style={s.modalBtnText}> Save</Text>
                   </>
                 )}

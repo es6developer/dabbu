@@ -8,7 +8,7 @@ import {
   TextInput,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -162,7 +162,7 @@ export function NetWorthScreen() {
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+          <AntDesign  name="left" size={24} color={colors.text.primary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Net Worth</Text>
         <View style={{ width: 40 }} />
@@ -196,7 +196,7 @@ export function NetWorthScreen() {
             <View style={[styles.divider, { backgroundColor: colors.border.subtle }]} />
             <View style={styles.breakdownRow}>
               <View style={styles.breakdownItem}>
-                <Ionicons name="arrow-up-outline" size={14} color={colors.status.success} />
+                <AntDesign  name="up" size={14} color={colors.status.success} />
                 <Text style={[styles.breakdownLabel, { color: colors.text.tertiary }]}>Assets</Text>
                 <Text style={[styles.breakdownValue, { color: colors.status.success }]}>
                   {fmt(totalAssets)}
@@ -204,7 +204,7 @@ export function NetWorthScreen() {
               </View>
               <View style={[styles.breakdownDivider, { backgroundColor: colors.border.subtle }]} />
               <View style={styles.breakdownItem}>
-                <Ionicons name="arrow-down-outline" size={14} color={colors.status.error} />
+                <AntDesign  name="down" size={14} color={colors.status.error} />
                 <Text style={[styles.breakdownLabel, { color: colors.text.tertiary }]}>
                   Liabilities
                 </Text>
@@ -227,7 +227,7 @@ export function NetWorthScreen() {
               ]}
             >
               <View style={styles.inputRowLeft}>
-                <Ionicons name={cat.icon as any} size={18} color={colors.status.success} />
+                <AntDesign name={cat.icon as any} size={18} color={colors.status.success} />
                 <Text style={[styles.inputLabel, { color: colors.text.primary }]}>{cat.label}</Text>
               </View>
               <TextInput
@@ -260,7 +260,7 @@ export function NetWorthScreen() {
               ]}
             >
               <View style={styles.inputRowLeft}>
-                <Ionicons name={cat.icon as any} size={18} color={colors.status.error} />
+                <AntDesign name={cat.icon as any} size={18} color={colors.status.error} />
                 <Text style={[styles.inputLabel, { color: colors.text.primary }]}>{cat.label}</Text>
               </View>
               <TextInput

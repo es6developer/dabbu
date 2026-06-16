@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import ReAnimated, { FadeInUp } from 'react-native-reanimated';
@@ -138,7 +138,7 @@ export function FinancialDnaScreen() {
     return (
       <View style={[s.screen, { backgroundColor: AI_COLORS.bg, paddingTop: insets.top + 60 }]}>
         <View style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
-          <Ionicons name="analytics-outline" size={48} color={AI_COLORS.textTertiary} />
+          <AntDesign  name="linechart" size={48} color={AI_COLORS.textTertiary} />
           <Text style={{ fontSize: 18, fontWeight: '700', color: AI_COLORS.text }}>
             No DNA profile yet
           </Text>
@@ -161,7 +161,7 @@ export function FinancialDnaScreen() {
     {
       label: 'Saver Score',
       value: data.savingScore ?? 50,
-      icon: 'wallet-outline' as const,
+      icon: 'wallet' as const,
       color: AI_COLORS.success,
       desc: data.savingPersonality ?? 'N/A',
     },
@@ -175,14 +175,14 @@ export function FinancialDnaScreen() {
     {
       label: 'Luxury Score',
       value: data.luxurySpendingScore ?? 50,
-      icon: 'diamond-outline' as const,
+      icon: 'diamond' as const,
       color: AI_COLORS.info,
       desc: `${data.luxurySpendingScore ?? 50}% luxury`,
     },
     {
       label: 'Consistency Score',
       value: data.disciplineScore ?? 50,
-      icon: 'sync-outline' as const,
+      icon: 'sync' as const,
       color: AI_COLORS.purple,
       desc: data.incomeConsistency ?? 'N/A',
     },
@@ -262,28 +262,28 @@ export function FinancialDnaScreen() {
             {
               label: 'Weekend Spending',
               value: data.weekendSpendingPct ?? 50,
-              icon: 'calendar-outline' as const,
+              icon: 'calendar' as const,
               color: AI_COLORS.warning,
               detail: `${data.weekendSpendingPct ?? 0}% on weekends`,
             },
             {
               label: 'Impulse Purchases',
               value: 100 - (data.impulsePurchaseScore ?? 50),
-              icon: 'flame-outline' as const,
+              icon: 'fire' as const,
               color: AI_COLORS.success,
               detail: `${data.impulsePurchaseScore ?? 0}% impulse rate`,
             },
             {
               label: 'Luxury Spending',
               value: data.luxurySpendingScore ?? 50,
-              icon: 'diamond-outline' as const,
+              icon: 'diamond' as const,
               color: AI_COLORS.info,
               detail: `${data.luxurySpendingScore ?? 0}% on luxury`,
             },
             {
               label: 'Discipline Score',
               value: data.disciplineScore ?? 50,
-              icon: 'trending-up-outline' as const,
+              icon: 'linechart' as const,
               color: AI_COLORS.purple,
               detail: `Bill payment: ${data.billPaymentBehavior ?? 'N/A'}`,
             },
@@ -292,7 +292,7 @@ export function FinancialDnaScreen() {
               <AiCard padding={14}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                   <View style={[s.mIcon, { backgroundColor: `${m.color}20` }]}>
-                    <Ionicons name={m.icon} size={18} color={m.color} />
+                    <AntDesign name={m.icon} size={18} color={m.color} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={s.mLabel}>{m.label}</Text>
@@ -328,7 +328,7 @@ export function FinancialDnaScreen() {
                 <ReAnimated.View key={i} entering={FadeInUp.duration(300).delay(i * 40)}>
                   <AiCard padding={12}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      <Ionicons name="bulb-outline" size={16} color={AI_COLORS.primary} />
+                      <AntDesign  name="bulb1" size={16} color={AI_COLORS.primary} />
                       <Text style={{ fontSize: 13, color: AI_COLORS.textSecondary, flex: 1 }}>
                         {insight}
                       </Text>

@@ -89,14 +89,14 @@ export function CreateTaskScreen() {
       <PremiumError message={error} />
       <PremiumInput
         label="Title"
-        icon="checkbox-outline"
+        icon="check"
         value={title}
         onChangeText={setTitle}
         placeholder="Task title"
       />
       <PremiumInput
         label="Description"
-        icon="document-text-outline"
+        icon="filetext1"
         value={description}
         onChangeText={setDescription}
         placeholder="Description"
@@ -116,7 +116,7 @@ export function CreateTaskScreen() {
             key={p}
             label={p.charAt(0).toUpperCase() + p.slice(1)}
             selected={priority === p}
-            icon={p === 'urgent' ? 'flame' : p === 'high' ? 'alert-circle' : 'flag-outline'}
+            icon={p === 'urgent' ? 'flame' : p === 'high' ? 'alert-circle' : 'flag'}
             onPress={() => setPriority(p)}
           />
         ))}
@@ -130,7 +130,7 @@ export function CreateTaskScreen() {
               <PremiumChip
                 key={memberId}
                 label={m.firstName || m.name || m.user?.firstName || 'Member'}
-                icon="person-outline"
+                icon="user"
                 selected={assignedTo === memberId}
                 onPress={() => setAssignedTo(assignedTo === memberId ? '' : memberId)}
               />

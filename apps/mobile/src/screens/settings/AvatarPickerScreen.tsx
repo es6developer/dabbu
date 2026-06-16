@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -116,7 +116,7 @@ export function AvatarPickerScreen() {
             onPress={() => navigation.goBack()}
             style={[s.backBtn, { backgroundColor: `${colors.accent.primary}10` }]}
           >
-            <Ionicons name="chevron-back" size={20} color={colors.accent.primary} />
+            <AntDesign  name="left" size={20} color={colors.accent.primary} />
           </TouchableOpacity>
           <Text style={[s.headerTitle, { color: colors.text.primary }]}>Choose Avatar</Text>
           <View style={{ width: 40 }} />
@@ -145,7 +145,7 @@ export function AvatarPickerScreen() {
             <ActivityIndicator color="#FFF" size="small" />
           ) : (
             <>
-              <Ionicons name="shuffle-outline" size={18} color="#FFF" />
+              <AntDesign  name="swap" size={18} color="#FFF" />
               <Text style={s.regenerateText}>Generate Random Avatar</Text>
             </>
           )}
@@ -195,7 +195,7 @@ export function AvatarPickerScreen() {
                           borderColor: colors.bg.primary,
                         }}
                       >
-                        <Ionicons name="checkmark-outline" size={14} color="#FFFFFF" />
+                        <AntDesign  name="check" size={14} color="#FFFFFF" />
                       </View>
                     )}
                   </View>

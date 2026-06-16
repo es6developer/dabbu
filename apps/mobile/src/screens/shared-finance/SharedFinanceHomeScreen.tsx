@@ -14,7 +14,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -252,7 +252,7 @@ function GroupCard({
           <View style={[gCard.coverOverlay, { backgroundColor: 'rgba(0,0,0,0.15)' }]}>
             <View style={gCard.coverTop}>
               <View style={[gCard.coverIcon, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-                <Ionicons name={cfg.icon as any} size={18} color="#FFF" />
+                <AntDesign name={cfg.icon as any} size={18} color="#FFF" />
               </View>
               <View style={[gCard.typeBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
                 <Text style={gCard.typeBadgeText}>{cfg.label}</Text>
@@ -301,7 +301,7 @@ function GroupCard({
               activeOpacity={0.8}
               onPress={onAddExpense}
             >
-              <Ionicons name="add-circle-outline" size={14} color={colors.text.inverse} />
+              <AntDesign  name="pluscircleo" size={14} color={colors.text.inverse} />
               <Text style={[gCard.actionBtnText, { color: colors.text.inverse }]}>Add expense</Text>
             </TouchableOpacity>
             {totalSpent > 0 && !isSettled && (
@@ -310,7 +310,7 @@ function GroupCard({
                 activeOpacity={0.8}
                 onPress={onSettleUp}
               >
-                <Ionicons name="swap-horizontal-outline" size={14} color={colors.accent.primary} />
+                <AntDesign  name="swap" size={14} color={colors.accent.primary} />
                 <Text style={[gCard.settleBtnText, { color: colors.accent.primary }]}>
                   Settle up
                 </Text>
@@ -576,13 +576,13 @@ export function SharedFinanceHomeScreen() {
                   style={[hdr.iconBtn, { backgroundColor: colors.accent.primary + '12' }]}
                   onPress={() => navigation.navigate('Settings')}
                 >
-                  <Ionicons name="settings-outline" size={20} color={colors.accent.primary} />
+                  <AntDesign  name="setting" size={20} color={colors.accent.primary} />
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[hdr.iconBtn, { backgroundColor: colors.status.warning + '15' }]}
                   onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}
                 >
-                  <Ionicons name="diamond-outline" size={18} color={colors.status.warning} />
+                  <AntDesign  name="diamond" size={18} color={colors.status.warning} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -642,7 +642,7 @@ export function SharedFinanceHomeScreen() {
         ListEmptyComponent={
           <View style={cs.emptyWrap}>
             <View style={[cs.emptyIconWrap, { backgroundColor: colors.accent.primary + '12' }]}>
-              <Ionicons name="grid-outline" size={44} color={colors.accent.primary} />
+              <AntDesign  name="appstore1" size={44} color={colors.accent.primary} />
             </View>
             <Text style={[cs.emptyTitle, { color: colors.text.primary }]}>No spaces yet</Text>
             <Text style={[cs.emptyDesc, { color: colors.text.tertiary }]}>
@@ -652,7 +652,7 @@ export function SharedFinanceHomeScreen() {
               style={[cs.emptyCta, { backgroundColor: colors.accent.primary }]}
               onPress={() => setShowCreateModal(true)}
             >
-              <Ionicons name="add-outline" size={18} color="#FFF" />
+              <AntDesign  name="plus" size={18} color="#FFF" />
               <Text style={cs.emptyCtaText}>Create Space</Text>
             </TouchableOpacity>
           </View>
@@ -724,7 +724,7 @@ export function SharedFinanceHomeScreen() {
             }
           }}
         >
-          <Ionicons name="add-outline" size={24} color="#FFF" />
+          <AntDesign  name="plus" size={24} color="#FFF" />
           <Text style={fab.label}>New Space</Text>
         </TouchableOpacity>
       )}
@@ -791,7 +791,7 @@ export function SharedFinanceHomeScreen() {
                         ]}
                         onPress={() => setNewType(key)}
                       >
-                        <Ionicons
+                        <AntDesign
                           name={cfg.icon as any}
                           size={16}
                           color={active ? cfg.gradient[0] : colors.text.tertiary}
@@ -847,7 +847,7 @@ export function SharedFinanceHomeScreen() {
                   <Text style={mod.submitBtnText}>Creating...</Text>
                 ) : (
                   <>
-                    <Ionicons name="add-outline" size={18} color="#FFF" />
+                    <AntDesign  name="plus" size={18} color="#FFF" />
                     <Text style={mod.submitBtnText}>Create</Text>
                   </>
                 )}

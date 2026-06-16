@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, Switch, ScrollView, ActivityIndicator, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BaseScreen } from '../../components/ui/BaseScreen';
 import { useTheme, typography as typographyStyles } from '../../theme';
@@ -23,12 +23,12 @@ type ToggleKey =
 
 interface Section {
   title: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: string;
   items: {
     key: ToggleKey;
     label: string;
     description: string;
-    icon: keyof typeof Ionicons.glyphMap;
+    icon: string;
     gradient: [string, string];
   }[];
 }
@@ -43,42 +43,42 @@ function getSections(primary: string, hover: string): Section[] {
         key: 'expenseAlerts',
         label: 'Expense Alerts',
         description: 'Get notified when expenses are recorded',
-        icon: 'card-outline',
+        icon: 'creditcard',
         gradient: [primary, primary],
       },
       {
         key: 'groupAlerts',
         label: 'Group Alerts',
         description: 'Activity in shared groups & splits',
-        icon: 'people-outline',
+        icon: 'team',
         gradient: ['#06B6D4', '#0891B2'],
       },
       {
         key: 'goalAlerts',
         label: 'Goal Alerts',
         description: 'Progress updates on your financial goals',
-        icon: 'trophy-outline',
+        icon: 'trophy',
         gradient: [primary, hover],
       },
       {
         key: 'emiReminders',
         label: 'EMI Reminders',
         description: 'Upcoming EMI payment notifications',
-        icon: 'calendar-outline',
+        icon: 'calendar',
         gradient: ['#10B981', '#059669'],
       },
       {
         key: 'subscriptionReminders',
         label: 'Subscription Reminders',
         description: 'Renewal alerts for subscriptions',
-        icon: 'reload-outline',
+        icon: 'reload1',
         gradient: ['#EC4899', '#DB2777'],
       },
       {
         key: 'dailyDigest',
         label: 'Daily Digest',
         description: 'End-of-day spending summary',
-        icon: 'newspaper-outline',
+        icon: 'file1',
         gradient: [primary, hover],
       },
     ],
@@ -91,14 +91,14 @@ function getSections(primary: string, hover: string): Section[] {
         key: 'weeklyDigest',
         label: 'Weekly Digest',
         description: 'Weekly spending trends & insights',
-        icon: 'bar-chart-outline',
+        icon: 'bar-chart',
         gradient: ['#14B8A6', '#0D9488'],
       },
       {
         key: 'monthlyReports',
         label: 'Monthly Reports',
         description: 'Comprehensive monthly financial report',
-        icon: 'document-text-outline',
+        icon: 'filetext1',
         gradient: [primary, hover],
       },
     ],
@@ -111,7 +111,7 @@ function getSections(primary: string, hover: string): Section[] {
         key: 'marketingNotifications',
         label: 'Marketing Notifications',
         description: 'Tips, offers & product updates',
-        icon: 'megaphone-outline',
+        icon: 'bulb1',
         gradient: ['#78716C', '#57534E'],
       },
     ],
@@ -275,7 +275,7 @@ export function NotificationSettingsScreen() {
         >
           <View style={styles.headerRow}>
             <View style={[styles.headerIconWrap, { backgroundColor: colors.bg.tertiary }]}>
-              <Ionicons name="notifications-outline" size={22} color={colors.text.primary} />
+              <AntDesign  name="bells" size={22} color={colors.text.primary} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Notifications</Text>
@@ -295,7 +295,7 @@ export function NotificationSettingsScreen() {
         {getSections(colors.accent.primary, colors.accent.hover).map((section, sIdx) => (
           <View key={sIdx} style={styles.section}>
             <View style={styles.sectionTitleRow}>
-              <Ionicons
+              <AntDesign
                 name={section.icon}
                 size={14}
                 color={colors.text.tertiary}
@@ -330,7 +330,7 @@ export function NotificationSettingsScreen() {
                       
                       style={styles.rowIcon}
                     >
-                      <Ionicons name={item.icon} size={15} color={colors.text.primary} />
+                      <AntDesign name={item.icon} size={15} color={colors.text.primary} />
                     </View>
                     <View style={styles.rowContent}>
                       <Text style={[styles.rowLabel, { color: colors.text.primary }]}>

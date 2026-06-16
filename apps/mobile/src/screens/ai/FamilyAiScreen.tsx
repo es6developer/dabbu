@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import ReAnimated, { FadeInUp } from 'react-native-reanimated';
@@ -101,7 +101,7 @@ export function FamilyAiScreen() {
     return (
       <View style={[s.screen, { backgroundColor: AI_COLORS.bg, paddingTop: insets.top + 60 }]}>
         <View style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
-          <Ionicons name="people-outline" size={48} color={AI_COLORS.textTertiary} />
+          <AntDesign  name="team" size={48} color={AI_COLORS.textTertiary} />
           <Text style={{ fontSize: 18, fontWeight: '700', color: AI_COLORS.text }}>
             No family data yet
           </Text>
@@ -219,7 +219,7 @@ export function FamilyAiScreen() {
                 <ReAnimated.View key={i} entering={FadeInUp.duration(300).delay(i * 40)}>
                   <AiCard padding={12}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      <Ionicons name="bulb-outline" size={16} color={AI_COLORS.primary} />
+                      <AntDesign  name="bulb1" size={16} color={AI_COLORS.primary} />
                       <Text style={{ fontSize: 13, color: AI_COLORS.textSecondary, flex: 1 }}>
                         {tip}
                       </Text>

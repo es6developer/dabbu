@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import ReAnimated, { FadeInUp, FadeInRight } from 'react-native-reanimated';
@@ -125,7 +125,7 @@ export function AnomalyDetectionScreen() {
     return (
       <View style={[s.screen, { backgroundColor: AI_COLORS.bg, paddingTop: insets.top + 60 }]}>
         <View style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
-          <Ionicons name="checkmark-circle-outline" size={48} color={AI_COLORS.success} />
+          <AntDesign  name="checkcircleo" size={48} color={AI_COLORS.success} />
           <Text style={{ fontSize: 18, fontWeight: '700', color: AI_COLORS.text }}>
             No anomalies detected
           </Text>
@@ -201,7 +201,7 @@ export function AnomalyDetectionScreen() {
                   <AiCard padding={14} style={{ borderLeftWidth: 3, borderLeftColor: clr }}>
                     <View style={{ flexDirection: 'row', gap: 12 }}>
                       <View style={[s.aIcon, { backgroundColor: `${clr}20` }]}>
-                        <Ionicons
+                        <AntDesign
                           name={
                             a.type === 'spending_spike'
                               ? 'trending-up'
@@ -209,7 +209,7 @@ export function AnomalyDetectionScreen() {
                                 ? 'cart'
                                 : a.type === 'income_drop'
                                   ? 'trending-down'
-                                  : 'warning-outline'
+                                  : 'warning'
                           }
                           size={20}
                           color={clr}

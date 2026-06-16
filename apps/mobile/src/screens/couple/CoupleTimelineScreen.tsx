@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, FlatList,
   RefreshControl, ActivityIndicator, Dimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -13,17 +13,17 @@ import { LoadingScreen } from '../../components/ui/LoadingScreen';
 const { width } = Dimensions.get('window');
 
 const EVENT_ICONS: Record<string, { icon: string; color: string }> = {
-  expense_added: { icon: 'cart-outline', color: '#FF6B6B' },
-  goal_contribution: { icon: 'trophy-outline', color: '#A78BFA' },
-  goal_created: { icon: 'flag-outline', color: '#60A5FA' },
+  expense_added: { icon: 'shoppingcart', color: '#FF6B6B' },
+  goal_contribution: { icon: 'trophy', color: '#A78BFA' },
+  goal_created: { icon: 'flag', color: '#60A5FA' },
   milestone_reached: { icon: 'star', color: '#F59E0B' },
-  income_added: { icon: 'trending-up-outline', color: '#34C759' },
-  bill_paid: { icon: 'card-outline', color: '#FF8A65' },
-  savings_contribution: { icon: 'save-outline', color: '#14B8A6' },
-  planner_started: { icon: 'map-outline', color: '#8B5CF6' },
-  planner_progress: { icon: 'refresh-outline', color: '#8B5CF6' },
+  income_added: { icon: 'linechart', color: '#34C759' },
+  bill_paid: { icon: 'creditcard', color: '#FF8A65' },
+  savings_contribution: { icon: 'save', color: '#14B8A6' },
+  planner_started: { icon: 'find', color: '#8B5CF6' },
+  planner_progress: { icon: 'reload1', color: '#8B5CF6' },
   investment_added: { icon: 'trending-up', color: '#34C759' },
-  debt_cleared: { icon: 'shield-checkmark-outline', color: '#10B981' },
+  debt_cleared: { icon: 'checkcircle', color: '#10B981' },
 };
 
 function EventCard({ event }: { event: any }) {
@@ -47,7 +47,7 @@ function EventCard({ event }: { event: any }) {
         backgroundColor: `${cfg.color}18`,
         alignItems: 'center', justifyContent: 'center',
       }}>
-        <Ionicons name={cfg.icon as any} size={20} color={cfg.color} />
+        <AntDesign name={cfg.icon as any} size={20} color={cfg.color} />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.primary }}>{event.title}</Text>
@@ -112,7 +112,7 @@ export function CoupleTimelineScreen() {
       }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+            <AntDesign  name="left" size={24} color={colors.text.primary} />
           </TouchableOpacity>
           <View>
             <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text.primary }}>Timeline</Text>
@@ -130,7 +130,7 @@ export function CoupleTimelineScreen() {
         onEndReachedThreshold={0.3}
         ListEmptyComponent={
           <View style={{ padding: 40, alignItems: 'center', gap: 12 }}>
-            <Ionicons name="time-outline" size={48} color={colors.text.tertiary} />
+            <AntDesign  name="clockcircleo" size={48} color={colors.text.tertiary} />
             <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text.tertiary, textAlign: 'center' }}>
               No activity yet
             </Text>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Dimensions, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../config/categoryIcons';
 
@@ -46,7 +46,7 @@ export function CategoryPicker({ value, onChange, type = 'expense', showLabel = 
               onPress={() => onChange(selected ? '' : cat.name)}
             >
               <View style={[styles.iconWrap, { backgroundColor: selected ? cat.color : `${cat.color}10` }]}>
-                <Ionicons name={cat.icon as any} size={20} color={selected ? '#FFF' : cat.color} />
+                <AntDesign name={cat.icon as any} size={20} color={selected ? '#FFF' : cat.color} />
               </View>
               <Text style={[styles.name, { color: selected ? colors.text.primary : colors.text.secondary }]} numberOfLines={1}>
                 {cat.name}

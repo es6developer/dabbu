@@ -182,7 +182,7 @@ export function RemindersListScreen() {
         }
         ListEmptyComponent={
           <EmptyState
-            icon="notifications-outline"
+            icon="bells"
             title="No reminders"
             message="Create a reminder to get started"
             actionLabel="Create Reminder"

@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   Keyboard,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFavorites } from '../../store/FavoritesContext';
@@ -125,7 +125,7 @@ export function FavoriteContactsScreen() {
         onPress={() => navigation.goBack()}
         style={[styles.backBtn, { backgroundColor: colors.bg.glass }]}
       >
-        <Ionicons name="arrow-back-outline" size={20} color={colors.text.primary} />
+        <AntDesign  name="arrowleft" size={20} color={colors.text.primary} />
       </TouchableOpacity>
       <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Favorite Contacts</Text>
       <View style={{ width: 36 }} />
@@ -135,7 +135,7 @@ export function FavoriteContactsScreen() {
   const renderSearchBar = () => (
     <View style={styles.searchWrap}>
       <View style={[styles.searchInner, { backgroundColor: colors.bg.glass }]}>
-        <Ionicons name="search-outline" size={16} color={colors.text.tertiary} style={styles.searchIcon} />
+        <AntDesign  name="search1" size={16} color={colors.text.tertiary} style={styles.searchIcon} />
         <TextInput
           style={[styles.searchInput, { color: colors.text.primary }]}
           placeholder="Search by name or phone..."
@@ -153,7 +153,7 @@ export function FavoriteContactsScreen() {
               setSearchResults([]);
             }}
           >
-            <Ionicons name="close-circle-outline" size={16} color={colors.text.tertiary} />
+            <AntDesign  name="closecircleo" size={16} color={colors.text.tertiary} />
           </TouchableOpacity>
         )}
       </View>
@@ -199,7 +199,7 @@ export function FavoriteContactsScreen() {
                   </View>
                   {favoriteIds.has(user.id) ? (
                     <View style={[styles.actionBtn, { backgroundColor: colors.brand.light }]}>
-                      <Ionicons name="star-outline" size={16} color={colors.brand.primary} />
+                      <AntDesign  name="staro" size={16} color={colors.brand.primary} />
                     </View>
                   ) : (
                     <TouchableOpacity
@@ -213,7 +213,7 @@ export function FavoriteContactsScreen() {
                       {addingId === user.id ? (
                         <ActivityIndicator size="small" color={colors.brand.primary} />
                       ) : (
-                        <Ionicons name="star-outline" size={16} color={colors.brand.primary} />
+                        <AntDesign  name="staro" size={16} color={colors.brand.primary} />
                       )}
                     </TouchableOpacity>
                   )}
@@ -266,7 +266,7 @@ export function FavoriteContactsScreen() {
                   {addingId === user.id ? (
                     <ActivityIndicator size="small" color={colors.brand.primary} />
                   ) : (
-                    <Ionicons name="star-outline" size={16} color={colors.brand.primary} />
+                    <AntDesign  name="staro" size={16} color={colors.brand.primary} />
                   )}
                 </TouchableOpacity>
               </View>
@@ -295,7 +295,7 @@ export function FavoriteContactsScreen() {
             colors={[colors.bg.glassLight, colors.bg.glass]}
             style={styles.emptyIconBox}
           >
-            <Ionicons name="star-outline" size={40} color={colors.brand.primary} />
+            <AntDesign  name="staro" size={40} color={colors.brand.primary} />
           </LinearGradient>
           <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No favorites yet</Text>
           <Text style={[styles.emptyDesc, { color: colors.text.secondary }]}>
@@ -337,7 +337,7 @@ export function FavoriteContactsScreen() {
                   style={[styles.actionBtn, { backgroundColor: colors.status.errorLight }]}
                   onPress={() => handleRemoveFavorite(fav.userId)}
                 >
-                  <Ionicons name="trash-outline" size={16} color={colors.status.error} />
+                  <AntDesign  name="delete" size={16} color={colors.status.error} />
                 </TouchableOpacity>
               </View>
               {i < favorites.length - 1 && (

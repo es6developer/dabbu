@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import ReAnimated, { FadeInUp } from 'react-native-reanimated';
@@ -36,7 +36,7 @@ function priorityConfig(c: Record<string, string>) {
     critical: { color: c.danger, bg: c.dangerLight, icon: 'alert-circle' },
     high: { color: c.warning, bg: c.warningLight, icon: 'warning' },
     medium: { color: c.primary, bg: c.primaryLight, icon: 'information-circle' },
-    low: { color: c.textSecondary, bg: 'transparent', icon: 'ellipse-outline' },
+    low: { color: c.textSecondary, bg: 'transparent', icon: 'minuscirlceo' },
   } as const;
 }
 
@@ -51,7 +51,7 @@ function FeedCard({
 }) {
   const pCfg = priorityConfig(colors);
   const pConfig = pCfg[card.priority as keyof typeof pCfg] ?? pCfg.low;
-  const tConfig = TYPE_CONFIG[card.type] ?? { icon: 'bulb-outline', label: 'Insight' };
+  const tConfig = TYPE_CONFIG[card.type] ?? { icon: 'bulb1', label: 'Insight' };
   const localCard = isGeneratedCard(card.id);
   const st = useMemo(() => styles(colors), [colors]);
 
@@ -64,13 +64,13 @@ function FeedCard({
       >
         {localCard && (
           <View style={st.localBadge}>
-            <Ionicons name="sparkles-outline" size={10} color={colors.primary} />
+            <AntDesign  name="star" size={10} color={colors.primary} />
             <Text style={st.localBadgeText}>From your data</Text>
           </View>
         )}
         <View style={st.cardHeader}>
           <View style={[st.typeBadge, { backgroundColor: pConfig.bg }]}>
-            <Ionicons name={tConfig.icon as any} size={14} color={pConfig.color} />
+            <AntDesign name={tConfig.icon as any} size={14} color={pConfig.color} />
             <Text style={[st.typeLabel, { color: pConfig.color }]}>{tConfig.label}</Text>
           </View>
           <View style={[st.priorityDot, { backgroundColor: pConfig.color }]} />
@@ -82,13 +82,13 @@ function FeedCard({
         <View style={st.cardFooter}>
           {card.impactValue !== null && card.impactValue > 0 && (
             <View style={st.footerItem}>
-              <Ionicons name="pricetag-outline" size={12} color={colors.textSecondary} />
+              <AntDesign  name="tag" size={12} color={colors.textSecondary} />
               <Text style={st.footerText}>₹{card.impactValue.toLocaleString('en-IN')}</Text>
             </View>
           )}
           {card.confidenceScore !== null && (
             <View style={st.footerItem}>
-              <Ionicons name="analytics-outline" size={12} color={colors.textSecondary} />
+              <AntDesign  name="linechart" size={12} color={colors.textSecondary} />
               <Text style={st.footerText}>{card.confidenceScore}% confidence</Text>
             </View>
           )}
@@ -261,7 +261,7 @@ export function TodayFeedScreen() {
         ) : emptyState ? (
           <View style={st.emptyState}>
             <View style={st.emptyIcon}>
-              <Ionicons name="sparkles-outline" size={48} color={colors.textTertiary} />
+              <AntDesign  name="star" size={48} color={colors.textTertiary} />
             </View>
             <Text style={st.emptyTitle}>No insights yet</Text>
             <Text style={st.emptyText}>
@@ -275,7 +275,7 @@ export function TodayFeedScreen() {
                 <FeedCard card={card} onPress={() => handlePress(card)} colors={colors} />
                 {!card.isRead && (
                   <TouchableOpacity style={st.dismissBtn} onPress={() => handleDismiss(card.id)}>
-                    <Ionicons name="close-outline" size={16} color={colors.textTertiary} />
+                    <AntDesign  name="close" size={16} color={colors.textTertiary} />
                   </TouchableOpacity>
                 )}
               </View>

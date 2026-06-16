@@ -3,7 +3,7 @@ import {
   View, Text, TouchableOpacity, ScrollView, RefreshControl,
   TextInput, StyleSheet, ActivityIndicator, Alert,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../../services/api';
@@ -12,10 +12,10 @@ import { UpgradePrompt } from '../../components/ui/UpgradePrompt';
 import { useTheme } from '../../theme';
 
 const PLANNER_META: Record<string, { icon: string; color: string; title: string; badge: string }> = {
-  BABY: { icon: 'happy-outline', color: '#FF8A65', title: 'Baby Planner', badge: 'PREMIUM' },
-  HOUSE: { icon: 'home-outline', color: '#60A5FA', title: 'House Planner', badge: 'PREMIUM' },
-  CAR: { icon: 'car-outline', color: '#34C759', title: 'Car Planner', badge: 'PREMIUM' },
-  RETIREMENT: { icon: 'umbrella-outline', color: '#A78BFA', title: 'Retirement Planner', badge: 'PREMIUM' },
+  BABY: { icon: 'smileo', color: '#FF8A65', title: 'Baby Planner', badge: 'PREMIUM' },
+  HOUSE: { icon: 'home', color: '#60A5FA', title: 'House Planner', badge: 'PREMIUM' },
+  CAR: { icon: 'car', color: '#34C759', title: 'Car Planner', badge: 'PREMIUM' },
+  RETIREMENT: { icon: 'Safety', color: '#A78BFA', title: 'Retirement Planner', badge: 'PREMIUM' },
 };
 
 function StatRow({ label, value, color }: { label: string; value: string; color?: string }) {
@@ -70,7 +70,7 @@ export function CouplePlannerDetailScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { plannerType } = route.params || {};
-  const meta = PLANNER_META[plannerType] || { icon: 'flag-outline', color: colors.text.tertiary, title: 'Planner', badge: '' };
+  const meta = PLANNER_META[plannerType] || { icon: 'flag', color: colors.text.tertiary, title: 'Planner', badge: '' };
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -110,7 +110,7 @@ export function CouplePlannerDetailScreen() {
             width: 36, height: 36, borderRadius: 12, backgroundColor: colors.bg.tertiary,
             alignItems: 'center', justifyContent: 'center',
           }}>
-            <Ionicons name="chevron-back" size={20} color={colors.text.primary} />
+            <AntDesign  name="left" size={20} color={colors.text.primary} />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text.primary }}>{meta.title}</Text>
@@ -127,7 +127,7 @@ export function CouplePlannerDetailScreen() {
         <UpgradePrompt feature={meta.title} />
       ) : error ? (
         <View style={{ padding: 40, alignItems: 'center', gap: 12 }}>
-          <Ionicons name={meta.icon as any} size={48} color={meta.color} style={{ opacity: 0.5 }} />
+          <AntDesign name={meta.icon as any} size={48} color={meta.color} style={{ opacity: 0.5 }} />
           <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>No {meta.title} Yet</Text>
           <Text style={{ fontSize: 13, color: colors.text.secondary, textAlign: 'center' }}>
             Set up your {meta.title.toLowerCase()} to get personalized projections and recommendations.
@@ -150,7 +150,7 @@ export function CouplePlannerDetailScreen() {
                 width: 48, height: 48, borderRadius: 16, backgroundColor: `${meta.color}20`,
                 alignItems: 'center', justifyContent: 'center',
               }}>
-                <Ionicons name={meta.icon as any} size={24} color={meta.color} />
+                <AntDesign name={meta.icon as any} size={24} color={meta.color} />
               </View>
               <View>
                 <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text.primary }}>{meta.title}</Text>

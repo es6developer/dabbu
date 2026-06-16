@@ -9,7 +9,7 @@ import {
   Animated,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -22,7 +22,7 @@ import { ConfirmDialog } from '../../components/ui';
 import { PADDING, borderRadius, shadows } from '../../theme/design';
 import { COUPLE_COLORS } from '../../hooks/useCoupleMode';
 
-type IconName = keyof typeof Ionicons.glyphMap;
+type IconName = string;
 
 interface SectionItem {
   label: string;
@@ -37,7 +37,7 @@ const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
     title: 'Wealth Tools',
     items: [
       { label: 'Financial Reports', icon: 'stats-chart', screen: 'Reports', premium: true },
-      { label: 'Export Data', icon: 'download-outline', screen: 'Analytics', premium: true },
+      { label: 'Export Data', icon: 'download', screen: 'Analytics', premium: true },
       { label: 'Budgets', icon: 'pie-chart', screen: 'BudgetsList' },
     ],
   },
@@ -85,7 +85,7 @@ const ROW_META: Record<string, { icon: IconName }> = {
   Security: { icon: 'shield-checkmark' },
   'Lock App': { icon: 'lock-closed' },
   'Financial Reports': { icon: 'stats-chart' },
-  'Export Data': { icon: 'download-outline' },
+  'Export Data': { icon: 'download' },
   Budgets: { icon: 'pie-chart' },
   'Couple Space': { icon: 'heart' },
   Theme: { icon: 'color-palette' },
@@ -259,7 +259,7 @@ export function SettingsScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <Ionicons name="chevron-forward" size={18} color={colors.accent.primary} />
+                <AntDesign  name="right" size={18} color={colors.accent.primary} />
               </TouchableOpacity>
             </View>
             <View
@@ -283,8 +283,8 @@ export function SettingsScreen() {
                   backgroundColor: isPremium ? `${colors.accent.primary}12` : colors.bg.tertiary,
                 }}
               >
-                <Ionicons
-                  name={isPremium ? 'diamond' : 'person-outline'}
+                <AntDesign
+                  name={isPremium ? 'diamond' : 'user'}
                   size={14}
                   color={isPremium ? colors.accent.primary : colors.text.tertiary}
                 />
@@ -310,7 +310,7 @@ export function SettingsScreen() {
                   backgroundColor: colors.bg.tertiary,
                 }}
               >
-                <Ionicons name="shield-checkmark-outline" size={14} color={colors.text.tertiary} />
+                <AntDesign  name="checkcircle" size={14} color={colors.text.tertiary} />
                 <Text style={{ fontSize: 12, fontWeight: '700', color: colors.text.tertiary }}>
                   Security
                 </Text>
@@ -343,7 +343,7 @@ export function SettingsScreen() {
                     gap: 8,
                   }}
                 >
-                  <Ionicons name="heart-outline" size={18} color={COUPLE_COLORS.primary} />
+                  <AntDesign  name="hearto" size={18} color={COUPLE_COLORS.primary} />
                   <Text
                     style={{
                       fontSize: 14,
@@ -387,7 +387,7 @@ export function SettingsScreen() {
                         justifyContent: 'center',
                       }}
                     >
-                      <Ionicons name="person-outline" size={18} color={COUPLE_COLORS.primary} />
+                      <AntDesign  name="user" size={18} color={COUPLE_COLORS.primary} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text
@@ -448,7 +448,7 @@ export function SettingsScreen() {
                         {processingReqId === req.id ? (
                           <ActivityIndicator size="small" color="#FFF" />
                         ) : (
-                          <Ionicons name="checkmark-outline" size={16} color="#FFF" />
+                          <AntDesign  name="check" size={16} color="#FFF" />
                         )}
                       </TouchableOpacity>
                       <TouchableOpacity
@@ -471,7 +471,7 @@ export function SettingsScreen() {
                           }
                         }}
                       >
-                        <Ionicons name="close-outline" size={16} color="#FF4757" />
+                        <AntDesign  name="close" size={16} color="#FF4757" />
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -496,7 +496,7 @@ export function SettingsScreen() {
                   >
                     View All
                   </Text>
-                  <Ionicons name="chevron-forward" size={14} color={COUPLE_COLORS.primary} />
+                  <AntDesign  name="right" size={14} color={COUPLE_COLORS.primary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -541,7 +541,7 @@ export function SettingsScreen() {
                     justifyContent: 'center',
                   }}
                 >
-                  <Ionicons name="diamond-outline" size={24} color="#0A0A0A" />
+                  <AntDesign  name="diamond" size={24} color="#0A0A0A" />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text
@@ -641,7 +641,7 @@ export function SettingsScreen() {
                           justifyContent: 'center',
                         }}
                       >
-                        <Ionicons
+                        <AntDesign
                           name={(meta?.icon as any) || item.icon}
                           size={18}
                           color={colors.accent.primary}
@@ -670,7 +670,7 @@ export function SettingsScreen() {
                               backgroundColor: `${colors.accent.primary}10`,
                             }}
                           >
-                            <Ionicons name="lock-closed-outline" size={10} color={colors.accent.primary} />
+                            <AntDesign  name="lock" size={10} color={colors.accent.primary} />
                             <Text
                               style={{
                                 fontSize: 10,
@@ -682,7 +682,7 @@ export function SettingsScreen() {
                             </Text>
                           </View>
                         )}
-                        <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+                        <AntDesign  name="right" size={16} color={colors.text.tertiary} />
                       </View>
                     </TouchableOpacity>
                   );
@@ -716,12 +716,12 @@ export function SettingsScreen() {
                 justifyContent: 'center',
               }}
             >
-              <Ionicons name="log-out-outline" size={18} color={colors.status.error} />
+              <AntDesign  name="logout" size={18} color={colors.status.error} />
             </View>
             <Text style={{ flex: 1, fontSize: 15, fontWeight: '700', color: colors.status.error }}>
               Sign Out
             </Text>
-            <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
+            <AntDesign  name="right" size={16} color={colors.text.tertiary} />
           </TouchableOpacity>
 
           <Text
@@ -745,7 +745,7 @@ export function SettingsScreen() {
         message="Are you sure you want to sign out?"
         confirmLabel="Sign Out"
         destructive
-        icon="log-out-outline"
+        icon="logout"
         onConfirm={() => {
           setShowLogoutDialog(false);
           logout().catch(() => {});

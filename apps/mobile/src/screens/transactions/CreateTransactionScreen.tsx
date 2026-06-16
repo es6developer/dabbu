@@ -9,7 +9,7 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { api, setAccessToken } from '../../services/api';
@@ -217,8 +217,8 @@ export function CreateTransactionScreen() {
                     },
                   ]}
                 >
-                  <Ionicons
-                    name={t === 'expense' ? 'cart-outline' : 'trending-up'}
+                  <AntDesign
+                    name={t === 'expense' ? 'shoppingcart' : 'trending-up'}
                     size={14}
                     color={type === t ? '#FFF' : colors.text.secondary}
                   />
@@ -258,7 +258,7 @@ export function CreateTransactionScreen() {
               </Text>
               {error ? (
                 <View style={s.errorRow}>
-                  <Ionicons name="alert-circle-outline" size={14} color={colors.status.error} />
+                  <AntDesign  name="exclamationcircle" size={14} color={colors.status.error} />
                   <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
                 </View>
               ) : null}
@@ -312,7 +312,7 @@ export function CreateTransactionScreen() {
             {(suggestedCategory || suggesting) && (
               <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: -12, marginTop: -8 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                  <Ionicons name="sparkles-outline" size={12} color={PURPLE} />
+                  <AntDesign  name="star" size={12} color={PURPLE} />
                   <Text style={{ fontSize: 11, fontWeight: '600', color: suggesting ? colors.text.tertiary : PURPLE }}>
                     {suggesting ? 'Suggesting...' : `AI: ${suggestedCategory}`}
                   </Text>
@@ -346,8 +346,8 @@ export function CreateTransactionScreen() {
               end={{ x: 1, y: 0 }}
               style={s.saveGrad}
             >
-              <Ionicons
-                name={saving ? 'hourglass-outline' : isExpense ? 'cart-outline' : 'trending-up'}
+              <AntDesign
+                name={saving ? 'hourglass' : isExpense ? 'shoppingcart' : 'trending-up'}
                 size={18}
                 color="#FFF"
               />

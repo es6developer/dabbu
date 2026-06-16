@@ -10,7 +10,7 @@ import {
   StyleSheet,
   Dimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../../services/api';
@@ -76,7 +76,7 @@ function PlannerCard({ item, onPress }: { item: any; onPress: () => void }) {
           marginBottom: 8,
         }}
       >
-        <Ionicons name={icon as any} size={18} color={color} />
+        <AntDesign name={icon as any} size={18} color={color} />
       </View>
       <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }} numberOfLines={1}>
         {item.title || item.plannerType}
@@ -208,7 +208,7 @@ export function CouplePlannerScreen() {
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
+              <AntDesign  name="left" size={24} color={colors.text.primary} />
             </TouchableOpacity>
             <View>
               <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text.primary }}>Planners</Text>
@@ -221,7 +221,7 @@ export function CouplePlannerScreen() {
             style={{ backgroundColor: colors.accent.primary, borderRadius: 14, padding: 8 }}
             onPress={() => setShowCreate(true)}
           >
-            <Ionicons name="add-outline" size={20} color={colors.text.primary} />
+            <AntDesign  name="plus" size={20} color={colors.text.primary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -252,7 +252,7 @@ export function CouplePlannerScreen() {
                 justifyContent: 'center',
               }}
             >
-              <Ionicons name="map-outline" size={28} color={colors.accent.primary} />
+              <AntDesign  name="find" size={28} color={colors.accent.primary} />
             </View>
             <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>No planners yet</Text>
             <Text style={{ fontSize: 12, color: colors.text.secondary, textAlign: 'center' }}>

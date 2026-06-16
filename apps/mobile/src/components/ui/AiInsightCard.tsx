@@ -1,6 +1,6 @@
 import React, { useMemo, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 
 interface AiNarrative {
@@ -35,7 +35,7 @@ function getSeverityColors(colors: ThemeColors) {
 function NarrativePill({ icon, label, color }: { icon: string; label: string; color: string }) {
   return (
     <View style={[styles.pill, { backgroundColor: `${color}14`, borderColor: `${color}30` }]}>
-      <Ionicons name={icon as any} size={12} color={color} />
+      <AntDesign name={icon as any} size={12} color={color} />
       <Text style={[styles.pillText, { color }]}>{label}</Text>
     </View>
   );
@@ -60,7 +60,7 @@ function InsightBlock({
   return (
     <View style={styles.block}>
       <View style={styles.blockHeader}>
-        <Ionicons name={icon as any} size={14} color={color} />
+        <AntDesign name={icon as any} size={14} color={color} />
         <Text style={[styles.blockTitle, { color }]}>{title}</Text>
       </View>
       {items.map((item, i) => (
@@ -136,7 +136,7 @@ export function AiInsightCard({
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <View style={[styles.iconBadge, { backgroundColor: SEVERITY_COLORS.info.bg }]}>
-              <Ionicons name="sparkles-outline" size={16} color={SEVERITY_COLORS.info.text} />
+              <AntDesign  name="star" size={16} color={SEVERITY_COLORS.info.text} />
             </View>
             <View>
               <Text style={[styles.headerTitle, { color: colors.text.primary }]}>
@@ -152,7 +152,7 @@ export function AiInsightCard({
             </View>
           </View>
           <View style={[styles.aiBadge, { backgroundColor: SEVERITY_COLORS.info.bg }]}>
-            <Ionicons name="hardware-chip-outline" size={10} color={SEVERITY_COLORS.info.text} />
+            <AntDesign  name="API" size={10} color={SEVERITY_COLORS.info.text} />
             <Text style={[styles.aiBadgeText, { color: SEVERITY_COLORS.info.text }]}>AI</Text>
           </View>
         </View>
@@ -168,7 +168,7 @@ export function AiInsightCard({
         <InsightBlock
           title="Highlights"
           items={narrative.highlights}
-          icon="bulb-outline"
+          icon="bulb1"
           color={SEVERITY_COLORS.success.text}
           textColor={colors.text.secondary}
         />
@@ -177,7 +177,7 @@ export function AiInsightCard({
         <InsightBlock
           title="Recommendations"
           items={narrative.recommendations}
-          icon="checkmark-done-outline"
+          icon="checkcircle"
           color={SEVERITY_COLORS.info.text}
           textColor={colors.text.secondary}
         />
@@ -187,7 +187,7 @@ export function AiInsightCard({
           <InsightBlock
             title="Risk Flags"
             items={narrative.riskFlags}
-            icon="warning-outline"
+            icon="warning"
             color={SEVERITY_COLORS.critical.text}
             textColor={colors.text.secondary}
           />
@@ -200,7 +200,7 @@ export function AiInsightCard({
             onPress={onReload}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Ionicons name="refresh-outline" size={12} color={colors.text.secondary} />
+            <AntDesign  name="reload1" size={12} color={colors.text.secondary} />
             <Text style={[styles.reloadText, { color: colors.text.secondary }]}>Refresh</Text>
           </TouchableOpacity>
         )}

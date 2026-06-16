@@ -9,14 +9,14 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, spacing } from '../../theme';
 import { PageContainer } from './PageContainer';
 import { KeyboardAvoidingContainer } from './KeyboardAvoidingContainer';
 
-type IconName = keyof typeof Ionicons.glyphMap;
+type IconName = string;
 
 interface PremiumFormScreenProps {
   title: string;
@@ -69,7 +69,7 @@ export function PremiumFormScreen({
                 ]}
                 activeOpacity={0.75}
               >
-                <Ionicons name="chevron-back" size={20} color={colors.text.primary} />
+                <AntDesign  name="left" size={20} color={colors.text.primary} />
               </TouchableOpacity>
               <Text style={[styles.navTitle, { color: colors.text.primary }]} numberOfLines={1}>
                 {title}
@@ -81,7 +81,7 @@ export function PremiumFormScreen({
           <View style={styles.hero}>
             <View style={styles.heroTop}>
               <View style={[styles.heroIcon, { backgroundColor: `${colors.accent.primary}30` }]}>
-                <Ionicons name={icon} size={24} color={colors.text.primary} />
+                <AntDesign name={icon} size={24} color={colors.text.primary} />
               </View>
               <View style={[styles.heroPill, { backgroundColor: `${colors.accent.primary}20` }]}>
                 <Text style={[styles.heroPillText, { color: colors.accent.primary }]}>Dabbu</Text>
@@ -142,7 +142,7 @@ export function PremiumInput({
         ]}
       >
         {icon ? (
-          <Ionicons name={icon} size={18} color={colors.text.tertiary} style={styles.inputIcon} />
+          <AntDesign name={icon} size={18} color={colors.text.tertiary} style={styles.inputIcon} />
         ) : null}
         <TextInput
           style={[
@@ -225,7 +225,7 @@ export function PremiumChip({ label, selected, icon, onPress }: PremiumChipProps
       ]}
     >
       {icon ? (
-        <Ionicons
+        <AntDesign
           name={icon}
           size={14}
           color={selected ? colors.accent.primary : colors.text.tertiary}
@@ -252,7 +252,7 @@ export function PremiumError({ message }: { message?: string }) {
 
   return (
     <View style={[styles.errorBox, { backgroundColor: colors.status.errorLight }]}>
-      <Ionicons name="alert-circle-outline" size={16} color={colors.status.error} />
+      <AntDesign  name="exclamationcircle" size={16} color={colors.status.error} />
       <Text style={[styles.errorText, { color: colors.status.error }]}>{message}</Text>
     </View>
   );
@@ -294,7 +294,7 @@ export function PremiumActionButton({
       ) : (
         <>
           <Text style={styles.actionText}>{title}</Text>
-          <Ionicons name={icon} size={18} color="#FFFFFF" />
+          <AntDesign name={icon} size={18} color="#FFFFFF" />
         </>
       )}
     </TouchableOpacity>

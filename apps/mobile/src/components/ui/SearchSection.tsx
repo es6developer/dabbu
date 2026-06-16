@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme, spacing, borderRadius } from '../../theme';
 
 interface SearchSectionProps {
@@ -25,7 +25,7 @@ export function SearchSection({
         { backgroundColor: colors.bg.secondary, borderColor: colors.border.default },
       ]}
     >
-      <Ionicons name="search-outline" size={18} color={colors.text.tertiary} style={styles.icon} />
+      <AntDesign  name="search1" size={18} color={colors.text.tertiary} style={styles.icon} />
       <TextInput
         style={[styles.input, { color: colors.text.primary }]}
         value={value}
@@ -37,7 +37,7 @@ export function SearchSection({
       />
       {value.length > 0 && onClear && (
         <TouchableOpacity onPress={onClear} style={styles.clearBtn}>
-          <Ionicons name="close-circle-outline" size={18} color={colors.text.tertiary} />
+          <AntDesign  name="closecircleo" size={18} color={colors.text.tertiary} />
         </TouchableOpacity>
       )}
     </View>
