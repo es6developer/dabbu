@@ -118,7 +118,8 @@ function fmt(v: number) {
   return '₹' + v.toLocaleString('en-IN');
 }
 
-function CircularProgress({ pct, size = 40, stroke = 4, color = '#6366F1' }: { pct: number; size?: number; stroke?: number; color?: string }) {
+function CircularProgress({ pct, size = 40, stroke = 4, color }: { pct: number; size?: number; stroke?: number; color: string }) {
+  const { colors } = useTheme();
   const animatedVal = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -138,7 +139,7 @@ function CircularProgress({ pct, size = 40, stroke = 4, color = '#6366F1' }: { p
 
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <View style={{ position: 'absolute', width: size, height: size, borderRadius: size / 2, borderWidth: stroke, borderColor: '#E2E8F0' }} />
+      <View style={{ position: 'absolute', width: size, height: size, borderRadius: size / 2, borderWidth: stroke, borderColor: colors.border.subtle }} />
       <Animated.View
         style={{
           position: 'absolute',
@@ -220,18 +221,17 @@ function SpaceCard({
     const initials = name.split(' ').map(s => s[0]).join('').slice(0, 2).toUpperCase();
     const bg = isLight ? 'rgba(255,255,255,0.2)' : colors.bg.tertiary;
     return (
-      <View key={idx} style={[s.avatar, { backgroundColor: bg, borderColor: isLight ? 'rgba(255,255,255,0.4)' : '#fff', marginLeft: idx > 0 ? -10 : 0, zIndex: 10 - idx }]}>
+      <View key={idx} style={[s.avatar, { backgroundColor: bg, borderColor: isLight ? 'rgba(255,255,255,0.4)' : colors.border.default, marginLeft: idx > 0 ? -10 : 0, zIndex: 10 - idx }]}>
         <Text style={{ fontSize: 10, fontWeight: '700', color: isLight ? '#fff' : colors.text.primary }}>{initials}</Text>
       </View>
     );
   }
 
-  const oweColor = space.balance > 0 ? '#F59E0B' : '#10B981';
-  const oweLabel = space.balance > 0 ? 'You owe' : 'You\'re owed';
+  const oweColor = space.balance > 0 ? colors.status.warning : colors.status.success;
+  const oweLabel = space.balance > 0 ? 'You owe' : "You're owed";
 
   const cardContent = (
     <View>
-      {/* Category + Badge */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <View style={[s.catPill, { backgroundColor: isCouple ? 'rgba(255,255,255,0.15)' : `${colors.accent.primary}10` }]}>
@@ -250,12 +250,10 @@ function SpaceCard({
         </Text>
       </View>
 
-      {/* Name */}
       <Text style={{ fontSize: 17, fontWeight: '700', color: isCouple ? '#fff' : colors.text.primary, marginBottom: 4 }}>
         {space.name}
       </Text>
 
-      {/* Primary card: no stats row */}
       {!isCouple && (
         <View style={{ flexDirection: 'row', gap: 16, marginTop: 6 }}>
           <View style={{ flex: 1 }}>
@@ -269,7 +267,6 @@ function SpaceCard({
         </View>
       )}
 
-      {/* Members */}
       <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 8 }}>
         <View style={{ flexDirection: 'row' }}>
           {space.members.map((m, i) => renderAvatar(m.name, i, isCouple))}
@@ -280,22 +277,20 @@ function SpaceCard({
         {!isCouple && space.monthlyBudget && (
           <View style={{ flex: 1, marginLeft: 8 }}>
             <View style={{ height: 4, borderRadius: 2, backgroundColor: colors.bg.tertiary, overflow: 'hidden' }}>
-              <View style={{ width: `${Math.min((space.budgetUsed! / space.monthlyBudget) * 100, 100)}%`, height: '100%', backgroundColor: '#6366F1', borderRadius: 2 }} />
+              <View style={{ width: `${Math.min((space.budgetUsed! / space.monthlyBudget) * 100, 100)}%`, height: '100%', backgroundColor: colors.accent.primary, borderRadius: 2 }} />
             </View>
             <Text style={{ fontSize: 10, color: colors.text.tertiary, marginTop: 2 }}>{Math.round((space.budgetUsed! / space.monthlyBudget) * 100)}% used</Text>
           </View>
         )}
       </View>
 
-      {/* Expandable transactions */}
       {isExpanded && renderTransactions()}
 
-      {/* Action buttons for non-couple */}
       {isExpanded && !isCouple && (
         <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
-          <TouchableOpacity style={[s.primaryBtn, { backgroundColor: '#6366F1' }]}>
-            <AntDesign name="plus" size={16} color="#fff" />
-            <Text style={{ fontSize: 13, fontWeight: '700', color: '#fff' }}>Add expense</Text>
+          <TouchableOpacity style={[s.primaryBtn, { backgroundColor: colors.accent.primary }]}>
+            <AntDesign name="plus" size={16} color="#FFF" />
+            <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFF' }}>Add expense</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[s.outlineBtn, { borderColor: colors.border.default }]}>
             <AntDesign name="swap" size={16} color={colors.text.secondary} />
@@ -306,11 +301,10 @@ function SpaceCard({
         </View>
       )}
 
-      {/* Primary card: empty state */}
       {isCouple && isExpanded && space.transactions?.length === 0 && (
         <View style={{ marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.15)', alignItems: 'center', paddingVertical: 8 }}>
           <Text style={{ fontSize: 14, color: '#fff', textAlign: 'center', lineHeight: 20 }}>
-            {'✨ No expenses yet\nShare your first bill with Jayasri →'}
+            {'✨ No expenses yet\nShare your first bill →'}
           </Text>
           <TouchableOpacity style={{ marginTop: 12, backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20 }}>
             <Text style={{ fontSize: 13, fontWeight: '700', color: '#fff' }}>Add expense</Text>
@@ -324,7 +318,7 @@ function SpaceCard({
     return (
       <TouchableOpacity activeOpacity={0.9} onPress={onToggle} onLongPress={onLongPress} delayLongPress={500}>
         <LinearGradient
-          colors={['#6366F1', '#8B5CF6']}
+          colors={[colors.accent.primary, colors.accent.secondary]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={[s.card, { padding: 20, borderRadius: 16, marginBottom: 16 }]}
@@ -342,7 +336,7 @@ function SpaceCard({
         onPress={onToggle}
         onLongPress={onLongPress}
         delayLongPress={500}
-        style={[s.card, { backgroundColor: '#fff', borderRadius: 16, marginBottom: 16, padding: 20, ...s.shadow }]}
+        style={[s.card, { backgroundColor: colors.bg.card, borderRadius: 16, marginBottom: 16, padding: 20 }]}
       >
         {cardContent}
       </TouchableOpacity>
@@ -351,7 +345,7 @@ function SpaceCard({
 }
 
 export function SpacesDashboardScreen() {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [spaces] = useState(MOCK_SPACES);
@@ -371,31 +365,35 @@ export function SpacesDashboardScreen() {
   const settledPct = 65;
 
   return (
-    <View style={[s.root, { backgroundColor: '#F8FAFC' }]}>
-      {/* Header */}
-      <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 16, paddingBottom: 12 }}>
+    <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
+      <LinearGradient
+        colors={[colors.bg.card, colors.bg.primary]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={{ paddingTop: insets.top + 12, paddingBottom: 16, paddingHorizontal: 16 }}
+      >
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A' }}>Spaces</Text>
-              <View style={{ backgroundColor: '#F59E0B18', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 }}>
-                <Text style={{ fontSize: 11, fontWeight: '700', color: '#F59E0B' }}>
+              <Text style={{ fontSize: 20, fontWeight: '800', color: colors.text.primary, letterSpacing: -0.5 }}>Spaces</Text>
+              <View style={{ backgroundColor: colors.status.warning + '18', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 }}>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: colors.status.warning }}>
                   {fmt(totalOwe)} to settle
                 </Text>
               </View>
             </View>
-            <Text style={{ fontSize: 13, color: '#64748B' }}>
+            <Text style={{ fontSize: 13, color: colors.text.tertiary }}>
               across {activeSpaces} {activeSpaces === 1 ? 'space' : 'spaces'}
             </Text>
           </View>
-          <CircularProgress pct={settledPct} size={40} stroke={4} color="#6366F1" />
+          <CircularProgress pct={settledPct} size={40} stroke={4} color={colors.accent.primary} />
           <TouchableOpacity style={{ marginLeft: 12 }}>
-            <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#6366F115', alignItems: 'center', justifyContent: 'center' }}>
-              <AntDesign name="user" size={18} color="#6366F1" />
+            <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.accent.primary + '15', alignItems: 'center', justifyContent: 'center' }}>
+              <AntDesign name="user" size={18} color={colors.accent.primary} />
             </View>
           </TouchableOpacity>
         </View>
-      </View>
+      </LinearGradient>
 
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 120 }}
@@ -410,14 +408,14 @@ export function SpacesDashboardScreen() {
                 top: 0,
                 bottom: 16,
                 width: 80,
-                backgroundColor: '#FEE2E2',
+                backgroundColor: colors.status.error + '15',
                 borderRadius: 16,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <AntDesign name="folder1" size={22} color="#DC2626" />
-              <Text style={{ fontSize: 11, fontWeight: '600', color: '#DC2626', marginTop: 2 }}>Archive</Text>
+              <AntDesign name="folder1" size={22} color={colors.status.error} />
+              <Text style={{ fontSize: 11, fontWeight: '600', color: colors.status.error, marginTop: 2 }}>Archive</Text>
             </TouchableOpacity>
             <SpaceCard
               space={space}
@@ -429,12 +427,19 @@ export function SpacesDashboardScreen() {
           </View>
         ))}
 
-        {/* Create space button */}
         <TouchableOpacity
-          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 16, borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 16, borderStyle: 'dashed' }}
+          style={{ marginTop: 8 }}
+          activeOpacity={0.8}
         >
-          <AntDesign name="plus" size={20} color="#6366F1" />
-          <Text style={{ fontSize: 14, fontWeight: '700', color: '#6366F1' }}>Create new space</Text>
+          <LinearGradient
+            colors={[colors.accent.primary, colors.accent.secondary]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 16, borderRadius: 16 }}
+          >
+            <AntDesign name="plus" size={20} color="#FFF" />
+            <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFF' }}>Create new space</Text>
+          </LinearGradient>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -446,13 +451,6 @@ const s = StyleSheet.create({
   card: {
     borderRadius: 16,
     overflow: 'hidden',
-  },
-  shadow: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
   },
   catPill: {
     paddingHorizontal: 10,

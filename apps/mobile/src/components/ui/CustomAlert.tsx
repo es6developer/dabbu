@@ -35,10 +35,10 @@ interface AlertOptions {
 }
 
 const ICON_MAP: Record<AlertType, string> = {
-  success: 'checkmark-circle',
-  error: 'alert-circle',
+  success: 'checkcircle',
+  error: 'exclamationcircle',
   warning: 'warning',
-  info: 'information-circle',
+  info: 'infocirlce',
 };
 
 function CustomAlert({

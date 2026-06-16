@@ -234,13 +234,13 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
       <Svg width={W} height={H} style={StyleSheet.absoluteFill}>
         <Defs>
           <LinearGradient id="splashBg" x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0%" stopColor="#0F0720" />
-            <Stop offset="40%" stopColor="#1A0A2E" />
-            <Stop offset="70%" stopColor="#12081E" />
-            <Stop offset="100%" stopColor="#0A0514" />
+            <Stop offset="0%" stopColor="#000000" />
+            <Stop offset="40%" stopColor="#0D0D1A" />
+            <Stop offset="70%" stopColor="#080812" />
+            <Stop offset="100%" stopColor="#000000" />
           </LinearGradient>
           <RadialGradient id="centerGlow" cx="50%" cy="45%" r="60%">
-            <Stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.15} />
+            <Stop offset="0%" stopColor="#007AFF" stopOpacity={0.15} />
             <Stop offset="50%" stopColor="#6D28D9" stopOpacity={0.06} />
             <Stop offset="100%" stopColor="#4C1D95" stopOpacity={0} />
           </RadialGradient>
@@ -255,7 +255,7 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
 
       <Particle size={4} left={W * 0.15} top={H * 0.2} color="#A78BFA" delay={100} />
       <Particle size={3} left={W * 0.82} top={H * 0.15} color="#C4B5FD" delay={300} />
-      <Particle size={5} left={W * 0.75} top={H * 0.7} color="#8B5CF6" delay={500} />
+      <Particle size={5} left={W * 0.75} top={H * 0.7} color="#007AFF" delay={500} />
       <Particle size={3} left={W * 0.1} top={H * 0.78} color="#DDD6FE" delay={200} />
       <Particle size={4} left={W * 0.5} top={H * 0.08} color="#A78BFA" delay={400} />
       <Particle size={3} left={W * 0.88} top={H * 0.5} color="#C4B5FD" delay={600} />
@@ -278,7 +278,7 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
               width: 200,
               height: 200,
               borderRadius: 100,
-              backgroundColor: '#8B5CF6',
+              backgroundColor: '#007AFF',
             },
             pulseAnim,
           ]}
@@ -324,9 +324,9 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
           <Svg width={RING_SZ} height={RING_SZ}>
             <Defs>
               <LinearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="0">
-                <Stop offset="0%" stopColor="#8B5CF6" />
+                <Stop offset="0%" stopColor="#007AFF" />
                 <Stop offset="50%" stopColor="#C4B5FD" />
-                <Stop offset="100%" stopColor="#8B5CF6" />
+                <Stop offset="100%" stopColor="#007AFF" />
               </LinearGradient>
             </Defs>
             <Circle
@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#0F0720',
+    backgroundColor: '#000000',
   },
   logoInner: {
     flex: 1,
@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: 'rgba(139,92,246,0.2)',
-    shadowColor: '#8B5CF6',
+    shadowColor: '#007AFF',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 24,
@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 3,
     marginBottom: 8,
-    textShadowColor: '#8B5CF6',
+    textShadowColor: '#007AFF',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 12,
     textAlign: 'center',
@@ -457,13 +457,13 @@ const styles = StyleSheet.create({
   footerLine: {
     width: 24,
     height: 2,
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#007AFF',
     borderRadius: 1,
     marginBottom: 8,
     opacity: 0.4,
   },
   footerText: {
-    color: '#8B5CF6',
+    color: '#007AFF',
     fontSize: 9,
     fontWeight: '600',
     letterSpacing: 2.5,

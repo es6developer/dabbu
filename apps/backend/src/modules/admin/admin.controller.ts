@@ -176,6 +176,16 @@ export class AdminController {
   }
 
   @UseGuards(AdminGuard)
+  @Roles('super_admin', 'admin')
+  @ApiBearerAuth()
+  @Post('configuration/test-email')
+  @ApiOperation({ summary: 'Send a test email' })
+  async sendTestEmail(@Body() dto: { to: string }, @CurrentAdmin('id') adminId: string) {
+    const result = await this.adminService.sendTestEmail(dto.to, adminId);
+    return { data: result };
+  }
+
+  @UseGuards(AdminGuard)
   @ApiBearerAuth()
   @Get('plans')
   @ApiOperation({ summary: 'List all subscription plans' })

@@ -31,7 +31,7 @@ export function TransactionCard({
   const isExpense = amount < 0;
   const absAmount = Math.abs(amount);
 
-  const iconName = getCategoryIcon(category, 'minuscirlceo');
+  const iconName = getCategoryIcon(category, 'minuscircleo');
 
   return (
     <TouchableOpacity

@@ -11,6 +11,7 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { EmailService } from '../email/email.service';
 import { NotificationService } from '../notification/notification.service';
 import { FeaturesService } from '../features/features.service';
 import {
@@ -38,6 +39,7 @@ export class AdminService {
     private readonly configService: ConfigService,
     private readonly notificationService: NotificationService,
     private readonly featuresService: FeaturesService,
+    private readonly emailService: EmailService,
   ) {}
 
   async login(dto: AdminLoginDto): Promise<{ accessToken: string; admin: any }> {
@@ -720,6 +722,26 @@ export class AdminService {
     });
 
     return updated;
+  }
+
+  async sendTestEmail(to: string, adminId: string) {
+    await this.emailService.send({
+      to,
+      subject: 'Test Email from Dabbu Admin',
+      html: '<h1>SMTP Test</h1><p>If you received this, your SMTP configuration in Dabbu Admin is working correctly.</p>',
+      text: 'SMTP Test — If you received this, your SMTP configuration in Dabbu Admin is working correctly.',
+    });
+
+    await this.createAuditLog({
+      adminId,
+      action: 'created',
+      entity: 'email',
+      entityId: null,
+      description: `Sent test email to ${to}`,
+      ipAddress: null,
+    });
+
+    return { messageId: 'sent' };
   }
 
   async listTickets(query: ListTicketsQueryDto) {

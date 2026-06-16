@@ -359,7 +359,7 @@ export function SharedGroupDetailScreen() {
       title: a.description,
       detail: `${a.userName} · ${new Date(a.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`,
       date: a.createdAt,
-      icon: (iconMap[a.action] || 'minuscirlceo') as any,
+      icon: (iconMap[a.action] || 'minuscircleo') as any,
       type: a.action as any,
     }));
     const expenseActivity = expenses.slice(0, 20).map((tx) => ({

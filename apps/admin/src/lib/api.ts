@@ -140,6 +140,13 @@ export interface AppConfig {
   emailNotifications: boolean;
   pushNotifications: boolean;
   smsNotifications: boolean;
+  smtpHost: string | null;
+  smtpPort: number | null;
+  smtpSecure: boolean;
+  smtpUser: string | null;
+  smtpPass: string | null;
+  smtpFromName: string | null;
+  smtpFromEmail: string | null;
 }
 
 // Auth
@@ -323,6 +330,13 @@ export function updateAppConfig(data: Partial<AppConfig>) {
   return request<{ data: AppConfig }>('/admin/configuration', {
     method: 'PATCH',
     body: JSON.stringify(data),
+  });
+}
+
+export function sendTestEmail(to: string) {
+  return request<{ data: { messageId: string } }>('/admin/configuration/test-email', {
+    method: 'POST',
+    body: JSON.stringify({ to }),
   });
 }
 

@@ -152,7 +152,7 @@ export function AiInsightCard({
             </View>
           </View>
           <View style={[styles.aiBadge, { backgroundColor: SEVERITY_COLORS.info.bg }]}>
-            <AntDesign  name="API" size={10} color={SEVERITY_COLORS.info.text} />
+            <AntDesign  name="bulb1" size={10} color={SEVERITY_COLORS.info.text} />
             <Text style={[styles.aiBadgeText, { color: SEVERITY_COLORS.info.text }]}>AI</Text>
           </View>
         </View>

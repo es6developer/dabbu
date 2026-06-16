@@ -67,9 +67,9 @@ function ToastDisplay({ message, type }: { message: string; type: ToastType }) {
     info: '#14B8A6',
   };
   const iconMap: Record<string, string> = {
-    error: 'alert-circle',
-    success: 'checkmark-circle',
-    info: 'information-circle',
+    error: 'closecircle',
+    success: 'checkcircle',
+    info: 'infocirlceo',
   };
 
   return (

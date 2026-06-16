@@ -124,11 +124,11 @@ function deriveGroupBalance(group: any, currentUserId: string | undefined) {
 
 const INSIGHT_ICONS: Record<string, string> = {
   'Net Worth': 'wallet',
-  Subscriptions: 'card',
-  Loans: 'trending-down',
+  Subscriptions: 'creditcard',
+  Loans: 'arrowdown',
   'Active Goals': 'flag',
-  'Upcoming Bills': 'receipt',
-  'Budget Health': 'pie-chart',
+  'Upcoming Bills': 'filetext1',
+  'Budget Health': 'piechart',
 };
 
 const QUICK_ACTIONS: {
@@ -808,7 +808,7 @@ export function HomeScreen() {
             {monthlyIncome > 0 && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
                 <AntDesign
-                  name={(savings > 0 ? 'trending-up' : 'trending-down') as any}
+                  name={(savings > 0 ? 'arrowup' : 'arrowdown') as any}
                   size={14}
                   color={savings > 0 ? colors.status.success : colors.status.error}
                 />
@@ -1243,7 +1243,7 @@ export function HomeScreen() {
                         }}
                       >
                         <AntDesign
-                          name={(isExpense ? 'arrow-up' : 'arrow-down') as any}
+                          name={(isExpense ? 'arrowup' : 'arrowdown') as any}
                           size={18}
                           color={isExpense ? colors.status.error : colors.status.success}
                         />
@@ -1318,7 +1318,7 @@ export function HomeScreen() {
               >
                 <View style={[page.insightIcon, { backgroundColor: `${ins.color}12` }]}>
                   <AntDesign
-                    name={(INSIGHT_ICONS[ins.label] || 'ellipsis-horizontal') as any}
+                    name={(INSIGHT_ICONS[ins.label] || 'ellipsis1') as any}
                     size={18}
                     color={ins.color}
                   />

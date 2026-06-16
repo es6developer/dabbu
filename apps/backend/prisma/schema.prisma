@@ -2703,6 +2703,13 @@ model AppConfiguration {
   emailNotifications Boolean  @default(true)
   pushNotifications  Boolean  @default(true)
   smsNotifications   Boolean  @default(false)
+  smtpHost           String?  @db.VarChar(255)
+  smtpPort           Int?     @db.SmallInt
+  smtpSecure         Boolean  @default(false)
+  smtpUser           String?  @db.VarChar(255)
+  smtpPass           String?  @db.VarChar(255)
+  smtpFromName       String?  @db.VarChar(255)
+  smtpFromEmail      String?  @db.VarChar(255)
   updatedAt          DateTime @updatedAt
 
   @@map("app_configuration")

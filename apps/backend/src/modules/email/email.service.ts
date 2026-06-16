@@ -121,7 +121,7 @@ export class EmailService implements OnModuleInit {
     }
   }
 
-  private async send(options: {
+  async send(options: {
     to: string;
     subject: string;
     html: string;

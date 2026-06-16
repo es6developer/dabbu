@@ -136,6 +136,11 @@ export function MyWalletScreen() {
     }, [loadData]),
   );
 
+  const safeCat = (t: any) => {
+    const c = t.category;
+    return typeof c === 'string' ? c : c?.name || '';
+  };
+
   const filtered = useMemo(() => {
     let list = transactions;
     if (search.trim()) {
@@ -143,7 +148,7 @@ export function MyWalletScreen() {
       list = list.filter(
         (t) =>
           (t.description || '').toLowerCase().includes(q) ||
-          (t.category?.name || t.category || '').toLowerCase().includes(q),
+          safeCat(t).toLowerCase().includes(q),
       );
     }
     return groupByDate(list);
@@ -330,7 +335,7 @@ export function MyWalletScreen() {
                     {item.description || 'No description'}
                   </Text>
                   <Text style={[s.txCat, { color: colors.text.tertiary }]}>
-                    {item.category?.name || item.category || 'Uncategorized'}
+                    {safeCat(item) || 'Uncategorized'}
                   </Text>
                 </View>
               </View>

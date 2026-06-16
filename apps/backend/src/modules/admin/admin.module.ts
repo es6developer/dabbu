@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PrismaModule } from '../../common/prisma/prisma.module';
+import { EmailModule } from '../email/email.module';
 import { NotificationModule } from '../notification/notification.module';
 import { FeaturesModule } from '../features/features.module';
 import { AdminController } from './admin.controller';
@@ -11,6 +12,7 @@ import { AdminGuard } from './guards';
 @Module({
   imports: [
     PrismaModule,
+    EmailModule,
     NotificationModule,
     FeaturesModule,
     JwtModule.registerAsync({

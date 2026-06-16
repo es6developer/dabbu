@@ -14,9 +14,9 @@ interface ToastProps {
 }
 
 const iconMap: Record<ToastType, string> = {
-  error: 'alert-circle',
-  success: 'checkmark-circle',
-  info: 'information-circle',
+  error: 'closecircle',
+  success: 'checkcircle',
+  info: 'infocirlceo',
 };
 
 const bgMap: Record<ToastType, string> = {
