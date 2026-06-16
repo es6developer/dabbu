@@ -839,6 +839,36 @@ async function main() {
   await prisma.adminUser.createMany({ data: adminUsers });
   console.log(`  ✓ ${adminUsers.length} admin user`);
 
+  // ── Feature Flags ──
+  await prisma.featureFlag.deleteMany();
+  const FEATURE_FLAGS = [
+    { name: 'dashboard', description: 'Home dashboard with financial overview', isEnabled: true },
+    { name: 'expenses', description: 'Track personal income and expenses', isEnabled: true },
+    { name: 'wallet', description: 'Multi-account wallet management', isEnabled: true },
+    { name: 'circles', description: 'Expense circles for shared tracking', isEnabled: true },
+    { name: 'shared_spaces', description: 'Shared finance spaces for groups', isEnabled: true },
+    { name: 'goals', description: 'Financial goal setting and tracking', isEnabled: true },
+    { name: 'couple', description: 'Couple finance management', isEnabled: true },
+    { name: 'analytics', description: 'Financial analytics and reports', isEnabled: true },
+    { name: 'ai_copilot', description: 'AI-powered financial assistant', isEnabled: true },
+    { name: 'bills', description: 'Bill management and reminders', isEnabled: true },
+    { name: 'budgets', description: 'Budget planning and tracking', isEnabled: true },
+    { name: 'investments', description: 'Investment portfolio tracking', isEnabled: true },
+    { name: 'family', description: 'Family finance dashboard', isEnabled: true },
+    { name: 'premium', description: 'Premium subscription and features', isEnabled: true },
+    { name: 'referral', description: 'Refer a friend program', isEnabled: true },
+    { name: 'chat', description: 'In-app messaging and group chat', isEnabled: true },
+    { name: 'notifications', description: 'Push and in-app notifications', isEnabled: true },
+    { name: 'settings', description: 'App settings and preferences', isEnabled: true },
+    { name: 'reports', description: 'Detailed financial reports', isEnabled: true },
+    { name: 'reminders', description: 'Payment reminders and scheduling', isEnabled: true },
+    { name: 'documents', description: 'Document storage and management', isEnabled: true },
+    { name: 'split', description: 'Expense splitting between users', isEnabled: true },
+    { name: 'sms_detection', description: 'Auto-detect transactions from SMS', isEnabled: true },
+  ];
+  await prisma.featureFlag.createMany({ data: FEATURE_FLAGS });
+  console.log(`  ✓ ${FEATURE_FLAGS.length} feature flags`);
+
   // ── Webhook events ──
   for (let w = 0; w < 20; w++) {
     await prisma.webhookEvent.create({

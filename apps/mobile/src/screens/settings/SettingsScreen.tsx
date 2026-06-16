@@ -798,6 +798,40 @@ export function SettingsScreen() {
             </View>
           ))}
 
+          {/* Admin */}
+          <TouchableOpacity
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 12,
+              marginHorizontal: PADDING,
+              padding: 16,
+              backgroundColor: colors.bg.card,
+              borderRadius: borderRadius.lg,
+              ...shadows.sm,
+              marginBottom: 8,
+            }}
+            onPress={() => navigation.navigate('AdminLogin')}
+            activeOpacity={0.6}
+          >
+            <View
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 12,
+                backgroundColor: '#6C3EF420',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <AntDesign name="Safety" size={18} color="#6C3EF4" />
+            </View>
+            <Text style={{ flex: 1, fontSize: 15, fontWeight: '600', color: '#6C3EF4' }}>
+              Admin Panel
+            </Text>
+            <AntDesign name="right" size={16} color={colors.text.tertiary} />
+          </TouchableOpacity>
+
           {/* Logout */}
           <TouchableOpacity
             style={{

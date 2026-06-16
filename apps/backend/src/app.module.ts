@@ -62,6 +62,7 @@ import { BillRemindersModule } from './modules/bill-reminders/bill-reminders.mod
 import { ForecastModule } from './modules/forecast/forecast.module';
 import { WealthModule } from './modules/wealth/wealth.module';
 import { ChallengesModule } from './modules/challenges/challenges.module';
+import { FeaturesModule } from './modules/features/features.module';
 
 @Module({
   imports: [
@@ -151,6 +152,7 @@ import { ChallengesModule } from './modules/challenges/challenges.module';
     SharedFinanceModule,
     SettlementsModule,
     UserPreferencesModule,
+    FeaturesModule,
     EmailModule,
     DocumentsModule,
     GamificationModule,

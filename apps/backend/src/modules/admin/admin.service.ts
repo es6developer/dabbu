@@ -12,6 +12,7 @@ import * as bcrypt from 'bcrypt';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { NotificationService } from '../notification/notification.service';
+import { FeaturesService } from '../features/features.service';
 import {
   AdminLoginDto,
   AdminCreateDto,
@@ -36,6 +37,7 @@ export class AdminService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly notificationService: NotificationService,
+    private readonly featuresService: FeaturesService,
   ) {}
 
   async login(dto: AdminLoginDto): Promise<{ accessToken: string; admin: any }> {
@@ -601,6 +603,8 @@ export class AdminService {
       description: `${isEnabled ? 'Enabled' : 'Disabled'} feature flag: ${flag.name}`,
       ipAddress: null,
     });
+
+    this.featuresService.invalidateCache();
 
     return updated;
   }

@@ -62,6 +62,8 @@ import { CoupleSpaceNavigator } from './CoupleSpaceNavigator';
 import { CirclesNavigator } from './CirclesNavigator';
 import { CategorySelectionScreen } from '../screens/expense/CategorySelectionScreen';
 import { AddExpenseScreen } from '../screens/expense/AddExpenseScreen';
+import { AdminLoginScreen } from '../screens/admin/AdminLoginScreen';
+import { AdminDashboardScreen } from '../screens/admin/AdminDashboardScreen';
 import { useTheme } from '../theme';
 import { useAuth } from '../store/AuthContext';
 import { usePreferences } from '../store/PreferencesContext';
@@ -322,6 +324,16 @@ function SettingsNavigator() {
       <SettingsStack.Screen
         name="AvatarPicker"
         component={AvatarPickerScreen}
+        options={{ headerShown: false }}
+      />
+      <SettingsStack.Screen
+        name="AdminLogin"
+        component={AdminLoginScreen}
+        options={{ headerShown: false, presentation: 'modal' }}
+      />
+      <SettingsStack.Screen
+        name="AdminDashboard"
+        component={AdminDashboardScreen}
         options={{ headerShown: false }}
       />
     </SettingsStack.Navigator>
