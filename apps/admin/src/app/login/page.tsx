@@ -29,6 +29,7 @@ export default function LoginPage() {
       }
       const json = await res.json();
       localStorage.setItem('admin_token', json.data.accessToken);
+      document.cookie = `admin_token=${json.data.accessToken}; path=/; max-age=86400; SameSite=Lax`;
       router.push('/dashboard');
     } catch (e: any) {
       setError(e.message);

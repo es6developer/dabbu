@@ -60,6 +60,7 @@ async function bootstrap(): Promise<void> {
       'http://localhost:3000',
       'http://localhost:8081',
       'https://admin.dabbu.app',
+      /\.vercel\.app$/,
       'https://app.dabbu.app',
       'https://external-web-es6developers-projects.vercel.app',
       'https://external-web.vercel.app',

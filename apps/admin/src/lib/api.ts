@@ -38,6 +38,10 @@ export interface DashboardStats {
   newUsersToday: number;
   activeSubscriptions: number;
   revenueThisMonth?: number;
+  revenueLastMonth?: number;
+  revenueGrowth?: number;
+  userGrowth?: number;
+  subscriptionGrowth?: number;
   pendingPayments?: number;
   totalFeatureFlags?: number;
 }

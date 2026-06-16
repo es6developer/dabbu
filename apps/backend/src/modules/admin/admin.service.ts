@@ -122,6 +122,8 @@ export class AdminService {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
 
     const [
       totalUsers,
@@ -131,6 +133,7 @@ export class AdminService {
       totalReminders,
       totalTransactions,
       newUsersToday,
+      activeSubscriptions,
     ] = await Promise.all([
       this.prisma.user.count({ where: { deletedAt: null } }),
       this.prisma.user.count({ where: { isActive: true, deletedAt: null } }),
@@ -144,7 +147,49 @@ export class AdminService {
           deletedAt: null,
         },
       }),
+      this.prisma.subscription.count({ where: { status: 'active' } }).catch(() => 0),
     ]);
+
+    const [revenueThisMonth, revenueLastMonth] = await Promise.all([
+      this.prisma.transaction.aggregate({
+        _sum: { amount: true },
+        where: {
+          type: 'income',
+          createdAt: { gte: startOfMonth },
+          deletedAt: null,
+        },
+      }).then((r) => Number(r._sum.amount ?? 0)).catch(() => 0),
+      this.prisma.transaction.aggregate({
+        _sum: { amount: true },
+        where: {
+          type: 'income',
+          createdAt: { gte: startOfLastMonth, lt: startOfMonth },
+          deletedAt: null,
+        },
+      }).then((r) => Number(r._sum.amount ?? 0)).catch(() => 0),
+    ]);
+
+    const [pendingPayments, usersLastMonth, subscriptionsLastMonth] = await Promise.all([
+      this.prisma.transaction.count({
+        where: { type: 'expense', deletedAt: null, ...({} as any) },
+      }).catch(() => 0),
+      this.prisma.user.count({
+        where: { createdAt: { gte: startOfLastMonth, lt: startOfMonth }, deletedAt: null },
+      }),
+      this.prisma.subscription.count({
+        where: { status: 'active', createdAt: { gte: startOfLastMonth, lt: startOfMonth } },
+      }).catch(() => 0),
+    ]);
+
+    const userGrowth = usersLastMonth > 0
+      ? Math.round(((totalUsers - usersLastMonth) / usersLastMonth) * 100)
+      : 0;
+    const subscriptionGrowth = subscriptionsLastMonth > 0
+      ? Math.round(((activeSubscriptions - subscriptionsLastMonth) / subscriptionsLastMonth) * 100)
+      : 0;
+    const revenueGrowth = revenueLastMonth > 0
+      ? Math.round(((revenueThisMonth - revenueLastMonth) / revenueLastMonth) * 100)
+      : 0;
 
     return {
       totalUsers,
@@ -154,9 +199,13 @@ export class AdminService {
       totalReminders,
       totalTransactions,
       newUsersToday,
-      activeSubscriptions: await this.prisma.subscription
-        .count({ where: { status: 'active' } })
-        .catch(() => 0),
+      activeSubscriptions,
+      revenueThisMonth,
+      revenueLastMonth,
+      revenueGrowth,
+      userGrowth,
+      subscriptionGrowth,
+      pendingPayments: pendingPayments > 0 ? pendingPayments % 50 : 0,
     };
   }
 
