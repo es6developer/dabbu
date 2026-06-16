@@ -19,7 +19,7 @@ export const ScreenContainer: React.FC<ScreenContainerProps> = ({
 
   return (
     <View
-      className={`flex-1 bg-[#F4F3FA] px-5 ${className}`}
+      className={`flex-1 bg-dark-canvas px-5 ${className}`}
       style={{
         paddingTop: safeTop ? insets.top : 0,
         paddingBottom: safeBottom ? insets.bottom : 0,

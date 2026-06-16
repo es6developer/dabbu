@@ -834,8 +834,8 @@ export function SharedScreen() {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={[mod.overlay, { backgroundColor: 'rgba(0,0,0,0.45)' }]}>
             <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-              keyboardVerticalOffset={Platform.OS === 'ios' ? -20 : 0}
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+              keyboardVerticalOffset={Platform.OS === 'ios' ? -20 : 20}
               style={{ justifyContent: 'flex-end' }}
             >
               <TouchableWithoutFeedback onPress={() => {}}>

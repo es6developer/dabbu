@@ -8,6 +8,7 @@ import {
   RefreshControl,
   Dimensions,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -46,6 +47,24 @@ export function CoupleReportsScreen() {
   const [period, setPeriod] = useState<Period>('This Month');
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState('');
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const { downloadAndShareFile } = await import('../../utils/exportFile');
+      await downloadAndShareFile(
+        '/reports/export',
+        { type: 'custom', format: 'pdf', groupId: data?.groupId },
+        'couple-report',
+        'pdf',
+      );
+    } catch (e: any) {
+      Alert.alert('Export Failed', e.message || 'Could not export report');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const periodQuery =
     period === 'This Month' ? 'month' : period === 'This Quarter' ? 'quarter' : 'year';
@@ -396,13 +415,16 @@ export function CoupleReportsScreen() {
             activeOpacity={0.7}
             style={[
               styles.exportBtn,
-              { backgroundColor: colors.bg.card, borderColor: colors.border.default },
+              { backgroundColor: colors.bg.card, borderColor: colors.border.default, opacity: exporting ? 0.6 : 1 },
             ]}
-            onPress={() =>
-              Alert.alert('Coming Soon', 'Export reports as PDF or CSV will be available soon.')
-            }
+            disabled={exporting}
+            onPress={handleExport}
           >
-            <AntDesign  name="download" size={20} color={colors.accent.primary} />
+            {exporting ? (
+              <ActivityIndicator size="small" color={colors.accent.primary} />
+            ) : (
+              <AntDesign name="download" size={20} color={colors.accent.primary} />
+            )}
             <Text style={styles.exportText}>Export Report</Text>
             <AntDesign  name="right" size={16} color={colors.text.tertiary} />
           </TouchableOpacity>

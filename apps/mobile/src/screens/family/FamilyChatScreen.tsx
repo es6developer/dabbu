@@ -61,7 +61,7 @@ export function FamilyChatScreen() {
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: colors.bg.primary }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={[styles.statusBar, { borderBottomColor: colors.border.subtle }]}>
         <View

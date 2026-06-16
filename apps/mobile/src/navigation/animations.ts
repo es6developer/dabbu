@@ -1,18 +1,19 @@
 import { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import { Theme } from '../theme';
+import { Platform } from 'react-native';
 
 /**
- * iOS-style smooth screen transitions for both platforms.
- * - slide_from_right: mimics iOS push transition
- * - spring animation for smooth card-style feel
+ * Smooth screen transitions for both platforms.
+ * - iOS: slide_from_right (native iOS push transition)
+ * - Android: fade + slide combination for smoother feel
  * - gesture back enabled for iOS-like swipe
  * - 350ms matches iOS default transition duration
  */
 export function iosTransitionOptions(theme: Theme): NativeStackNavigationOptions {
   const { colors, typography } = theme;
   return {
-    animation: 'slide_from_right',
-    animationDuration: 350,
+    animation: Platform.OS === 'android' ? 'fade_from_bottom' : 'slide_from_right',
+    animationDuration: Platform.OS === 'android' ? 280 : 350,
     animationTypeForReplace: 'push',
     gestureEnabled: true,
     gestureDirection: 'horizontal',
@@ -35,6 +36,20 @@ export function iosModalOptions(theme: Theme): NativeStackNavigationOptions {
   return {
     ...iosTransitionOptions(theme),
     presentation: 'modal',
-    animation: 'slide_from_bottom',
+    animation: Platform.OS === 'android' ? 'fade_from_bottom' : 'slide_from_bottom',
+  };
+}
+
+/**
+ * No animation for tab switches or screens where instant transitions are desired.
+ */
+export function noAnimationOptions(theme: Theme): NativeStackNavigationOptions {
+  const { colors } = theme;
+  return {
+    animation: 'none',
+    gestureEnabled: false,
+    headerStyle: { backgroundColor: colors.bg.primary },
+    contentStyle: { backgroundColor: colors.bg.primary },
+    headerShadowVisible: false,
   };
 }

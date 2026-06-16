@@ -314,7 +314,7 @@ export function FinancialCopilotScreen() {
         onContentSizeChange={() => flatRef.current?.scrollToEnd({ animated: true })}
       />
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View
           style={[
             s.inputWrap,

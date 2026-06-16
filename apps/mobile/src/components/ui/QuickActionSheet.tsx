@@ -8,7 +8,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 
@@ -95,7 +95,7 @@ export function QuickActionSheet({ actions, activeItem, visible, onClose }: Quic
                   { backgroundColor: (action.color || '#636366') + '18' },
                 ]}
               >
-                <AntDesign
+                <Ionicons
                   name={action.icon as any}
                   size={24}
                   color={action.color || '#1C1C1E'}

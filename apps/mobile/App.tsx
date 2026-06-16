@@ -1,6 +1,11 @@
 import './src/global.css';
 import React, { useEffect, useCallback, useState } from 'react';
-import { StatusBar, LogBox, Appearance, View } from 'react-native';
+import { StatusBar, LogBox, Appearance, View, UIManager, Platform } from 'react-native';
+import * as Font from 'expo-font';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
@@ -79,6 +84,7 @@ function ThemedNavigationContainer({
 
 export default function App(): React.ReactElement | null {
   const [appIsReady, setAppIsReady] = useState(false);
+  const [fontsLoaded, setFontsLoaded] = useState(false);
   const navigationRef = React.useRef<NavigationContainerRef<any>>(null);
 
   useDeepLinks();
@@ -113,8 +119,18 @@ export default function App(): React.ReactElement | null {
       try {
         loadFeatures();
         warmupBackend();
+        const fontName = Platform.OS === 'android' ? null : null;
+        const inter = await import('@expo-google-fonts/inter');
+        await Font.loadAsync({
+          'Inter-Regular': inter.Inter_400Regular,
+          'Inter-Medium': inter.Inter_500Medium,
+          'Inter-SemiBold': inter.Inter_600SemiBold,
+          'Inter-Bold': inter.Inter_700Bold,
+        });
+        setFontsLoaded(true);
       } catch (e) {
-        console.warn('Load features error:', e);
+        console.warn('Load error:', e);
+        setFontsLoaded(true);
       } finally {
         setAppIsReady(true);
       }
@@ -123,12 +139,12 @@ export default function App(): React.ReactElement | null {
   }, []);
 
   const onLayoutRootView = useCallback(async () => {
-    if (appIsReady) {
+    if (appIsReady && fontsLoaded) {
       await SplashScreen.hideAsync();
     }
-  }, [appIsReady]);
+  }, [appIsReady, fontsLoaded]);
 
-  if (!appIsReady) {
+  if (!appIsReady || !fontsLoaded) {
     return null;
   }
 

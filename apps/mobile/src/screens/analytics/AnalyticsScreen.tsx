@@ -143,27 +143,19 @@ export function AnalyticsScreen() {
   const handleExport = async (type: 'pdf' | 'excel') => {
     setExporting(type);
     try {
+      const { downloadAndShareFile } = await import('../../utils/exportFile');
       const range = getDateRange();
-      const res = await fetch(`${API_URL}/analytics/export/${type}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          ...range,
-          reportType:
-            reportTab === 'expense' ? 'Expense' : reportTab === 'income' ? 'Income' : 'Savings',
-        }),
-      });
-      if (!res.ok) {
-        throw new Error('Export failed');
-      }
-      const blob = await res.blob();
-      // On mobile, we'd use expo-file-system + expo-sharing
-      // For now, show success
+      const reportType =
+        reportTab === 'expense' ? 'Expense' : reportTab === 'income' ? 'Income' : 'Savings';
+      await downloadAndShareFile(
+        `/analytics/export/${type}`,
+        { ...range, reportType },
+        `dabbu-${reportType.toLowerCase()}-report`,
+        type,
+      );
     } catch (e: any) {
-      console.warn('Export error:', e.message);
+      const { Alert } = require('react-native');
+      Alert.alert('Export Failed', e.message || 'Could not export report');
     } finally {
       setExporting(null);
     }

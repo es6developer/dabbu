@@ -792,6 +792,15 @@ export class SharedFinanceService {
       )
       .catch((err) => this.logger.error(`Push failed for member removal: ${err.message}`));
 
+    this.emailService
+      .sendMemberRemovedEmail(
+        member.user.email,
+        member.user.firstName || 'User',
+        groupInfo?.name || 'a group',
+        adminName,
+      )
+      .catch((err) => this.logger.error(`Failed to send member removal email: ${err.message}`));
+
     return {
       message: 'Member removed successfully. Access revoked.',
       sessionsTerminated: revocationResult.sessionsTerminated,
@@ -1108,6 +1117,34 @@ export class SharedFinanceService {
 
     await this.updateGroupTotalSpent(groupId);
 
+    const [groupForEmail, payerUser] = await Promise.all([
+      this.prisma.sharedGroup.findUnique({
+        where: { id: groupId },
+        select: { name: true },
+      }),
+      this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { firstName: true },
+      }),
+    ]);
+    const groupMembers = await this.prisma.sharedGroupMember.findMany({
+      where: { groupId, isActive: true, userId: { not: userId } },
+      include: { user: { select: { email: true, firstName: true } } },
+    });
+    const payerName = `${payerUser?.firstName || 'Someone'}`;
+    for (const member of groupMembers) {
+      this.emailService
+        .sendGroupExpenseAddedEmail(
+          member.user.email,
+          member.user.firstName,
+          groupForEmail?.name || 'a group',
+          expense.description,
+          `₹${Number(expense.amount).toLocaleString('en-IN')}`,
+          payerName,
+        )
+        .catch((err) => this.logger.warn(`Failed to send expense email to ${member.user.email}: ${err.message}`));
+    }
+
     return expense;
   }
 
@@ -1302,6 +1339,22 @@ export class SharedFinanceService {
       )
       .catch((err) => this.logger.error(`Push failed for settlement request: ${err.message}`));
 
+    const toUser = await this.prisma.user.findUnique({
+      where: { id: toUserId },
+      select: { email: true, firstName: true },
+    });
+    if (toUser) {
+      this.emailService
+        .sendSettlementRequestedEmail(
+          toUser.email,
+          toUser.firstName,
+          group?.name || 'a group',
+          `₹${amount.toLocaleString('en-IN')}`,
+          fromName,
+        )
+        .catch((err) => this.logger.error(`Failed to send settlement request email: ${err.message}`));
+    }
+
     return settlement;
   }
 
@@ -1375,6 +1428,43 @@ export class SharedFinanceService {
       }
     } catch (e) {
       this.logger.warn('Failed to send settlement notification', e);
+    }
+
+    try {
+      const [fromUserInfo, toUserInfo] = await Promise.all([
+        this.prisma.user.findUnique({
+          where: { id: settlement.fromUserId },
+          select: { email: true, firstName: true },
+        }),
+        this.prisma.user.findUnique({
+          where: { id: settlement.toUserId },
+          select: { email: true, firstName: true },
+        }),
+      ]);
+      if (fromUserInfo) {
+        this.emailService
+          .sendSettlementCompletedEmail(
+            fromUserInfo.email,
+            fromUserInfo.firstName,
+            settlement.group.name,
+            `₹${amount.toLocaleString('en-IN')}`,
+            toName,
+          )
+          .catch((err) => this.logger.warn(`Failed to send settlement email to payer: ${err.message}`));
+      }
+      if (toUserInfo) {
+        this.emailService
+          .sendSettlementCompletedEmail(
+            toUserInfo.email,
+            toUserInfo.firstName,
+            settlement.group.name,
+            `₹${amount.toLocaleString('en-IN')}`,
+            fromName,
+          )
+          .catch((err) => this.logger.warn(`Failed to send settlement email to payee: ${err.message}`));
+      }
+    } catch (e) {
+      this.logger.warn('Failed to send settlement completion emails', e);
     }
 
     return updated;

@@ -434,10 +434,9 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 3,
     marginBottom: 8,
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
+    textShadowColor: '#8B5CF6',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 12,
     textAlign: 'center',
   },
   tagline: {

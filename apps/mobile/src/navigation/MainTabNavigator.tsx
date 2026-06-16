@@ -383,38 +383,38 @@ export function MainTabNavigator() {
   const quickActions = [
     {
       label: 'Add Expense',
-      icon: 'pluscircleo',
+      icon: 'add-circle-outline',
       color: '#DC2626',
       onPress: () => navigation.navigate('Expense', { screen: 'CategorySelection', params: { type: 'expense' } }),
     },
     {
       label: 'Add Income',
-      icon: 'linechart',
+      icon: 'trending-up-outline',
       color: '#16A34A',
       onPress: () =>
         navigation.navigate('Expense', { screen: 'CategorySelection', params: { type: 'income' } }),
     },
     {
       label: 'Wallet',
-      icon: 'wallet',
+      icon: 'wallet-outline',
       color: '#2563EB',
       onPress: () => navigation.navigate('Expense', { screen: 'ExpenseHome' }),
     },
     {
       label: 'Net Worth',
-      icon: 'barchart',
+      icon: 'bar-chart-outline',
       color: '#7C3AED',
       onPress: () => navigation.navigate('Dashboard', { screen: 'NetWorth' }),
     },
     {
       label: 'Create Goal',
-      icon: 'flag',
+      icon: 'flag-outline',
       color: '#F59E0B',
       onPress: () => navigation.navigate('Goals'),
     },
     {
       label: 'Expense Group',
-      icon: 'team',
+      icon: 'people-outline',
       color: '#14B8A6',
       onPress: () => navigation.navigate('Spaces', { screen: 'SharedFinanceHome' }),
     },
@@ -427,9 +427,9 @@ export function MainTabNavigator() {
       {showCoupleFeatures && (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
           {[0, 1, 2, 3, 4, 5].map((i) => (
-            <AntDesign
+            <Ionicons
               key={i}
-               name="hearto"
+              name="heart-outline"
               size={24 + i * 8}
               color={`${COUPLE_COLORS.heart}08`}
               style={{
@@ -465,8 +465,8 @@ export function MainTabNavigator() {
           component={DashboardNavigator}
           options={{
             tabBarLabel: 'Home',
-            tabBarIcon: ({ focused, color, size }) => (
-              <AntDesign name={(focused ? 'home' : 'home') as any} size={22} color={color} />
+            tabBarIcon: ({ focused, color }) => (
+              <Ionicons name={focused ? 'home' : 'home-outline'} size={22} color={color} />
             ),
           }}
         />
@@ -486,7 +486,7 @@ export function MainTabNavigator() {
           options={{
             tabBarLabel: 'Spaces',
             tabBarIcon: ({ focused, color }) => (
-              <AntDesign name={(focused ? 'earth' : 'earth') as any} size={22} color={color} />
+              <Ionicons name={focused ? 'globe' : 'globe-outline'} size={22} color={color} />
             ),
           }}
         />
@@ -496,7 +496,7 @@ export function MainTabNavigator() {
           options={{
             tabBarLabel: 'Goals',
             tabBarIcon: ({ focused, color }) => (
-              <AntDesign name={(focused ? 'trophy' : 'trophy') as any} size={22} color={color} />
+              <Ionicons name={focused ? 'trophy' : 'trophy-outline'} size={22} color={color} />
             ),
           }}
         />
@@ -506,7 +506,7 @@ export function MainTabNavigator() {
           options={{
             tabBarLabel: 'Profile',
             tabBarIcon: ({ focused, color }) => (
-              <AntDesign name={(focused ? 'user' : 'user') as any} size={22} color={color} />
+              <Ionicons name={focused ? 'person' : 'person-outline'} size={22} color={color} />
             ),
           }}
         />
@@ -606,9 +606,25 @@ function GlossyTabBar({
         >
           {icon}
         </View>
-        <Text style={[tabStyles.label, { color: isFocused ? focusedColor : unfocusedColor }]}>
+        <Text
+          style={[
+            tabStyles.label,
+            {
+              color: isFocused ? focusedColor : unfocusedColor,
+              fontWeight: isFocused ? '700' : '500',
+            },
+          ]}
+        >
           {options.tabBarLabel || route.name}
         </Text>
+        {isFocused && (
+          <View
+            style={[
+              tabStyles.activeDot,
+              { backgroundColor: focusedColor },
+            ]}
+          />
+        )}
       </TouchableOpacity>
     );
   }
@@ -646,7 +662,7 @@ function GlossyTabBar({
               >
                 {showCoupleFeatures ? (
                   <View>
-                    <AntDesign  name="hearto" size={22} color="#FFF" />
+                    <Ionicons name="heart" size={22} color="#FFF" />
                     <View
                       style={{
                         position: 'absolute',
@@ -662,11 +678,11 @@ function GlossyTabBar({
                         borderColor: COUPLE_COLORS.primary,
                       }}
                     >
-                      <AntDesign  name="plus" size={11} color={COUPLE_COLORS.primary} />
+                      <Ionicons name="add" size={11} color={COUPLE_COLORS.primary} />
                     </View>
                   </View>
                 ) : (
-                  <AntDesign  name="plus" size={28} color="#FFF" />
+                  <Ionicons name="add" size={28} color="#FFF" />
                 )}
               </View>
             </TouchableOpacity>
@@ -684,26 +700,26 @@ const TAB_FIXED_WIDTH = 60;
 const tabStyles = StyleSheet.create({
   outerWrapper: {
     position: 'absolute',
-    left: 10,
-    right: 10,
-    bottom: Platform.OS === 'ios' ? 18 : 10,
-    borderRadius: 22,
+    left: 12,
+    right: 12,
+    bottom: Platform.OS === 'ios' ? 20 : 12,
+    borderRadius: 24,
     borderWidth: 1,
     overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.12,
-        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
       },
       android: {
-        elevation: 4,
+        elevation: 8,
       },
     }),
   },
   blur: {
-    borderRadius: 22,
+    borderRadius: 24,
     overflow: 'hidden',
   },
   innerRow: {
@@ -711,8 +727,8 @@ const tabStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 8,
-    paddingHorizontal: 12,
-    gap: 2,
+    paddingHorizontal: 16,
+    gap: 4,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   tabItem: {
@@ -731,8 +747,13 @@ const tabStyles = StyleSheet.create({
   },
   label: {
     fontSize: 11,
-    fontWeight: '600',
     letterSpacing: 0.1,
+  },
+  activeDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    marginTop: 3,
   },
   centerWrap: {
     width: TAB_FIXED_WIDTH + 8,
@@ -743,14 +764,14 @@ const tabStyles = StyleSheet.create({
   centerBtn: {
     width: 48,
     height: 48,
-    borderRadius: 14,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    elevation: 4,
+    elevation: 6,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
   },
 });

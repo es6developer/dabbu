@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   RefreshControl,
   Animated,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -161,6 +162,20 @@ export function ReportsScreen() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const scrollY = useRef(new Animated.Value(0)).current;
+  const [exporting, setExporting] = useState<'pdf' | 'excel' | 'csv' | null>(null);
+
+  const handleExport = async (format: 'pdf' | 'excel' | 'csv') => {
+    setExporting(format);
+    try {
+      const { downloadAndShareFile } = await import('../../utils/exportFile');
+      await downloadAndShareFile('/reports/export', { type: 'monthly', format }, `dabbu-report`, format);
+    } catch (e: any) {
+      const { Alert } = require('react-native');
+      Alert.alert('Export Failed', e.message || 'Could not export report');
+    } finally {
+      setExporting(null);
+    }
+  };
 
   const {
     data: stats,
@@ -739,11 +754,17 @@ export function ReportsScreen() {
                 gap: 8,
                 borderWidth: 1,
                 borderColor: colors.border.subtle,
+                opacity: exporting === 'pdf' ? 0.6 : 1,
               }}
               activeOpacity={0.7}
-              onPress={() => Alert.alert('Export Report', 'PDF export will be available soon.')}
+              disabled={!!exporting}
+              onPress={() => handleExport('pdf')}
             >
-              <AntDesign  name="filetext1" size={24} color={colors.accent.primary} />
+              {exporting === 'pdf' ? (
+                <ActivityIndicator size="small" color={colors.accent.primary} />
+              ) : (
+                <AntDesign name="filetext1" size={24} color={colors.accent.primary} />
+              )}
               <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.secondary }}>
                 PDF
               </Text>
@@ -758,11 +779,17 @@ export function ReportsScreen() {
                 gap: 8,
                 borderWidth: 1,
                 borderColor: colors.border.subtle,
+                opacity: exporting === 'excel' ? 0.6 : 1,
               }}
               activeOpacity={0.7}
-              onPress={() => Alert.alert('Export Report', 'Excel export will be available soon.')}
+              disabled={!!exporting}
+              onPress={() => handleExport('excel')}
             >
-              <AntDesign  name="appstore1" size={24} color={colors.status.success} />
+              {exporting === 'excel' ? (
+                <ActivityIndicator size="small" color={colors.status.success} />
+              ) : (
+                <AntDesign name="appstore1" size={24} color={colors.status.success} />
+              )}
               <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.secondary }}>
                 Excel
               </Text>
@@ -777,11 +804,17 @@ export function ReportsScreen() {
                 gap: 8,
                 borderWidth: 1,
                 borderColor: colors.border.subtle,
+                opacity: exporting === 'csv' ? 0.6 : 1,
               }}
               activeOpacity={0.7}
-              onPress={() => Alert.alert('Export Report', 'CSV export will be available soon.')}
+              disabled={!!exporting}
+              onPress={() => handleExport('csv')}
             >
-              <Ionicons name="code-slash-outline" size={24} color={colors.status.warning} />
+              {exporting === 'csv' ? (
+                <ActivityIndicator size="small" color={colors.status.warning} />
+              ) : (
+                <Ionicons name="code-slash-outline" size={24} color={colors.status.warning} />
+              )}
               <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.secondary }}>
                 CSV
               </Text>

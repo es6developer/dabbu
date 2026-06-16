@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
-import { AntDesign } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DraggableFlatList, {
@@ -17,11 +17,11 @@ import { useToast } from '../../store/ToastContext';
 const BOTTOM_MENU_CACHE_KEY = '@dabbu_bottom_menu_config';
 
 const TAB_META: Record<string, { label: string; icon: string; desc: string }> = {
-  Dashboard: { label: 'Dashboard', icon: 'enviroment', desc: 'Home screen with overview' },
-  Expense: { label: 'Expenses', icon: 'filetext1', desc: 'Transactions & accounts' },
-  QuickAction: { label: 'Quick Action', icon: 'pluscircle', desc: 'Center FAB with quick actions' },
-  Spaces: { label: 'Spaces', icon: 'appstore1', desc: 'Split expenses & shared accounts' },
-  Settings: { label: 'Settings', icon: 'setting', desc: 'Profile, preferences & more' },
+  Dashboard: { label: 'Dashboard', icon: 'home-outline', desc: 'Home screen with overview' },
+  Expense: { label: 'Expenses', icon: 'card-outline', desc: 'Transactions & accounts' },
+  QuickAction: { label: 'Quick Action', icon: 'add-circle-outline', desc: 'Center FAB with quick actions' },
+  Spaces: { label: 'Spaces', icon: 'globe-outline', desc: 'Split expenses & shared accounts' },
+  Settings: { label: 'Settings', icon: 'settings-outline', desc: 'Profile, preferences & more' },
 };
 
 export function CustomiseBottomMenuScreen() {
@@ -96,7 +96,7 @@ export function CustomiseBottomMenuScreen() {
   };
 
   const renderItem = ({ item, drag, isActive, getIndex }: RenderItemParams<TabConfig>) => {
-    const meta = TAB_META[item.id] || { label: item.id, icon: 'questioncircleo', desc: '' };
+    const meta = TAB_META[item.id] || { label: item.id, icon: 'help-circle-outline', desc: '' };
     const idx = getIndex() ?? 0;
     const isSettings = item.id === 'Settings';
     const isQa = item.id === 'QuickAction';
@@ -114,14 +114,14 @@ export function CustomiseBottomMenuScreen() {
             },
           ]}
         >
-          <AntDesign
-            name={(isSettings ? 'lock' : isQa ? 'bulb1' : 'menufold') as any}
+          <Ionicons
+            name={isSettings ? 'lock-closed-outline' : isQa ? 'bulb-outline' : 'menu-outline'}
             size={20}
-            color={isSettings ? colors.text.tertiary : colors.text.tertiary}
+            color={colors.text.tertiary}
             style={{ marginRight: 12 }}
           />
           <View style={[styles.tabIcon, { backgroundColor: `${colors.accent.primary}18` }]}>
-            <AntDesign name={meta.icon as any} size={20} color={colors.accent.primary} />
+            <Ionicons name={meta.icon as any} size={20} color={colors.accent.primary} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[styles.tabLabel, { color: colors.text.primary }]}>
@@ -134,8 +134,8 @@ export function CustomiseBottomMenuScreen() {
             onPress={() => !isSettings && toggleVisibility(idx)}
             style={styles.eyeBtn}
           >
-            <AntDesign
-              name={item.visible ? 'eye' : 'eyeo'}
+            <Ionicons
+              name={item.visible ? 'eye-outline' : 'eye-off-outline'}
               size={20}
               color={
                 isSettings
@@ -165,7 +165,7 @@ export function CustomiseBottomMenuScreen() {
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <AntDesign  name="left" size={24} color={colors.text.primary} />
+          <Ionicons name="chevron-back" size={24} color={colors.text.primary} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text.primary }]}>Customise Bottom Menu</Text>
         <View style={{ width: 40 }} />

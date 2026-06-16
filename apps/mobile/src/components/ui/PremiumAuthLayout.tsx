@@ -44,8 +44,8 @@ export function PremiumAuthLayout({ children, subtitle }: PremiumAuthLayoutProps
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 25}
       >
         <View style={[styles.headerSection, { backgroundColor: colors.bg.primary, paddingTop: insets.top + 40 }]}>
           <HeaderGradient color={colors.accent.primary} />

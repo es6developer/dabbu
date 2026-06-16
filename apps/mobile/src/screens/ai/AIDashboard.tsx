@@ -331,7 +331,7 @@ export function AIDashboard() {
         </Animated.View>
       )}
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View style={[s.inputWrap, { paddingBottom: Math.max(insets.bottom, 4) + TAB_BAR_HEIGHT }]}>
           <View style={s.inputRow}>
             <TextInput

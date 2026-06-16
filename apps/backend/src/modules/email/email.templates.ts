@@ -1,6 +1,6 @@
-const ACCENT = '#F97316';
-const ACCENT_DARK = '#EA580C';
-const ACCENT_LIGHT = '#FFEDD5';
+const ACCENT = '#6C3EF4';
+const ACCENT_DARK = '#5B2ED9';
+const ACCENT_LIGHT = '#EDE9FE';
 const BG = '#0F172A';
 const CARD = '#1E293B';
 const CARD_BORDER = '#334155';
@@ -433,6 +433,318 @@ export function paymentFailedEmail(
     </table>
     <p style="font-size:12px;color:${TEXT_MUTED};line-height:1.5;margin:20px 0 0;text-align:center;">
       Need help? <a href="mailto:support@dabbu.app" style="color:${ACCENT};font-weight:500;">Contact support</a>
+    </p>
+  `);
+}
+
+export function settlementCompletedEmail(
+  name: string,
+  groupName: string,
+  amount: string,
+  settledWithName: string,
+  groupUrl: string,
+): string {
+  return baseTemplate(`
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="width:56px;height:56px;border-radius:50%;background:rgba(34,197,94,0.15);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:24px;">&#9989;</span>
+      </div>
+      <h1 style="font-size:24px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
+        Settlement Completed
+      </h1>
+    </div>
+    <p style="font-size:15px;color:${TEXT_MUTED};line-height:1.7;margin:0 0 8px;">
+      Hi ${name}, a settlement of <strong style="color:${SUCCESS};font-size:20px;">${amount}</strong>
+      has been completed with <strong style="color:${TEXT};">${settledWithName}</strong>
+      in <strong style="color:${ACCENT};">${groupName}</strong>.
+    </p>
+    <p style="font-size:14px;color:${TEXT_MUTED};line-height:1.6;margin:0 0 0;text-align:center;">
+      All cleared up! Check the group to see updated balances.
+    </p>
+    ${button(groupUrl, 'View Group')}
+  `);
+}
+
+export function settlementRequestedEmail(
+  name: string,
+  groupName: string,
+  amount: string,
+  requestedByName: string,
+  groupUrl: string,
+): string {
+  return baseTemplate(`
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="width:56px;height:56px;border-radius:50%;background:${ACCENT_LIGHT};margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:24px;">&#128176;</span>
+      </div>
+      <h1 style="font-size:24px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
+        Settlement Requested
+      </h1>
+      <p style="font-size:15px;color:${TEXT_MUTED};line-height:1.7;margin:0;">
+        <strong style="color:${TEXT};">${requestedByName}</strong> requested
+        <strong style="color:${ACCENT};font-size:20px;">${amount}</strong> from you
+        in <strong style="color:${ACCENT};">${groupName}</strong>.
+      </p>
+    </div>
+    ${button(groupUrl, 'View & Pay')}
+    <p style="font-size:12px;color:${TEXT_MUTED};line-height:1.5;margin:16px 0 0;text-align:center;">
+      You can pay via UPI, cash, or any method you prefer.
+    </p>
+  `);
+}
+
+export function groupExpenseAddedEmail(
+  name: string,
+  groupName: string,
+  description: string,
+  amount: string,
+  addedByName: string,
+  groupUrl: string,
+): string {
+  return baseTemplate(`
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="width:56px;height:56px;border-radius:50%;background:${ACCENT_LIGHT};margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:24px;">&#128221;</span>
+      </div>
+      <h1 style="font-size:22px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
+        New Expense Added
+      </h1>
+    </div>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:linear-gradient(135deg,rgba(108,62,244,0.08),rgba(91,46,217,0.04));border:1px solid ${CARD_BORDER};border-radius:12px;padding:20px;margin:0 0 24px;">
+      <tr>
+        <td style="font-size:15px;color:${TEXT_MUTED};line-height:2;">
+          <strong style="color:${ACCENT};">Description:</strong> ${description}<br />
+          <strong style="color:${ACCENT};">Amount:</strong> <span style="color:${TEXT};font-weight:600;">${amount}</span><br />
+          <strong style="color:${ACCENT};">Added by:</strong> ${addedByName}<br />
+          <strong style="color:${ACCENT};">Group:</strong> ${groupName}
+        </td>
+      </tr>
+    </table>
+    ${button(groupUrl, 'View Expense')}
+    <p style="font-size:12px;color:${TEXT_MUTED};line-height:1.5;margin:16px 0 0;text-align:center;">
+      This expense has been split among all active members.
+    </p>
+  `);
+}
+
+export function loginAlertEmail(
+  name: string,
+  deviceName: string,
+  platform: string,
+  timestamp: string,
+  ipAddress: string,
+  location: string,
+  securityUrl: string,
+): string {
+  return baseTemplate(`
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="width:56px;height:56px;border-radius:50%;background:rgba(239,68,68,0.15);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:24px;">&#128274;</span>
+      </div>
+      <h1 style="font-size:22px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
+        New Login Detected
+      </h1>
+    </div>
+    <p style="font-size:15px;color:${TEXT_MUTED};line-height:1.7;margin:0 0 8px;">
+      Hi ${name}, a new login was detected on your Dabbu account.
+    </p>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:rgba(108,62,244,0.05);border:1px solid ${CARD_BORDER};border-radius:12px;padding:18px;margin:0 0 24px;">
+      <tr>
+        <td style="font-size:14px;color:${TEXT_MUTED};line-height:2;">
+          <strong style="color:${ACCENT};">Device:</strong> ${deviceName}<br />
+          <strong style="color:${ACCENT};">Platform:</strong> ${platform}<br />
+          <strong style="color:${ACCENT};">Time:</strong> ${timestamp}<br />
+          <strong style="color:${ACCENT};">IP:</strong> ${ipAddress}${location ? `<br /><strong style="color:${ACCENT};">Location:</strong> ${location}` : ''}
+        </td>
+      </tr>
+    </table>
+    <table cellpadding="0" cellspacing="0" border="0" style="background:rgba(239,68,68,0.1);border-radius:10px;padding:16px;margin:0 0 20px;">
+      <tr>
+        <td style="font-size:13px;color:${ERROR};line-height:1.5;">
+          <strong>&#9888; Wasn't you?</strong> Secure your account immediately by changing your password and reviewing active sessions.
+        </td>
+      </tr>
+    </table>
+    ${button(securityUrl, 'Review Activity')}
+  `);
+}
+
+export function budgetAlertEmail(
+  name: string,
+  category: string,
+  spent: string,
+  budget: string,
+  percentage: number,
+  dashboardUrl: string,
+): string {
+  return baseTemplate(`
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="width:56px;height:56px;border-radius:50%;background:rgba(245,158,11,0.15);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:24px;">&#9200;</span>
+      </div>
+      <h1 style="font-size:22px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
+        Budget Alert
+      </h1>
+    </div>
+    <p style="font-size:15px;color:${TEXT_MUTED};line-height:1.7;margin:0 0 8px;">
+      You've used <strong style="color:${WARNING};">${percentage}%</strong> of your
+      <strong style="color:${ACCENT};">${category}</strong> budget.
+    </p>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:linear-gradient(135deg,rgba(108,62,244,0.08),rgba(91,46,217,0.04));border:1px solid ${CARD_BORDER};border-radius:12px;padding:18px;margin:0 0 24px;">
+      <tr>
+        <td style="font-size:14px;color:${TEXT_MUTED};line-height:2;">
+          <strong style="color:${SUCCESS};">Spent:</strong> ${spent}<br />
+          <strong style="color:${ACCENT};">Budget:</strong> ${budget}<br />
+          <strong style="color:${WARNING};">Used:</strong> ${percentage}%
+        </td>
+      </tr>
+    </table>
+    ${button(dashboardUrl, 'View Budget')}
+  `);
+}
+
+export function billReminderEmail(
+  name: string,
+  billName: string,
+  amount: string,
+  dueDate: string,
+  daysRemaining: number,
+  groupName: string,
+  dashboardUrl: string,
+): string {
+  const urgencyColor = daysRemaining <= 1 ? ERROR : daysRemaining <= 3 ? WARNING : ACCENT;
+  return baseTemplate(`
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="width:56px;height:56px;border-radius:50%;background:rgba(245,158,11,0.15);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:24px;">&#128197;</span>
+      </div>
+      <h1 style="font-size:22px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
+        Bill Reminder
+      </h1>
+    </div>
+    <p style="font-size:15px;color:${TEXT_MUTED};line-height:1.7;margin:0 0 8px;">
+      <strong style="color:${TEXT};">${billName}</strong> of <strong style="color:${urgencyColor};font-size:20px;">${amount}</strong>
+      is due in <strong style="color:${urgencyColor};">${daysRemaining} day${daysRemaining === 1 ? '' : 's'}</strong>
+      ${groupName ? `in <strong style="color:${ACCENT};">${groupName}</strong>` : ''}.
+    </p>
+    <p style="font-size:14px;color:${TEXT_MUTED};line-height:1.6;margin:0 0 0;text-align:center;">
+      Due date: ${dueDate}
+    </p>
+    ${button(dashboardUrl, 'Pay Now')}
+  `);
+}
+
+export function memberRemovedEmail(
+  name: string,
+  groupName: string,
+  removedByName: string,
+  supportUrl: string,
+): string {
+  return baseTemplate(`
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="width:56px;height:56px;border-radius:50%;background:rgba(239,68,68,0.15);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:24px;">&#128683;</span>
+      </div>
+      <h1 style="font-size:22px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
+        Removed From Group
+      </h1>
+    </div>
+    <p style="font-size:15px;color:${TEXT_MUTED};line-height:1.7;margin:0;">
+      Hi ${name}, you've been removed from <strong style="color:${ACCENT};">${groupName}</strong>
+      by <strong style="color:${TEXT};">${removedByName}</strong>.
+    </p>
+    <p style="font-size:14px;color:${TEXT_MUTED};line-height:1.6;margin:18px 0 0;text-align:center;">
+      If you have any outstanding balances, please settle them directly with the group admin.
+      If you think this was a mistake, contact support.
+    </p>
+    ${button(supportUrl, 'Contact Support')}
+  `);
+}
+
+export function accountDeactivatedEmail(
+  name: string,
+  supportUrl: string,
+): string {
+  return baseTemplate(`
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="width:56px;height:56px;border-radius:50%;background:rgba(239,68,68,0.15);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:24px;">&#128683;</span>
+      </div>
+      <h1 style="font-size:22px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
+        Account Deactivated
+      </h1>
+      <p style="font-size:15px;color:${TEXT_MUTED};line-height:1.7;margin:0;">
+        Hi ${name}, your Dabbu account has been deactivated.
+      </p>
+    </div>
+    <table cellpadding="0" cellspacing="0" border="0" style="background:rgba(239,68,68,0.1);border-radius:10px;padding:16px;margin:0 0 20px;">
+      <tr>
+        <td style="font-size:14px;color:${TEXT};line-height:1.5;">
+          Your data will be retained for 30 days. After that, all your data will be permanently deleted.
+          If you want to reactivate your account, please contact support within 30 days.
+        </td>
+      </tr>
+    </table>
+    ${button(supportUrl, 'Contact Support')}
+  `);
+}
+
+export function accountReactivatedEmail(
+  name: string,
+  dashboardUrl: string,
+): string {
+  return baseTemplate(`
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="width:56px;height:56px;border-radius:50%;background:rgba(34,197,94,0.15);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:24px;">&#127881;</span>
+      </div>
+      <h1 style="font-size:22px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
+        Account Reactivated
+      </h1>
+      <p style="font-size:15px;color:${TEXT_MUTED};line-height:1.7;margin:0;">
+        Welcome back, ${name}! Your Dabbu account has been reactivated.
+      </p>
+    </div>
+    <p style="font-size:14px;color:${TEXT_MUTED};line-height:1.6;margin:0 0 0;text-align:center;">
+      All your data is intact. Pick up right where you left off.
+    </p>
+    ${button(dashboardUrl, 'Go to Dashboard')}
+  `);
+}
+
+export function newDeviceLoginEmail(
+  name: string,
+  deviceName: string,
+  platform: string,
+  timestamp: string,
+  ipAddress: string,
+  securityUrl: string,
+): string {
+  return baseTemplate(`
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="width:56px;height:56px;border-radius:50%;background:${ACCENT_LIGHT};margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:24px;">&#128187;</span>
+      </div>
+      <h1 style="font-size:22px;font-weight:700;color:${TEXT};margin:0 0 8px;line-height:1.3;">
+        New Device Login
+      </h1>
+      <p style="font-size:15px;color:${TEXT_MUTED};line-height:1.7;margin:0;">
+        A new device signed into your Dabbu account.
+      </p>
+    </div>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:linear-gradient(135deg,rgba(108,62,244,0.08),rgba(91,46,217,0.04));border:1px solid ${CARD_BORDER};border-radius:12px;padding:18px;margin:0 0 24px;">
+      <tr>
+        <td style="font-size:14px;color:${TEXT_MUTED};line-height:2;">
+          <strong style="color:${ACCENT};">Device:</strong> ${deviceName}<br />
+          <strong style="color:${ACCENT};">Platform:</strong> ${platform}<br />
+          <strong style="color:${ACCENT};">Time:</strong> ${timestamp}<br />
+          <strong style="color:${ACCENT};">IP:</strong> ${ipAddress}
+        </td>
+      </tr>
+    </table>
+    ${button(securityUrl, 'Review Activity')}
+    <p style="font-size:13px;color:${TEXT_MUTED};line-height:1.6;margin:16px 0 0;text-align:center;">
+      Didn't recognize this device? <a href="${securityUrl}" style="color:${ERROR};font-weight:600;">Secure your account</a>
     </p>
   `);
 }

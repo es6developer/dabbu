@@ -203,7 +203,7 @@ export function PremiumExpenseFormScreen() {
     <View style={s.root}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <View style={[s.header, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity onPress={handleBack} style={s.headerBtn}>

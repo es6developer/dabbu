@@ -5,7 +5,6 @@ interface SurfaceCardProps {
   children: React.ReactNode;
   onPress?: () => void;
   className?: string;
-  borderRadius?: number;
   padding?: string;
 }
 
@@ -13,24 +12,26 @@ export const SurfaceCard: React.FC<SurfaceCardProps> = ({
   children,
   onPress,
   className = '',
-  borderRadius = 24,
   padding = 'p-5',
 }) => {
   const shadowStyle = Platform.select({
     ios: {
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.04,
-      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.3,
+      shadowRadius: 16,
     },
     android: {
-      elevation: 3,
+      elevation: 4,
     },
     default: {},
   });
 
   const card = (
-    <View className={`bg-white ${padding} ${className}`} style={[{ borderRadius }, shadowStyle]}>
+    <View
+      className={`bg-dark-surface ${padding} rounded-xl ${className}`}
+      style={shadowStyle}
+    >
       {children}
     </View>
   );

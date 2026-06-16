@@ -857,8 +857,8 @@ function CreateGoalModal({
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 0}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 40}
       >
         <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={onClose}>
           <TouchableOpacity activeOpacity={1} onPress={() => {}}>

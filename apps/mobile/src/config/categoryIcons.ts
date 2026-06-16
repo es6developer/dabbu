@@ -4,29 +4,29 @@ type IonIconName = string;
 export const EXPENSE_CATEGORIES: { name: string; icon: IonIconName; color: string }[] = [
   { name: 'Housing', icon: 'home', color: '#FB923C' },
   { name: 'Groceries', icon: 'shoppingcart', color: '#34C759' },
-  { name: 'Food & Dining', icon: 'restaurant', color: '#FF6B6B' },
-  { name: 'Utilities', icon: 'thunder', color: '#FBBF24' },
+  { name: 'Food & Dining', icon: 'rest', color: '#FF6B6B' },
+  { name: 'Utilities', icon: 'star', color: '#FBBF24' },
   { name: 'Transportation', icon: 'car', color: '#38BDF8' },
   { name: 'Healthcare', icon: 'medicinebox', color: '#FF4D4F' },
   { name: 'Shopping', icon: 'shoppingcart', color: '#F472B6' },
   { name: 'Entertainment', icon: 'playcircleo', color: '#14B8A6' },
   { name: 'Subscription', icon: 'retweet', color: '#8B5CF6' },
   { name: 'Sports', icon: 'playcircleo', color: '#22C55E' },
-  { name: 'Travel', icon: 'airplane', color: '#60A5FA' },
+  { name: 'Travel', icon: 'earth', color: '#60A5FA' },
   { name: 'Children & Baby', icon: 'smileo', color: '#FF9F0A' },
   { name: 'Financial', icon: 'Safety', color: '#00CEC9' },
-  { name: 'Other', icon: 'ellipsis', color: '#636E72' },
+  { name: 'Other', icon: 'ellipsis1', color: '#636E72' },
 ];
 
 export const INCOME_CATEGORIES: { name: string; icon: IonIconName; color: string }[] = [
-  { name: 'Employment', icon: 'briefcase', color: '#00B894' },
-  { name: 'Business', icon: 'shop', color: '#14B8A6' },
+  { name: 'Employment', icon: 'solution1', color: '#00B894' },
+  { name: 'Business', icon: 'appstore1', color: '#14B8A6' },
   { name: 'Freelancing', icon: 'laptop', color: '#3498DB' },
   { name: 'Investments', icon: 'linechart', color: '#14B8A6' },
   { name: 'Rental', icon: 'home', color: '#FB923C' },
   { name: 'Gifts & Rewards', icon: 'gift', color: '#F472B6' },
   { name: 'Family Contributions', icon: 'team', color: '#14B8A6' },
-  { name: 'Other', icon: 'ellipsis', color: '#636E72' },
+  { name: 'Other', icon: 'ellipsis1', color: '#636E72' },
 ];
 
 const ALL_ENTRIES: { name: string; icon: string; color: string }[] = [

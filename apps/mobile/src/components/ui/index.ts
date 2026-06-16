@@ -7,8 +7,20 @@ export {
   DashboardPremiumHeader,
   SMSDetectionWidget,
   QuickScrollCategoryGrid,
+  DabbuWalletHub,
+  PremiumRazorpayPlans,
+  FintechTransactionRow,
+  SuccessFeedbackOverlay,
 } from './nds';
-export type { CategoryItem, PriceRow, PremiumTier, ParsedSms, QuickCategoryNode } from './nds';
+export type {
+  CategoryItem,
+  PriceRow,
+  PremiumTier,
+  ParsedSms,
+  QuickCategoryNode,
+  RazorpayPlan,
+  TransactionEntry,
+} from './nds';
 export { Avatar } from './Avatar';
 export { Button } from './Button';
 export { Card } from './Card';

@@ -234,8 +234,8 @@ function QuickContributeModal({
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 0}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 40}
       >
         <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={onClose}>
           <TouchableOpacity activeOpacity={1} onPress={() => {}}>
@@ -979,7 +979,7 @@ export function GoalDetailScreen() {
       />
 
       <Modal visible={showEdit} transparent animationType="slide" onRequestClose={() => setShowEdit(false)}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end' }}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1, justifyContent: 'flex-end' }}>
           <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setShowEdit(false)} />
           <View style={{ backgroundColor: colors.bg.primary, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: insets.bottom + 20 }}>
             <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: colors.border.subtle, alignSelf: 'center', marginBottom: 16 }} />

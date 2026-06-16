@@ -226,7 +226,7 @@ export function ProfileScreen() {
   return (
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
         <ScrollView

@@ -1,10 +1,11 @@
 import React from 'react';
-import { FlatList, Text, TouchableOpacity, View, useColorScheme } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { FlatList, Text, TouchableOpacity, View, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+
 export interface QuickCategoryNode {
   id: string;
   label: string;
-  icon: string;
+  icon: keyof typeof Ionicons.glyphMap;
   color?: string;
 }
 
@@ -17,6 +18,7 @@ interface QuickScrollCategoryGridProps {
 
 const NODE_SIZE = 68;
 const ICON_SIZE = 24;
+const ITEM_GAP = 16;
 
 export const QuickScrollCategoryGrid: React.FC<QuickScrollCategoryGridProps> = ({
   data,
@@ -24,14 +26,6 @@ export const QuickScrollCategoryGrid: React.FC<QuickScrollCategoryGridProps> = (
   selectedId,
   className = '',
 }) => {
-  const isDark = useColorScheme() === 'dark';
-
-  const bgColor = isDark ? '#1F1A30' : '#EDEAF2';
-  const selectedIconColor = isDark ? '#0B0813' : '#FFFFFF';
-  const defaultIconColor = isDark ? '#B8B0CC' : '#5A5280';
-  const selectedTextColor = isDark ? '#F1F0F7' : '#0B0813';
-  const defaultTextColor = isDark ? '#7A7194' : '#8A84A0';
-
   const renderNode = ({ item }: { item: QuickCategoryNode }) => {
     const isSelected = item.id === selectedId;
     const nodeColor = item.color ?? '#8B5CF6';
@@ -40,28 +34,28 @@ export const QuickScrollCategoryGrid: React.FC<QuickScrollCategoryGridProps> = (
       <TouchableOpacity
         onPress={() => onSelect?.(item)}
         activeOpacity={0.7}
-        className="items-center mr-4"
-        style={{ width: NODE_SIZE }}
+        className="items-center"
+        style={{ width: NODE_SIZE, marginRight: ITEM_GAP }}
       >
         <View
-          className="items-center justify-center rounded-[20px]"
+          className="items-center justify-center rounded-xl"
           style={{
             width: NODE_SIZE,
             height: NODE_SIZE,
-            backgroundColor: isSelected ? nodeColor : bgColor,
+            backgroundColor: isSelected ? nodeColor : '#1A1A1E',
           }}
         >
-          <AntDesign
-            name={item.icon as any}
+          <Ionicons
+            name={item.icon}
             size={ICON_SIZE}
-            color={isSelected ? selectedIconColor : defaultIconColor}
+            color={isSelected ? '#0B0813' : '#94A3B8'}
           />
         </View>
 
         <Text
-          className="text-center mt-2 text-[11px] leading-3"
+          className="text-center mt-2 text-small leading-3"
           style={{
-            color: isSelected ? selectedTextColor : defaultTextColor,
+            color: isSelected ? '#FFFFFF' : '#64748B',
             fontWeight: isSelected ? '600' : '400',
           }}
           numberOfLines={2}

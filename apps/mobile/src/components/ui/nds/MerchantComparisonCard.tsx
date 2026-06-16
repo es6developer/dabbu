@@ -36,7 +36,7 @@ export const MerchantComparisonCard: React.FC<MerchantComparisonCardProps> = ({
                 <Image
                   key={idx}
                   source={{ uri: src }}
-                  className={`rounded-xl bg-gray-100 ${
+                  className={`rounded-lg bg-dark-surface-raised ${
                     displayThumbs.length > 1 ? 'w-[38px] h-[38px]' : 'w-20 h-20'
                   }`}
                   resizeMode="cover"
@@ -44,14 +44,17 @@ export const MerchantComparisonCard: React.FC<MerchantComparisonCardProps> = ({
               ))}
             </View>
           ) : (
-            <View className="w-20 h-20 rounded-2xl bg-gray-100 items-center justify-center">
-              <Text className="text-ink-faint text-xs">No img</Text>
+            <View className="w-20 h-20 rounded-xl bg-dark-surface-raised items-center justify-center">
+              <Text className="text-dark-ink-faint text-caption">No img</Text>
             </View>
           )}
         </View>
 
         <View className="flex-1">
-          <Text className="text-ink font-semibold text-base mb-3" numberOfLines={1}>
+          <Text
+            className="text-dark-ink text-subhead mb-3"
+            numberOfLines={1}
+          >
             {productName}
           </Text>
 
@@ -59,16 +62,20 @@ export const MerchantComparisonCard: React.FC<MerchantComparisonCardProps> = ({
             {prices.map((row, idx) => (
               <View key={idx} className="flex-row items-center justify-between">
                 <View className="flex-1 mr-3">
-                  <Text className="text-ink-muted text-xs mb-0.5">{row.source}</Text>
-                  <Text className="text-ink font-bold text-sm">{row.price}</Text>
+                  <Text className="text-dark-ink-muted text-caption mb-0.5">
+                    {row.source}
+                  </Text>
+                  <Text className="text-dark-ink font-bold text-body-bold">
+                    {row.price}
+                  </Text>
                 </View>
 
                 <TouchableOpacity
                   onPress={row.onBuy}
                   activeOpacity={0.8}
-                  className="px-4 py-2 rounded-full bg-teal-500"
+                  className="px-4 py-2 rounded-pill bg-brand-500"
                 >
-                  <Text className="text-white text-xs font-semibold">
+                  <Text className="text-white text-caption-bold">
                     {row.badgeLabel ?? 'Buy'}
                   </Text>
                 </TouchableOpacity>

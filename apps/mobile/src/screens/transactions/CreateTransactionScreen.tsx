@@ -151,6 +151,9 @@ export function CreateTransactionScreen() {
         description: description.trim() || `${category} expense`,
         date: dateValue || date,
       };
+      if (prefill?.groupId) {
+        data.expenseGroupId = prefill.groupId;
+      }
       if (isEditing) {
         await api.patch(`/transactions/${editingTransaction.id}`, data);
         showToast('Transaction updated');
@@ -158,10 +161,14 @@ export function CreateTransactionScreen() {
         await api.post('/transactions', data);
         showToast('Transaction created');
       }
-      navigation.navigate(
-        isEditing ? 'TransactionDetail' : 'ExpenseHome',
-        isEditing ? { transactionId: editingTransaction.id } : undefined,
-      );
+      if (!isEditing && prefill?.returnTo) {
+        navigation.navigate(prefill.returnTo, { groupId: prefill.groupId, groupName: prefill.groupName });
+      } else {
+        navigation.navigate(
+          isEditing ? 'TransactionDetail' : 'ExpenseHome',
+          isEditing ? { transactionId: editingTransaction.id } : undefined,
+        );
+      }
     } catch (e: any) {
       setError(e.message || 'Failed to save');
     } finally {
@@ -189,7 +196,7 @@ export function CreateTransactionScreen() {
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
 
         <ScrollView

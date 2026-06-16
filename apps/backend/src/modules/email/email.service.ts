@@ -12,6 +12,16 @@ import {
   paymentFailedEmail,
   groupInviteEmail,
   otpEmail,
+  settlementCompletedEmail,
+  settlementRequestedEmail,
+  groupExpenseAddedEmail,
+  loginAlertEmail,
+  budgetAlertEmail,
+  billReminderEmail,
+  memberRemovedEmail,
+  accountDeactivatedEmail,
+  accountReactivatedEmail,
+  newDeviceLoginEmail,
 } from './email.templates';
 import { EMAIL_SUBJECTS, PASSWORD_RESET_EXPIRY_MINUTES } from './email.constants';
 
@@ -153,9 +163,8 @@ export class EmailService implements OnModuleInit {
         return;
       } catch (error) {
         this.logger.error(
-          `SMTP failed: to=${options.to} subject="${options.subject}" error=${(error as Error).message}`,
+          `SMTP failed: to=${options.to} subject="${options.subject}" error=${(error as Error).message}. Falling back to Ethereal.`,
         );
-        throw error;
       }
     }
 
@@ -315,6 +324,200 @@ export class EmailService implements OnModuleInit {
         amount,
         `${this.frontendUrl}/premium/retry`,
         `${this.frontendUrl}/premium/billing`,
+      ),
+    });
+  }
+
+  async sendSettlementCompletedEmail(
+    to: string,
+    name: string,
+    groupName: string,
+    amount: string,
+    settledWithName: string,
+  ): Promise<void> {
+    await this.send({
+      to,
+      subject: EMAIL_SUBJECTS.SETTLEMENT_COMPLETED,
+      html: settlementCompletedEmail(
+        name,
+        groupName,
+        amount,
+        settledWithName,
+        `${this.frontendUrl}/shared-finance/groups`,
+      ),
+    });
+  }
+
+  async sendSettlementRequestedEmail(
+    to: string,
+    name: string,
+    groupName: string,
+    amount: string,
+    requestedByName: string,
+  ): Promise<void> {
+    await this.send({
+      to,
+      subject: EMAIL_SUBJECTS.SETTLEMENT_REQUESTED,
+      html: settlementRequestedEmail(
+        name,
+        groupName,
+        amount,
+        requestedByName,
+        `${this.frontendUrl}/shared-finance/groups`,
+      ),
+    });
+  }
+
+  async sendGroupExpenseAddedEmail(
+    to: string,
+    name: string,
+    groupName: string,
+    description: string,
+    amount: string,
+    addedByName: string,
+  ): Promise<void> {
+    await this.send({
+      to,
+      subject: EMAIL_SUBJECTS.EXPENSE_ADDED,
+      html: groupExpenseAddedEmail(
+        name,
+        groupName,
+        description,
+        amount,
+        addedByName,
+        `${this.frontendUrl}/shared-finance/groups`,
+      ),
+    });
+  }
+
+  async sendLoginAlertEmail(
+    to: string,
+    name: string,
+    deviceName: string,
+    platform: string,
+    timestamp: string,
+    ipAddress: string,
+    location: string,
+  ): Promise<void> {
+    await this.send({
+      to,
+      subject: EMAIL_SUBJECTS.LOGIN_ALERT,
+      html: loginAlertEmail(
+        name,
+        deviceName,
+        platform,
+        timestamp,
+        ipAddress,
+        location,
+        `${this.frontendUrl}/settings/security`,
+      ),
+    });
+  }
+
+  async sendBudgetAlertEmail(
+    to: string,
+    name: string,
+    category: string,
+    spent: string,
+    budget: string,
+    percentage: number,
+  ): Promise<void> {
+    await this.send({
+      to,
+      subject: EMAIL_SUBJECTS.BUDGET_ALERT,
+      html: budgetAlertEmail(
+        name,
+        category,
+        spent,
+        budget,
+        percentage,
+        `${this.frontendUrl}/dashboard`,
+      ),
+    });
+  }
+
+  async sendBillReminderEmail(
+    to: string,
+    name: string,
+    billName: string,
+    amount: string,
+    dueDate: string,
+    daysRemaining: number,
+    groupName: string,
+  ): Promise<void> {
+    await this.send({
+      to,
+      subject: EMAIL_SUBJECTS.BILL_REMINDER,
+      html: billReminderEmail(
+        name,
+        billName,
+        amount,
+        dueDate,
+        daysRemaining,
+        groupName,
+        `${this.frontendUrl}/dashboard`,
+      ),
+    });
+  }
+
+  async sendMemberRemovedEmail(
+    to: string,
+    name: string,
+    groupName: string,
+    removedByName: string,
+  ): Promise<void> {
+    await this.send({
+      to,
+      subject: EMAIL_SUBJECTS.MEMBER_REMOVED,
+      html: memberRemovedEmail(
+        name,
+        groupName,
+        removedByName,
+        `${this.frontendUrl}/support`,
+      ),
+    });
+  }
+
+  async sendAccountDeactivatedEmail(
+    to: string,
+    name: string,
+  ): Promise<void> {
+    await this.send({
+      to,
+      subject: EMAIL_SUBJECTS.ACCOUNT_DEACTIVATED,
+      html: accountDeactivatedEmail(name, `${this.frontendUrl}/support`),
+    });
+  }
+
+  async sendAccountReactivatedEmail(
+    to: string,
+    name: string,
+  ): Promise<void> {
+    await this.send({
+      to,
+      subject: EMAIL_SUBJECTS.ACCOUNT_REACTIVATED,
+      html: accountReactivatedEmail(name, `${this.frontendUrl}/dashboard`),
+    });
+  }
+
+  async sendNewDeviceLoginEmail(
+    to: string,
+    name: string,
+    deviceName: string,
+    platform: string,
+    timestamp: string,
+    ipAddress: string,
+  ): Promise<void> {
+    await this.send({
+      to,
+      subject: EMAIL_SUBJECTS.NEW_DEVICE_LOGIN,
+      html: newDeviceLoginEmail(
+        name,
+        deviceName,
+        platform,
+        timestamp,
+        ipAddress,
+        `${this.frontendUrl}/settings/security`,
       ),
     });
   }

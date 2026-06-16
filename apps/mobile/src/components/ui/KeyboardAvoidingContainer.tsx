@@ -49,8 +49,8 @@ export function KeyboardAvoidingContainer({
   return (
     <KeyboardAvoidingView
       style={styles.root}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? extraKeyboardOffset + 88 : 0}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? extraKeyboardOffset + 88 : extraKeyboardOffset + 25}
     >
       <TouchableWithoutFeedback onPress={handleContentTouch}>
         <ScrollView

@@ -368,7 +368,7 @@ export function CoupleGoalsScreen() {
         onRequestClose={() => setAddModalVisible(false)}
       >
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.modalOverlay}
         >
           <TouchableOpacity
@@ -518,7 +518,7 @@ export function CoupleGoalsScreen() {
         onRequestClose={() => setContributionModalVisible(false)}
       >
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.modalOverlay}
         >
           <TouchableOpacity

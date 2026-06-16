@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Share, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -105,6 +105,7 @@ export function MonthlyAiReviewScreen() {
   const { accessToken } = useAuth();
   const [data, setData] = useState<ReviewData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -480,26 +481,25 @@ export function MonthlyAiReviewScreen() {
           style={{ paddingHorizontal: 16, marginTop: 24 }}
         >
           <TouchableOpacity
-            style={s.shareBtn}
+            style={[s.shareBtn, { opacity: exporting ? 0.6 : 1 }]}
+            disabled={exporting}
             onPress={async () => {
+              setExporting(true);
               try {
-                const text = [
-                  `📊 Monthly Review — ${data.period}`,
-                  '',
-                  `Savings: ₹${(data.savings?.total ?? 0).toLocaleString('en-IN')} (${data.savings?.rate ?? 0}%)`,
-                  `Income: ₹${(data.income?.total ?? 0).toLocaleString('en-IN')}`,
-                  `Expenses: ₹${(data.expenses?.total ?? 0).toLocaleString('en-IN')}`,
-                  `Health Score: ${data.healthScore?.current ?? 0}/100`,
-                  '',
-                  data.nextMonthFocus ? `🎯 Next Focus: ${data.nextMonthFocus}` : '',
-                ].filter(Boolean).join('\n');
-                await Share.share({ message: text, title: `Monthly Review — ${data.period}` });
-              } catch {
-                Alert.alert('Error', 'Could not share');
+                const { downloadAndShareFile } = await import('../../utils/exportFile');
+                await downloadAndShareFile('/ai/export', {}, 'dabbu-ai-review', 'pdf');
+              } catch (e: any) {
+                Alert.alert('Export Failed', e.message || 'Could not export');
+              } finally {
+                setExporting(false);
               }
             }}
           >
-            <AntDesign  name="download" size={18} color="#FFF" />
+            {exporting ? (
+              <ActivityIndicator size="small" color="#FFF" />
+            ) : (
+              <AntDesign name="download" size={18} color="#FFF" />
+            )}
             <Text style={s.shareBtnText}>Share as PDF</Text>
           </TouchableOpacity>
         </ReAnimated.View>

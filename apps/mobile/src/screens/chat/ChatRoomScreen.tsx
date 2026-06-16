@@ -118,7 +118,7 @@ export function ChatRoomScreen() {
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: colors.bg.primary }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={90}
     >
       <FlatList

@@ -267,6 +267,20 @@ export class AuthService {
     ).catch(() => {});
 
     const { password, ...userWithoutPassword } = user;
+
+    if (dto.deviceName || dto.platform) {
+      this.emailService
+        .sendNewDeviceLoginEmail(
+          user.email,
+          user.firstName,
+          dto.deviceName || 'Unknown device',
+          dto.platform || 'Unknown',
+          new Date().toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' }),
+          ipAddress || 'Unknown',
+        )
+        .catch((err) => this.logger.warn(`Failed to send login alert email: ${err.message}`));
+    }
+
     return { user: userWithoutPassword, tokens };
   }
 

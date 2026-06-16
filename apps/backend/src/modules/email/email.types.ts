@@ -52,3 +52,70 @@ export interface PaymentFailedEmailData {
   retryUrl: string;
   updatePaymentUrl: string;
 }
+
+export interface SettlementEmailData {
+  name: string;
+  groupName: string;
+  amount: string;
+  settledWithName: string;
+  groupUrl: string;
+}
+
+export interface ExpenseAddedEmailData {
+  name: string;
+  groupName: string;
+  description: string;
+  amount: string;
+  addedByName: string;
+  groupUrl: string;
+}
+
+export interface BudgetAlertEmailData {
+  name: string;
+  category: string;
+  spent: string;
+  budget: string;
+  percentage: number;
+  dashboardUrl: string;
+}
+
+export interface BillReminderEmailData {
+  name: string;
+  billName: string;
+  amount: string;
+  dueDate: string;
+  daysRemaining: number;
+  groupName?: string;
+  dashboardUrl: string;
+}
+
+export interface LoginAlertEmailData {
+  name: string;
+  deviceName: string;
+  platform: string;
+  timestamp: string;
+  ipAddress: string;
+  location?: string;
+  securityUrl: string;
+}
+
+export interface AccountDeactivatedEmailData {
+  name: string;
+  supportUrl: string;
+}
+
+export interface MemberRemovedEmailData {
+  name: string;
+  groupName: string;
+  removedByName: string;
+  supportUrl: string;
+}
+
+export interface GroupExpenseAddedEmailData {
+  memberName: string;
+  groupName: string;
+  description: string;
+  amount: string;
+  addedBy: string;
+  groupUrl: string;
+}

@@ -384,16 +384,18 @@ export function PremiumScreen() {
               <View style={styles.mostPopularBadge}>
                 <Text style={styles.mostPopularText}>MOST POPULAR</Text>
               </View>
-              <Text style={[styles.colTitle, { color: '#FFD700' }]}>Premium</Text>
-              <Text style={[styles.colPrice, { color: '#FFD700' }]}>₹89</Text>
-              <Text style={[styles.colPeriod, { color: '#FFD700' }]}>per month</Text>
-              <View style={styles.featureList}>
-                {PREMIUM_FEATURES.map((f, i) => (
-                  <View key={i} style={styles.featureRow}>
-                    <AntDesign  name="checkcircleo" size={16} color="#00A86B" />
-                    <Text style={styles.featureText}>{f.label}</Text>
-                  </View>
-                ))}
+              <View style={styles.premiumColContent}>
+                <Text style={[styles.colTitle, { color: '#FFD700' }]}>Premium</Text>
+                <Text style={[styles.colPrice, { color: '#FFD700' }]}>₹89</Text>
+                <Text style={[styles.colPeriod, { color: '#FFD700' }]}>per month</Text>
+                <View style={styles.featureList}>
+                  {PREMIUM_FEATURES.map((f, i) => (
+                    <View key={i} style={styles.featureRow}>
+                      <AntDesign  name="checkcircleo" size={16} color="#00A86B" />
+                      <Text style={styles.featureText}>{f.label}</Text>
+                    </View>
+                  ))}
+                </View>
               </View>
             </View>
           </View>
@@ -520,13 +522,16 @@ const styles = StyleSheet.create({
   },
   premiumCol: {
     flex: 1,
+    position: 'relative',
+    marginTop: 10,
+  },
+  premiumColContent: {
     backgroundColor: 'rgba(255,215,0,0.08)',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
     borderColor: 'rgba(255,215,0,0.3)',
-    position: 'relative',
-    overflow: 'visible',
+    overflow: 'hidden',
   },
   mostPopularBadge: {
     position: 'absolute',
