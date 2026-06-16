@@ -213,9 +213,9 @@ export class UserPreferencesService {
   private defaultBottomMenuConfig() {
     return [
       { id: 'Dashboard', visible: true, order: 0 },
-      { id: 'Expense', visible: true, order: 1 },
+      { id: 'Spaces', visible: true, order: 1 },
       { id: 'QuickAction', visible: true, order: 2 },
-      { id: 'Spaces', visible: true, order: 3 },
+      { id: 'Goals', visible: true, order: 3 },
       { id: 'Settings', visible: true, order: 4, locked: true },
     ];
   }

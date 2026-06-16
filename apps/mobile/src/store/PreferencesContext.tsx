@@ -43,9 +43,9 @@ const VISIBILITY_CACHE_KEY = '@dabbu_visibility_cache';
 
 const DEFAULT_TABS: TabConfig[] = [
   { id: 'Dashboard', visible: true, order: 0, locked: false },
-  { id: 'Expense', visible: true, order: 1, locked: false },
+  { id: 'Spaces', visible: true, order: 1, locked: false },
   { id: 'QuickAction', visible: true, order: 2, locked: false },
-  { id: 'Spaces', visible: true, order: 3, locked: false },
+  { id: 'Goals', visible: true, order: 3, locked: false },
   { id: 'Settings', visible: true, order: 4, locked: true },
 ];
 
@@ -57,6 +57,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   const oldKeyMap: Record<string, string> = {
     Accounts: 'Expense',
     Shared: 'Spaces',
+    Expense: 'Goals',
   };
 
   function migrateConfig(config: TabConfig[]): TabConfig[] {

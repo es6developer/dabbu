@@ -18,10 +18,10 @@ const BOTTOM_MENU_CACHE_KEY = '@dabbu_bottom_menu_config';
 
 const TAB_META: Record<string, { label: string; icon: string; desc: string }> = {
   Dashboard: { label: 'Dashboard', icon: 'home-outline', desc: 'Home screen with overview' },
-  Expense: { label: 'Expenses', icon: 'card-outline', desc: 'Transactions & accounts' },
-  QuickAction: { label: 'Quick Action', icon: 'add-circle-outline', desc: 'Center FAB with quick actions' },
   Spaces: { label: 'Spaces', icon: 'globe-outline', desc: 'Split expenses & shared accounts' },
-  Settings: { label: 'Settings', icon: 'settings-outline', desc: 'Profile, preferences & more' },
+  QuickAction: { label: 'Quick Action', icon: 'add-circle-outline', desc: 'Center FAB with quick actions' },
+  Goals: { label: 'Goal', icon: 'trophy-outline', desc: 'Track savings & goals' },
+  Settings: { label: 'Profile', icon: 'person-outline', desc: 'Profile, preferences & more' },
 };
 
 export function CustomiseBottomMenuScreen() {
@@ -207,6 +207,7 @@ function migrateConfig(config: TabConfig[]): TabConfig[] {
   const oldKeyMap: Record<string, string> = {
     Accounts: 'Expense',
     Shared: 'Spaces',
+    Expense: 'Goals',
   };
   return config.map((t) => ({
     ...t,
@@ -217,9 +218,9 @@ function migrateConfig(config: TabConfig[]): TabConfig[] {
 function getDefaultTabs(): TabConfig[] {
   return [
     { id: 'Dashboard', visible: true, order: 0, locked: false },
-    { id: 'Expense', visible: true, order: 1, locked: false },
+    { id: 'Spaces', visible: true, order: 1, locked: false },
     { id: 'QuickAction', visible: true, order: 2, locked: false },
-    { id: 'Spaces', visible: true, order: 3, locked: false },
+    { id: 'Goals', visible: true, order: 3, locked: false },
     { id: 'Settings', visible: true, order: 4, locked: true },
   ];
 }

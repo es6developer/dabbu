@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Animated,
   ActivityIndicator,
   Switch,
+  Platform,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -21,18 +22,17 @@ import { useAppLock } from '../../store/LockContext';
 import { usePreferences } from '../../store/PreferencesContext';
 import { api, setAccessToken, getAccessToken } from '../../services/api';
 import { ConfirmDialog } from '../../components/ui';
-import { PADDING, borderRadius, shadows } from '../../theme/design';
+import { spacing, borderRadius, shadows, sectionHeader } from '../../theme/design';
 import { COUPLE_COLORS } from '../../hooks/useCoupleMode';
 
-type IconName = string;
-
-interface SectionItem {
+type SectionItem = {
   label: string;
-  icon: IconName;
+  icon: React.ComponentProps<typeof AntDesign>['name'];
   screen: string;
   premium?: boolean;
   action?: 'lock';
-}
+  subtitle?: string;
+};
 
 const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
   {
@@ -78,38 +78,31 @@ const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
   },
 ];
 
-const ROW_META: Record<string, { icon: IconName }> = {
-  Profile: { icon: 'user' },
-  'Partner Management': { icon: 'heart' },
-  'Premium Plan': { icon: 'star' },
-  'Favorite Contacts': { icon: 'star' },
-  'Refer & Earn': { icon: 'gift' },
-  Security: { icon: 'Safety' },
-  'Lock App': { icon: 'lock' },
-  'Financial Reports': { icon: 'linechart' },
-  'Export Data': { icon: 'download' },
-  Budgets: { icon: 'piechart' },
-  'Couple Space': { icon: 'heart' },
-  Theme: { icon: 'skin' },
-  Notifications: { icon: 'bells' },
-  'Help Center': { icon: 'questioncircle' },
-  'Contact Us': { icon: 'message1' },
-  'Privacy Policy': { icon: 'filetext1' },
+const ROW_META: Record<string, string> = {
+  Profile: 'user', 'Partner Management': 'heart', 'Premium Plan': 'star',
+  'Favorite Contacts': 'star', 'Refer & Earn': 'gift', Security: 'Safety',
+  'Lock App': 'lock', 'Financial Reports': 'linechart', 'Export Data': 'download',
+  Budgets: 'piechart', 'Couple Space': 'heart', Theme: 'skin',
+  Notifications: 'bells', 'Help Center': 'questioncircle',
+  'Contact Us': 'message1', 'Privacy Policy': 'filetext1',
 };
+
+const REGISTERED_SCREENS = [
+  'Profile', 'AddPartner', 'Security', 'Premium', 'Theme',
+  'CustomiseDashboard', 'CustomiseBottomMenu', 'Help', 'Contact',
+  'Privacy', 'Analytics', 'Reports', 'BudgetsList', 'NotificationSettings',
+  'FavoriteContacts', 'Referral', 'CoupleSpace',
+];
 
 export function SettingsScreen() {
   const navigation = useNavigation<any>();
   const {
-    user,
-    logout,
-    refreshPremiumStatus,
-    fetchCoupleRequests,
-    approveCoupleRequest,
-    rejectCoupleRequest,
+    user, logout, refreshPremiumStatus, fetchCoupleRequests,
+    approveCoupleRequest, rejectCoupleRequest,
   } = useAuth();
   const { lockApp } = useAppLock();
   const { bottomBarVisible, quickActionVisible, setBottomBarVisibility, setQuickActionVisibility } = usePreferences();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [subscription, setSubscription] = useState<any | null>(undefined);
@@ -117,82 +110,35 @@ export function SettingsScreen() {
   const [pendingRequests, setPendingRequests] = useState<any[]>([]);
   const [processingReqId, setProcessingReqId] = useState<string | null>(null);
 
-  const filteredSECTIONS: typeof SECTIONS = useMemo(() => {
-    return SECTIONS;
-  }, []);
+  useEffect(() => { Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start(); }, []);
 
-  useEffect(() => {
-    if (user?.isCouple) {
-      setPendingRequests([]);
-    } else {
-      fetchCoupleRequests()
-        .then((res: any) => {
-          const pending = (res?.received || []).filter((r: any) => r.status === 'pending');
-          setPendingRequests(pending);
-        })
-        .catch(() => {});
-    }
-  }, [user?.isCouple, fetchCoupleRequests]);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      if (!user?.isCouple) {
-        fetchCoupleRequests()
-          .then((res: any) => {
-            const pending = (res?.received || []).filter((r: any) => r.status === 'pending');
-            setPendingRequests(pending);
-          })
-          .catch(() => {});
-      } else {
-        setPendingRequests([]);
-      }
-    }, [user?.isCouple, fetchCoupleRequests]),
-  );
-
-  useEffect(() => {
-    loadSubscription();
-    Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
-  }, []);
-
-  async function loadSubscription() {
+  const loadSubscription = useCallback(async () => {
     try {
       setAccessToken(getAccessToken());
       const res = await api.get<any>('/premium/current');
       setSubscription(res);
-    } catch {
-      setSubscription(null);
-    }
+    } catch { setSubscription(null); }
     refreshPremiumStatus();
-  }
+  }, [refreshPremiumStatus]);
+
+  useEffect(() => { loadSubscription(); }, [loadSubscription]);
+
+  const refreshRequests = useCallback(async () => {
+    if (user?.isCouple) { setPendingRequests([]); return; }
+    try {
+      const res = await fetchCoupleRequests();
+      setPendingRequests((res?.received || []).filter((r: any) => r.status === 'pending'));
+    } catch { /* ignore */ }
+  }, [user?.isCouple, fetchCoupleRequests]);
+
+  useFocusEffect(useCallback(() => { refreshRequests(); }, [refreshRequests]));
 
   const isPremium = !!subscription && subscription.status === 'active';
 
   const handleNav = (screen: string, premium?: boolean, action?: 'lock') => {
-    if (action === 'lock') {
-      lockApp();
-      return;
-    }
-    const registered = [
-      'Profile',
-      'AddPartner',
-      'Security',
-      'Premium',
-      'Theme',
-      'CustomiseDashboard',
-      'CustomiseBottomMenu',
-      'Help',
-      'Contact',
-      'Privacy',
-      'Analytics',
-      'Reports',
-      'BudgetsList',
-      'NotificationSettings',
-      'FavoriteContacts',
-      'Referral',
-      'CoupleSpace',
-    ];
-    if (!registered.includes(screen)) {
-      Alert.alert('Coming Soon', `${screen} settings will be available soon`);
+    if (action === 'lock') { lockApp(); return; }
+    if (!REGISTERED_SCREENS.includes(screen)) {
+      Alert.alert('Coming Soon', `${screen} will be available soon`);
       return;
     }
     if (premium && !isPremium) {
@@ -207,589 +153,164 @@ export function SettingsScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
-      >
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + spacing['5xl'] }}>
+
         {/* Profile Header */}
-        <View
-          style={{ paddingTop: insets.top + 16, paddingHorizontal: PADDING, paddingBottom: 24 }}
-        >
-          <View
-            style={{
-              backgroundColor: colors.bg.card,
-              borderRadius: borderRadius.xl,
-              padding: 20,
-              ...shadows.md,
-            }}
+        <View style={{ paddingTop: insets.top + spacing.xl, paddingHorizontal: spacing.xl, paddingBottom: spacing['2xl'] }}>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => handleNav('Profile')}
+            style={[s.profileCard, { backgroundColor: colors.bg.card }]}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-              <Avatar
-                uri={user?.avatarUrl}
-                name={`${user?.firstName || ''} ${user?.lastName || ''}`}
-                size={56}
-              />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.lg }}>
+              <Avatar uri={user?.avatarUrl} name={`${user?.firstName || ''} ${user?.lastName || ''}`} size={52} />
               <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    fontSize: 18,
-                    fontWeight: '700',
-                    color: colors.text.primary,
-                    letterSpacing: -0.3,
-                  }}
-                >
+                <Text style={[s.profileName, { color: colors.text.primary }]}>
                   {user?.firstName || 'User'} {user?.lastName || ''}
                 </Text>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: '500',
-                    color: colors.text.tertiary,
-                    marginTop: 2,
-                  }}
-                >
-                  {user?.email || 'No email'}
-                </Text>
+                <Text style={[s.profileEmail, { color: colors.text.secondary }]}>{user?.email || ''}</Text>
               </View>
-              <TouchableOpacity
-                onPress={() => handleNav('Profile')}
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 12,
-                  backgroundColor: `${colors.accent.primary}10`,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <AntDesign  name="right" size={18} color={colors.accent.primary} />
-              </TouchableOpacity>
-            </View>
-            <View
-              style={{
-                flexDirection: 'row',
-                marginTop: 16,
-                paddingTop: 16,
-                borderTopWidth: 1,
-                borderTopColor: colors.border.subtle,
-                gap: 12,
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 6,
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                  borderRadius: 20,
-                  backgroundColor: isPremium ? `${colors.accent.primary}12` : colors.bg.tertiary,
-                }}
-              >
-                <AntDesign
-                  name={isPremium ? 'star' : 'user' as any}
-                  size={14}
-                  color={isPremium ? colors.accent.primary : colors.text.tertiary}
-                />
-                <Text
-                  style={{
-                    fontSize: 12,
-                    fontWeight: '700',
-                    color: isPremium ? colors.accent.primary : colors.text.tertiary,
-                  }}
-                >
+              <View style={[s.badge, { backgroundColor: isPremium ? `${colors.accent.primary}12` : colors.bg.tertiary }]}>
+                <AntDesign name={isPremium ? 'star' : 'user'} size={12} color={isPremium ? colors.accent.primary : colors.text.tertiary} />
+                <Text style={{ fontSize: 11, fontWeight: '600', color: isPremium ? colors.accent.primary : colors.text.tertiary }}>
                   {isPremium ? 'Premium' : 'Free'}
                 </Text>
               </View>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Security')}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 6,
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                  borderRadius: 20,
-                  backgroundColor: colors.bg.tertiary,
-                }}
-              >
-                <AntDesign  name="checkcircle" size={14} color={colors.text.tertiary} />
-                <Text style={{ fontSize: 12, fontWeight: '700', color: colors.text.tertiary }}>
-                  Security
-                </Text>
-              </TouchableOpacity>
             </View>
-          </View>
+          </TouchableOpacity>
         </View>
 
         <Animated.View style={{ opacity: fadeAnim }}>
-          {/* Pending Couple Requests */}
-          {pendingRequests.length > 0 && (
-            <View style={{ paddingHorizontal: PADDING, marginBottom: 16 }}>
-              <View
-                style={{
-                  backgroundColor: COUPLE_COLORS.bg,
-                  borderRadius: borderRadius.xl,
-                  borderWidth: 1,
-                  borderColor: COUPLE_COLORS.border,
-                  overflow: 'hidden',
-                }}
-              >
-                <View
-                  style={{
-                    paddingHorizontal: 16,
-                    paddingVertical: 12,
-                    borderBottomWidth: 1,
-                    borderBottomColor: COUPLE_COLORS.border,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 8,
-                  }}
-                >
-                  <AntDesign  name="heart" size={18} color={COUPLE_COLORS.primary} />
-                  <Text
-                    style={{
-                      fontSize: 14,
-                      fontWeight: '800',
-                      color: COUPLE_COLORS.text,
-                      flex: 1,
-                    }}
-                  >
-                    Couple Request{pendingRequests.length > 1 ? 's' : ''}
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      fontWeight: '700',
-                      color: COUPLE_COLORS.primary,
-                    }}
-                  >
-                    {pendingRequests.length} pending
-                  </Text>
-                </View>
-                {pendingRequests.map((req: any) => (
-                  <View
-                    key={req.id}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 12,
-                      paddingHorizontal: 16,
-                      paddingVertical: 12,
-                      borderBottomWidth: 1,
-                      borderBottomColor: COUPLE_COLORS.border,
-                    }}
-                  >
-                    <View
-                      style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 12,
-                        backgroundColor: `${COUPLE_COLORS.primary}15`,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <AntDesign  name="user" size={18} color={COUPLE_COLORS.primary} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text
-                        style={{
-                          fontSize: 13,
-                          fontWeight: '700',
-                          color: COUPLE_COLORS.text,
-                        }}
-                      >
-                        {req.sender?.firstName || 'Someone'} wants to connect!
-                      </Text>
-                      <Text
-                        style={{
-                          fontSize: 11,
-                          fontWeight: '500',
-                          color: COUPLE_COLORS.textSecondary,
-                          marginTop: 1,
-                        }}
-                      >
-                        {req.sender?.phone || req.sender?.email || ''}
-                      </Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', gap: 6 }}>
-                      <TouchableOpacity
-                        style={{
-                          width: 32,
-                          height: 32,
-                          borderRadius: 10,
-                          backgroundColor: '#10B981',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                        disabled={processingReqId === req.id}
-                        onPress={async () => {
-                          setProcessingReqId(req.id);
-                          try {
-                            const result = await approveCoupleRequest(req.id);
-                            if (result?.user) {
-                              setPendingRequests((prev) => prev.filter((r) => r.id !== req.id));
-                              Alert.alert(
-                                'Connected!',
-                                "You're in a couple! Couple Mode is active.",
-                                [
-                                  {
-                                    text: 'Go to Home',
-                                    onPress: () => navigation.navigate('Dashboard'),
-                                  },
-                                ],
-                              );
-                            }
-                          } catch (e: any) {
-                            Alert.alert('Error', e?.message || 'Failed to approve');
-                          } finally {
-                            setProcessingReqId(null);
-                          }
-                        }}
-                      >
-                        {processingReqId === req.id ? (
-                          <ActivityIndicator size="small" color="#FFF" />
-                        ) : (
-                          <AntDesign  name="check" size={16} color="#FFF" />
-                        )}
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={{
-                          width: 32,
-                          height: 32,
-                          borderRadius: 10,
-                          backgroundColor: '#FF475720',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderWidth: 1,
-                          borderColor: '#FF475740',
-                        }}
-                        onPress={async () => {
-                          try {
-                            await rejectCoupleRequest(req.id);
-                            setPendingRequests((prev) => prev.filter((r) => r.id !== req.id));
-                          } catch {
-                            // ignore
-                          }
-                        }}
-                      >
-                        <AntDesign  name="close" size={16} color="#FF4757" />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                ))}
-                <TouchableOpacity
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 4,
-                    paddingVertical: 10,
-                  }}
-                  onPress={() => navigation.navigate('AddPartner')}
-                  activeOpacity={0.7}
-                >
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      fontWeight: '700',
-                      color: COUPLE_COLORS.primary,
-                    }}
-                  >
-                    View All
-                  </Text>
-                  <AntDesign  name="right" size={14} color={COUPLE_COLORS.primary} />
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
 
           {/* Upgrade Banner */}
           {subscription !== undefined && !isPremium && (
             <TouchableOpacity
               onPress={() => navigation.navigate('Premium')}
               activeOpacity={0.85}
-              style={{
-                marginHorizontal: PADDING,
-                marginBottom: 24,
-                borderRadius: borderRadius.xl,
-                overflow: 'hidden',
-                backgroundColor: isDark ? '#1E1B4B' : '#F5F3FF',
-                borderWidth: 1,
-                borderColor: isDark ? '#2E1065' : '#E9D5FF',
-              }}
+              style={[s.upgradeBanner, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}
             >
-              <View
-                style={{
-                  height: 4,
-                  backgroundColor: '#FFD700',
-                }}
-              />
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  padding: 20,
-                  gap: 14,
-                }}
-              >
-                <View
-                  style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 14,
-                    backgroundColor: '#FFD700',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <AntDesign  name="star" size={24} color="#0A0A0A" />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      fontWeight: '800',
-                      color: colors.text.primary,
-                      letterSpacing: -0.3,
-                    }}
-                  >
-                    Upgrade to Premium
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      fontWeight: '500',
-                      color: colors.text.tertiary,
-                      marginTop: 2,
-                    }}
-                  >
-                    Unlock reports, analytics & exclusive features
-                  </Text>
-                </View>
-                <View
-                  style={{
-                    paddingHorizontal: 16,
-                    paddingVertical: 9,
-                    borderRadius: 20,
-                    backgroundColor: '#FFD700',
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 13,
-                      fontWeight: '800',
-                      color: '#0A0A0A',
-                    }}
-                  >
-                    Upgrade
-                  </Text>
-                </View>
+              <View style={[s.upgradeIcon, { backgroundColor: '#FCD34D' }]}>
+                <AntDesign name="star" size={20} color="#0A0A0A" />
               </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[s.upgradeTitle, { color: colors.text.primary }]}>Upgrade to Premium</Text>
+                <Text style={[s.upgradeDesc, { color: colors.text.secondary }]}>Unlock reports, analytics & more</Text>
+              </View>
+              <Text style={s.upgradeBtn}>Upgrade</Text>
             </TouchableOpacity>
           )}
 
-          {/* Couple Mode Toggle */}
-          <CoupleModeToggle />
-
-          {/* Navigation Visibility */}
-          <View style={{ marginBottom: 24, paddingHorizontal: PADDING }}>
-            <Text
-              style={{
-                fontSize: 12,
-                fontWeight: '700',
-                color: colors.text.tertiary,
-                letterSpacing: 0.8,
-                textTransform: 'uppercase',
-                marginBottom: 10,
-                paddingLeft: 2,
-              }}
-            >
-              Navigation
-            </Text>
-            <View
-              style={{
-                backgroundColor: colors.bg.card,
-                borderRadius: borderRadius.xl,
-                overflow: 'hidden',
-                ...shadows.md,
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingVertical: 15,
-                  paddingHorizontal: 18,
-                  gap: 14,
-                  borderBottomWidth: 1,
-                  borderBottomColor: colors.border.subtle,
-                }}
-              >
-                <View
-                  style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: 12,
-                    backgroundColor: `${colors.accent.primary}10`,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <AntDesign name="bars" size={18} color={colors.accent.primary} />
-                </View>
-                <Text
-                  style={{
-                    flex: 1,
-                    fontSize: 15,
-                    fontWeight: '600',
-                    color: colors.text.primary,
-                  }}
-                >
-                  Bottom Bar
-                </Text>
+          {/* Navigation Toggles */}
+          <View style={{ paddingHorizontal: spacing.xl, marginBottom: spacing['2xl'] }}>
+            <Text style={[sectionHeader, { color: colors.text.secondary }]}>Navigation</Text>
+            <View style={[s.grouped, { backgroundColor: colors.bg.card }]}>
+              <SettingsRow icon="bars" label="Bottom Bar" colors={colors}>
                 <Switch
-                  value={bottomBarVisible}
-                  onValueChange={setBottomBarVisibility}
-                  trackColor={{ false: colors.border.subtle, true: `${colors.accent.primary}60` }}
+                  value={bottomBarVisible} onValueChange={setBottomBarVisibility}
+                  trackColor={{ false: colors.border.subtle, true: `${colors.accent.primary}50` }}
                   thumbColor={bottomBarVisible ? colors.accent.primary : colors.text.tertiary}
                 />
-              </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingVertical: 15,
-                  paddingHorizontal: 18,
-                  gap: 14,
-                }}
-              >
-                <View
-                  style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: 12,
-                    backgroundColor: `${colors.accent.primary}10`,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <AntDesign name="pluscircleo" size={18} color={colors.accent.primary} />
-                </View>
-                <Text
-                  style={{
-                    flex: 1,
-                    fontSize: 15,
-                    fontWeight: '600',
-                    color: colors.text.primary,
-                  }}
-                >
-                  Quick Action Sheet
-                </Text>
+              </SettingsRow>
+              <SettingsRow icon="pluscircleo" label="Quick Actions" colors={colors}>
                 <Switch
-                  value={quickActionVisible}
-                  onValueChange={setQuickActionVisibility}
-                  trackColor={{ false: colors.border.subtle, true: `${colors.accent.primary}60` }}
+                  value={quickActionVisible} onValueChange={setQuickActionVisibility}
+                  trackColor={{ false: colors.border.subtle, true: `${colors.accent.primary}50` }}
                   thumbColor={quickActionVisible ? colors.accent.primary : colors.text.tertiary}
                 />
-              </View>
+              </SettingsRow>
+              <TouchableOpacity
+                style={[s.row, { borderBottomWidth: 0 }]}
+                onPress={() => handleNav('CustomiseBottomMenu')}
+                activeOpacity={0.6}
+              >
+                <View style={[s.rowIcon, { backgroundColor: `${colors.accent.primary}0A` }]}>
+                  <AntDesign name="menufold" size={16} color={colors.accent.primary} />
+                </View>
+                <Text style={[s.rowLabel, { color: colors.text.primary }]}>Customise Bottom Menu</Text>
+                <AntDesign name="right" size={14} color={colors.text.tertiary} />
+              </TouchableOpacity>
             </View>
           </View>
 
-          {/* Sections */}
-          {filteredSECTIONS.map((section, i) => (
-            <View key={i} style={{ marginBottom: 24, paddingHorizontal: PADDING }}>
-              <Text
-                style={{
-                  fontSize: 12,
-                  fontWeight: '700',
-                  color: colors.text.tertiary,
-                  letterSpacing: 0.8,
-                  textTransform: 'uppercase',
-                  marginBottom: 10,
-                  paddingLeft: 2,
-                }}
-              >
-                {section.title}
-              </Text>
-              <View
-                style={{
-                  backgroundColor: colors.bg.card,
-                  borderRadius: borderRadius.xl,
-                  overflow: 'hidden',
-                  ...shadows.md,
-                }}
-              >
-                {section.items.map((item, j) => {
-                  const meta = ROW_META[item.label];
-                  return (
-                    <TouchableOpacity
-                      key={j}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        paddingVertical: 15,
-                        paddingHorizontal: 18,
-                        gap: 14,
-                        borderBottomWidth: j < section.items.length - 1 ? 1 : 0,
-                        borderBottomColor: colors.border.subtle,
-                      }}
-                      onPress={() => handleNav(item.screen, item.premium, item.action)}
-                      activeOpacity={0.6}
-                    >
-                      <View
-                        style={{
-                          width: 38,
-                          height: 38,
-                          borderRadius: 12,
-                          backgroundColor: `${colors.accent.primary}10`,
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <AntDesign
-                          name={(meta?.icon as any) || item.icon}
-                          size={18}
-                          color={colors.accent.primary}
-                        />
-                      </View>
-                      <Text
-                        style={{
-                          flex: 1,
-                          fontSize: 15,
-                          fontWeight: '600',
-                          color: colors.text.primary,
-                        }}
-                      >
-                        {item.label}
+          {/* Couple Requests */}
+          {pendingRequests.length > 0 && (
+            <View style={{ paddingHorizontal: spacing.xl, marginBottom: spacing['2xl'] }}>
+              <View style={[s.grouped, { backgroundColor: COUPLE_COLORS.bg, borderColor: COUPLE_COLORS.border }]}>
+                <View style={[s.coupleHeader, { borderBottomColor: COUPLE_COLORS.border }]}>
+                  <AntDesign name="heart" size={16} color={COUPLE_COLORS.primary} />
+                  <Text style={[s.coupleHeaderText, { color: COUPLE_COLORS.text }]}>
+                    Couple Request{pendingRequests.length > 1 ? 's' : ''}
+                  </Text>
+                  <Text style={[s.coupleBadge, { color: COUPLE_COLORS.primary }]}>{pendingRequests.length}</Text>
+                </View>
+                {pendingRequests.map((req: any) => (
+                  <View key={req.id} style={[s.coupleRow, { borderBottomColor: COUPLE_COLORS.border }]}>
+                    <Avatar name={req.sender?.firstName || ''} size={36} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[s.coupleName, { color: COUPLE_COLORS.text }]}>
+                        {req.sender?.firstName || 'Someone'} wants to connect
                       </Text>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <Text style={[s.coupleContact, { color: COUPLE_COLORS.textSecondary }]}>
+                        {req.sender?.phone || req.sender?.email || ''}
+                      </Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+                      <TouchableOpacity style={s.approveBtn} disabled={processingReqId === req.id}
+                        onPress={async () => {
+                          setProcessingReqId(req.id);
+                          try {
+                            const result = await approveCoupleRequest(req.id);
+                            if (result?.user) {
+                              setPendingRequests(prev => prev.filter(r => r.id !== req.id));
+                              Alert.alert('Connected!', "You're in a couple! Couple Mode is active.",
+                                [{ text: 'Go to Home', onPress: () => navigation.navigate('Dashboard') }]);
+                            }
+                          } catch (e: any) { Alert.alert('Error', e?.message || 'Failed'); }
+                          finally { setProcessingReqId(null); }
+                        }}>
+                        {processingReqId === req.id ? <ActivityIndicator size="small" color="#FFF" /> :
+                          <AntDesign name="check" size={14} color="#FFF" />}
+                      </TouchableOpacity>
+                      <TouchableOpacity style={s.rejectBtn} onPress={async () => {
+                        try { await rejectCoupleRequest(req.id); setPendingRequests(prev => prev.filter(r => r.id !== req.id)); } catch {}
+                      }}>
+                        <AntDesign name="close" size={14} color="#EF4444" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
+                <TouchableOpacity style={s.coupleFooter} onPress={() => navigation.navigate('AddPartner')} activeOpacity={0.7}>
+                  <Text style={[s.coupleFooterText, { color: COUPLE_COLORS.primary }]}>View All</Text>
+                  <AntDesign name="right" size={12} color={COUPLE_COLORS.primary} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* Settings Sections */}
+          {SECTIONS.map((section, i) => (
+            <View key={i} style={{ paddingHorizontal: spacing.xl, marginBottom: spacing['2xl'] }}>
+              <Text style={[sectionHeader, { color: colors.text.secondary }]}>{section.title}</Text>
+              <View style={[s.grouped, { backgroundColor: colors.bg.card }]}>
+                {section.items.map((item, j) => {
+                  const iconName = (ROW_META[item.label] || item.icon) as any;
+                  const isLast = j === section.items.length - 1;
+                  return (
+                    <TouchableOpacity key={j}
+                      style={[s.row, !isLast && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border.subtle }]}
+                      onPress={() => handleNav(item.screen, item.premium, item.action)}
+                      activeOpacity={0.6}>
+                      <View style={[s.rowIcon, { backgroundColor: `${colors.accent.primary}0A` }]}>
+                        <AntDesign name={iconName} size={16} color={colors.accent.primary} />
+                      </View>
+                      <Text style={[s.rowLabel, { color: colors.text.primary }]}>{item.label}</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
                         {item.premium && !isPremium && (
-                          <View
-                            style={{
-                              flexDirection: 'row',
-                              alignItems: 'center',
-                              gap: 3,
-                              paddingHorizontal: 8,
-                              paddingVertical: 3,
-                              borderRadius: 6,
-                              backgroundColor: `${colors.accent.primary}10`,
-                            }}
-                          >
-                            <AntDesign  name="lock" size={10} color={colors.accent.primary} />
-                            <Text
-                              style={{
-                                fontSize: 10,
-                                fontWeight: '700',
-                                color: colors.accent.primary,
-                              }}
-                            >
-                              Premium
-                            </Text>
+                          <View style={[s.premiumBadge, { backgroundColor: `${colors.accent.primary}0A` }]}>
+                            <Text style={[s.premiumText, { color: colors.accent.primary }]}>Premium</Text>
                           </View>
                         )}
-                        <AntDesign  name="right" size={16} color={colors.text.tertiary} />
+                        <AntDesign name="right" size={14} color={colors.text.tertiary} />
                       </View>
                     </TouchableOpacity>
                   );
@@ -799,84 +320,24 @@ export function SettingsScreen() {
           ))}
 
           {/* Admin */}
-          <TouchableOpacity
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 12,
-              marginHorizontal: PADDING,
-              padding: 16,
-              backgroundColor: colors.bg.card,
-              borderRadius: borderRadius.lg,
-              ...shadows.sm,
-              marginBottom: 8,
-            }}
-            onPress={() => navigation.navigate('AdminLogin')}
-            activeOpacity={0.6}
-          >
-            <View
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 12,
-                backgroundColor: '#6C3EF420',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <AntDesign name="Safety" size={18} color="#6C3EF4" />
+          <TouchableOpacity style={[s.extraRow, { backgroundColor: colors.bg.card }]} onPress={() => navigation.navigate('AdminLogin')} activeOpacity={0.6}>
+            <View style={[s.rowIcon, { backgroundColor: `${colors.accent.primary}10` }]}>
+              <AntDesign name="Safety" size={16} color={colors.accent.primary} />
             </View>
-            <Text style={{ flex: 1, fontSize: 15, fontWeight: '600', color: '#6C3EF4' }}>
-              Admin Panel
-            </Text>
-            <AntDesign name="right" size={16} color={colors.text.tertiary} />
+            <Text style={[s.rowLabel, { color: colors.accent.primary }]}>Admin Panel</Text>
+            <AntDesign name="right" size={14} color={colors.text.tertiary} />
           </TouchableOpacity>
 
           {/* Logout */}
-          <TouchableOpacity
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 12,
-              marginHorizontal: PADDING,
-              padding: 16,
-              backgroundColor: colors.bg.card,
-              borderRadius: borderRadius.lg,
-              ...shadows.sm,
-            }}
-            onPress={() => setShowLogoutDialog(true)}
-            activeOpacity={0.6}
-          >
-            <View
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 12,
-                backgroundColor: `${colors.status.error}10`,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <AntDesign  name="logout" size={18} color={colors.status.error} />
+          <TouchableOpacity style={[s.extraRow, { backgroundColor: colors.bg.card }]} onPress={() => setShowLogoutDialog(true)} activeOpacity={0.6}>
+            <View style={[s.rowIcon, { backgroundColor: `${colors.status.error}0A` }]}>
+              <AntDesign name="logout" size={16} color={colors.status.error} />
             </View>
-            <Text style={{ flex: 1, fontSize: 15, fontWeight: '700', color: colors.status.error }}>
-              Sign Out
-            </Text>
-            <AntDesign  name="right" size={16} color={colors.text.tertiary} />
+            <Text style={[s.rowLabel, { color: colors.status.error }]}>Sign Out</Text>
+            <AntDesign name="right" size={14} color={colors.text.tertiary} />
           </TouchableOpacity>
 
-          <Text
-            style={{
-              textAlign: 'center',
-              fontSize: 12,
-              fontWeight: '500',
-              color: colors.text.tertiary,
-              marginTop: 24,
-              marginBottom: 8,
-            }}
-          >
-            Dabbu v1.0.0
-          </Text>
+          <Text style={[s.version, { color: colors.text.tertiary }]}>Dabbu v1.0.0</Text>
         </Animated.View>
       </ScrollView>
 
@@ -884,19 +345,206 @@ export function SettingsScreen() {
         visible={showLogoutDialog}
         title="Sign Out"
         message="Are you sure you want to sign out?"
-        confirmLabel="Sign Out"
-        destructive
-        icon="logout"
-        onConfirm={() => {
-          setShowLogoutDialog(false);
-          logout().catch(() => {});
-        }}
+        confirmLabel="Sign Out" destructive icon="logout"
+        onConfirm={() => { setShowLogoutDialog(false); logout().catch(() => {}); }}
         onCancel={() => setShowLogoutDialog(false)}
       />
     </View>
   );
 }
 
+function SettingsRow({ icon, label, colors, last, children }: { icon: string; label: string; colors: any; last?: boolean; children: React.ReactNode }) {
+  return (
+    <View style={[s.row, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border.subtle }]}>
+      <View style={[s.rowIcon, { backgroundColor: `${colors.accent.primary}0A` }]}>
+        <AntDesign name={icon as any} size={16} color={colors.accent.primary} />
+      </View>
+      <Text style={[s.rowLabel, { color: colors.text.primary, flex: 1 }]}>{label}</Text>
+      {children}
+    </View>
+  );
+}
+
 const s = StyleSheet.create({
   root: { flex: 1 },
+  profileCard: {
+    borderRadius: borderRadius['3xl'],
+    padding: spacing.lg,
+    ...shadows.md,
+  },
+  profileName: {
+    fontSize: 17,
+    fontWeight: '600',
+    letterSpacing: -0.05,
+  },
+  profileEmail: {
+    fontSize: 13,
+    fontWeight: '400',
+    marginTop: 1,
+  },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  upgradeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    marginHorizontal: spacing.xl,
+    marginBottom: spacing['2xl'],
+    padding: spacing.lg,
+    borderRadius: borderRadius['3xl'],
+    borderWidth: 1,
+    ...shadows.sm,
+  },
+  upgradeIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: borderRadius['2xl'],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  upgradeTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    letterSpacing: -0.05,
+  },
+  upgradeDesc: {
+    fontSize: 12,
+    fontWeight: '400',
+    marginTop: 1,
+  },
+  upgradeBtn: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#0A0A0A',
+    backgroundColor: '#FCD34D',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: 999,
+    overflow: 'hidden',
+  },
+  grouped: {
+    borderRadius: borderRadius['3xl'],
+    overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'transparent',
+    ...shadows.md,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    gap: spacing.md,
+    minHeight: 48,
+  },
+  rowIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rowLabel: {
+    fontSize: 15,
+    fontWeight: '400',
+    letterSpacing: -0.03,
+    flex: 1,
+  },
+  premiumBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  premiumText: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  extraRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    gap: spacing.md,
+    marginHorizontal: spacing.xl,
+    marginBottom: spacing.sm,
+    borderRadius: borderRadius['3xl'],
+    minHeight: 48,
+    ...shadows.sm,
+  },
+  version: {
+    textAlign: 'center',
+    fontSize: 12,
+    fontWeight: '400',
+    marginTop: spacing['2xl'],
+  },
+  // Couple section
+  coupleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  coupleHeaderText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  coupleBadge: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  coupleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  coupleName: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  coupleContact: {
+    fontSize: 11,
+    fontWeight: '400',
+    marginTop: 1,
+  },
+  approveBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 10,
+    backgroundColor: '#22C55E',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rejectBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 10,
+    backgroundColor: '#FEF2F2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  coupleFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingVertical: spacing.md,
+  },
+  coupleFooterText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
 });
