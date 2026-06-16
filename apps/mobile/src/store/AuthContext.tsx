@@ -706,13 +706,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const toggleCoupleMode = useCallback(async (isCoupleMode: boolean) => {
     const prevUser = stateRef.current.user;
+    const updatedUser = { ...prevUser, isCouple: true, isCoupleMode };
     setState((prev) => ({
       ...prev,
-      user: prev.user ? { ...prev.user, isCoupleMode } : null,
+      user: prev.user ? { ...prev.user, isCouple: true, isCoupleMode } : null,
     }));
     await AsyncStorage.setItem('@dabbu_couple_mode', String(isCoupleMode));
     try {
       await api.post('/couple/toggle-mode', { isCoupleMode });
+      await storage.current.setItem('userData', JSON.stringify(updatedUser));
     } catch {
       setState((prev) => ({
         ...prev,

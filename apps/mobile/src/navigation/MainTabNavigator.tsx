@@ -382,41 +382,41 @@ export function MainTabNavigator() {
 
   const quickActions = [
     {
-      label: 'Add Expense' as const,
-      icon: 'cart-outline' as const,
+      label: 'Add Expense',
+      icon: 'add-circle-outline',
       color: '#DC2626',
-      onPress: () => navigation.navigate('Expense', { screen: 'CategorySelection' }),
+      onPress: () => navigation.navigate('Expense', { screen: 'CategorySelection', params: { type: 'expense' } }),
     },
     {
-      label: 'Add Income' as const,
-      icon: 'trending-up-outline' as const,
+      label: 'Add Income',
+      icon: 'trending-up-outline',
       color: '#16A34A',
       onPress: () =>
         navigation.navigate('Expense', { screen: 'CategorySelection', params: { type: 'income' } }),
     },
     {
-      label: 'Transfer' as const,
-      icon: 'swap-horizontal-outline' as const,
+      label: 'Wallet',
+      icon: 'wallet-outline',
       color: '#2563EB',
+      onPress: () => navigation.navigate('Spaces', { screen: 'GroupWallet' }),
+    },
+    {
+      label: 'Net Worth',
+      icon: 'stats-chart-outline',
+      color: '#7C3AED',
       onPress: () => navigation.navigate('Dashboard', { screen: 'NetWorth' }),
     },
     {
-      label: 'Contribute Goal' as const,
-      icon: 'gift-outline' as const,
+      label: 'Create Goal',
+      icon: 'flag-outline',
       color: '#F59E0B',
-      onPress: () => navigation.navigate('Goals', { screen: 'GoalsList' }),
+      onPress: () => navigation.navigate('Goals'),
     },
     {
-      label: 'Create Goal' as const,
-      icon: 'flag-outline' as const,
-      color: '#7C3AED',
-      onPress: () => navigation.navigate('Goals', { screen: 'GoalsList' }),
-    },
-    {
-      label: 'Create Space' as const,
-      icon: 'planet-outline' as const,
+      label: 'Expense Group',
+      icon: 'people-outline',
       color: '#14B8A6',
-      onPress: () => navigation.navigate('Spaces', { screen: 'CreateSharedGroup' }),
+      onPress: () => navigation.navigate('Expense', { screen: 'CreateExpenseGroup' }),
     },
   ];
 

@@ -18,6 +18,7 @@ const TAB_BAR_OFFSET = Platform.OS === 'ios' ? 90 : 80;
 interface ActionItem {
   label: string;
   icon: string;
+  color?: string;
   onPress: () => void;
 }
 
@@ -33,7 +34,6 @@ export function QuickActionSheet({ actions, activeItem, visible, onClose }: Quic
   const insets = useSafeAreaInsets();
   const slideAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const itemScaleAnim = useRef(new Animated.Value(0.6)).current;
   const [rendered, setRendered] = useState(visible);
 
   useEffect(() => {
@@ -42,12 +42,6 @@ export function QuickActionSheet({ actions, activeItem, visible, onClose }: Quic
       Animated.parallel([
         Animated.spring(slideAnim, { toValue: 1, friction: 8, tension: 65, useNativeDriver: true }),
         Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
-        Animated.spring(itemScaleAnim, {
-          toValue: 1,
-          friction: 6,
-          tension: 70,
-          useNativeDriver: true,
-        }),
       ]).start();
     } else {
       Animated.parallel([
@@ -57,9 +51,7 @@ export function QuickActionSheet({ actions, activeItem, visible, onClose }: Quic
     }
   }, [visible]);
 
-  if (!rendered) {
-    return null;
-  }
+  if (!rendered) return null;
 
   const sheetTranslateY = slideAnim.interpolate({
     inputRange: [0, 1],
@@ -70,12 +62,10 @@ export function QuickActionSheet({ actions, activeItem, visible, onClose }: Quic
 
   return (
     <View style={[s.container, { bottom: backdropBottom }]} pointerEvents="box-none">
-      {/* Backdrop — covers only the area above the tab bar */}
       <Animated.View style={[s.backdrop, { opacity: fadeAnim }]} pointerEvents="auto">
         <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onClose} />
       </Animated.View>
 
-      {/* Floating sheet — positioned above tab bar */}
       <Animated.View
         style={[
           s.sheet,
@@ -86,54 +76,36 @@ export function QuickActionSheet({ actions, activeItem, visible, onClose }: Quic
           },
         ]}
       >
-        {/* Handle bar */}
         <View style={[s.handle, { backgroundColor: isDark ? '#3A3A3C' : '#D1D1D6' }]} />
 
-        {/* Action grid */}
         <View style={s.grid}>
-          {actions.map((action, i) => {
-            const isActive = action.label === activeItem;
-            const itemDelay = i * 50;
-            const itemAnim = slideAnim.interpolate({
-              inputRange: [0, 1],
-              outputRange: [0.3 + i * 0.05, 1],
-            });
-
-            return (
-              <TouchableOpacity
-                key={i}
-                style={s.item}
-                activeOpacity={0.7}
-                onPress={() => {
-                  onClose();
-                  action.onPress();
-                }}
+          {actions.map((action, i) => (
+            <TouchableOpacity
+              key={i}
+              style={s.item}
+              activeOpacity={0.7}
+              onPress={() => {
+                onClose();
+                action.onPress();
+              }}
+            >
+              <Animated.View
+                style={[
+                  s.bubble,
+                  { backgroundColor: (action.color || '#636366') + '18' },
+                ]}
               >
-                <Animated.View
-                  style={[
-                    s.bubble,
-                    {
-                      backgroundColor: isActive
-                        ? 'rgba(20, 184, 166, 0.15)'
-                        : isDark
-                          ? '#2C2C2E'
-                          : '#F2F2F7',
-                      opacity: itemAnim,
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name={action.icon as keyof typeof Ionicons.glyphMap}
-                    size={24}
-                    color={isActive ? '#14B8A6' : isDark ? '#FFFFFF' : '#1C1C1E'}
-                  />
-                </Animated.View>
-                <Text style={[s.label, { color: isDark ? '#8E8E93' : '#636366' }]}>
-                  {action.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+                <Ionicons
+                  name={action.icon as keyof typeof Ionicons.glyphMap}
+                  size={24}
+                  color={action.color || '#1C1C1E'}
+                />
+              </Animated.View>
+              <Text style={[s.label, { color: isDark ? '#8E8E93' : '#636366' }]}>
+                {action.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
       </Animated.View>
     </View>
@@ -160,8 +132,8 @@ const s = StyleSheet.create({
     borderTopRightRadius: 30,
     borderWidth: 1,
     paddingTop: 12,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingHorizontal: 24,
+    paddingBottom: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.15,
@@ -178,13 +150,13 @@ const s = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 20,
+    justifyContent: 'space-between',
+    rowGap: 16,
   },
   item: {
     alignItems: 'center',
     gap: 6,
-    width: 72,
+    width: '30%',
   },
   bubble: {
     width: 56,
@@ -194,7 +166,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   label: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',
   },

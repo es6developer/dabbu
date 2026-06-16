@@ -20,7 +20,7 @@ import { useAppLock } from '../../store/LockContext';
 import { api, setAccessToken, getAccessToken } from '../../services/api';
 import { ConfirmDialog } from '../../components/ui';
 import { PADDING, borderRadius, shadows } from '../../theme/design';
-import { useCoupleMode, COUPLE_COLORS } from '../../hooks/useCoupleMode';
+import { COUPLE_COLORS } from '../../hooks/useCoupleMode';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -113,19 +113,10 @@ export function SettingsScreen() {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [pendingRequests, setPendingRequests] = useState<any[]>([]);
   const [processingReqId, setProcessingReqId] = useState<string | null>(null);
-  const { isInCouple, showCoupleFeatures } = useCoupleMode();
 
   const filteredSECTIONS: typeof SECTIONS = useMemo(() => {
-    return SECTIONS.map((section) => ({
-      ...section,
-      items: section.items.filter((item) => {
-        if (item.label === 'Couple Space' && !showCoupleFeatures) {
-          return false;
-        }
-        return true;
-      }),
-    })).filter((section) => section.items.length > 0);
-  }, [isInCouple, showCoupleFeatures]);
+    return SECTIONS;
+  }, []);
 
   useEffect(() => {
     if (user?.isCouple) {

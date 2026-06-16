@@ -40,20 +40,24 @@ export function CoupleSpaceScreen() {
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useFocusEffect(useCallback(() => {
-    (async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        if (accessToken) setAccessToken(accessToken);
-        const res: any = await api.get('/couple/dashboard');
-        setData(res?.data || res);
-      } catch (e: any) {
-        setError(e?.message || 'Failed to load couple data');
-      }
+  const fetchDashboard = useCallback(async () => {
+    if (!accessToken) return;
+    setAccessToken(accessToken);
+    setLoading(true);
+    setError(null);
+    try {
+      const res: any = await api.get('/couple/dashboard', undefined, 15000);
+      setData(res?.data || res);
+    } catch (e: any) {
+      setError(e?.message || 'Failed to load couple data');
+    } finally {
       setLoading(false);
-    })();
-  }, [accessToken]));
+    }
+  }, [accessToken]);
+
+  useFocusEffect(useCallback(() => {
+    fetchDashboard();
+  }, [fetchDashboard]));
 
   if (loading) {
     return (
@@ -189,19 +193,23 @@ export function CoupleSpaceScreen() {
 
         {/* Quick Actions */}
         <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Quick Actions</Text>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
           {[
-            { icon: 'add-circle', label: 'Add Expense', color: colors.status.error, screen: 'AddExpense' },
-            { icon: 'trending-up', label: 'Add Income', color: colors.status.success, screen: 'AddExpense' },
-            { icon: 'wallet', label: 'Shared Goals', color: colors.accent.primary, screen: 'Goals' },
-            { icon: 'settings', label: 'Settings', color: colors.text.secondary, screen: 'Settings' },
+            { icon: 'add-circle-outline', label: 'Add Expense', color: '#DC2626', screen: 'Expense', params: { screen: 'CategorySelection', params: { type: 'expense' } } },
+            { icon: 'trending-up-outline', label: 'Add Income', color: '#16A34A', screen: 'Expense', params: { screen: 'CategorySelection', params: { type: 'income' } } },
+            { icon: 'wallet-outline', label: 'Wallet', color: '#2563EB', screen: 'Spaces', params: { screen: 'GroupWallet' } },
+            { icon: 'stats-chart-outline', label: 'Net Worth', color: '#7C3AED', screen: 'Dashboard', params: { screen: 'NetWorth' } },
+            { icon: 'flag-outline', label: 'Create Goal', color: '#F59E0B', screen: 'Goals', params: {} },
+            { icon: 'people-outline', label: 'Expense Group', color: '#14B8A6', screen: 'Expense', params: { screen: 'CreateExpenseGroup' } },
           ].map((action) => (
             <TouchableOpacity key={action.label} activeOpacity={0.7}
-              onPress={() => (navigation as any).navigate(action.screen)}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, backgroundColor: colors.bg.card, borderWidth: 1, borderColor: colors.border.subtle }}
+              onPress={() => (navigation as any).navigate(action.screen, action.params)}
+              style={{ width: '31%', alignItems: 'center', gap: 6, paddingVertical: 14, borderRadius: 16, backgroundColor: colors.bg.card, borderWidth: 1, borderColor: colors.border.subtle }}
             >
-              <Ionicons name={action.icon as any} size={16} color={action.color} />
-              <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>{action.label}</Text>
+              <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: action.color + '15', alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name={action.icon as any} size={20} color={action.color} />
+              </View>
+              <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.secondary, textAlign: 'center' }}>{action.label}</Text>
             </TouchableOpacity>
           ))}
         </View>

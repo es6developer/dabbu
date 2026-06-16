@@ -159,12 +159,26 @@ export class CoupleService {
   }
 
   async toggleMode(userId: string, isCoupleMode: boolean) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, partnerId: true, isCouple: true },
+    });
     if (!user) throw new NotFoundException('User not found');
-    if (!user.isCouple) throw new BadRequestException('You are not in a couple');
+
+    const isInCouple = user.isCouple || !!user.partnerId;
+    if (!isInCouple) {
+      const couple = await (this.prisma as any).couple.findFirst({
+        where: {
+          OR: [{ partner1Id: userId }, { partner2Id: userId }],
+          status: 'active',
+        },
+      });
+      if (!couple) throw new BadRequestException('You are not in a couple');
+    }
+
     return this.prisma.user.update({
       where: { id: userId },
-      data: { isCoupleMode },
+      data: { isCouple: true, isCoupleMode },
       select: { id: true, isCouple: true, isCoupleMode: true },
     });
   }
