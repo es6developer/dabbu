@@ -72,6 +72,20 @@ export class AuthService {
     { seed: 'dabbu-karma', name: 'Karma' },
     { seed: 'dabbu-pearl', name: 'Pearl' },
     { seed: 'dabbu-ash', name: 'Ash' },
+    { seed: 'dabbu-stellar', name: 'Stellar' },
+    { seed: 'dabbu-nova', name: 'Nova' },
+    { seed: 'dabbu-orbit', name: 'Orbit' },
+    { seed: 'dabbu-zen', name: 'Zen' },
+    { seed: 'dabbu-sage', name: 'Sage' },
+    { seed: 'dabbu-ruby', name: 'Ruby' },
+    { seed: 'dabbu-sapphire', name: 'Sapphire' },
+    { seed: 'dabbu-topaz', name: 'Topaz' },
+    { seed: 'dabbu-onyx', name: 'Onyx' },
+    { seed: 'dabbu-mist', name: 'Mist' },
+    { seed: 'dabbu-dusk', name: 'Dusk' },
+    { seed: 'dabbu-dawn', name: 'Dawn' },
+    { seed: 'dabbu-tide', name: 'Tide' },
+    { seed: 'dabbu-whisper', name: 'Whisper' },
   ];
 
   async register(
