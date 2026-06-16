@@ -168,23 +168,27 @@ async function setupAndroidChannels(): Promise<void> {
 }
 
 let lastAttemptAt = 0;
+const MIN_THROTTLE_MS = 10_000;
+const INITIAL_BACKOFF_MS = 2_000;
+const MAX_BACKOFF_MS = 120_000;
+const MAX_RETRIES = 5;
 
 export async function registerForPushNotifications(accessToken: string): Promise<void> {
   if (isRegistering || lastRegisteredToken === accessToken) {
     return;
   }
   const now = Date.now();
-  if (now - lastAttemptAt < 10_000) {
+  if (now - lastAttemptAt < MIN_THROTTLE_MS) {
     console.log(`Push registration throttled: <10s since last attempt, skipping`);
     return;
   }
-  const backoffMs = Math.min(2_000 * Math.pow(2, consecutiveFailures), 120_000);
-  if (lastFailedAt > 0 && now - lastFailedAt < backoffMs) {
-    console.log(`Push registration backoff: ${backoffMs}ms, skipping`);
+  if (consecutiveFailures >= MAX_RETRIES) {
+    console.log(`Push registration max retries (${consecutiveFailures}) reached, skipping`);
     return;
   }
-  if (consecutiveFailures >= 5) {
-    console.log(`Push registration max retries (${consecutiveFailures}) reached, skipping`);
+  const backoffMs = Math.min(INITIAL_BACKOFF_MS * Math.pow(2, consecutiveFailures), MAX_BACKOFF_MS);
+  if (lastFailedAt > 0 && now - lastFailedAt < backoffMs) {
+    console.log(`Push registration backoff: ${backoffMs}ms, skipping`);
     return;
   }
   isRegistering = true;
