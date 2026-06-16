@@ -234,7 +234,7 @@ export function SettlementScreen() {
                           </Text>
                         </View>
                         <View style={s.flowCenter}>
-                          <Ionicons name="arrow-forward" size={20} color={colors.accent.primary} />
+                          <Ionicons name="arrow-forward-outline" size={20} color={colors.accent.primary} />
                           <Text style={[s.flowAmount, { color: colors.accent.primary }]}>
                             {fmt(item.amount || 0)}
                           </Text>
@@ -315,7 +315,7 @@ export function SettlementScreen() {
                       <View
                         style={[s.historyIcon, { backgroundColor: `${colors.status.success}15` }]}
                       >
-                        <Ionicons name="swap-horizontal" size={18} color={colors.status.success} />
+                        <Ionicons name="swap-horizontal-outline" size={18} color={colors.status.success} />
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={[s.historyTitle, { color: colors.text.primary }]}>
@@ -387,7 +387,7 @@ export function SettlementScreen() {
               <ActivityIndicator size="small" color="#FFF" />
             ) : (
               <>
-                <Ionicons name="checkmark-done" size={18} color="#FFF" />
+                <Ionicons name="checkmark-done-outline" size={18} color="#FFF" />
                 <Text style={s.batchBtnText}>
                   Settle All ({visibleSettlements.length} pending)
                 </Text>

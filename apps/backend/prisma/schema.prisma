@@ -216,6 +216,8 @@ model User {
   groupActivities              GroupActivity[]
   payNowLinksFrom              PayNowLink[]                 @relation("PayFrom")
   payNowLinksTo                PayNowLink[]                 @relation("PayTo")
+  couplesAsPartner1            Couple[]                     @relation("CoupleToPartner1")
+  couplesAsPartner2            Couple[]                     @relation("CoupleToPartner2")
 
   // Login activity
   loginActivity LoginActivity[]
@@ -778,7 +780,7 @@ model Goal {
   targetAmount        Decimal   @db.Decimal(15, 2)
   currentAmount       Decimal   @default(0) @db.Decimal(15, 2)
   deadline            DateTime? @db.Date
-  type                String    @default("custom") @db.VarChar(20) // emergency, vacation, education, home, car, wedding, retirement, custom
+  type                String    @default("custom") @db.VarChar(20) // emergency, vacation, education, home, car, wedding, retirement, baby, savings, investment, custom
   icon                String?   @db.VarChar(50)
   color               String?   @db.VarChar(50)
   monthlyContribution Decimal?  @db.Decimal(15, 2)
@@ -1752,6 +1754,24 @@ model CoupleTimelineEvent {
 
 // ─── COUPLE GAMIFICATION ────────────────────────────────────────
 // Levels, XP, and health score tracking
+
+model Couple {
+  id         String   @id @default(uuid()) @db.VarChar(36)
+  partner1Id String   @db.VarChar(36)
+  partner2Id String   @db.VarChar(36)
+  status     String   @default("active") @db.VarChar(20) // active | disconnected
+  linkedAt   DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  partner1 User  @relation("CoupleToPartner1", fields: [partner1Id], references: [id], onDelete: Cascade)
+  partner2 User  @relation("CoupleToPartner2", fields: [partner2Id], references: [id], onDelete: Cascade)
+
+  @@unique([partner1Id, partner2Id])
+  @@index([partner1Id])
+  @@index([partner2Id])
+  @@map("couples")
+}
 
 model CoupleLevel {
   id          String   @id @default(uuid()) @db.VarChar(36)
@@ -3309,23 +3329,47 @@ model AiFeedCard {
   @@map("ai_feed_cards")
 }
 
+// ─── EMI PAYMENT HISTORY ─────────────────────────────────────
+// Individual EMI payments recorded against a loan
+model EmiPayment {
+  id        String    @id @default(uuid()) @db.VarChar(36)
+  loanId    String    @db.VarChar(36)
+  userId    String    @db.VarChar(36)
+  amount    Decimal   @db.Decimal(12, 2)
+  paidDate  DateTime  @db.Date
+  principal Decimal   @default(0) @db.Decimal(12, 2)
+  interest  Decimal   @default(0) @db.Decimal(12, 2)
+  notes     String?   @db.VarChar(200)
+  createdAt DateTime  @default(now())
+
+  loan UserLoan @relation(fields: [loanId], references: [id], onDelete: Cascade)
+
+  @@index([loanId])
+  @@index([userId])
+  @@map("emi_payments")
+}
+
 // ─── USER LOANS ─────────────────────────────────────────────
 // Personal loan tracking (Home, Car, Personal, Education)
 model UserLoan {
   id           String    @id @default(uuid()) @db.VarChar(36)
   userId       String    @db.VarChar(36)
   name         String    @db.VarChar(100)
+  type         String    @default("personal") @db.VarChar(20) // home, car, personal, education, other
   totalAmount  Decimal   @default(0) @db.Decimal(12, 2)
   paidAmount   Decimal   @default(0) @db.Decimal(12, 2)
   interestPaid Decimal   @default(0) @db.Decimal(12, 2)
+  interestRate Decimal   @default(0) @db.Decimal(5, 2) // annual interest rate in %
   monthlyEmi   Decimal   @default(0) @db.Decimal(12, 2)
-  emiDay       Int?                                // Day of month EMI is due (1-31)
-  startDate    DateTime?  @db.Date                  // Loan start date
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  tenureMonths Int?                                     // total loan tenure in months
+  emiDay       Int?                                     // Day of month EMI is due (1-31)
+  startDate    DateTime?  @db.Date                      // Loan start date
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
   deletedAt    DateTime?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emiPayments  EmiPayment[]
 
   @@index([userId])
   @@map("user_loans")

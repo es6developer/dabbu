@@ -545,7 +545,7 @@ export function AnalyticsScreen() {
                   <ActivityIndicator size="small" color={colors.status.error} />
                 ) : (
                   <>
-                    <Ionicons name="document-text" size={16} color={colors.status.error} />
+                    <Ionicons name="document-text-outline" size={16} color={colors.status.error} />
                     <Text style={[styles.exportText, { color: colors.status.error }]}>PDF</Text>
                   </>
                 )}
@@ -559,7 +559,7 @@ export function AnalyticsScreen() {
                   <ActivityIndicator size="small" color={colors.status.success} />
                 ) : (
                   <>
-                    <Ionicons name="grid" size={16} color={colors.status.success} />
+                    <Ionicons name="grid-outline" size={16} color={colors.status.success} />
                     <Text style={[styles.exportText, { color: colors.status.success }]}>Excel</Text>
                   </>
                 )}

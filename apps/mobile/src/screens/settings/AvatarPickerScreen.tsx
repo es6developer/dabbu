@@ -145,7 +145,7 @@ export function AvatarPickerScreen() {
             <ActivityIndicator color="#FFF" size="small" />
           ) : (
             <>
-              <Ionicons name="shuffle" size={18} color="#FFF" />
+              <Ionicons name="shuffle-outline" size={18} color="#FFF" />
               <Text style={s.regenerateText}>Generate Random Avatar</Text>
             </>
           )}
@@ -195,7 +195,7 @@ export function AvatarPickerScreen() {
                           borderColor: colors.bg.primary,
                         }}
                       >
-                        <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                        <Ionicons name="checkmark-outline" size={14} color="#FFFFFF" />
                       </View>
                     )}
                   </View>

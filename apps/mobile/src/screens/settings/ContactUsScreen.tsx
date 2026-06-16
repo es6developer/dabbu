@@ -17,7 +17,7 @@ export function ContactUsScreen() {
     <ScrollView style={[styles.container, { backgroundColor: colors.bg.primary }]} contentContainerStyle={styles.content}>
       <View style={styles.hero}>
 <View style={[styles.heroIcon, { backgroundColor: colors.bg.secondary }]}>
-          <Ionicons name="chatbubbles" size={40} color={colors.accent.primary} />
+          <Ionicons name="chatbubbles-outline" size={40} color={colors.accent.primary} />
         </View>
         <Text style={[styles.title, { color: colors.text.primary }]}>Get in Touch</Text>
         <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>We'd love to hear from you</Text>
@@ -42,7 +42,7 @@ export function ContactUsScreen() {
       ))}
 
       <View style={[styles.responseCard, { backgroundColor: colors.bg.secondary, borderColor: colors.border.subtle }]}>
-        <Ionicons name="time" size={20} color={colors.accent.primary} />
+        <Ionicons name="time-outline" size={20} color={colors.accent.primary} />
         <Text style={[styles.responseText, { color: colors.text.secondary }]}>
           We typically respond within 24 hours during business days.
         </Text>

@@ -275,7 +275,7 @@ export function NotificationSettingsScreen() {
         >
           <View style={styles.headerRow}>
             <View style={[styles.headerIconWrap, { backgroundColor: colors.bg.tertiary }]}>
-              <Ionicons name="notifications" size={22} color={colors.text.primary} />
+              <Ionicons name="notifications-outline" size={22} color={colors.text.primary} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Notifications</Text>

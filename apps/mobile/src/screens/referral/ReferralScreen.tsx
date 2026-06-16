@@ -412,7 +412,7 @@ export function ReferralScreen() {
                   style={[styles.rewardCard, { backgroundColor: colors.bg.secondary }]}
                 >
                   <View style={[styles.rewardIcon, { backgroundColor: `${typeInfo.color}18` }]}>
-                    <Ionicons name="cash" size={20} color={typeInfo.color} />
+                    <Ionicons name="cash-outline" size={20} color={typeInfo.color} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.rewardTitle, { color: colors.text.primary }]}>
@@ -546,7 +546,7 @@ export function ReferralScreen() {
             onPress={() => setShowShare(true)}
             activeOpacity={0.85}
           >
-            <Ionicons name="share-social" size={20} color="#FFF" />
+            <Ionicons name="share-social-outline" size={20} color="#FFF" />
             <Text style={[styles.shareBtnText, { color: colors.text.primary }]}>
               Share Referral Code
             </Text>

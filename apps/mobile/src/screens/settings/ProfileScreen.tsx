@@ -274,7 +274,7 @@ export function ProfileScreen() {
                     activeOpacity={0.8}
                     onPress={() => navigation.navigate('AvatarPicker')}
                   >
-                    <Ionicons name="pencil" size={14} color="#FFFFFF" />
+                    <Ionicons name="pencil-outline" size={14} color="#FFFFFF" />
                   </TouchableOpacity>
                 </View>
                 <Text
@@ -345,7 +345,7 @@ export function ProfileScreen() {
                                   borderColor: colors.bg.primary,
                                 }}
                               >
-                                <Ionicons name="checkmark" size={12} color="#FFFFFF" />
+                                <Ionicons name="checkmark-outline" size={12} color="#FFFFFF" />
                               </View>
                             )}
                           </View>
@@ -390,7 +390,7 @@ export function ProfileScreen() {
                       marginBottom: 16,
                     }}
                   >
-                    <Ionicons name="alert-circle" size={16} color={colors.status.error} />
+                    <Ionicons name="alert-circle-outline" size={16} color={colors.status.error} />
                     <Text
                       style={{
                         fontSize: 13,
@@ -578,7 +578,7 @@ export function ProfileScreen() {
                 />
                 {upiError ? (
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
-                    <Ionicons name="alert-circle" size={12} color={colors.status.error} />
+                    <Ionicons name="alert-circle-outline" size={12} color={colors.status.error} />
                     <Text style={{ fontSize: 11, fontWeight: '500', color: colors.status.error, lineHeight: 16 }}>
                       {upiError}
                     </Text>
@@ -687,7 +687,7 @@ export function ProfileScreen() {
               <ActivityIndicator color="#FFFFFF" />
             ) : (
               <>
-                <Ionicons name="checkmark-circle" size={18} color="#FFFFFF" />
+                <Ionicons name="checkmark-circle-outline" size={18} color="#FFFFFF" />
                 <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>
                   Save Changes
                 </Text>

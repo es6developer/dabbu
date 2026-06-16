@@ -252,7 +252,7 @@ export function PremiumError({ message }: { message?: string }) {
 
   return (
     <View style={[styles.errorBox, { backgroundColor: colors.status.errorLight }]}>
-      <Ionicons name="alert-circle" size={16} color={colors.status.error} />
+      <Ionicons name="alert-circle-outline" size={16} color={colors.status.error} />
       <Text style={[styles.errorText, { color: colors.status.error }]}>{message}</Text>
     </View>
   );

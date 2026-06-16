@@ -25,7 +25,7 @@ export function SearchSection({
         { backgroundColor: colors.bg.secondary, borderColor: colors.border.default },
       ]}
     >
-      <Ionicons name="search" size={18} color={colors.text.tertiary} style={styles.icon} />
+      <Ionicons name="search-outline" size={18} color={colors.text.tertiary} style={styles.icon} />
       <TextInput
         style={[styles.input, { color: colors.text.primary }]}
         value={value}
@@ -37,7 +37,7 @@ export function SearchSection({
       />
       {value.length > 0 && onClear && (
         <TouchableOpacity onPress={onClear} style={styles.clearBtn}>
-          <Ionicons name="close-circle" size={18} color={colors.text.tertiary} />
+          <Ionicons name="close-circle-outline" size={18} color={colors.text.tertiary} />
         </TouchableOpacity>
       )}
     </View>

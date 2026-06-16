@@ -85,7 +85,7 @@ export function FamilyDashboardScreen() {
                   {item.name}
                 </Text>
                 <View style={styles.cardMetaRow}>
-                  <Ionicons name="people" size={12} color={colors.text.tertiary} />
+                  <Ionicons name="people-outline" size={12} color={colors.text.tertiary} />
                   <Text style={[styles.cardMeta, { color: colors.text.tertiary }]}>
                     {item._count?.members || 0} members
                   </Text>
@@ -101,7 +101,7 @@ export function FamilyDashboardScreen() {
                 <View
                   style={[styles.actionIcon, { backgroundColor: `${colors.accent.primary}18` }]}
                 >
-                  <Ionicons name="chatbubbles" size={18} color={colors.accent.primary} />
+                  <Ionicons name="chatbubbles-outline" size={18} color={colors.accent.primary} />
                 </View>
                 <Text style={[styles.actionLabel, { color: colors.text.secondary }]}>Chat</Text>
               </TouchableOpacity>
@@ -110,7 +110,7 @@ export function FamilyDashboardScreen() {
                 onPress={() => navigation.navigate('TasksList', { familyId: item.id })}
               >
                 <View style={[styles.actionIcon, { backgroundColor: `${colors.status.info}18` }]}>
-                  <Ionicons name="checkbox" size={18} color={colors.status.info} />
+                  <Ionicons name="checkbox-outline" size={18} color={colors.status.info} />
                 </View>
                 <Text style={[styles.actionLabel, { color: colors.text.secondary }]}>Tasks</Text>
               </TouchableOpacity>
@@ -121,7 +121,7 @@ export function FamilyDashboardScreen() {
                 <View
                   style={[styles.actionIcon, { backgroundColor: `${colors.status.warning}18` }]}
                 >
-                  <Ionicons name="alarm" size={18} color={colors.status.warning} />
+                  <Ionicons name="alarm-outline" size={18} color={colors.status.warning} />
                 </View>
                 <Text style={[styles.actionLabel, { color: colors.text.secondary }]}>New Task</Text>
               </TouchableOpacity>
@@ -142,7 +142,7 @@ export function FamilyDashboardScreen() {
               onPress={() => navigation.navigate('CreateFamily')}
               activeOpacity={0.85}
             >
-              <Ionicons name="add" size={18} color={colors.text.inverse} />
+              <Ionicons name="add-outline" size={18} color={colors.text.inverse} />
               <Text style={[styles.emptyBtnText, { color: colors.text.inverse }]}>
                 Create Family
               </Text>

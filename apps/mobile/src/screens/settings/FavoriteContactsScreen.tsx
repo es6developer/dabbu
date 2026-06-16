@@ -125,7 +125,7 @@ export function FavoriteContactsScreen() {
         onPress={() => navigation.goBack()}
         style={[styles.backBtn, { backgroundColor: colors.bg.glass }]}
       >
-        <Ionicons name="arrow-back" size={20} color={colors.text.primary} />
+        <Ionicons name="arrow-back-outline" size={20} color={colors.text.primary} />
       </TouchableOpacity>
       <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Favorite Contacts</Text>
       <View style={{ width: 36 }} />
@@ -135,7 +135,7 @@ export function FavoriteContactsScreen() {
   const renderSearchBar = () => (
     <View style={styles.searchWrap}>
       <View style={[styles.searchInner, { backgroundColor: colors.bg.glass }]}>
-        <Ionicons name="search" size={16} color={colors.text.tertiary} style={styles.searchIcon} />
+        <Ionicons name="search-outline" size={16} color={colors.text.tertiary} style={styles.searchIcon} />
         <TextInput
           style={[styles.searchInput, { color: colors.text.primary }]}
           placeholder="Search by name or phone..."
@@ -153,7 +153,7 @@ export function FavoriteContactsScreen() {
               setSearchResults([]);
             }}
           >
-            <Ionicons name="close-circle" size={16} color={colors.text.tertiary} />
+            <Ionicons name="close-circle-outline" size={16} color={colors.text.tertiary} />
           </TouchableOpacity>
         )}
       </View>
@@ -199,7 +199,7 @@ export function FavoriteContactsScreen() {
                   </View>
                   {favoriteIds.has(user.id) ? (
                     <View style={[styles.actionBtn, { backgroundColor: colors.brand.light }]}>
-                      <Ionicons name="star" size={16} color={colors.brand.primary} />
+                      <Ionicons name="star-outline" size={16} color={colors.brand.primary} />
                     </View>
                   ) : (
                     <TouchableOpacity

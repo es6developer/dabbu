@@ -34,21 +34,26 @@ interface SectionItem {
 
 const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
   {
-    title: 'Account',
+    title: 'Wealth Tools',
     items: [
-      { label: 'Profile', icon: 'person-circle', screen: 'Profile' },
-      { label: 'Create Couple Profile', icon: 'heart-circle', screen: 'AddPartner' },
-      { label: 'Favorite Contacts', icon: 'star', screen: 'FavoriteContacts' },
-      { label: 'Subscription', icon: 'diamond', screen: 'Premium' },
-      { label: 'Refer & Earn', icon: 'gift', screen: 'Referral' },
-      { label: 'Security', icon: 'shield-checkmark', screen: 'Security' },
-      { label: 'Lock App', icon: 'lock-closed', screen: 'Security', action: 'lock' },
+      { label: 'Financial Reports', icon: 'stats-chart', screen: 'Reports', premium: true },
+      { label: 'Export Data', icon: 'download-outline', screen: 'Analytics', premium: true },
+      { label: 'Budgets', icon: 'pie-chart', screen: 'BudgetsList' },
     ],
   },
   {
-    title: 'Financial Tools',
+    title: 'Account',
     items: [
-      { label: 'Reports & Analytics', icon: 'stats-chart', screen: 'Analytics', premium: true },
+      { label: 'Profile', icon: 'person-circle', screen: 'Profile' },
+      { label: 'Partner Management', icon: 'heart-circle', screen: 'AddPartner' },
+      { label: 'Favorite Contacts', icon: 'star', screen: 'FavoriteContacts' },
+      { label: 'Refer & Earn', icon: 'gift', screen: 'Referral' },
+    ],
+  },
+  {
+    title: 'Premium',
+    items: [
+      { label: 'Premium Plan', icon: 'diamond', screen: 'Premium' },
       { label: 'Couple Space', icon: 'heart', screen: 'CoupleSpace' },
     ],
   },
@@ -57,12 +62,12 @@ const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
     items: [
       { label: 'Theme', icon: 'color-palette', screen: 'Theme' },
       { label: 'Notifications', icon: 'notifications', screen: 'NotificationSettings' },
-      { label: 'Customise Dashboard', icon: 'apps', screen: 'CustomiseDashboard' },
-      { label: 'Customise Bottom Menu', icon: 'menu', screen: 'CustomiseBottomMenu' },
+      { label: 'Security', icon: 'shield-checkmark', screen: 'Security' },
+      { label: 'Lock App', icon: 'lock-closed', screen: 'Security', action: 'lock' },
     ],
   },
   {
-    title: 'More',
+    title: 'Support',
     items: [
       { label: 'Help Center', icon: 'help-circle', screen: 'Help' },
       { label: 'Contact Us', icon: 'chatbubble-ellipses', screen: 'Contact' },
@@ -73,18 +78,18 @@ const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
 
 const ROW_META: Record<string, { icon: IconName }> = {
   Profile: { icon: 'person' },
-  'Create Couple Profile': { icon: 'heart-circle' },
-  Subscription: { icon: 'diamond' },
+  'Partner Management': { icon: 'heart-circle' },
+  'Premium Plan': { icon: 'diamond' },
   'Favorite Contacts': { icon: 'star' },
   'Refer & Earn': { icon: 'gift' },
   Security: { icon: 'shield-checkmark' },
   'Lock App': { icon: 'lock-closed' },
-  'Reports & Analytics': { icon: 'stats-chart' },
+  'Financial Reports': { icon: 'stats-chart' },
+  'Export Data': { icon: 'download-outline' },
+  Budgets: { icon: 'pie-chart' },
   'Couple Space': { icon: 'heart' },
   Theme: { icon: 'color-palette' },
   Notifications: { icon: 'notifications' },
-  'Customise Dashboard': { icon: 'apps' },
-  'Customise Bottom Menu': { icon: 'menu' },
   'Help Center': { icon: 'help-circle' },
   'Contact Us': { icon: 'chatbubble-ellipses' },
   'Privacy Policy': { icon: 'document-text' },
@@ -114,9 +119,6 @@ export function SettingsScreen() {
     return SECTIONS.map((section) => ({
       ...section,
       items: section.items.filter((item) => {
-        if (item.label === 'Create Couple Profile' && isInCouple) {
-          return false;
-        }
         if (item.label === 'Couple Space' && !showCoupleFeatures) {
           return false;
         }
@@ -188,6 +190,8 @@ export function SettingsScreen() {
       'Contact',
       'Privacy',
       'Analytics',
+      'Reports',
+      'BudgetsList',
       'NotificationSettings',
       'FavoriteContacts',
       'Referral',
@@ -315,7 +319,7 @@ export function SettingsScreen() {
                   backgroundColor: colors.bg.tertiary,
                 }}
               >
-                <Ionicons name="shield-checkmark" size={14} color={colors.text.tertiary} />
+                <Ionicons name="shield-checkmark-outline" size={14} color={colors.text.tertiary} />
                 <Text style={{ fontSize: 12, fontWeight: '700', color: colors.text.tertiary }}>
                   Security
                 </Text>
@@ -348,7 +352,7 @@ export function SettingsScreen() {
                     gap: 8,
                   }}
                 >
-                  <Ionicons name="heart" size={18} color={COUPLE_COLORS.primary} />
+                  <Ionicons name="heart-outline" size={18} color={COUPLE_COLORS.primary} />
                   <Text
                     style={{
                       fontSize: 14,
@@ -392,7 +396,7 @@ export function SettingsScreen() {
                         justifyContent: 'center',
                       }}
                     >
-                      <Ionicons name="person" size={18} color={COUPLE_COLORS.primary} />
+                      <Ionicons name="person-outline" size={18} color={COUPLE_COLORS.primary} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text
@@ -453,7 +457,7 @@ export function SettingsScreen() {
                         {processingReqId === req.id ? (
                           <ActivityIndicator size="small" color="#FFF" />
                         ) : (
-                          <Ionicons name="checkmark" size={16} color="#FFF" />
+                          <Ionicons name="checkmark-outline" size={16} color="#FFF" />
                         )}
                       </TouchableOpacity>
                       <TouchableOpacity
@@ -476,7 +480,7 @@ export function SettingsScreen() {
                           }
                         }}
                       >
-                        <Ionicons name="close" size={16} color="#FF4757" />
+                        <Ionicons name="close-outline" size={16} color="#FF4757" />
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -546,7 +550,7 @@ export function SettingsScreen() {
                     justifyContent: 'center',
                   }}
                 >
-                  <Ionicons name="diamond" size={24} color="#0A0A0A" />
+                  <Ionicons name="diamond-outline" size={24} color="#0A0A0A" />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text
@@ -675,7 +679,7 @@ export function SettingsScreen() {
                               backgroundColor: `${colors.accent.primary}10`,
                             }}
                           >
-                            <Ionicons name="lock-closed" size={10} color={colors.accent.primary} />
+                            <Ionicons name="lock-closed-outline" size={10} color={colors.accent.primary} />
                             <Text
                               style={{
                                 fontSize: 10,

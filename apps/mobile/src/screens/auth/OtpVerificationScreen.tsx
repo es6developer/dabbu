@@ -65,7 +65,7 @@ export function OtpVerificationScreen() {
         <View style={StyleSheet.absoluteFill} />
         <View style={styles.container}>
           <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={22} color={colors.text.secondary} />
+            <Ionicons name="arrow-back-outline" size={22} color={colors.text.secondary} />
           </TouchableOpacity>
           <Text style={[styles.title, { color: colors.text.primary }]}>Verify OTP</Text>
           <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>
@@ -74,7 +74,7 @@ export function OtpVerificationScreen() {
 
           {error ? (
             <View style={[styles.errorBox, { backgroundColor: colors.status.errorLight }]}>
-              <Ionicons name="alert-circle" size={16} color={colors.status.error} />
+              <Ionicons name="alert-circle-outline" size={16} color={colors.status.error} />
               <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text>
             </View>
           ) : null}

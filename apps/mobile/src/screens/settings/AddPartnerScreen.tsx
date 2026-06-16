@@ -168,11 +168,11 @@ export function AddPartnerScreen() {
             onPress={() => navigation.goBack()}
             activeOpacity={0.7}
           >
-            <Ionicons name="arrow-back" size={22} color="#FFF" />
+            <Ionicons name="arrow-back-outline" size={22} color="#FFF" />
           </TouchableOpacity>
           <View style={styles.heroContent}>
             <View style={styles.heroIconWrap}>
-              <Ionicons name="heart" size={48} color="#FFF" />
+              <Ionicons name="heart-outline" size={48} color="#FFF" />
             </View>
             <Text style={[styles.heroTitle, { color: '#FFF' }]}>Your Partner</Text>
           </View>
@@ -183,7 +183,7 @@ export function AddPartnerScreen() {
             <View style={styles.avatarRow}>
               <Avatar name={user.firstName || 'You'} size={56} />
               <View style={styles.heartSmall}>
-                <Ionicons name="heart" size={20} color={COUPLE_COLORS.heart} />
+                <Ionicons name="heart-outline" size={20} color={COUPLE_COLORS.heart} />
               </View>
               <Avatar name={partnerName} size={56} />
             </View>
@@ -247,11 +247,11 @@ export function AddPartnerScreen() {
           onPress={() => navigation.goBack()}
           activeOpacity={0.7}
         >
-          <Ionicons name="arrow-back" size={22} color="#FFF" />
+          <Ionicons name="arrow-back-outline" size={22} color="#FFF" />
         </TouchableOpacity>
         <View style={styles.heroContent}>
           <View style={styles.heroIconWrap}>
-            <Ionicons name="heart-circle" size={56} color="#FFF" />
+            <Ionicons name="heart-circle-outline" size={56} color="#FFF" />
           </View>
           <Text style={[styles.heroTitle, { color: '#FFF' }]}>Add Your Partner</Text>
           <Text style={[styles.heroSub, { color: 'rgba(255,255,255,0.85)' }]}>
@@ -294,7 +294,7 @@ export function AddPartnerScreen() {
                       {processingId === req.id ? (
                         <ActivityIndicator size="small" color="#FFF" />
                       ) : (
-                        <Ionicons name="checkmark" size={20} color="#FFF" />
+                        <Ionicons name="checkmark-outline" size={20} color="#FFF" />
                       )}
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -302,7 +302,7 @@ export function AddPartnerScreen() {
                       onPress={() => handleReject(req.id)}
                       disabled={processingId === req.id}
                     >
-                      <Ionicons name="close" size={20} color="#FF4757" />
+                      <Ionicons name="close-outline" size={20} color="#FF4757" />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -343,7 +343,7 @@ export function AddPartnerScreen() {
                 <ActivityIndicator size="small" color="#FFF" />
               ) : (
                 <>
-                  <Ionicons name="heart" size={20} color="#FFF" />
+                  <Ionicons name="heart-outline" size={20} color="#FFF" />
                   <Text style={styles.addBtnText}>Send Request</Text>
                 </>
               )}

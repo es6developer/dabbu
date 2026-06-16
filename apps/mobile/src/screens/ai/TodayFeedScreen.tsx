@@ -64,7 +64,7 @@ function FeedCard({
       >
         {localCard && (
           <View style={st.localBadge}>
-            <Ionicons name="sparkles" size={10} color={colors.primary} />
+            <Ionicons name="sparkles-outline" size={10} color={colors.primary} />
             <Text style={st.localBadgeText}>From your data</Text>
           </View>
         )}

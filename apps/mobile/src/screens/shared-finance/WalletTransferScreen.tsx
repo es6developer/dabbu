@@ -110,7 +110,7 @@ export function WalletTransferScreen() {
                   onPress={() => setTargetWalletId(item.id)}
                 >
                   <View style={styles.iconWrap}>
-                    <Ionicons name="wallet" size={22} color={colors.accent.primary} />
+                    <Ionicons name="wallet-outline" size={22} color={colors.accent.primary} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.walletName, { color: colors.text.primary }]}>
@@ -121,7 +121,7 @@ export function WalletTransferScreen() {
                     </Text>
                   </View>
                   {targetWalletId === item.id && (
-                    <Ionicons name="checkmark-circle" size={22} color={colors.status.success} />
+                    <Ionicons name="checkmark-circle-outline" size={22} color={colors.status.success} />
                   )}
                 </TouchableOpacity>
               )}

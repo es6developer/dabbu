@@ -29,7 +29,7 @@ export function AccessExpiredScreen({ route, navigation }: AccessExpiredScreenPr
           
           style={styles.iconWrap}
         >
-          <Ionicons name="lock-closed" size={52} color={colors.status.error} />
+          <Ionicons name="lock-closed-outline" size={52} color={colors.status.error} />
         </View>
 
         <Text style={[styles.title, { color: colors.text.primary }]}>Access Expired</Text>

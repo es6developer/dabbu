@@ -107,7 +107,7 @@ export function CreateCategoryScreen() {
         <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
           <View style={s.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-              <Ionicons name="close" size={22} color="#FFF" />
+              <Ionicons name="close-outline" size={22} color="#FFF" />
             </TouchableOpacity>
             <Text style={s.headerTitle}>Create Category</Text>
             <View style={{ width: 34 }} />
@@ -118,7 +118,7 @@ export function CreateCategoryScreen() {
 
       {error ? (
         <View style={[s.errorBox, { backgroundColor: `${colors.status.error}12` }]}>
-          <Ionicons name="alert-circle" size={16} color={colors.status.error} />
+          <Ionicons name="alert-circle-outline" size={16} color={colors.status.error} />
           <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
         </View>
       ) : null}

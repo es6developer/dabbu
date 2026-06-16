@@ -199,7 +199,7 @@ export function CoupleGoalsScreen() {
           <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
             <View style={styles.headerRow}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}>
-                <Ionicons name="arrow-back" size={22} color={colors.text.primary} />
+                <Ionicons name="arrow-back-outline" size={22} color={colors.text.primary} />
               </TouchableOpacity>
               <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Shared Goals</Text>
               <TouchableOpacity
@@ -209,7 +209,7 @@ export function CoupleGoalsScreen() {
                 }}
                 style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}
               >
-                <Ionicons name="add" size={24} color={colors.text.primary} />
+                <Ionicons name="add-outline" size={24} color={colors.text.primary} />
               </TouchableOpacity>
             </View>
             <Text style={[styles.headerSubtitle, { color: colors.text.tertiary }]}>
@@ -238,7 +238,7 @@ export function CoupleGoalsScreen() {
                 setAddModalVisible(true);
               }}
             >
-              <Ionicons name="add-circle" size={20} color="#FFF" />
+              <Ionicons name="add-circle-outline" size={20} color="#FFF" />
               <Text style={styles.emptyBtnText}>Create Goal</Text>
             </TouchableOpacity>
           </View>

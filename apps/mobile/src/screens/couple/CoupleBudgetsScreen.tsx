@@ -124,7 +124,7 @@ export function CoupleBudgetsScreen() {
           >
             <View style={styles.headerRow}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                <Ionicons name="arrow-back" size={22} color="#FFF" />
+                <Ionicons name="arrow-back-outline" size={22} color="#FFF" />
               </TouchableOpacity>
               <Text style={styles.headerTitle}>Budgets</Text>
               <View style={{ width: 32 }} />
@@ -168,7 +168,7 @@ export function CoupleBudgetsScreen() {
         >
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <Ionicons name="arrow-back" size={22} color="#FFF" />
+              <Ionicons name="arrow-back-outline" size={22} color="#FFF" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Budgets</Text>
             <View style={{ width: 32 }} />
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.12,
     shadowRadius: 16,
-    elevation: 6,
+    elevation: 4,
   },
   heroTop: {
     flexDirection: 'row',

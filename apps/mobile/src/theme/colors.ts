@@ -7,22 +7,21 @@ export const palette = {
   transparent: 'transparent',
 
   brand: {
-    primary: '#8B5CF6',
-    hover: '#7C3AED',
-    muted: '#C4B5FD',
+    primary: '#7C3AED',
+    hover: '#6D28D9',
+    muted: '#A78BFA',
   },
 
-  // ── PLATINUM LIGHT ──────────────────────────────────────────
-  // Canvas:     #F3F4F6  – ultra-clean soft gray-white blend
-  // Card base:  #FFFFFF  – pure white w/ #E5E7EB razor-thin border
-  // Highlight:  #F3E8FF  – subtle pastel lavender wash
-  // Text:       #0F172A  – sharp midnight black
-  // Text muted: #64748B  – slate gray
-  // Brand:      #8B5CF6  – royal orchid violet
-  // Success:    #10B981  bg / #047857 text
+  // ── WEALTH COLORS ───────────────────────────────────────────
+  // Primary Purple:  #7C3AED  – brand
+  // Income Green:    #16A34A  – earnings
+  // Expense Red:     #DC2626  – spending
+  // Goal Gold:       #F59E0B  – dreams
+  // Net Worth Blue:  #2563EB  – total wealth
+  // Canvas:          #F8FAFC  – ultra-clean
   light: {
     bg: {
-      primary: '#F3F4F6',
+      primary: '#F8FAFC',
       secondary: '#FFFFFF',
       tertiary: '#F9FAFB',
       card: '#FFFFFF',
@@ -45,41 +44,41 @@ export const palette = {
       secondary: '#64748B',
       tertiary: '#6B7280',
       inverse: '#FFFFFF',
-      link: '#8B5CF6',
-      success: '#047857',
+      link: '#7C3AED',
+      success: '#15803D',
     },
     brand: {
-      primary: '#8B5CF6',
-      light: 'rgba(139, 92, 246, 0.12)',
-      hover: '#7C3AED',
-      muted: '#C4B5FD',
+      primary: '#7C3AED',
+      light: 'rgba(124, 58, 237, 0.12)',
+      hover: '#6D28D9',
+      muted: '#A78BFA',
     },
     border: {
       subtle: '#E5E7EB',
       default: '#D1D5DB',
-      active: 'rgba(139, 92, 246, 0.25)',
+      active: 'rgba(124, 58, 237, 0.25)',
     },
     accent: {
-      primary: '#8B5CF6',
-      secondary: '#A78BFA',
-      tertiary: '#C4B5FD',
-      hover: '#7C3AED',
+      primary: '#7C3AED',
+      secondary: '#8B5CF6',
+      tertiary: '#A78BFA',
+      hover: '#6D28D9',
     },
     status: {
-      success: '#10B981',
-      successLight: 'rgba(16, 185, 129, 0.12)',
+      success: '#16A34A',
+      successLight: 'rgba(22, 163, 74, 0.12)',
       warning: '#F59E0B',
       warningLight: 'rgba(245, 158, 11, 0.12)',
-      error: '#EF4444',
-      errorLight: 'rgba(239, 68, 68, 0.12)',
-      info: '#3B82F6',
-      infoLight: 'rgba(59, 130, 246, 0.12)',
+      error: '#DC2626',
+      errorLight: 'rgba(220, 38, 38, 0.12)',
+      info: '#2563EB',
+      infoLight: 'rgba(37, 99, 235, 0.12)',
     },
     chart: {
-      line1: '#8B5CF6',
-      line2: '#10B981',
-      line3: '#F59E0B',
-      line4: '#EF4444',
+      netWorth: '#2563EB',
+      income: '#16A34A',
+      expense: '#DC2626',
+      goals: '#F59E0B',
     },
     skeleton: {
       base: '#E5E7EB',
@@ -292,10 +291,10 @@ export const palette = {
       infoLight: 'rgba(96, 165, 250, 0.18)',
     },
     chart: {
-      line1: '#A78BFA',
-      line2: '#00E676',
-      line3: '#FBBF24',
-      line4: '#FB7185',
+      netWorth: '#60A5FA',
+      income: '#4ADE80',
+      expense: '#FB7185',
+      goals: '#FBBF24',
     },
     skeleton: {
       base: '#1A1A1E',

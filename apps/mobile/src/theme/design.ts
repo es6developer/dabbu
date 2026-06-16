@@ -39,22 +39,22 @@ export const shadows = {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowRadius: 4,
+    elevation: 2,
   } as ViewStyle,
   lg: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowRadius: 6,
+    elevation: 3,
   } as ViewStyle,
   xl: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
-    shadowRadius: 24,
-    elevation: 8,
+    shadowRadius: 8,
+    elevation: 4,
   } as ViewStyle,
 };
 
@@ -103,7 +103,7 @@ export const fabShadow = {
   shadowOffset: { width: 0, height: 8 },
   shadowOpacity: 1,
   shadowRadius: 24,
-  elevation: 8,
+  elevation: 4,
 } as ViewStyle;
 
 export const screenPadding = {

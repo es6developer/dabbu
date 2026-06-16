@@ -127,7 +127,7 @@ export function SettlementScreen() {
         >
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}>
-              <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
+              <Ionicons name="arrow-back-outline" size={24} color={colors.text.primary} />
             </TouchableOpacity>
             <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Settlements</Text>
             <View style={{ width: 32 }} />
@@ -272,7 +272,7 @@ export function SettlementScreen() {
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                         <View style={[styles.settlementAvatar, { backgroundColor: 'transparent' }]}>
                           <Ionicons
-                            name="checkmark-circle"
+                            name="checkmark-circle-outline"
                             size={22}
                             color={colors.text.secondary}
                           />
@@ -289,7 +289,7 @@ export function SettlementScreen() {
           ) : (
             <View style={styles.emptyState}>
               <View style={[styles.emptyIcon, { backgroundColor: 'transparent' }]}>
-                <Ionicons name="checkmark-circle" size={40} color={colors.text.secondary} />
+                <Ionicons name="checkmark-circle-outline" size={40} color={colors.text.secondary} />
               </View>
               <Text style={[styles.emptyTitle, { color: colors.text.secondary }]}>
                 All settled up!

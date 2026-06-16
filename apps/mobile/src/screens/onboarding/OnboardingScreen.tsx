@@ -20,18 +20,23 @@ const { width } = Dimensions.get('window');
 const slides = [
   {
     icon: 'wallet-outline',
-    title: 'Manage Money Together',
-    desc: 'Track expenses, split bills and manage family finances in one place.',
+    title: 'Build Wealth Together',
+    desc: 'Track net worth, set shared goals, and grow your money as a couple or family — all in one place.',
   },
   {
     icon: 'stats-chart-outline',
-    title: 'Track Every Rupee',
-    desc: 'Monitor groceries, rent, travel, subscriptions and more in real-time.',
+    title: 'Smart Goal Planning',
+    desc: 'Set savings goals, track progress, and let AI suggest the best way to reach each milestone faster.',
   },
   {
     icon: 'people-outline',
-    title: 'Create Circles',
-    desc: 'Create private circles with your spouse, family or friends and split expenses instantly.',
+    title: 'Shared Money. Shared Dreams.',
+    desc: 'Create private spaces with your partner, split expenses, track shared budgets, and align on financial priorities.',
+  },
+  {
+    icon: 'shield-checkmark-outline',
+    title: 'Your Financial Health',
+    desc: 'Monitor your health score, get AI-powered insights, and earn achievements as you build better habits.',
   },
 ];
 
@@ -237,7 +242,7 @@ export function OnboardingScreen({ route }: any) {
           <Text style={{ color: '#FFF', fontSize: 17, fontWeight: '700' }}>
             {isLast ? 'Get Started' : 'Next'}
           </Text>
-          {!isLast && <Ionicons name="arrow-forward" size={18} color="#FFF" />}
+          {!isLast && <Ionicons name="arrow-forward-outline" size={18} color="#FFF" />}
         </TouchableOpacity>
 
         {/* Back button - visible on all except first screen */}

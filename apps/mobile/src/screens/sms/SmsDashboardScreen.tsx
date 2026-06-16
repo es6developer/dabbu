@@ -264,14 +264,14 @@ export function SmsDashboardScreen() {
           {item.isProcessed ? (
             <View style={styles.badgeRow}>
               <View style={[styles.badge, { backgroundColor: `${colors.status.success}18` }]}>
-                <Ionicons name="checkmark-circle" size={12} color={colors.status.success} />
+                <Ionicons name="checkmark-circle-outline" size={12} color={colors.status.success} />
                 <Text style={[styles.badgeText, { color: colors.status.success }]}>Added</Text>
               </View>
             </View>
           ) : (
             <View style={styles.badgeRow}>
               <View style={[styles.badge, { backgroundColor: `${colors.status.warning}18` }]}>
-                <Ionicons name="time" size={12} color={colors.status.warning} />
+                <Ionicons name="time-outline" size={12} color={colors.status.warning} />
                 <Text style={[styles.badgeText, { color: colors.status.warning }]}>Pending</Text>
               </View>
             </View>
@@ -299,7 +299,7 @@ export function SmsDashboardScreen() {
             {syncing ? (
               <ActivityIndicator size="small" color={colors.accent.primary} />
             ) : (
-              <Ionicons name="sync" size={18} color={colors.accent.primary} />
+              <Ionicons name="sync-outline" size={18} color={colors.accent.primary} />
             )}
           </TouchableOpacity>
           <TouchableOpacity
@@ -316,7 +316,7 @@ export function SmsDashboardScreen() {
 
       {newBanner && (
         <View style={[styles.newBanner, { backgroundColor: colors.accent.primary }]}>
-          <Ionicons name="sparkles" size={14} color="#FFFFFF" />
+          <Ionicons name="sparkles-outline" size={14} color="#FFFFFF" />
           <Text style={styles.newBannerText}>{newBanner}</Text>
         </View>
       )}

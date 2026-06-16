@@ -120,7 +120,7 @@ function AchievementCard({ id, unlocked, data }: { id: string; unlocked: boolean
           </Text>
         )}
       </View>
-      {unlocked && <Ionicons name="checkmark-circle" size={18} color={colors.status.success} />}
+      {unlocked && <Ionicons name="checkmark-circle-outline" size={18} color={colors.status.success} />}
     </View>
   );
 }

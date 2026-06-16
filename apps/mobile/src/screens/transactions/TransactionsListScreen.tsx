@@ -413,7 +413,7 @@ export function TransactionsListScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <Ionicons name="arrow-down" size={14} color={colors.status.success} />
+                <Ionicons name="arrow-down-outline" size={14} color={colors.status.success} />
               </View>
               <View>
                 <Text
@@ -453,7 +453,7 @@ export function TransactionsListScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <Ionicons name="arrow-up" size={14} color={colors.status.error} />
+                <Ionicons name="arrow-up-outline" size={14} color={colors.status.error} />
               </View>
               <View>
                 <Text
@@ -578,7 +578,7 @@ export function TransactionsListScreen() {
         onPress={() => navigation.navigate('AddExpense')}
         style={[s.fab, { backgroundColor: colors.accent.primary }, fabShadow]}
       >
-        <Ionicons name="add" size={28} color="#FFFFFF" />
+        <Ionicons name="add-outline" size={28} color="#FFFFFF" />
       </TouchableOpacity>
     </View>
   );

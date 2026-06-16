@@ -210,7 +210,7 @@ export function PremiumAiPaywallScreen() {
           onPress={() => navigation.goBack()}
           style={[s.closeBtn, { top: insets.top + 12 }]}
         >
-          <Ionicons name="close" size={24} color={AI_COLORS.text} />
+          <Ionicons name="close-outline" size={24} color={AI_COLORS.text} />
         </TouchableOpacity>
 
         {/* Hero */}
@@ -219,7 +219,7 @@ export function PremiumAiPaywallScreen() {
           style={[s.heroSection, { paddingTop: insets.top + 60 }]}
         >
           <View style={s.heroIconWrap}>
-            <Ionicons name="diamond" size={40} color={AI_COLORS.primary} />
+            <Ionicons name="diamond-outline" size={40} color={AI_COLORS.primary} />
           </View>
           <Text style={s.heroTitle}>Unlock Dabbu AI</Text>
           <Text style={s.heroDesc}>
@@ -359,13 +359,13 @@ export function PremiumAiPaywallScreen() {
                 <Text style={{ flex: 1, fontSize: 13, color: AI_COLORS.text }}>{f.name}</Text>
                 <View style={{ width: 50, alignItems: 'center' }}>
                   {f.free ? (
-                    <Ionicons name="checkmark" size={18} color={AI_COLORS.success} />
+                    <Ionicons name="checkmark-outline" size={18} color={AI_COLORS.success} />
                   ) : (
-                    <Ionicons name="close" size={18} color={AI_COLORS.textTertiary} />
+                    <Ionicons name="close-outline" size={18} color={AI_COLORS.textTertiary} />
                   )}
                 </View>
                 <View style={{ width: 50, alignItems: 'center' }}>
-                  <Ionicons name="checkmark" size={18} color={AI_COLORS.primary} />
+                  <Ionicons name="checkmark-outline" size={18} color={AI_COLORS.primary} />
                 </View>
               </View>
             ))}
@@ -378,7 +378,7 @@ export function PremiumAiPaywallScreen() {
           style={{ paddingHorizontal: 16, marginTop: 24 }}
         >
           <TouchableOpacity style={s.ctaBtn}>
-            <Ionicons name="sparkles" size={20} color="#FFF" />
+            <Ionicons name="sparkles-outline" size={20} color="#FFF" />
             <Text style={s.ctaText}>Start Free Trial</Text>
           </TouchableOpacity>
           <Text style={s.ctaSub}>7-day free trial, cancel anytime</Text>

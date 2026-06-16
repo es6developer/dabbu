@@ -40,7 +40,7 @@ export function HelpCenterScreen() {
         style={[styles.supportBtn, { backgroundColor: colors.accent.primary }]}
         onPress={() => Linking.openURL('mailto:support@dabbu.app')}
       >
-        <Ionicons name="mail" size={20} color="#FFFFFF" />
+        <Ionicons name="mail-outline" size={20} color="#FFFFFF" />
         <Text style={[styles.supportBtnText, { color: colors.text.primary }]}>Contact Support</Text>
       </TouchableOpacity>
 

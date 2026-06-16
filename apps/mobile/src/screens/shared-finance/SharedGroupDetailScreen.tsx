@@ -506,7 +506,7 @@ export function SharedGroupDetailScreen() {
           <View style={[s.tripSummaryCard, { backgroundColor: colors.bg.card }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <View style={[s.tripIconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
-                <Ionicons name="airplane" size={20} color={colors.accent.primary} />
+                <Ionicons name="airplane-outline" size={20} color={colors.accent.primary} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[s.tripSummaryTitle, { color: colors.text.primary }]}>
@@ -1174,7 +1174,7 @@ export function SharedGroupDetailScreen() {
                       navigation.getParent()?.navigate('Dashboard', { screen: 'AiGroupSpace', params: { groupId, groupName: name } })
                     }
                   >
-                    <Ionicons name="sparkles" size={20} color="#FFD700" />
+                    <Ionicons name="sparkles-outline" size={20} color="#FFD700" />
                   </TouchableOpacity>
                 )}
                 {!(type === 'couple' && members.length >= 2) && (
@@ -1248,7 +1248,7 @@ export function SharedGroupDetailScreen() {
         onPress={() => navigation.navigate('SharedExpenseForm', { groupId, edit: false })}
         activeOpacity={0.85}
       >
-        <Ionicons name="add" size={26} color="#FFF" />
+        <Ionicons name="add-outline" size={26} color="#FFF" />
       </TouchableOpacity>
 
       <Modal
@@ -1317,7 +1317,7 @@ export function SharedGroupDetailScreen() {
                   <ActivityIndicator size="small" color="#FFF" />
                 ) : (
                   <>
-                    <Ionicons name="checkmark" size={18} color="#FFF" />
+                    <Ionicons name="checkmark-outline" size={18} color="#FFF" />
                     <Text style={s.modalBtnText}> Save</Text>
                   </>
                 )}
@@ -1594,7 +1594,7 @@ const s = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
-    elevation: 6,
+    elevation: 4,
     zIndex: 100,
   },
   inviteBtn: {

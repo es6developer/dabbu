@@ -145,7 +145,7 @@ function BillCard({ bill, colors, onPress }: { bill: BillItem; colors: any; onPr
     >
       <View style={styles.billCardLeft}>
         <View style={styles.categoryDot}>
-          <Ionicons name="receipt" size={14} color="#FFFFFF" />
+          <Ionicons name="receipt-outline" size={14} color="#FFFFFF" />
         </View>
         <View style={styles.billCardInfo}>
           <Text style={[styles.billMerchant, { color: colors.text.primary }]} numberOfLines={1}>
@@ -206,7 +206,7 @@ function ComparisonCard({
       activeOpacity={0.7}
     >
       <View style={styles.comparisonHeader}>
-        <Ionicons name="trending-up" size={18} color={colors.accent.primary} />
+        <Ionicons name="trending-up-outline" size={18} color={colors.accent.primary} />
         <Text style={[styles.comparisonTitle, { color: colors.text.primary }]}>
           {getMonthName(latest.month)} vs {getMonthName(previous.month)}
         </Text>
@@ -268,7 +268,7 @@ function EmptyState({ colors, onScan }: { colors: any; onScan: () => void }) {
       </Text>
       <View style={[styles.emptyBtn, { backgroundColor: colors.brand.primary }]}>
         <TouchableOpacity style={styles.emptyBtnInner} onPress={onScan} activeOpacity={0.8}>
-          <Ionicons name="camera" size={20} color="#FFFFFF" />
+          <Ionicons name="camera-outline" size={20} color="#FFFFFF" />
           <Text style={styles.emptyBtnText}>Scan Your First Bill</Text>
         </TouchableOpacity>
       </View>
@@ -407,7 +407,7 @@ export function BillsListScreen() {
                   loadBills();
                 }}
               >
-                <Ionicons name="refresh" size={20} color="#FFFFFF" />
+                <Ionicons name="refresh-outline" size={20} color="#FFFFFF" />
                 <Text style={styles.emptyBtnText}>Try Again</Text>
               </TouchableOpacity>
             </View>

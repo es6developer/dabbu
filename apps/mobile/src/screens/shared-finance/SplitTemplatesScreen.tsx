@@ -170,7 +170,7 @@ export function SplitTemplatesScreen() {
               onPress={() => setShowCreate(true)}
               style={[s.addBtn, { backgroundColor: colors.accent.primary }]}
             >
-              <Ionicons name="add" size={22} color="#FFF" />
+              <Ionicons name="add-outline" size={22} color="#FFF" />
             </TouchableOpacity>
           </View>
 
@@ -220,7 +220,7 @@ export function SplitTemplatesScreen() {
                 </View>
                 <View style={s.metaRow}>
                   <View style={[s.badge, { backgroundColor: `${colors.accent.primary}15` }]}>
-                    <Ionicons name="people" size={11} color={colors.accent.primary} />
+                    <Ionicons name="people-outline" size={11} color={colors.accent.primary} />
                     <Text style={[s.badgeText, { color: colors.accent.primary }]}>
                       {item.groupType}
                     </Text>
@@ -230,7 +230,7 @@ export function SplitTemplatesScreen() {
                   </Text>
                   {item.isOfficial && (
                     <View style={[s.badge, { backgroundColor: `${colors.status.success}15` }]}>
-                      <Ionicons name="checkmark-circle" size={11} color={colors.status.success} />
+                      <Ionicons name="checkmark-circle-outline" size={11} color={colors.status.success} />
                       <Text style={[s.badgeText, { color: colors.status.success }]}>Official</Text>
                     </View>
                   )}

@@ -164,7 +164,7 @@ export function CirclesListScreen() {
                   style={[styles.addBtn, { backgroundColor: colors.bg.tertiary }]}
                   onPress={() => navigation.navigate('CreateCircle')}
                 >
-                  <Ionicons name="add" size={22} color={colors.text.primary} />
+                  <Ionicons name="add-outline" size={22} color={colors.text.primary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -192,7 +192,7 @@ export function CirclesListScreen() {
                       style={styles.settleBtn}
                       onPress={() => navigation.navigate('Settlement')}
                     >
-                      <Ionicons name="swap-horizontal" size={12} color="#FFF" />
+                      <Ionicons name="swap-horizontal-outline" size={12} color="#FFF" />
                       <Text style={[styles.settleBtnText, { color: colors.text.primary }]}>
                         Settle Up
                       </Text>
@@ -201,7 +201,7 @@ export function CirclesListScreen() {
                       style={styles.splitBtn}
                       onPress={() => navigation.navigate('SplitExpense')}
                     >
-                      <Ionicons name="add-circle" size={12} color={colors.accent.primary} />
+                      <Ionicons name="add-circle-outline" size={12} color={colors.accent.primary} />
                       <Text style={[styles.splitBtnText, { color: colors.accent.primary }]}>
                         Split
                       </Text>
@@ -253,7 +253,7 @@ export function CirclesListScreen() {
               activeOpacity={0.7}
             >
               <View style={styles.createCardIcon}>
-                <Ionicons name="add" size={24} color="#FFF" />
+                <Ionicons name="add-outline" size={24} color="#FFF" />
               </View>
               <Text style={[styles.createCardText, { color: colors.text.primary }]}>
                 Create New Circle
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.25,
     shadowRadius: 16,
-    elevation: 8,
+    elevation: 4,
   },
   summaryRow: { flexDirection: 'row', alignItems: 'center' },
   summaryItem: { flex: 1, alignItems: 'center', gap: 4 },

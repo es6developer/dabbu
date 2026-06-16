@@ -201,7 +201,7 @@ export function ChatRoomScreen() {
           onPress={handleSend}
           disabled={!input.trim() || sending}
         >
-          <Ionicons name="send" size={18} color="#FFFFFF" />
+          <Ionicons name="send-outline" size={18} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>

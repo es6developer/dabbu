@@ -1,17 +1,8 @@
 -- AlterTable
-ALTER TABLE `challenge_badges` MODIFY `badgeEmoji` VARCHAR(10) NOT NULL DEFAULT '🏅';
-
--- AlterTable
-ALTER TABLE `memory_entries` MODIFY `emoji` VARCHAR(10) NOT NULL DEFAULT '📸';
-
--- AlterTable
-ALTER TABLE `savings_challenges` MODIFY `icon` VARCHAR(10) NOT NULL DEFAULT '🎯';
-
--- AlterTable
 ALTER TABLE `transactions` ADD COLUMN `expenseGroupId` VARCHAR(36) NULL;
 
 -- CreateTable
-CREATE TABLE `expense_groups` (
+CREATE TABLE IF NOT EXISTS `expense_groups` (
     `id` VARCHAR(36) NOT NULL,
     `name` VARCHAR(255) NOT NULL,
     `icon` VARCHAR(50) NOT NULL DEFAULT 'users',
@@ -25,7 +16,7 @@ CREATE TABLE `expense_groups` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `expense_group_members` (
+CREATE TABLE IF NOT EXISTS `expense_group_members` (
     `id` VARCHAR(36) NOT NULL,
     `groupId` VARCHAR(36) NOT NULL,
     `userId` VARCHAR(36) NOT NULL,

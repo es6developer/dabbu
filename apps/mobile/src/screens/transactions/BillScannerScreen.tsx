@@ -314,7 +314,7 @@ export function BillScannerScreen() {
           {scanState === 'idle' && (
             <>
               <View style={[styles.iconWrap, { backgroundColor: `${colors.accent.primary}18` }]}>
-                <Ionicons name="camera" size={44} color={colors.accent.primary} />
+                <Ionicons name="camera-outline" size={44} color={colors.accent.primary} />
               </View>
               <Text style={[styles.title, { color: colors.text.primary }]}>Scan a Bill</Text>
               <Text style={[styles.desc, { color: colors.text.tertiary }]}>
@@ -329,7 +329,7 @@ export function BillScannerScreen() {
                   onPress={openCamera}
                   activeOpacity={0.8}
                 >
-                  <Ionicons name="camera" size={20} color="#FFFFFF" />
+                  <Ionicons name="camera-outline" size={20} color="#FFFFFF" />
                   <Text style={styles.actionBtnText}>Open Camera</Text>
                 </TouchableOpacity>
               </View>
@@ -401,7 +401,7 @@ export function BillScannerScreen() {
                     ]}
                     onPress={handleRetry}
                   >
-                    <Ionicons name="close" size={20} color={colors.text.primary} />
+                    <Ionicons name="close-outline" size={20} color={colors.text.primary} />
                     <Text style={[styles.cancelBtnText, { color: colors.text.primary }]}>
                       Cancel
                     </Text>
@@ -424,7 +424,7 @@ export function BillScannerScreen() {
                 ]}
               >
                 <View style={styles.resultHeader}>
-                  <Ionicons name="document-text" size={20} color={colors.accent.primary} />
+                  <Ionicons name="document-text-outline" size={20} color={colors.accent.primary} />
                   <Text style={[styles.resultTitle, { color: colors.text.primary }]}>
                     OCR Prediction
                   </Text>
@@ -655,7 +655,7 @@ export function BillScannerScreen() {
                   }
                 >
                   <View style={styles.actionBtnInner}>
-                    <Ionicons name="add-circle" size={20} color="#FFFFFF" />
+                    <Ionicons name="add-circle-outline" size={20} color="#FFFFFF" />
                     <Text style={styles.actionBtnText}>Add to Expenses</Text>
                   </View>
                 </TouchableOpacity>
@@ -673,7 +673,7 @@ export function BillScannerScreen() {
                   onPress={handleRetry}
                 >
                   <View style={styles.actionBtnInner}>
-                    <Ionicons name="close" size={20} color={colors.text.secondary} />
+                    <Ionicons name="close-outline" size={20} color={colors.text.secondary} />
                     <Text style={[styles.actionBtnText, { color: colors.text.secondary }]}>
                       Discard & Scan Again
                     </Text>
@@ -694,7 +694,7 @@ export function BillScannerScreen() {
                   },
                 ]}
               >
-                <Ionicons name="alert-circle" size={56} color={colors.status.error} />
+                <Ionicons name="alert-circle-outline" size={56} color={colors.status.error} />
                 <Text style={[styles.errorTitle, { color: colors.text.primary }]}>Scan Failed</Text>
                 <Text style={[styles.errorDesc, { color: colors.text.tertiary }]}>
                   {errorMessage}
@@ -706,7 +706,7 @@ export function BillScannerScreen() {
                       onPress={handleRetry}
                       activeOpacity={0.8}
                     >
-                      <Ionicons name="refresh" size={20} color="#FFFFFF" />
+                      <Ionicons name="refresh-outline" size={20} color="#FFFFFF" />
                       <Text style={styles.actionBtnText}>Try Again</Text>
                     </TouchableOpacity>
                   </View>

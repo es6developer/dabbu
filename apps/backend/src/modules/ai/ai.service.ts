@@ -1706,6 +1706,97 @@ ${JSON.stringify(context, null, 2)}`;
     }
   }
 
+  async suggestGoalRebalancing(userId: string) {
+    try {
+      const [goals, transactions] = await Promise.all([
+        this.prisma.goal.findMany({ where: { userId, deletedAt: null, isCompleted: false } }),
+        this.prisma.transaction.findMany({
+          where: { userId, deletedAt: null },
+          orderBy: { date: 'desc' },
+          take: 500,
+        }),
+      ]);
+
+      if (goals.length < 2) return { suggestions: [] };
+
+      const now = new Date();
+      const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+
+      const recentTxns = transactions.filter((t) => t.date >= threeMonthsAgo);
+      const monthlyIncome =
+        recentTxns
+          .filter((t) => t.type === 'income')
+          .reduce((s, t) => s + Number(t.amount), 0) / 3;
+      const monthlyExpense =
+        recentTxns
+          .filter((t) => t.type === 'expense')
+          .reduce((s, t) => s + Number(t.amount), 0) / 3;
+      const monthlySurplus = Math.max(monthlyIncome - monthlyExpense, 0);
+
+      const currentTotalContribution = goals.reduce(
+        (s, g) => s + Number(g.monthlyContribution || 0),
+        0,
+      );
+      const availableForGoals = monthlySurplus * 0.7;
+
+      const scored = goals
+        .map((g) => {
+          const progress = Number(g.currentAmount || 0) / Number(g.targetAmount || 1);
+          const deadlineDays = g.deadline
+            ? Math.max((g.deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24), 1)
+            : 365;
+          const urgency = 1 / deadlineDays;
+          const need = Math.max(1 - progress, 0.1);
+          const typeBoost = g.type === 'emergency' ? 2 : g.type === 'retirement' ? 1.5 : 1;
+          const score = urgency * need * typeBoost * 100;
+          return { goal: g, score, progress, urgency, need, typeBoost };
+        })
+        .sort((a, b) => b.score - a.score);
+
+      const totalScore = scored.reduce((s, x) => s + x.score, 0) || 1;
+      const currentPerGoal: Record<string, number> = {};
+      const suggestedPerGoal: Record<string, number> = {};
+      let allocated = 0;
+
+      scored.forEach((s) => {
+        const share = Math.round((s.score / totalScore) * availableForGoals);
+        const current = Number(s.goal.monthlyContribution || 0);
+        currentPerGoal[s.goal.id] = current;
+        suggestedPerGoal[s.goal.id] = current + Math.round(share / 100) * 100;
+        allocated += suggestedPerGoal[s.goal.id] - current;
+      });
+
+      const suggestions = scored
+        .filter((s) => {
+          const diff = suggestedPerGoal[s.goal.id] - currentPerGoal[s.goal.id];
+          return Math.abs(diff) >= 100;
+        })
+        .map((s) => {
+          const diff = suggestedPerGoal[s.goal.id] - currentPerGoal[s.goal.id];
+          const action = diff > 0 ? 'increase' : 'reduce';
+          return {
+            goalId: s.goal.id,
+            goalName: s.goal.name,
+            goalIcon: s.goal.icon || 'flag',
+            goalColor: s.goal.color || '#7C3AED',
+            currentContribution: currentPerGoal[s.goal.id],
+            suggestedContribution: Math.max(suggestedPerGoal[s.goal.id], 0),
+            diff: Math.abs(diff),
+            action,
+            reason:
+              action === 'increase'
+                ? urgencyText(s.urgency) + needText(s.need)
+                : 'Contributions could be redirected to higher-priority goals',
+          };
+        });
+
+      return { suggestions, monthlySurplus: Math.round(monthlySurplus), totalGoals: goals.length };
+    } catch (error) {
+      this.logger.error(`Goal rebalancing failed: ${(error as Error).message}`);
+      return { suggestions: [] };
+    }
+  }
+
   async computeHealthScore(userId: string) {
     try {
       const [transactions, budgets, bills, goals, settlements, accounts] = await Promise.all([
@@ -3085,4 +3176,16 @@ ${JSON.stringify(context, null, 2)}`;
       return null;
     }
   }
+}
+
+function urgencyText(urgency: number): string {
+  if (urgency > 0.05) return 'Your deadline is approaching fast';
+  if (urgency > 0.02) return 'This goal needs more consistent funding';
+  return 'More contributions will help reach this sooner';
+}
+
+function needText(need: number): string {
+  if (need > 0.5) return ' and there is still a long way to go';
+  if (need > 0.2) return ' and additional funds will ensure timely completion';
+  return ' to maintain momentum';
 }

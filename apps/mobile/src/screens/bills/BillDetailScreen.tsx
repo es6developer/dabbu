@@ -245,7 +245,7 @@ export function BillDetailScreen() {
                 ]}
               >
                 <Ionicons
-                  name="shield-checkmark"
+                  name="shield-checkmark-outline"
                   size={16}
                   color={getConfidenceColor(bill.confidence, colors)}
                 />
@@ -354,7 +354,7 @@ export function BillDetailScreen() {
                 onPress={addItem}
                 style={[styles.addItemBtn, { backgroundColor: `${colors.accent.primary}15` }]}
               >
-                <Ionicons name="add" size={16} color={colors.accent.primary} />
+                <Ionicons name="add-outline" size={16} color={colors.accent.primary} />
                 <Text style={[styles.addItemText, { color: colors.accent.primary }]}>Add Item</Text>
               </TouchableOpacity>
             </View>
@@ -509,7 +509,7 @@ export function BillDetailScreen() {
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
                   <>
-                    <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
+                    <Ionicons name="checkmark-circle-outline" size={20} color="#FFFFFF" />
                     <Text style={styles.saveBtnText}>Save Changes</Text>
                   </>
                 )}

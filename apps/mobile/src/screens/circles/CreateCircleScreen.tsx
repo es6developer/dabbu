@@ -111,7 +111,7 @@ export function CreateCircleScreen() {
             <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
               <View style={styles.headerRow}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                  <Ionicons name="close" size={22} color="#FFF" />
+                  <Ionicons name="close-outline" size={22} color="#FFF" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Create Circle</Text>
                 <View style={{ width: 32 }} />
@@ -236,13 +236,13 @@ export function CreateCircleScreen() {
                     returnKeyType="done"
                   />
                   {upiStatus === 'valid' && (
-                    <Ionicons name="checkmark-circle" size={20} color="#34C759" />
+                    <Ionicons name="checkmark-circle-outline" size={20} color="#34C759" />
                   )}
                   {upiStatus === 'invalid' && (
-                    <Ionicons name="alert-circle" size={20} color="#FF4D4F" />
+                    <Ionicons name="alert-circle-outline" size={20} color="#FF4D4F" />
                   )}
                   {upiStatus === 'checking' && (
-                    <Ionicons name="sync" size={18} color={colors.text.tertiary} />
+                    <Ionicons name="sync-outline" size={18} color={colors.text.tertiary} />
                   )}
                 </View>
                 {upiStatus === 'invalid' && (
@@ -266,7 +266,7 @@ export function CreateCircleScreen() {
                   { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
                 ]}
               >
-                <Ionicons name="search" size={18} color={colors.text.tertiary} />
+                <Ionicons name="search-outline" size={18} color={colors.text.tertiary} />
                 <TextInput
                   style={[styles.searchInput, { color: colors.text.primary }]}
                   placeholder="Search by name or mobile"
@@ -290,7 +290,7 @@ export function CreateCircleScreen() {
                       </View>
                       <Text style={[styles.memberName, { color: colors.text.primary }]}>{m}</Text>
                       <TouchableOpacity onPress={() => removeMember(m)}>
-                        <Ionicons name="close-circle" size={18} color="#FF4D4F" />
+                        <Ionicons name="close-circle-outline" size={18} color="#FF4D4F" />
                       </TouchableOpacity>
                     </View>
                   ))}
@@ -314,7 +314,7 @@ export function CreateCircleScreen() {
               activeOpacity={0.85}
               style={styles.createBtnInner}
             >
-              <Ionicons name="people" size={18} color="#FFF" />
+              <Ionicons name="people-outline" size={18} color="#FFF" />
               <Text style={styles.createBtnText}>Create Circle</Text>
             </TouchableOpacity>
           </View>

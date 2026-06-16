@@ -36,6 +36,9 @@ const GOAL_CONFIGS: Record<string, GoalConfig> = {
   car: { icon: 'car-sport', color: '#14B8A6' },
   wedding: { icon: 'heart', color: '#FF6B9D' },
   retirement: { icon: 'umbrella', color: '#247BA0' },
+  savings: { icon: 'piggy-bank', color: '#8B5CF6' },
+  investment: { icon: 'trending-up', color: '#10B981' },
+  baby: { icon: 'happy', color: '#FF69B4' },
   custom: { icon: 'trophy', color: '#14B8A6' },
 };
 
@@ -304,7 +307,7 @@ function QuickContributeModal({
                 onPress={handleSubmit}
                 activeOpacity={0.8}
               >
-                <Ionicons name="add-circle" size={20} color="#FFF" />
+                <Ionicons name="add-circle-outline" size={20} color="#FFF" />
                 <Text style={[typography.button, { color: '#FFF' }]}>Add Amount</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -361,9 +364,16 @@ export function GoalDetailScreen() {
   const { goalId } = route.params;
 
   const [goal, setGoal] = useState<any>(null);
+  const [prediction, setPrediction] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showContribute, setShowContribute] = useState(false);
   const [contributing, setContributing] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editTarget, setEditTarget] = useState('');
+  const [editMonthly, setEditMonthly] = useState('');
+  const [editNotes, setEditNotes] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
 
   const entryAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -373,8 +383,12 @@ export function GoalDetailScreen() {
       if (accessToken) {
         setAccessToken(accessToken);
       }
-      const res = await api.get<any>(`/goals/${goalId}`);
-      setGoal(res);
+      const [goalRes, predRes] = await Promise.allSettled([
+        api.get<any>(`/goals/${goalId}`),
+        api.get<any>(`/ai/goals/${goalId}/prediction`),
+      ]);
+      if (goalRes.status === 'fulfilled') setGoal(goalRes.value);
+      if (predRes.status === 'fulfilled' && predRes.value?.data) setPrediction(predRes.value.data);
     } catch {
       Alert.alert('Error', 'Failed to load goal');
       navigation.goBack();
@@ -506,14 +520,20 @@ export function GoalDetailScreen() {
                 style={[s.iconBtn, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
                 activeOpacity={0.7}
               >
-                <Ionicons name="arrow-back" size={22} color="#FFF" />
+                <Ionicons name="arrow-back-outline" size={22} color="#FFF" />
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => {}}
+                onPress={() => {
+                  setEditName(goal.name || '');
+                  setEditTarget(String(Number(goal.targetAmount || goal.target || 0)));
+                  setEditMonthly(String(Number(goal.monthlyContribution || 0)));
+                  setEditNotes(goal.notes || '');
+                  setShowEdit(true);
+                }}
                 style={[s.iconBtn, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
                 activeOpacity={0.7}
               >
-                <Ionicons name="pencil" size={20} color="#FFF" />
+                <Ionicons name="pencil-outline" size={20} color="#FFF" />
               </TouchableOpacity>
             </View>
             <View style={s.headerContent}>
@@ -532,7 +552,7 @@ export function GoalDetailScreen() {
                 </Text>
               </View>
               <View style={s.taglinePill}>
-                <Ionicons name="sparkles" size={14} color="rgba(255,255,255,0.9)" />
+                <Ionicons name="sparkles-outline" size={14} color="rgba(255,255,255,0.9)" />
                 <Text style={[typography.footnote, { color: '#FFF', fontWeight: '600' }]}>
                   {tagline}
                 </Text>
@@ -662,7 +682,31 @@ export function GoalDetailScreen() {
               <Ionicons name="calendar-outline" size={22} color={config.color} />
             </View>
             <View style={{ flex: 1 }}>
-              {estLabel ? (
+              {prediction?.predictedCompletionDate ? (
+                <>
+                  <Text
+                    style={[typography.callout, { color: colors.text.primary, fontWeight: '600' }]}
+                  >
+                    AI Forecast: {new Date(prediction.predictedCompletionDate).toLocaleString('en-US', { month: 'long', year: 'numeric' })}
+                  </Text>
+                  <View style={{ flexDirection: 'row', gap: 8, marginTop: 2 }}>
+                    <Text style={[typography.footnote, {
+                      color: prediction.currentPace === 'ahead' ? '#10B981' : prediction.currentPace === 'ontrack' ? '#F59E0B' : prediction.currentPace === 'behind' ? '#EF4444' : '#DC2626',
+                      fontWeight: '700', textTransform: 'capitalize',
+                    }]}>
+                      {prediction.currentPace}
+                    </Text>
+                    <Text style={[typography.footnote, { color: colors.text.tertiary }]}>
+                      · {Math.round(prediction.successProbability)}% success probability
+                    </Text>
+                  </View>
+                  {prediction.requiredMonthlyContribution > 0 && (
+                    <Text style={[typography.footnote, { color: colors.text.tertiary, marginTop: 1 }]}>
+                      Need {fmt(Math.round(prediction.requiredMonthlyContribution))}/mo
+                    </Text>
+                  )}
+                </>
+              ) : estLabel ? (
                 <>
                   <Text
                     style={[typography.callout, { color: colors.text.primary, fontWeight: '600' }]}
@@ -776,7 +820,7 @@ export function GoalDetailScreen() {
                     <View style={s.timelineNode}>
                       {reached ? (
                         <View style={[s.nodeReached, { backgroundColor: config.color }]}>
-                          <Ionicons name="checkmark" size={14} color="#FFF" />
+                          <Ionicons name="checkmark-outline" size={14} color="#FFF" />
                         </View>
                       ) : (
                         <View style={[s.nodeEmpty, { borderColor: colors.border.default }]} />
@@ -810,6 +854,42 @@ export function GoalDetailScreen() {
             </View>
           </View>
         </Animated.View>
+
+        {/* ─── AI Improvement Tip ─── */}
+        {prediction?.improvementTip && (
+          <Animated.View
+            style={[
+              s.glassCard,
+              {
+                backgroundColor: colors.bg.secondary,
+                borderColor: colors.border.subtle,
+                borderLeftWidth: 3,
+                borderLeftColor: colors.accent.primary,
+                transform: [
+                  {
+                    translateY: entryAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [85, 0],
+                    }),
+                  },
+                ],
+                opacity: entryAnim,
+              },
+            ]}
+          >
+            <View style={{ flexDirection: 'row', gap: sp.sm, alignItems: 'flex-start' }}>
+              <Ionicons name="bulb-outline" size={18} color={colors.accent.primary} />
+              <View style={{ flex: 1 }}>
+                <Text style={[typography.callout, { color: colors.text.primary, fontWeight: '600' }]}>
+                  AI Suggestion
+                </Text>
+                <Text style={[typography.footnote, { color: colors.text.secondary, marginTop: 4 }]}>
+                  {prediction.improvementTip}
+                </Text>
+              </View>
+            </View>
+          </Animated.View>
+        )}
 
         {/* ─── Notes Section ─── */}
         {goal.notes ? (
@@ -865,12 +945,18 @@ export function GoalDetailScreen() {
           onPress={() => setShowContribute(true)}
           activeOpacity={0.8}
         >
-          <Ionicons name="add-circle" size={20} color="#FFF" />
+          <Ionicons name="add-circle-outline" size={20} color="#FFF" />
           <Text style={[typography.button, { color: '#FFF' }]}>Add to Goal</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[s.actionBtn, { backgroundColor: colors.bg.tertiary, borderRadius: 14 }]}
-          onPress={() => {}}
+          onPress={() => {
+            setEditName(goal.name || '');
+            setEditTarget(String(Number(goal.targetAmount || goal.target || 0)));
+            setEditMonthly(String(Number(goal.monthlyContribution || 0)));
+            setEditNotes(goal.notes || '');
+            setShowEdit(true);
+          }}
           activeOpacity={0.7}
         >
           <Ionicons name="pencil-outline" size={20} color={colors.text.primary} />
@@ -891,6 +977,64 @@ export function GoalDetailScreen() {
         onContribute={handleContribute}
         goalName={goal.name}
       />
+
+      <Modal visible={showEdit} transparent animationType="slide" onRequestClose={() => setShowEdit(false)}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end' }}>
+          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setShowEdit(false)} />
+          <View style={{ backgroundColor: colors.bg.primary, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: insets.bottom + 20 }}>
+            <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: colors.border.subtle, alignSelf: 'center', marginBottom: 16 }} />
+            <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text.primary, marginBottom: 16 }}>Edit Goal</Text>
+            <View style={{ gap: 12 }}>
+              <View>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: colors.text.secondary, marginBottom: 6, textTransform: 'uppercase' }}>Name</Text>
+                <TextInput style={{ backgroundColor: colors.bg.card, borderRadius: 12, padding: 14, fontSize: 15, fontWeight: '500', color: colors.text.primary, borderWidth: 1, borderColor: colors.border.subtle }} value={editName} onChangeText={setEditName} placeholder="Goal name" placeholderTextColor={colors.text.tertiary} />
+              </View>
+              <View>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: colors.text.secondary, marginBottom: 6, textTransform: 'uppercase' }}>Target Amount (₹)</Text>
+                <TextInput style={{ backgroundColor: colors.bg.card, borderRadius: 12, padding: 14, fontSize: 15, fontWeight: '500', color: colors.text.primary, borderWidth: 1, borderColor: colors.border.subtle }} value={editTarget} onChangeText={(t) => setEditTarget(t.replace(/[^0-9]/g, ''))} keyboardType="number-pad" placeholder="0" placeholderTextColor={colors.text.tertiary} />
+              </View>
+              <View>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: colors.text.secondary, marginBottom: 6, textTransform: 'uppercase' }}>Monthly Contribution (₹)</Text>
+                <TextInput style={{ backgroundColor: colors.bg.card, borderRadius: 12, padding: 14, fontSize: 15, fontWeight: '500', color: colors.text.primary, borderWidth: 1, borderColor: colors.border.subtle }} value={editMonthly} onChangeText={(t) => setEditMonthly(t.replace(/[^0-9]/g, ''))} keyboardType="number-pad" placeholder="0" placeholderTextColor={colors.text.tertiary} />
+              </View>
+              <View>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: colors.text.secondary, marginBottom: 6, textTransform: 'uppercase' }}>Notes</Text>
+                <TextInput style={{ backgroundColor: colors.bg.card, borderRadius: 12, padding: 14, fontSize: 15, fontWeight: '500', color: colors.text.primary, borderWidth: 1, borderColor: colors.border.subtle, minHeight: 60 }} value={editNotes} onChangeText={setEditNotes} placeholder="Optional notes" placeholderTextColor={colors.text.tertiary} multiline />
+              </View>
+            </View>
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 20 }}>
+              <TouchableOpacity style={{ flex: 1, paddingVertical: 16, borderRadius: 14, backgroundColor: colors.bg.tertiary, alignItems: 'center' }} onPress={() => setShowEdit(false)} activeOpacity={0.7}>
+                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.secondary }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{ flex: 1, paddingVertical: 16, borderRadius: 14, backgroundColor: config.color, alignItems: 'center', opacity: editSaving ? 0.6 : 1 }}
+                onPress={async () => {
+                  if (!editName.trim()) { Alert.alert('Error', 'Name is required'); return; }
+                  if (!editTarget || Number(editTarget) <= 0) { Alert.alert('Error', 'Enter a valid target amount'); return; }
+                  setEditSaving(true);
+                  try {
+                    await api.patch(`/goals/${goalId}`, {
+                      name: editName.trim(),
+                      targetAmount: Number(editTarget),
+                      monthlyContribution: Number(editMonthly) || undefined,
+                      notes: editNotes.trim() || undefined,
+                    });
+                    setShowEdit(false);
+                    loadGoal();
+                  } catch (e: any) {
+                    Alert.alert('Error', e.message || 'Failed to update');
+                  } finally {
+                    setEditSaving(false);
+                  }
+                }}
+                activeOpacity={0.8}
+              >
+                <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFF' }}>{editSaving ? 'Saving...' : 'Save'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </BaseScreen>
   );
 }
@@ -952,7 +1096,7 @@ const s = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.12,
     shadowRadius: 16,
-    elevation: 10,
+    elevation: 5,
   },
   statsRow: {
     flexDirection: 'row',
@@ -1025,7 +1169,7 @@ const s = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
-    elevation: 8,
+    elevation: 4,
   },
   timelineTrack: {
     position: 'relative',

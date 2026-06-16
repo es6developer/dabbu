@@ -404,6 +404,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     resetSessionTimeout();
     refreshPremiumStatus();
+    resetPushRegistration();
+    registerForPushNotifications(token).catch(() => {});
   }
 
   const completeAuth = useCallback((token: string, user: User, wasNewUser: boolean) => {
@@ -443,7 +445,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     trackEventImmediate('login', 'auth', 'email').catch(() => {});
-    registerForPushNotifications(tokens.accessToken).catch(() => {});
   }
 
   async function register(
@@ -492,7 +493,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     trackEventImmediate('sign_up', 'auth', 'email').catch(() => {});
-    registerForPushNotifications(tokens.accessToken).catch(() => {});
   }
 
   async function googleLogin(idToken: string) {
@@ -528,10 +528,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     trackEventImmediate(isNewUser ? 'sign_up' : 'login', 'auth', 'google').catch(() => {});
-    registerForPushNotifications(tokens.accessToken).catch(() => {});
   }
 
-  async function guestLogin() {
+  async function guestLogin()
+
+ {
     const { deviceName, platform } = getDeviceInfo();
     const res = await authFetch('/auth/guest', {
       method: 'POST',
@@ -562,8 +563,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (tokens.sessionId) {
       await storage.current.setItem('sessionId', tokens.sessionId);
     }
-
-    registerForPushNotifications(tokens.accessToken).catch(() => {});
   }
 
   async function demoLogin() {
@@ -597,8 +596,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (tokens.sessionId) {
       await storage.current.setItem('sessionId', tokens.sessionId);
     }
-
-    registerForPushNotifications(tokens.accessToken).catch(() => {});
   }
 
   function completeProfileSetup(updatedUser?: Partial<User>) {

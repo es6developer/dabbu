@@ -207,7 +207,7 @@ export function CoupleExpensesScreen() {
         >
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <Ionicons name="arrow-back" size={22} color="#FFF" />
+              <Ionicons name="arrow-back-outline" size={22} color="#FFF" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Expenses</Text>
             <TouchableOpacity
@@ -223,7 +223,7 @@ export function CoupleExpensesScreen() {
               }
               style={styles.backBtn}
             >
-              <Ionicons name="add" size={22} color="#FFF" />
+              <Ionicons name="add-outline" size={22} color="#FFF" />
             </TouchableOpacity>
           </View>
         </View>
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.12,
     shadowRadius: 16,
-    elevation: 6,
+    elevation: 4,
   },
   summaryTop: {
     flexDirection: 'row',

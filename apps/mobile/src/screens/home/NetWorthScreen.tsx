@@ -196,7 +196,7 @@ export function NetWorthScreen() {
             <View style={[styles.divider, { backgroundColor: colors.border.subtle }]} />
             <View style={styles.breakdownRow}>
               <View style={styles.breakdownItem}>
-                <Ionicons name="arrow-up" size={14} color={colors.status.success} />
+                <Ionicons name="arrow-up-outline" size={14} color={colors.status.success} />
                 <Text style={[styles.breakdownLabel, { color: colors.text.tertiary }]}>Assets</Text>
                 <Text style={[styles.breakdownValue, { color: colors.status.success }]}>
                   {fmt(totalAssets)}
@@ -204,7 +204,7 @@ export function NetWorthScreen() {
               </View>
               <View style={[styles.breakdownDivider, { backgroundColor: colors.border.subtle }]} />
               <View style={styles.breakdownItem}>
-                <Ionicons name="arrow-down" size={14} color={colors.status.error} />
+                <Ionicons name="arrow-down-outline" size={14} color={colors.status.error} />
                 <Text style={[styles.breakdownLabel, { color: colors.text.tertiary }]}>
                   Liabilities
                 </Text>

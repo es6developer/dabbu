@@ -213,7 +213,7 @@ export function DocumentVaultScreen() {
                 activeOpacity={0.7}
                 onPress={() => navigation.navigate('DocumentDetail', { mode: 'list' })}
               >
-                <Ionicons name="alert-circle" size={18} color={colors.status.warning} />
+                <Ionicons name="alert-circle-outline" size={18} color={colors.status.warning} />
                 <Text style={[s.expiryText, { color: colors.status.warning }]}>
                   {expiringDocs.length} document{expiringDocs.length !== 1 ? 's' : ''} expiring soon
                 </Text>

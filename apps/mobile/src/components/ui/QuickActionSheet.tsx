@@ -166,7 +166,7 @@ const s = StyleSheet.create({
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.15,
     shadowRadius: 20,
-    elevation: 15,
+    elevation: 6,
   },
   handle: {
     width: 40,

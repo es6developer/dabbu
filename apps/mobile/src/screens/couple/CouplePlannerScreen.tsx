@@ -221,7 +221,7 @@ export function CouplePlannerScreen() {
             style={{ backgroundColor: colors.accent.primary, borderRadius: 14, padding: 8 }}
             onPress={() => setShowCreate(true)}
           >
-            <Ionicons name="add" size={20} color={colors.text.primary} />
+            <Ionicons name="add-outline" size={20} color={colors.text.primary} />
           </TouchableOpacity>
         </View>
       </View>

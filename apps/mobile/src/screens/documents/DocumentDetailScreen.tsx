@@ -362,7 +362,7 @@ export function DocumentDetailScreen() {
                 <ActivityIndicator size="small" color={colors.text.primary} />
               ) : (
                 <>
-                  <Ionicons name="download" size={18} color={colors.text.primary} />
+                  <Ionicons name="download-outline" size={18} color={colors.text.primary} />
                   <Text style={[s.buttonText, { color: colors.text.primary }]}>Download</Text>
                 </>
               )}

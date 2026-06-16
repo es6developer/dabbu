@@ -59,6 +59,8 @@ import { BudgetsModule } from './modules/budgets/budgets.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { BillRemindersModule } from './modules/bill-reminders/bill-reminders.module';
 import { ForecastModule } from './modules/forecast/forecast.module';
+import { WealthModule } from './modules/wealth/wealth.module';
+import { ChallengesModule } from './modules/challenges/challenges.module';
 
 @Module({
   imports: [
@@ -158,6 +160,8 @@ import { ForecastModule } from './modules/forecast/forecast.module';
     ReportsModule,
     BillRemindersModule,
     ForecastModule,
+    WealthModule,
+    ChallengesModule,
   ],
   controllers: [HealthController],
   providers: [

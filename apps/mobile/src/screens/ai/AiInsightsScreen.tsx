@@ -235,7 +235,7 @@ export function AiInsightsScreen() {
                   <View
                     style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}
                   >
-                    <Ionicons name="sparkles" size={16} color={AI_COLORS.primary} />
+                    <Ionicons name="sparkles-outline" size={16} color={AI_COLORS.primary} />
                     <Text style={{ fontSize: 15, fontWeight: '700', color: AI_COLORS.text }}>
                       AI Analysis
                     </Text>

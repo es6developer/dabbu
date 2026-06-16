@@ -133,17 +133,17 @@ export function FamilyDashboardScreen() {
           </TouchableOpacity>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <TouchableOpacity onPress={() => navigation.getParent()?.navigate('Dashboard', { screen: 'AiFamily', params: { groupId, groupName } })} style={[s.backBtn, { backgroundColor: colors.bg.glassLight }]}>
-              <Ionicons name="sparkles" size={20} color="#FFD700" />
+              <Ionicons name="sparkles-outline" size={20} color="#FFD700" />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('SharedExpenseForm', { groupId })} style={[s.backBtn, { backgroundColor: colors.bg.glassLight }]}>
-              <Ionicons name="add" size={22} color={colors.accent.primary} />
+              <Ionicons name="add-outline" size={22} color={colors.accent.primary} />
             </TouchableOpacity>
           </View>
         </View>
 
         <View style={[s.heroSection, { backgroundColor: colors.bg.primary }]}>
           <View style={[s.heroIconWrap, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-            <Ionicons name="people" size={28} color="#FFF" />
+            <Ionicons name="people-outline" size={28} color="#FFF" />
           </View>
           <Text style={s.heroTitle}>{groupName}</Text>
           <View style={s.heroMeta}>
@@ -295,7 +295,7 @@ export function FamilyDashboardScreen() {
         onPress={() => navigation.navigate('SharedExpenseForm', { groupId })}
         activeOpacity={0.85}
       >
-        <Ionicons name="add" size={26} color="#FFF" />
+        <Ionicons name="add-outline" size={26} color="#FFF" />
       </TouchableOpacity>
     </View>
   );
@@ -354,5 +354,5 @@ const s = StyleSheet.create({
   catValue: { fontSize: 12, fontWeight: '600', width: 60, textAlign: 'right' },
   errorText: { fontSize: 15, textAlign: 'center', paddingHorizontal: 40 },
   retry: { marginTop: 16, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 },
-  fab: { position: 'absolute', right: 20, bottom: 28, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 6, zIndex: 100 },
+  fab: { position: 'absolute', right: 20, bottom: 28, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4, zIndex: 100 },
 });

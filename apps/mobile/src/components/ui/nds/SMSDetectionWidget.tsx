@@ -86,7 +86,7 @@ export const SMSDetectionWidget: React.FC<SMSDetectionWidgetProps> = ({
           className="w-10 h-10 rounded-full items-center justify-center mr-4"
           style={{ backgroundColor: bgIcon }}
         >
-          <Ionicons name="chatbubble-ellipses" size={20} color={brandColor} />
+          <Ionicons name="chatbubble-ellipses-outline" size={20} color={brandColor} />
         </View>
 
         <View className="flex-1">
@@ -145,7 +145,7 @@ export const SMSDetectionWidget: React.FC<SMSDetectionWidgetProps> = ({
           className="px-4 py-2 rounded-full flex-row items-center"
           style={{ backgroundColor: '#34D399' }}
         >
-          <Ionicons name="checkmark" size={14} color={iconColor} />
+          <Ionicons name="checkmark-outline" size={14} color={iconColor} />
           <Text style={{ color: iconColor }} className="text-xs font-semibold ml-1.5">
             Approve
           </Text>

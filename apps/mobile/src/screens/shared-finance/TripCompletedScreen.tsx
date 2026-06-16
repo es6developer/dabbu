@@ -53,7 +53,7 @@ export function TripCompletedScreen({ route, navigation }: TripCompletedScreenPr
           
           style={styles.iconWrap}
         >
-          <Ionicons name="checkmark-circle" size={64} color={colors.status.success} />
+          <Ionicons name="checkmark-circle-outline" size={64} color={colors.status.success} />
         </View>
 
         <Text style={[styles.heroTitle, { color: colors.text.primary }]}>
@@ -108,7 +108,7 @@ export function TripCompletedScreen({ route, navigation }: TripCompletedScreenPr
         </Text>
 
         <View style={styles.perkRow}>
-          <Ionicons name="sparkles" size={20} color={colors.status.warning} />
+          <Ionicons name="sparkles-outline" size={20} color={colors.status.warning} />
           <Text style={[styles.perkText, { color: colors.text.secondary }]}>
             Get 1 month premium free
           </Text>

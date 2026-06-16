@@ -31,6 +31,8 @@ const PLANS = [
   { code: 'YEARLY_699', label: 'Yearly', price: '\u20B9699', period: '/yr', badge: 'BEST VALUE' },
 ];
 
+const FALLBACK_PLANS = PLANS;
+
 const PREMIUM_FEATURES = [
   { icon: 'analytics', label: 'Financial Health Score' },
   { icon: 'trending-up', label: 'Spending Analysis & Insights' },
@@ -86,7 +88,7 @@ function CheckoutOverlay({ url, onClose }: { url: string; onClose: () => void })
         }}
       />
       <TouchableOpacity style={styles.checkoutCloseBtn} onPress={onClose} activeOpacity={0.7}>
-        <Ionicons name="close" size={22} color="#FFF" />
+        <Ionicons name="close-outline" size={22} color="#FFF" />
       </TouchableOpacity>
     </View>
   );
@@ -117,6 +119,7 @@ export function PremiumScreen() {
   const [processing, setProcessing] = useState(false);
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
   const [currentSub, setCurrentSub] = useState<any>(null);
+  const [serverPlans, setServerPlans] = useState<any[] | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
@@ -129,6 +132,11 @@ export function PremiumScreen() {
       Animated.spring(heroScale, { toValue: 1, friction: 6, useNativeDriver: true }),
     ]).start();
     loadCurrentSubscription();
+    api.get<any[]>('/premium/plans').then((plans) => {
+      if (Array.isArray(plans) && plans.length > 0) {
+        setServerPlans(plans);
+      }
+    }).catch(() => {});
     return () => {
       if (pollRef.current) {
         clearTimeout(pollRef.current);
@@ -215,7 +223,7 @@ export function PremiumScreen() {
   }, [waitForActivation]);
 
   const handleSubscribe = async () => {
-    const plan = PLANS[selectedPlan];
+    const plan = plans[selectedPlan];
     trackFeature('Premium', plan.code);
     setSubscribing(true);
     try {
@@ -263,6 +271,14 @@ export function PremiumScreen() {
     );
   }
 
+  const plans = (serverPlans && serverPlans.length > 0 ? serverPlans.map((p: any) => ({
+    code: p.code || 'CUSTOM',
+    label: p.name || 'Plan',
+    price: p.priceDisplay || `₹${p.amount}`,
+    period: `/${p.interval || 'mo'}`,
+    badge: p.badge || null,
+  })) : FALLBACK_PLANS);
+
   if (currentSub?.status === 'active' && currentSub?.plan?.code !== 'FREE') {
     const endDate = new Date(currentSub.currentPeriodEnd).toLocaleDateString('en-IN', {
       day: 'numeric',
@@ -274,21 +290,21 @@ export function PremiumScreen() {
         <ScrollView style={[styles.container, { backgroundColor: '#0A0A1A' }]}>
           <View style={[styles.activeHeader, { paddingTop: insets.top }]}>
             <View style={styles.premiumBadgeLarge}>
-              <Ionicons name="diamond" size={24} color="#FFD700" />
+              <Ionicons name="diamond-outline" size={24} color="#FFD700" />
               <Text style={styles.premiumBadgeText}>DABBU PREMIUM</Text>
             </View>
             <Text style={styles.activeTitle}>You're on Premium</Text>
           </View>
           <View style={styles.activeDetails}>
             <View style={styles.detailCard}>
-              <Ionicons name="calendar" size={20} color="#FFD700" />
+              <Ionicons name="calendar-outline" size={20} color="#FFD700" />
               <View>
                 <Text style={styles.detailLabel}>Current Period Ends</Text>
                 <Text style={styles.detailValue}>{endDate}</Text>
               </View>
             </View>
             <View style={styles.detailCard}>
-              <Ionicons name="card" size={20} color="#FFD700" />
+              <Ionicons name="card-outline" size={20} color="#FFD700" />
               <View>
                 <Text style={styles.detailLabel}>Plan</Text>
                 <Text style={styles.detailValue}>{currentSub.plan?.name || 'Premium'}</Text>
@@ -296,7 +312,7 @@ export function PremiumScreen() {
             </View>
             {currentSub.cancelAtPeriodEnd && (
               <View style={styles.detailCard}>
-                <Ionicons name="alert-circle" size={20} color="#FF5050" />
+                <Ionicons name="alert-circle-outline" size={20} color="#FF5050" />
                 <View>
                   <Text style={[styles.detailLabel, { color: '#FF5050' }]}>
                     Cancellation Scheduled
@@ -309,7 +325,7 @@ export function PremiumScreen() {
               style={styles.billingBtn}
               onPress={() => navigation.navigate('BillingHistory')}
             >
-              <Ionicons name="receipt" size={18} color="#FFFFFF" />
+              <Ionicons name="receipt-outline" size={18} color="#FFFFFF" />
               <Text style={styles.billingBtnText}> Billing History</Text>
             </TouchableOpacity>
             {!currentSub.cancelAtPeriodEnd && (
@@ -332,7 +348,7 @@ export function PremiumScreen() {
         >
           <View style={[styles.heroGradient, { paddingTop: insets.top }]}>
             <View style={styles.premiumBadgeSmall}>
-              <Ionicons name="diamond" size={14} color="#FFD700" />
+              <Ionicons name="diamond-outline" size={14} color="#FFD700" />
               <Text style={styles.premiumBadgeSmallText}>PREMIUM</Text>
             </View>
             <Text style={styles.heroTitle}>Unlock the Full</Text>
@@ -358,7 +374,7 @@ export function PremiumScreen() {
               <View style={styles.featureList}>
                 {FREE_FEATURES.map((f, i) => (
                   <View key={i} style={styles.featureRow}>
-                    <Ionicons name="checkmark-circle" size={16} color="#00A86B" />
+                    <Ionicons name="checkmark-circle-outline" size={16} color="#00A86B" />
                     <Text style={styles.featureText}>{f}</Text>
                   </View>
                 ))}
@@ -374,7 +390,7 @@ export function PremiumScreen() {
               <View style={styles.featureList}>
                 {PREMIUM_FEATURES.map((f, i) => (
                   <View key={i} style={styles.featureRow}>
-                    <Ionicons name="checkmark-circle" size={16} color="#00A86B" />
+                    <Ionicons name="checkmark-circle-outline" size={16} color="#00A86B" />
                     <Text style={styles.featureText}>{f.label}</Text>
                   </View>
                 ))}
@@ -392,7 +408,7 @@ export function PremiumScreen() {
           <Text style={styles.plansTitle}>Choose Your Plan</Text>
           <Text style={styles.plansSubtitle}>Auto-pay subscription • Cancel anytime</Text>
           <View style={styles.plansGrid}>
-            {PLANS.map((plan, index) => {
+            {plans.map((plan, index) => {
               const isSelected = selectedPlan === index;
               return (
                 <TouchableOpacity
@@ -420,7 +436,7 @@ export function PremiumScreen() {
                     </Text>
                     {isSelected && (
                       <View style={styles.selectedDot}>
-                        <Ionicons name="checkmark-circle" size={18} color="#C084FC" />
+                        <Ionicons name="checkmark-circle-outline" size={18} color="#C084FC" />
                       </View>
                     )}
                   </View>
@@ -450,8 +466,8 @@ export function PremiumScreen() {
             <ActivityIndicator size="small" color="#000" />
           ) : (
             <>
-              <Ionicons name="diamond" size={18} color="#000" style={{ marginRight: 8 }} />
-              <Text style={styles.upgradeText}>Go Premium • {PLANS[selectedPlan].price}</Text>
+              <Ionicons name="diamond-outline" size={18} color="#000" style={{ marginRight: 8 }} />
+              <Text style={styles.upgradeText}>Go Premium • {plans[selectedPlan].price}</Text>
             </>
           )}
         </TouchableOpacity>
@@ -561,7 +577,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.6,
     shadowRadius: 12,
-    elevation: 8,
+    elevation: 4,
   },
   planBadge: {
     position: 'absolute',

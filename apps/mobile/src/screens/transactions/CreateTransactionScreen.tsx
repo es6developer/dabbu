@@ -8,7 +8,6 @@ import {
   TextInput,
   Platform,
   KeyboardAvoidingView,
-  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -18,10 +17,11 @@ import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../../store/ToastContext';
 import { useTheme } from '../../theme';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
-import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../config/categoryIcons';
+import { FormField } from '../../components/ui/FormField';
+import { DatePickerField } from '../../components/ui/DatePickerField';
+import { CategoryPicker } from '../../components/ui/CategoryPicker';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const { width: SCREEN_W } = Dimensions.get('window');
 const PURPLE = '#8B5CF6';
 const PURPLE_DARK = '#6D28D9';
 const GREEN = '#10B981';
@@ -56,6 +56,13 @@ export function CreateTransactionScreen() {
   const inputRef = useRef<TextInput>(null);
   const { showToast } = useToast();
 
+  const date =
+    (editingTransaction?.date
+      ? new Date(editingTransaction.date).toISOString().split('T')[0]
+      : undefined) ||
+    prefill?.date ||
+    new Date().toISOString().split('T')[0];
+
   const [amount, setAmount] = useState(
     editingTransaction?.amount
       ? String(editingTransaction.amount)
@@ -74,13 +81,38 @@ export function CreateTransactionScreen() {
   const [description, setDescription] = useState(
     editingTransaction?.description || prefill?.description || '',
   );
+  const [suggestedCategory, setSuggestedCategory] = useState<string | null>(null);
+  const [suggesting, setSuggesting] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [dateValue, setDateValue] = useState(date);
 
-  const date =
-    (editingTransaction?.date
-      ? new Date(editingTransaction.date).toISOString().split('T')[0]
-      : undefined) ||
-    prefill?.date ||
-    new Date().toISOString().split('T')[0];
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    const trimmed = description.trim();
+    if (trimmed.length < 4) {
+      setSuggestedCategory(null);
+      return;
+    }
+    setSuggesting(true);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await api.post<{ data?: { suggestion?: string; category?: string } }>(
+          '/ai/categories/suggest',
+          { description: trimmed },
+        );
+        const cat = (res as any)?.data?.suggestion || (res as any)?.data?.category || '';
+        setSuggestedCategory(cat || null);
+        if (cat && !category) setCategory(cat);
+      } catch {
+        /* silent */
+      } finally {
+        setSuggesting(false);
+      }
+    }, 600);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [description]);
 
   useEffect(() => {
     if (accessToken) {
@@ -117,7 +149,7 @@ export function CreateTransactionScreen() {
         amount: Number(amount),
         type,
         description: description.trim() || `${category} expense`,
-        date,
+        date: dateValue || date,
       };
       if (isEditing) {
         await api.patch(`/transactions/${editingTransaction.id}`, data);
@@ -137,7 +169,6 @@ export function CreateTransactionScreen() {
     }
   }
 
-  const currentCats = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
   const quickAmounts = type === 'income' ? QUICK_AMOUNTS_INCOME : QUICK_AMOUNTS_EXPENSE;
 
   if (loadingMeta) {
@@ -227,7 +258,7 @@ export function CreateTransactionScreen() {
               </Text>
               {error ? (
                 <View style={s.errorRow}>
-                  <Ionicons name="alert-circle" size={14} color={colors.status.error} />
+                  <Ionicons name="alert-circle-outline" size={14} color={colors.status.error} />
                   <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
                 </View>
               ) : null}
@@ -270,70 +301,35 @@ export function CreateTransactionScreen() {
             </ScrollView>
 
             {/* Description */}
-            <View>
-              <Text style={[s.fieldLabel, { color: colors.text.secondary }]}>Description</Text>
-              <TextInput
-                style={[
-                  s.textField,
-                  {
-                    backgroundColor: colors.bg.card,
-                    color: colors.text.primary,
-                    borderColor: colors.border.subtle,
-                  },
-                ]}
-                value={description}
-                onChangeText={setDescription}
-                placeholder="What was this for?"
-                placeholderTextColor={colors.text.tertiary}
-              />
-            </View>
+            <FormField
+              label="Description"
+              value={description}
+              onChangeText={setDescription}
+              placeholder="What was this for?"
+            />
 
             {/* Category */}
-            <View>
-              <Text style={[s.fieldLabel, { color: colors.text.secondary }]}>Category</Text>
-              <View style={s.catGrid}>
-                {currentCats.map((cat, i) => {
-                  const selected = category === cat.name;
-                  return (
-                    <TouchableOpacity
-                      key={i}
-                      activeOpacity={0.7}
-                      style={[
-                        s.catCard,
-                        {
-                          width: (SCREEN_W - 56) / 3,
-                          borderColor: selected ? cat.color : colors.border.subtle,
-                          backgroundColor: selected ? `${cat.color}12` : colors.bg.card,
-                        },
-                      ]}
-                      onPress={() => setCategory(selected ? '' : cat.name)}
-                    >
-                      <View
-                        style={[
-                          s.catIcon,
-                          { backgroundColor: selected ? cat.color : `${cat.color}10` },
-                        ]}
-                      >
-                        <Ionicons
-                          name={cat.icon as any}
-                          size={20}
-                          color={selected ? '#FFF' : cat.color}
-                        />
-                      </View>
-                      <Text
-                        style={[
-                          s.catName,
-                          { color: selected ? colors.text.primary : colors.text.secondary },
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {cat.name}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
+            {(suggestedCategory || suggesting) && (
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: -12, marginTop: -8 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <Ionicons name="sparkles-outline" size={12} color={PURPLE} />
+                  <Text style={{ fontSize: 11, fontWeight: '600', color: suggesting ? colors.text.tertiary : PURPLE }}>
+                    {suggesting ? 'Suggesting...' : `AI: ${suggestedCategory}`}
+                  </Text>
+                </View>
               </View>
-            </View>
+            )}
+            <CategoryPicker
+              value={category}
+              onChange={setCategory}
+              type={type}
+              showLabel
+            />
+            <DatePickerField
+              label="Date"
+              value={dateValue}
+              onChange={setDateValue}
+            />
           </View>
         </ScrollView>
         {/* Save */}
@@ -417,26 +413,6 @@ const s = StyleSheet.create({
 
   quickChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, borderWidth: 1 },
   quickChipText: { fontSize: 13, fontWeight: '700' },
-
-  fieldLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    marginBottom: 8,
-    textTransform: 'uppercase',
-  },
-  textField: { borderRadius: 16, padding: 16, fontSize: 15, fontWeight: '500', borderWidth: 1 },
-
-  catGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  catCard: { alignItems: 'center', gap: 6, borderRadius: 18, borderWidth: 1, paddingVertical: 14 },
-  catIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  catName: { fontSize: 11, fontWeight: '600', textAlign: 'center' },
 
   saveBtnWrap: { borderRadius: 18, overflow: 'hidden', marginTop: 4 },
   saveGrad: {

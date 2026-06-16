@@ -115,7 +115,7 @@ export function ForgotPasswordScreen() {
                   marginBottom: 16,
                 }}
               >
-                <Ionicons name="alert-circle" size={16} color={colors.status.error} />
+                <Ionicons name="alert-circle-outline" size={16} color={colors.status.error} />
                 <Text
                   style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}
                 >

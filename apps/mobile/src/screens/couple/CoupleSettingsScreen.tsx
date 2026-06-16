@@ -198,7 +198,7 @@ export function CoupleSettingsScreen() {
             onPress={() => navigation.goBack()}
             activeOpacity={0.7}
           >
-            <Ionicons name="arrow-back" size={22} color={colors.text.primary} />
+            <Ionicons name="arrow-back-outline" size={22} color={colors.text.primary} />
           </TouchableOpacity>
           <Text style={[styles.heroTitle, { color: colors.text.primary }]}>Settings</Text>
           <Text style={[styles.heroSub, { color: colors.text.tertiary }]}>Couple space preferences</Text>
@@ -207,7 +207,7 @@ export function CoupleSettingsScreen() {
 
         {error ? (
           <View style={styles.errorBanner}>
-            <Ionicons name="alert-circle" size={16} color="#FF4D4F" />
+            <Ionicons name="alert-circle-outline" size={16} color="#FF4D4F" />
             <Text style={styles.errorText}>{error}</Text>
           </View>
         ) : null}
@@ -217,7 +217,7 @@ export function CoupleSettingsScreen() {
             <View style={styles.profileRow}>
               <Avatar name={partner1Name} size={56} />
               <View style={styles.heartWrap}>
-                <Ionicons name="heart" size={20} color="#FF4D4F" />
+                <Ionicons name="heart-outline" size={20} color="#FF4D4F" />
               </View>
               <Avatar name={partner2Joined ? partner2Name : '?'} size={56} />
             </View>
@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.12,
     shadowRadius: 16,
-    elevation: 6,
+    elevation: 4,
   },
   profileRow: {
     flexDirection: 'row',

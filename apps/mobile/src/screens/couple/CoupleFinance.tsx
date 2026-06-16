@@ -46,7 +46,7 @@ export function CoupleFinance() {
             className="w-9 h-9 rounded-full items-center justify-center"
             style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : colors.bg.tertiary }}
           >
-            <Ionicons name="ellipsis-vertical" size={18} color={colors.text.secondary} />
+            <Ionicons name="ellipsis-vertical-outline" size={18} color={colors.text.secondary} />
           </TouchableOpacity>
         </View>
 

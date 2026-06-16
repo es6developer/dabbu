@@ -62,7 +62,7 @@ export function SettleUpModal({
               <Text style={[s.partyName, { color: colors.text.primary }]}>{fromName}</Text>
             </View>
             <View style={s.amountCenter}>
-              <Ionicons name="arrow-forward" size={18} color={colors.accent.primary} />
+              <Ionicons name="arrow-forward-outline" size={18} color={colors.accent.primary} />
               <Text style={[s.amount, { color: colors.accent.primary }]}>{fmt(amount)}</Text>
             </View>
             <View style={s.party}>
@@ -90,7 +90,7 @@ export function SettleUpModal({
                 <ActivityIndicator size="small" color="#FFF" />
               ) : (
                 <>
-                  <Ionicons name="checkmark-circle" size={18} color="#FFF" />
+                  <Ionicons name="checkmark-circle-outline" size={18} color="#FFF" />
                   <Text style={s.confirmText}>Yes, Settle Up</Text>
                 </>
               )}
@@ -119,7 +119,7 @@ const s = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,
     shadowRadius: 24,
-    elevation: 16,
+    elevation: 6,
   },
   iconWrap: { alignItems: 'center' },
   iconCircle: {

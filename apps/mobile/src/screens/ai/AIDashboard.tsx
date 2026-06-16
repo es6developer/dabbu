@@ -295,7 +295,7 @@ export function AIDashboard() {
         ListEmptyComponent={
           <View style={s.emptyWrap}>
             <View style={s.emptyCard}>
-              <Ionicons name="sparkles" size={32} color={AI_COLORS.warning} />
+              <Ionicons name="sparkles-outline" size={32} color={AI_COLORS.warning} />
               <Text style={s.emptyTitle}>How can I help you?</Text>
               <Text style={s.emptySub}>Ask me anything about your finances</Text>
             </View>
@@ -354,7 +354,7 @@ export function AIDashboard() {
               {loading ? (
                 <ActivityIndicator size="small" color={AI_COLORS.bg} />
               ) : (
-                <Ionicons name="arrow-up" size={20} color={AI_COLORS.bg} />
+                <Ionicons name="arrow-up-outline" size={20} color={AI_COLORS.bg} />
               )}
             </TouchableOpacity>
           </View>

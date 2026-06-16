@@ -213,7 +213,7 @@ export function CoupleHomeScreen() {
               <View style={{
                 backgroundColor: colors.bg.card, borderRadius: 20, padding: 20,
                 shadowColor: colors.border.default, shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3, shadowRadius: 12, elevation: 8,
+                shadowOpacity: 0.3, shadowRadius: 12, elevation: 4,
               }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                   <View style={{ flex: 1, marginRight: 16 }}>
@@ -284,7 +284,7 @@ export function CoupleHomeScreen() {
                     backgroundColor: `${colors.status.success}15`,
                     alignItems: 'center', justifyContent: 'center',
                   }}>
-                    <Ionicons name="wallet" size={22} color={colors.status.success} />
+                    <Ionicons name="wallet-outline" size={22} color={colors.status.success} />
                   </View>
                   <View>
                     <Text style={{ fontSize: 12, color: colors.text.tertiary }}>Shared Balance</Text>
@@ -348,7 +348,7 @@ export function CoupleHomeScreen() {
                       backgroundColor: `${colors.accent.primary}20`,
                       alignItems: 'center', justifyContent: 'center',
                     }}>
-                      <Ionicons name="bulb" size={16} color={colors.accent.primary} />
+                      <Ionicons name="bulb-outline" size={16} color={colors.accent.primary} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={{ fontSize: 12, fontWeight: '700', color: colors.accent.primary }}>AI Couple Coach</Text>
@@ -469,7 +469,7 @@ export function CoupleHomeScreen() {
                       backgroundColor: `${colors.status.warning}20`,
                       alignItems: 'center', justifyContent: 'center',
                     }}>
-                      <Ionicons name="diamond" size={18} color={colors.status.warning} />
+                      <Ionicons name="diamond-outline" size={18} color={colors.status.warning} />
                     </View>
                     <View>
                       <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>{g.level}</Text>

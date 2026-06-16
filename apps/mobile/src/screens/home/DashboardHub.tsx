@@ -86,7 +86,7 @@ export function DashboardHub() {
                 className="w-10 h-10 rounded-xl items-center justify-center"
                 style={{ backgroundColor: colors.status.successLight }}
               >
-                <Ionicons name="arrow-down" size={18} color={colors.status.success} />
+                <Ionicons name="arrow-down-outline" size={18} color={colors.status.success} />
               </View>
               <View>
                 <Text className="text-[11px] font-medium" style={{ color: colors.text.secondary }}>
@@ -108,7 +108,7 @@ export function DashboardHub() {
                 className="w-10 h-10 rounded-xl items-center justify-center"
                 style={{ backgroundColor: colors.status.errorLight }}
               >
-                <Ionicons name="arrow-up" size={18} color={colors.status.error} />
+                <Ionicons name="arrow-up-outline" size={18} color={colors.status.error} />
               </View>
               <View>
                 <Text className="text-[11px] font-medium" style={{ color: colors.text.secondary }}>
@@ -199,7 +199,7 @@ export function DashboardHub() {
                   className="w-12 h-12 rounded-2xl items-center justify-center"
                   style={{ backgroundColor: 'rgba(139, 92, 246, 0.15)' }}
                 >
-                  <Ionicons name="people" size={22} color={colors.brand.primary} />
+                  <Ionicons name="people-outline" size={22} color={colors.brand.primary} />
                 </View>
                 <View>
                   <Text

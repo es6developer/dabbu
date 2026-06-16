@@ -10,6 +10,7 @@ import {
   RefreshControl,
   Keyboard,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -139,8 +140,8 @@ const QUICK_ACTIONS: {
 }[] = [
   { label: 'Add Expense', icon: 'add-circle', desc: 'Record a new expense', route: 'Expense', screen: 'CategorySelection' },
   { label: 'Add Income', icon: 'cash', desc: 'Money received', route: 'Expense', screen: 'CategorySelection', params: { type: 'income' } },
-  { label: 'Create Circle', icon: 'people', desc: 'Group expenses', route: 'Circles', screen: 'CreateCircle' },
-  { label: 'Create Space', icon: 'planet', desc: 'Shared finance space', route: 'Spaces', screen: 'CreateSharedGroup' },
+  { label: 'Transfer', icon: 'swap-horizontal', desc: 'Move money between accounts', route: 'Dashboard', screen: 'NetWorth' },
+  { label: 'Goal Contribution', icon: 'gift', desc: 'Add to a savings goal', route: 'Goals', screen: 'GoalsList' },
 ];
 
 const COMMON_INDIAN_SUGGESTIONS = [
@@ -180,6 +181,7 @@ export function HomeScreen() {
   const couple = useCoupleMode();
 
   const [totalBalance, setTotalBalance] = useState<number | null>(null);
+  const [netWorth, setNetWorth] = useState<number | null>(null);
   const [monthlyIncome, setMonthlyIncome] = useState(0);
   const [monthlySpent, setMonthlySpent] = useState(0);
   const [categories, setCategories] = useState<{ name: string; amount: number }[]>([]);
@@ -191,6 +193,11 @@ export function HomeScreen() {
   const [spaces, setSpaces] = useState<any[]>([]);
   const [budgets, setBudgets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [streak, setStreak] = useState(0);
+  const [apiHealthScore, setApiHealthScore] = useState<number | null>(null);
+  const [apiInsights, setApiInsights] = useState<string[]>([]);
+  const [achievements, setAchievements] = useState<any>({ earned: [], all: [], earnedCount: 0, totalCount: 0 });
+  const [milestones, setMilestones] = useState<any[]>([]);
 
   const [refreshing, setRefreshing] = useState(false);
   const [quickEntry, setQuickEntry] = useState('');
@@ -282,6 +289,80 @@ export function HomeScreen() {
     [totalBalance, subscriptionTotal, goals.length, reminders.length, budgetHealth],
   );
 
+  const hasData = totalBalance !== null && totalBalance > 0 && monthlyIncome > 0;
+  const sampleGoals = (!hasData || goals.length === 0) ? [
+    { id: 'sample-1', name: 'Emergency Fund', type: 'emergency', saved: 0, target: 200000, monthlyContribution: 5000, isCompleted: false, color: '#FF6B6B', icon: 'shield-checkmark', targetDate: null },
+    { id: 'sample-2', name: 'Dream Vacation', type: 'vacation', saved: 0, target: 300000, monthlyContribution: 8000, isCompleted: false, color: '#00B894', icon: 'airplane', targetDate: null },
+  ] : [];
+  const demoGoals = goals.length > 0 ? goals : sampleGoals;
+  const sampleTxns: any[] = (!hasData || recentTxns.length === 0) ? [
+    { id: 'sample-t1', description: 'Morning Coffee', amount: 45, type: 'expense', category: 'Food', date: new Date().toISOString().split('T')[0] },
+    { id: 'sample-t2', description: 'Metro Recharge', amount: 200, type: 'expense', category: 'Transport', date: new Date().toISOString().split('T')[0] },
+    { id: 'sample-t3', description: 'Salary Credit', amount: 75000, type: 'income', category: 'Salary', date: new Date(Date.now() - 86400000).toISOString().split('T')[0] },
+    { id: 'sample-t4', description: 'Grocery Store', amount: 1250, type: 'expense', category: 'Groceries', date: new Date(Date.now() - 86400000 * 2).toISOString().split('T')[0] },
+  ] : [];
+  const displayTxns = recentTxns.length > 0 ? recentTxns : sampleTxns;
+
+  const healthScore = useMemo(() => {
+    if (apiHealthScore !== null) return apiHealthScore;
+    const sr = monthlyIncome > 0 ? Math.min((savings / monthlyIncome) * 100, 100) : 0;
+    const bc = Math.max(0, budgetHealth);
+    const gp = goals.length > 0
+      ? goals.reduce((s: number, g: any) => {
+          const progress = (g.currentAmount ?? 0) > 0 && (g.targetAmount ?? 0) > 0
+            ? Math.min((g.currentAmount / g.targetAmount) * 100, 100)
+            : 0;
+          return s + progress;
+        }, 0) / goals.length
+      : 0;
+    const ef = Math.min(((totalBalance ?? 0) / Math.max(monthlyIncome * 6, 1)) * 100, 100);
+    const dr = totalBalance !== null && totalBalance >= 0
+      ? 100
+      : totalBalance !== null
+        ? Math.max(0, 100 + (totalBalance ?? 0) / 500)
+        : 0;
+    return Math.round(Math.min(sr * 0.3 + bc * 0.2 + gp * 0.2 + ef * 0.2 + dr * 0.1, 100));
+  }, [apiHealthScore, monthlyIncome, savings, budgetHealth, goals, totalBalance]);
+
+  const monthlyChangePct = monthlyIncome > 0 ? (savings / monthlyIncome) * 100 : 0;
+
+  const [coachIndex, setCoachIndex] = useState(0);
+
+  const coachInsights = useMemo(() => {
+    if (apiInsights.length > 0) return apiInsights;
+    const items: string[] = [];
+    if (!hasData) {
+      items.push('Welcome to Dabbu! Start by adding your first income or expense.');
+      items.push('Set a financial goal to track what matters most to you.');
+      items.push('Create a shared space to manage money together with your family.');
+      return items;
+    }
+    if (savings > 0) {
+      items.push('You saved more than last month');
+    }
+    if (goals.length > 0) {
+      items.push('Your ' + goals[0].name + ' goal is ahead of schedule');
+    }
+    const foodCat = categories.find(
+      (c) => c.name.toLowerCase().includes('food') || c.name.toLowerCase().includes('grocery'),
+    );
+    if (foodCat && foodCat.amount > 0) {
+      items.push('You can reduce food spending');
+    }
+    if (items.length === 0) {
+      items.push('Your net worth is ' + fmt(totalBalance ?? 0));
+    }
+    return items;
+  }, [apiInsights, savings, goals, categories, totalBalance, hasData]);
+
+  useEffect(() => {
+    if (coachInsights.length <= 1) return;
+    const timer = setInterval(() => {
+      setCoachIndex((prev) => (prev + 1) % coachInsights.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [coachInsights]);
+
   const loadData = useCallback(
     async (isRefresh = false) => {
       abortRef.current?.abort();
@@ -302,7 +383,7 @@ export function HomeScreen() {
         hasLoadedOnce.current = true;
       }
 
-      const totalCalls = 8;
+      const totalCalls = 9;
       let completedCalls = 0;
       const tickProgress = isFirstLoad ? () => {
         completedCalls++;
@@ -319,9 +400,10 @@ export function HomeScreen() {
         const billsP = api.get<any>('/bills?status=pending', ctrl.signal).catch(() => []).finally(tickProgress);
         const spacesP = api.get<any>('/shared-finance/groups', ctrl.signal).catch(() => []).finally(tickProgress);
         const budgetsP = api.get<any>('/budgets', ctrl.signal).catch(() => []).finally(tickProgress);
+        const wealthP = api.get<any>('/wealth/dashboard', ctrl.signal).catch(() => null).finally(tickProgress);
 
-        const [balRes, statsRes, remRes, goalRes, notifRes, billsRes, spacesRes, budgetsRes] =
-          await Promise.allSettled([balP, statsP, remP, goalP, notifP, billsP, spacesP, budgetsP]);
+        const [balRes, statsRes, remRes, goalRes, notifRes, billsRes, spacesRes, budgetsRes, wealthRes] =
+          await Promise.allSettled([balP, statsP, remP, goalP, notifP, billsP, spacesP, budgetsP, wealthP]);
 
         if (ctrl.signal.aborted) {
           return;
@@ -380,6 +462,16 @@ export function HomeScreen() {
         if (budgetsRes.status === 'fulfilled') {
           setBudgets(listFromResponse(budgetsRes.value));
         }
+
+          if (wealthRes.status === 'fulfilled' && wealthRes.value?.data) {
+            const w = wealthRes.value.data;
+            if (w.healthScore != null) setApiHealthScore(w.healthScore);
+            if (w.insights?.length) setApiInsights(w.insights);
+            if (w.achievements) setAchievements(w.achievements);
+            if (w.milestones?.length) setMilestones(w.milestones);
+            if (w.streak?.currentStreak != null) setStreak(w.streak.currentStreak);
+            if (w.netWorth?.netWorth != null) setNetWorth(w.netWorth.netWorth);
+          }
       } catch {
         /* ignore */
       } finally {
@@ -524,7 +616,7 @@ export function HomeScreen() {
                 backgroundColor: `${COUPLE_COLORS.primary}20`,
                 alignItems: 'center', justifyContent: 'center',
               }}>
-                <Ionicons name="heart-circle" size={28} color={COUPLE_COLORS.primary} />
+                <Ionicons name="heart-circle-outline" size={28} color={COUPLE_COLORS.primary} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
@@ -554,7 +646,7 @@ export function HomeScreen() {
                 backgroundColor: `${colors.status.success}18`,
                 alignItems: 'center', justifyContent: 'center',
               }}>
-                <Ionicons name="trending-up" size={24} color={colors.status.success} />
+                <Ionicons name="trending-up-outline" size={24} color={colors.status.success} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>Income</Text>
@@ -582,7 +674,7 @@ export function HomeScreen() {
                 backgroundColor: `${colors.status.error}18`,
                 alignItems: 'center', justifyContent: 'center',
               }}>
-                <Ionicons name="cart" size={24} color={colors.status.error} />
+                <Ionicons name="cart-outline" size={24} color={colors.status.error} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>Expenses</Text>
@@ -650,6 +742,12 @@ export function HomeScreen() {
                 {userName}
               </Text>
             </View>
+            {streak > 0 && (
+              <View style={{ backgroundColor: '#FF6B6B20', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Text style={{ fontSize: 13 }}>🔥</Text>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#FF6B6B' }}>{streak} days</Text>
+              </View>
+            )}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <TouchableOpacity
                 onPress={() => navigation.navigate('Notifications')}
@@ -681,7 +779,7 @@ export function HomeScreen() {
 
           {/* Hero Card */}
           <View style={[page.heroCard, { backgroundColor: colors.bg.card }]}>
-            {/* Total Balance */}
+            {/* Net Worth */}
             <Text
               style={{
                 fontSize: 12,
@@ -690,7 +788,7 @@ export function HomeScreen() {
                 letterSpacing: 0.3,
               }}
             >
-              Total Balance
+              Net Worth
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 2, marginTop: 2 }}>
               <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.primary }}>₹</Text>
@@ -702,9 +800,25 @@ export function HomeScreen() {
                   letterSpacing: -1.5,
                 }}
               >
-                {(totalBalance ?? 0).toLocaleString('en-IN')}
+                {(netWorth ?? totalBalance ?? 0).toLocaleString('en-IN')}
               </Text>
             </View>
+            {/* Monthly Growth */}
+            {monthlyIncome > 0 && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                <Ionicons
+                  name={savings > 0 ? 'trending-up' : 'trending-down'}
+                  size={14}
+                  color={savings > 0 ? '#10B981' : '#EF4444'}
+                />
+                <Text style={{ fontSize: 13, fontWeight: '700', color: savings > 0 ? '#10B981' : '#EF4444' }}>
+                  {savings > 0 ? '+' : ''}{(monthlyIncome > 0 ? (savings / monthlyIncome) * 100 : 0).toFixed(1)}% this month
+                </Text>
+                <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary }}>
+                  · Saved {fmtShort(savings)}
+                </Text>
+              </View>
+            )}
 
             {/* This Month breakdown */}
             <View style={[page.heroMonth, { backgroundColor: colors.bg.primary }]}>
@@ -769,17 +883,77 @@ export function HomeScreen() {
                     {fmt(safeToSpend)}
                   </Text>
                 </View>
-                <Ionicons name="shield-checkmark" size={22} color={colors.brand.primary} />
+                <Ionicons name="shield-checkmark-outline" size={22} color={colors.brand.primary} />
               </View>
             )}
+
+            {/* Health Score */}
+            <View style={[page.safePill, { backgroundColor: `${colors.brand.primary}08`, marginTop: 14 }]}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
+                  Health Score
+                </Text>
+                <Text style={{ fontSize: 18, fontWeight: '800', color: colors.brand.primary, letterSpacing: -0.5, marginTop: 1 }}>
+                  {healthScore}/100
+                </Text>
+              </View>
+              <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: `${colors.brand.primary}15`, alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: colors.brand.primary }}>{healthScore}</Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                const scoreLabel = healthScore > 70 ? 'Great shape' : healthScore > 40 ? 'Room for improvement' : 'Needs attention';
+                Alert.alert(
+                  'Health Score Breakdown',
+                  'Your score is calculated from 5 factors:\n\n' +
+                  'Savings Rate (30%): Income saved\n' +
+                  'Budget Compliance (20%): Budget adherence\n' +
+                  'Goal Progress (20%): Goal completion\n' +
+                  'Emergency Fund (20%): Months saved\n' +
+                  'Debt Ratio (10%): Debt vs assets\n\n' +
+                  'Score: ' + healthScore + '/100 - ' + scoreLabel,
+                );
+              }}
+              style={{ marginTop: 4, alignSelf: 'flex-end' }}
+            >
+              <Text style={{ fontSize: 10, fontWeight: '600', color: colors.text.tertiary }}>
+                How calculated? →
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
+
+        {/* ─── AI COACH ─── */}
+        {coachInsights.length > 0 && (
+          <View style={{ paddingHorizontal: 20, marginTop: 18 }}>
+            <View style={{ backgroundColor: colors.bg.card, borderRadius: 16, borderWidth: 1, borderColor: colors.border.default, padding: 14, borderLeftWidth: 3, borderLeftColor: colors.brand.primary }}>
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
+                <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: colors.brand.primary + '15', alignItems: 'center', justifyContent: 'center' }}>
+                  <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.brand.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }} numberOfLines={2}>
+                    {coachInsights[coachIndex % coachInsights.length]}
+                  </Text>
+                  <View style={{ flexDirection: 'row', gap: 4, marginTop: 8 }}>
+                    {coachInsights.map((_: string, idx: number) => (
+                      <View key={idx} style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: idx === (coachIndex % coachInsights.length) ? colors.brand.primary : colors.border.default }} />
+                    ))}
+                  </View>
+                </View>
+                <Ionicons name="sparkles-outline" size={16} color={colors.brand.primary} />
+              </View>
+            </View>
+          </View>
+        )}
 
         {/* ─── SECTION 2: QUICK ADD ─── */}
         <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
           <View style={[page.quickAddCard, { backgroundColor: colors.bg.card }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Ionicons name="flash" size={16} color={colors.accent.primary} />
+              <Ionicons name="flash-outline" size={16} color={colors.accent.primary} />
               <TextInput
                 ref={quickInputRef}
                 style={[page.quickAddInput, { color: colors.text.primary }]}
@@ -795,7 +969,7 @@ export function HomeScreen() {
               />
               {!quickEntryLoading ? (
                 <TouchableOpacity onPress={() => { setShowSuggestions(false); handleQuickAdd(quickEntry); }}>
-                  <Ionicons name="arrow-forward-circle" size={22} color={colors.accent.primary} />
+                  <Ionicons name="arrow-forward-circle-outline" size={22} color={colors.accent.primary} />
                 </TouchableOpacity>
               ) : (
                 <ActivityIndicator size="small" color={colors.accent.primary} />
@@ -820,7 +994,7 @@ export function HomeScreen() {
                     <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.primary, flex: 1 }} numberOfLines={1}>
                       {s}
                     </Text>
-                    <Ionicons name="arrow-up" size={12} color={colors.text.tertiary} />
+                    <Ionicons name="arrow-up-outline" size={12} color={colors.text.tertiary} />
                   </TouchableOpacity>
                 ))}
               </View>
@@ -835,7 +1009,7 @@ export function HomeScreen() {
                       { borderTopColor: colors.border.subtle, justifyContent: 'center' },
                     ]}
                   >
-                    <Ionicons name="checkmark-circle" size={16} color={colors.status.success} />
+                    <Ionicons name="checkmark-circle-outline" size={16} color={colors.status.success} />
                     <Text style={{ fontSize: 13, fontWeight: '600', color: colors.status.success }}>
                       Added!
                     </Text>
@@ -922,8 +1096,59 @@ export function HomeScreen() {
           </View>
         </View>
 
+        {/* ─── GOALS PREVIEW ─── */}
+        {demoGoals.length > 0 && (
+          <View style={{ marginTop: 26, paddingHorizontal: 20 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>Goals</Text>
+              {goals.length > 0 && (
+                <TouchableOpacity onPress={() => navigation.navigate('Goals', { screen: 'GoalsList' })}>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: colors.brand.primary }}>See All</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            {demoGoals.slice(0, 3).map((g: any) => {
+              const saved = Number(g.saved || g.currentAmount || 0);
+              const target = Number(g.target || g.targetAmount || 0);
+              const mc = Number(g.monthlyContribution || 0);
+              const pct = target > 0 ? Math.min(Math.round((saved / target) * 100), 100) : 0;
+              const remaining = Math.max(target - saved, 0);
+              const config = { color: g.color || colors.brand.primary, icon: g.icon || 'flag' };
+              const monthsLeft = mc > 0 ? Math.ceil(remaining / mc) : 0;
+              const eta = mc > 0 ? `${monthsLeft}mo left` : '';
+              const tagline = pct === 0 ? 'Not started' : pct >= 100 ? 'Complete!' : `${pct}% complete`;
+              return (
+                <TouchableOpacity
+                  key={g.id}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    if (g.id && !g.id.startsWith('sample-')) {
+                      navigation.navigate('Goals', { screen: 'GoalDetail', params: { goalId: g.id, goalName: g.name } });
+                    }
+                  }}
+                  style={{ backgroundColor: colors.bg.card, borderRadius: 14, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: colors.border.default }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: config.color + '15', alignItems: 'center', justifyContent: 'center' }}>
+                      <Ionicons name={config.icon as any} size={18} color={config.color} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.primary }} numberOfLines={1}>{g.name || 'Goal'}</Text>
+                      <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary, marginTop: 1 }}>{tagline} · {fmt(remaining)} left{eta ? ` · ${eta}` : ''}</Text>
+                    </View>
+                  </View>
+                  <View style={{ height: 5, backgroundColor: colors.border.subtle, borderRadius: 99, marginTop: 8, overflow: 'hidden' }}>
+                    <View style={{ width: `${pct}%`, height: '100%', backgroundColor: config.color, borderRadius: 99 }} />
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
+
         {/* ─── SECTION 3: QUICK ACTIONS GRID ─── */}
         <View style={{ paddingHorizontal: 20, marginTop: 22 }}>
+          <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary, marginBottom: 10 }}>Quick Actions</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
             {QUICK_ACTIONS.map((a) => (
               <TouchableOpacity
@@ -947,7 +1172,7 @@ export function HomeScreen() {
         </View>
 
         {/* ─── SECTION 4: RECENT TRANSACTIONS ─── */}
-        {recentTxns.length > 0 && (
+        {(recentTxns.length > 0 || !hasData) && (
           <View style={{ marginTop: 26 }}>
             <View
               style={{
@@ -961,13 +1186,15 @@ export function HomeScreen() {
               <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
                 Recent Activity
               </Text>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Expense', { screen: 'ExpenseHome', params: { initialTab: 'MyWallet' } })}
-              >
-                <Text style={{ fontSize: 13, fontWeight: '600', color: colors.brand.primary }}>
-                  See All
-                </Text>
-              </TouchableOpacity>
+              {recentTxns.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Expense', { screen: 'ExpenseHome', params: { initialTab: 'MyWallet' } })}
+                >
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: colors.brand.primary }}>
+                    See All
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
             <View
               style={{
@@ -977,7 +1204,7 @@ export function HomeScreen() {
                 padding: 16,
               }}
             >
-              {recentTxns.slice(0, 5).map((tx: any, i: number) => {
+              {displayTxns.slice(0, 5).map((tx: any, i: number) => {
                 const isExpense = tx.type === 'expense' || tx.amount < 0;
                 const amt = Math.abs(Number(tx.amount || 0));
                 return (
@@ -1403,6 +1630,28 @@ export function HomeScreen() {
             </View>
           </View>
         )}
+
+        {/* Achievements */}
+        <View style={{ paddingHorizontal: 20, marginTop: 24, marginBottom: 8 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }}>
+              Achievements
+            </Text>
+            <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
+              {achievements.earnedCount}/{achievements.totalCount || 0}
+            </Text>
+          </View>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {(achievements.earned.length > 0 ? achievements.earned : []).slice(0, 4).map((ach: any) => (
+              <View key={ach.id || ach.code} style={{ backgroundColor: colors.bg.card, borderRadius: 12, padding: 10, alignItems: 'center', width: '47%' }}>
+                <Text style={{ fontSize: 24 }}>{ach.icon || '\uD83C\uDFC6'}</Text>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.primary, marginTop: 4 }} numberOfLines={1}>
+                  {ach.name || ach.code}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
 
         <View style={{ height: 40 }} />
       </ScrollView>

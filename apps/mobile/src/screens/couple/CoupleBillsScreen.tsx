@@ -266,14 +266,14 @@ export function CoupleBillsScreen() {
               onPress={() => navigation.goBack()}
               style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}
             >
-              <Ionicons name="arrow-back" size={22} color={colors.text.primary} />
+              <Ionicons name="arrow-back-outline" size={22} color={colors.text.primary} />
             </TouchableOpacity>
             <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Bills</Text>
             <TouchableOpacity
               onPress={() => setModalVisible(true)}
               style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}
             >
-              <Ionicons name="add" size={24} color={colors.text.primary} />
+              <Ionicons name="add-outline" size={24} color={colors.text.primary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -465,7 +465,7 @@ export function CoupleBillsScreen() {
                         <View style={styles.billInfo}>
                           <View style={styles.billNameRow}>
                             <Ionicons
-                              name="checkmark-circle"
+                              name="checkmark-circle-outline"
                               size={16}
                               color="#34C759"
                               style={{ marginRight: 4 }}
@@ -520,7 +520,7 @@ export function CoupleBillsScreen() {
               <View style={styles.modalHeader}>
                 <Text style={[styles.modalTitle, { color: colors.text.primary }]}>Add Bill</Text>
                 <TouchableOpacity onPress={() => setModalVisible(false)}>
-                  <Ionicons name="close" size={24} color={colors.text.secondary} />
+                  <Ionicons name="close-outline" size={24} color={colors.text.secondary} />
                 </TouchableOpacity>
               </View>
 
@@ -740,7 +740,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.12,
     shadowRadius: 16,
-    elevation: 6,
+    elevation: 4,
   },
   summaryRow: { flexDirection: 'row', alignItems: 'center' },
   summaryItem: { flex: 1, alignItems: 'center' },

@@ -152,7 +152,7 @@ function PriceChangeRow({ item, colors }: { item: PriceChange; colors: any }) {
             {formatCurrency(item.month1Price)}
           </Text>
           <Ionicons
-            name="arrow-forward"
+            name="arrow-forward-outline"
             size={12}
             color={colors.text.tertiary}
             style={{ marginHorizontal: 4 }}

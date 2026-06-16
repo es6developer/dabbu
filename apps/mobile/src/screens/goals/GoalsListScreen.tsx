@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -44,6 +44,9 @@ const GOAL_CONFIGS: Record<string, GoalConfig> = {
   car: { icon: 'car-sport', color: '#14B8A6' },
   wedding: { icon: 'heart', color: '#FF6B9D' },
   retirement: { icon: 'umbrella', color: '#247BA0' },
+  savings: { icon: 'piggy-bank', color: '#8B5CF6' },
+  investment: { icon: 'trending-up', color: '#10B981' },
+  baby: { icon: 'happy', color: '#FF69B4' },
   custom: { icon: 'trophy', color: '#14B8A6' },
 };
 
@@ -51,6 +54,13 @@ const SUGGESTED_GOALS = [
   { name: 'Emergency Fund', type: 'emergency', target: 200000 },
   { name: 'Dream Vacation', type: 'vacation', target: 300000 },
   { name: 'New Home', type: 'home', target: 5000000 },
+  { name: 'New Car', type: 'car', target: 800000 },
+  { name: 'Education Fund', type: 'education', target: 500000 },
+  { name: 'Wedding Fund', type: 'wedding', target: 1000000 },
+  { name: 'Retirement', type: 'retirement', target: 10000000 },
+  { name: 'Baby Fund', type: 'baby', target: 500000 },
+  { name: 'General Savings', type: 'savings', target: 100000 },
+  { name: 'Investment Goal', type: 'investment', target: 500000 },
 ];
 
 const MILESTONES = [25, 50, 75, 100];
@@ -301,7 +311,7 @@ function MilestoneDot({
                 transform: [{ scale: scaleAnim }],
               }}
             >
-              <Ionicons name="checkmark" size={14} color="#FFF" />
+              <Ionicons name="checkmark-outline" size={14} color="#FFF" />
             </Animated.View>
           </>
         ) : (
@@ -332,10 +342,12 @@ function MilestoneDot({
 function GoalCard({
   item,
   index,
+  prediction,
   onNavigate,
 }: {
   item: any;
   index: number;
+  prediction?: any;
   onNavigate: () => void;
 }) {
   const { colors, typography } = useTheme();
@@ -346,7 +358,10 @@ function GoalCard({
   const daysLeft = daysRemaining(item.deadline || item.targetDate);
   const monthly = Number(item.monthlyContribution || 0);
   const tagline = getMotivationalTagline(pct);
-  const estDate = getEstimatedCompletion(saved, target, monthly, item.deadline || item.targetDate);
+  const estDate = prediction?.predictedCompletionDate
+    ? `Forecast: ${new Date(prediction.predictedCompletionDate).toLocaleString('en-US', { month: 'short', year: 'numeric' })}`
+    : getEstimatedCompletion(saved, target, monthly, item.deadline || item.targetDate);
+  const paceColor = prediction?.currentPace === 'ahead' ? '#10B981' : prediction?.currentPace === 'ontrack' ? '#F59E0B' : prediction?.currentPace === 'behind' ? '#EF4444' : prediction?.currentPace === 'critical' ? '#DC2626' : colors.text.tertiary;
 
   const entryAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -491,10 +506,18 @@ function GoalCard({
                 </Text>
               </View>
             )}
+            {prediction && (
+              <View style={s.footerBadge}>
+                <Ionicons name="pulse-outline" size={11} color={paceColor} />
+                <Text style={[typography.footnote, { color: paceColor, fontWeight: '700' }]}>
+                  {prediction.currentPace}
+                </Text>
+              </View>
+            )}
             <Text
               style={[
                 typography.footnote,
-                { color: colors.text.tertiary, marginTop: 2, textAlign: 'right' },
+                { color: prediction ? paceColor : colors.text.tertiary, marginTop: 2, textAlign: 'right' },
               ]}
               numberOfLines={1}
             >
@@ -503,16 +526,26 @@ function GoalCard({
           </View>
         </View>
 
-        <View style={[s.taglineRow, { backgroundColor: 'transparent' }]}>
-          <Ionicons name="sparkles" size={13} color={config.color} />
-          <Text style={[typography.footnote, { color: config.color, fontWeight: '600' }]}>
-            {tagline}
-          </Text>
-        </View>
+        {prediction?.improvementTip && (
+          <View style={[s.taglineRow, { backgroundColor: colors.bg.tertiary }]}>
+            <Ionicons name="bulb-outline" size={13} color={config.color} />
+            <Text style={[typography.footnote, { color: colors.text.secondary, flex: 1 }]} numberOfLines={2}>
+              {prediction.improvementTip}
+            </Text>
+          </View>
+        )}
+        {!prediction?.improvementTip && (
+          <View style={[s.taglineRow, { backgroundColor: 'transparent' }]}>
+            <Ionicons name="sparkles-outline" size={13} color={config.color} />
+            <Text style={[typography.footnote, { color: config.color, fontWeight: '600' }]}>
+              {tagline}
+            </Text>
+          </View>
+        )}
 
         {flashMilestone !== null && (
           <View style={[StyleSheet.absoluteFill, s.celebrationFlash]}>
-            <Ionicons name="checkmark-circle" size={56} color={config.color} />
+            <Ionicons name="checkmark-circle-outline" size={56} color={config.color} />
             <Text style={[typography.h4, { color: '#FFF', marginTop: 4 }]}>
               {flashMilestone}% Reached!
             </Text>
@@ -722,7 +755,7 @@ function GoalsEmptyState({
                   Target: {fmt(sg.target)}
                 </Text>
               </View>
-              <Ionicons name="add-circle" size={24} color={colors.accent.primary} />
+              <Ionicons name="add-circle-outline" size={24} color={colors.accent.primary} />
             </TouchableOpacity>
           );
         })}
@@ -1016,7 +1049,7 @@ function CreateGoalModal({
                       <ActivityIndicator size="small" color="#FFF" />
                     ) : (
                       <>
-                        <Ionicons name="sparkles" size={18} color="#FFF" />
+                        <Ionicons name="sparkles-outline" size={18} color="#FFF" />
                         <Text style={[typography.button, { color: '#FFF' }]}>Create Goal</Text>
                       </>
                     )}
@@ -1049,17 +1082,36 @@ export function GoalsListScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const [goals, setGoals] = useState<any[]>([]);
+  const [predictions, setPredictions] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [prefill, setPrefill] = useState<{ name: string; type: string; target: number } | null>(
     null,
   );
+  const [rebalanceData, setRebalanceData] = useState<any[]>([]);
 
   const loadGoals = useCallback(async () => {
     try {
       const res = await api.get<any>('/goals');
-      setGoals(Array.isArray(res) ? res : []);
+      const goalList = Array.isArray(res) ? res : [];
+      setGoals(goalList);
+
+      const predictionMap: Record<string, any> = {};
+      await Promise.allSettled(
+        goalList.map(async (g: any) => {
+          try {
+            const predRes = await api.get<any>(`/ai/goals/${g.id}/prediction`);
+            if (predRes?.data) predictionMap[g.id] = predRes.data;
+          } catch {}
+        }),
+      );
+      setPredictions(predictionMap);
+
+      try {
+        const rebalRes = await api.get<any>('/ai/goals/rebalance');
+        setRebalanceData(rebalRes?.data?.suggestions || []);
+      } catch {}
     } catch {
       // silent
     } finally {
@@ -1095,12 +1147,13 @@ export function GoalsListScreen() {
       <GoalCard
         item={item}
         index={index}
+        prediction={predictions[item.id]}
         onNavigate={() =>
           navigation.navigate('GoalDetail', { goalId: item.id, goalName: item.name })
         }
       />
     ),
-    [navigation],
+    [navigation, predictions],
   );
 
   if (loading) {
@@ -1139,7 +1192,7 @@ export function GoalsListScreen() {
                     style={[s.addBtn, { backgroundColor: colors.accent.primary + '20' }]}
                     activeOpacity={0.7}
                   >
-                    <Ionicons name="add" size={22} color={colors.accent.primary} />
+                    <Ionicons name="add-outline" size={22} color={colors.accent.primary} />
                   </TouchableOpacity>
                 }
               />
@@ -1149,6 +1202,28 @@ export function GoalsListScreen() {
                   totalTarget={totalTarget}
                   goalCount={goals.length}
                 />
+              )}
+              {rebalanceData.length > 0 && (
+                <View style={{ marginTop: 8, marginBottom: 4 }}>
+                  <View style={[s.rebalCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                      <Ionicons name="shuffle-outline" size={16} color="#7C3AED" />
+                      <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>AI Rebalance Suggestions</Text>
+                    </View>
+                    {rebalanceData.slice(0, 3).map((s: any) => (
+                      <View key={s.goalId} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6, borderTopWidth: 1, borderTopColor: colors.border.subtle }}>
+                        <View style={{ width: 24, height: 24, borderRadius: 6, backgroundColor: (s.goalColor || '#7C3AED') + '20', alignItems: 'center', justifyContent: 'center' }}>
+                          <Ionicons name={s.goalIcon as any} size={12} color={s.goalColor || '#7C3AED'} />
+                        </View>
+                        <Text style={{ flex: 1, fontSize: 12, fontWeight: '600', color: colors.text.primary }} numberOfLines={1}>{s.goalName}</Text>
+                        <Text style={{ fontSize: 11, fontWeight: '700', color: s.action === 'increase' ? '#16A34A' : '#DC2626' }}>
+                          {s.action === 'increase' ? '+' : '-'}₹{s.diff.toLocaleString('en-IN')}
+                        </Text>
+                      </View>
+                    ))}
+                    <Text style={{ fontSize: 10, fontWeight: '500', color: colors.text.tertiary, marginTop: 6, textAlign: 'center' }}>Based on your income, deadlines, and progress</Text>
+                  </View>
+                </View>
               )}
             </Animated.View>
           }
@@ -1198,7 +1273,7 @@ const s = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
-    elevation: 8,
+    elevation: 4,
   },
   cardTopRow: {
     flexDirection: 'row',
@@ -1216,6 +1291,14 @@ const s = StyleSheet.create({
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: 14,
+  },
+  rebalCard: {
+    padding: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderLeftWidth: 3,
+    borderLeftColor: '#7C3AED',
   },
   progressTrack: {
     height: 5,

@@ -290,7 +290,7 @@ export function SharedExpenseFormScreen() {
             {/* ── Error ── */}
             {error ? (
               <View style={[s.errorBox, { backgroundColor: `${colors.status.error}12` }]}>
-                <Ionicons name="alert-circle" size={18} color={colors.status.error} />
+                <Ionicons name="alert-circle-outline" size={18} color={colors.status.error} />
                 <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
               </View>
             ) : null}
@@ -439,7 +439,7 @@ export function SharedExpenseFormScreen() {
                       </Text>
                       {selected && (
                         <View style={[s.payerCheck, { backgroundColor: color }]}>
-                          <Ionicons name="checkmark" size={10} color="#FFF" />
+                          <Ionicons name="checkmark-outline" size={10} color="#FFF" />
                         </View>
                       )}
                     </TouchableOpacity>
@@ -498,7 +498,7 @@ export function SharedExpenseFormScreen() {
                       </Text>
                       {selected && (
                         <View style={[s.catCheck, { backgroundColor: cat.color }]}>
-                          <Ionicons name="checkmark" size={8} color="#FFF" />
+                          <Ionicons name="checkmark-outline" size={8} color="#FFF" />
                         </View>
                       )}
                     </TouchableOpacity>
@@ -552,7 +552,7 @@ export function SharedExpenseFormScreen() {
                         </Text>
                       </View>
                       {active && (
-                        <Ionicons name="checkmark-circle" size={18} color={colors.accent.primary} />
+                        <Ionicons name="checkmark-circle-outline" size={18} color={colors.accent.primary} />
                       )}
                     </TouchableOpacity>
                   );
@@ -761,7 +761,7 @@ export function SharedExpenseFormScreen() {
                   <ActivityIndicator color={colors.text.inverse} />
                 ) : (
                   <>
-                    <Ionicons name="checkmark-circle" size={20} color={colors.text.inverse} />
+                    <Ionicons name="checkmark-circle-outline" size={20} color={colors.text.inverse} />
                     <Text style={[s.saveText, { color: colors.text.inverse }]}>
                       {edit ? 'Update Expense' : 'Save Expense'}
                     </Text>
@@ -935,7 +935,7 @@ const s = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 6,
+    elevation: 4,
   },
   catName: { fontSize: 11, fontWeight: '600', textAlign: 'center' },
   catCheck: {

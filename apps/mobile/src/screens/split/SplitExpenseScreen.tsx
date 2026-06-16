@@ -100,7 +100,7 @@ export function SplitExpenseScreen() {
             <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
               <View style={s.headerRow}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-                  <Ionicons name="close" size={22} color="#FFF" />
+                  <Ionicons name="close-outline" size={22} color="#FFF" />
                 </TouchableOpacity>
                 <Text style={s.headerTitle}>Split Bill</Text>
                 <View style={{ width: 34 }} />
@@ -171,14 +171,14 @@ export function SplitExpenseScreen() {
                         }}
                         onSubmitEditing={() => setManualMembers((prev) => [...prev, ''])}
                       />
-                      <Ionicons name="person-circle" size={20} color={colors.text.tertiary} />
+                      <Ionicons name="person-circle-outline" size={20} color={colors.text.tertiary} />
                     </View>
                   ))}
                   <TouchableOpacity
                     onPress={() => setManualMembers((prev) => [...prev, ''])}
                     style={s.addBtn}
                   >
-                    <Ionicons name="add-circle" size={16} color={PURPLE} />
+                    <Ionicons name="add-circle-outline" size={16} color={PURPLE} />
                     <Text style={[s.addBtnText, { color: PURPLE }]}>Add member</Text>
                   </TouchableOpacity>
                 </View>
@@ -215,7 +215,7 @@ export function SplitExpenseScreen() {
                       >
                         {m.name}
                       </Text>
-                      {selected && <Ionicons name="checkmark-circle" size={14} color={PURPLE} />}
+                      {selected && <Ionicons name="checkmark-circle-outline" size={14} color={PURPLE} />}
                     </TouchableOpacity>
                   );
                 })}
@@ -318,7 +318,7 @@ export function SplitExpenseScreen() {
               end={{ x: 1, y: 0 }}
               style={s.createGrad}
             >
-              <Ionicons name="swap-horizontal" size={18} color="#FFF" />
+              <Ionicons name="swap-horizontal-outline" size={18} color="#FFF" />
               <Text style={s.createText}>Confirm Split</Text>
             </LinearGradient>
           </TouchableOpacity>

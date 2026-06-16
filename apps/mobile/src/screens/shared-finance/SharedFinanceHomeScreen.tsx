@@ -310,7 +310,7 @@ function GroupCard({
                 activeOpacity={0.8}
                 onPress={onSettleUp}
               >
-                <Ionicons name="swap-horizontal" size={14} color={colors.accent.primary} />
+                <Ionicons name="swap-horizontal-outline" size={14} color={colors.accent.primary} />
                 <Text style={[gCard.settleBtnText, { color: colors.accent.primary }]}>
                   Settle up
                 </Text>
@@ -652,7 +652,7 @@ export function SharedFinanceHomeScreen() {
               style={[cs.emptyCta, { backgroundColor: colors.accent.primary }]}
               onPress={() => setShowCreateModal(true)}
             >
-              <Ionicons name="add" size={18} color="#FFF" />
+              <Ionicons name="add-outline" size={18} color="#FFF" />
               <Text style={cs.emptyCtaText}>Create Space</Text>
             </TouchableOpacity>
           </View>
@@ -724,7 +724,7 @@ export function SharedFinanceHomeScreen() {
             }
           }}
         >
-          <Ionicons name="add" size={24} color="#FFF" />
+          <Ionicons name="add-outline" size={24} color="#FFF" />
           <Text style={fab.label}>New Space</Text>
         </TouchableOpacity>
       )}
@@ -847,7 +847,7 @@ export function SharedFinanceHomeScreen() {
                   <Text style={mod.submitBtnText}>Creating...</Text>
                 ) : (
                   <>
-                    <Ionicons name="add" size={18} color="#FFF" />
+                    <Ionicons name="add-outline" size={18} color="#FFF" />
                     <Text style={mod.submitBtnText}>Create</Text>
                   </>
                 )}
@@ -1113,7 +1113,7 @@ const fab = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 10,
-    elevation: 6,
+    elevation: 4,
   },
   label: { color: '#FFF', fontSize: 15, fontWeight: '700' },
 });

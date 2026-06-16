@@ -334,7 +334,7 @@ export function CoupleReportsScreen() {
                 </Text>
               </View>
               <Ionicons
-                name="heart"
+                name="heart-outline"
                 size={18}
                 color="#14B8A6"
                 style={{ marginHorizontal: 8, marginTop: 8 }}

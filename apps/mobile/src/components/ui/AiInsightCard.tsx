@@ -136,7 +136,7 @@ export function AiInsightCard({
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <View style={[styles.iconBadge, { backgroundColor: SEVERITY_COLORS.info.bg }]}>
-              <Ionicons name="sparkles" size={16} color={SEVERITY_COLORS.info.text} />
+              <Ionicons name="sparkles-outline" size={16} color={SEVERITY_COLORS.info.text} />
             </View>
             <View>
               <Text style={[styles.headerTitle, { color: colors.text.primary }]}>

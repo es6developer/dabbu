@@ -91,7 +91,7 @@ export function CoupleDashboard() {
         <View style={styles.avatarRow}>
           <Avatar name={myName} size={52} />
           <View style={styles.heartWrap}>
-            <Ionicons name="heart" size={22} color={COUPLE_COLORS.heart} />
+            <Ionicons name="heart-outline" size={22} color={COUPLE_COLORS.heart} />
           </View>
           <Avatar name={partnerName} size={52} />
         </View>

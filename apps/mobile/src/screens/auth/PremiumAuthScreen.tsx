@@ -358,7 +358,7 @@ const InputField = React.forwardRef<TextInput, InputFieldProps>(
             style={styles.iconBtn}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons name="close-circle" size={18} color={colors.text.tertiary} />
+            <Ionicons name="close-circle-outline" size={18} color={colors.text.tertiary} />
           </TouchableOpacity>
         )}
       </View>
@@ -379,7 +379,7 @@ function ErrorBox({ message, colors }: { message: string; colors: typeof palette
         gap: 10,
       }}
     >
-      <Ionicons name="alert-circle" size={16} color={colors.status.error} />
+      <Ionicons name="alert-circle-outline" size={16} color={colors.status.error} />
       <Text
         style={{
           color: colors.status.error,
@@ -751,7 +751,7 @@ export function PremiumAuthScreen() {
                       >
                         <View style={[styles.checkbox, rememberMe && styles.checkboxActive]}>
                           {rememberMe && (
-                            <Ionicons name="checkmark" size={12} color={colors.text.inverse} />
+                            <Ionicons name="checkmark-outline" size={12} color={colors.text.inverse} />
                           )}
                         </View>
                         <Text style={styles.checkboxLabel}>Remember me</Text>

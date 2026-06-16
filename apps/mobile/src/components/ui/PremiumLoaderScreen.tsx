@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -33,6 +33,20 @@ export function PremiumLoaderScreen({
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const displayTip = tip || TIPS[Math.floor(Math.random() * TIPS.length)];
+  const animWidth = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(animWidth, {
+      toValue: progress,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  }, [progress, animWidth]);
+
+  const barWidth = animWidth.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['0%', '100%'],
+  });
 
   return (
     <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
@@ -54,10 +68,10 @@ export function PremiumLoaderScreen({
         <View
           style={[s.barTrack, { backgroundColor: `${colors.brand.primary}12` }]}
         >
-          <View
+          <Animated.View
             style={[
               s.barFill,
-              { backgroundColor: colors.brand.primary, width: `${progress}%` },
+              { backgroundColor: colors.brand.primary, width: barWidth },
             ]}
           />
         </View>

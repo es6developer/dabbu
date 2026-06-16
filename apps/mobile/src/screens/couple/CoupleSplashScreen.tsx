@@ -96,7 +96,7 @@ export function CoupleSplashScreen() {
               width: 96, height: 96, borderRadius: 28,
               backgroundColor: `${colors.accent.primary}20`, alignItems: 'center', justifyContent: 'center',
             }}>
-              <Ionicons name="heart-circle" size={48} color={colors.accent.primary} />
+              <Ionicons name="heart-circle-outline" size={48} color={colors.accent.primary} />
             </View>
             <Text style={{ fontSize: 28, fontWeight: '800', color: colors.text.primary, textAlign: 'center' }}>
               Together{'\n'}Financial Journey
@@ -133,7 +133,7 @@ export function CoupleSplashScreen() {
 
         {step === 'invite' && (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 20 }}>
-            <Ionicons name="checkmark-circle" size={64} color={colors.status.success} />
+            <Ionicons name="checkmark-circle-outline" size={64} color={colors.status.success} />
             <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary, textAlign: 'center' }}>
               Couple Space Created!
             </Text>

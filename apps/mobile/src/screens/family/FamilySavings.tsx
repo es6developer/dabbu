@@ -184,7 +184,7 @@ export function FamilySavings() {
                 className="w-12 h-12 rounded-2xl items-center justify-center"
                 style={{ backgroundColor: colors.status.successLight }}
               >
-                <Ionicons name="add-circle" size={24} color={colors.status.success} />
+                <Ionicons name="add-circle-outline" size={24} color={colors.status.success} />
               </View>
               <View className="flex-1">
                 <Text className="text-[14px] font-semibold" style={{ color: colors.text.primary }}>

@@ -232,7 +232,7 @@ export function FinancialCopilotScreen() {
       <ReAnimated.View entering={FadeInUp.duration(400)} style={s.aiMsgWrap}>
         <View style={s.aiMsgRow}>
           <View style={s.aiAvatar}>
-            <Ionicons name="sparkles" size={16} color={AI_COLORS.primary} />
+            <Ionicons name="sparkles-outline" size={16} color={AI_COLORS.primary} />
           </View>
           <View style={[s.aiMsg, { borderColor: AI_COLORS.border }]}>
             <Text style={s.aiMsgText}>{item.text}</Text>
@@ -254,7 +254,7 @@ export function FinancialCopilotScreen() {
             <Text style={s.headerSub}>AI-powered financial assistant</Text>
           </View>
           <TouchableOpacity onPress={() => setMessages([])} style={s.clearBtn}>
-            <Ionicons name="refresh" size={20} color={AI_COLORS.textSecondary} />
+            <Ionicons name="refresh-outline" size={20} color={AI_COLORS.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -268,7 +268,7 @@ export function FinancialCopilotScreen() {
           <ReAnimated.View entering={FadeInUp.duration(500)} style={s.emptyWrap}>
             <View style={[s.welcomeCard, { borderColor: AI_COLORS.border }]}>
               <View style={s.welcomeIcon}>
-                <Ionicons name="sparkles" size={36} color={AI_COLORS.primary} />
+                <Ionicons name="sparkles-outline" size={36} color={AI_COLORS.primary} />
               </View>
               <Text style={s.welcomeTitle}>Hi, I'm Dabbu AI</Text>
               <Text style={s.welcomeDesc}>
@@ -283,7 +283,7 @@ export function FinancialCopilotScreen() {
                   style={[s.sugChip, { borderColor: AI_COLORS.border }]}
                   onPress={() => setInput(sug)}
                 >
-                  <Ionicons name="chatbubble-ellipses" size={14} color={AI_COLORS.primary} />
+                  <Ionicons name="chatbubble-ellipses-outline" size={14} color={AI_COLORS.primary} />
                   <Text style={s.sugText}>{sug}</Text>
                 </TouchableOpacity>
               ))}
@@ -295,7 +295,7 @@ export function FinancialCopilotScreen() {
             <ReAnimated.View entering={FadeInUp.duration(300)} style={s.aiMsgWrap}>
               <View style={s.aiMsgRow}>
                 <View style={s.aiAvatar}>
-                  <Ionicons name="sparkles" size={16} color={AI_COLORS.primary} />
+                  <Ionicons name="sparkles-outline" size={16} color={AI_COLORS.primary} />
                 </View>
                 <View style={[s.aiMsg, { borderColor: AI_COLORS.border }]}>
                   <View style={{ flexDirection: 'row', gap: 4 }}>
@@ -345,7 +345,7 @@ export function FinancialCopilotScreen() {
               {loading ? (
                 <ActivityIndicator size="small" color="#FFF" />
               ) : (
-                <Ionicons name="arrow-up" size={20} color="#FFF" />
+                <Ionicons name="arrow-up-outline" size={20} color="#FFF" />
               )}
             </TouchableOpacity>
           </View>

@@ -316,7 +316,7 @@ export function PremiumSignupScreen() {
                       justifyContent: 'center',
                     }}
                   >
-                    <Ionicons name="close" size={22} color={colors.text.primary} />
+                    <Ionicons name="close-outline" size={22} color={colors.text.primary} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -504,7 +504,7 @@ export function PremiumSignupScreen() {
                       marginBottom: 12,
                     }}
                   >
-                    <Ionicons name="alert-circle" size={16} color={colors.status.error} />
+                    <Ionicons name="alert-circle-outline" size={16} color={colors.status.error} />
                     <Text
                       style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}
                     >

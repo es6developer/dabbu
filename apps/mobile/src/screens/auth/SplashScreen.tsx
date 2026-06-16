@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 24,
-    elevation: 12,
+    elevation: 6,
   },
   logoImg: {
     width: LOGO_IMG,

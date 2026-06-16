@@ -206,7 +206,7 @@ export function TransactionsList() {
                         {tx.name}
                       </Text>
                       {tx.shared && (
-                        <Ionicons name="people" size={12} color={colors.brand.primary} />
+                        <Ionicons name="people-outline" size={12} color={colors.brand.primary} />
                       )}
                     </View>
                     <Text
@@ -244,10 +244,10 @@ export function TransactionsList() {
           shadowOffset: { width: 0, height: 6 },
           shadowOpacity: 0.35,
           shadowRadius: 16,
-          elevation: 8,
+          elevation: 4,
         }}
       >
-        <Ionicons name="add" size={28} color="#FFFFFF" />
+        <Ionicons name="add-outline" size={28} color="#FFFFFF" />
       </TouchableOpacity>
     </SafeAreaView>
   );

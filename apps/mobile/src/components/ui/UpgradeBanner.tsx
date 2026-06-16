@@ -65,7 +65,7 @@ export function UpgradeBanner({
       >
         <View style={styles.content}>
           <View style={[styles.iconWrap, { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
-            <Ionicons name="diamond" size={18} color="#FFFFFF" />
+            <Ionicons name="diamond-outline" size={18} color="#FFFFFF" />
           </View>
           <View style={styles.textWrap}>
             <Text style={styles.title}>Go Premium</Text>

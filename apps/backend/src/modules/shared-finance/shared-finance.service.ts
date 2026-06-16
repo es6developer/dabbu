@@ -327,6 +327,7 @@ export class SharedFinanceService {
       totalSpent: Number(m.group.totalSpent || 0),
       monthlyBudget: Number(m.group.monthlyBudget || 0),
       monthlyIncome: Number(m.group.monthlyIncome || 0),
+      aiTip: getGroupAiTip(m.group.type, m.group._count.expenses, m.group._count.members),
       _plan: {
         tier: plan.tier,
         maxGroups: plan.maxGroups,
@@ -4701,4 +4702,16 @@ export class SharedFinanceService {
       data: { totalSpent: result._sum.amount || 0 },
     });
   }
+}
+
+function getGroupAiTip(type: string, expenseCount: number, memberCount: number): string {
+  const tips: Record<string, string> = {
+    couple: expenseCount > 0
+      ? 'Track shared expenses to stay aligned on your financial goals.'
+      : 'Start tracking shared expenses to see your combined spending patterns.',
+    family: 'Set up a monthly budget to manage household expenses together.',
+    trip: 'Split trip expenses as they happen to avoid awkward settlements later.',
+    friends: 'Use the settle-up feature to keep group expenses fair and transparent.',
+  };
+  return tips[type] || 'Collaborate on shared goals and budgets to build wealth together.';
 }

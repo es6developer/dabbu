@@ -83,7 +83,7 @@ export function AddExpenseScreen() {
         {/* Header */}
         <View style={s.headerRow}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={s.closeBtn}>
-            <Ionicons name="close" size={22} color={PURPLE} />
+            <Ionicons name="close-outline" size={22} color={PURPLE} />
           </TouchableOpacity>
         </View>
 

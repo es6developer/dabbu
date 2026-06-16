@@ -126,7 +126,7 @@ export function BudgetsListScreen() {
               justifyContent: 'center',
             }}
           >
-            <Ionicons name="add" size={20} color={colors.accent.primary} />
+            <Ionicons name="add-outline" size={20} color={colors.accent.primary} />
           </TouchableOpacity>
         </View>
         {budgets.length > 0 && (
@@ -345,7 +345,7 @@ export function BudgetsListScreen() {
         onPress={() => navigation.navigate('CreateBudget')}
         style={[s.fab, { backgroundColor: colors.accent.primary }, fabShadow]}
       >
-        <Ionicons name="add" size={28} color="#FFFFFF" />
+        <Ionicons name="add-outline" size={28} color="#FFFFFF" />
       </TouchableOpacity>
     </View>
   );

@@ -33,7 +33,7 @@ export function ThemeScreen() {
             <Text style={[styles.desc, { color: colors.text.tertiary }]}>{opt.desc}</Text>
           </View>
           {themeMode === opt.mode && (
-            <Ionicons name="checkmark-circle" size={24} color={colors.accent.primary} />
+            <Ionicons name="checkmark-circle-outline" size={24} color={colors.accent.primary} />
           )}
         </TouchableOpacity>
       ))}

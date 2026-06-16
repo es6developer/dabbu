@@ -43,6 +43,32 @@ const SPACE_ICONS: Record<string, string> = {
   sports: 'football',
 };
 
+const COVER_GRADIENTS: Record<string, [string, string]> = {
+  couple: ['#7C3AED', '#A78BFA'],
+  family: ['#2563EB', '#60A5FA'],
+  trip: ['#0D9488', '#2DD4BF'],
+  friends: ['#DC2626', '#FB7185'],
+  wedding: ['#BE185D', '#F472B6'],
+  house_purchase: ['#F97316', '#FDBA74'],
+  office: ['#4F46E5', '#818CF8'],
+  event: ['#D97706', '#FCD34D'],
+  apartment: ['#1F2937', '#6B7280'],
+  sports: ['#059669', '#34D399'],
+};
+
+const COVER_EMOJIS: Record<string, string> = {
+  couple: '💑',
+  family: '👨‍👩‍👧‍👦',
+  trip: '✈️',
+  friends: '👥',
+  wedding: '💒',
+  house_purchase: '🏠',
+  office: '💼',
+  event: '🎉',
+  apartment: '🏢',
+  sports: '⚽',
+};
+
 function fmtCompact(v: number) {
   if (v >= 10000000) {
     return '\u20B9' + (v / 10000000).toFixed(1) + 'Cr';
@@ -298,6 +324,10 @@ function GroupCard({
   const members = group.members || [];
   const lastActivity = timeSince(group.updatedAt || group.createdAt);
   const icon = SPACE_ICONS[group.type] || 'people';
+  const coverGradient = COVER_GRADIENTS[group.type] || ['#6B7280', '#9CA3AF'];
+  const coverEmoji = COVER_EMOJIS[group.type] || '📁';
+  const goalCount = group._count?.goals || group.goals?.length || 0;
+  const aiTip = group.aiTip || null;
 
   const isOwed = owedToMe > 0;
   const owes = iOwe > 0;
@@ -315,12 +345,6 @@ function GroupCard({
     : unsettledOthers > 0 && !owes
       ? colors.status.warning
       : colors.status.error;
-  const settlementLabel = isSettled
-    ? null
-    : unsettledOthers > 0 && !owes
-      ? `Pending from ${unsettledOthers} member${unsettledOthers > 1 ? 's' : ''}`
-      : 'Awaiting you';
-
   const canSettle = totalSpent > 0 && !isSettled;
 
   return (
@@ -331,101 +355,99 @@ function GroupCard({
           borderRadius: 16,
           borderWidth: 1,
           borderColor: colors.border.default,
-          padding: 14,
+          overflow: 'hidden',
         }}
       >
-        <View
-          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
-            <View
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 10,
-                backgroundColor: `${colors.accent.primary}10`,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Ionicons name={icon as any} size={16} color={colors.accent.primary} />
+        {/* Cover Image Strip */}
+        <View style={{ height: 64, backgroundColor: coverGradient[0], justifyContent: 'center', paddingHorizontal: 14 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+              <Text style={{ fontSize: 24 }}>{coverEmoji}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: '#FFFFFF', flex: 1 }} numberOfLines={1}>
+                  {group.name || group.title}
+                </Text>
+                <Text style={{ fontSize: 11, fontWeight: '500', color: 'rgba(255,255,255,0.7)', textTransform: 'capitalize', marginTop: 1 }}>
+                  {group.type || 'space'}
+                </Text>
+              </View>
             </View>
-            <Text
-              style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary, flex: 1 }}
-              numberOfLines={1}
-            >
-              {group.name || group.title}
-            </Text>
+            <MemberAvatars members={members} />
           </View>
-          <MemberAvatars members={members} />
         </View>
 
-        <View style={{ marginTop: 10, flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
-          {activeAmount > 0 ? (
-            <>
-              <Text
-                style={{ fontSize: 22, fontWeight: '800', color: amountColor, letterSpacing: -0.3 }}
-              >
-                ₹{Math.round(activeAmount).toLocaleString('en-IN')}
+        {/* Body */}
+        <View style={{ padding: 14, gap: 10 }}>
+          {/* Balance Row */}
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
+            {activeAmount > 0 ? (
+              <>
+                <Text style={{ fontSize: 22, fontWeight: '800', color: amountColor, letterSpacing: -0.3 }}>
+                  ₹{Math.round(activeAmount).toLocaleString('en-IN')}
+                </Text>
+                <Text style={{ fontSize: 13, fontWeight: '500', color: amountColor }}>
+                  {statusText}
+                </Text>
+              </>
+            ) : (
+              <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text.tertiary }}>
+                {totalSpent > 0 ? 'All settled up' : 'No activity yet'}
               </Text>
-              <Text style={{ fontSize: 13, fontWeight: '500', color: amountColor }}>
-                {statusText}
+            )}
+          </View>
+
+          {/* Stats Row */}
+          <View style={{ flexDirection: 'row', gap: 16 }}>
+            {memberCount > 0 && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Ionicons name="people-outline" size={13} color={colors.text.tertiary} />
+                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>{memberCount}</Text>
+              </View>
+            )}
+            {totalSpent > 0 && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Ionicons name="cash-outline" size={13} color={colors.text.tertiary} />
+                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>₹{Math.round(totalSpent).toLocaleString('en-IN')}</Text>
+              </View>
+            )}
+            {goalCount > 0 && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Ionicons name="flag-outline" size={13} color={colors.text.tertiary} />
+                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>{goalCount} goals</Text>
+              </View>
+            )}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Ionicons name="time-outline" size={13} color={colors.text.tertiary} />
+              <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>{lastActivity}</Text>
+            </View>
+          </View>
+
+          {/* AI Insight */}
+          {aiTip && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: `${colors.accent.primary}08`, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8 }}>
+              <Ionicons name="bulb-outline" size={13} color={colors.accent.primary} />
+              <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.secondary, flex: 1 }} numberOfLines={1}>
+                {aiTip}
               </Text>
-            </>
-          ) : (
-            <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text.tertiary }}>
-              {totalSpent > 0 ? 'All settled up' : 'No activity yet'}
-            </Text>
+            </View>
           )}
-        </View>
 
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'flex-end',
-            marginTop: 10,
-          }}
-        >
-          <View style={{ flexDirection: 'row', gap: 6 }}>
-            <TouchableOpacity
-              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
-              onPress={onAddExpense}
-            >
-              <View
-                style={{
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                  borderRadius: 10,
-                  backgroundColor: `${colors.accent.primary}12`,
-                }}
-              >
+          {/* Action Buttons */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
+            <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }} onPress={onAddExpense}>
+              <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, backgroundColor: `${colors.accent.primary}12` }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                  <Ionicons name="add" size={13} color={colors.accent.primary} />
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: colors.accent.primary }}>
-                    Add
-                  </Text>
+                  <Ionicons name="add-outline" size={13} color={colors.accent.primary} />
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: colors.accent.primary }}>Add</Text>
                 </View>
               </View>
             </TouchableOpacity>
             {canSettle && (
-              <TouchableOpacity
-                hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
-                onPress={onSettle}
-              >
-                <View
-                  style={{
-                    paddingHorizontal: 12,
-                    paddingVertical: 6,
-                    borderRadius: 10,
-                    backgroundColor: `${settlementColor}15`,
-                  }}
-                >
+              <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }} onPress={onSettle}>
+                <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, backgroundColor: `${settlementColor}15` }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <Ionicons name="swap-horizontal" size={13} color={settlementColor} />
-                    <Text style={{ fontSize: 12, fontWeight: '700', color: settlementColor }}>
-                      Settle
-                    </Text>
+                    <Ionicons name="swap-horizontal-outline" size={13} color={settlementColor} />
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: settlementColor }}>Settle</Text>
                   </View>
                 </View>
               </TouchableOpacity>
@@ -763,7 +785,7 @@ export function SharedScreen() {
               }}
               onPress={() => setShowCreateModal(true)}
             >
-              <Ionicons name="add" size={16} color={colors.text.inverse} />
+              <Ionicons name="add-outline" size={16} color={colors.text.inverse} />
               <Text style={{ color: colors.text.inverse, fontSize: 14, fontWeight: '700' }}>
                 Create Space
               </Text>
@@ -851,40 +873,32 @@ export function SharedScreen() {
                         showsHorizontalScrollIndicator={false}
                         contentContainerStyle={mod.typeRow}
                       >
-                        {Object.entries(SPACE_ICONS)
-                          .filter(([k]) => k !== 'default')
-                          .map(([key, icon]) => {
+                        {Object.entries(COVER_EMOJIS)
+                          .map(([key, emoji]) => {
                             const active = newType === key;
+                            const grad = COVER_GRADIENTS[key] || ['#6B7280', '#9CA3AF'];
                             return (
                               <TouchableOpacity
                                 key={key}
                                 style={[
                                   mod.typeChip,
                                   {
-                                    borderColor: active
-                                      ? colors.accent.primary
-                                      : colors.border.default,
-                                    backgroundColor: active
-                                      ? `${colors.accent.primary}15`
-                                      : colors.bg.card,
+                                    borderColor: active ? grad[0] : colors.border.default,
+                                    backgroundColor: active ? grad[0] + '18' : colors.bg.card,
                                   },
                                 ]}
                                 onPress={() => setNewType(key)}
                               >
-                                <Ionicons
-                                  name={icon as any}
-                                  size={16}
-                                  color={active ? colors.accent.primary : colors.text.tertiary}
-                                />
+                                <Text style={{ fontSize: 18 }}>{emoji}</Text>
                                 <Text
                                   style={[
                                     mod.typeChipText,
                                     {
-                                      color: active ? colors.accent.primary : colors.text.secondary,
+                                      color: active ? grad[0] : colors.text.secondary,
                                     },
                                   ]}
                                 >
-                                  {key.charAt(0).toUpperCase() + key.slice(1)}
+                                  {key.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
                                 </Text>
                               </TouchableOpacity>
                             );
@@ -949,7 +963,7 @@ export function SharedScreen() {
                           <ActivityIndicator color={colors.text.inverse} size="small" />
                         ) : (
                           <>
-                            <Ionicons name="add" size={18} color={colors.text.inverse} />
+                            <Ionicons name="add-outline" size={18} color={colors.text.inverse} />
                             <Text style={[mod.submitBtnText, { color: colors.text.inverse }]}>
                               Create
                             </Text>

@@ -170,7 +170,7 @@ export function CoupleSettlementsScreen() {
         >
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <Ionicons name="arrow-back" size={22} color="#FFF" />
+              <Ionicons name="arrow-back-outline" size={22} color="#FFF" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Settlements</Text>
             <View style={{ width: 34 }} />
@@ -260,7 +260,7 @@ export function CoupleSettlementsScreen() {
                   onPress={handleSettleUp}
                   disabled={settling}
                 >
-                  <Ionicons name="swap-horizontal" size={18} color="#FFF" />
+                  <Ionicons name="swap-horizontal-outline" size={18} color="#FFF" />
                   <Text style={styles.settleBtnText}>{settling ? 'Settling...' : 'Settle Up'}</Text>
                 </TouchableOpacity>
               ) : (
@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.12,
     shadowRadius: 16,
-    elevation: 6,
+    elevation: 4,
   },
   balanceEyebrow: {
     fontSize: 11,

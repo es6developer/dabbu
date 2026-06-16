@@ -237,7 +237,7 @@ export function CoupleFinanceScreen() {
         </View>
         <View style={[s.heroEmpty, { backgroundColor: colors.bg.secondary }]}>
           <View style={s.heartIconWrap}>
-            <Ionicons name="heart-circle" size={64} color={colors.accent.primary} />
+            <Ionicons name="heart-circle-outline" size={64} color={colors.accent.primary} />
           </View>
           <Text style={[s.heroTitle, { color: colors.text.primary }]}>
             Connect with your Partner
@@ -303,14 +303,14 @@ export function CoupleFinanceScreen() {
         >
           <View style={s.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={s.headerBtn}>
-              <Ionicons name="arrow-back" size={22} color="#FFF" />
+              <Ionicons name="arrow-back-outline" size={22} color="#FFF" />
             </TouchableOpacity>
             <Text style={s.headerTitle}>Couple Finance</Text>
             <TouchableOpacity
               style={s.headerBtn}
               onPress={() => navigation.navigate('AiCouple', { groupId, groupName })}
             >
-              <Ionicons name="sparkles" size={20} color="#FFD700" />
+              <Ionicons name="sparkles-outline" size={20} color="#FFD700" />
             </TouchableOpacity>
             <TouchableOpacity
               style={s.headerBtn}
@@ -327,7 +327,7 @@ export function CoupleFinanceScreen() {
                 size={46}
               />
               <View style={[s.heartBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-                <Ionicons name="heart" size={16} color="#FFEBB4" />
+                <Ionicons name="heart-outline" size={16} color="#FFEBB4" />
               </View>
               <Avatar
                 uri={partner2?.avatarUrl}
@@ -746,7 +746,7 @@ const s = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.12,
     shadowRadius: 16,
-    elevation: 6,
+    elevation: 4,
   },
   heroFinanceTop: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
   heroFinanceLabel: {

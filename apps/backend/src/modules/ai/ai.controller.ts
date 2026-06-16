@@ -120,6 +120,12 @@ export class AiController {
     return { data: prediction };
   }
 
+  @Get('goals/rebalance')
+  async getGoalRebalancing(@CurrentUser('id') userId: string) {
+    const result = await this.aiService.suggestGoalRebalancing(userId);
+    return { data: result };
+  }
+
   @Post('categories/suggest')
   async suggestCategory(@CurrentUser('id') userId: string, @Body() body: { description: string }) {
     const suggestion = await this.aiService.suggestCategory(body.description, userId);
@@ -275,6 +281,7 @@ export class AiController {
     return { data: result };
   }
 
+  @UseGuards(PremiumGuard)
   @UseGuards(PremiumGuard)
   @Get('monthly-review')
   async getMonthlyReview(@CurrentUser('id') userId: string) {

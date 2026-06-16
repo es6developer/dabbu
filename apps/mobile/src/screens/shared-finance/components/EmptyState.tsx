@@ -36,7 +36,7 @@ export function EmptyState({
           onPress={onAction}
           activeOpacity={0.8}
         >
-          <Ionicons name="add" size={18} color="#FFF" />
+          <Ionicons name="add-outline" size={18} color="#FFF" />
           <Text style={styles.actionLabel}>{actionLabel}</Text>
         </TouchableOpacity>
       )}

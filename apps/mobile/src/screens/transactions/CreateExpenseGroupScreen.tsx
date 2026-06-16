@@ -181,7 +181,7 @@ export function CreateExpenseGroupScreen() {
         <View style={{ paddingHorizontal: 20, paddingTop: 52, paddingBottom: 28 }}>
           <View style={s.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-              <Ionicons name="close" size={22} color="#FFF" />
+              <Ionicons name="close-outline" size={22} color="#FFF" />
             </TouchableOpacity>
             <Text style={s.headerTitle}>New Split Group</Text>
             <View style={{ width: 34 }} />
@@ -198,7 +198,7 @@ export function CreateExpenseGroupScreen() {
         >
           {error ? (
             <View style={[s.errorBox, { backgroundColor: `${colors.status.error}12` }]}>
-              <Ionicons name="alert-circle" size={16} color={colors.status.error} />
+              <Ionicons name="alert-circle-outline" size={16} color={colors.status.error} />
               <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
             </View>
           ) : null}
@@ -324,7 +324,7 @@ export function CreateExpenseGroupScreen() {
                   />
                   {phone.trim() ? (
                     <TouchableOpacity onPress={() => removeRow(index)} style={{ padding: 4 }}>
-                      <Ionicons name="close-circle" size={18} color="#EF4444" />
+                      <Ionicons name="close-circle-outline" size={18} color="#EF4444" />
                     </TouchableOpacity>
                   ) : null}
                 </View>
@@ -355,7 +355,7 @@ export function CreateExpenseGroupScreen() {
                             {user.email ? ` · ${user.email}` : ''}
                           </Text>
                         </View>
-                        <Ionicons name="add-circle" size={20} color={PURPLE} />
+                        <Ionicons name="add-circle-outline" size={20} color={PURPLE} />
                       </TouchableOpacity>
                     ))}
                   </View>

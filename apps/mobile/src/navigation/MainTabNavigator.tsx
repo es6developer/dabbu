@@ -9,6 +9,7 @@ import { NotificationsScreen } from '../screens/home/NotificationsScreen';
 import { NotificationCenterScreen } from '../screens/home/NotificationCenterScreen';
 import { AccountsNavigator } from './AccountsNavigator';
 import { SharedFinanceNavigator } from './SharedFinanceNavigator';
+import { GoalsNavigator } from './GoalsNavigator';
 import { GoalsListScreen } from '../screens/goals/GoalsListScreen';
 import { GoalDetailScreen } from '../screens/goals/GoalDetailScreen';
 import { DocumentVaultScreen } from '../screens/documents/DocumentVaultScreen';
@@ -380,58 +381,42 @@ export function MainTabNavigator() {
   const qaVisible = getTabVisibility('QuickAction');
 
   const quickActions = [
-    ...(showCoupleFeatures
-      ? []
-      : [
-          {
-            label: 'Add Expense' as const,
-            icon: 'add-circle-outline' as const,
-            color: '#F97316',
-            onPress: () => navigation.navigate('Expense', { screen: 'CategorySelection' }),
-          },
-          {
-            label: 'Create Circle' as const,
-            icon: 'people-outline' as const,
-            color: '#F97316',
-            onPress: () => navigation.navigate('Circles', { screen: 'CreateCircle' }),
-          },
-          {
-            label: 'Split Payment' as const,
-            icon: 'swap-horizontal-outline' as const,
-            color: '#34C759',
-            onPress: () => navigation.navigate('Circles', { screen: 'SplitExpense' }),
-          },
-          {
-            label: 'Settle Up' as const,
-            icon: 'cash-outline' as const,
-            color: '#34C759',
-            onPress: () => navigation.navigate('Circles', { screen: 'Settlement' }),
-          },
-          {
-            label: 'Add Goal' as const,
-            icon: 'trophy-outline' as const,
-            color: '#F59E0B',
-            onPress: () => navigation.navigate('Dashboard', { screen: 'GoalsList' }),
-          },
-        ]),
-    ...(showCoupleFeatures
-      ? [
-          {
-            label: 'Couple Space' as const,
-            icon: 'heart-outline' as const,
-            color: '#FF6B9D',
-            onPress: () => navigation.navigate('Settings', { screen: 'CoupleSpace' }),
-          },
-        ]
-      : []),
     {
-      label: 'Reports' as const,
-      icon: 'stats-chart-outline' as const,
-      color: '#14B8A6',
+      label: 'Add Expense' as const,
+      icon: 'cart-outline' as const,
+      color: '#DC2626',
+      onPress: () => navigation.navigate('Expense', { screen: 'CategorySelection' }),
+    },
+    {
+      label: 'Add Income' as const,
+      icon: 'trending-up-outline' as const,
+      color: '#16A34A',
       onPress: () =>
-        showCoupleFeatures
-          ? navigation.navigate('Settings', { screen: 'CoupleSpace' })
-          : navigation.navigate('Settings', { screen: 'Reports' }),
+        navigation.navigate('Expense', { screen: 'CategorySelection', params: { type: 'income' } }),
+    },
+    {
+      label: 'Transfer' as const,
+      icon: 'swap-horizontal-outline' as const,
+      color: '#2563EB',
+      onPress: () => navigation.navigate('Dashboard', { screen: 'NetWorth' }),
+    },
+    {
+      label: 'Contribute Goal' as const,
+      icon: 'gift-outline' as const,
+      color: '#F59E0B',
+      onPress: () => navigation.navigate('Goals', { screen: 'GoalsList' }),
+    },
+    {
+      label: 'Create Goal' as const,
+      icon: 'flag-outline' as const,
+      color: '#7C3AED',
+      onPress: () => navigation.navigate('Goals', { screen: 'GoalsList' }),
+    },
+    {
+      label: 'Create Space' as const,
+      icon: 'planet-outline' as const,
+      color: '#14B8A6',
+      onPress: () => navigation.navigate('Spaces', { screen: 'CreateSharedGroup' }),
     },
   ];
 
@@ -444,7 +429,7 @@ export function MainTabNavigator() {
           {[0, 1, 2, 3, 4, 5].map((i) => (
             <Ionicons
               key={i}
-              name="heart"
+              name="heart-outline"
               size={24 + i * 8}
               color={`${COUPLE_COLORS.heart}08`}
               style={{
@@ -487,28 +472,30 @@ export function MainTabNavigator() {
         <Tab.Screen
           name="Expense"
           component={AccountsNavigator}
-          options={{
-            tabBarLabel: 'Expenses',
-            tabBarIcon: ({ focused, color, size }) => (
-              <Ionicons name={focused ? 'wallet' : 'wallet-outline'} size={22} color={color} />
-            ),
-          }}
+          options={{ tabBarButton: () => null }}
         />
         <Tab.Screen
           name="Circles"
           component={CirclesNavigator}
-          options={{
-            tabBarLabel: 'Circles',
-            tabBarButton: () => null,
-          }}
+          options={{ tabBarButton: () => null }}
         />
         <Tab.Screen
           name="Spaces"
           component={SharedFinanceNavigator}
           options={{
             tabBarLabel: 'Spaces',
-            tabBarIcon: ({ focused, color, size }) => (
-              <Ionicons name={focused ? 'grid' : 'grid-outline'} size={22} color={color} />
+            tabBarIcon: ({ focused, color }) => (
+              <Ionicons name={focused ? 'planet' : 'planet-outline'} size={22} color={color} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Goals"
+          component={GoalsNavigator}
+          options={{
+            tabBarLabel: 'Goals',
+            tabBarIcon: ({ focused, color }) => (
+              <Ionicons name={focused ? 'trophy' : 'trophy-outline'} size={22} color={color} />
             ),
           }}
         />
@@ -517,7 +504,7 @@ export function MainTabNavigator() {
           component={SettingsNavigator}
           options={{
             tabBarLabel: 'Profile',
-            tabBarIcon: ({ focused, color, size }) => (
+            tabBarIcon: ({ focused, color }) => (
               <Ionicons name={focused ? 'person' : 'person-outline'} size={22} color={color} />
             ),
           }}
@@ -546,7 +533,11 @@ function GlossyTabBar({
   const { showCoupleFeatures, isInCouple, isCoupleModeActive } = useCoupleMode();
   const coupleHiddenTabs = new Set(showCoupleFeatures ? ['Expense', 'Spaces'] : []);
   const visibleRoutes = state.routes.filter(
-    (r: any) => r.name !== 'Circles' && getTabVisibility(r.name) && !coupleHiddenTabs.has(r.name),
+    (r: any) =>
+      r.name !== 'Circles' &&
+      r.name !== 'Expense' &&
+      getTabVisibility(r.name) &&
+      !coupleHiddenTabs.has(r.name),
   );
   const midIndex = Math.floor(visibleRoutes.length / 2);
   const leftRoutes = visibleRoutes.slice(0, midIndex);
@@ -570,6 +561,7 @@ function GlossyTabBar({
         Dashboard: 'DashboardMain',
         Expense: 'ExpenseHome',
         Spaces: 'SharedFinanceHome',
+        Goals: 'GoalsList',
         Settings: 'SettingsMain',
       };
       navigation.navigate(route.name, { screen: homeScreens[route.name] || route.name });
@@ -647,7 +639,7 @@ function GlossyTabBar({
               >
                 {showCoupleFeatures ? (
                   <View>
-                    <Ionicons name="heart" size={22} color="#FFF" />
+                    <Ionicons name="heart-outline" size={22} color="#FFF" />
                     <View
                       style={{
                         position: 'absolute',
@@ -663,11 +655,11 @@ function GlossyTabBar({
                         borderColor: COUPLE_COLORS.primary,
                       }}
                     >
-                      <Ionicons name="add" size={11} color={COUPLE_COLORS.primary} />
+                      <Ionicons name="add-outline" size={11} color={COUPLE_COLORS.primary} />
                     </View>
                   </View>
                 ) : (
-                  <Ionicons name="add" size={28} color="#FFF" />
+                  <Ionicons name="add-outline" size={28} color="#FFF" />
                 )}
               </View>
             </TouchableOpacity>
@@ -694,12 +686,12 @@ const tabStyles = StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.18,
-        shadowRadius: 16,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.12,
+        shadowRadius: 8,
       },
       android: {
-        elevation: 10,
+        elevation: 4,
       },
     }),
   },
@@ -748,10 +740,10 @@ const tabStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    elevation: 8,
+    elevation: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
   },
 });

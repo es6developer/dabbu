@@ -267,7 +267,7 @@ export function TransactionsScreen() {
               style={[styles.addBtn, { backgroundColor: colors.accent.primary }]}
               onPress={() => navigation.navigate('Expense', { screen: 'CreateTransaction' })}
             >
-              <Ionicons name="add" size={18} color="#FFF" />
+              <Ionicons name="add-outline" size={18} color="#FFF" />
               <Text style={styles.addBtnText}>Add Transaction</Text>
             </TouchableOpacity>
           )}

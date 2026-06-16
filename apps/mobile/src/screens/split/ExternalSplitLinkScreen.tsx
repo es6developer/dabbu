@@ -73,7 +73,7 @@ export function ExternalSplitLinkScreen() {
               onPress={() => navigation.goBack()}
               style={[styles.backBtn, { backgroundColor: colors.bg.tertiary }]}
             >
-              <Ionicons name="close" size={24} color={colors.text.primary} />
+              <Ionicons name="close-outline" size={24} color={colors.text.primary} />
             </TouchableOpacity>
             <Text style={[styles.headerTitle, { color: colors.text.primary }]}>
               External Split Link

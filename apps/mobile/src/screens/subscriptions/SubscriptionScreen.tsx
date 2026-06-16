@@ -111,7 +111,7 @@ export function SubscriptionScreen() {
           {upcomingRenewals.slice(0, 5).map((sub: any, i: number) => (
             <View key={sub.id || i} style={[s.subCard, { backgroundColor: colors.bg.secondary }]}>
               <View style={[s.subIcon, { backgroundColor: `${colors.status.warning}18` }]}>
-                <Ionicons name="refresh" size={16} color={colors.status.warning} />
+                <Ionicons name="refresh-outline" size={16} color={colors.status.warning} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[s.subName, { color: colors.text.primary }]}>{sub.name}</Text>
@@ -192,7 +192,7 @@ export function SubscriptionScreen() {
           {inactiveSubs.map((sub: any, i: number) => (
             <View key={sub.id || i} style={[s.subCard, { backgroundColor: colors.bg.secondary }]}>
               <View style={[s.subIcon, { backgroundColor: `${colors.text.tertiary}18` }]}>
-                <Ionicons name="pause-circle" size={16} color={colors.text.tertiary} />
+                <Ionicons name="pause-circle-outline" size={16} color={colors.text.tertiary} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[s.subName, { color: colors.text.secondary }]}>{sub.name}</Text>

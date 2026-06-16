@@ -138,7 +138,7 @@ export function CustomiseDashboardScreen() {
           ]}
         >
           <Ionicons
-            name="menu"
+            name="menu-outline"
             size={20}
             color={colors.text.tertiary}
             style={{ marginRight: 12 }}

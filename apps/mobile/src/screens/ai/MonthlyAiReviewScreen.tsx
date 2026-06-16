@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Share, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -332,11 +332,173 @@ export function MonthlyAiReviewScreen() {
           </ReAnimated.View>
         )}
 
+        {data.income?.sources?.length > 0 && (
+          <>
+            <SectionHeader title="Income Sources" subtitle="Where your money came from" />
+            <View style={{ paddingHorizontal: 16, gap: 6 }}>
+              {data.income.sources.map((s, i) => (
+                <ReAnimated.View key={i} entering={FadeInUp.duration(300).delay(i * 40)}>
+                  <AiCard padding={12}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Text style={{ fontSize: 13, color: AI_COLORS.text }}>{s.name}</Text>
+                      <Text style={{ fontSize: 13, fontWeight: '600', color: AI_COLORS.success }}>
+                        ₹{s.amount.toLocaleString('en-IN')}
+                      </Text>
+                    </View>
+                  </AiCard>
+                </ReAnimated.View>
+              ))}
+              {data.income.vsLastMonth != null && (
+                <Text style={{ fontSize: 11, color: AI_COLORS.textTertiary, textAlign: 'center', marginTop: 4 }}>
+                  {data.income.vsLastMonth >= 0 ? '↑' : '↓'} {Math.abs(data.income.vsLastMonth).toFixed(1)}% vs last month
+                </Text>
+              )}
+            </View>
+          </>
+        )}
+
+        {data.expenses?.byCategory?.length > 0 && (
+          <>
+            <SectionHeader title="Expenses by Category" subtitle="Where your money went" />
+            <View style={{ paddingHorizontal: 16, gap: 6 }}>
+              {data.expenses.byCategory.map((c, i) => (
+                <ReAnimated.View key={i} entering={FadeInUp.duration(300).delay(i * 40)}>
+                  <AiCard padding={12}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                      <View style={{ flex: 1 }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                          <Text style={{ fontSize: 13, color: AI_COLORS.text }}>{c.category}</Text>
+                          <Text style={{ fontSize: 13, fontWeight: '600', color: AI_COLORS.text }}>
+                            ₹{c.amount.toLocaleString('en-IN')}
+                          </Text>
+                        </View>
+                        <View style={{ height: 4, backgroundColor: AI_COLORS.card, borderRadius: 2, marginTop: 6 }}>
+                          <View style={{ width: `${Math.min(c.percentage, 100)}%`, height: '100%', backgroundColor: AI_COLORS.primary, borderRadius: 2 }} />
+                        </View>
+                      </View>
+                    </View>
+                  </AiCard>
+                </ReAnimated.View>
+              ))}
+              {data.expenses.vsLastMonth != null && (
+                <Text style={{ fontSize: 11, color: AI_COLORS.textTertiary, textAlign: 'center', marginTop: 4 }}>
+                  {data.expenses.vsLastMonth >= 0 ? '↑' : '↓'} {Math.abs(data.expenses.vsLastMonth).toFixed(1)}% vs last month
+                </Text>
+              )}
+            </View>
+          </>
+        )}
+
+        {data.goals?.progress?.length > 0 && (
+          <>
+            <SectionHeader title="Goal Progress" subtitle="Savings goals this month" />
+            <View style={{ paddingHorizontal: 16, gap: 6 }}>
+              {data.goals.progress.map((g, i) => (
+                <ReAnimated.View key={i} entering={FadeInUp.duration(300).delay(i * 40)}>
+                  <AiCard padding={12}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                      <Ionicons
+                        name={g.status === 'completed' ? 'checkmark-circle' : 'time-outline'}
+                        size={18}
+                        color={g.status === 'completed' ? AI_COLORS.success : AI_COLORS.warning}
+                      />
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 13, color: AI_COLORS.text }}>{g.name}</Text>
+                        <View style={{ height: 4, backgroundColor: AI_COLORS.card, borderRadius: 2, marginTop: 4 }}>
+                          <View style={{ width: `${Math.min(g.progress, 100)}%`, height: '100%', backgroundColor: g.status === 'completed' ? AI_COLORS.success : AI_COLORS.primary, borderRadius: 2 }} />
+                        </View>
+                      </View>
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: AI_COLORS.text }}>{g.progress}%</Text>
+                    </View>
+                  </AiCard>
+                </ReAnimated.View>
+              ))}
+              {data.goals.highlight && (
+                <Text style={{ fontSize: 11, color: AI_COLORS.textSecondary, textAlign: 'center', marginTop: 4 }}>{data.goals.highlight}</Text>
+              )}
+            </View>
+          </>
+        )}
+
+        {data.bills && (
+          <>
+            <SectionHeader title="Bills" subtitle={`${data.bills.paid ?? 0} paid, ${data.bills.pending ?? 0} pending`} />
+            <View style={{ paddingHorizontal: 16, gap: 6 }}>
+              <AiCard padding={12}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+                  <View style={{ alignItems: 'center' }}>
+                    <Text style={{ fontSize: 18, fontWeight: '700', color: AI_COLORS.success }}>{data.bills.paid ?? 0}</Text>
+                    <Text style={{ fontSize: 11, color: AI_COLORS.textTertiary }}>Paid</Text>
+                  </View>
+                  <View style={{ alignItems: 'center' }}>
+                    <Text style={{ fontSize: 18, fontWeight: '700', color: AI_COLORS.warning }}>{data.bills.pending ?? 0}</Text>
+                    <Text style={{ fontSize: 11, color: AI_COLORS.textTertiary }}>Pending</Text>
+                  </View>
+                </View>
+              </AiCard>
+              {(data.bills.upcoming ?? []).length > 0 && (
+                <View style={{ gap: 4, marginTop: 4 }}>
+                  <Text style={{ fontSize: 11, fontWeight: '600', color: AI_COLORS.textTertiary }}>UPCOMING</Text>
+                  {data.bills.upcoming.slice(0, 3).map((b, i) => (
+                    <AiCard key={i} padding={10}>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <Text style={{ fontSize: 12, color: AI_COLORS.text }}>{b.name}</Text>
+                        <Text style={{ fontSize: 12, fontWeight: '600', color: AI_COLORS.text }}>
+                          ₹{b.amount.toLocaleString('en-IN')} · {b.dueDate}
+                        </Text>
+                      </View>
+                    </AiCard>
+                  ))}
+                </View>
+              )}
+            </View>
+          </>
+        )}
+
+        {data.insights?.length > 0 && (
+          <>
+            <SectionHeader title="Insights" subtitle="AI-powered observations" />
+            <View style={{ paddingHorizontal: 16, gap: 6 }}>
+              {data.insights.map((insight, i) => (
+                <ReAnimated.View key={i} entering={FadeInUp.duration(300).delay(i * 60)}>
+                  <AiCard padding={12}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <Ionicons name="bulb-outline" size={16} color={AI_COLORS.warning} />
+                      <Text style={{ fontSize: 12, color: AI_COLORS.textSecondary, flex: 1 }}>
+                        {insight}
+                      </Text>
+                    </View>
+                  </AiCard>
+                </ReAnimated.View>
+              ))}
+            </View>
+          </>
+        )}
+
         <ReAnimated.View
           entering={FadeInUp.duration(500)}
           style={{ paddingHorizontal: 16, marginTop: 24 }}
         >
-          <TouchableOpacity style={s.shareBtn}>
+          <TouchableOpacity
+            style={s.shareBtn}
+            onPress={async () => {
+              try {
+                const text = [
+                  `📊 Monthly Review — ${data.period}`,
+                  '',
+                  `Savings: ₹${(data.savings?.total ?? 0).toLocaleString('en-IN')} (${data.savings?.rate ?? 0}%)`,
+                  `Income: ₹${(data.income?.total ?? 0).toLocaleString('en-IN')}`,
+                  `Expenses: ₹${(data.expenses?.total ?? 0).toLocaleString('en-IN')}`,
+                  `Health Score: ${data.healthScore?.current ?? 0}/100`,
+                  '',
+                  data.nextMonthFocus ? `🎯 Next Focus: ${data.nextMonthFocus}` : '',
+                ].filter(Boolean).join('\n');
+                await Share.share({ message: text, title: `Monthly Review — ${data.period}` });
+              } catch {
+                Alert.alert('Error', 'Could not share');
+              }
+            }}
+          >
             <Ionicons name="download-outline" size={18} color="#FFF" />
             <Text style={s.shareBtnText}>Share as PDF</Text>
           </TouchableOpacity>

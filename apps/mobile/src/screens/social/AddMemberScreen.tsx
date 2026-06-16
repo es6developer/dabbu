@@ -210,7 +210,7 @@ export function AddMemberScreen() {
           onPress={() => navigation.goBack()}
           style={[styles.backBtn, { backgroundColor: colors.bg.card }]}
         >
-          <Ionicons name="arrow-back" size={20} color={colors.text.primary} />
+          <Ionicons name="arrow-back-outline" size={20} color={colors.text.primary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Add Member</Text>
         <View style={{ width: 36 }} />
@@ -226,7 +226,7 @@ export function AddMemberScreen() {
           { backgroundColor: colors.bg.card, borderColor: colors.border.default },
         ]}
       >
-        <Ionicons name="search" size={18} color={colors.text.tertiary} />
+        <Ionicons name="search-outline" size={18} color={colors.text.tertiary} />
         <TextInput
           style={[styles.searchInput, { color: colors.text.primary }]}
           value={query}
@@ -242,7 +242,7 @@ export function AddMemberScreen() {
             onPress={() => setQuery('')}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Ionicons name="close-circle" size={18} color={colors.text.tertiary} />
+            <Ionicons name="close-circle-outline" size={18} color={colors.text.tertiary} />
           </TouchableOpacity>
         )}
       </View>
@@ -317,7 +317,7 @@ export function AddMemberScreen() {
               </View>
               {isFavorite(item.id) ? (
                 <View style={[styles.actionBtn, { backgroundColor: 'rgba(20,184,166,0.12)' }]}>
-                  <Ionicons name="star" size={14} color={colors.accent.primary} />
+                  <Ionicons name="star-outline" size={14} color={colors.accent.primary} />
                 </View>
               ) : (
                 <TouchableOpacity
@@ -457,7 +457,7 @@ export function AddMemberScreen() {
         contentContainerStyle={styles.listContainer}
         ListHeaderComponent={
           <View style={styles.syncBanner}>
-            <Ionicons name="people" size={16} color="#34C759" />
+            <Ionicons name="people-outline" size={16} color="#34C759" />
             <Text style={[styles.syncBannerText, { color: colors.text.secondary }]}>
               {matchedContacts.length} friend{matchedContacts.length !== 1 ? 's' : ''} on Dabbu
             </Text>
@@ -465,7 +465,7 @@ export function AddMemberScreen() {
               onPress={handleSyncContacts}
               style={[styles.resyncBtn, { backgroundColor: colors.bg.card }]}
             >
-              <Ionicons name="refresh" size={16} color={colors.text.tertiary} />
+              <Ionicons name="refresh-outline" size={16} color={colors.text.tertiary} />
             </TouchableOpacity>
           </View>
         }
@@ -502,7 +502,7 @@ export function AddMemberScreen() {
               {isAppUser ? (
                 existingMemberIds.includes(userId) ? (
                   <View style={[styles.actionBtn, { backgroundColor: 'rgba(52,199,89,0.12)' }]}>
-                    <Ionicons name="checkmark-circle" size={16} color="#34C759" />
+                    <Ionicons name="checkmark-circle-outline" size={16} color="#34C759" />
                   </View>
                 ) : (
                   <TouchableOpacity

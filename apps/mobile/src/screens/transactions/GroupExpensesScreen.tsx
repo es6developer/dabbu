@@ -612,7 +612,7 @@ export function GroupExpensesScreen() {
                 }
                 style={[s.actionBtn, { backgroundColor: colors.accent.primary }]}
               >
-                <Ionicons name="add" size={22} color="#FFF" />
+                <Ionicons name="add-outline" size={22} color="#FFF" />
                 <Text style={s.actionLabel}>Add</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -626,7 +626,7 @@ export function GroupExpensesScreen() {
                   },
                 ]}
               >
-                <Ionicons name="bar-chart" size={22} color={colors.text.primary} />
+                <Ionicons name="bar-chart-outline" size={22} color={colors.text.primary} />
                 <Text style={[s.actionLabel, { color: colors.text.primary }]}>Analytics</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -646,7 +646,7 @@ export function GroupExpensesScreen() {
                   },
                 ]}
               >
-                <Ionicons name="people" size={22} color={colors.text.primary} />
+                <Ionicons name="people-outline" size={22} color={colors.text.primary} />
                 <Text style={[s.actionLabel, { color: colors.text.primary }]}>Members</Text>
               </TouchableOpacity>
             </View>
@@ -810,7 +810,7 @@ export function GroupExpensesScreen() {
                   { backgroundColor: colors.bg.secondary, borderColor: colors.status.warning },
                 ]}
               >
-                <Ionicons name="lock-closed" size={16} color={colors.status.warning} />
+                <Ionicons name="lock-closed-outline" size={16} color={colors.status.warning} />
                 <Text style={[s.expiredBannerText, { color: colors.text.secondary }]}>
                   This circle expired on {new Date(group.expiresAt).toLocaleDateString('en-IN')}. It
                   is now read-only.
@@ -942,7 +942,7 @@ export function GroupExpensesScreen() {
                     onPress={() => setSettingsOpen(false)}
                     style={[s.sheetClose, { backgroundColor: colors.bg.tertiary }]}
                   >
-                    <Ionicons name="close" size={20} color={colors.text.primary} />
+                    <Ionicons name="close-outline" size={20} color={colors.text.primary} />
                   </TouchableOpacity>
                 </View>
                 <Text style={[s.inputLabel, { color: colors.text.tertiary }]}>Name</Text>
@@ -1069,7 +1069,7 @@ export function GroupExpensesScreen() {
                 style={[s.emptyHubCta, { backgroundColor: colors.accent.primary }]}
                 onPress={handleCreateGroup}
               >
-                <Ionicons name="add" size={18} color="#FFF" />
+                <Ionicons name="add-outline" size={18} color="#FFF" />
                 <Text style={s.emptyHubCtaText}>Create Space</Text>
               </TouchableOpacity>
             </View>
@@ -1247,7 +1247,7 @@ export function GroupExpensesScreen() {
                                 })
                               }
                             >
-                              <Ionicons name="add" size={14} color="#FFF" />
+                              <Ionicons name="add-outline" size={14} color="#FFF" />
                               <Text style={s.quickActionText}>Add</Text>
                             </TouchableOpacity>
                             <TouchableOpacity

@@ -40,6 +40,12 @@ export class GoalsController {
     return { data: goals };
   }
 
+  @Get('templates')
+  @ApiOperation({ summary: 'Get goal templates for quick-creation' })
+  async getTemplates() {
+    return { data: this.goalsService.getTemplates() };
+  }
+
   @Get('stats')
   @ApiOperation({ summary: 'Get goal statistics (total saved, progress, etc.)' })
   async getStats(@CurrentUser('id') userId: string) {

@@ -68,7 +68,7 @@ export function AddExpenseScreen() {
           <View style={{ paddingTop: 12, paddingBottom: 28, paddingHorizontal: 20 }}>
             <View style={s.headerRow}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-                <Ionicons name="close" size={22} color="#FFF" />
+                <Ionicons name="close-outline" size={22} color="#FFF" />
               </TouchableOpacity>
               <Text style={s.headerTitle}>Add {isExpense ? 'Expense' : 'Income'}</Text>
               <TouchableOpacity onPress={handleSave}>
@@ -204,7 +204,7 @@ export function AddExpenseScreen() {
             end={{ x: 1, y: 0 }}
             style={s.saveBtnGrad}
           >
-            <Ionicons name="checkmark-circle" size={18} color="#FFF" />
+            <Ionicons name="checkmark-circle-outline" size={18} color="#FFF" />
             <Text style={s.saveBtnText}>Save {isExpense ? 'Expense' : 'Income'}</Text>
           </LinearGradient>
         </TouchableOpacity>

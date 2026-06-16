@@ -194,6 +194,102 @@ export class GoalsService {
     });
   }
 
+  getTemplates() {
+    return [
+      {
+        type: 'emergency',
+        name: 'Emergency Fund',
+        description: '3-6 months of living expenses for unexpected situations',
+        icon: 'shield-checkmark',
+        color: '#FF6B6B',
+        defaultTarget: 200000,
+        suggestedMonths: 6,
+        category: 'security',
+      },
+      {
+        type: 'vacation',
+        name: 'Dream Vacation',
+        description: 'Save for that perfect getaway you have always wanted',
+        icon: 'airplane',
+        color: '#00B894',
+        defaultTarget: 300000,
+        category: 'lifestyle',
+      },
+      {
+        type: 'home',
+        name: 'New Home',
+        description: 'Down payment for your dream home',
+        icon: 'home',
+        color: '#F97316',
+        defaultTarget: 5000000,
+        category: 'major',
+      },
+      {
+        type: 'car',
+        name: 'New Car',
+        description: 'Save for a new vehicle',
+        icon: 'car-sport',
+        color: '#14B8A6',
+        defaultTarget: 800000,
+        category: 'major',
+      },
+      {
+        type: 'education',
+        name: 'Education Fund',
+        description: 'Invest in learning - courses, degrees, or skills',
+        icon: 'school',
+        color: '#4F6EF7',
+        defaultTarget: 500000,
+        category: 'growth',
+      },
+      {
+        type: 'wedding',
+        name: 'Wedding Fund',
+        description: 'Save for the big day',
+        icon: 'heart',
+        color: '#FF6B9D',
+        defaultTarget: 1000000,
+        category: 'major',
+      },
+      {
+        type: 'retirement',
+        name: 'Retirement',
+        description: 'Build your nest egg for a comfortable retirement',
+        icon: 'umbrella',
+        color: '#247BA0',
+        defaultTarget: 10000000,
+        category: 'longterm',
+      },
+      {
+        type: 'baby',
+        name: 'Baby Fund',
+        description: 'Plan for your growing family - medical, supplies, and future needs',
+        icon: 'happy',
+        color: '#FF69B4',
+        defaultTarget: 500000,
+        category: 'family',
+      },
+      {
+        type: 'savings',
+        name: 'General Savings',
+        description: 'A flexible savings goal for anything important',
+        icon: 'piggy-bank',
+        color: '#8B5CF6',
+        defaultTarget: 100000,
+        category: 'general',
+      },
+      {
+        type: 'investment',
+        name: 'Investment Goal',
+        description: 'Grow your wealth through strategic investing',
+        icon: 'trending-up',
+        color: '#10B981',
+        defaultTarget: 500000,
+        category: 'growth',
+      },
+    ];
+  }
+
   async getStats(userId: string) {
     const goals = await this.prisma.goal.findMany({
       where: { userId, deletedAt: null },

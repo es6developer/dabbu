@@ -113,7 +113,7 @@ export function GroupWalletScreen() {
               onPress={() => setShowCreate(true)}
               style={[styles.addBtn, { backgroundColor: colors.accent.primary }]}
             >
-              <Ionicons name="add" size={22} color="#FFF" />
+              <Ionicons name="add-outline" size={22} color="#FFF" />
             </TouchableOpacity>
           </View>
 
@@ -176,7 +176,7 @@ export function GroupWalletScreen() {
                         setShowContribute(true);
                       }}
                     >
-                      <Ionicons name="add-circle" size={16} color={colors.status.success} />
+                      <Ionicons name="add-circle-outline" size={16} color={colors.status.success} />
                       <Text style={[styles.actionText, { color: colors.status.success }]}>
                         Contribute
                       </Text>
@@ -188,7 +188,7 @@ export function GroupWalletScreen() {
                         setShowSpend(true);
                       }}
                     >
-                      <Ionicons name="remove-circle" size={16} color={colors.status.error} />
+                      <Ionicons name="remove-circle-outline" size={16} color={colors.status.error} />
                       <Text style={[styles.actionText, { color: colors.status.error }]}>Spend</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -197,7 +197,7 @@ export function GroupWalletScreen() {
                         navigation.navigate('WalletTransfer', { fromWalletId: item.id, groupId })
                       }
                     >
-                      <Ionicons name="swap-horizontal" size={16} color={colors.accent.primary} />
+                      <Ionicons name="swap-horizontal-outline" size={16} color={colors.accent.primary} />
                       <Text style={[styles.actionText, { color: colors.accent.primary }]}>
                         Transfer
                       </Text>

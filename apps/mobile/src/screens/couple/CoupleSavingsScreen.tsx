@@ -157,7 +157,7 @@ export function CoupleSavingsScreen() {
         >
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <Ionicons name="arrow-back" size={22} color="#FFF" />
+              <Ionicons name="arrow-back-outline" size={22} color="#FFF" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Savings</Text>
             <View style={{ width: 34 }} />
@@ -447,7 +447,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.12,
     shadowRadius: 16,
-    elevation: 6,
+    elevation: 4,
   },
   goalHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 },
   goalTitle: { fontSize: 16, fontWeight: '800', color: '#F97316' },

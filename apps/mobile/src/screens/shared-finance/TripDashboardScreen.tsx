@@ -258,7 +258,7 @@ export function TripDashboardScreen() {
         onPress={() => navigation.navigate('SharedExpenseForm', { groupId, tripId })}
         activeOpacity={0.85}
       >
-        <Ionicons name="add" size={26} color="#FFF" />
+        <Ionicons name="add-outline" size={26} color="#FFF" />
       </TouchableOpacity>
     </View>
   );
@@ -302,5 +302,5 @@ const s = StyleSheet.create({
   balanceAmt: { fontSize: 14, fontWeight: '800' },
   settleBtn: { paddingHorizontal: 14, paddingVertical: 9, borderRadius: 10 },
   settleBtnText: { color: '#FFF', fontSize: 12, fontWeight: '800' },
-  fab: { position: 'absolute', right: 20, bottom: 28, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 6, zIndex: 100 },
+  fab: { position: 'absolute', right: 20, bottom: 28, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4, zIndex: 100 },
 });

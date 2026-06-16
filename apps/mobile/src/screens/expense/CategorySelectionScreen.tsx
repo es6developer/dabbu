@@ -44,7 +44,7 @@ export function CategorySelectionScreen() {
         <View style={{ paddingTop: insets.top + 12, paddingBottom: 24, paddingHorizontal: 20 }}>
           <View style={s.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-              <Ionicons name="close" size={22} color="#FFF" />
+              <Ionicons name="close-outline" size={22} color="#FFF" />
             </TouchableOpacity>
             <Text style={s.headerTitle}>Select Category</Text>
             <View style={{ width: 34 }} />
@@ -60,7 +60,7 @@ export function CategorySelectionScreen() {
             { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
           ]}
         >
-          <Ionicons name="search" size={16} color={colors.text.tertiary} />
+          <Ionicons name="search-outline" size={16} color={colors.text.tertiary} />
           <TextInput
             style={[s.searchInput, { color: colors.text.primary }]}
             placeholder="Search categories"
@@ -88,7 +88,7 @@ export function CategorySelectionScreen() {
                 onPress={() => navigation.navigate('CreateCategory', { type: transactionType })}
               >
                 <View style={[s.catIcon, { backgroundColor: `${PURPLE}15` }]}>
-                  <Ionicons name="add" size={24} color={PURPLE} />
+                  <Ionicons name="add-outline" size={24} color={PURPLE} />
                 </View>
                 <Text style={[s.catName, { color: colors.text.secondary }]}>Add New</Text>
               </TouchableOpacity>

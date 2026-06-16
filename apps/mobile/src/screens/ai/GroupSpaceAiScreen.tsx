@@ -197,7 +197,7 @@ export function GroupSpaceAiScreen() {
                           {settle.fromName?.[0] ?? '?'}
                         </Text>
                       </View>
-                      <Ionicons name="arrow-forward" size={16} color={AI_COLORS.primary} />
+                      <Ionicons name="arrow-forward-outline" size={16} color={AI_COLORS.primary} />
                       <View style={[s.avatar, { backgroundColor: `${AI_COLORS.success}20` }]}>
                         <Text style={[s.avatarText, { color: AI_COLORS.success }]}>
                           {settle.toName?.[0] ?? '?'}

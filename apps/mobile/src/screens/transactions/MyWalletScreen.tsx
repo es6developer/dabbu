@@ -412,7 +412,7 @@ export function MyWalletScreen() {
             {/* Filter bar */}
             <View style={[s.filterRow, { paddingHorizontal: 20 }]}>
               <View style={[s.searchBox, { backgroundColor: colors.bg.secondary }]}>
-                <Ionicons name="search" size={16} color={colors.text.tertiary} />
+                <Ionicons name="search-outline" size={16} color={colors.text.tertiary} />
                 <TextInput
                   placeholder="Search transactions..."
                   placeholderTextColor={colors.text.tertiary}
@@ -422,7 +422,7 @@ export function MyWalletScreen() {
                 />
                 {search.length > 0 && (
                   <TouchableOpacity onPress={() => setSearch('')}>
-                    <Ionicons name="close-circle" size={16} color={colors.text.tertiary} />
+                    <Ionicons name="close-circle-outline" size={16} color={colors.text.tertiary} />
                   </TouchableOpacity>
                 )}
               </View>

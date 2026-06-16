@@ -175,7 +175,7 @@ export function GlobalSearchScreen() {
             { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
           ]}
         >
-          <Ionicons name="search" size={18} color={colors.text.tertiary} />
+          <Ionicons name="search-outline" size={18} color={colors.text.tertiary} />
           <TextInput
             ref={inputRef}
             style={[styles.searchInput, { color: colors.text.primary }]}
@@ -188,7 +188,7 @@ export function GlobalSearchScreen() {
           />
           {query.length > 0 && (
             <TouchableOpacity onPress={() => setQuery('')}>
-              <Ionicons name="close-circle" size={18} color={colors.text.tertiary} />
+              <Ionicons name="close-circle-outline" size={18} color={colors.text.tertiary} />
             </TouchableOpacity>
           )}
         </View>
@@ -300,7 +300,7 @@ export function GlobalSearchScreen() {
               }
             >
               <View style={[styles.resultIcon, { backgroundColor: `${colors.accent.primary}12` }]}>
-                <Ionicons name="people" size={16} color={colors.accent.primary} />
+                <Ionicons name="people-outline" size={16} color={colors.accent.primary} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text
@@ -331,7 +331,7 @@ export function GlobalSearchScreen() {
               }
             >
               <View style={[styles.resultIcon, { backgroundColor: `${colors.status.warning}12` }]}>
-                <Ionicons name="document-text" size={16} color={colors.status.warning} />
+                <Ionicons name="document-text-outline" size={16} color={colors.status.warning} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text
@@ -369,7 +369,7 @@ export function GlobalSearchScreen() {
                 <View
                   style={[styles.resultIcon, { backgroundColor: `${colors.accent.primary}12` }]}
                 >
-                  <Ionicons name="flag" size={16} color={colors.accent.primary} />
+                  <Ionicons name="flag-outline" size={16} color={colors.accent.primary} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text

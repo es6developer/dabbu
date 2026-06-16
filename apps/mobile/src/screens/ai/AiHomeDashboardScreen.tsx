@@ -127,7 +127,7 @@ export function AiHomeDashboardScreen() {
               shadowOpacity: 0.5,
               shadowRadius: 16,
             },
-            android: { elevation: 10 },
+            android: { elevation: 5 },
           }),
         },
       }),
@@ -285,7 +285,7 @@ export function AiHomeDashboardScreen() {
             </Text>
           </View>
           <TouchableOpacity onPress={() => navigateTo('AiNotifications')} style={s.bellWrap}>
-            <Ionicons name="notifications" size={22} color={AI_COLORS.text} />
+            <Ionicons name="notifications-outline" size={22} color={AI_COLORS.text} />
             <View style={s.bellDot} />
           </TouchableOpacity>
         </ReAnimated.View>
@@ -370,7 +370,7 @@ export function AiHomeDashboardScreen() {
                                 { backgroundColor: `${AI_COLORS.primary}20` },
                               ]}
                             >
-                              <Ionicons name="bulb" size={20} color={AI_COLORS.primary} />
+                              <Ionicons name="bulb-outline" size={20} color={AI_COLORS.primary} />
                             </View>
                             <Text style={s.carouselType}>{insight.severity.toUpperCase()}</Text>
                           </View>
@@ -380,7 +380,7 @@ export function AiHomeDashboardScreen() {
                             <Text style={s.carouselConf}>
                               {Math.round((insight.confidence || 0.8) * 100)}% confidence
                             </Text>
-                            <Ionicons name="arrow-forward" size={16} color={AI_COLORS.primary} />
+                            <Ionicons name="arrow-forward-outline" size={16} color={AI_COLORS.primary} />
                           </View>
                         </AiCard>
                       </TouchableOpacity>
@@ -420,7 +420,7 @@ export function AiHomeDashboardScreen() {
           activeOpacity={0.8}
           style={s.aiFabBtn}
         >
-          <Ionicons name="sparkles" size={24} color="#FFF" />
+          <Ionicons name="sparkles-outline" size={24} color="#FFF" />
         </TouchableOpacity>
       </PulseView>
     </View>

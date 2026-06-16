@@ -114,7 +114,7 @@ export function BadgeWallScreen() {
       >
         <View style={s.heroRow}>
           <View style={s.heroBadgeWrap}>
-            <Ionicons name="trophy" size={32} color="#FDCB6E" />
+            <Ionicons name="trophy-outline" size={32} color="#FDCB6E" />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={s.heroTitle}>Achievements</Text>

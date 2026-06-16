@@ -41,7 +41,7 @@ export function BalanceCard({
         <View style={styles.labelRow}>
           <Text style={styles.label}>Joint Wallet</Text>
           <View style={styles.premiumDot}>
-            <Ionicons name="diamond" size={10} color="#FFFFFF" />
+            <Ionicons name="diamond-outline" size={10} color="#FFFFFF" />
             <Text style={styles.premiumDotText}>PREMIUM</Text>
           </View>
         </View>
@@ -51,15 +51,15 @@ export function BalanceCard({
 
         <View style={styles.actionsRow}>
           <TouchableOpacity style={styles.pill} activeOpacity={0.8} onPress={onSend}>
-            <Ionicons name="arrow-up" size={14} color="#FFFFFF" />
+            <Ionicons name="arrow-up-outline" size={14} color="#FFFFFF" />
             <Text style={styles.pillText}>Send</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.pill} activeOpacity={0.8} onPress={onDeposit}>
-            <Ionicons name="arrow-down" size={14} color="#FFFFFF" />
+            <Ionicons name="arrow-down-outline" size={14} color="#FFFFFF" />
             <Text style={styles.pillText}>Deposit</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.pill} activeOpacity={0.8} onPress={onRequest}>
-            <Ionicons name="arrow-back" size={14} color="#FFFFFF" />
+            <Ionicons name="arrow-back-outline" size={14} color="#FFFFFF" />
             <Text style={styles.pillText}>Request</Text>
           </TouchableOpacity>
         </View>
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.4,
     shadowRadius: 24,
-    elevation: 10,
+    elevation: 5,
   },
   card: {
     borderRadius: 24,

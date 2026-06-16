@@ -111,7 +111,7 @@ export function AppLockScreen({ onUnlock }: Props) {
 
       <View style={styles.topSection}>
         <View style={styles.iconRing}>
-          <Ionicons name="lock-closed" size={28} color="#14B8A6" />
+          <Ionicons name="lock-closed-outline" size={28} color="#14B8A6" />
         </View>
         <Text style={styles.title}>Welcome back</Text>
         <Text style={styles.subtitle}>{user?.firstName || 'User'} · Enter PIN</Text>
@@ -173,7 +173,7 @@ export function AppLockScreen({ onUnlock }: Props) {
 
       <View style={styles.bottomSection}>
         <TouchableOpacity style={styles.biometricBtn} onPress={handleBiometric} activeOpacity={0.7}>
-          <Ionicons name="finger-print" size={22} color="#14B8A6" />
+          <Ionicons name="finger-print-outline" size={22} color="#14B8A6" />
           <Text style={styles.biometricText}>Use Biometric</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={handleForgotPin} activeOpacity={0.6}>

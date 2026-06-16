@@ -269,7 +269,7 @@ function CircleCard({
                   navigation.navigate('SharedExpenseForm', { groupId: item.id, edit: false })
                 }
               >
-                <Ionicons name="add" size={14} color={accentColor} />
+                <Ionicons name="add-outline" size={14} color={accentColor} />
                 <Text style={[card.actionText, { color: accentColor }]}>Add Expense</Text>
               </TouchableOpacity>
               {ed.count > 0 && (
@@ -277,7 +277,7 @@ function CircleCard({
                   style={[card.actionBtn, { backgroundColor: colors.bg.tertiary }]}
                   onPress={() => navigation.navigate('Settlement', { groupId: item.id })}
                 >
-                  <Ionicons name="arrow-forward" size={13} color={colors.text.secondary} />
+                  <Ionicons name="arrow-forward-outline" size={13} color={colors.text.secondary} />
                   <Text style={[card.actionText, { color: colors.text.secondary }]}>Settle Up</Text>
                 </TouchableOpacity>
               )}
@@ -513,7 +513,7 @@ export function SharedCirclesScreen() {
                 style={[s.iconBtn, { backgroundColor: colors.accent.primary }]}
                 onPress={handleCreateGroup}
               >
-                <Ionicons name="add" size={22} color="#FFF" />
+                <Ionicons name="add-outline" size={22} color="#FFF" />
               </TouchableOpacity>
             </View>
           </View>
@@ -596,7 +596,7 @@ export function SharedCirclesScreen() {
               style={[s.emptyCta, { backgroundColor: colors.accent.primary }]}
               onPress={handleCreateGroup}
             >
-              <Ionicons name="add" size={18} color="#FFF" />
+              <Ionicons name="add-outline" size={18} color="#FFF" />
               <Text style={s.emptyCtaText}>Create Circle</Text>
             </TouchableOpacity>
           </View>
@@ -621,7 +621,7 @@ export function SharedCirclesScreen() {
               />
               {search ? (
                 <TouchableOpacity onPress={() => setSearch('')}>
-                  <Ionicons name="close-circle" size={18} color={colors.text.tertiary} />
+                  <Ionicons name="close-circle-outline" size={18} color={colors.text.tertiary} />
                 </TouchableOpacity>
               ) : null}
             </View>

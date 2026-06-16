@@ -234,9 +234,9 @@ export function CreateSharedGroupScreen() {
               autoCapitalize="none"
               returnKeyType="done"
             />
-            {upiStatus === 'valid' && <Ionicons name="checkmark-circle" size={20} color="#34C759" style={{ marginRight: 10 }} />}
-            {upiStatus === 'invalid' && <Ionicons name="alert-circle" size={20} color="#FF4D4F" style={{ marginRight: 10 }} />}
-            {upiStatus === 'checking' && <Ionicons name="sync" size={18} color={colors.text.tertiary} style={{ marginRight: 10 }} />}
+            {upiStatus === 'valid' && <Ionicons name="checkmark-circle-outline" size={20} color="#34C759" style={{ marginRight: 10 }} />}
+            {upiStatus === 'invalid' && <Ionicons name="alert-circle-outline" size={20} color="#FF4D4F" style={{ marginRight: 10 }} />}
+            {upiStatus === 'checking' && <Ionicons name="sync-outline" size={18} color={colors.text.tertiary} style={{ marginRight: 10 }} />}
           </View>
           {upiStatus === 'invalid' && (
             <Text style={{ fontSize: 11, color: '#FF4D4F', marginTop: 4, marginLeft: 2 }}>

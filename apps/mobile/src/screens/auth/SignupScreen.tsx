@@ -64,7 +64,7 @@ export function SignupScreen() {
         <View style={styles.container}>
           <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
             <View style={[styles.backCircle, { backgroundColor: colors.bg.tertiary }]}>
-              <Ionicons name="arrow-back" size={20} color={colors.text.secondary} />
+              <Ionicons name="arrow-back-outline" size={20} color={colors.text.secondary} />
             </View>
           </TouchableOpacity>
 
@@ -89,7 +89,7 @@ export function SignupScreen() {
 
           {error ? (
             <View style={[styles.errorBox, { backgroundColor: `${colors.status.error}12` }]}>
-              <Ionicons name="alert-circle" size={16} color={colors.status.error} />
+              <Ionicons name="alert-circle-outline" size={16} color={colors.status.error} />
               <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text>
             </View>
           ) : null}
@@ -125,7 +125,7 @@ export function SignupScreen() {
 
           {referralCode && (
             <View style={[styles.referralBadge, { backgroundColor: `${colors.accent.primary}12` }]}>
-              <Ionicons name="gift" size={14} color={colors.accent.primary} />
+              <Ionicons name="gift-outline" size={14} color={colors.accent.primary} />
               <Text style={[styles.referralBadgeText, { color: colors.accent.primary }]}>
                 Referral code applied: {referralCode}
               </Text>
