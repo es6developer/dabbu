@@ -84,7 +84,7 @@ function ToastDisplay({ message, type }: { message: string; type: ToastType }) {
         },
       ]}
     >
-      <AntDesign name={iconMap[type]} size={18} color={colorMap[type]} style={styles.icon} />
+      <AntDesign name={iconMap[type] as any} size={18} color={colorMap[type]} style={styles.icon} />
       <Text style={[styles.text, { color: colorMap[type] }]}>{message}</Text>
     </Animated.View>
   );

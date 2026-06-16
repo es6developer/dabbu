@@ -37,17 +37,17 @@ type GoalConfig = {
 };
 
 const GOAL_CONFIGS: Record<string, GoalConfig> = {
-  emergency: { icon: 'shield-checkmark', color: '#FF6B6B' },
-  vacation: { icon: 'airplane', color: '#00B894' },
-  education: { icon: 'school', color: '#4F6EF7' },
+  emergency: { icon: 'Safety', color: '#FF6B6B' },
+  vacation: { icon: 'enviroment', color: '#00B894' },
+  education: { icon: 'book', color: '#4F6EF7' },
   home: { icon: 'home', color: '#F97316' },
-  car: { icon: 'car-sport', color: '#14B8A6' },
+  car: { icon: 'car', color: '#14B8A6' },
   wedding: { icon: 'heart', color: '#FF6B9D' },
-  retirement: { icon: 'umbrella', color: '#247BA0' },
-  savings: { icon: 'piggy-bank', color: '#8B5CF6' },
-  investment: { icon: 'trending-up', color: '#10B981' },
-  baby: { icon: 'happy', color: '#FF69B4' },
-  custom: { icon: 'trophy', color: '#14B8A6' },
+  retirement: { icon: 'cloud', color: '#247BA0' },
+  savings: { icon: 'wallet', color: '#8B5CF6' },
+  investment: { icon: 'arrowup', color: '#10B981' },
+  baby: { icon: 'smile-circle', color: '#FF69B4' },
+  custom: { icon: 'star', color: '#14B8A6' },
 };
 
 const SUGGESTED_GOALS = [
@@ -508,7 +508,7 @@ function GoalCard({
             )}
             {prediction && (
               <View style={s.footerBadge}>
-                <AntDesign  name="hearto" size={11} color={paceColor} />
+                <AntDesign  name="heart" size={11} color={paceColor} />
                 <Text style={[typography.footnote, { color: paceColor, fontWeight: '700' }]}>
                   {prediction.currentPace}
                 </Text>
@@ -545,7 +545,7 @@ function GoalCard({
 
         {flashMilestone !== null && (
           <View style={[StyleSheet.absoluteFill, s.celebrationFlash]}>
-            <AntDesign  name="checkcircleo" size={56} color={config.color} />
+            <AntDesign  name="checkcircle" size={56} color={config.color} />
             <Text style={[typography.h4, { color: '#FFF', marginTop: 4 }]}>
               {flashMilestone}% Reached!
             </Text>
@@ -711,7 +711,7 @@ function GoalsEmptyState({
   return (
     <View style={s.emptyWrap}>
       <EmptyState
-        icon="trophy"
+        icon="flag"
         title="Set your first goal"
         message="Goals turn your dreams into a plan. Save for a vacation, build an emergency fund, or buy your dream home \u2014 Dabbu helps you track every step."
         actionLabel="Create Goal"
@@ -929,7 +929,7 @@ function CreateGoalModal({
                       activeOpacity={0.7}
                     >
                       <AntDesign
-                        name={gt.icon as any}
+                         name={gt.icon as any}
                         size={16}
                         color={type === gt.key ? gt.color : colors.text.secondary}
                       />

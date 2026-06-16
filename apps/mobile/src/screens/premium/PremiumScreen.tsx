@@ -34,22 +34,22 @@ const PLANS = [
 const FALLBACK_PLANS = PLANS;
 
 const PREMIUM_FEATURES = [
-  { icon: 'analytics', label: 'Financial Health Score' },
-  { icon: 'trending-up', label: 'Spending Analysis & Insights' },
-  { icon: 'cash', label: 'Savings Opportunities' },
-  { icon: 'stats-chart', label: 'Expense Pattern Analysis' },
-  { icon: 'options', label: 'Budget Optimization Suggestions' },
+  { icon: 'linechart', label: 'Financial Health Score' },
+  { icon: 'linechart', label: 'Spending Analysis & Insights' },
+  { icon: 'wallet', label: 'Savings Opportunities' },
+  { icon: 'linechart', label: 'Expense Pattern Analysis' },
+  { icon: 'setting', label: 'Budget Optimization Suggestions' },
   { icon: 'calendar', label: 'Cash Flow Forecasting' },
-  { icon: 'trending-up', label: 'Monthly Predictions' },
+  { icon: 'linechart', label: 'Monthly Predictions' },
   { icon: 'flag', label: 'Savings Forecast' },
-  { icon: 'timer', label: 'Goal Completion Forecast' },
-  { icon: 'card', label: 'Loan Payoff Forecast' },
-  { icon: 'people', label: 'Couple Financial Compatibility' },
+  { icon: 'clockcircleo', label: 'Goal Completion Forecast' },
+  { icon: 'creditcard', label: 'Loan Payoff Forecast' },
+  { icon: 'team', label: 'Couple Financial Compatibility' },
   { icon: 'home', label: 'Family Wealth Dashboard' },
-  { icon: 'grid', label: 'Unlimited Custom Dashboards' },
-  { icon: 'layers', label: 'Dashboard Widgets' },
-  { icon: 'funnel', label: 'Advanced Filters' },
-  { icon: 'chatbubbles', label: 'Priority Support' },
+  { icon: 'appstore1', label: 'Unlimited Custom Dashboards' },
+  { icon: 'copy1', label: 'Dashboard Widgets' },
+  { icon: 'filter', label: 'Advanced Filters' },
+  { icon: 'message1', label: 'Priority Support' },
 ];
 
 const FREE_FEATURES = [
@@ -290,7 +290,7 @@ export function PremiumScreen() {
         <ScrollView style={[styles.container, { backgroundColor: '#0A0A1A' }]}>
           <View style={[styles.activeHeader, { paddingTop: insets.top }]}>
             <View style={styles.premiumBadgeLarge}>
-              <AntDesign  name="diamond" size={24} color="#FFD700" />
+              <AntDesign name="star" size={24} color="#FFD700" />
               <Text style={styles.premiumBadgeText}>DABBU PREMIUM</Text>
             </View>
             <Text style={styles.activeTitle}>You're on Premium</Text>
@@ -348,7 +348,7 @@ export function PremiumScreen() {
         >
           <View style={[styles.heroGradient, { paddingTop: insets.top }]}>
             <View style={styles.premiumBadgeSmall}>
-              <AntDesign  name="diamond" size={14} color="#FFD700" />
+              <AntDesign name="star" size={14} color="#FFD700" />
               <Text style={styles.premiumBadgeSmallText}>PREMIUM</Text>
             </View>
             <Text style={styles.heroTitle}>Unlock the Full</Text>
@@ -466,7 +466,7 @@ export function PremiumScreen() {
             <ActivityIndicator size="small" color="#000" />
           ) : (
             <>
-              <AntDesign  name="diamond" size={18} color="#000" style={{ marginRight: 8 }} />
+              <AntDesign name="star" size={18} color="#000" style={{ marginRight: 8 }} />
               <Text style={styles.upgradeText}>Go Premium • {plans[selectedPlan].price}</Text>
             </>
           )}

@@ -52,7 +52,7 @@ export const QuickScrollCategoryGrid: React.FC<QuickScrollCategoryGridProps> = (
           }}
         >
           <AntDesign
-            name={item.icon}
+            name={item.icon as any}
             size={ICON_SIZE}
             color={isSelected ? selectedIconColor : defaultIconColor}
           />

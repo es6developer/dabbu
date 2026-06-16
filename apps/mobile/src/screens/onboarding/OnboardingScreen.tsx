@@ -24,7 +24,7 @@ const slides = [
     desc: 'Track net worth, set shared goals, and grow your money as a couple or family — all in one place.',
   },
   {
-    icon: 'bar-chart',
+    icon: 'barchart',
     title: 'Smart Goal Planning',
     desc: 'Set savings goals, track progress, and let AI suggest the best way to reach each milestone faster.',
   },
@@ -153,6 +153,16 @@ export function OnboardingScreen({ route }: any) {
   const isLast = index === slides.length - 1;
   const isFirst = index === 0;
 
+  useEffect(() => {
+    if (isLast) {
+      const t = setTimeout(async () => {
+        await markSeen();
+        navigation.replace('Login');
+      }, 2000);
+      return () => clearTimeout(t);
+    }
+  }, [isLast, navigation]);
+
   const renderSlide = useCallback(
     ({ item, index: i }: { item: (typeof slides)[0]; index: number }) => (
       <SlideContent item={item} isActive={i === index} colors={colors} />
@@ -222,28 +232,6 @@ export function OnboardingScreen({ route }: any) {
             />
           ))}
         </View>
-
-        {/* Button */}
-        <TouchableOpacity
-          activeOpacity={0.85}
-          onPress={handleNext}
-          style={{
-            backgroundColor: colors.accent.primary,
-            paddingVertical: 16,
-            borderRadius: borderRadius.xl,
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexDirection: 'row',
-            gap: 8,
-            ...shadows.md,
-            shadowColor: colors.accent.primary,
-          }}
-        >
-          <Text style={{ color: '#FFF', fontSize: 17, fontWeight: '700' }}>
-            {isLast ? 'Get Started' : 'Next'}
-          </Text>
-          {!isLast && <AntDesign  name="arrowright" size={18} color="#FFF" />}
-        </TouchableOpacity>
 
         {/* Back button - visible on all except first screen */}
         {!isFirst && (

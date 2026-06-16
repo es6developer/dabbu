@@ -185,7 +185,7 @@ export function SplitTemplatesScreen() {
             }}
             ListEmptyComponent={
               <View style={{ alignItems: 'center', paddingVertical: 60 }}>
-                <AntDesign  name="files" size={48} color={colors.text.tertiary} />
+                <AntDesign name="filetext1" size={48} color={colors.text.tertiary} />
                 <Text style={[s.emptyText, { color: colors.text.tertiary }]}>
                   No templates yet. Create one!
                 </Text>

@@ -85,7 +85,7 @@ export function CreateBudgetScreen() {
     <PremiumFormScreen
       title="Create budget"
       subtitle="Set a polished spending guardrail with period, category, and start/end dates."
-      icon="pie-chart"
+      icon="piechart"
       accent={[colors.status.info, colors.status.success]}
     >
       <PremiumError message={error} />
@@ -133,7 +133,7 @@ export function CreateBudgetScreen() {
       />
       <DatePickerField label="Start Date" value={startDate} onChange={setStartDate} />
       <DatePickerField label="End Date" value={endDate} onChange={setEndDate} optional />
-      <PremiumActionButton title="Create budget" onPress={handleSave} loading={saving} icon="add" />
+      <PremiumActionButton title="Create budget" onPress={handleSave} loading={saving} icon="plus" />
     </PremiumFormScreen>
   );
 }

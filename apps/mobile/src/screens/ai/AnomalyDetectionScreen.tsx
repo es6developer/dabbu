@@ -202,7 +202,7 @@ export function AnomalyDetectionScreen() {
                     <View style={{ flexDirection: 'row', gap: 12 }}>
                       <View style={[s.aIcon, { backgroundColor: `${clr}20` }]}>
                         <AntDesign
-                          name={
+                          name={(
                             a.type === 'spending_spike'
                               ? 'trending-up'
                               : a.type === 'large_transaction'
@@ -210,7 +210,7 @@ export function AnomalyDetectionScreen() {
                                 : a.type === 'income_drop'
                                   ? 'trending-down'
                                   : 'warning'
-                          }
+                          ) as any}
                           size={20}
                           color={clr}
                         />

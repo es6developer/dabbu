@@ -30,7 +30,7 @@ export function QuickActionBar({ actions }: QuickActionBarProps) {
               borderColor: isDark ? 'rgba(255,255,255,0.06)' : colors.border.default,
             }}
           >
-            <AntDesign name={action.icon} size={16} color={colors.brand.primary} />
+            <AntDesign name={action.icon as any} size={16} color={colors.brand.primary} />
             <Text className="ml-2 text-[13px] font-semibold" style={{ color: colors.text.primary }}>
               {action.label}
             </Text>

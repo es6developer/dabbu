@@ -8,6 +8,7 @@ import {
   Alert,
   Animated,
   ActivityIndicator,
+  Switch,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -17,6 +18,7 @@ import { useAuth } from '../../store/AuthContext';
 import { Avatar } from '../../components/ui/Avatar';
 import { CoupleModeToggle } from '../../components/ui/CoupleModeToggle';
 import { useAppLock } from '../../store/LockContext';
+import { usePreferences } from '../../store/PreferencesContext';
 import { api, setAccessToken, getAccessToken } from '../../services/api';
 import { ConfirmDialog } from '../../components/ui';
 import { PADDING, borderRadius, shadows } from '../../theme/design';
@@ -36,16 +38,16 @@ const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
   {
     title: 'Wealth Tools',
     items: [
-      { label: 'Financial Reports', icon: 'stats-chart', screen: 'Reports', premium: true },
+      { label: 'Financial Reports', icon: 'linechart', screen: 'Reports', premium: true },
       { label: 'Export Data', icon: 'download', screen: 'Analytics', premium: true },
-      { label: 'Budgets', icon: 'pie-chart', screen: 'BudgetsList' },
+      { label: 'Budgets', icon: 'piechart', screen: 'BudgetsList' },
     ],
   },
   {
     title: 'Account',
     items: [
-      { label: 'Profile', icon: 'person-circle', screen: 'Profile' },
-      { label: 'Partner Management', icon: 'heart-circle', screen: 'AddPartner' },
+      { label: 'Profile', icon: 'user', screen: 'Profile' },
+      { label: 'Partner Management', icon: 'heart', screen: 'AddPartner' },
       { label: 'Favorite Contacts', icon: 'star', screen: 'FavoriteContacts' },
       { label: 'Refer & Earn', icon: 'gift', screen: 'Referral' },
     ],
@@ -53,46 +55,46 @@ const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
   {
     title: 'Premium',
     items: [
-      { label: 'Premium Plan', icon: 'diamond', screen: 'Premium' },
+      { label: 'Premium Plan', icon: 'star', screen: 'Premium' },
       { label: 'Couple Space', icon: 'heart', screen: 'CoupleSpace' },
     ],
   },
   {
     title: 'Preferences',
     items: [
-      { label: 'Theme', icon: 'color-palette', screen: 'Theme' },
-      { label: 'Notifications', icon: 'notifications', screen: 'NotificationSettings' },
-      { label: 'Security', icon: 'shield-checkmark', screen: 'Security' },
-      { label: 'Lock App', icon: 'lock-closed', screen: 'Security', action: 'lock' },
+      { label: 'Theme', icon: 'skin', screen: 'Theme' },
+      { label: 'Notifications', icon: 'bells', screen: 'NotificationSettings' },
+      { label: 'Security', icon: 'Safety', screen: 'Security' },
+      { label: 'Lock App', icon: 'lock', screen: 'Security', action: 'lock' },
     ],
   },
   {
     title: 'Support',
     items: [
-      { label: 'Help Center', icon: 'help-circle', screen: 'Help' },
-      { label: 'Contact Us', icon: 'chatbubble-ellipses', screen: 'Contact' },
-      { label: 'Privacy Policy', icon: 'document-text', screen: 'Privacy' },
+      { label: 'Help Center', icon: 'questioncircle', screen: 'Help' },
+      { label: 'Contact Us', icon: 'message1', screen: 'Contact' },
+      { label: 'Privacy Policy', icon: 'filetext1', screen: 'Privacy' },
     ],
   },
 ];
 
 const ROW_META: Record<string, { icon: IconName }> = {
-  Profile: { icon: 'person' },
-  'Partner Management': { icon: 'heart-circle' },
-  'Premium Plan': { icon: 'diamond' },
+  Profile: { icon: 'user' },
+  'Partner Management': { icon: 'heart' },
+  'Premium Plan': { icon: 'star' },
   'Favorite Contacts': { icon: 'star' },
   'Refer & Earn': { icon: 'gift' },
-  Security: { icon: 'shield-checkmark' },
-  'Lock App': { icon: 'lock-closed' },
-  'Financial Reports': { icon: 'stats-chart' },
+  Security: { icon: 'Safety' },
+  'Lock App': { icon: 'lock' },
+  'Financial Reports': { icon: 'linechart' },
   'Export Data': { icon: 'download' },
-  Budgets: { icon: 'pie-chart' },
+  Budgets: { icon: 'piechart' },
   'Couple Space': { icon: 'heart' },
-  Theme: { icon: 'color-palette' },
-  Notifications: { icon: 'notifications' },
-  'Help Center': { icon: 'help-circle' },
-  'Contact Us': { icon: 'chatbubble-ellipses' },
-  'Privacy Policy': { icon: 'document-text' },
+  Theme: { icon: 'skin' },
+  Notifications: { icon: 'bells' },
+  'Help Center': { icon: 'questioncircle' },
+  'Contact Us': { icon: 'message1' },
+  'Privacy Policy': { icon: 'filetext1' },
 };
 
 export function SettingsScreen() {
@@ -106,6 +108,7 @@ export function SettingsScreen() {
     rejectCoupleRequest,
   } = useAuth();
   const { lockApp } = useAppLock();
+  const { bottomBarVisible, quickActionVisible, setBottomBarVisibility, setQuickActionVisibility } = usePreferences();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -284,7 +287,7 @@ export function SettingsScreen() {
                 }}
               >
                 <AntDesign
-                  name={isPremium ? 'diamond' : 'user'}
+                  name={isPremium ? 'star' : 'user' as any}
                   size={14}
                   color={isPremium ? colors.accent.primary : colors.text.tertiary}
                 />
@@ -343,7 +346,7 @@ export function SettingsScreen() {
                     gap: 8,
                   }}
                 >
-                  <AntDesign  name="hearto" size={18} color={COUPLE_COLORS.primary} />
+                  <AntDesign  name="heart" size={18} color={COUPLE_COLORS.primary} />
                   <Text
                     style={{
                       fontSize: 14,
@@ -541,7 +544,7 @@ export function SettingsScreen() {
                     justifyContent: 'center',
                   }}
                 >
-                  <AntDesign  name="diamond" size={24} color="#0A0A0A" />
+                  <AntDesign  name="star" size={24} color="#0A0A0A" />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text
@@ -589,6 +592,110 @@ export function SettingsScreen() {
 
           {/* Couple Mode Toggle */}
           <CoupleModeToggle />
+
+          {/* Navigation Visibility */}
+          <View style={{ marginBottom: 24, paddingHorizontal: PADDING }}>
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '700',
+                color: colors.text.tertiary,
+                letterSpacing: 0.8,
+                textTransform: 'uppercase',
+                marginBottom: 10,
+                paddingLeft: 2,
+              }}
+            >
+              Navigation
+            </Text>
+            <View
+              style={{
+                backgroundColor: colors.bg.card,
+                borderRadius: borderRadius.xl,
+                overflow: 'hidden',
+                ...shadows.md,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingVertical: 15,
+                  paddingHorizontal: 18,
+                  gap: 14,
+                  borderBottomWidth: 1,
+                  borderBottomColor: colors.border.subtle,
+                }}
+              >
+                <View
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 12,
+                    backgroundColor: `${colors.accent.primary}10`,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <AntDesign name="bars" size={18} color={colors.accent.primary} />
+                </View>
+                <Text
+                  style={{
+                    flex: 1,
+                    fontSize: 15,
+                    fontWeight: '600',
+                    color: colors.text.primary,
+                  }}
+                >
+                  Bottom Bar
+                </Text>
+                <Switch
+                  value={bottomBarVisible}
+                  onValueChange={setBottomBarVisibility}
+                  trackColor={{ false: colors.border.subtle, true: `${colors.accent.primary}60` }}
+                  thumbColor={bottomBarVisible ? colors.accent.primary : colors.text.tertiary}
+                />
+              </View>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingVertical: 15,
+                  paddingHorizontal: 18,
+                  gap: 14,
+                }}
+              >
+                <View
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 12,
+                    backgroundColor: `${colors.accent.primary}10`,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <AntDesign name="pluscircleo" size={18} color={colors.accent.primary} />
+                </View>
+                <Text
+                  style={{
+                    flex: 1,
+                    fontSize: 15,
+                    fontWeight: '600',
+                    color: colors.text.primary,
+                  }}
+                >
+                  Quick Action Sheet
+                </Text>
+                <Switch
+                  value={quickActionVisible}
+                  onValueChange={setQuickActionVisibility}
+                  trackColor={{ false: colors.border.subtle, true: `${colors.accent.primary}60` }}
+                  thumbColor={quickActionVisible ? colors.accent.primary : colors.text.tertiary}
+                />
+              </View>
+            </View>
+          </View>
 
           {/* Sections */}
           {filteredSECTIONS.map((section, i) => (

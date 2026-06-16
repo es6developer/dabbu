@@ -232,7 +232,7 @@ function GreetingHeader({ netBalance, userName, colors, onSettings }: any) {
             }}
           >
             <AntDesign
-              name={isPositive ? 'arrow-down-circle' : 'arrow-up-circle'}
+              name={(isPositive ? 'downcircle' : 'upcircle') as any}
               size={24}
               color={statusColor}
             />
@@ -637,7 +637,7 @@ export function SharedScreen() {
       <PremiumLoaderScreen
         progress={loadingProgress}
         title="Loading Your Spaces"
-        icon="layers"
+        icon="layers-outline"
       />
     );
   }
@@ -697,7 +697,7 @@ export function SharedScreen() {
             }}
           >
             <AntDesign
-              name={isAtLimit ? 'lock-closed' : 'add'}
+              name={(isAtLimit ? 'lock' : 'plus') as any}
               size={16}
               color={isAtLimit ? colors.status.error : colors.accent.primary}
             />

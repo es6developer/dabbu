@@ -127,7 +127,7 @@ export function AddExpenseScreen() {
                     end={{ x: 1, y: 1 }}
                     style={s.cardIcon}
                   >
-                    <AntDesign name={option.icon} size={26} color="#FFF" />
+                    <AntDesign name={option.icon as any} size={26} color="#FFF" />
                   </LinearGradient>
                   <View style={{ flex: 1 }}>
                     <View style={s.cardTitleRow}>

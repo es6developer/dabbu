@@ -42,4 +42,13 @@ export class UserPreferencesController {
     const catalog = this.svc.getWidgetCatalog(userId);
     return { data: catalog };
   }
+
+  @Put('visibility')
+  @ApiOperation({ summary: 'Toggle bottom bar and quick action sheet visibility' })
+  async updateVisibility(
+    @CurrentUser('id') userId: string,
+    @Body() body: { bottomBarVisible?: boolean; quickActionVisible?: boolean },
+  ) {
+    return this.svc.updateVisibility(userId, body);
+  }
 }

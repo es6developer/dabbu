@@ -37,7 +37,7 @@ function getSections(primary: string, hover: string): Section[] {
   return [
   {
     title: 'Alerts & Reminders',
-    icon: 'notifications',
+    icon: 'bells',
     items: [
       {
         key: 'expenseAlerts',
@@ -57,7 +57,7 @@ function getSections(primary: string, hover: string): Section[] {
         key: 'goalAlerts',
         label: 'Goal Alerts',
         description: 'Progress updates on your financial goals',
-        icon: 'trophy',
+        icon: 'flag',
         gradient: [primary, hover],
       },
       {
@@ -85,13 +85,13 @@ function getSections(primary: string, hover: string): Section[] {
   },
   {
     title: 'Reports',
-    icon: 'stats-chart',
+    icon: 'linechart',
     items: [
       {
         key: 'weeklyDigest',
         label: 'Weekly Digest',
         description: 'Weekly spending trends & insights',
-        icon: 'bar-chart',
+        icon: 'barchart',
         gradient: ['#14B8A6', '#0D9488'],
       },
       {
@@ -105,7 +105,7 @@ function getSections(primary: string, hover: string): Section[] {
   },
   {
     title: 'Marketing',
-    icon: 'megaphone',
+    icon: 'sound',
     items: [
       {
         key: 'marketingNotifications',
@@ -296,7 +296,7 @@ export function NotificationSettingsScreen() {
           <View key={sIdx} style={styles.section}>
             <View style={styles.sectionTitleRow}>
               <AntDesign
-                name={section.icon}
+                name={section.icon as any}
                 size={14}
                 color={colors.text.tertiary}
                 style={{ marginRight: 6 }}
@@ -330,7 +330,7 @@ export function NotificationSettingsScreen() {
                       
                       style={styles.rowIcon}
                     >
-                      <AntDesign name={item.icon} size={15} color={colors.text.primary} />
+                      <AntDesign name={item.icon as any} size={15} color={colors.text.primary} />
                     </View>
                     <View style={styles.rowContent}>
                       <Text style={[styles.rowLabel, { color: colors.text.primary }]}>

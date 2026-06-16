@@ -29,17 +29,17 @@ type GoalConfig = {
 };
 
 const GOAL_CONFIGS: Record<string, GoalConfig> = {
-  emergency: { icon: 'shield-checkmark', color: '#FF6B6B' },
-  vacation: { icon: 'airplane', color: '#00B894' },
-  education: { icon: 'school', color: '#4F6EF7' },
+  emergency: { icon: 'Safety', color: '#FF6B6B' },
+  vacation: { icon: 'earth', color: '#00B894' },
+  education: { icon: 'book', color: '#4F6EF7' },
   home: { icon: 'home', color: '#F97316' },
-  car: { icon: 'car-sport', color: '#14B8A6' },
+  car: { icon: 'car', color: '#14B8A6' },
   wedding: { icon: 'heart', color: '#FF6B9D' },
-  retirement: { icon: 'umbrella', color: '#247BA0' },
-  savings: { icon: 'piggy-bank', color: '#8B5CF6' },
-  investment: { icon: 'trending-up', color: '#10B981' },
-  baby: { icon: 'happy', color: '#FF69B4' },
-  custom: { icon: 'trophy', color: '#14B8A6' },
+  retirement: { icon: 'cloud', color: '#247BA0' },
+  savings: { icon: 'save', color: '#8B5CF6' },
+  investment: { icon: 'linechart', color: '#10B981' },
+  baby: { icon: 'smileo', color: '#FF69B4' },
+  custom: { icon: 'flag', color: '#14B8A6' },
 };
 
 const MILESTONES = [25, 50, 75, 100];

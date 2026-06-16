@@ -17,15 +17,15 @@ const LEVEL_COLORS: Record<string, string> = {
 const XP_PER_LEVEL = 1000;
 
 const ACHIEVEMENTS_META: Record<string, { icon: string; desc: string }> = {
-  first_expense: { icon: 'cart', desc: 'Add your first shared expense' },
+  first_expense: { icon: 'shoppingcart', desc: 'Add your first shared expense' },
   first_goal: { icon: 'flag', desc: 'Create your first goal' },
   first_bill: { icon: 'calendar', desc: 'Pay your first bill' },
-  first_settle: { icon: 'cash', desc: 'Complete your first settlement' },
-  streak_7: { icon: 'flame', desc: '7-day financial streak' },
-  streak_30: { icon: 'flame', desc: '30-day financial streak' },
+  first_settle: { icon: 'wallet', desc: 'Complete your first settlement' },
+  streak_7: { icon: 'star', desc: '7-day financial streak' },
+  streak_30: { icon: 'star', desc: '30-day financial streak' },
   milestone_50: { icon: 'star', desc: '50 combined transactions' },
-  net_worth_1l: { icon: 'trending-up', desc: 'Reach \u20B91L net worth together' },
-  planner_complete: { icon: 'checkmark-done', desc: 'Complete your first planner' },
+  net_worth_1l: { icon: 'linechart', desc: 'Reach \u20B91L net worth together' },
+  planner_complete: { icon: 'checkcircle', desc: 'Complete your first planner' },
 };
 
 function LevelProgress({ xp }: { xp: number }) {
@@ -77,7 +77,7 @@ function LevelProgress({ xp }: { xp: number }) {
 
 function AchievementCard({ id, unlocked, data }: { id: string; unlocked: boolean; data: any }) {
   const { colors } = useTheme();
-  const meta = ACHIEVEMENTS_META[id] || { icon: 'trophy', desc: id };
+  const meta = ACHIEVEMENTS_META[id] || { icon: 'flag', desc: id };
   return (
     <View
       style={{

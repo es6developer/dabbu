@@ -176,19 +176,19 @@ export function PremiumAiPaywallScreen() {
   );
   const PREVIEW_CARDS = [
     {
-      icon: 'analytics' as const,
+      icon: 'linechart' as const,
       title: 'Financial DNA',
       desc: 'Saver Score: 82',
       color: AI_COLORS.primary,
     },
     {
-      icon: 'trending-up' as const,
+      icon: 'linechart' as const,
       title: 'Predictions',
       desc: 'Month-end: ₹24,500',
       color: AI_COLORS.success,
     },
     {
-      icon: 'people' as const,
+      icon: 'team' as const,
       title: 'Family Health',
       desc: 'Score: 76/100',
       color: AI_COLORS.purple,
@@ -219,7 +219,7 @@ export function PremiumAiPaywallScreen() {
           style={[s.heroSection, { paddingTop: insets.top + 60 }]}
         >
           <View style={s.heroIconWrap}>
-            <AntDesign  name="diamond" size={40} color={AI_COLORS.primary} />
+            <AntDesign name="star" size={40} color={AI_COLORS.primary} />
           </View>
           <Text style={s.heroTitle}>Unlock Dabbu AI</Text>
           <Text style={s.heroDesc}>
@@ -248,7 +248,7 @@ export function PremiumAiPaywallScreen() {
                 ]}
               >
                 <View style={[s.previewIcon, { backgroundColor: `${card.color}25` }]}>
-                  <AntDesign name={card.icon} size={28} color={card.color} />
+                  <AntDesign name={card.icon as any} size={28} color={card.color} />
                 </View>
                 <Text style={s.previewTitle}>{card.title}</Text>
                 <Text style={[s.previewDesc, { color: card.color }]}>{card.desc}</Text>

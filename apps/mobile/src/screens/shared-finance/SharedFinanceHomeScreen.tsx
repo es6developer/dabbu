@@ -32,16 +32,16 @@ const SPACE_TYPE_CONFIG: Record<
   string,
   { label: string; icon: string; gradient: [string, string] }
 > = {
-  friends: { label: 'Friends', icon: 'people', gradient: ['#4F6EF7', '#7C8FF8'] },
-  trip: { label: 'Trip', icon: 'airplane', gradient: ['#00B894', '#00D9A6'] },
+  friends: { label: 'Friends', icon: 'team', gradient: ['#4F6EF7', '#7C8FF8'] },
+  trip: { label: 'Trip', icon: 'earth', gradient: ['#00B894', '#00D9A6'] },
   family: { label: 'Family', icon: 'home', gradient: ['#E85D04', '#FF8A3C'] },
   couple: { label: 'Couple', icon: 'heart', gradient: ['#FF6B9D', '#FF8FB3'] },
-  roommates: { label: 'Roommates', icon: 'business', gradient: ['#14B8A6', '#14B8A6'] },
-  office: { label: 'Office', icon: 'briefcase', gradient: ['#247BA0', '#4A9FC7'] },
+  roommates: { label: 'Roommates', icon: 'idcard', gradient: ['#14B8A6', '#14B8A6'] },
+  office: { label: 'Office', icon: 'solution1', gradient: ['#247BA0', '#4A9FC7'] },
   event: { label: 'Event', icon: 'calendar', gradient: ['#D64550', '#FF6B6B'] },
-  apartment: { label: 'Apartment', icon: 'building', gradient: ['#14B8A6', '#14B8A6'] },
-  sports: { label: 'Sports', icon: 'football', gradient: ['#FF6B6B', '#FF8E8E'] },
-  default: { label: 'Group', icon: 'people', gradient: ['#4F6EF7', '#7C8FF8'] },
+  apartment: { label: 'Apartment', icon: 'appstore1', gradient: ['#14B8A6', '#14B8A6'] },
+  sports: { label: 'Sports', icon: 'codesquareo', gradient: ['#FF6B6B', '#FF8E8E'] },
+  default: { label: 'Group', icon: 'team', gradient: ['#4F6EF7', '#7C8FF8'] },
 };
 
 const FREE_MAX = 3;
@@ -582,7 +582,7 @@ export function SharedFinanceHomeScreen() {
                   style={[hdr.iconBtn, { backgroundColor: colors.status.warning + '15' }]}
                   onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}
                 >
-                  <AntDesign  name="diamond" size={18} color={colors.status.warning} />
+                  <AntDesign name="star" size={18} color={colors.status.warning} />
                 </TouchableOpacity>
               </View>
             </View>

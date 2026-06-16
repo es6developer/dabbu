@@ -171,7 +171,7 @@ export function CoupleSavingsScreen() {
         <View style={{ paddingHorizontal: 20, marginTop: -16, gap: 16 }}>
           <View style={[styles.goalCard, { backgroundColor: '#FFEBB4' }]}>
             <View style={styles.goalHeader}>
-              <AntDesign  name="trophy" size={22} color={colors.accent.primary} />
+              <AntDesign name="star" size={22} color={colors.accent.primary} />
               <Text style={styles.goalTitle}>Savings Goal</Text>
             </View>
             <View style={styles.goalRow}>

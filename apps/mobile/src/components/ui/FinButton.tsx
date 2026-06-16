@@ -75,7 +75,7 @@ export function FinButton({
         <ActivityIndicator size="small" color={txtColor} />
       ) : (
         <>
-          {icon && <AntDesign name={icon} size={iconSize} color={txtColor} />}
+          {icon && <AntDesign name={icon as any} size={iconSize} color={txtColor} />}
           <Text
             style={[
               {

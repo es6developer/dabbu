@@ -94,7 +94,7 @@ export function CoupleSpaceScreen() {
     );
   }
 
-  const { user, partner, couple, totalMonthlySpent, goalsProgress, goalsTarget, upcomingBills, partnerSince } = data;
+  const { user, partner, couple, totalMonthlySpent, sharedMonthlyExpenses, sharedMonthlyIncome, recentExpenses, recentIncomes, goalsProgress, goalsTarget, upcomingBills, partnerSince } = data;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg.primary }]}>
@@ -156,6 +156,56 @@ export function CoupleSpaceScreen() {
           </View>
         </View>
 
+        {/* Shared Expenses & Income */}
+        {(sharedMonthlyExpenses > 0 || sharedMonthlyIncome > 0) && (
+          <View style={[styles.card, { backgroundColor: colors.bg.card, borderColor: colors.border.default }]}>
+            <Text style={[styles.cardTitle, { color: colors.text.primary }]}>Shared Finance (This Month)</Text>
+            <View style={{ flexDirection: 'row', gap: 12, marginTop: 10 }}>
+              <View style={[styles.statBox, { backgroundColor: '#DC262615' }]}>
+                <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>Shared Expenses</Text>
+                <Text style={{ fontSize: 18, fontWeight: '800', color: '#DC2626', marginTop: 2 }}>
+                  {fmtShort(sharedMonthlyExpenses)}
+                </Text>
+              </View>
+              <View style={[styles.statBox, { backgroundColor: '#16A34A15' }]}>
+                <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>Shared Income</Text>
+                <Text style={{ fontSize: 18, fontWeight: '800', color: '#16A34A', marginTop: 2 }}>
+                  {fmtShort(sharedMonthlyIncome)}
+                </Text>
+              </View>
+              <View style={[styles.statBox, { backgroundColor: '#2563EB15' }]}>
+                <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>Net</Text>
+                <Text style={{ fontSize: 18, fontWeight: '800', color: '#2563EB', marginTop: 2 }}>
+                  {fmtShort(sharedMonthlyIncome - sharedMonthlyExpenses)}
+                </Text>
+              </View>
+            </View>
+            {/* Recent shared transactions */}
+            {recentExpenses?.length > 0 && (
+              <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.border.subtle }}>
+                <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.secondary, marginBottom: 6 }}>Recent Expenses</Text>
+                {recentExpenses.slice(0, 5).map((e: any) => (
+                  <View key={e.id} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 }}>
+                    <Text style={{ fontSize: 13, color: colors.text.primary, flex: 1 }} numberOfLines={1}>{e.description}</Text>
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: '#DC2626' }}>{fmt(e.amount)}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+            {recentIncomes?.length > 0 && (
+              <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.border.subtle }}>
+                <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.secondary, marginBottom: 6 }}>Recent Income</Text>
+                {recentIncomes.slice(0, 5).map((i: any) => (
+                  <View key={i.id} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 }}>
+                    <Text style={{ fontSize: 13, color: colors.text.primary, flex: 1 }} numberOfLines={1}>{i.source || i.type}</Text>
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: '#16A34A' }}>{fmt(i.amount)}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
+
         {/* Combined Goals */}
         {goalsTarget > 0 && (
           <View style={[styles.card, { backgroundColor: colors.bg.card, borderColor: colors.border.default }]}>
@@ -198,7 +248,7 @@ export function CoupleSpaceScreen() {
             { icon: 'pluscircleo', label: 'Add Expense', color: '#DC2626', screen: 'Expense', params: { screen: 'CategorySelection', params: { type: 'expense' } } },
             { icon: 'linechart', label: 'Add Income', color: '#16A34A', screen: 'Expense', params: { screen: 'CategorySelection', params: { type: 'income' } } },
             { icon: 'wallet', label: 'Wallet', color: '#2563EB', screen: 'Spaces', params: { screen: 'GroupWallet' } },
-            { icon: 'bar-chart', label: 'Net Worth', color: '#7C3AED', screen: 'Dashboard', params: { screen: 'NetWorth' } },
+            { icon: 'barchart', label: 'Net Worth', color: '#7C3AED', screen: 'Dashboard', params: { screen: 'NetWorth' } },
             { icon: 'flag', label: 'Create Goal', color: '#F59E0B', screen: 'Goals', params: {} },
             { icon: 'team', label: 'Expense Group', color: '#14B8A6', screen: 'Expense', params: { screen: 'CreateExpenseGroup' } },
           ].map((action) => (

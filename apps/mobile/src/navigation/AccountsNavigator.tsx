@@ -13,7 +13,8 @@ import { CreateExpenseGroupScreen } from '../screens/transactions/CreateExpenseG
 import { GroupExpensesScreen } from '../screens/transactions/GroupExpensesScreen';
 import { SubscriptionScreen } from '../screens/subscriptions/SubscriptionScreen';
 import { AnalyticsScreen } from '../screens/analytics/AnalyticsScreen';
-import { ExpenseTabNavigator } from './ExpenseTabNavigator';
+import { MyWalletScreen } from '../screens/transactions/MyWalletScreen';
+import { SharedCirclesScreen } from '../screens/transactions/SharedCirclesScreen';
 import { CategorySelectionScreen } from '../screens/expense/CategorySelectionScreen';
 import { AddExpenseScreen as NewAddExpenseScreen } from '../screens/expense/AddExpenseScreen';
 import { CreateCategoryScreen } from '../screens/expense/CreateCategoryScreen';
@@ -29,7 +30,12 @@ export function AccountsNavigator() {
     <Stack.Navigator screenOptions={iosTransitionOptions(theme)}>
       <Stack.Screen
         name="ExpenseHome"
-        component={ExpenseTabNavigator}
+        component={MyWalletScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="SharedCircles"
+        component={SharedCirclesScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

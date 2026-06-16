@@ -45,7 +45,7 @@ export function CreateFamilyScreen() {
     <PremiumFormScreen
       title="Create family"
       subtitle="Build a private space for household money, reminders, goals, and shared decisions."
-      icon="people"
+      icon="team"
       accent={[colors.status.success, colors.accent.primary]}
     >
       <PremiumError message={error} />
@@ -65,7 +65,7 @@ export function CreateFamilyScreen() {
         multiline
         numberOfLines={3}
       />
-      <PremiumActionButton title="Create family" onPress={handleCreate} loading={saving} icon="add" />
+      <PremiumActionButton title="Create family" onPress={handleCreate} loading={saving} icon="plus" />
     </PremiumFormScreen>
   );
 }

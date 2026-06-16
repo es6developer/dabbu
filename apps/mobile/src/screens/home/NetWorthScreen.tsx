@@ -18,18 +18,18 @@ import { useToast } from '../../store/ToastContext';
 
 const ASSET_CATEGORIES = [
   { key: 'bank', label: 'Bank Balance', icon: 'wallet' },
-  { key: 'cash', label: 'Cash', icon: 'cash' },
-  { key: 'gold', label: 'Gold', icon: 'diamond' },
+  { key: 'cash', label: 'Cash', icon: 'wallet' },
+  { key: 'gold', label: 'Gold', icon: 'star' },
   { key: 'property', label: 'Property', icon: 'home' },
-  { key: 'investments', label: 'Investments', icon: 'trending-up' },
-  { key: 'fixedDeposits', label: 'Fixed Deposits', icon: 'lock-closed' },
+  { key: 'investments', label: 'Investments', icon: 'linechart' },
+  { key: 'fixedDeposits', label: 'Fixed Deposits', icon: 'lock' },
 ];
 
 const LIABILITY_CATEGORIES = [
   { key: 'homeLoan', label: 'Home Loan', icon: 'home' },
-  { key: 'personalLoan', label: 'Personal Loan', icon: 'person' },
-  { key: 'creditCard', label: 'Credit Card Debt', icon: 'card' },
-  { key: 'otherLoan', label: 'Other Loans', icon: 'briefcase' },
+  { key: 'personalLoan', label: 'Personal Loan', icon: 'user' },
+  { key: 'creditCard', label: 'Credit Card Debt', icon: 'creditcard' },
+  { key: 'otherLoan', label: 'Other Loans', icon: 'solution1' },
 ];
 
 function fmt(v: number) {

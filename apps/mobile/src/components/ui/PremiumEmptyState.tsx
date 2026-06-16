@@ -30,7 +30,7 @@ export function PremiumEmptyState({ icon, title, message, action }: PremiumEmpty
           marginBottom: 20,
         }}
       >
-        <AntDesign name={icon} size={28} color={`${colors.accent.primary}50`} />
+        <AntDesign name={icon as any} size={28} color={`${colors.accent.primary}50`} />
       </View>
       <Text
         style={{

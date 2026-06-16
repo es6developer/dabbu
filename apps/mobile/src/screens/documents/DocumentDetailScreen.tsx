@@ -21,14 +21,14 @@ import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../../store/ToastContext';
 
 const CATEGORIES = [
-  { key: 'aadhaar', label: 'Aadhaar', icon: 'id-card' },
-  { key: 'pan', label: 'PAN', icon: 'card' },
-  { key: 'passport', label: 'Passport', icon: 'globe' },
+  { key: 'aadhaar', label: 'Aadhaar', icon: 'idcard' },
+  { key: 'pan', label: 'PAN', icon: 'creditcard' },
+  { key: 'passport', label: 'Passport', icon: 'earth' },
   { key: 'driving_license', label: 'Driving License', icon: 'car' },
-  { key: 'insurance', label: 'Insurance', icon: 'shield-checkmark' },
-  { key: 'vehicle_rc', label: 'Vehicle RC', icon: 'document-text' },
-  { key: 'warranty', label: 'Warranty', icon: 'receipt' },
-  { key: 'medical', label: 'Medical', icon: 'medkit' },
+  { key: 'insurance', label: 'Insurance', icon: 'Safety' },
+  { key: 'vehicle_rc', label: 'Vehicle RC', icon: 'filetext1' },
+  { key: 'warranty', label: 'Warranty', icon: 'filetext1' },
+  { key: 'medical', label: 'Medical', icon: 'medicinebox' },
 ];
 
 function fmtDate(d: string | null) {
@@ -344,7 +344,7 @@ export function DocumentDetailScreen() {
             <ActivityIndicator size="small" color="#FFF" />
           ) : (
             <>
-              <AntDesign name={isUpload ? 'cloud-upload' : 'checkmark'} size={18} color="#FFF" />
+              <AntDesign name={(isUpload ? 'upload' : 'check') as any} size={18} color="#FFF" />
               <Text style={s.buttonText}>{isUpload ? 'Upload & Save' : 'Save Changes'}</Text>
             </>
           )}

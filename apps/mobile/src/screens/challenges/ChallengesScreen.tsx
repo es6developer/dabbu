@@ -65,7 +65,7 @@ export function ChallengesScreen() {
 
         {!loading && challenges.totalActive === 0 && (
           <View style={{ alignItems: 'center', paddingTop: 60 }}>
-            <AntDesign  name="trophy" size={48} color={colors.text.tertiary} />
+            <AntDesign name="star" size={48} color={colors.text.tertiary} />
             <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.secondary, marginTop: 12 }}>No challenges yet</Text>
           </View>
         )}

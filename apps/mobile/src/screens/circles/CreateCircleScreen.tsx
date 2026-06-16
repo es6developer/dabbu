@@ -20,10 +20,10 @@ import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingC
 const CIRCLE_TYPES = [
   { key: 'couple', label: 'Couple', icon: 'heart', color: '#FF6B9D' },
   { key: 'family', label: 'Family', icon: 'home', color: '#F97316' },
-  { key: 'friends', label: 'Friends', icon: 'people', color: '#34C759' },
-  { key: 'roommates', label: 'Roommates', icon: 'business', color: '#4F6EF7' },
-  { key: 'trip', label: 'Trip', icon: 'airplane', color: '#14B8A6' },
-  { key: 'sports', label: 'Sports', icon: 'football', color: '#FF6B6B' },
+  { key: 'friends', label: 'Friends', icon: 'team', color: '#34C759' },
+  { key: 'roommates', label: 'Roommates', icon: 'idcard', color: '#4F6EF7' },
+  { key: 'trip', label: 'Trip', icon: 'earth', color: '#14B8A6' },
+  { key: 'sports', label: 'Sports', icon: 'codesquareo', color: '#FF6B6B' },
 ];
 
 const UPI_PATTERN = /^[\w\.\-]+@[\w\-]+$/;

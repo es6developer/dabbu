@@ -7,13 +7,18 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   constructor() {
     const baseUrl = process.env.DATABASE_URL;
+    const isDev = process.env.NODE_ENV !== 'production';
+    const poolOpts = isDev
+      ? 'connection_limit=5&pool_timeout=30'
+      : 'connection_limit=2&pool_timeout=15';
+    const connector = baseUrl?.includes('mysql') ? 'mysql' : 'mysql';
     const url = baseUrl
       ? baseUrl.includes('?')
-        ? baseUrl + '&connection_limit=1&pool_timeout=10'
-        : baseUrl + '?connection_limit=1&pool_timeout=10'
-      : 'mysql://root:@localhost:3306/dabbu?connection_limit=1&pool_timeout=10';
+        ? `${baseUrl}&${poolOpts}`
+        : `${baseUrl}?${poolOpts}`
+      : `mysql://root:@localhost:3306/dabbu?${poolOpts}`;
     super({
-      log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
+      log: isDev ? ['query', 'info', 'warn', 'error'] : ['error'],
       datasourceUrl: url,
     });
   }

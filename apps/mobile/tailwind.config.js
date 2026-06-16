@@ -11,7 +11,7 @@ module.exports = {
         surface: '#FFFFFF',
         'surface-raised': '#FFFFFF',
         'surface-highlight': '#F3E8FF',
-        'dark-canvas': '#000000',
+        'dark-canvas': '#0B0813',
         'dark-surface': '#121214',
         'dark-surface-raised': '#1A1A1E',
         'dark-surface-highlight': '#2E1065',

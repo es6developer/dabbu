@@ -476,6 +476,7 @@ export function PremiumAuthScreen() {
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [referralCode, setReferralCode] = useState('');
 
   const pendingAuthRef = useRef<PendingAuth | null>(null);
   const indicatorX = useRef(new Animated.Value(tab === 'login' ? 0 : TAB_WIDTH)).current;
@@ -548,7 +549,7 @@ export function PremiumAuthScreen() {
     setLoading(true);
     setError('');
     try {
-      await googleLogin(idToken);
+      await googleLogin(idToken, referralCode || undefined);
     } catch (e: any) {
       setError(e.message || 'Google sign-in failed');
     } finally {
@@ -597,6 +598,9 @@ export function PremiumAuthScreen() {
       };
       body.deviceName = 'iPhone';
       body.platform = 'ios';
+      if (referralCode.trim()) {
+        body.referralCode = referralCode.trim();
+      }
 
       const registerRes = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
@@ -845,6 +849,17 @@ export function PremiumAuthScreen() {
                       styles={styles}
                     />
 
+                    <InputField
+                      placeholder="Referral code (optional)"
+                      value={referralCode}
+                      onChangeText={setReferralCode}
+                      autoCapitalize="characters"
+                      returnKeyType="next"
+                      icon="gift"
+                      colors={colors}
+                      styles={styles}
+                    />
+
                     {error ? <ErrorBox message={error} colors={colors} /> : null}
 
                     <PrimaryButton
@@ -899,7 +914,7 @@ export function PremiumAuthScreen() {
               disabled={loading}
               activeOpacity={0.8}
             >
-              <AntDesign  name="rocket" size={20} color={colors.brand.primary} />
+              <AntDesign name="star" size={20} color={colors.brand.primary} />
               <Text style={styles.demoButtonText}>Demo Login</Text>
             </TouchableOpacity>
 

@@ -19,14 +19,14 @@ const PURPLE_DARK = '#6D28D9';
 const GREEN = '#10B981';
 
 const CATEGORY_CHIPS = [
-  { name: 'Food', icon: 'fast-food', color: '#F97316' },
-  { name: 'Travel', icon: 'airplane', color: '#3B82F6' },
-  { name: 'Bills', icon: 'receipt', color: '#14B8A6' },
-  { name: 'Shopping', icon: 'cart', color: '#EC4899' },
-  { name: 'Groceries', icon: 'basket', color: '#22C55E' },
-  { name: 'Entertainment', icon: 'film', color: '#8B5CF6' },
-  { name: 'Sports', icon: 'football', color: '#F59E0B' },
-  { name: 'Other', icon: 'ellipsis-horizontal', color: '#6B7280' },
+  { name: 'Food', icon: 'rest', color: '#F97316' },
+  { name: 'Travel', icon: 'earth', color: '#3B82F6' },
+  { name: 'Bills', icon: 'filetext1', color: '#14B8A6' },
+  { name: 'Shopping', icon: 'shoppingcart', color: '#EC4899' },
+  { name: 'Groceries', icon: 'shoppingcart', color: '#22C55E' },
+  { name: 'Entertainment', icon: 'playcircleo', color: '#8B5CF6' },
+  { name: 'Sports', icon: 'codesquareo', color: '#F59E0B' },
+  { name: 'Other', icon: 'ellipsis1', color: '#6B7280' },
 ];
 
 export function AddExpenseScreen() {

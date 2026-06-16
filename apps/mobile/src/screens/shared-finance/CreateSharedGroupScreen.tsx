@@ -13,15 +13,15 @@ import {
 } from '../../components/ui/PremiumForm';
 
 const GROUP_TYPES = [
-  { key: 'friends', label: 'Friends', icon: 'people', color: '#34C759' },
-  { key: 'trip', label: 'Trip', icon: 'airplane', color: '#14B8A6' },
+  { key: 'friends', label: 'Friends', icon: 'team', color: '#34C759' },
+  { key: 'trip', label: 'Trip', icon: 'earth', color: '#14B8A6' },
   { key: 'family', label: 'Family', icon: 'home', color: '#14B8A6' },
   { key: 'couple', label: 'Couple', icon: 'heart', color: '#FF6B9D' },
-  { key: 'roommates', label: 'Roommates', icon: 'business', color: '#4F6EF7' },
-  { key: 'office', label: 'Office', icon: 'briefcase', color: '#14B8A6' },
+  { key: 'roommates', label: 'Roommates', icon: 'idcard', color: '#4F6EF7' },
+  { key: 'office', label: 'Office', icon: 'solution1', color: '#14B8A6' },
   { key: 'event', label: 'Event', icon: 'calendar', color: '#FF6B6B' },
   { key: 'apartment', label: 'Apartment', icon: 'home', color: '#14B8A6' },
-  { key: 'sports', label: 'Sports', icon: 'football', color: '#FF6B6B' },
+  { key: 'sports', label: 'Sports', icon: 'codesquareo', color: '#FF6B6B' },
 ];
 
 export function CreateSharedGroupScreen() {
@@ -110,7 +110,7 @@ export function CreateSharedGroupScreen() {
     <View style={styles.footer}>
       <PremiumActionButton
         title="Create Space"
-        icon="people"
+        icon="team"
         onPress={handleCreate}
         loading={saving}
       />
@@ -121,14 +121,14 @@ export function CreateSharedGroupScreen() {
     <PremiumFormScreen
       title="Create Space"
       subtitle="Split expenses with friends, family, and more"
-      icon="planet"
+      icon="earth"
       footer={footer}
     >
       <PremiumError message={error} />
 
       <PremiumInput
         label="Space Name"
-        icon="text"
+        icon="filetext1"
         value={name}
         onChangeText={setName}
         placeholder="e.g. Goa Trip 2025"
@@ -175,7 +175,7 @@ export function CreateSharedGroupScreen() {
 
       <PremiumInput
         label="Description (optional)"
-        icon="document-text"
+        icon="filetext1"
         value={description}
         onChangeText={setDescription}
         placeholder="What's this space for?"

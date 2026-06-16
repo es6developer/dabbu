@@ -12,11 +12,11 @@ import { AiInsightCard } from '../../components/ui/AiInsightCard';
 
 function getTypeConfig(primary: string): Record<string, { icon: string; color: string }> {
   return {
-    friends: { icon: 'people', color: primary },
+    friends: { icon: 'team', color: primary },
     couple: { icon: 'heart', color: '#FF6B9D' },
     family: { icon: 'home', color: '#34C759' },
-    trip: { icon: 'airplane', color: '#14B8A6' },
-    business: { icon: 'briefcase', color: '#F59E0B' },
+    trip: { icon: 'earth', color: '#14B8A6' },
+    business: { icon: 'solution1', color: '#F59E0B' },
   };
 }
 
@@ -148,7 +148,7 @@ export function SettlementScreen() {
           {settlementGroups.length > 0 ? (
             settlementGroups.map((g: any) => {
               const cfg = getTypeConfig(colors.accent.primary)[g.type] || {
-                icon: 'people',
+                icon: 'team',
                 color: colors.accent.primary,
               };
               const members = g.members || [];

@@ -129,7 +129,7 @@ export function CoupleDashboard() {
           onPress={() => navigation.navigate('CoupleGoals')}
         >
           <View style={[styles.actionIcon, { backgroundColor: COUPLE_COLORS.heart }]}>
-            <AntDesign  name="trophy" size={22} color="#FFF" />
+            <AntDesign name="star" size={22} color="#FFF" />
           </View>
           <Text style={styles.actionLabel}>Goals</Text>
         </TouchableOpacity>
@@ -208,17 +208,17 @@ export function CoupleDashboard() {
       {/* Couple Navigation Grid */}
       <View style={styles.grid}>
         {[
-          { label: 'Incomes', icon: 'trending-up', color: '#10B981', screen: 'CoupleIncome' },
+          { label: 'Incomes', icon: 'linechart', color: '#10B981', screen: 'CoupleIncome' },
           { label: 'Savings', icon: 'save', color: '#8B5CF6', screen: 'CoupleSavings' },
           { label: 'Bills', icon: 'calendar', color: '#FF9F43', screen: 'CoupleBills' },
-          { label: 'Reports', icon: 'stats-chart', color: '#3B82F6', screen: 'CoupleReports' },
+          { label: 'Reports', icon: 'linechart', color: '#3B82F6', screen: 'CoupleReports' },
           {
             label: 'Settle Up',
-            icon: 'swap-horizontal',
+            icon: 'swap',
             color: '#FF6B81',
             screen: 'CoupleSettlements',
           },
-          { label: 'Settings', icon: 'settings', color: '#64748B', screen: 'CoupleSettings' },
+          { label: 'Settings', icon: 'setting', color: '#64748B', screen: 'CoupleSettings' },
         ].map((item) => (
           <TouchableOpacity
             key={item.screen}

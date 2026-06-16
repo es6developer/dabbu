@@ -143,19 +143,19 @@ function ShareSheet({
   const shareOptions = [
     {
       label: 'WhatsApp',
-      icon: 'logo-whatsapp',
+      icon: 'message1',
       color: '#25D366',
       action: () => Linking.openURL(`https://wa.me/?text=${encodeURIComponent(message)}`),
     },
     {
       label: 'SMS',
-      icon: 'chatbubbles',
+      icon: 'message1',
       color: '#3498DB',
       action: () => Linking.openURL(`sms:&body=${encodeURIComponent(message)}`),
     },
     {
       label: 'Telegram',
-      icon: 'paper-plane',
+      icon: 'enviroment',
       color: '#0088CC',
       action: () =>
         Linking.openURL(
@@ -172,7 +172,7 @@ function ShareSheet({
     },
     {
       label: 'More',
-      icon: 'ellipsis-horizontal',
+      icon: 'ellipsis1',
       color: '#636E72',
       action: () => {
         Share.share({ message, title: 'Invite friends to Dabbu' }).catch(() => {});

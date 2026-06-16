@@ -138,10 +138,10 @@ const QUICK_ACTIONS: {
   screen: string;
   params?: any;
 }[] = [
-  { label: 'Add Expense', icon: 'add-circle', desc: 'Record a new expense', route: 'Expense', screen: 'CategorySelection' },
-  { label: 'Add Income', icon: 'cash', desc: 'Money received', route: 'Expense', screen: 'CategorySelection', params: { type: 'income' } },
-  { label: 'Transfer', icon: 'swap-horizontal', desc: 'Move money between accounts', route: 'Dashboard', screen: 'NetWorth' },
-  { label: 'Goal Contribution', icon: 'gift', desc: 'Add to a savings goal', route: 'Goals', screen: 'GoalsList' },
+  { label: 'Add Expense', icon: 'pluscircle', desc: 'Record a new expense', route: 'Expense', screen: 'CategorySelection' },
+  { label: 'Add Income', icon: 'wallet', desc: 'Money received', route: 'Expense', screen: 'CategorySelection', params: { type: 'income' } },
+  { label: 'Wallet', icon: 'wallet', desc: 'View expenses wallet', route: 'Expense', screen: 'ExpenseHome' },
+  { label: 'Expense Group', icon: 'team', desc: 'Group expense spaces', route: 'Spaces', screen: 'SharedFinanceHome' },
 ];
 
 const COMMON_INDIAN_SUGGESTIONS = [
@@ -291,8 +291,8 @@ export function HomeScreen() {
 
   const hasData = totalBalance !== null && totalBalance > 0 && monthlyIncome > 0;
   const sampleGoals = (!hasData || goals.length === 0) ? [
-    { id: 'sample-1', name: 'Emergency Fund', type: 'emergency', saved: 0, target: 200000, monthlyContribution: 5000, isCompleted: false, color: '#FF6B6B', icon: 'shield-checkmark', targetDate: null },
-    { id: 'sample-2', name: 'Dream Vacation', type: 'vacation', saved: 0, target: 300000, monthlyContribution: 8000, isCompleted: false, color: '#00B894', icon: 'airplane', targetDate: null },
+    { id: 'sample-1', name: 'Emergency Fund', type: 'emergency', saved: 0, target: 200000, monthlyContribution: 5000, isCompleted: false, color: '#FF6B6B', icon: 'Safety', targetDate: null },
+    { id: 'sample-2', name: 'Dream Vacation', type: 'vacation', saved: 0, target: 300000, monthlyContribution: 8000, isCompleted: false, color: '#00B894', icon: 'earth', targetDate: null },
   ] : [];
   const demoGoals = goals.length > 0 ? goals : sampleGoals;
   const sampleTxns: any[] = (!hasData || recentTxns.length === 0) ? [
@@ -587,7 +587,7 @@ export function HomeScreen() {
 
   if (loading) {
     return (
-      <PremiumLoaderScreen progress={loadingProgress} title="Building your Dashboard" icon="layers" tip={loadingTip} />
+      <PremiumLoaderScreen progress={loadingProgress} title="Building your Dashboard" icon="layers-outline" tip={loadingTip} />
     );
   }
 
@@ -807,7 +807,7 @@ export function HomeScreen() {
             {monthlyIncome > 0 && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
                 <AntDesign
-                  name={savings > 0 ? 'trending-up' : 'trending-down'}
+                  name={(savings > 0 ? 'trending-up' : 'trending-down') as any}
                   size={14}
                   color={savings > 0 ? '#10B981' : '#EF4444'}
                 />
@@ -953,7 +953,7 @@ export function HomeScreen() {
         <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
           <View style={[page.quickAddCard, { backgroundColor: colors.bg.card }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <AntDesign  name="thunder" size={16} color={colors.accent.primary} />
+              <AntDesign name="bulb1" size={16} color={colors.accent.primary} />
               <TextInput
                 ref={quickInputRef}
                 style={[page.quickAddInput, { color: colors.text.primary }]}
@@ -1157,8 +1157,8 @@ export function HomeScreen() {
                 style={[page.actionCard, { backgroundColor: colors.bg.card }]}
                 activeOpacity={0.7}
               >
-                <View style={[page.actionIconWrap, { backgroundColor: `${colors.brand.primary}12` }]}>
-                  <AntDesign name={a.icon} size={22} color={colors.brand.primary} />
+                <View style={[page.actionIconWrap, { backgroundColor: `${colors.accent.primary}12` }]}>
+                  <AntDesign name={a.icon as any} size={22} color={colors.accent.primary} />
                 </View>
                 <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary, marginTop: 8 }}>
                   {a.label}
@@ -1188,7 +1188,7 @@ export function HomeScreen() {
               </Text>
               {recentTxns.length > 0 && (
                 <TouchableOpacity
-                  onPress={() => navigation.navigate('Expense', { screen: 'ExpenseHome', params: { initialTab: 'MyWallet' } })}
+                  onPress={() => navigation.navigate('Expense', { screen: 'ExpenseHome' })}
                 >
                   <Text style={{ fontSize: 13, fontWeight: '600', color: colors.brand.primary }}>
                     See All
@@ -1233,7 +1233,7 @@ export function HomeScreen() {
                         }}
                       >
                         <AntDesign
-                          name={isExpense ? 'arrow-up' : 'arrow-down'}
+                          name={(isExpense ? 'arrow-up' : 'arrow-down') as any}
                           size={18}
                           color={isExpense ? colors.status.error : colors.status.success}
                         />
@@ -1308,7 +1308,7 @@ export function HomeScreen() {
               >
                 <View style={[page.insightIcon, { backgroundColor: `${ins.color}12` }]}>
                   <AntDesign
-                    name={INSIGHT_ICONS[ins.label] || 'ellipsis-horizontal'}
+                    name={(INSIGHT_ICONS[ins.label] || 'ellipsis-horizontal') as any}
                     size={18}
                     color={ins.color}
                   />
@@ -1727,7 +1727,7 @@ function ObligationRow({
   const { colors } = useTheme();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-      <AntDesign name={icon} size={14} color={colors.text.tertiary} />
+      <AntDesign name={icon as any} size={14} color={colors.text.tertiary} />
       <Text style={{ flex: 1, fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>{label}</Text>
       <Text style={{ fontSize: 14, fontWeight: '700', color: valueColor }}>{value}</Text>
     </View>

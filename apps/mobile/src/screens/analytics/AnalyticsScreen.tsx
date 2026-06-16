@@ -289,8 +289,8 @@ export function AnalyticsScreen() {
             {/* Summary cards */}
             <View style={styles.summaryRow}>
               {[
-                { label: 'Income', value: mi, color: colors.status.success, icon: 'trending-up' },
-                { label: 'Expenses', value: me, color: colors.status.error, icon: 'trending-down' },
+                { label: 'Income', value: mi, color: colors.status.success, icon: 'linechart' },
+                { label: 'Expenses', value: me, color: colors.status.error, icon: 'arrowdown' },
               ].map((item, i) => (
                 <View
                   key={i}
@@ -307,7 +307,7 @@ export function AnalyticsScreen() {
                   </Text>
                   <View style={styles.trendRow}>
                     <AntDesign
-                      name={
+                      name={(
                         i === 0
                           ? incomeTrend >= 0
                             ? 'arrow-up'
@@ -315,7 +315,7 @@ export function AnalyticsScreen() {
                           : expenseTrend <= 0
                             ? 'arrow-down'
                             : 'arrow-up'
-                      }
+                      ) as any}
                       size={12}
                       color={
                         i === 0
@@ -361,7 +361,7 @@ export function AnalyticsScreen() {
                   label: 'Savings Rate',
                   value: `${Math.round(savingsRate)}%`,
                   color: colors.accent.primary,
-                  icon: 'pie-chart',
+                  icon: 'piechart',
                 },
               ].map((item, i) => (
                 <View
@@ -499,7 +499,7 @@ export function AnalyticsScreen() {
             {/* Empty state */}
             {!mi && !me && catData.length === 0 && (
               <View style={styles.emptyState}>
-                <AntDesign  name="bar-chart" size={48} color={colors.text.tertiary} />
+                <AntDesign name="barchart" size={48} color={colors.text.tertiary} />
                 <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
                   No analytics data yet
                 </Text>

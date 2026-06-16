@@ -32,7 +32,7 @@ const NOTIFICATION_ITEMS: NotificationPref[] = [
   { key: 'newExpenses', label: 'New Expenses', icon: 'creditcard' },
   { key: 'budgetAlerts', label: 'Budget Alerts', icon: 'exclamationcircle' },
   { key: 'billReminders', label: 'Bill Reminders', icon: 'calendar' },
-  { key: 'goalProgress', label: 'Goal Progress', icon: 'trophy' },
+  { key: 'goalProgress', label: 'Goal Progress', icon: 'flag' },
 ];
 
 function daysSince(date: string): number {
@@ -308,7 +308,7 @@ export function CoupleSettingsScreen() {
               return (
                 <View key={item.key} style={[styles.notifRow, !isLast && styles.notifRowBorder]}>
                   <View style={[styles.notifIcon, { backgroundColor: colors.accent.primary }]}>
-                    <AntDesign name={item.icon} size={14} color="#FFF" />
+                    <AntDesign name={(item.icon) as any} size={14} color="#FFF" />
                   </View>
                   <Text style={[styles.notifLabel, { color: colors.text.primary }]}>
                     {item.label}

@@ -60,7 +60,7 @@ export function HelpCenterScreen() {
           <View style={styles.faqHeader}>
             <Text style={[styles.faqQ, { color: colors.text.primary }]}>{faq.q}</Text>
             <AntDesign
-              name={expanded === i ? 'chevron-up' : 'chevron-down'}
+              name={(expanded === i ? 'caretup' : 'caretdown') as any}
               size={18}
               color={colors.text.tertiary}
             />

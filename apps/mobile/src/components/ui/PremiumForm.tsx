@@ -81,7 +81,7 @@ export function PremiumFormScreen({
           <View style={styles.hero}>
             <View style={styles.heroTop}>
               <View style={[styles.heroIcon, { backgroundColor: `${colors.accent.primary}30` }]}>
-                <AntDesign name={icon} size={24} color={colors.text.primary} />
+                <AntDesign name={icon as any} size={24} color={colors.text.primary} />
               </View>
               <View style={[styles.heroPill, { backgroundColor: `${colors.accent.primary}20` }]}>
                 <Text style={[styles.heroPillText, { color: colors.accent.primary }]}>Dabbu</Text>
@@ -142,7 +142,7 @@ export function PremiumInput({
         ]}
       >
         {icon ? (
-          <AntDesign name={icon} size={18} color={colors.text.tertiary} style={styles.inputIcon} />
+          <AntDesign name={icon as any} size={18} color={colors.text.tertiary} style={styles.inputIcon} />
         ) : null}
         <TextInput
           style={[
@@ -226,7 +226,7 @@ export function PremiumChip({ label, selected, icon, onPress }: PremiumChipProps
     >
       {icon ? (
         <AntDesign
-          name={icon}
+          name={icon as any}
           size={14}
           color={selected ? colors.accent.primary : colors.text.tertiary}
         />
@@ -272,7 +272,7 @@ export function PremiumActionButton({
   onPress,
   loading,
   disabled,
-  icon = 'arrow-forward',
+  icon = 'arrowright',
   style,
 }: PremiumActionButtonProps) {
   const { colors } = useTheme();
@@ -294,7 +294,7 @@ export function PremiumActionButton({
       ) : (
         <>
           <Text style={styles.actionText}>{title}</Text>
-          <AntDesign name={icon} size={18} color="#FFFFFF" />
+          <AntDesign name={icon as any} size={18} color="#FFFFFF" />
         </>
       )}
     </TouchableOpacity>

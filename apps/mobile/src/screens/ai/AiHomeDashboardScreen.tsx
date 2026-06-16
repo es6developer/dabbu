@@ -30,10 +30,10 @@ const { width: SCREEN_W } = Dimensions.get('window');
 const CARD_W = SCREEN_W * 0.72;
 
 const QUICK_ACTIONS = [
-  { icon: 'add-circle' as const, label: 'Add Expense' },
+  { icon: 'pluscircle' as const, label: 'Add Expense' },
   { icon: 'camera' as const, label: 'Scan Receipt' },
-  { icon: 'swap-horizontal' as const, label: 'Split Expense' },
-  { icon: 'sparkles' as const, label: 'Ask AI' },
+  { icon: 'swap' as const, label: 'Split Expense' },
+  { icon: 'star' as const, label: 'Ask AI' },
   { icon: 'file1' as const, label: 'Today Feed' },
 ];
 

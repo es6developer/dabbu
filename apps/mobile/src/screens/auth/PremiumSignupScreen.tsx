@@ -74,7 +74,7 @@ function InputField({
     >
       {icon && (
         <AntDesign
-          name={icon}
+          name={icon as any}
           size={18}
           color={focused ? colors.brand.primary : colors.text.tertiary}
         />
@@ -128,6 +128,7 @@ export function PremiumSignupScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
@@ -192,7 +193,7 @@ export function PremiumSignupScreen() {
     setLoading(true);
     setError('');
     try {
-      await googleLogin(idToken);
+      await googleLogin(idToken, referralCode || undefined);
     } catch (e: any) {
       setError(e.message || 'Google sign-up failed');
       setLoading(false);
@@ -221,7 +222,7 @@ export function PremiumSignupScreen() {
     setLoading(true);
     setError('');
     try {
-      await register(email.trim(), password, firstName.trim(), lastName.trim(), phone.trim());
+      await register(email.trim(), password, firstName.trim(), lastName.trim(), phone.trim(), referralCode || undefined);
     } catch (e: any) {
       const msg = e?.message || '';
       const knownErrors: Record<string, string> = {
@@ -489,6 +490,20 @@ export function PremiumSignupScreen() {
                   onFocus={() => setFocusedField('confirm')}
                   onBlur={() => handleBlur('confirm')}
                   error={!!fieldErrors.confirm}
+                />
+
+                <InputField
+                  placeholder="Referral code (optional)"
+                  value={referralCode}
+                  onChangeText={setReferralCode}
+                  autoCapitalize="characters"
+                  returnKeyType="next"
+                  icon="gift"
+                  colors={colors}
+                  focused={focusedField === 'referral'}
+                  onFocus={() => setFocusedField('referral')}
+                  onBlur={() => setFocusedField(null)}
+                  error={false}
                 />
 
                 {/* Error */}

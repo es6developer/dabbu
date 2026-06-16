@@ -99,7 +99,7 @@ function CustomAlert({
           ]}
         >
           <AntDesign
-            name={iconName}
+            name={iconName as any}
             size={48}
             color={accentColor}
             style={styles.icon}

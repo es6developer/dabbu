@@ -258,7 +258,7 @@ export function GlobalSearchScreen() {
               >
                 <View style={[styles.resultIcon, { backgroundColor: `${txColor}12` }]}>
                   <AntDesign
-                    name={getCategoryIcon(tx.category?.name || tx.category)}
+                    name={(getCategoryIcon(tx.category?.name || tx.category)) as any}
                     size={16}
                     color={txColor}
                   />

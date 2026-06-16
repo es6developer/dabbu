@@ -69,11 +69,11 @@ export function DashboardHub() {
         <View className="mt-5">
           <QuickActionBar
             actions={[
-              { icon: 'add-circle', label: 'Add Expense', onPress: () => navigation.navigate('Expense', { screen: 'CategorySelection' }) },
-              { icon: 'swap-horizontal', label: 'Transfer', onPress: () => {} },
-              { icon: 'people', label: 'Split', onPress: () => navigation.navigate('Circles', { screen: 'SplitExpense' }) },
-              { icon: 'receipt', label: 'Bills', onPress: () => navigation.navigate('Expense', { screen: 'BillsList' }) },
-              { icon: 'trending-up', label: 'Reports', onPress: () => navigation.navigate('Settings', { screen: 'Reports' }) },
+              { icon: 'pluscircle', label: 'Add Expense', onPress: () => navigation.navigate('Expense', { screen: 'CategorySelection' }) },
+              { icon: 'swap', label: 'Transfer', onPress: () => {} },
+              { icon: 'team', label: 'Split', onPress: () => navigation.navigate('Circles', { screen: 'SplitExpense' }) },
+              { icon: 'filetext1', label: 'Bills', onPress: () => navigation.navigate('Expense', { screen: 'BillsList' }) },
+              { icon: 'linechart', label: 'Reports', onPress: () => navigation.navigate('Settings', { screen: 'Reports' }) },
             ]}
           />
         </View>
@@ -150,7 +150,7 @@ export function DashboardHub() {
                     }}
                   >
                     <AntDesign
-                      name={tx.amount < 0 ? 'remove' : 'add'}
+                      name={(tx.amount < 0 ? 'remove' : 'add') as any}
                       size={18}
                       color={tx.amount < 0 ? '#EF4444' : '#10B981'}
                     />

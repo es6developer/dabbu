@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../theme';
 import { iosTransitionOptions } from './animations';
 import { SharedScreen } from '../screens/shared-finance/SharedScreen';
+import { SpacesDashboardScreen } from '../screens/spaces/SpacesDashboardScreen';
 import { SharedGroupDetailScreen } from '../screens/shared-finance/SharedGroupDetailScreen';
 import { CreateSharedGroupScreen } from '../screens/shared-finance/CreateSharedGroupScreen';
 import { SharedExpenseFormScreen } from '../screens/shared-finance/SharedExpenseFormScreen';
@@ -29,6 +30,11 @@ export function SharedFinanceNavigator() {
     <Stack.Navigator
       screenOptions={iosTransitionOptions(theme)}
     >
+      <Stack.Screen
+        name="SpacesDashboardHome"
+        component={SpacesDashboardScreen}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen
         name="SharedFinanceHome"
         component={SharedScreen}

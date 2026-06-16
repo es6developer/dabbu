@@ -476,7 +476,7 @@ export function BillDetailScreen() {
                   Raw OCR Text
                 </Text>
                 <AntDesign
-                  name={showOcr ? 'chevron-up' : 'chevron-down'}
+                  name={(showOcr ? 'chevron-up' : 'chevron-down') as any}
                   size={16}
                   color={colors.text.tertiary}
                 />

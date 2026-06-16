@@ -171,7 +171,7 @@ export function HealthScoreCard({ score, trend, title, subtitle, onPress }: Heal
         {trend !== undefined && (
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: sp.xs }}>
             <AntDesign
-              name={trend >= 0 ? 'trending-up' : 'trending-down'}
+              name={(trend >= 0 ? 'trending-up' : 'trending-down') as any}
               size={14}
               color={trend >= 0 ? c.success : c.danger}
             />
@@ -211,7 +211,7 @@ export function QuickActionBtn({ icon, label, onPress, color }: QuickActionBtnPr
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={localStyles.qaBtn}>
       <View style={[localStyles.qaIconWrap, { backgroundColor: `${btnColor}20` }]}>
-        <AntDesign name={icon} size={22} color={btnColor} />
+        <AntDesign name={icon as any} size={22} color={btnColor} />
       </View>
       <Text style={[localStyles.qaLabel, { color: c.textSecondary }]}>{label}</Text>
     </TouchableOpacity>
@@ -232,7 +232,7 @@ interface InsightCardProps {
 }
 
 export function InsightCard({
-  icon = 'bulb',
+  icon = 'bulb1',
   title,
   message,
   type = 'default',
@@ -268,7 +268,7 @@ export function InsightCard({
     >
       <View style={localStyles.insightRow}>
         <View style={[localStyles.insightIcon, { backgroundColor: badgeLight }]}>
-          <AntDesign name={icon} size={18} color={badgeColor} />
+          <AntDesign name={icon as any} size={18} color={badgeColor} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={[localStyles.insightTitle, { color: c.text }]}>{title}</Text>
@@ -422,7 +422,7 @@ export function MetricRow({ label, value, color, icon }: MetricRowProps) {
   return (
     <View style={[localStyles.metricRow, { borderBottomColor: c.border }]}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        {icon && <AntDesign name={icon} size={14} color={valColor} />}
+        {icon && <AntDesign name={icon as any} size={14} color={valColor} />}
         <Text style={[localStyles.metricLabel, { color: c.textSecondary }]}>{label}</Text>
       </View>
       <Text style={[localStyles.metricValue, { color: valColor }]}>{value}</Text>
@@ -566,7 +566,7 @@ export function PremiumBadge({ premium = false }: { premium?: boolean }) {
       style={[localStyles.premiumBadge, { backgroundColor: premium ? c.primaryLight : c.border }]}
     >
       <AntDesign
-        name={premium ? 'diamond' : 'sparkles'}
+        name={(premium ? 'diamond' : 'sparkles') as any}
         size={10}
         color={premium ? c.primary : c.textTertiary}
       />

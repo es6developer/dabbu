@@ -3,7 +3,7 @@ import { Platform, AppState, AppStateStatus } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../store/AuthContext';
-import { registerForPushNotifications } from '../services/notifications';
+import { registerForPushNotifications, resetPushRegistration, addPushTokenListener } from '../services/notifications';
 import { api, setAccessToken } from '../services/api';
 
 type NotificationType =
@@ -128,6 +128,15 @@ export function useNotifications() {
   }, [accessToken, user, fetchUnreadCount]);
 
   useEffect(() => {
+    if (!accessToken) return;
+    const sub = addPushTokenListener(() => {
+      resetPushRegistration();
+      registerForPushNotifications(accessToken).catch(() => {});
+    });
+    return () => sub.remove();
+  }, [accessToken]);
+
+  useEffect(() => {
     notificationResponseListener.current = Notifications.addNotificationResponseReceivedListener(
       (response) => {
         const data = response.notification?.request?.content?.data as NotificationData;
@@ -150,11 +159,15 @@ export function useNotifications() {
     const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
       if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
         fetchUnreadCount();
+        if (accessToken) {
+          resetPushRegistration();
+          registerForPushNotifications(accessToken).catch(() => {});
+        }
       }
       appState.current = nextAppState;
     });
     return () => subscription.remove();
-  }, [fetchUnreadCount]);
+  }, [fetchUnreadCount, accessToken]);
 
   return {
     permissionStatus,

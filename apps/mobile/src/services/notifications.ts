@@ -198,16 +198,16 @@ export async function registerForPushNotifications(accessToken: string): Promise
     let pushToken: string;
     if (Platform.OS === 'android') {
       try {
-        const deviceToken = await Notifications.getDevicePushTokenAsync();
-        pushToken = deviceToken.data;
+        const projectId = getProjectId();
+        const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
+        pushToken = tokenData.data;
       } catch (e) {
-        console.warn('Android native FCM token failed, falling back to Expo push token:', e);
+        console.warn('Android Expo push token failed, falling back to native FCM token:', e);
         try {
-          const projectId = getProjectId();
-          const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
-          pushToken = tokenData.data;
+          const deviceToken = await Notifications.getDevicePushTokenAsync();
+          pushToken = deviceToken.data;
         } catch (e2) {
-          console.warn('Expo push token also failed:', e2);
+          console.warn('Android native FCM token also failed:', e2);
           return;
         }
       }
@@ -265,6 +265,12 @@ export function addNotificationResponseListener(
   handler: (response: Notifications.NotificationResponse) => void,
 ): Notifications.Subscription {
   return Notifications.addNotificationResponseReceivedListener(handler);
+}
+
+export function addPushTokenListener(
+  handler: (token: Notifications.DevicePushToken) => any,
+): Notifications.Subscription {
+  return Notifications.addPushTokenListener(handler);
 }
 
 export function addNotificationReceivedListener(

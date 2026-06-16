@@ -22,13 +22,13 @@ type ThemeColors = ReturnType<typeof useTheme>['colors'];
 function getSeverityColors(colors: ThemeColors) {
   return {
     critical: { bg: colors.status.errorLight, text: colors.status.error, icon: 'warning' },
-    warning: { bg: colors.status.warningLight, text: colors.status.warning, icon: 'alert-circle' },
+    warning: { bg: colors.status.warningLight, text: colors.status.warning, icon: 'exclamationcircle' },
     success: {
       bg: colors.status.successLight,
       text: colors.status.success,
-      icon: 'checkmark-circle',
+      icon: 'checkcircle',
     },
-    info: { bg: colors.status.infoLight, text: colors.status.info, icon: 'bulb' },
+    info: { bg: colors.status.infoLight, text: colors.status.info, icon: 'bulb1' },
   };
 }
 

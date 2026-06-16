@@ -26,7 +26,7 @@ export function UpgradePrompt({ feature, compact = false }: UpgradePromptProps) 
           width: 36, height: 36, borderRadius: 12, backgroundColor: '#8B5CF620',
           alignItems: 'center', justifyContent: 'center',
         }}>
-          <AntDesign  name="diamond" size={18} color="#8B5CF6" />
+          <AntDesign name="star" size={18} color="#8B5CF6" />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFF' }}>
@@ -50,7 +50,7 @@ export function UpgradePrompt({ feature, compact = false }: UpgradePromptProps) 
         width: 56, height: 56, borderRadius: 18, backgroundColor: '#8B5CF620',
         alignItems: 'center', justifyContent: 'center',
       }}>
-        <AntDesign  name="diamond" size={28} color="#8B5CF6" />
+        <AntDesign name="star" size={28} color="#8B5CF6" />
       </View>
       <Text style={{ fontSize: 18, fontWeight: '800', color: '#FFF', textAlign: 'center' }}>
         {feature ? `${feature}` : 'Dabbu Premium'}

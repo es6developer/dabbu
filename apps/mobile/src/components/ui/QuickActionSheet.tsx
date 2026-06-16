@@ -96,7 +96,7 @@ export function QuickActionSheet({ actions, activeItem, visible, onClose }: Quic
                 ]}
               >
                 <AntDesign
-                  name={action.icon as string}
+                  name={action.icon as any}
                   size={24}
                   color={action.color || '#1C1C1E'}
                 />

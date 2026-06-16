@@ -209,16 +209,16 @@ export function SubscriptionScreen() {
         <Text style={[s.sectionTitle, { color: colors.text.primary }]}>Common Subscriptions</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
           {[
-            { name: 'Netflix', icon: 'tv' },
-            { name: 'Amazon Prime', icon: 'cart' },
-            { name: 'Spotify', icon: 'musical-notes' },
-            { name: 'Hotstar', icon: 'film' },
-            { name: 'YouTube Premium', icon: 'logo-youtube' },
-            { name: 'ChatGPT', icon: 'chatbubbles' },
+            { name: 'Netflix', icon: 'tablet1' },
+            { name: 'Amazon Prime', icon: 'shoppingcart' },
+            { name: 'Spotify', icon: 'notification' },
+            { name: 'Hotstar', icon: 'playcircleo' },
+            { name: 'YouTube Premium', icon: 'youtube' },
+            { name: 'ChatGPT', icon: 'message1' },
             { name: 'Google One', icon: 'cloud' },
             { name: 'iCloud', icon: 'cloud' },
-            { name: 'Zomato Pro', icon: 'pizza' },
-            { name: 'Swiggy One', icon: 'bicycle' },
+            { name: 'Zomato Pro', icon: 'gift' },
+            { name: 'Swiggy One', icon: 'car' },
           ].map((item) => (
             <TouchableOpacity
               key={item.name}

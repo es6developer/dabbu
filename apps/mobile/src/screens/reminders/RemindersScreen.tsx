@@ -112,7 +112,7 @@ export function RemindersScreen() {
       <View style={styles.row}>
         <View style={[styles.iconBox, { backgroundColor: getPriorityColor(item.priority) + '20' }]}>
           <AntDesign
-            name={getTypeIcon(item.type)}
+            name={(getTypeIcon(item.type)) as any}
             size={20}
             color={getPriorityColor(item.priority)}
           />

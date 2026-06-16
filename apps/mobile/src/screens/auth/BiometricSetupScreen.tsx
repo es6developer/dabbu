@@ -28,7 +28,7 @@ export function BiometricSetupScreen() {
   return (
     <View style={styles.container}>
       <View style={[styles.iconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
-        <AntDesign  name="fingerprint" size={56} color={colors.accent.primary} />
+        <AntDesign name="checkcircle" size={56} color={colors.accent.primary} />
       </View>
       <Text style={[styles.title, { color: colors.text.primary }]}>Secure your account</Text>
       <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>

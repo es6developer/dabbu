@@ -51,7 +51,7 @@ export function CelebrationOverlay({
   onDismiss,
   title,
   subtitle,
-  icon = 'checkmark-circle',
+  icon = 'checkcircle',
 }: CelebrationOverlayProps) {
   const { colors } = useTheme();
   const opacity = useRef(new Animated.Value(0)).current;

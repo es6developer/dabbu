@@ -38,7 +38,7 @@ export function OfflineBanner() {
         paddingHorizontal: 16,
       }}
     >
-      <AntDesign name={icon} size={14} color={text} />
+      <AntDesign name={icon as any} size={14} color={text} />
       <Text style={{ fontSize: 12, fontWeight: '600', color: text }}>{message}</Text>
     </View>
   );

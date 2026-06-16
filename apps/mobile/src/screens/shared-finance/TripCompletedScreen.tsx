@@ -137,7 +137,7 @@ export function TripCompletedScreen({ route, navigation }: TripCompletedScreenPr
             
             style={styles.ctaGradient}
           >
-            <AntDesign  name="rocket" size={20} color="#FFF" />
+            <AntDesign name="star" size={20} color="#FFF" />
             <Text style={styles.ctaText}>Claim Your Free Premium Trial</Text>
           </View>
         </TouchableOpacity>

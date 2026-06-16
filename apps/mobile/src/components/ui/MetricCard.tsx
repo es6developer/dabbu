@@ -37,7 +37,7 @@ export function MetricCard({ label, value, icon, trend, color, cardBg, onPress }
             justifyContent: 'center',
           }}
         >
-          <AntDesign name={icon} size={18} color={accentColor} />
+          <AntDesign name={icon as any} size={18} color={accentColor} />
         </View>
         {trend && (
           <View
@@ -55,7 +55,7 @@ export function MetricCard({ label, value, icon, trend, color, cardBg, onPress }
             }}
           >
             <AntDesign
-              name={trend.positive ? 'trending-up' : 'trending-down'}
+              name={(trend.positive ? 'trending-up' : 'trending-down') as any}
               size={12}
               color={trend.positive ? colors.status.success : colors.status.error}
             />

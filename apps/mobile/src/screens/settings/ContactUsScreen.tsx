@@ -5,9 +5,9 @@ import { useTheme } from '../../theme';
 
 const CONTACT_OPTIONS = [
   { icon: 'mail' as const, label: 'Email Us', value: 'support@dabbu.app', action: 'mailto:support@dabbu.app' },
-  { icon: 'call' as const, label: 'Call Us', value: '1800-123-4567', action: 'tel:18001234567' },
-  { icon: 'globe' as const, label: 'Website', value: 'www.dabbu.app', action: 'https://dabbu.app' },
-  { icon: 'logo-twitter' as const, label: 'Twitter', value: '@dabbu_app', action: 'https://twitter.com/dabbu_app' },
+  { icon: 'phone' as const, label: 'Call Us', value: '1800-123-4567', action: 'tel:18001234567' },
+  { icon: 'earth' as const, label: 'Website', value: 'www.dabbu.app', action: 'https://dabbu.app' },
+  { icon: 'twitter' as const, label: 'Twitter', value: '@dabbu_app', action: 'https://twitter.com/dabbu_app' },
 ];
 
 export function ContactUsScreen() {
@@ -31,13 +31,13 @@ export function ContactUsScreen() {
           activeOpacity={0.7}
         >
           <View style={[styles.iconWrap, { backgroundColor: colors.bg.secondary }]}>
-            <AntDesign name={opt.icon} size={22} color={colors.accent.primary} />
+            <AntDesign name={opt.icon as any} size={22} color={colors.accent.primary} />
           </View>
           <View style={styles.info}>
             <Text style={[styles.label, { color: colors.text.primary }]}>{opt.label}</Text>
             <Text style={[styles.value, { color: colors.text.tertiary }]}>{opt.value}</Text>
           </View>
-          <AntDesign  name="newwindow" size={18} color={colors.text.tertiary} />
+          <AntDesign name="folder1" size={18} color={colors.text.tertiary} />
         </TouchableOpacity>
       ))}
 

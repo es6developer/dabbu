@@ -233,7 +233,7 @@ export function BudgetDetailScreen() {
             }}
           >
             <AntDesign
-              name={categoryIcons[catName] || 'wallet'}
+              name={(categoryIcons[catName] || 'wallet') as any}
               size={22}
               color={colors.accent.primary}
             />

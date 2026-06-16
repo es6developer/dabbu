@@ -240,7 +240,7 @@ export function MonthlyAiReviewScreen() {
                 <ReAnimated.View key={i} entering={FadeInUp.duration(300).delay(i * 60)}>
                   <AiCard padding={14}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                      <AntDesign  name="trophy" size={20} color={AI_COLORS.warning} />
+                      <AntDesign name="star" size={20} color={AI_COLORS.warning} />
                       <Text style={{ fontSize: 13, color: AI_COLORS.text, flex: 1 }}>{a}</Text>
                     </View>
                   </AiCard>
@@ -272,7 +272,7 @@ export function MonthlyAiReviewScreen() {
                   <AiCard padding={12}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                       <AntDesign
-                        name={b.status === 'exceeded' ? 'alert-circle' : 'checkmark-circle'}
+                        name={(b.status === 'exceeded' ? 'alert-circle' : 'checkmark-circle') as any}
                         size={18}
                         color={b.status === 'exceeded' ? AI_COLORS.danger : AI_COLORS.success}
                       />
@@ -398,7 +398,7 @@ export function MonthlyAiReviewScreen() {
                   <AiCard padding={12}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                       <AntDesign
-                        name={g.status === 'completed' ? 'checkmark-circle' : 'clockcircleo'}
+                        name={(g.status === 'completed' ? 'checkmark-circle' : 'clockcircleo') as any}
                         size={18}
                         color={g.status === 'completed' ? AI_COLORS.success : AI_COLORS.warning}
                       />

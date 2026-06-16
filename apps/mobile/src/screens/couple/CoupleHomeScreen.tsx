@@ -48,10 +48,10 @@ const QUICK_ACTIONS = [
   { key: 'CoupleExpenses', icon: 'shoppingcart', label: 'Expenses', color: '#FF6B6B' },
   { key: 'CoupleBudgets', icon: 'wallet', label: 'Budgets', color: '#F59E0B' },
   { key: 'CoupleSavings', icon: 'save', label: 'Savings', color: '#60A5FA' },
-  { key: 'CoupleGoals', icon: 'trophy', label: 'Goals', color: '#A78BFA' },
+  { key: 'CoupleGoals', icon: 'flag', label: 'Goals', color: '#A78BFA' },
   { key: 'CoupleBills', icon: 'calendar', label: 'Bills', color: '#FF8A65' },
   { key: 'CoupleSettlements', icon: 'wallet', label: 'Settle', color: '#14B8A6' },
-  { key: 'CoupleReports', icon: 'bar-chart', label: 'Reports', color: '#4F46E5' },
+  { key: 'CoupleReports', icon: 'barchart', label: 'Reports', color: '#4F46E5' },
   { key: 'CouplePlanners', icon: 'find', label: 'Planners', color: '#60A5FA' },
   { key: 'CoupleTimeline', icon: 'clockcircleo', label: 'Timeline', color: '#34C759' },
   { key: 'CoupleCoach', icon: 'bulb1', label: 'AI Coach', color: '#8B5CF6' },
@@ -311,15 +311,15 @@ export function CoupleHomeScreen() {
                 </TouchableOpacity>
               </View>
               <View style={{ flexDirection: 'row', gap: 8 }}>
-                <StatCard icon="trending-up" label="Income" value={fmt(data?.monthlySnapshot?.income || 0)} color={colors.status.success} />
-                <StatCard icon="cart" label="Expenses" value={fmt(data?.monthlySnapshot?.expenses || 0)} color={colors.status.error} />
+                <StatCard icon="linechart" label="Income" value={fmt(data?.monthlySnapshot?.income || 0)} color={colors.status.success} />
+                <StatCard icon="shoppingcart" label="Expenses" value={fmt(data?.monthlySnapshot?.expenses || 0)} color={colors.status.error} />
                 <StatCard icon="save" label="Savings" value={fmt(data?.monthlySnapshot?.savings || 0)} color={colors.status.info} />
-                <StatCard icon="pie-chart" label="Rate" value={`${data?.monthlySnapshot?.savingsRate || 0}%`} color={colors.accent.secondary} />
+                <StatCard icon="piechart" label="Rate" value={`${data?.monthlySnapshot?.savingsRate || 0}%`} color={colors.accent.secondary} />
               </View>
               {data?.monthlySnapshot?.change !== null && data.monthlySnapshot.change !== 0 && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
                   <AntDesign
-                    name={data.monthlySnapshot.change > 0 ? 'trending-up' : 'trending-down'}
+                    name={(data.monthlySnapshot.change > 0 ? 'linechart' : 'arrowdown') as any}
                     size={14}
                     color={data.monthlySnapshot.change > 0 ? colors.status.error : colors.status.success}
                   />
@@ -393,7 +393,7 @@ export function CoupleHomeScreen() {
                         backgroundColor: `${colors.accent.secondary}18`,
                         alignItems: 'center', justifyContent: 'center',
                       }}>
-                        <AntDesign  name="trophy" size={16} color={colors.accent.secondary} />
+                        <AntDesign name="star" size={16} color={colors.accent.secondary} />
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }}>
@@ -469,7 +469,7 @@ export function CoupleHomeScreen() {
                       backgroundColor: `${colors.status.warning}20`,
                       alignItems: 'center', justifyContent: 'center',
                     }}>
-                      <AntDesign  name="diamond" size={18} color={colors.status.warning} />
+                      <AntDesign name="star" size={18} color={colors.status.warning} />
                     </View>
                     <View>
                       <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>{g.level}</Text>

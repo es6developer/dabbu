@@ -19,17 +19,17 @@ const WIDGET_META: Record<string, { label: string; icon: string; desc: string }>
   },
   quickActions: {
     label: 'Quick Actions',
-    icon: 'flash',
+    icon: 'bulb1',
     desc: 'Add Expense, Scan Bill, Split, Reminder',
   },
   financialHealth: {
     label: 'Financial Health',
-    icon: 'heart-circle',
+    icon: 'heart',
     desc: 'Health score, factors, recommendations',
   },
   monthlySpending: {
     label: 'Monthly Spending',
-    icon: 'pie-chart',
+    icon: 'piechart',
     desc: 'Category breakdown with bars',
   },
   savingsProgress: {
@@ -39,32 +39,32 @@ const WIDGET_META: Record<string, { label: string; icon: string; desc: string }>
   },
   goals: {
     label: 'Goals',
-    icon: 'trophy',
+    icon: 'star',
     desc: 'Individual goal progress cards',
   },
   upcomingBills: {
     label: 'Upcoming Bills',
-    icon: 'receipt',
+    icon: 'filetext1',
     desc: 'Bills due within 15 days',
   },
   subscriptions: {
     label: 'Subscriptions',
-    icon: 'card',
+    icon: 'creditcard',
     desc: 'Monthly/yearly subscription totals',
   },
   insights: {
     label: 'Smart Insights',
-    icon: 'bulb',
+    icon: 'bulb1',
     desc: 'AI-powered spending insights',
   },
   gamification: {
     label: 'Achievements',
-    icon: 'trophy',
+    icon: 'star',
     desc: 'Badges earned and activity streaks',
   },
   sharedCircles: {
     label: 'Shared Circles',
-    icon: 'people',
+    icon: 'team',
     desc: 'Your shared finance groups',
   },
   familySummary: {
@@ -72,10 +72,10 @@ const WIDGET_META: Record<string, { label: string; icon: string; desc: string }>
     icon: 'home',
     desc: 'Couple/family group summaries',
   },
-  snapshots: { label: 'Snapshot Cards', icon: 'stats-chart', desc: 'Top spend & groups summary' },
-  spaces: { label: 'Spaces', icon: 'layers', desc: 'Expense group spaces' },
-  recentActivity: { label: 'Recent Activity', icon: 'time', desc: 'Latest transactions' },
-  features: { label: 'Features Grid', icon: 'grid', desc: 'App feature shortcuts' },
+  snapshots: { label: 'Snapshot Cards', icon: 'barchart', desc: 'Top spend & groups summary' },
+  spaces: { label: 'Spaces', icon: 'appstore1', desc: 'Expense group spaces' },
+  recentActivity: { label: 'Recent Activity', icon: 'clockcircleo', desc: 'Latest transactions' },
+  features: { label: 'Features Grid', icon: 'appstore1', desc: 'App feature shortcuts' },
 };
 
 export function CustomiseDashboardScreen() {
@@ -121,7 +121,7 @@ export function CustomiseDashboardScreen() {
   };
 
   const renderItem = ({ item, drag, isActive, getIndex }: RenderItemParams<any>) => {
-    const meta = WIDGET_META[item.id] || { label: item.id, icon: 'help', desc: '' };
+    const meta = WIDGET_META[item.id] || { label: item.id, icon: 'questioncircle', desc: '' };
     const idx = getIndex() ?? 0;
     return (
       <ScaleDecorator>

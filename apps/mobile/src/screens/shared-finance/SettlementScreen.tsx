@@ -181,7 +181,7 @@ export function SettlementScreen() {
           contentContainerStyle={[s.sectionRow, { paddingHorizontal: 20 }]}
         >
           {([
-            { key: 'pending' as const, label: 'Pending', icon: 'swap-horizontal' },
+            { key: 'pending' as const, label: 'Pending', icon: 'swap' },
             { key: 'history' as const, label: 'History', icon: 'clockcircleo' },
           ]).map((section) => (
             <TouchableOpacity

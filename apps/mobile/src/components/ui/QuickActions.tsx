@@ -28,7 +28,7 @@ export function QuickActions({ actions }: QuickActionsProps) {
             onPress={action.onPress}
           >
             <View style={[styles.iconWrap, { backgroundColor: `${action.color}15` }]}>
-              <AntDesign name={action.icon} size={22} color={action.color} />
+              <AntDesign name={action.icon as any} size={22} color={action.color} />
             </View>
             <Text style={[styles.label, { color: colors.text.secondary }]} numberOfLines={1}>
               {action.label}

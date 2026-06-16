@@ -20,14 +20,14 @@ import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CATEGORIES = [
-  { key: 'aadhaar', label: 'Aadhaar', icon: 'id-card' },
-  { key: 'pan', label: 'PAN', icon: 'card' },
-  { key: 'passport', label: 'Passport', icon: 'globe' },
+  { key: 'aadhaar', label: 'Aadhaar', icon: 'idcard' },
+  { key: 'pan', label: 'PAN', icon: 'creditcard' },
+  { key: 'passport', label: 'Passport', icon: 'earth' },
   { key: 'driving_license', label: 'Driving License', icon: 'car' },
-  { key: 'insurance', label: 'Insurance', icon: 'shield-checkmark' },
-  { key: 'vehicle_rc', label: 'Vehicle RC', icon: 'document-text' },
-  { key: 'warranty', label: 'Warranty', icon: 'receipt' },
-  { key: 'medical', label: 'Medical', icon: 'medkit' },
+  { key: 'insurance', label: 'Insurance', icon: 'Safety' },
+  { key: 'vehicle_rc', label: 'Vehicle RC', icon: 'filetext1' },
+  { key: 'warranty', label: 'Warranty', icon: 'filetext1' },
+  { key: 'medical', label: 'Medical', icon: 'medicinebox' },
 ];
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -347,7 +347,7 @@ export function DocumentVaultScreen() {
         }}
         ListEmptyComponent={
           <View style={s.emptyState}>
-            <AntDesign  name="folderopen" size={48} color={colors.text.tertiary} />
+            <AntDesign  name="folder1" size={48} color={colors.text.tertiary} />
             <Text style={[s.emptyTitle, { color: colors.text.primary }]}>No Documents</Text>
             <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>
               {selectedCategory

@@ -8,18 +8,26 @@ export class UserPreferencesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getPreferences(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        dashboardLayout: true,
-        bottomMenuConfig: true,
-        preferredPrimaryColor: true,
-      },
-    });
+    const [user, settings] = await Promise.all([
+      this.prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          dashboardLayout: true,
+          bottomMenuConfig: true,
+          preferredPrimaryColor: true,
+        },
+      }),
+      this.prisma.settings.findUnique({
+        where: { userId },
+        select: { bottomBarVisible: true, quickActionVisible: true },
+      }),
+    ]);
     return {
       dashboardLayout: user?.dashboardLayout || this.defaultDashboardLayout(),
       bottomMenuConfig: user?.bottomMenuConfig || this.defaultBottomMenuConfig(),
       preferredPrimaryColor: user?.preferredPrimaryColor || null,
+      bottomBarVisible: settings?.bottomBarVisible ?? true,
+      quickActionVisible: settings?.quickActionVisible ?? true,
     };
   }
 
@@ -45,6 +53,21 @@ export class UserPreferencesService {
       data: { preferredPrimaryColor: color },
     });
     return { message: 'Primary color updated' };
+  }
+
+  async updateVisibility(
+    userId: string,
+    data: { bottomBarVisible?: boolean; quickActionVisible?: boolean },
+  ) {
+    const settings = await this.prisma.settings.upsert({
+      where: { userId },
+      update: data,
+      create: { userId, ...data },
+    });
+    return {
+      bottomBarVisible: settings.bottomBarVisible,
+      quickActionVisible: settings.quickActionVisible,
+    };
   }
 
   async getWidgetCatalog(userId: string) {

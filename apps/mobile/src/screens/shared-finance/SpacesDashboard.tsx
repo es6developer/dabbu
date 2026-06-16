@@ -33,16 +33,16 @@ const COVER_GRADIENTS: Record<string, [string, string]> = {
 };
 
 const COVER_EMOJIS: Record<string, string> = {
-  couple: '💑',
-  family: '👨‍👩‍👧‍👦',
-  trip: '🏔️',
-  friends: '👥',
-  wedding: '💒',
-  house_purchase: '🏠',
-  office: '💼',
-  event: '🎉',
-  apartment: '🏢',
-  sports: '⚽',
+  couple: 'heart',
+  family: 'team',
+  trip: 'enviroment',
+  friends: 'team',
+  wedding: 'heart',
+  house_purchase: 'home',
+  office: 'folderopen',
+  event: 'star',
+  apartment: 'appstore1',
+  sports: 'Trophy',
 };
 
 function fmt(v: number) {

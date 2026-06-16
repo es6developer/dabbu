@@ -242,7 +242,7 @@ export function NotificationCenterScreen() {
             ]}
           >
             <AntDesign
-              name={getCategoryIcon(item.category)}
+              name={(getCategoryIcon(item.category)) as any}
               size={18}
               color={item.overdue ? '#FF3B30' : priorityColor}
             />
@@ -289,7 +289,7 @@ export function NotificationCenterScreen() {
             style={[styles.actionBtn, { backgroundColor: colors.bg.tertiary }]}
             onPress={() => handlePress(item)}
           >
-            <AntDesign  name="newwindow" size={14} color={colors.accent.primary} />
+            <AntDesign name="folder1" size={14} color={colors.accent.primary} />
             <Text style={[styles.actionText, { color: colors.accent.primary }]}>Open</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -344,7 +344,7 @@ export function NotificationCenterScreen() {
                 onPress={() => setActiveFilter(f.key)}
               >
                 <AntDesign
-                  name={f.icon}
+                  name={f.icon as any}
                   size={14}
                   color={isActive ? '#FFFFFF' : colors.text.secondary}
                 />

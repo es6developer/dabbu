@@ -41,7 +41,7 @@ export function CreateChatScreen() {
     <PremiumFormScreen
       title="New chat"
       subtitle="Create a focused conversation space for money decisions and quick coordination."
-      icon="chatbubble-ellipses"
+      icon="message1"
       accent={[colors.status.info, colors.accent.primary]}
     >
       <PremiumInput
@@ -51,7 +51,7 @@ export function CreateChatScreen() {
         onChangeText={setTitle}
         placeholder="Enter chat name"
       />
-      <PremiumActionButton title="Create chat" onPress={handleCreate} loading={saving} icon="add" />
+      <PremiumActionButton title="Create chat" onPress={handleCreate} loading={saving} icon="plus" />
     </PremiumFormScreen>
   );
 }

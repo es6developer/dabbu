@@ -98,7 +98,7 @@ export function SmartNotificationScreen() {
           if (achieved.length > 0) {
             result.push({
               title: 'Milestones',
-              icon: 'trophy',
+              icon: 'flag',
               color: AI_COLORS.warning,
               data: achieved.map((m: MilestoneItem) => ({
                 title: m.title,
@@ -207,7 +207,7 @@ export function SmartNotificationScreen() {
             <View style={s.sectionHeader}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <View style={[s.sectionIcon, { backgroundColor: `${section.color}20` }]}>
-                  <AntDesign name={section.icon} size={16} color={section.color} />
+                  <AntDesign name={section.icon as any} size={16} color={section.color} />
                 </View>
                 <Text style={s.sectionTitle}>{section.title}</Text>
               </View>

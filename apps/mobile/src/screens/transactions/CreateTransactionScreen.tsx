@@ -218,7 +218,7 @@ export function CreateTransactionScreen() {
                   ]}
                 >
                   <AntDesign
-                    name={t === 'expense' ? 'shoppingcart' : 'trending-up'}
+                    name={(t === 'expense' ? 'shoppingcart' : 'arrowup') as any}
                     size={14}
                     color={type === t ? '#FFF' : colors.text.secondary}
                   />
@@ -347,7 +347,7 @@ export function CreateTransactionScreen() {
               style={s.saveGrad}
             >
               <AntDesign
-                name={saving ? 'hourglass' : isExpense ? 'shoppingcart' : 'trending-up'}
+                name={(saving ? 'hourglass' : isExpense ? 'shoppingcart' : 'arrowup') as any}
                 size={18}
                 color="#FFF"
               />

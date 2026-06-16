@@ -152,7 +152,7 @@ export function AppLockScreen({ onUnlock }: Props) {
                 onPress={handleDelete}
                 activeOpacity={0.5}
               >
-                <AntDesign  name="back" size={22} color="rgba(255,255,255,0.5)" />
+                <AntDesign  name="arrowleft" size={22} color="rgba(255,255,255,0.5)" />
               </TouchableOpacity>
             );
           }
@@ -173,7 +173,7 @@ export function AppLockScreen({ onUnlock }: Props) {
 
       <View style={styles.bottomSection}>
         <TouchableOpacity style={styles.biometricBtn} onPress={handleBiometric} activeOpacity={0.7}>
-          <AntDesign  name="fingerprint" size={22} color="#14B8A6" />
+          <AntDesign name="checkcircle" size={22} color="#14B8A6" />
           <Text style={styles.biometricText}>Use Biometric</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={handleForgotPin} activeOpacity={0.6}>

@@ -168,14 +168,14 @@ export function FinancialDnaScreen() {
     {
       label: 'Impulse Score',
       value: 100 - (data.impulsePurchaseScore ?? 50),
-      icon: 'flame' as const,
+      icon: 'star' as const,
       color: AI_COLORS.warning,
       desc: `${data.impulsePurchaseScore ?? 50}% impulse`,
     },
     {
       label: 'Luxury Score',
       value: data.luxurySpendingScore ?? 50,
-      icon: 'diamond' as const,
+      icon: 'star' as const,
       color: AI_COLORS.info,
       desc: `${data.luxurySpendingScore ?? 50}% luxury`,
     },
@@ -269,14 +269,14 @@ export function FinancialDnaScreen() {
             {
               label: 'Impulse Purchases',
               value: 100 - (data.impulsePurchaseScore ?? 50),
-              icon: 'fire' as const,
+              icon: 'star' as const,
               color: AI_COLORS.success,
               detail: `${data.impulsePurchaseScore ?? 0}% impulse rate`,
             },
             {
               label: 'Luxury Spending',
               value: data.luxurySpendingScore ?? 50,
-              icon: 'diamond' as const,
+              icon: 'star' as const,
               color: AI_COLORS.info,
               detail: `${data.luxurySpendingScore ?? 0}% on luxury`,
             },
@@ -292,7 +292,7 @@ export function FinancialDnaScreen() {
               <AiCard padding={14}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                   <View style={[s.mIcon, { backgroundColor: `${m.color}20` }]}>
-                    <AntDesign name={m.icon} size={18} color={m.color} />
+                    <AntDesign name={m.icon as any} size={18} color={m.color} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={s.mLabel}>{m.label}</Text>

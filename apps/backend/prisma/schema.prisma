@@ -990,6 +990,8 @@ model Settings {
   dateFormat             String   @default("MM/dd/yyyy") @db.VarChar(20)
   firstDayOfWeek         Int      @default(0) // 0=Sunday, 1=Monday
   language               String   @default("en") @db.VarChar(10)
+  bottomBarVisible       Boolean  @default(true)
+  quickActionVisible     Boolean  @default(true)
   metadata               Json?    @db.Json
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt

@@ -113,7 +113,7 @@ interface AuthContextType extends AuthState {
     phone: string,
     referralCode?: string,
   ) => Promise<void>;
-  googleLogin: (idToken: string) => Promise<void>;
+  googleLogin: (idToken: string, referralCode?: string) => Promise<void>;
   guestLogin: () => Promise<void>;
   demoLogin: () => Promise<void>;
   logout: () => Promise<void>;
@@ -349,6 +349,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const sub = AppState.addEventListener('change', (nextState: AppStateStatus) => {
       if (nextState === 'active') {
         resetSessionTimeout();
+        const tkn = stateRef.current.accessToken;
+        if (tkn) {
+          resetPushRegistration();
+          registerForPushNotifications(tkn).catch(() => {});
+        }
       }
     });
     return () => sub.remove();
@@ -495,12 +500,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     trackEventImmediate('sign_up', 'auth', 'email').catch(() => {});
   }
 
-  async function googleLogin(idToken: string) {
+  async function googleLogin(idToken: string, referralCode?: string) {
     const { deviceName, platform } = getDeviceInfo();
     const res = await authFetch('/auth/google', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken, deviceName, platform }),
+      body: JSON.stringify({ idToken, deviceName, platform, referralCode }),
     });
 
     if (!res.ok) {

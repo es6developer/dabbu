@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
-import { AntDesign } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { HomeScreen } from '../screens/home/HomeScreen';
 import { NotificationsScreen } from '../screens/home/NotificationsScreen';
 import { NotificationCenterScreen } from '../screens/home/NotificationCenterScreen';
@@ -373,7 +373,7 @@ export function MainTabNavigator() {
   const theme = useTheme();
   const { colors } = theme;
   const { user, accessToken, isPremium } = useAuth();
-  const { getTabVisibility } = usePreferences();
+  const { getTabVisibility, bottomBarVisible, quickActionVisible } = usePreferences();
   const { showCoupleFeatures } = useCoupleMode();
   const [showActions, setShowActions] = useState(false);
   const navigation = useNavigation<any>();
@@ -398,11 +398,11 @@ export function MainTabNavigator() {
       label: 'Wallet',
       icon: 'wallet',
       color: '#2563EB',
-      onPress: () => navigation.navigate('Spaces', { screen: 'GroupWallet' }),
+      onPress: () => navigation.navigate('Expense', { screen: 'ExpenseHome' }),
     },
     {
       label: 'Net Worth',
-      icon: 'bar-chart',
+      icon: 'barchart',
       color: '#7C3AED',
       onPress: () => navigation.navigate('Dashboard', { screen: 'NetWorth' }),
     },
@@ -416,7 +416,7 @@ export function MainTabNavigator() {
       label: 'Expense Group',
       icon: 'team',
       color: '#14B8A6',
-      onPress: () => navigation.navigate('Expense', { screen: 'CreateExpenseGroup' }),
+      onPress: () => navigation.navigate('Spaces', { screen: 'SharedFinanceHome' }),
     },
   ];
 
@@ -448,7 +448,8 @@ export function MainTabNavigator() {
             {...props}
             colors={colors}
             isDark={isDark}
-            showCenterButton={qaVisible}
+            showCenterButton={qaVisible && quickActionVisible}
+            bottomBarVisible={bottomBarVisible}
             onCenterPress={() => setShowActions(true)}
           />
         )}
@@ -465,7 +466,7 @@ export function MainTabNavigator() {
           options={{
             tabBarLabel: 'Home',
             tabBarIcon: ({ focused, color, size }) => (
-              <AntDesign name={focused ? 'home' : 'home'} size={22} color={color} />
+              <AntDesign name={(focused ? 'home' : 'home') as any} size={22} color={color} />
             ),
           }}
         />
@@ -485,7 +486,7 @@ export function MainTabNavigator() {
           options={{
             tabBarLabel: 'Spaces',
             tabBarIcon: ({ focused, color }) => (
-              <AntDesign name={focused ? 'planet' : 'earth'} size={22} color={color} />
+              <AntDesign name={(focused ? 'earth' : 'earth') as any} size={22} color={color} />
             ),
           }}
         />
@@ -495,7 +496,7 @@ export function MainTabNavigator() {
           options={{
             tabBarLabel: 'Goals',
             tabBarIcon: ({ focused, color }) => (
-              <AntDesign name={focused ? 'trophy' : 'trophy'} size={22} color={color} />
+              <AntDesign name={(focused ? 'trophy' : 'trophy') as any} size={22} color={color} />
             ),
           }}
         />
@@ -505,17 +506,19 @@ export function MainTabNavigator() {
           options={{
             tabBarLabel: 'Profile',
             tabBarIcon: ({ focused, color }) => (
-              <AntDesign name={focused ? 'person' : 'user'} size={22} color={color} />
+              <AntDesign name={(focused ? 'user' : 'user') as any} size={22} color={color} />
             ),
           }}
         />
       </Tab.Navigator>
 
-      <QuickActionSheet
-        visible={showActions}
-        onClose={() => setShowActions(false)}
-        actions={quickActions}
-      />
+      {quickActionVisible && (
+        <QuickActionSheet
+          visible={showActions}
+          onClose={() => setShowActions(false)}
+          actions={quickActions}
+        />
+      )}
     </View>
   );
 }
@@ -527,8 +530,12 @@ function GlossyTabBar({
   colors,
   isDark,
   showCenterButton,
+  bottomBarVisible,
   onCenterPress,
 }: any) {
+  if (!bottomBarVisible) {
+    return null;
+  }
   const { getTabVisibility } = usePreferences();
   const { showCoupleFeatures, isInCouple, isCoupleModeActive } = useCoupleMode();
   const coupleHiddenTabs = new Set(showCoupleFeatures ? ['Expense', 'Spaces'] : []);

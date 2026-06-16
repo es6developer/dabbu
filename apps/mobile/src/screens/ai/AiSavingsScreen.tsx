@@ -211,13 +211,13 @@ export function AiSavingsScreen() {
                     <View style={{ flexDirection: 'row', gap: 12 }}>
                       <View style={[s.oppIcon, { backgroundColor: `${typeColor}20` }]}>
                         <AntDesign
-                          name={
+                          name={(
                             opp.type.includes('subscription')
                               ? 'creditcard'
                               : opp.type.includes('food')
                                 ? 'restaurant'
                                 : 'wallet'
-                          }
+                          ) as any}
                           size={22}
                           color={typeColor}
                         />

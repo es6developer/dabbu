@@ -83,7 +83,7 @@ export function CreateTaskScreen() {
     <PremiumFormScreen
       title="New task"
       subtitle="Assign ownership, set priority, and keep family work moving without clutter."
-      icon="checkbox"
+      icon="checkcircle"
       accent={[colors.accent.primary, colors.status.info]}
     >
       <PremiumError message={error} />
@@ -143,7 +143,7 @@ export function CreateTaskScreen() {
         </Text>
       )}
       <DatePickerField label="Due Date" value={dueDate} onChange={setDueDate} optional />
-      <PremiumActionButton title="Create task" onPress={handleSave} loading={saving} icon="add" />
+      <PremiumActionButton title="Create task" onPress={handleSave} loading={saving} icon="plus" />
     </PremiumFormScreen>
   );
 }

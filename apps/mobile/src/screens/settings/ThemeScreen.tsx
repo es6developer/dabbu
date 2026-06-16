@@ -4,9 +4,9 @@ import { AntDesign } from '@expo/vector-icons';
 import { useTheme, useThemeContext, ThemeMode } from '../../theme';
 
 const THEME_OPTIONS: Array<{ mode: ThemeMode; icon: string; label: string; desc: string }> = [
-  { mode: 'dark', icon: 'moon', label: 'Dark', desc: 'Dark mode — easy on the eyes' },
-  { mode: 'light', icon: 'sunny', label: 'Light', desc: 'Bright and clean interface' },
-  { mode: 'system', icon: 'settings', label: 'System', desc: 'Follow your device settings' },
+  { mode: 'dark', icon: 'star', label: 'Dark', desc: 'Dark mode — easy on the eyes' },
+  { mode: 'light', icon: 'star', label: 'Light', desc: 'Bright and clean interface' },
+  { mode: 'system', icon: 'setting', label: 'System', desc: 'Follow your device settings' },
 ];
 
 export function ThemeScreen() {
@@ -26,7 +26,7 @@ export function ThemeScreen() {
           activeOpacity={0.7}
         >
           <View style={[styles.iconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
-            <AntDesign name={opt.icon} size={24} color={colors.accent.primary} />
+            <AntDesign name={opt.icon as any} size={24} color={colors.accent.primary} />
           </View>
           <View style={styles.info}>
             <Text style={[styles.label, { color: colors.text.primary }]}>{opt.label}</Text>

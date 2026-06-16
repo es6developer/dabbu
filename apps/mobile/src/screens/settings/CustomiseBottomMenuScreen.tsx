@@ -17,11 +17,11 @@ import { useToast } from '../../store/ToastContext';
 const BOTTOM_MENU_CACHE_KEY = '@dabbu_bottom_menu_config';
 
 const TAB_META: Record<string, { label: string; icon: string; desc: string }> = {
-  Dashboard: { label: 'Dashboard', icon: 'compass', desc: 'Home screen with overview' },
-  Expense: { label: 'Expenses', icon: 'receipt', desc: 'Transactions & accounts' },
-  QuickAction: { label: 'Quick Action', icon: 'add-circle', desc: 'Center FAB with quick actions' },
-  Spaces: { label: 'Spaces', icon: 'grid', desc: 'Split expenses & shared accounts' },
-  Settings: { label: 'Settings', icon: 'settings', desc: 'Profile, preferences & more' },
+  Dashboard: { label: 'Dashboard', icon: 'enviroment', desc: 'Home screen with overview' },
+  Expense: { label: 'Expenses', icon: 'filetext1', desc: 'Transactions & accounts' },
+  QuickAction: { label: 'Quick Action', icon: 'pluscircle', desc: 'Center FAB with quick actions' },
+  Spaces: { label: 'Spaces', icon: 'appstore1', desc: 'Split expenses & shared accounts' },
+  Settings: { label: 'Settings', icon: 'setting', desc: 'Profile, preferences & more' },
 };
 
 export function CustomiseBottomMenuScreen() {
@@ -96,7 +96,7 @@ export function CustomiseBottomMenuScreen() {
   };
 
   const renderItem = ({ item, drag, isActive, getIndex }: RenderItemParams<TabConfig>) => {
-    const meta = TAB_META[item.id] || { label: item.id, icon: 'help', desc: '' };
+    const meta = TAB_META[item.id] || { label: item.id, icon: 'questioncircleo', desc: '' };
     const idx = getIndex() ?? 0;
     const isSettings = item.id === 'Settings';
     const isQa = item.id === 'QuickAction';
@@ -115,7 +115,7 @@ export function CustomiseBottomMenuScreen() {
           ]}
         >
           <AntDesign
-            name={isSettings ? 'lock-closed' : isQa ? 'flash' : 'menu'}
+            name={(isSettings ? 'lock' : isQa ? 'bulb1' : 'menufold') as any}
             size={20}
             color={isSettings ? colors.text.tertiary : colors.text.tertiary}
             style={{ marginRight: 12 }}

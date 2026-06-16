@@ -10,10 +10,10 @@ import { Card } from '../../components/ui/Card';
 
 const TYPE_META: Record<string, { icon: string; color: string }> = {
   savings: { icon: 'wallet', color: '#00B894' },
-  checking: { icon: 'card', color: '#0984E3' },
-  credit_card: { icon: 'card', color: '#E17055' },
-  cash: { icon: 'cash', color: '#FDCB6E' },
-  investment: { icon: 'trending-up', color: '#f7892c' },
+  checking: { icon: 'creditcard', color: '#0984E3' },
+  credit_card: { icon: 'creditcard', color: '#E17055' },
+  cash: { icon: 'wallet', color: '#FDCB6E' },
+  investment: { icon: 'linechart', color: '#f7892c' },
 };
 
 export function AccountsListScreen() {
@@ -88,7 +88,7 @@ export function AccountsListScreen() {
               activeOpacity={0.7}
             >
               <View style={[styles.iconWrap, { backgroundColor: `${meta.color}18` }]}>
-                <AntDesign name={meta.icon} size={20} color={meta.color} />
+                <AntDesign name={meta.icon as any} size={20} color={meta.color} />
               </View>
               <View style={styles.cardInfo}>
                 <Text style={[styles.cardName, { color: colors.text.primary }]}>{item.name}</Text>

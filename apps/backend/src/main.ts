@@ -3,11 +3,14 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { json, urlencoded } from 'express';
+import compression from 'compression';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 import { SentryFilter } from './common/sentry/sentry.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { CacheInterceptor } from './common/cache/cache.interceptor';
+import { CacheService } from './common/cache/cache.service';
 import { SecurityConfig } from './common/security/security.config';
 import { initTelemetry } from './config/telemetry';
 
@@ -20,6 +23,7 @@ async function bootstrap(): Promise<void> {
     bodyParser: false,
   });
 
+  app.use(compression({ level: 6, threshold: 512 }));
   app.use(json({ limit: '50mb' }));
   app.use(urlencoded({ extended: true, limit: '50mb' }));
 
@@ -91,7 +95,7 @@ async function bootstrap(): Promise<void> {
   app.useGlobalFilters(new AllExceptionsFilter(), new SentryFilter());
 
   // ─── Global Interceptors ────────────────────────────
-  app.useGlobalInterceptors(new LoggingInterceptor(), new TransformInterceptor());
+  app.useGlobalInterceptors(new CacheInterceptor(app.get(CacheService)), new LoggingInterceptor(), new TransformInterceptor());
 
   // ─── Swagger ────────────────────────────────────────
   const swaggerConfig = new DocumentBuilder()

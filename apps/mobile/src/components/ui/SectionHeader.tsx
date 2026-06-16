@@ -34,7 +34,7 @@ export function SectionHeader({ title, action, onAction, icon }: SectionHeaderPr
               justifyContent: 'center',
             }}
           >
-            <AntDesign name={icon} size={14} color={colors.accent.primary} />
+            <AntDesign name={icon as any} size={14} color={colors.accent.primary} />
           </View>
         )}
         <Text

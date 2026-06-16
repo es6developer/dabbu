@@ -114,7 +114,7 @@ export function BadgeWallScreen() {
       >
         <View style={s.heroRow}>
           <View style={s.heroBadgeWrap}>
-            <AntDesign  name="trophy" size={32} color="#FDCB6E" />
+            <AntDesign name="star" size={32} color="#FDCB6E" />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={s.heroTitle}>Achievements</Text>
@@ -133,7 +133,7 @@ export function BadgeWallScreen() {
             {streaks.map((s: any) => (
               <View key={s.id} style={[s.streakCard, { backgroundColor: colors.bg.tertiary }]}>
                 <AntDesign
-                  name={STREAK_ICONS[s.streakType] || 'flame'}
+                  name={(STREAK_ICONS[s.streakType] || 'flame') as any}
                   size={20}
                   color={s.currentStreak > 0 ? '#FDCB6E' : colors.text.tertiary}
                 />
@@ -165,7 +165,7 @@ export function BadgeWallScreen() {
               return (
                 <View key={ub.id} style={[s.badgeCard, { backgroundColor: colors.bg.secondary }]}>
                   <View style={[s.badgeIconWrap, { backgroundColor: `${tierColor}25`, borderColor: tierColor }]}>
-                    <AntDesign name={(b.icon || 'trophy') as IconName} size={24} color={tierColor} />
+                    <AntDesign name={(b.icon || 'trophy') as any} size={24} color={tierColor} />
                   </View>
                   <Text style={[s.badgeName, { color: colors.text.primary }]}>{b.name}</Text>
                   <Text style={[s.badgeDesc, { color: colors.text.tertiary }]}>{b.description}</Text>
@@ -206,7 +206,7 @@ export function BadgeWallScreen() {
                     style={[s.progressIcon, { backgroundColor: `${colors.text.tertiary}18` }]}
                   >
                     <AntDesign
-                      name={(b.icon || 'trophy') as IconName}
+                      name={(b.icon || 'trophy') as any}
                       size={18}
                       color={colors.text.tertiary}
                     />
@@ -256,7 +256,7 @@ export function BadgeWallScreen() {
                     ]}
                   >
                     <AntDesign
-                      name={(b.icon || 'trophy') as IconName}
+                      name={(b.icon || 'trophy') as any}
                       size={24}
                       color={colors.text.tertiary}
                     />
@@ -277,7 +277,7 @@ export function BadgeWallScreen() {
 
       {totalBadges === 0 && (
         <View style={s.emptyState}>
-          <AntDesign  name="trophy" size={48} color={colors.text.tertiary} />
+          <AntDesign name="star" size={48} color={colors.text.tertiary} />
           <Text style={[s.emptyTitle, { color: colors.text.primary }]}>No Badges Yet</Text>
           <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>
             Complete goals, track expenses, and save money to earn achievements.

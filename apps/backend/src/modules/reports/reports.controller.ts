@@ -8,15 +8,23 @@ import {
   HttpCode,
   HttpStatus,
   Optional,
+  Res,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import { Response } from 'express';
 import { ReportsService } from './reports.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PremiumGuard } from '../premium/guards/premium.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { ExportReportDto } from './dto/export-report.dto';
+
+const FORMAT_MAP: Record<string, { ext: string; mime: string }> = {
+  pdf: { ext: 'pdf', mime: 'application/pdf' },
+  excel: { ext: 'xlsx', mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' },
+  csv: { ext: 'csv', mime: 'text/csv' },
+};
 
 @ApiTags('Reports')
 @ApiBearerAuth()
@@ -101,7 +109,11 @@ export class ReportsController {
   @Post('export')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Export report as PDF/Excel/CSV' })
-  async exportReport(@CurrentUser('id') userId: string, @Body() dto: ExportReportDto) {
+  async exportReport(
+    @CurrentUser('id') userId: string,
+    @Body() dto: ExportReportDto,
+    @Res() res: Response,
+  ) {
     if (this.reportQueue) {
       const job = await this.reportQueue.add('generate-report', {
         userId,
@@ -114,7 +126,7 @@ export class ReportsController {
           groupId: dto.groupId,
         },
       });
-      return { message: 'Report generation queued', jobId: job.id };
+      return res.json({ message: 'Report generation queued', jobId: job.id });
     }
     const buffer = await this.reportsService.generateReportFile(userId, dto.type, dto.format, {
       startDate: dto.startDate,
@@ -122,6 +134,9 @@ export class ReportsController {
       categoryId: dto.categoryId,
       groupId: dto.groupId,
     });
-    return { message: 'Report generated', size: buffer.length };
+    const fmt = FORMAT_MAP[dto.format] || { ext: dto.format, mime: 'application/octet-stream' };
+    res.setHeader('Content-Type', fmt.mime);
+    res.setHeader('Content-Disposition', `attachment; filename="dabbu-report.${fmt.ext}"`);
+    res.send(buffer);
   }
 }

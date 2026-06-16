@@ -241,7 +241,7 @@ export function TransactionsListScreen() {
               justifyContent: 'center',
             }}
           >
-            <AntDesign name={getIcon(catName)} size={20} color={catColor} />
+            <AntDesign name={getIcon(catName) as any} size={20} color={catColor} />
           </View>
           <View style={{ flex: 1, marginLeft: 12 }}>
             <Text

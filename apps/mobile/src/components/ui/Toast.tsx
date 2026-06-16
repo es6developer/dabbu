@@ -85,7 +85,7 @@ export function Toast({ visible, message, type = 'error', onDismiss }: ToastProp
         },
       ]}
     >
-      <AntDesign name={iconName} size={18} color={colorMap[type]} style={styles.icon} />
+      <AntDesign name={iconName as any} size={18} color={colorMap[type]} style={styles.icon} />
       <Text style={[styles.text, { color: colorMap[type] }]}>{message}</Text>
     </Animated.View>
   );

@@ -20,10 +20,10 @@ function fmt(v: number) {
 const TYPE_CONFIG: Record<string, { icon: string; gradient: [string, string] }> = {
   couple: { icon: 'heart', gradient: ['#FF6B9D', '#FF8FB3'] },
   family: { icon: 'home', gradient: ['#F97316', '#EA580C'] },
-  friends: { icon: 'people', gradient: ['#00B894', '#00D9A6'] },
-  roommates: { icon: 'business', gradient: ['#4F6EF7', '#7C8FF8'] },
-  trip: { icon: 'airplane', gradient: ['#E85D04', '#FF8A3C'] },
-  default: { icon: 'ellipse', gradient: ['#F97316', '#EA580C'] },
+  friends: { icon: 'team', gradient: ['#00B894', '#00D9A6'] },
+  roommates: { icon: 'idcard', gradient: ['#4F6EF7', '#7C8FF8'] },
+  trip: { icon: 'earth', gradient: ['#E85D04', '#FF8A3C'] },
+  default: { icon: 'ellipsis1', gradient: ['#F97316', '#EA580C'] },
 };
 
 export function CircleCard({ name, membersCount, totalExpenses, yourBalance, type, onPress, onLongPress }: CircleCardProps) {
@@ -71,7 +71,7 @@ export function CircleCard({ name, membersCount, totalExpenses, yourBalance, typ
 
         <View style={[styles.balanceRow, { backgroundColor: isPositive ? colors.status.successLight : colors.status.errorLight }]}>
           <AntDesign
-            name={isPositive ? 'arrow-down' : 'arrow-up'}
+            name={(isPositive ? 'arrow-down' : 'arrow-up') as any}
             size={12}
             color={isPositive ? colors.status.success : colors.status.error}
           />

@@ -143,10 +143,10 @@ export function ExternalSplitLinkScreen() {
             <Text style={[styles.infoTitle, { color: colors.text.primary }]}>How it works</Text>
             {[
               { icon: 'link', text: 'Generate a unique public link for any expense' },
-              { icon: 'globe', text: 'Share via WhatsApp, SMS, or any app' },
-              { icon: 'person-add', text: 'Recipients open the link and enter their amount' },
+              { icon: 'earth', text: 'Share via WhatsApp, SMS, or any app' },
+              { icon: 'adduser', text: 'Recipients open the link and enter their amount' },
               {
-                icon: 'checkmark-circle',
+                icon: 'checkcircle',
                 text: 'They join the split instantly - no account needed',
               },
             ].map((item, i) => (

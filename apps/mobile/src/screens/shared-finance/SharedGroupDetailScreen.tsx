@@ -29,31 +29,31 @@ import { EmptyState } from './components/EmptyState';
 import { SettleUpModal } from '../../components/ui/SettleUpModal';
 import { useToast } from '../../store/ToastContext';
 
-const TABS = ['summary', 'expenses', 'people'] as const;
+const TABS = ['summary', 'expenses', 'analytics', 'people'] as const;
 
 const TYPE_THEMES: Record<string, { gradient: [string, string]; chipColor: string; icon: string }> =
   {
     friends: {
       gradient: [palette.brand.primary, palette.brand.hover],
       chipColor: palette.brand.primary,
-      icon: 'people',
+      icon: 'team',
     },
-    trip: { gradient: ['#00B894', '#00D9A6'], chipColor: '#00B894', icon: 'airplane' },
+    trip: { gradient: ['#00B894', '#00D9A6'], chipColor: '#00B894', icon: 'earth' },
     family: {
       gradient: [palette.brand.primary, palette.brand.hover],
       chipColor: palette.brand.primary,
       icon: 'home',
     },
     couple: { gradient: ['#FF6B9D', '#FF8FB3'], chipColor: '#FF6B9D', icon: 'heart' },
-    sports: { gradient: ['#FF6B35', '#FF8F5E'], chipColor: '#FF6B35', icon: 'football' },
-    roommates: { gradient: ['#14B8A6', '#14B8A6'], chipColor: '#14B8A6', icon: 'business' },
-    office: { gradient: ['#247BA0', '#4A9FC7'], chipColor: '#247BA0', icon: 'briefcase' },
+    sports: { gradient: ['#FF6B35', '#FF8F5E'], chipColor: '#FF6B35', icon: 'codesquareo' },
+    roommates: { gradient: ['#14B8A6', '#14B8A6'], chipColor: '#14B8A6', icon: 'idcard' },
+    office: { gradient: ['#247BA0', '#4A9FC7'], chipColor: '#247BA0', icon: 'solution1' },
     event: { gradient: ['#D64550', '#FF6B6B'], chipColor: '#D64550', icon: 'calendar' },
-    apartment: { gradient: ['#14B8A6', '#14B8A6'], chipColor: '#14B8A6', icon: 'building' },
+    apartment: { gradient: ['#14B8A6', '#14B8A6'], chipColor: '#14B8A6', icon: 'appstore1' },
     default: {
       gradient: [palette.brand.primary, palette.brand.hover],
       chipColor: palette.brand.primary,
-      icon: 'people',
+      icon: 'team',
     },
   };
 
@@ -506,7 +506,7 @@ export function SharedGroupDetailScreen() {
           <View style={[s.tripSummaryCard, { backgroundColor: colors.bg.card }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <View style={[s.tripIconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
-                <AntDesign  name="airplane" size={20} color={colors.accent.primary} />
+                <AntDesign name="enviroment" size={20} color={colors.accent.primary} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[s.tripSummaryTitle, { color: colors.text.primary }]}>
@@ -590,7 +590,7 @@ export function SharedGroupDetailScreen() {
             </Text>
           </View>
           <AntDesign
-            name={insightsOpen ? 'chevron-up' : 'chevron-down'}
+            name={(insightsOpen ? 'caretup' : 'caretdown') as any}
             size={18}
             color={colors.text.tertiary}
           />
@@ -692,6 +692,155 @@ export function SharedGroupDetailScreen() {
     );
   }
 
+  function renderAnalytics() {
+    const catEntries = (() => {
+      const cats: Record<string, number> = {};
+      expenses.forEach((e) => {
+        const c = (e.category || 'Other').toLowerCase();
+        cats[c] = (cats[c] || 0) + Number(e.amount || 0);
+      });
+      return Object.entries(cats).sort(([, a], [, b]) => b - a);
+    })();
+
+    const memberTotals = balanceRows
+      .map((r) => ({ name: r.name, paid: r.paid, owes: r.owes, net: r.balance }))
+      .sort((a, b) => b.paid - a.paid);
+
+    const monthlyTotals = (() => {
+      const map: Record<string, number> = {};
+      expenses.forEach((e) => {
+        const d = new Date(e.date || e.expenseDate || e.createdAt);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        map[key] = (map[key] || 0) + Number(e.amount || 0);
+      });
+      return Object.entries(map).sort(([a], [b]) => a.localeCompare(b));
+    })();
+
+    const avgPerPerson = members.length > 0 ? stats.totalSpent / members.length : 0;
+    const maxMonth = monthlyTotals.length > 0 ? monthlyTotals.reduce((a, b) => (a[1] > b[1] ? a : b)) : null;
+
+    return (
+      <View style={s.tabPanel}>
+        <View style={[s.card, { backgroundColor: colors.bg.card }]}>
+          <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Overview</Text>
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            <View style={{ flex: 1, alignItems: 'center', padding: 12, backgroundColor: `${colors.accent.primary}08`, borderRadius: 14 }}>
+              <Text style={[s.analyticsNumber, { color: colors.accent.primary }]}>{fmt(stats.totalSpent)}</Text>
+              <Text style={[s.analyticsLabel, { color: colors.text.tertiary }]}>Total Spent</Text>
+            </View>
+            <View style={{ flex: 1, alignItems: 'center', padding: 12, backgroundColor: `${colors.accent.primary}08`, borderRadius: 14 }}>
+              <Text style={[s.analyticsNumber, { color: colors.text.primary }]}>{expenses.length}</Text>
+              <Text style={[s.analyticsLabel, { color: colors.text.tertiary }]}>Transactions</Text>
+            </View>
+            <View style={{ flex: 1, alignItems: 'center', padding: 12, backgroundColor: `${colors.accent.primary}08`, borderRadius: 14 }}>
+              <Text style={[s.analyticsNumber, { color: colors.text.primary }]}>{members.length}</Text>
+              <Text style={[s.analyticsLabel, { color: colors.text.tertiary }]}>Members</Text>
+            </View>
+          </View>
+        </View>
+
+        {monthlyTotals.length > 0 && (
+          <View style={[s.card, { backgroundColor: colors.bg.card }]}>
+            <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Monthly Spend</Text>
+            {monthlyTotals.slice(-6).map(([month, total]) => {
+              const maxVal = maxMonth ? maxMonth[1] : total;
+              const pct = (total / maxVal) * 100;
+              return (
+                <View key={month} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <Text style={{ width: 50, fontSize: 11, color: colors.text.tertiary, fontWeight: '600' }}>
+                    {month.slice(5)}
+                  </Text>
+                  <View style={{ flex: 1, height: 22, backgroundColor: colors.bg.tertiary, borderRadius: 6, overflow: 'hidden' }}>
+                    <View style={{ width: `${pct}%`, height: '100%', backgroundColor: colors.accent.primary, borderRadius: 6 }} />
+                  </View>
+                  <Text style={{ width: 60, textAlign: 'right', fontSize: 11, fontWeight: '700', color: colors.text.primary }}>
+                    {fmt(total)}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        {catEntries.length > 0 && (
+          <View style={[s.card, { backgroundColor: colors.bg.card }]}>
+            <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Categories</Text>
+            {catEntries.map(([cat, amt]) => {
+              const pct = Math.round((amt / stats.totalSpent) * 100);
+              return (
+                <View key={cat} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <Text style={{ width: 70, fontSize: 11, color: colors.text.secondary, fontWeight: '600', textTransform: 'capitalize' }}>
+                    {cat}
+                  </Text>
+                  <View style={{ flex: 1, height: 22, backgroundColor: colors.bg.tertiary, borderRadius: 6, overflow: 'hidden' }}>
+                    <View style={{ width: `${pct}%`, height: '100%', backgroundColor: colors.status.warning, borderRadius: 6 }} />
+                  </View>
+                  <Text style={{ width: 50, textAlign: 'right', fontSize: 11, fontWeight: '700', color: colors.text.primary }}>
+                    {pct}%
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        {memberTotals.length > 0 && (
+          <View style={[s.card, { backgroundColor: colors.bg.card }]}>
+            <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Top Spenders</Text>
+            {memberTotals.map((m, i) => (
+              <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8, borderTopWidth: i === 0 ? 0 : StyleSheet.hairlineWidth, borderTopColor: colors.border.subtle }}>
+                <View style={[s.peopleAvatar, { backgroundColor: i === 0 ? colors.accent.primary : colors.bg.tertiary }]}>
+                  <Text style={[s.peopleAvatarText, { color: i === 0 ? '#FFF' : colors.text.primary }]}>
+                    {m.name[0]?.toUpperCase() || '?'}
+                  </Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[s.peopleName, { color: colors.text.primary }]}>{m.name}</Text>
+                  <Text style={[s.peopleStatusSettled, { color: colors.text.tertiary }]}>
+                    Paid {fmt(m.paid)} · Owed {fmt(m.owes)}
+                  </Text>
+                </View>
+                <Text style={{ fontSize: 14, fontWeight: '800', color: m.net >= 0 ? '#34C759' : '#FF4D4F' }}>
+                  {m.net >= 0 ? '+' : ''}{fmt(m.net)}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        <View style={[s.card, { backgroundColor: colors.bg.card }]}>
+          <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Insights</Text>
+          <View style={{ gap: 10 }}>
+            {avgPerPerson > 0 && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <AntDesign name="user" size={16} color={colors.accent.primary} />
+                <Text style={{ flex: 1, fontSize: 13, color: colors.text.secondary }}>Average per person</Text>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>{fmt(avgPerPerson)}</Text>
+              </View>
+            )}
+            {maxMonth && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <AntDesign name="barchart" size={16} color={colors.status.warning} />
+                <Text style={{ flex: 1, fontSize: 13, color: colors.text.secondary }}>Highest month</Text>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>{maxMonth[0].slice(5)} · {fmt(maxMonth[1])}</Text>
+              </View>
+            )}
+            {(() => {
+              const unpaid = activityData.filter((a) => a.status === 'pending').length;
+              return unpaid > 0 ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <AntDesign name="bells" size={16} color={colors.status.error} />
+                  <Text style={{ flex: 1, fontSize: 13, color: colors.text.secondary }}>Pending settlements</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: colors.status.error }}>{unpaid}</Text>
+                </View>
+              ) : null;
+            })()}
+          </View>
+        </View>
+      </View>
+    );
+  }
+
   function renderExpenseItem(item: any) {
     const payer = members.find((m: any) => m.userId === item.paidBy);
     const payerName = payer?.user?.firstName || payer?.user?.email || 'Someone';
@@ -784,7 +933,7 @@ export function SharedGroupDetailScreen() {
       return (
         <View style={s.tabPanel}>
           <EmptyState
-            icon="team"
+            icon="adduser"
             title="Invite your people"
             message="Add members to start splitting expenses."
             actionLabel="Invite Members"
@@ -960,7 +1109,7 @@ export function SharedGroupDetailScreen() {
                     setInviteModalVisible(false);
                   }}
                 >
-                  <AntDesign  name="whatsapp" size={18} color="#34C759" />
+                  <AntDesign name="message1" size={18} color="#34C759" />
                   <Text style={[s.modalBtnText, { color: '#34C759' }]}>WhatsApp</Text>
                 </TouchableOpacity>
               </View>
@@ -1143,7 +1292,7 @@ export function SharedGroupDetailScreen() {
                       <>
                         <Text style={s.groupMeta}>·</Text>
                         <AntDesign
-                          name={myBalanceRow.balance >= 0 ? 'arrow-down' : 'arrow-up'}
+                          name={(myBalanceRow.balance >= 0 ? 'arrowdown' : 'arrowup') as any}
                           size={10}
                           color="rgba(255,255,255,0.6)"
                         />
@@ -1216,7 +1365,9 @@ export function SharedGroupDetailScreen() {
                         ? 'Summary'
                         : tab === 'expenses'
                           ? 'Expenses'
-                          : 'People'}
+                          : tab === 'analytics'
+                            ? 'Analytics'
+                            : 'People'}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -1224,6 +1375,7 @@ export function SharedGroupDetailScreen() {
             </View>
 
             {activeTab === 'summary' && renderSummary()}
+            {activeTab === 'analytics' && renderAnalytics()}
             {activeTab === 'people' && renderPeople()}
           </Animated.View>
         }
@@ -1242,14 +1394,6 @@ export function SharedGroupDetailScreen() {
           ) : null
         }
       />
-
-      <TouchableOpacity
-        style={[s.fab, { backgroundColor: colors.accent.primary }]}
-        onPress={() => navigation.navigate('SharedExpenseForm', { groupId, edit: false })}
-        activeOpacity={0.85}
-      >
-        <AntDesign  name="plus" size={26} color="#FFF" />
-      </TouchableOpacity>
 
       <Modal
         visible={settingsOpen}
@@ -1340,6 +1484,8 @@ const s = StyleSheet.create({
   screen: { flex: 1 },
   loadWrap: { flex: 1 },
   emptyContainer: { flexGrow: 1, paddingTop: 60 },
+  analyticsNumber: { fontSize: 20, fontWeight: '800', marginBottom: 4 },
+  analyticsLabel: { fontSize: 11, fontWeight: '600' },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   iconBtn: {
     width: 38,
@@ -1585,11 +1731,12 @@ const s = StyleSheet.create({
     position: 'absolute',
     right: 20,
     bottom: 28,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: 28,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
@@ -1597,6 +1744,7 @@ const s = StyleSheet.create({
     elevation: 4,
     zIndex: 100,
   },
+  fabLabel: { color: '#FFF', fontSize: 14, fontWeight: '800' },
   inviteBtn: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -118,7 +118,7 @@ export function TripDashboardScreen() {
 
   if (loading) {
     return (
-      <PremiumLoaderScreen progress={loadingProgress} title="Loading Trip Dashboard" icon="airplane" />
+      <PremiumLoaderScreen progress={loadingProgress} title="Loading Trip Dashboard" icon="airplane-outline" />
     );
   }
 

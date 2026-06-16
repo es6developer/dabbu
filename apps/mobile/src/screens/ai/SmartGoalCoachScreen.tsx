@@ -147,7 +147,7 @@ export function SmartGoalCoachScreen() {
     return (
       <View style={[s.screen, { backgroundColor: AI_COLORS.bg, paddingTop: insets.top + 60 }]}>
         <View style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
-          <AntDesign  name="trophy" size={48} color={AI_COLORS.textTertiary} />
+          <AntDesign name="star" size={48} color={AI_COLORS.textTertiary} />
           <Text style={{ fontSize: 18, fontWeight: '700', color: AI_COLORS.text }}>
             No goals yet
           </Text>

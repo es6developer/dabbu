@@ -329,7 +329,7 @@ export class CoupleService {
     });
     if (!user?.partnerId) throw new NotFoundException('Not in a couple');
 
-    const [partner, couple] = await Promise.all([
+    const [partner, couple, coupleProfile] = await Promise.all([
       this.prisma.user.findUnique({
         where: { id: user.partnerId },
         select: { id: true, firstName: true, lastName: true, avatarUrl: true },
@@ -343,13 +343,21 @@ export class CoupleService {
           status: 'active',
         },
       }),
+      (this.prisma as any).coupleFinanceProfile.findFirst({
+        where: {
+          OR: [
+            { partner1Id: userId, partner2Id: user.partnerId },
+            { partner1Id: user.partnerId, partner2Id: userId },
+          ],
+        },
+        select: { groupId: true },
+      }),
     ]);
 
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const userIds = [userId, user.partnerId];
 
-    const [partnerTransactions, userTransactions, partnerGoals, userGoals, userBills] = await Promise.all([
+    const [partnerTransactions, userTransactions, partnerGoals, userGoals, userBills, sharedExpenses, coupleIncomes] = await Promise.all([
       this.prisma.transaction.aggregate({
         where: { userId: user.partnerId, deletedAt: null, date: { gte: startOfMonth } },
         _sum: { amount: true },
@@ -372,6 +380,22 @@ export class CoupleService {
         orderBy: { dueDate: 'asc' },
         select: { id: true, name: true, amount: true, dueDate: true, category: true },
       }),
+      coupleProfile?.groupId
+        ? this.prisma.sharedExpense.findMany({
+            where: { groupId: coupleProfile.groupId, date: { gte: startOfMonth } },
+            orderBy: { date: 'desc' },
+            take: 20,
+            select: { id: true, description: true, amount: true, paidBy: true, date: true, category: true },
+          })
+        : Promise.resolve([]),
+      coupleProfile?.groupId
+        ? this.prisma.coupleFinanceIncome.findMany({
+            where: { groupId: coupleProfile.groupId, date: { gte: startOfMonth } },
+            orderBy: { date: 'desc' },
+            take: 20,
+            select: { id: true, source: true, amount: true, date: true, type: true },
+          })
+        : Promise.resolve([]),
     ]);
 
     const partnerAmount = Number(partnerTransactions._sum.amount || 0);
@@ -381,6 +405,9 @@ export class CoupleService {
     const userGoalsProgress = Number(userGoals._sum.currentAmount || 0);
     const userGoalsTarget = Number(userGoals._sum.targetAmount || 0);
 
+    const sharedTotalExpenses = (sharedExpenses as any[]).reduce((s: number, e: any) => s + Number(e.amount), 0);
+    const sharedTotalIncome = (coupleIncomes as any[]).reduce((s: number, i: any) => s + Number(i.amount), 0);
+
     return {
       partner: { ...partner, monthlySpent: partnerAmount, monthlyIncome: partnerAmount > 0 ? partnerAmount : 0 },
       user: { ...user, monthlySpent: userAmount, monthlyIncome: userAmount > 0 ? userAmount : 0 },
@@ -388,6 +415,10 @@ export class CoupleService {
         ? { id: couple.id, linkedAt: couple.linkedAt, status: couple.status }
         : null,
       totalMonthlySpent: partnerAmount + userAmount,
+      sharedMonthlyExpenses: sharedTotalExpenses,
+      sharedMonthlyIncome: sharedTotalIncome,
+      recentExpenses: sharedExpenses,
+      recentIncomes: coupleIncomes,
       goalsProgress: partnerGoalsProgress + userGoalsProgress,
       goalsTarget: partnerGoalsTarget + userGoalsTarget,
       upcomingBills: userBills,

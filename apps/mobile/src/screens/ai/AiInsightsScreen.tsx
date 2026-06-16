@@ -10,7 +10,7 @@ import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { useAiColors, AiCard, SectionHeader, PremiumBadge } from './components/AiShared';
 
 const SECTIONS = [
-  { key: 'predictions', label: 'Predictions', icon: 'trending-up' as const },
+  { key: 'predictions', label: 'Predictions', icon: 'linechart' as const },
   { key: 'anomalies', label: 'Anomalies', icon: 'warning' as const },
   { key: 'savings', label: 'Savings', icon: 'wallet' as const },
   { key: 'recommendations', label: 'Recommendations', icon: 'bulb1' as const },
@@ -202,7 +202,7 @@ export function AiInsightsScreen() {
               activeOpacity={0.7}
             >
               <AntDesign
-                name={sec.icon}
+                name={sec.icon as any}
                 size={16}
                 color={activeSection === sec.key ? '#FFF' : AI_COLORS.textSecondary}
               />

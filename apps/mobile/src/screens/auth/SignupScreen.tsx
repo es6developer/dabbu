@@ -51,7 +51,7 @@ export function SignupScreen() {
     setLoading(true);
     setError('');
     try {
-      await googleLogin(idToken);
+      await googleLogin(idToken, referralCode || undefined);
     } catch (e: any) {
       setError(e.message || 'Google sign-in failed');
       setLoading(false);

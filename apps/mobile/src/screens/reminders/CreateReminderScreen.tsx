@@ -90,7 +90,7 @@ export function CreateReminderScreen() {
     <PremiumFormScreen
       title="New reminder"
       subtitle="Design the reminder rhythm once, then let Dabbu keep it visible."
-      icon="notifications"
+      icon="bells"
       accent={[colors.status.warning, colors.accent.primary]}
     >
       <PremiumError message={error} />
@@ -189,7 +189,7 @@ export function CreateReminderScreen() {
         title="Create reminder"
         onPress={handleSave}
         loading={saving}
-        icon="add"
+        icon="plus"
       />
     </PremiumFormScreen>
   );

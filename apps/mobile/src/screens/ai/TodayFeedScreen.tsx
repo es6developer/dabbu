@@ -19,24 +19,24 @@ type FeedCard = GenFeedCard;
 type FeedSummary = GenFeedSummary;
 
 const TYPE_CONFIG: Record<string, { icon: string; label: string }> = {
-  spending_insight: { icon: 'trending-up', label: 'Spending' },
-  anomaly_alert: { icon: 'flash', label: 'Anomaly' },
-  savings_opportunity: { icon: 'cash', label: 'Savings' },
+  spending_insight: { icon: 'linechart', label: 'Spending' },
+  anomaly_alert: { icon: 'star', label: 'Anomaly' },
+  savings_opportunity: { icon: 'wallet', label: 'Savings' },
   budget_risk: { icon: 'wallet', label: 'Budget' },
   goal_update: { icon: 'flag', label: 'Goal' },
-  couple_update: { icon: 'people', label: 'Couple' },
+  couple_update: { icon: 'team', label: 'Couple' },
   family_update: { icon: 'home', label: 'Family' },
-  settlement_optimization: { icon: 'swap-horizontal', label: 'Group' },
-  subscription_warning: { icon: 'card', label: 'Subscription' },
-  achievement: { icon: 'trophy', label: 'Achievement' },
+  settlement_optimization: { icon: 'swap', label: 'Group' },
+  subscription_warning: { icon: 'creditcard', label: 'Subscription' },
+  achievement: { icon: 'flag', label: 'Achievement' },
 };
 
 function priorityConfig(c: Record<string, string>) {
   return {
-    critical: { color: c.danger, bg: c.dangerLight, icon: 'alert-circle' },
+    critical: { color: c.danger, bg: c.dangerLight, icon: 'exclamationcircle' },
     high: { color: c.warning, bg: c.warningLight, icon: 'warning' },
-    medium: { color: c.primary, bg: c.primaryLight, icon: 'information-circle' },
-    low: { color: c.textSecondary, bg: 'transparent', icon: 'minuscirlceo' },
+    medium: { color: c.primary, bg: c.primaryLight, icon: 'infocirlceo' },
+    low: { color: c.textSecondary, bg: 'transparent', icon: 'minuscircleo' },
   } as const;
 }
 

@@ -44,18 +44,18 @@ function fmtDate(dateStr: string) {
 
 function getCategoryIcon(cat: string): { icon: string; color: string } {
   const map: Record<string, { icon: string; color: string }> = {
-    Food: { icon: 'restaurant', color: '#FF6B6B' },
+    Food: { icon: 'enviroment', color: '#FF6B6B' },
     Groceries: { icon: 'shoppingcart', color: '#34C759' },
-    Travel: { icon: 'airplane', color: '#60A5FA' },
+    Travel: { icon: 'earth', color: '#60A5FA' },
     Rent: { icon: 'home', color: '#FB923C' },
     Bills: { icon: 'filetext1', color: '#F59E0B' },
     Shopping: { icon: 'shoppingcart', color: '#F472B6' },
     Entertainment: { icon: 'play', color: '#14B8A6' },
     Medical: { icon: 'medicinebox', color: '#FF4D4F' },
-    salary: { icon: 'briefcase', color: '#34C759' },
+    salary: { icon: 'solution1', color: '#34C759' },
     income: { icon: 'linechart', color: '#34C759' },
   };
-  return map[cat] || { icon: 'minuscirlceo', color: '#9CA3AF' };
+  return map[cat] || { icon: 'minuscircleo', color: '#9CA3AF' };
 }
 
 export function CoupleFinanceScreen() {
@@ -316,7 +316,7 @@ export function CoupleFinanceScreen() {
               style={s.headerBtn}
               onPress={() => navigation.navigate('CoupleReports', { groupId })}
             >
-              <AntDesign  name="bar-chart" size={20} color="#FFF" />
+              <AntDesign name="barchart" size={20} color="#FFF" />
             </TouchableOpacity>
           </View>
           <View style={s.partnerHero}>
@@ -391,7 +391,7 @@ export function CoupleFinanceScreen() {
                 ]}
               >
                 <AntDesign
-                  name={totalIncome >= totalExpenses ? 'trending-up' : 'trending-down'}
+                  name={(totalIncome >= totalExpenses ? 'arrowup' : 'arrowdown') as any}
                   size={14}
                   color={totalIncome >= totalExpenses ? '#34C759' : '#FF4D4F'}
                 />

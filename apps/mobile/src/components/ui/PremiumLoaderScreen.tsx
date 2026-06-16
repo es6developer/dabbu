@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 
@@ -28,7 +28,7 @@ export function PremiumLoaderScreen({
   progress,
   tip,
   title = 'Loading',
-  icon = 'layers',
+  icon = 'copy1',
 }: PremiumLoaderScreenProps) {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -54,7 +54,7 @@ export function PremiumLoaderScreen({
         <View
           style={[s.iconWrap, { backgroundColor: `${colors.brand.primary}12` }]}
         >
-          <AntDesign name={icon} size={40} color={colors.brand.primary} />
+          <Ionicons name={icon as any} size={40} color={colors.brand.primary} />
         </View>
 
         <Text style={[s.title, { color: colors.text.primary }]}>

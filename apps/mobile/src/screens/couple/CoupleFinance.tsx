@@ -204,7 +204,7 @@ export function CoupleFinance() {
                     }}
                   >
                     <AntDesign
-                      name={isYou ? 'user' : 'person'}
+                      name={(isYou ? 'user' : 'person') as any}
                       size={16}
                       color={isYou ? colors.brand.primary : colors.status.success}
                     />

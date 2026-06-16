@@ -40,7 +40,7 @@ export function BalanceCard({
         <View style={styles.labelRow}>
           <Text style={styles.label}>Joint Wallet</Text>
           <View style={styles.premiumDot}>
-            <AntDesign  name="diamond" size={10} color="#FFFFFF" />
+            <AntDesign name="star" size={10} color="#FFFFFF" />
             <Text style={styles.premiumDotText}>PREMIUM</Text>
           </View>
         </View>

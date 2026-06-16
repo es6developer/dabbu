@@ -22,6 +22,7 @@ import { PrismaModule } from './common/prisma/prisma.module';
 // Common
 import { SecurityConfig } from './common/security/security.config';
 import { HealthController } from './common/health/health.controller';
+import { CacheModule } from './common/cache/cache.module';
 
 // Modules
 import { AuthModule } from './modules/auth/auth.module';
@@ -119,6 +120,9 @@ import { ChallengesModule } from './modules/challenges/challenges.module';
 
     // ─── Scheduling ─────────────────────────────────
     ScheduleModule.forRoot(),
+
+    // ─── Cache ──────────────────────────────────────
+    CacheModule,
 
     // ─── Database ───────────────────────────────────
     DatabaseModule,

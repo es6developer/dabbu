@@ -9,7 +9,7 @@ import {
   Animated,
   Alert,
 } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -781,7 +781,7 @@ export function ReportsScreen() {
               activeOpacity={0.7}
               onPress={() => Alert.alert('Export Report', 'CSV export will be available soon.')}
             >
-              <AntDesign  name="codesquareo" size={24} color={colors.status.warning} />
+              <Ionicons name="code-slash-outline" size={24} color={colors.status.warning} />
               <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.secondary }}>
                 CSV
               </Text>

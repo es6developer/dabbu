@@ -156,7 +156,7 @@ export function CoupleReportsScreen() {
             padding: 20,
           }}
         >
-          <AntDesign  name="bar-chart" size={48} color={colors.accent.primary} />
+          <AntDesign name="barchart" size={48} color={colors.accent.primary} />
           <Text style={[styles.emptyTitle, { color: colors.text.secondary, marginTop: 12 }]}>
             No Data
           </Text>

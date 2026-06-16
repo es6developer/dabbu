@@ -18,7 +18,7 @@ import { getCategoryIcon, getCategoryColor } from '../../config/categoryIcons';
 
 const { width } = Dimensions.get('window');
 
-const DEFAULT_CAT = { icon: 'minuscirlceo', color: '#9CA3AF' };
+const DEFAULT_CAT = { icon: 'minuscircleo', color: '#9CA3AF' };
 
 function fmt(v: number) {
   return `₹${(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;

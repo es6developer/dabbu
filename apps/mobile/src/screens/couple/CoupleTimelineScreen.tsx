@@ -14,7 +14,7 @@ const { width } = Dimensions.get('window');
 
 const EVENT_ICONS: Record<string, { icon: string; color: string }> = {
   expense_added: { icon: 'shoppingcart', color: '#FF6B6B' },
-  goal_contribution: { icon: 'trophy', color: '#A78BFA' },
+  goal_contribution: { icon: 'flag', color: '#A78BFA' },
   goal_created: { icon: 'flag', color: '#60A5FA' },
   milestone_reached: { icon: 'star', color: '#F59E0B' },
   income_added: { icon: 'linechart', color: '#34C759' },
@@ -22,13 +22,13 @@ const EVENT_ICONS: Record<string, { icon: string; color: string }> = {
   savings_contribution: { icon: 'save', color: '#14B8A6' },
   planner_started: { icon: 'find', color: '#8B5CF6' },
   planner_progress: { icon: 'reload1', color: '#8B5CF6' },
-  investment_added: { icon: 'trending-up', color: '#34C759' },
+  investment_added: { icon: 'linechart', color: '#34C759' },
   debt_cleared: { icon: 'checkcircle', color: '#10B981' },
 };
 
 function EventCard({ event }: { event: any }) {
   const { colors } = useTheme();
-  const cfg = EVENT_ICONS[event.eventType] || { icon: 'ellipsis-horizontal', color: '#64748B' };
+  const cfg = EVENT_ICONS[event.eventType] || { icon: 'ellipsis1', color: '#64748B' };
   const date = new Date(event.createdAt);
   const timeStr = date.toLocaleDateString('en-IN', {
     day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',

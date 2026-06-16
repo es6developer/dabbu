@@ -28,10 +28,10 @@ const { width: SCREEN_W } = Dimensions.get('window');
 const GREEN = '#10B981';
 
 const SPLIT_TYPES = [
-  { key: 'equal', label: 'Equal', icon: 'arrow-redo', desc: 'Everyone pays the same' },
-  { key: 'percentage', label: 'Percentage', icon: 'percent', desc: 'Custom percentages' },
-  { key: 'exact', label: 'Exact', icon: 'cash', desc: 'Custom amounts' },
-  { key: 'shares', label: 'Shares', icon: 'layers', desc: 'Split by shares' },
+  { key: 'equal', label: 'Equal', icon: 'retweet', desc: 'Everyone pays the same' },
+  { key: 'percentage', label: 'Percentage', icon: 'info', desc: 'Custom percentages' },
+  { key: 'exact', label: 'Exact', icon: 'wallet', desc: 'Custom amounts' },
+  { key: 'shares', label: 'Shares', icon: 'copy1', desc: 'Split by shares' },
 ] as const;
 
 const MM_COLORS = [
@@ -721,7 +721,7 @@ export function SharedExpenseFormScreen() {
                 </Text>
               </View>
               <AntDesign
-                name={showNotes ? 'chevron-up' : 'chevron-down'}
+                name={(showNotes ? 'caretup' : 'caretdown') as any}
                 size={16}
                 color={colors.text.tertiary}
               />

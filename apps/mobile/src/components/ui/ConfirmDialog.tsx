@@ -41,7 +41,7 @@ export function ConfirmDialog({
 
             {icon && (
               <AntDesign
-                name={icon}
+                name={icon as any}
                 size={28}
                 color={destructive ? colors.status.error : colors.accent.primary}
                 style={styles.icon}

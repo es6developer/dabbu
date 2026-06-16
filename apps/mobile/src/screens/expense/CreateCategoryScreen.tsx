@@ -22,7 +22,7 @@ const PURPLE = '#8B5CF6';
 const PURPLE_DARK = '#6D28D9';
 
 const ICON_SET: { name: string; icon: string; color: string }[] = [
-  { name: 'Food & Dining', icon: 'restaurant', color: '#FF6B6B' },
+  { name: 'Food & Dining', icon: 'enviroment', color: '#FF6B6B' },
   { name: 'Groceries', icon: 'shoppingcart', color: '#34C759' },
   { name: 'Shopping', icon: 'shoppingcart', color: '#F472B6' },
   { name: 'Transport', icon: 'car', color: '#38BDF8' },
@@ -31,19 +31,19 @@ const ICON_SET: { name: string; icon: string; color: string }[] = [
   { name: 'Entertainment', icon: 'play', color: '#14B8A6' },
   { name: 'Healthcare', icon: 'medicinebox', color: '#FF4D4F' },
   { name: 'Education', icon: 'book', color: '#8B5CF6' },
-  { name: 'Travel', icon: 'airplane', color: '#60A5FA' },
+  { name: 'Travel', icon: 'earth', color: '#60A5FA' },
   { name: 'Sports', icon: 'play', color: '#22C55E' },
   { name: 'Subscription', icon: 'retweet', color: '#8B5CF6' },
-  { name: 'Utilities', icon: 'thunder', color: '#FBBF24' },
+  { name: 'Utilities', icon: 'star', color: '#FBBF24' },
   { name: 'Salary', icon: 'wallet', color: '#00B894' },
-  { name: 'Business', icon: 'shop', color: '#14B8A6' },
+  { name: 'Business', icon: 'appstore1', color: '#14B8A6' },
   { name: 'Rental', icon: 'key', color: '#FB923C' },
   { name: 'Gift', icon: 'gift', color: '#F472B6' },
   { name: 'Insurance', icon: 'Safety', color: '#00CEC9' },
-  { name: 'Pets', icon: 'paw', color: '#FDCB6E' },
+  { name: 'Pets', icon: 'heart', color: '#FDCB6E' },
   { name: 'Clothing', icon: 'skin', color: '#F472B6' },
   { name: 'Fitness', icon: 'hearto', color: '#14B8A6' },
-  { name: 'Coffee', icon: 'coffee', color: '#D4A574' },
+  { name: 'Coffee', icon: 'gift', color: '#D4A574' },
   { name: 'Phone', icon: 'phone', color: '#00B894' },
   { name: 'Investment', icon: 'linechart', color: '#14B8A6' },
 ];
@@ -161,7 +161,7 @@ export function CreateCategoryScreen() {
                 onPress={() => setType(t)}
               >
                 <AntDesign
-                  name={t === 'expense' ? 'arrow-up-circle' : 'arrow-down-circle'}
+                  name={(t === 'expense' ? 'arrow-up-circle' : 'arrow-down-circle') as any}
                   size={16}
                   color={type === t ? '#FFF' : colors.text.tertiary}
                 />
@@ -233,7 +233,7 @@ export function CreateCategoryScreen() {
             style={s.saveGrad}
           >
             <AntDesign
-              name={saving ? 'hourglass' : 'checkmark-circle'}
+              name={(saving ? 'hourglass' : 'checkmark-circle') as any}
               size={18}
               color="#FFF"
             />
