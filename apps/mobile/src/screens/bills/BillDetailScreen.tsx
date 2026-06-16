@@ -13,6 +13,7 @@ import {
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../../theme';
+import { spacing, borderRadius } from '../../theme/design';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { DatePickerField } from '../../components/ui/DatePickerField';

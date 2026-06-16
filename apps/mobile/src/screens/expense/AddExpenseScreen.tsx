@@ -92,8 +92,8 @@ export function AddExpenseScreen() {
   }
 
   const isExpense = activeTab === 'expense';
-  const accentColor = isExpense ? '#8B5CF6' : '#10B981';
-  const accentDark = isExpense ? '#6D28D9' : '#059669';
+  const accentColor = isExpense ? '#7C3AED' : '#34C759';
+  const accentDark = isExpense ? '#6D28D9' : '#28A745';
 
   const displayAmount = amount
     ? parseFloat(amount).toLocaleString('en-IN', {

@@ -8,12 +8,8 @@ import {
   Alert,
   Animated,
   RefreshControl,
-  Modal,
-  TextInput,
-  ScrollView,
   Dimensions,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken, warmupBackend } from '../../services/api';
@@ -24,8 +20,8 @@ import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { Avatar } from '../../components/ui/Avatar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useToast } from '../../store/ToastContext';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 
-const H_PADDING = 20;
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 const SPACE_TYPE_CONFIG: Record<
@@ -147,14 +143,7 @@ function computeFinancialSummary(groups: any[], currentUserId?: string) {
   return { totalOwedToMe, totalIOwe, pendingSettlements, activeGroups: groups.length };
 }
 
-function MemberAvatars({
-  members,
-  max = 3,
-}: {
-  members: any[];
-  max?: number;
-  themeColor?: string;
-}) {
+function MemberAvatars({ members, max = 3 }: { members: any[]; max?: number }) {
   const { colors } = useTheme();
   const visible = members.slice(0, max);
   const remaining = members.length - max;
@@ -170,7 +159,14 @@ function MemberAvatars({
         return (
           <View
             key={m.userId || i}
-            style={[cs.avatarWrap, { marginLeft: i > 0 ? -8 : 0, zIndex: max - i }]}
+            style={[
+              cs.avatarWrap,
+              {
+                marginLeft: i > 0 ? -spacing.sm : 0,
+                zIndex: max - i,
+                borderColor: colors.bg.primary,
+              },
+            ]}
           >
             <Avatar
               uri={u.avatarUrl}
@@ -181,8 +177,18 @@ function MemberAvatars({
         );
       })}
       {remaining > 0 && (
-        <View style={[cs.remainBadge, { marginLeft: -8, zIndex: 0 }]}>
-          <Text style={cs.remainText}>+{remaining}</Text>
+        <View
+          style={[
+            cs.remainBadge,
+            {
+              marginLeft: -spacing.sm,
+              zIndex: 0,
+              borderColor: colors.bg.primary,
+              backgroundColor: colors.bg.secondary,
+            },
+          ]}
+        >
+          <Text style={[cs.remainText, { color: colors.text.tertiary }]}>+{remaining}</Text>
         </View>
       )}
     </View>
@@ -243,16 +249,11 @@ function GroupCard({
       style={[gCard.outer, { borderColor: colors.border.default }]}
     >
       <View style={[gCard.card, { backgroundColor: colors.bg.card }]}>
-        <LinearGradient
-          colors={cfg.gradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={gCard.cover}
-        >
+        <View style={[gCard.cover, { backgroundColor: cfg.gradient[0] }]}>
           <View style={[gCard.coverOverlay, { backgroundColor: 'rgba(0,0,0,0.15)' }]}>
             <View style={gCard.coverTop}>
               <View style={[gCard.coverIcon, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-                <AntDesign name={cfg.icon as any} size={18} color="#FFF" />
+                <AntDesign name={cfg.icon as any} size={18} color={colors.text.inverse} />
               </View>
               <View style={[gCard.typeBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
                 <Text style={gCard.typeBadgeText}>{cfg.label}</Text>
@@ -263,7 +264,7 @@ function GroupCard({
             </Text>
             {timeAgo && <Text style={gCard.coverTime}>{timeAgo}</Text>}
           </View>
-        </LinearGradient>
+        </View>
 
         <View style={gCard.body}>
           <View style={gCard.memberRow}>
@@ -301,7 +302,7 @@ function GroupCard({
               activeOpacity={0.8}
               onPress={onAddExpense}
             >
-              <AntDesign  name="pluscircleo" size={14} color={colors.text.inverse} />
+              <AntDesign name="pluscircleo" size={14} color={colors.text.inverse} />
               <Text style={[gCard.actionBtnText, { color: colors.text.inverse }]}>Add expense</Text>
             </TouchableOpacity>
             {totalSpent > 0 && !isSettled && (
@@ -310,7 +311,7 @@ function GroupCard({
                 activeOpacity={0.8}
                 onPress={onSettleUp}
               >
-                <AntDesign  name="swap" size={14} color={colors.accent.primary} />
+                <AntDesign name="swap" size={14} color={colors.accent.primary} />
                 <Text style={[gCard.settleBtnText, { color: colors.accent.primary }]}>
                   Settle up
                 </Text>
@@ -339,10 +340,7 @@ export function SharedFinanceHomeScreen() {
   const [groups, setGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newName, setNewName] = useState('');
-  const [newType, setNewType] = useState('friends');
-  const [saving, setSaving] = useState(false);
+
 
   const scrollY = useRef(new Animated.Value(0)).current;
   const abortRef = useRef<AbortController | null>(null);
@@ -446,50 +444,6 @@ export function SharedFinanceHomeScreen() {
     ]);
   }
 
-  async function handleCreateSpace() {
-    if (!newName.trim()) {
-      Alert.alert('Required', 'Space name is required');
-      return;
-    }
-    if (groups.length >= maxSpaces) {
-      Alert.alert(
-        planInfo.tier === 'free' ? 'Upgrade Required' : 'Limit Reached',
-        planInfo.tier === 'free'
-          ? `Free plan allows ${maxSpaces} spaces. Upgrade to Premium for unlimited spaces.`
-          : `You've used all ${maxSpaces} spaces.`,
-      );
-      return;
-    }
-    setSaving(true);
-    try {
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
-      const res = await api.post<any>('/shared-finance/groups', {
-        name: newName.trim(),
-        type: newType.toLowerCase(),
-        currency: 'INR',
-      });
-      showToast('Space created');
-      const newGroupId = res?.id || res?._id;
-      setShowCreateModal(false);
-      setNewName('');
-      setNewType('friends');
-      if (newGroupId) {
-        navigation.navigate('SharedGroupDetail', {
-          groupId: newGroupId,
-          groupName: newName.trim(),
-        });
-      } else {
-        loadData(true);
-      }
-    } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to create space');
-    } finally {
-      setSaving(false);
-    }
-  }
-
   const userName = user?.firstName || user?.email?.[0]?.toUpperCase() || 'U';
 
   const keyExtractor = useCallback((item: any) => item.id, []);
@@ -516,13 +470,13 @@ export function SharedFinanceHomeScreen() {
   if (loading) {
     return (
       <BaseScreen noPadding>
-        <View style={{ paddingHorizontal: H_PADDING, paddingTop: insets.top + 8 }}>
-          <Skeleton width={120} height={14} borderRadius={6} />
-          <Skeleton width={160} height={24} style={{ marginTop: 4 }} borderRadius={6} />
+        <View style={[load.container, { paddingTop: insets.top + spacing.sm }]}>
+          <Skeleton width={120} height={14} borderRadius={borderRadius.sm} />
+          <Skeleton width={160} height={24} style={{ marginTop: spacing.xs }} borderRadius={borderRadius.sm} />
         </View>
-        <View style={{ marginTop: 24, gap: 16, paddingHorizontal: H_PADDING }}>
+        <View style={load.cards}>
           {[0, 1, 2].map((i) => (
-            <Skeleton key={i} width="100%" height={220} borderRadius={20} />
+            <Skeleton key={i} width="100%" height={220} borderRadius={borderRadius['3xl']} />
           ))}
         </View>
       </BaseScreen>
@@ -548,11 +502,11 @@ export function SharedFinanceHomeScreen() {
           />
         }
         contentContainerStyle={{
-          paddingTop: insets.top + 8,
-          paddingBottom: insets.bottom + 120,
+          paddingTop: insets.top + spacing.sm,
+          paddingBottom: insets.bottom + spacing['8xl'] + spacing['4xl'],
         }}
         ListHeaderComponent={
-          <View style={{ paddingHorizontal: H_PADDING }}>
+          <View style={hdr.headerWrap}>
             <View style={hdr.header}>
               <TouchableOpacity
                 activeOpacity={0.7}
@@ -576,7 +530,7 @@ export function SharedFinanceHomeScreen() {
                   style={[hdr.iconBtn, { backgroundColor: colors.accent.primary + '12' }]}
                   onPress={() => navigation.navigate('Settings')}
                 >
-                  <AntDesign  name="setting" size={20} color={colors.accent.primary} />
+                  <AntDesign name="setting" size={spacing.xl} color={colors.accent.primary} />
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[hdr.iconBtn, { backgroundColor: colors.status.warning + '15' }]}
@@ -642,7 +596,7 @@ export function SharedFinanceHomeScreen() {
         ListEmptyComponent={
           <View style={cs.emptyWrap}>
             <View style={[cs.emptyIconWrap, { backgroundColor: colors.accent.primary + '12' }]}>
-              <AntDesign  name="appstore1" size={44} color={colors.accent.primary} />
+              <AntDesign name="appstore1" size={44} color={colors.accent.primary} />
             </View>
             <Text style={[cs.emptyTitle, { color: colors.text.primary }]}>No spaces yet</Text>
             <Text style={[cs.emptyDesc, { color: colors.text.tertiary }]}>
@@ -650,16 +604,16 @@ export function SharedFinanceHomeScreen() {
             </Text>
             <TouchableOpacity
               style={[cs.emptyCta, { backgroundColor: colors.accent.primary }]}
-              onPress={() => setShowCreateModal(true)}
+              onPress={() => navigation.navigate('CreateSharedGroup')}
             >
-              <AntDesign  name="plus" size={18} color="#FFF" />
+              <AntDesign name="plus" size={18} color={colors.text.inverse} />
               <Text style={cs.emptyCtaText}>Create Space</Text>
             </TouchableOpacity>
           </View>
         }
         ListFooterComponent={
           groups.length > 0 ? (
-            <View style={{ paddingHorizontal: H_PADDING, marginTop: 8 }}>
+            <View style={flim.wrap}>
               <View
                 style={[
                   flim.card,
@@ -709,7 +663,10 @@ export function SharedFinanceHomeScreen() {
 
       {groups.length > 0 && (
         <TouchableOpacity
-          style={[fab.btn, { backgroundColor: colors.accent.primary, bottom: insets.bottom + 24 }]}
+          style={[
+            fab.btn,
+            { backgroundColor: colors.accent.primary, bottom: insets.bottom + spacing['2xl'] },
+          ]}
           activeOpacity={0.85}
           onPress={() => {
             if (groups.length >= maxSpaces) {
@@ -720,169 +677,43 @@ export function SharedFinanceHomeScreen() {
                   : `You've used all ${maxSpaces} spaces.`,
               );
             } else {
-              setShowCreateModal(true);
+              navigation.navigate('CreateSharedGroup');
             }
           }}
         >
-          <AntDesign  name="plus" size={24} color="#FFF" />
+          <AntDesign name="plus" size={spacing['2xl']} color={colors.text.inverse} />
           <Text style={fab.label}>New Space</Text>
         </TouchableOpacity>
       )}
-
-      <Modal
-        visible={showCreateModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowCreateModal(false)}
-      >
-        <View style={[mod.overlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
-          <View
-            style={[
-              mod.sheet,
-              {
-                backgroundColor: colors.bg.primary,
-                borderTopLeftRadius: 28,
-                borderTopRightRadius: 28,
-              },
-            ]}
-          >
-            <View style={mod.handle} />
-            <Text style={[mod.title, { color: colors.text.primary }]}>New Space</Text>
-
-            <View style={mod.field}>
-              <Text style={[mod.label, { color: colors.text.tertiary }]}>Space Name</Text>
-              <TextInput
-                style={[
-                  mod.input,
-                  {
-                    backgroundColor: colors.bg.card,
-                    borderColor: colors.border.default,
-                    color: colors.text.primary,
-                  },
-                ]}
-                value={newName}
-                onChangeText={setNewName}
-                placeholder="e.g. Goa Trip 2025"
-                placeholderTextColor={colors.text.tertiary}
-                autoFocus
-              />
-            </View>
-
-            <View style={mod.field}>
-              <Text style={[mod.label, { color: colors.text.tertiary }]}>Type</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={mod.typeRow}
-              >
-                {Object.entries(SPACE_TYPE_CONFIG)
-                  .filter(([k]) => k !== 'default')
-                  .map(([key, cfg]) => {
-                    const active = newType === key;
-                    return (
-                      <TouchableOpacity
-                        key={key}
-                        style={[
-                          mod.typeChip,
-                          {
-                            borderColor: active ? cfg.gradient[0] : colors.border.default,
-                            backgroundColor: active ? `${cfg.gradient[0]}1A` : colors.bg.card,
-                          },
-                        ]}
-                        onPress={() => setNewType(key)}
-                      >
-                        <AntDesign
-                          name={cfg.icon as any}
-                          size={16}
-                          color={active ? cfg.gradient[0] : colors.text.tertiary}
-                        />
-                        <Text
-                          style={[
-                            mod.typeChipText,
-                            { color: active ? cfg.gradient[0] : colors.text.secondary },
-                          ]}
-                        >
-                          {cfg.label}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-              </ScrollView>
-            </View>
-
-            <View style={mod.field}>
-              <Text style={[mod.label, { color: colors.text.tertiary }]}>Invite Members</Text>
-              <TextInput
-                style={[
-                  mod.input,
-                  {
-                    backgroundColor: colors.bg.card,
-                    borderColor: colors.border.default,
-                    color: colors.text.primary,
-                  },
-                ]}
-                placeholder="Enter phone numbers (optional)"
-                placeholderTextColor={colors.text.tertiary}
-                keyboardType="phone-pad"
-              />
-            </View>
-
-            <View style={mod.actionRow}>
-              <TouchableOpacity
-                style={[mod.cancelBtn, { borderColor: colors.border.default }]}
-                onPress={() => {
-                  setShowCreateModal(false);
-                  setNewName('');
-                  setNewType('friends');
-                }}
-              >
-                <Text style={[mod.cancelBtnText, { color: colors.text.secondary }]}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[mod.submitBtn, { backgroundColor: colors.accent.primary }]}
-                onPress={handleCreateSpace}
-                disabled={saving}
-              >
-                {saving ? (
-                  <Text style={mod.submitBtnText}>Creating...</Text>
-                ) : (
-                  <>
-                    <AntDesign  name="plus" size={18} color="#FFF" />
-                    <Text style={mod.submitBtnText}>Create</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </BaseScreen>
   );
 }
 
+const load = StyleSheet.create({
+  container: {
+    paddingHorizontal: spacing.xl,
+  },
+  cards: {
+    marginTop: spacing['2xl'],
+    gap: spacing.lg,
+    paddingHorizontal: spacing.xl,
+  },
+});
+
 const hdr = StyleSheet.create({
+  headerWrap: {
+    paddingHorizontal: spacing.xl,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   profileRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '700',
+    gap: spacing.md,
   },
   greeting: {
     fontSize: 11,
@@ -896,27 +727,27 @@ const hdr = StyleSheet.create({
   },
   headerRight: {
     flexDirection: 'row',
-    gap: 8,
+    gap: spacing.sm,
   },
   iconBtn: {
     width: 38,
     height: 38,
-    borderRadius: 12,
+    borderRadius: borderRadius.xl,
     alignItems: 'center',
     justifyContent: 'center',
   },
   statsBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 18,
+    marginBottom: spacing.xl,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    borderRadius: borderRadius['3xl'],
   },
   statItem: {
     flex: 1,
     alignItems: 'center',
-    gap: 2,
+    gap: spacing.xs,
   },
   statValue: {
     fontSize: 18,
@@ -934,16 +765,16 @@ const hdr = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
   },
   pendingBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.md,
   },
   pendingBadgeText: {
     fontSize: 11,
@@ -953,55 +784,51 @@ const hdr = StyleSheet.create({
 
 const gCard = StyleSheet.create({
   outer: {
-    marginHorizontal: H_PADDING,
-    marginBottom: 16,
-    borderRadius: 20,
+    marginHorizontal: spacing.xl,
+    marginBottom: spacing.lg,
+    borderRadius: borderRadius['3xl'],
     borderWidth: 1,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    ...shadows.md,
   },
-  card: { borderRadius: 20, overflow: 'hidden' },
+  card: { borderRadius: borderRadius['3xl'], overflow: 'hidden' },
   cover: { height: 110 },
-  coverOverlay: { flex: 1, padding: 18, justifyContent: 'flex-end' },
+  coverOverlay: { flex: 1, padding: spacing.lg, justifyContent: 'flex-end' },
   coverTop: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     position: 'absolute',
-    top: 12,
-    left: 18,
-    right: 18,
+    top: spacing.md,
+    left: spacing.lg,
+    right: spacing.lg,
   },
   coverIcon: {
     width: 34,
     height: 34,
-    borderRadius: 11,
+    borderRadius: borderRadius.lg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   typeBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.md,
   },
   typeBadgeText: { color: '#FFF', fontSize: 11, fontWeight: '700' },
   coverName: { fontSize: 19, fontWeight: '800', color: '#FFF' },
-  coverTime: { fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
-  body: { padding: 16, gap: 12 },
+  coverTime: { fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: spacing.xs },
+  body: { padding: spacing.lg, gap: spacing.md },
   memberRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: spacing.md,
   },
   memberCount: { fontSize: 12, fontWeight: '500' },
   dividerLine: { height: 1 },
-  balanceSection: { gap: 4 },
+  balanceSection: { gap: spacing.xs },
   balanceLabel: { fontSize: 15, fontWeight: '700' },
-  settlementRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  settlementRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   settlementDot: { width: 6, height: 6, borderRadius: 3 },
   settlementText: { fontSize: 12, fontWeight: '500' },
   emptyText: { fontSize: 13, fontWeight: '500', fontStyle: 'italic' },
@@ -1009,28 +836,28 @@ const gCard = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 4,
+    marginTop: spacing.xs,
   },
   actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 12,
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.xl,
   },
   actionBtnText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
   settleBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 12,
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.xl,
     borderWidth: 1.5,
   },
   settleBtnText: { fontSize: 12, fontWeight: '700' },
-  spentBadge: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  spentBadge: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   spentLabel: { fontSize: 11, fontWeight: '500' },
   spentValue: { fontSize: 14, fontWeight: '700' },
 });
@@ -1038,14 +865,9 @@ const gCard = StyleSheet.create({
 const cs = StyleSheet.create({
   avatarRow: { flexDirection: 'row', alignItems: 'center' },
   avatarWrap: {
-    borderRadius: 999,
+    borderRadius: borderRadius.full,
     borderWidth: 2,
-    borderColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
+    ...shadows.md,
   },
   remainBadge: {
     width: 28,
@@ -1053,46 +875,49 @@ const cs = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F2F2F7',
     borderWidth: 1.5,
-    borderColor: '#FFFFFF',
   },
-  remainText: { color: '#8E8E93', fontSize: 10, fontWeight: '700' },
-  emptyWrap: { alignItems: 'center', gap: 12, paddingTop: 60, paddingHorizontal: H_PADDING },
+  remainText: { fontSize: 10, fontWeight: '700' },
+  emptyWrap: {
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingTop: spacing['5xl'],
+    paddingHorizontal: spacing.xl,
+  },
   emptyIconWrap: {
     width: 80,
     height: 80,
-    borderRadius: 24,
+    borderRadius: borderRadius['4xl'],
     alignItems: 'center',
     justifyContent: 'center',
   },
   emptyTitle: { fontSize: 18, fontWeight: '700' },
-  emptyDesc: { fontSize: 13, textAlign: 'center', paddingHorizontal: 32, lineHeight: 18 },
+  emptyDesc: { fontSize: 13, textAlign: 'center', paddingHorizontal: spacing['3xl'], lineHeight: 18 },
   emptyCta: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 22,
-    paddingVertical: 14,
-    borderRadius: 16,
-    marginTop: 8,
+    gap: spacing.xs,
+    paddingHorizontal: spacing['2xl'],
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius['2xl'],
+    marginTop: spacing.sm,
   },
   emptyCtaText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
 });
 
 const flim = StyleSheet.create({
-  card: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1,
+  wrap: {
+    paddingHorizontal: spacing.xl,
+    marginTop: spacing.sm,
   },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  left: { flex: 1, gap: 6 },
+  card: {
+    borderRadius: borderRadius['2xl'],
+    borderWidth: 1,
+    padding: spacing.lg,
+    ...shadows.sm,
+  },
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  left: { flex: 1, gap: spacing.xs },
   barOuter: { height: 5, borderRadius: 3, overflow: 'hidden' },
   barFill: { height: '100%', borderRadius: 3 },
   text: { fontSize: 12, fontWeight: '500' },
@@ -1102,13 +927,13 @@ const flim = StyleSheet.create({
 const fab = StyleSheet.create({
   btn: {
     position: 'absolute',
-    right: 20,
+    right: spacing.xl,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderRadius: 28,
+    gap: spacing.sm,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius['5xl'],
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
@@ -1118,71 +943,4 @@ const fab = StyleSheet.create({
   label: { color: '#FFF', fontSize: 15, fontWeight: '700' },
 });
 
-const mod = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    paddingBottom: 40,
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: 'rgba(0,0,0,0.15)',
-    alignSelf: 'center',
-    marginBottom: 20,
-  },
-  title: { fontSize: 22, fontWeight: '800', marginBottom: 20 },
-  field: { marginBottom: 16 },
-  label: {
-    fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    marginBottom: 6,
-  },
-  input: {
-    minHeight: 50,
-    borderRadius: 14,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    fontSize: 15,
-    fontWeight: '600',
-    paddingVertical: 0,
-  },
-  typeRow: { gap: 8, paddingVertical: 4 },
-  typeChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 999,
-    borderWidth: 1,
-  },
-  typeChipText: { fontSize: 13, fontWeight: '600' },
-  actionRow: { flexDirection: 'row', gap: 10, marginTop: 8 },
-  cancelBtn: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-  },
-  cancelBtnText: { fontSize: 15, fontWeight: '700' },
-  submitBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 14,
-    borderRadius: 14,
-  },
-  submitBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
-});
+

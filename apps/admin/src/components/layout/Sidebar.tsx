@@ -26,23 +26,22 @@ interface NavItem {
   label: string;
   href: string;
   icon: React.ReactNode;
-  badge?: string;
 }
 
 const navItems: NavItem[] = [
-  { label: 'Dashboard', href: '/dashboard', icon: <LayoutDashboard size={18} /> },
-  { label: 'Users', href: '/users', icon: <Users size={18} /> },
-  { label: 'Families', href: '/families', icon: <Home size={18} /> },
-  { label: 'Subscriptions', href: '/subscriptions', icon: <CreditCard size={18} /> },
-  { label: 'Plans', href: '/plans', icon: <Package size={18} /> },
-  { label: 'Revenue', href: '/revenue', icon: <BarChart3 size={18} /> },
-  { label: 'Churn', href: '/churn', icon: <TrendingDown size={18} /> },
-  { label: 'Feature Flags', href: '/feature-flags', icon: <Flag size={18} /> },
-  { label: 'Notifications', href: '/notifications', icon: <Bell size={18} /> },
-  { label: 'Support', href: '/support', icon: <LifeBuoy size={18} /> },
-  { label: 'Admins', href: '/admins', icon: <Shield size={18} /> },
-  { label: 'Logs', href: '/logs', icon: <FileText size={18} /> },
-  { label: 'Settings', href: '/settings', icon: <Settings size={18} /> },
+  { label: 'Dashboard', href: '/dashboard', icon: <LayoutDashboard size={20} /> },
+  { label: 'Users', href: '/users', icon: <Users size={20} /> },
+  { label: 'Families', href: '/families', icon: <Home size={20} /> },
+  { label: 'Subscriptions', href: '/subscriptions', icon: <CreditCard size={20} /> },
+  { label: 'Plans', href: '/plans', icon: <Package size={20} /> },
+  { label: 'Revenue', href: '/revenue', icon: <BarChart3 size={20} /> },
+  { label: 'Churn', href: '/churn', icon: <TrendingDown size={20} /> },
+  { label: 'Feature Flags', href: '/feature-flags', icon: <Flag size={20} /> },
+  { label: 'Notifications', href: '/notifications', icon: <Bell size={20} /> },
+  { label: 'Support', href: '/support', icon: <LifeBuoy size={20} /> },
+  { label: 'Admins', href: '/admins', icon: <Shield size={20} /> },
+  { label: 'Logs', href: '/logs', icon: <FileText size={20} /> },
+  { label: 'Settings', href: '/settings', icon: <Settings size={20} /> },
 ];
 
 export function Sidebar() {
@@ -58,68 +57,65 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        'flex flex-col bg-sidebar text-sidebar-foreground transition-all duration-300 h-screen sticky top-0',
-        collapsed ? 'w-16' : 'w-64',
+        'flex flex-col h-screen sticky top-0 z-40 transition-all duration-500',
+        collapsed ? 'w-[72px]' : 'w-[240px]',
       )}
     >
-      {/* Logo */}
-      <div className="flex items-center gap-3 px-4 h-16 border-b border-sidebar-muted">
-        <div className="w-8 h-8 rounded-lg bg-dabbu-500 flex items-center justify-center flex-shrink-0">
-          <span className="text-white font-bold text-sm">D</span>
+      <div className="flex flex-col h-full glass m-3 rounded-3xl border-white/[0.06]">
+        <div className={cn('flex items-center h-16 px-4', collapsed ? 'justify-center' : 'gap-3')}>
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-500/20">
+            <span className="text-white font-bold text-base">D</span>
+          </div>
+          {!collapsed && <span className="font-display text-lg font-bold tracking-tight text-white">Dabbu</span>}
         </div>
-        {!collapsed && <span className="font-semibold text-lg">Dabbu Admin</span>}
-      </div>
 
-      {/* Nav */}
-      <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors',
-                isActive
-                  ? 'bg-sidebar-accent text-white font-medium'
-                  : 'text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-muted',
-              )}
-            >
-              {item.icon}
-              {!collapsed && (
-                <>
-                  <span className="flex-1">{item.label}</span>
-                  {item.badge && (
-                    <span className="px-2 py-0.5 rounded-full bg-dabbu-500/20 text-dabbu-400 text-xs font-medium">
-                      {item.badge}
-                    </span>
-                  )}
-                </>
-              )}
-            </Link>
-          );
-        })}
-      </nav>
+        <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  'flex items-center rounded-2xl text-sm transition-all duration-200',
+                  collapsed ? 'justify-center px-0 py-3 mx-1' : 'gap-3 px-4 py-2.5 mx-1',
+                  isActive
+                    ? 'bg-white/[0.1] text-white font-medium border border-white/[0.06]'
+                    : 'text-white/50 hover:text-white/80 hover:bg-white/[0.04]',
+                )}
+              >
+                {item.icon}
+                {!collapsed && <span className="flex-1">{item.label}</span>}
+              </Link>
+            );
+          })}
+        </nav>
 
-      {/* Bottom */}
-      <div className="p-2 border-t border-sidebar-muted">
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-muted transition-colors"
-        >
-          <ChevronLeft
-            size={18}
-            className={cn('transition-transform', collapsed && 'rotate-180')}
-          />
-          {!collapsed && <span>Collapse</span>}
-        </button>
-        <button
-          onClick={handleSignOut}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-400 hover:bg-red-500/10 transition-colors mt-1"
-        >
-          <LogOut size={18} />
-          {!collapsed && <span>Sign Out</span>}
-        </button>
+        <div className="p-2 space-y-0.5 border-t border-white/[0.06]">
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className={cn(
+              'flex items-center rounded-2xl text-sm text-white/40 hover:text-white/70 hover:bg-white/[0.04] transition-all duration-200',
+              collapsed ? 'justify-center py-3 mx-1' : 'gap-3 px-4 py-2.5 mx-1',
+            )}
+          >
+            <ChevronLeft
+              size={18}
+              className={cn('transition-transform duration-300', collapsed && 'rotate-180')}
+            />
+            {!collapsed && <span>Collapse</span>}
+          </button>
+          <button
+            onClick={handleSignOut}
+            className={cn(
+              'flex items-center rounded-2xl text-sm text-red-400/60 hover:text-red-400 hover:bg-red-500/[0.08] transition-all duration-200',
+              collapsed ? 'justify-center py-3 mx-1' : 'gap-3 px-4 py-2.5 mx-1',
+            )}
+          >
+            <LogOut size={18} />
+            {!collapsed && <span>Sign Out</span>}
+          </button>
+        </div>
       </div>
     </aside>
   );

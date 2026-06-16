@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { useApiGet } from '../../hooks/useApi';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
-import { PADDING, borderRadius, shadows } from '../../theme/design';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 
 function fmt(v: number) {
   return `\u20B9${(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
@@ -238,7 +238,7 @@ export function ReportsScreen() {
         })}
       >
         {/* Header */}
-        <View style={{ paddingTop: insets.top + 8, paddingHorizontal: PADDING, paddingBottom: 16 }}>
+        <View style={{ paddingTop: insets.top + 8, paddingHorizontal: spacing['2xl'], paddingBottom: spacing.lg }}>
           <View
             style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
           >
@@ -268,12 +268,12 @@ export function ReportsScreen() {
         </View>
 
         {/* Summary Cards */}
-        <View style={{ paddingHorizontal: PADDING, gap: 12, marginBottom: 20 }}>
+        <View style={{ paddingHorizontal: spacing['2xl'], gap: 12, marginBottom: spacing.xl }}>
           <View style={{ flexDirection: 'row', gap: 12 }}>
             <View
               style={{
                 flex: 1,
-                backgroundColor: colors.card.expense,
+                backgroundColor: colors.bg.secondary,
                 borderRadius: borderRadius.lg,
                 padding: 18,
                 ...shadows.sm,
@@ -311,7 +311,7 @@ export function ReportsScreen() {
             <View
               style={{
                 flex: 1,
-                backgroundColor: colors.card.income,
+                backgroundColor: colors.bg.secondary,
                 borderRadius: borderRadius.lg,
                 padding: 18,
                 ...shadows.sm,
@@ -351,7 +351,7 @@ export function ReportsScreen() {
             <View
               style={{
                 flex: 1,
-                backgroundColor: colors.card.savings,
+                backgroundColor: colors.bg.secondary,
                 borderRadius: borderRadius.lg,
                 padding: 18,
                 ...shadows.sm,
@@ -394,7 +394,7 @@ export function ReportsScreen() {
             <View
               style={{
                 flex: 1,
-                backgroundColor: colors.card.budget,
+                backgroundColor: colors.bg.secondary,
                 borderRadius: borderRadius.lg,
                 padding: 18,
                 ...shadows.sm,
@@ -436,7 +436,7 @@ export function ReportsScreen() {
         {monthlyData.length > 0 && (
           <View
             style={{
-              marginHorizontal: PADDING,
+              marginHorizontal: spacing['2xl'],
               backgroundColor: colors.bg.card,
               borderRadius: borderRadius.xl,
               padding: 20,
@@ -509,7 +509,7 @@ export function ReportsScreen() {
         {categoryData.length > 0 && (
           <View
             style={{
-              marginHorizontal: PADDING,
+              marginHorizontal: spacing['2xl'],
               backgroundColor: colors.bg.card,
               borderRadius: borderRadius.xl,
               padding: 20,
@@ -607,7 +607,7 @@ export function ReportsScreen() {
         {income > 0 && monthlySpend > 0 && (
           <View
             style={{
-              marginHorizontal: PADDING,
+              marginHorizontal: spacing['2xl'],
               backgroundColor: colors.bg.card,
               borderRadius: borderRadius.xl,
               padding: 20,
@@ -732,7 +732,7 @@ export function ReportsScreen() {
         )}
 
         {/* Export */}
-        <View style={{ marginHorizontal: PADDING, marginBottom: 32 }}>
+        <View style={{ marginHorizontal: spacing['2xl'], marginBottom: 32 }}>
           <Text
             style={{
               fontSize: 16,

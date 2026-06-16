@@ -10,12 +10,13 @@ import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { UpgradePrompt } from '../../components/ui/UpgradePrompt';
 import { useTheme } from '../../theme';
+import { spacing, borderRadius } from '../../theme/design';
 
 const PLANNER_META: Record<string, { icon: string; color: string; title: string; badge: string }> = {
   BABY: { icon: 'smileo', color: '#FF8A65', title: 'Baby Planner', badge: 'PREMIUM' },
   HOUSE: { icon: 'home', color: '#60A5FA', title: 'House Planner', badge: 'PREMIUM' },
   CAR: { icon: 'car', color: '#34C759', title: 'Car Planner', badge: 'PREMIUM' },
-  RETIREMENT: { icon: 'Safety', color: '#A78BFA', title: 'Retirement Planner', badge: 'PREMIUM' },
+  RETIREMENT: { icon: 'Safety', color: '#5AC8FA', title: 'Retirement Planner', badge: 'PREMIUM' },
 };
 
 function StatRow({ label, value, color }: { label: string; value: string; color?: string }) {

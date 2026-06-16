@@ -7,8 +7,9 @@ import { useTheme } from '../../theme';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { width: SCREEN_W } = Dimensions.get('window');
-const PURPLE = '#8B5CF6';
-const PURPLE_DARK = '#6D28D9';
+import { palette } from '../../theme/colors';
+const PURPLE = palette.brand.primary;
+const PURPLE_DARK = palette.brand.hover;
 const CARD_W = (SCREEN_W - 60) / 2;
 
 interface OptionCard {

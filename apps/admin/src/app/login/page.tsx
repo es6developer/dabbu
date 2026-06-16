@@ -39,58 +39,66 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="w-full max-w-md p-8">
-        <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-xl bg-dabbu-500 flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-xl">D</span>
+    <div className="min-h-screen flex items-center justify-center bg-black overflow-hidden relative">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(99,102,241,0.15),transparent_70%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(139,92,246,0.1),transparent_60%)]" />
+      <div className="relative w-full max-w-sm px-6">
+        <div className="glass-panel p-10 space-y-8">
+          <div className="text-center space-y-3">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center mx-auto shadow-xl shadow-indigo-500/20">
+              <span className="text-white font-bold text-2xl">D</span>
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-white">Admin</h1>
+              <p className="text-white/40 text-sm mt-1">Sign in to manage Dabbu</p>
+            </div>
           </div>
-          <h1 className="text-2xl font-bold text-foreground">Admin Login</h1>
-          <p className="text-muted-foreground mt-1">Sign in to manage Dabbu</p>
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            {error && (
+              <div className="px-4 py-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                {error}
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-white/60">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="glass-input w-full h-11 px-4"
+                placeholder="admin@dabbu.app"
+                required
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-white/60">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="glass-input w-full h-11 px-4"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-glass w-full h-11 text-sm"
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
+
+          <p className="text-center text-xs text-white/20">
+            Default: admin@dabbu.app / Admin@123
+          </p>
         </div>
-
-        <form onSubmit={handleLogin} className="space-y-4">
-          {error && (
-            <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2.5 bg-secondary border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-dabbu-500"
-              placeholder="admin@dabbu.app"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2.5 bg-secondary border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-dabbu-500"
-              placeholder="Admin@123"
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2.5 bg-dabbu-500 text-white rounded-lg font-medium hover:bg-dabbu-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
-        </form>
-
-        <p className="text-center text-xs text-muted-foreground mt-6">
-          Default: admin@dabbu.app / Admin@123
-        </p>
       </div>
     </div>
   );

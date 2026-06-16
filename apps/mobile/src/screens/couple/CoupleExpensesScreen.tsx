@@ -12,6 +12,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { getCategoryIcon, getCategoryColor } from '../../config/categoryIcons';
@@ -167,7 +168,7 @@ export function CoupleExpensesScreen() {
         </View>
         {item.splitType === 'split' && item.shares ? (
           <View style={[styles.splitIndicator, { borderLeftColor: colors.border.subtle }]}>
-            <Text style={[styles.splitPct, { color: colors.brand.primary }]}>
+            <Text style={[styles.splitPct, { color: colors.accent.primary }]}>
               {Math.round(item.shares.partner1?.percentage || item.shares.percentage || 50)}%
             </Text>
             <Text style={[styles.splitLabel, { color: colors.text.tertiary }]}>your share</Text>
@@ -199,15 +200,15 @@ export function CoupleExpensesScreen() {
       >
         <View
           style={{
-            paddingTop: insets.top + 12,
-            paddingBottom: 24,
-            paddingHorizontal: 20,
+            paddingTop: insets.top + spacing.md,
+            paddingBottom: spacing['2xl'],
+            paddingHorizontal: spacing.xl,
             backgroundColor: colors.accent.primary,
           }}
         >
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <AntDesign  name="arrowleft" size={22} color="#FFF" />
+              <AntDesign  name="arrowleft" size={22} color={colors.text.inverse} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Expenses</Text>
             <TouchableOpacity
@@ -223,7 +224,7 @@ export function CoupleExpensesScreen() {
               }
               style={styles.backBtn}
             >
-              <AntDesign  name="plus" size={22} color="#FFF" />
+              <AntDesign  name="plus" size={22} color={colors.text.inverse} />
             </TouchableOpacity>
           </View>
         </View>
@@ -242,10 +243,10 @@ export function CoupleExpensesScreen() {
                   <AntDesign
                     name={tab.icon as any}
                     size={14}
-                    color={active ? '#FFF' : colors.text.secondary}
+                    color={active ? colors.text.inverse : colors.text.secondary}
                   />
                   <Text
-                    style={[styles.segmentText, { color: active ? '#FFF' : colors.text.secondary }]}
+                    style={[styles.segmentText, { color: active ? colors.text.inverse : colors.text.secondary }]}
                   >
                     {tab.label}
                   </Text>
@@ -255,7 +256,7 @@ export function CoupleExpensesScreen() {
           </View>
         </View>
 
-        <View style={{ paddingHorizontal: 20, paddingTop: 16 }}>
+        <View style={{ paddingHorizontal: spacing.xl, paddingTop: spacing.lg }}>
           <View style={[styles.summaryCard, { backgroundColor: '#FFEBB4' }]}>
             <View style={styles.summaryTop}>
               <Text style={styles.summaryLabel}>
@@ -307,15 +308,15 @@ const styles = StyleSheet.create({
   backBtn: {
     width: 34,
     height: 34,
-    borderRadius: 12,
+    borderRadius: borderRadius.xl,
     backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerTitle: { color: '#FFF', fontSize: 17, fontWeight: '700' },
 
-  tabSection: { paddingHorizontal: 20, paddingTop: 16 },
-  segmentRow: { flexDirection: 'row', borderRadius: 12, padding: 3 },
+  tabSection: { paddingHorizontal: spacing.xl, paddingTop: spacing.lg },
+  segmentRow: { flexDirection: 'row', borderRadius: borderRadius.xl, padding: 3 },
   segmentBtn: {
     flex: 1,
     flexDirection: 'row',
@@ -323,12 +324,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     paddingVertical: 10,
-    borderRadius: 10,
+    borderRadius: borderRadius.lg,
   },
   segmentText: { fontSize: 13, fontWeight: '700' },
 
   summaryCard: {
-    borderRadius: 24,
+    borderRadius: borderRadius['4xl'],
     padding: 22,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
@@ -347,7 +348,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(93,56,181,0.12)',
     paddingHorizontal: 10,
     paddingVertical: 3,
-    borderRadius: 8,
+    borderRadius: borderRadius.md,
   },
   countBadgeText: { fontSize: 11, fontWeight: '700', color: '#F97316' },
   summaryAmount: {
@@ -365,7 +366,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 18,
     padding: 14,
-    gap: 12,
+    gap: spacing.md,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 10,
@@ -380,12 +381,12 @@ const styles = StyleSheet.create({
   },
   expenseInfo: { flex: 1, gap: 6 },
   expenseTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  expenseDesc: { fontSize: 14, fontWeight: '600', flex: 1, marginRight: 8 },
+  expenseDesc: { fontSize: 14, fontWeight: '600', flex: 1, marginRight: spacing.sm },
   expenseAmount: { fontSize: 16, fontWeight: '800' },
   expenseBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   expenseDate: { fontSize: 11, fontWeight: '500' },
   expenseBadges: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  categoryBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
+  categoryBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: borderRadius.sm },
   categoryBadgeText: { fontSize: 10, fontWeight: '700' },
   paidByChip: {
     flexDirection: 'row',
@@ -393,7 +394,7 @@ const styles = StyleSheet.create({
     gap: 3,
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: 6,
+    borderRadius: borderRadius.sm,
   },
   paidByText: { fontSize: 10, fontWeight: '600' },
   splitIndicator: {
@@ -404,7 +405,7 @@ const styles = StyleSheet.create({
   splitPct: { fontSize: 14, fontWeight: '800' },
   splitLabel: { fontSize: 9, fontWeight: '500', marginTop: 1 },
 
-  emptyWrap: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60, gap: 8 },
+  emptyWrap: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60, gap: spacing.sm },
   emptyTitle: { fontSize: 16, fontWeight: '700' },
   emptyDesc: { fontSize: 13, fontWeight: '500' },
 });

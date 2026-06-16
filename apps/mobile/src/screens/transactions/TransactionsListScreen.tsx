@@ -17,7 +17,7 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { PADDING, borderRadius, shadows, fabShadow } from '../../theme/design';
+import { spacing, borderRadius, shadows, fabShadow } from '../../theme/design';
 import { PremiumCard } from '../../components/ui/PremiumCard';
 import { PremiumEmptyState } from '../../components/ui/PremiumEmptyState';
 import { getCategoryColor } from '../../config/categoryIcons';
@@ -329,7 +329,7 @@ export function TransactionsListScreen() {
       <View
         style={[s.screen, { backgroundColor: colors.bg.primary }, { paddingTop: insets.top + 60 }]}
       >
-        <View style={{ padding: PADDING, gap: 12 }}>
+        <View style={{ padding: spacing.xl, gap: 12 }}>
           {[1, 2, 3, 4, 5].map((i) => (
             <View
               key={i}
@@ -349,7 +349,7 @@ export function TransactionsListScreen() {
   return (
     <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
       <Animated.View style={{ opacity: headerOpacity }}>
-        <View style={{ paddingTop: insets.top + 8, paddingHorizontal: PADDING, paddingBottom: 8 }}>
+        <View style={{ paddingTop: insets.top + 8, paddingHorizontal: spacing.xl, paddingBottom: 8 }}>
           <View
             style={{
               flexDirection: 'row',
@@ -509,7 +509,7 @@ export function TransactionsListScreen() {
           data={filtered}
           keyExtractor={(item: any) => item.title}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: PADDING, paddingBottom: 100 }}
+          contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: 100 }}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -533,7 +533,7 @@ export function TransactionsListScreen() {
         <FlatList
           data={[]}
           renderItem={() => null}
-          contentContainerStyle={{ flex: 1, justifyContent: 'center', padding: PADDING }}
+          contentContainerStyle={{ flex: 1, justifyContent: 'center', padding: spacing.xl }}
           ListEmptyComponent={
             <PremiumEmptyState
               icon={
@@ -588,7 +588,7 @@ const s = StyleSheet.create({
   screen: { flex: 1 },
   fab: {
     position: 'absolute',
-    right: PADDING,
+    right: spacing.xl,
     bottom: 24,
     width: 56,
     height: 56,

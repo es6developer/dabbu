@@ -18,129 +18,76 @@ export default function FamilyDetailPage() {
     try {
       const res = await getFamilyDetail(params.id as string);
       setFamily(res.data);
-    } catch (e: any) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
+    } catch (e: any) { setError(e.message); }
+    finally { setLoading(false); }
   }
 
-  useEffect(() => {
-    load();
-  }, [params.id]);
+  useEffect(() => { load(); }, [params.id]);
 
   async function handleDelete() {
-    if (!family || !confirm(`Delete family "${family.name}"?`)) {
-      return;
-    }
+    if (!family || !confirm(`Delete family "${family.name}"?`)) return;
     try {
       await deleteFamily(family.id);
       router.push('/families');
-    } catch (e: any) {
-      alert(e.message);
-    }
+    } catch (e: any) { alert(e.message); }
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
-      </div>
-    );
-  }
-  if (error) {
-    return (
-      <div className="bg-red-50 dark:bg-red-500/10 rounded-lg p-4 text-sm text-red-700 dark:text-red-400">
-        {error}
-      </div>
-    );
-  }
-  if (!family) {
-    return <div className="text-center py-16 text-gray-500">Family not found</div>;
-  }
+  if (loading) return <div className="flex items-center justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-white/40" /></div>;
+  if (error) return <div className="glass-panel p-5 text-sm text-red-400">{error}</div>;
+  if (!family) return <div className="text-center py-16 text-white/40">Family not found</div>;
 
   const members = family.members || [];
 
   return (
-    <div className="space-y-6 max-w-3xl">
-      <button
-        onClick={() => router.back()}
-        className="flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
-      >
+    <div className="space-y-6 max-w-3xl animate-fade-in">
+      <button onClick={() => router.back()} className="btn-ghost-glass">
         <ChevronLeft size={16} /> Back to Families
       </button>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-6 dark:border dark:border-gray-700">
+      <div className="glass-panel p-7 space-y-7">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center">
-              <Users className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+            <div className="w-14 h-14 rounded-2xl bg-white/[0.06] flex items-center justify-center ring-1 ring-white/[0.08]">
+              <Users className="w-6 h-6 text-white/60" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">{family.name}</h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <h2 className="text-xl font-bold text-white">{family.name}</h2>
+              <p className="text-sm text-white/50">
                 {members.length} member{members.length !== 1 ? 's' : ''} ·{' '}
                 {family.code ? `Code: ${family.code}` : 'No code'}
               </p>
             </div>
           </div>
-          <span
-            className={`px-3 py-1 rounded-full text-xs font-medium ${family.isActive !== false ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 dark:text-emerald-400' : 'text-red-600 bg-red-50 dark:bg-red-500/10 dark:text-red-400'}`}
-          >
+          <span className={`badge-glass ${family.isActive !== false ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
             {family.isActive !== false ? 'Active' : 'Inactive'}
           </span>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 text-sm border-t border-gray-200 dark:border-gray-700 pt-4">
-          <div>
-            <span className="text-gray-500 dark:text-gray-400">Family ID:</span>{' '}
-            <span className="text-gray-900 dark:text-white font-mono text-xs">{family.id}</span>
-          </div>
-          <div>
-            <span className="text-gray-500 dark:text-gray-400">Max Members:</span>{' '}
-            <span className="text-gray-900 dark:text-white">{family.maxMembers}</span>
-          </div>
-          <div>
-            <span className="text-gray-500 dark:text-gray-400">Owner ID:</span>{' '}
-            <span className="text-gray-900 dark:text-white font-mono text-xs">
-              {family.ownerId}
-            </span>
-          </div>
-          <div>
-            <span className="text-gray-500 dark:text-gray-400">Created:</span>{' '}
-            <span className="text-gray-900 dark:text-white">
-              {new Date(family.createdAt).toLocaleDateString()}
-            </span>
-          </div>
+        <div className="grid grid-cols-2 gap-5 text-sm border-t border-white/[0.06] pt-6">
+          <InfoRow label="Family ID" value={family.id} mono />
+          <InfoRow label="Max Members" value={String(family.maxMembers)} />
+          <InfoRow label="Owner ID" value={family.ownerId} mono />
+          <InfoRow label="Created" value={new Date(family.createdAt).toLocaleDateString()} />
         </div>
 
-        <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Members</h3>
+        <div className="border-t border-white/[0.06] pt-6">
+          <h3 className="text-sm font-semibold text-white/70 mb-3">Members</h3>
           {members.length === 0 ? (
-            <p className="text-sm text-gray-500">No members</p>
+            <p className="text-sm text-white/40">No members</p>
           ) : (
             <div className="space-y-2">
               {members.map((m: any) => (
-                <div
-                  key={m.id}
-                  className="flex items-center justify-between bg-gray-50 dark:bg-gray-700/50 rounded-lg px-4 py-3"
-                >
+                <div key={m.id} className="flex items-center justify-between bg-white/[0.03] rounded-2xl px-4 py-3 border border-white/[0.04]">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center">
-                      <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">
-                        {m.user?.firstName?.[0] || '?'}
-                      </span>
+                    <div className="w-8 h-8 rounded-xl bg-white/[0.06] flex items-center justify-center">
+                      <span className="text-xs font-bold text-white/60">{m.user?.firstName?.[0] || '?'}</span>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">
-                        {m.user?.firstName} {m.user?.lastName}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{m.user?.email}</p>
+                      <p className="text-sm font-medium text-white">{m.user?.firstName} {m.user?.lastName}</p>
+                      <p className="text-xs text-white/40">{m.user?.email}</p>
                     </div>
                   </div>
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${m.role === 'owner' ? 'text-purple-600 bg-purple-50 dark:bg-purple-500/10 dark:text-purple-400' : 'text-gray-600 bg-gray-100 dark:bg-gray-600 dark:text-gray-400'}`}
-                  >
+                  <span className={`badge-glass ${m.role === 'owner' ? 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/20' : 'bg-white/[0.04] text-white/50 border border-white/[0.06]'}`}>
                     {m.role}
                   </span>
                 </div>
@@ -149,15 +96,21 @@ export default function FamilyDetailPage() {
           )}
         </div>
 
-        <div className="flex gap-3 border-t border-gray-200 dark:border-gray-700 pt-4">
-          <button
-            onClick={handleDelete}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20"
-          >
+        <div className="flex gap-3 border-t border-white/[0.06] pt-6">
+          <button onClick={handleDelete} className="btn-glass bg-red-500/10 border-red-500/20 hover:bg-red-500/20">
             <Trash2 size={14} /> Delete Family
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function InfoRow({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div>
+      <span className="text-white/40">{label}:</span>{' '}
+      <span className={`text-white ${mono ? 'font-mono text-xs' : ''}`}>{value}</span>
     </div>
   );
 }

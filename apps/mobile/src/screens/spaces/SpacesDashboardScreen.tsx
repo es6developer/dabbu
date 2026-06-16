@@ -12,7 +12,6 @@ import {
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { LinearGradient } from 'expo-linear-gradient';
 
 interface Transaction {
   id: string;
@@ -317,14 +316,9 @@ function SpaceCard({
   if (isCouple) {
     return (
       <TouchableOpacity activeOpacity={0.9} onPress={onToggle} onLongPress={onLongPress} delayLongPress={500}>
-        <LinearGradient
-          colors={[colors.accent.primary, colors.accent.secondary]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[s.card, { padding: 20, borderRadius: 16, marginBottom: 16 }]}
-        >
+        <View style={{ backgroundColor: colors.accent.primary, padding: 20, borderRadius: 16, marginBottom: 16 }}>
           {cardContent}
-        </LinearGradient>
+        </View>
       </TouchableOpacity>
     );
   }
@@ -366,12 +360,7 @@ export function SpacesDashboardScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
-      <LinearGradient
-        colors={[colors.bg.card, colors.bg.primary]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={{ paddingTop: insets.top + 12, paddingBottom: 16, paddingHorizontal: 16 }}
-      >
+      <View style={{ paddingTop: insets.top + 12, paddingBottom: 16, paddingHorizontal: 16 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
@@ -393,7 +382,7 @@ export function SpacesDashboardScreen() {
             </View>
           </TouchableOpacity>
         </View>
-      </LinearGradient>
+      </View>
 
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 120 }}
@@ -431,15 +420,10 @@ export function SpacesDashboardScreen() {
           style={{ marginTop: 8 }}
           activeOpacity={0.8}
         >
-          <LinearGradient
-            colors={[colors.accent.primary, colors.accent.secondary]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 16, borderRadius: 16 }}
-          >
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 16, borderRadius: 16, backgroundColor: colors.accent.primary }}>
             <AntDesign name="plus" size={20} color="#FFF" />
             <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFF' }}>Create new space</Text>
-          </LinearGradient>
+      </View>
         </TouchableOpacity>
       </ScrollView>
     </View>

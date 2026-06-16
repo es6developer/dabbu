@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useTheme } from '../../theme';
+import { spacing, borderRadius } from '../../theme/design';
 
 const SECTIONS = [
   { title: 'Information We Collect', content: 'We collect information you provide directly such as your name, email, phone number, and financial data you choose to link. We also collect SMS transaction data with your explicit permission to automatically categorize expenses.' },
@@ -36,11 +37,11 @@ export function PrivacyPolicyScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 20, paddingBottom: 120 },
-  title: { fontSize: 28, fontWeight: '700', marginBottom: 4 },
-  date: { fontSize: 13, marginBottom: 20 },
-  intro: { fontSize: 14, lineHeight: 20, marginBottom: 24 },
-  section: { borderRadius: 14, padding: 16, borderWidth: 1, marginBottom: 12 },
+  content: { padding: spacing.xl, paddingBottom: 120 },
+  title: { fontSize: 28, fontWeight: '700', marginBottom: spacing.xs },
+  date: { fontSize: 13, marginBottom: spacing.xl },
+  intro: { fontSize: 14, lineHeight: 20, marginBottom: spacing['2xl'] },
+  section: { borderRadius: 14, padding: spacing.lg, borderWidth: 1, marginBottom: spacing.md },
   sectionTitle: { fontSize: 16, fontWeight: '600', marginBottom: 6 },
   sectionContent: { fontSize: 14, lineHeight: 20 },
 });

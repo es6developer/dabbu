@@ -76,7 +76,7 @@ export function PremiumCard({
       radius={radii}
       offset={s.offset}
       opacity={shadowOpacity}
-      color={isDark ? '#8B5CF6' : '#000'}
+      color={isDark ? '#7C3AED' : '#000'}
       blur={s.blur}
     >
       {cardContent}

@@ -15,6 +15,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
+import { spacing, borderRadius } from '../../theme/design';
 import { Avatar } from '../../components/ui/Avatar';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
@@ -258,7 +259,7 @@ export function CoupleSettingsScreen() {
 
             <View style={[styles.settingRow, styles.settingRowBorder]}>
               <View style={styles.settingIconWrap}>
-                <View style={[styles.settingIcon, { backgroundColor: colors.accent.secondary }]}>
+                <View style={[styles.settingIcon, { backgroundColor: colors.accent.primary }]}>
                   <AntDesign  name="piechart" size={16} color="#FFF" />
                 </View>
               </View>
@@ -316,7 +317,7 @@ export function CoupleSettingsScreen() {
                   <Switch
                     value={val}
                     onValueChange={(v) => handleToggle(item.key, v)}
-                    trackColor={{ false: 'rgba(255,255,255,0.12)', true: '#8B5CF6' }}
+                    trackColor={{ false: 'rgba(255,255,255,0.12)', true: '#7C3AED' }}
                     thumbColor={val ? '#FFFFFF' : 'rgba(255,255,255,0.4)'}
                     ios_backgroundColor="rgba(255,255,255,0.12)"
                   />

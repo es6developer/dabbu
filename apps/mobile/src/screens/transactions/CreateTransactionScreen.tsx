@@ -22,8 +22,9 @@ import { DatePickerField } from '../../components/ui/DatePickerField';
 import { CategoryPicker } from '../../components/ui/CategoryPicker';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const PURPLE = '#8B5CF6';
-const PURPLE_DARK = '#6D28D9';
+import { palette } from '../../theme/colors';
+const PURPLE = palette.brand.primary;
+const PURPLE_DARK = palette.brand.hover;
 const GREEN = '#10B981';
 
 type PrefillParams = {

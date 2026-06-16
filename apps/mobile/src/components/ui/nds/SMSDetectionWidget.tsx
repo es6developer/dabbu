@@ -44,7 +44,7 @@ export const SMSDetectionWidget: React.FC<SMSDetectionWidgetProps> = ({
       >
         <View className="flex-row items-center">
           <View className="w-10 h-10 rounded-full bg-dark-surface-raised items-center justify-center mr-4">
-            <Ionicons name="scan-outline" size={20} color="#8B5CF6" />
+            <Ionicons name="scan-outline" size={20} color="#7C3AED" />
           </View>
           <View className="flex-1">
             <Text className="text-dark-ink text-body-bold">No new SMS detected</Text>
@@ -64,7 +64,7 @@ export const SMSDetectionWidget: React.FC<SMSDetectionWidgetProps> = ({
     >
       <View className="flex-row items-start">
         <View className="w-10 h-10 rounded-full bg-dark-surface-raised items-center justify-center mr-4">
-          <Ionicons name="chatbubble-ellipses-outline" size={20} color="#8B5CF6" />
+          <Ionicons name="chatbubble-ellipses-outline" size={20} color="#7C3AED" />
         </View>
 
         <View className="flex-1">

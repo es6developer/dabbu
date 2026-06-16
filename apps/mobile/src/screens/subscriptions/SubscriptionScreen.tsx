@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
+import { spacing, borderRadius } from '../../theme/design';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 
 function fmt(v: number) {

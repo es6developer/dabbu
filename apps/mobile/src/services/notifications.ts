@@ -168,10 +168,10 @@ async function setupAndroidChannels(): Promise<void> {
 }
 
 let lastAttemptAt = 0;
-const MIN_THROTTLE_MS = 10_000;
-const INITIAL_BACKOFF_MS = 2_000;
-const MAX_BACKOFF_MS = 120_000;
-const MAX_RETRIES = 5;
+const MIN_THROTTLE_MS = 60_000;
+const INITIAL_BACKOFF_MS = 30_000;
+const MAX_BACKOFF_MS = 300_000;
+const MAX_RETRIES = 3;
 
 export async function registerForPushNotifications(accessToken: string): Promise<void> {
   if (isRegistering || lastRegisteredToken === accessToken) {

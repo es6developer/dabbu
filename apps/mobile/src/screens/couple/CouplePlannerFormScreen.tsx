@@ -4,6 +4,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
+import { spacing, borderRadius } from '../../theme/design';
 
 export function CouplePlannerFormScreen() {
   const navigation = useNavigation<any>();

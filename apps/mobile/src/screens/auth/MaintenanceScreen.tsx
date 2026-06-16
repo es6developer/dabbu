@@ -2,7 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { typography } from '../../theme/typography';
+import { useTheme } from '../../theme';
+import { spacing, borderRadius } from '../../theme/design';
 
 interface MaintenanceScreenProps {
   message?: string;
@@ -10,51 +11,24 @@ interface MaintenanceScreenProps {
 
 export default function MaintenanceScreen({ message }: MaintenanceScreenProps) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
 
   return (
-    <View
-      style={[styles.container, { paddingTop: insets.top + 40, paddingBottom: insets.bottom + 20 }]}
-    >
-      <View style={styles.iconContainer}>
-        <AntDesign  name="tool" size={64} color="#14B8A6" />
+    <View style={[s.container, { backgroundColor: colors.bg.primary, paddingTop: insets.top + spacing['4xl'], paddingBottom: insets.bottom + spacing.xl }]}>
+      <View style={[s.iconContainer, { backgroundColor: `${colors.accent.primary}10` }]}>
+        <AntDesign name="tool" size={48} color={colors.accent.primary} />
       </View>
-      <Text style={styles.title}>Under Maintenance</Text>
-      <Text style={styles.subtitle}>
+      <Text style={[s.title, { color: colors.text.primary }]}>Under Maintenance</Text>
+      <Text style={[s.subtitle, { color: colors.text.secondary }]}>
         {message || 'We are improving your experience. Please check back shortly.'}
       </Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0f172a',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-  },
-  iconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(99, 102, 241, 0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
-  },
-  title: {
-    ...typography.title1,
-    fontSize: 28,
-    color: '#f1f5f9',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  subtitle: {
-    ...typography.body,
-    fontSize: 16,
-    color: '#94a3b8',
-    textAlign: 'center',
-    lineHeight: 24,
-  },
+const s = StyleSheet.create({
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing['3xl'] },
+  iconContainer: { width: 100, height: 100, borderRadius: 50, alignItems: 'center', justifyContent: 'center', marginBottom: spacing['3xl'] },
+  title: { fontSize: 28, fontWeight: '700', letterSpacing: -0.3, marginBottom: spacing.md, textAlign: 'center' },
+  subtitle: { fontSize: 16, fontWeight: '400', textAlign: 'center', lineHeight: 24 },
 });

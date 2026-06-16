@@ -141,7 +141,7 @@ export function FamilyDashboardScreen() {
           </View>
         </View>
 
-        <View style={[s.heroSection, { backgroundColor: colors.bg.primary }]}>
+        <View style={[s.heroSection, { backgroundColor: colors.accent.primary }]}>
           <View style={[s.heroIconWrap, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
             <AntDesign  name="team" size={28} color="#FFF" />
           </View>

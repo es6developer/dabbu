@@ -14,10 +14,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../config/categoryIcons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { palette } from '../../theme/colors';
 
 const { width: SCREEN_W } = Dimensions.get('window');
-const PURPLE = '#8B5CF6';
-const PURPLE_DARK = '#6D28D9';
+const PURPLE = palette.brand.primary;
+const PURPLE_DARK = palette.brand.hover;
 
 export function CategorySelectionScreen() {
   const navigation = useNavigation<any>();

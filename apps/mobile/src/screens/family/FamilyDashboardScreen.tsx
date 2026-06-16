@@ -6,6 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
+import { spacing, borderRadius } from '../../theme/design';
 import { Avatar } from '../../components/ui/Avatar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -109,8 +110,8 @@ export function FamilyDashboardScreen() {
                 style={styles.action}
                 onPress={() => navigation.navigate('TasksList', { familyId: item.id })}
               >
-                <View style={[styles.actionIcon, { backgroundColor: `${colors.status.info}18` }]}>
-                  <AntDesign  name="check" size={18} color={colors.status.info} />
+                <View style={[styles.actionIcon, { backgroundColor: `${colors.accent.primary}18` }]}>
+                  <AntDesign  name="check" size={18} color={colors.accent.primary} />
                 </View>
                 <Text style={[styles.actionLabel, { color: colors.text.secondary }]}>Tasks</Text>
               </TouchableOpacity>

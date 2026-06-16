@@ -15,7 +15,7 @@ import { useTheme } from '../../theme';
 import { useAuth } from '../../store/AuthContext';
 import { api, setAccessToken, getAccessToken } from '../../services/api';
 import { Avatar } from '../../components/ui/Avatar';
-import { PADDING, borderRadius, shadows } from '../../theme/design';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 
 interface Preset {
   seed: string;
@@ -109,7 +109,7 @@ export function AvatarPickerScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
-      <View style={{ paddingTop: insets.top + 16, paddingHorizontal: PADDING, flex: 1 }}>
+      <View style={{ paddingTop: insets.top + 16, paddingHorizontal: spacing.xl, flex: 1 }}>
         {/* Header */}
         <View style={s.header}>
           <TouchableOpacity

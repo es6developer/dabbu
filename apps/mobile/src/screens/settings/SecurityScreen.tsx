@@ -12,6 +12,7 @@ import {
 import * as SecureStore from 'expo-secure-store';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useTheme } from '../../theme';
+import { spacing, borderRadius } from '../../theme/design';
 import { api, setAccessToken } from '../../services/api';
 import { ConfirmDialog } from '../../components/ui';
 import { useAuth } from '../../store/AuthContext';
@@ -232,7 +233,7 @@ export function SecurityScreen() {
         <View
           style={[
             styles.loading,
-            { backgroundColor: colors.bg.primary, paddingHorizontal: 24, gap: 16 },
+            { backgroundColor: colors.bg.primary, paddingHorizontal: spacing['2xl'], gap: spacing.lg },
           ]}
         >
           <Skeleton width={120} height={16} />
@@ -300,7 +301,7 @@ export function SecurityScreen() {
                   {hasPin ? 'PIN is set' : 'No PIN set'}
                 </Text>
               </View>
-              <View style={{ flexDirection: 'row', gap: 8 }}>
+              <View style={{ flexDirection: 'row', gap: spacing.sm }}>
                 {hasPin ? (
                   <>
                     <TouchableOpacity
@@ -630,13 +631,13 @@ export function SecurityScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 20, paddingBottom: 120 },
+  content: { padding: spacing.xl, paddingBottom: 120 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  title: { fontSize: 28, fontWeight: '700', marginBottom: 24 },
-  card: { borderRadius: 16, padding: 20, borderWidth: 1, marginBottom: 20 },
+  title: { fontSize: 28, fontWeight: '700', marginBottom: spacing['2xl'] },
+  card: { borderRadius: borderRadius['2xl'], padding: spacing.xl, borderWidth: 1, marginBottom: spacing.xl },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  sectionTitle: { fontSize: 16, fontWeight: '600', marginBottom: 16, paddingBottom: 12 },
-  logoutAllText: { fontSize: 13, fontWeight: '600', marginBottom: 16 },
+  sectionTitle: { fontSize: 16, fontWeight: '600', marginBottom: spacing.lg, paddingBottom: spacing.md },
+  logoutAllText: { fontSize: 13, fontWeight: '600', marginBottom: spacing.lg },
   settingRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -644,33 +645,33 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: 1,
   },
-  settingInfo: { flex: 1, marginRight: 12 },
+  settingInfo: { flex: 1, marginRight: spacing.md },
   settingLabel: { fontSize: 15, fontWeight: '500', marginBottom: 2 },
   settingDesc: { fontSize: 12 },
-  setupBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 },
+  setupBtn: { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderRadius: borderRadius.md },
   setupBtnText: { fontSize: 13, fontWeight: '600' },
-  pinForm: { marginTop: 12, gap: 12 },
+  pinForm: { marginTop: spacing.md, gap: spacing.md },
   input: {
     fontSize: 16,
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.lg,
     paddingVertical: 14,
     borderRadius: 14,
     borderWidth: 1,
   },
-  pinSaveBtn: { paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
+  pinSaveBtn: { paddingVertical: 14, borderRadius: borderRadius.xl, alignItems: 'center' },
   pinSaveBtnText: { fontSize: 15, fontWeight: '600' },
   emptyText: { fontSize: 14, fontStyle: 'italic' },
   sessionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
   },
   sessionInfo: { flex: 1 },
   sessionDevice: { fontSize: 14, fontWeight: '500', marginBottom: 2 },
   sessionMeta: { fontSize: 11 },
-  revokeBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
+  revokeBtn: { paddingHorizontal: spacing.md, paddingVertical: 6, borderRadius: borderRadius.md },
   revokeBtnText: { fontSize: 12, fontWeight: '600' },
   currentSession: { fontSize: 11, fontWeight: '600' },
   activityRow: {
@@ -679,9 +680,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderBottomWidth: 1,
   },
-  activityDot: { width: 8, height: 8, borderRadius: 4, marginTop: 6, marginRight: 12 },
+  activityDot: { width: 8, height: 8, borderRadius: 4, marginTop: 6, marginRight: spacing.md },
   activityInfo: { flex: 1 },
   activityAction: { fontSize: 14, marginBottom: 2 },
   activityMeta: { fontSize: 11 },
-  activityDate: { fontSize: 11, marginLeft: 8 },
+  activityDate: { fontSize: 11, marginLeft: spacing.sm },
 });

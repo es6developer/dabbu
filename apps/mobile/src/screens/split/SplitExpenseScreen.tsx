@@ -15,11 +15,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { SplitSummaryCard } from '../../components/ui/SplitSummaryCard';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
-import { LinearGradient } from 'expo-linear-gradient';
+import { palette } from '../../theme/colors';
 
 const { width: SCREEN_W } = Dimensions.get('window');
-const PURPLE = '#8B5CF6';
-const PURPLE_DARK = '#6D28D9';
+const PURPLE = palette.brand.primary;
+const PURPLE_DARK = palette.brand.hover;
 
 const SPLIT_METHODS = [
   { key: 'equal', label: 'Equal', icon: 'menufold', desc: 'Split equally among all' },
@@ -92,11 +92,7 @@ export function SplitExpenseScreen() {
           contentContainerStyle={{}}
         >
           {/* Header */}
-          <LinearGradient
-            colors={[PURPLE, PURPLE_DARK]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
+          <View style={{ backgroundColor: colors.accent.primary }}>
             <View style={{ paddingTop: insets.top + 12, paddingBottom: 28, paddingHorizontal: 20 }}>
               <View style={s.headerRow}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
@@ -107,7 +103,7 @@ export function SplitExpenseScreen() {
               </View>
               <Text style={s.headerSub}>Split expenses between members</Text>
             </View>
-          </LinearGradient>
+          </View>
 
           <View style={{ padding: 20, gap: 16 }}>
             {/* Split Name + Amount */}
@@ -312,15 +308,10 @@ export function SplitExpenseScreen() {
             onPress={handleCreateSplit}
             activeOpacity={0.85}
           >
-            <LinearGradient
-              colors={[PURPLE, PURPLE_DARK]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={s.createGrad}
-            >
+            <View style={[s.createGrad, { backgroundColor: colors.accent.primary }]}>
               <AntDesign  name="swap" size={18} color="#FFF" />
               <Text style={s.createText}>Confirm Split</Text>
-            </LinearGradient>
+            </View>
           </TouchableOpacity>
         </View>
       </View>

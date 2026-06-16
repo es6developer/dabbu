@@ -6,14 +6,11 @@ import {
   TouchableOpacity,
   Animated,
   Dimensions,
-  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 
-const { height: SCREEN_H } = Dimensions.get('window');
-const TAB_BAR_OFFSET = Platform.OS === 'ios' ? 90 : 80;
+const { width: SCREEN_W } = Dimensions.get('window');
 
 interface ActionItem {
   label: string;
@@ -29,55 +26,48 @@ interface QuickActionSheetProps {
   onClose: () => void;
 }
 
-export function QuickActionSheet({ actions, activeItem, visible, onClose }: QuickActionSheetProps) {
+const CARD_WIDTH = Math.min(SCREEN_W - 64, 360);
+
+export function QuickActionSheet({ actions, visible, onClose }: QuickActionSheetProps) {
   const { colors, isDark } = useTheme();
-  const insets = useSafeAreaInsets();
-  const slideAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [rendered, setRendered] = useState(visible);
 
   useEffect(() => {
     if (visible) {
       setRendered(true);
+      scaleAnim.setValue(0.85);
       Animated.parallel([
-        Animated.spring(slideAnim, { toValue: 1, friction: 8, tension: 65, useNativeDriver: true }),
-        Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
+        Animated.spring(scaleAnim, { toValue: 1, friction: 7, tension: 60, useNativeDriver: true }),
+        Animated.timing(fadeAnim, { toValue: 1, duration: 180, useNativeDriver: true }),
       ]).start();
     } else {
       Animated.parallel([
-        Animated.timing(slideAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
-        Animated.timing(fadeAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
+        Animated.timing(scaleAnim, { toValue: 0.85, duration: 120, useNativeDriver: true }),
+        Animated.timing(fadeAnim, { toValue: 0, duration: 120, useNativeDriver: true }),
       ]).start(() => setRendered(false));
     }
   }, [visible]);
 
   if (!rendered) return null;
 
-  const sheetTranslateY = slideAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [200, 0],
-  });
-
-  const backdropBottom = insets.bottom + TAB_BAR_OFFSET;
-
   return (
-    <View style={[s.container, { bottom: backdropBottom }]} pointerEvents="box-none">
+    <View style={s.wrapper} pointerEvents="box-none">
       <Animated.View style={[s.backdrop, { opacity: fadeAnim }]} pointerEvents="auto">
         <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onClose} />
       </Animated.View>
 
       <Animated.View
         style={[
-          s.sheet,
+          s.card,
           {
-            transform: [{ translateY: sheetTranslateY }],
             backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
-            borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+            transform: [{ scale: scaleAnim }],
+            shadowColor: isDark ? '#000' : 'rgba(0,0,0,0.12)',
           },
         ]}
       >
-        <View style={[s.handle, { backgroundColor: isDark ? '#3A3A3C' : '#D1D1D6' }]} />
-
         <View style={s.grid}>
           {actions.map((action, i) => (
             <TouchableOpacity
@@ -89,19 +79,10 @@ export function QuickActionSheet({ actions, activeItem, visible, onClose }: Quic
                 action.onPress();
               }}
             >
-              <Animated.View
-                style={[
-                  s.bubble,
-                  { backgroundColor: (action.color || '#636366') + '18' },
-                ]}
-              >
-                <Ionicons
-                  name={action.icon as any}
-                  size={24}
-                  color={action.color || '#1C1C1E'}
-                />
-              </Animated.View>
-              <Text style={[s.label, { color: isDark ? '#8E8E93' : '#636366' }]}>
+              <View style={[s.iconBox, { backgroundColor: (action.color || '#636366') + '15' }]}>
+                <Ionicons name={action.icon as any} size={22} color={action.color || '#1C1C1E'} />
+              </View>
+              <Text style={[s.label, { color: colors.text.secondary }]} numberOfLines={1}>
                 {action.label}
               </Text>
             </TouchableOpacity>
@@ -113,61 +94,45 @@ export function QuickActionSheet({ actions, activeItem, visible, onClose }: Quic
 }
 
 const s = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
+  wrapper: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
-  sheet: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    borderWidth: 1,
-    paddingTop: 12,
-    paddingHorizontal: 24,
-    paddingBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 6,
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 10,
-    alignSelf: 'center',
-    marginBottom: 20,
+  card: {
+    width: CARD_WIDTH,
+    borderRadius: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 24,
+    elevation: 10,
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    rowGap: 16,
+    gap: 12,
   },
   item: {
     alignItems: 'center',
     gap: 6,
-    width: '30%',
+    width: (CARD_WIDTH - 44) / 3,
   },
-  bubble: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  iconBox: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
   label: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
     textAlign: 'center',
   },
 });

@@ -132,7 +132,7 @@ export function DashboardHub() {
               Recent Activity
             </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Expense', { screen: 'ExpenseHome' })} activeOpacity={0.7}>
-              <Text className="text-[13px] font-semibold" style={{ color: colors.brand.primary }}>
+              <Text className="text-[13px] font-semibold" style={{ color: colors.accent.primary }}>
                 See All
               </Text>
             </TouchableOpacity>
@@ -197,9 +197,9 @@ export function DashboardHub() {
               <View className="flex-row items-center gap-3">
                 <View
                   className="w-12 h-12 rounded-2xl items-center justify-center"
-                  style={{ backgroundColor: 'rgba(139, 92, 246, 0.15)' }}
+                  style={{ backgroundColor: 'rgba(124, 58, 237, 0.15)' }}
                 >
-                  <AntDesign  name="team" size={22} color={colors.brand.primary} />
+                  <AntDesign  name="team" size={22} color={colors.accent.primary} />
                 </View>
                 <View>
                   <Text
@@ -216,21 +216,21 @@ export function DashboardHub() {
                   </Text>
                 </View>
               </View>
-              <AntDesign  name="right" size={18} color={colors.brand.primary} />
+              <AntDesign  name="right" size={18} color={colors.accent.primary} />
             </View>
 
             {/* Progress bar */}
             <View
               className="mt-4 h-2 rounded-full overflow-hidden"
               style={{
-                backgroundColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(139, 92, 246, 0.12)',
+                backgroundColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(124, 58, 237, 0.12)',
               }}
             >
               <View
                 className="h-full rounded-full"
                 style={{
                   width: '65%',
-                  backgroundColor: colors.brand.primary,
+                  backgroundColor: colors.accent.primary,
                 }}
               />
             </View>

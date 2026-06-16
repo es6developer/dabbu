@@ -10,7 +10,7 @@ export const EXPENSE_CATEGORIES: { name: string; icon: IonIconName; color: strin
   { name: 'Healthcare', icon: 'medicinebox', color: '#FF4D4F' },
   { name: 'Shopping', icon: 'shoppingcart', color: '#F472B6' },
   { name: 'Entertainment', icon: 'playcircleo', color: '#14B8A6' },
-  { name: 'Subscription', icon: 'retweet', color: '#8B5CF6' },
+  { name: 'Subscription', icon: 'retweet', color: '#7C3AED' },
   { name: 'Sports', icon: 'playcircleo', color: '#22C55E' },
   { name: 'Travel', icon: 'earth', color: '#60A5FA' },
   { name: 'Children & Baby', icon: 'smileo', color: '#FF9F0A' },

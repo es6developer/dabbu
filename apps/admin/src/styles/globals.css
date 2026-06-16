@@ -4,66 +4,175 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --background: 0 0% 0%;
+    --foreground: 0 0% 98%;
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 27 93% 57%;
+    --primary: 245 82% 67%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 4.8% 95.9%;
+    --secondary: 0 0% 100%;
     --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 0 0% 96%;
     --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 27 93% 57%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 245 82% 67%;
     --radius: 0.75rem;
-    --sidebar: 240 10% 3.9%;
+    --sidebar: 0 0% 0%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-muted: 240 5% 15%;
-    --sidebar-accent: 27 93% 57%;
+    --sidebar-muted: 0 0% 100%;
+    --sidebar-accent: 245 82% 67%;
   }
 
   .dark {
-    --background: 240 10% 3.9%;
+    --background: 0 0% 0%;
     --foreground: 0 0% 98%;
-    --card: 240 10% 5.9%;
+    --card: 0 0% 100%;
     --card-foreground: 0 0% 98%;
-    --popover: 240 10% 5.9%;
+    --popover: 0 0% 100%;
     --popover-foreground: 0 0% 98%;
-    --primary: 27 93% 57%;
+    --primary: 245 82% 67%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 3.7% 15.9%;
+    --secondary: 0 0% 100%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 55%;
+    --accent: 0 0% 12%;
     --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 27 93% 57%;
-    --sidebar: 240 10% 2.9%;
+    --border: 0 0% 14%;
+    --input: 0 0% 14%;
+    --ring: 245 82% 67%;
+    --sidebar: 0 0% 0%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-muted: 240 5% 12%;
-    --sidebar-accent: 27 93% 57%;
+    --sidebar-muted: 0 0% 100%;
+    --sidebar-accent: 245 82% 67%;
   }
 }
 
 @layer base {
-  * { @apply border-border; }
+  * { @apply border-[hsl(var(--border))]; }
   body { @apply bg-background text-foreground; }
 }
 
-/* Custom scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: hsl(var(--muted-foreground) / 0.3); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.5); }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+
+@layer utilities {
+  .glass {
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .glass-hover {
+    transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  .glass-hover:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.15);
+  }
+  .glass-card {
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  .glass-card:hover {
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(255,255,255,0.14);
+  }
+  .glass-panel {
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 24px;
+  }
+  .glass-input {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    color: #fff;
+    transition: all 0.2s ease;
+  }
+  .glass-input:focus {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(99,102,241,0.5);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+  }
+  .glass-input::placeholder {
+    color: rgba(255,255,255,0.25);
+  }
+  .btn-glass {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, rgba(99,102,241,0.3), rgba(139,92,246,0.3));
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(99,102,241,0.3);
+    border-radius: 999px;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #fff;
+    transition: all 0.25s ease;
+    cursor: pointer;
+  }
+  .btn-glass:hover {
+    background: linear-gradient(135deg, rgba(99,102,241,0.45), rgba(139,92,246,0.45));
+    border-color: rgba(99,102,241,0.5);
+    transform: scale(1.02);
+  }
+  .btn-glass:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .btn-ghost-glass {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: none;
+    border-radius: 12px;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8125rem;
+    color: rgba(255,255,255,0.6);
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  .btn-ghost-glass:hover {
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+  }
+  .badge-glass {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.625rem;
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+}

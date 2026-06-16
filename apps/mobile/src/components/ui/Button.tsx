@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { Animated, TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
-import { useTheme, spacing, borderRadius, typography } from '../../theme';
+import { useTheme } from '../../theme';
+import { spacing, borderRadius, buttonHeight, animation } from '../../theme/design';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -19,7 +20,7 @@ interface ButtonProps {
   fullWidth?: boolean;
 }
 
-export const Button: React.FC<ButtonProps> = ({
+export const AppButton: React.FC<ButtonProps> = ({
   title,
   onPress,
   variant = 'primary',
@@ -38,8 +39,8 @@ export const Button: React.FC<ButtonProps> = ({
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
       toValue: 0.97,
-      friction: 8,
-      tension: 40,
+      damping: 20,
+      stiffness: 300,
       useNativeDriver: true,
     }).start();
   };
@@ -47,68 +48,34 @@ export const Button: React.FC<ButtonProps> = ({
   const handlePressOut = () => {
     Animated.spring(scaleAnim, {
       toValue: 1,
-      friction: 5,
+      damping: 15,
+      stiffness: 200,
       useNativeDriver: true,
     }).start();
   };
 
-  const sizeStyles: Record<ButtonSize, { container: ViewStyle; text: TextStyle }> = {
-    sm: {
-      container: { paddingVertical: spacing.sm, paddingHorizontal: spacing.lg },
-      text: { ...typography.buttonSmall },
-    },
-    md: {
-      container: { paddingVertical: spacing.md + 2, paddingHorizontal: spacing.xl },
-      text: { ...typography.button },
-    },
-    lg: {
-      container: { paddingVertical: spacing.lg, paddingHorizontal: spacing['2xl'] },
-      text: { ...typography.button, fontSize: 18, lineHeight: 24 },
-    },
+  const sizeMap: Record<ButtonSize, number> = {
+    sm: buttonHeight.sm,
+    md: buttonHeight.md,
+    lg: buttonHeight.lg,
   };
 
-  const variantStyles: Record<ButtonVariant, { container: ViewStyle; text: TextStyle }> = {
-    primary: {
-      container: {
-        backgroundColor: colors.accent.primary,
-        borderRadius: 12,
-      },
-      text: { color: '#FFFFFF' },
-    },
-    secondary: {
-      container: {
-        backgroundColor: colors.bg.tertiary,
-        borderRadius: 12,
-      },
-      text: { color: colors.text.primary },
-    },
-    outline: {
-      container: {
-        backgroundColor: 'transparent',
-        borderRadius: 12,
-        borderWidth: 1.5,
-        borderColor: colors.accent.primary,
-      },
-      text: { color: colors.accent.primary },
-    },
-    ghost: {
-      container: {
-        backgroundColor: 'transparent',
-        borderRadius: 12,
-      },
-      text: { color: colors.accent.primary },
-    },
-    danger: {
-      container: {
-        backgroundColor: colors.status.error,
-        borderRadius: 12,
-      },
-      text: { color: '#FFFFFF' },
-    },
+  const fontSizeMap: Record<ButtonSize, number> = {
+    sm: 15,
+    md: 17,
+    lg: 17,
   };
 
-  const currentSize = sizeStyles[size];
-  const currentVariant = variantStyles[variant];
+  const variantStyles = {
+    primary: { bg: colors.accent.primary, text: '#FFFFFF', border: colors.accent.primary },
+    secondary: { bg: colors.bg.tertiary, text: colors.text.primary, border: colors.border.default },
+    outline: { bg: 'transparent', text: colors.accent.primary, border: colors.accent.primary },
+    ghost: { bg: 'transparent', text: colors.accent.primary, border: 'transparent' },
+    danger: { bg: colors.status.error, text: '#FFFFFF', border: colors.status.error },
+  } as const;
+
+  const v = variantStyles[variant];
+  const height = sizeMap[size];
 
   return (
     <Animated.View style={[{ transform: [{ scale: scaleAnim }] }, fullWidth && { width: '100%' }]}>
@@ -119,28 +86,29 @@ export const Button: React.FC<ButtonProps> = ({
         disabled={disabled || loading}
         activeOpacity={0.8}
         style={[
-          styles.container,
-          currentSize.container,
-          currentVariant.container,
-          fullWidth && styles.fullWidth,
-          disabled && { opacity: 0.5 },
+          {
+            height,
+            borderRadius: borderRadius['2xl'],
+            backgroundColor: v.bg,
+            borderWidth: variant === 'outline' ? 1.5 : 0,
+            borderColor: v.border,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingHorizontal: spacing['2xl'],
+            gap: spacing.sm,
+            opacity: disabled ? 0.4 : 1,
+          },
+          fullWidth && { width: '100%' },
           style,
         ]}
       >
         {loading ? (
-          <ActivityIndicator size="small" color={currentVariant.text.color as string} />
+          <ActivityIndicator size="small" color={v.text} />
         ) : (
           <>
             {icon && iconPosition === 'left' && icon}
-            <Text
-              style={[
-                currentSize.text,
-                currentVariant.text,
-                icon && iconPosition === 'left' ? { marginLeft: spacing.sm } : undefined,
-                icon && iconPosition === 'right' ? { marginRight: spacing.sm } : undefined,
-                textStyle,
-              ]}
-            >
+            <Text style={[{ fontSize: fontSizeMap[size], fontWeight: '600', color: v.text, letterSpacing: -0.05 }, textStyle]}>
               {title}
             </Text>
             {icon && iconPosition === 'right' && icon}
@@ -151,13 +119,4 @@ export const Button: React.FC<ButtonProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  fullWidth: {
-    width: '100%',
-  },
-});
+export { AppButton as Button };

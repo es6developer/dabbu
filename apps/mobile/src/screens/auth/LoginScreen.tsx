@@ -18,7 +18,7 @@ import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useGoogleAuth, getGoogleIdToken, getGoogleError } from '../../services/google-auth';
-import { PADDING, shadows } from '../../theme/design';
+import { spacing, borderRadius, shadows, sectionHeader, animation } from '../../theme/design';
 
 export function LoginScreen() {
   const navigation = useNavigation<any>();
@@ -35,269 +35,111 @@ export function LoginScreen() {
   const [emailFocused, setEmailFocused] = useState(false);
   const [passFocused, setPassFocused] = useState(false);
 
-  const fadeIn = useRef(new Animated.Value(0)).current;
-  const slideUp = useRef(new Animated.Value(30)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(24)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeIn, { toValue: 1, duration: 600, useNativeDriver: true }),
-      Animated.timing(slideUp, { toValue: 0, duration: 500, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.spring(slideAnim, { toValue: 0, damping: 20, stiffness: 200, useNativeDriver: true }),
     ]).start();
   }, []);
 
   useEffect(() => {
-    if (!response) {
-      return;
-    }
+    if (!response) return;
     const idToken = getGoogleIdToken(response);
-    if (idToken) {
-      handleGoogleLogin(idToken);
-    } else {
+    if (idToken) handleGoogleLogin(idToken);
+    else {
       const errMsg = getGoogleError(response);
-      if (errMsg) {
-        console.error('Google auth response error:', response);
-        setError(errMsg);
-        setLoading(false);
-      }
+      if (errMsg) { setError(errMsg); setLoading(false); }
     }
   }, [response]);
 
   async function handleGoogleLogin(idToken: string) {
-    setLoading(true);
-    setError('');
-    try {
-      await googleLogin(idToken);
-    } catch (e: any) {
-      setError(e.message || 'Google sign-in failed');
-      setLoading(false);
-    }
+    setLoading(true); setError('');
+    try { await googleLogin(idToken); }
+    catch (e: any) { setError(e.message || 'Google sign-in failed'); setLoading(false); }
   }
 
   async function handleEmailSignIn() {
-    if (!email.trim()) {
-      setError('Enter your email');
-      return;
-    }
-    if (!password.trim()) {
-      setError('Enter your password');
-      return;
-    }
-    setLoading(true);
-    setError('');
-    Keyboard.dismiss();
-    try {
-      navigation.navigate('Phone', { email: email.trim(), password });
-    } catch (e: any) {
-      setError(e.message || 'Sign in failed');
-    } finally {
-      setLoading(false);
-    }
+    if (!email.trim()) { setError('Enter your email'); return; }
+    if (!password.trim()) { setError('Enter your password'); return; }
+    setLoading(true); setError(''); Keyboard.dismiss();
+    try { navigation.navigate('Phone', { email: email.trim(), password }); }
+    catch (e: any) { setError(e.message || 'Sign in failed'); }
+    finally { setLoading(false); }
   }
 
   async function handleGuestLogin() {
-    setLoading(true);
-    setError('');
-    try {
-      await guestLogin();
-    } catch (e: any) {
-      setError(e.message || 'Something went wrong');
-      setLoading(false);
-    }
+    setLoading(true); setError('');
+    try { await guestLogin(); }
+    catch (e: any) { setError(e.message || 'Something went wrong'); setLoading(false); }
   }
 
   return (
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-      >
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <Animated.ScrollView
-          contentContainerStyle={{ paddingTop: insets.top + 16, paddingBottom: insets.bottom + 40 }}
+          contentContainerStyle={{ paddingTop: insets.top + spacing['5xl'], paddingBottom: insets.bottom + spacing['4xl'] }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Animated.View
-            style={{
-              opacity: fadeIn,
-              transform: [{ translateY: slideUp }],
-              paddingHorizontal: PADDING,
-            }}
-          >
+          <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }], paddingHorizontal: spacing['2xl'] }}>
             {/* Brand */}
-            <View style={{ alignItems: 'center', marginBottom: 36 }}>
-              <View
-                style={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: 20,
-                  backgroundColor: colors.bg.secondary,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 14,
-                }}
-              >
-                <Image
-                  source={require('../../../assets/logo.png')}
-                  style={{ width: 56, height: 56 }}
-                  resizeMode="contain"
-                />
+            <View style={{ alignItems: 'center', marginBottom: spacing['5xl'] }}>
+              <View style={s.logoWrap}>
+                <Image source={require('../../../assets/logo.png')} style={{ width: 48, height: 48 }} resizeMode="contain" />
               </View>
-              <Text
-                style={{
-                  fontSize: 28,
-                  fontWeight: '800',
-                  color: colors.text.primary,
-                  letterSpacing: -0.5,
-                  marginBottom: 6,
-                }}
-              >
-                Welcome back
-              </Text>
-              <Text style={{ fontSize: 15, fontWeight: '500', color: colors.text.secondary }}>
-                Sign in to your account
-              </Text>
+              <Text style={[s.title, { color: colors.text.primary }]}>Welcome back</Text>
+              <Text style={[s.subtitle, { color: colors.text.secondary }]}>Sign in to your account</Text>
             </View>
 
             {/* Error */}
             {error ? (
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: 12,
-                  borderRadius: 14,
-                  backgroundColor: colors.status.errorLight,
-                  marginBottom: 16,
-                }}
-              >
-                <AntDesign  name="exclamationcircle" size={16} color={colors.status.error} />
-                <Text
-                  style={{ fontSize: 13, fontWeight: '500', color: colors.status.error, flex: 1 }}
-                >
-                  {error}
-                </Text>
+              <View style={[s.errorBox, { backgroundColor: colors.status.errorLight }]}>
+                <AntDesign name="exclamationcircle" size={14} color={colors.status.error} />
+                <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
               </View>
             ) : null}
 
-            {/* Email Input */}
-            <View style={{ marginBottom: 16 }}>
-              <Text
-                style={{
-                  fontSize: 12,
-                  fontWeight: '700',
-                  color: emailFocused ? colors.brand.primary : colors.text.secondary,
-                  letterSpacing: 0.5,
-                  marginBottom: 8,
-                  textTransform: 'uppercase',
-                }}
-              >
-                Email
-              </Text>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: colors.bg.secondary,
-                  borderRadius: 16,
-                  borderWidth: 1.5,
-                  borderColor: emailFocused ? colors.brand.primary : colors.border.default,
-                  paddingHorizontal: 16,
-                }}
-              >
-                <AntDesign
-                   name="mail"
-                  size={18}
-                  color={emailFocused ? colors.brand.primary : colors.text.tertiary}
-                />
+            {/* Email */}
+            <View style={{ marginBottom: spacing.lg }}>
+              <Text style={[s.fieldLabel, { color: emailFocused ? colors.accent.primary : colors.text.secondary }]}>Email</Text>
+              <View style={[s.field, { backgroundColor: colors.bg.secondary, borderColor: emailFocused ? colors.accent.primary : colors.border.default }]}>
+                <AntDesign name="mail" size={16} color={emailFocused ? colors.accent.primary : colors.text.tertiary} />
                 <TextInput
-                  style={{
-                    flex: 1,
-                    fontSize: 16,
-                    fontWeight: '500',
-                    color: colors.text.primary,
-                    paddingVertical: 15,
-                    marginLeft: 10,
-                  }}
-                  value={email}
-                  onChangeText={setEmail}
+                  style={[s.fieldInput, { color: colors.text.primary }]}
+                  value={email} onChangeText={setEmail}
                   placeholder="you@example.com"
                   placeholderTextColor={colors.text.tertiary}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  autoComplete="email"
-                  onFocus={() => setEmailFocused(true)}
-                  onBlur={() => setEmailFocused(false)}
+                  autoCapitalize="none" keyboardType="email-address" autoComplete="email"
+                  onFocus={() => setEmailFocused(true)} onBlur={() => setEmailFocused(false)}
                 />
               </View>
             </View>
 
-            {/* Password Input */}
-            <View style={{ marginBottom: 20 }}>
-              <Text
-                style={{
-                  fontSize: 12,
-                  fontWeight: '700',
-                  color: passFocused ? colors.brand.primary : colors.text.secondary,
-                  letterSpacing: 0.5,
-                  marginBottom: 8,
-                  textTransform: 'uppercase',
-                }}
-              >
-                Password
-              </Text>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: colors.bg.secondary,
-                  borderRadius: 16,
-                  borderWidth: 1.5,
-                  borderColor: passFocused ? colors.brand.primary : colors.border.default,
-                  paddingHorizontal: 16,
-                }}
-              >
-                <AntDesign
-                   name="lock"
-                  size={18}
-                  color={passFocused ? colors.brand.primary : colors.text.tertiary}
-                />
+            {/* Password */}
+            <View style={{ marginBottom: spacing.md }}>
+              <Text style={[s.fieldLabel, { color: passFocused ? colors.accent.primary : colors.text.secondary }]}>Password</Text>
+              <View style={[s.field, { backgroundColor: colors.bg.secondary, borderColor: passFocused ? colors.accent.primary : colors.border.default }]}>
+                <AntDesign name="lock" size={16} color={passFocused ? colors.accent.primary : colors.text.tertiary} />
                 <TextInput
-                  style={{
-                    flex: 1,
-                    fontSize: 16,
-                    fontWeight: '500',
-                    color: colors.text.primary,
-                    paddingVertical: 15,
-                    marginLeft: 10,
-                  }}
-                  value={password}
-                  onChangeText={setPassword}
+                  style={[s.fieldInput, { color: colors.text.primary }]}
+                  value={password} onChangeText={setPassword}
                   placeholder="Enter your password"
                   placeholderTextColor={colors.text.tertiary}
-                  secureTextEntry={!showPassword}
-                  autoComplete="password"
-                  onFocus={() => setPassFocused(true)}
-                  onBlur={() => setPassFocused(false)}
+                  secureTextEntry={!showPassword} autoComplete="password"
+                  onFocus={() => setPassFocused(true)} onBlur={() => setPassFocused(false)}
                 />
-                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                  <AntDesign
-                    name={showPassword ? 'eyeo' : 'eye'}
-                    size={20}
-                    color={colors.text.tertiary}
-                  />
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                  <AntDesign name={showPassword ? 'eyeo' : 'eye'} size={18} color={colors.text.tertiary} />
                 </TouchableOpacity>
               </View>
             </View>
 
             {/* Forgot Password */}
-            <TouchableOpacity
-              onPress={() => navigation.navigate('ForgotPassword')}
-              style={{ alignItems: 'flex-end', marginBottom: 24 }}
-            >
-              <Text style={{ fontSize: 14, fontWeight: '600', color: colors.brand.primary }}>
-                Forgot password?
-              </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')} style={{ alignItems: 'flex-end', marginBottom: spacing['2xl'] }}>
+              <Text style={{ fontSize: 14, fontWeight: '600', color: colors.accent.primary }}>Forgot password?</Text>
             </TouchableOpacity>
 
             {/* Sign In Button */}
@@ -305,117 +147,41 @@ export function LoginScreen() {
               activeOpacity={0.85}
               onPress={handleEmailSignIn}
               disabled={loading}
-              style={{
-                backgroundColor: colors.brand.primary,
-                paddingVertical: 16,
-                borderRadius: 16,
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexDirection: 'row',
-                gap: 8,
-                opacity: loading ? 0.6 : 1,
-                ...shadows.md,
-                shadowColor: colors.brand.primary,
-              }}
+              style={[s.primaryBtn, { backgroundColor: colors.accent.primary, opacity: loading ? 0.6 : 1 }]}
             >
               {loading ? (
-                <ActivityIndicator color={colors.text.inverse} />
+                <ActivityIndicator color="#FFF" />
               ) : (
-                <Text style={{ color: colors.text.inverse, fontSize: 17, fontWeight: '700' }}>
-                  Sign in
-                </Text>
+                <Text style={s.primaryBtnText}>Sign in</Text>
               )}
             </TouchableOpacity>
 
             {/* Divider */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 24 }}>
-              <View style={{ flex: 1, height: 1, backgroundColor: colors.border.default }} />
-              <Text
-                style={{
-                  marginHorizontal: 16,
-                  fontSize: 13,
-                  fontWeight: '600',
-                  color: colors.text.tertiary,
-                }}
-              >
-                Or continue with
-              </Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: colors.border.default }} />
+            <View style={s.divider}>
+              <View style={[s.dividerLine, { backgroundColor: colors.border.subtle }]} />
+              <Text style={[s.dividerText, { color: colors.text.tertiary }]}>or continue with</Text>
+              <View style={[s.dividerLine, { backgroundColor: colors.border.subtle }]} />
             </View>
 
-            {/* Social Auth */}
-            <View
-              style={{ flexDirection: 'row', gap: 12, justifyContent: 'center', marginBottom: 24 }}
-            >
-              <TouchableOpacity
-                onPress={async () => {
-                  try {
-                    setError('');
-                    await promptAsync();
-                  } catch (e: any) {
-                    console.error('Google sign-in prompt failed:', e);
-                    setError(e?.message || 'Google sign-in could not be started');
-                  }
-                }}
-                activeOpacity={0.85}
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: 16,
-                  backgroundColor: colors.bg.secondary,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <AntDesign  name="google" size={24} color={colors.text.primary} />
+            {/* Social */}
+            <View style={s.socialRow}>
+              <TouchableOpacity onPress={async () => { try { setError(''); await promptAsync(); } catch (e: any) { setError(e?.message || 'Google sign-in failed'); } }} activeOpacity={0.85} style={[s.socialBtn, { backgroundColor: colors.bg.secondary }]}>
+                <AntDesign name="google" size={20} color={colors.text.primary} />
               </TouchableOpacity>
-              <TouchableOpacity
-                activeOpacity={0.85}
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: 16,
-                  backgroundColor: colors.bg.secondary,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <AntDesign  name="facebook-square" size={24} color={colors.text.primary} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                activeOpacity={0.85}
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: 16,
-                  backgroundColor: colors.bg.secondary,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <AntDesign  name="apple1" size={24} color={colors.text.primary} />
+              <TouchableOpacity activeOpacity={0.85} style={[s.socialBtn, { backgroundColor: colors.bg.secondary }]}>
+                <AntDesign name="apple1" size={20} color={colors.text.primary} />
               </TouchableOpacity>
             </View>
 
             {/* Guest */}
-            <TouchableOpacity
-              onPress={handleGuestLogin}
-              disabled={loading}
-              style={{ alignItems: 'center', paddingVertical: 8 }}
-            >
-              <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.tertiary }}>
-                Continue as Guest
-              </Text>
+            <TouchableOpacity onPress={handleGuestLogin} disabled={loading} style={{ alignItems: 'center', paddingVertical: spacing.md, marginTop: spacing.sm }}>
+              <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text.tertiary }}>Continue as Guest</Text>
             </TouchableOpacity>
 
             {/* Privacy */}
-            <View style={{ alignItems: 'center', marginTop: 24 }}>
-              <TouchableOpacity onPress={() => navigation.navigate('Privacy')}>
-                <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text.tertiary }}>
-                  Privacy Policy
-                </Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity onPress={() => navigation.navigate('Privacy')} style={{ alignItems: 'center', marginTop: spacing['2xl'] }}>
+              <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary }}>Privacy Policy</Text>
+            </TouchableOpacity>
           </Animated.View>
         </Animated.ScrollView>
       </KeyboardAvoidingView>
@@ -425,4 +191,100 @@ export function LoginScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
+  logoWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: borderRadius['3xl'],
+    backgroundColor: 'rgba(124, 58, 237, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.lg,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+    marginBottom: spacing.xs,
+  },
+  subtitle: {
+    fontSize: 15,
+    fontWeight: '400',
+  },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    padding: spacing.md,
+    borderRadius: borderRadius['2xl'],
+    marginBottom: spacing.lg,
+  },
+  errorText: {
+    fontSize: 13,
+    fontWeight: '500',
+    flex: 1,
+  },
+  fieldLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+    marginBottom: spacing.sm,
+  },
+  field: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: borderRadius['2xl'],
+    borderWidth: 1.5,
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
+  },
+  fieldInput: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '400',
+    paddingVertical: 14,
+  },
+  primaryBtn: {
+    height: 54,
+    borderRadius: borderRadius['2xl'],
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+    ...shadows.md,
+  },
+  primaryBtnText: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '600',
+    letterSpacing: -0.05,
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: spacing['2xl'],
+  },
+  dividerLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+  },
+  dividerText: {
+    marginHorizontal: spacing.lg,
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  socialRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    justifyContent: 'center',
+    marginBottom: spacing.xl,
+  },
+  socialBtn: {
+    width: 52,
+    height: 52,
+    borderRadius: borderRadius['2xl'],
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadows.sm,
+  },
 });

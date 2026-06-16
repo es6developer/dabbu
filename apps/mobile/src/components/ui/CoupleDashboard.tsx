@@ -209,7 +209,7 @@ export function CoupleDashboard() {
       <View style={styles.grid}>
         {[
           { label: 'Incomes', icon: 'linechart', color: '#10B981', screen: 'CoupleIncome' },
-          { label: 'Savings', icon: 'save', color: '#8B5CF6', screen: 'CoupleSavings' },
+          { label: 'Savings', icon: 'save', color: '#7C3AED', screen: 'CoupleSavings' },
           { label: 'Bills', icon: 'calendar', color: '#FF9F43', screen: 'CoupleBills' },
           { label: 'Reports', icon: 'linechart', color: '#3B82F6', screen: 'CoupleReports' },
           {

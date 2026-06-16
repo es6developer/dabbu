@@ -1395,6 +1395,17 @@ export function SharedGroupDetailScreen() {
         }
       />
 
+      {activeTab === 'expenses' && expenses.length > 0 && (
+        <TouchableOpacity
+          style={[s.fab, { backgroundColor: colors.accent.primary }]}
+          activeOpacity={0.85}
+          onPress={() => navigation.navigate('SharedExpenseForm', { groupId, edit: false })}
+        >
+          <AntDesign name="plus" size={20} color="#FFF" />
+          <Text style={s.fabLabel}>Add Expense</Text>
+        </TouchableOpacity>
+      )}
+
       <Modal
         visible={settingsOpen}
         transparent

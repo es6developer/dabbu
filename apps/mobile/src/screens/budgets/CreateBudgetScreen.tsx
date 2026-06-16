@@ -86,7 +86,7 @@ export function CreateBudgetScreen() {
       title="Create budget"
       subtitle="Set a polished spending guardrail with period, category, and start/end dates."
       icon="piechart"
-      accent={[colors.status.info, colors.status.success]}
+      accent={[colors.accent.primary, colors.accent.primary]}
     >
       <PremiumError message={error} />
       <PremiumInput

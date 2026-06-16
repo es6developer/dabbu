@@ -23,196 +23,50 @@ export default function ReferralPage() {
         body: JSON.stringify({
           code,
           deviceId: typeof window !== 'undefined' ? localStorage.getItem('dabbu_device_id') : null,
-          platform:
-            typeof navigator !== 'undefined'
-              ? /iPhone|iPad|iPod/.test(navigator.userAgent)
-                ? 'ios'
-                : 'android'
-              : 'web',
+          platform: typeof navigator !== 'undefined' ? /iPhone|iPad|iPod/.test(navigator.userAgent) ? 'ios' : 'android' : 'web',
         }),
       }).catch(() => {});
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('dabbu_referral_code', code);
-      }
+      if (typeof window !== 'undefined') localStorage.setItem('dabbu_referral_code', code);
     }
   }, [code, tracked]);
 
   return (
-    <View style={styles.root}>
-      <View style={styles.gradientBg} />
-      <Card style={styles.card}>
-        <View style={styles.logo}>
-          <Text style={styles.logoText}>D</Text>
+    <View style={s.root}>
+      <Card style={{ width: '100%', maxWidth: 400, alignItems: 'center', padding: spacing.xxl }}>
+        <View style={{ width: 64, height: 64, borderRadius: radii.xl, backgroundColor: 'var(--dabbu-accent)', justifyContent: 'center', alignItems: 'center', marginBottom: spacing.xl }}>
+          <Text style={{ fontSize: 28, fontWeight: '700', color: '#FFF' }}>D</Text>
+        </View>
+        <Text style={{ fontSize: 22, fontWeight: '700', color: 'var(--dabbu-text)', textAlign: 'center', marginBottom: spacing.sm }}>You&apos;ve been invited!</Text>
+        <Text style={{ fontSize: 14, color: 'var(--dabbu-text-secondary)', textAlign: 'center', marginBottom: spacing.xl }}>Join Dabbu and start managing expenses together with your family and friends.</Text>
+
+        <View style={{ backgroundColor: 'var(--dabbu-brandLight)', borderRadius: radii.xl, padding: spacing.lg, alignItems: 'center', width: '100%', marginBottom: spacing.xl }}>
+          <Text style={{ fontSize: 32, fontWeight: '700', color: 'var(--dabbu-accent)', marginBottom: spacing.xs }}>₹{rewardAmount}</Text>
+          <Text style={{ fontSize: 13, color: 'var(--dabbu-text-muted)' }}>Your referral bonus awaits</Text>
         </View>
 
-        <Text style={styles.title}>You&apos;ve been invited!</Text>
-        <Text style={styles.subtitle}>
-          Join Dabbu and start managing expenses together with your family and friends.
-        </Text>
-
-        <View style={styles.rewardBox}>
-          <Text style={styles.rewardAmount}>₹{rewardAmount}</Text>
-          <Text style={styles.rewardLabel}>Your referral bonus awaits</Text>
-        </View>
-
-        <TouchableOpacity
-          style={styles.btnPrimary}
-          onPress={() => (window.location.href = APP_STORE_URL)}
-        >
-          <Text style={styles.btnPrimaryText}>Download for iOS</Text>
+        <TouchableOpacity style={s.primaryBtn} onPress={() => (window.location.href = APP_STORE_URL)}>
+          <Text style={{ fontSize: 16, fontWeight: '600', color: '#FFF' }}>Download for iOS</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={s.secBtn} onPress={() => (window.location.href = PLAY_STORE_URL)}>
+          <Text style={{ fontSize: 16, fontWeight: '500', color: 'var(--dabbu-text)' }}>Download for Android</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.btnSecondary}
-          onPress={() => (window.location.href = PLAY_STORE_URL)}
-        >
-          <Text style={styles.btnSecondaryText}>Download for Android</Text>
-        </TouchableOpacity>
+        <Row style={{ gap: spacing.sm, marginVertical: spacing.lg }}>
+          <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: 'var(--dabbu-green)' }} />
+          <Text style={{ fontSize: 12, color: 'var(--dabbu-text-muted)' }}>Referral code <Text style={{ fontWeight: '600', color: 'var(--dabbu-text)', fontFamily: 'monospace' }}>{code}</Text> will be applied automatically</Text>
+        </Row>
 
-        <View style={styles.codeRow}>
-          <View style={styles.liveDot} />
-          <Text style={styles.codeText}>
-            Referral code <Text style={styles.codeBold}>{code}</Text> will be applied automatically
-          </Text>
-        </View>
-
-        <Text style={styles.footer}>
+        <Text style={{ fontSize: 12, color: 'var(--dabbu-text-muted)' }}>
           Already have an account?{' '}
-          <Text
-            style={styles.footerLink}
-            onPress={() => (window.location.href = `dabbu://referral/${code}`)}
-          >
-            Open app
-          </Text>
+          <Text style={{ color: 'var(--dabbu-accent)', fontWeight: '500' }} onPress={() => (window.location.href = `dabbu://referral/${code}`)}>Open app</Text>
         </Text>
       </Card>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.lg,
-    backgroundColor: 'var(--dabbu-bg, #000000)',
-  },
-  gradientBg: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 256,
-    backgroundColor: 'rgba(139, 92, 246, 0.08)',
-  },
-  card: {
-    width: '100%',
-    maxWidth: 400,
-    alignItems: 'center',
-    padding: spacing.xxl,
-  },
-  logo: {
-    width: 64,
-    height: 64,
-    borderRadius: radii.xl,
-    backgroundColor: 'var(--dabbu-accent, #8B5CF6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.xl,
-  },
-  logoText: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#FFFFFF',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: 'var(--dabbu-text, #FFFFFF)',
-    textAlign: 'center',
-    marginBottom: spacing.sm,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: 'var(--dabbu-text-secondary, #94A3B8)',
-    textAlign: 'center',
-    marginBottom: spacing.xl,
-  },
-  rewardBox: {
-    backgroundColor: 'rgba(139, 92, 246, 0.1)',
-    borderRadius: radii.xl,
-    padding: spacing.lg,
-    alignItems: 'center',
-    width: '100%',
-    marginBottom: spacing.xl,
-  },
-  rewardAmount: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: 'var(--dabbu-accent, #8B5CF6)',
-    marginBottom: spacing.xs,
-  },
-  rewardLabel: {
-    fontSize: 13,
-    color: 'var(--dabbu-text-muted, #64748B)',
-  },
-  btnPrimary: {
-    width: '100%',
-    height: 56,
-    borderRadius: radii.lg,
-    backgroundColor: 'var(--dabbu-accent, #8B5CF6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  btnPrimaryText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  btnSecondary: {
-    width: '100%',
-    height: 56,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: 'var(--dabbu-border, #2A2A2E)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.xl,
-  },
-  btnSecondaryText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'var(--dabbu-text, #FFFFFF)',
-  },
-  codeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
-  },
-  liveDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'var(--dabbu-green, #10B981)',
-  },
-  codeText: {
-    fontSize: 12,
-    color: 'var(--dabbu-text-muted, #64748B)',
-  },
-  codeBold: {
-    fontWeight: '700',
-    color: 'var(--dabbu-text, #FFFFFF)',
-    fontFamily: 'monospace',
-  },
-  footer: {
-    fontSize: 12,
-    color: 'var(--dabbu-text-muted, #64748B)',
-  },
-  footerLink: {
-    color: 'var(--dabbu-accent, #8B5CF6)',
-    fontWeight: '600',
-  },
+const s = StyleSheet.create({
+  root: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: spacing.lg, backgroundColor: 'var(--dabbu-bg)' },
+  primaryBtn: { width: '100%', height: 52, borderRadius: radii.lg, backgroundColor: 'var(--dabbu-accent)', justifyContent: 'center', alignItems: 'center', marginBottom: spacing.md },
+  secBtn: { width: '100%', height: 52, borderRadius: radii.lg, borderWidth: 1, borderColor: 'var(--dabbu-border)', justifyContent: 'center', alignItems: 'center', marginBottom: spacing.lg },
 });

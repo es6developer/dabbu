@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api, setAccessToken, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
-import { PADDING, borderRadius, shadows, fabShadow } from '../../theme/design';
+import { spacing, borderRadius, shadows, fabShadow } from '../../theme/design';
 import { SkeletonList } from '../../components/ui/AnimatedSkeleton';
 import { PremiumCard } from '../../components/ui/PremiumCard';
 import { PremiumEmptyState } from '../../components/ui/PremiumEmptyState';
@@ -87,7 +87,7 @@ export function BudgetsListScreen() {
 
   if (loading && budgets.length === 0) {
     return (
-      <View style={[s.loading, { backgroundColor: colors.bg.primary, paddingHorizontal: PADDING }]}>
+      <View style={[s.loading, { backgroundColor: colors.bg.primary, paddingHorizontal: spacing['2xl'] }]}>
         <SkeletonList count={4} />
       </View>
     );
@@ -96,7 +96,7 @@ export function BudgetsListScreen() {
   return (
     <View style={[s.container, { backgroundColor: colors.bg.primary }]}>
       {/* Header */}
-      <View style={{ paddingTop: insets.top + 8, paddingHorizontal: PADDING, paddingBottom: 8 }}>
+      <View style={{ paddingTop: insets.top + 8, paddingHorizontal: spacing['2xl'], paddingBottom: 8 }}>
         <View
           style={{
             flexDirection: 'row',
@@ -188,7 +188,7 @@ export function BudgetsListScreen() {
           data={budgets}
           keyExtractor={(b) => b.id}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: PADDING, paddingTop: 8, paddingBottom: 100 }}
+          contentContainerStyle={{ padding: spacing['2xl'], paddingTop: 8, paddingBottom: 100 }}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -356,7 +356,7 @@ const s = StyleSheet.create({
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   fab: {
     position: 'absolute',
-    right: PADDING,
+    right: spacing['2xl'],
     bottom: 24,
     width: 56,
     height: 56,

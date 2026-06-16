@@ -8,7 +8,6 @@ import {
   Dimensions,
   Text,
 } from 'react-native';
-import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 
@@ -17,23 +16,6 @@ const { width: SCREEN_W } = Dimensions.get('window');
 interface PremiumAuthLayoutProps {
   children: ReactNode;
   subtitle?: string;
-}
-
-function HeaderGradient({ color }: { color: string }) {
-  return (
-    <View style={styles.glowWrapper}>
-      <Svg width={SCREEN_W} height={220} viewBox={`0 0 ${SCREEN_W} 220`}>
-        <Defs>
-          <SvgGradient id="topGlow" x1="0" y1="0" x2="0.3" y2="1">
-            <Stop offset="0" stopColor={color} stopOpacity="0.2" />
-            <Stop offset="0.5" stopColor={color} stopOpacity="0.06" />
-            <Stop offset="1" stopColor={color} stopOpacity="0" />
-          </SvgGradient>
-        </Defs>
-        <Rect x="0" y="0" width={SCREEN_W} height="220" fill="url(#topGlow)" />
-      </Svg>
-    </View>
-  );
 }
 
 export function PremiumAuthLayout({ children, subtitle }: PremiumAuthLayoutProps) {
@@ -47,8 +29,7 @@ export function PremiumAuthLayout({ children, subtitle }: PremiumAuthLayoutProps
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 25}
       >
-        <View style={[styles.headerSection, { backgroundColor: colors.bg.primary, paddingTop: insets.top + 40 }]}>
-          <HeaderGradient color={colors.accent.primary} />
+        <View style={[styles.headerSection, { paddingTop: insets.top + 40 }]}>
           <Image
             source={require('../../../assets/logo.png')}
             style={styles.logo}
@@ -93,14 +74,12 @@ const styles = StyleSheet.create({
   brandName: {
     fontSize: 22,
     fontWeight: '800',
-    fontFamily: 'Inter-Bold',
     marginTop: 8,
     letterSpacing: -0.5,
     zIndex: 1,
   },
   tagline: {
     fontSize: 13,
-    fontFamily: 'Inter-Regular',
     marginTop: 4,
     letterSpacing: 0.2,
     zIndex: 1,

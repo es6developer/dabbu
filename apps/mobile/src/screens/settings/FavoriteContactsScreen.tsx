@@ -117,7 +117,7 @@ export function FavoriteContactsScreen() {
 
   const favoriteIds = useMemo(() => new Set(favorites.map((f) => f.userId)), [favorites]);
 
-  const gradientColors = useMemo(() => [colors.brand.primary, colors.brand.hover], [colors]);
+  const gradientColors = useMemo(() => [colors.accent.primary, colors.accent.primary], [colors]);
 
   const renderHeader = () => (
     <Animated.View style={[styles.header, { paddingTop: insets.top + 8, opacity: headerOpacity }]}>
@@ -145,7 +145,7 @@ export function FavoriteContactsScreen() {
           returnKeyType="search"
           keyboardType="default"
         />
-        {searching && <ActivityIndicator size="small" color={colors.brand.primary} />}
+        {searching && <ActivityIndicator size="small" color={colors.accent.primary} />}
         {searchQuery.length > 0 && !searching && (
           <TouchableOpacity
             onPress={() => {
@@ -199,7 +199,7 @@ export function FavoriteContactsScreen() {
                   </View>
                   {favoriteIds.has(user.id) ? (
                     <View style={[styles.actionBtn, { backgroundColor: colors.brand.light }]}>
-                      <AntDesign  name="staro" size={16} color={colors.brand.primary} />
+                      <AntDesign  name="staro" size={16} color={colors.accent.primary} />
                     </View>
                   ) : (
                     <TouchableOpacity
@@ -211,9 +211,9 @@ export function FavoriteContactsScreen() {
                       disabled={addingId === user.id}
                     >
                       {addingId === user.id ? (
-                        <ActivityIndicator size="small" color={colors.brand.primary} />
+                        <ActivityIndicator size="small" color={colors.accent.primary} />
                       ) : (
-                        <AntDesign  name="staro" size={16} color={colors.brand.primary} />
+                        <AntDesign  name="staro" size={16} color={colors.accent.primary} />
                       )}
                     </TouchableOpacity>
                   )}
@@ -264,9 +264,9 @@ export function FavoriteContactsScreen() {
                   disabled={addingId === user.id}
                 >
                   {addingId === user.id ? (
-                    <ActivityIndicator size="small" color={colors.brand.primary} />
+                    <ActivityIndicator size="small" color={colors.accent.primary} />
                   ) : (
-                    <AntDesign  name="staro" size={16} color={colors.brand.primary} />
+                    <AntDesign  name="staro" size={16} color={colors.accent.primary} />
                   )}
                 </TouchableOpacity>
               </View>
@@ -277,7 +277,7 @@ export function FavoriteContactsScreen() {
           ))}
           {deviceContacts.length > 5 && (
             <TouchableOpacity style={styles.moreBtn}>
-              <Text style={[styles.moreBtnText, { color: colors.brand.primary }]}>
+              <Text style={[styles.moreBtnText, { color: colors.accent.primary }]}>
                 +{deviceContacts.length - 5} more
               </Text>
             </TouchableOpacity>
@@ -295,7 +295,7 @@ export function FavoriteContactsScreen() {
             colors={[colors.bg.glassLight, colors.bg.glass]}
             style={styles.emptyIconBox}
           >
-            <AntDesign  name="staro" size={40} color={colors.brand.primary} />
+            <AntDesign  name="staro" size={40} color={colors.accent.primary} />
           </LinearGradient>
           <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No favorites yet</Text>
           <Text style={[styles.emptyDesc, { color: colors.text.secondary }]}>
@@ -355,7 +355,7 @@ export function FavoriteContactsScreen() {
       <View style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
         {renderHeader()}
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color={colors.brand.primary} />
+          <ActivityIndicator size="large" color={colors.accent.primary} />
         </View>
       </View>
     );

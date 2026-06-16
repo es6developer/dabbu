@@ -160,7 +160,7 @@ export function CoupleFinance() {
                   activeOpacity={0.7}
                   className="flex-1 py-2.5 rounded-xl items-center"
                   style={{
-                    backgroundColor: isActive ? colors.brand.primary : 'transparent',
+                    backgroundColor: isActive ? colors.accent.primary : 'transparent',
                   }}
                 >
                   <Text
@@ -184,7 +184,7 @@ export function CoupleFinance() {
               Shared Expenses
             </Text>
             <TouchableOpacity onPress={() => {}} activeOpacity={0.7}>
-              <Text className="text-[12px] font-semibold" style={{ color: colors.brand.primary }}>
+              <Text className="text-[12px] font-semibold" style={{ color: colors.accent.primary }}>
                 + Add
               </Text>
             </TouchableOpacity>
@@ -199,14 +199,14 @@ export function CoupleFinance() {
                     className="w-10 h-10 rounded-xl items-center justify-center"
                     style={{
                       backgroundColor: isYou
-                        ? 'rgba(139, 92, 246, 0.10)'
+                        ? 'rgba(124, 58, 237, 0.10)'
                         : 'rgba(16, 185, 129, 0.10)',
                     }}
                   >
                     <AntDesign
                       name={(isYou ? 'user' : 'person') as any}
                       size={16}
-                      color={isYou ? colors.brand.primary : colors.status.success}
+                      color={isYou ? colors.accent.primary : colors.status.success}
                     />
                   </View>
                   <View className="flex-1 ml-3">

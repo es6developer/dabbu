@@ -11,8 +11,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../../store/ToastContext';
-
-const PRIMARY = '#6366F1';
+import { useTheme } from '../../theme';
+import { spacing, borderRadius } from '../../theme/design';
 const CATEGORIES = [
   { key: 'Housing', emoji: '\u{1F3E0}' },
   { key: 'Groceries', emoji: '\u{1F6D2}' },
@@ -33,7 +33,7 @@ const SPLIT_TYPES = [
   { key: 'shares', label: 'Shares', desc: 'Split by shares' },
 ] as const;
 
-const MM_COLORS = ['#8B5CF6', '#F97316', '#10B981', '#3B82F6', '#EF4444', '#EC4899', '#14B8A6', '#F59E0B'];
+const MM_COLORS = ['#7C3AED', '#F97316', '#10B981', '#3B82F6', '#EF4444', '#EC4899', '#14B8A6', '#F59E0B'];
 
 function getMemberColor(idx: number) { return MM_COLORS[idx % MM_COLORS.length]; }
 
@@ -51,6 +51,7 @@ export function PremiumExpenseFormScreen() {
   const { accessToken, user: currentUser } = useAuth();
   const insets = useSafeAreaInsets();
   const { showToast } = useToast();
+  const { colors, isDark } = useTheme();
   const { groupId, expenseId, edit } = route.params || {};
 
   const [step, setStep] = useState<'details' | 'split'>('details');
@@ -200,27 +201,27 @@ export function PremiumExpenseFormScreen() {
   }
 
   return (
-    <View style={s.root}>
+    <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={[s.header, { paddingTop: insets.top + 8 }]}>
-          <TouchableOpacity onPress={handleBack} style={s.headerBtn}>
-            <AntDesign  name="arrowleft" size={22} color="#0F172A" />
+        <View style={[s.header, { paddingTop: insets.top + spacing.sm }]}>
+          <TouchableOpacity onPress={handleBack} style={[s.headerBtn, { backgroundColor: colors.bg.secondary }]}>
+            <AntDesign  name="arrowleft" size={20} color={colors.text.primary} />
           </TouchableOpacity>
-          <Text style={s.headerTitle}>{step === 'details' ? 'New Expense' : 'Split'}</Text>
+          <Text style={[s.headerTitle, { color: colors.text.primary }]}>{step === 'details' ? 'New Expense' : 'Split'}</Text>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={s.cancelText}>Cancel</Text>
+            <Text style={[s.cancelText, { color: colors.text.tertiary }]}>Cancel</Text>
           </TouchableOpacity>
         </View>
 
         {step === 'split' && (
-          <View style={s.progressBar}>
-            <View style={s.progressTrack}>
-              <View style={s.progressFill} />
+          <View style={[s.progressBar, { paddingHorizontal: spacing['2xl'] }]}>
+            <View style={[s.progressTrack, { backgroundColor: colors.border.subtle }]}>
+              <View style={[s.progressFill, { backgroundColor: colors.accent.primary }]} />
             </View>
-            <Text style={s.progressLabel}>Step 2 of 2</Text>
+            <Text style={[s.progressLabel, { color: colors.text.tertiary }]}>Step 2 of 2</Text>
           </View>
         )}
 
@@ -230,50 +231,50 @@ export function PremiumExpenseFormScreen() {
             contentContainerStyle={{ paddingBottom: 120 }}
             keyboardShouldPersistTaps="handled"
           >
-            <View style={s.amountSection}>
+            <View style={[s.amountSection, { paddingHorizontal: spacing['2xl'] }]}>
               <Animated.View style={[s.amountRow, { transform: [{ scale: amountAnim }] }]}>
-                <Text style={s.currencySign}>₹</Text>
+                <Text style={[s.currencySign, { color: colors.text.tertiary }]}>₹</Text>
                 <TextInput
-                  style={s.amountInput}
+                  style={[s.amountInput, { color: colors.text.primary }]}
                   value={amount ? formatAmountDisplay(amount) : ''}
                   onChangeText={handleAmountChange}
                   placeholder="0.00"
-                  placeholderTextColor="#CBD5E1"
+                  placeholderTextColor={colors.text.tertiary}
                   keyboardType="decimal-pad"
                   autoFocus
                 />
               </Animated.View>
-              {fieldErrors.amount ? <Text style={s.fieldError}>{fieldErrors.amount}</Text> : null}
+              {fieldErrors.amount ? <Text style={[s.fieldError, { color: colors.status.error }]}>{fieldErrors.amount}</Text> : null}
             </View>
 
-            <View style={s.formFields}>
+            <View style={[s.formFields, { paddingHorizontal: spacing['2xl'] }]}>
               <View style={s.fieldGroup}>
-                <Text style={s.fieldLabel}>What was this for?</Text>
+                <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>What was this for?</Text>
                 <TextInput
-                  style={s.textInput}
+                  style={[s.textInput, { color: colors.text.primary, borderBottomColor: colors.border.subtle }]}
                   value={description}
                   onChangeText={(v) => {
                     if (v.length <= 50) setDescription(v);
                     setFieldErrors((p) => ({ ...p, description: '' }));
                   }}
                   placeholder="Dinner at Italian restaurant..."
-                  placeholderTextColor="#94A3B8"
+                  placeholderTextColor={colors.text.tertiary}
                   autoCapitalize="sentences"
                 />
-                <Text style={s.charCount}>{description.length}/50</Text>
-                {fieldErrors.description ? <Text style={s.fieldError}>{fieldErrors.description}</Text> : null}
+                <Text style={[s.charCount, { color: colors.text.tertiary }]}>{description.length}/50</Text>
+                {fieldErrors.description ? <Text style={[s.fieldError, { color: colors.status.error }]}>{fieldErrors.description}</Text> : null}
               </View>
 
               <TouchableOpacity style={s.fieldGroup} onPress={() => setShowDatePicker(true)} activeOpacity={0.7}>
-                <Text style={s.fieldLabel}>Date</Text>
+                <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Date</Text>
                 <View style={s.rowBetween}>
-                  <Text style={s.valueText}>{formatDate(expenseDate)}</Text>
-                  <AntDesign  name="down" size={16} color="#94A3B8" />
+                  <Text style={[s.valueText, { color: colors.text.primary }]}>{formatDate(expenseDate)}</Text>
+                  <AntDesign  name="down" size={14} color={colors.text.tertiary} />
                 </View>
               </TouchableOpacity>
 
               <View style={s.fieldGroup}>
-                <Text style={s.fieldLabel}>Paid by</Text>
+                <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Paid by</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.payerRow}>
                   {members.map((m, idx) => {
                     const sel = paidBy === m.userId;
@@ -283,12 +284,12 @@ export function PremiumExpenseFormScreen() {
                       <TouchableOpacity
                         key={m.userId}
                         onPress={() => { setPaidBy(m.userId); Vibration.vibrate(5); }}
-                        style={[s.payerCard, sel && { borderColor: color, backgroundColor: color + '12' }]}
+                        style={[s.payerCard, { borderColor: colors.border.subtle }, sel && { borderColor: color, backgroundColor: color + '12' }]}
                       >
                         <View style={[s.payerAvatar, { backgroundColor: color }]}>
                           <Text style={s.payerInitial}>{(name[0] || '?').toUpperCase()}</Text>
                         </View>
-                        <Text style={[s.payerName, { color: sel ? color : '#64748B' }]} numberOfLines={1}>
+                        <Text style={[s.payerName, { color: sel ? color : colors.text.tertiary }]} numberOfLines={1}>
                           {isMe(m.userId) ? 'You' : name}
                         </Text>
                       </TouchableOpacity>
@@ -298,7 +299,7 @@ export function PremiumExpenseFormScreen() {
               </View>
 
               <View style={s.fieldGroup}>
-                <Text style={s.fieldLabel}>Category</Text>
+                <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Category</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.catRow}>
                   {CATEGORIES.map((c) => {
                     const sel = category === c.key;
@@ -306,10 +307,10 @@ export function PremiumExpenseFormScreen() {
                       <TouchableOpacity
                         key={c.key}
                         onPress={() => setCategory(c.key)}
-                        style={[s.catCard, sel && { backgroundColor: PRIMARY, borderColor: PRIMARY }]}
+                        style={[s.catCard, { borderColor: colors.border.subtle }, sel && { backgroundColor: colors.accent.primary, borderColor: colors.accent.primary }]}
                       >
                         <Text style={s.catEmoji}>{c.emoji}</Text>
-                        <Text style={[s.catLabel, { color: sel ? '#FFF' : '#64748B' }]}>{c.key}</Text>
+                        <Text style={[s.catLabel, { color: sel ? '#FFF' : colors.text.tertiary }]}>{c.key}</Text>
                       </TouchableOpacity>
                     );
                   })}
@@ -323,29 +324,29 @@ export function PremiumExpenseFormScreen() {
             contentContainerStyle={{ paddingBottom: 140 }}
             keyboardShouldPersistTaps="handled"
           >
-            <View style={s.formFields}>
+            <View style={[s.formFields, { paddingHorizontal: spacing['2xl'] }]}>
               <View style={s.fieldGroup}>
-                <Text style={s.fieldLabel}>Split method</Text>
-                <View style={s.splitSelector}>
+                <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Split method</Text>
+                <View style={[s.splitSelector, { backgroundColor: colors.bg.secondary }]}>
                   {SPLIT_TYPES.map((st) => {
                     const active = splitType === st.key;
                     return (
                       <TouchableOpacity
                         key={st.key}
                         onPress={() => { setSplitType(st.key); Vibration.vibrate(5); }}
-                        style={[s.splitOption, active && { backgroundColor: PRIMARY }]}
+                        style={[s.splitOption, active && { backgroundColor: colors.accent.primary }]}
                       >
-                        <Text style={[s.splitOptionText, active && { color: '#FFF' }]}>{st.label}</Text>
+                        <Text style={[s.splitOptionText, { color: active ? '#FFF' : colors.text.tertiary }]}>{st.label}</Text>
                       </TouchableOpacity>
                     );
                   })}
                 </View>
               </View>
 
-              <View style={s.previewCard}>
+              <View style={[s.previewCard, { backgroundColor: colors.bg.primary }]}>
                 <View style={s.previewTotalRow}>
-                  <Text style={s.previewTotalLabel}>Total</Text>
-                  <Text style={s.previewTotalAmount}>{fmtCurrency(totalAmount)}</Text>
+                  <Text style={[s.previewTotalLabel, { color: colors.text.tertiary }]}>Total</Text>
+                  <Text style={[s.previewTotalAmount, { color: colors.text.primary }]}>{fmtCurrency(totalAmount)}</Text>
                 </View>
 
                 {(splitType === 'percentage' || splitType === 'exact' || splitType === 'shares') && (
@@ -359,10 +360,10 @@ export function PremiumExpenseFormScreen() {
                           <View style={[s.smAvatar, { backgroundColor: color + '18' }]}>
                             <Text style={[s.smInitial, { color }]}>{(name[0] || '?').toUpperCase()}</Text>
                           </View>
-                          <Text style={s.smName}>{isMe(m.userId) ? 'You' : name}</Text>
+                          <Text style={[s.smName, { color: colors.text.primary }]}>{isMe(m.userId) ? 'You' : name}</Text>
                           <View style={s.smInputWrap}>
                             <TextInput
-                              style={s.smInput}
+                              style={[s.smInput, { color: colors.text.primary, borderColor: colors.border.subtle }]}
                               value={val}
                               onChangeText={(v) => {
                                 const cleaned = v.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
@@ -371,9 +372,9 @@ export function PremiumExpenseFormScreen() {
                               }}
                               keyboardType="decimal-pad"
                               placeholder="0"
-                              placeholderTextColor="#CBD5E1"
+                              placeholderTextColor={colors.text.tertiary}
                             />
-                            <Text style={s.smSuffix}>{splitType === 'percentage' ? '%' : ''}</Text>
+                            <Text style={[s.smSuffix, { color: colors.text.tertiary }]}>{splitType === 'percentage' ? '%' : ''}</Text>
                           </View>
                         </View>
                       );
@@ -381,19 +382,19 @@ export function PremiumExpenseFormScreen() {
                     {splitType === 'percentage' && (() => {
                       const total = members.reduce((s, m) => s + (Number(splitValues[m.id]) || 0), 0);
                       const ok = Math.abs(total - 100) < 0.01;
-                      return <Text style={[s.splitTotalText, { color: ok ? '#10B981' : '#EF4444' }]}>Total: {total.toFixed(1)}% {ok ? '\u2713' : '\u2717'}</Text>;
+                      return <Text style={[s.splitTotalText, { color: ok ? colors.status.success : colors.status.error, borderTopColor: colors.border.subtle }]}>Total: {total.toFixed(1)}% {ok ? '\u2713' : '\u2717'}</Text>;
                     })()}
                     {splitType === 'exact' && (() => {
                       const total = members.reduce((s, m) => s + (Number(splitValues[m.id]) || 0), 0);
                       const ok = Math.abs(total - totalAmount) < 0.01;
-                      return <Text style={[s.splitTotalText, { color: ok ? '#10B981' : '#EF4444' }]}>Total: {fmtCurrency(total)} {ok ? '\u2713' : '\u2717'}</Text>;
+                      return <Text style={[s.splitTotalText, { color: ok ? colors.status.success : colors.status.error, borderTopColor: colors.border.subtle }]}>Total: {fmtCurrency(total)} {ok ? '\u2713' : '\u2717'}</Text>;
                     })()}
                   </View>
                 )}
 
                 {members.length > 0 && (
-                  <View style={s.splitSummary}>
-                    <Text style={s.splitSummaryTitle}>Split preview</Text>
+                  <View style={[s.splitSummary, { borderTopColor: colors.border.subtle }]}>
+                    <Text style={[s.splitSummaryTitle, { color: colors.text.tertiary }]}>Split preview</Text>
                     {members.map((m, idx) => {
                       const amt = getSplitAmount(m);
                       const isYou = isMe(m.userId);
@@ -405,9 +406,9 @@ export function PremiumExpenseFormScreen() {
                             <View style={[s.ssAvatar, { backgroundColor: color + '18' }]}>
                               <Text style={[s.ssInitial, { color }]}>{(name[0] || '?').toUpperCase()}</Text>
                             </View>
-                            <Text style={s.ssName}>{isYou ? 'You' : name}</Text>
+                            <Text style={[s.ssName, { color: colors.text.primary }]}>{isYou ? 'You' : name}</Text>
                           </View>
-                          <Text style={[s.ssAmount, { color: isYou && paidBy !== m.userId ? '#F59E0B' : '#10B981' }]}>
+                          <Text style={[s.ssAmount, { color: isYou && paidBy !== m.userId ? colors.status.warning : colors.status.success }]}>
                             {(isYou && paidBy !== m.userId ? '-' : '+') + fmtCurrency(amt)}
                           </Text>
                         </View>
@@ -418,39 +419,39 @@ export function PremiumExpenseFormScreen() {
               </View>
 
               <View style={s.fieldGroup}>
-                <Text style={s.fieldLabel}>Add notes (optional)</Text>
+                <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Add notes (optional)</Text>
                 <TextInput
-                  style={s.notesInput}
+                  style={[s.notesInput, { color: colors.text.primary, borderBottomColor: colors.border.subtle }]}
                   value={notes}
                   onChangeText={setNotes}
                   placeholder="Any additional details..."
-                  placeholderTextColor="#94A3B8"
+                  placeholderTextColor={colors.text.tertiary}
                   multiline
                 />
               </View>
 
-              {fieldErrors.split ? <Text style={s.fieldError}>{fieldErrors.split}</Text> : null}
-              {error ? <Text style={s.errorBox}>{error}</Text> : null}
+              {fieldErrors.split ? <Text style={[s.fieldError, { color: colors.status.error }]}>{fieldErrors.split}</Text> : null}
+              {error ? <Text style={[s.errorBox, { color: colors.status.error }]}>{error}</Text> : null}
             </View>
           </ScrollView>
         )}
 
-        <View style={[s.bottomBar, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+        <View style={[s.bottomBar, { paddingHorizontal: spacing['2xl'], paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
           {step === 'details' ? (
             <TouchableOpacity
               activeOpacity={0.9}
               onPress={handleContinue}
               disabled={!validDetails}
-              style={[s.continueBtn, { backgroundColor: validDetails ? PRIMARY : '#CBD5E1', opacity: validDetails ? 1 : 0.6 }]}
+              style={[s.continueBtn, { backgroundColor: validDetails ? colors.accent.primary : colors.border.subtle }]}
             >
-              <Text style={s.continueBtnText}>Continue to Split \u2192</Text>
+              <Text style={s.continueBtnText}>Continue to Split {'\u2192'}</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
               activeOpacity={0.9}
               onPress={handleSave}
               disabled={saving}
-              style={[s.continueBtn, { backgroundColor: PRIMARY }]}
+              style={[s.continueBtn, { backgroundColor: colors.accent.primary }]}
             >
               {saving ? (
                 <ActivityIndicator size="small" color="#FFF" />
@@ -478,7 +479,7 @@ const s = StyleSheet.create({
   cancelText: { fontSize: 14, fontWeight: '500', color: '#64748B' },
   progressBar: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 24, paddingBottom: 12 },
   progressTrack: { flex: 1, height: 4, borderRadius: 2, backgroundColor: '#E2E8F0', overflow: 'hidden' },
-  progressFill: { height: '100%', borderRadius: 2, backgroundColor: PRIMARY },
+  progressFill: { height: '100%', borderRadius: 2, backgroundColor: '#7C3AED' },
   progressLabel: { fontSize: 11, fontWeight: '500', color: '#94A3B8' },
   amountSection: { alignItems: 'center', paddingVertical: 32, paddingHorizontal: 24 },
   amountRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
@@ -550,7 +551,7 @@ const s = StyleSheet.create({
   bottomBar: { paddingHorizontal: 24, paddingTop: 8 },
   continueBtn: {
     borderRadius: 14, paddingVertical: 16, alignItems: 'center', justifyContent: 'center',
-    shadowColor: PRIMARY, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4,
+    shadowColor: '#7C3AED', shadowOpacity: 0.2, shadowRadius: 8, elevation: 4,
   },
   continueBtnText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
   errorBox: { fontSize: 13, fontWeight: '500', color: '#EF4444', textAlign: 'center' },

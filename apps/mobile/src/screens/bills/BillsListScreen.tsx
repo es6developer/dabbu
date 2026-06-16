@@ -14,6 +14,7 @@ import {
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme';
+import { spacing, borderRadius } from '../../theme/design';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -260,13 +261,13 @@ function EmptyState({ colors, onScan }: { colors: any; onScan: () => void }) {
   return (
     <View style={styles.emptyContainer}>
       <View style={[styles.emptyIconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
-        <AntDesign  name="filetext1" size={56} color={colors.brand.primary} />
+        <AntDesign  name="filetext1" size={56} color={colors.accent.primary} />
       </View>
       <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No Bills Yet</Text>
       <Text style={[styles.emptyDesc, { color: colors.text.primary }]}>
         Scan your first receipt or bill to start managing expenses automatically.
       </Text>
-      <View style={[styles.emptyBtn, { backgroundColor: colors.brand.primary }]}>
+      <View style={[styles.emptyBtn, { backgroundColor: colors.accent.primary }]}>
         <TouchableOpacity style={styles.emptyBtnInner} onPress={onScan} activeOpacity={0.8}>
           <AntDesign  name="camera" size={20} color="#FFFFFF" />
           <Text style={styles.emptyBtnText}>Scan Your First Bill</Text>

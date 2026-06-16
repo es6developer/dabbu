@@ -30,7 +30,7 @@ export function HeroCard({
       style={{
         backgroundColor: isDark ? '#2E1065' : '#F3E8FF',
         borderWidth: 1,
-        borderColor: isDark ? 'rgba(167, 139, 250, 0.20)' : 'rgba(139, 92, 246, 0.12)',
+        borderColor: isDark ? 'rgba(124, 58, 237, 0.20)' : 'rgba(124, 58, 237, 0.12)',
       }}
     >
       {/* Accent top bar */}

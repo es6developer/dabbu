@@ -65,7 +65,7 @@ const LOAN_TYPES = [
   { type: 'home', name: 'Home Loan', icon: 'home', color: '#F97316' },
   { type: 'car', name: 'Car Loan', icon: 'car', color: '#14B8A6' },
   { type: 'personal', name: 'Personal Loan', icon: 'user', color: '#4F6EF7' },
-  { type: 'education', name: 'Education Loan', icon: 'book', color: '#8B5CF6' },
+  { type: 'education', name: 'Education Loan', icon: 'book', color: '#7C3AED' },
   { type: 'other', name: 'Other Loan', icon: 'arrowdown', color: '#6B7280' },
 ];
 

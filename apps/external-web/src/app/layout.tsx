@@ -17,13 +17,13 @@ const GOOGLE_CLIENT_ID =
   '1031730335520-m1ovd3tjcrm74a0pdqp03qgm27bnuita.apps.googleusercontent.com';
 
 export const metadata: Metadata = {
-  title: 'Dabbu Split - Collaborative Finance',
+  title: 'Dabbu Split — Collaborative Finance',
   description:
     'Join group expenses, trips, and shared finances with friends and family. Real-time collaboration for everyone.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
+    statusBarStyle: 'default',
     title: 'Dabbu Split',
   },
   icons: {
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     apple: [{ url: '/icons/apple-icon-180x180.png' }],
   },
   openGraph: {
-    title: 'Dabbu Split - Collaborative Finance',
+    title: 'Dabbu Split — Collaborative Finance',
     description: 'Join group expenses, trips, and shared finances with friends and family.',
     type: 'website',
     siteName: 'Dabbu Split',
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0A0A0F',
+  themeColor: '#F5F5F7',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -51,15 +51,12 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className="min-h-screen antialiased"
-        style={{ backgroundColor: 'var(--dabbu-bg)', color: 'var(--dabbu-text)' }}
-      >
+      <body>
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
           <AuthProvider>
             <LoadingProvider>
               <ThemeContextProvider>
-                <BackgroundGradient>{children}</BackgroundGradient>
+                {children}
               </ThemeContextProvider>
             </LoadingProvider>
           </AuthProvider>
@@ -71,27 +68,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               background: 'var(--toast-bg)',
               border: '1px solid var(--toast-border)',
               color: 'var(--toast-text)',
+              borderRadius: '14px',
+              fontSize: '14px',
             },
           }}
         />
         <InstallPrompt />
       </body>
     </html>
-  );
-}
-
-function BackgroundGradient({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{ minHeight: '100vh', position: 'relative' }}>
-      <div
-        style={{
-          position: 'fixed',
-          inset: 0,
-          backgroundImage: 'radial-gradient(circle, rgba(139,92,246,0.03) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }}
-      />
-      {children}
-    </div>
   );
 }

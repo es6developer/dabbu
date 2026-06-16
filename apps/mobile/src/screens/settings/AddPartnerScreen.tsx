@@ -12,7 +12,6 @@ import {
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../theme';
 import { useAuth } from '../../store/AuthContext';
 import { Avatar } from '../../components/ui/Avatar';
@@ -159,10 +158,7 @@ export function AddPartnerScreen() {
   if (isInCouple && partner) {
     return (
       <View style={[styles.screen, { backgroundColor: COUPLE_COLORS.bg }]}>
-        <LinearGradient
-          colors={[COUPLE_COLORS.primary, COUPLE_COLORS.accent]}
-          style={[styles.heroGradient, { paddingTop: insets.top + 60, paddingBottom: 40 }]}
-        >
+        <View style={[styles.heroGradient, { paddingTop: insets.top + 60, paddingBottom: 40, backgroundColor: COUPLE_COLORS.primary }]}>
           <TouchableOpacity
             style={styles.backBtn}
             onPress={() => navigation.goBack()}
@@ -176,7 +172,7 @@ export function AddPartnerScreen() {
             </View>
             <Text style={[styles.heroTitle, { color: '#FFF' }]}>Your Partner</Text>
           </View>
-        </LinearGradient>
+        </View>
 
         <ScrollView style={styles.body}>
           <View style={[styles.partnerCard, { backgroundColor: COUPLE_COLORS.card }]}>
@@ -238,10 +234,7 @@ export function AddPartnerScreen() {
 
   return (
     <ScrollView style={[styles.screen, { backgroundColor: colors.bg.primary }]}>
-      <LinearGradient
-        colors={['#6D28D9', '#8B5CF6', '#A78BFA']}
-        style={[styles.heroGradient, { paddingTop: insets.top + 60, paddingBottom: 50 }]}
-      >
+      <View style={[styles.heroGradient, { paddingTop: insets.top + 60, paddingBottom: 50, backgroundColor: '#7C3AED' }]}>
         <TouchableOpacity
           style={styles.backBtn}
           onPress={() => navigation.goBack()}
@@ -258,12 +251,12 @@ export function AddPartnerScreen() {
             Enter your partner's phone number to send a request
           </Text>
         </View>
-      </LinearGradient>
+      </View>
 
       <View style={styles.bodyInner}>
         {/* Incoming Requests */}
         {loadingRequests ? (
-          <ActivityIndicator size="small" color="#8B5CF6" style={{ marginVertical: 16 }} />
+          <ActivityIndicator size="small" color="#7C3AED" style={{ marginVertical: 16 }} />
         ) : requests.received.length > 0 ? (
           <View style={[styles.section, { backgroundColor: colors.bg.card }]}>
             <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
@@ -338,7 +331,7 @@ export function AddPartnerScreen() {
             onPress={handleSendRequest}
             disabled={sending}
           >
-            <LinearGradient colors={['#6D28D9', '#8B5CF6']} style={styles.addBtnGradient}>
+            <View style={[styles.addBtnGradient, { backgroundColor: '#7C3AED' }]}>
               {sending ? (
                 <ActivityIndicator size="small" color="#FFF" />
               ) : (
@@ -347,7 +340,7 @@ export function AddPartnerScreen() {
                   <Text style={styles.addBtnText}>Send Request</Text>
                 </>
               )}
-            </LinearGradient>
+            </View>
           </TouchableOpacity>
         </View>
 
@@ -396,7 +389,7 @@ export function AddPartnerScreen() {
             { icon: 'piechart', text: 'Get AI-powered couple insights' },
           ].map((f, i) => (
             <View key={i} style={styles.featureRow}>
-              <AntDesign name={f.icon as any} size={18} color="#8B5CF6" />
+              <AntDesign name={f.icon as any} size={18} color="#7C3AED" />
               <Text style={[styles.featureText, { color: colors.text.secondary }]}>{f.text}</Text>
             </View>
           ))}

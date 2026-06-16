@@ -16,10 +16,11 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../../store/ToastContext';
 import { LinearGradient } from 'expo-linear-gradient';
+import { palette } from '../../theme/colors';
 
 const { width: SCREEN_W } = Dimensions.get('window');
-const PURPLE = '#8B5CF6';
-const PURPLE_DARK = '#6D28D9';
+const PURPLE = palette.brand.primary;
+const PURPLE_DARK = palette.brand.hover;
 
 const ICON_SET: { name: string; icon: string; color: string }[] = [
   { name: 'Food & Dining', icon: 'enviroment', color: '#FF6B6B' },
@@ -30,10 +31,10 @@ const ICON_SET: { name: string; icon: string; color: string }[] = [
   { name: 'Housing', icon: 'home', color: '#FB923C' },
   { name: 'Entertainment', icon: 'play', color: '#14B8A6' },
   { name: 'Healthcare', icon: 'medicinebox', color: '#FF4D4F' },
-  { name: 'Education', icon: 'book', color: '#8B5CF6' },
+  { name: 'Education', icon: 'book', color: '#7C3AED' },
   { name: 'Travel', icon: 'earth', color: '#60A5FA' },
   { name: 'Sports', icon: 'play', color: '#22C55E' },
-  { name: 'Subscription', icon: 'retweet', color: '#8B5CF6' },
+  { name: 'Subscription', icon: 'retweet', color: '#7C3AED' },
   { name: 'Utilities', icon: 'star', color: '#FBBF24' },
   { name: 'Salary', icon: 'wallet', color: '#00B894' },
   { name: 'Business', icon: 'appstore1', color: '#14B8A6' },

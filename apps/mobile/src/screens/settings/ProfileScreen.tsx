@@ -18,7 +18,7 @@ import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Avatar } from '../../components/ui/Avatar';
-import { PADDING, borderRadius, shadows } from '../../theme/design';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 import { useToast } from '../../store/ToastContext';
 
 const UPI_PATTERN = /^[\w.-]+@[\w.-]+$/;
@@ -290,7 +290,7 @@ export function ProfileScreen() {
               </View>
 
               {/* Avatar Presets */}
-              <View style={{ marginHorizontal: PADDING, marginBottom: 16 }}>
+              <View style={{ marginHorizontal: spacing['2xl'], marginBottom: 16 }}>
                 {presetsLoading ? (
                   <View style={{ alignItems: 'center', paddingVertical: 20 }}>
                     <ActivityIndicator size="small" color={colors.accent.primary} />
@@ -359,7 +359,7 @@ export function ProfileScreen() {
               {/* Profile Form */}
               <View
                 style={{
-                  marginHorizontal: PADDING,
+                  marginHorizontal: spacing['2xl'],
                   backgroundColor: colors.bg.card,
                   borderRadius: borderRadius.xl,
                   padding: 20,
@@ -601,7 +601,7 @@ export function ProfileScreen() {
               {/* Danger Zone */}
               <View
                 style={{
-                  marginHorizontal: PADDING,
+                  marginHorizontal: spacing['2xl'],
                   backgroundColor: colors.bg.card,
                   borderRadius: borderRadius.xl,
                   padding: 20,
@@ -660,7 +660,7 @@ export function ProfileScreen() {
             bottom: tabBarHeight,
             left: 0,
             right: 0,
-            paddingHorizontal: PADDING,
+            paddingHorizontal: spacing['2xl'],
             paddingTop: 12,
             backgroundColor: colors.bg.primary,
             paddingBottom: insets.bottom + 20,

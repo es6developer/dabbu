@@ -14,7 +14,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PremiumAuthLayout } from '../../components/ui/PremiumAuthLayout';
 import { useTheme } from '../../theme';
-import { PADDING, borderRadius, shadows } from '../../theme/design';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 import { typography as designTypo } from '../../theme';
 import { palette } from '../../theme/colors';
 import { api } from '../../services/api';
@@ -26,7 +26,7 @@ function createStyles(colors: typeof palette.dark) {
   return StyleSheet.create({
     content: {
       flex: 1,
-      paddingTop: PADDING,
+      paddingTop: spacing.xl,
     },
     backButton: {
       width: 40,
@@ -35,7 +35,7 @@ function createStyles(colors: typeof palette.dark) {
       backgroundColor: colors.bg.secondary,
       justifyContent: 'center',
       alignItems: 'center',
-      marginBottom: PADDING,
+      marginBottom: spacing.xl,
     },
     title: {
       ...designTypo.largeTitle,
@@ -46,7 +46,7 @@ function createStyles(colors: typeof palette.dark) {
       color: colors.text.secondary,
       marginTop: 8,
       lineHeight: 22,
-      marginBottom: PADDING + 8,
+      marginBottom: spacing.xl + 8,
     },
     emailHighlight: {
       color: colors.accent.primary,
@@ -55,7 +55,7 @@ function createStyles(colors: typeof palette.dark) {
       flexDirection: 'row',
       justifyContent: 'center',
       gap: 10,
-      marginBottom: PADDING + 8,
+      marginBottom: spacing.xl + 8,
     },
     otpInput: {
       width: 52,
@@ -83,7 +83,7 @@ function createStyles(colors: typeof palette.dark) {
     resendRow: {
       flexDirection: 'row',
       justifyContent: 'center',
-      marginTop: PADDING,
+      marginTop: spacing.xl,
     },
     resendLabel: {
       color: colors.text.secondary,
@@ -132,7 +132,7 @@ export function PremiumOtpScreen() {
       {
         opacity: fadeAnim,
         transform: [{ translateY: slideAnim }],
-        paddingBottom: insets.bottom + PADDING,
+        paddingBottom: insets.bottom + spacing.xl,
       },
     ],
     [styles.content, fadeAnim, slideAnim, insets.bottom],

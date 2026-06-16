@@ -16,9 +16,9 @@ export function ReferralPill({ onPress }: ReferralPillProps) {
       activeOpacity={0.7}
       className="flex-row items-center rounded-full px-3.5 py-1.5"
       style={{
-        backgroundColor: isDark ? 'rgba(167, 139, 250, 0.15)' : colors.brand.light,
+        backgroundColor: isDark ? 'rgba(0, 122, 255, 0.15)' : colors.brand.light,
         borderWidth: 1,
-        borderColor: isDark ? 'rgba(167, 139, 250, 0.20)' : 'rgba(139, 92, 246, 0.15)',
+        borderColor: isDark ? 'rgba(0, 122, 255, 0.20)' : 'rgba(0, 122, 255, 0.15)',
       }}
     >
       <AntDesign  name="gift" size={13} color={colors.brand.primary} />

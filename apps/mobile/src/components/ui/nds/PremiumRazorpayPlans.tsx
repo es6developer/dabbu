@@ -23,7 +23,7 @@ const glowBorderStyle = (isSelected: boolean) =>
   isSelected
     ? Platform.select({
         ios: {
-          shadowColor: '#8B5CF6',
+          shadowColor: '#7C3AED',
           shadowOffset: { width: 0, height: 0 },
           shadowOpacity: 0.6,
           shadowRadius: 12,
@@ -54,7 +54,7 @@ export const PremiumRazorpayPlans: React.FC<PremiumRazorpayPlansProps> = ({
         style={{
           width: CARD_WIDTH,
           marginBottom: CARD_GAP,
-          ...(isSelected ? { borderColor: '#8B5CF6' } : {}),
+          ...(isSelected ? { borderColor: '#7C3AED' } : {}),
           ...glowBorderStyle(isSelected),
         }}
       >

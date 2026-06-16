@@ -428,7 +428,7 @@ export function MainTabNavigator() {
       label: 'Expense Group',
       icon: 'people-outline',
       color: '#14B8A6',
-      onPress: () => navigation.navigate('Spaces', { screen: 'SharedFinanceHome' }),
+      onPress: () => navigation.navigate('Expense', { screen: 'GroupExpenses' }),
     },
   ];
 
@@ -456,7 +456,7 @@ export function MainTabNavigator() {
       )}
       <Tab.Navigator
         tabBar={(props) => (
-          <GlossyTabBar
+          <IOSTabBar
             {...props}
             colors={colors}
             isDark={isDark}
@@ -535,7 +535,7 @@ export function MainTabNavigator() {
   );
 }
 
-function GlossyTabBar({
+function IOSTabBar({
   state,
   descriptors,
   navigation,
@@ -558,9 +558,6 @@ function GlossyTabBar({
       getTabVisibility(r.name) &&
       !coupleHiddenTabs.has(r.name),
   );
-  const midIndex = Math.floor(visibleRoutes.length / 2);
-  const leftRoutes = visibleRoutes.slice(0, midIndex);
-  const rightRoutes = visibleRoutes.slice(midIndex);
 
   function renderTab(route: any) {
     const descriptor = descriptors[route.key];
@@ -604,186 +601,102 @@ function GlossyTabBar({
         style={tabStyles.tabItem}
         onPress={onPress}
       >
-        <View
-          style={[
-            tabStyles.iconWrap,
-            isFocused && {
-              backgroundColor: showCoupleFeatures
-                ? `${COUPLE_COLORS.primary}15`
-                : isDark
-                  ? 'rgba(255,255,255,0.1)'
-                  : 'rgba(0,0,0,0.04)',
-            },
-          ]}
-        >
-          {icon}
-        </View>
+        {icon}
         <Text
           style={[
             tabStyles.label,
             {
               color: isFocused ? focusedColor : unfocusedColor,
-              fontWeight: isFocused ? '700' : '500',
+              fontWeight: isFocused ? '600' : '400',
             },
           ]}
         >
           {options.tabBarLabel || route.name}
         </Text>
-        {isFocused && (
-          <View
-            style={[
-              tabStyles.activeDot,
-              { backgroundColor: focusedColor },
-            ]}
-          />
-        )}
       </TouchableOpacity>
     );
   }
 
-  return (
-    <View
-      style={[
-        tabStyles.outerWrapper,
-        { borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' },
-      ]}
-    >
-      <View style={[tabStyles.blur, { backgroundColor: colors.bg.secondary }]}>
-        <View
-          style={[
-            tabStyles.innerRow,
-            { borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' },
-          ]}
-        >
-          {leftRoutes.map(renderTab)}
+  const midIndex = Math.floor(visibleRoutes.length / 2);
 
+  return (
+    <View style={tabStyles.floatingWrapper}>
+      <View
+        style={[
+          tabStyles.outerWrapper,
+          {
+            backgroundColor: isDark ? 'rgba(28,28,30,0.94)' : 'rgba(249,249,249,0.94)',
+            shadowColor: isDark ? '#000' : 'rgba(0,0,0,0.15)',
+          },
+        ]}
+      >
+        <View style={tabStyles.innerRow}>
+          {visibleRoutes.slice(0, midIndex).map(renderTab)}
           {showCenterButton && (
             <TouchableOpacity
-              key="center-fab"
               activeOpacity={0.8}
-              style={tabStyles.centerWrap}
+              style={tabStyles.centerFab}
               onPress={onCenterPress}
             >
-              <View
-                style={[
-                  tabStyles.centerBtn,
-                  showCoupleFeatures
-                    ? { backgroundColor: COUPLE_COLORS.primary, borderColor: COUPLE_COLORS.accent }
-                    : { backgroundColor: colors.accent.primary, borderColor: colors.brand.hover },
-                ]}
-              >
-                {showCoupleFeatures ? (
-                  <View>
-                    <Ionicons name="heart" size={22} color="#FFF" />
-                    <View
-                      style={{
-                        position: 'absolute',
-                        bottom: -3,
-                        right: -7,
-                        width: 17,
-                        height: 17,
-                        borderRadius: 9,
-                        backgroundColor: '#FFF',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderWidth: 2,
-                        borderColor: COUPLE_COLORS.primary,
-                      }}
-                    >
-                      <Ionicons name="add" size={11} color={COUPLE_COLORS.primary} />
-                    </View>
-                  </View>
-                ) : (
-                  <Ionicons name="add" size={28} color="#FFF" />
-                )}
+              <View style={[tabStyles.centerFabInner, { backgroundColor: colors.accent.primary }]}>
+                <Ionicons name="add" size={28} color="#FFF" />
               </View>
             </TouchableOpacity>
           )}
-
-          {rightRoutes.map(renderTab)}
+          {visibleRoutes.slice(midIndex).map(renderTab)}
         </View>
       </View>
     </View>
   );
 }
 
-const TAB_FIXED_WIDTH = 60;
-
 const tabStyles = StyleSheet.create({
-  outerWrapper: {
-    position: 'absolute',
-    left: 12,
-    right: 12,
-    bottom: Platform.OS === 'ios' ? 20 : 12,
-    borderRadius: 24,
-    borderWidth: 1,
-    overflow: 'hidden',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 8,
-      },
-    }),
+  floatingWrapper: {
+    paddingHorizontal: 16,
+    paddingBottom: Platform.OS === 'ios' ? 8 : 4,
   },
-  blur: {
-    borderRadius: 24,
-    overflow: 'hidden',
+  outerWrapper: {
+    borderRadius: 28,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 8,
+    paddingTop: 6,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 8,
   },
   innerRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    gap: 4,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    alignItems: 'flex-start',
+    justifyContent: 'space-evenly',
   },
   tabItem: {
-    width: TAB_FIXED_WIDTH,
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 4,
-  },
-  iconWrap: {
-    width: 44,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 2,
+    paddingVertical: 2,
   },
   label: {
-    fontSize: 11,
+    fontSize: 10,
     letterSpacing: 0.1,
+    marginTop: 2,
   },
-  activeDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    marginTop: 3,
-  },
-  centerWrap: {
-    width: TAB_FIXED_WIDTH + 8,
+  centerFab: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 4,
+    paddingVertical: 2,
   },
-  centerBtn: {
+  centerFabInner: {
     width: 48,
     height: 48,
-    borderRadius: 16,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
-    elevation: 6,
+    marginTop: -16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
     shadowRadius: 8,
+    elevation: 6,
   },
 });

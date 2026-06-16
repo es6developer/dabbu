@@ -16,7 +16,7 @@ import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../../store/ToastContext';
-import { PADDING, borderRadius, shadows } from '../../theme/design';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 
 function fmt(v: number) {
   return `\u20B9${(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
@@ -98,7 +98,7 @@ export function BudgetDetailScreen() {
 
   if (loading) {
     return (
-      <View style={[s.loading, { backgroundColor: colors.bg.primary, paddingHorizontal: PADDING }]}>
+      <View style={[s.loading, { backgroundColor: colors.bg.primary, paddingHorizontal: spacing.xl }]}>
         <DetailSkeleton />
       </View>
     );
@@ -126,7 +126,7 @@ export function BudgetDetailScreen() {
   return (
     <ScrollView style={[s.container, { backgroundColor: colors.bg.primary }]}>
       {/* Header */}
-      <View style={{ paddingTop: insets.top + 8, paddingHorizontal: PADDING, paddingBottom: 16 }}>
+      <View style={{ paddingTop: insets.top + 8, paddingHorizontal: spacing.xl, paddingBottom: 16 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 }}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
@@ -168,7 +168,7 @@ export function BudgetDetailScreen() {
       {/* Hero Card */}
       <View
         style={{
-          marginHorizontal: PADDING,
+          marginHorizontal: spacing.xl,
           borderRadius: borderRadius.xl,
           padding: 24,
           backgroundColor:
@@ -374,7 +374,7 @@ export function BudgetDetailScreen() {
       {/* Details Section */}
       <View
         style={{
-          marginHorizontal: PADDING,
+          marginHorizontal: spacing.xl,
           backgroundColor: colors.bg.card,
           borderRadius: borderRadius.lg,
           padding: 20,
@@ -479,7 +479,7 @@ export function BudgetDetailScreen() {
       {budget.transactions && budget.transactions.length > 0 && (
         <View
           style={{
-            marginHorizontal: PADDING,
+            marginHorizontal: spacing.xl,
             backgroundColor: colors.bg.card,
             borderRadius: borderRadius.lg,
             padding: 20,
@@ -546,7 +546,7 @@ export function BudgetDetailScreen() {
       )}
 
       {/* Actions */}
-      <View style={{ paddingHorizontal: PADDING, gap: 10, marginBottom: 40 }}>
+      <View style={{ paddingHorizontal: spacing.xl, gap: 10, marginBottom: 40 }}>
         <TouchableOpacity
           style={{
             paddingVertical: 16,

@@ -25,7 +25,7 @@ import {
   resetWarmup,
   api,
 } from '../services/api';
-import { registerForPushNotifications, resetPushRegistration } from '../services/notifications';
+import { resetPushRegistration } from '../services/notifications';
 import { trackEventImmediate } from '../hooks/useAnalytics';
 
 const SESSION_TIMEOUT_MS = 24 * 60 * 60 * 1000;
@@ -317,7 +317,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setState((prev) => ({ ...prev, accessToken: tokens.accessToken }));
       resetSessionTimeout();
-      registerForPushNotifications(tokens.accessToken).catch(() => {});
       return true;
     } catch {
       return false;
@@ -349,11 +348,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const sub = AppState.addEventListener('change', (nextState: AppStateStatus) => {
       if (nextState === 'active') {
         resetSessionTimeout();
-        const tkn = stateRef.current.accessToken;
-        if (tkn) {
-          resetPushRegistration();
-          registerForPushNotifications(tkn).catch(() => {});
-        }
       }
     });
     return () => sub.remove();
@@ -381,7 +375,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           isPremium: null,
         });
         resetSessionTimeout();
-        registerForPushNotifications(token).catch(() => {});
         refreshPremiumStatus();
       } else {
         setState((prev) => ({ ...prev, isLoading: false }));
@@ -409,8 +402,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     resetSessionTimeout();
     refreshPremiumStatus();
-    resetPushRegistration();
-    registerForPushNotifications(token).catch(() => {});
   }
 
   const completeAuth = useCallback((token: string, user: User, wasNewUser: boolean) => {

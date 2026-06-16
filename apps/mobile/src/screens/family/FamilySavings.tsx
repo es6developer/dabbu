@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
+import { spacing, borderRadius } from '../../theme/design';
 import { Card } from '../../components/ui/Card';
 import { ProfileBubble } from '../../components/ui/ProfileBubble';
 
@@ -41,7 +42,7 @@ export function FamilySavings() {
             className="px-3.5 py-1.5 rounded-full"
             style={{ backgroundColor: colors.brand.light }}
           >
-            <Text className="text-[12px] font-semibold" style={{ color: colors.brand.primary }}>
+            <Text className="text-[12px] font-semibold" style={{ color: colors.accent.primary }}>
               + Invite
             </Text>
           </TouchableOpacity>
@@ -59,9 +60,9 @@ export function FamilySavings() {
               </Text>
               <View
                 className="rounded-full px-2.5 py-1"
-                style={{ backgroundColor: 'rgba(139, 92, 246, 0.15)' }}
+                style={{ backgroundColor: 'rgba(124, 58, 237, 0.15)' }}
               >
-                <Text className="text-[11px] font-bold" style={{ color: colors.brand.primary }}>
+                <Text className="text-[11px] font-bold" style={{ color: colors.accent.primary }}>
                   {GOAL_PCT.toFixed(0)}%
                 </Text>
               </View>
@@ -72,7 +73,7 @@ export function FamilySavings() {
               style={{
                 fontSize: 32,
                 lineHeight: 38,
-                color: isDark ? '#FFFFFF' : '#0F172A',
+                color: isDark ? '#FFFFFF' : colors.text.primary,
               }}
             >
               {fmt(GOAL_TOTAL)}
@@ -88,12 +89,12 @@ export function FamilySavings() {
             <View
               className="mt-5 h-3 rounded-full overflow-hidden"
               style={{
-                backgroundColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(139, 92, 246, 0.12)',
+                backgroundColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(124, 58, 237, 0.12)',
               }}
             >
               <View
                 className="h-full rounded-full"
-                style={{ width: `${GOAL_PCT}%`, backgroundColor: colors.brand.primary }}
+                style={{ width: `${GOAL_PCT}%`, backgroundColor: colors.accent.primary }}
               />
             </View>
 
@@ -150,7 +151,7 @@ export function FamilySavings() {
                     className="px-2.5 py-1 rounded-full"
                     style={{ backgroundColor: colors.brand.light }}
                   >
-                    <Text className="text-[11px] font-bold" style={{ color: colors.brand.primary }}>
+                    <Text className="text-[11px] font-bold" style={{ color: colors.accent.primary }}>
                       {memberPct.toFixed(0)}%
                     </Text>
                   </View>
@@ -159,14 +160,14 @@ export function FamilySavings() {
                 <View
                   className="mt-3 h-1.5 rounded-full overflow-hidden"
                   style={{
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(139, 92, 246, 0.08)',
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(124, 58, 237, 0.08)',
                   }}
                 >
                   <View
                     className="h-full rounded-full"
                     style={{
                       width: `${memberPct}%`,
-                      backgroundColor: colors.brand.primary,
+                      backgroundColor: colors.accent.primary,
                       opacity: 1 - i * 0.15,
                     }}
                   />

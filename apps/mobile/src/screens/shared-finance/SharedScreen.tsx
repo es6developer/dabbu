@@ -6,27 +6,18 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
-  Modal,
-  TextInput,
   Alert,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Keyboard,
-  TouchableWithoutFeedback,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
+import { spacing } from '../../theme/design';
 import { api, setAccessToken, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { Avatar } from '../../components/ui/Avatar';
 import { PremiumLoaderScreen } from '../../components/ui/PremiumLoaderScreen';
-import { useToast } from '../../store/ToastContext';
-
-const H_PADDING = 20;
 
 const FREE_MAX = 3;
 const DEFAULT_PLAN = { tier: 'free' as const, maxGroups: FREE_MAX, maxMembersPerGroup: 10 };
@@ -44,7 +35,7 @@ const SPACE_ICONS: Record<string, string> = {
 };
 
 const COVER_GRADIENTS: Record<string, [string, string]> = {
-  couple: ['#7C3AED', '#A78BFA'],
+  couple: ['#7C3AED', '#5AC8FA'],
   family: ['#2563EB', '#60A5FA'],
   trip: ['#0D9488', '#2DD4BF'],
   friends: ['#DC2626', '#FB7185'],
@@ -464,19 +455,13 @@ export function SharedScreen() {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
   const { accessToken, user, isPremium } = useAuth();
-  const { showToast } = useToast();
-
   const [groups, setGroups] = useState<any[]>([]);
   const [groupBalances, setGroupBalances] = useState<Record<string, number>>({});
   const [groupBalanceArrays, setGroupBalanceArrays] = useState<Record<string, any[]>>({});
   const [loading, setLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newName, setNewName] = useState('');
-  const [newType, setNewType] = useState('friends');
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [saving, setSaving] = useState(false);
+
 
   const loadData = useCallback(
     async (isRefresh = false) => {
@@ -588,48 +573,7 @@ export function SharedScreen() {
       );
       return;
     }
-    setShowCreateModal(true);
-  }
-
-  async function handleCreateSpace() {
-    if (!newName.trim()) {
-      return;
-    }
-    if (groups.length >= maxSpaces) {
-      setShowCreateModal(false);
-      return;
-    }
-    setSaving(true);
-    try {
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
-      const body: any = { name: newName.trim(), type: newType.toLowerCase(), currency: 'INR' };
-      const res = await api.post<any>('/shared-finance/groups', body);
-      showToast('Group created');
-      const newGroupId = res?.id || res?._id;
-      resetModal();
-      if (newGroupId) {
-        navigation.navigate('SharedGroupDetail', {
-          groupId: newGroupId,
-          groupName: newName.trim(),
-        });
-      } else {
-        loadData(true);
-      }
-    } catch (e: any) {
-      const msg = e?.message || 'Failed to create space. Please try again.';
-      Alert.alert('Error', msg);
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  function resetModal() {
-    setShowCreateModal(false);
-    setNewName('');
-    setNewType('friends');
-    setInviteEmail('');
+    navigation.navigate('CreateSharedGroup');
   }
 
   if (loading) {
@@ -659,7 +603,7 @@ export function SharedScreen() {
         }
       >
         {/* ─── Greeting Header ─── */}
-        <View style={{ paddingHorizontal: H_PADDING, paddingTop: insets.top + 12 }}>
+        <View style={{ paddingHorizontal: spacing.xl, paddingTop: insets.top + 12 }}>
           <GreetingHeader
             netBalance={netBalance}
             userName={userName}
@@ -676,7 +620,7 @@ export function SharedScreen() {
             justifyContent: 'space-between',
             marginTop: 28,
             marginBottom: 14,
-            paddingHorizontal: H_PADDING,
+            paddingHorizontal: spacing.xl,
           }}
         >
           <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text.primary }}>
@@ -706,7 +650,7 @@ export function SharedScreen() {
 
         {/* ─── Spaces List ─── */}
         {groups.length > 0 ? (
-          <View style={{ paddingHorizontal: H_PADDING, gap: 10 }}>
+          <View style={{ paddingHorizontal: spacing.xl, gap: 10 }}>
             {groups.map((group: any) => (
               <GroupCard
                 key={group.id}
@@ -744,7 +688,7 @@ export function SharedScreen() {
           </View>
         ) : (
           <View
-            style={{ alignItems: 'center', gap: 10, paddingTop: 60, paddingHorizontal: H_PADDING }}
+            style={{ alignItems: 'center', gap: 10, paddingTop: 60, paddingHorizontal: spacing.xl }}
           >
             <View
               style={{
@@ -783,7 +727,7 @@ export function SharedScreen() {
                 backgroundColor: colors.accent.primary,
                 marginTop: 6,
               }}
-              onPress={() => setShowCreateModal(true)}
+              onPress={() => navigation.navigate('CreateSharedGroup')}
             >
               <AntDesign  name="plus" size={16} color={colors.text.inverse} />
               <Text style={{ color: colors.text.inverse, fontSize: 14, fontWeight: '700' }}>
@@ -798,7 +742,7 @@ export function SharedScreen() {
           <TouchableOpacity
             onPress={() => navigation.navigate('Settings', { screen: 'Premium' })}
             style={{
-              marginHorizontal: H_PADDING,
+              marginHorizontal: spacing.xl,
               marginTop: 20,
               paddingVertical: 10,
               paddingHorizontal: 14,
@@ -823,235 +767,10 @@ export function SharedScreen() {
           </TouchableOpacity>
         )}
       </ScrollView>
-
-      {/* ─── Create Modal ─── */}
-      <Modal
-        visible={showCreateModal}
-        transparent
-        animationType="slide"
-        onRequestClose={resetModal}
-      >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={[mod.overlay, { backgroundColor: 'rgba(0,0,0,0.45)' }]}>
-            <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-              keyboardVerticalOffset={Platform.OS === 'ios' ? -20 : 20}
-              style={{ justifyContent: 'flex-end' }}
-            >
-              <TouchableWithoutFeedback onPress={() => {}}>
-                <View style={[mod.sheet, { backgroundColor: colors.bg.primary }]}>
-                  <View style={[mod.handle, { backgroundColor: colors.border.default }]} />
-                  <Text style={[mod.title, { color: colors.text.primary }]}>New Space</Text>
-
-                  <ScrollView
-                    showsVerticalScrollIndicator={false}
-                    keyboardShouldPersistTaps="handled"
-                    contentContainerStyle={{ paddingBottom: 8 }}
-                  >
-                    <View style={mod.field}>
-                      <Text style={[mod.label, { color: colors.text.tertiary }]}>Name</Text>
-                      <TextInput
-                        style={[
-                          mod.input,
-                          {
-                            backgroundColor: colors.bg.card,
-                            borderColor: colors.border.default,
-                            color: colors.text.primary,
-                          },
-                        ]}
-                        value={newName}
-                        onChangeText={setNewName}
-                        placeholder="e.g. Goa Trip 2025"
-                        placeholderTextColor={colors.text.tertiary}
-                      />
-                    </View>
-
-                    <View style={mod.field}>
-                      <Text style={[mod.label, { color: colors.text.tertiary }]}>Type</Text>
-                      <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={mod.typeRow}
-                      >
-                        {Object.entries(COVER_EMOJIS)
-                          .map(([key, emoji]) => {
-                            const active = newType === key;
-                            const grad = COVER_GRADIENTS[key] || ['#6B7280', '#9CA3AF'];
-                            return (
-                              <TouchableOpacity
-                                key={key}
-                                style={[
-                                  mod.typeChip,
-                                  {
-                                    borderColor: active ? grad[0] : colors.border.default,
-                                    backgroundColor: active ? grad[0] + '18' : colors.bg.card,
-                                  },
-                                ]}
-                                onPress={() => setNewType(key)}
-                              >
-                                <Text style={{ fontSize: 18 }}>{emoji}</Text>
-                                <Text
-                                  style={[
-                                    mod.typeChipText,
-                                    {
-                                      color: active ? grad[0] : colors.text.secondary,
-                                    },
-                                  ]}
-                                >
-                                  {key.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
-                                </Text>
-                              </TouchableOpacity>
-                            );
-                          })}
-                      </ScrollView>
-                    </View>
-
-                    <View style={mod.field}>
-                      <Text style={[mod.label, { color: colors.text.tertiary }]}>
-                        Invite Member (optional)
-                      </Text>
-                      <View
-                        style={[
-                          mod.inviteRow,
-                          { backgroundColor: colors.bg.card, borderColor: colors.border.default },
-                        ]}
-                      >
-                        <AntDesign
-                           name="adduser"
-                          size={18}
-                          color={colors.text.tertiary}
-                        />
-                        <TextInput
-                          style={[mod.inviteInput, { color: colors.text.primary }]}
-                          value={inviteEmail}
-                          onChangeText={setInviteEmail}
-                          placeholder="Email address"
-                          placeholderTextColor={colors.text.tertiary}
-                          keyboardType="email-address"
-                          autoCapitalize="none"
-                        />
-                      </View>
-                    </View>
-
-                    <View style={mod.actionRow}>
-                      <TouchableOpacity
-                        style={[mod.cancelBtn, { borderColor: colors.border.default }]}
-                        onPress={() => {
-                          resetModal();
-                          Keyboard.dismiss();
-                        }}
-                      >
-                        <Text style={[mod.cancelBtnText, { color: colors.text.secondary }]}>
-                          Cancel
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[
-                          mod.submitBtn,
-                          {
-                            backgroundColor: colors.accent.primary,
-                            opacity: saving || !newName.trim() ? 0.5 : 1,
-                          },
-                        ]}
-                        onPress={() => {
-                          Keyboard.dismiss();
-                          handleCreateSpace();
-                        }}
-                        disabled={saving || !newName.trim()}
-                      >
-                        {saving ? (
-                          <ActivityIndicator color={colors.text.inverse} size="small" />
-                        ) : (
-                          <>
-                            <AntDesign  name="plus" size={18} color={colors.text.inverse} />
-                            <Text style={[mod.submitBtnText, { color: colors.text.inverse }]}>
-                              Create
-                            </Text>
-                          </>
-                        )}
-                      </TouchableOpacity>
-                    </View>
-                  </ScrollView>
-                </View>
-              </TouchableWithoutFeedback>
-            </KeyboardAvoidingView>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-});
-
-const mod = StyleSheet.create({
-  overlay: { flex: 1, justifyContent: 'flex-end' },
-  sheet: {
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    paddingBottom: 40,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-  },
-  handle: { width: 40, height: 4, borderRadius: 2, alignSelf: 'center', marginBottom: 20 },
-  title: { fontSize: 22, fontWeight: '800', marginBottom: 20 },
-  field: { marginBottom: 16 },
-  label: {
-    fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    marginBottom: 6,
-  },
-  input: {
-    minHeight: 50,
-    borderRadius: 14,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  typeRow: { gap: 8, paddingVertical: 4 },
-  typeChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 999,
-    borderWidth: 1,
-  },
-  typeChipText: { fontSize: 13, fontWeight: '600' },
-  inviteRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    borderRadius: 14,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    minHeight: 50,
-  },
-  inviteInput: { flex: 1, fontSize: 15, fontWeight: '500', paddingVertical: 12 },
-  actionRow: { flexDirection: 'row', gap: 10, marginTop: 8 },
-  cancelBtn: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-  },
-  cancelBtnText: { fontSize: 15, fontWeight: '700' },
-  submitBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 14,
-    borderRadius: 14,
-  },
-  submitBtnText: { fontSize: 15, fontWeight: '700' },
 });

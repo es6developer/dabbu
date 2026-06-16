@@ -29,7 +29,7 @@ const PLANNERS = [
   },
   {
     type: 'RETIREMENT', title: 'Retirement Planner', subtitle: 'Secure your future together',
-    icon: 'Safety', color: '#A78BFA', gradient: ['#A78BFA20', '#161224'],
+    icon: 'Safety', color: '#5AC8FA', gradient: ['#5AC8FA20', '#161224'],
     fields: ['Current Age', 'Retirement Age', 'Monthly Expense', 'Current Corpus'],
   },
 ];

@@ -18,7 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PremiumAuthLayout } from '../../components/ui/PremiumAuthLayout';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
-import { PADDING, borderRadius, shadows } from '../../theme/design';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 import { typography as designTypo } from '../../theme';
 import { palette } from '../../theme/colors';
 import { API_URL } from '../../config/api';
@@ -41,7 +41,7 @@ interface PendingAuth {
 }
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
-const TAB_BAR_H_PAD = PADDING * 2;
+const TAB_BAR_H_PAD = spacing.xl * 2;
 const TAB_WIDTH = (SCREEN_W - TAB_BAR_H_PAD - 8) / 2;
 
 function createStyles(colors: typeof palette.dark, isDark: boolean) {
@@ -50,14 +50,14 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
       flex: 1,
     },
     scrollContent: {
-      paddingBottom: PADDING + 16,
+      paddingBottom: spacing.xl + 16,
       paddingTop: 16,
     },
     tabBarFixed: {
       position: 'absolute',
-      left: PADDING,
-      right: PADDING,
-      top: PADDING,
+      left: spacing.xl,
+      right: spacing.xl,
+      top: spacing.xl,
       zIndex: 10,
     },
     tabBar: {
@@ -97,7 +97,7 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
       color: colors.text.secondary,
       marginTop: 6,
       lineHeight: 22,
-      marginBottom: PADDING,
+      marginBottom: spacing.xl,
     },
     form: {},
     nameRow: {
@@ -150,7 +150,7 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
       justifyContent: 'space-between',
       alignItems: 'center',
       marginTop: 4,
-      marginBottom: PADDING,
+      marginBottom: spacing.xl,
     },
     checkboxRow: {
       flexDirection: 'row',
@@ -209,7 +209,7 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
     divider: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginVertical: PADDING,
+      marginVertical: spacing.xl,
     },
     dividerLine: {
       flex: 1,
@@ -255,7 +255,7 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
     },
     privacyRow: {
       alignItems: 'center',
-      marginTop: PADDING,
+      marginTop: spacing.xl,
     },
     privacyText: {
       color: colors.text.tertiary,
@@ -692,10 +692,10 @@ export function PremiumAuthScreen() {
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={[
               styles.scrollContent,
-              { paddingBottom: PADDING + 16 + insets.bottom },
+              { paddingBottom: spacing.xl + 16 + insets.bottom },
             ]}
           >
-            <View style={{ height: PADDING + TAB_BAR_HEIGHT + PADDING }} />
+            <View style={{ height: spacing.xl + TAB_BAR_HEIGHT + spacing.xl }} />
 
             <Animated.View style={{ opacity: fadeAnim }}>
               {tab === 'login' ? (

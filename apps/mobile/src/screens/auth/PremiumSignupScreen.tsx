@@ -15,7 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
-import { PADDING, borderRadius, shadows } from '../../theme/design';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 import { useGoogleAuth, getGoogleIdToken, getGoogleError } from '../../services/google-auth';
 
 interface InputFieldProps {
@@ -66,7 +66,7 @@ function InputField({
         borderColor: error
           ? colors.status.error
           : focused
-            ? colors.brand.primary
+            ? colors.accent.primary
             : colors.border.default,
         paddingHorizontal: 14,
         marginBottom: 12,
@@ -76,7 +76,7 @@ function InputField({
         <AntDesign
           name={icon as any}
           size={18}
-          color={focused ? colors.brand.primary : colors.text.tertiary}
+          color={focused ? colors.accent.primary : colors.text.tertiary}
         />
       )}
       <TextInput
@@ -258,7 +258,7 @@ export function PremiumSignupScreen() {
               }}
             >
               {/* Header */}
-              <View style={{ paddingHorizontal: PADDING, marginBottom: 12 }}>
+              <View style={{ paddingHorizontal: spacing.xl, marginBottom: 12 }}>
                 <View
                   style={{
                     flexDirection: 'row',
@@ -322,7 +322,7 @@ export function PremiumSignupScreen() {
                 </View>
               </View>
 
-              <View style={{ paddingHorizontal: PADDING }}>
+              <View style={{ paddingHorizontal: spacing.xl }}>
                 {/* Name Row */}
                 <View style={{ flexDirection: 'row', gap: 12 }}>
                   <View style={{ flex: 1 }}>
@@ -582,7 +582,7 @@ export function PremiumSignupScreen() {
                     Already have an account?{' '}
                   </Text>
                   <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: colors.brand.primary }}>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: colors.accent.primary }}>
                       Sign In
                     </Text>
                   </TouchableOpacity>
@@ -619,20 +619,20 @@ export function PremiumSignupScreen() {
               </View>
             </ScrollView>
 
-            <View style={{ paddingBottom: insets.bottom + 16, paddingHorizontal: PADDING, paddingTop: 12 }}>
+            <View style={{ paddingBottom: insets.bottom + 16, paddingHorizontal: spacing.xl, paddingTop: 12 }}>
               <TouchableOpacity
                 activeOpacity={0.85}
                 onPress={handleSignup}
                 disabled={loading}
                 style={{
-                  backgroundColor: colors.brand.primary,
+                  backgroundColor: colors.accent.primary,
                   paddingVertical: 16,
                   borderRadius: borderRadius.md,
                   alignItems: 'center',
                   justifyContent: 'center',
                   opacity: loading ? 0.5 : 1,
                   ...shadows.md,
-                  shadowColor: colors.brand.primary,
+                  shadowColor: colors.accent.primary,
                 }}
               >
                 <Text style={{ color: colors.text.inverse, fontSize: 16, fontWeight: '700' }}>

@@ -84,7 +84,7 @@ export function CreateTaskScreen() {
       title="New task"
       subtitle="Assign ownership, set priority, and keep family work moving without clutter."
       icon="checkcircle"
-      accent={[colors.accent.primary, colors.status.info]}
+      accent={[colors.accent.primary, colors.accent.primary]}
     >
       <PremiumError message={error} />
       <PremiumInput

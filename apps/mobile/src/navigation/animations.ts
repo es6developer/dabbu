@@ -20,9 +20,8 @@ export function iosTransitionOptions(theme: Theme): NativeStackNavigationOptions
     headerStyle: { backgroundColor: colors.bg.primary },
     headerTintColor: colors.text.primary,
     headerTitleStyle: {
-      fontFamily: typography.calloutBold.fontFamily,
-      fontSize: typography.calloutBold.fontSize,
-      fontWeight: typography.calloutBold.fontWeight,
+      fontSize: typography.headline.fontSize,
+      fontWeight: typography.headline.fontWeight as any,
     },
     contentStyle: { backgroundColor: colors.bg.primary },
     headerShadowVisible: false,

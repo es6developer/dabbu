@@ -109,7 +109,7 @@ export function TransactionsList() {
                 className="rounded-full px-4 py-2"
                 style={{
                   backgroundColor: isActive
-                    ? colors.brand.primary
+                    ? colors.accent.primary
                     : isDark
                       ? 'rgba(255,255,255,0.06)'
                       : colors.bg.secondary,
@@ -206,7 +206,7 @@ export function TransactionsList() {
                         {tx.name}
                       </Text>
                       {tx.shared && (
-                        <AntDesign  name="team" size={12} color={colors.brand.primary} />
+                        <AntDesign  name="team" size={12} color={colors.accent.primary} />
                       )}
                     </View>
                     <Text
@@ -239,8 +239,8 @@ export function TransactionsList() {
         activeOpacity={0.8}
         className="absolute bottom-6 right-6 w-14 h-14 rounded-2xl items-center justify-center"
         style={{
-          backgroundColor: colors.brand.primary,
-          shadowColor: colors.brand.primary,
+          backgroundColor: colors.accent.primary,
+          shadowColor: colors.accent.primary,
           shadowOffset: { width: 0, height: 6 },
           shadowOpacity: 0.35,
           shadowRadius: 16,

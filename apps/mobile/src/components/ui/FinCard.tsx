@@ -49,7 +49,7 @@ export function FinCard({
       radius={radius}
       offset={s.offset}
       opacity={isDark ? s.opacity * 5 : s.opacity}
-      color={isDark ? '#8B5CF6' : '#000'}
+      color={isDark ? '#7C3AED' : '#000'}
       blur={s.blur}
     >
       {cardContent}

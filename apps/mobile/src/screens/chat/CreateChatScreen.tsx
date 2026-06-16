@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 import {
   PremiumActionButton,
   PremiumFormScreen,
@@ -42,7 +43,7 @@ export function CreateChatScreen() {
       title="New chat"
       subtitle="Create a focused conversation space for money decisions and quick coordination."
       icon="message1"
-      accent={[colors.status.info, colors.accent.primary]}
+      accent={[colors.accent.primary, colors.accent.primary]}
     >
       <PremiumInput
         label="Chat name"

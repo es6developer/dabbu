@@ -13,7 +13,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { PADDING, borderRadius, shadows } from '../../theme/design';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 
 const { width } = Dimensions.get('window');
 
@@ -64,7 +64,7 @@ function SlideContent({
   }, [isActive]);
 
   return (
-    <View style={{ width, alignItems: 'center', paddingHorizontal: PADDING }}>
+    <View style={{ width, alignItems: 'center', paddingHorizontal: spacing.xl }}>
       <Animated.View
         style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }], alignItems: 'center' }}
       >
@@ -175,7 +175,7 @@ export function OnboardingScreen({ route }: any) {
       <View style={{ paddingTop: insets.top + 12 }}>
         <TouchableOpacity
           onPress={handleSkip}
-          style={{ alignSelf: 'flex-end', paddingHorizontal: PADDING, paddingVertical: 8 }}
+          style={{ alignSelf: 'flex-end', paddingHorizontal: spacing.xl, paddingVertical: 8 }}
         >
           <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.tertiary }}>Skip</Text>
         </TouchableOpacity>
@@ -203,7 +203,7 @@ export function OnboardingScreen({ route }: any) {
 
       <View
         style={{
-          paddingHorizontal: PADDING,
+          paddingHorizontal: spacing.xl,
           paddingBottom: insets.bottom + 24,
           backgroundColor: colors.bg.primary,
           borderTopLeftRadius: borderRadius.xl,

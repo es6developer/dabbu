@@ -159,15 +159,11 @@ export function useNotifications() {
     const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
       if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
         fetchUnreadCount();
-        if (accessToken) {
-          resetPushRegistration();
-          registerForPushNotifications(accessToken).catch(() => {});
-        }
       }
       appState.current = nextAppState;
     });
     return () => subscription.remove();
-  }, [fetchUnreadCount, accessToken]);
+  }, [fetchUnreadCount]);
 
   return {
     permissionStatus,

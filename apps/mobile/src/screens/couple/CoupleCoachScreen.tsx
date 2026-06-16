@@ -99,12 +99,12 @@ function SuggestionCard({
           width: 40,
           height: 40,
           borderRadius: 14,
-          backgroundColor: '#8B5CF620',
+          backgroundColor: '#7C3AED20',
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
-        <AntDesign name={icon as any} size={20} color="#8B5CF6" />
+        <AntDesign name={icon as any} size={20} color="#7C3AED" />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>{title}</Text>

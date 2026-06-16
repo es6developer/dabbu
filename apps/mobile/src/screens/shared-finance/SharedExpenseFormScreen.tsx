@@ -35,7 +35,7 @@ const SPLIT_TYPES = [
 ] as const;
 
 const MM_COLORS = [
-  '#8B5CF6',
+  '#7C3AED',
   '#F97316',
   '#10B981',
   '#3B82F6',

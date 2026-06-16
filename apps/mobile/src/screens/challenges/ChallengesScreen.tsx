@@ -37,7 +37,7 @@ export function ChallengesScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: 100, paddingHorizontal: 20 }}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadData(); }} tintColor={colors.brand.primary} />
+          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadData(); }} tintColor={colors.accent.primary} />
         }
       >
         <Text style={{ fontSize: 24, fontWeight: '800', color: colors.text.primary, marginBottom: 4 }}>Challenges</Text>
@@ -94,12 +94,12 @@ function ChallengeCard({ challenge, colors }: { challenge: any; colors: any }) {
       </View>
 
       <View style={{ height: 6, backgroundColor: colors.border.subtle, borderRadius: 99, marginTop: 10, overflow: 'hidden' }}>
-        <View style={{ width: `${Math.min(pct, 100)}%`, height: '100%', backgroundColor: isComplete ? colors.status.success : colors.brand.primary, borderRadius: 99 }} />
+        <View style={{ width: `${Math.min(pct, 100)}%`, height: '100%', backgroundColor: isComplete ? colors.status.success : colors.accent.primary, borderRadius: 99 }} />
       </View>
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
         <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>{challenge.progress}/{challenge.target}</Text>
-        <Text style={{ fontSize: 11, fontWeight: '700', color: isComplete ? colors.status.success : colors.brand.primary }}>{pct}%</Text>
+        <Text style={{ fontSize: 11, fontWeight: '700', color: isComplete ? colors.status.success : colors.accent.primary }}>{pct}%</Text>
       </View>
     </View>
   );

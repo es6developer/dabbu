@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useTheme } from '../../theme';
+import { spacing, borderRadius } from '../../theme/design';
 import { api } from '../../services/api';
 import { WebView } from 'react-native-webview';
 import { useAnalytics } from '../../hooks/useAnalytics';
@@ -577,8 +578,8 @@ const styles = StyleSheet.create({
   planCardSelected: {
     backgroundColor: 'rgba(192,132,252,0.10)',
     borderWidth: 1.5,
-    borderColor: '#8B5CF6',
-    shadowColor: '#8B5CF6',
+    borderColor: '#7C3AED',
+    shadowColor: '#7C3AED',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.6,
     shadowRadius: 12,

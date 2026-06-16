@@ -76,7 +76,7 @@ export function PhoneScreen() {
           <View style={styles.center}>
             <Image
               source={require('../../../assets/logo.png')}
-              style={[styles.logo, { tintColor: colors.brand.primary }]}
+              style={[styles.logo, { tintColor: colors.accent.primary }]}
               resizeMode="contain"
             />
             <Text style={[styles.title, { color: colors.text.primary }]}>

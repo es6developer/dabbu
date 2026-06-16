@@ -16,7 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
-import { PADDING, borderRadius, shadows } from '../../theme/design';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 import { useGoogleAuth, getGoogleIdToken, getGoogleError } from '../../services/google-auth';
 
 export function PremiumLoginScreen() {
@@ -107,7 +107,7 @@ export function PremiumLoginScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Back + Brand */}
-          <View style={{ paddingHorizontal: PADDING, marginBottom: 12 }}>
+          <View style={{ paddingHorizontal: spacing.xl, marginBottom: 12 }}>
             <View
               style={{
                 width: 80,
@@ -152,7 +152,7 @@ export function PremiumLoginScreen() {
             style={{
               opacity: fadeAnim,
               transform: [{ translateY: slideAnim }],
-              paddingHorizontal: PADDING,
+              paddingHorizontal: spacing.xl,
             }}
           >
             {/* Email */}
@@ -161,7 +161,7 @@ export function PremiumLoginScreen() {
                 style={{
                   fontSize: 12,
                   fontWeight: '700',
-                  color: emailFocused ? colors.brand.primary : colors.text.secondary,
+                  color: emailFocused ? colors.accent.primary : colors.text.secondary,
                   letterSpacing: 0.5,
                   marginBottom: 8,
                   textTransform: 'uppercase',
@@ -176,14 +176,14 @@ export function PremiumLoginScreen() {
                   backgroundColor: colors.bg.secondary,
                   borderRadius: borderRadius.md,
                   borderWidth: 1.5,
-                  borderColor: emailFocused ? colors.brand.primary : colors.border.default,
+                  borderColor: emailFocused ? colors.accent.primary : colors.border.default,
                   paddingHorizontal: 14,
                 }}
               >
                 <AntDesign
                    name="mail"
                   size={18}
-                  color={emailFocused ? colors.brand.primary : colors.text.tertiary}
+                  color={emailFocused ? colors.accent.primary : colors.text.tertiary}
                 />
                 <TextInput
                   style={{
@@ -213,7 +213,7 @@ export function PremiumLoginScreen() {
                 style={{
                   fontSize: 12,
                   fontWeight: '700',
-                  color: passFocused ? colors.brand.primary : colors.text.secondary,
+                  color: passFocused ? colors.accent.primary : colors.text.secondary,
                   letterSpacing: 0.5,
                   marginBottom: 8,
                   textTransform: 'uppercase',
@@ -228,14 +228,14 @@ export function PremiumLoginScreen() {
                   backgroundColor: colors.bg.secondary,
                   borderRadius: borderRadius.md,
                   borderWidth: 1.5,
-                  borderColor: passFocused ? colors.brand.primary : colors.border.default,
+                  borderColor: passFocused ? colors.accent.primary : colors.border.default,
                   paddingHorizontal: 14,
                 }}
               >
                 <AntDesign
                    name="lock"
                   size={18}
-                  color={passFocused ? colors.brand.primary : colors.text.tertiary}
+                  color={passFocused ? colors.accent.primary : colors.text.tertiary}
                 />
                 <TextInput
                   style={{
@@ -293,7 +293,7 @@ export function PremiumLoginScreen() {
               onPress={() => navigation.navigate('ForgotPassword')}
               style={{ alignSelf: 'flex-end', marginBottom: 24, marginTop: -4 }}
             >
-              <Text style={{ fontSize: 13, fontWeight: '600', color: colors.brand.primary }}>
+              <Text style={{ fontSize: 13, fontWeight: '600', color: colors.accent.primary }}>
                 Forgot password?
               </Text>
             </TouchableOpacity>
@@ -304,14 +304,14 @@ export function PremiumLoginScreen() {
               onPress={handleLogin}
               disabled={loading}
               style={{
-                backgroundColor: colors.brand.primary,
+                backgroundColor: colors.accent.primary,
                 paddingVertical: 16,
                 borderRadius: borderRadius.md,
                 alignItems: 'center',
                 justifyContent: 'center',
                 opacity: loading ? 0.5 : 1,
                 ...shadows.md,
-                shadowColor: colors.brand.primary,
+                shadowColor: colors.accent.primary,
               }}
             >
               <Text style={{ color: colors.text.inverse, fontSize: 16, fontWeight: '700' }}>
@@ -373,7 +373,7 @@ export function PremiumLoginScreen() {
                 Don't have an account?{' '}
               </Text>
               <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: colors.brand.primary }}>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: colors.accent.primary }}>
                   Create one
                 </Text>
               </TouchableOpacity>

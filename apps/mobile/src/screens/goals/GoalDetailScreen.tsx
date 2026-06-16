@@ -692,7 +692,7 @@ export function GoalDetailScreen() {
                   </Text>
                   <View style={{ flexDirection: 'row', gap: 8, marginTop: 2 }}>
                     <Text style={[typography.footnote, {
-                      color: prediction.currentPace === 'ahead' ? '#10B981' : prediction.currentPace === 'ontrack' ? '#F59E0B' : prediction.currentPace === 'behind' ? '#EF4444' : '#DC2626',
+                      color: prediction.currentPace === 'ahead' ? colors.status.success : prediction.currentPace === 'ontrack' ? colors.status.warning : colors.status.error,
                       fontWeight: '700', textTransform: 'capitalize',
                     }]}>
                       {prediction.currentPace}

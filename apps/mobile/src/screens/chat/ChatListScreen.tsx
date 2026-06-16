@@ -7,6 +7,7 @@ import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Avatar } from '../../components/ui/Avatar';
 import { useTheme } from '../../theme';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 
 export function ChatListScreen() {
   const navigation = useNavigation<any>();
@@ -139,39 +140,39 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 56,
-    paddingBottom: 16,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing['6xl'],
+    paddingBottom: spacing.lg,
   },
   title: { fontSize: 26, fontWeight: '700' },
   headerBtn: {
     width: 38,
     height: 38,
-    borderRadius: 12,
+    borderRadius: borderRadius.xl,
     alignItems: 'center',
     justifyContent: 'center',
   },
   chatRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 16,
-    marginVertical: 5,
-    padding: 14,
-    borderRadius: 18,
+    marginHorizontal: spacing.lg,
+    marginVertical: spacing.xs,
+    padding: spacing.md,
+    borderRadius: borderRadius['3xl'],
   },
   avatarWrap: {
     width: 46,
     height: 46,
-    borderRadius: 23,
+    borderRadius: borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14,
+    marginRight: spacing.md,
   },
   avatarText: { color: '#FFFFFF', fontSize: 18, fontWeight: '700' },
   chatInfo: { flex: 1 },
-  chatName: { fontSize: 15, fontWeight: '600', marginBottom: 3 },
+  chatName: { fontSize: 15, fontWeight: '600', marginBottom: spacing.xs },
   lastMsg: { fontSize: 12 },
-  empty: { alignItems: 'center', paddingTop: 40, gap: 10 },
+  empty: { alignItems: 'center', paddingTop: spacing['4xl'], gap: spacing.md },
   emptyTitle: { fontSize: 18, fontWeight: '600' },
   emptyDesc: { fontSize: 14 },
 });

@@ -11,15 +11,12 @@ import {
   TrendingUp,
   Activity,
   Clock,
-  Loader2,
 } from 'lucide-react';
 import { cn, formatNumber } from '@/lib/utils';
 import { getDashboardStats, DashboardStats } from '@/lib/api';
 
 function Skeleton({ className }: { className?: string }) {
-  return (
-    <div className={cn('animate-pulse rounded-lg bg-muted/60', className)} />
-  );
+  return <div className={cn('animate-pulse rounded-2xl bg-white/[0.04]', className)} />;
 }
 
 const StatCard = ({
@@ -29,7 +26,6 @@ const StatCard = ({
   icon: Icon,
   trend,
   subtitle,
-  gradient,
 }: {
   title: string;
   value: string;
@@ -37,59 +33,42 @@ const StatCard = ({
   icon: React.ElementType;
   trend: 'up' | 'down';
   subtitle: string;
-  gradient: string;
 }) => (
-  <div className="group relative rounded-xl border bg-card p-5 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5">
-    <div className={cn('absolute inset-0 opacity-[0.03] transition-opacity duration-300 group-hover:opacity-[0.07]', gradient)} />
-    <div className="relative flex items-start justify-between">
+  <div className="glass-card p-5 group">
+    <div className="flex items-start justify-between">
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">
-          {title}
-        </p>
-        <p className="text-2xl font-bold mt-1.5 tabular-nums">{value}</p>
+        <p className="text-xs font-medium text-white/40 tracking-wide uppercase">{title}</p>
+        <p className="text-3xl font-bold mt-2 tabular-nums text-white">{value}</p>
         {change && (
-          <div className="flex items-center gap-1 mt-2">
+          <div className="flex items-center gap-1.5 mt-2.5">
             {trend === 'up' ? (
-              <ArrowUpRight size={14} className="text-emerald-500" />
+              <ArrowUpRight size={14} className="text-emerald-400" />
             ) : (
-              <ArrowDownRight size={14} className="text-red-500" />
+              <ArrowDownRight size={14} className="text-red-400" />
             )}
-            <span
-              className={cn(
-                'text-xs font-semibold',
-                trend === 'up' ? 'text-emerald-500' : 'text-red-500',
-              )}
-            >
+            <span className={cn('text-xs font-semibold', trend === 'up' ? 'text-emerald-400' : 'text-red-400')}>
               {change}
             </span>
-            <span className="text-xs text-muted-foreground ml-1">{subtitle}</span>
+            <span className="text-xs text-white/30 ml-1">{subtitle}</span>
           </div>
         )}
       </div>
-      <div className="w-10 h-10 rounded-xl bg-dabbu-500/10 flex items-center justify-center shrink-0 ml-3 group-hover:scale-110 transition-transform duration-300">
-        <Icon size={20} className="text-dabbu-500" />
+      <div className="w-11 h-11 rounded-2xl bg-white/[0.06] flex items-center justify-center shrink-0 ml-3 group-hover:scale-110 transition-transform duration-300">
+        <Icon size={20} className="text-white/60" />
       </div>
     </div>
   </div>
 );
 
-const MiniCard = ({
-  label,
-  value,
-  icon: Icon,
-}: {
-  label: string;
-  value: string;
-  icon: React.ElementType;
-}) => (
-  <div className="rounded-lg border bg-card p-4 hover:shadow-md transition-all">
+const MiniCard = ({ label, value, icon: Icon }: { label: string; value: string; icon: React.ElementType }) => (
+  <div className="glass-card p-4 group">
     <div className="flex items-center gap-3">
-      <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
-        <Icon size={16} className="text-muted-foreground" />
+      <div className="w-9 h-9 rounded-xl bg-white/[0.05] flex items-center justify-center group-hover:scale-110 transition-transform">
+        <Icon size={16} className="text-white/50" />
       </div>
       <div>
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="text-sm font-bold tabular-nums">{value}</p>
+        <p className="text-xs text-white/40">{label}</p>
+        <p className="text-sm font-bold text-white tabular-nums">{value}</p>
       </div>
     </div>
   </div>
@@ -108,22 +87,22 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
           <div>
-            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-9 w-48" />
             <Skeleton className="h-4 w-32 mt-2" />
           </div>
           <Skeleton className="h-5 w-28" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-28 rounded-xl" />
+            <Skeleton key={i} className="h-32 rounded-2xl" />
           ))}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 rounded-xl" />
+            <Skeleton key={i} className="h-24 rounded-2xl" />
           ))}
         </div>
       </div>
@@ -131,21 +110,16 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Your business at a glance
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight text-white">Dashboard</h1>
+          <p className="text-sm text-white/40 mt-1">Your business at a glance</p>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.04] text-xs text-white/40 border border-white/[0.06]">
           <Clock size={14} />
           {new Date().toLocaleDateString('en-IN', {
-            weekday: 'short',
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
+            weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
           })}
         </div>
       </div>
@@ -158,7 +132,6 @@ export default function DashboardPage() {
           icon={Users}
           trend={(stats?.userGrowth ?? 0) >= 0 ? 'up' : 'down'}
           subtitle="vs last month"
-          gradient="bg-gradient-to-br from-blue-500 to-cyan-500"
         />
         <StatCard
           title="Active Users"
@@ -167,7 +140,6 @@ export default function DashboardPage() {
           icon={UserCheck}
           trend="up"
           subtitle="engagement rate"
-          gradient="bg-gradient-to-br from-emerald-500 to-teal-500"
         />
         <StatCard
           title="Active Subscriptions"
@@ -176,7 +148,6 @@ export default function DashboardPage() {
           icon={CreditCard}
           trend={(stats?.subscriptionGrowth ?? 0) >= 0 ? 'up' : 'down'}
           subtitle="vs last month"
-          gradient="bg-gradient-to-br from-violet-500 to-purple-500"
         />
         <StatCard
           title="Revenue This Month"
@@ -185,31 +156,14 @@ export default function DashboardPage() {
           icon={DollarSign}
           trend={(stats?.revenueGrowth ?? 0) >= 0 ? 'up' : 'down'}
           subtitle="vs last month"
-          gradient="bg-gradient-to-br from-amber-500 to-orange-500"
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-        <MiniCard
-          label="New Users Today"
-          value={formatNumber(stats?.newUsersToday ?? 0)}
-          icon={TrendingUp}
-        />
-        <MiniCard
-          label="Pending Payments"
-          value={formatNumber(stats?.pendingPayments ?? 0)}
-          icon={Activity}
-        />
-        <MiniCard
-          label="Total Transactions"
-          value={formatNumber(stats?.totalTransactions ?? 0)}
-          icon={ArrowUpRight}
-        />
-        <MiniCard
-          label="Total Families"
-          value={formatNumber(stats?.totalFamilies ?? 0)}
-          icon={Users}
-        />
+        <MiniCard label="New Users Today" value={formatNumber(stats?.newUsersToday ?? 0)} icon={TrendingUp} />
+        <MiniCard label="Pending Payments" value={formatNumber(stats?.pendingPayments ?? 0)} icon={Activity} />
+        <MiniCard label="Total Transactions" value={formatNumber(stats?.totalTransactions ?? 0)} icon={ArrowUpRight} />
+        <MiniCard label="Total Families" value={formatNumber(stats?.totalFamilies ?? 0)} icon={Users} />
       </div>
     </div>
   );

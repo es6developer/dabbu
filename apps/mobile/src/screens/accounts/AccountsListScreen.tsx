@@ -67,7 +67,7 @@ export function AccountsListScreen() {
           />
         }
         ListHeaderComponent={
-          <Card variant="glass" padding="2xl" style={styles.summaryCard}>
+          <Card variant="default" padding="2xl" style={styles.summaryCard}>
             <Text style={[styles.summaryLabel, { color: colors.text.secondary }]}>
               Total Balance
             </Text>

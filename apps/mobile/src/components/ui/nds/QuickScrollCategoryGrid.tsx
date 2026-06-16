@@ -28,7 +28,7 @@ export const QuickScrollCategoryGrid: React.FC<QuickScrollCategoryGridProps> = (
 }) => {
   const renderNode = ({ item }: { item: QuickCategoryNode }) => {
     const isSelected = item.id === selectedId;
-    const nodeColor = item.color ?? '#8B5CF6';
+    const nodeColor = item.color ?? '#7C3AED';
 
     return (
       <TouchableOpacity

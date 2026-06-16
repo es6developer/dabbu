@@ -16,7 +16,7 @@ interface SuccessFeedbackOverlayProps {
 
 const shadowStyle = Platform.select({
   ios: {
-    shadowColor: '#8B5CF6',
+    shadowColor: '#7C3AED',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.4,
     shadowRadius: 24,

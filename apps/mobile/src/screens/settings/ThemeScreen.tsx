@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useTheme, useThemeContext, ThemeMode } from '../../theme';
+import { spacing, borderRadius } from '../../theme/design';
 
 const THEME_OPTIONS: Array<{ mode: ThemeMode; icon: string; label: string; desc: string }> = [
   { mode: 'dark', icon: 'star', label: 'Dark', desc: 'Dark mode — easy on the eyes' },
@@ -43,11 +44,11 @@ export function ThemeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 24, paddingBottom: 120 },
-  title: { fontSize: 28, fontWeight: '700', marginBottom: 4 },
-  subtitle: { fontSize: 14, marginBottom: 24 },
-  card: { flexDirection: 'row', alignItems: 'center', padding: 18, borderRadius: 16, marginBottom: 12, borderWidth: 1.5 },
-  iconWrap: { width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
+  content: { padding: spacing['2xl'], paddingBottom: 120 },
+  title: { fontSize: 28, fontWeight: '700', marginBottom: spacing.xs },
+  subtitle: { fontSize: 14, marginBottom: spacing['2xl'] },
+  card: { flexDirection: 'row', alignItems: 'center', padding: 18, borderRadius: borderRadius['2xl'], marginBottom: spacing.md, borderWidth: 1.5 },
+  iconWrap: { width: spacing['5xl'], height: spacing['5xl'], borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
   info: { flex: 1 },
   label: { fontSize: 16, fontWeight: '600', marginBottom: 2 },
   desc: { fontSize: 13 },

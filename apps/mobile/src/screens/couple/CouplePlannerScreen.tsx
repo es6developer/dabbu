@@ -17,6 +17,7 @@ import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { useToast } from '../../store/ToastContext';
 import { useTheme } from '../../theme';
+import { spacing, borderRadius } from '../../theme/design';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 50) / 2;
@@ -24,12 +25,12 @@ const CARD_WIDTH = (width - 50) / 2;
 const CATEGORY_COLORS: Record<string, string> = {
   home: '#FF6B6B',
   travel: '#60A5FA',
-  wedding: '#A78BFA',
+  wedding: '#5AC8FA',
   car: '#34C759',
   baby: '#FF8A65',
   emergency: '#F59E0B',
   investment: '#14B8A6',
-  education: '#8B5CF6',
+  education: '#7C3AED',
   other: '#64748B',
 };
 
@@ -417,7 +418,7 @@ export function CouplePlannerScreen() {
                   padding: 14,
                   borderRadius: 14,
                   backgroundColor:
-                    contributeAmount && parseFloat(contributeAmount) > 0 ? '#8B5CF6' : '#1E293B',
+                    contributeAmount && parseFloat(contributeAmount) > 0 ? '#7C3AED' : '#1E293B',
                   alignItems: 'center',
                 }}
                 disabled={!contributeAmount || parseFloat(contributeAmount) <= 0 || contributing}

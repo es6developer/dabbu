@@ -14,12 +14,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
+import { spacing } from '../../theme/design';
 import { BaseScreen } from '../../components/ui/BaseScreen';
 import { CircleCard } from '../../components/ui/CircleCard';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
-
-const H_PADDING = 16;
 
 function fmt(v: number) {
   return `₹${(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
@@ -115,14 +114,14 @@ export function CirclesListScreen() {
   if (loading) {
     return (
       <BaseScreen noPadding>
-        <View style={{ paddingHorizontal: H_PADDING, paddingTop: 8 }}>
+        <View style={{ paddingHorizontal: spacing.lg, paddingTop: 8 }}>
           <Skeleton width={120} height={14} borderRadius={6} />
           <Skeleton width={180} height={28} style={{ marginTop: 4 }} borderRadius={6} />
         </View>
-        <View style={{ margin: H_PADDING, marginTop: 16 }}>
+        <View style={{ margin: spacing.lg, marginTop: 16 }}>
           <Skeleton width="100%" height={100} borderRadius={16} />
         </View>
-        <View style={{ gap: 14, paddingHorizontal: H_PADDING, marginTop: 8 }}>
+        <View style={{ gap: 14, paddingHorizontal: spacing.lg, marginTop: 8 }}>
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} width="100%" height={210} borderRadius={20} />
           ))}
@@ -170,7 +169,7 @@ export function CirclesListScreen() {
             </View>
 
             {(totalOwed.owed > 0 || totalOwed.iOwe > 0) && (
-              <View style={{ paddingHorizontal: H_PADDING, marginTop: -20 }}>
+              <View style={{ paddingHorizontal: spacing.lg, marginTop: -20 }}>
                 <View style={[styles.summaryCard, { shadowColor: colors.accent.primary }]}>
                   <View style={styles.summaryRow}>
                     <View style={styles.summaryItem}>
@@ -263,7 +262,7 @@ export function CirclesListScreen() {
           ) : null
         }
         ListEmptyComponent={
-          <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: H_PADDING }}>
+          <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: spacing.lg }}>
             <EmptyState
               icon="appstore1"
               title="No circles yet"
