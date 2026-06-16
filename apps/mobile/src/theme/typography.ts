@@ -1,6 +1,6 @@
 import { TextStyle } from 'react-native';
 
-const inter = {
+const FONT = {
   regular: 'Inter-Regular',
   medium: 'Inter-Medium',
   semiBold: 'Inter-SemiBold',
@@ -8,217 +8,98 @@ const inter = {
 } as const;
 
 export const typography: Record<string, TextStyle> = {
-  // ─── TITLES ──────────────────────────────────────────────
-  hero: {
-    fontFamily: inter.bold,
+  // ─── APPLE SF DISPLAY ──────────────────────────────────────
+  largeTitle: {
+    fontFamily: FONT.bold,
     fontSize: 34,
     fontWeight: '700',
     lineHeight: 41,
     letterSpacing: -0.5,
   },
-  appTitle: {
-    fontFamily: inter.bold,
+  title1: {
+    fontFamily: FONT.bold,
     fontSize: 28,
     fontWeight: '700',
     lineHeight: 34,
     letterSpacing: -0.3,
   },
-  h1: {
-    fontFamily: inter.bold,
-    fontSize: 28,
+  title2: {
+    fontFamily: FONT.bold,
+    fontSize: 22,
     fontWeight: '700',
-    lineHeight: 34,
-    letterSpacing: -0.3,
-  },
-  screenTitle: {
-    fontFamily: inter.semiBold,
-    fontSize: 24,
-    fontWeight: '600',
-    lineHeight: 30,
+    lineHeight: 28,
     letterSpacing: -0.2,
   },
-  h2: {
-    fontFamily: inter.semiBold,
-    fontSize: 24,
-    fontWeight: '600',
-    lineHeight: 30,
-    letterSpacing: -0.2,
-  },
-  sectionHeader: {
-    fontFamily: inter.semiBold,
+  title3: {
+    fontFamily: FONT.semiBold,
     fontSize: 20,
     fontWeight: '600',
-    lineHeight: 26,
+    lineHeight: 25,
     letterSpacing: -0.1,
   },
-  h3: {
-    fontFamily: inter.semiBold,
-    fontSize: 20,
-    fontWeight: '600',
-    lineHeight: 26,
-    letterSpacing: -0.1,
-  },
-  cardTitle: {
-    fontFamily: inter.semiBold,
-    fontSize: 16,
+  headline: {
+    fontFamily: FONT.semiBold,
+    fontSize: 17,
     fontWeight: '600',
     lineHeight: 22,
+    letterSpacing: -0.05,
   },
-  h4: {
-    fontFamily: inter.semiBold,
-    fontSize: 16,
-    fontWeight: '600',
-    lineHeight: 22,
-  },
-
-  // ─── BODY ────────────────────────────────────────────────
   body: {
-    fontFamily: inter.regular,
-    fontSize: 14,
+    fontFamily: FONT.regular,
+    fontSize: 17,
+    fontWeight: '400',
+    lineHeight: 22,
+    letterSpacing: -0.05,
+  },
+  subheadline: {
+    fontFamily: FONT.regular,
+    fontSize: 15,
     fontWeight: '400',
     lineHeight: 20,
+    letterSpacing: 0,
   },
-  bodyBold: {
-    fontFamily: inter.semiBold,
-    fontSize: 14,
-    fontWeight: '600',
-    lineHeight: 20,
-  },
-  callout: {
-    fontFamily: inter.regular,
-    fontSize: 14,
-    fontWeight: '400',
-    lineHeight: 20,
-  },
-  calloutBold: {
-    fontFamily: inter.semiBold,
-    fontSize: 14,
-    fontWeight: '600',
-    lineHeight: 20,
-  },
-
-  // ─── SECONDARY ───────────────────────────────────────────
-  secondary: {
-    fontFamily: inter.medium,
-    fontSize: 13,
-    fontWeight: '500',
-    lineHeight: 18,
-  },
-  subhead: {
-    fontFamily: inter.medium,
-    fontSize: 13,
-    fontWeight: '500',
-    lineHeight: 18,
-  },
-  subheadBold: {
-    fontFamily: inter.semiBold,
-    fontSize: 13,
-    fontWeight: '600',
-    lineHeight: 18,
-  },
-
-  // ─── CAPTIONS ────────────────────────────────────────────
   caption: {
-    fontFamily: inter.regular,
-    fontSize: 12,
+    fontFamily: FONT.regular,
+    fontSize: 13,
     fontWeight: '400',
-    lineHeight: 16,
-  },
-  footnote: {
-    fontFamily: inter.regular,
-    fontSize: 12,
-    fontWeight: '400',
-    lineHeight: 16,
-  },
-  smallCaption: {
-    fontFamily: inter.regular,
-    fontSize: 11,
-    fontWeight: '400',
-    lineHeight: 14,
-  },
-  caption1: {
-    fontFamily: inter.regular,
-    fontSize: 11,
-    fontWeight: '400',
-    lineHeight: 14,
+    lineHeight: 18,
+    letterSpacing: 0,
   },
   caption2: {
-    fontFamily: inter.medium,
-    fontSize: 10,
-    fontWeight: '500',
-    lineHeight: 12,
+    fontFamily: FONT.regular,
+    fontSize: 11,
+    fontWeight: '400',
+    lineHeight: 13,
+    letterSpacing: 0,
   },
 
-  // ─── BUTTONS ─────────────────────────────────────────────
-  button: {
-    fontFamily: inter.semiBold,
-    fontSize: 16,
-    fontWeight: '600',
-    lineHeight: 22,
-    letterSpacing: 0.3,
-  },
-  buttonSmall: {
-    fontFamily: inter.semiBold,
-    fontSize: 14,
-    fontWeight: '600',
-    lineHeight: 18,
-    letterSpacing: 0.2,
-  },
-  tab: {
-    fontFamily: inter.medium,
-    fontSize: 10,
-    fontWeight: '500',
-    lineHeight: 12,
-  },
-
-  // ─── FINANCIAL AMOUNTS ───────────────────────────────────
+  // ─── FINANCIAL AMOUNTS ─────────────────────────────────────
   balanceAmount: {
-    fontFamily: inter.bold,
+    fontFamily: FONT.bold,
     fontSize: 40,
     fontWeight: '700',
     lineHeight: 48,
-    letterSpacing: -1,
+    letterSpacing: -2,
   },
   amount: {
-    fontFamily: inter.bold,
+    fontFamily: FONT.bold,
     fontSize: 40,
     fontWeight: '700',
     lineHeight: 48,
-    letterSpacing: -1,
-  },
-  expenseAmount: {
-    fontFamily: inter.semiBold,
-    fontSize: 20,
-    fontWeight: '600',
-    lineHeight: 26,
-    letterSpacing: -0.5,
-  },
-  amountSmall: {
-    fontFamily: inter.bold,
-    fontSize: 20,
-    fontWeight: '700',
-    lineHeight: 26,
-    letterSpacing: -0.5,
-  },
-  dashboardMetric: {
-    fontFamily: inter.bold,
-    fontSize: 28,
-    fontWeight: '700',
-    lineHeight: 34,
-    letterSpacing: -0.3,
-  },
-  analyticsNumber: {
-    fontFamily: inter.bold,
-    fontSize: 34,
-    fontWeight: '700',
-    lineHeight: 41,
-    letterSpacing: -0.5,
+    letterSpacing: -2,
   },
   amountLarge: {
-    fontFamily: inter.bold,
+    fontFamily: FONT.bold,
     fontSize: 56,
     fontWeight: '700',
     lineHeight: 64,
-    letterSpacing: -2,
+    letterSpacing: -3,
+  },
+  expenseAmount: {
+    fontFamily: FONT.semiBold,
+    fontSize: 20,
+    fontWeight: '600',
+    lineHeight: 26,
+    letterSpacing: -0.5,
   },
 };

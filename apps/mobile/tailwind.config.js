@@ -87,17 +87,17 @@ module.exports = {
       },
 
       fontSize: {
-        hero: ['34px', { lineHeight: '41px', letterSpacing: '-0.5px', fontWeight: '700' }],
-        display: ['28px', { lineHeight: '34px', letterSpacing: '-0.3px', fontWeight: '700' }],
-        title: ['24px', { lineHeight: '30px', letterSpacing: '-0.2px', fontWeight: '600' }],
-        heading: ['20px', { lineHeight: '26px', letterSpacing: '-0.1px', fontWeight: '600' }],
-        subhead: ['16px', { lineHeight: '22px', fontWeight: '600' }],
-        body: ['14px', { lineHeight: '20px', fontWeight: '400' }],
-        'body-bold': ['14px', { lineHeight: '20px', fontWeight: '600' }],
-        caption: ['12px', { lineHeight: '16px', fontWeight: '400' }],
-        'caption-bold': ['12px', { lineHeight: '16px', fontWeight: '600' }],
-        small: ['11px', { lineHeight: '14px', fontWeight: '400' }],
-        micro: ['10px', { lineHeight: '12px', fontWeight: '500' }],
+        hero: ['34px', { fontFamily: 'Inter-Bold', lineHeight: '41px', letterSpacing: '-0.5px', fontWeight: '700' }],
+        display: ['28px', { fontFamily: 'Inter-Bold', lineHeight: '34px', letterSpacing: '-0.3px', fontWeight: '700' }],
+        title: ['24px', { fontFamily: 'Inter-SemiBold', lineHeight: '30px', letterSpacing: '-0.2px', fontWeight: '600' }],
+        heading: ['20px', { fontFamily: 'Inter-SemiBold', lineHeight: '26px', letterSpacing: '-0.1px', fontWeight: '600' }],
+        subhead: ['16px', { fontFamily: 'Inter-SemiBold', lineHeight: '22px', fontWeight: '600' }],
+        body: ['14px', { fontFamily: 'Inter-Regular', lineHeight: '20px', fontWeight: '400' }],
+        'body-bold': ['14px', { fontFamily: 'Inter-SemiBold', lineHeight: '20px', fontWeight: '600' }],
+        caption: ['12px', { fontFamily: 'Inter-Regular', lineHeight: '16px', fontWeight: '400' }],
+        'caption-bold': ['12px', { fontFamily: 'Inter-SemiBold', lineHeight: '16px', fontWeight: '600' }],
+        small: ['11px', { fontFamily: 'Inter-Regular', lineHeight: '14px', fontWeight: '400' }],
+        micro: ['10px', { fontFamily: 'Inter-Medium', lineHeight: '12px', fontWeight: '500' }],
       },
 
       borderRadius: {

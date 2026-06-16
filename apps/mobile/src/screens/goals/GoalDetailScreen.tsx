@@ -17,6 +17,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { useTheme } from '../../theme';
+import { spacing, borderRadius } from '../../theme/design';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../../store/ToastContext';
@@ -36,7 +37,7 @@ const GOAL_CONFIGS: Record<string, GoalConfig> = {
   car: { icon: 'car', color: '#14B8A6' },
   wedding: { icon: 'heart', color: '#FF6B9D' },
   retirement: { icon: 'cloud', color: '#247BA0' },
-  savings: { icon: 'save', color: '#8B5CF6' },
+  savings: { icon: 'save', color: '#7C3AED' },
   investment: { icon: 'linechart', color: '#10B981' },
   baby: { icon: 'smileo', color: '#FF69B4' },
   custom: { icon: 'flag', color: '#14B8A6' },
@@ -648,9 +649,9 @@ export function GoalDetailScreen() {
             ]}
           >
             <View style={[s.statIconWrap, { backgroundColor: colors.bg.tertiary }]}>
-              <AntDesign  name="retweet" size={18} color={colors.status.info} />
+              <AntDesign  name="retweet" size={18} color={colors.accent.primary} />
             </View>
-            <Text style={[typography.amountSmall, { color: colors.status.info }]}>
+            <Text style={[typography.amountSmall, { color: colors.accent.primary }]}>
               {monthlyContrib > 0 ? fmt(monthlyContrib) : '—'}
             </Text>
             <Text style={[typography.caption, { color: colors.text.tertiary }]}>Monthly</Text>
@@ -1276,7 +1277,6 @@ const s = StyleSheet.create({
   amountInput: {
     flex: 1,
     fontSize: 22,
-    fontFamily: 'Inter-Bold',
     fontWeight: '700',
     paddingVertical: 4,
   },

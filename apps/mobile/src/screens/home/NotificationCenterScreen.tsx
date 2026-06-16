@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
   headerTitle: { ...typographyStyles.screenTitle, flex: 1, marginLeft: 12 },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   markAllBtn: { paddingHorizontal: 4 },
-  markAllText: { ...typographyStyles.subhead, fontFamily: 'Inter-SemiBold' },
+  markAllText: { ...typographyStyles.subhead },
   countBadge: {
     minWidth: 22,
     height: 22,
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 6,
   },
-  countText: { color: '#FFFFFF', ...typographyStyles.caption1, fontFamily: 'Inter-Bold' },
+  countText: { color: '#FFFFFF', ...typographyStyles.caption1 },
   filterRow: { marginBottom: 8 },
   filterList: { paddingHorizontal: 20, gap: 8 },
   filterChip: {
@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     gap: 6,
   },
-  filterLabel: { ...typographyStyles.subhead, fontFamily: 'Inter-SemiBold' },
+  filterLabel: { ...typographyStyles.subhead },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
   emptyIcon: {
     width: 80,
@@ -457,9 +457,9 @@ const styles = StyleSheet.create({
   },
   cardContent: { flex: 1 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  title: { ...typographyStyles.calloutBold, flex: 1 },
+  title: { ...typographyStyles.headline, flex: 1 },
   badge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 100 },
-  badgeText: { fontFamily: 'Inter-Bold', fontSize: 9, letterSpacing: 0.3 },
+  badgeText: { fontSize: 9, letterSpacing: 0.3 },
   message: { ...typographyStyles.subhead, lineHeight: 18, marginTop: 4 },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 },
   time: { ...typographyStyles.caption1 },
@@ -474,5 +474,5 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     gap: 4,
   },
-  actionText: { ...typographyStyles.caption1, fontFamily: 'Inter-SemiBold' },
+  actionText: { ...typographyStyles.caption1 },
 });

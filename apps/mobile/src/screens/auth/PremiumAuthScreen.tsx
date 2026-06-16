@@ -75,7 +75,6 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
     },
     tabText: {
       fontSize: 14,
-      fontFamily: 'Inter-SemiBold',
       letterSpacing: 0.3,
     },
     tabIndicator: {
@@ -84,7 +83,7 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
       height: '100%',
       top: 0,
       left: 4,
-      backgroundColor: colors.brand.primary,
+      backgroundColor: colors.accent.primary,
       borderRadius: borderRadius.md,
       zIndex: 1,
       ...shadows.sm,
@@ -97,7 +96,6 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
       fontSize: 15,
       color: colors.text.secondary,
       marginTop: 6,
-      fontFamily: 'Inter-Regular',
       lineHeight: 22,
       marginBottom: PADDING,
     },
@@ -124,7 +122,6 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
       flex: 1,
       color: colors.text.primary,
       fontSize: 15,
-      fontFamily: 'Inter-Regular',
       paddingVertical: 0,
     },
     inputIcon: {
@@ -146,7 +143,6 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
     errorText: {
       color: colors.status.error,
       fontSize: 13,
-      fontFamily: 'Inter-Medium',
       flex: 1,
     },
     footnotes: {
@@ -171,22 +167,20 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
       marginRight: 10,
     },
     checkboxActive: {
-      backgroundColor: colors.brand.primary,
-      borderColor: colors.brand.primary,
+      backgroundColor: colors.accent.primary,
+      borderColor: colors.accent.primary,
     },
     checkboxLabel: {
       color: colors.text.secondary,
       fontSize: 13,
-      fontFamily: 'Inter-Medium',
     },
     forgotLink: {
       color: colors.text.link,
       fontSize: 13,
-      fontFamily: 'Inter-Semibold',
     },
     primaryButton: {
       height: 56,
-      backgroundColor: colors.brand.primary,
+      backgroundColor: colors.accent.primary,
       borderRadius: borderRadius.xl,
       justifyContent: 'center',
       alignItems: 'center',
@@ -196,7 +190,6 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
     primaryButtonText: {
       color: '#FFFFFF',
       fontSize: 16,
-      fontFamily: 'Inter-SemiBold',
       letterSpacing: 0.3,
     },
     switchRow: {
@@ -208,12 +201,10 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
     switchText: {
       color: colors.text.secondary,
       fontSize: 13,
-      fontFamily: 'Inter-Regular',
     },
     switchLink: {
       color: colors.text.link,
       fontSize: 13,
-      fontFamily: 'Inter-SemiBold',
     },
     divider: {
       flexDirection: 'row',
@@ -228,7 +219,6 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
     dividerText: {
       color: colors.text.tertiary,
       fontSize: 12,
-      fontFamily: 'Inter-Medium',
       marginHorizontal: 12,
     },
     googleButton: {
@@ -246,7 +236,6 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
     googleButtonText: {
       color: colors.text.primary,
       fontSize: 15,
-      fontFamily: 'Inter-SemiBold',
     },
     demoButton: {
       height: 54,
@@ -261,9 +250,8 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
       marginTop: 10,
     },
     demoButtonText: {
-      color: colors.brand.primary,
+      color: colors.accent.primary,
       fontSize: 15,
-      fontFamily: 'Inter-SemiBold',
     },
     privacyRow: {
       alignItems: 'center',
@@ -272,7 +260,6 @@ function createStyles(colors: typeof palette.dark, isDark: boolean) {
     privacyText: {
       color: colors.text.tertiary,
       fontSize: 12,
-      fontFamily: 'Inter-Medium',
     },
   });
 }
@@ -320,7 +307,7 @@ const InputField = React.forwardRef<TextInput, InputFieldProps>(
           <AntDesign
             name={icon as any}
             size={18}
-            color={focused ? colors.brand.primary : colors.text.tertiary}
+            color={focused ? colors.accent.primary : colors.text.tertiary}
             style={styles.inputIcon}
           />
         )}
@@ -384,7 +371,6 @@ function ErrorBox({ message, colors }: { message: string; colors: typeof palette
         style={{
           color: colors.status.error,
           fontSize: 13,
-          fontFamily: 'Inter-Medium',
           flex: 1,
         }}
       >
@@ -412,7 +398,7 @@ function PrimaryButton({
         style={
           {
             height: 56,
-            backgroundColor: colors.brand.primary,
+            backgroundColor: colors.accent.primary,
             borderRadius: borderRadius.xl,
             justifyContent: 'center',
             alignItems: 'center',
@@ -444,7 +430,6 @@ function PrimaryButton({
           style={{
             color: '#FFFFFF',
             fontSize: 16,
-            fontFamily: 'Inter-SemiBold',
             letterSpacing: 0.3,
           }}
         >
@@ -914,7 +899,7 @@ export function PremiumAuthScreen() {
               disabled={loading}
               activeOpacity={0.8}
             >
-              <AntDesign name="star" size={20} color={colors.brand.primary} />
+              <AntDesign name="star" size={20} color={colors.accent.primary} />
               <Text style={styles.demoButtonText}>Demo Login</Text>
             </TouchableOpacity>
 

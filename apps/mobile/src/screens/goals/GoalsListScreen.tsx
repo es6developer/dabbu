@@ -20,6 +20,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
+import { spacing, borderRadius } from '../../theme/design';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../../store/ToastContext';
@@ -44,7 +45,7 @@ const GOAL_CONFIGS: Record<string, GoalConfig> = {
   car: { icon: 'car', color: '#14B8A6' },
   wedding: { icon: 'heart', color: '#FF6B9D' },
   retirement: { icon: 'cloud', color: '#247BA0' },
-  savings: { icon: 'wallet', color: '#8B5CF6' },
+  savings: { icon: 'wallet', color: '#7C3AED' },
   investment: { icon: 'arrowup', color: '#10B981' },
   baby: { icon: 'smile-circle', color: '#FF69B4' },
   custom: { icon: 'star', color: '#14B8A6' },
@@ -288,7 +289,7 @@ function MilestoneDot({
                 position: 'absolute',
                 width: 28,
                 height: 28,
-                borderRadius: 14,
+    borderRadius: borderRadius.xl,
                 backgroundColor: color + '30',
                 transform: [
                   {
@@ -329,7 +330,6 @@ function MilestoneDot({
         style={{
           fontSize: 9,
           fontWeight: '700',
-          fontFamily: 'Inter-Bold',
           color: reached ? color : colors.text.tertiary,
         }}
       >
@@ -361,7 +361,7 @@ function GoalCard({
   const estDate = prediction?.predictedCompletionDate
     ? `Forecast: ${new Date(prediction.predictedCompletionDate).toLocaleString('en-US', { month: 'short', year: 'numeric' })}`
     : getEstimatedCompletion(saved, target, monthly, item.deadline || item.targetDate);
-  const paceColor = prediction?.currentPace === 'ahead' ? '#10B981' : prediction?.currentPace === 'ontrack' ? '#F59E0B' : prediction?.currentPace === 'behind' ? '#EF4444' : prediction?.currentPace === 'critical' ? '#DC2626' : colors.text.tertiary;
+  const paceColor = prediction?.currentPace === 'ahead' ? colors.status.success : prediction?.currentPace === 'ontrack' ? colors.status.warning : prediction?.currentPace === 'behind' ? colors.status.error : prediction?.currentPace === 'critical' ? colors.status.error : colors.text.tertiary;
 
   const entryAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -411,7 +411,7 @@ function GoalCard({
 
         <View style={s.cardTopRow}>
           <View style={s.cardLeftCol}>
-            <View style={[s.cardIcon, { borderRadius: 12 }]}>
+                    <View style={[s.cardIcon, { borderRadius: borderRadius.xl }]}>
               <AntDesign name={config.icon as any} size={22} color={config.color} />
             </View>
             <View style={{ flex: 1 }}>
@@ -1207,16 +1207,16 @@ export function GoalsListScreen() {
                 <View style={{ marginTop: 8, marginBottom: 4 }}>
                   <View style={[s.rebalCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                      <AntDesign  name="swap" size={16} color="#7C3AED" />
+                       <AntDesign  name="swap" size={16} color={colors.accent.primary} />
                       <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>AI Rebalance Suggestions</Text>
                     </View>
                     {rebalanceData.slice(0, 3).map((s: any) => (
                       <View key={s.goalId} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6, borderTopWidth: 1, borderTopColor: colors.border.subtle }}>
-                        <View style={{ width: 24, height: 24, borderRadius: 6, backgroundColor: (s.goalColor || '#7C3AED') + '20', alignItems: 'center', justifyContent: 'center' }}>
-                          <AntDesign name={s.goalIcon as any} size={12} color={s.goalColor || '#7C3AED'} />
+                        <View style={{ width: 24, height: 24, borderRadius: borderRadius.sm, backgroundColor: (s.goalColor || colors.accent.primary) + '20', alignItems: 'center', justifyContent: 'center' }}>
+                          <AntDesign name={s.goalIcon as any} size={12} color={s.goalColor || colors.accent.primary} />
                         </View>
                         <Text style={{ flex: 1, fontSize: 12, fontWeight: '600', color: colors.text.primary }} numberOfLines={1}>{s.goalName}</Text>
-                        <Text style={{ fontSize: 11, fontWeight: '700', color: s.action === 'increase' ? '#16A34A' : '#DC2626' }}>
+                        <Text style={{ fontSize: 11, fontWeight: '700', color: s.action === 'increase' ? colors.status.success : colors.status.error }}>
                           {s.action === 'increase' ? '+' : '-'}₹{s.diff.toLocaleString('en-IN')}
                         </Text>
                       </View>
@@ -1264,9 +1264,9 @@ export function GoalsListScreen() {
 
 const s = StyleSheet.create({
   card: {
-    marginBottom: 12,
-    borderRadius: 20,
-    padding: 16,
+    marginBottom: spacing.md,
+    borderRadius: borderRadius['3xl'],
+    padding: spacing.lg,
     borderWidth: 1,
     overflow: 'hidden',
     shadowColor: '#000',
@@ -1278,13 +1278,13 @@ const s = StyleSheet.create({
   cardTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: spacing.md,
   },
   cardLeftCol: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    gap: 10,
+    gap: spacing.lg,
   },
   cardIcon: {
     width: 44,
@@ -1294,34 +1294,34 @@ const s = StyleSheet.create({
     borderRadius: 14,
   },
   rebalCard: {
-    padding: 12,
-    borderRadius: 14,
+    padding: spacing.md,
+    borderRadius: borderRadius.xl,
     borderWidth: 1,
     borderLeftWidth: 3,
     borderLeftColor: '#7C3AED',
   },
   progressTrack: {
     height: 5,
-    borderRadius: 999,
+    borderRadius: borderRadius.full,
     overflow: 'hidden',
-    marginTop: 12,
+    marginTop: spacing.md,
   },
   progressFill: {
     height: '100%',
-    borderRadius: 999,
+    borderRadius: borderRadius.full,
   },
   milestoneRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 4,
-    marginTop: 12,
+    paddingHorizontal: spacing.xs,
+    marginTop: spacing.md,
   },
   cardFooter: {
     flexDirection: 'row',
     borderTopWidth: StyleSheet.hairlineWidth,
-    paddingTop: 12,
-    marginTop: 12,
-    gap: 12,
+    paddingTop: spacing.md,
+    marginTop: spacing.md,
+    gap: spacing.md,
   },
   footerRow: {
     flexDirection: 'row',
@@ -1332,7 +1332,7 @@ const s = StyleSheet.create({
   footerBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: spacing.xs,
     marginBottom: 2,
   },
   taglineRow: {
@@ -1340,59 +1340,59 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 10,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.lg,
     marginTop: 10,
   },
   celebrationFlash: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: borderRadius['3xl'],
   },
   overallCard: {
-    marginBottom: 16,
-    borderRadius: 20,
+    marginBottom: spacing.lg,
+    borderRadius: borderRadius['3xl'],
     padding: 18,
   },
   overallInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: spacing.lg,
   },
   overallTrackBar: {
     height: 6,
-    borderRadius: 999,
+    borderRadius: borderRadius.full,
     overflow: 'hidden',
   },
   overallTrackFill: {
     height: '100%',
-    borderRadius: 999,
+    borderRadius: borderRadius.full,
   },
   goalBadge: {
-    marginTop: 8,
+    marginTop: spacing.sm,
     paddingHorizontal: 10,
     paddingVertical: 3,
-    borderRadius: 999,
+    borderRadius: borderRadius.full,
   },
   addBtn: {
     width: 38,
     height: 38,
-    borderRadius: 12,
+    borderRadius: borderRadius.xl,
     alignItems: 'center',
     justifyContent: 'center',
   },
   emptyWrap: {
     flexGrow: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.lg,
   },
   suggestionCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: spacing.md,
     padding: 14,
-    borderRadius: 16,
+    borderRadius: borderRadius['2xl'],
     borderWidth: 1,
   },
   suggestionIcon: {
@@ -1407,24 +1407,23 @@ const s = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 20,
-    paddingBottom: 40,
+    borderTopLeftRadius: borderRadius['4xl'],
+    borderTopRightRadius: borderRadius['4xl'],
+    padding: spacing.xl,
+    paddingBottom: spacing['4xl'],
     maxHeight: '85%',
   },
   modalHandle: {
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   handleBar: {
     width: 36,
-    height: 4,
+    height: spacing.xs,
     borderRadius: 2,
   },
   fieldLabel: {
     fontSize: 12,
-    fontFamily: 'Inter-SemiBold',
     fontWeight: '600',
     marginBottom: 6,
     textTransform: 'uppercase',
@@ -1432,40 +1431,38 @@ const s = StyleSheet.create({
   },
   textInput: {
     fontSize: 15,
-    fontFamily: 'Inter-Regular',
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: spacing.md,
     borderWidth: 1,
   },
   amountRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: spacing.sm,
     borderWidth: 1,
-    gap: 8,
+    gap: spacing.sm,
   },
   amountInput: {
     flex: 1,
     fontSize: 22,
-    fontFamily: 'Inter-Bold',
     fontWeight: '700',
-    paddingVertical: 4,
+    paddingVertical: spacing.xs,
   },
   typeChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: spacing.sm,
     borderWidth: 1,
-    borderRadius: 999,
+    borderRadius: borderRadius.full,
   },
   primaryBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: spacing.sm,
     paddingVertical: 15,
   },
   secondaryBtn: {

@@ -45,13 +45,11 @@ function createStyles(colors: typeof palette.dark) {
       fontSize: 15,
       color: colors.text.secondary,
       marginTop: 8,
-      fontFamily: 'Inter-Regular',
       lineHeight: 22,
       marginBottom: PADDING + 8,
     },
     emailHighlight: {
-      color: colors.brand.primary,
-      fontFamily: 'Inter-SemiBold',
+      color: colors.accent.primary,
     },
     otpRow: {
       flexDirection: 'row',
@@ -67,12 +65,11 @@ function createStyles(colors: typeof palette.dark) {
       textAlign: 'center',
       fontSize: 24,
       fontWeight: '700',
-      fontFamily: 'Inter-Bold',
       color: colors.text.primary,
     },
     verifyButton: {
       height: 56,
-      backgroundColor: colors.brand.primary,
+      backgroundColor: colors.accent.primary,
       borderRadius: borderRadius.xl,
       justifyContent: 'center',
       alignItems: 'center',
@@ -81,7 +78,6 @@ function createStyles(colors: typeof palette.dark) {
     verifyButtonText: {
       color: '#FFFFFF',
       fontSize: 16,
-      fontFamily: 'Inter-SemiBold',
       letterSpacing: 0.3,
     },
     resendRow: {
@@ -92,12 +88,10 @@ function createStyles(colors: typeof palette.dark) {
     resendLabel: {
       color: colors.text.secondary,
       fontSize: 14,
-      fontFamily: 'Inter-Regular',
     },
     resendText: {
-      color: colors.brand.primary,
+      color: colors.accent.primary,
       fontSize: 14,
-      fontFamily: 'Inter-SemiBold',
     },
     resendTextDisabled: {
       color: colors.text.tertiary,
@@ -106,7 +100,6 @@ function createStyles(colors: typeof palette.dark) {
       textAlign: 'center',
       color: colors.text.tertiary,
       fontSize: 13,
-      fontFamily: 'Inter-Medium',
       marginTop: 8,
     },
   });
@@ -305,7 +298,6 @@ export function PremiumOtpScreen() {
                 style={{
                   color: colors.status.error,
                   fontSize: 13,
-                  fontFamily: 'Inter-Medium',
                   flex: 1,
                 }}
               >
@@ -325,7 +317,7 @@ export function PremiumOtpScreen() {
                   styles.otpInput,
                   {
                     borderColor: digit
-                      ? colors.brand.primary
+                      ? colors.accent.primary
                       : error
                         ? colors.status.error
                         : colors.border.subtle,

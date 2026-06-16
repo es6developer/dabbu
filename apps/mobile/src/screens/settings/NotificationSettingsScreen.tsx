@@ -392,11 +392,9 @@ const styles = StyleSheet.create({
     ...typographyStyles.body,
     color: 'rgba(255,255,255,0.78)',
     marginTop: 1,
-    fontFamily: 'Inter-Medium',
   },
   headerMetric: {
     color: 'rgba(255,255,255,0.86)',
-    fontFamily: 'Inter-SemiBold',
     fontSize: 13,
     lineHeight: 19,
     marginTop: 24,
@@ -421,7 +419,6 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...typographyStyles.footnote,
-    fontFamily: 'Inter-SemiBold',
     letterSpacing: 0.5,
   },
   sectionCard: {
@@ -449,13 +446,11 @@ const styles = StyleSheet.create({
   },
   rowLabel: {
     ...typographyStyles.body,
-    fontFamily: 'Inter-SemiBold',
     fontSize: 14,
   },
   rowDesc: {
     ...typographyStyles.footnote,
     fontSize: 11,
     marginTop: 1,
-    fontFamily: 'Inter-Medium',
   },
 });
