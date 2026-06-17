@@ -16,6 +16,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
+import { PieChart } from 'react-native-chart-kit';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken, addSyncListener } from '../../services/api';
 import { PremiumLoaderScreen } from '../../components/ui/PremiumLoaderScreen';
@@ -786,150 +787,139 @@ export function SharedGroupDetailScreen() {
   }
 
   function renderAnalytics() {
-    const catEntries = (() => {
+    const myPaid = balanceRows.find((r) => r.userId === currentUser?.id)?.paid || 0;
+    const othersPaid = stats.totalSpent - myPaid;
+    const chart_w = (Dimensions.get('window').width || 375) - 64;
+
+    const chartConfig = {
+      color: (opacity = 1) => `rgba(0,0,0,${opacity})`,
+      labelColor: () => colors.text.secondary,
+    };
+
+    const pieColors = [
+      '#FF6B6B', '#34C759', '#38BDF8', '#FBBF24', '#FB923C',
+      '#A78BFA', '#F472B6', '#14B8A6', '#7C3AED', '#22C55E',
+      '#FF9F0A', '#636E72', '#00CEC9', '#FF8FB3', '#60A5FA',
+    ];
+
+    const catData = (() => {
       const cats: Record<string, number> = {};
       expenses.forEach((e) => {
         const c = (e.category || 'Other').toLowerCase();
         cats[c] = (cats[c] || 0) + Number(e.amount || 0);
       });
-      return Object.entries(cats).sort(([, a], [, b]) => b - a);
+      const entries = Object.entries(cats).sort(([, a], [, b]) => b - a);
+      return entries.map(([name, amount], i) => ({
+        name: name.charAt(0).toUpperCase() + name.slice(1),
+        amount,
+        color: CATEGORY_COLORS[name] || pieColors[i % pieColors.length],
+        legendFontColor: colors.text.secondary,
+        legendFontSize: 11,
+      }));
     })();
 
-    const memberTotals = balanceRows
-      .map((r) => ({ name: r.name, paid: r.paid, owes: r.owes, net: r.balance }))
-      .sort((a, b) => b.paid - a.paid);
-
-    const monthlyTotals = (() => {
+    const monthData = (() => {
       const map: Record<string, number> = {};
       expenses.forEach((e) => {
         const d = new Date(e.date || e.expenseDate || e.createdAt);
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
         map[key] = (map[key] || 0) + Number(e.amount || 0);
       });
-      return Object.entries(map).sort(([a], [b]) => a.localeCompare(b));
+      const entries = Object.entries(map).sort(([a], [b]) => a.localeCompare(b));
+      return entries.map(([name, amount], i) => ({
+        name: name.slice(5),
+        amount,
+        color: pieColors[i % pieColors.length],
+        legendFontColor: colors.text.secondary,
+        legendFontSize: 11,
+      }));
     })();
 
-    const avgPerPerson = members.length > 0 ? stats.totalSpent / members.length : 0;
-    const maxMonth = monthlyTotals.length > 0 ? monthlyTotals.reduce((a, b) => (a[1] > b[1] ? a : b)) : null;
+    const memberData = (() => {
+      const map: Record<string, number> = {};
+      expenses.forEach((e) => {
+        const uid = e.paidBy;
+        const member = members.find((m: any) => m.userId === uid);
+        const name = member?.user?.firstName || member?.user?.email || 'Someone';
+        map[name] = (map[name] || 0) + Number(e.amount || 0);
+      });
+      const entries = Object.entries(map).sort(([, a], [, b]) => b - a);
+      return entries.map(([name, amount], i) => ({
+        name,
+        amount,
+        color: pieColors[i % pieColors.length],
+        legendFontColor: colors.text.secondary,
+        legendFontSize: 11,
+      }));
+    })();
 
     return (
       <View style={s.tabPanel}>
         <View style={[s.card, { backgroundColor: colors.bg.card }]}>
           <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Overview</Text>
-          <View style={{ flexDirection: 'row', gap: 12 }}>
-            <View style={{ flex: 1, alignItems: 'center', padding: 12, backgroundColor: `${colors.accent.primary}08`, borderRadius: 14 }}>
-              <Text style={[s.analyticsNumber, { color: colors.accent.primary }]}>{fmt(stats.totalSpent)}</Text>
-              <Text style={[s.analyticsLabel, { color: colors.text.tertiary }]}>Total Spent</Text>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <View style={{ flex: 1, alignItems: 'center', padding: 14, backgroundColor: `${colors.accent.primary}08`, borderRadius: 14 }}>
+              <Text style={[s.analyticsNumber, { color: colors.accent.primary }]}>{fmt(myPaid)}</Text>
+              <Text style={[s.analyticsLabel, { color: colors.text.tertiary }]}>What I paid</Text>
             </View>
-            <View style={{ flex: 1, alignItems: 'center', padding: 12, backgroundColor: `${colors.accent.primary}08`, borderRadius: 14 }}>
-              <Text style={[s.analyticsNumber, { color: colors.text.primary }]}>{expenses.length}</Text>
-              <Text style={[s.analyticsLabel, { color: colors.text.tertiary }]}>Transactions</Text>
+            <View style={{ flex: 1, alignItems: 'center', padding: 14, backgroundColor: `${colors.status.warning}10`, borderRadius: 14 }}>
+              <Text style={[s.analyticsNumber, { color: colors.status.warning }]}>{fmt(othersPaid)}</Text>
+              <Text style={[s.analyticsLabel, { color: colors.text.tertiary }]}>Others paid</Text>
             </View>
-            <View style={{ flex: 1, alignItems: 'center', padding: 12, backgroundColor: `${colors.accent.primary}08`, borderRadius: 14 }}>
-              <Text style={[s.analyticsNumber, { color: colors.text.primary }]}>{members.length}</Text>
-              <Text style={[s.analyticsLabel, { color: colors.text.tertiary }]}>Members</Text>
+            <View style={{ flex: 1, alignItems: 'center', padding: 14, backgroundColor: `${colors.status.error}08`, borderRadius: 14 }}>
+              <Text style={[s.analyticsNumber, { color: colors.status.error }]}>{fmt(stats.totalSpent)}</Text>
+              <Text style={[s.analyticsLabel, { color: colors.text.tertiary }]}>All paid</Text>
             </View>
           </View>
         </View>
 
-        {monthlyTotals.length > 0 && (
+        {catData.length > 0 && (
           <View style={[s.card, { backgroundColor: colors.bg.card }]}>
-            <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Monthly Spend</Text>
-            {monthlyTotals.slice(-6).map(([month, total]) => {
-              const maxVal = maxMonth ? maxMonth[1] : total;
-              const pct = (total / maxVal) * 100;
-              return (
-                <View key={month} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                  <Text style={{ width: 50, fontSize: 11, color: colors.text.tertiary, fontWeight: '600' }}>
-                    {month.slice(5)}
-                  </Text>
-                  <View style={{ flex: 1, height: 22, backgroundColor: colors.bg.tertiary, borderRadius: 6, overflow: 'hidden' }}>
-                    <View style={{ width: `${pct}%`, height: '100%', backgroundColor: colors.accent.primary, borderRadius: 6 }} />
-                  </View>
-                  <Text style={{ width: 60, textAlign: 'right', fontSize: 11, fontWeight: '700', color: colors.text.primary }}>
-                    {fmt(total)}
-                  </Text>
-                </View>
-              );
-            })}
+            <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Category wise</Text>
+            <PieChart
+              data={catData}
+              width={chart_w}
+              height={200}
+              chartConfig={chartConfig}
+              accessor="amount"
+              backgroundColor="transparent"
+              paddingLeft="15"
+              absolute
+            />
           </View>
         )}
 
-        {catEntries.length > 0 && (
+        {monthData.length > 0 && (
           <View style={[s.card, { backgroundColor: colors.bg.card }]}>
-            <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Categories</Text>
-            {catEntries.map(([cat, amt]) => {
-              const pct = Math.round((amt / stats.totalSpent) * 100);
-              return (
-                <View key={cat} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                  <Text style={{ width: 70, fontSize: 11, color: colors.text.secondary, fontWeight: '600', textTransform: 'capitalize' }}>
-                    {cat}
-                  </Text>
-                  <View style={{ flex: 1, height: 22, backgroundColor: colors.bg.tertiary, borderRadius: 6, overflow: 'hidden' }}>
-                    <View style={{ width: `${pct}%`, height: '100%', backgroundColor: colors.status.warning, borderRadius: 6 }} />
-                  </View>
-                  <Text style={{ width: 50, textAlign: 'right', fontSize: 11, fontWeight: '700', color: colors.text.primary }}>
-                    {pct}%
-                  </Text>
-                </View>
-              );
-            })}
+            <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Date wise</Text>
+            <PieChart
+              data={monthData}
+              width={chart_w}
+              height={200}
+              chartConfig={chartConfig}
+              accessor="amount"
+              backgroundColor="transparent"
+              paddingLeft="15"
+              absolute
+            />
           </View>
         )}
 
-        {memberTotals.length > 0 && (
+        {memberData.length > 0 && (
           <View style={[s.card, { backgroundColor: colors.bg.card }]}>
-            <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Top Spenders</Text>
-            {memberTotals.map((m, i) => (
-              <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8, borderTopWidth: i === 0 ? 0 : StyleSheet.hairlineWidth, borderTopColor: colors.border.subtle }}>
-                <View style={[s.peopleAvatar, { backgroundColor: i === 0 ? colors.accent.primary : colors.bg.tertiary }]}>
-                  <Text style={[s.peopleAvatarText, { color: i === 0 ? '#FFF' : colors.text.primary }]}>
-                    {m.name[0]?.toUpperCase() || '?'}
-                  </Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[s.peopleName, { color: colors.text.primary }]}>{m.name}</Text>
-                  <Text style={[s.peopleStatusSettled, { color: colors.text.tertiary }]}>
-                    Paid {fmt(m.paid)} · Owed {fmt(m.owes)}
-                  </Text>
-                </View>
-                <Text style={{ fontSize: 14, fontWeight: '800', color: m.net >= 0 ? '#34C759' : '#FF4D4F' }}>
-                  {m.net >= 0 ? '+' : ''}{fmt(m.net)}
-                </Text>
-              </View>
-            ))}
+            <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Member wise</Text>
+            <PieChart
+              data={memberData}
+              width={chart_w}
+              height={200}
+              chartConfig={chartConfig}
+              accessor="amount"
+              backgroundColor="transparent"
+              paddingLeft="15"
+              absolute
+            />
           </View>
         )}
-
-        <View style={[s.card, { backgroundColor: colors.bg.card }]}>
-          <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Insights</Text>
-          <View style={{ gap: 10 }}>
-            {avgPerPerson > 0 && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <AntDesign name="user" size={16} color={colors.accent.primary} />
-                <Text style={{ flex: 1, fontSize: 13, color: colors.text.secondary }}>Average per person</Text>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>{fmt(avgPerPerson)}</Text>
-              </View>
-            )}
-            {maxMonth && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <AntDesign name="barchart" size={16} color={colors.status.warning} />
-                <Text style={{ flex: 1, fontSize: 13, color: colors.text.secondary }}>Highest month</Text>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>{maxMonth[0].slice(5)} · {fmt(maxMonth[1])}</Text>
-              </View>
-            )}
-            {(() => {
-              const unpaid = activityData.filter((a) => a.status === 'pending').length;
-              return unpaid > 0 ? (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <AntDesign name="bells" size={16} color={colors.status.error} />
-                  <Text style={{ flex: 1, fontSize: 13, color: colors.text.secondary }}>Pending settlements</Text>
-                  <Text style={{ fontSize: 13, fontWeight: '700', color: colors.status.error }}>{unpaid}</Text>
-                </View>
-              ) : null;
-            })()}
-          </View>
-        </View>
       </View>
     );
   }
