@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
@@ -32,6 +32,27 @@ export function CreateSharedGroupScreen() {
   const [name, setName] = useState('');
   const [type, setType] = useState('friends');
   const [description, setDescription] = useState('');
+  const [upiId, setUpiId] = useState('');
+  const [upiValidating, setUpiValidating] = useState(false);
+  const [upiValid, setUpiValid] = useState<boolean | null>(null);
+  const upiTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const UPI_PATTERN = /^[\w.-]+@[\w.-]+$/;
+
+  async function handleUpiBlur(value: string) {
+    if (upiTimer.current) clearTimeout(upiTimer.current);
+    if (!value.trim() || !UPI_PATTERN.test(value.trim())) return;
+    setUpiValidating(true);
+    try {
+      const res = await api.get<any>(`/users/validate-upi?upiId=${encodeURIComponent(value.trim())}`);
+      setUpiValid(res?.valid === true);
+    } catch {
+      setUpiValid(null);
+    } finally {
+      setUpiValidating(false);
+    }
+  }
+
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -51,6 +72,7 @@ export function CreateSharedGroupScreen() {
         type: type.toLowerCase(),
         description: description.trim(),
         currency: 'INR',
+        upiId: upiId.trim() || undefined,
       });
       const newGroupId = res?.id || res?._id;
       if (newGroupId) {
@@ -144,6 +166,50 @@ export function CreateSharedGroupScreen() {
         placeholder="What's this space for?"
         multiline
       />
+
+      <View style={styles.fieldBlock}>
+        <Text style={[styles.label, { color: colors.text.tertiary }]}>
+          Your UPI ID <Text style={{ fontWeight: '400' }}>(optional)</Text>
+        </Text>
+        <View style={{ position: 'relative' }}>
+          <TextInput
+            style={{
+              fontSize: 15,
+              paddingHorizontal: 16,
+              paddingVertical: 14,
+              paddingRight: 44,
+              borderRadius: 15,
+              borderWidth: 1,
+              borderColor: upiValid === false ? colors.status.error : upiValid === true ? '#34C759' : colors.border.default,
+              backgroundColor: colors.bg.card,
+              color: colors.text.primary,
+            }}
+            value={upiId}
+            onChangeText={(t) => {
+              setUpiId(t);
+              setUpiValid(null);
+            }}
+            onBlur={() => handleUpiBlur(upiId)}
+            placeholder="example@upi"
+            placeholderTextColor={colors.text.tertiary}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+          {upiValidating ? (
+            <View style={{ position: 'absolute', right: 14, top: 0, bottom: 0, justifyContent: 'center' }}>
+              <ActivityIndicator size="small" color={colors.accent.primary} />
+            </View>
+          ) : upiValid === true ? (
+            <View style={{ position: 'absolute', right: 14, top: 0, bottom: 0, justifyContent: 'center' }}>
+              <AntDesign name="checkcircle" size={18} color="#34C759" />
+            </View>
+          ) : upiValid === false && upiId.trim() ? (
+            <View style={{ position: 'absolute', right: 14, top: 0, bottom: 0, justifyContent: 'center' }}>
+              <AntDesign name="closecircle" size={18} color={colors.status.error} />
+            </View>
+          ) : null}
+        </View>
+      </View>
     </PremiumFormScreen>
   );
 }
