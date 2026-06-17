@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
@@ -32,37 +32,12 @@ export function CreateSharedGroupScreen() {
   const [name, setName] = useState('');
   const [type, setType] = useState('friends');
   const [description, setDescription] = useState('');
-  const [partnerPhone, setPartnerPhone] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [upiId, setUpiId] = useState('');
-  const [upiStatus, setUpiStatus] = useState<'idle' | 'valid' | 'invalid' | 'checking'>('idle');
-  const upiTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const UPI_PATTERN = /^[\w\.\-]+@[\w\-]+$/;
-  const showPartnerInput = type === 'couple';
-  const showUpi = type === 'sports';
-
-  async function validateUpiDebounced(value: string) {
-    if (upiTimer.current) clearTimeout(upiTimer.current);
-    if (!value.trim()) { setUpiStatus('idle'); return; }
-    if (!UPI_PATTERN.test(value.trim())) { setUpiStatus('invalid'); return; }
-    setUpiStatus('checking');
-    upiTimer.current = setTimeout(async () => {
-      try {
-        const res = await api.post<any>('/shared-finance/validate-upi', { upiId: value.trim() });
-        setUpiStatus(res?.valid ? 'valid' : 'invalid');
-      } catch { setUpiStatus('valid'); }
-    }, 600);
-  }
 
   async function handleCreate() {
     if (!name.trim()) {
-      setError('Group name is required');
-      return;
-    }
-    if (type === 'couple' && !partnerPhone.trim()) {
-      setError('Partner phone number is required for couple spaces');
+      setError('Space name is required');
       return;
     }
     setError('');
@@ -76,20 +51,8 @@ export function CreateSharedGroupScreen() {
         type: type.toLowerCase(),
         description: description.trim(),
         currency: 'INR',
-        upiId: type === 'sports' ? upiId.trim() || undefined : undefined,
       });
       const newGroupId = res?.id || res?._id;
-      if (type === 'couple' && newGroupId && partnerPhone.trim()) {
-        try {
-          await api.post(`/shared-finance/groups/${newGroupId}/members/add-by-phone`, {
-            phone: partnerPhone.trim(),
-          });
-        } catch (addErr: any) {
-          setSaving(false);
-          setError('Space created, but could not add partner: ' + (addErr.message || 'Phone number may be invalid or the user may not be registered'));
-          return;
-        }
-      }
       if (newGroupId) {
         navigation.replace('SharedGroupDetail', { groupId: newGroupId, groupName: name.trim() });
       } else {
@@ -99,7 +62,7 @@ export function CreateSharedGroupScreen() {
       if (e?.name === 'AbortError') {
         setError('Request timed out. Please check your connection and try again.');
       } else {
-        setError(e.message || 'Failed to create group');
+        setError(e.message || 'Failed to create space');
       }
     } finally {
       setSaving(false);
@@ -181,75 +144,6 @@ export function CreateSharedGroupScreen() {
         placeholder="What's this space for?"
         multiline
       />
-
-      {showPartnerInput && (
-        <View style={styles.fieldBlock}>
-          <Text style={[styles.label, { color: colors.text.tertiary }]}>Partner Phone</Text>
-          <View
-            style={[
-              styles.phoneRow,
-              { backgroundColor: colors.bg.card, borderColor: colors.border.default },
-            ]}
-          >
-            <TextInput
-              style={[styles.phoneInput, { color: colors.text.primary }]}
-              value={partnerPhone}
-              onChangeText={(t) => setPartnerPhone(t.replace(/[^0-9]/g, '').slice(0, 10))}
-              placeholder="9876543210"
-              placeholderTextColor={colors.text.tertiary}
-              keyboardType="phone-pad"
-              maxLength={10}
-            />
-          </View>
-        </View>
-      )}
-
-      {showUpi && (
-        <View style={styles.fieldBlock}>
-          <Text style={[styles.label, { color: colors.text.tertiary }]}>
-            Your UPI ID{' '}
-            <Text style={{ fontWeight: '400', color: colors.text.tertiary }}>(optional)</Text>
-          </Text>
-          <View
-            style={[
-              styles.phoneRow,
-              {
-                backgroundColor: colors.bg.card,
-                borderColor: upiStatus === 'invalid' ? '#FF4D4F' : colors.border.default,
-              },
-            ]}
-          >
-            <TextInput
-              style={[styles.phoneInput, { flex: 1, color: colors.text.primary }]}
-              value={upiId}
-              onChangeText={(t) => {
-                setUpiId(t);
-                if (UPI_PATTERN.test(t.trim())) setUpiStatus('valid');
-                else setUpiStatus('idle');
-              }}
-              onBlur={() => validateUpiDebounced(upiId)}
-              placeholder="e.g. user@paytm"
-              placeholderTextColor={colors.text.tertiary}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              returnKeyType="done"
-            />
-            {upiStatus === 'valid' && <AntDesign  name="checkcircleo" size={20} color="#34C759" style={{ marginRight: 10 }} />}
-            {upiStatus === 'invalid' && <AntDesign  name="exclamationcircle" size={20} color="#FF4D4F" style={{ marginRight: 10 }} />}
-            {upiStatus === 'checking' && <AntDesign  name="sync" size={18} color={colors.text.tertiary} style={{ marginRight: 10 }} />}
-          </View>
-          {upiStatus === 'invalid' && (
-            <Text style={{ fontSize: 11, color: '#FF4D4F', marginTop: 4, marginLeft: 2 }}>
-              Enter a valid UPI ID (e.g. user@paytm)
-            </Text>
-          )}
-          {upiId.trim() && upiStatus === 'valid' && (
-            <Text style={{ fontSize: 11, color: '#34C759', marginTop: 4, marginLeft: 2 }}>
-              UPI ID verified
-            </Text>
-          )}
-        </View>
-      )}
     </PremiumFormScreen>
   );
 }
@@ -282,24 +176,6 @@ const styles = StyleSheet.create({
   typeChipText: {
     fontSize: 13,
     fontWeight: '600',
-  },
-  phoneRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 15,
-    borderWidth: 1,
-    paddingLeft: 14,
-    minHeight: 54,
-  },
-  countryCode: {
-    fontSize: 14,
-    fontWeight: '700',
-    marginRight: 8,
-  },
-  phoneInput: {
-    flex: 1,
-    fontSize: 15,
-    paddingVertical: 13,
   },
   footer: {
     marginTop: 8,
