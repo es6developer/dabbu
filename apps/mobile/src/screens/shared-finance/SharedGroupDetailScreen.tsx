@@ -71,6 +71,47 @@ function normalize<T>(res: any): T {
   return res as T;
 }
 
+function computeAllSettlements(
+  balanceRows: Array<{ userId: string; name: string; balance: number; upiId?: string }>,
+) {
+  const creditors = balanceRows.filter(r => r.balance > 0).sort((a, b) => b.balance - a.balance);
+  const debtors = balanceRows.filter(r => r.balance < 0).sort((a, b) => a.balance - b.balance);
+
+  const settlements: Array<{
+    from: string;
+    fromName: string;
+    to: string;
+    toName: string;
+    amount: number;
+    upiId?: string;
+    type: 'pay' | 'collect';
+  }> = [];
+
+  let ci = 0;
+  for (const debtor of debtors) {
+    let remaining = Math.abs(debtor.balance);
+    while (remaining > 0.01 && ci < creditors.length) {
+      const creditor = creditors[ci];
+      const payAmount = Math.min(remaining, creditor.balance);
+      const rounded = Math.round(payAmount);
+      settlements.push({
+        from: debtor.userId,
+        fromName: debtor.name,
+        to: creditor.userId,
+        toName: creditor.name,
+        amount: rounded,
+        upiId: creditor.upiId,
+        type: 'pay',
+      });
+      remaining -= rounded;
+      creditor.balance -= rounded;
+      if (creditor.balance < 0.01) ci++;
+    }
+  }
+
+  return settlements;
+}
+
 function computeSmartSettlements(
   balanceRows: Array<{ userId: string; name: string; balance: number; upiId?: string }>,
   currentUserId?: string,
@@ -154,6 +195,9 @@ export function SharedGroupDetailScreen() {
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteModalVisible, setInviteModalVisible] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [simplified, setSimplified] = useState(true);
+  const [settlements, setSettlements] = useState<any[]>([]);
+  const [settlementsLoading, setSettlementsLoading] = useState(false);
   const [editName, setEditName] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [savingSettings, setSavingSettings] = useState(false);
@@ -238,6 +282,22 @@ export function SharedGroupDetailScreen() {
     });
     return unsub;
   }, [loadData]);
+
+  useEffect(() => {
+    if (!groupId) return;
+    let cancelled = false;
+    setSettlementsLoading(true);
+    api
+      .get<any[]>(`/shared-finance/groups/${groupId}/settlements/plan?simplified=${simplified}`)
+      .then((res) => {
+        if (!cancelled) setSettlements(Array.isArray(res) ? res : []);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setSettlementsLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [groupId, simplified]);
 
   const members: any[] = Array.isArray(group?.members) ? group.members : [];
   const type = group?.type || 'default';
@@ -414,7 +474,23 @@ export function SharedGroupDetailScreen() {
   }
 
   function renderSummary() {
-    const settlements = computeSmartSettlements(balanceRows, currentUser?.id);
+    const localSettlements = settlements
+      .filter((s: any) => !simplified || s.from === currentUser?.id || s.to === currentUser?.id)
+      .map((s: any) => {
+        const isMeFrom = s.from === currentUser?.id;
+        const isMeTo = s.to === currentUser?.id;
+        const memberMap = new Map(balanceRows.map((r) => [r.userId, r]));
+        const toRow = memberMap.get(s.to);
+        return {
+          from: s.from,
+          fromName: isMeTo ? 'You' : s.fromName,
+          to: s.to,
+          toName: isMeFrom ? 'You' : s.toName,
+          amount: s.amount,
+          upiId: isMeFrom ? toRow?.upiId : undefined,
+          type: isMeFrom ? ('pay' as const) : ('remind' as const),
+        };
+      });
     const catEntries = (() => {
       const cats: Record<string, number> = {};
       expenses.forEach((e) => {
@@ -428,7 +504,11 @@ export function SharedGroupDetailScreen() {
 
     return (
       <View style={s.tabPanel}>
-        {settlements.length > 0 && (
+        {settlementsLoading ? (
+          <View style={[s.settlementHero, { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 16 }]}>
+            <ActivityIndicator size="small" color={colors.accent.primary} />
+          </View>
+        ) : localSettlements.length > 0 && (
           <View style={[s.settlementHero, { backgroundColor: colors.bg.card }]}>
             <View style={s.settlementHeroHeader}>
               <AntDesign  name="swap" size={18} color={colors.accent.primary} />
@@ -438,7 +518,20 @@ export function SharedGroupDetailScreen() {
                   : `You are owed ${fmt(myBalanceRow?.balance || 0)}`}
               </Text>
             </View>
-            {settlements.map((st, i) => (
+            <TouchableOpacity
+              onPress={() => setSimplified(p => !p)}
+              style={s.simplifyToggle}
+            >
+              <AntDesign
+                name={simplified ? 'checksquare' : 'checksquareo'}
+                size={18}
+                color={colors.accent.primary}
+              />
+              <Text style={[s.simplifyToggleText, { color: colors.text.secondary }]}>
+                Simplified settlements
+              </Text>
+            </TouchableOpacity>
+            {localSettlements.map((st, i) => (
               <View key={i} style={s.settlementRow}>
                 <View style={[s.settlementAvatar, { backgroundColor: colors.accent.primary }]}>
                   <Text style={s.settlementAvatarText}>
@@ -488,7 +581,7 @@ export function SharedGroupDetailScreen() {
                 ) : null}
               </View>
             ))}
-            {settlements.length > 0 && (
+            {localSettlements.length > 0 && (
               <TouchableOpacity
                 style={[s.viewAllSettlements, { borderTopColor: colors.border.subtle }]}
                 onPress={() => navigation.navigate('Settlement', { groupId })}
@@ -1889,5 +1982,17 @@ const s = StyleSheet.create({
   leaveGroupBtnText: {
     fontSize: 14,
     fontWeight: '700',
+  },
+  simplifyToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    marginBottom: 4,
+  },
+  simplifyToggleText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
 });

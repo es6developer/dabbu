@@ -373,9 +373,12 @@ export class SharedFinanceController {
 
   @Get('groups/:groupId/settlements/plan')
   @UseGuards(GroupMemberGuard)
-  @ApiOperation({ summary: 'Get optimized settlement plan' })
-  async getSettlementPlan(@Param('groupId') groupId: string) {
-    return this.sf.getSettlementPlan(groupId);
+  @ApiOperation({ summary: 'Get settlement plan (simplified or all-to-all)' })
+  async getSettlementPlan(
+    @Param('groupId') groupId: string,
+    @Query('simplified') simplified?: string,
+  ) {
+    return this.sf.getSettlementPlan(groupId, simplified !== 'false');
   }
 
   @Post('groups/:groupId/settlements')

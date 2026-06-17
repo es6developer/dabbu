@@ -1312,9 +1312,12 @@ export class SharedFinanceService {
 
   // ─── Settlement Engine ─────────────────────────────────────
 
-  async getSettlementPlan(groupId: string) {
+  async getSettlementPlan(groupId: string, simplified: boolean = true) {
     const balances = await this.getBalances(groupId);
-    return this.settlementEngine.calculateOptimizedSettlements(balances);
+    if (simplified) {
+      return this.settlementEngine.calculateOptimizedSettlements(balances);
+    }
+    return this.settlementEngine.simplifyDebts(balances);
   }
 
   async createSettlement(
