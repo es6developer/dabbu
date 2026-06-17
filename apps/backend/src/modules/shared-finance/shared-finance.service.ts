@@ -214,6 +214,7 @@ export class SharedFinanceService {
                 avatarUrl: true,
                 email: true,
                 status: true,
+                upiId: true,
               },
             },
           },
@@ -1211,7 +1212,7 @@ export class SharedFinanceService {
             user: { select: { id: true, firstName: true, lastName: true, email: true } },
           },
         },
-        payer: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+        payer: { select: { id: true, firstName: true, lastName: true, avatarUrl: true, upiId: true } },
         comments: {
           include: {
             sender: { select: { id: true, firstName: true, lastName: true } },
@@ -2477,7 +2478,7 @@ export class SharedFinanceService {
         where: { groupId },
         include: {
           splits: true,
-          payer: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+        payer: { select: { id: true, firstName: true, lastName: true, avatarUrl: true, upiId: true } },
         },
         orderBy: { date: 'desc' },
       }),

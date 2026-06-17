@@ -997,6 +997,20 @@ export function SharedGroupDetailScreen() {
             </Text>
           ) : null}
         </View>
+        {!iPaid && myShare > 0 && payer?.user?.upiId && (
+          <TouchableOpacity
+            style={[s.payNowBtn, { backgroundColor: '#34C759' }]}
+            onPress={() => {
+              const upiLink = `upi://pay?pa=${encodeURIComponent(payer.user.upiId)}&pn=${encodeURIComponent(payerName)}&am=${myShare}&cu=INR&tn=${encodeURIComponent(item.description || 'Expense')}`;
+              Linking.openURL(upiLink).catch(() =>
+                Alert.alert('Unable to open UPI', 'No UPI app found. Please try GPay, PhonePe, or Paytm.'),
+              );
+            }}
+          >
+            <AntDesign name="wallet" size={14} color="#FFF" />
+            <Text style={s.payNowText}>Pay Now</Text>
+          </TouchableOpacity>
+        )}
       </TouchableOpacity>
     );
   }
@@ -1837,6 +1851,17 @@ const s = StyleSheet.create({
   expenseAmount: { fontSize: 16, fontWeight: '700', marginLeft: 8 },
   expenseDateLine: { fontSize: 11, marginTop: 1 },
   yourShareText: { fontSize: 11, fontWeight: '600', marginTop: 1 },
+  payNowBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    alignSelf: 'center',
+    marginLeft: 8,
+  },
+  payNowText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
   peopleCard: {
     flexDirection: 'row',
     alignItems: 'center',

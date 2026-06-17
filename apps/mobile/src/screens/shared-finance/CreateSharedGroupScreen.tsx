@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -39,19 +39,28 @@ export function CreateSharedGroupScreen() {
 
   const UPI_PATTERN = /^[\w.-]+@[\w.-]+$/;
 
-  async function handleUpiBlur(value: string) {
+  useEffect(() => {
     if (upiTimer.current) clearTimeout(upiTimer.current);
-    if (!value.trim() || !UPI_PATTERN.test(value.trim())) return;
-    setUpiValidating(true);
-    try {
-      const res = await api.get<any>(`/users/validate-upi?upiId=${encodeURIComponent(value.trim())}`);
-      setUpiValid(res?.valid === true);
-    } catch {
+    if (!upiId.trim() || !UPI_PATTERN.test(upiId.trim())) {
       setUpiValid(null);
-    } finally {
       setUpiValidating(false);
+      return;
     }
-  }
+    setUpiValidating(true);
+    upiTimer.current = setTimeout(async () => {
+      try {
+        const res = await api.get<any>(`/users/validate-upi?upiId=${encodeURIComponent(upiId.trim())}`);
+        setUpiValid(res?.valid === true);
+      } catch {
+        setUpiValid(null);
+      } finally {
+        setUpiValidating(false);
+      }
+    }, 600);
+    return () => {
+      if (upiTimer.current) clearTimeout(upiTimer.current);
+    };
+  }, [upiId]);
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -189,7 +198,6 @@ export function CreateSharedGroupScreen() {
               setUpiId(t);
               setUpiValid(null);
             }}
-            onBlur={() => handleUpiBlur(upiId)}
             placeholder="example@upi"
             placeholderTextColor={colors.text.tertiary}
             autoCapitalize="none"
