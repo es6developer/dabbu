@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 
 @Injectable()
@@ -6,6 +6,34 @@ export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
   constructor(private readonly prisma: PrismaService) {}
+
+  async validateUpi(upiId: string) {
+    if (!upiId || !/^[\w.-]+@[\w.-]+$/.test(upiId)) {
+      throw new BadRequestException('Invalid UPI format');
+    }
+    try {
+      const res = await fetch(
+        `https://paydigi.airtel.in/web/pg-service/v1/validate/vpa/${encodeURIComponent(upiId)}`,
+        {
+          headers: {
+            Accept: 'application/json, text/plain, */*',
+            Origin: 'https://www.airtel.in',
+            Referer: 'https://www.airtel.in/',
+            'Accept-Language': 'en-US,en;q=0.9',
+          },
+        },
+      );
+      const json = await res.json();
+      const data = json?.data;
+      if (data?.vpaValid) {
+        return { valid: true, name: data.payeeAccountName || null, vpa: data.vpa };
+      }
+      return { valid: false, name: null, vpa: upiId, error: data?.errorMessage || 'Invalid UPI ID' };
+    } catch (e: any) {
+      this.logger.error(`UPI validation failed for ${upiId}: ${e.message}`);
+      return { valid: false, name: null, vpa: upiId, error: 'Validation service unavailable' };
+    }
+  }
 
   async search(query: string, excludeUserId: string) {
     const digits = query.replace(/\D/g, '');

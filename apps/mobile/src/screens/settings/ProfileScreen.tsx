@@ -49,6 +49,9 @@ export function ProfileScreen() {
   const [error, setError] = useState('');
   const [originalValues, setOriginalValues] = useState({ firstName: '', lastName: '', phone: '', upiId: '' });
   const [upiError, setUpiError] = useState('');
+  const [upiValidating, setUpiValidating] = useState(false);
+  const [upiValid, setUpiValid] = useState<boolean | null>(null);
+  const upiTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const hasChanges =
     firstName !== originalValues.firstName ||
@@ -120,6 +123,30 @@ export function ProfileScreen() {
       }
     }
   }, [presets, user?.avatarUrl]);
+
+  useEffect(() => {
+    if (upiTimer.current) clearTimeout(upiTimer.current);
+    if (!upiId.trim() || !UPI_PATTERN.test(upiId.trim())) {
+      setUpiValid(null);
+      setUpiValidating(false);
+      return;
+    }
+    setUpiValidating(true);
+    upiTimer.current = setTimeout(async () => {
+      try {
+        const res = await api.get<any>(`/users/validate-upi?upiId=${encodeURIComponent(upiId.trim())}`);
+        setUpiValid(res?.valid === true);
+        setUpiError(res?.valid ? '' : `UPI ID not found: ${res?.error || 'Invalid'}`);
+      } catch {
+        setUpiValid(null);
+      } finally {
+        setUpiValidating(false);
+      }
+    }, 600);
+    return () => {
+      if (upiTimer.current) clearTimeout(upiTimer.current);
+    };
+  }, [upiId]);
 
   async function loadPresets() {
     setPresetsLoading(true);
@@ -550,32 +577,49 @@ export function ProfileScreen() {
                 >
                   UPI ID
                 </Text>
-                <TextInput
-                  style={{
-                    fontSize: 16,
-                    fontWeight: '500',
-                    paddingHorizontal: 16,
-                    paddingVertical: 15,
-                    borderRadius: borderRadius.md,
-                    borderWidth: 1,
-                    borderColor: upiError ? colors.status.error : colors.border.default,
-                    backgroundColor: colors.bg.tertiary,
-                    color: colors.text.primary,
-                  }}
-                  value={upiId}
-                  onChangeText={(t) => {
-                    setUpiId(t);
-                    if (t.trim() && !UPI_PATTERN.test(t.trim())) {
-                      setUpiError('Enter a valid UPI ID (e.g. user@bank)');
-                    } else {
-                      setUpiError('');
-                    }
-                  }}
-                  onBlur={() => validateUpi(upiId)}
-                  placeholder="example@upi"
-                  placeholderTextColor={colors.text.tertiary}
-                  autoCapitalize="none"
-                />
+                <View style={{ position: 'relative' }}>
+                  <TextInput
+                    style={{
+                      fontSize: 16,
+                      fontWeight: '500',
+                      paddingHorizontal: 16,
+                      paddingVertical: 15,
+                      paddingRight: 44,
+                      borderRadius: borderRadius.md,
+                      borderWidth: 1,
+                      borderColor: upiValid === false ? colors.status.error : upiValid === true ? '#34C759' : upiError ? colors.status.error : colors.border.default,
+                      backgroundColor: colors.bg.tertiary,
+                      color: colors.text.primary,
+                    }}
+                    value={upiId}
+                    onChangeText={(t) => {
+                      setUpiId(t);
+                      setUpiValid(null);
+                      if (t.trim() && !UPI_PATTERN.test(t.trim())) {
+                        setUpiError('Enter a valid UPI ID (e.g. user@bank)');
+                      } else {
+                        setUpiError('');
+                      }
+                    }}
+                    onBlur={() => validateUpi(upiId)}
+                    placeholder="example@upi"
+                    placeholderTextColor={colors.text.tertiary}
+                    autoCapitalize="none"
+                  />
+                  {upiValidating ? (
+                    <View style={{ position: 'absolute', right: 14, top: 0, bottom: 0, justifyContent: 'center' }}>
+                      <ActivityIndicator size="small" color={colors.accent.primary} />
+                    </View>
+                  ) : upiValid === true ? (
+                    <View style={{ position: 'absolute', right: 14, top: 0, bottom: 0, justifyContent: 'center' }}>
+                      <AntDesign name="checkcircle" size={18} color="#34C759" />
+                    </View>
+                  ) : upiValid === false && upiId.trim() ? (
+                    <View style={{ position: 'absolute', right: 14, top: 0, bottom: 0, justifyContent: 'center' }}>
+                      <AntDesign name="closecircle" size={18} color={colors.status.error} />
+                    </View>
+                  ) : null}
+                </View>
                 {upiError ? (
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
                     <AntDesign  name="exclamationcircle" size={12} color={colors.status.error} />

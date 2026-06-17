@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Patch, UseGuards, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { UsersService } from './users.service';
@@ -43,5 +43,12 @@ export class UsersController {
   async syncContacts(@CurrentUser('id') userId: string, @Body() dto: SyncContactsDto) {
     const result = await this.usersService.syncContacts(userId, dto.hashes);
     return { data: result };
+  }
+
+  @Get('validate-upi')
+  @ApiOperation({ summary: 'Validate UPI ID via external API' })
+  @ApiQuery({ name: 'upiId', required: true })
+  async validateUpi(@Query('upiId') upiId: string) {
+    return this.usersService.validateUpi(upiId);
   }
 }
