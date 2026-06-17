@@ -6,12 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   RefreshControl,
-  Modal,
-  TextInput,
-  Alert,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   Dimensions,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
@@ -21,8 +15,9 @@ import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
-import { UpgradeBanner } from '../../components/ui/UpgradeBanner';
 import { useToast } from '../../store/ToastContext';
+
+const { width: SCREEN_W } = Dimensions.get('window');
 
 const { width: SCREEN_W } = Dimensions.get('window');
 

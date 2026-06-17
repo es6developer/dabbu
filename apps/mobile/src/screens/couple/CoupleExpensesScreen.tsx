@@ -213,7 +213,7 @@ export function CoupleExpensesScreen() {
             <Text style={styles.headerTitle}>Expenses</Text>
             <TouchableOpacity
               onPress={() =>
-                navigation.navigate('CreateTransaction', {
+                navigation.navigate('CoupleTransactionForm', {
                   prefill: {
                     groupId,
                     groupName: 'Couple',

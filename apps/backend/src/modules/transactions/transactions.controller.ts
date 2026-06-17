@@ -13,10 +13,12 @@ import {
   UploadedFile,
   UseInterceptors,
   BadRequestException,
+  Res,
 } from '@nestjs/common';
 import * as multer from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes, ApiQuery } from '@nestjs/swagger';
+import { Response } from 'express';
 import { TransactionsService } from './transactions.service';
 import { BillScannerService } from './services/bill-scanner.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -180,5 +182,55 @@ export class TransactionsController {
   @ApiOperation({ summary: 'Check OCR service health' })
   async ocrHealth() {
     return this.billScanner.checkHealth();
+  }
+
+  @Get('monthly-report')
+  @ApiOperation({ summary: 'Get monthly report data (JSON)' })
+  @ApiQuery({ name: 'year', required: true })
+  @ApiQuery({ name: 'month', required: true })
+  async getMonthlyReport(
+    @CurrentUser('id') userId: string,
+    @Query('year') year: string,
+    @Query('month') month: string,
+  ) {
+    return this.transactionsService.getMonthlyReport(userId, Number(year), Number(month));
+  }
+
+  @Get('export/pdf')
+  @ApiOperation({ summary: 'Export monthly report as PDF' })
+  @ApiQuery({ name: 'year', required: true })
+  @ApiQuery({ name: 'month', required: true })
+  async exportPdf(
+    @CurrentUser('id') userId: string,
+    @Query('year') year: string,
+    @Query('month') month: string,
+    @Res() res: Response,
+  ) {
+    const buf = await this.transactionsService.exportPdf(userId, Number(year), Number(month));
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename=report-${year}-${month}.pdf`,
+      'Content-Length': buf.length,
+    });
+    res.end(buf);
+  }
+
+  @Get('export/excel')
+  @ApiOperation({ summary: 'Export monthly report as Excel' })
+  @ApiQuery({ name: 'year', required: true })
+  @ApiQuery({ name: 'month', required: true })
+  async exportExcel(
+    @CurrentUser('id') userId: string,
+    @Query('year') year: string,
+    @Query('month') month: string,
+    @Res() res: Response,
+  ) {
+    const buf = await this.transactionsService.exportExcel(userId, Number(year), Number(month));
+    res.set({
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': `attachment; filename=report-${year}-${month}.xlsx`,
+      'Content-Length': buf.length,
+    });
+    res.end(buf);
   }
 }

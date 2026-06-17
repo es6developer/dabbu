@@ -2,6 +2,8 @@ import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { NotificationEventsService } from '../notification/notification-events.service';
 import { CreateTransactionDto, UpdateTransactionDto, TransactionFilterDto } from './dto';
+import PDFDocument from 'pdfkit';
+import * as ExcelJS from 'exceljs';
 
 @Injectable()
 export class TransactionsService {
@@ -559,5 +561,134 @@ export class TransactionsService {
       }
     }
     return null;
+  }
+
+  async getMonthlyReport(userId: string, year: number, month: number) {
+    const start = new Date(year, month - 1, 1);
+    const end = new Date(year, month, 0, 23, 59, 59);
+    const transactions = await this.prisma.transaction.findMany({
+      where: { userId, deletedAt: null, date: { gte: start, lte: end } },
+      include: { category: true },
+      orderBy: { date: 'asc' },
+    });
+
+    const income = transactions.filter((t) => t.type === 'income');
+    const expense = transactions.filter((t) => t.type === 'expense');
+    const totalIncome = income.reduce((s, t) => s + Number(t.amount), 0);
+    const totalExpense = expense.reduce((s, t) => s + Number(t.amount), 0);
+
+    const catMap: Record<string, number> = {};
+    expense.forEach((t) => {
+      const name = t.category?.name || 'Uncategorized';
+      catMap[name] = (catMap[name] || 0) + Number(t.amount);
+    });
+
+    return {
+      month,
+      year,
+      totalIncome,
+      totalExpense,
+      balance: totalIncome - totalExpense,
+      transactionCount: transactions.length,
+      categories: Object.entries(catMap)
+        .sort(([, a], [, b]) => b - a)
+        .map(([name, amount]) => ({ name, amount })),
+      transactions: transactions.map((t) => ({
+        id: t.id,
+        date: t.date,
+        type: t.type,
+        amount: Number(t.amount),
+        description: t.description,
+        category: t.category?.name || 'Uncategorized',
+        tags: t.tags,
+      })),
+    };
+  }
+
+  async exportPdf(userId: string, year: number, month: number): Promise<Buffer> {
+    const report = await this.getMonthlyReport(userId, year, month);
+    const doc = new PDFDocument({ margin: 40, size: 'A4' });
+    const chunks: Buffer[] = [];
+    doc.on('data', (chunk) => chunks.push(chunk));
+    doc.on('end', () => {});
+
+    const monthName = new Date(year, month - 1).toLocaleString('default', { month: 'long' });
+
+    doc.fontSize(20).font('Helvetica-Bold').text(`Monthly Report — ${monthName} ${year}`, { align: 'center' });
+    doc.moveDown(1.5);
+    doc.fontSize(11).font('Helvetica');
+
+    doc.fontSize(14).font('Helvetica-Bold').text('Summary');
+    doc.moveDown(0.5);
+    doc.fontSize(11).font('Helvetica');
+    doc.text(`Total Income:  ₹${report.totalIncome.toLocaleString('en-IN')}`);
+    doc.text(`Total Expense: ₹${report.totalExpense.toLocaleString('en-IN')}`);
+    doc.text(`Balance:       ₹${report.balance.toLocaleString('en-IN')}`);
+    doc.text(`Transactions:  ${report.transactionCount}`);
+    doc.moveDown(1);
+
+    if (report.categories.length > 0) {
+      doc.fontSize(14).font('Helvetica-Bold').text('Category Breakdown');
+      doc.moveDown(0.5);
+      doc.fontSize(11).font('Helvetica');
+      report.categories.forEach((c) => {
+        doc.text(`${c.name}: ₹${c.amount.toLocaleString('en-IN')}`);
+      });
+      doc.moveDown(1);
+    }
+
+    if (report.transactions.length > 0) {
+      doc.fontSize(14).font('Helvetica-Bold').text('Transactions');
+      doc.moveDown(0.5);
+      doc.fontSize(10).font('Helvetica');
+      report.transactions.forEach((t) => {
+        const d = new Date(t.date).toLocaleDateString('en-IN');
+        const sign = t.type === 'income' ? '+' : '-';
+        doc.text(`${d}  ${t.description || t.category}  ${sign}₹${t.amount.toLocaleString('en-IN')}`, { indent: 10 });
+      });
+    }
+
+    doc.end();
+    return new Promise((resolve) => {
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+    });
+  }
+
+  async exportExcel(userId: string, year: number, month: number): Promise<Buffer> {
+    const report = await this.getMonthlyReport(userId, year, month);
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Monthly Report');
+
+    ws.columns = [
+      { header: 'Date', key: 'date', width: 14 },
+      { header: 'Type', key: 'type', width: 10 },
+      { header: 'Category', key: 'category', width: 18 },
+      { header: 'Description', key: 'description', width: 30 },
+      { header: 'Amount (INR)', key: 'amount', width: 16 },
+      { header: 'Tags', key: 'tags', width: 20 },
+    ];
+
+    const headerRow = ws.getRow(1);
+    headerRow.font = { bold: true };
+
+    report.transactions.forEach((t) => {
+      ws.addRow({
+        date: new Date(t.date).toLocaleDateString('en-IN'),
+        type: t.type,
+        category: t.category,
+        description: t.description || '',
+        amount: t.amount,
+        tags: Array.isArray(t.tags) ? t.tags.join(', ') : '',
+      });
+    });
+
+    ws.addRow({});
+    ws.addRow({ date: 'SUMMARY' });
+    ws.addRow({ date: 'Total Income', amount: report.totalIncome });
+    ws.addRow({ date: 'Total Expense', amount: report.totalExpense });
+    ws.addRow({ date: 'Balance', amount: report.balance });
+
+    const buf = await wb.xlsx.writeBuffer();
+    return Buffer.from(buf);
   }
 }

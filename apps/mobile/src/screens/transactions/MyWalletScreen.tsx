@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,14 +10,20 @@ import {
   Animated,
   StyleSheet,
   Dimensions,
+  Modal,
+  Alert,
+  ScrollView,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
+import { API_URL } from '../../config/api';
 import { useAuth } from '../../store/AuthContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius, shadows } from '../../theme/design';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -63,6 +69,12 @@ export function MyWalletScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
   const [summary, setSummary] = useState({ totalIncome: 0, totalExpense: 0 });
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
+  const [reportYear, setReportYear] = useState(new Date().getFullYear());
+  const [reportData, setReportData] = useState<any>(null);
+  const [reportLoading, setReportLoading] = useState(false);
+  const [exporting, setExporting] = useState<'pdf' | 'excel' | null>(null);
   const scrollY = useRef(new Animated.Value(0)).current;
   const abortRef = useRef<AbortController | null>(null);
 
@@ -101,6 +113,36 @@ export function MyWalletScreen() {
     const m = transactions.filter(t => { const d = new Date(t.date || t.createdAt); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); });
     return { income: m.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0), expense: m.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0), count: m.length };
   }, [transactions]);
+
+  const loadReport = useCallback(async () => {
+    setReportLoading(true);
+    try {
+      const res = await api.get<any>(`/transactions/monthly-report?year=${reportYear}&month=${reportMonth}`);
+      setReportData(res);
+    } catch { setReportData(null) }
+    finally { setReportLoading(false) }
+  }, [reportYear, reportMonth]);
+
+  const handleExport = useCallback(async (format: 'pdf' | 'excel') => {
+    setExporting(format);
+    try {
+      const ext = format === 'pdf' ? 'pdf' : 'xlsx';
+      const filename = `report-${reportYear}-${reportMonth}.${ext}`;
+      const mimeType = format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      const downloadUrl = `${API_URL}/transactions/export/${format}?year=${reportYear}&month=${reportMonth}`;
+      const headers: Record<string, string> = {};
+      if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
+      const uri = await FileSystem.downloadAsync(downloadUrl, FileSystem.documentDirectory + filename, { headers });
+      const canShare = await Sharing.isAvailableAsync();
+      if (canShare) {
+        await Sharing.shareAsync(uri.uri, { mimeType });
+      } else {
+        Alert.alert('Downloaded', `Report saved to ${uri.uri}`);
+      }
+    } catch (e: any) {
+      Alert.alert('Export failed', e.message || 'Try again');
+    } finally { setExporting(null) }
+  }, [reportYear, reportMonth, accessToken]);
 
   if (loading) {
     return (
@@ -161,7 +203,13 @@ export function MyWalletScreen() {
             </View>
 
             <View style={[st.reportCard, { backgroundColor: colors.bg.secondary }]}>
-              <Text style={[st.reportTitle, { color: colors.text.primary }]}>This Month</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={[st.reportTitle, { color: colors.text.primary }]}>This Month</Text>
+                <TouchableOpacity onPress={() => setReportOpen(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <AntDesign name="filetext1" size={14} color={colors.accent.primary} />
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: colors.accent.primary }}>Report</Text>
+                </TouchableOpacity>
+              </View>
               <View style={st.reportRow}>
                 <View style={st.reportItem}>
                   <Text style={[st.reportLabel, { color: colors.text.tertiary }]}>Income</Text>
@@ -213,6 +261,93 @@ export function MyWalletScreen() {
           </View>
         }
       />
+
+      <Modal visible={reportOpen} transparent animationType="slide" onRequestClose={() => setReportOpen(false)}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+          <View style={{ backgroundColor: colors.bg.primary, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '85%' }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text.primary }}>Monthly Report</Text>
+              <TouchableOpacity onPress={() => setReportOpen(false)}>
+                <AntDesign name="close" size={22} color={colors.text.tertiary} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 20 }}>
+              <TouchableOpacity onPress={() => { const m = reportMonth - 1; if (m < 1) { setReportMonth(12); setReportYear(reportYear - 1) } else setReportMonth(m); }} style={{ padding: 8, borderRadius: 10, backgroundColor: colors.bg.tertiary }}>
+                <AntDesign name="left" size={16} color={colors.text.primary} />
+              </TouchableOpacity>
+              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>
+                  {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][reportMonth - 1]} {reportYear}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => { const m = reportMonth + 1; if (m > 12) { setReportMonth(1); setReportYear(reportYear + 1) } else setReportMonth(m); }} style={{ padding: 8, borderRadius: 10, backgroundColor: colors.bg.tertiary }}>
+                <AntDesign name="right" size={16} color={colors.text.primary} />
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity onPress={loadReport} style={{ alignSelf: 'center', paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, backgroundColor: colors.accent.primary, marginBottom: 16 }}>
+              <Text style={{ color: '#FFF', fontSize: 13, fontWeight: '600' }}>Load Report</Text>
+            </TouchableOpacity>
+
+            <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+              {reportLoading ? (
+                <ActivityIndicator size="large" color={colors.accent.primary} style={{ marginVertical: 40 }} />
+              ) : reportData ? (
+                <>
+                  <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+                    <View style={{ flex: 1, alignItems: 'center', padding: 14, backgroundColor: `${colors.status.success}10`, borderRadius: 14 }}>
+                      <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary, marginBottom: 4 }}>Income</Text>
+                      <Text style={{ fontSize: 18, fontWeight: '800', color: colors.status.success }}>{fmt(reportData.totalIncome || 0)}</Text>
+                    </View>
+                    <View style={{ flex: 1, alignItems: 'center', padding: 14, backgroundColor: `${colors.status.error}10`, borderRadius: 14 }}>
+                      <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary, marginBottom: 4 }}>Expense</Text>
+                      <Text style={{ fontSize: 18, fontWeight: '800', color: colors.status.error }}>{fmt(reportData.totalExpense || 0)}</Text>
+                    </View>
+                    <View style={{ flex: 1, alignItems: 'center', padding: 14, backgroundColor: `${colors.bg.tertiary}`, borderRadius: 14 }}>
+                      <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary, marginBottom: 4 }}>Net</Text>
+                      <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text.primary }}>{fmt(reportData.balance || 0)}</Text>
+                    </View>
+                  </View>
+
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.tertiary, marginBottom: 4 }}>{reportData.transactionCount} transactions</Text>
+
+                  {reportData.categories?.length > 0 && (
+                    <View style={{ marginTop: 12, marginBottom: 16 }}>
+                      <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary, marginBottom: 8 }}>Categories</Text>
+                      {reportData.categories.map((c: any, i: number) => (
+                        <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderTopWidth: i === 0 ? 0 : StyleSheet.hairlineWidth, borderTopColor: colors.border.subtle }}>
+                          <Text style={{ fontSize: 13, color: colors.text.secondary }}>{c.name}</Text>
+                          <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>{fmt(c.amount)}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+
+                  <View style={{ flexDirection: 'row', gap: 10, marginTop: 8, marginBottom: 20 }}>
+                    <TouchableOpacity
+                      style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 14, backgroundColor: '#FF4D4F' }}
+                      onPress={() => handleExport('pdf')}
+                      disabled={exporting !== null}
+                    >
+                      {exporting === 'pdf' ? <ActivityIndicator size="small" color="#FFF" /> : <AntDesign name="filetext1" size={16} color="#FFF" />}
+                      <Text style={{ color: '#FFF', fontSize: 14, fontWeight: '700' }}>PDF</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 14, backgroundColor: '#34C759' }}
+                      onPress={() => handleExport('excel')}
+                      disabled={exporting !== null}
+                    >
+                      {exporting === 'excel' ? <ActivityIndicator size="small" color="#FFF" /> : <AntDesign name="copy1" size={16} color="#FFF" />}
+                      <Text style={{ color: '#FFF', fontSize: 14, fontWeight: '700' }}>Excel</Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              ) : null}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
