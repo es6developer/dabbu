@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, Animated } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { HomeScreen } from '../screens/home/HomeScreen';
 import { NotificationsScreen } from '../screens/home/NotificationsScreen';
 import { NotificationCenterScreen } from '../screens/home/NotificationCenterScreen';
@@ -470,6 +471,11 @@ export function MainTabNavigator() {
           tabBarShowLabel: true,
           tabBarActiveTintColor: colors.accent.primary,
           tabBarInactiveTintColor: colors.text.tertiary,
+          tabBarStyle: {
+            backgroundColor: colors.bg.primary,
+            borderTopWidth: 0,
+            elevation: 0,
+          },
         }}
       >
         <Tab.Screen
@@ -548,6 +554,28 @@ function IOSTabBar({
   if (!bottomBarVisible) {
     return null;
   }
+
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 0.92,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulseAnim]);
+
   const { getTabVisibility } = usePreferences();
   const { showCoupleFeatures, isInCouple, isCoupleModeActive } = useCoupleMode();
   const coupleHiddenTabs = new Set(showCoupleFeatures ? ['Expense', 'Spaces'] : []);
@@ -601,7 +629,15 @@ function IOSTabBar({
         style={tabStyles.tabItem}
         onPress={onPress}
       >
-        {icon}
+        <Animated.View
+          style={
+            isFocused
+              ? { transform: [{ scale: pulseAnim }] }
+              : undefined
+          }
+        >
+          {icon}
+        </Animated.View>
         <Text
           style={[
             tabStyles.label,
@@ -618,47 +654,58 @@ function IOSTabBar({
   }
 
   const midIndex = Math.floor(visibleRoutes.length / 2);
+  const glassTint = isDark ? 'dark' : 'light';
 
   return (
-    <View style={tabStyles.floatingWrapper}>
-      <View
-        style={[
-          tabStyles.outerWrapper,
-          {
-            backgroundColor: isDark ? 'rgba(28,28,30,0.94)' : 'rgba(249,249,249,0.94)',
-            shadowColor: isDark ? '#000' : 'rgba(0,0,0,0.15)',
-          },
-        ]}
-      >
-        <View style={tabStyles.innerRow}>
-          {visibleRoutes.slice(0, midIndex).map(renderTab)}
-          {showCenterButton && (
-            <TouchableOpacity
-              activeOpacity={0.8}
-              style={tabStyles.centerFab}
-              onPress={onCenterPress}
-            >
-              <View style={[tabStyles.centerFabInner, { backgroundColor: colors.accent.primary }]}>
-                <Ionicons name="add" size={28} color="#FFF" />
-              </View>
-            </TouchableOpacity>
-          )}
-          {visibleRoutes.slice(midIndex).map(renderTab)}
+    <View style={[tabStyles.container, { backgroundColor: isDark ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)' }]}>
+      <BlurView intensity={Platform.OS === 'ios' ? 60 : 40} tint={glassTint} style={tabStyles.blurWrap}>
+        <View
+          style={[
+            tabStyles.outerWrapper,
+            {
+              backgroundColor: isDark ? 'rgba(28,28,30,0.5)' : 'rgba(249,249,249,0.5)',
+              shadowColor: isDark ? '#000' : 'rgba(0,0,0,0.1)',
+            },
+          ]}
+        >
+          <View style={tabStyles.innerRow}>
+            {visibleRoutes.slice(0, midIndex).map(renderTab)}
+            {showCenterButton && (
+              <TouchableOpacity
+                activeOpacity={0.8}
+                style={tabStyles.centerFab}
+                onPress={onCenterPress}
+              >
+                <Animated.View
+                  style={[
+                    tabStyles.centerFabInner,
+                    { backgroundColor: colors.accent.primary, transform: [{ scale: pulseAnim }] },
+                  ]}
+                >
+                  <Ionicons name="add" size={28} color="#FFF" />
+                </Animated.View>
+              </TouchableOpacity>
+            )}
+            {visibleRoutes.slice(midIndex).map(renderTab)}
+          </View>
         </View>
-      </View>
+      </BlurView>
     </View>
   );
 }
 
 const tabStyles = StyleSheet.create({
-  floatingWrapper: {
-    paddingHorizontal: 16,
-    paddingBottom: Platform.OS === 'ios' ? 8 : 4,
+  container: {
+    paddingBottom: Platform.OS === 'android' ? 0 : 5,
+    overflow: 'hidden',
+  },
+  blurWrap: {
+    paddingBottom: Platform.OS === 'ios' ? 20 : 0,
   },
   outerWrapper: {
-    borderRadius: 28,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 8,
-    paddingTop: 6,
+    marginHorizontal: 12,
+    borderRadius: 26,
+    minHeight: 56,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
     shadowRadius: 16,
@@ -666,14 +713,14 @@ const tabStyles = StyleSheet.create({
   },
   innerRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-evenly',
+    minHeight: 56,
   },
   tabItem: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 2,
   },
   label: {
     fontSize: 10,
@@ -684,15 +731,13 @@ const tabStyles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 2,
   },
   centerFabInner: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 56,
+    height: 36,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: -16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,

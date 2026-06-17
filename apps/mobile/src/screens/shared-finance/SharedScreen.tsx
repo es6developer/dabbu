@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   Alert,
+  Animated,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -310,12 +311,13 @@ function GroupCard({
   userBalance,
   balanceArray,
 }: any) {
+  const [expanded, setExpanded] = useState(false);
+  const animRef = useRef(new Animated.Value(0)).current;
+
   const { owedToMe, iOwe, isSettled, totalSpent, memberCount, unsettledOthers } =
     deriveGroupBalance(group, currentUserId, userBalance, balanceArray);
   const members = group.members || [];
   const lastActivity = timeSince(group.updatedAt || group.createdAt);
-  const icon = SPACE_ICONS[group.type] || 'people';
-  const coverGradient = COVER_GRADIENTS[group.type] || ['#6B7280', '#9CA3AF'];
   const coverEmoji = COVER_EMOJIS[group.type] || '📁';
   const goalCount = group._count?.goals || group.goals?.length || 0;
   const aiTip = group.aiTip || null;
@@ -338,113 +340,195 @@ function GroupCard({
       : colors.status.error;
   const canSettle = totalSpent > 0 && !isSettled;
 
+  const toggleExpand = useCallback(() => {
+    const toValue = expanded ? 0 : 1;
+    Animated.timing(animRef, {
+      toValue,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+    setExpanded(!expanded);
+  }, [expanded, animRef]);
+
+  const bodyHeight = animRef.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 160],
+  });
+
   return (
     <TouchableOpacity activeOpacity={0.7} onPress={onPress}>
       <View
         style={{
           backgroundColor: colors.bg.card,
-          borderRadius: 16,
+          borderRadius: 18,
           borderWidth: 1,
-          borderColor: colors.border.default,
-          overflow: 'hidden',
+          borderColor: colors.border.subtle,
         }}
       >
-        {/* Cover Image Strip */}
-        <View style={{ height: 64, backgroundColor: coverGradient[0], justifyContent: 'center', paddingHorizontal: 14 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
-              <Text style={{ fontSize: 24 }}>{coverEmoji}</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 16, fontWeight: '700', color: '#FFFFFF', flex: 1 }} numberOfLines={1}>
-                  {group.name || group.title}
-                </Text>
-                <Text style={{ fontSize: 11, fontWeight: '500', color: 'rgba(255,255,255,0.7)', textTransform: 'capitalize', marginTop: 1 }}>
-                  {group.type || 'space'}
-                </Text>
-              </View>
+        {/* Top Row — collapsed view */}
+        <View style={{ padding: 16 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <View
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 14,
+                backgroundColor: `${amountColor}14`,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 22 }}>{coverEmoji}</Text>
             </View>
-            <MemberAvatars members={members} />
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }} numberOfLines={1}>
+                {group.name || group.title}
+              </Text>
+              <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text.tertiary, textTransform: 'capitalize' }}>
+                {group.type || 'space'} • {memberCount} {memberCount === 1 ? 'member' : 'members'}
+              </Text>
+            </View>
+            <View style={{ alignItems: 'flex-end', gap: 2 }}>
+              {activeAmount > 0 ? (
+                <>
+                  <Text style={{ fontSize: 17, fontWeight: '800', color: amountColor, letterSpacing: -0.3 }}>
+                    ₹{Math.round(activeAmount).toLocaleString('en-IN')}
+                  </Text>
+                  <Text style={{ fontSize: 10, fontWeight: '600', color: amountColor }}>{statusText}</Text>
+                </>
+              ) : (
+                <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.tertiary }}>
+                  {totalSpent > 0 ? 'Settled' : 'Empty'}
+                </Text>
+              )}
+            </View>
+            <TouchableOpacity
+              onPress={toggleExpand}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 14,
+                backgroundColor: colors.bg.tertiary,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <AntDesign name={expanded ? 'up' : 'down'} size={12} color={colors.text.secondary} />
+            </TouchableOpacity>
           </View>
         </View>
 
-        {/* Body */}
-        <View style={{ padding: 14, gap: 10 }}>
-          {/* Balance Row */}
-          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
-            {activeAmount > 0 ? (
-              <>
-                <Text style={{ fontSize: 22, fontWeight: '800', color: amountColor, letterSpacing: -0.3 }}>
-                  ₹{Math.round(activeAmount).toLocaleString('en-IN')}
-                </Text>
-                <Text style={{ fontSize: 13, fontWeight: '500', color: amountColor }}>
-                  {statusText}
-                </Text>
-              </>
-            ) : (
-              <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text.tertiary }}>
-                {totalSpent > 0 ? 'All settled up' : 'No activity yet'}
-              </Text>
-            )}
-          </View>
-
-          {/* Stats Row */}
-          <View style={{ flexDirection: 'row', gap: 16 }}>
-            {memberCount > 0 && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <AntDesign  name="team" size={13} color={colors.text.tertiary} />
-                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>{memberCount}</Text>
-              </View>
-            )}
-            {totalSpent > 0 && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <AntDesign  name="wallet" size={13} color={colors.text.tertiary} />
-                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>₹{Math.round(totalSpent).toLocaleString('en-IN')}</Text>
-              </View>
-            )}
-            {goalCount > 0 && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <AntDesign  name="flag" size={13} color={colors.text.tertiary} />
-                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>{goalCount} goals</Text>
-              </View>
-            )}
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <AntDesign  name="clockcircleo" size={13} color={colors.text.tertiary} />
-              <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>{lastActivity}</Text>
-            </View>
-          </View>
-
-          {/* AI Insight */}
-          {aiTip && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: `${colors.accent.primary}08`, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8 }}>
-              <AntDesign  name="bulb1" size={13} color={colors.accent.primary} />
-              <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.secondary, flex: 1 }} numberOfLines={1}>
-                {aiTip}
-              </Text>
-            </View>
-          )}
-
-          {/* Action Buttons */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
-            <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }} onPress={onAddExpense}>
-              <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, backgroundColor: `${colors.accent.primary}12` }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                  <AntDesign  name="plus" size={13} color={colors.accent.primary} />
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: colors.accent.primary }}>Add</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-            {canSettle && (
-              <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }} onPress={onSettle}>
-                <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, backgroundColor: `${settlementColor}15` }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <AntDesign  name="swap" size={13} color={settlementColor} />
-                    <Text style={{ fontSize: 12, fontWeight: '700', color: settlementColor }}>Settle</Text>
+        {/* Expanded Details */}
+        {expanded && (
+          <View
+            style={{
+              paddingHorizontal: 16,
+              paddingBottom: 16,
+              gap: 12,
+              borderTopWidth: 1,
+              borderTopColor: colors.border.subtle,
+              paddingTop: 12,
+            }}
+          >
+            {/* Stats */}
+            <View style={{ flexDirection: 'row', gap: 16, flexWrap: 'wrap' }}>
+              {totalSpent > 0 && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                  <View style={{ width: 26, height: 26, borderRadius: 8, backgroundColor: `${colors.accent.primary}12`, alignItems: 'center', justifyContent: 'center' }}>
+                    <AntDesign name="wallet" size={13} color={colors.accent.primary} />
+                  </View>
+                  <View>
+                    <Text style={{ fontSize: 9, fontWeight: '600', color: colors.text.tertiary, textTransform: 'uppercase', letterSpacing: 0.4 }}>Total</Text>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>₹{Math.round(totalSpent).toLocaleString('en-IN')}</Text>
                   </View>
                 </View>
-              </TouchableOpacity>
+              )}
+              {goalCount > 0 && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                  <View style={{ width: 26, height: 26, borderRadius: 8, backgroundColor: `${colors.status.warning}15`, alignItems: 'center', justifyContent: 'center' }}>
+                    <AntDesign name="flag" size={13} color={colors.status.warning} />
+                  </View>
+                  <View>
+                    <Text style={{ fontSize: 9, fontWeight: '600', color: colors.text.tertiary, textTransform: 'uppercase', letterSpacing: 0.4 }}>Goals</Text>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>{goalCount}</Text>
+                  </View>
+                </View>
+              )}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                <View style={{ width: 26, height: 26, borderRadius: 8, backgroundColor: `${colors.text.tertiary}15`, alignItems: 'center', justifyContent: 'center' }}>
+                  <AntDesign name="clockcircleo" size={13} color={colors.text.tertiary} />
+                </View>
+                <View>
+                  <Text style={{ fontSize: 9, fontWeight: '600', color: colors.text.tertiary, textTransform: 'uppercase', letterSpacing: 0.4 }}>Active</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary }}>{lastActivity}</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Members Avatars */}
+            {members.length > 0 && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <MemberAvatars members={members} />
+                <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary }}>
+                  {members.slice(0, 5).map((m: any) => m.split?.(' ')[0] || m.name?.split?.(' ')[0]).filter(Boolean).join(', ')}
+                  {members.length > 5 ? ` +${members.length - 5} more` : ''}
+                </Text>
+              </View>
             )}
+
+            {/* AI Insight */}
+            {aiTip && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: `${colors.accent.primary}08`, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10 }}>
+                <AntDesign name="bulb1" size={14} color={colors.accent.primary} />
+                <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text.secondary, flex: 1 }} numberOfLines={2}>
+                  {aiTip}
+                </Text>
+              </View>
+            )}
+
+            {/* Action Buttons */}
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <TouchableOpacity
+                onPress={onAddExpense}
+                activeOpacity={0.8}
+                style={{
+                  flex: 1,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  paddingVertical: 11,
+                  borderRadius: 12,
+                  backgroundColor: colors.accent.primary,
+                }}
+              >
+                <AntDesign name="plus" size={14} color="#FFFFFF" />
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF' }}>Add Expense</Text>
+              </TouchableOpacity>
+              {canSettle && (
+                <TouchableOpacity
+                  onPress={onSettle}
+                  activeOpacity={0.8}
+                  style={{
+                    flex: 1,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    paddingVertical: 11,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    borderColor: settlementColor,
+                  }}
+                >
+                  <AntDesign name="swap" size={14} color={settlementColor} />
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: settlementColor }}>Settle</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
-        </View>
+        )}
       </View>
     </TouchableOpacity>
   );

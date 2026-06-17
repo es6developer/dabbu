@@ -4,11 +4,11 @@ import {
   Text,
   SectionList,
   TouchableOpacity,
+  RefreshControl,
+  ActivityIndicator,
+  TextInput,
   Animated,
   StyleSheet,
-  TextInput,
-  ActivityIndicator,
-  RefreshControl,
   Dimensions,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
@@ -50,6 +50,8 @@ function groupByDate(txns: any[]) {
     return b.localeCompare(a);
   }).map(([title, data]) => ({ title, data }));
 }
+
+const AnimatedSectionList = Animated.createAnimatedComponent(SectionList);
 
 export function MyWalletScreen() {
   const navigation = useNavigation<any>();
@@ -115,7 +117,7 @@ export function MyWalletScreen() {
 
   return (
     <View style={[st.wrapper, { backgroundColor: colors.bg.primary }]}>
-      <SectionList
+      <AnimatedSectionList
         sections={filtered}
         keyExtractor={(item, i) => `${(item as any).id || i}`}
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}

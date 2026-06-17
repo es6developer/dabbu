@@ -207,6 +207,13 @@ export function CoupleIncomeScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
+      <View style={[styles.headerBar, { paddingTop: insets.top + 8 }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBack}>
+          <AntDesign name="arrowleft" size={22} color={colors.text.primary} />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Income</Text>
+        <View style={{ width: 36 }} />
+      </View>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
@@ -525,6 +532,21 @@ export function CoupleIncomeScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
 
+  headerBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+  },
+  headerBack: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: { fontSize: 18, fontWeight: '700' },
 
   summaryCard: {
     borderRadius: 24,

@@ -105,15 +105,16 @@ export class ExpenseGroupsController {
     return this.expenseGroupsService.addMemberByPhone(id, userId, dto.phone);
   }
 
-  @Delete(':id/members/:memberId')
+  @Post(':id/members/:memberId/remove')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Remove member from expense group' })
   async removeMember(
     @CurrentUser('id') userId: string,
     @Param('id') id: string,
     @Param('memberId') memberId: string,
+    @Body() body: { deleteTransactions?: boolean },
   ) {
-    return this.expenseGroupsService.removeMember(id, userId, memberId);
+    return this.expenseGroupsService.removeMember(id, userId, memberId, body?.deleteTransactions);
   }
 
   @Patch(':id/members/:memberId/role')
@@ -130,7 +131,11 @@ export class ExpenseGroupsController {
   @Post(':id/leave')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Leave expense group' })
-  async leave(@CurrentUser('id') userId: string, @Param('id') id: string) {
-    return this.expenseGroupsService.leave(id, userId);
+  async leave(
+    @CurrentUser('id') userId: string,
+    @Param('id') id: string,
+    @Body() body: { deleteTransactions?: boolean },
+  ) {
+    return this.expenseGroupsService.leave(id, userId, body?.deleteTransactions);
   }
 }

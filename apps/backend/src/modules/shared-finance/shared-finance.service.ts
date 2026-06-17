@@ -684,7 +684,7 @@ export class SharedFinanceService {
     return member;
   }
 
-  async removeMember(groupId: string, memberId: string, adminId: string) {
+  async removeMember(groupId: string, memberId: string, adminId: string, deleteTransactions?: boolean) {
     await this.verifyAdmin(groupId, adminId);
 
     const member = await this.prisma.sharedGroupMember.findUnique({
@@ -701,6 +701,22 @@ export class SharedFinanceService {
     }
     if (member.role === 'admin') {
       throw new BadRequestException('Cannot remove an admin. Demote first.');
+    }
+
+    if (deleteTransactions) {
+      const expenses = await this.prisma.sharedExpense.findMany({
+        where: { groupId, paidBy: member.userId },
+        select: { id: true },
+      });
+      if (expenses.length > 0) {
+        const expenseIds = expenses.map((e) => e.id);
+        await this.prisma.expenseSplit.deleteMany({
+          where: { expenseId: { in: expenseIds }, userId: member.userId },
+        });
+        await this.prisma.sharedExpense.deleteMany({
+          where: { id: { in: expenseIds } },
+        });
+      }
     }
 
     // Check if the member has outstanding balance
@@ -725,7 +741,7 @@ export class SharedFinanceService {
         isActive: false,
         removedAt: new Date(),
         removedBy: adminId,
-        removalReason: 'Removed by admin',
+        removalReason: deleteTransactions ? 'Removed by admin (expenses deleted)' : 'Removed by admin',
       },
     });
 
@@ -808,7 +824,7 @@ export class SharedFinanceService {
     };
   }
 
-  async leaveGroup(groupId: string, userId: string) {
+  async leaveGroup(groupId: string, userId: string, deleteTransactions?: boolean) {
     const member = await this.prisma.sharedGroupMember.findUnique({
       where: { groupId_userId: { groupId, userId } },
     });
@@ -824,17 +840,31 @@ export class SharedFinanceService {
       throw new BadRequestException('You are the only admin. Transfer ownership before leaving.');
     }
 
-    // Soft deactivate instead of hard delete
+    if (deleteTransactions) {
+      const expenses = await this.prisma.sharedExpense.findMany({
+        where: { groupId, paidBy: userId },
+        select: { id: true },
+      });
+      if (expenses.length > 0) {
+        const expenseIds = expenses.map((e) => e.id);
+        await this.prisma.expenseSplit.deleteMany({
+          where: { expenseId: { in: expenseIds }, userId },
+        });
+        await this.prisma.sharedExpense.deleteMany({
+          where: { id: { in: expenseIds } },
+        });
+      }
+    }
+
     await this.prisma.sharedGroupMember.update({
       where: { id: member.id },
       data: {
         isActive: false,
         removedAt: new Date(),
-        removalReason: 'Member left voluntarily',
+        removalReason: deleteTransactions ? 'Left and removed all expenses' : 'Member left voluntarily',
       },
     });
 
-    // Leave the socket room
     if (this.socketServer) {
       this.socketServer.to(`user:${userId}`).emit('leftGroup', {
         groupId,
@@ -847,7 +877,7 @@ export class SharedFinanceService {
         groupId,
         eventType: 'member_left',
         triggeredBy: userId,
-        metadata: { userId, leftAt: new Date().toISOString() },
+        metadata: { userId, leftAt: new Date().toISOString(), deleteTransactions: !!deleteTransactions },
       },
     });
 

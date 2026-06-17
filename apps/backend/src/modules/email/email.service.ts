@@ -53,20 +53,23 @@ export class EmailService implements OnModuleInit {
     this.initResend();
 
     const host = process.env.SMTP_HOST;
-    const port = Number(process.env.SMTP_PORT) || 587;
-    const secure = process.env.SMTP_SECURE === 'true';
+    const configuredPort = Number(process.env.SMTP_PORT) || 587;
+    const configuredSecure = process.env.SMTP_SECURE === 'true';
     const user = process.env.SMTP_USER || process.env.SMTP_EMAIL;
     const password = process.env.SMTP_PASS || process.env.SMTP_PASSWORD;
 
     if (host && user && password) {
       this.transporter = nodemailer.createTransport({
         host,
-        port,
-        secure,
+        port: configuredPort,
+        secure: configuredSecure,
         auth: { user, pass: password },
+        connectionTimeout: 8000,
+        greetingTimeout: 8000,
+        socketTimeout: 10000,
       });
       this.smtpInitialized = true;
-      this.logger.log(`SMTP email provider initialized: ${host}:${port}`);
+      this.logger.log(`SMTP email provider initialized: ${host}:${configuredPort} secure=${configuredSecure}`);
     }
 
     if (!this.resendInitialized && !this.smtpInitialized) {
@@ -91,15 +94,46 @@ export class EmailService implements OnModuleInit {
   }
 
   async onModuleInit() {
+    const host = process.env.SMTP_HOST;
+    const user = process.env.SMTP_USER || process.env.SMTP_EMAIL;
+    const password = process.env.SMTP_PASS || process.env.SMTP_PASSWORD;
+
+    // Try primary SMTP config first
     if (this.smtpInitialized && this.transporter) {
       try {
         await this.transporter.verify();
         this.logger.log('SMTP connection verified successfully');
       } catch (err) {
         this.logger.warn(
-          `SMTP connection failed: ${(err as Error).message}. Attempting Ethereal fallback.`,
+          `SMTP connection failed on configured port: ${(err as Error).message}. Trying alternate port.`,
         );
         this.smtpInitialized = false;
+      }
+    }
+
+    // If primary failed, try port 465 (SSL) as fallback when configured for 587 (STARTTLS) or vice versa
+    if (!this.smtpInitialized && host && user && password) {
+      const currentPort = Number(process.env.SMTP_PORT) || 587;
+      const fallbackPort = currentPort === 587 ? 465 : 587;
+      const fallbackSecure = fallbackPort === 465;
+      try {
+        const fallbackTransport = nodemailer.createTransport({
+          host,
+          port: fallbackPort,
+          secure: fallbackSecure,
+          auth: { user, pass: password },
+          connectionTimeout: 8000,
+          greetingTimeout: 8000,
+          socketTimeout: 10000,
+        });
+        await fallbackTransport.verify();
+        this.transporter = fallbackTransport;
+        this.smtpInitialized = true;
+        this.logger.log(`SMTP fallback succeeded on port ${fallbackPort} (secure=${fallbackSecure})`);
+      } catch (fallbackErr) {
+        this.logger.warn(
+          `SMTP fallback also failed on port ${fallbackPort}: ${(fallbackErr as Error).message}`,
+        );
       }
     }
 

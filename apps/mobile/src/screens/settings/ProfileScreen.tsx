@@ -232,7 +232,7 @@ export function ProfileScreen() {
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
-            paddingBottom: insets.bottom + 120 + tabBarHeight,
+            paddingBottom: insets.bottom + 32,
             paddingTop: insets.top + 4,
           }}
         >
@@ -310,25 +310,25 @@ export function ProfileScreen() {
                     >
                       Choose Avatar
                     </Text>
-                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', margin: -6 }}>
                       {presets.map((preset) => (
-                        <TouchableOpacity
-                          key={preset.seed}
-                          onPress={() => selectPreset(preset)}
-                          activeOpacity={0.7}
-                          disabled={selectedSeed === preset.seed}
-                          style={{
-                            borderRadius: 14,
-                            borderWidth: 2,
-                            borderColor:
-                              selectedSeed === preset.seed
-                                ? colors.accent.primary
-                                : colors.border.subtle,
-                            overflow: 'hidden',
-                          }}
-                        >
-                          <View>
-                            <Avatar uri={preset.url} name={preset.name} size={52} />
+                        <View key={preset.seed} style={{ width: '16.666%', padding: 6 }}>
+                          <TouchableOpacity
+                            onPress={() => selectPreset(preset)}
+                            activeOpacity={0.7}
+                            disabled={selectedSeed === preset.seed}
+                            style={{
+                              borderRadius: 14,
+                              borderWidth: 2,
+                              borderColor:
+                                selectedSeed === preset.seed
+                                  ? colors.accent.primary
+                                  : colors.border.subtle,
+                              overflow: 'hidden',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <Avatar uri={preset.url} name={preset.name} size={48} />
                             {selectedSeed === preset.seed && (
                               <View
                                 style={{
@@ -348,8 +348,8 @@ export function ProfileScreen() {
                                 <AntDesign  name="check" size={12} color="#FFFFFF" />
                               </View>
                             )}
-                          </View>
-                        </TouchableOpacity>
+                          </TouchableOpacity>
+                        </View>
                       ))}
                     </View>
                   </>
@@ -649,52 +649,41 @@ export function ProfileScreen() {
                   </Text>
                 </TouchableOpacity>
               </View>
+
+              {/* Save Button */}
+              <View style={{ marginHorizontal: spacing['2xl'], marginTop: 8, marginBottom: 16 }}>
+                <TouchableOpacity
+                  style={{
+                    borderRadius: 16,
+                    paddingVertical: 16,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexDirection: 'row',
+                    gap: 8,
+                    backgroundColor: colors.accent.primary,
+                    ...shadows.md,
+                    shadowColor: colors.accent.primary,
+                    opacity: saving || loading || !hasChanges || !!upiError ? 0.6 : 1,
+                  }}
+                  onPress={handleSaveProfile}
+                  disabled={saving || loading || !hasChanges || !!upiError}
+                  activeOpacity={0.85}
+                >
+                  {saving ? (
+                    <ActivityIndicator color="#FFFFFF" />
+                  ) : (
+                    <>
+                      <AntDesign  name="checkcircleo" size={18} color="#FFFFFF" />
+                      <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>
+                        Save Changes
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
             </>
           )}
         </ScrollView>
-
-        {/* Save Button */}
-        <View
-          style={{
-            position: 'absolute',
-            bottom: tabBarHeight,
-            left: 0,
-            right: 0,
-            paddingHorizontal: spacing['2xl'],
-            paddingTop: 12,
-            backgroundColor: colors.bg.primary,
-            paddingBottom: insets.bottom + 20,
-          }}
-        >
-          <TouchableOpacity
-            style={{
-              borderRadius: 16,
-              paddingVertical: 16,
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexDirection: 'row',
-              gap: 8,
-              backgroundColor: colors.accent.primary,
-              ...shadows.md,
-              shadowColor: colors.accent.primary,
-              opacity: saving || loading || !hasChanges || !!upiError ? 0.6 : 1,
-            }}
-            onPress={handleSaveProfile}
-            disabled={saving || loading || !hasChanges || !!upiError}
-            activeOpacity={0.85}
-          >
-            {saving ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <>
-                <AntDesign  name="checkcircleo" size={18} color="#FFFFFF" />
-                <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>
-                  Save Changes
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
       </KeyboardAvoidingView>
     </View>
   );

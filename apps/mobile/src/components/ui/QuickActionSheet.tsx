@@ -6,8 +6,10 @@ import {
   TouchableOpacity,
   Animated,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 
 const { width: SCREEN_W } = Dimensions.get('window');
@@ -26,10 +28,11 @@ interface QuickActionSheetProps {
   onClose: () => void;
 }
 
-const CARD_WIDTH = Math.min(SCREEN_W - 64, 360);
+const CARD_WIDTH = Math.min(SCREEN_W - 64, 340);
 
 export function QuickActionSheet({ actions, visible, onClose }: QuickActionSheetProps) {
   const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [rendered, setRendered] = useState(visible);
@@ -52,8 +55,10 @@ export function QuickActionSheet({ actions, visible, onClose }: QuickActionSheet
 
   if (!rendered) return null;
 
+  const tabBarHeight = Platform.OS === 'ios' ? 82 + insets.bottom : 64;
+
   return (
-    <View style={s.wrapper} pointerEvents="box-none">
+    <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
       <Animated.View style={[s.backdrop, { opacity: fadeAnim }]} pointerEvents="auto">
         <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onClose} />
       </Animated.View>
@@ -65,6 +70,7 @@ export function QuickActionSheet({ actions, visible, onClose }: QuickActionSheet
             backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
             transform: [{ scale: scaleAnim }],
             shadowColor: isDark ? '#000' : 'rgba(0,0,0,0.12)',
+            bottom: tabBarHeight + 12,
           },
         ]}
       >
@@ -94,17 +100,14 @@ export function QuickActionSheet({ actions, visible, onClose }: QuickActionSheet
 }
 
 const s = StyleSheet.create({
-  wrapper: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.4)',
   },
   card: {
-    width: CARD_WIDTH,
+    position: 'absolute',
+    left: 32,
+    right: 32,
     borderRadius: 20,
     paddingVertical: 20,
     paddingHorizontal: 20,
@@ -112,11 +115,13 @@ const s = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 24,
     elevation: 10,
+    alignItems: 'center',
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
+    justifyContent: 'center',
   },
   item: {
     alignItems: 'center',

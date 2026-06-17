@@ -390,15 +390,15 @@ export function HomeScreen() {
       } : () => {};
 
       try {
-        const balP = api.get<any>('/accounts/stats', ctrl.signal).finally(tickProgress);
-        const statsP = api.get<any>('/transactions/stats?months=1', ctrl.signal).finally(tickProgress);
-        const remP = api.get<any>('/reminders/upcoming?days=7', ctrl.signal).finally(tickProgress);
-        const goalP = api.get<any>('/goals', ctrl.signal).finally(tickProgress);
-        const notifP = api.get<any>('/notifications/unread-count', ctrl.signal).finally(tickProgress);
-        const billsP = api.get<any>('/bills?status=pending', ctrl.signal).catch(() => []).finally(tickProgress);
-        const spacesP = api.get<any>('/shared-finance/groups', ctrl.signal).catch(() => []).finally(tickProgress);
-        const budgetsP = api.get<any>('/budgets', ctrl.signal).catch(() => []).finally(tickProgress);
-        const wealthP = api.get<any>('/wealth/dashboard', ctrl.signal).catch(() => null).finally(tickProgress);
+        const balP = api.get<any>('/accounts/stats', ctrl.signal, 8000).finally(tickProgress);
+        const statsP = api.get<any>('/transactions/stats?months=1', ctrl.signal, 8000).finally(tickProgress);
+        const remP = api.get<any>('/reminders/upcoming?days=7', ctrl.signal, 8000).finally(tickProgress);
+        const goalP = api.get<any>('/goals', ctrl.signal, 8000).finally(tickProgress);
+        const notifP = api.get<any>('/notifications/unread-count', ctrl.signal, 8000).finally(tickProgress);
+        const billsP = api.get<any>('/bills?status=pending', ctrl.signal, 8000).catch(() => []).finally(tickProgress);
+        const spacesP = api.get<any>('/shared-finance/groups', ctrl.signal, 10000).catch(() => []).finally(tickProgress);
+        const budgetsP = api.get<any>('/budgets', ctrl.signal, 8000).catch(() => []).finally(tickProgress);
+        const wealthP = api.get<any>('/wealth/dashboard', ctrl.signal, 10000).catch(() => null).finally(tickProgress);
 
         const [balRes, statsRes, remRes, goalRes, notifRes, billsRes, spacesRes, budgetsRes, wealthRes] =
           await Promise.allSettled([balP, statsP, remP, goalP, notifP, billsP, spacesP, budgetsP, wealthP]);
@@ -800,6 +800,32 @@ export function HomeScreen() {
               </View>
             )}
           </View>
+
+          {/* ─── INCOME / EXPENSE SUMMARY ─── */}
+          {monthlyIncome > 0 && (
+            <View style={{ paddingHorizontal: spacing.xl, marginTop: 12 }}>
+              <View style={[page.heroCard, { backgroundColor: colors.bg.card }]}>
+                <View style={{ flexDirection: 'row', gap: 0 }}>
+                  <View style={{ flex: 1, alignItems: 'center', borderRightWidth: 1, borderRightColor: colors.border.subtle, paddingVertical: 4 }}>
+                    <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary, letterSpacing: 0.3 }}>
+                      Total Income
+                    </Text>
+                    <Text style={{ fontSize: 18, fontWeight: '800', color: colors.status.success, marginTop: 4 }}>
+                      {fmt(monthlyIncome)}
+                    </Text>
+                  </View>
+                  <View style={{ flex: 1, alignItems: 'center', paddingVertical: 4 }}>
+                    <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary, letterSpacing: 0.3 }}>
+                      Total Expense
+                    </Text>
+                    <Text style={{ fontSize: 18, fontWeight: '800', color: colors.status.error, marginTop: 4 }}>
+                      {fmt(monthlySpent)}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          )}
         </View>
 
         {/* ─── AI COACH ─── */}

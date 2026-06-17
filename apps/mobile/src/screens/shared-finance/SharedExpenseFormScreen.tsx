@@ -285,7 +285,7 @@ export function SharedExpenseFormScreen() {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
         >
-          <View style={{ paddingTop: insets.top + 4 }} />
+          <View style={{ paddingTop: 8 }} />
           <View style={{ paddingHorizontal: 20, paddingTop: 20, gap: 20 }}>
             {/* ── Error ── */}
             {error ? (

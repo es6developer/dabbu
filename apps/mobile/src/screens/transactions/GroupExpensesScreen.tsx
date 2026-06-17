@@ -147,29 +147,63 @@ export function GroupExpensesScreen() {
   }
 
   async function removeMember(member: any) {
-    Alert.alert('Remove member', `Remove ${member.user?.firstName || 'this member'}?`, [
+    Alert.alert(
+      'Remove member',
+      `What should happen to ${member.user?.firstName || 'this member'}'s transactions in this group?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete all their transactions',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              if (accessToken) setAccessToken(accessToken);
+              await api.post(`/expense-groups/${groupId}/members/${member.id}/remove`, {
+                deleteTransactions: true,
+              });
+              await loadData(true);
+              showToast('Member removed');
+            } catch (e: any) {
+              Alert.alert('Error', e.message || 'Try again');
+            }
+          },
+        },
+        {
+          text: 'Keep their transactions',
+          onPress: async () => {
+            try {
+              if (accessToken) setAccessToken(accessToken);
+              await api.post(`/expense-groups/${groupId}/members/${member.id}/remove`);
+              await loadData(true);
+              showToast('Member removed');
+            } catch (e: any) {
+              Alert.alert('Error', e.message || 'Try again');
+            }
+          },
+        },
+      ],
+    );
+  }
+
+  async function leaveGroup() {
+    Alert.alert('Leave group', 'What should happen to your transactions in this group?', [
       { text: 'Cancel', style: 'cancel' },
       {
-        text: 'Remove', style: 'destructive',
+        text: 'Delete all my transactions',
+        style: 'destructive',
         onPress: async () => {
           try {
             if (accessToken) setAccessToken(accessToken);
-            await api.delete(`/expense-groups/${groupId}/members/${member.id}`);
-            await loadData(true);
-            showToast('Member removed');
+            await api.post(`/expense-groups/${groupId}/leave`, { deleteTransactions: true });
+            navigation.goBack();
+            showToast('Left the group');
           } catch (e: any) {
             Alert.alert('Error', e.message || 'Try again');
           }
         },
       },
-    ]);
-  }
-
-  async function leaveGroup() {
-    Alert.alert('Leave group', 'You will lose access unless added again.', [
-      { text: 'Cancel', style: 'cancel' },
       {
-        text: 'Leave', style: 'destructive',
+        text: 'Keep my transactions (marked as left)',
         onPress: async () => {
           try {
             if (accessToken) setAccessToken(accessToken);

@@ -55,6 +55,7 @@ export function SharedFinanceNavigator() {
         component={SharedExpenseFormScreen}
         options={({ route }: any) => ({
           title: route.params?.edit ? 'Edit Expense' : 'New Expense',
+          headerShown: true,
         })}
       />
       <Stack.Screen

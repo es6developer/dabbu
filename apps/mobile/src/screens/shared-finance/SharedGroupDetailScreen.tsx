@@ -1139,18 +1139,31 @@ export function SharedGroupDetailScreen() {
   async function removeMember(member: any) {
     Alert.alert(
       'Remove Member',
-      `Remove ${member.user?.firstName || 'this member'} from the group?`,
+      `What should happen to ${member.user?.firstName || 'this member'}'s expenses in this group?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Remove',
+          text: 'Delete all their expenses',
           style: 'destructive',
           onPress: async () => {
             try {
-              if (accessToken) {
-                setAccessToken(accessToken);
-              }
-              await api.delete(`/shared-finance/groups/${groupId}/members/${member.id}`);
+              if (accessToken) setAccessToken(accessToken);
+              await api.post(`/shared-finance/groups/${groupId}/members/${member.id}/remove`, {
+                deleteTransactions: true,
+              });
+              showToast('Member removed');
+              await loadData(true);
+            } catch (e: any) {
+              Alert.alert('Error', e.message || 'Failed to remove member');
+            }
+          },
+        },
+        {
+          text: 'Keep their expenses',
+          onPress: async () => {
+            try {
+              if (accessToken) setAccessToken(accessToken);
+              await api.post(`/shared-finance/groups/${groupId}/members/${member.id}/remove`);
               showToast('Member removed');
               await loadData(true);
             } catch (e: any) {
@@ -1458,6 +1471,60 @@ export function SharedGroupDetailScreen() {
               placeholderTextColor={colors.text.tertiary}
               multiline
             />
+            <View style={{ flexDirection: 'row', marginTop: 16 }}>
+              <TouchableOpacity
+                style={[
+                  s.leaveGroupBtn,
+                  { backgroundColor: colors.status.error + '20', borderColor: colors.status.error },
+                ]}
+                onPress={() => {
+                  setSettingsOpen(false);
+                  setTimeout(() => {
+                    Alert.alert(
+                      'Leave group',
+                      'What should happen to your expenses in this group?',
+                      [
+                        { text: 'Cancel', style: 'cancel' },
+                        {
+                          text: 'Delete all my expenses',
+                          style: 'destructive',
+                          onPress: async () => {
+                            try {
+                              if (accessToken) setAccessToken(accessToken);
+                              await api.post(`/shared-finance/groups/${groupId}/leave`, {
+                                deleteTransactions: true,
+                              });
+                              navigation.goBack();
+                              showToast('Left the group');
+                            } catch (e: any) {
+                              Alert.alert('Error', e.message || 'Try again');
+                            }
+                          },
+                        },
+                        {
+                          text: 'Keep my expenses (marked as left)',
+                          onPress: async () => {
+                            try {
+                              if (accessToken) setAccessToken(accessToken);
+                              await api.post(`/shared-finance/groups/${groupId}/leave`);
+                              navigation.goBack();
+                              showToast('Left the group');
+                            } catch (e: any) {
+                              Alert.alert('Error', e.message || 'Try again');
+                            }
+                          },
+                        },
+                      ],
+                    );
+                  }, 300);
+                }}
+              >
+                <AntDesign name="logout" size={16} color={colors.status.error} />
+                <Text style={[s.leaveGroupBtnText, { color: colors.status.error }]}>
+                  {' '}Leave Group
+                </Text>
+              </TouchableOpacity>
+            </View>
             <View style={s.modalActions}>
               <TouchableOpacity
                 style={[
@@ -1808,5 +1875,19 @@ const s = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
+  },
+  leaveGroupBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 14,
+    borderWidth: 1,
+    flex: 1,
+  },
+  leaveGroupBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

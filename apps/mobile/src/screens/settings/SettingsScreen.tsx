@@ -36,20 +36,27 @@ type SectionItem = {
 
 const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
   {
-    title: 'Wealth Tools',
-    items: [
-      { label: 'Financial Reports', icon: 'linechart', screen: 'Reports', premium: true },
-      { label: 'Export Data', icon: 'download', screen: 'Analytics', premium: true },
-      { label: 'Budgets', icon: 'piechart', screen: 'BudgetsList' },
-    ],
-  },
-  {
     title: 'Account',
     items: [
       { label: 'Profile', icon: 'user', screen: 'Profile' },
       { label: 'Partner Management', icon: 'heart', screen: 'AddPartner' },
       { label: 'Favorite Contacts', icon: 'star', screen: 'FavoriteContacts' },
       { label: 'Refer & Earn', icon: 'gift', screen: 'Referral' },
+    ],
+  },
+  {
+    title: 'Preferences',
+    items: [
+      { label: 'Theme', icon: 'skin', screen: 'Theme' },
+      { label: 'Notifications', icon: 'bells', screen: 'NotificationSettings' },
+      { label: 'Customise Bottom Menu', icon: 'menufold', screen: 'CustomiseBottomMenu' },
+    ],
+  },
+  {
+    title: 'Security',
+    items: [
+      { label: 'Security', icon: 'Safety', screen: 'Security' },
+      { label: 'Lock App', icon: 'lock', screen: 'Security', action: 'lock' },
     ],
   },
   {
@@ -60,12 +67,11 @@ const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
     ],
   },
   {
-    title: 'Preferences',
+    title: 'Wealth Tools',
     items: [
-      { label: 'Theme', icon: 'skin', screen: 'Theme' },
-      { label: 'Notifications', icon: 'bells', screen: 'NotificationSettings' },
-      { label: 'Security', icon: 'Safety', screen: 'Security' },
-      { label: 'Lock App', icon: 'lock', screen: 'Security', action: 'lock' },
+      { label: 'Financial Reports', icon: 'linechart', screen: 'Reports', premium: true },
+      { label: 'Export Data', icon: 'download', screen: 'Analytics', premium: true },
+      { label: 'Budgets', icon: 'piechart', screen: 'BudgetsList' },
     ],
   },
   {
@@ -101,7 +107,7 @@ export function SettingsScreen() {
     approveCoupleRequest, rejectCoupleRequest,
   } = useAuth();
   const { lockApp } = useAppLock();
-  const { bottomBarVisible, quickActionVisible, setBottomBarVisibility, setQuickActionVisibility } = usePreferences();
+  const { quickActionVisible, setQuickActionVisibility } = usePreferences();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -200,38 +206,6 @@ export function SettingsScreen() {
             </TouchableOpacity>
           )}
 
-          {/* Navigation Toggles */}
-          <View style={{ paddingHorizontal: spacing.xl, marginBottom: spacing['2xl'] }}>
-            <Text style={[sectionHeader, { color: colors.text.secondary }]}>Navigation</Text>
-            <View style={[s.grouped, { backgroundColor: colors.bg.card }]}>
-              <SettingsRow icon="bars" label="Bottom Bar" colors={colors}>
-                <Switch
-                  value={bottomBarVisible} onValueChange={setBottomBarVisibility}
-                  trackColor={{ false: colors.border.subtle, true: `${colors.accent.primary}50` }}
-                  thumbColor={bottomBarVisible ? colors.accent.primary : colors.text.tertiary}
-                />
-              </SettingsRow>
-              <SettingsRow icon="pluscircleo" label="Quick Actions" colors={colors}>
-                <Switch
-                  value={quickActionVisible} onValueChange={setQuickActionVisibility}
-                  trackColor={{ false: colors.border.subtle, true: `${colors.accent.primary}50` }}
-                  thumbColor={quickActionVisible ? colors.accent.primary : colors.text.tertiary}
-                />
-              </SettingsRow>
-              <TouchableOpacity
-                style={[s.row, { borderBottomWidth: 0 }]}
-                onPress={() => handleNav('CustomiseBottomMenu')}
-                activeOpacity={0.6}
-              >
-                <View style={[s.rowIcon, { backgroundColor: `${colors.accent.primary}0A` }]}>
-                  <AntDesign name="menufold" size={16} color={colors.accent.primary} />
-                </View>
-                <Text style={[s.rowLabel, { color: colors.text.primary }]}>Customise Bottom Menu</Text>
-                <AntDesign name="right" size={14} color={colors.text.tertiary} />
-              </TouchableOpacity>
-            </View>
-          </View>
-
           {/* Couple Requests */}
           {pendingRequests.length > 0 && (
             <View style={{ paddingHorizontal: spacing.xl, marginBottom: spacing['2xl'] }}>
@@ -315,6 +289,19 @@ export function SettingsScreen() {
                     </TouchableOpacity>
                   );
                 })}
+                {section.title === 'Preferences' && (
+                  <View style={[s.row, { borderBottomWidth: 0 }]}>
+                    <View style={[s.rowIcon, { backgroundColor: `${colors.accent.primary}0A` }]}>
+                      <AntDesign name="pluscircleo" size={16} color={colors.accent.primary} />
+                    </View>
+                    <Text style={[s.rowLabel, { color: colors.text.primary }]}>Quick Actions</Text>
+                    <Switch
+                      value={quickActionVisible} onValueChange={setQuickActionVisibility}
+                      trackColor={{ false: colors.border.subtle, true: `${colors.accent.primary}50` }}
+                      thumbColor={quickActionVisible ? colors.accent.primary : colors.text.tertiary}
+                    />
+                  </View>
+                )}
               </View>
             </View>
           ))}

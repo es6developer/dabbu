@@ -421,13 +421,20 @@ export class ExpenseGroupsService {
     return { data: member };
   }
 
-  async removeMember(id: string, userId: string, memberId: string) {
+  async removeMember(id: string, userId: string, memberId: string, deleteTransactions?: boolean) {
     const group = await this.findGroupOrThrow(id);
     this.validateAdmin(group, userId);
 
     const member = await this.prisma.expenseGroupMember.findUnique({ where: { id: memberId } });
     if (!member) {
       throw new NotFoundException('Member not found');
+    }
+
+    if (deleteTransactions) {
+      await this.prisma.transaction.updateMany({
+        where: { expenseGroupId: id, userId: member.userId },
+        data: { deletedAt: new Date() },
+      });
     }
 
     await this.prisma.expenseGroupMember.delete({ where: { id: memberId } });
@@ -460,7 +467,7 @@ export class ExpenseGroupsService {
     return { data: updated };
   }
 
-  async leave(id: string, userId: string) {
+  async leave(id: string, userId: string, deleteTransactions?: boolean) {
     const group = await this.findGroupOrThrow(id);
     const member = group.members?.find((m: any) => m.userId === userId);
     if (!member) {
@@ -469,6 +476,14 @@ export class ExpenseGroupsService {
     if (group.createdBy === userId) {
       throw new BadRequestException('Transfer ownership before leaving this group');
     }
+
+    if (deleteTransactions) {
+      await this.prisma.transaction.updateMany({
+        where: { expenseGroupId: id, userId },
+        data: { deletedAt: new Date() },
+      });
+    }
+
     await this.prisma.expenseGroupMember.delete({ where: { id: member.id } });
     return { message: 'Left expense group' };
   }

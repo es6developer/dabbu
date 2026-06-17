@@ -203,8 +203,12 @@ export class SharedFinanceController {
   @Post('groups/:groupId/leave')
   @UseGuards(GroupMemberGuard)
   @ApiOperation({ summary: 'Leave group' })
-  async leaveGroup(@Param('groupId') groupId: string, @CurrentUser('id') userId: string) {
-    return this.sf.leaveGroup(groupId, userId);
+  async leaveGroup(
+    @Param('groupId') groupId: string,
+    @CurrentUser('id') userId: string,
+    @Body() body: { deleteTransactions?: boolean },
+  ) {
+    return this.sf.leaveGroup(groupId, userId, body?.deleteTransactions);
   }
 
   @Post('groups/:groupId/invites')
@@ -827,15 +831,16 @@ export class SharedFinanceController {
     return this.sf.revokeAllInvites(groupId, userId);
   }
 
-  @Delete('groups/:groupId/members/:memberId')
+  @Post('groups/:groupId/members/:memberId/remove')
   @UseGuards(GroupMemberGuard)
   @ApiOperation({ summary: 'Remove member with full access revocation (admin)' })
   async removeMember(
     @Param('groupId') groupId: string,
     @Param('memberId') memberId: string,
     @CurrentUser('id') adminId: string,
+    @Body() body: { deleteTransactions?: boolean },
   ) {
-    return this.sf.removeMember(groupId, memberId, adminId);
+    return this.sf.removeMember(groupId, memberId, adminId, body?.deleteTransactions);
   }
 
   @Post('groups/:groupId/export')
