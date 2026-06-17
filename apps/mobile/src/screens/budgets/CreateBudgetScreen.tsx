@@ -16,6 +16,11 @@ import {
   premiumFormStyles,
 } from '../../components/ui';
 
+interface CategoryOption {
+  id: string;
+  name: string;
+}
+
 const PERIODS = ['monthly', 'yearly', 'weekly'];
 
 export function CreateBudgetScreen() {
@@ -25,10 +30,10 @@ export function CreateBudgetScreen() {
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [period, setPeriod] = useState('monthly');
-  const [category, setCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<CategoryOption | null>(null);
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState('');
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const { showToast } = useToast();
@@ -43,7 +48,8 @@ export function CreateBudgetScreen() {
   async function loadCategories() {
     try {
       const res = await api.get<any>('/categories');
-      setCategories(res?.map((c: any) => c.name) || res || []);
+      const list = Array.isArray(res) ? res : res?.data || [];
+      setCategories(list.map((c: any) => ({ id: c.id, name: c.name })));
     } catch (_e) {
       /* ignore */
     }
@@ -68,7 +74,7 @@ export function CreateBudgetScreen() {
         name: name.trim(),
         amount: Number(amount),
         period,
-        category: category || undefined,
+        categoryId: selectedCategory?.id || undefined,
         startDate,
         endDate: endDate || undefined,
       });
@@ -117,20 +123,13 @@ export function CreateBudgetScreen() {
       <View style={premiumFormStyles.rowWrap}>
         {categories.map((cat) => (
           <PremiumChip
-            key={cat}
-            label={cat}
-            selected={category === cat}
-            onPress={() => setCategory(category === cat ? '' : cat)}
+            key={cat.id}
+            label={cat.name}
+            selected={selectedCategory?.id === cat.id}
+            onPress={() => setSelectedCategory(selectedCategory?.id === cat.id ? null : cat)}
           />
         ))}
       </View>
-      <PremiumInput
-        label="Custom category"
-        icon="tag"
-        value={category}
-        onChangeText={setCategory}
-        placeholder="Or type custom"
-      />
       <DatePickerField label="Start Date" value={startDate} onChange={setStartDate} />
       <DatePickerField label="End Date" value={endDate} onChange={setEndDate} optional />
       <PremiumActionButton title="Create budget" onPress={handleSave} loading={saving} icon="plus" />

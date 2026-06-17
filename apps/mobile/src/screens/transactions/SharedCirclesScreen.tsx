@@ -33,18 +33,20 @@ export function SharedCirclesScreen() {
   const [groups, setGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const loadData = useCallback(
     async (refresh = false) => {
       if (accessToken) setAccessToken(accessToken);
       if (refresh) setRefreshing(true);
       else setLoading(true);
+      setError(null);
       try {
         const res = await api.get<any>('/expense-groups/dashboard');
         const data = Array.isArray(res) ? res : [];
         setGroups(data);
-      } catch {
-        /* ignore */
+      } catch (e: any) {
+        setError(e.message || 'Unable to load');
       } finally {
         setLoading(false);
         setRefreshing(false);

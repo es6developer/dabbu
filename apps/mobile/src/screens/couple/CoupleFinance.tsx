@@ -5,6 +5,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { Card } from '../../components/ui/Card';
 import { ProfileBubble } from '../../components/ui/ProfileBubble';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 
 const TABS = ['Overview', 'Expenses', 'Balances'];
 

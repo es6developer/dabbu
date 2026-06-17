@@ -18,7 +18,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius } from '../../theme/design';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { useToast } from '../../store/ToastContext';
@@ -114,11 +114,11 @@ export function CoupleGoalsScreen() {
       const payload: any = {
         name: formName.trim(),
         targetAmount: parseFloat(formTarget) || 0,
-        icon: formIcon,
+        category: formIcon,
         notes: formNotes.trim(),
       };
       if (formDate.trim()) {
-        payload.targetDate = formDate.trim();
+        payload.deadline = formDate.trim();
       }
       await api.post(`/shared-finance/groups/${coupleGroup.id}/goals`, payload);
       setAddModalVisible(false);
@@ -232,7 +232,7 @@ export function CoupleGoalsScreen() {
               Save together for trips, a home, a wedding, or anything else you dream of.
             </Text>
             <TouchableOpacity
-              style={styles.emptyBtn}
+              style={[styles.emptyBtn, { backgroundColor: colors.accent.primary }]}
               activeOpacity={0.8}
               onPress={() => {
                 resetForm();
@@ -249,15 +249,24 @@ export function CoupleGoalsScreen() {
             item.targetAmount > 0
               ? Math.min(Math.round((item.savedAmount / item.targetAmount) * 100), 100)
               : 0;
-          const hasDate = !!item.targetDate;
+          const hasDate = !!item.deadline;
           const dateStr = hasDate
-            ? new Date(item.targetDate).toLocaleDateString('en-IN', {
+            ? new Date(item.deadline).toLocaleDateString('en-IN', {
                 day: 'numeric',
                 month: 'short',
                 year: 'numeric',
               })
             : '';
-          const partners = item.contributions?.partners || [];
+          const goalContributions = Array.isArray(item.contributions) ? item.contributions : [];
+          const partnerTotals: Record<string, { name: string; amount: number }> = {};
+          goalContributions.forEach((c: any) => {
+            const uid = c.user?.id || c.userId;
+            if (!partnerTotals[uid]) {
+              partnerTotals[uid] = { name: c.user?.firstName || 'Partner', amount: 0 };
+            }
+            partnerTotals[uid].amount += Number(c.amount || 0);
+          });
+          const partners = Object.values(partnerTotals);
           const p1 = partners[0];
           const p2 = partners[1];
           const p1Pct =
@@ -268,17 +277,19 @@ export function CoupleGoalsScreen() {
             item.savedAmount > 0 && p2?.amount
               ? Math.round((p2.amount / item.savedAmount) * 100)
               : 0;
+          const goalIcon = GOAL_ICONS.find((g) => g.key === (item.category || 'gift'))?.icon || 'gift';
 
           return (
             <View
               style={[
                 styles.goalCard,
                 { backgroundColor: colors.bg.card, borderColor: colors.border.default },
+                shadows.lg,
               ]}
             >
               <View style={styles.goalTopRow}>
-                <View style={styles.goalIconWrap}>
-                  <AntDesign name={(item.icon || 'gift') as any} size={22} color="#FFF" />
+                <View style={[styles.goalIconWrap, { backgroundColor: colors.accent.primary }]}>
+                  <AntDesign name={goalIcon as any} size={22} color="#FFF" />
                 </View>
                 <View style={styles.goalTitleWrap}>
                   <Text
@@ -302,13 +313,13 @@ export function CoupleGoalsScreen() {
                     saved
                   </Text>
                 </View>
-                <View style={styles.goalPctBadge}>
+                <View style={[styles.goalPctBadge, { backgroundColor: colors.accent.primary }]}>
                   <Text style={styles.goalPctText}>{pct}%</Text>
                 </View>
               </View>
 
               <View style={[styles.progressBar, { backgroundColor: colors.bg.tertiary }]}>
-                <View style={[styles.progressFill, { width: `${pct}%` }]} />
+                <View style={[styles.progressFill, { width: `${pct}%`, backgroundColor: colors.accent.primary }]} />
               </View>
 
               <View style={styles.goalMetaRow}>
@@ -350,7 +361,7 @@ export function CoupleGoalsScreen() {
               )}
 
               <TouchableOpacity
-                style={styles.contributeBtn}
+                style={[styles.contributeBtn, { backgroundColor: colors.accent.primary }]}
                 activeOpacity={0.8}
                 onPress={() => openContribution(item)}
               >
@@ -498,7 +509,7 @@ export function CoupleGoalsScreen() {
               <TouchableOpacity
                 style={[
                   styles.modalSubmitBtn,
-                  { opacity: submitting || !formName.trim() ? 0.5 : 1 },
+                  { backgroundColor: colors.accent.primary, opacity: submitting || !formName.trim() ? 0.5 : 1 },
                 ]}
                 onPress={handleAddGoal}
                 disabled={submitting || !formName.trim()}
@@ -566,7 +577,7 @@ export function CoupleGoalsScreen() {
               <TouchableOpacity
                 style={[
                   styles.modalSubmitBtn,
-                  { opacity: submitting || !formAmount.trim() ? 0.5 : 1 },
+                  { backgroundColor: colors.accent.primary, opacity: submitting || !formAmount.trim() ? 0.5 : 1 },
                 ]}
                 onPress={handleAddContribution}
                 disabled={submitting || !formAmount.trim()}
@@ -635,7 +646,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#F97316',
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 16,
@@ -646,14 +656,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginTop: 16,
     borderRadius: 20,
-    padding: 18,
+    padding: 20,
     borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    elevation: 2,
-    gap: 12,
+    gap: 14,
   },
   goalTopRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   goalIconWrap: {
@@ -675,7 +680,6 @@ const styles = StyleSheet.create({
   goalSaved: { fontSize: 26, fontWeight: '800' },
   goalSavedLabel: { fontSize: 11, fontWeight: '500', marginTop: 1 },
   goalPctBadge: {
-    backgroundColor: '#F97316',
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 10,
@@ -683,7 +687,7 @@ const styles = StyleSheet.create({
   goalPctText: { color: '#FFF', fontSize: 13, fontWeight: '700' },
 
   progressBar: { height: 6, borderRadius: 3, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: '#F97316', borderRadius: 3 },
+  progressFill: { height: '100%', borderRadius: 3 },
 
   goalMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   goalMetaText: { fontSize: 12, fontWeight: '500' },
@@ -706,7 +710,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: '#F97316',
     paddingVertical: 12,
     borderRadius: 14,
   },
@@ -790,7 +793,6 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 50,
     borderRadius: 16,
-    backgroundColor: '#F97316',
     alignItems: 'center',
     justifyContent: 'center',
   },

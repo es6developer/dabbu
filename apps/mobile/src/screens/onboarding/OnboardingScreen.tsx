@@ -20,9 +20,9 @@ const { width, height } = Dimensions.get('window');
 const IMG_H = height * 0.52;
 
 const localImages = {
-  track: require('../../assets/onboarding/expense-tracking.png'),
-  couple: require('../../assets/onboarding/couple-space.png'),
-  split: require('../../assets/onboarding/payment-split.png'),
+  track: require('../../../assets/onboarding/expense-tracking.png'),
+  couple: require('../../../assets/onboarding/couple-space.png'),
+  split: require('../../../assets/onboarding/payment-split.png'),
 };
 
 const slides = [

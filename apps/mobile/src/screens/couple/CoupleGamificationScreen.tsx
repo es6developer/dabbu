@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { useTheme } from '../../theme';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 
 const LEVEL_COLORS: Record<string, string> = {
   'Platinum Couple': '#E2E8F0',

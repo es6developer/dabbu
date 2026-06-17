@@ -10,6 +10,7 @@ import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { UpgradeBanner } from '../../components/ui/UpgradeBanner';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 
 const PLANNERS = [
   {

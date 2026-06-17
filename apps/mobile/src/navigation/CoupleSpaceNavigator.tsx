@@ -6,6 +6,8 @@ import { CoupleSpaceScreen } from '../screens/couple/CoupleSpaceScreen';
 import { CoupleSplashScreen } from '../screens/couple/CoupleSplashScreen';
 import { CoupleSettingsScreen } from '../screens/couple/CoupleSettingsScreen';
 import { CoupleTransactionFormScreen } from '../screens/couple/CoupleTransactionFormScreen';
+import { CoupleGoalsScreen } from '../screens/couple/CoupleGoalsScreen';
+import { CoupleBillsScreen } from '../screens/couple/CoupleBillsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -18,6 +20,8 @@ export function CoupleSpaceNavigator() {
       <Stack.Screen name="CoupleSpaceHome" component={CoupleSpaceScreen} options={{ headerShown: false }} />
       <Stack.Screen name="CoupleSettings" component={CoupleSettingsScreen} options={{ headerShown: false }} />
       <Stack.Screen name="CoupleTransactionForm" component={CoupleTransactionFormScreen} options={{ headerShown: false, presentation: 'modal' }} />
+      <Stack.Screen name="Goals" component={CoupleGoalsScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Bills" component={CoupleBillsScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }

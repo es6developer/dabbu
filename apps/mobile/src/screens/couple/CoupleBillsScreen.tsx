@@ -8,17 +8,16 @@ import {
   RefreshControl,
   Modal,
   TextInput,
-  Switch,
   Platform,
   Alert,
-  Dimensions,
   Animated,
+  Dimensions,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
-import { spacing, borderRadius } from '../../theme/design';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { useToast } from '../../store/ToastContext';
@@ -26,24 +25,6 @@ import { useToast } from '../../store/ToastContext';
 import { getCategoryIcon } from '../../config/categoryIcons';
 
 const { width } = Dimensions.get('window');
-
-const BILL_CATEGORIES = [
-  'Utilities',
-  'Housing',
-  'Groceries',
-  'Healthcare',
-  'Transportation',
-  'Financial',
-  'Shopping',
-  'Entertainment',
-  'Other',
-];
-
-const RECURRING_OPTIONS = [
-  { label: 'Weekly', value: 'weekly' },
-  { label: 'Monthly', value: 'monthly' },
-  { label: 'Yearly', value: 'yearly' },
-];
 
 function fmt(v: number) {
   return `₹${(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
@@ -77,9 +58,6 @@ export function CoupleBillsScreen() {
   const [formName, setFormName] = useState('');
   const [formAmount, setFormAmount] = useState('');
   const [formDueDate, setFormDueDate] = useState('');
-  const [formCategory, setFormCategory] = useState('Other');
-  const [formRecurring, setFormRecurring] = useState(false);
-  const [formRecurringInterval, setFormRecurringInterval] = useState('monthly');
   const [formAssignedTo, setFormAssignedTo] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const { showToast } = useToast();
@@ -109,8 +87,8 @@ export function CoupleBillsScreen() {
         const p1 = profileData.profile.partner1;
         const p2 = profileData.profile.partner2;
         setPartners([
-          { id: 'partner1', name: p1?.firstName || 'Partner 1' },
-          { id: 'partner2', name: p2?.firstName || 'Partner 2' },
+          { id: p1?.id || 'partner1', name: p1?.firstName || 'Partner 1' },
+          { id: p2?.id || 'partner2', name: p2?.firstName || 'Partner 2' },
         ]);
       }
       setError('');
@@ -141,20 +119,9 @@ export function CoupleBillsScreen() {
 
   const markAsPaid = async (billId: string) => {
     try {
-      const groups: any[] = await api.get('/shared-finance/groups');
-      const coupleGroup = Array.isArray(groups)
-        ? groups.find((g: any) => g.type === 'couple' && g.status === 'ACTIVE')
-        : null;
-      if (!coupleGroup) {
-        return;
-      }
       await api.post(`/shared-finance/household/bills/${billId}/mark-paid`);
-      setBills((prev) =>
-        prev.map((b) =>
-          b.id === billId ? { ...b, status: 'paid', paidAt: new Date().toISOString() } : b,
-        ),
-      );
       showToast('Bill marked as paid');
+      fetchBills(true);
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'Failed to mark bill as paid');
     }
@@ -180,22 +147,20 @@ export function CoupleBillsScreen() {
         Alert.alert('Error', 'No couple space found.');
         return;
       }
+      const half = amount / 2;
       const payload: any = {
-        name: formName.trim(),
+        type: formName.trim(),
         amount,
         dueDate:
           formDueDate ||
           new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        category: formCategory,
-        status: 'upcoming',
+        paidBy: formAssignedTo || partners[0]?.id || '',
+        period: new Date().toISOString().slice(0, 7),
+        shares: partners.map((p) => ({
+          userId: p.id,
+          amount: half,
+        })),
       };
-      if (formRecurring) {
-        payload.recurring = true;
-        payload.recurringInterval = formRecurringInterval;
-      }
-      if (formAssignedTo) {
-        payload.assignedTo = formAssignedTo;
-      }
       const created = await api.post(
         `/shared-finance/groups/${coupleGroup.id}/household/bills`,
         payload,
@@ -215,18 +180,15 @@ export function CoupleBillsScreen() {
     setFormName('');
     setFormAmount('');
     setFormDueDate('');
-    setFormCategory('Other');
-    setFormRecurring(false);
-    setFormRecurringInterval('monthly');
     setFormAssignedTo('');
   };
 
   const upcomingBills = bills
-    .filter((b) => b.status !== 'paid')
+    .filter((b) => !b.isPaid)
     .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
 
   const paidBills = bills
-    .filter((b) => b.status === 'paid')
+    .filter((b) => b.isPaid)
     .sort(
       (a, b) =>
         new Date(b.paidAt || b.updatedAt).getTime() - new Date(a.paidAt || b.updatedAt).getTime(),
@@ -280,16 +242,16 @@ export function CoupleBillsScreen() {
         </View>
 
         <View style={{ paddingHorizontal: 20, marginTop: -12, gap: 12 }}>
-          <View style={[styles.summaryCard, { backgroundColor: '#FFEBB4' }]}>
+          <View style={[styles.summaryCard, { backgroundColor: `${colors.accent.primary}12` }, shadows.lg]}>
             <View style={styles.summaryRow}>
               <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Total Upcoming</Text>
-                <Text style={styles.summaryAmount}>{fmt(totalUpcoming)}</Text>
+                <Text style={[styles.summaryLabel, { color: colors.accent.primary }]}>Total Upcoming</Text>
+                <Text style={[styles.summaryAmount, { color: colors.accent.primary }]}>{fmt(totalUpcoming)}</Text>
               </View>
-              <View style={styles.summaryDivider} />
+              <View style={[styles.summaryDivider, { backgroundColor: `${colors.accent.primary}25` }]} />
               <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>This Month</Text>
-                <Text style={styles.summaryAmount}>{fmt(totalThisMonth)}</Text>
+                <Text style={[styles.summaryLabel, { color: colors.accent.primary }]}>This Month</Text>
+                <Text style={[styles.summaryAmount, { color: colors.accent.primary }]}>{fmt(totalThisMonth)}</Text>
               </View>
             </View>
           </View>
@@ -364,11 +326,11 @@ export function CoupleBillsScreen() {
                 upcomingBills.map((bill) => {
                   const due = daysUntil(bill.dueDate);
                   const overdue = due < 0;
-                  const icon = getCategoryIcon(bill.category, 'filetext1');
+                  const icon = getCategoryIcon(bill.type, 'filetext1');
                   return (
                     <View
                       key={bill.id || bill._id}
-                      style={[styles.billCard, { backgroundColor: colors.bg.card }]}
+                      style={[styles.billCard, { backgroundColor: colors.bg.card }, shadows.lg]}
                     >
                       <View style={styles.billCardTop}>
                         <View
@@ -386,12 +348,12 @@ export function CoupleBillsScreen() {
                         <View style={styles.billInfo}>
                           <View style={styles.billNameRow}>
                             <Text style={[styles.billName, { color: colors.text.primary }]}>
-                              {bill.name}
+                              {bill.type || bill.name}
                             </Text>
                             {overdue && <View style={styles.overdueDot} />}
                           </View>
                           <Text style={[styles.billCategory, { color: colors.text.tertiary }]}>
-                            {((bill.category as any)?.name || bill.category || '')}
+                            {bill.notes || ''}
                           </Text>
                         </View>
                         <Text style={[styles.billAmount, { color: colors.text.primary }]}>
@@ -420,7 +382,7 @@ export function CoupleBillsScreen() {
                           </Text>
                         </View>
                         <TouchableOpacity
-                          style={styles.markPaidBtn}
+                          style={[styles.markPaidBtn, { backgroundColor: colors.accent.primary }]}
                           activeOpacity={0.7}
                           onPress={() => markAsPaid(bill.id || bill._id)}
                         >
@@ -448,11 +410,11 @@ export function CoupleBillsScreen() {
                 </View>
               ) : (
                 paidBills.map((bill) => {
-                  const icon = getCategoryIcon(bill.category, 'filetext1');
+                  const icon = getCategoryIcon(bill.type, 'filetext1');
                   return (
                     <View
                       key={bill.id || bill._id}
-                      style={[styles.billCard, { backgroundColor: colors.bg.card }]}
+                      style={[styles.billCard, { backgroundColor: colors.bg.card }, shadows.lg]}
                     >
                       <View style={styles.billCardTop}>
                         <View
@@ -472,11 +434,11 @@ export function CoupleBillsScreen() {
                               style={{ marginRight: 4 }}
                             />
                             <Text style={[styles.billName, { color: colors.text.primary }]}>
-                              {bill.name}
+                              {bill.type || bill.name}
                             </Text>
                           </View>
                           <Text style={[styles.billCategory, { color: colors.text.tertiary }]}>
-                            {((bill.category as any)?.name || bill.category || '')}
+                            {bill.notes || ''}
                           </Text>
                         </View>
                         <Text style={[styles.billAmount, { color: colors.text.primary }]}>
@@ -579,97 +541,6 @@ export function CoupleBillsScreen() {
                   onChangeText={setFormDueDate}
                 />
 
-                <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>Category</Text>
-                <View style={styles.categoryRow}>
-                  {BILL_CATEGORIES.map((cat) => (
-                    <TouchableOpacity
-                      key={cat}
-                      style={[
-                        styles.categoryChip,
-                        {
-                          backgroundColor:
-                            formCategory === cat ? colors.accent.primary : colors.bg.tertiary,
-                          borderColor:
-                            formCategory === cat ? colors.accent.primary : colors.border.default,
-                        },
-                      ]}
-                      onPress={() => setFormCategory(cat)}
-                    >
-                      <AntDesign
-                        name={getCategoryIcon(cat, 'filetext1') as any}
-                        size={14}
-                        color={formCategory === cat ? '#FFF' : colors.text.secondary}
-                      />
-                      <Text
-                        style={[
-                          styles.categoryChipText,
-                          { color: formCategory === cat ? '#FFF' : colors.text.secondary },
-                        ]}
-                      >
-                        {cat}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                <View style={styles.recurringRow}>
-                  <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>
-                    Recurring
-                  </Text>
-                  <Switch
-                    value={formRecurring}
-                    onValueChange={setFormRecurring}
-                    trackColor={{
-                      false: colors.border.default,
-                      true: `${colors.accent.primary}80`,
-                    }}
-                    thumbColor={formRecurring ? colors.accent.primary : '#f4f3f4'}
-                  />
-                </View>
-
-                {formRecurring && (
-                  <>
-                    <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>
-                      Repeat
-                    </Text>
-                    <View style={styles.categoryRow}>
-                      {RECURRING_OPTIONS.map((opt) => (
-                        <TouchableOpacity
-                          key={opt.value}
-                          style={[
-                            styles.categoryChip,
-                            {
-                              backgroundColor:
-                                formRecurringInterval === opt.value
-                                  ? colors.accent.primary
-                                  : colors.bg.tertiary,
-                              borderColor:
-                                formRecurringInterval === opt.value
-                                  ? colors.accent.primary
-                                  : colors.border.default,
-                            },
-                          ]}
-                          onPress={() => setFormRecurringInterval(opt.value)}
-                        >
-                          <Text
-                            style={[
-                              styles.categoryChipText,
-                              {
-                                color:
-                                  formRecurringInterval === opt.value
-                                    ? '#FFF'
-                                    : colors.text.secondary,
-                              },
-                            ]}
-                          >
-                            {opt.label}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  </>
-                )}
-
                 <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>Assign To</Text>
                 <View style={styles.categoryRow}>
                   {partners.map((p) => (
@@ -701,7 +572,7 @@ export function CoupleBillsScreen() {
 
               <View style={styles.modalFooter}>
                 <TouchableOpacity
-                  style={[styles.submitBtn, submitting && { opacity: 0.6 }]}
+                  style={[styles.submitBtn, { backgroundColor: colors.accent.primary }, submitting && { opacity: 0.6 }]}
                   activeOpacity={0.8}
                   onPress={handleAddBill}
                   disabled={submitting}
@@ -737,27 +608,20 @@ const styles = StyleSheet.create({
   summaryCard: {
     borderRadius: 24,
     padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    elevation: 4,
   },
   summaryRow: { flexDirection: 'row', alignItems: 'center' },
   summaryItem: { flex: 1, alignItems: 'center' },
   summaryDivider: {
     width: 1,
     height: 40,
-    backgroundColor: 'rgba(93,56,181,0.15)',
   },
   summaryLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#F97316',
     letterSpacing: 0.3,
     marginBottom: 4,
   },
-  summaryAmount: { fontSize: 24, fontWeight: '800', color: '#F97316', letterSpacing: -0.5 },
+  summaryAmount: { fontSize: 24, fontWeight: '800', letterSpacing: -0.5 },
 
   tabRow: {
     flexDirection: 'row',
@@ -778,10 +642,6 @@ const styles = StyleSheet.create({
   billCard: {
     borderRadius: 20,
     padding: 16,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    elevation: 2,
   },
   billCardTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   categoryIconWrap: {
@@ -816,7 +676,6 @@ const styles = StyleSheet.create({
   dueDateText: { fontSize: 12, fontWeight: '500', flex: 1 },
   dueDateValue: { fontSize: 11, fontWeight: '500' },
   markPaidBtn: {
-    backgroundColor: '#F97316',
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 10,
@@ -880,7 +739,6 @@ const styles = StyleSheet.create({
   },
   modalFooter: { marginTop: 20 },
   submitBtn: {
-    backgroundColor: '#F97316',
     paddingVertical: 16,
     borderRadius: 16,
     alignItems: 'center',

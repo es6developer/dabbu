@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 
 const { width } = Dimensions.get('window');
 

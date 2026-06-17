@@ -65,7 +65,11 @@ export function GroupExpensesScreen() {
 
   const loadData = useCallback(
     async (refresh = false) => {
-      if (!groupId) return;
+      if (!groupId) {
+        setLoading(false);
+        setError('No group selected');
+        return;
+      }
       if (accessToken) setAccessToken(accessToken);
       if (refresh) setRefreshing(true);
       else setLoading(true);

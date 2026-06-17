@@ -429,7 +429,7 @@ export function MainTabNavigator() {
       label: 'Expense Group',
       icon: 'people-outline',
       color: '#14B8A6',
-      onPress: () => navigation.navigate('Expense', { screen: 'GroupExpenses' }),
+      onPress: () => navigation.navigate('Expense', { screen: 'SharedCircles' }),
     },
   ];
 

@@ -1657,7 +1657,13 @@ export class SharedFinanceService {
       }),
       this.prisma.sharedGoal.findMany({
         where: { groupId },
-        include: { contributions: true },
+        include: {
+          contributions: {
+            include: {
+              user: { select: { id: true, firstName: true, lastName: true } },
+            },
+          },
+        },
       }),
     ]);
 
@@ -1683,6 +1689,13 @@ export class SharedFinanceService {
         Number(g.targetAmount) > 0
           ? Math.round((Number(g.savedAmount) / Number(g.targetAmount)) * 100)
           : 0,
+      contributions: g.contributions.map((c) => ({
+        id: c.id,
+        userId: c.userId,
+        amount: Number(c.amount),
+        date: c.date,
+        user: c.user,
+      })),
     }));
 
     const partner1Paid = expenses

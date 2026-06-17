@@ -15,6 +15,7 @@ import { useTheme } from '../../theme';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { getCategoryIcon } from '../../config/categoryIcons';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 
 const { width } = Dimensions.get('window');
 const BAR_H = 8;

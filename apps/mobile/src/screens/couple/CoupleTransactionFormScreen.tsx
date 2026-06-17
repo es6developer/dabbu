@@ -9,6 +9,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   Animated,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -44,7 +45,7 @@ const SPLIT_OPTIONS = [
 export function CoupleTransactionFormScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<RouteProp<{ CoupleTransactionForm: PrefillParams }, 'CoupleTransactionForm'>>();
-  const { accessToken } = useAuth();
+  const { accessToken, user } = useAuth();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const prefill = route.params?.prefill;
@@ -58,35 +59,61 @@ export function CoupleTransactionFormScreen() {
   const [splitType, setSplitType] = useState<'personal' | 'shared' | 'split'>('personal');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [categories, setCategories] = useState<any[]>([]);
 
   const inputRef = useRef<TextInput>(null);
-  const scaleAnim = useRef(new Animated.Value(0.96)).current;
   const isExpense = type === 'expense';
 
   useEffect(() => {
-    Animated.spring(scaleAnim, { toValue: 1, friction: 8, tension: 60, useNativeDriver: true }).start();
     setTimeout(() => inputRef.current?.focus(), 400);
+    loadCategories();
   }, []);
+
+  async function loadCategories() {
+    try {
+      const res = await api.get<any[]>('/categories');
+      setCategories(Array.isArray(res) ? res : Array.isArray((res as any)?.data) ? (res as any).data : []);
+    } catch {}
+  }
+
+  const selectedCategoryId = useMemo(() => {
+    if (!category || !categories.length) return null;
+    const found = categories.find((c: any) => c.name === category || c.id === category);
+    return found?.id || null;
+  }, [category, categories]);
 
   async function handleSave() {
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
       setError('Enter a valid amount');
       return;
     }
+    if (!prefill?.groupId) {
+      setError('No couple group found');
+      return;
+    }
     setError('');
     setSaving(true);
     if (accessToken) setAccessToken(accessToken);
     try {
-      const data: any = {
-        amount: Number(amount),
-        type,
-        description: description.trim() || `${category} ${type}`,
-        date: dateValue,
-        splitType: splitType === 'personal' ? undefined : splitType,
-      };
-      if (prefill?.groupId) data.expenseGroupId = prefill.groupId;
-      await api.post('/transactions', data);
-      showToast(isExpense ? 'Expense added' : 'Income added');
+      if (isExpense) {
+        await api.post(`/shared-finance/groups/${prefill.groupId}/expenses`, {
+          description: description.trim() || `${category || 'Shared'} expense`,
+          amount: Number(amount),
+          paidBy: user?.id || 'me',
+          category: category || undefined,
+          date: dateValue,
+          splitType: splitType === 'personal' ? undefined : splitType,
+        });
+        showToast('Expense added');
+      } else {
+        await api.post(`/shared-finance/groups/${prefill.groupId}/couple/incomes`, {
+          source: description.trim() || `${category || 'Other'} income`,
+          amount: Number(amount),
+          categoryId: selectedCategoryId,
+          date: dateValue,
+        });
+        showToast('Income added');
+      }
       if (prefill?.returnTo) {
         navigation.navigate(prefill.returnTo, { groupId: prefill.groupId, groupName: prefill.groupName });
       } else {

@@ -7,6 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { api } from '../../services/api';
+import { spacing, borderRadius, shadows } from '../../theme/design';
 
 export function CoupleSplashScreen() {
   const navigation = useNavigation<any>();
