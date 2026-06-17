@@ -10,7 +10,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
@@ -144,7 +144,7 @@ export function CoupleHomeScreen() {
     } finally { setLoading(false); setRefreshing(false); }
   }, []);
 
-  useEffect(() => { fetchDashboard(); }, [fetchDashboard]);
+  useFocusEffect(useCallback(() => { fetchDashboard(); }, [fetchDashboard]));
 
   const onRefresh = useCallback(() => { setRefreshing(true); fetchDashboard(true); }, [fetchDashboard]);
 
@@ -459,7 +459,7 @@ const st = StyleSheet.create({
   coachIcon: { width: 32, height: 32, borderRadius: borderRadius.xl, alignItems: 'center', justifyContent: 'center', marginTop: spacing.xs },
   coachTitle: { fontSize: 12, fontWeight: '700' },
   coachText: { fontSize: 13, lineHeight: 18, marginTop: spacing.xs },
-  goalRow: { borderRadius: borderRadius['2xl'], padding: spacing.md, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs },
+  goalRow: { borderRadius: borderRadius['2xl'], padding: spacing.md, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.lg },
   goalIcon: { width: 36, height: 36, borderRadius: borderRadius.xl, alignItems: 'center', justifyContent: 'center' },
   goalInfo: { flex: 1 },
   goalName: { fontSize: 13, fontWeight: '600' },

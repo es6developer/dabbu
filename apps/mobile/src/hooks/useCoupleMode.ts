@@ -26,7 +26,7 @@ const COUPLE_SCREENS = new Set([
   'CoupleReports',
   'CoupleSettings',
   'SharedExpenseForm',
-  'CreateTransaction',
+  'AddExpense',
   'AddPartner',
 ]);
 

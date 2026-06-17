@@ -259,66 +259,61 @@ export function PremiumSignupScreen() {
             >
               {/* Header */}
               <View style={{ paddingHorizontal: spacing.xl, marginBottom: 12 }}>
-                <View
+                <TouchableOpacity
+                  onPress={() => navigation.goBack()}
                   style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
+                    width: 40,
+                    height: 40,
+                    borderRadius: 12,
+                    backgroundColor: colors.bg.secondary,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: 14,
                   }}
                 >
-                  <View style={{ flex: 1 }}>
-                    <View
-                      style={{
-                        width: 80,
-                        height: 80,
-                        borderRadius: 20,
-                        backgroundColor: colors.bg.secondary,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        marginBottom: 14,
-                      }}
-                    >
-                      <Image
-                        source={require('../../../assets/logo.png')}
-                        style={{ width: 56, height: 56 }}
-                        resizeMode="contain"
-                      />
-                    </View>
-                    <Text
-                      style={{
-                        fontSize: 28,
-                        fontWeight: '800',
-                        color: colors.text.primary,
-                        letterSpacing: -0.5,
-                      }}
-                    >
-                      Create your account
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: 15,
-                        fontWeight: '500',
-                        color: colors.text.secondary,
-                        marginTop: 6,
-                        lineHeight: 20,
-                      }}
-                    >
-                      Join millions managing money smarter with Dabbu
-                    </Text>
-                  </View>
-                  <TouchableOpacity
-                    onPress={() => navigation.goBack()}
+                  <AntDesign  name="close" size={22} color={colors.text.primary} />
+                </TouchableOpacity>
+                <View style={{ alignItems: 'center' }}>
+                  <View
                     style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 12,
+                      width: 80,
+                      height: 80,
+                      borderRadius: 20,
                       backgroundColor: colors.bg.secondary,
                       alignItems: 'center',
                       justifyContent: 'center',
+                      marginBottom: 14,
                     }}
                   >
-                    <AntDesign  name="close" size={22} color={colors.text.primary} />
-                  </TouchableOpacity>
+                    <Image
+                      source={require('../../../assets/logo.png')}
+                      style={{ width: 56, height: 56 }}
+                      resizeMode="contain"
+                    />
+                  </View>
+                  <Text
+                    style={{
+                      fontSize: 28,
+                      fontWeight: '800',
+                      color: colors.text.primary,
+                      letterSpacing: -0.5,
+                      textAlign: 'center',
+                    }}
+                  >
+                    Create your account
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      fontWeight: '500',
+                      color: colors.text.secondary,
+                      marginTop: 6,
+                      lineHeight: 20,
+                      textAlign: 'center',
+                    }}
+                  >
+                    Join millions managing money smarter with Dabbu
+                  </Text>
                 </View>
               </View>
 

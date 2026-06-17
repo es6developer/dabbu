@@ -365,9 +365,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1.5,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 3,
     elevation: 1,
   },
   typeIcon: {

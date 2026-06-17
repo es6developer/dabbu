@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
+import { spacing } from '../../theme/design';
 import {
   PremiumFormScreen,
   PremiumInput,
@@ -224,7 +225,7 @@ export function CreateSharedGroupScreen() {
 
 const styles = StyleSheet.create({
   fieldBlock: {
-    marginBottom: 15,
+    marginBottom: spacing.lg,
   },
   label: {
     fontSize: 11,

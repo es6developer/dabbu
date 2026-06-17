@@ -73,7 +73,6 @@ export function MyWalletScreen() {
   const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
   const [reportYear, setReportYear] = useState(new Date().getFullYear());
   const [reportData, setReportData] = useState<any>(null);
-  const [reportLoading, setReportLoading] = useState(false);
   const [exporting, setExporting] = useState<'pdf' | 'excel' | null>(null);
   const scrollY = useRef(new Animated.Value(0)).current;
   const abortRef = useRef<AbortController | null>(null);
@@ -114,14 +113,30 @@ export function MyWalletScreen() {
     return { income: m.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0), expense: m.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0), count: m.length };
   }, [transactions]);
 
-  const loadReport = useCallback(async () => {
-    setReportLoading(true);
-    try {
-      const res = await api.get<any>(`/transactions/monthly-report?year=${reportYear}&month=${reportMonth}`);
-      setReportData(res);
-    } catch { setReportData(null) }
-    finally { setReportLoading(false) }
-  }, [reportYear, reportMonth]);
+  const buildReport = useCallback((month: number, year: number) => {
+    const monthly = transactions.filter(t => {
+      const d = new Date(t.date || t.createdAt);
+      return !isNaN(d.getTime()) && d.getMonth() + 1 === month && d.getFullYear() === year;
+    });
+    const totalIncome = monthly.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount || 0), 0);
+    const totalExpense = monthly.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount || 0), 0);
+    const catMap: Record<string, number> = {};
+    monthly.forEach(t => {
+      const cat = typeof t.category === 'string' ? t.category : t.category?.name || 'Other';
+      catMap[cat] = (catMap[cat] || 0) + Number(t.amount || 0);
+    });
+    return {
+      totalIncome,
+      totalExpense,
+      balance: totalIncome - totalExpense,
+      transactionCount: monthly.length,
+      categories: Object.entries(catMap).map(([name, amount]) => ({ name, amount })),
+    };
+  }, [transactions]);
+
+  useEffect(() => {
+    if (reportOpen) setReportData(buildReport(reportMonth, reportYear));
+  }, [reportOpen, reportMonth, reportYear, buildReport]);
 
   const handleExport = useCallback(async (format: 'pdf' | 'excel') => {
     setExporting(format);
@@ -166,7 +181,7 @@ export function MyWalletScreen() {
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} tintColor={colors.accent.primary} colors={[colors.accent.primary]} />}
-        contentContainerStyle={transactions.length === 0 && !search ? st.emptyContainer : { paddingBottom: 100 }}
+        contentContainerStyle={transactions.length === 0 && !search ? st.emptyContainer : { paddingBottom: 100, paddingHorizontal: spacing.xl }}
         ListHeaderComponent={
           <View>
             <Animated.View style={[st.header, { paddingTop: insets.top + spacing.sm, opacity: headerOpacity }]}>
@@ -194,10 +209,10 @@ export function MyWalletScreen() {
             </View>
 
             <View style={st.addRow}>
-              <TouchableOpacity style={[st.addBtn, { backgroundColor: colors.accent.primary }]} onPress={() => navigation.navigate('CreateTransaction', { prefill: { type: 'expense' } })} activeOpacity={0.85}>
+              <TouchableOpacity style={[st.addBtn, { backgroundColor: colors.accent.primary }]} onPress={() => navigation.navigate('AddExpense', { prefill: { type: 'expense' } })} activeOpacity={0.85}>
                 <Text style={st.addBtnText}>+ Add Expense</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[st.addBtn, { backgroundColor: colors.bg.secondary, borderWidth: 1, borderColor: colors.border.subtle }]} onPress={() => navigation.navigate('CreateTransaction', { prefill: { type: 'income' } })} activeOpacity={0.85}>
+              <TouchableOpacity style={[st.addBtn, { backgroundColor: colors.bg.secondary, borderWidth: 1, borderColor: colors.border.subtle }]} onPress={() => navigation.navigate('AddExpense', { prefill: { type: 'income' } })} activeOpacity={0.85}>
                 <Text style={[st.addBtnSecondaryText, { color: colors.text.primary }]}>+ Add Income</Text>
               </TouchableOpacity>
             </View>
@@ -286,14 +301,8 @@ export function MyWalletScreen() {
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity onPress={loadReport} style={{ alignSelf: 'center', paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, backgroundColor: colors.accent.primary, marginBottom: 16 }}>
-              <Text style={{ color: '#FFF', fontSize: 13, fontWeight: '600' }}>Load Report</Text>
-            </TouchableOpacity>
-
             <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-              {reportLoading ? (
-                <ActivityIndicator size="large" color={colors.accent.primary} style={{ marginVertical: 40 }} />
-              ) : reportData ? (
+              {reportData ? (
                 <>
                   <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
                     <View style={{ flex: 1, alignItems: 'center', padding: 14, backgroundColor: `${colors.status.success}10`, borderRadius: 14 }}>
@@ -354,30 +363,30 @@ export function MyWalletScreen() {
 
 const st = StyleSheet.create({
   wrapper: { flex: 1 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing['2xl'], paddingBottom: spacing.md },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.xl, paddingBottom: spacing.md },
   greeting: { fontSize: 13, fontWeight: '500' },
   headerTitle: { fontSize: 24, fontWeight: '700', marginTop: spacing.xs },
-  balanceCard: { marginHorizontal: spacing['2xl'], borderRadius: borderRadius['3xl'], padding: spacing['2xl'], marginBottom: spacing.lg },
+  balanceCard: { paddingHorizontal: spacing.xl, paddingVertical: spacing['2xl'], borderRadius: borderRadius['3xl'], marginBottom: spacing.lg },
   balanceLabel: { fontSize: 13, fontWeight: '600', letterSpacing: 0.3 },
   balanceAmount: { fontSize: 34, fontWeight: '800', marginTop: spacing.sm, letterSpacing: -1 },
   balanceRow: { flexDirection: 'row', marginTop: spacing['2xl'], gap: spacing['3xl'] },
   balanceItem: { gap: spacing.xs },
   balanceItemLabel: { fontSize: 12, fontWeight: '500' },
   balanceItemValue: { fontSize: 18, fontWeight: '700' },
-  addRow: { flexDirection: 'row', paddingHorizontal: spacing['2xl'], gap: spacing.sm, marginBottom: spacing.lg },
+  addRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.lg },
   addBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.md, borderRadius: borderRadius['2xl'] },
   addBtnText: { color: '#FFF', fontSize: 15, fontWeight: '600' },
   addBtnSecondaryText: { fontSize: 15, fontWeight: '600' },
-  reportCard: { marginHorizontal: spacing['2xl'], borderRadius: borderRadius['2xl'], padding: spacing.xl, marginBottom: spacing.lg },
+  reportCard: { borderRadius: borderRadius['2xl'], padding: spacing.xl, marginBottom: spacing.lg },
   reportTitle: { fontSize: 15, fontWeight: '700', marginBottom: spacing.md },
   reportRow: { flexDirection: 'row', gap: spacing.sm },
   reportItem: { flex: 1, gap: spacing.xs },
   reportLabel: { fontSize: 11, fontWeight: '500' },
   reportValue: { fontSize: 16, fontWeight: '700' },
-  searchBox: { flexDirection: 'row', alignItems: 'center', marginHorizontal: spacing['2xl'], borderRadius: borderRadius['2xl'], paddingHorizontal: spacing.md, height: 40, gap: spacing.sm, marginBottom: spacing.sm },
+  searchBox: { flexDirection: 'row', alignItems: 'center', borderRadius: borderRadius['2xl'], paddingHorizontal: spacing.md, height: 40, gap: spacing.sm, marginBottom: spacing.sm },
   searchInput: { flex: 1, fontSize: 14, fontWeight: '500' },
-  sectionHeader: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, paddingHorizontal: spacing['2xl'], paddingVertical: spacing.sm },
-  txCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: spacing['2xl'], marginVertical: spacing.xs, padding: spacing.md, borderRadius: borderRadius['2xl'] },
+  sectionHeader: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, paddingVertical: spacing.sm },
+  txCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginVertical: spacing.lg, padding: spacing.md, borderRadius: borderRadius['2xl'] },
   txLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: spacing.sm },
   txIcon: { width: 36, height: 36, borderRadius: borderRadius.xl, alignItems: 'center', justifyContent: 'center' },
   txInfo: { flex: 1 },
@@ -387,5 +396,5 @@ const st = StyleSheet.create({
   empty: { alignItems: 'center', paddingTop: 60, gap: spacing.sm },
   emptyTitle: { fontSize: 17, fontWeight: '600' },
   emptyDesc: { fontSize: 13, textAlign: 'center', paddingHorizontal: spacing['4xl'] },
-  emptyContainer: { flexGrow: 1, justifyContent: 'center' },
+  emptyContainer: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: spacing.xl },
 });

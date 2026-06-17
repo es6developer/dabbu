@@ -564,7 +564,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 16,
     borderWidth: 1,
-    marginBottom: 10,
+    marginBottom: spacing.lg,
   },
   billCardLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: 12 },
   categoryDot: {

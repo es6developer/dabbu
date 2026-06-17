@@ -208,7 +208,7 @@ export function CoupleIncomeScreen() {
             </Text>
           </View>
         ) : (
-          <View style={{ paddingHorizontal: 20, marginTop: 20, gap: 10 }}>
+          <View style={{ paddingHorizontal: 20, marginTop: 20, gap: spacing.lg }}>
             {incomes.map((item) => {
               const cat = item.category;
               const iconName = cat?.icon || (item.categoryId ? 'wallet' : 'wallet');
@@ -286,10 +286,10 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 22,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
   summaryTotalLabel: { fontSize: 12, fontWeight: '600', color: '#F97316', letterSpacing: 0.3 },
   summaryTotalAmount: {
@@ -321,10 +321,10 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 18,
     shadowColor: '#F97316',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+    elevation: 2,
   },
   addBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 
@@ -335,9 +335,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     gap: 14,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
     elevation: 2,
   },
   incomeIconWrap: {

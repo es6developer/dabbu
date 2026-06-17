@@ -9,6 +9,7 @@ import DraggableFlatList, {
   ScaleDecorator,
 } from 'react-native-draggable-flatlist';
 import { useTheme } from '../../theme';
+import { spacing } from '../../theme/design';
 import { api, setAccessToken, getAccessToken } from '../../services/api';
 
 const WIDGET_META: Record<string, { label: string; icon: string; desc: string }> = {
@@ -190,7 +191,7 @@ export function CustomiseDashboardScreen() {
         onDragEnd={({ data }) => setWidgets(data)}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        contentContainerStyle={{ padding: 20, gap: 10 }}
+        contentContainerStyle={{ padding: 20, gap: spacing.lg }}
       />
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>

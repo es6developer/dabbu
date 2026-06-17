@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
   content: { padding: spacing['2xl'], paddingBottom: 120 },
   title: { fontSize: 28, fontWeight: '700', marginBottom: spacing.xs },
   subtitle: { fontSize: 14, marginBottom: spacing['2xl'] },
-  card: { flexDirection: 'row', alignItems: 'center', padding: 18, borderRadius: borderRadius['2xl'], marginBottom: spacing.md, borderWidth: 1.5 },
+  card: { flexDirection: 'row', alignItems: 'center', padding: 18, borderRadius: borderRadius['2xl'], marginBottom: spacing.lg, borderWidth: 1.5 },
   iconWrap: { width: spacing['5xl'], height: spacing['5xl'], borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
   info: { flex: 1 },
   label: { fontSize: 16, fontWeight: '600', marginBottom: 2 },

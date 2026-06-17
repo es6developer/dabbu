@@ -644,7 +644,7 @@ export function BillScannerScreen() {
                   style={[styles.actionBtn, { backgroundColor: colors.accent.primary }]}
                   activeOpacity={0.8}
                   onPress={() =>
-                    navigation.navigate('CreateTransaction', {
+                    navigation.navigate('AddExpense', {
                       prefill: {
                         amount: parseFloat(editAmount) || 0,
                         description: editMerchant || editDescription || '',
@@ -719,7 +719,7 @@ export function BillScannerScreen() {
                         borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.3)',
                       },
                     ]}
-                    onPress={() => navigation.navigate('CreateTransaction' as any)}
+                    onPress={() => navigation.navigate('AddExpense' as any)}
                   >
                     <AntDesign  name="edit" size={20} color={colors.text.secondary} />
                     <Text style={[styles.actionBtnText, { color: colors.text.secondary }]}>

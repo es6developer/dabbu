@@ -107,7 +107,7 @@ export function PremiumLoginScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Back + Brand */}
-          <View style={{ paddingHorizontal: spacing.xl, marginBottom: 12 }}>
+          <View style={{ paddingHorizontal: spacing.xl, marginBottom: 12, alignItems: 'center' }}>
             <View
               style={{
                 width: 80,
@@ -131,6 +131,7 @@ export function PremiumLoginScreen() {
                 fontWeight: '800',
                 color: colors.text.primary,
                 letterSpacing: -0.5,
+                textAlign: 'center',
               }}
             >
               Welcome back
@@ -142,6 +143,7 @@ export function PremiumLoginScreen() {
                 color: colors.text.secondary,
                 marginTop: 6,
                 lineHeight: 20,
+                textAlign: 'center',
               }}
             >
               Sign in to continue managing your finances

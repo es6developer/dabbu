@@ -9,6 +9,7 @@ import {
   ScrollView,
   Animated,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -16,6 +17,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../config/categoryIcons';
+import { api, setAccessToken, getAccessToken } from '../../services/api';
+import { useAuth } from '../../store/AuthContext';
+import { useToast } from '../../store/ToastContext';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const CARD_PAD = 20;
@@ -29,14 +33,21 @@ export function AddExpenseScreen() {
   const route = useRoute<any>();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const { showToast } = useToast();
+  const { accessToken } = useAuth();
 
-  const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState(route.params?.category || '');
-  const [notes, setNotes] = useState('');
-  const [activeTab, setActiveTab] = useState<'expense' | 'income'>('expense');
+  const prefill = route.params?.prefill;
+  const editingTransaction = route.params?.transaction;
+  const isEditing = Boolean(editingTransaction?.id);
+
+  const [amount, setAmount] = useState(isEditing ? String(editingTransaction?.amount ?? '') : prefill?.amount ? String(prefill.amount) : '');
+  const [category, setCategory] = useState(isEditing ? (editingTransaction?.category?.name || editingTransaction?.category || '') : (prefill?.categoryName || route.params?.category || ''));
+  const [notes, setNotes] = useState(isEditing ? (editingTransaction?.description || '') : (prefill?.description || ''));
+  const [activeTab, setActiveTab] = useState<'expense' | 'income'>(isEditing ? (editingTransaction?.type || 'expense') : (prefill?.type === 'income' || route.params?.type === 'income' ? 'income' : 'expense'));
   const [showAllCats, setShowAllCats] = useState(false);
+  const [saving, setSaving] = useState(false);
   const inputRef = useRef<TextInput>(null);
-  const tabAnim = useRef(new Animated.Value(0)).current;
+  const tabAnim = useRef(new Animated.Value(activeTab === 'income' ? 1 : 0)).current;
   const expandAnim = useRef(new Animated.Value(0)).current;
 
   const categories = useMemo(
@@ -87,8 +98,35 @@ export function AddExpenseScreen() {
       Alert.alert('Error', 'Please select a category');
       return;
     }
-    Alert.alert('Success', `${activeTab === 'expense' ? 'Expense' : 'Income'} added successfully!`);
-    navigation.goBack();
+    setSaving(true);
+    if (accessToken) setAccessToken(accessToken);
+    try {
+      const data: any = {
+        amount: parseFloat(amount),
+        type: activeTab,
+        description: notes.trim() || `${category} ${activeTab}`,
+        category: category,
+      };
+      if (prefill?.groupId) {
+        data.expenseGroupId = prefill.groupId;
+      }
+      if (isEditing) {
+        await api.patch(`/transactions/${editingTransaction.id}`, data);
+        showToast('Transaction updated');
+      } else {
+        await api.post('/transactions', data);
+        showToast('Transaction created');
+      }
+      if (!isEditing && prefill?.returnTo) {
+        navigation.navigate(prefill.returnTo, { groupId: prefill.groupId, groupName: prefill.groupName });
+      } else {
+        navigation.goBack();
+      }
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to save');
+    } finally {
+      setSaving(false);
+    }
   }
 
   const isExpense = activeTab === 'expense';
@@ -175,9 +213,13 @@ export function AddExpenseScreen() {
               <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
                 <AntDesign name="close" size={20} color="#FFF" />
               </TouchableOpacity>
-              <Text style={s.headerTitle}>Add Transaction</Text>
-              <TouchableOpacity onPress={handleSave} style={s.headerSave}>
-                <Text style={s.saveText}>Save</Text>
+              <Text style={s.headerTitle}>{isEditing ? 'Edit Transaction' : 'Add Transaction'}</Text>
+              <TouchableOpacity onPress={handleSave} disabled={saving} style={s.headerSave}>
+                {saving ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  <Text style={s.saveText}>Save</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -256,13 +298,11 @@ export function AddExpenseScreen() {
             ) : null}
           </View>
 
-          {/* Frequent categories */}
           <Text style={[s.subSectionLabel, { color: colors.text.tertiary }]}>Frequently Used</Text>
           <View style={s.catGrid}>
             {frequentCats.map((cat, i) => renderCategoryItem(cat, i))}
           </View>
 
-          {/* Expandable "All Categories" toggle */}
           <TouchableOpacity
             onPress={toggleExpand}
             style={[s.expandBtn, { borderColor: colors.border.subtle }]}
@@ -284,7 +324,6 @@ export function AddExpenseScreen() {
             </View>
           )}
 
-          {/* Notes */}
           <View
             style={[
               s.notesRow,
@@ -301,7 +340,6 @@ export function AddExpenseScreen() {
             />
           </View>
 
-          {/* Date & Bill */}
           <View style={s.actionRow}>
             <TouchableOpacity
               style={[s.actionBtn, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}
@@ -319,7 +357,6 @@ export function AddExpenseScreen() {
         </View>
       </ScrollView>
 
-      {/* Bottom Action */}
       <View
         style={[
           s.bottomBar,
@@ -332,7 +369,7 @@ export function AddExpenseScreen() {
         <TouchableOpacity
           onPress={handleSave}
           activeOpacity={0.85}
-          disabled={!amount || !category}
+          disabled={saving || !amount || !category}
         >
           <LinearGradient
             colors={[accentColor, accentDark]}
@@ -343,11 +380,16 @@ export function AddExpenseScreen() {
               { opacity: amount && category ? 1 : 0.5 },
             ]}
           >
-            <AntDesign name="checkcircleo" size={18} color="#FFF" />
-            <Text style={s.saveBtnText}>
-              Add {isExpense ? 'Expense' : 'Income'} • ₹
-              {displayAmount}
-            </Text>
+            {saving ? (
+              <ActivityIndicator size="small" color="#FFF" />
+            ) : (
+              <>
+                <AntDesign name="checkcircleo" size={18} color="#FFF" />
+                <Text style={s.saveBtnText}>
+                  {isEditing ? 'Update' : 'Add'} {isExpense ? 'Expense' : 'Income'} • ₹{displayAmount}
+                </Text>
+              </>
+            )}
           </LinearGradient>
         </TouchableOpacity>
       </View>

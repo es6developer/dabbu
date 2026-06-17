@@ -4,6 +4,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import ReAnimated, { FadeInUp } from 'react-native-reanimated';
+import { spacing } from '../../theme/design';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
@@ -183,7 +184,7 @@ export function AiInsightsScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 16, gap: 8, paddingVertical: 12 }}
+          contentContainerStyle={{ paddingHorizontal: 16, gap: spacing.lg, paddingVertical: 12 }}
         >
           {SECTIONS.map((sec) => (
             <TouchableOpacity

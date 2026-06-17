@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
+import { spacing } from '../../theme/design';
 import { PremiumLoaderScreen } from '../../components/ui/PremiumLoaderScreen';
 
 function fmt(v: number) {
@@ -96,7 +97,7 @@ export function FamilyDashboardScreen() {
 
   if (loading) {
     return (
-      <PremiumLoaderScreen progress={loadingProgress} title="Loading Family Dashboard" icon="team" />
+      <PremiumLoaderScreen progress={loadingProgress} title="Loading Family Dashboard" icon="people-outline" />
     );
   }
 
@@ -323,24 +324,24 @@ const s = StyleSheet.create({
   roleChips: { flexDirection: 'row', gap: 6 },
   roleChip: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
   roleChipText: { fontSize: 10, fontWeight: '700' },
-  memberCard: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 16, marginBottom: 8, gap: 12 },
+  memberCard: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 16, marginBottom: spacing.lg, gap: 12 },
   memberAvatar: { width: 40, height: 40, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   memberInit: { fontSize: 16, fontWeight: '700' },
   memberNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   memberName: { fontSize: 14, fontWeight: '600' },
   memberMeta: { fontSize: 11, marginTop: 2 },
-  expenseCard: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 16, marginBottom: 8, gap: 12 },
+  expenseCard: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 16, marginBottom: spacing.lg, gap: 12 },
   expenseAvatar: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   expenseAvatarText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
   expenseDesc: { fontSize: 14, fontWeight: '600' },
   expenseMeta: { fontSize: 11, marginTop: 2 },
   expenseAmount: { fontSize: 15, fontWeight: '700' },
-  billCard: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 16, marginBottom: 8, gap: 12 },
+  billCard: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 16, marginBottom: spacing.lg, gap: 12 },
   billIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   billName: { fontSize: 14, fontWeight: '600' },
   billDue: { fontSize: 11, marginTop: 2 },
   billAmount: { fontSize: 15, fontWeight: '700' },
-  goalCard: { borderRadius: 18, padding: 16, marginBottom: 10 },
+  goalCard: { borderRadius: 18, padding: 16, marginBottom: spacing.lg },
   goalTop: { flexDirection: 'row', alignItems: 'center' },
   goalName: { fontSize: 15, fontWeight: '700' },
   goalTarget: { fontSize: 12, marginTop: 2 },
@@ -354,5 +355,5 @@ const s = StyleSheet.create({
   catValue: { fontSize: 12, fontWeight: '600', width: 60, textAlign: 'right' },
   errorText: { fontSize: 15, textAlign: 'center', paddingHorizontal: 40 },
   retry: { marginTop: 16, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 },
-  fab: { position: 'absolute', right: 20, bottom: 28, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4, zIndex: 100 },
+  fab: { position: 'absolute', right: 20, bottom: 28, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6, elevation: 2, zIndex: 100 },
 });

@@ -4,6 +4,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme';
+import { spacing } from '../../theme/design';
 import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 
@@ -79,7 +80,7 @@ function ChallengeCard({ challenge, colors }: { challenge: any; colors: any }) {
   const isComplete = challenge.completed;
 
   return (
-    <View style={{ backgroundColor: colors.bg.card, borderRadius: 16, borderWidth: 1, borderColor: colors.border.default, padding: 14, marginBottom: 10 }}>
+    <View style={{ backgroundColor: colors.bg.card, borderRadius: 16, borderWidth: 1, borderColor: colors.border.default, padding: 14, marginBottom: spacing.lg }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         <Text style={{ fontSize: 28 }}>{challenge.icon}</Text>
         <View style={{ flex: 1 }}>

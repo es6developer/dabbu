@@ -3,17 +3,17 @@ import { Theme } from '../theme';
 import { Platform } from 'react-native';
 
 /**
- * Smooth screen transitions for both platforms.
- * - iOS: slide_from_right (native iOS push transition)
- * - Android: fade + slide combination for smoother feel
- * - gesture back enabled for iOS-like swipe
- * - 350ms matches iOS default transition duration
+ * Apple-native spring-driven screen transitions.
+ * - iOS: slide_from_right with 400ms (Apple default spring duration)
+ * - Android: slide_from_right for iOS-consistent feel
+ * - gesture back enabled for native iOS-like swipe
+ * - 400ms matches Apple's UINavigationController spring transition
  */
 export function iosTransitionOptions(theme: Theme): NativeStackNavigationOptions {
   const { colors, typography } = theme;
   return {
-    animation: Platform.OS === 'android' ? 'fade_from_bottom' : 'slide_from_right',
-    animationDuration: Platform.OS === 'android' ? 280 : 350,
+    animation: 'slide_from_right',
+    animationDuration: 400,
     animationTypeForReplace: 'push',
     gestureEnabled: true,
     gestureDirection: 'horizontal',
@@ -52,3 +52,24 @@ export function noAnimationOptions(theme: Theme): NativeStackNavigationOptions {
     headerShadowVisible: false,
   };
 }
+
+/**
+ * Apple-style spring animation config for Animated API.
+ * tension: 120 (responsive but not bouncy)
+ * friction: 10 (smooth settle)
+ * useNativeDriver: true
+ */
+export const APPLE_SPRING = {
+  tension: 120,
+  friction: 10,
+  useNativeDriver: true,
+} as const;
+
+/**
+ * Softer spring for cards/UI elements appearing.
+ */
+export const CARD_SPRING = {
+  tension: 80,
+  friction: 12,
+  useNativeDriver: true,
+} as const;

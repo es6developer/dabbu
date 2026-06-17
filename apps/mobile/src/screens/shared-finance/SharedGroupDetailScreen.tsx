@@ -24,6 +24,7 @@ import { CATEGORY_COLORS } from '../../config/categoryIcons';
 import { INVITE_BASE_URL } from '../../config/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme, palette } from '../../theme';
+import { spacing } from '../../theme/design';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { EmptyState } from './components/EmptyState';
@@ -446,7 +447,7 @@ export function SharedGroupDetailScreen() {
 
   if (loading) {
     return (
-      <PremiumLoaderScreen progress={loadingProgress} title="Loading Space" icon="team" />
+      <PremiumLoaderScreen progress={loadingProgress} title="Loading Space" icon="people-outline" />
     );
   }
 
@@ -509,7 +510,7 @@ export function SharedGroupDetailScreen() {
           <View style={[s.settlementHero, { backgroundColor: colors.bg.card, alignItems: 'center', paddingVertical: 16 }]}>
             <ActivityIndicator size="small" color={colors.accent.primary} />
           </View>
-        ) : localSettlements.length > 0 && (
+        ) : (
           <View style={[s.settlementHero, { backgroundColor: colors.bg.card }]}>
             <View style={s.settlementHeroHeader}>
               <AntDesign  name="swap" size={18} color={colors.accent.primary} />
@@ -519,80 +520,82 @@ export function SharedGroupDetailScreen() {
                   : `You are owed ${fmt(myBalanceRow?.balance || 0)}`}
               </Text>
             </View>
-            <TouchableOpacity
-              onPress={() => setSimplified(p => !p)}
-              style={s.simplifyToggle}
-            >
-              <AntDesign
-                name={simplified ? 'checksquare' : 'checksquareo'}
-                size={18}
-                color={colors.accent.primary}
-              />
-              <Text style={[s.simplifyToggleText, { color: colors.text.secondary }]}>
-                Simplified settlements
-              </Text>
-            </TouchableOpacity>
-            {localSettlements.map((st, i) => (
-              <View key={i} style={s.settlementRow}>
-                <View style={[s.settlementAvatar, { backgroundColor: colors.accent.primary }]}>
-                  <Text style={s.settlementAvatarText}>
-                    {st.fromName === 'You' ? st.toName[0]?.toUpperCase() : st.fromName[0]?.toUpperCase()}
+            {settlements.length > 0 && (
+              <>
+                <TouchableOpacity
+                  onPress={() => setSimplified(p => !p)}
+                  style={s.simplifyToggle}
+                >
+                  <AntDesign
+                    name={simplified ? 'checksquare' : 'checksquareo'}
+                    size={18}
+                    color={colors.accent.primary}
+                  />
+                  <Text style={[s.simplifyToggleText, { color: colors.text.secondary }]}>
+                    Simplified settlements
                   </Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[s.settlementLabel, { color: colors.text.primary }]}>
-                    {st.type === 'pay'
-                      ? `Pay ${st.toName}`
-                      : `${st.fromName} pays you`}
-                  </Text>
-                  <Text style={[s.settlementAmount, { color: colors.text.tertiary }]}>
-                    {fmt(st.amount)}
-                  </Text>
-                </View>
-                {st.type === 'pay' && st.upiId ? (
-                  <TouchableOpacity
-                    style={[s.upiBtn, { backgroundColor: '#34C759' }]}
-                    onPress={() => {
-                      const upiLink = `upi://pay?pa=${encodeURIComponent(st.upiId!)}&pn=${encodeURIComponent(st.toName)}&am=${st.amount}&cu=INR&tn=Settling%20via%20Dabbu`;
-                      Linking.openURL(upiLink).catch(() =>
-                        Alert.alert(
-                          'Unable to open UPI',
-                          'No UPI app found. Please try GPay, PhonePe, or Paytm.',
-                        ),
-                      );
-                    }}
-                  >
-                    <AntDesign  name="wallet" size={14} color="#FFF" />
-                    <Text style={s.upiBtnText}>Pay</Text>
-                  </TouchableOpacity>
-                ) : st.type === 'remind' ? (
-                  <TouchableOpacity
-                    style={[s.upiBtn, { backgroundColor: colors.status.warning }]}
-                    onPress={() => {
-                      const msg = `Hey ${st.fromName}, just a reminder to pay me ${fmt(st.amount)} on Dabbu!`;
-                      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
-                      Linking.openURL(whatsappUrl).catch(() =>
-                        Alert.alert('Reminder', msg),
-                      );
-                    }}
-                  >
-                    <AntDesign  name="bells" size={14} color="#FFF" />
-                    <Text style={s.upiBtnText}>Remind</Text>
-                  </TouchableOpacity>
-                ) : null}
-              </View>
-            ))}
-            {localSettlements.length > 0 && (
-              <TouchableOpacity
-                style={[s.viewAllSettlements, { borderTopColor: colors.border.subtle }]}
-                onPress={() => navigation.navigate('Settlement', { groupId })}
-              >
-                <Text style={[s.viewAllSettlementsText, { color: colors.accent.primary }]}>
-                  View all settlements
-                </Text>
-                <AntDesign  name="right" size={14} color={colors.accent.primary} />
-              </TouchableOpacity>
+                </TouchableOpacity>
+                {localSettlements.map((st, i) => (
+                  <View key={i} style={s.settlementRow}>
+                    <View style={[s.settlementAvatar, { backgroundColor: colors.accent.primary }]}>
+                      <Text style={s.settlementAvatarText}>
+                        {st.fromName === 'You' ? st.toName[0]?.toUpperCase() : st.fromName[0]?.toUpperCase()}
+                      </Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[s.settlementLabel, { color: colors.text.primary }]}>
+                        {st.type === 'pay'
+                          ? `Pay ${st.toName}`
+                          : `${st.fromName} pays you`}
+                      </Text>
+                      <Text style={[s.settlementAmount, { color: colors.text.tertiary }]}>
+                        {fmt(st.amount)}
+                      </Text>
+                    </View>
+                    {st.type === 'pay' && st.upiId ? (
+                      <TouchableOpacity
+                        style={[s.upiBtn, { backgroundColor: '#34C759' }]}
+                        onPress={() => {
+                          const upiLink = `upi://pay?pa=${encodeURIComponent(st.upiId!)}&pn=${encodeURIComponent(st.toName)}&am=${st.amount}&cu=INR&tn=Settling%20via%20Dabbu`;
+                          Linking.openURL(upiLink).catch(() =>
+                            Alert.alert(
+                              'Unable to open UPI',
+                              'No UPI app found. Please try GPay, PhonePe, or Paytm.',
+                            ),
+                          );
+                        }}
+                      >
+                        <AntDesign  name="wallet" size={14} color="#FFF" />
+                        <Text style={s.upiBtnText}>Pay</Text>
+                      </TouchableOpacity>
+                    ) : st.type === 'remind' ? (
+                      <TouchableOpacity
+                        style={[s.upiBtn, { backgroundColor: colors.status.warning }]}
+                        onPress={() => {
+                          const msg = `Hey ${st.fromName}, just a reminder to pay me ${fmt(st.amount)} on Dabbu!`;
+                          const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+                          Linking.openURL(whatsappUrl).catch(() =>
+                            Alert.alert('Reminder', msg),
+                          );
+                        }}
+                      >
+                        <AntDesign  name="bells" size={14} color="#FFF" />
+                        <Text style={s.upiBtnText}>Remind</Text>
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
+                ))}
+              </>
             )}
+            <TouchableOpacity
+              style={[s.viewAllSettlements, { borderTopColor: colors.border.subtle }]}
+              onPress={() => navigation.navigate('Settlement', { groupId })}
+            >
+              <Text style={[s.viewAllSettlementsText, { color: colors.accent.primary }]}>
+                View all settlements
+              </Text>
+              <AntDesign  name="right" size={14} color={colors.accent.primary} />
+            </TouchableOpacity>
           </View>
         )}
 
@@ -1344,11 +1347,7 @@ export function SharedGroupDetailScreen() {
             tintColor={colors.accent.primary}
           />
         }
-        contentContainerStyle={
-          activeTab === 'expenses' && expenses.length === 0
-            ? s.emptyContainer
-            : { paddingBottom: insets.bottom + 120 }
-        }
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 120 }}
         stickySectionHeadersEnabled={false}
         renderSectionHeader={({ section }) =>
           activeTab === 'expenses' && section.data.length > 0 ? (
@@ -1658,7 +1657,6 @@ export function SharedGroupDetailScreen() {
 const s = StyleSheet.create({
   screen: { flex: 1 },
   loadWrap: { flex: 1 },
-  emptyContainer: { flexGrow: 1, paddingTop: 60 },
   analyticsNumber: { fontSize: 20, fontWeight: '800', marginBottom: 4 },
   analyticsLabel: { fontSize: 11, fontWeight: '600' },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -1687,7 +1685,7 @@ const s = StyleSheet.create({
   tabRow: { flexDirection: 'row', gap: 8 },
   tabChip: { paddingHorizontal: 18, paddingVertical: 10, borderRadius: 20 },
   tabText: { fontSize: 13, fontWeight: '700' },
-  tabPanel: { paddingHorizontal: 20, paddingTop: 14, gap: 12 },
+  tabPanel: { paddingHorizontal: 20, paddingTop: 14, gap: 12, flexGrow: 1 },
   secTitle: {
     fontSize: 11,
     fontWeight: '700',
@@ -1699,19 +1697,19 @@ const s = StyleSheet.create({
     borderRadius: 18,
     padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
     elevation: 1,
   },
   settlementHero: {
     borderRadius: 20,
     padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
   },
   settlementHeroHeader: {
     flexDirection: 'row',
@@ -1762,9 +1760,9 @@ const s = StyleSheet.create({
     padding: 16,
     gap: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
     elevation: 1,
   },
   tripIconWrap: {
@@ -1795,9 +1793,9 @@ const s = StyleSheet.create({
     borderRadius: 18,
     padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
     elevation: 1,
   },
   insightToggleTitle: { fontSize: 14, fontWeight: '700' },
@@ -1808,12 +1806,12 @@ const s = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     borderLeftWidth: 3,
-    marginBottom: 8,
+    marginBottom: spacing.lg,
   },
   expenseCard: {
     flexDirection: 'row',
     marginHorizontal: 16,
-    marginBottom: 10,
+    marginBottom: spacing.lg,
     padding: 14,
     borderRadius: 18,
     gap: 12,
@@ -1830,10 +1828,10 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
   },
   expenseAvatarText: { color: '#FFF', fontSize: 15, fontWeight: '800', letterSpacing: -0.3 },
   expenseTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -1857,7 +1855,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 18,
     padding: 14,
-    marginBottom: 8,
+    marginBottom: spacing.lg,
     gap: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -1924,10 +1922,10 @@ const s = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 28,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
     zIndex: 100,
   },
   fabLabel: { color: '#FFF', fontSize: 14, fontWeight: '800' },

@@ -22,6 +22,7 @@ import { useToast } from '../../store/ToastContext';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Avatar } from '../../components/ui/Avatar';
+import { spacing } from '../../theme/design';
 
 const fmt = (n: number) => {
   const abs = Math.abs(n);
@@ -356,7 +357,7 @@ export function GroupExpensesScreen() {
             <View style={s.actionsRow}>
               <TouchableOpacity
                 style={[s.actionBtn, { backgroundColor: colors.accent.primary }]}
-                onPress={() => navigation.navigate('CreateTransaction', { prefill: { groupId, groupName, returnTo: 'GroupExpenses' } })}
+                onPress={() => navigation.navigate('AddExpense', { prefill: { groupId, groupName, returnTo: 'GroupExpenses' } })}
               >
                 <AntDesign name="plus" size={18} color="#FFF" />
                 <Text style={s.actionText}>Add Expense</Text>
@@ -602,7 +603,7 @@ const s = StyleSheet.create({
     backgroundColor: '#D1D5DB',
     alignSelf: 'center',
     marginTop: 10,
-    marginBottom: 8,
+    marginBottom: spacing.lg,
   },
   sheetHeader: {
     flexDirection: 'row',

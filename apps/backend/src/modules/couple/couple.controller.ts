@@ -84,4 +84,46 @@ export class CoupleController {
   async getDashboard(@CurrentUser('id') userId: string) {
     return this.coupleService.getCoupleDashboard(userId);
   }
+
+  @Get('planners')
+  @ApiOperation({ summary: 'List couple planners' })
+  async getPlanners(@CurrentUser('id') userId: string) {
+    return this.coupleService.getPlanners(userId);
+  }
+
+  @Post('planners/:type')
+  @ApiOperation({ summary: 'Create a planner' })
+  async createPlanner(@CurrentUser('id') userId: string, @Param('type') type: string, @Body() body: any) {
+    return this.coupleService.createPlanner(userId, type, body);
+  }
+
+  @Post('planners/:id/contribute')
+  @ApiOperation({ summary: 'Contribute to a planner' })
+  async contributeToPlanner(@CurrentUser('id') userId: string, @Param('id') id: string, @Body() body: any) {
+    return this.coupleService.contributeToPlanner(userId, id, body);
+  }
+
+  @Get('planner/:type')
+  @ApiOperation({ summary: 'Get planner by type' })
+  async getPlannerByType(@CurrentUser('id') userId: string, @Param('type') type: string) {
+    return this.coupleService.getPlannerByType(userId, type);
+  }
+
+  @Get('timeline')
+  @ApiOperation({ summary: 'Get couple timeline events' })
+  async getTimeline(@CurrentUser('id') userId: string) {
+    return this.coupleService.getTimeline(userId);
+  }
+
+  @Get('coach')
+  @ApiOperation({ summary: 'Get AI coach insights' })
+  async getCoach(@CurrentUser('id') userId: string) {
+    return this.coupleService.getCoach(userId);
+  }
+
+  @Get('gamification')
+  @ApiOperation({ summary: 'Get couple gamification data' })
+  async getGamification(@CurrentUser('id') userId: string) {
+    return this.coupleService.getGamification(userId);
+  }
 }

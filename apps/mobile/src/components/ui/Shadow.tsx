@@ -14,10 +14,10 @@ interface ShadowProps {
 export function Shadow({
   children,
   radius = 20,
-  offset = { width: 0, height: 4 },
-  opacity = 0.15,
+  offset = { width: 0, height: 1 },
+  opacity = 0.04,
   color = '#000',
-  blur = 12,
+  blur = 4,
   style,
 }: ShadowProps) {
   if (Platform.OS === 'ios') {
@@ -44,7 +44,7 @@ export function Shadow({
       style={[
         {
           backgroundColor: 'transparent',
-          elevation: Math.min(Math.round(blur / 4), 4),
+          elevation: Math.min(Math.round(blur / 4), 2),
           borderRadius: radius,
         },
         style,

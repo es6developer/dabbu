@@ -270,14 +270,14 @@ export function PremiumOtpScreen() {
         <Animated.View style={contentStyle}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
-            style={styles.backButton}
+            style={[styles.backButton, { alignSelf: 'center' }]}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <AntDesign  name="arrowleft" size={24} color={colors.text.secondary} />
           </TouchableOpacity>
 
-          <Text style={styles.title}>Check your Email</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.title, { textAlign: 'center' }]}>Check your Email</Text>
+          <Text style={[styles.subtitle, { textAlign: 'center' }]}>
             Enter the unique code we sent to <Text style={styles.emailHighlight}>{email}</Text>
           </Text>
 

@@ -718,7 +718,7 @@ const hdr = StyleSheet.create({
   greeting: {
     fontSize: 11,
     fontWeight: '500',
-    marginBottom: 1,
+    marginBottom: spacing.lg,
   },
   userName: {
     fontSize: 17,
@@ -935,10 +935,10 @@ const fab = StyleSheet.create({
     paddingVertical: spacing.md,
     borderRadius: borderRadius['5xl'],
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
   label: { color: '#FFF', fontSize: 15, fontWeight: '700' },
 });

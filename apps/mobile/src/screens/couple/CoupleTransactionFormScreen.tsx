@@ -60,14 +60,39 @@ export function CoupleTransactionFormScreen() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [categories, setCategories] = useState<any[]>([]);
+  const [loadingGroup, setLoadingGroup] = useState(false);
 
   const inputRef = useRef<TextInput>(null);
   const isExpense = type === 'expense';
+  const resolvedGroupId = prefill?.groupId;
 
   useEffect(() => {
     setTimeout(() => inputRef.current?.focus(), 400);
     loadCategories();
+    if (!prefill?.groupId) {
+      discoverGroupId();
+    }
   }, []);
+
+  async function discoverGroupId() {
+    setLoadingGroup(true);
+    try {
+      const groups: any[] = await api.get('/shared-finance/groups');
+      const coupleGroup = Array.isArray(groups)
+        ? groups.find((g: any) => g.type === 'couple' && g.status === 'ACTIVE')
+        : null;
+      if (coupleGroup?.id) {
+        (prefill as any).groupId = coupleGroup.id;
+        setError('');
+      } else {
+        setError('No couple space found. Create one first.');
+      }
+    } catch {
+      setError('Failed to load couple space');
+    } finally {
+      setLoadingGroup(false);
+    }
+  }
 
   async function loadCategories() {
     try {
@@ -87,7 +112,8 @@ export function CoupleTransactionFormScreen() {
       setError('Enter a valid amount');
       return;
     }
-    if (!prefill?.groupId) {
+    const gId = prefill?.groupId || resolvedGroupId;
+    if (!gId) {
       setError('No couple group found');
       return;
     }
@@ -96,7 +122,7 @@ export function CoupleTransactionFormScreen() {
     if (accessToken) setAccessToken(accessToken);
     try {
       if (isExpense) {
-        await api.post(`/shared-finance/groups/${prefill.groupId}/expenses`, {
+        await api.post(`/shared-finance/groups/${gId}/expenses`, {
           description: description.trim() || `${category || 'Shared'} expense`,
           amount: Number(amount),
           paidBy: user?.id || 'me',
@@ -106,7 +132,7 @@ export function CoupleTransactionFormScreen() {
         });
         showToast('Expense added');
       } else {
-        await api.post(`/shared-finance/groups/${prefill.groupId}/couple/incomes`, {
+        await api.post(`/shared-finance/groups/${gId}/couple/incomes`, {
           source: description.trim() || `${category || 'Other'} income`,
           amount: Number(amount),
           categoryId: selectedCategoryId,
@@ -115,7 +141,7 @@ export function CoupleTransactionFormScreen() {
         showToast('Income added');
       }
       if (prefill?.returnTo) {
-        navigation.navigate(prefill.returnTo, { groupId: prefill.groupId, groupName: prefill.groupName });
+        navigation.navigate(prefill.returnTo, { groupId: gId, groupName: prefill.groupName });
       } else {
         navigation.goBack();
       }
@@ -301,10 +327,10 @@ const s = StyleSheet.create({
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
     paddingBottom: spacing.xl,
   },
   heroTop: {
@@ -417,10 +443,10 @@ const s = StyleSheet.create({
     gap: spacing.sm,
     paddingVertical: 18,
     borderRadius: 18,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
   },
   saveText: { color: '#FFF', fontSize: 17, fontWeight: '700' },
 });

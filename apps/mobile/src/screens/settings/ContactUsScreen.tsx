@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontWeight: '700', marginBottom: spacing.xs },
   subtitle: { fontSize: 14 },
   sectionTitle: { fontSize: 18, fontWeight: '600', marginBottom: spacing.lg },
-  card: { flexDirection: 'row', alignItems: 'center', padding: spacing.lg, borderRadius: 14, marginBottom: spacing.sm, borderWidth: 1 },
+  card: { flexDirection: 'row', alignItems: 'center', padding: spacing.lg, borderRadius: 14, marginBottom: spacing.lg, borderWidth: 1 },
   iconWrap: { width: 44, height: 44, borderRadius: borderRadius.xl, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
   info: { flex: 1 },
   label: { fontSize: 15, fontWeight: '600', marginBottom: 2 },

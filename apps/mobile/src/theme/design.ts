@@ -42,24 +42,24 @@ export const shadows = {
   none: {} as ViewStyle,
   sm: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 0.5 },
+    shadowOpacity: 0.02,
+    shadowRadius: 1,
+    elevation: 0.5,
   } as ViewStyle,
   md: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowRadius: 3,
+    elevation: 1,
   } as ViewStyle,
   lg: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowRadius: 6,
+    elevation: 2,
   } as ViewStyle,
 } as const;
 
@@ -82,11 +82,11 @@ export const hitSlop = {
 
 // ─── FAB SHADOW ─────────────────────────────────────────────
 export const fabShadow = {
-  shadowColor: 'rgba(124, 58, 237, 0.4)',
-  shadowOffset: { width: 0, height: 8 },
-  shadowOpacity: 1,
-  shadowRadius: 24,
-  elevation: 4,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 6,
+  elevation: 3,
 } as ViewStyle;
 
 // ─── LAYOUT CONSTANTS ───────────────────────────────────────
@@ -166,7 +166,7 @@ export const sectionHeader: TextStyle = {
   letterSpacing: 0.5,
   textTransform: 'uppercase',
   paddingHorizontal: spacing.xl,
-  paddingTop: spacing['3xl'],
+  paddingTop: spacing.lg,
   paddingBottom: spacing.sm,
 };
 

@@ -157,7 +157,7 @@ export function SettlementScreen() {
 
   if (loading) {
     return (
-      <PremiumLoaderScreen progress={loadingProgress} title="Loading Settlements" icon="swap" />
+      <PremiumLoaderScreen progress={loadingProgress} title="Loading Settlements" icon="swap-horizontal-outline" />
     );
   }
 
@@ -175,6 +175,14 @@ export function SettlementScreen() {
           />
         }
       >
+        <View style={[s.header, { paddingTop: insets.top + 12, paddingHorizontal: 20 }]}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={[s.headerBtn, { backgroundColor: colors.bg.tertiary }]}>
+            <AntDesign name="arrowleft" size={22} color={colors.text.primary} />
+          </TouchableOpacity>
+          <Text style={[s.headerTitle, { color: colors.text.primary }]}>Settlements</Text>
+          <View style={{ width: 38 }} />
+        </View>
+
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -403,6 +411,9 @@ export function SettlementScreen() {
 
 const s = StyleSheet.create({
   screen: { flex: 1 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 8 },
+  headerBtn: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  headerTitle: { fontSize: 18, fontWeight: '700' },
 
   sectionRow: { gap: 8, marginBottom: 20 },
   sectionChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18 },

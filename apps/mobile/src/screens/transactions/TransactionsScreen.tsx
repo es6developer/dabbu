@@ -265,7 +265,7 @@ export function TransactionsScreen() {
           {activeFilter === 'All' && (
             <TouchableOpacity
               style={[styles.addBtn, { backgroundColor: colors.accent.primary }]}
-              onPress={() => navigation.navigate('Expense', { screen: 'CreateTransaction' })}
+              onPress={() => navigation.navigate('Expense', { screen: 'AddExpense' })}
             >
               <AntDesign  name="plus" size={18} color="#FFF" />
               <Text style={styles.addBtnText}>Add Transaction</Text>

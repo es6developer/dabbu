@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontWeight: '700', marginBottom: spacing.xs },
   date: { fontSize: 13, marginBottom: spacing.xl },
   intro: { fontSize: 14, lineHeight: 20, marginBottom: spacing['2xl'] },
-  section: { borderRadius: 14, padding: spacing.lg, borderWidth: 1, marginBottom: spacing.md },
+  section: { borderRadius: 14, padding: spacing.lg, borderWidth: 1, marginBottom: spacing.lg },
   sectionTitle: { fontSize: 16, fontWeight: '600', marginBottom: 6 },
   sectionContent: { fontSize: 14, lineHeight: 20 },
 });

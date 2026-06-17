@@ -13,6 +13,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import ReAnimated, { FadeInUp, FadeInRight } from 'react-native-reanimated';
+import { spacing } from '../../theme/design';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
@@ -320,7 +321,7 @@ export function AiHomeDashboardScreen() {
                     } else if (qa.label === 'Today Feed') {
                       navigateTo('TodayFeed');
                     } else {
-                      navigateTo('NewAddExpense');
+                      navigateTo('AddExpense');
                     }
                   }}
                 />
@@ -338,7 +339,7 @@ export function AiHomeDashboardScreen() {
                 <Animated.ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}
+                  contentContainerStyle={{ paddingHorizontal: 16, gap: spacing.lg }}
                   onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], {
                     useNativeDriver: false,
                   })}

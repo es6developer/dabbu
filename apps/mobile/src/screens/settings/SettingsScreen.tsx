@@ -127,7 +127,7 @@ export function SettingsScreen() {
     refreshPremiumStatus();
   }, [refreshPremiumStatus]);
 
-  useEffect(() => { loadSubscription(); }, [loadSubscription]);
+  useFocusEffect(useCallback(() => { loadSubscription(); }, [loadSubscription]));
 
   const refreshRequests = useCallback(async () => {
     if (user?.isCouple) { setPendingRequests([]); return; }
@@ -162,7 +162,7 @@ export function SettingsScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + spacing['5xl'] }}>
 
         {/* Profile Header */}
-        <View style={{ paddingTop: insets.top + spacing.xl, paddingHorizontal: spacing.xl, paddingBottom: spacing['2xl'] }}>
+        <View style={{ paddingTop: insets.top + spacing.xl, paddingHorizontal: spacing.xl, paddingBottom: spacing.lg }}>
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => handleNav('Profile')}
@@ -184,6 +184,7 @@ export function SettingsScreen() {
               </View>
             </View>
           </TouchableOpacity>
+          <CoupleModeToggle />
         </View>
 
         <Animated.View style={{ opacity: fadeAnim }}>
@@ -208,7 +209,7 @@ export function SettingsScreen() {
 
           {/* Couple Requests */}
           {pendingRequests.length > 0 && (
-            <View style={{ paddingHorizontal: spacing.xl, marginBottom: spacing['2xl'] }}>
+            <View style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.md }}>
               <View style={[s.grouped, { backgroundColor: COUPLE_COLORS.bg, borderColor: COUPLE_COLORS.border }]}>
                 <View style={[s.coupleHeader, { borderBottomColor: COUPLE_COLORS.border }]}>
                   <AntDesign name="heart" size={16} color={COUPLE_COLORS.primary} />
@@ -263,7 +264,7 @@ export function SettingsScreen() {
 
           {/* Settings Sections */}
           {SECTIONS.map((section, i) => (
-            <View key={i} style={{ paddingHorizontal: spacing.xl, marginBottom: spacing['2xl'] }}>
+            <View key={i} style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.md }}>
               <Text style={[sectionHeader, { color: colors.text.secondary }]}>{section.title}</Text>
               <View style={[s.grouped, { backgroundColor: colors.bg.card }]}>
                 {section.items.map((item, j) => {
@@ -305,15 +306,6 @@ export function SettingsScreen() {
               </View>
             </View>
           ))}
-
-          {/* Admin */}
-          <TouchableOpacity style={[s.extraRow, { backgroundColor: colors.bg.card }]} onPress={() => navigation.navigate('AdminLogin')} activeOpacity={0.6}>
-            <View style={[s.rowIcon, { backgroundColor: `${colors.accent.primary}10` }]}>
-              <AntDesign name="Safety" size={16} color={colors.accent.primary} />
-            </View>
-            <Text style={[s.rowLabel, { color: colors.accent.primary }]}>Admin Panel</Text>
-            <AntDesign name="right" size={14} color={colors.text.tertiary} />
-          </TouchableOpacity>
 
           {/* Logout */}
           <TouchableOpacity style={[s.extraRow, { backgroundColor: colors.bg.card }]} onPress={() => setShowLogoutDialog(true)} activeOpacity={0.6}>
@@ -382,7 +374,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
     marginHorizontal: spacing.xl,
-    marginBottom: spacing['2xl'],
+    marginBottom: spacing.md,
     padding: spacing.lg,
     borderRadius: borderRadius['3xl'],
     borderWidth: 1,
@@ -459,7 +451,7 @@ const s = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     gap: spacing.md,
     marginHorizontal: spacing.xl,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
     borderRadius: borderRadius['3xl'],
     minHeight: 48,
     ...shadows.sm,
@@ -468,7 +460,7 @@ const s = StyleSheet.create({
     textAlign: 'center',
     fontSize: 12,
     fontWeight: '400',
-    marginTop: spacing['2xl'],
+    marginTop: spacing.md,
   },
   // Couple section
   coupleHeader: {

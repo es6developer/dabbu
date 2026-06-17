@@ -6,6 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
+import { spacing } from '../../theme/design';
 import { Card } from '../../components/ui/Card';
 
 const TYPE_META: Record<string, { icon: string; color: string }> = {
@@ -161,7 +162,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginHorizontal: 16,
-    marginVertical: 5,
+    marginVertical: spacing.lg,
     padding: 16,
     borderRadius: 18,
   },

@@ -15,6 +15,7 @@ import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { useTheme } from '../../theme';
+import { spacing } from '../../theme/design';
 import { PageContainer } from '../../components/ui/PageContainer';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 import { useToast } from '../../store/ToastContext';
@@ -177,7 +178,7 @@ export function SplitTemplatesScreen() {
           <FlatList
             data={templates}
             keyExtractor={(item) => item.id}
-            contentContainerStyle={{ padding: 16, gap: 12 }}
+            contentContainerStyle={{ padding: 16, gap: spacing.lg }}
             refreshing={refreshing}
             onRefresh={() => {
               setRefreshing(true);

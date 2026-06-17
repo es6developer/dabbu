@@ -48,17 +48,17 @@ const COVER_GRADIENTS: Record<string, [string, string]> = {
   sports: ['#059669', '#34D399'],
 };
 
-const COVER_EMOJIS: Record<string, string> = {
-  couple: '💑',
-  family: '👨‍👩‍👧‍👦',
-  trip: '✈️',
-  friends: '👥',
-  wedding: '💒',
-  house_purchase: '🏠',
-  office: '💼',
-  event: '🎉',
-  apartment: '🏢',
-  sports: '⚽',
+const COVER_ICONS: Record<string, string> = {
+  couple: 'heart',
+  family: 'team',
+  trip: 'enviroment',
+  friends: 'addusergroup',
+  wedding: 'heart',
+  house_purchase: 'home',
+  office: 'tool',
+  event: 'star',
+  apartment: 'appstore-o',
+  sports: 'codesquareo',
 };
 
 function fmtCompact(v: number) {
@@ -164,7 +164,7 @@ function getGreeting() {
   return 'Good Evening';
 }
 
-function GreetingHeader({ netBalance, userName, colors, onSettings }: any) {
+function GreetingHeader({ netBalance, userName, colors, onSettings, onBalancePress }: any) {
   const isPositive = netBalance >= 0;
   const statusColor = isPositive ? colors.status.success : colors.status.error;
   const statusLabel = isPositive ? 'You are owed across spaces' : 'You owe across spaces';
@@ -201,6 +201,7 @@ function GreetingHeader({ netBalance, userName, colors, onSettings }: any) {
       {netBalance !== 0 && (
         <TouchableOpacity
           activeOpacity={0.7}
+          onPress={onBalancePress}
           style={{
             marginTop: 16,
             backgroundColor: colors.bg.card,
@@ -318,7 +319,7 @@ function GroupCard({
     deriveGroupBalance(group, currentUserId, userBalance, balanceArray);
   const members = group.members || [];
   const lastActivity = timeSince(group.updatedAt || group.createdAt);
-  const coverEmoji = COVER_EMOJIS[group.type] || '📁';
+  const coverIcon = COVER_ICONS[group.type] || 'folder1';
   const goalCount = group._count?.goals || group.goals?.length || 0;
   const aiTip = group.aiTip || null;
 
@@ -378,7 +379,7 @@ function GroupCard({
                 justifyContent: 'center',
               }}
             >
-              <Text style={{ fontSize: 22 }}>{coverEmoji}</Text>
+              <AntDesign name={coverIcon as any} size={22} color={colors.text.primary} />
             </View>
             <View style={{ flex: 1, gap: 2 }}>
               <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }} numberOfLines={1}>
@@ -693,6 +694,7 @@ export function SharedScreen() {
             userName={userName}
             colors={colors}
             onSettings={() => navigation.navigate('Settings')}
+            onBalancePress={() => navigation.navigate('SharedDashboard', { screen: 'SharedSettlements' })}
           />
         </View>
 
@@ -734,7 +736,7 @@ export function SharedScreen() {
 
         {/* ─── Spaces List ─── */}
         {groups.length > 0 ? (
-          <View style={{ paddingHorizontal: spacing.xl, gap: 10 }}>
+          <View style={{ paddingHorizontal: spacing.xl, gap: spacing.lg }}>
             {groups.map((group: any) => (
               <GroupCard
                 key={group.id}

@@ -16,6 +16,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius, sectionHeader } from '../../theme/design';
+import { WidgetCard } from '../../components/ui/WidgetCard';
 import { api, setAccessToken, clearCache, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useCoupleMode, COUPLE_COLORS } from '../../hooks/useCoupleMode';
@@ -138,8 +139,8 @@ const QUICK_ACTIONS: {
   screen: string;
   params?: any;
 }[] = [
-  { label: 'Add Expense', icon: 'pluscircle', desc: 'Record a new expense', route: 'Expense', screen: 'CategorySelection' },
-  { label: 'Add Income', icon: 'wallet', desc: 'Money received', route: 'Expense', screen: 'CategorySelection', params: { type: 'income' } },
+  { label: 'Add Expense', icon: 'pluscircle', desc: 'Record a new expense', route: 'Expense', screen: 'AddExpense' },
+  { label: 'Add Income', icon: 'wallet', desc: 'Money received', route: 'Expense', screen: 'AddExpense', params: { type: 'income' } },
   { label: 'Wallet', icon: 'wallet', desc: 'View expenses wallet', route: 'Expense', screen: 'ExpenseHome' },
   { label: 'Expense Group', icon: 'team', desc: 'Group expense spaces', route: 'Spaces', screen: 'SharedFinanceHome' },
 ];
@@ -596,7 +597,36 @@ export function HomeScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingTop: insets.top + 16, paddingBottom: 100 }}
         >
-          <View style={{ paddingHorizontal: spacing.xl, paddingTop: 8, gap: 14 }}>
+          <View style={{ paddingHorizontal: spacing.xl, paddingTop: 8 }}>
+            {/* Profile header */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing['3xl'] }}>
+              <View>
+                <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
+                  {getGreeting()}
+                </Text>
+                <Text style={{ fontSize: 20, fontWeight: '700', color: colors.text.primary, marginTop: 1 }}>
+                  {userName} & {couple.partner?.firstName || 'Partner'}
+                </Text>
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Notifications')}
+                  style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: `${colors.accent.primary}10`, alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <AntDesign name="bells" size={18} color={colors.accent.primary} />
+                  {unreadCount > 0 && (
+                    <View style={{ position: 'absolute', top: -2, right: -2, minWidth: 15, height: 15, borderRadius: 7.5, backgroundColor: colors.status.error, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 }}>
+                      <Text style={{ fontSize: 9, fontWeight: '700', color: colors.text.inverse }}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+                  <Avatar uri={user?.avatarUrl} name={`${user?.firstName || ''} ${user?.lastName || ''}`} size={36} />
+                </TouchableOpacity>
+              </View>
+            </View>
+            {/* Couple mode cards */}
+            <View style={{ gap: spacing.md, marginTop: spacing.md }}>
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={() => navigation.navigate('Settings', { screen: 'CoupleSpace' })}
@@ -698,6 +728,7 @@ export function HomeScreen() {
               </Text>
             </TouchableOpacity>
           </View>
+          </View>
         </ScrollView>
       </View>
     );
@@ -719,24 +750,15 @@ export function HomeScreen() {
           />
         }
       >
-        {/* ─── SECTION 1: HERO FINANCIAL SUMMARY ─── */}
+        {/* ─── SECTION 1: HERO — Apple Wallet Widget ─── */}
         <View style={{ paddingHorizontal: spacing.xl, paddingTop: 0 }}>
           {/* Header row */}
-          <View
-            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
-          >
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md }}>
             <View>
               <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>
                 {getGreeting()}
               </Text>
-              <Text
-                style={{
-                  fontSize: 20,
-                  fontWeight: '700',
-                  color: colors.text.primary,
-                  marginTop: 1,
-                }}
-              >
+              <Text style={{ fontSize: 20, fontWeight: '700', color: colors.text.primary, marginTop: 1 }}>
                 {userName}
               </Text>
             </View>
@@ -749,16 +771,9 @@ export function HomeScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <TouchableOpacity
                 onPress={() => navigation.navigate('Notifications')}
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 10,
-                  backgroundColor: `${colors.accent.primary}10`,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
+                style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: `${colors.accent.primary}10`, alignItems: 'center', justifyContent: 'center' }}
               >
-                <AntDesign  name="bells" size={18} color={colors.accent.primary} />
+                <AntDesign name="bells" size={18} color={colors.accent.primary} />
                 {unreadCount > 0 && (
                   <View style={{ position: 'absolute', top: -2, right: -2, minWidth: 15, height: 15, borderRadius: 7.5, backgroundColor: colors.status.error, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 }}>
                     <Text style={{ fontSize: 9, fontWeight: '700', color: colors.text.inverse }}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
@@ -766,100 +781,100 @@ export function HomeScreen() {
                 )}
               </TouchableOpacity>
               <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-                <Avatar
-                  uri={user?.avatarUrl}
-                  name={`${user?.firstName || ''} ${user?.lastName || ''}`}
-                  size={36}
-                />
+                <Avatar uri={user?.avatarUrl} name={`${user?.firstName || ''} ${user?.lastName || ''}`} size={36} />
               </TouchableOpacity>
             </View>
           </View>
 
-          {/* Hero Card — iOS clean net worth */}
-          <View style={[page.heroCard, { backgroundColor: colors.bg.card }]}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.secondary, letterSpacing: 0.3 }}>
-              Net Worth
-            </Text>
+          {/* Hero Widget — Net Worth */}
+          <View style={{ backgroundColor: colors.bg.card, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: colors.border.default }}>
+            <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.secondary, letterSpacing: 0.3 }}>Net Worth</Text>
             <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 2, marginTop: 4 }}>
               <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text.primary }}>₹</Text>
               <Text style={{ fontSize: 40, fontWeight: '800', color: colors.text.primary, letterSpacing: -2 }}>
                 {(netWorth ?? totalBalance ?? 0).toLocaleString('en-IN')}
               </Text>
             </View>
-            {monthlyIncome > 0 && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 }}>
+            {savings > 0 && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                  <AntDesign name={(savings > 0 ? 'arrowup' : 'arrowdown') as any} size={12} color={savings > 0 ? colors.status.success : colors.status.error} />
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: savings > 0 ? colors.status.success : colors.status.error }}>
-                    {savings > 0 ? '+' : ''}{(savingsRate).toFixed(1)}%
-                  </Text>
+                  <AntDesign name="arrowup" size={12} color={colors.status.success} />
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: colors.status.success }}>{(savingsRate).toFixed(1)}%</Text>
                 </View>
-                <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text.tertiary }}>
-                  this month · Saved {fmtShort(savings)}
-                </Text>
+                <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text.tertiary }}>Saved {fmtShort(savings)} this month</Text>
               </View>
             )}
           </View>
 
-          {/* ─── INCOME / EXPENSE SUMMARY ─── */}
-          {monthlyIncome > 0 && (
-            <View style={{ paddingHorizontal: spacing.xl, marginTop: 12 }}>
-              <View style={[page.heroCard, { backgroundColor: colors.bg.card }]}>
-                <View style={{ flexDirection: 'row', gap: 0 }}>
-                  <View style={{ flex: 1, alignItems: 'center', borderRightWidth: 1, borderRightColor: colors.border.subtle, paddingVertical: 4 }}>
-                    <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary, letterSpacing: 0.3 }}>
-                      Total Income
-                    </Text>
-                    <Text style={{ fontSize: 18, fontWeight: '800', color: colors.status.success, marginTop: 4 }}>
-                      {fmt(monthlyIncome)}
-                    </Text>
-                  </View>
-                  <View style={{ flex: 1, alignItems: 'center', paddingVertical: 4 }}>
-                    <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary, letterSpacing: 0.3 }}>
-                      Total Expense
-                    </Text>
-                    <Text style={{ fontSize: 18, fontWeight: '800', color: colors.status.error, marginTop: 4 }}>
-                      {fmt(monthlySpent)}
-                    </Text>
-                  </View>
-                </View>
-              </View>
+          {/* Stat widgets row — Income | Spent | Score */}
+          <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
+            <View style={{ flex: 1, backgroundColor: colors.bg.card, borderRadius: 16, padding: 14, borderWidth: 1, borderColor: colors.border.subtle, alignItems: 'center', gap: 4 }}>
+              <AntDesign name="linechart" size={16} color={colors.status.success} />
+              <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>Income</Text>
+              <Text style={{ fontSize: 18, fontWeight: '800', color: colors.status.success }}>{fmt(monthlyIncome)}</Text>
             </View>
-          )}
-        </View>
-
-        {/* ─── AI COACH ─── */}
-        {coachInsights.length > 0 && (
-          <View style={{ paddingHorizontal: spacing.xl, marginTop: 18 }}>
-            <View style={{ backgroundColor: colors.bg.card, borderRadius: 16, borderWidth: 1, borderColor: colors.border.default, overflow: 'hidden' }}>
-              <View style={{ flexDirection: 'row' }}>
-                <View style={{ width: 4, backgroundColor: colors.accent.primary }} />
-                <View style={{ flex: 1, padding: 14, paddingLeft: 12 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
-                    <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: colors.accent.primary, alignItems: 'center', justifyContent: 'center' }}>
-                      <AntDesign name="message1" size={16} color="#FFF" />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary }} numberOfLines={2}>
-                        {coachInsights[coachIndex % coachInsights.length]}
-                      </Text>
-                      <View style={{ flexDirection: 'row', gap: 5, marginTop: 8 }}>
-                        {coachInsights.map((_: string, idx: number) => (
-                          <View key={idx} style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: idx === (coachIndex % coachInsights.length) ? colors.accent.primary : colors.border.default }} />
-                        ))}
-                      </View>
-                    </View>
-                    <AntDesign name="star" size={16} color={colors.accent.primary} />
-                  </View>
-                </View>
-              </View>
+            <View style={{ flex: 1, backgroundColor: colors.bg.card, borderRadius: 16, padding: 14, borderWidth: 1, borderColor: colors.border.subtle, alignItems: 'center', gap: 4 }}>
+              <AntDesign name="shoppingcart" size={16} color={colors.status.error} />
+              <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>Spent</Text>
+              <Text style={{ fontSize: 18, fontWeight: '800', color: colors.status.error }}>{fmt(monthlySpent)}</Text>
+            </View>
+            <View style={{ flex: 1, backgroundColor: colors.bg.card, borderRadius: 16, padding: 14, borderWidth: 1, borderColor: colors.border.subtle, alignItems: 'center', gap: 4 }}>
+              <AntDesign name="heart" size={16} color={healthScore >= 70 ? colors.status.success : healthScore >= 40 ? colors.status.warning : colors.status.error} />
+              <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>Score</Text>
+              <Text style={{ fontSize: 18, fontWeight: '800', color: healthScore >= 70 ? colors.status.success : healthScore >= 40 ? colors.status.warning : colors.status.error }}>{healthScore}</Text>
             </View>
           </View>
-        )}
+        </View>
+
+        {/* ─── AI FEED ─── */}
+        <View style={{ paddingHorizontal: spacing.xl, marginTop: 18 }}>
+          <WidgetCard title="AI Feed" action={
+            <TouchableOpacity onPress={() => navigation.navigate('AiCoach')}>
+              <Text style={{ fontSize: 13, fontWeight: '600', color: colors.accent.primary }}>View All</Text>
+            </TouchableOpacity>
+          }>
+            {coachInsights.length > 0 ? (
+              <>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => setCoachIndex((p) => (p + 1) % coachInsights.length)}
+                  style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}
+                >
+                  <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: colors.accent.primary + '15', alignItems: 'center', justifyContent: 'center' }}>
+                    <AntDesign name="bulb1" size={18} color={colors.accent.primary} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 13, fontWeight: '500', color: colors.text.primary, lineHeight: 18 }}>
+                      {coachInsights[coachIndex % coachInsights.length]}
+                    </Text>
+                    <View style={{ flexDirection: 'row', gap: 4, marginTop: 8 }}>
+                      {coachInsights.map((_: string, idx: number) => (
+                        <View key={idx} style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: idx === (coachIndex % coachInsights.length) ? colors.accent.primary : colors.border.default }} />
+                      ))}
+                    </View>
+                  </View>
+                  <AntDesign name="right" size={14} color={colors.text.tertiary} />
+                </TouchableOpacity>
+                {milestones.length > 0 && (
+                  <View style={{ paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border.subtle, gap: 6 }}>
+                    {milestones.slice(0, 2).map((m: any, i: number) => (
+                      <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.status.success }} />
+                        <Text style={{ fontSize: 12, color: colors.text.secondary, flex: 1 }} numberOfLines={1}>{m.title || m.message}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </>
+            ) : (
+              <Text style={{ fontSize: 13, color: colors.text.tertiary }}>No insights yet. Add more transactions to get AI-powered tips.</Text>
+            )}
+          </WidgetCard>
+        </View>
 
         {/* ─── SECTION 2: QUICK ADD ─── */}
-        <View style={{ paddingHorizontal: spacing.xl, marginTop: 20 }}>
-          <View style={[page.quickAddCard, { backgroundColor: colors.bg.card }]}>
+        <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.xl }}>
+          <WidgetCard>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <AntDesign name="bulb1" size={16} color={colors.accent.primary} />
               <TextInput
@@ -1001,17 +1016,17 @@ export function HomeScreen() {
                 </View>
               );
             })()}
-          </View>
+          </WidgetCard>
         </View>
 
         {/* ─── GOALS PREVIEW ─── */}
         {demoGoals.length > 0 && (
-          <View style={{ marginTop: spacing["3xl"], paddingHorizontal: spacing.xl }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md, paddingHorizontal: spacing.xl }}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }}>Goals</Text>
+          <View style={{ marginTop: spacing.xl, paddingHorizontal: spacing.xl }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary }}>Goals</Text>
               {goals.length > 0 && (
                 <TouchableOpacity onPress={() => navigation.navigate('Goals', { screen: 'GoalsList' })}>
-                  <Text style={{ fontSize: 12, fontWeight: '600', color: colors.accent.primary }}>See All</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: colors.accent.primary }}>See All</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -1026,16 +1041,15 @@ export function HomeScreen() {
               const eta = mc > 0 ? `${monthsLeft}mo left` : '';
               const tagline = pct === 0 ? 'Not started' : pct >= 100 ? 'Complete!' : `${pct}% complete`;
               return (
-                <TouchableOpacity
-                  key={g.id}
+                <WidgetCard key={g.id} variant="compact" style={{ marginBottom: spacing.md }}>
+                  <TouchableOpacity
                   activeOpacity={0.7}
                   onPress={() => {
                     if (g.id && !g.id.startsWith('sample-')) {
                       navigation.navigate('Goals', { screen: 'GoalDetail', params: { goalId: g.id, goalName: g.name } });
                     }
                   }}
-                  style={{ backgroundColor: colors.bg.card, borderRadius: 14, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: colors.border.default }}
-                >
+                  >
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                     <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: config.color + '15', alignItems: 'center', justifyContent: 'center' }}>
                       <AntDesign name={config.icon as any} size={18} color={config.color} />
@@ -1049,15 +1063,16 @@ export function HomeScreen() {
                     <View style={{ width: `${pct}%`, height: '100%', backgroundColor: config.color, borderRadius: 99 }} />
                   </View>
                 </TouchableOpacity>
+              </WidgetCard>
               );
             })}
           </View>
         )}
 
-          {/* ─── SECTION 3: QUICK ACTIONS GRID ─── */}
-        <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing['3xl'] }}>
+          {/* ─── SECTION 3: QUICK ACTIONS GRID — 4 per row ─── */}
+        <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.xl }}>
           <Text style={[sectionHeader, { color: colors.text.secondary }]}>Quick Actions</Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
             {QUICK_ACTIONS.map((a) => (
               <TouchableOpacity
                 key={a.label}
@@ -1066,13 +1081,10 @@ export function HomeScreen() {
                 activeOpacity={0.7}
               >
                 <View style={[page.actionIconWrap, { backgroundColor: colors.accent.primary }]}>
-                  <AntDesign name={a.icon as any} size={22} color="#FFF" />
+                  <AntDesign name={a.icon as any} size={20} color="#FFF" />
                 </View>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary, marginTop: 8 }}>
+                <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.primary, marginTop: 6 }} numberOfLines={1}>
                   {a.label}
-                </Text>
-                <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary, marginTop: 1 }}>
-                  {a.desc}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -1081,7 +1093,7 @@ export function HomeScreen() {
 
         {/* ─── SECTION 4: RECENT TRANSACTIONS ─── */}
         {(recentTxns.length > 0 || !hasData) && (
-          <View style={{ marginTop: spacing["3xl"] }}>
+          <View style={{ marginTop: spacing.xl }}>
             <View
               style={{
                 flexDirection: 'row',
@@ -1107,11 +1119,9 @@ export function HomeScreen() {
             <View
               style={{
                 marginHorizontal: spacing.xl,
-                borderRadius: 20,
-                backgroundColor: colors.bg.card,
-                padding: 16,
               }}
             >
+            <WidgetCard>
               {displayTxns.slice(0, 5).map((tx: any, i: number) => {
                 const isExpense = tx.type === 'expense' || tx.amount < 0;
                 const amt = Math.abs(Number(tx.amount || 0));
@@ -1186,12 +1196,13 @@ export function HomeScreen() {
                   </TouchableOpacity>
                 );
               })}
+            </WidgetCard>
             </View>
           </View>
         )}
 
         {/* ─── SECTION 6: INSIGHTS CAROUSEL ─── */}
-        <View style={{ marginTop: spacing["3xl"] }}>
+        <View style={{ marginTop: spacing.xl }}>
           <Text
             style={{
               fontSize: 16,
@@ -1203,16 +1214,17 @@ export function HomeScreen() {
           >
             Insights
           </Text>
+          <View style={{ paddingHorizontal: spacing.xl }}>
+          <WidgetCard style={{ paddingVertical: 4 }}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: spacing.xl, gap: 10 }}
+            contentContainerStyle={{ gap: spacing.md }}
           >
             {insights.map((ins) => (
-              <TouchableOpacity
+              <View
                 key={ins.label}
-                style={[page.insightCard, { backgroundColor: colors.bg.card }]}
-                activeOpacity={0.7}
+                style={{ width: 100, alignItems: 'center', paddingVertical: 8 }}
               >
                 <View style={[page.insightIcon, { backgroundColor: `${ins.color}12` }]}>
                   <AntDesign
@@ -1241,13 +1253,15 @@ export function HomeScreen() {
                 >
                   {ins.value}
                 </Text>
-              </TouchableOpacity>
+              </View>
             ))}
           </ScrollView>
+          </WidgetCard>
+          </View>
         </View>
 
         {/* ─── SECTION 7: THIS MONTH ─── */}
-        <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing["3xl"] }}>
+        <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.xl }}>
           <Text
             style={{
               fontSize: 16,
@@ -1258,7 +1272,7 @@ export function HomeScreen() {
           >
             This Month
           </Text>
-          <View style={[page.monthCard, { backgroundColor: colors.bg.card }]}>
+          <WidgetCard>
             <MonthBar
               label="Income"
               value={monthlyIncome}
@@ -1333,12 +1347,12 @@ export function HomeScreen() {
                 </View>
               </View>
             )}
-          </View>
+          </WidgetCard>
         </View>
 
         {/* ─── SECTION 8: SPACES ─── */}
         {spaces.length > 0 && (
-          <View style={{ marginTop: spacing["3xl"] }}>
+          <View style={{ marginTop: spacing.xl }}>
             <View
               style={{
                 flexDirection: 'row',
@@ -1355,7 +1369,7 @@ export function HomeScreen() {
                 <Text style={{ fontSize: 13, fontWeight: '600', color: colors.accent.primary }}>See All</Text>
               </TouchableOpacity>
             </View>
-            <View style={{ paddingHorizontal: spacing.xl, gap: 10 }}>
+            <View style={{ paddingHorizontal: spacing.xl, gap: spacing.md }}>
               {spaces.slice(0, 4).map((g: any) => {
                 const { owedToMe, iOwe, totalSpent, memberCount } = deriveGroupBalance(g, user?.id);
                 const isOwed = owedToMe > 0;
@@ -1364,8 +1378,8 @@ export function HomeScreen() {
                 const amtColor = isOwed ? colors.status.success : owes ? colors.status.error : colors.text.tertiary;
                 const statusLabel = isOwed ? 'You are owed' : owes ? 'You owe' : 'Settled';
                 return (
+                  <WidgetCard key={g.id} variant="compact">
                   <TouchableOpacity
-                    key={g.id}
                     activeOpacity={0.7}
                     onPress={() => {
                       if (g.type === 'couple') {
@@ -1382,7 +1396,6 @@ export function HomeScreen() {
                         });
                       }
                     }}
-                    style={[page.spaceCard, { backgroundColor: colors.bg.card }]}
                   >
                     <View
                       style={{
@@ -1444,6 +1457,7 @@ export function HomeScreen() {
                       </Text>
                     )}
                   </TouchableOpacity>
+                </WidgetCard>
                 );
               })}
             </View>
@@ -1452,7 +1466,7 @@ export function HomeScreen() {
 
         {/* ─── SECTION 9: UPCOMING ─── */}
         {reminders.length > 0 && (
-          <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing["3xl"] }}>
+          <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.xl }}>
             <Text
               style={{
                 fontSize: 16,
@@ -1463,7 +1477,7 @@ export function HomeScreen() {
             >
               Upcoming
             </Text>
-            <View style={[page.upcomingCard, { backgroundColor: colors.bg.card }]}>
+            <WidgetCard>
               {reminders.slice(0, 4).map((r, i) => {
                 const due = daysUntil(r.dueDate || r.date);
                 const isOverdue = due === 'Overdue';
@@ -1535,30 +1549,35 @@ export function HomeScreen() {
                   <AntDesign  name="right" size={14} color={colors.accent.primary} />
                 </TouchableOpacity>
               )}
-            </View>
+            </WidgetCard>
           </View>
         )}
 
         {/* Achievements */}
-        <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing["3xl"], marginBottom: 8 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text.primary }}>
-              Achievements
-            </Text>
-            <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
-              {achievements.earnedCount}/{achievements.totalCount || 0}
-            </Text>
-          </View>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-            {(achievements.earned.length > 0 ? achievements.earned : []).slice(0, 4).map((ach: any) => (
-              <View key={ach.id || ach.code} style={{ backgroundColor: colors.bg.card, borderRadius: 12, padding: 10, alignItems: 'center', width: '47%' }}>
-                <Text style={{ fontSize: 24 }}>{ach.icon || '\uD83C\uDFC6'}</Text>
-                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.text.primary, marginTop: 4 }} numberOfLines={1}>
-                  {ach.name || ach.code}
-                </Text>
-              </View>
-            ))}
-          </View>
+        <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.xl }}>
+          <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text.primary, marginBottom: 12 }}>
+            Achievements
+          </Text>
+          <WidgetCard>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.secondary }}>
+                Badges Earned
+              </Text>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: colors.accent.primary }}>
+                {achievements.earnedCount}/{achievements.totalCount || 0}
+              </Text>
+            </View>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {(achievements.earned.length > 0 ? achievements.earned : []).slice(0, 4).map((ach: any) => (
+                <View key={ach.id || ach.code} style={{ flex: 1, minWidth: '45%', alignItems: 'center', padding: 8 }}>
+                  <Text style={{ fontSize: 28 }}>{ach.icon || '\uD83C\uDFC6'}</Text>
+                  <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.primary, marginTop: 4, textAlign: 'center' }} numberOfLines={1}>
+                    {ach.name || ach.code}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </WidgetCard>
         </View>
 
         <View style={{ height: 40 }} />
@@ -1611,20 +1630,20 @@ const page = StyleSheet.create({
     padding: 22,
     marginTop: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
-    shadowRadius: 12,
-    elevation: 2,
+    shadowRadius: 4,
+    elevation: 1,
   },
   quickAddCard: {
     borderRadius: 18,
     paddingHorizontal: 16,
     paddingVertical: 14,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 3,
+    elevation: 1,
   },
   quickAddInput: {
     flex: 1,
@@ -1651,19 +1670,16 @@ const page = StyleSheet.create({
     marginRight: 6,
   },
   actionCard: {
-    width: (W - 20 * 2 - 10) / 2,
-    borderRadius: 18,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+    width: (W - spacing.xl * 2 - spacing.md * 3) / 4,
+    borderRadius: 16,
+    padding: spacing.sm,
+    paddingTop: spacing.md,
+    alignItems: 'center',
   },
   actionIconWrap: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
+    width: 36,
+    height: 36,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1701,28 +1717,28 @@ const page = StyleSheet.create({
     borderRadius: 20,
     padding: 18,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 3,
+    elevation: 1,
   },
   spaceCard: {
     borderRadius: 16,
     padding: 14,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 0.5 },
+    shadowOpacity: 0.02,
+    shadowRadius: 2,
+    elevation: 0.5,
   },
   upcomingCard: {
     borderRadius: 20,
     padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 3,
+    elevation: 1,
   },
   seeAllBtn: {
     flexDirection: 'row',

@@ -234,7 +234,7 @@ export function CoupleReportsScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 10 }}
+            contentContainerStyle={{ gap: spacing.lg }}
             style={{ marginHorizontal: -20, paddingHorizontal: 20 }}
           >
             {summaryCards.map((card, i) => (
@@ -445,9 +445,9 @@ const styles = StyleSheet.create({
     padding: 4,
     borderWidth: 1,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
-    shadowRadius: 6,
+    shadowRadius: 2,
     elevation: 1,
   },
   periodTab: {
@@ -466,9 +466,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
-    shadowRadius: 6,
+    shadowRadius: 2,
     elevation: 1,
   },
   summaryIcon: {
@@ -485,9 +485,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 18,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
-    shadowRadius: 8,
+    shadowRadius: 3,
     elevation: 1,
   },
   sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 14 },
@@ -524,9 +524,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
-    shadowRadius: 8,
+    shadowRadius: 3,
     elevation: 1,
   },
   budgetTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

@@ -5,6 +5,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { api } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
+import { spacing } from '../../theme/design';
 import { PageContainer } from '../../components/ui/PageContainer';
 import { KeyboardAvoidingContainer } from '../../components/ui/KeyboardAvoidingContainer';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
@@ -120,7 +121,7 @@ export function GroupWalletScreen() {
           <FlatList
             data={wallets}
             keyExtractor={(item) => item.id}
-            contentContainerStyle={{ padding: 16, gap: 12 }}
+            contentContainerStyle={{ padding: 16, gap: spacing.lg }}
             ListEmptyComponent={
               <View style={{ alignItems: 'center', paddingVertical: 60 }}>
                 <AntDesign  name="wallet" size={48} color={colors.text.tertiary} />

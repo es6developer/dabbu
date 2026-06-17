@@ -227,7 +227,7 @@ export function TransactionsListScreen() {
             paddingHorizontal: 16,
             backgroundColor: colors.bg.card,
             borderRadius: borderRadius.md,
-            marginBottom: 4,
+            marginBottom: spacing.lg,
             ...shadows.sm,
           }}
         >

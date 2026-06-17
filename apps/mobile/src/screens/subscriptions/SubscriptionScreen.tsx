@@ -292,7 +292,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     padding: 14,
     borderRadius: 16,
-    marginBottom: 8,
+    marginBottom: spacing.lg,
     gap: 12,
   },
   subIcon: {

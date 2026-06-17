@@ -19,6 +19,7 @@ import * as contactsService from '../../services/contacts';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Avatar } from '../../components/ui/Avatar';
 import { useTheme } from '../../theme';
+import { spacing } from '../../theme/design';
 
 export function FavoriteContactsScreen() {
   const navigation = useNavigation<any>();
@@ -424,7 +425,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
-    marginBottom: 10,
+    marginBottom: spacing.lg,
     marginLeft: 4,
   },
   listCard: {

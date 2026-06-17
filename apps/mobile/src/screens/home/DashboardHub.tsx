@@ -69,7 +69,7 @@ export function DashboardHub() {
         <View className="mt-5">
           <QuickActionBar
             actions={[
-              { icon: 'pluscircle', label: 'Add Expense', onPress: () => navigation.navigate('Expense', { screen: 'CategorySelection' }) },
+              { icon: 'pluscircle', label: 'Add Expense', onPress: () => navigation.navigate('Expense', { screen: 'AddExpense' }) },
               { icon: 'swap', label: 'Transfer', onPress: () => {} },
               { icon: 'team', label: 'Split', onPress: () => navigation.navigate('Circles', { screen: 'SplitExpense' }) },
               { icon: 'filetext1', label: 'Bills', onPress: () => navigation.navigate('Expense', { screen: 'BillsList' }) },

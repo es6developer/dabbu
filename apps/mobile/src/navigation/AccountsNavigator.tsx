@@ -2,9 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../theme';
 import { iosTransitionOptions } from './animations';
-import { AddExpenseScreen } from '../screens/transactions/AddExpenseScreen';
 import { BillScannerScreen } from '../screens/transactions/BillScannerScreen';
-import { CreateTransactionScreen } from '../screens/transactions/CreateTransactionScreen';
 import { BillsListScreen } from '../screens/bills/BillsListScreen';
 import { BillDetailScreen } from '../screens/bills/BillDetailScreen';
 import { MonthlyComparisonScreen } from '../screens/bills/MonthlyComparisonScreen';
@@ -15,8 +13,8 @@ import { SubscriptionScreen } from '../screens/subscriptions/SubscriptionScreen'
 import { AnalyticsScreen } from '../screens/analytics/AnalyticsScreen';
 import { MyWalletScreen } from '../screens/transactions/MyWalletScreen';
 import { SharedCirclesScreen } from '../screens/transactions/SharedCirclesScreen';
-import { CategorySelectionScreen } from '../screens/expense/CategorySelectionScreen';
-import { AddExpenseScreen as NewAddExpenseScreen } from '../screens/expense/AddExpenseScreen';
+
+import { AddExpenseScreen } from '../screens/expense/AddExpenseScreen';
 import { CreateCategoryScreen } from '../screens/expense/CreateCategoryScreen';
 import { SharedExpenseFormScreen } from '../screens/shared-finance/SharedExpenseFormScreen';
 import { SettlementScreen } from '../screens/shared-finance/SettlementScreen';
@@ -39,19 +37,9 @@ export function AccountsNavigator() {
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="CategorySelection"
-        component={CategorySelectionScreen}
-        options={{ headerShown: false, presentation: 'modal' }}
-      />
-      <Stack.Screen
         name="AddExpense"
         component={AddExpenseScreen}
         options={{ title: 'Add Expense', headerShown: false }}
-      />
-      <Stack.Screen
-        name="NewAddExpense"
-        component={NewAddExpenseScreen}
-        options={{ title: 'Add Expense', headerShown: false, presentation: 'modal' }}
       />
       <Stack.Screen
         name="CreateCategory"
@@ -63,13 +51,7 @@ export function AccountsNavigator() {
         component={BillScannerScreen}
         options={{ title: 'Scan Bill' }}
       />
-      <Stack.Screen
-        name="CreateTransaction"
-        component={CreateTransactionScreen}
-        options={({ route }: any) => ({
-          title: route.params?.transaction?.id ? 'Edit Transaction' : 'New Transaction',
-        })}
-      />
+
       <Stack.Screen name="BillsList" component={BillsListScreen} options={{ title: 'My Bills' }} />
       <Stack.Screen
         name="BillDetail"

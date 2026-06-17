@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
   summaryTitle: { fontSize: 14, marginBottom: 4 },
   summaryValue: { fontSize: 36, fontWeight: '700', marginBottom: 4 },
   return: { fontSize: 16, fontWeight: '600' },
-  card: { padding: 16, borderRadius: 16, marginBottom: 8 },
+  card: { padding: 16, borderRadius: 16, marginBottom: spacing.lg },
   cardRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardLeft: { flex: 1 },
   investName: { fontSize: 16, fontWeight: '600', marginBottom: 2 },

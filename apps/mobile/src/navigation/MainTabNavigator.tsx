@@ -17,6 +17,7 @@ import { DocumentVaultScreen } from '../screens/documents/DocumentVaultScreen';
 import { DocumentDetailScreen } from '../screens/documents/DocumentDetailScreen';
 import { BadgeWallScreen } from '../screens/documents/BadgeWallScreen';
 import { BudgetsListScreen } from '../screens/budgets/BudgetsListScreen';
+import { BudgetDetailScreen } from '../screens/budgets/BudgetDetailScreen';
 import { CreateBudgetScreen } from '../screens/budgets/CreateBudgetScreen';
 import { NetWorthScreen } from '../screens/home/NetWorthScreen';
 import { LoanTrackerScreen } from '../screens/home/LoanTrackerScreen';
@@ -61,8 +62,7 @@ import { AddPartnerScreen } from '../screens/settings/AddPartnerScreen';
 import { ReportsScreen } from '../screens/reports/ReportsScreen';
 import { CoupleSpaceNavigator } from './CoupleSpaceNavigator';
 import { CirclesNavigator } from './CirclesNavigator';
-import { CategorySelectionScreen } from '../screens/expense/CategorySelectionScreen';
-import { AddExpenseScreen } from '../screens/expense/AddExpenseScreen';
+
 import { AdminLoginScreen } from '../screens/admin/AdminLoginScreen';
 import { AdminDashboardScreen } from '../screens/admin/AdminDashboardScreen';
 import { useTheme } from '../theme';
@@ -293,6 +293,11 @@ function SettingsNavigator() {
         options={{ headerShown: false, presentation: 'modal' }}
       />
       <SettingsStack.Screen
+        name="BudgetDetail"
+        component={BudgetDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <SettingsStack.Screen
         name="CoupleSpace"
         component={CoupleSpaceNavigator}
         options={{ headerShown: false }}
@@ -398,14 +403,14 @@ export function MainTabNavigator() {
       label: 'Add Expense',
       icon: 'add-circle-outline',
       color: '#DC2626',
-      onPress: () => navigation.navigate('Expense', { screen: 'CategorySelection', params: { type: 'expense' } }),
+      onPress: () => navigation.navigate('Expense', { screen: 'AddExpense', params: { type: 'expense' } }),
     },
     {
       label: 'Add Income',
       icon: 'trending-up-outline',
       color: '#16A34A',
       onPress: () =>
-        navigation.navigate('Expense', { screen: 'CategorySelection', params: { type: 'income' } }),
+        navigation.navigate('Expense', { screen: 'AddExpense', params: { type: 'income' } }),
     },
     {
       label: 'Wallet',
@@ -555,26 +560,8 @@ function IOSTabBar({
     return null;
   }
 
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 0.92,
-          duration: 1200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 1200,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [pulseAnim]);
+  const scaleAnims = useRef<Record<string, Animated.Value>>({}).current;
+  const fabScale = useRef(new Animated.Value(1)).current;
 
   const { getTabVisibility } = usePreferences();
   const { showCoupleFeatures, isInCouple, isCoupleModeActive } = useCoupleMode();
@@ -587,12 +574,30 @@ function IOSTabBar({
       !coupleHiddenTabs.has(r.name),
   );
 
+  function springTap(routeName: string, toValue: number) {
+    if (!scaleAnims[routeName]) {
+      scaleAnims[routeName] = new Animated.Value(1);
+    }
+    Animated.spring(scaleAnims[routeName], {
+      toValue,
+      tension: 120,
+      friction: 8,
+      useNativeDriver: true,
+    }).start();
+  }
+
   function renderTab(route: any) {
     const descriptor = descriptors[route.key];
     const { options } = descriptor;
     const isFocused = state.index === state.routes.findIndex((r: any) => r.key === route.key);
 
+    if (!scaleAnims[route.name]) {
+      scaleAnims[route.name] = new Animated.Value(1);
+    }
+
     const onPress = () => {
+      springTap(route.name, 0.92);
+      setTimeout(() => springTap(route.name, 1), 100);
       const event = navigation.emit({
         type: 'tabPress',
         target: route.key,
@@ -630,11 +635,7 @@ function IOSTabBar({
         onPress={onPress}
       >
         <Animated.View
-          style={
-            isFocused
-              ? { transform: [{ scale: pulseAnim }] }
-              : undefined
-          }
+          style={{ transform: [{ scale: scaleAnims[route.name] }] }}
         >
           {icon}
         </Animated.View>
@@ -657,14 +658,26 @@ function IOSTabBar({
   const glassTint = isDark ? 'dark' : 'light';
 
   return (
-    <View style={[tabStyles.container, { backgroundColor: isDark ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)' }]}>
-      <BlurView intensity={Platform.OS === 'ios' ? 60 : 40} tint={glassTint} style={tabStyles.blurWrap}>
+    <View
+      style={[
+        tabStyles.container,
+        {
+          backgroundColor: isDark
+            ? 'rgba(17,17,17,0.92)'
+            : 'rgba(248,248,250,0.92)',
+        },
+      ]}
+    >
+      <BlurView intensity={Platform.OS === 'ios' ? 80 : 50} tint={glassTint} style={tabStyles.blurWrap}>
         <View
           style={[
             tabStyles.outerWrapper,
             {
-              backgroundColor: isDark ? 'rgba(28,28,30,0.5)' : 'rgba(249,249,249,0.5)',
-              shadowColor: isDark ? '#000' : 'rgba(0,0,0,0.1)',
+              backgroundColor: isDark
+                ? 'rgba(28,28,30,0.85)'
+                : 'rgba(255,255,255,0.85)',
+              borderColor: isDark ? 'rgba(124,58,237,0.15)' : 'rgba(124,58,237,0.1)',
+              shadowColor: colors.accent.primary,
             },
           ]}
         >
@@ -672,17 +685,40 @@ function IOSTabBar({
             {visibleRoutes.slice(0, midIndex).map(renderTab)}
             {showCenterButton && (
               <TouchableOpacity
-                activeOpacity={0.8}
+                activeOpacity={0.85}
                 style={tabStyles.centerFab}
+                onPressIn={() => {
+                  Animated.spring(fabScale, {
+                    toValue: 0.9,
+                    tension: 120,
+                    friction: 8,
+                    useNativeDriver: true,
+                  }).start();
+                }}
+                onPressOut={() => {
+                  Animated.spring(fabScale, {
+                    toValue: 1,
+                    tension: 120,
+                    friction: 8,
+                    useNativeDriver: true,
+                  }).start();
+                }}
                 onPress={onCenterPress}
               >
                 <Animated.View
                   style={[
                     tabStyles.centerFabInner,
-                    { backgroundColor: colors.accent.primary, transform: [{ scale: pulseAnim }] },
+                    {
+                      backgroundColor: colors.accent.primary,
+                      transform: [{ scale: fabScale }],
+                      shadowColor: colors.accent.primary,
+                    },
                   ]}
                 >
-                  <Ionicons name="add" size={28} color="#FFF" />
+                  <Ionicons name="add" size={20} color="#FFF" />
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#FFF', marginTop: 1 }}>
+                    Add
+                  </Text>
                 </Animated.View>
               </TouchableOpacity>
             )}
@@ -705,11 +741,12 @@ const tabStyles = StyleSheet.create({
   outerWrapper: {
     marginHorizontal: 12,
     borderRadius: 26,
+    borderWidth: 1,
     minHeight: 56,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
   },
   innerRow: {
     flexDirection: 'row',
@@ -738,10 +775,7 @@ const tabStyles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 6,
+    flexDirection: 'row',
+    gap: 3,
   },
 });

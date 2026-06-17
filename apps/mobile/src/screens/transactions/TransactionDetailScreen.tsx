@@ -224,7 +224,7 @@ export function TransactionDetailScreen() {
         <View style={s.actionRow}>
           <TouchableOpacity
             style={[s.actionBtn, { backgroundColor: colors.bg.card }]}
-            onPress={() => navigation.push('CreateTransaction', { transaction: txn })}
+            onPress={() => navigation.push('AddExpense', { transaction: txn })}
             activeOpacity={0.7}
           >
             <View style={[s.actionIcon, { backgroundColor: `${colors.accent.primary}15` }]}>
@@ -235,7 +235,7 @@ export function TransactionDetailScreen() {
           <TouchableOpacity
             style={[s.actionBtn, { backgroundColor: colors.bg.card }]}
             onPress={() =>
-              navigation.navigate('CreateTransaction', {
+              navigation.navigate('AddExpense', {
                 prefill: {
                   amount: Number(txn.amount),
                   description: txn.description,
@@ -325,10 +325,10 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
   heroLabel: {
     fontSize: 13,
@@ -360,10 +360,10 @@ const s = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
   },
   row: {
     flexDirection: 'row',

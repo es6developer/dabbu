@@ -194,7 +194,7 @@ export function CoupleFinance() {
           {SHARED_EXPENSES.map((exp, i) => {
             const isYou = exp.paidBy === 'You';
             return (
-              <Card key={i} variant="default" padding="md" style={{ marginBottom: 8 }}>
+              <Card key={i} variant="default" padding="md" style={{ marginBottom: spacing.lg }}>
                 <View className="flex-row items-center">
                   <View
                     className="w-10 h-10 rounded-xl items-center justify-center"

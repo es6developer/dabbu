@@ -572,7 +572,7 @@ function OverallProgressHeader({
     <View
       style={[
         s.overallCard,
-        { backgroundColor: colors.bg.card, borderWidth: 1, borderColor: colors.border.default },
+        { backgroundColor: colors.accent.primary, borderWidth: 0 },
       ]}
     >
       <View style={s.overallInner}>
@@ -913,7 +913,7 @@ function CreateGoalModal({
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{ gap: 8, paddingVertical: 2 }}
+                  contentContainerStyle={{ gap: spacing.lg, paddingVertical: 2 }}
                 >
                   {goalTypes.map((gt) => (
                     <TouchableOpacity
@@ -1093,6 +1093,7 @@ export function GoalsListScreen() {
 
   const loadGoals = useCallback(async () => {
     try {
+      if (accessToken) setAccessToken(accessToken);
       const res = await api.get<any>('/goals');
       const goalList = Array.isArray(res) ? res : [];
       setGoals(goalList);
@@ -1176,11 +1177,11 @@ export function GoalsListScreen() {
               tintColor={colors.accent.primary}
             />
           }
-          contentContainerStyle={
-            goals.length === 0
-              ? { flexGrow: 1, paddingBottom: insets.bottom + 100 }
-              : { paddingBottom: insets.bottom + 100, paddingHorizontal: 16 }
-          }
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingBottom: insets.bottom + 100,
+          paddingHorizontal: 16,
+        }}
           ListHeaderComponent={
             <Animated.View>
               <PageHeader
@@ -1264,16 +1265,16 @@ export function GoalsListScreen() {
 
 const s = StyleSheet.create({
   card: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
     borderRadius: borderRadius['3xl'],
     padding: spacing.lg,
     borderWidth: 1,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
   },
   cardTopRow: {
     flexDirection: 'row',

@@ -2,6 +2,7 @@ import './src/global.css';
 import React, { useEffect, useCallback, useState } from 'react';
 import { StatusBar, LogBox, Appearance, View, UIManager, Platform } from 'react-native';
 import * as Font from 'expo-font';
+import * as NavigationBar from 'expo-navigation-bar';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -41,6 +42,12 @@ function NotificationInitializer() {
 
 function ThemedStatusBar() {
   const { isDark, colors } = useTheme();
+  React.useEffect(() => {
+    if (Platform.OS === 'android') {
+      NavigationBar.setBackgroundColorAsync(colors.bg.primary);
+      NavigationBar.setButtonStyleAsync(isDark ? 'light' : 'dark');
+    }
+  }, [isDark, colors]);
   return (
     <StatusBar
       barStyle={isDark ? 'light-content' : 'dark-content'}

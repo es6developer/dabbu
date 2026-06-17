@@ -15,6 +15,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme, typography as typographyStyles } from '../../theme';
+import { spacing } from '../../theme/design';
 
 interface NotificationItem {
   id: string;
@@ -445,7 +446,7 @@ const styles = StyleSheet.create({
   emptyTitle: { ...typographyStyles.sectionHeader, marginBottom: 8 },
   emptySub: { ...typographyStyles.body, textAlign: 'center' },
   list: { paddingHorizontal: 16, paddingTop: 8 },
-  card: { borderRadius: 16, borderWidth: 1, borderLeftWidth: 3, marginBottom: 10, padding: 14 },
+  card: { borderRadius: 16, borderWidth: 1, borderLeftWidth: 3, marginBottom: spacing.lg, padding: 14 },
   cardHeader: { flexDirection: 'row', alignItems: 'flex-start' },
   iconContainer: {
     width: 38,

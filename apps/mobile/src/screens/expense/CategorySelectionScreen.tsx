@@ -100,7 +100,7 @@ export function CategorySelectionScreen() {
               style={[s.categoryCard, { backgroundColor: colors.bg.card }]}
               activeOpacity={0.7}
               onPress={() =>
-                navigation.navigate('NewAddExpense', { category: item.name, type: transactionType })
+                navigation.navigate('AddExpense', { category: item.name, type: transactionType })
               }
             >
               <View style={[s.catIcon, { backgroundColor: `${item.color}18` }]}>

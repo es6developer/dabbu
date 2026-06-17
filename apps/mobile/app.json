@@ -57,7 +57,8 @@
       "expo-secure-store",
       "expo-local-authentication",
       "expo-notifications",
-      "expo-contacts"
+      "expo-contacts",
+      "expo-navigation-bar"
     ],
     "extra": {
       "apiUrl": "https://dabbu-1ff9.onrender.com/api/v1",

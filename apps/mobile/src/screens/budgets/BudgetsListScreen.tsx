@@ -255,7 +255,7 @@ export function BudgetsListScreen() {
                     backgroundColor: colors.bg.tertiary,
                     borderRadius: 6,
                     overflow: 'hidden',
-                    marginBottom: 10,
+                  marginBottom: spacing.lg,
                   }}
                 >
                   <View

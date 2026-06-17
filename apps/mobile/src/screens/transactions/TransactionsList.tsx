@@ -5,6 +5,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { Card } from '../../components/ui/Card';
 import { ProfileBubble } from '../../components/ui/ProfileBubble';
+import { spacing } from '../../theme/design';
 
 interface Transaction {
   id: string;
@@ -96,7 +97,7 @@ export function TransactionsList() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
+          contentContainerStyle={{ paddingHorizontal: 20, gap: spacing.lg }}
           className="mb-4"
         >
           {FILTERS.map((f) => {
@@ -182,7 +183,7 @@ export function TransactionsList() {
         <View className="mx-5 mb-8">
           {TXNS.map((tx, i) => (
             <TouchableOpacity key={tx.id} onPress={() => {}} activeOpacity={0.7}>
-              <Card variant="default" padding="md" style={{ marginBottom: 8 }}>
+              <Card variant="default" padding="md" style={{ marginBottom: spacing.lg }}>
                 <View className="flex-row items-center">
                   <View
                     className="w-11 h-11 rounded-xl items-center justify-center"
@@ -241,10 +242,10 @@ export function TransactionsList() {
         style={{
           backgroundColor: colors.accent.primary,
           shadowColor: colors.accent.primary,
-          shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.35,
-          shadowRadius: 16,
-          elevation: 4,
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.06,
+          shadowRadius: 6,
+          elevation: 2,
         }}
       >
         <AntDesign  name="plus" size={28} color="#FFFFFF" />

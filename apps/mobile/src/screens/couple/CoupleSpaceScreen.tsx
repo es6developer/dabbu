@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -37,24 +37,77 @@ export function CoupleSpaceScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { accessToken } = useAuth();
+  const groupIdRef = useRef<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
 
-  const fetchDashboard = useCallback(async () => {
+  useEffect(() => {
+    return () => { mountedRef.current = false; };
+  }, []);
+
+  const buildData = useCallback((dashboard: any, groupId: string) => {
+    const profile = dashboard?.profile || {};
+    const p1 = profile.partner1 || {};
+    const p2 = profile.partner2 || {};
+    const expenses = Array.isArray(dashboard?.expenses) ? dashboard.expenses : [];
+    const incomes = Array.isArray(dashboard?.incomes) ? dashboard.incomes : [];
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const monthlyExpenses = expenses.filter((e: any) => e.date >= monthStart);
+    const monthlyIncomes = incomes.filter((i: any) => i.date >= monthStart);
+    const p1MonthlySpent = monthlyExpenses
+      .filter((e: any) => e.paidBy === p1.id)
+      .reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
+    const p2MonthlySpent = monthlyExpenses
+      .filter((e: any) => e.paidBy === p2.id)
+      .reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
+    const totalMonthlyExpenses = monthlyExpenses.reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
+    const totalMonthlyIncome = monthlyIncomes.reduce((s: number, i: any) => s + Number(i.amount || 0), 0);
+    return {
+      user: { firstName: p1.firstName, monthlySpent: p1MonthlySpent },
+      partner: { firstName: p2.firstName, monthlySpent: p2MonthlySpent },
+      totalMonthlySpent: totalMonthlyExpenses,
+      sharedMonthlyExpenses: totalMonthlyExpenses,
+      sharedMonthlyIncome: totalMonthlyIncome,
+      recentExpenses: expenses.slice(-5).reverse(),
+      recentIncomes: incomes.slice(-5).reverse(),
+      goalsProgress: dashboard?.goalsProgress || 0,
+      goalsTarget: dashboard?.goalsTarget || 0,
+      upcomingBills: Array.isArray(dashboard?.bills) ? dashboard.bills : [],
+      partnerSince: dashboard?.partnerSince || null,
+      groupId,
+    };
+  }, []);
+
+  const fetchDashboard = useCallback(async (isRefresh = false) => {
     if (!accessToken) return;
     setAccessToken(accessToken);
-    setLoading(true);
+    if (!isRefresh) setLoading(true);
     setError(null);
     try {
-      const res: any = await api.get('/couple/dashboard', undefined, 15000);
-      setData(res?.data || res);
+      let groupId = groupIdRef.current;
+      if (!groupId) {
+        const groups: any[] = await api.get('/shared-finance/groups', undefined, 8000);
+        const coupleGroup = Array.isArray(groups)
+          ? groups.find((g: any) => g.type === 'couple' && g.status === 'ACTIVE')
+          : null;
+        if (!coupleGroup) {
+          if (mountedRef.current) setData(null);
+          return;
+        }
+        groupId = coupleGroup.id;
+        groupIdRef.current = groupId;
+      }
+      const dashboard: any = await api.get(`/shared-finance/groups/${groupId!}/couple/dashboard`, undefined, 10000);
+      if (mountedRef.current) setData(buildData(dashboard, groupId!));
     } catch (e: any) {
-      setError(e?.message || 'Failed to load couple data');
+      if (mountedRef.current) setError(e?.message || 'Failed to load couple data');
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
-  }, [accessToken]);
+  }, [accessToken, buildData]);
 
   useFocusEffect(useCallback(() => {
     fetchDashboard();
@@ -246,12 +299,12 @@ export function CoupleSpaceScreen() {
         <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Quick Actions</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
           {[
-            { icon: 'pluscircleo', label: 'Add Expense', color: '#DC2626', screen: 'Expense', params: { screen: 'CategorySelection', params: { type: 'expense' } } },
-            { icon: 'linechart', label: 'Add Income', color: '#16A34A', screen: 'Expense', params: { screen: 'CategorySelection', params: { type: 'income' } } },
+            { icon: 'pluscircleo', label: 'Add Expense', color: '#DC2626', screen: 'CoupleTransactionForm', params: { prefill: { groupId: data.groupId, type: 'expense' as const } } },
+            { icon: 'linechart', label: 'Add Income', color: '#16A34A', screen: 'CoupleTransactionForm', params: { prefill: { groupId: data.groupId, type: 'income' as const } } },
             { icon: 'wallet', label: 'Wallet', color: '#2563EB', screen: 'Spaces', params: { screen: 'GroupWallet' } },
             { icon: 'barchart', label: 'Net Worth', color: '#7C3AED', screen: 'Dashboard', params: { screen: 'NetWorth' } },
-            { icon: 'flag', label: 'Create Goal', color: '#F59E0B', screen: 'Goals', params: {} },
-            { icon: 'team', label: 'Expense Group', color: '#14B8A6', screen: 'Expense', params: { screen: 'CreateExpenseGroup' } },
+            { icon: 'flag', label: 'Goals', color: '#F59E0B', screen: 'Goals', params: {} },
+            { icon: 'setting', label: 'Settings', color: '#14B8A6', screen: 'CoupleSettings', params: {} },
           ].map((action) => (
             <TouchableOpacity key={action.label} activeOpacity={0.7}
               onPress={() => (navigation as any).navigate(action.screen, action.params)}

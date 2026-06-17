@@ -61,15 +61,15 @@ export function ForgotPasswordScreen() {
           <TouchableOpacity onPress={() => navigation.goBack()} style={{
             width: 40, height: 40, borderRadius: borderRadius['2xl'],
             backgroundColor: colors.bg.secondary, alignItems: 'center', justifyContent: 'center',
-            marginBottom: spacing['3xl'],
+            marginBottom: spacing['3xl'], alignSelf: 'center',
           }}>
             <AntDesign name="arrowleft" size={20} color={colors.text.primary} />
           </TouchableOpacity>
 
-          <Text style={{ fontSize: 28, fontWeight: '700', color: colors.text.primary, letterSpacing: -0.3, marginBottom: spacing.sm }}>
+          <Text style={{ fontSize: 28, fontWeight: '700', color: colors.text.primary, letterSpacing: -0.3, marginBottom: spacing.sm, textAlign: 'center' }}>
             Reset password
           </Text>
-          <Text style={{ fontSize: 15, fontWeight: '400', color: colors.text.secondary, lineHeight: 22, marginBottom: spacing['4xl'] }}>
+          <Text style={{ fontSize: 15, fontWeight: '400', color: colors.text.secondary, lineHeight: 22, marginBottom: spacing['4xl'], textAlign: 'center' }}>
             Enter your email address and we'll send you a verification code.
           </Text>
 

@@ -241,7 +241,7 @@ export function CoupleBillsScreen() {
           </View>
         </View>
 
-        <View style={{ paddingHorizontal: 20, marginTop: -12, gap: 12 }}>
+        <View style={{ paddingHorizontal: 20, marginTop: -12, gap: spacing.lg }}>
           <View style={[styles.summaryCard, { backgroundColor: `${colors.accent.primary}12` }, shadows.lg]}>
             <View style={styles.summaryRow}>
               <View style={styles.summaryItem}>

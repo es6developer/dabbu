@@ -96,8 +96,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     : baseTheme;
 
   useEffect(() => {
-    Appearance.setColorScheme(isDark ? 'dark' : 'light');
-  }, [isDark]);
+    if (themeMode === 'system') {
+      Appearance.setColorScheme(null);
+    } else {
+      Appearance.setColorScheme(isDark ? 'dark' : 'light');
+    }
+  }, [isDark, themeMode]);
 
   if (!loaded) {
     return null;

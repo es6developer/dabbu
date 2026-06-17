@@ -11,6 +11,7 @@ import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { UpgradePrompt } from '../../components/ui/UpgradePrompt';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
+import { useAuth } from '../../store/AuthContext';
 
 const PLANNER_META: Record<string, { icon: string; color: string; title: string; badge: string }> = {
   BABY: { icon: 'smileo', color: '#FF8A65', title: 'Baby Planner', badge: 'PREMIUM' },
@@ -70,6 +71,7 @@ export function CouplePlannerDetailScreen() {
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { isPremium } = useAuth();
   const { plannerType } = route.params || {};
   const meta = PLANNER_META[plannerType] || { icon: 'flag', color: colors.text.tertiary, title: 'Planner', badge: '' };
 
@@ -96,8 +98,6 @@ export function CouplePlannerDetailScreen() {
   useEffect(() => { fetchPlanner(); }, [fetchPlanner]);
 
   if (loading) return <LoadingScreen />;
-
-  const isPremium = false; // TODO: check user premium status
 
   return (
     <ScrollView

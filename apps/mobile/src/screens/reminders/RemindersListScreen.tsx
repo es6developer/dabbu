@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginHorizontal: spacing.lg,
-    marginVertical: 4,
+    marginVertical: spacing.lg,
     padding: 16,
     borderRadius: 16,
   },

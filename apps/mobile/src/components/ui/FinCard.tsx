@@ -5,9 +5,9 @@ import { borderRadius, spacing } from '../../theme/design';
 import { Shadow } from './Shadow';
 
 const SHADOW_MAP: Record<string, { offset: { width: number; height: number }; blur: number; opacity: number }> = {
-  sm: { offset: { width: 0, height: 2 }, blur: 6, opacity: 0.04 },
-  md: { offset: { width: 0, height: 4 }, blur: 12, opacity: 0.06 },
-  lg: { offset: { width: 0, height: 8 }, blur: 24, opacity: 0.08 },
+  sm: { offset: { width: 0, height: 0.5 }, blur: 2, opacity: 0.02 },
+  md: { offset: { width: 0, height: 1 }, blur: 4, opacity: 0.04 },
+  lg: { offset: { width: 0, height: 2 }, blur: 8, opacity: 0.06 },
 };
 
 interface FinCardProps {
