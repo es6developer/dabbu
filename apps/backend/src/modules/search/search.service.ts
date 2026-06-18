@@ -35,8 +35,8 @@ export class SearchService {
         userId,
         deletedAt: null,
         OR: [
-          { description: { contains: searchFilter, mode: 'insensitive' } },
-          { notes: { contains: searchFilter, mode: 'insensitive' } },
+          { description: { contains: searchFilter } },
+          { notes: { contains: searchFilter } },
         ],
       };
       if (options?.dateFrom) txnWhere.date = { ...(txnWhere.date || {}), gte: new Date(options.dateFrom) };
@@ -67,8 +67,8 @@ export class SearchService {
         userId,
         deletedAt: null,
         OR: [
-          { name: { contains: searchFilter, mode: 'insensitive' } },
-          { notes: { contains: searchFilter, mode: 'insensitive' } },
+          { name: { contains: searchFilter } },
+          { notes: { contains: searchFilter } },
         ],
       };
       const [goals, total] = await Promise.all([
@@ -84,9 +84,9 @@ export class SearchService {
         userId,
         deletedAt: null,
         OR: [
-          { name: { contains: searchFilter, mode: 'insensitive' } },
-          { notes: { contains: searchFilter, mode: 'insensitive' } },
-          { payee: { contains: searchFilter, mode: 'insensitive' } },
+          { name: { contains: searchFilter } },
+          { notes: { contains: searchFilter } },
+          { payee: { contains: searchFilter } },
         ],
       };
       const [bills, total] = await Promise.all([
@@ -101,7 +101,7 @@ export class SearchService {
       const docsWhere: any = {
         userId,
         deletedAt: null,
-        name: { contains: searchFilter, mode: 'insensitive' },
+        name: { contains: searchFilter },
       };
       const [docs, total] = await Promise.all([
         this.prisma.userDocument.findMany({ where: docsWhere, take: limit, skip: offset }),
@@ -114,7 +114,7 @@ export class SearchService {
     if (!types || types.includes('family')) {
       const familiesWhere: any = {
         userId,
-        family: { name: { contains: searchFilter, mode: 'insensitive' } },
+        family: { name: { contains: searchFilter } },
       };
       const [families, total] = await Promise.all([
         this.prisma.familyMember.findMany({
@@ -132,7 +132,7 @@ export class SearchService {
       const budgetsWhere: any = {
         userId,
         deletedAt: null,
-        name: { contains: searchFilter, mode: 'insensitive' },
+        name: { contains: searchFilter },
       };
       const [budgets, total] = await Promise.all([
         this.prisma.budget.findMany({ where: budgetsWhere, take: limit }),

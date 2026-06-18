@@ -450,7 +450,7 @@ function OverviewTab({ group, expenses, settlements, currentUserId }: { group: G
 const s = StyleSheet.create({
   root: { flex: 1, paddingBottom: 100 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: spacing.lg, backgroundColor: 'var(--dabbu-bg)' },
-  header: { borderBottomWidth: 1, backdropFilter: 'saturate(180%) blur(20px)' as any },
+  header: { borderBottomWidth: 1, backdropFilter: 'saturate(180%) blur(20px)' } as any,
   headerRow: { height: 60, alignItems: 'center', paddingHorizontal: spacing.lg },
   backBtn: { padding: spacing.sm, marginLeft: -spacing.sm, borderRadius: radii.md },
   groupName: { fontSize: 18, fontWeight: '700' },

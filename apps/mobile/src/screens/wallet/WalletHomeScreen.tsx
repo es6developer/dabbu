@@ -39,7 +39,7 @@ export function WalletHomeScreen() {
       setMonthlyExpense(Number(stats.monthlyExpense || stats.expense || 0));
       const tr = txnsRes as any;
       setRecentTxns(Array.isArray(tr) ? tr : tr?.data || []);
-    } catch {} finally {
+    } catch { /* ignore */ } finally {
       setLoading(false);
     }
   }, []);

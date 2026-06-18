@@ -61,7 +61,7 @@ export function FamilySpaceScreen() {
       setData((famRes as any)?.data || famRes);
       setAiReview((reviewRes as any)?.data || reviewRes);
       setAiSavings((savingsRes as any)?.data || savingsRes);
-    } catch {} finally {
+    } catch { /* ignore */ } finally {
       setLoading(false); setRefreshing(false);
     }
   }, []);

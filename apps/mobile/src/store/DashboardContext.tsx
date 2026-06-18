@@ -66,14 +66,14 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     try {
       await api.post('/dashboard/widgets/toggle', { widgetType, scope });
       await fetchDashboard(true);
-    } catch {}
+    } catch { /* ignore */ }
   }, [fetchDashboard]);
 
   const reorderWidgets = useCallback(async (widgetTypes: string[], scope = 'personal') => {
     try {
       await api.post(`/dashboard/widgets/reorder?scope=${scope}`, { widgetTypes });
       await fetchDashboard(true);
-    } catch {}
+    } catch { /* ignore */ }
   }, [fetchDashboard]);
 
   return (

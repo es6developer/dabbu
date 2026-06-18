@@ -19,7 +19,7 @@ import { DocumentVaultScreen } from '../screens/documents/DocumentVaultScreen';
 import { DocumentDetailScreen } from '../screens/documents/DocumentDetailScreen';
 import { BadgeWallScreen } from '../screens/documents/BadgeWallScreen';
 import { StreaksScreen } from '../screens/home/StreaksScreen';
-import GlobalSearchScreen from '../screens/search/GlobalSearchScreen';
+import { GlobalSearchScreen } from '../screens/home/GlobalSearchScreen';
 import { YearlySummaryScreen } from '../screens/home/YearlySummaryScreen';
 import { WalletNavigator } from './WalletNavigator';
 import { FamilyHubNavigator } from './FamilyHubNavigator';

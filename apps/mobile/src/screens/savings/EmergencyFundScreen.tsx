@@ -29,7 +29,7 @@ export function EmergencyFundScreen() {
       setMonthlyExpense(d.monthlyExpense || 0);
       setSavedAmount(d.savedAmount || 0);
       setEditSaved(String(d.savedAmount || 0));
-    } catch {} finally { setLoading(false); }
+    } catch { /* ignore */ } finally { setLoading(false); }
   }, []);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
@@ -48,7 +48,7 @@ export function EmergencyFundScreen() {
       const res = await api.patch('/emergency-fund', { savedAmount: val });
       const d = (res as any)?.data || res;
       setMonthlyExpense(d.monthlyExpense || monthlyExpense);
-    } catch {}
+    } catch { /* ignore */ }
   };
 
   return (

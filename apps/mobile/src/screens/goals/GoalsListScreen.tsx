@@ -785,7 +785,7 @@ export function GoalsListScreen() {
           try {
             const predRes = await api.get<any>(`/ai/goals/${g.id}/prediction`);
             if (predRes?.data) predictionMap[g.id] = predRes.data;
-          } catch {}
+          } catch { /* ignore */ }
         }),
       );
       setPredictions(predictionMap);
@@ -793,7 +793,7 @@ export function GoalsListScreen() {
       try {
         const rebalRes = await api.get<any>('/ai/goals/rebalance');
         setRebalanceData(rebalRes?.data?.suggestions || []);
-      } catch {}
+      } catch { /* ignore */ }
     } catch {
       // silent
     } finally {

@@ -118,7 +118,7 @@ export class RetentionService {
 
     const longestStreak = Math.max(...streaks.map(s => s.longestStreak), 0);
     const healthScoreAvg = healthScores.length > 0
-      ? healthScores.reduce((s, h) => s + Number((h as any).score || h.overallScore), 0) / healthScores.length
+      ? healthScores.reduce((s, h) => s + Number(h.overallScore || 0), 0) / healthScores.length
       : 0;
 
     const summary = await this.prisma.yearlySummary.upsert({

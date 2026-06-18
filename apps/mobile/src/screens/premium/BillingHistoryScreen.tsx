@@ -31,7 +31,7 @@ export function BillingHistoryScreen() {
         setPayments(items);
       }
       setTotalPages(data?.totalPages || 1);
-    } catch {} finally {
+    } catch { /* ignore */ } finally {
       setLoading(false);
       setRefreshing(false);
       setLoadingMore(false);

@@ -91,7 +91,7 @@ export function CouplePlannerHubScreen() {
     try {
       const res = await api.get<any[]>('/couple/planners');
       setPlanners(Array.isArray(res) ? res : []);
-    } catch {} finally {
+    } catch { /* ignore */ } finally {
       setLoading(false);
       setRefreshing(false);
     }

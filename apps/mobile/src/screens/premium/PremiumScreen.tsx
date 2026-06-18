@@ -154,7 +154,7 @@ export function PremiumScreen() {
           pollRef.current = null;
         }
       }
-    } catch {} finally {
+    } catch { /* ignore */ } finally {
       setLoading(false);
     }
   }, []);

@@ -20,7 +20,7 @@ export async function loadDatabase(): Promise<AppData> {
       cache = JSON.parse(raw) as AppData;
       return clone(cache);
     }
-  } catch {}
+  } catch { /* ignore */ }
   // First time — seed with sample data
   cache = seedData();
   await AsyncStorage.setItem(DB_KEY, JSON.stringify(cache));

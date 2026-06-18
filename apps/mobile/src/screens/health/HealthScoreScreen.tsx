@@ -36,7 +36,7 @@ export function HealthScoreScreen() {
       setLoading(true);
       const res = await api.get('/ai/health-score');
       setScore((res as any)?.data || res);
-    } catch {} finally { setLoading(false); }
+    } catch { /* ignore */ } finally { setLoading(false); }
   }, []);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));

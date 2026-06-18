@@ -26,7 +26,7 @@ export interface RazorpayCustomerParams {
   name: string;
   email: string;
   contact: string;
-  fail_existing?: string;
+  fail_existing?: boolean | string;
   notes?: Record<string, string>;
 }
 

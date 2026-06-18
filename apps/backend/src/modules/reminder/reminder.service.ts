@@ -88,8 +88,8 @@ export class ReminderService {
     }
     if (query.search) {
       where.OR = [
-        { title: { contains: query.search, mode: 'insensitive' } },
-        { description: { contains: query.search, mode: 'insensitive' } },
+        { title: { contains: query.search } },
+        { description: { contains: query.search } },
       ];
     }
     if (query.startDate || query.endDate) {

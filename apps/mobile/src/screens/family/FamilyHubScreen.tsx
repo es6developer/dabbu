@@ -52,7 +52,7 @@ export function FamilyHubScreen() {
       const res = await api.get('/shared-finance/groups');
       const data = Array.isArray(res) ? res : (res as any)?.data || (res as any)?.groups || [];
       setGroups(data);
-    } catch { } finally {
+    } catch { /* ignore */ } finally {
       setLoading(false);
     }
   }, []);

@@ -100,7 +100,7 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
       if (mountedRef.current) {
         setState(prev => ({ ...prev, plans: Array.isArray(planList) ? planList : [] }));
       }
-    } catch {}
+    } catch { /* ignore */ }
   }, []);
 
   useEffect(() => {
@@ -231,7 +231,7 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
         category: 'premium',
         properties: { ...properties, timestamp: new Date().toISOString() },
       });
-    } catch {}
+    } catch { /* ignore */ }
   }, []);
 
   const value: PremiumContextValue = {

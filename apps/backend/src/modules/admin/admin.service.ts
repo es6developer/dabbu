@@ -494,9 +494,9 @@ export class AdminService {
 
     if (query.search) {
       where.OR = [
-        { email: { contains: query.search, mode: 'insensitive' } },
-        { firstName: { contains: query.search, mode: 'insensitive' } },
-        { lastName: { contains: query.search, mode: 'insensitive' } },
+        { email: { contains: query.search } },
+        { firstName: { contains: query.search } },
+        { lastName: { contains: query.search } },
       ];
     }
 
@@ -1016,9 +1016,9 @@ export class AdminService {
     if (search) {
       where.user = {
         OR: [
-          { email: { contains: search, mode: 'insensitive' } },
-          { firstName: { contains: search, mode: 'insensitive' } },
-          { lastName: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search } },
+          { firstName: { contains: search } },
+          { lastName: { contains: search } },
         ],
       };
     }

@@ -98,7 +98,7 @@ export function CoupleTransactionFormScreen() {
     try {
       const res = await api.get<any[]>('/categories');
       setCategories(Array.isArray(res) ? res : Array.isArray((res as any)?.data) ? (res as any).data : []);
-    } catch {}
+    } catch { /* ignore */ }
   }
 
   const selectedCategoryId = useMemo(() => {

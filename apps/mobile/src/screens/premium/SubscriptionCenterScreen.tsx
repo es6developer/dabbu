@@ -69,7 +69,7 @@ export function SubscriptionCenterScreen() {
       ]);
       setBillingHistory((billingData?.data || billingData || []).slice(0, 5));
       setInvoices((invoicesData?.data || invoicesData || []).slice(0, 3));
-    } catch {} finally {
+    } catch { /* ignore */ } finally {
       setBillingLoading(false);
       setInvoicesLoading(false);
     }

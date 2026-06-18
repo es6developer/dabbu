@@ -83,7 +83,7 @@ export function CoupleTimelineScreen() {
       setEvents(prev => append ? [...prev, ...newEvents] : newEvents);
       setHasMore(newEvents.length === 20);
       setPage(pageNum);
-    } catch { } finally {
+    } catch { /* ignore */ } finally {
       setLoading(false);
       setRefreshing(false);
       setLoadingMore(false);

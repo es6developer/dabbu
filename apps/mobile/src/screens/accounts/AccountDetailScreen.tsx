@@ -25,7 +25,7 @@ export function AccountDetailScreen() {
       setLoading(true);
       const res = await api.get(`/transactions?accountId=${account.id}&limit=50`);
       setTxns(Array.isArray(res) ? res : (res as any)?.data || []);
-    } catch {} finally { setLoading(false); }
+    } catch { /* ignore */ } finally { setLoading(false); }
   }, [account.id]);
 
   return (

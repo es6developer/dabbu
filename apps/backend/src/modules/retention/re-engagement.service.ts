@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { NotificationService } from '../notification/notification.service';
+import { NotificationType } from '../notification/dto/create-notification.dto';
 
 @Injectable()
 export class ReEngagementService {
@@ -86,7 +87,7 @@ export class ReEngagementService {
 
     await this.notificationService.create({
       userId,
-      type: 'system',
+      type: NotificationType.SYSTEM,
       title: msg.pushTitle,
       message: msg.pushBody,
       priority: 'medium',

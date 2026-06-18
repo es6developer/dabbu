@@ -126,7 +126,6 @@ export class ComplianceController {
   async getDataRetentionPolicy() {
     return this.complianceService.getDataRetentionPolicy();
   }
-}
 
   // --- CCPA-specific endpoints ---
 

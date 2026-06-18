@@ -197,7 +197,7 @@ export default function LandingPage() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: 'var(--dabbu-bg)' },
-  nav: { borderBottomWidth: 1, backgroundColor: 'var(--dabbu-nav-bg)', backdropFilter: 'saturate(180%) blur(20px)' as any },
+  nav: { borderBottomWidth: 1, backgroundColor: 'var(--dabbu-nav-bg)', backdropFilter: 'saturate(180%) blur(20px)' } as any,
   navRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', height: 56, paddingHorizontal: spacing.lg },
   logo: { width: 28, height: 28, borderRadius: 8, backgroundColor: 'var(--dabbu-accent)', justifyContent: 'center', alignItems: 'center' },
   logoText: { color: '#FFF', fontSize: 14, fontWeight: '800' },

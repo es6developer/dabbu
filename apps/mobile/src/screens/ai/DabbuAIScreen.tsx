@@ -60,7 +60,7 @@ export function DabbuAIScreen() {
       const feed = (feedRes as any)?.data || feedRes;
       setFeedCards(Array.isArray(feed?.cards) ? feed.cards : Array.isArray(feed) ? feed : []);
       setFeedSummary(feed?.summary || null);
-    } catch {} finally { setLoading(false); }
+    } catch { /* ignore */ } finally { setLoading(false); }
   }, []);
 
   useFocusEffect(useCallback(() => { loadData(); }, [loadData]));

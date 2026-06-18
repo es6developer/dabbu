@@ -56,7 +56,7 @@ export function CreateTaskScreen() {
       const families = Array.isArray(res) ? res : [];
       const members = families.flatMap((f: any) => f.members || []);
       setFamilyMembers(members);
-    } catch {}
+    } catch { /* ignore */ }
   }
 
   async function handleSave() {

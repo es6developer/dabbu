@@ -422,7 +422,7 @@ export interface SystemHealth {
   services: {
     database: { status: string; latency?: number };
     redis: { status: string };
-    memory: { usage: string; heapUsed: number; heapTotal: number };
+    memory: { usage: string; heapUsed: number; heapTotal: number; rss: number };
     cpu: { loadAverage: number[]; cores: number };
     disk?: { status: string; free: number; total: number };
   };

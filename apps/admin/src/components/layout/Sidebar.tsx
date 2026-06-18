@@ -60,7 +60,7 @@ export function Sidebar() {
     localStorage.removeItem('admin_user');
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
-    } catch {}
+    } catch { /* ignore */ }
     router.push('/login');
   }
 

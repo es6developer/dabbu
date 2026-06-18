@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { View, Text, TouchableOpacity, Card, StyleSheet, spacing, radii } from '@/rn';
+import { View, Text, TouchableOpacity, Card, StyleSheet, Row, spacing, radii } from '@/rn';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dabbu-1ff9.onrender.com/api/v1';
 const APP_STORE_URL = 'https://apps.apple.com/app/dabbu';

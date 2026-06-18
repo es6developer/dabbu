@@ -31,7 +31,7 @@ export function CoupleSplashScreen() {
         navigation.replace('CoupleSpaceHome');
         return;
       }
-    } catch {}
+    } catch { /* ignore */ }
     setStep('intro');
   };
 

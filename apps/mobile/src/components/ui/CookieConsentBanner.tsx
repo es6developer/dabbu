@@ -38,7 +38,7 @@ export function CookieConsentBanner() {
     await AsyncStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify({ consent, categories: cats }));
     try {
       await api.post('/compliance/cookie-consent', { consent, categories: cats });
-    } catch {}
+    } catch { /* ignore */ }
     setVisible(false);
   };
 

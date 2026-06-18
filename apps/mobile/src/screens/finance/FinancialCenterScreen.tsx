@@ -76,7 +76,7 @@ export function FinancialCenterScreen() {
       if (results[1].status === 'fulfilled') setCatData((results[1].value as any)?.data || []);
       if (results[2].status === 'fulfilled') setCashFlow((results[2].value as any)?.data || []);
       if (results[3].status === 'fulfilled') setInsights((results[3].value as any)?.data || []);
-    } catch {} finally { setLoading(false); }
+    } catch { /* ignore */ } finally { setLoading(false); }
   }, [getRange]);
 
   useEffect(() => { loadData(); }, [loadData]);

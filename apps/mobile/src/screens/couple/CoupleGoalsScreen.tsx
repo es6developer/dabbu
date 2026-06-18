@@ -98,7 +98,7 @@ export function CoupleGoalsScreen() {
           try {
             const pred = await api.get(`/ai/goals/${goal.id}/prediction`);
             predMap[goal.id] = (pred as any)?.data || pred;
-          } catch {}
+          } catch { /* ignore */ }
         }),
       );
       setGoalPredictions(predMap);

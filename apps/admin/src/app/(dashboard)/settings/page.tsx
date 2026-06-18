@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Settings, Save, Shield, Bell, Globe, Mail, Loader2, CheckCircle, AlertCircle, Clock, Smartphone, KeyRound, QrCode, XCircle } from 'lucide-react';
+import { Settings, Save, Shield, Bell, Globe, Mail, Loader2, CheckCircle, AlertCircle, Clock, Smartphone, KeyRound, QrCode, XCircle, Trash2, Download } from 'lucide-react';
 import { getAppConfig, updateAppConfig, getMfaStatus, setupMfa, verifyMfaSetup, disableMfa } from '@/lib/api';
 import type { AppConfig } from '@/lib/api';
 

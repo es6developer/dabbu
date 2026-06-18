@@ -119,7 +119,7 @@ export function SpacesDashboard() {
                 const myEntry = b.find((e: any) => e.userId === currentUserId);
                 if (myEntry) balances[g.id] = Number(myEntry.balance);
               }
-            } catch {}
+            } catch { /* ignore */ }
           }),
         );
         setGroupBalances(balances);

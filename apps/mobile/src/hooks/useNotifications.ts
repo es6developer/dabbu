@@ -185,7 +185,7 @@ export function useNotifications() {
       setInAppNotification({
         id: notification.id,
         title: notification.title,
-        body: notification.message || notification.body || '',
+        body: notification.message || '',
         type: (notification.type as NotificationType) || 'system',
         data: notification.data,
         timestamp: Date.now(),

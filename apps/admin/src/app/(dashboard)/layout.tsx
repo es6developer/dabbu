@@ -57,7 +57,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             }
           }
         }
-      } catch {}
+      } catch { /* ignore */ }
 
       setAuthorized(true);
     };

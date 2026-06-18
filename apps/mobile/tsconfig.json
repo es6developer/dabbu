@@ -4,7 +4,7 @@
     "strict": true,
     "module": "esnext",
     "moduleResolution": "node",
-    "types": ["nativewind/types"],
+    "types": ["nativewind/types", "node"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
