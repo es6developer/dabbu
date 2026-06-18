@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { NotificationEventsService } from '../notification/notification-events.service';
 import { CreateTransactionDto, UpdateTransactionDto, TransactionFilterDto } from './dto';
+import { v4 as uuidv4 } from 'uuid';
 import PDFDocument from 'pdfkit';
 import * as ExcelJS from 'exceljs';
 
@@ -217,6 +218,10 @@ export class TransactionsService {
         ...(dto.tags !== undefined && { tags: dto.tags }),
         ...(dto.isRecurring !== undefined && { isRecurring: dto.isRecurring }),
         ...(dto.recurringFrequency !== undefined && { recurringFrequency: dto.recurringFrequency }),
+        ...(dto.recurringId !== undefined && { recurringId: dto.recurringId }),
+        ...(dto.recurringEndDate !== undefined && {
+          recurringEndDate: dto.recurringEndDate ? new Date(dto.recurringEndDate) : null,
+        }),
         ...(dto.expenseGroupId !== undefined && { expenseGroupId: dto.expenseGroupId || null }),
         ...(dto.metadata !== undefined && { metadata: dto.metadata }),
       },
@@ -426,6 +431,40 @@ export class TransactionsService {
     return { data: { receiptUrl } };
   }
 
+  async createRecurring(userId: string, dto: CreateTransactionDto) {
+    const recurringId = dto.recurringId || uuidv4();
+    const tx = await this.prisma.transaction.create({
+      data: {
+        userId,
+        accountId: dto.accountId || null,
+        categoryId: dto.categoryId || null,
+        expenseGroupId: dto.expenseGroupId || null,
+        amount: dto.amount,
+        type: dto.type,
+        date: dto.date ? new Date(dto.date) : new Date(),
+        description: dto.description || dto.title,
+        notes: dto.notes,
+        tags: dto.tags || [],
+        isRecurring: true,
+        recurringId,
+        recurringFrequency: dto.recurringFrequency || 'monthly',
+        recurringEndDate: dto.recurringEndDate ? new Date(dto.recurringEndDate) : null,
+        receiptUrl: dto.receiptUrl,
+        status: 'completed',
+        metadata: dto.metadata || {},
+      },
+      include: { category: true },
+    });
+
+    if (dto.expenseGroupId) {
+      this.notifyGroupMembers(userId, dto.expenseGroupId, tx).catch((err) =>
+        this.logger.warn(`Failed to notify group members: ${err.message}`),
+      );
+    }
+
+    return tx;
+  }
+
   async bulkCreate(userId: string, dtos: CreateTransactionDto[]) {
     const results: any[] = [];
     for (const dto of dtos) {
@@ -614,7 +653,10 @@ export class TransactionsService {
 
     const monthName = new Date(year, month - 1).toLocaleString('default', { month: 'long' });
 
-    doc.fontSize(20).font('Helvetica-Bold').text(`Monthly Report — ${monthName} ${year}`, { align: 'center' });
+    doc
+      .fontSize(20)
+      .font('Helvetica-Bold')
+      .text(`Monthly Report — ${monthName} ${year}`, { align: 'center' });
     doc.moveDown(1.5);
     doc.fontSize(11).font('Helvetica');
 
@@ -644,7 +686,10 @@ export class TransactionsService {
       report.transactions.forEach((t) => {
         const d = new Date(t.date).toLocaleDateString('en-IN');
         const sign = t.type === 'income' ? '+' : '-';
-        doc.text(`${d}  ${t.description || t.category}  ${sign}₹${t.amount.toLocaleString('en-IN')}`, { indent: 10 });
+        doc.text(
+          `${d}  ${t.description || t.category}  ${sign}₹${t.amount.toLocaleString('en-IN')}`,
+          { indent: 10 },
+        );
       });
     }
 

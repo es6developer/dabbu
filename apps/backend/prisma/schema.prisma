@@ -126,6 +126,7 @@ model User {
   dashboardLayout       Json?   @db.Json // Array of widget configs [{id, visible, order}]
   bottomMenuConfig      Json?   @db.Json // Array of tab configs [{id, visible, order}]
   preferredPrimaryColor String? @db.VarChar(20) // User's preferred accent color hex
+  userType              String? @default("single") @db.VarChar(20) // single, couple, family, friends
 
   // Relations
   sessions                     Session[]
@@ -3394,6 +3395,9 @@ model UserNetWorth {
   bank        Decimal  @default(0) @db.Decimal(14, 2)
   cash        Decimal  @default(0) @db.Decimal(14, 2)
   gold        Decimal  @default(0) @db.Decimal(14, 2)
+  stocks      Decimal  @default(0) @db.Decimal(14, 2)
+  mutualFunds Decimal  @default(0) @db.Decimal(14, 2)
+  crypto      Decimal  @default(0) @db.Decimal(14, 2)
   property    Decimal  @default(0) @db.Decimal(14, 2)
   investments Decimal  @default(0) @db.Decimal(14, 2)
   fixedDeposits Decimal @default(0) @db.Decimal(14, 2)
@@ -3415,13 +3419,16 @@ model UserNetWorth {
 model NetWorthSnapshot {
   id              String   @id @default(uuid()) @db.VarChar(36)
   userId          String   @db.VarChar(36)
-  snapshotDate    DateTime @db.Date               // First day of the month
+  snapshotDate    DateTime @db.Date
   totalAssets     Decimal  @default(0) @db.Decimal(14, 2)
   totalLiabilities Decimal @default(0) @db.Decimal(14, 2)
   netWorth        Decimal  @default(0) @db.Decimal(14, 2)
   bank            Decimal  @default(0) @db.Decimal(14, 2)
   cash            Decimal  @default(0) @db.Decimal(14, 2)
   gold            Decimal  @default(0) @db.Decimal(14, 2)
+  stocks          Decimal  @default(0) @db.Decimal(14, 2)
+  mutualFunds     Decimal  @default(0) @db.Decimal(14, 2)
+  crypto          Decimal  @default(0) @db.Decimal(14, 2)
   property        Decimal  @default(0) @db.Decimal(14, 2)
   investments     Decimal  @default(0) @db.Decimal(14, 2)
   fixedDeposits   Decimal  @default(0) @db.Decimal(14, 2)

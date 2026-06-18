@@ -40,6 +40,10 @@ export class CreateTransactionDto {
 
   @ApiPropertyOptional() @IsOptional() @IsString() recurringFrequency?: string;
 
+  @ApiPropertyOptional() @IsOptional() @IsString() recurringId?: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsDateString() recurringEndDate?: string;
+
   @ApiPropertyOptional() @IsOptional() @IsString() receiptUrl?: string;
 
   @ApiPropertyOptional() @IsOptional() @IsString() location?: string;
@@ -70,6 +74,8 @@ export class UpdateTransactionDto {
   @ApiPropertyOptional() @IsOptional() @IsArray() @IsString({ each: true }) tags?: string[];
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isRecurring?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsString() recurringFrequency?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() recurringId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsDateString() recurringEndDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() expenseGroupId?: string;
   @ApiPropertyOptional() @IsOptional() metadata?: Record<string, any>;
 }

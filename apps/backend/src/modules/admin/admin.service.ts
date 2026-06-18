@@ -155,45 +155,58 @@ export class AdminService {
     ]);
 
     const [revenueThisMonth, revenueLastMonth] = await Promise.all([
-      this.prisma.transaction.aggregate({
-        _sum: { amount: true },
-        where: {
-          type: 'income',
-          createdAt: { gte: startOfMonth },
-          deletedAt: null,
-        },
-      }).then((r) => Number(r._sum.amount ?? 0)).catch(() => 0),
-      this.prisma.transaction.aggregate({
-        _sum: { amount: true },
-        where: {
-          type: 'income',
-          createdAt: { gte: startOfLastMonth, lt: startOfMonth },
-          deletedAt: null,
-        },
-      }).then((r) => Number(r._sum.amount ?? 0)).catch(() => 0),
+      this.prisma.transaction
+        .aggregate({
+          _sum: { amount: true },
+          where: {
+            type: 'income',
+            createdAt: { gte: startOfMonth },
+            deletedAt: null,
+          },
+        })
+        .then((r) => Number(r._sum.amount ?? 0))
+        .catch(() => 0),
+      this.prisma.transaction
+        .aggregate({
+          _sum: { amount: true },
+          where: {
+            type: 'income',
+            createdAt: { gte: startOfLastMonth, lt: startOfMonth },
+            deletedAt: null,
+          },
+        })
+        .then((r) => Number(r._sum.amount ?? 0))
+        .catch(() => 0),
     ]);
 
     const [pendingPayments, usersLastMonth, subscriptionsLastMonth] = await Promise.all([
-      this.prisma.transaction.count({
-        where: { type: 'expense', deletedAt: null, ...({} as any) },
-      }).catch(() => 0),
+      this.prisma.transaction
+        .count({
+          where: { type: 'expense', deletedAt: null, ...({} as any) },
+        })
+        .catch(() => 0),
       this.prisma.user.count({
         where: { createdAt: { gte: startOfLastMonth, lt: startOfMonth }, deletedAt: null },
       }),
-      this.prisma.subscription.count({
-        where: { status: 'active', createdAt: { gte: startOfLastMonth, lt: startOfMonth } },
-      }).catch(() => 0),
+      this.prisma.subscription
+        .count({
+          where: { status: 'active', createdAt: { gte: startOfLastMonth, lt: startOfMonth } },
+        })
+        .catch(() => 0),
     ]);
 
-    const userGrowth = usersLastMonth > 0
-      ? Math.round(((totalUsers - usersLastMonth) / usersLastMonth) * 100)
-      : 0;
-    const subscriptionGrowth = subscriptionsLastMonth > 0
-      ? Math.round(((activeSubscriptions - subscriptionsLastMonth) / subscriptionsLastMonth) * 100)
-      : 0;
-    const revenueGrowth = revenueLastMonth > 0
-      ? Math.round(((revenueThisMonth - revenueLastMonth) / revenueLastMonth) * 100)
-      : 0;
+    const userGrowth =
+      usersLastMonth > 0 ? Math.round(((totalUsers - usersLastMonth) / usersLastMonth) * 100) : 0;
+    const subscriptionGrowth =
+      subscriptionsLastMonth > 0
+        ? Math.round(
+            ((activeSubscriptions - subscriptionsLastMonth) / subscriptionsLastMonth) * 100,
+          )
+        : 0;
+    const revenueGrowth =
+      revenueLastMonth > 0
+        ? Math.round(((revenueThisMonth - revenueLastMonth) / revenueLastMonth) * 100)
+        : 0;
 
     return {
       totalUsers,
@@ -905,6 +918,101 @@ export class AdminService {
       ipAddress: null,
     });
     return updated;
+  }
+
+  async cleanupDatabase() {
+    const preserved = `'system@dabbu.internal', 'demo@dabbu.app'`;
+
+    await this.prisma.$executeRawUnsafe(`SET FOREIGN_KEY_CHECKS = 0`);
+
+    const tables = [
+      'audit_logs',
+      'analytics_events',
+      'login_activity',
+      'notification_logs',
+      'notifications',
+      'sessions',
+      'devices',
+      'contact_hashes',
+      'expense_splits',
+      'settlements',
+      'shared_expenses',
+      'household_contributions',
+      'shared_goal_contributions',
+      'group_wallet_members',
+      'advance_contribution_history',
+      'document_permissions',
+      'bill_splits',
+      'emergency_contributions',
+      'user_badges',
+      'user_documents',
+      'user_streaks',
+      'export_history',
+      'sms_detections',
+      'group_chat_messages',
+      'group_chat_reads',
+      'shared_group_members',
+      'expense_group_members',
+      'shared_groups',
+      'expense_groups',
+      'friends',
+      'payment_transactions',
+      'subscriptions',
+      'premium_entitlements',
+      'referral_rewards',
+      'referral_programs',
+      'ai_insights',
+      'ai_predictions',
+      'ai_anomalies',
+      'ai_recommendations',
+      'ai_scores',
+      'ai_feed_cards',
+      'ai_milestones',
+      'financial_dna',
+      'life_events',
+      'user_net_worths',
+      'user_loans',
+      'emi_payments',
+      'credit_card_bills',
+      'credit_card_transactions',
+      'transactions',
+      'budgets',
+      'bills',
+      'goals',
+      'investments',
+      'accounts',
+    ];
+
+    for (const table of tables) {
+      try {
+        await this.prisma.$executeRawUnsafe(`DELETE FROM \`${table}\``);
+      } catch {
+        // table might not exist or have FK constraints — skip
+      }
+    }
+
+    await this.prisma.$executeRawUnsafe(`
+      DELETE FROM users WHERE email NOT IN (${preserved})
+    `);
+
+    await this.prisma.$executeRawUnsafe(`SET FOREIGN_KEY_CHECKS = 1`);
+
+    const [users, admins, categories, plans] = await Promise.all([
+      this.prisma.$queryRawUnsafe(`SELECT COUNT(*) as count FROM users`),
+      this.prisma.$queryRawUnsafe(`SELECT COUNT(*) as count FROM admin_users`),
+      this.prisma.$queryRawUnsafe(`SELECT COUNT(*) as count FROM transaction_categories`),
+      this.prisma.$queryRawUnsafe(`SELECT COUNT(*) as count FROM subscription_plans`),
+    ]);
+
+    return {
+      message: 'Database cleanup complete',
+      preserved: {
+        adminUsers: Number((admins as any[])[0]?.count || 0),
+        categories: Number((categories as any[])[0]?.count || 0),
+        subscriptionPlans: Number((plans as any[])[0]?.count || 0),
+        users: Number((users as any[])[0]?.count || 0),
+      },
+    };
   }
 
   private async createAuditLog(data: {

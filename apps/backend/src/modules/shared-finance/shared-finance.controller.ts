@@ -91,8 +91,13 @@ export class SharedFinanceController {
 
   @Get('groups')
   @ApiOperation({ summary: 'Get all groups for current user' })
-  async getUserGroups(@CurrentUser('id') userId: string) {
-    return this.sf.getUserGroups(userId);
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    description: 'Filter by group type (couple, family, friends, trip)',
+  })
+  async getUserGroups(@CurrentUser('id') userId: string, @Query('type') type?: string) {
+    return this.sf.getUserGroups(userId, type);
   }
 
   @Get('groups/:groupId')
@@ -123,16 +128,19 @@ export class SharedFinanceController {
   @Post('validate-upi')
   @ApiOperation({ summary: 'Validate UPI ID format' })
   async validateUpi(@Body('upiId') upiId: string) {
-    const pattern = /^[\w\.\-]+@[\w\-]+$/;
+    const pattern = /^[\w.-]+@[\w-]+$/;
     const valid = pattern.test(upiId);
     let message = valid ? 'UPI ID looks valid' : 'Invalid UPI ID format';
     if (valid) {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 5000);
       try {
-        const res = await fetch(`https://upichk.vercel.app/api/check?vpa=${encodeURIComponent(upiId)}`, {
-          signal: controller.signal,
-        });
+        const res = await fetch(
+          `https://upichk.vercel.app/api/check?vpa=${encodeURIComponent(upiId)}`,
+          {
+            signal: controller.signal,
+          },
+        );
         clearTimeout(timeout);
         const data = await res.json();
         if (data.success === true) {
@@ -172,7 +180,9 @@ export class SharedFinanceController {
 
   @Post('groups/:groupId/members/add-by-phone')
   @UseGuards(GroupMemberGuard)
-  @ApiOperation({ summary: 'Add member by phone number (admin only) — immediately adds them to group' })
+  @ApiOperation({
+    summary: 'Add member by phone number (admin only) — immediately adds them to group',
+  })
   async addMemberByPhone(
     @Param('groupId') groupId: string,
     @Body() dto: AddMemberByPhoneDto,
@@ -528,10 +538,7 @@ export class SharedFinanceController {
   @Post('groups/:groupId/couple/settle-up')
   @UseGuards(GroupMemberGuard)
   @ApiOperation({ summary: 'Settle up between couple partners' })
-  async coupleSettleUp(
-    @Param('groupId') groupId: string,
-    @CurrentUser('id') userId: string,
-  ) {
+  async coupleSettleUp(@Param('groupId') groupId: string, @CurrentUser('id') userId: string) {
     return this.sf.coupleSettleUp(groupId, userId);
   }
 
@@ -541,10 +548,7 @@ export class SharedFinanceController {
   @UseGuards(GroupMemberGuard)
   @ApiOperation({ summary: 'Get couple reports' })
   @ApiQuery({ name: 'period', required: false })
-  async getCoupleReports(
-    @Param('groupId') groupId: string,
-    @Query('period') period?: string,
-  ) {
+  async getCoupleReports(@Param('groupId') groupId: string, @Query('period') period?: string) {
     return this.sf.getCoupleReports(groupId, period || 'monthly');
   }
 

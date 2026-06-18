@@ -33,6 +33,11 @@ export class UpdateProfileDto {
   @IsString()
   @MaxLength(100)
   upiId?: string;
+
+  @ApiPropertyOptional({ description: 'User type: single, couple, family, friends' })
+  @IsOptional()
+  @IsString()
+  userType?: string;
 }
 
 export class MatchContactsDto {

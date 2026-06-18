@@ -130,6 +130,15 @@ export class TransactionsController {
     return this.transactionsService.uploadReceipt(userId, id, file);
   }
 
+  @Post('create-recurring')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Create a recurring transaction (auto-generates future instances via cron)',
+  })
+  async createRecurring(@CurrentUser('id') userId: string, @Body() dto: CreateTransactionDto) {
+    return this.transactionsService.createRecurring(userId, dto);
+  }
+
   @Post('bulk')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create transactions in bulk (SMS sync)' })

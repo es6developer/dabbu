@@ -62,6 +62,8 @@ import { BillRemindersModule } from './modules/bill-reminders/bill-reminders.mod
 import { ForecastModule } from './modules/forecast/forecast.module';
 import { WealthModule } from './modules/wealth/wealth.module';
 import { ChallengesModule } from './modules/challenges/challenges.module';
+import { EmergencyFundModule } from './modules/emergency-fund/emergency-fund.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { FeaturesModule } from './modules/features/features.module';
 
 @Module({
@@ -168,6 +170,8 @@ import { FeaturesModule } from './modules/features/features.module';
     ForecastModule,
     WealthModule,
     ChallengesModule,
+    EmergencyFundModule,
+    DashboardModule,
   ],
   controllers: [HealthController],
   providers: [

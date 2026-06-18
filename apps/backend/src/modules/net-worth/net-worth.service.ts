@@ -15,6 +15,9 @@ export class NetWorthService {
       Number(record.bank) +
       Number(record.cash) +
       Number(record.gold) +
+      Number(record.stocks || 0) +
+      Number(record.mutualFunds || 0) +
+      Number(record.crypto || 0) +
       Number(record.property) +
       Number(record.investments) +
       Number(record.fixedDeposits);
@@ -41,6 +44,9 @@ export class NetWorthService {
       'bank',
       'cash',
       'gold',
+      'stocks',
+      'mutualFunds',
+      'crypto',
       'property',
       'investments',
       'fixedDeposits',
@@ -67,6 +73,9 @@ export class NetWorthService {
       (dto.bank ?? 0) +
       (dto.cash ?? 0) +
       (dto.gold ?? 0) +
+      (dto.stocks ?? 0) +
+      (dto.mutualFunds ?? 0) +
+      (dto.crypto ?? 0) +
       (dto.property ?? 0) +
       (dto.investments ?? 0) +
       (dto.fixedDeposits ?? 0);
@@ -92,6 +101,9 @@ export class NetWorthService {
         bank: dto.bank ?? 0,
         cash: dto.cash ?? 0,
         gold: dto.gold ?? 0,
+        stocks: dto.stocks ?? 0,
+        mutualFunds: dto.mutualFunds ?? 0,
+        crypto: dto.crypto ?? 0,
         property: dto.property ?? 0,
         investments: dto.investments ?? 0,
         fixedDeposits: dto.fixedDeposits ?? 0,
@@ -109,6 +121,9 @@ export class NetWorthService {
         bank: dto.bank ?? 0,
         cash: dto.cash ?? 0,
         gold: dto.gold ?? 0,
+        stocks: dto.stocks ?? 0,
+        mutualFunds: dto.mutualFunds ?? 0,
+        crypto: dto.crypto ?? 0,
         property: dto.property ?? 0,
         investments: dto.investments ?? 0,
         fixedDeposits: dto.fixedDeposits ?? 0,

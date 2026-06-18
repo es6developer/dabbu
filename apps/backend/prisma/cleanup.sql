@@ -5,11 +5,9 @@
 -- Master data preserved (user records kept, their data wiped):
 --   System user system@dabbu.internal  → owns default categories
 --   Demo user   demo@dabbu.app         → user record kept, all data wiped
---   subscription_plans                  → premium tiers
---   currencies                          → supported currencies
 --   admin_users                         → admin panel accounts
---   app_configuration                   → app-wide settings
---   feature_flags                       → feature toggles
+--   transaction_categories              → ALL categories preserved
+--   subscription_plans                  → premium tiers
 --
 -- Run:
 --   mysql -h <host> -u <user> -p<pass> <db> < apps/backend/prisma/cleanup.sql
@@ -210,10 +208,10 @@ SET FOREIGN_KEY_CHECKS = 1;
 --    Anything with a SET NULL or that we missed above.
 -- ═══════════════════════════════════════════════════════════
 
--- Orphaned categories (non-default, user gone)
-DELETE tc FROM transaction_categories tc
-LEFT JOIN users u ON u.id = tc.userId
-WHERE u.id IS NULL AND tc.isDefault = 0;
+-- Orphaned categories — keep ALL categories (user wants categories preserved)
+-- DELETE tc FROM transaction_categories tc
+-- LEFT JOIN users u ON u.id = tc.userId
+-- WHERE u.id IS NULL AND tc.isDefault = 0;
 
 -- Orphaned analytics events (SET NULL → userId should be null, but clean any non-null orphans)
 DELETE ae FROM analytics_events ae
@@ -256,8 +254,8 @@ SELECT email, id FROM users WHERE email = 'system@dabbu.internal' OR email = 'de
 SELECT CONCAT('Subscription plans: ', COUNT(*)) FROM subscription_plans;
 SELECT CONCAT('Currencies: ', COUNT(*)) FROM currencies;
 SELECT CONCAT('Admin users: ', COUNT(*)) FROM admin_users;
-SELECT CONCAT('Default categories: ', COUNT(*)) FROM transaction_categories WHERE isDefault = 1;
-SELECT CONCAT('Non-default categories (should be 0): ', COUNT(*)) FROM transaction_categories WHERE isDefault = 0;
+SELECT CONCAT('All categories (preserved): ', COUNT(*)) FROM transaction_categories;
+SELECT CONCAT('Non-default categories (preserved): ', COUNT(*)) FROM transaction_categories WHERE isDefault = 0;
 SELECT CONCAT('Users remaining (should be 2): ', COUNT(*)) FROM users;
 SELECT '' AS '';
 SELECT '=== ORPHAN CHECKS (should all be 0) ===' AS status;

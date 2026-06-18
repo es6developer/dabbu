@@ -28,7 +28,12 @@ export class UsersService {
       if (data?.vpaValid) {
         return { valid: true, name: data.payeeAccountName || null, vpa: data.vpa };
       }
-      return { valid: false, name: null, vpa: upiId, error: data?.errorMessage || 'Invalid UPI ID' };
+      return {
+        valid: false,
+        name: null,
+        vpa: upiId,
+        error: data?.errorMessage || 'Invalid UPI ID',
+      };
     } catch (e: any) {
       this.logger.error(`UPI validation failed for ${upiId}: ${e.message}`);
       return { valid: false, name: null, vpa: upiId, error: 'Validation service unavailable' };
@@ -70,7 +75,13 @@ export class UsersService {
 
   async updateProfile(
     userId: string,
-    data: { firstName?: string; lastName?: string; phone?: string; upiId?: string },
+    data: {
+      firstName?: string;
+      lastName?: string;
+      phone?: string;
+      upiId?: string;
+      userType?: string;
+    },
   ) {
     const user = await this.prisma.user.update({
       where: { id: userId },
@@ -84,6 +95,7 @@ export class UsersService {
         phone: true,
         role: true,
         upiId: true,
+        userType: true,
       },
     });
     return user;

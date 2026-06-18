@@ -354,4 +354,15 @@ export class AdminController {
       },
     };
   }
+
+  @UseGuards(AdminGuard)
+  @Roles('super_admin')
+  @ApiBearerAuth()
+  @Post('cleanup')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Wipe all user data, preserving admin, categories, and plans' })
+  async cleanupDatabase() {
+    const result = await this.adminService.cleanupDatabase();
+    return { data: result };
+  }
 }

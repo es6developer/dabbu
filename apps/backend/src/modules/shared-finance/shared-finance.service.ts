@@ -247,10 +247,15 @@ export class SharedFinanceService {
     return group;
   }
 
-  async getUserGroups(userId: string) {
+  async getUserGroups(userId: string, typeFilter?: string) {
     const plan = await this.getUserPlan(userId);
+    const groupWhere: any = {};
+    if (typeFilter) {
+      const types = typeFilter.split(',');
+      groupWhere.group = { type: { in: types } };
+    }
     let memberships = await this.prisma.sharedGroupMember.findMany({
-      where: { userId, isActive: true },
+      where: { userId, isActive: true, ...groupWhere },
       include: {
         group: {
           include: {
@@ -685,7 +690,12 @@ export class SharedFinanceService {
     return member;
   }
 
-  async removeMember(groupId: string, memberId: string, adminId: string, deleteTransactions?: boolean) {
+  async removeMember(
+    groupId: string,
+    memberId: string,
+    adminId: string,
+    deleteTransactions?: boolean,
+  ) {
     await this.verifyAdmin(groupId, adminId);
 
     const member = await this.prisma.sharedGroupMember.findUnique({
@@ -742,7 +752,9 @@ export class SharedFinanceService {
         isActive: false,
         removedAt: new Date(),
         removedBy: adminId,
-        removalReason: deleteTransactions ? 'Removed by admin (expenses deleted)' : 'Removed by admin',
+        removalReason: deleteTransactions
+          ? 'Removed by admin (expenses deleted)'
+          : 'Removed by admin',
       },
     });
 
@@ -862,7 +874,9 @@ export class SharedFinanceService {
       data: {
         isActive: false,
         removedAt: new Date(),
-        removalReason: deleteTransactions ? 'Left and removed all expenses' : 'Member left voluntarily',
+        removalReason: deleteTransactions
+          ? 'Left and removed all expenses'
+          : 'Member left voluntarily',
       },
     });
 
@@ -878,7 +892,11 @@ export class SharedFinanceService {
         groupId,
         eventType: 'member_left',
         triggeredBy: userId,
-        metadata: { userId, leftAt: new Date().toISOString(), deleteTransactions: !!deleteTransactions },
+        metadata: {
+          userId,
+          leftAt: new Date().toISOString(),
+          deleteTransactions: !!deleteTransactions,
+        },
       },
     });
 
@@ -1173,7 +1191,9 @@ export class SharedFinanceService {
           `₹${Number(expense.amount).toLocaleString('en-IN')}`,
           payerName,
         )
-        .catch((err) => this.logger.warn(`Failed to send expense email to ${member.user.email}: ${err.message}`));
+        .catch((err) =>
+          this.logger.warn(`Failed to send expense email to ${member.user.email}: ${err.message}`),
+        );
     }
 
     return expense;
@@ -1212,7 +1232,9 @@ export class SharedFinanceService {
             user: { select: { id: true, firstName: true, lastName: true, email: true } },
           },
         },
-        payer: { select: { id: true, firstName: true, lastName: true, avatarUrl: true, upiId: true } },
+        payer: {
+          select: { id: true, firstName: true, lastName: true, avatarUrl: true, upiId: true },
+        },
         comments: {
           include: {
             sender: { select: { id: true, firstName: true, lastName: true } },
@@ -1386,7 +1408,9 @@ export class SharedFinanceService {
           `₹${amount.toLocaleString('en-IN')}`,
           fromName,
         )
-        .catch((err) => this.logger.error(`Failed to send settlement request email: ${err.message}`));
+        .catch((err) =>
+          this.logger.error(`Failed to send settlement request email: ${err.message}`),
+        );
     }
 
     return settlement;
@@ -1484,7 +1508,9 @@ export class SharedFinanceService {
             `₹${amount.toLocaleString('en-IN')}`,
             toName,
           )
-          .catch((err) => this.logger.warn(`Failed to send settlement email to payer: ${err.message}`));
+          .catch((err) =>
+            this.logger.warn(`Failed to send settlement email to payer: ${err.message}`),
+          );
       }
       if (toUserInfo) {
         this.emailService
@@ -1495,7 +1521,9 @@ export class SharedFinanceService {
             `₹${amount.toLocaleString('en-IN')}`,
             fromName,
           )
-          .catch((err) => this.logger.warn(`Failed to send settlement email to payee: ${err.message}`));
+          .catch((err) =>
+            this.logger.warn(`Failed to send settlement email to payee: ${err.message}`),
+          );
       }
     } catch (e) {
       this.logger.warn('Failed to send settlement completion emails', e);
@@ -2491,7 +2519,9 @@ export class SharedFinanceService {
         where: { groupId },
         include: {
           splits: true,
-        payer: { select: { id: true, firstName: true, lastName: true, avatarUrl: true, upiId: true } },
+          payer: {
+            select: { id: true, firstName: true, lastName: true, avatarUrl: true, upiId: true },
+          },
         },
         orderBy: { date: 'desc' },
       }),
@@ -4843,9 +4873,10 @@ export class SharedFinanceService {
 
 function getGroupAiTip(type: string, expenseCount: number, memberCount: number): string {
   const tips: Record<string, string> = {
-    couple: expenseCount > 0
-      ? 'Track shared expenses to stay aligned on your financial goals.'
-      : 'Start tracking shared expenses to see your combined spending patterns.',
+    couple:
+      expenseCount > 0
+        ? 'Track shared expenses to stay aligned on your financial goals.'
+        : 'Start tracking shared expenses to see your combined spending patterns.',
     family: 'Set up a monthly budget to manage household expenses together.',
     trip: 'Split trip expenses as they happen to avoid awkward settlements later.',
     friends: 'Use the settle-up feature to keep group expenses fair and transparent.',
