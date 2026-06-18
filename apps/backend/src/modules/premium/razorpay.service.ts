@@ -1,6 +1,5 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import Razorpay from 'razorpay';
-import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class RazorpayService {
@@ -21,16 +20,22 @@ export class RazorpayService {
     }
   }
 
+  private getClient(): Razorpay {
+    if (!this.razorpay) {
+      throw new InternalServerErrorException('Razorpay not configured');
+    }
+    return this.razorpay;
+  }
+
   async createPlan(params: {
     period: string;
     interval: number;
     amount: number;
     name: string;
     description?: string;
-  }) {
-    if (!this.razorpay) throw new InternalServerErrorException('Razorpay not configured');
+  }): Promise<any> {
     try {
-      const plan: any = await this.razorpay.plans.create({
+      const plan: any = await this.getClient().plans.create({
         period: params.period as 'daily' | 'weekly' | 'monthly' | 'yearly',
         interval: params.interval,
         item: {
@@ -41,7 +46,7 @@ export class RazorpayService {
         },
         notes: { plan_code: params.name },
       });
-      return plan as any;
+      return plan;
     } catch (err: any) {
       const desc = err?.error?.description || err?.message || 'Failed to create Razorpay plan';
       this.logger.error(`createPlan failed: ${desc}`, err?.stack);
@@ -56,8 +61,7 @@ export class RazorpayService {
     customerContact?: string;
     notes?: Record<string, string>;
     addonAmount?: number;
-  }) {
-    if (!this.razorpay) throw new InternalServerErrorException('Razorpay not configured');
+  }): Promise<any> {
     try {
       const body: any = {
         plan_id: params.planId,
@@ -80,22 +84,164 @@ export class RazorpayService {
           },
         ];
       }
-      const subscription: any = await this.razorpay.subscriptions.create(body);
-      return subscription as any;
+      const subscription: any = await this.getClient().subscriptions.create(body);
+      return subscription;
     } catch (err: any) {
-      const desc = err?.error?.description || err?.message || 'Failed to create Razorpay subscription';
+      const desc =
+        err?.error?.description || err?.message || 'Failed to create Razorpay subscription';
       this.logger.error(`createSubscription failed: ${desc}`, err?.stack);
       throw new InternalServerErrorException(desc);
     }
   }
 
-  async fetchSubscription(subscriptionId: string) {
-    if (!this.razorpay) return null;
+  async fetchSubscription(subscriptionId: string): Promise<any | null> {
     try {
-      const subscription: any = await this.razorpay.subscriptions.fetch(subscriptionId);
-      return subscription as any;
-    } catch {
+      const subscription: any = await this.getClient().subscriptions.fetch(subscriptionId);
+      return subscription;
+    } catch (err: any) {
+      this.logger.warn(`fetchSubscription failed for ${subscriptionId}: ${err?.message}`);
       return null;
+    }
+  }
+
+  async cancelSubscription(subscriptionId: string): Promise<void> {
+    try {
+      await this.getClient().subscriptions.cancel(subscriptionId);
+    } catch (err: any) {
+      const desc =
+        err?.error?.description || err?.message || 'Failed to cancel Razorpay subscription';
+      this.logger.error(`cancelSubscription failed: ${desc}`, err?.stack);
+      throw new InternalServerErrorException(desc);
+    }
+  }
+
+  async pauseSubscription(subscriptionId: string): Promise<void> {
+    try {
+      await this.getClient().subscriptions.pause(subscriptionId);
+    } catch (err: any) {
+      const desc =
+        err?.error?.description || err?.message || 'Failed to pause Razorpay subscription';
+      this.logger.error(`pauseSubscription failed: ${desc}`, err?.stack);
+      throw new InternalServerErrorException(desc);
+    }
+  }
+
+  async resumeSubscription(subscriptionId: string): Promise<void> {
+    try {
+      await this.getClient().subscriptions.resume(subscriptionId);
+    } catch (err: any) {
+      const desc =
+        err?.error?.description || err?.message || 'Failed to resume Razorpay subscription';
+      this.logger.error(`resumeSubscription failed: ${desc}`, err?.stack);
+      throw new InternalServerErrorException(desc);
+    }
+  }
+
+  async retrySubscription(subscriptionId: string): Promise<any> {
+    try {
+      const client = this.getClient();
+      const result: any = await (client as any).subscriptions.retry(subscriptionId);
+      return result;
+    } catch (err: any) {
+      const desc =
+        err?.error?.description || err?.message || 'Failed to retry Razorpay subscription';
+      this.logger.error(`retrySubscription failed: ${desc}`, err?.stack);
+      throw new InternalServerErrorException(desc);
+    }
+  }
+
+  async updateSubscription(
+    subscriptionId: string,
+    params: {
+      plan_id?: string;
+      customer_notify?: number;
+      quantity?: number;
+      remaining_count?: number;
+      schedule_change_at?: string;
+    },
+  ): Promise<any> {
+    try {
+      const result: any = await this.getClient().subscriptions.update(subscriptionId, params);
+      return result;
+    } catch (err: any) {
+      const desc =
+        err?.error?.description || err?.message || 'Failed to update Razorpay subscription';
+      this.logger.error(`updateSubscription failed: ${desc}`, err?.stack);
+      throw new InternalServerErrorException(desc);
+    }
+  }
+
+  async createOrder(params: {
+    amount: number;
+    currency?: string;
+    receipt?: string;
+    notes?: Record<string, string>;
+  }): Promise<any> {
+    try {
+      const order: any = await this.getClient().orders.create({
+        amount: params.amount,
+        currency: params.currency || 'INR',
+        receipt: params.receipt,
+        notes: params.notes || {},
+      });
+      return order;
+    } catch (err: any) {
+      const desc = err?.error?.description || err?.message || 'Failed to create Razorpay order';
+      this.logger.error(`createOrder failed: ${desc}`, err?.stack);
+      throw new InternalServerErrorException(desc);
+    }
+  }
+
+  async fetchPayment(paymentId: string): Promise<any> {
+    try {
+      const payment: any = await this.getClient().payments.fetch(paymentId);
+      return payment;
+    } catch (err: any) {
+      this.logger.warn(`fetchPayment failed for ${paymentId}: ${err?.message}`);
+      return null;
+    }
+  }
+
+  async createCustomer(params: {
+    name: string;
+    email: string;
+    contact: string;
+    fail_existing?: string;
+    notes?: Record<string, string>;
+  }): Promise<any> {
+    try {
+      const customer: any = await this.getClient().customers.create(params);
+      return customer;
+    } catch (err: any) {
+      const desc = err?.error?.description || err?.message || 'Failed to create Razorpay customer';
+      this.logger.error(`createCustomer failed: ${desc}`, err?.stack);
+      throw new InternalServerErrorException(desc);
+    }
+  }
+
+  async fetchCustomer(customerId: string): Promise<any> {
+    try {
+      const customer: any = await this.getClient().customers.fetch(customerId);
+      return customer;
+    } catch (err: any) {
+      this.logger.warn(`fetchCustomer failed for ${customerId}: ${err?.message}`);
+      return null;
+    }
+  }
+
+  verifyPaymentSignature(orderId: string, paymentId: string, signature: string): boolean {
+    try {
+      return Razorpay.validatePaymentSignature(
+        JSON.stringify({
+          razorpay_order_id: orderId,
+          razorpay_payment_id: paymentId,
+          razorpay_signature: signature,
+        }),
+        signature,
+        process.env.RAZORPAY_KEY_SECRET || '',
+      );
+    } catch {
+      return false;
     }
   }
 

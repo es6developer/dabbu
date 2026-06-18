@@ -249,7 +249,16 @@ model User {
   loans                UserLoan[]
   netWorth             UserNetWorth?
   netWorthSnapshots    NetWorthSnapshot[]
-  coupleTimelineEvents CoupleTimelineEvent[]
+  coupleTimelineEvents    CoupleTimelineEvent[]
+  familyGoalsCreated       FamilyGoal[]           @relation("FamilyGoalCreator")
+  familyGoalsAssigned      FamilyGoal[]           @relation("FamilyGoalAssignee")
+  familyBillsPaid          FamilyBill[]           @relation("FamilyBillPayer")
+  familyBillsAssigned      FamilyBill[]           @relation("FamilyBillAssignee")
+  familyContributions      FamilyContribution[]
+  familyInvestmentsManaged FamilyInvestment[]     @relation("FamilyInvestmentManager")
+  familyDocumentsUploaded  FamilyDocument[]        @relation("FamilyDocumentUploader")
+  familyCalendarEventsCreated FamilyCalendarEvent[] @relation("CalendarEventCreator")
+  familyCalendarEventsAssigned FamilyCalendarEvent[] @relation("CalendarEventAssignee")
 
   @@index([email])
   @@index([isActive])
@@ -432,6 +441,13 @@ model Family {
   tasks              SharedTask[]
   reminders          SharedReminder[]
   FamilyIntelligence FamilyIntelligence[]
+  goals              FamilyGoal[]
+  bills              FamilyBill[]
+  contributions      FamilyContribution[]
+  investments        FamilyInvestment[]
+  documents          FamilyDocument[]
+  healthScores       FamilyHealthScore[]
+  calendarEvents     FamilyCalendarEvent[]
 
   @@index([code])
   @@index([ownerId])
@@ -2825,6 +2841,72 @@ model PremiumEntitlement {
   @@map("premium_entitlements")
 }
 
+// ─── SUBSCRIPTION USAGE ─────────────────────────────────────
+model SubscriptionUsage {
+  id         String   @id @default(uuid()) @db.VarChar(36)
+  userId     String   @db.VarChar(36)
+  featureKey String   @db.VarChar(100)
+  count      Int      @default(0)
+  resetAt    DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, featureKey])
+  @@index([userId])
+  @@index([featureKey])
+  @@map("subscription_usage")
+}
+
+// ─── SUBSCRIPTION EVENTS (Analytics) ────────────────────────
+model SubscriptionEvent {
+  id         String   @id @default(uuid()) @db.VarChar(36)
+  userId     String   @db.VarChar(36)
+  event      String   @db.VarChar(100)
+  properties Json?    @db.Json
+  createdAt  DateTime @default(now())
+
+  @@index([userId, event])
+  @@index([event, createdAt])
+  @@map("subscription_events")
+}
+
+// ─── COUPON / DISCOUNTS ─────────────────────────────────────
+model SubscriptionCoupon {
+  id              String    @id @default(uuid()) @db.VarChar(36)
+  code            String    @unique @db.VarChar(50)
+  description     String?   @db.Text
+  discountPct     Int       @default(0)
+  discountAmt     Decimal?  @db.Decimal(10, 2)
+  maxUses         Int       @default(0)
+  usedCount       Int       @default(0)
+  validFrom       DateTime?
+  validUntil      DateTime?
+  applicablePlans Json?     @db.Json
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([code, isActive])
+  @@map("subscription_coupons")
+}
+
+// ─── CANCELLATION RECOVERY ──────────────────────────────────
+model CancellationRecovery {
+  id            String    @id @default(uuid()) @db.VarChar(36)
+  userId        String    @unique @db.VarChar(36)
+  reason        String    @db.VarChar(100)
+  reasonText    String?   @db.Text
+  offerType     String?   @db.VarChar(50)
+  offerData     Json?     @db.Json
+  offerAccepted Boolean   @default(false)
+  expiresAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("cancellation_recovery")
+}
+
 // ─── DOCUMENT VAULT ──────────────────────────────────────────
 // aadhaar, pan, passport, driving_license, insurance, vehicle_rc, warranty, medical
 model UserDocument {
@@ -3306,6 +3388,180 @@ model FamilyIntelligence {
   @@unique([familyId, periodStart])
   @@index([familyId])
   @@map("family_intelligence")
+}
+
+// ─── FAMILY GOALS ─────────────────────────────────────────
+// Goals specific to a family (not SharedGroup-based)
+model FamilyGoal {
+  id            String    @id @default(uuid()) @db.VarChar(36)
+  familyId      String    @db.VarChar(36)
+  name          String    @db.VarChar(255)
+  targetAmount  Decimal   @db.Decimal(15, 2)
+  savedAmount   Decimal   @default(0) @db.Decimal(15, 2)
+  deadline      DateTime? @db.Date
+  category      String    @default("savings") @db.VarChar(50) // house, education, marriage, vacation, baby, emergency, vehicle, investment, custom
+  assignedTo    String?   @db.VarChar(36)
+  status        String    @default("active") @db.VarChar(20) // active, completed, cancelled
+  notes         String?   @db.Text
+  createdBy     String    @db.VarChar(36)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  family    Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  assignee  User?  @relation("FamilyGoalAssignee", fields: [assignedTo], references: [id])
+  creator   User   @relation("FamilyGoalCreator", fields: [createdBy], references: [id])
+
+  @@index([familyId, status])
+  @@map("family_goals")
+}
+
+// ─── FAMILY BILLS ─────────────────────────────────────────
+// Bills shared within a family
+model FamilyBill {
+  id          String    @id @default(uuid()) @db.VarChar(36)
+  familyId    String    @db.VarChar(36)
+  name        String    @db.VarChar(255)
+  amount      Decimal   @db.Decimal(15, 2)
+  dueDate     DateTime? @db.Date
+  category    String    @default("other") @db.VarChar(50) // rent, electricity, water, internet, school_fees, insurance, loans, emi, subscriptions, other
+  frequency   String    @default("monthly") @db.VarChar(20) // monthly, quarterly, yearly, one-time
+  isPaid      Boolean   @default(false)
+  paidBy      String?   @db.VarChar(36)
+  paidAt      DateTime?
+  assignedTo  String?   @db.VarChar(36)
+  notes       String?   @db.VarChar(500)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  family    Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  payer     User?  @relation("FamilyBillPayer", fields: [paidBy], references: [id])
+  assignee  User?  @relation("FamilyBillAssignee", fields: [assignedTo], references: [id])
+
+  @@index([familyId, isPaid])
+  @@index([familyId, dueDate])
+  @@map("family_bills")
+}
+
+// ─── FAMILY CONTRIBUTIONS ─────────────────────────────────
+// Track contributions by family members
+model FamilyContribution {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  familyId  String   @db.VarChar(36)
+  userId    String   @db.VarChar(36)
+  amount    Decimal  @db.Decimal(15, 2)
+  period    String   @db.VarChar(20) // month-year like "2026-06"
+  type      String   @default("monthly") @db.VarChar(20) // monthly, quarterly, yearly, one-time
+  date      DateTime @default(now())
+  notes     String?  @db.VarChar(500)
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([familyId, userId, period])
+  @@index([familyId, period])
+  @@map("family_contributions")
+}
+
+// ─── FAMILY INVESTMENTS ───────────────────────────────────
+// Family-level investment tracking
+model FamilyInvestment {
+  id            String    @id @default(uuid()) @db.VarChar(36)
+  familyId      String    @db.VarChar(36)
+  name          String    @db.VarChar(255)
+  type          String    @db.VarChar(50) // stocks, mutual_funds, gold, fd, crypto, property, pf, nps, other
+  amount        Decimal   @db.Decimal(15, 2)
+  currentValue  Decimal   @db.Decimal(15, 2)
+  returns       Decimal   @default(0) @db.Decimal(10, 2) // percentage returns
+  purchaseDate  DateTime? @db.Date
+  notes         String?   @db.VarChar(500)
+  managedBy     String?   @db.VarChar(36)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  family  Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  manager User?  @relation("FamilyInvestmentManager", fields: [managedBy], references: [id])
+
+  @@index([familyId, type])
+  @@map("family_investments")
+}
+
+// ─── FAMILY DOCUMENTS ─────────────────────────────────────
+// Document vault for families
+model FamilyDocument {
+  id          String    @id @default(uuid()) @db.VarChar(36)
+  familyId    String    @db.VarChar(36)
+  name        String    @db.VarChar(255)
+  type        String    @db.VarChar(50) // aadhar, pan, insurance, property, vehicle, school, warranty, other
+  category    String    @default("other") @db.VarChar(50)
+  fileUrl     String    @db.Text
+  mimeType    String    @db.VarChar(100)
+  fileSize    Int       @default(0)
+  uploadedBy  String    @db.VarChar(36)
+  description String?   @db.VarChar(500)
+  isEncrypted Boolean   @default(false)
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  uploader User   @relation("FamilyDocumentUploader", fields: [uploadedBy], references: [id])
+
+  @@index([familyId, type])
+  @@index([expiresAt])
+  @@map("family_documents")
+}
+
+// ─── FAMILY HEALTH SCORE ──────────────────────────────────
+// Periodic health score snapshots for families
+model FamilyHealthScore {
+  id                  String   @id @default(uuid()) @db.VarChar(36)
+  familyId            String   @db.VarChar(36)
+  overallScore        Int      @default(0)
+  savingsScore        Int      @default(0)
+  debtScore           Int      @default(0)
+  goalsScore          Int      @default(0)
+  insuranceScore      Int      @default(0)
+  emergencyFundScore  Int      @default(0)
+  investmentRatioScore Int     @default(0)
+  periodStart         DateTime
+  periodEnd           DateTime
+  computedAt          DateTime @default(now())
+  createdAt           DateTime @default(now())
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@unique([familyId, periodStart])
+  @@index([familyId])
+  @@map("family_health_scores")
+}
+
+// ─── FAMILY CALENDAR EVENTS ───────────────────────────────
+// Calendar events specific to a family
+model FamilyCalendarEvent {
+  id            String    @id @default(uuid()) @db.VarChar(36)
+  familyId      String    @db.VarChar(36)
+  title         String    @db.VarChar(255)
+  description   String?   @db.VarChar(500)
+  eventType     String    @default("custom") @db.VarChar(30) // birthday, emi, bill_due, insurance_renewal, school_fee, goal_milestone, reminder, custom
+  startDate     DateTime
+  endDate       DateTime?
+  allDay        Boolean   @default(false)
+  color         String?   @db.VarChar(20)
+  recurrence    String?   @db.VarChar(50) // daily, weekly, monthly, yearly, none
+  referenceType String?   @db.VarChar(30) // bill, goal, investment, insurance, task
+  referenceId   String?   @db.VarChar(36)
+  createdBy     String    @db.VarChar(36)
+  assignedTo    String?   @db.VarChar(36)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  creator  User   @relation("CalendarEventCreator", fields: [createdBy], references: [id])
+  assignee User?  @relation("CalendarEventAssignee", fields: [assignedTo], references: [id])
+
+  @@index([familyId, startDate])
+  @@index([eventType])
+  @@map("family_calendar_events")
 }
 
 // ─── AI FEED CARDS ─────────────────────────────────────────

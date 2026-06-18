@@ -9,6 +9,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { FcmService } from './fcm.service';
+import { NotificationGateway } from './notification.gateway';
 import {
   CreateNotificationDto,
   ListNotificationsQueryDto,
@@ -24,6 +25,7 @@ export class NotificationService {
     private readonly prisma: PrismaService,
     private readonly fcmService: FcmService,
     @Optional() @InjectQueue('notification-queue') private readonly notificationQueue: Queue | null,
+    @Optional() private readonly notificationGateway?: NotificationGateway,
   ) {}
 
   async create(
@@ -62,6 +64,8 @@ export class NotificationService {
       notificationId: notification.id,
       type: dto.type,
     });
+
+    this.notificationGateway?.emitNotification(dto.userId, notification);
 
     return notification;
   }
@@ -169,6 +173,8 @@ export class NotificationService {
       ...data,
       notificationId: notification.id,
     });
+
+    this.notificationGateway?.emitNotification(userId, notification);
   }
 
   private async _sendPushToDevices(

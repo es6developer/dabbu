@@ -27,6 +27,11 @@ import {
   ListTicketsQueryDto,
   UpdateTicketDto,
   ListAdminsQueryDto,
+  AdminSubscriptionFilterDto,
+  AdminUpdateSubscriptionDto,
+  CreateCouponDto,
+  UpdateCouponDto,
+  IssueRefundDto,
 } from './dto';
 
 @Injectable()
@@ -662,6 +667,643 @@ export class AdminService {
     return {
       data: subscriptions,
       meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
+  async getSubscriptionStats() {
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [
+      totalSubscriptions,
+      activeSubscriptions,
+      cancelledSubscriptions,
+      pastDueSubscriptions,
+      newSubscriptionsThisMonth,
+      cancelledThisMonth,
+      totalRevenue,
+      monthlyRevenue,
+    ] = await Promise.all([
+      this.prisma.subscription.count(),
+      this.prisma.subscription.count({ where: { status: 'active' } }),
+      this.prisma.subscription.count({ where: { status: 'cancelled' } }),
+      this.prisma.subscription.count({ where: { status: 'past_due' } }),
+      this.prisma.subscription.count({
+        where: { createdAt: { gte: startOfMonth } },
+      }),
+      this.prisma.subscription.count({
+        where: { cancelledAt: { gte: thirtyDaysAgo } },
+      }),
+      this.prisma.paymentTransaction
+        .aggregate({
+          _sum: { amount: true },
+          where: { status: 'completed' },
+        })
+        .then((r) => Number(r._sum.amount ?? 0)),
+      this.prisma.paymentTransaction
+        .aggregate({
+          _sum: { amount: true },
+          where: { status: 'completed', createdAt: { gte: startOfMonth } },
+        })
+        .then((r) => Number(r._sum.amount ?? 0)),
+    ]);
+
+    const activeSubsWithPlans = await this.prisma.subscription.findMany({
+      where: { status: 'active' },
+      include: { plan: { select: { price: true, interval: true } } },
+    });
+
+    let mrr = 0;
+    for (const sub of activeSubsWithPlans) {
+      const price = Number(sub.plan.price);
+      mrr += sub.plan.interval === 'yearly' ? price / 12 : price;
+    }
+
+    const denominator = activeSubscriptions + cancelledThisMonth;
+    const churnRate =
+      denominator > 0 ? Math.round((cancelledThisMonth / denominator) * 100 * 100) / 100 : 0;
+
+    const nowPlus7 = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const expiringSubscriptions = await this.prisma.subscription.count({
+      where: {
+        status: 'active',
+        currentPeriodEnd: { gte: now, lte: nowPlus7 },
+      },
+    });
+
+    return {
+      totalSubscriptions,
+      activeSubscriptions,
+      cancelledSubscriptions,
+      pastDueSubscriptions,
+      expiringSubscriptions,
+      newSubscriptionsThisMonth,
+      cancelledThisMonth,
+      mrr: Math.round(mrr * 100) / 100,
+      arr: Math.round(mrr * 12 * 100) / 100,
+      churnRate,
+      totalRevenue,
+      monthlyRevenue,
+    };
+  }
+
+  async getActiveSubscribers(filters: AdminSubscriptionFilterDto) {
+    const { page = 1, limit = 20, status, planCode, search } = filters;
+    const skip = (page - 1) * limit;
+    const where: any = {};
+
+    if (status) {
+      where.status = status;
+    }
+    if (planCode) {
+      where.plan = { code: planCode };
+    }
+    if (search) {
+      where.user = {
+        OR: [
+          { email: { contains: search, mode: 'insensitive' } },
+          { firstName: { contains: search, mode: 'insensitive' } },
+          { lastName: { contains: search, mode: 'insensitive' } },
+        ],
+      };
+    }
+
+    const [subscriptions, total] = await Promise.all([
+      this.prisma.subscription.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+              phone: true,
+              isActive: true,
+            },
+          },
+          plan: {
+            select: { id: true, name: true, code: true, price: true, interval: true },
+          },
+        },
+      }),
+      this.prisma.subscription.count({ where }),
+    ]);
+
+    return {
+      data: subscriptions,
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
+  async getExpiringSubscriptions(days = 7) {
+    const now = new Date();
+    const end = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+
+    const subscriptions = await this.prisma.subscription.findMany({
+      where: {
+        status: 'active',
+        currentPeriodEnd: { gte: now, lte: end },
+      },
+      orderBy: { currentPeriodEnd: 'asc' },
+      include: {
+        user: {
+          select: { id: true, email: true, firstName: true, lastName: true, phone: true },
+        },
+        plan: {
+          select: { id: true, name: true, code: true, price: true, interval: true },
+        },
+      },
+    });
+
+    return { data: subscriptions };
+  }
+
+  async getFailedPayments(page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
+    const where = { status: 'failed' as const };
+
+    const [payments, total] = await Promise.all([
+      this.prisma.paymentTransaction.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: {
+            select: { id: true, email: true, firstName: true, lastName: true },
+          },
+          subscription: {
+            select: { id: true, status: true },
+          },
+        },
+      }),
+      this.prisma.paymentTransaction.count({ where }),
+    ]);
+
+    return {
+      data: payments,
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
+  async getSubscriptionDetail(id: string) {
+    const subscription = await this.prisma.subscription.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            isActive: true,
+          },
+        },
+        plan: true,
+        payments: { orderBy: { createdAt: 'desc' } },
+        entitlements: true,
+      },
+    });
+
+    if (!subscription) {
+      throw new NotFoundException('Subscription not found');
+    }
+
+    const [usage, events] = await Promise.all([
+      this.prisma.subscriptionUsage.findMany({
+        where: { userId: subscription.userId },
+      }),
+      this.prisma.subscriptionEvent.findMany({
+        where: { userId: subscription.userId },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+      }),
+    ]);
+
+    return { ...subscription, usage, events };
+  }
+
+  async adminUpdateSubscription(id: string, dto: AdminUpdateSubscriptionDto, adminId: string) {
+    const subscription = await this.prisma.subscription.findUnique({ where: { id } });
+    if (!subscription) {
+      throw new NotFoundException('Subscription not found');
+    }
+
+    if (dto.planId) {
+      const plan = await this.prisma.subscriptionPlan.findUnique({ where: { id: dto.planId } });
+      if (!plan) {
+        throw new NotFoundException('Plan not found');
+      }
+    }
+
+    const data: any = {};
+    if (dto.status !== undefined) {
+      data.status = dto.status;
+      if (dto.status === 'cancelled' && !subscription.cancelledAt) {
+        data.cancelledAt = new Date();
+      }
+    }
+    if (dto.planId !== undefined) {
+      data.planId = dto.planId;
+    }
+    if (dto.currentPeriodEnd !== undefined) {
+      data.currentPeriodEnd = new Date(dto.currentPeriodEnd);
+    }
+    if (dto.notes !== undefined) {
+      data.metadata = {
+        ...((subscription.metadata as Record<string, any>) || {}),
+        adminNotes: dto.notes,
+        lastUpdatedBy: adminId,
+        lastUpdatedAt: new Date().toISOString(),
+      };
+    }
+
+    const updated = await this.prisma.subscription.update({
+      where: { id },
+      data,
+      include: {
+        user: {
+          select: { id: true, email: true, firstName: true, lastName: true },
+        },
+        plan: { select: { id: true, name: true, code: true, price: true, interval: true } },
+      },
+    });
+
+    await this.createAuditLog({
+      adminId,
+      action: 'updated',
+      entity: 'subscription',
+      entityId: id,
+      description: `Admin updated subscription ${id.slice(0, 8)}: ${Object.keys(data).join(', ')}`,
+      ipAddress: null,
+    });
+
+    return updated;
+  }
+
+  async issueRefund(subscriptionId: string, dto: IssueRefundDto, adminId: string) {
+    const subscription = await this.prisma.subscription.findUnique({
+      where: { id: subscriptionId },
+      include: {
+        payments: {
+          where: { status: 'completed' },
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
+      },
+    });
+
+    if (!subscription) {
+      throw new NotFoundException('Subscription not found');
+    }
+
+    const payment = subscription.payments[0];
+    if (!payment) {
+      throw new BadRequestException('No completed payments found for this subscription');
+    }
+
+    if (payment.refundedAt) {
+      throw new BadRequestException('Payment has already been refunded');
+    }
+
+    const refundAmount = dto.amount ?? Number(payment.amount);
+
+    await this.prisma.paymentTransaction.update({
+      where: { id: payment.id },
+      data: {
+        refundedAt: new Date(),
+        refundAmount,
+        status: 'refunded',
+        metadata: {
+          ...((payment.metadata as Record<string, any>) || {}),
+          refundReason: dto.reason || 'Admin initiated refund',
+          refundedBy: adminId,
+        },
+      },
+    });
+
+    await this.createAuditLog({
+      adminId,
+      action: 'created',
+      entity: 'payment_transaction',
+      entityId: payment.id,
+      description: `Refund of ${refundAmount} issued for subscription ${subscriptionId.slice(0, 8)}${dto.reason ? `: ${dto.reason}` : ''}`,
+      ipAddress: null,
+    });
+
+    return {
+      message: 'Refund issued successfully',
+      paymentId: payment.id,
+      refundAmount,
+    };
+  }
+
+  async getUserSubscriptionHistory(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, firstName: true, lastName: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const [subscriptions, events] = await Promise.all([
+      this.prisma.subscription.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          plan: true,
+          payments: { orderBy: { createdAt: 'desc' } },
+          entitlements: true,
+        },
+      }),
+      this.prisma.subscriptionEvent.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+      }),
+    ]);
+
+    return { user, subscriptions, events };
+  }
+
+  async getCoupons() {
+    return this.prisma.subscriptionCoupon.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async createCoupon(dto: CreateCouponDto, adminId: string) {
+    const existing = await this.prisma.subscriptionCoupon.findUnique({
+      where: { code: dto.code },
+    });
+    if (existing) {
+      throw new ConflictException('Coupon with this code already exists');
+    }
+
+    const coupon = await this.prisma.subscriptionCoupon.create({
+      data: {
+        code: dto.code,
+        description: dto.description,
+        discountPct: dto.discountPct ?? 0,
+        discountAmt: dto.discountAmt,
+        maxUses: dto.maxUses ?? 0,
+        validFrom: dto.validFrom ? new Date(dto.validFrom) : undefined,
+        validUntil: dto.validUntil ? new Date(dto.validUntil) : undefined,
+        applicablePlans: dto.applicablePlans || [],
+        isActive: true,
+      },
+    });
+
+    await this.createAuditLog({
+      adminId,
+      action: 'created',
+      entity: 'subscription_coupon',
+      entityId: coupon.id,
+      description: `Created coupon: ${coupon.code}`,
+      ipAddress: null,
+    });
+
+    return coupon;
+  }
+
+  async updateCoupon(id: string, dto: UpdateCouponDto, adminId: string) {
+    const coupon = await this.prisma.subscriptionCoupon.findUnique({ where: { id } });
+    if (!coupon) {
+      throw new NotFoundException('Coupon not found');
+    }
+
+    const data: any = {};
+    if (dto.description !== undefined) {
+      data.description = dto.description;
+    }
+    if (dto.discountPct !== undefined) {
+      data.discountPct = dto.discountPct;
+    }
+    if (dto.discountAmt !== undefined) {
+      data.discountAmt = dto.discountAmt;
+    }
+    if (dto.maxUses !== undefined) {
+      data.maxUses = dto.maxUses;
+    }
+    if (dto.validFrom !== undefined) {
+      data.validFrom = new Date(dto.validFrom);
+    }
+    if (dto.validUntil !== undefined) {
+      data.validUntil = new Date(dto.validUntil);
+    }
+    if (dto.isActive !== undefined) {
+      data.isActive = dto.isActive;
+    }
+
+    const updated = await this.prisma.subscriptionCoupon.update({
+      where: { id },
+      data,
+    });
+
+    await this.createAuditLog({
+      adminId,
+      action: 'updated',
+      entity: 'subscription_coupon',
+      entityId: id,
+      description: `Updated coupon: ${coupon.code}`,
+      ipAddress: null,
+    });
+
+    return updated;
+  }
+
+  async deleteCoupon(id: string, adminId: string) {
+    const coupon = await this.prisma.subscriptionCoupon.findUnique({ where: { id } });
+    if (!coupon) {
+      throw new NotFoundException('Coupon not found');
+    }
+
+    const updated = await this.prisma.subscriptionCoupon.update({
+      where: { id },
+      data: { isActive: false },
+    });
+
+    await this.createAuditLog({
+      adminId,
+      action: 'deleted',
+      entity: 'subscription_coupon',
+      entityId: id,
+      description: `Soft-deleted coupon: ${coupon.code}`,
+      ipAddress: null,
+    });
+
+    return { message: 'Coupon deleted successfully', coupon: updated };
+  }
+
+  async getSubscriptionAnalytics() {
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const activeSubsWithPlans = await this.prisma.subscription.findMany({
+      where: { status: 'active' },
+      include: { plan: { select: { price: true, interval: true } } },
+    });
+
+    let mrr = 0;
+    for (const sub of activeSubsWithPlans) {
+      const price = Number(sub.plan.price);
+      mrr += sub.plan.interval === 'yearly' ? price / 12 : price;
+    }
+
+    const [newSubscriptions, cancelledSubscriptions, previousActiveCount] = await Promise.all([
+      this.prisma.subscription.count({
+        where: { createdAt: { gte: thirtyDaysAgo } },
+      }),
+      this.prisma.subscription.count({
+        where: { cancelledAt: { gte: thirtyDaysAgo } },
+      }),
+      this.prisma.subscription.count({
+        where: {
+          status: 'active',
+          createdAt: { lt: thirtyDaysAgo },
+        },
+      }),
+    ]);
+
+    const activeCount = activeSubsWithPlans.length;
+    const prevActiveWithCancelled = previousActiveCount + cancelledSubscriptions;
+    const churnRate =
+      prevActiveWithCancelled > 0
+        ? Math.round((cancelledSubscriptions / prevActiveWithCancelled) * 100 * 100) / 100
+        : 0;
+
+    const retentionRate =
+      previousActiveCount > 0
+        ? Math.round(
+            ((previousActiveCount - cancelledSubscriptions) / previousActiveCount) * 100 * 100,
+          ) / 100
+        : 0;
+
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    const [revenueCurrent, revenuePrevious] = await Promise.all([
+      this.prisma.paymentTransaction
+        .aggregate({
+          _sum: { amount: true },
+          where: { status: 'completed', createdAt: { gte: startOfMonth } },
+        })
+        .then((r) => Number(r._sum.amount ?? 0)),
+      this.prisma.paymentTransaction
+        .aggregate({
+          _sum: { amount: true },
+          where: {
+            status: 'completed',
+            createdAt: { gte: lastMonthStart, lte: lastMonthEnd },
+          },
+        })
+        .then((r) => Number(r._sum.amount ?? 0)),
+    ]);
+
+    const revenueGrowth =
+      revenuePrevious > 0
+        ? Math.round(((revenueCurrent - revenuePrevious) / revenuePrevious) * 100 * 100) / 100
+        : 0;
+
+    const planDistribution = await this.prisma.subscription.groupBy({
+      by: ['planId'],
+      where: { status: 'active' },
+      _count: { id: true },
+    });
+
+    const plans = await this.prisma.subscriptionPlan.findMany({
+      where: { id: { in: planDistribution.map((p) => p.planId) } },
+    });
+
+    const planMap = new Map(plans.map((p) => [p.id, p.name]));
+    const byPlan = planDistribution.map((p) => ({
+      planId: p.planId,
+      planName: planMap.get(p.planId) || 'Unknown',
+      count: p._count.id,
+    }));
+
+    return {
+      mrr: Math.round(mrr * 100) / 100,
+      arr: Math.round(mrr * 12 * 100) / 100,
+      activeSubscriptions: activeCount,
+      newSubscriptionsLast30d: newSubscriptions,
+      cancelledSubscriptionsLast30d: cancelledSubscriptions,
+      churnRate,
+      retentionRate,
+      revenueCurrent,
+      revenuePrevious,
+      revenueGrowth,
+      byPlan,
+      averageRevenuePerUser: activeCount > 0 ? Math.round((mrr / activeCount) * 100) / 100 : 0,
+    };
+  }
+
+  async getConversionFunnel() {
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const events = await this.prisma.subscriptionEvent.groupBy({
+      by: ['event'],
+      where: { createdAt: { gte: thirtyDaysAgo } },
+      _count: { id: true },
+    });
+
+    const eventMap = new Map(events.map((e) => [e.event, e._count.id]));
+
+    const pricingViewed = eventMap.get('pricing_viewed') || 0;
+    const checkoutStarted = eventMap.get('checkout_started') || 0;
+    const paymentCompleted = eventMap.get('payment_completed') || 0;
+
+    const retainedUsers = await this.prisma.subscription.count({
+      where: {
+        status: 'active',
+        createdAt: { lte: thirtyDaysAgo },
+      },
+    });
+
+    return {
+      pricingViewed,
+      checkoutStarted,
+      paymentCompleted,
+      retainedAfter30d: retainedUsers,
+      funnel: [
+        {
+          stage: 'pricing_viewed',
+          count: pricingViewed,
+          conversionRate: 100,
+        },
+        {
+          stage: 'checkout_started',
+          count: checkoutStarted,
+          conversionRate:
+            pricingViewed > 0 ? Math.round((checkoutStarted / pricingViewed) * 100 * 100) / 100 : 0,
+        },
+        {
+          stage: 'payment_completed',
+          count: paymentCompleted,
+          conversionRate:
+            checkoutStarted > 0
+              ? Math.round((paymentCompleted / checkoutStarted) * 100 * 100) / 100
+              : 0,
+        },
+        {
+          stage: 'retained_30d',
+          count: retainedUsers,
+          conversionRate:
+            paymentCompleted > 0
+              ? Math.round((retainedUsers / paymentCompleted) * 100 * 100) / 100
+              : 0,
+        },
+      ],
     };
   }
 

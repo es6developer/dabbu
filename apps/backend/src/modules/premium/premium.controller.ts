@@ -1,10 +1,20 @@
-import { Controller, Get, Post, Body, UseGuards, Req, Headers } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Req, Headers, Param, Query } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { PremiumService } from './premium.service';
 import { RazorpayService } from './razorpay.service';
 import { PremiumWebhookService } from './premium-webhook.service';
-import { PrismaService } from '../../common/prisma/prisma.service';
+import { PremiumGuard } from './guards/premium.guard';
+import { RequiresPremium } from './guards/requires-premium.decorator';
+import {
+  CreateSubscriptionDto,
+  ChangePlanDto,
+  CancelSubscriptionDto,
+  ReactivateSubscriptionDto,
+  SubscriptionAnalyticsEventDto,
+  ValidateCouponDto,
+  CancellationRecoveryDto,
+} from './dto/premium.dto';
 
 @ApiTags('Premium')
 @Controller('premium')
@@ -13,8 +23,200 @@ export class PremiumController {
     private premiumService: PremiumService,
     private razorpayService: RazorpayService,
     private webhookService: PremiumWebhookService,
-    private prisma: PrismaService,
   ) {}
+
+  @Get('plans')
+  @ApiOperation({ summary: 'Get all active subscription plans' })
+  async getPlans() {
+    return this.premiumService.getPlans();
+  }
+
+  @Get('plans/:code')
+  @ApiOperation({ summary: 'Get plan by code' })
+  async getPlanByCode(@Param('code') code: string) {
+    return this.premiumService.getPlanByCode(code);
+  }
+
+  @Get('features')
+  @ApiOperation({ summary: 'Get feature registry' })
+  async getFeatures() {
+    return this.premiumService.getFeatures();
+  }
+
+  @Post('preview')
+  @ApiOperation({ summary: 'Preview what features a plan would grant' })
+  async previewChange(@Body('planCode') planCode: string) {
+    return this.premiumService.previewChange(planCode);
+  }
+
+  @Get('current')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get current user subscription with usage and entitlements' })
+  async getCurrentSubscription(@Req() req: any) {
+    return this.premiumService.getCurrentSubscription(req.user.id);
+  }
+
+  @Post('subscribe')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create subscription for a plan with Razorpay checkout' })
+  async createSubscription(@Req() req: any, @Body() dto: CreateSubscriptionDto) {
+    return this.premiumService.subscribe(req.user.id, dto.planCode, dto.couponCode);
+  }
+
+  @Post('change-plan')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Change current plan' })
+  async changePlan(@Req() req: any, @Body() dto: ChangePlanDto) {
+    return this.premiumService.changePlan(req.user.id, dto.newPlanCode);
+  }
+
+  @Post('cancel')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Cancel subscription with reason' })
+  async cancelSubscription(@Req() req: any, @Body() dto: CancelSubscriptionDto) {
+    return this.premiumService.cancelSubscription(req.user.id, dto.reason, dto.reasonCode);
+  }
+
+  @Post('reactivate')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Reactivate cancelled subscription' })
+  async reactivateSubscription(@Req() req: any, @Body() dto: ReactivateSubscriptionDto) {
+    return this.premiumService.reactivateSubscription(req.user.id);
+  }
+
+  @Post('pause')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Pause active subscription' })
+  async pauseSubscription(@Req() req: any) {
+    return this.premiumService.pauseSubscription(req.user.id);
+  }
+
+  @Post('resume')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Resume paused subscription' })
+  async resumeSubscription(@Req() req: any) {
+    return this.premiumService.resumeSubscription(req.user.id);
+  }
+
+  @Post('retry-payment')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Retry failed payment' })
+  async retryPayment(@Req() req: any) {
+    return this.premiumService.retryPayment(req.user.id);
+  }
+
+  @Get('billing')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get billing history (paginated)' })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  async getBillingHistory(
+    @Req() req: any,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.premiumService.getPaymentHistory(
+      req.user.id,
+      page ? parseInt(page, 10) : 1,
+      limit ? parseInt(limit, 10) : 10,
+    );
+  }
+
+  @Get('usage')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get current usage statistics' })
+  async getUsage(@Req() req: any) {
+    return this.premiumService.getUsage(req.user.id);
+  }
+
+  @Get('check')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Check if user has active premium' })
+  async checkPremium(@Req() req: any) {
+    const isPremium = await this.premiumService.isPremium(req.user.id);
+    return { isPremium };
+  }
+
+  @Post('validate-coupon')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Validate a coupon code' })
+  async validateCoupon(@Req() req: any, @Body() dto: ValidateCouponDto) {
+    return this.premiumService.applyCoupon(dto.code, dto.planCode);
+  }
+
+  @Post('track-event')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Track subscription analytics event' })
+  async trackEvent(@Req() req: any, @Body() dto: SubscriptionAnalyticsEventDto) {
+    await this.premiumService.trackEvent(req.user.id, dto.event, dto.properties);
+    return { success: true };
+  }
+
+  @Get('subscription-center')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get full subscription dashboard data' })
+  async getSubscriptionCenter(@Req() req: any) {
+    return this.premiumService.getSubscriptionCenter(req.user.id);
+  }
+
+  @Get('invoices')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get invoice history' })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  async getInvoices(@Req() req: any, @Query('page') page?: string, @Query('limit') limit?: string) {
+    return this.premiumService.getPaymentHistory(
+      req.user.id,
+      page ? parseInt(page, 10) : 1,
+      limit ? parseInt(limit, 10) : 10,
+    );
+  }
+
+  @Post('cancellation/recovery')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Submit cancellation recovery response' })
+  async submitCancellationRecovery(@Req() req: any, @Body() dto: CancellationRecoveryDto) {
+    return this.premiumService.submitCancellationRecovery(req.user.id, dto.reason, dto.reasonText);
+  }
+
+  @Get('cancellation/offer')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get cancellation recovery offer' })
+  async getCancellationOffer(@Req() req: any) {
+    return this.premiumService.getCancellationOffer(req.user.id);
+  }
+
+  @Post('cancellation/accept')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Accept recovery offer' })
+  async acceptRecoveryOffer(@Req() req: any) {
+    return this.premiumService.acceptRecoveryOffer(req.user.id);
+  }
+
+  @Post('webhook/razorpay')
+  @ApiOperation({ summary: 'Razorpay webhook endpoint' })
+  async handleWebhook(@Body() body: any, @Headers('x-razorpay-signature') signature: string) {
+    const rawBody = JSON.stringify(body);
+    return this.webhookService.handleRazorpayWebhook(rawBody, signature);
+  }
 
   @Post('verify')
   @UseGuards(AuthGuard('jwt'))
@@ -38,106 +240,18 @@ export class PremiumController {
       rzpSub.status === 'authenticated' ||
       rzpSub.status === 'completed'
     ) {
-      await this.premiumService.activateFromRazorpay(sub.id, sub.planId, sub.userId);
+      await this.premiumService.handleActivation(sub.razorpaySubscriptionId, rzpSub);
       return { verified: true, message: 'Subscription activated' };
     }
     return { verified: false, message: `Razorpay status: ${rzpSub.status}` };
   }
 
-  @Get('plans')
-  @ApiOperation({ summary: 'Get all active subscription plans' })
-  async getPlans() {
-    return this.premiumService.getPlans();
-  }
-
-  @Get('current')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), PremiumGuard)
+  @RequiresPremium('premium_access')
+  @Get('protected')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get current user subscription' })
-  async getCurrentSubscription(@Req() req: any) {
-    const userId = req.user.id;
-    return this.premiumService.getCurrentSubscription(userId);
-  }
-
-  @Post('subscribe')
-  @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create subscription for a plan' })
-  async createSubscription(@Req() req: any, @Body('planCode') planCode: string) {
-    const userId = req.user.id;
-
-    // 1. Ensure Razorpay plan exists (creates via API if needed)
-    const razorpayPlanId = await this.premiumService.ensureRazorpayPlan(planCode);
-
-    // 2. Create local subscription with 'incomplete' status (payment pending)
-    const sub = await this.premiumService.createSubscription(userId, planCode, 'incomplete');
-
-    // 3. Get plan details for total_count calculation
-    const plan = await this.prisma.subscriptionPlan.findUnique({ where: { id: sub.planId } });
-    const intervalMonths: Record<string, number> = {
-      monthly: 1,
-      quarterly: 3,
-      halfyearly: 6,
-      yearly: 12,
-    };
-    const monthsPerCycle = intervalMonths[plan?.interval || 'monthly'] || 1;
-    const maxSafeCycles = Math.floor(((2100 - new Date().getFullYear()) * 12) / monthsPerCycle);
-    const totalCount = Math.min(maxSafeCycles, 120);
-
-    // 4. Create Razorpay subscription with auto-pay (no addon — avoids double-charging first payment)
-    const razorpaySub = await this.razorpayService.createSubscription({
-      planId: razorpayPlanId,
-      totalCount,
-      customerEmail: req.user.email,
-      customerContact: req.user.phone,
-      notes: { userId, subscriptionId: sub.id, planCode },
-    });
-
-    // 6. Store Razorpay subscription ID on local subscription
-    await this.prisma.subscription.update({
-      where: { id: sub.id },
-      data: { razorpaySubscriptionId: razorpaySub.id },
-    });
-    (sub as any).razorpaySubscriptionId = razorpaySub.id;
-
-    // 7. Return checkout URL for user to authorize auto-debit
-    const checkoutUrl = `https://api.razorpay.com/v1/subscriptions/${razorpaySub.id}/checkout`;
-
-    return { ...sub, checkoutUrl };
-  }
-
-  @Post('cancel')
-  @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Cancel current subscription' })
-  async cancelSubscription(@Req() req: any) {
-    const userId = req.user.id;
-    return this.premiumService.cancelSubscription(userId);
-  }
-
-  @Get('billing')
-  @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get billing history' })
-  async getBillingHistory(@Req() req: any) {
-    const userId = req.user.id;
-    return this.premiumService.getBillingHistory(userId);
-  }
-
-  @Get('check')
-  @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Check if user has active premium' })
-  async checkPremium(@Req() req: any) {
-    const userId = req.user.id;
-    const isPremium = await this.premiumService.isPremium(userId);
-    return { isPremium };
-  }
-
-  @Post('webhook/razorpay')
-  @ApiOperation({ summary: 'Razorpay webhook endpoint' })
-  async handleWebhook(@Body() body: any, @Headers('x-razorpay-signature') signature: string) {
-    const rawBody = JSON.stringify(body);
-    return this.webhookService.handleRazorpayWebhook(rawBody, signature);
+  @ApiOperation({ summary: 'Protected endpoint for premium users' })
+  async protectedRoute() {
+    return { message: 'You have premium access' };
   }
 }

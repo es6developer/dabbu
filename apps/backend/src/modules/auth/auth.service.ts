@@ -42,12 +42,10 @@ export class AuthService {
 
   private generateAvatarUrl(seed: string): string {
     const hash = crypto.createHash('md5').update(seed).digest('hex');
-    const style = ['rings', 'shapes', 'thumbs'][parseInt(hash[0], 16) % 3];
-    return `https://api.dicebear.com/9.x/${style}/svg?seed=${encodeURIComponent(seed)}`;
-  }
-
-  private generateRandomAvatarSeed(firstName: string, lastName: string): string {
-    return `${firstName}-${lastName}-${crypto.randomBytes(4).toString('hex')}`;
+    const index = parseInt(hash[0], 16) % 12;
+    const baseUrl = this.configService.get<string>('app.url', 'http://localhost:4000');
+    const prefix = this.configService.get<string>('app.prefix', '/api/v1');
+    return `${baseUrl}${prefix}/avatars/${index}`;
   }
 
   private readonly AVATAR_PRESETS = [
@@ -1469,5 +1467,12 @@ export class AuthService {
       where: { id: userId },
       data: { loginAttempts: newAttempts, lastFailedLoginAt: new Date() },
     });
+  }
+
+  private generateRandomAvatarSeed(firstName: string, lastName: string): string {
+    const seed = (firstName + lastName + Math.random().toString(36).slice(2, 8))
+      .toLowerCase()
+      .replace(/\s+/g, '');
+    return seed.slice(0, 12);
   }
 }

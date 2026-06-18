@@ -5,6 +5,7 @@ import { PrismaModule } from '../../common/prisma/prisma.module';
 import { EmailModule } from '../email/email.module';
 import { NotificationModule } from '../notification/notification.module';
 import { FeaturesModule } from '../features/features.module';
+import { PremiumModule } from '../premium/premium.module';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 import { AdminGuard } from './guards';
@@ -15,6 +16,7 @@ import { AdminGuard } from './guards';
     EmailModule,
     NotificationModule,
     FeaturesModule,
+    PremiumModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

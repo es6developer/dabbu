@@ -51,6 +51,7 @@ import { DocumentsModule } from './modules/documents/documents.module';
 import { GamificationModule } from './modules/gamification/gamification.module';
 import { ReferralModule } from './modules/referral/referral.module';
 import { UsersModule } from './modules/users/users.module';
+import { FamilySpaceModule } from './modules/family-space/family-space.module';
 import { FriendsModule } from './modules/friends/friends.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
 import { AiModule } from './modules/ai/ai.module';
@@ -65,6 +66,7 @@ import { ChallengesModule } from './modules/challenges/challenges.module';
 import { EmergencyFundModule } from './modules/emergency-fund/emergency-fund.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { FeaturesModule } from './modules/features/features.module';
+import { AiFamilyAdvisorModule } from './modules/ai-family-advisor/ai-family-advisor.module';
 
 @Module({
   imports: [
@@ -155,6 +157,7 @@ import { FeaturesModule } from './modules/features/features.module';
     SettlementsModule,
     UserPreferencesModule,
     FeaturesModule,
+    FamilySpaceModule,
     EmailModule,
     DocumentsModule,
     GamificationModule,
@@ -172,6 +175,7 @@ import { FeaturesModule } from './modules/features/features.module';
     ChallengesModule,
     EmergencyFundModule,
     DashboardModule,
+    AiFamilyAdvisorModule,
   ],
   controllers: [HealthController],
   providers: [

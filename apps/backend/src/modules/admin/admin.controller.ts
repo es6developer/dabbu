@@ -29,6 +29,11 @@ import {
   CreateTicketDto,
   UpdateTicketDto,
   ListAdminsQueryDto,
+  AdminSubscriptionFilterDto,
+  AdminUpdateSubscriptionDto,
+  CreateCouponDto,
+  UpdateCouponDto,
+  IssueRefundDto,
 } from './dto';
 
 @ApiTags('Admin')
@@ -280,6 +285,152 @@ export class AdminController {
   async listSubscriptions(@Query('page') page?: number, @Query('limit') limit?: number) {
     const result = await this.adminService.listSubscriptions(page, limit);
     return result;
+  }
+
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @Get('subscriptions/stats')
+  @ApiOperation({ summary: 'Subscription dashboard stats' })
+  async getSubscriptionStats() {
+    const stats = await this.adminService.getSubscriptionStats();
+    return { data: stats };
+  }
+
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @Get('subscriptions/active')
+  @ApiOperation({ summary: 'Active subscribers list with filters' })
+  async getActiveSubscribers(@Query() filters: AdminSubscriptionFilterDto) {
+    return this.adminService.getActiveSubscribers(filters);
+  }
+
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @Get('subscriptions/expiring')
+  @ApiOperation({ summary: 'Expiring soon subscriptions' })
+  async getExpiringSubscriptions(@Query('days') days?: number) {
+    const result = await this.adminService.getExpiringSubscriptions(days);
+    return result;
+  }
+
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @Get('subscriptions/failed-payments')
+  @ApiOperation({ summary: 'Failed payments list' })
+  async getFailedPayments(@Query('page') page?: number, @Query('limit') limit?: number) {
+    return this.adminService.getFailedPayments(page, limit);
+  }
+
+  @UseGuards(AdminGuard)
+  @Roles('super_admin', 'admin', 'support')
+  @ApiBearerAuth()
+  @Get('subscriptions/:id')
+  @ApiOperation({ summary: 'Single subscription detail' })
+  async getSubscriptionDetail(@Param('id') id: string) {
+    const sub = await this.adminService.getSubscriptionDetail(id);
+    return { data: sub };
+  }
+
+  @UseGuards(AdminGuard)
+  @Roles('super_admin', 'admin')
+  @ApiBearerAuth()
+  @Patch('subscriptions/:id')
+  @ApiOperation({ summary: 'Admin override subscription status/plan' })
+  async adminUpdateSubscription(
+    @Param('id') id: string,
+    @Body() dto: AdminUpdateSubscriptionDto,
+    @CurrentAdmin('id') adminId: string,
+  ) {
+    const result = await this.adminService.adminUpdateSubscription(id, dto, adminId);
+    return { data: result };
+  }
+
+  @UseGuards(AdminGuard)
+  @Roles('super_admin', 'admin')
+  @ApiBearerAuth()
+  @Post('subscriptions/:id/refund')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Issue refund for subscription' })
+  async issueRefund(
+    @Param('id') id: string,
+    @Body() dto: IssueRefundDto,
+    @CurrentAdmin('id') adminId: string,
+  ) {
+    const result = await this.adminService.issueRefund(id, dto, adminId);
+    return { data: result };
+  }
+
+  @UseGuards(AdminGuard)
+  @Roles('super_admin', 'admin', 'support')
+  @ApiBearerAuth()
+  @Get('subscriptions/:userId/history')
+  @ApiOperation({ summary: 'Full user subscription history' })
+  async getUserSubscriptionHistory(@Param('userId') userId: string) {
+    const result = await this.adminService.getUserSubscriptionHistory(userId);
+    return { data: result };
+  }
+
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @Get('coupons')
+  @ApiOperation({ summary: 'List all coupons' })
+  async getCoupons() {
+    const coupons = await this.adminService.getCoupons();
+    return { data: coupons };
+  }
+
+  @UseGuards(AdminGuard)
+  @Roles('super_admin', 'admin')
+  @ApiBearerAuth()
+  @Post('coupons')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Create a coupon' })
+  async createCoupon(@Body() dto: CreateCouponDto, @CurrentAdmin('id') adminId: string) {
+    const coupon = await this.adminService.createCoupon(dto, adminId);
+    return { data: coupon };
+  }
+
+  @UseGuards(AdminGuard)
+  @Roles('super_admin', 'admin')
+  @ApiBearerAuth()
+  @Patch('coupons/:id')
+  @ApiOperation({ summary: 'Update a coupon' })
+  async updateCoupon(
+    @Param('id') id: string,
+    @Body() dto: UpdateCouponDto,
+    @CurrentAdmin('id') adminId: string,
+  ) {
+    const coupon = await this.adminService.updateCoupon(id, dto, adminId);
+    return { data: coupon };
+  }
+
+  @UseGuards(AdminGuard)
+  @Roles('super_admin')
+  @ApiBearerAuth()
+  @Delete('coupons/:id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete a coupon (soft-delete)' })
+  async deleteCoupon(@Param('id') id: string, @CurrentAdmin('id') adminId: string) {
+    const result = await this.adminService.deleteCoupon(id, adminId);
+    return { data: result };
+  }
+
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @Get('analytics/subscriptions')
+  @ApiOperation({ summary: 'Subscription analytics (MRR, churn, etc)' })
+  async getSubscriptionAnalytics() {
+    const analytics = await this.adminService.getSubscriptionAnalytics();
+    return { data: analytics };
+  }
+
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @Get('analytics/conversion')
+  @ApiOperation({ summary: 'Conversion funnel data' })
+  async getConversionFunnel() {
+    const funnel = await this.adminService.getConversionFunnel();
+    return { data: funnel };
   }
 
   @UseGuards(AdminGuard)

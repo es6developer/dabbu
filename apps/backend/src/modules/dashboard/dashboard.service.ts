@@ -12,6 +12,12 @@ export class DashboardService {
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
+    const last6Months: Date[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      last6Months.push(d);
+    }
+
     const [
       user,
       incomeAgg,
@@ -21,7 +27,9 @@ export class DashboardService {
       upcomingBills,
       goals,
       recentTxns,
-      pendingRequests,
+      budgets,
+      aiInsight,
+      netWorthTrend,
     ] = await Promise.all([
       this.prisma.user.findUnique({
         where: { id: userId },
@@ -65,7 +73,7 @@ export class DashboardService {
         where: { userId, deletedAt: null, isPaid: false, dueDate: { gte: now } },
         orderBy: { dueDate: 'asc' },
         take: 5,
-        select: { id: true, merchantName: true, amount: true, dueDate: true, category: true },
+        select: { id: true, name: true, amount: true, dueDate: true, categoryId: true },
       }),
       this.prisma.goal.findMany({
         where: { userId, deletedAt: null, isCompleted: false },
@@ -94,8 +102,27 @@ export class DashboardService {
           category: true,
         },
       }),
-      this.prisma.coupleRequest.count({
-        where: { receiverId: userId, status: 'pending' },
+      this.prisma.budget.findMany({
+        where: { userId, isActive: true, deletedAt: null },
+        select: {
+          id: true,
+          name: true,
+          amount: true,
+          spent: true,
+          period: true,
+        },
+        take: 5,
+      }),
+      this.prisma.aiInsight.findFirst({
+        where: { userId, isDismissed: false },
+        orderBy: { createdAt: 'desc' },
+        select: { title: true, description: true, type: true, severity: true, amount: true },
+      }),
+      this.prisma.netWorthSnapshot.findMany({
+        where: { userId },
+        orderBy: { snapshotDate: 'asc' },
+        take: 12,
+        select: { snapshotDate: true, netWorth: true, totalAssets: true, totalLiabilities: true },
       }),
     ]);
 
@@ -104,59 +131,71 @@ export class DashboardService {
     const savings = Math.max(0, monthlyIncome - monthlyExpense);
     const savingsRate = monthlyIncome > 0 ? Math.round((savings / monthlyIncome) * 100) : 0;
 
-    let lastFeatures: any[] = [];
+    const totalAssets = Number(netWorth?.totalAssets || 0);
+    const totalLiabilities = Number(netWorth?.totalLiabilities || 0);
+    const balance = totalAssets - totalLiabilities;
+
+    let widgetOrder: string[] = [];
     try {
       const layout = user?.dashboardLayout as any;
-      if (layout?.recentFeatures && Array.isArray(layout.recentFeatures)) {
-        lastFeatures = layout.recentFeatures.slice(0, 10);
+      if (layout?.widgetOrder && Array.isArray(layout.widgetOrder)) {
+        widgetOrder = layout.widgetOrder;
       }
     } catch {
-      // ignore parse errors
+      // eslint-disable-next-line no-empty
     }
 
     return {
-      user: user
-        ? {
-            firstName: user.firstName,
-            lastName: user.lastName,
-            avatarUrl: user.avatarUrl,
-            userType: user.userType,
-            isCouple: user.isCouple,
-            isCoupleMode: user.isCoupleMode,
-            partnerId: user.partnerId,
-            partnerLinkedAt: user.partnerLinkedAt,
-          }
-        : null,
-      partner: user?.partner || null,
-      isInCouple: user?.isCouple || false,
-      pendingRequests,
-      monthlySummary: {
+      greeting: {
+        name: user ? `${user.firstName} ${user.lastName || ''}`.trim() : 'User',
+        balance,
+        monthlyChange: healthScore?.monthlyChange || 0,
+      },
+      netWorth: {
+        totalAssets,
+        totalLiabilities,
+        netWorth: balance,
+        trend: netWorthTrend.map((s) => ({
+          date: s.snapshotDate,
+          netWorth: Number(s.netWorth || 0),
+          totalAssets: Number(s.totalAssets || 0),
+          totalLiabilities: Number(s.totalLiabilities || 0),
+        })),
+      },
+      monthlySnapshot: {
         income: monthlyIncome,
         expense: monthlyExpense,
-        savings,
+        saved: savings,
         savingsRate,
       },
-      netWorth: netWorth
-        ? {
-            totalAssets: Number(netWorth.totalAssets || 0),
-            totalLiabilities: Number(netWorth.totalLiabilities || 0),
-            cash: Number(netWorth.cash || 0),
-            bank: Number(netWorth.bank || 0),
-          }
-        : null,
       healthScore: healthScore
         ? {
             overallScore: healthScore.overallScore,
-            financialLevel: healthScore.financialLevel,
-            monthlyChange: healthScore.monthlyChange,
+            categories: {
+              savings: healthScore.savingsRate || 0,
+              debt: 100 - (healthScore.debtRatio || 0),
+              budget: healthScore.budgetDiscipline || 0,
+              emergencyFund: healthScore.emergencyFund || 0,
+              goalProgress: healthScore.goalProgress || 0,
+            },
           }
-        : null,
+        : {
+            overallScore: 0,
+            categories: { savings: 0, debt: 0, budget: 0, emergencyFund: 0, goalProgress: 0 },
+          },
+      aiInsight: aiInsight
+        ? {
+            message: aiInsight.description || aiInsight.title,
+            type: aiInsight.type || 'info',
+            impact: aiInsight.amount ? Number(aiInsight.amount) : 0,
+          }
+        : { message: 'Start tracking to get AI insights', type: 'info', impact: 0 },
       upcomingBills: upcomingBills.map((b) => ({
         id: b.id,
-        name: b.merchantName,
+        name: b.name,
         amount: Number(b.amount),
         dueDate: b.dueDate,
-        category: b.category,
+        categoryId: b.categoryId,
       })),
       goals: goals.map((g) => ({
         id: g.id,
@@ -179,7 +218,16 @@ export class DashboardService {
         type: t.type,
         category: t.category,
       })),
-      lastFeatures,
+      budgetsOverview: budgets.map((b) => ({
+        id: b.id,
+        name: b.name,
+        amount: Number(b.amount),
+        spent: Number(b.spent),
+        period: b.period,
+        utilization:
+          Number(b.amount) > 0 ? Math.round((Number(b.spent) / Number(b.amount)) * 100) : 0,
+      })),
+      widgetOrder,
     };
   }
 

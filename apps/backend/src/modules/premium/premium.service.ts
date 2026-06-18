@@ -3,27 +3,34 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import { RazorpayService } from './razorpay.service';
+import { EntitlementEngine } from './entitlement.engine';
+import { UsageEngine } from './usage.engine';
 
 @Injectable()
 export class PremiumService {
-  private readonly RAZORPAY_PLAN_MAP: Record<
+  private readonly logger = new Logger(PremiumService.name);
+
+  private readonly PLAN_PRICES: Record<
     string,
-    { period: string; interval: number; amount: number }
+    { amountPaise: number; interval: string; intervalCount: number }
   > = {
-    MONTHLY_89: { period: 'monthly', interval: 1, amount: 8900 },
-    QUARTERLY_219: { period: 'monthly', interval: 3, amount: 21900 },
-    HALFYEARLY_389: { period: 'monthly', interval: 6, amount: 38900 },
-    YEARLY_699: { period: 'yearly', interval: 1, amount: 69900 },
+    PREMIUM_MONTHLY: { amountPaise: 9900, interval: 'monthly', intervalCount: 1 },
+    PREMIUM_YEARLY: { amountPaise: 99900, interval: 'yearly', intervalCount: 1 },
+    FAMILY_MONTHLY: { amountPaise: 19900, interval: 'monthly', intervalCount: 1 },
+    FAMILY_YEARLY: { amountPaise: 199900, interval: 'yearly', intervalCount: 1 },
   };
 
   constructor(
     private prisma: PrismaService,
     private emailService: EmailService,
     private razorpayService: RazorpayService,
+    private entitlementEngine: EntitlementEngine,
+    private usageEngine: UsageEngine,
   ) {}
 
   async getPlans() {
@@ -33,113 +40,550 @@ export class PremiumService {
     });
   }
 
-  async getCurrentSubscription(userId: string) {
-    const sub = await this.prisma.subscription.findUnique({
-      where: { userId },
-      include: { plan: true, payments: { orderBy: { createdAt: 'desc' }, take: 10 } },
-    });
-    return sub;
-  }
-
-  async createSubscription(userId: string, planCode: string, status: string = 'incomplete') {
-    const plan = await this.prisma.subscriptionPlan.findUnique({ where: { code: planCode } });
+  async getPlanByCode(code: string) {
+    const plan = await this.prisma.subscriptionPlan.findUnique({ where: { code } });
     if (!plan || !plan.isActive) {
       throw new NotFoundException('Plan not found');
     }
+    return plan;
+  }
+
+  async previewChange(planCode: string) {
+    const plan = await this.getPlanByCode(planCode);
+    const grantedFeatures = this.entitlementEngine.getGrantedFeatures(planCode);
+    return {
+      code: plan.code,
+      name: plan.name,
+      price: plan.price,
+      interval: plan.interval,
+      features: plan.features,
+      totalFeatures: (plan.features as string[]).length,
+      grantedFeatures,
+    };
+  }
+
+  async subscribe(userId: string, planCode: string, couponCode?: string) {
+    const plan = await this.getPlanByCode(planCode);
     const existing = await this.prisma.subscription.findUnique({ where: { userId } });
     if (existing && existing.status === 'active') {
       throw new ConflictException('User already has an active subscription');
     }
+
+    const priceConfig = this.PLAN_PRICES[planCode];
+    if (!priceConfig) {
+      throw new BadRequestException(`No pricing configuration for plan: ${planCode}`);
+    }
+
+    let razorpayPlanId = plan.razorpayPlanId || '';
+    if (!razorpayPlanId) {
+      const rzpPlan = await this.razorpayService.createPlan({
+        period: priceConfig.interval,
+        interval: priceConfig.intervalCount,
+        amount: priceConfig.amountPaise,
+        name: planCode,
+        description: plan.name,
+      });
+      razorpayPlanId = rzpPlan.id;
+      await this.prisma.subscriptionPlan.update({
+        where: { code: planCode },
+        data: { razorpayPlanId },
+      });
+    }
+
+    const intervalMonths: Record<string, number> = {
+      monthly: 1,
+      quarterly: 3,
+      halfyearly: 6,
+      yearly: 12,
+    };
+    const monthsPerCycle = intervalMonths[priceConfig.interval] || 1;
+    const maxSafeCycles = Math.floor(((2100 - new Date().getFullYear()) * 12) / monthsPerCycle);
+    const totalCount = Math.min(maxSafeCycles, 120);
+
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
     const now = new Date();
-    const periodEnd = this.calculatePeriodEnd(now, plan.interval, plan.intervalCount);
-    const sub = await this.prisma.subscription.upsert({
+    const periodEnd = this.calculatePeriodEnd(now, priceConfig.interval, priceConfig.intervalCount);
+
+    let effectiveAmount = priceConfig.amountPaise;
+    let couponApplied = false;
+    if (couponCode) {
+      const coupon = await this.validateCouponInternal(couponCode, planCode);
+      if (coupon) {
+        if (coupon.discountPct > 0) {
+          effectiveAmount = Math.round(effectiveAmount * (1 - coupon.discountPct / 100));
+        } else if (coupon.discountAmt) {
+          effectiveAmount = Math.max(0, effectiveAmount - Number(coupon.discountAmt) * 100);
+        }
+        couponApplied = true;
+        await this.prisma.subscriptionCoupon.update({
+          where: { code: couponCode },
+          data: { usedCount: { increment: 1 } },
+        });
+      }
+    }
+
+    const sub = await this.prisma.$transaction(async (tx) => {
+      const subscription = await tx.subscription.upsert({
+        where: { userId },
+        create: {
+          userId,
+          planId: plan.id,
+          status: 'incomplete',
+          currentPeriodStart: now,
+          currentPeriodEnd: periodEnd,
+        },
+        update: {
+          planId: plan.id,
+          status: 'incomplete',
+          currentPeriodStart: now,
+          currentPeriodEnd: periodEnd,
+          cancelledAt: null,
+          cancelAtPeriodEnd: false,
+        },
+      });
+
+      return subscription;
+    });
+
+    const razorpaySub = await this.razorpayService.createSubscription({
+      planId: razorpayPlanId,
+      totalCount,
+      customerEmail: user.email,
+      customerContact: user.phone || undefined,
+      notes: { userId, subscriptionId: sub.id, planCode, couponApplied: String(couponApplied) },
+      addonAmount: effectiveAmount,
+    });
+
+    await this.prisma.subscription.update({
+      where: { id: sub.id },
+      data: { razorpaySubscriptionId: razorpaySub.id },
+    });
+
+    const checkoutUrl = `https://api.razorpay.com/v1/subscriptions/${razorpaySub.id}/checkout`;
+
+    await this.trackEvent(userId, 'subscription_created', {
+      planCode,
+      subscriptionId: sub.id,
+      razorpaySubscriptionId: razorpaySub.id,
+      amount: effectiveAmount,
+      couponApplied,
+    });
+
+    return {
+      id: sub.id,
+      razorpaySubscriptionId: razorpaySub.id,
+      checkoutUrl,
+      status: razorpaySub.status,
+    };
+  }
+
+  async changePlan(userId: string, newPlanCode: string) {
+    const sub = await this.prisma.subscription.findUnique({
       where: { userId },
-      create: {
-        userId,
-        planId: plan.id,
-        status,
-        currentPeriodStart: now,
-        currentPeriodEnd: periodEnd,
-      },
-      update: {
-        planId: plan.id,
-        status,
-        currentPeriodStart: now,
-        currentPeriodEnd: periodEnd,
-        cancelledAt: null,
-        cancelAtPeriodEnd: false,
-      },
+      include: { plan: true },
+    });
+    if (!sub) {
+      throw new NotFoundException('No active subscription found');
+    }
+    if (sub.status !== 'active') {
+      throw new BadRequestException('Cannot change plan for non-active subscription');
+    }
+
+    const newPlan = await this.getPlanByCode(newPlanCode);
+
+    if (sub.planId === newPlan.id) {
+      throw new BadRequestException('Already subscribed to this plan');
+    }
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const updatedSub = await tx.subscription.update({
+        where: { userId },
+        data: { planId: newPlan.id },
+      });
+
+      await tx.premiumEntitlement.deleteMany({ where: { userId } });
+      const grantedFeatures = this.entitlementEngine.getGrantedFeatures(newPlanCode);
+      if (grantedFeatures.length > 0) {
+        await tx.premiumEntitlement.createMany({
+          data: grantedFeatures.map((featureKey) => ({
+            userId,
+            subscriptionId: updatedSub.id,
+            featureKey,
+            enabled: true,
+          })),
+        });
+      }
+
+      return updatedSub;
     });
 
-    return sub;
+    if (sub.razorpaySubscriptionId) {
+      try {
+        await this.razorpayService.updateSubscription(sub.razorpaySubscriptionId, {
+          plan_id: newPlan.razorpayPlanId || undefined,
+        });
+      } catch (err: any) {
+        this.logger.warn(`Failed to update Razorpay subscription plan: ${err.message}`);
+      }
+    }
+
+    await this.trackEvent(userId, 'plan_changed', {
+      from: sub.plan.code,
+      to: newPlanCode,
+      subscriptionId: sub.id,
+    });
+
+    return updated;
   }
 
-  async ensureRazorpayPlan(planCode: string): Promise<string> {
-    const plan = await this.prisma.subscriptionPlan.findUnique({ where: { code: planCode } });
-    if (!plan) {
-      throw new NotFoundException('Plan not found');
-    }
-    if (plan.razorpayPlanId) {
-      return plan.razorpayPlanId;
-    }
-    const config = this.RAZORPAY_PLAN_MAP[planCode];
-    if (!config) {
-      throw new BadRequestException(`No Razorpay plan config for ${planCode}`);
-    }
-    const rzpPlan = await this.razorpayService.createPlan({
-      period: config.period,
-      interval: config.interval,
-      amount: config.amount,
-      name: planCode,
-      description: plan.name,
+  async getCurrentSubscription(userId: string) {
+    const sub = await this.prisma.subscription.findUnique({
+      where: { userId },
+      include: {
+        plan: true,
+        payments: { orderBy: { createdAt: 'desc' }, take: 10 },
+        entitlements: true,
+      },
     });
-    await this.prisma.subscriptionPlan.update({
-      where: { code: planCode },
-      data: { razorpayPlanId: rzpPlan.id },
-    });
-    return rzpPlan.id;
+    if (!sub) {
+      return null;
+    }
+
+    const usage = await this.usageEngine.getUsage(this.prisma, userId);
+    const entitlements = sub.entitlements.filter((e) => e.enabled).map((e) => e.featureKey);
+    const nextBillingDate = sub.currentPeriodEnd;
+
+    return {
+      id: sub.id,
+      userId: sub.userId,
+      status: sub.status,
+      currentPeriodStart: sub.currentPeriodStart,
+      currentPeriodEnd: sub.currentPeriodEnd,
+      nextBillingDate,
+      cancelledAt: sub.cancelledAt,
+      cancelAtPeriodEnd: sub.cancelAtPeriodEnd,
+      plan: sub.plan,
+      usage,
+      entitlements,
+      paymentMethod: null,
+      razorpaySubscriptionId: sub.razorpaySubscriptionId,
+      payments: sub.payments,
+      createdAt: sub.createdAt,
+      updatedAt: sub.updatedAt,
+    };
   }
 
-  async cancelSubscription(userId: string) {
+  async cancelSubscription(userId: string, reason?: string, reasonCode?: string) {
+    const sub = await this.prisma.subscription.findUnique({
+      where: { userId },
+      include: { plan: true },
+    });
+    if (!sub) {
+      throw new NotFoundException('No active subscription found');
+    }
+    if (sub.status === 'cancelled') {
+      throw new BadRequestException('Subscription is already cancelled');
+    }
+
+    const updated = await this.prisma.subscription.update({
+      where: { userId },
+      data: {
+        cancelAtPeriodEnd: true,
+        cancelledAt: new Date(),
+        status: 'cancelled',
+      },
+    });
+
+    if (sub.razorpaySubscriptionId) {
+      try {
+        await this.razorpayService.cancelSubscription(sub.razorpaySubscriptionId);
+      } catch (err: any) {
+        this.logger.warn(`Razorpay cancellation failed: ${err.message}`);
+      }
+    }
+
+    const recoveryOffer = await this.generateRecoveryOffer(userId, reasonCode);
+
+    await this.prisma.premiumEntitlement.deleteMany({ where: { userId } });
+
+    await this.trackEvent(userId, 'subscription_cancelled', {
+      reason,
+      reasonCode,
+      subscriptionId: sub.id,
+      planCode: sub.plan.code,
+    });
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, firstName: true },
+    });
+    if (user) {
+      this.emailService
+        .send({
+          to: user.email,
+          subject: 'Subscription Cancelled',
+          html: `<p>Hi ${user.firstName},</p><p>Your ${sub.plan.name} subscription has been cancelled.</p>`,
+          text: `Hi ${user.firstName}, your ${sub.plan.name} subscription has been cancelled.`,
+        })
+        .catch((e: Error) => this.logger.warn(`Cancel email failed: ${e.message}`));
+    }
+
+    return {
+      success: true,
+      status: updated.status,
+      cancelAtPeriodEnd: updated.cancelAtPeriodEnd,
+      currentPeriodEnd: updated.currentPeriodEnd,
+      recoveryOffer: recoveryOffer || undefined,
+      message: 'Subscription cancelled',
+    };
+  }
+
+  async reactivateSubscription(userId: string) {
+    const sub = await this.prisma.subscription.findUnique({
+      where: { userId },
+      include: { plan: true },
+    });
+    if (!sub) {
+      throw new NotFoundException('No cancelled subscription found');
+    }
+    if (sub.status !== 'cancelled') {
+      throw new BadRequestException('Only cancelled subscriptions can be reactivated');
+    }
+
+    const now = new Date();
+    const periodEnd = this.calculatePeriodEnd(now, sub.plan.interval, sub.plan.intervalCount);
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const updatedSub = await tx.subscription.update({
+        where: { userId },
+        data: {
+          status: 'active',
+          currentPeriodStart: now,
+          currentPeriodEnd: periodEnd,
+          cancelledAt: null,
+          cancelAtPeriodEnd: false,
+        },
+      });
+
+      const grantedFeatures = this.entitlementEngine.getGrantedFeatures(sub.plan.code);
+      await tx.premiumEntitlement.deleteMany({ where: { userId } });
+      if (grantedFeatures.length > 0) {
+        await tx.premiumEntitlement.createMany({
+          data: grantedFeatures.map((featureKey) => ({
+            userId,
+            subscriptionId: updatedSub.id,
+            featureKey,
+            enabled: true,
+          })),
+        });
+      }
+
+      return updatedSub;
+    });
+
+    if (sub.razorpaySubscriptionId) {
+      try {
+        await this.razorpayService.resumeSubscription(sub.razorpaySubscriptionId);
+      } catch (err: any) {
+        this.logger.warn(`Razorpay resume failed: ${err.message}`);
+      }
+    }
+
+    await this.trackEvent(userId, 'subscription_reactivated', {
+      subscriptionId: sub.id,
+      planCode: sub.plan.code,
+    });
+
+    return updated;
+  }
+
+  async pauseSubscription(userId: string) {
     const sub = await this.prisma.subscription.findUnique({ where: { userId } });
     if (!sub) {
-      throw new NotFoundException('No active subscription');
+      throw new NotFoundException('No active subscription found');
     }
-    return this.prisma.subscription.update({
+    if (sub.status !== 'active') {
+      throw new BadRequestException('Only active subscriptions can be paused');
+    }
+
+    const updated = await this.prisma.subscription.update({
       where: { userId },
-      data: { cancelAtPeriodEnd: true, cancelledAt: new Date() },
+      data: { status: 'paused' },
     });
+
+    if (sub.razorpaySubscriptionId) {
+      try {
+        await this.razorpayService.pauseSubscription(sub.razorpaySubscriptionId);
+      } catch (err: any) {
+        this.logger.warn(`Razorpay pause failed: ${err.message}`);
+      }
+    }
+
+    await this.trackEvent(userId, 'subscription_paused', { subscriptionId: sub.id });
+    return updated;
   }
 
-  async getBillingHistory(userId: string) {
-    return this.prisma.paymentTransaction.findMany({
+  async resumeSubscription(userId: string) {
+    const sub = await this.prisma.subscription.findUnique({ where: { userId } });
+    if (!sub) {
+      throw new NotFoundException('No paused subscription found');
+    }
+    if (sub.status !== 'paused') {
+      throw new BadRequestException('Only paused subscriptions can be resumed');
+    }
+
+    const updated = await this.prisma.subscription.update({
       where: { userId },
-      orderBy: { createdAt: 'desc' },
-      take: 50,
+      data: { status: 'active' },
     });
+
+    if (sub.razorpaySubscriptionId) {
+      try {
+        await this.razorpayService.resumeSubscription(sub.razorpaySubscriptionId);
+      } catch (err: any) {
+        this.logger.warn(`Razorpay resume failed: ${err.message}`);
+      }
+    }
+
+    await this.trackEvent(userId, 'subscription_resumed', { subscriptionId: sub.id });
+    return updated;
   }
 
-  async activateFromRazorpay(subscriptionId: string, planId: string, userId: string) {
-    const sub = await this.prisma.subscription.findUnique({ where: { id: subscriptionId } });
-    if (!sub || sub.status === 'active') {
-      return;
+  async getSubscriptionCenter(userId: string) {
+    const subscription = await this.getCurrentSubscription(userId);
+    const usage = await this.usageEngine.getUsage(this.prisma, userId);
+    const plans = await this.getPlans();
+
+    const entitlements = subscription?.entitlements || [];
+    const recentPayments = subscription?.payments || [];
+    const isPremium = await this.isPremium(userId);
+
+    let daysRemaining = 0;
+    if (subscription?.currentPeriodEnd) {
+      daysRemaining = Math.max(
+        0,
+        Math.ceil(
+          (new Date(subscription.currentPeriodEnd).getTime() - Date.now()) / (1000 * 86400),
+        ),
+      );
     }
-    const plan = await this.prisma.subscriptionPlan.findUnique({ where: { id: planId } });
-    const now = new Date();
-    const periodEnd = plan
-      ? this.calculatePeriodEnd(now, plan.interval, plan.intervalCount)
-      : new Date(now.getTime() + 30 * 86400000);
-    await this.prisma.subscription.update({
-      where: { id: subscriptionId },
-      data: {
-        status: 'active',
-        currentPeriodStart: now,
-        currentPeriodEnd: periodEnd,
-        cancelledAt: null,
-        cancelAtPeriodEnd: false,
-      },
+
+    return {
+      subscription,
+      usage,
+      entitlements,
+      availablePlans: plans,
+      recentPayments,
+      isPremium,
+      daysRemaining,
+    };
+  }
+
+  async getUsage(userId: string) {
+    return this.usageEngine.getUsage(this.prisma, userId);
+  }
+
+  async checkLimit(userId: string, featureKey: string) {
+    const sub = await this.prisma.subscription.findUnique({
+      where: { userId },
+      include: { plan: true },
     });
-    await this.syncEntitlements(userId, subscriptionId, plan);
+    const planCode = sub?.plan?.code || 'FREE';
+    return this.usageEngine.checkLimit(this.prisma, userId, featureKey, planCode);
+  }
+
+  async trackEvent(userId: string, event: string, properties?: Record<string, any>) {
+    try {
+      await this.prisma.subscriptionEvent.create({
+        data: { userId, event, properties: properties || undefined },
+      });
+    } catch (err: any) {
+      this.logger.warn(`Failed to track event ${event}: ${err.message}`);
+    }
+  }
+
+  async applyCoupon(code: string, planCode: string) {
+    const coupon = await this.validateCouponInternal(code, planCode);
+    if (!coupon) {
+      return { valid: false, message: 'Invalid or expired coupon' };
+    }
+    return {
+      valid: true,
+      code: coupon.code,
+      discountPct: coupon.discountPct,
+      discountAmt: coupon.discountAmt ? Number(coupon.discountAmt) : undefined,
+      description: coupon.description || undefined,
+    };
+  }
+
+  private async validateCouponInternal(code: string, planCode: string) {
+    const coupon = await this.prisma.subscriptionCoupon.findUnique({ where: { code } });
+    if (!coupon) {
+      return null;
+    }
+    if (!coupon.isActive) {
+      return null;
+    }
+    if (coupon.maxUses > 0 && coupon.usedCount >= coupon.maxUses) {
+      return null;
+    }
+    if (coupon.validFrom && new Date(coupon.validFrom) > new Date()) {
+      return null;
+    }
+    if (coupon.validUntil && new Date(coupon.validUntil) < new Date()) {
+      return null;
+    }
+    if (coupon.applicablePlans) {
+      const plans = coupon.applicablePlans as string[];
+      if (!plans.includes(planCode)) {
+        return null;
+      }
+    }
+    return coupon;
+  }
+
+  async retryPayment(userId: string) {
+    const sub = await this.prisma.subscription.findUnique({ where: { userId } });
+    if (!sub) {
+      throw new NotFoundException('No subscription found');
+    }
+    if (!sub.razorpaySubscriptionId) {
+      throw new BadRequestException('No Razorpay subscription to retry');
+    }
+    const razorpaySub = await this.razorpayService.fetchSubscription(sub.razorpaySubscriptionId);
+    if (!razorpaySub) {
+      throw new NotFoundException('Razorpay subscription not found');
+    }
+    try {
+      const result = await this.razorpayService.retrySubscription(sub.razorpaySubscriptionId);
+      return result;
+    } catch (err: any) {
+      throw new BadRequestException(`Payment retry failed: ${err.message}`);
+    }
+  }
+
+  async getPaymentHistory(userId: string, page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      this.prisma.paymentTransaction.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.paymentTransaction.count({ where: { userId } }),
+    ]);
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async isPremium(userId: string): Promise<boolean> {
@@ -166,68 +610,183 @@ export class PremiumService {
     return true;
   }
 
-  async syncEntitlements(userId: string, subscriptionId: string, plan: any) {
-    const features: string[] = (plan.features as string[]) || [];
-    await this.prisma.premiumEntitlement.deleteMany({ where: { userId } });
-    if (features.length === 0) {
-      return;
+  async getFeatures() {
+    return this.entitlementEngine.getFeatureRegistry();
+  }
+
+  async getCancellationOffer(userId: string) {
+    const recovery = await this.prisma.cancellationRecovery.findUnique({
+      where: { userId },
+    });
+    if (!recovery || !recovery.expiresAt || recovery.expiresAt < new Date()) {
+      return null;
     }
-    await this.prisma.premiumEntitlement.createMany({
-      data: features.map((feature: string) => ({
+    return {
+      offerType: recovery.offerType ?? 'free_month',
+      offerData: recovery.offerData,
+      expiresAt: recovery.expiresAt,
+      description: this.getOfferDescription(recovery.offerType ?? 'free_month'),
+    };
+  }
+
+  async submitCancellationRecovery(userId: string, reason: string, reasonText?: string) {
+    const offer = this.generateOfferForReason(reason);
+    const expiresAt = new Date(Date.now() + 7 * 86400000);
+
+    await this.prisma.cancellationRecovery.upsert({
+      where: { userId },
+      create: {
         userId,
-        subscriptionId,
-        featureKey: feature,
-        enabled: true,
-      })),
+        reason,
+        reasonText,
+        offerType: offer.type,
+        offerData: offer.data,
+        expiresAt,
+      },
+      update: {
+        reason,
+        reasonText,
+        offerType: offer.type,
+        offerData: offer.data,
+        expiresAt,
+        offerAccepted: false,
+      },
     });
+
+    return {
+      offerType: offer.type,
+      offerData: offer.data,
+      expiresAt,
+      description: this.getOfferDescription(offer.type),
+    };
   }
 
-  async handleWebhookEvent(eventId: string, eventType: string, payload: any) {
-    const existing = await this.prisma.webhookEvent.findUnique({ where: { eventId } });
-    if (existing) {
-      return { duplicate: true };
-    }
-    const event = await this.prisma.webhookEvent.create({
-      data: { eventId, eventType, payload, status: 'processing' },
+  async acceptRecoveryOffer(userId: string) {
+    const recovery = await this.prisma.cancellationRecovery.findUnique({
+      where: { userId },
     });
-    try {
-      await this.processWebhookEvent(eventType, payload);
-      await this.prisma.webhookEvent.update({
-        where: { id: event.id },
-        data: { status: 'processed', processedAt: new Date() },
-      });
-    } catch (err: any) {
-      await this.prisma.webhookEvent.update({
-        where: { id: event.id },
-        data: { status: 'failed', errorMessage: err.message },
-      });
-      throw err;
+    if (!recovery) {
+      throw new NotFoundException('No recovery offer found');
     }
-    return { duplicate: false };
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.cancellationRecovery.update({
+        where: { userId },
+        data: { offerAccepted: true },
+      });
+
+      if (recovery.offerType === 'free_month') {
+        const sub = await tx.subscription.findUnique({ where: { userId } });
+        if (sub) {
+          const extendedEnd = new Date(sub.currentPeriodEnd.getTime() + 30 * 86400000);
+          await tx.subscription.update({
+            where: { userId },
+            data: {
+              status: 'active',
+              currentPeriodEnd: extendedEnd,
+              cancelledAt: null,
+              cancelAtPeriodEnd: false,
+            },
+          });
+        }
+      }
+
+      if (recovery.offerType === 'discount_20') {
+        await tx.subscription.update({
+          where: { userId },
+          data: {
+            status: 'active',
+            cancelledAt: null,
+            cancelAtPeriodEnd: false,
+          },
+        });
+      }
+    });
+
+    await this.reactivateSubscription(userId);
+    await this.trackEvent(userId, 'recovery_offer_accepted', {
+      offerType: recovery.offerType,
+    });
+
+    return { success: true, message: 'Recovery offer accepted' };
   }
 
-  private async processWebhookEvent(eventType: string, payload: any) {
-    const razorpayId = payload.subscription_id || payload.id;
-    switch (eventType) {
-      case 'subscription.activated':
-      case 'subscription.charged':
-        await this.activateSubscription(razorpayId, payload);
-        break;
-      case 'subscription.paused':
-      case 'subscription.cancelled':
-        await this.deactivateSubscription(razorpayId);
-        break;
-      case 'payment.authorized':
-      case 'payment.captured':
-        await this.recordPayment(razorpayId, payload);
-        break;
-      case 'payment.failed':
-        await this.recordFailedPayment(payload);
-        break;
+  private async generateRecoveryOffer(userId: string, reasonCode?: string) {
+    const reason = reasonCode || 'OTHER';
+    const offer = this.generateOfferForReason(reason);
+    const expiresAt = new Date(Date.now() + 7 * 86400000);
+
+    await this.prisma.cancellationRecovery.upsert({
+      where: { userId },
+      create: {
+        userId,
+        reason,
+        offerType: offer.type,
+        offerData: offer.data,
+        expiresAt,
+      },
+      update: {
+        reason,
+        offerType: offer.type,
+        offerData: offer.data,
+        expiresAt,
+      },
+    });
+
+    return {
+      offerType: offer.type,
+      offerData: offer.data,
+      expiresAt,
+      description: this.getOfferDescription(offer.type),
+    };
+  }
+
+  private generateOfferForReason(reason: string): { type: string; data: any } {
+    switch (reason) {
+      case 'PRICE':
+        return {
+          type: 'discount_20',
+          data: { discountPct: 20, durationMonths: 3 },
+        };
+      case 'FEATURES':
+        return {
+          type: 'free_month',
+          data: { extraMonths: 1 },
+        };
+      case 'USAGE':
+        return {
+          type: 'pause',
+          data: { pauseDurationMonths: 1 },
+        };
+      case 'ALTERNATIVE':
+        return {
+          type: 'annual_upgrade',
+          data: { discountPct: 15 },
+        };
+      default:
+        return {
+          type: 'free_month',
+          data: { extraMonths: 1 },
+        };
     }
   }
 
-  private async activateSubscription(razorpaySubscriptionId: string, payload: any) {
+  private getOfferDescription(type: string): string {
+    switch (type) {
+      case 'free_month':
+        return 'Get one month free to continue your premium access';
+      case 'discount_20':
+        return 'Get 20% off for the next 3 months';
+      case 'annual_upgrade':
+        return 'Upgrade to annual plan at 15% discount';
+      case 'pause':
+        return 'Pause your subscription for 1 month';
+      default:
+        return 'Special offer to continue your premium access';
+    }
+  }
+
+  async handleActivation(razorpaySubscriptionId: string, payload: any) {
     const sub = await this.prisma.subscription.findFirst({
       where: { razorpaySubscriptionId },
       include: { plan: true },
@@ -235,132 +794,216 @@ export class PremiumService {
     if (!sub || sub.status === 'active') {
       return;
     }
+
     const now = new Date();
     const periodEnd = this.calculatePeriodEnd(now, sub.plan.interval, sub.plan.intervalCount);
-    await this.prisma.subscription.update({
-      where: { id: sub.id },
-      data: {
-        status: 'active',
-        currentPeriodStart: now,
-        currentPeriodEnd: periodEnd,
-        cancelledAt: null,
-        cancelAtPeriodEnd: false,
-      },
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.subscription.update({
+        where: { id: sub.id },
+        data: {
+          status: 'active',
+          currentPeriodStart: now,
+          currentPeriodEnd: periodEnd,
+          cancelledAt: null,
+          cancelAtPeriodEnd: false,
+        },
+      });
+      await this.syncEntitlements(tx, sub.userId, sub.id, sub.plan);
     });
-    await this.syncEntitlements(sub.userId, sub.id, sub.plan);
 
     const user = await this.prisma.user.findUnique({
       where: { id: sub.userId },
       select: { email: true, firstName: true },
     });
     if (user) {
-      const intervalLabel =
-        sub.plan.interval === 'monthly'
-          ? 'Monthly'
-          : sub.plan.interval === 'quarterly'
-            ? 'Quarterly'
-            : sub.plan.interval === 'halfyearly'
-              ? 'Half-Yearly'
-              : 'Yearly';
-      this.emailService.sendPremiumActivatedEmail(
-        user.email,
-        user.firstName,
-        sub.plan.name,
-        intervalLabel,
-        sub.plan.features as string[],
-      );
+      this.emailService
+        .sendPremiumActivatedEmail?.(
+          user.email,
+          user.firstName,
+          sub.plan.name,
+          sub.plan.interval,
+          sub.plan.features as string[],
+        )
+        .catch((e) => this.logger.warn(`Activation email failed: ${e.message}`));
+    }
+
+    await this.trackEvent(sub.userId, 'subscription_activated', {
+      razorpaySubscriptionId,
+      planCode: sub.plan.code,
+    });
+  }
+
+  async handleCharge(razorpaySubscriptionId: string, payload: any) {
+    const sub = await this.prisma.subscription.findFirst({
+      where: { razorpaySubscriptionId },
+      include: { plan: true },
+    });
+    if (!sub) {
+      return;
+    }
+
+    if (sub.status !== 'active') {
+      const now = new Date();
+      const periodEnd = this.calculatePeriodEnd(now, sub.plan.interval, sub.plan.intervalCount);
+      await this.prisma.subscription.update({
+        where: { id: sub.id },
+        data: {
+          status: 'active',
+          currentPeriodStart: now,
+          currentPeriodEnd: periodEnd,
+        },
+      });
+    }
+
+    const payment = payload.payment?.entity || payload;
+    if (payment.id) {
+      await this.recordPayment(sub, payment);
     }
   }
 
-  private async deactivateSubscription(razorpaySubscriptionId: string) {
+  async handlePending(razorpaySubscriptionId: string, payload: any) {
+    await this.prisma.subscription.updateMany({
+      where: { razorpaySubscriptionId },
+      data: { status: 'past_due' },
+    });
+  }
+
+  async handleHalted(razorpaySubscriptionId: string, payload: any) {
+    await this.prisma.subscription.updateMany({
+      where: { razorpaySubscriptionId },
+      data: { status: 'halted' },
+    });
+  }
+
+  async handleCancellation(razorpaySubscriptionId: string, payload: any) {
     const sub = await this.prisma.subscription.findFirst({
       where: { razorpaySubscriptionId },
     });
     if (!sub) {
       return;
     }
-    await this.prisma.subscription.update({
-      where: { id: sub.id },
-      data: { status: 'cancelled', cancelledAt: new Date() },
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.subscription.update({
+        where: { id: sub.id },
+        data: { status: 'cancelled', cancelledAt: new Date() },
+      });
+      await tx.premiumEntitlement.deleteMany({ where: { userId: sub.userId } });
     });
-    await this.prisma.premiumEntitlement.deleteMany({ where: { userId: sub.userId } });
+
+    await this.trackEvent(sub.userId, 'subscription_cancelled_razorpay', {
+      razorpaySubscriptionId,
+    });
   }
 
-  private async recordPayment(razorpaySubscriptionId: string, payload: any) {
-    const sub = await this.prisma.subscription.findFirst({
+  async handlePause(razorpaySubscriptionId: string, payload: any) {
+    await this.prisma.subscription.updateMany({
       where: { razorpaySubscriptionId },
+      data: { status: 'paused' },
+    });
+  }
+
+  async handleResume(razorpaySubscriptionId: string, payload: any) {
+    await this.prisma.subscription.updateMany({
+      where: { razorpaySubscriptionId },
+      data: { status: 'active' },
+    });
+  }
+
+  async handlePaymentAuthorized(payload: any) {
+    const payment = payload.payment?.entity;
+    if (!payment) {
+      return;
+    }
+
+    const sub = await this.prisma.subscription.findFirst({
+      where: { razorpaySubscriptionId: payment.subscription_id },
     });
     if (!sub) {
       return;
     }
+
+    await this.recordPayment(sub, payment);
+  }
+
+  async handlePaymentCaptured(payload: any) {
+    const payment = payload.payment?.entity;
+    if (!payment) {
+      return;
+    }
+
+    const sub = await this.prisma.subscription.findFirst({
+      where: { razorpaySubscriptionId: payment.subscription_id },
+    });
+    if (!sub) {
+      return;
+    }
+
     const existing = await this.prisma.paymentTransaction.findFirst({
-      where: { razorpayPaymentId: payload.id },
+      where: { razorpayPaymentId: payment.id, status: 'captured' },
     });
     if (existing) {
       return;
     }
-    await this.prisma.paymentTransaction.create({
-      data: {
-        userId: sub.userId,
-        subscriptionId: sub.id,
-        amount: payload.amount ? payload.amount / 100 : 0,
-        currency: payload.currency || 'INR',
-        status: 'captured',
-        method: payload.method || 'upi',
-        razorpayPaymentId: payload.id,
-        razorpayOrderId: payload.order_id,
-        paidAt: new Date(),
-      },
+
+    await this.prisma.paymentTransaction.updateMany({
+      where: { razorpayPaymentId: payment.id, status: 'authorized' },
+      data: { status: 'captured', paidAt: new Date() },
     });
 
     const user = await this.prisma.user.findUnique({
       where: { id: sub.userId },
       select: { email: true, firstName: true },
     });
-    if (user && sub.status === 'active') {
-      const amount = payload.amount ? `₹${(payload.amount / 100).toLocaleString('en-IN')}` : '₹0';
+    if (user) {
+      const amount = payment.amount ? `₹${(payment.amount / 100).toLocaleString('en-IN')}` : '₹0';
       const renewalDate = new Date().toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
       });
-      const plan = await this.prisma.subscriptionPlan.findUnique({ where: { id: sub.planId } });
+      const plan = await this.prisma.subscriptionPlan.findUnique({
+        where: { id: sub.planId },
+      });
       const nextBillingDate = plan
         ? this.calculatePeriodEnd(new Date(), plan.interval, plan.intervalCount).toLocaleDateString(
             'en-US',
             { year: 'numeric', month: 'long', day: 'numeric' },
           )
         : '';
-      this.emailService.sendPremiumRenewedEmail(
-        user.email,
-        user.firstName,
-        renewalDate,
-        nextBillingDate,
-        amount,
-      );
+      this.emailService
+        .sendPremiumRenewedEmail?.(user.email, user.firstName, renewalDate, nextBillingDate, amount)
+        .catch((e) => this.logger.warn(`Renewal email failed: ${e.message}`));
     }
   }
 
-  private async recordFailedPayment(payload: any) {
-    const sub = payload.subscription_id
+  async handlePaymentFailed(payload: any) {
+    const payment = payload.payment?.entity;
+    if (!payment) {
+      return;
+    }
+
+    const sub = payment.subscription_id
       ? await this.prisma.subscription.findFirst({
-          where: { razorpaySubscriptionId: payload.subscription_id },
+          where: { razorpaySubscriptionId: payment.subscription_id },
         })
       : null;
     if (!sub) {
       return;
     }
+
     await this.prisma.paymentTransaction.create({
       data: {
         userId: sub.userId,
         subscriptionId: sub.id,
-        amount: payload.amount ? payload.amount / 100 : 0,
-        currency: payload.currency || 'INR',
+        amount: payment.amount ? payment.amount / 100 : 0,
+        currency: payment.currency || 'INR',
         status: 'failed',
-        method: payload.method || 'upi',
-        razorpayPaymentId: payload.id,
-        razorpayOrderId: payload.order_id,
-        failureReason: payload.failure_reason || 'Payment failed',
+        method: payment.method || 'upi',
+        razorpayPaymentId: payment.id,
+        razorpayOrderId: payment.order_id,
+        failureReason: payment.failure_reason || 'Payment failed',
       },
     });
 
@@ -368,11 +1011,54 @@ export class PremiumService {
       where: { id: sub.userId },
       select: { email: true, firstName: true },
     });
-    const plan = await this.prisma.subscriptionPlan.findUnique({ where: { id: sub.planId } });
+    const plan = await this.prisma.subscriptionPlan.findUnique({
+      where: { id: sub.planId },
+    });
     if (user && plan) {
-      const amount = payload.amount ? `₹${(payload.amount / 100).toLocaleString('en-IN')}` : '₹0';
-      this.emailService.sendPaymentFailedEmail(user.email, user.firstName, plan.name, amount);
+      const amount = payment.amount ? `₹${(payment.amount / 100).toLocaleString('en-IN')}` : '₹0';
+      this.emailService
+        .sendPaymentFailedEmail?.(user.email, user.firstName, plan.name, amount)
+        .catch((e) => this.logger.warn(`Payment failed email error: ${e.message}`));
     }
+  }
+
+  private async recordPayment(sub: any, payment: any) {
+    const existing = await this.prisma.paymentTransaction.findFirst({
+      where: { razorpayPaymentId: payment.id },
+    });
+    if (existing) {
+      return;
+    }
+
+    await this.prisma.paymentTransaction.create({
+      data: {
+        userId: sub.userId,
+        subscriptionId: sub.id,
+        amount: payment.amount ? payment.amount / 100 : 0,
+        currency: payment.currency || 'INR',
+        status: 'captured',
+        method: payment.method || 'upi',
+        razorpayPaymentId: payment.id,
+        razorpayOrderId: payment.order_id,
+        paidAt: new Date(),
+      },
+    });
+  }
+
+  private async syncEntitlements(tx: any, userId: string, subscriptionId: string, plan: any) {
+    const grantedFeatures = this.entitlementEngine.getGrantedFeatures(plan.code as string);
+    await tx.premiumEntitlement.deleteMany({ where: { userId } });
+    if (grantedFeatures.length === 0) {
+      return;
+    }
+    await tx.premiumEntitlement.createMany({
+      data: grantedFeatures.map((featureKey) => ({
+        userId,
+        subscriptionId,
+        featureKey,
+        enabled: true,
+      })),
+    });
   }
 
   private calculatePeriodEnd(from: Date, interval: string, count: number): Date {

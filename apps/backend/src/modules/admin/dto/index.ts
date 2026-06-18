@@ -16,3 +16,11 @@ export {
 } from './admin-login.dto';
 
 export type { SystemStatsResponse } from './admin-login.dto';
+
+export {
+  AdminSubscriptionFilterDto,
+  AdminUpdateSubscriptionDto,
+  CreateCouponDto,
+  UpdateCouponDto,
+  IssueRefundDto,
+} from './admin-premium.dto';
