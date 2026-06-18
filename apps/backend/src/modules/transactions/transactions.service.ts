@@ -16,7 +16,15 @@ export class TransactionsService {
   ) {}
 
   async create(userId: string, dto: CreateTransactionDto) {
-    const categoryId = dto.categoryId || (await this.predictCategory(userId, dto));
+    let categoryId = dto.categoryId;
+    if (!categoryId && dto.category) {
+      const found = await this.prisma.transactionCategory.findFirst({
+        where: { userId, name: dto.category, isActive: true },
+      });
+      categoryId = found?.id || (await this.predictCategory(userId, dto));
+    } else if (!categoryId) {
+      categoryId = await this.predictCategory(userId, dto);
+    }
 
     const metadata: Record<string, any> = { ...((dto as any).metadata || {}) };
     if (dto.groupId) {
@@ -203,6 +211,15 @@ export class TransactionsService {
     });
     if (!existing) {
       throw new NotFoundException('Transaction not found');
+    }
+
+    if (dto.category && !dto.categoryId) {
+      const found = await this.prisma.transactionCategory.findFirst({
+        where: { userId, name: dto.category, isActive: true },
+      });
+      if (found) {
+        dto.categoryId = found.id;
+      }
     }
 
     const tx = await this.prisma.transaction.update({

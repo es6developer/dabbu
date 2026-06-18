@@ -26,6 +26,8 @@ export class CreateTransactionDto {
 
   @ApiPropertyOptional() @IsOptional() @IsString() categoryId?: string;
 
+  @ApiPropertyOptional() @IsOptional() @IsString() category?: string;
+
   @ApiPropertyOptional() @IsOptional() @IsString() title?: string;
 
   @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
@@ -67,6 +69,7 @@ export class UpdateTransactionDto {
   type?: TransactionType;
   @ApiPropertyOptional() @IsOptional() @IsString() accountId?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() categoryId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() category?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() title?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
@@ -74,8 +77,6 @@ export class UpdateTransactionDto {
   @ApiPropertyOptional() @IsOptional() @IsArray() @IsString({ each: true }) tags?: string[];
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isRecurring?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsString() recurringFrequency?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() recurringId?: string;
-  @ApiPropertyOptional() @IsOptional() @IsDateString() recurringEndDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() expenseGroupId?: string;
   @ApiPropertyOptional() @IsOptional() metadata?: Record<string, any>;
 }

@@ -782,6 +782,13 @@ export class SharedFinanceController {
     return this.sf.getGroupDashboard(groupId);
   }
 
+  @Get('groups/:groupId/analytics')
+  @UseGuards(GroupMemberGuard)
+  @ApiOperation({ summary: 'Get advanced analytics for group (spending, categories, fairness)' })
+  async getAdvancedAnalytics(@Param('groupId') groupId: string) {
+    return this.sf.getAdvancedAnalytics(groupId);
+  }
+
   @Get('groups/:groupId/insights')
   @UseGuards(GroupMemberGuard)
   @ApiOperation({ summary: 'Get AI-powered insights for group' })
