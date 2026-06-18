@@ -49,24 +49,31 @@ export function StreaksScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchData = useCallback(async () => {
+    const timeoutId = setTimeout(() => {
+      setLoading(false);
+      setRefreshing(false);
+    }, 15000);
     try {
       const [streaksRes, engRes] = await Promise.all([
         api.get<any>('/retention/streaks'),
         api.get<any>('/retention/engagement'),
       ]);
-      setStreaks(streaksRes.data || []);
-      setEngagement(engRes.data || null);
+      clearTimeout(timeoutId);
+      setStreaks(Array.isArray(streaksRes) ? streaksRes : []);
+      setEngagement(engRes || null);
 
       const currentYear = new Date().getFullYear();
       try {
         const yrRes: any = await api.get(`/retention/yearly-summary/${currentYear}`);
-        setYearlySummary(yrRes.data || null);
+        setYearlySummary(yrRes || null);
       } catch {
         setYearlySummary(null);
       }
     } catch (err) {
+      clearTimeout(timeoutId);
       console.warn('Failed to load streaks:', err);
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
       setRefreshing(false);
     }

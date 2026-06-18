@@ -117,9 +117,17 @@ export function ProfileScreen() {
 
   useEffect(() => {
     if (presets.length > 0 && user?.avatarUrl) {
-      const match = presets.find((p) => user.avatarUrl?.includes(`seed=${p.seed}`));
-      if (match) {
-        setSelectedSeed(match.seed);
+      const indexMatch = user.avatarUrl?.match(/\/avatars\/(\d+)/);
+      if (indexMatch) {
+        const urlIndex = parseInt(indexMatch[1], 10);
+        const urls = presets.map((p) => {
+          const m = p.url.match(/\/avatars\/(\d+)/);
+          return m ? parseInt(m[1], 10) : -1;
+        });
+        const matchIdx = urls.indexOf(urlIndex);
+        if (matchIdx >= 0) {
+          setSelectedSeed(presets[matchIdx].seed);
+        }
       }
     }
   }, [presets, user?.avatarUrl]);

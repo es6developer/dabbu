@@ -187,8 +187,7 @@ function IOSTabBar({ state, descriptors, navigation, colors, isDark, showCenterB
                 onPressOut={() => Animated.spring(fabScale, { toValue: 1, tension: 120, friction: 8, useNativeDriver: true }).start()}
                 onPress={onCenterPress}>
                 <Animated.View style={[tabStyles.centerFabInner, { backgroundColor: colors.accent.primary, transform: [{ scale: fabScale }], shadowColor: colors.accent.primary }]}>
-                  <AntDesign name="plus" size={20} color="#FFF" />
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#FFF', marginTop: 1 }}>Add</Text>
+                  <AntDesign name="plus" size={26} color="#FFF" />
                 </Animated.View>
               </TouchableOpacity>
             )}
@@ -208,6 +207,6 @@ const tabStyles = StyleSheet.create({
   innerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-evenly', minHeight: 56 },
   tabItem: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   label: { fontSize: 10, letterSpacing: 0.1, marginTop: 2 },
-  centerFab: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  centerFabInner: { width: 56, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 3 },
+  centerFab: { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: -16 },
+  centerFabInner: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
 });

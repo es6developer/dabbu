@@ -87,6 +87,27 @@ export function WalletHomeScreen() {
           </View>
         </View>
 
+        <View style={styles.actionRow}>
+          <TouchableOpacity
+            style={[styles.actionBtn, { backgroundColor: colors.status.error + '14' }]}
+            onPress={() => navigation.navigate('AddExpense', { type: 'expense' })}
+          >
+            <View style={[styles.actionIcon, { backgroundColor: colors.status.error }]}>
+              <AntDesign name="minus" size={18} color="#FFF" />
+            </View>
+            <Text style={[styles.actionLabel, { color: colors.status.error }]}>Add Expense</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionBtn, { backgroundColor: colors.status.success + '14' }]}
+            onPress={() => navigation.navigate('AddExpense', { type: 'income' })}
+          >
+            <View style={[styles.actionIcon, { backgroundColor: colors.status.success }]}>
+              <AntDesign name="plus" size={18} color="#FFF" />
+            </View>
+            <Text style={[styles.actionLabel, { color: colors.status.success }]}>Add Income</Text>
+          </TouchableOpacity>
+        </View>
+
         <Text style={[styles.sectionTitle, { color: colors.text.secondary }]}>Your Accounts</Text>
         {loading ? (
           Array.from({ length: 3 }).map((_, i) => (
@@ -160,6 +181,13 @@ export function WalletHomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  actionRow: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing['2xl'] },
+  actionBtn: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    padding: spacing.md, borderRadius: borderRadius['2xl'], gap: spacing.sm,
+  },
+  actionIcon: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  actionLabel: { fontSize: 14, fontWeight: '600' },
   container: { flex: 1 },
   header: { paddingHorizontal: spacing.xl, paddingBottom: spacing.md },
   title: { fontSize: 28, fontWeight: '700', letterSpacing: -0.5 },

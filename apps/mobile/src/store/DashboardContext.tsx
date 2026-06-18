@@ -36,8 +36,13 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     if (isRefresh) setState(prev => ({ ...prev, refreshing: true }));
     else setState(prev => ({ ...prev, loading: true, error: null }));
 
+    const timeout = setTimeout(() => {
+      setState(prev => ({ ...prev, loading: false, refreshing: false }));
+    }, 5000);
+
     try {
       const res = await api.get<any>('/dashboard');
+      clearTimeout(timeout);
       const data = res.data || res;
       setState({
         mode: data.mode || 'personal',
@@ -47,6 +52,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         error: null,
       });
     } catch (err: any) {
+      clearTimeout(timeout);
       setState(prev => ({
         ...prev,
         loading: false,

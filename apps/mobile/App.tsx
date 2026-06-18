@@ -3,11 +3,6 @@ import React, { useEffect, useCallback, useState } from 'react';
 import { StatusBar, LogBox, Appearance, View, UIManager, Platform } from 'react-native';
 import * as Font from 'expo-font';
 import * as NavigationBar from 'expo-navigation-bar';
-import * as Sentry from '@sentry/react-native';
-import { initSentry } from './src/config/sentry';
-
-initSentry();
-
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
@@ -198,5 +193,4 @@ function AppInner(): React.ReactElement | null {
   );
 }
 
-const App = Sentry.wrap(AppInner);
-export default App;
+export default AppInner;

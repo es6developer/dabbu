@@ -19,11 +19,22 @@ export function Avatar({ uri, name, size = 40 }: AvatarProps) {
 
   const isLocal = uri?.startsWith('local:');
   const localIndex = isLocal ? parseInt(uri!.replace('local:', ''), 10) : -1;
+
+  const avatarIndexFromUrl =
+    !isLocal && uri
+      ? (() => {
+          const match = uri.match(/\/avatars\/(\d+)/);
+          return match ? parseInt(match[1], 10) : -1;
+        })()
+      : -1;
+
   const localSvg = isLocal
     ? getAvatarByIndex(localIndex)
-    : !uri && name
-      ? getAvatarXml(name)
-      : null;
+    : avatarIndexFromUrl >= 0
+      ? getAvatarByIndex(avatarIndexFromUrl)
+      : !uri && name
+        ? getAvatarXml(name)
+        : null;
 
   const initials =
     (name || '')
@@ -36,7 +47,7 @@ export function Avatar({ uri, name, size = 40 }: AvatarProps) {
 
   useEffect(() => {
     mountedRef.current = true;
-    if (!uri || isLocal) {
+    if (!uri || isLocal || avatarIndexFromUrl >= 0) {
       setSvg(null);
       return;
     }

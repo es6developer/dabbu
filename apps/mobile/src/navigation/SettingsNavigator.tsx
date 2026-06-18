@@ -22,6 +22,7 @@ import { DataExportScreen } from '../screens/settings/DataExportScreen';
 import { SupportScreen } from '../screens/settings/SupportScreen';
 import { CustomiseDashboardScreen } from '../screens/settings/CustomiseDashboardScreen';
 import { CustomiseBottomMenuScreen } from '../screens/settings/CustomiseBottomMenuScreen';
+import { CoupleSpaceScreen } from '../screens/couple/CoupleSpaceScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -49,6 +50,7 @@ export function SettingsNavigator() {
       <Stack.Screen name="Support" component={SupportScreen} options={{ title: 'Support' }} />
       <Stack.Screen name="CustomiseDashboard" component={CustomiseDashboardScreen} options={{ title: 'Customize Dashboard' }} />
       <Stack.Screen name="CustomiseBottomMenu" component={CustomiseBottomMenuScreen} options={{ title: 'Customize Menu' }} />
+      <Stack.Screen name="CoupleSpace" component={CoupleSpaceScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }
