@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Req, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Req, Param, Query, ForbiddenException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { PremiumService } from './premium.service';
@@ -151,6 +151,9 @@ export class SubscriptionController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin subscription analytics dashboard' })
   async getAdminAnalytics(@Req() req: any) {
+    if (req.user?.role !== 'admin' && req.user?.role !== 'super_admin') {
+      throw new ForbiddenException('Admin access required');
+    }
     return this.premiumService.getDashboardData();
   }
 }

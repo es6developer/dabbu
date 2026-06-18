@@ -1,0 +1,242 @@
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../../theme';
+import { api } from '../../services/api';
+import { useAuth } from '../../store/AuthContext';
+
+const FAMILY_MODULES = [
+  { key: 'dashboard', icon: 'grid-outline', label: 'Dashboard', color: '#7C3AED' },
+  { key: 'members', icon: 'people-outline', label: 'Members', color: '#3B82F6' },
+  { key: 'goals', icon: 'flag-outline', label: 'Goals', color: '#F59E0B' },
+  { key: 'bills', icon: 'receipt-outline', label: 'Bills', color: '#EF4444' },
+  { key: 'contributions', icon: 'trending-up-outline', label: 'Contributions', color: '#10B981' },
+  { key: 'budget', icon: 'pie-chart-outline', label: 'Budget', color: '#8B5CF6' },
+  { key: 'investments', icon: 'trending-up-outline', label: 'Investments', color: '#06B6D4' },
+  { key: 'insurance', icon: 'shield-checkmark-outline', label: 'Insurance', color: '#EC4899' },
+  { key: 'emergency', icon: 'umbrella-outline', label: 'Emergency Fund', color: '#F97316' },
+  { key: 'tasks', icon: 'checkbox-outline', label: 'Tasks', color: '#14B8A6' },
+  { key: 'calendar', icon: 'calendar-outline', label: 'Calendar', color: '#6366F1' },
+  { key: 'documents', icon: 'folder-outline', label: 'Documents', color: '#A855F7' },
+  { key: 'ai-advisor', icon: 'bulb-outline', label: 'AI Advisor', color: '#FBBF24' },
+  { key: 'reports', icon: 'bar-chart-outline', label: 'Reports', color: '#64748B' },
+  { key: 'vault', icon: 'lock-closed-outline', label: 'Family Vault', color: '#1E293B' },
+];
+
+function getInitials(name: string): string {
+  if (!name) return '?';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+}
+
+function fmtCompact(v: number) {
+  if (v >= 10000000) return '\u20B9' + (v / 10000000).toFixed(1) + 'Cr';
+  if (v >= 100000) return '\u20B9' + (v / 100000).toFixed(1) + 'L';
+  if (v >= 1000) return '\u20B9' + (v / 1000).toFixed(1) + 'K';
+  return '\u20B9' + (v || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+}
+
+export function FamilySpaceScreen() {
+  const navigation = useNavigation<any>();
+  const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
+  const { user } = useAuth();
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadData = useCallback(async (refresh = false) => {
+    if (refresh) setRefreshing(true); else setLoading(true);
+    try {
+      const res = await api.get('/family/dashboard');
+      setData((res as any)?.data || res);
+    } catch {} finally {
+      setLoading(false); setRefreshing(false);
+    }
+  }, []);
+
+  useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
+
+  const totalSaved = data?.totalSaved ?? 0;
+  const monthlySaved = data?.monthlySaved ?? 0;
+  const familyScore = data?.familyScore ?? 0;
+  const familyName = data?.name || 'Family';
+  const members = data?.members || [];
+
+  const handleModulePress = (mod: typeof FAMILY_MODULES[number]) => {
+    if (mod.key === 'dashboard') {
+      navigation.navigate('FamilyDashboard');
+    } else {
+      const routeMap: Record<string, string> = {
+        members: 'FamilyMembers',
+        goals: 'FamilyGoals',
+        bills: 'FamilyBills',
+        contributions: 'FamilyContributions',
+        budget: 'FamilyBudget',
+        investments: 'FamilyInvestments',
+        insurance: 'FamilyInsurance',
+        emergency: 'FamilyEmergencyFund',
+        tasks: 'FamilyTasks',
+        calendar: 'FamilyCalendar',
+        documents: 'FamilyDocuments',
+        'ai-advisor': 'FamilyAIAdvisor',
+        reports: 'FamilyReports',
+        vault: 'FamilyVault',
+      };
+      const route = routeMap[mod.key];
+      if (route) navigation.navigate(route);
+      else navigation.navigate('FamilyModule', { module: mod.key, title: mod.label });
+    }
+  };
+
+  const maxAvatars = 5;
+  const visibleMembers = members.slice(0, maxAvatars);
+  const overflow = members.length - maxAvatars;
+
+  return (
+    <View style={[styles.root, { backgroundColor: colors.bg.primary, paddingTop: insets.top }]}>
+      {loading && !data ? (
+        <View style={styles.loadingContainer}>
+          <View style={[styles.skelHero, { backgroundColor: colors.bg.tertiary }]} />
+          <View style={styles.skelStatsRow}>
+            {[1, 2, 3].map((i) => (
+              <View key={i} style={[styles.skelStat, { backgroundColor: colors.bg.tertiary }]} />
+            ))}
+          </View>
+          <View style={styles.skelGrid}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <View key={i} style={[styles.skelModule, { backgroundColor: colors.bg.tertiary }]} />
+            ))}
+          </View>
+        </View>
+      ) : (
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} tintColor={colors.accent.primary} />
+          }
+        >
+          <View style={[styles.heroCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
+            <View style={styles.heroTop}>
+              <View style={styles.heroInfo}>
+                <Text style={[styles.heroLabel, { color: colors.text.tertiary }]}>Family Space</Text>
+                <Text style={[styles.heroName, { color: colors.text.primary }]}>{familyName}</Text>
+                <Text style={[styles.heroMemberCount, { color: colors.text.secondary }]}>
+                  {members.length} member{members.length !== 1 ? 's' : ''}
+                </Text>
+              </View>
+              <View style={styles.heroIconWrap}>
+                <Ionicons name="people" size={32} color={colors.accent.primary} />
+              </View>
+            </View>
+            {members.length > 0 && (
+              <View style={styles.avatarRow}>
+                {visibleMembers.map((m: any, i: number) => {
+                  const avatarColors = ['#7C3AED', '#3B82F6', '#10B981', '#F59E0B', '#EF4444'];
+                  const ac = avatarColors[i % avatarColors.length];
+                  const name = m?.firstName || m?.email || `Member ${i + 1}`;
+                  return (
+                    <View
+                      key={m?.id || i}
+                      style={[styles.avatar, { backgroundColor: `${ac}20`, borderColor: `${ac}40` }]}
+                    >
+                      <Text style={[styles.avatarText, { color: ac }]}>{getInitials(name)}</Text>
+                    </View>
+                  );
+                })}
+                {overflow > 0 && (
+                  <View style={[styles.avatar, { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle }]}>
+                    <Text style={[styles.avatarText, { color: colors.text.tertiary, fontSize: 11 }]}>+{overflow}</Text>
+                  </View>
+                )}
+              </View>
+            )}
+          </View>
+
+          <View style={styles.statsRow}>
+            <View style={[styles.statCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
+              <Text style={[styles.statIcon]}>💰</Text>
+              <Text style={[styles.statValue, { color: colors.text.primary }]}>{fmtCompact(totalSaved)}</Text>
+              <Text style={[styles.statLabel, { color: colors.text.tertiary }]}>Total Saved</Text>
+            </View>
+            <View style={[styles.statCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
+              <Text style={[styles.statIcon]}>📊</Text>
+              <Text style={[styles.statValue, { color: colors.text.primary }]}>{fmtCompact(monthlySaved)}</Text>
+              <Text style={[styles.statLabel, { color: colors.text.tertiary }]}>This Month</Text>
+            </View>
+            <View style={[styles.statCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}>
+              <Text style={[styles.statIcon]}>🏆</Text>
+              <Text style={[styles.statValue, { color: colors.text.primary }]}>{familyScore}</Text>
+              <Text style={[styles.statLabel, { color: colors.text.tertiary }]}>Family Score</Text>
+            </View>
+          </View>
+
+          <View style={styles.grid}>
+            {FAMILY_MODULES.map((mod) => (
+              <TouchableOpacity
+                key={mod.key}
+                style={[styles.moduleCard, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}
+                activeOpacity={0.7}
+                onPress={() => handleModulePress(mod)}
+              >
+                <View style={[styles.moduleIcon, { backgroundColor: `${mod.color}15` }]}>
+                  <Ionicons name={mod.icon as any} size={22} color={mod.color} />
+                </View>
+                <Text style={[styles.moduleLabel, { color: colors.text.primary }]} numberOfLines={2}>
+                  {mod.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: { flex: 1 },
+  scrollContent: { paddingHorizontal: 16, paddingBottom: 100 },
+  loadingContainer: { flex: 1, paddingHorizontal: 16, paddingTop: 20 },
+  skelHero: { height: 120, borderRadius: 20, marginBottom: 16 },
+  skelStatsRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
+  skelStat: { flex: 1, height: 80, borderRadius: 16 },
+  skelGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  skelModule: { width: '31%', aspectRatio: 1, borderRadius: 16 },
+
+  heroCard: {
+    borderRadius: 20, borderWidth: 1, padding: 20, marginBottom: 16,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
+  },
+  heroTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  heroInfo: { flex: 1 },
+  heroLabel: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  heroName: { fontSize: 24, fontWeight: '800', letterSpacing: -0.5, marginTop: 2 },
+  heroMemberCount: { fontSize: 13, fontWeight: '500', marginTop: 2 },
+  heroIconWrap: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
+  avatarRow: { flexDirection: 'row', alignItems: 'center', marginTop: 14, gap: -6 },
+  avatar: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', borderWidth: 2 },
+  avatarText: { fontSize: 11, fontWeight: '700' },
+
+  statsRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
+  statCard: {
+    flex: 1, borderRadius: 16, borderWidth: 1, padding: 12, alignItems: 'center',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 3, elevation: 1,
+  },
+  statIcon: { fontSize: 20, marginBottom: 4 },
+  statValue: { fontSize: 16, fontWeight: '800', letterSpacing: -0.3 },
+  statLabel: { fontSize: 11, fontWeight: '500', marginTop: 2 },
+
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  moduleCard: {
+    width: '31%', borderRadius: 16, borderWidth: 1, paddingVertical: 16, paddingHorizontal: 6,
+    alignItems: 'center', gap: 8, minHeight: 96,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 3, elevation: 1,
+  },
+  moduleIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  moduleLabel: { fontSize: 12, fontWeight: '600', textAlign: 'center', lineHeight: 15 },
+});

@@ -1657,6 +1657,64 @@ export class AdminService {
     };
   }
 
+  async getSystemHealth() {
+    const now = new Date();
+    const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const last7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    const [
+      totalUsers, activeUsers7d, totalSubscriptions,
+      activeSubscriptions, totalRevenue, failedPayments24h,
+      newUsers24h, newTransactions24h, supportTicketsOpen,
+      apiRequests24h,
+    ] = await Promise.all([
+      this.prisma.user.count({ where: { deletedAt: null } }),
+      this.prisma.loginActivity.count({
+        where: { createdAt: { gte: last7d }, action: 'login_success' },
+        distinct: ['userId'],
+      }),
+      this.prisma.subscription.count(),
+      this.prisma.subscription.count({ where: { status: 'active' } }),
+      this.prisma.paymentTransaction.aggregate({
+        _sum: { amount: true },
+        where: { status: 'completed', paidAt: { gte: last7d } },
+      }),
+      this.prisma.paymentTransaction.count({
+        where: { status: 'failed', createdAt: { gte: last24h } },
+      }),
+      this.prisma.user.count({ where: { createdAt: { gte: last24h } } }),
+      this.prisma.transaction.count({ where: { createdAt: { gte: last24h } } }),
+      this.prisma.supportTicket.count({ where: { status: { in: ['open', 'in_progress'] } } }),
+      this.prisma.auditLog.count({ where: { createdAt: { gte: last24h }, action: 'api_request' } }),
+    ]);
+
+    return {
+      timestamp: now.toISOString(),
+      users: {
+        total: totalUsers,
+        activeLast7d: activeUsers7d,
+        newLast24h: newUsers24h,
+        engagementRate: totalUsers > 0 ? Math.round((activeUsers7d / totalUsers) * 10000) / 100 : 0,
+      },
+      subscriptions: {
+        total: totalSubscriptions,
+        active: activeSubscriptions,
+        conversionRate: totalUsers > 0 ? Math.round((activeSubscriptions / totalUsers) * 10000) / 100 : 0,
+      },
+      revenue: {
+        last7d: totalRevenue._sum.amount || 0,
+      },
+      operations: {
+        transactions24h: newTransactions24h,
+        apiRequests24h,
+        failedPayments24h,
+      },
+      support: {
+        openTickets: supportTicketsOpen,
+      },
+    };
+  }
+
   private async createAuditLog(data: {
     adminId: string;
     action: string;

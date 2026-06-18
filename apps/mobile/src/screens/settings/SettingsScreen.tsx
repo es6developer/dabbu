@@ -16,6 +16,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
 import { useAuth } from '../../store/AuthContext';
+import { usePremium } from '../../store/PremiumContext';
 import { Avatar } from '../../components/ui/Avatar';
 import { CoupleModeToggle } from '../../components/ui/CoupleModeToggle';
 import { useAppLock } from '../../store/LockContext';
@@ -45,6 +46,13 @@ const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
     ],
   },
   {
+    title: 'Your Progress',
+    items: [
+      { label: 'Streaks & Achievements', icon: 'star', screen: 'Streaks' },
+      { label: 'Year in Review', icon: 'calendar', screen: 'YearlySummary' },
+    ],
+  },
+  {
     title: 'Preferences',
     items: [
       { label: 'Theme', icon: 'skin', screen: 'Theme' },
@@ -70,7 +78,7 @@ const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
     title: 'Wealth Tools',
     items: [
       { label: 'Financial Reports', icon: 'linechart', screen: 'Reports', premium: true },
-      { label: 'Export Data', icon: 'download', screen: 'Analytics', premium: true },
+      { label: 'Export Data', icon: 'download', screen: 'DataExport' },
       { label: 'Budgets', icon: 'piechart', screen: 'BudgetsList' },
     ],
   },
@@ -78,7 +86,7 @@ const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
     title: 'Support',
     items: [
       { label: 'Help Center', icon: 'questioncircle', screen: 'Help' },
-      { label: 'Contact Us', icon: 'message1', screen: 'Contact' },
+      { label: 'Contact Us', icon: 'message1', screen: 'Support' },
       { label: 'Privacy Policy', icon: 'filetext1', screen: 'Privacy' },
     ],
   },
@@ -91,6 +99,7 @@ const ROW_META: Record<string, string> = {
   Budgets: 'piechart', 'Couple Space': 'heart', Theme: 'skin',
   Notifications: 'bells', 'Help Center': 'questioncircle',
   'Contact Us': 'message1', 'Privacy Policy': 'filetext1',
+  'Streaks & Achievements': 'star', 'Year in Review': 'calendar',
 };
 
 const REGISTERED_SCREENS = [
@@ -98,6 +107,7 @@ const REGISTERED_SCREENS = [
   'CustomiseDashboard', 'CustomiseBottomMenu', 'Help', 'Contact',
   'Privacy', 'Analytics', 'Reports', 'BudgetsList', 'NotificationSettings',
   'FavoriteContacts', 'Referral', 'CoupleSpace',
+  'Streaks', 'DataExport', 'Support', 'YearlySummary',
 ];
 
 export function SettingsScreen() {
@@ -139,6 +149,7 @@ export function SettingsScreen() {
 
   useFocusEffect(useCallback(() => { refreshRequests(); }, [refreshRequests]));
 
+  const { checkEntitlement } = usePremium();
   const isPremium = !!subscription && subscription.status === 'active';
 
   const handleNav = (screen: string, premium?: boolean, action?: 'lock') => {
@@ -147,12 +158,17 @@ export function SettingsScreen() {
       Alert.alert('Coming Soon', `${screen} will be available soon`);
       return;
     }
-    if (premium && !isPremium) {
-      Alert.alert('Premium Feature', 'This feature is available on Premium plan.', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'View Plans', onPress: () => navigation.navigate('Subscription') },
-      ]);
-      return;
+    if (premium) {
+      const featureKey = `feature_${screen.toLowerCase()}`;
+      const entitlement = checkEntitlement(featureKey);
+      if (!entitlement.allowed) {
+        const planName = entitlement.upgradePlan === 'FAMILY' ? 'Family Premium' : 'Premium';
+        Alert.alert(`${planName} Feature`, `This feature requires ${planName} plan.`, [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'View Plans', onPress: () => navigation.navigate('Premium') },
+        ]);
+        return;
+      }
     }
     navigation.navigate(screen);
   };

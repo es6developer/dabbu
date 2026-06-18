@@ -223,11 +223,29 @@ export class PremiumService {
 
     if (sub.razorpaySubscriptionId) {
       try {
-        await this.razorpayService.updateSubscription(sub.razorpaySubscriptionId, {
-          plan_id: newPlan.razorpayPlanId || undefined,
+        await this.razorpayService.cancelSubscription(sub.razorpaySubscriptionId);
+      } catch (err: any) {
+        this.logger.warn(`Failed to cancel old Razorpay subscription: ${err.message}`);
+      }
+    }
+
+    if (newPlan.razorpayPlanId) {
+      try {
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        const totalCount = newPlan.interval === 'yearly' ? 12 : 1;
+        const newRazorpaySub = await this.razorpayService.createSubscription({
+          planId: newPlan.razorpayPlanId,
+          totalCount,
+          customerEmail: user?.email || '',
+          customerContact: user?.phone || undefined,
+          notes: { userId, subscriptionId: updated.id, planCode: newPlanCode },
+        });
+        await this.prisma.subscription.update({
+          where: { id: updated.id },
+          data: { razorpaySubscriptionId: newRazorpaySub.id },
         });
       } catch (err: any) {
-        this.logger.warn(`Failed to update Razorpay subscription plan: ${err.message}`);
+        this.logger.warn(`Failed to create new Razorpay subscription: ${err.message}`);
       }
     }
 
@@ -256,6 +274,14 @@ export class PremiumService {
     const usage = await this.usageEngine.getUsage(this.prisma, userId);
     const entitlements = sub.entitlements.filter((e) => e.enabled).map((e) => e.featureKey);
     const nextBillingDate = sub.currentPeriodEnd;
+    const lastPayment = sub.payments?.[0];
+    const paymentMethod = lastPayment?.method
+      ? lastPayment.method === 'upi' ? 'UPI AutoPay' :
+        lastPayment.method === 'card' ? 'Card' :
+        lastPayment.method === 'netbanking' ? 'Net Banking' :
+        lastPayment.method === 'wallet' ? 'Wallet' :
+        lastPayment.method
+      : null;
 
     return {
       id: sub.id,
@@ -269,7 +295,7 @@ export class PremiumService {
       plan: sub.plan,
       usage,
       entitlements,
-      paymentMethod: null,
+      paymentMethod,
       razorpaySubscriptionId: sub.razorpaySubscriptionId,
       payments: sub.payments,
       createdAt: sub.createdAt,

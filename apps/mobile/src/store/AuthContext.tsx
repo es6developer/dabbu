@@ -658,7 +658,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setState((prev) => ({ ...prev, isPremium: false }));
         return;
       }
-      const res = await api.get<any>('/premium/check');
+      const res = await api.get<any>('/premium/entitlements');
       setState((prev) => ({ ...prev, isPremium: !!res?.isPremium }));
     } catch {
       setState((prev) => ({ ...prev, isPremium: false }));

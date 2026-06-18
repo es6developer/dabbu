@@ -555,4 +555,36 @@ export class EmailService implements OnModuleInit {
       ),
     });
   }
+
+  async sendNotificationEmail(
+    to: string,
+    name: string,
+    title: string,
+    body: string,
+    actionUrl?: string,
+  ): Promise<void> {
+    const notificationHtml = `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9fafb;">
+        <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 24px;">${title}</h1>
+        </div>
+        <div style="background: white; padding: 30px; border-radius: 0 0 12px 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <p style="color: #374151; font-size: 16px; line-height: 1.5;">Hi ${name},</p>
+          <p style="color: #374151; font-size: 16px; line-height: 1.5;">${body}</p>
+          ${actionUrl ? `<div style="text-align: center; margin: 30px 0;">
+            <a href="${actionUrl}" style="display: inline-block; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600;">View Details</a>
+          </div>` : ''}
+          <p style="color: #9ca3af; font-size: 14px; margin-top: 30px;">
+            This is an automated notification from Dabbu. You can manage your notification preferences in the app.
+          </p>
+        </div>
+      </div>`;
+
+    await this.send({
+      to,
+      subject: title,
+      html: notificationHtml,
+      text: `${title}\n\nHi ${name},\n\n${body}`,
+    });
+  }
 }

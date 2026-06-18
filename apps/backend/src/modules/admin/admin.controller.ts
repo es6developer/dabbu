@@ -435,6 +435,15 @@ export class AdminController {
 
   @UseGuards(AdminGuard)
   @ApiBearerAuth()
+  @Get('analytics/system-health')
+  @ApiOperation({ summary: 'System health & performance metrics' })
+  async getSystemHealth() {
+    const health = await this.adminService.getSystemHealth();
+    return { data: health };
+  }
+
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
   @Get('tickets')
   @ApiOperation({ summary: 'List support tickets' })
   async listTickets(@Query() query: ListTicketsQueryDto) {

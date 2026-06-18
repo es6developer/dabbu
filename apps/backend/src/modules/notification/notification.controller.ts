@@ -36,7 +36,7 @@ export class NotificationController {
   }
 
   @Get('notifications/grouped')
-  @ApiOperation({ summary: 'Get notifications grouped by category (overdue/upcoming/paid/other)' })
+  @ApiOperation({ summary: 'Get notifications grouped by category' })
   async getGrouped(@CurrentUser('id') userId: string) {
     return this.notificationService.getGroupedNotifications(userId);
   }
@@ -61,8 +61,7 @@ export class NotificationController {
     @Query('offset') offset?: string,
   ) {
     return this.notificationService.getNotificationsWithFilters(userId, {
-      category,
-      priority,
+      category, priority,
       overdue: overdue !== undefined ? overdue === 'true' : undefined,
       isRead: isRead !== undefined ? isRead === 'true' : undefined,
       type,
@@ -81,20 +80,52 @@ export class NotificationController {
   @Patch('notifications/:id/read')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Mark notification as read' })
-  async markAsRead(
-    @CurrentUser('id') userId: string,
-    @Param('id') id: string,
-  ) {
+  async markAsRead(@CurrentUser('id') userId: string, @Param('id') id: string) {
     return this.notificationService.markAsRead(userId, id);
+  }
+
+  @Post('notifications/:id/archive')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Archive a notification' })
+  async archive(@CurrentUser('id') userId: string, @Param('id') id: string) {
+    return this.notificationService.archive(userId, id);
+  }
+
+  @Post('notifications/:id/unarchive')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Unarchive a notification' })
+  async unarchive(@CurrentUser('id') userId: string, @Param('id') id: string) {
+    return this.notificationService.unarchive(userId, id);
+  }
+
+  @Post('notifications/archive-all')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Archive all notifications' })
+  async archiveAll(@CurrentUser('id') userId: string) {
+    return this.notificationService.archiveAll(userId);
+  }
+
+  @Get('notifications/archived')
+  @ApiOperation({ summary: 'Get archived notifications' })
+  async getArchived(
+    @CurrentUser('id') userId: string,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+  ) {
+    return this.notificationService.getArchived(userId, limit ? parseInt(limit) : 50, offset ? parseInt(offset) : 0);
+  }
+
+  @Delete('notifications/all')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete all notifications' })
+  async deleteAll(@CurrentUser('id') userId: string) {
+    return this.notificationService.deleteAll(userId);
   }
 
   @Delete('notifications/:id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a notification' })
-  async remove(
-    @CurrentUser('id') userId: string,
-    @Param('id') id: string,
-  ) {
+  async remove(@CurrentUser('id') userId: string, @Param('id') id: string) {
     return this.notificationService.remove(userId, id);
   }
 
@@ -105,49 +136,51 @@ export class NotificationController {
     @CurrentUser('id') userId: string,
     @Body() dto: UpdateDeviceTokenDto,
   ) {
-    return this.notificationService.registerDevice(
-      userId,
-      dto.deviceId,
-      dto.platform,
-      dto.token,
-      dto.deviceName,
-    );
+    return this.notificationService.registerDevice(userId, dto.deviceId, dto.platform, dto.token, dto.deviceName);
   }
 
   @Post('devices/test-push')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Send a test push notification to all your devices' })
-  async testPush(
-    @CurrentUser('id') userId: string,
-    @Body() dto: TestPushDto,
-  ) {
+  @ApiOperation({ summary: 'Send a test push notification' })
+  async testPush(@CurrentUser('id') userId: string, @Body() dto: TestPushDto) {
     return this.notificationService.testPush(userId, dto.title, dto.body);
   }
 
   @Delete('devices/:id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Unregister a device' })
-  async unregisterDevice(
-    @CurrentUser('id') userId: string,
-    @Param('id') id: string,
-  ) {
+  async unregisterDevice(@CurrentUser('id') userId: string, @Param('id') id: string) {
     return this.notificationService.unregisterDevice(userId, id);
   }
 
   @Get('preferences')
-  @ApiOperation({ summary: 'Get notification preferences' })
+  @ApiOperation({ summary: 'Get notification preferences (global + per-category)' })
   async getPreferences(@CurrentUser('id') userId: string) {
     return this.notificationService.getPreferences(userId);
   }
 
   @Patch('preferences')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Update notification preferences' })
-  async updatePreferences(
-    @CurrentUser('id') userId: string,
-    @Body() dto: UpdateNotificationPreferencesDto,
-  ) {
+  @ApiOperation({ summary: 'Update global notification preferences' })
+  async updatePreferences(@CurrentUser('id') userId: string, @Body() dto: UpdateNotificationPreferencesDto) {
     return this.notificationService.updatePreferences(userId, dto);
+  }
+
+  @Get('preferences/categories')
+  @ApiOperation({ summary: 'Get per-category notification preferences' })
+  async getCategoryPreferences(@CurrentUser('id') userId: string) {
+    return this.notificationService.getCategoryPreferences(userId);
+  }
+
+  @Patch('preferences/categories/:category')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update per-category notification preference' })
+  async updateCategoryPreference(
+    @CurrentUser('id') userId: string,
+    @Param('category') category: string,
+    @Body() data: any,
+  ) {
+    return this.notificationService.updateCategoryPreference(userId, category, data);
   }
 
   @Post('notifications/monthly-summary')

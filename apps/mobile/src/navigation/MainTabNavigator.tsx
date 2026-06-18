@@ -47,7 +47,10 @@ import { ProfileScreen } from '../screens/settings/ProfileScreen';
 import { AvatarPickerScreen } from '../screens/settings/AvatarPickerScreen';
 import { SecurityScreen } from '../screens/settings/SecurityScreen';
 import { PremiumScreen } from '../screens/premium/PremiumScreen';
+import { SubscriptionCenterScreen } from '../screens/premium/SubscriptionCenterScreen';
 import { BillingHistoryScreen } from '../screens/premium/BillingHistoryScreen';
+import { CancellationScreen } from '../screens/premium/CancellationScreen';
+import CouplePaywallScreen from '../screens/couple/CouplePaywallScreen';
 import { ReferralScreen } from '../screens/referral/ReferralScreen';
 import { ThemeScreen } from '../screens/settings/ThemeScreen';
 import { HelpCenterScreen } from '../screens/settings/HelpCenterScreen';
@@ -247,6 +250,21 @@ function SettingsNavigator() {
         options={{ headerShown: false }}
       />
       <SettingsStack.Screen
+        name="SubscriptionCenter"
+        component={SubscriptionCenterScreen}
+        options={{ headerShown: false }}
+      />
+      <SettingsStack.Screen
+        name="Cancellation"
+        component={CancellationScreen}
+        options={{ headerShown: false }}
+      />
+      <SettingsStack.Screen
+        name="CouplePaywall"
+        component={CouplePaywallScreen}
+        options={{ headerShown: false, presentation: 'modal' }}
+      />
+      <SettingsStack.Screen
         name="BillingHistory"
         component={BillingHistoryScreen}
         options={{ headerShown: false }}
@@ -390,7 +408,7 @@ function SmsNavigator() {
 export function MainTabNavigator() {
   const theme = useTheme();
   const { colors } = theme;
-  const { user, accessToken, isPremium } = useAuth();
+  const { user, accessToken } = useAuth();
   const { getTabVisibility, bottomBarVisible, quickActionVisible } = usePreferences();
   const { showCoupleFeatures } = useCoupleMode();
   const [showActions, setShowActions] = useState(false);

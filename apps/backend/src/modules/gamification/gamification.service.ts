@@ -3,6 +3,187 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 
 const DEFAULT_BADGES = [
   {
+    code: 'first_expense',
+    name: 'First Expense Tracked',
+    description: 'Track your first expense',
+    icon: 'cash',
+    category: 'expense',
+    tier: 'bronze',
+    criteria: { type: 'expense_count', threshold: 1 },
+  },
+  {
+    code: 'expense_50',
+    name: 'Expense Tracker',
+    description: 'Track 50 expenses',
+    icon: 'receipt',
+    category: 'expense',
+    tier: 'silver',
+    criteria: { type: 'expense_count', threshold: 50 },
+  },
+  {
+    code: 'expense_500',
+    name: 'Expense Master',
+    description: 'Track 500 expenses',
+    icon: 'star',
+    category: 'expense',
+    tier: 'gold',
+    criteria: { type: 'expense_count', threshold: 500 },
+  },
+  {
+    code: 'savings_1000',
+    name: 'First ₹1,000 Saved',
+    description: 'Save ₹1,000 towards goals',
+    icon: 'piggy-bank',
+    category: 'savings',
+    tier: 'bronze',
+    criteria: { type: 'total_savings', threshold: 1000 },
+  },
+  {
+    code: 'savings_50000',
+    name: 'Serious Saver',
+    description: 'Save ₹50,000 towards goals',
+    icon: 'wallet',
+    category: 'savings',
+    tier: 'gold',
+    criteria: { type: 'total_savings', threshold: 50000 },
+  },
+  {
+    code: 'savings_1lac',
+    name: 'Savings Champion',
+    description: 'Save ₹1,00,000 towards goals',
+    icon: 'trophy',
+    category: 'savings',
+    tier: 'diamond',
+    criteria: { type: 'total_savings', threshold: 100000 },
+  },
+  {
+    code: 'streak_7',
+    name: 'Week Warrior',
+    description: 'Maintain a 7-day tracking streak',
+    icon: 'fire',
+    category: 'streak',
+    tier: 'bronze',
+    criteria: { type: 'streak_daily', threshold: 7 },
+  },
+  {
+    code: 'streak_30',
+    name: 'Monthly Momentum',
+    description: 'Maintain a 30-day tracking streak',
+    icon: 'calendar',
+    category: 'streak',
+    tier: 'silver',
+    criteria: { type: 'streak_daily', threshold: 30 },
+  },
+  {
+    code: 'streak_100',
+    name: 'Century Streak',
+    description: 'Maintain a 100-day tracking streak',
+    icon: 'award',
+    category: 'streak',
+    tier: 'gold',
+    criteria: { type: 'streak_daily', threshold: 100 },
+  },
+  {
+    code: 'streak_365',
+    name: 'Year of Finance',
+    description: 'Maintain a 365-day tracking streak',
+    icon: 'crown',
+    category: 'streak',
+    tier: 'diamond',
+    criteria: { type: 'streak_daily', threshold: 365 },
+  },
+  {
+    code: 'goal_1',
+    name: 'Goal Getter',
+    description: 'Complete your first goal',
+    icon: 'flag',
+    category: 'goal',
+    tier: 'bronze',
+    criteria: { type: 'goal_completed', threshold: 1 },
+  },
+  {
+    code: 'goal_10',
+    name: 'Goal Crusher',
+    description: 'Complete 10 goals',
+    icon: 'target',
+    category: 'goal',
+    tier: 'gold',
+    criteria: { type: 'goal_completed', threshold: 10 },
+  },
+  {
+    code: 'bill_5',
+    name: 'Bill Paymaster',
+    description: 'Pay 5 bills on time',
+    icon: 'document-text',
+    category: 'bill',
+    tier: 'bronze',
+    criteria: { type: 'bill_paid', threshold: 5 },
+  },
+  {
+    code: 'bill_50',
+    name: 'Bill Champion',
+    description: 'Pay 50 bills on time',
+    icon: 'shield-checkmark',
+    category: 'bill',
+    tier: 'gold',
+    criteria: { type: 'bill_paid', threshold: 50 },
+  },
+  {
+    code: 'budget_3',
+    name: 'Budget Master',
+    description: 'Stay under budget for 3 months',
+    icon: 'stats-chart',
+    category: 'budget',
+    tier: 'silver',
+    criteria: { type: 'budget_streak_months', threshold: 3 },
+  },
+  {
+    code: 'budget_12',
+    name: 'Budget Guru',
+    description: 'Stay under budget for 12 months',
+    icon: 'trophy',
+    category: 'budget',
+    tier: 'diamond',
+    criteria: { type: 'budget_streak_months', threshold: 12 },
+  },
+  {
+    code: 'social_5',
+    name: 'Social Spender',
+    description: 'Join 5 shared expense groups',
+    icon: 'people',
+    category: 'social',
+    tier: 'silver',
+    criteria: { type: 'group_count', threshold: 5 },
+  },
+  {
+    code: 'settlement_10',
+    name: 'Settlement Star',
+    description: 'Complete 10 settlements',
+    icon: 'swap-horizontal',
+    category: 'social',
+    tier: 'gold',
+    criteria: { type: 'settlement_count', threshold: 10 },
+  },
+  {
+    code: 'welcome',
+    name: 'Welcome to Dabbu',
+    description: 'Create your account and start your financial journey',
+    icon: 'heart',
+    category: 'milestone',
+    tier: 'bronze',
+    criteria: { type: 'signup', threshold: 1 },
+  },
+  {
+    code: 'first_budget',
+    name: 'Budget Beginner',
+    description: 'Create your first budget',
+    icon: 'clipboard',
+    category: 'budget',
+    tier: 'bronze',
+    criteria: { type: 'budget_count', threshold: 1 },
+  },
+];
+  {
     code: 'first_goal',
     name: 'First Goal Completed',
     description: 'Complete your first financial goal',
@@ -120,7 +301,7 @@ export class GamificationService implements OnModuleInit {
         case 'total_savings': {
           const goals = await this.prisma.goal.findMany({
             where: { userId, deletedAt: null },
-            select: { targetAmount: true, currentAmount: true },
+            select: { currentAmount: true },
           });
           const totalSaved = goals.reduce((sum, g) => sum + Number(g.currentAmount), 0);
           currentProgress = totalSaved;
@@ -128,11 +309,56 @@ export class GamificationService implements OnModuleInit {
           break;
         }
         case 'budget_streak_months': {
-          const streak = await this.prisma.userStreak.findUnique({
+          const bStreak = await this.prisma.userStreak.findUnique({
             where: { userId_streakType: { userId, streakType: 'monthly' } },
           });
-          currentProgress = streak?.currentStreak || 0;
+          currentProgress = bStreak?.currentStreak || 0;
           earned = currentProgress >= criteria.threshold;
+          break;
+        }
+        case 'expense_count': {
+          const expCount = await this.prisma.transaction.count({
+            where: { userId, type: 'expense', deletedAt: null },
+          });
+          currentProgress = expCount;
+          earned = expCount >= criteria.threshold;
+          break;
+        }
+        case 'bill_paid': {
+          const billCount = await this.prisma.bill.count({
+            where: { userId, isPaid: true, deletedAt: null },
+          });
+          currentProgress = billCount;
+          earned = billCount >= criteria.threshold;
+          break;
+        }
+        case 'group_count': {
+          const groupCount = await this.prisma.sharedGroupMember.count({
+            where: { userId },
+          });
+          currentProgress = groupCount;
+          earned = groupCount >= criteria.threshold;
+          break;
+        }
+        case 'settlement_count': {
+          const settlementCount = await this.prisma.settlement.count({
+            where: { payerId: userId, status: 'completed' },
+          });
+          currentProgress = settlementCount;
+          earned = settlementCount >= criteria.threshold;
+          break;
+        }
+        case 'signup': {
+          currentProgress = 1;
+          earned = true;
+          break;
+        }
+        case 'budget_count': {
+          const budgetCount = await this.prisma.budget.count({
+            where: { userId, deletedAt: null },
+          });
+          currentProgress = budgetCount;
+          earned = budgetCount >= criteria.threshold;
           break;
         }
       }

@@ -67,6 +67,12 @@ import { EmergencyFundModule } from './modules/emergency-fund/emergency-fund.mod
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { FeaturesModule } from './modules/features/features.module';
 import { AiFamilyAdvisorModule } from './modules/ai-family-advisor/ai-family-advisor.module';
+import { RetentionModule } from './modules/retention/retention.module';
+import { SearchModule } from './modules/search/search.module';
+import { StorageModule } from './modules/storage/storage.module';
+import { ComplianceModule } from './modules/compliance/compliance.module';
+import { SupportModule } from './modules/support/support.module';
+import { AuditModule } from './modules/audit/audit.module';
 
 @Module({
   imports: [
@@ -176,6 +182,12 @@ import { AiFamilyAdvisorModule } from './modules/ai-family-advisor/ai-family-adv
     EmergencyFundModule,
     DashboardModule,
     AiFamilyAdvisorModule,
+    RetentionModule,
+    SearchModule,
+    StorageModule,
+    ComplianceModule,
+    SupportModule,
+    AuditModule,
   ],
   controllers: [HealthController],
   providers: [

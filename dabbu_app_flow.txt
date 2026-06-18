@@ -1,0 +1,880 @@
+═══════════════════════════════════════════════════════════════════
+                     DABBU APP — COMPLETE FLOW
+           From Registration to Logout — Every Screen Explained
+═══════════════════════════════════════════════════════════════════
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. APP ARCHITECTURE OVERVIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tech Stack:
+  • Framework: React Native (Expo SDK 50)
+  • Navigation: @react-navigation (native-stack, bottom-tabs)
+  • State: React Context (AuthContext, ThemeProvider, PreferencesContext, etc.)
+  • Styling: StyleSheet + theme system (light/dark/couple mode)
+  • Icons: @expo/vector-icons (AntDesign, Ionicons)
+  • Fonts: Inter (Google Fonts via expo-font)
+  • Storage: expo-secure-store (tokens), AsyncStorage (cache/prefs)
+  • Backend: NestJS + Prisma + MySQL + Redis
+
+Directory Structure:
+  apps/mobile/src/
+    ├── screens/          → 31 subdirectories, ~150 screen files
+    ├── navigation/       → 12 navigator files
+    ├── components/       → Reusable UI components
+    ├── theme/            → Colors, typography, design tokens
+    ├── store/            → Context providers (Auth, Preferences, Lock, etc.)
+    ├── services/         → API client, preload, features config
+    ├── hooks/            → Custom hooks (useCoupleMode, etc.)
+    └── config/           → API config, category icons, features
+
+Key Files:
+  • App.tsx               → Root component, providers, deep links
+  • RootNavigator.tsx     → Auth gatekeeper (phase machine)
+  • MainTabNavigator.tsx   → Bottom tab bar + all 5 tab stacks
+  • AuthContext.tsx       → Login, register, logout, token refresh
+  • api.ts               → HTTP client, caching, offline queue, auto-refresh
+  • ThemeProvider.tsx     → Light/dark/couple mode theme engine
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. AUTHENTICATION FLOW (FIRST LAUNCH → LOGIN → APP → LOGOUT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+═══════════════════════════════════════════════════════════════
+2A. COLD START (App Launch)
+═══════════════════════════════════════════════════════════════
+
+The app launches with an animated SplashScreen showing the Dabbu logo.
+In parallel, RootNavigator runs a phase state machine:
+
+  Phase: 'loading'
+    → Shows <SplashScreen> (animated logo + tagline, ~3 seconds)
+    → During splash, these happen in parallel:
+        1. GET /admin/maintenance  → checks if backend is in maintenance mode
+        2. AuthContext.loadStoredAuth()  → reads saved tokens from SecureStore
+        3. Features config loads, fonts load (Inter 400/500/600/700)
+
+  If maintenance mode → shows <MaintenanceScreen> (blocks everything)
+
+  If no saved token:
+    → phase = 'auth'
+    → <AuthNavigator> renders
+
+═══════════════════════════════════════════════════════════════
+2B. ONBOARDING (First Launch Only)
+═══════════════════════════════════════════════════════════════
+
+  AuthNavigator checks AsyncStorage 'hasSeenOnboarding':
+    → If NOT seen: shows OnboardingScreen (3 slides)
+        Slide 1: "Track Every Rupee"
+        Slide 2: "Build Wealth Together" (couples focus)
+        Slide 3: "Split Payments Easily"
+        → User can Skip anytime
+        → On finish: AsyncStorage.setItem('hasSeenOnboarding', 'true')
+        → navigation.replace('Login')
+    → If already seen: shows Login screen directly
+
+═══════════════════════════════════════════════════════════════
+2C. LOGIN / SIGNUP
+═══════════════════════════════════════════════════════════════
+
+  ┌─ Login Screen (PremiumLoginScreen) ──────────────────────┐
+  │  • Email + Password fields (pre-filled with demo creds)  │
+  │  • "Let's Start" button → POST /auth/login               │
+  │  • "Create one" link → navigates to Signup               │
+  │  • Google Sign-In button → OAuth → POST /auth/google     │
+  │  • Demo Login button → POST /auth/demo                   │
+  │  • Forgot Password? → navigates to ForgotPassword        │
+  └──────────────────────────────────────────────────────────┘
+
+  ┌─ Signup Screen (PremiumSignupScreen) ────────────────────┐
+  │  • First Name, Last Name, Email, Phone, Password          │
+  │  • Optional: Referral Code                                │
+  │  • "Create Account" → POST /auth/register                 │
+  │  • Google Sign-In fallback                                │
+  └──────────────────────────────────────────────────────────┘
+
+  On successful auth (any method):
+    → Server returns { user, tokens: { accessToken, refreshToken, sessionId } }
+    → applyAuth():
+        1. setAccessToken(token) → warms up backend + starts keep-alive
+        2. Save to SecureStore: accessToken, refreshToken, sessionId
+        3. Save userData (JSON) to SecureStore
+        4. Start 24-hour session timeout timer
+        5. Refresh premium status in background
+
+═══════════════════════════════════════════════════════════════
+2D. SESSION VALIDATION
+═══════════════════════════════════════════════════════════════
+
+  After auth, RootNavigator sets phase = 'validating'
+    → Shows "Verifying your session..." spinner
+    → GET /auth/profile with Bearer token
+
+  Possible outcomes:
+    • 401 response → session expired → logout() → back to auth
+    • Success (or other error, allowing grace) →
+        - If app lock enabled: phase = 'lock' → <AppLockScreen> (PIN/biometric)
+        - If isNewUser: phase = 'setup' → <ProfileSetupScreen>
+        - If needsPhone: → <PhoneScreen>
+        - Otherwise: phase = 'app' → <MainTabNavigator>
+
+═══════════════════════════════════════════════════════════════
+2E. NEW USER SETUP
+═══════════════════════════════════════════════════════════════
+
+  ProfileSetupScreen:
+    → Edit First Name, Last Name, Phone
+    → PATCH /users/profile
+    → completeProfileSetup() → sets isNewUser = false
+
+  PhoneScreen (if user has no phone):
+    → Enter phone number with country code
+    → PATCH /users/profile { phone }
+    → Proceed to main app
+
+═══════════════════════════════════════════════════════════════
+2F. APP LOCK
+═══════════════════════════════════════════════════════════════
+
+  AppLockScreen:
+    → On mount: tries biometric auth automatically if enrolled
+    → User enters 4-digit PIN via custom keypad
+    → PIN verified against SecureStore 'appPin'
+    → "Forgot PIN?" → triggers logout
+    → On success → unlockApp() → proceed to main app
+
+  Lock triggers when:
+    - App goes to background and returns
+    - SecureStore has both 'appPin' and 'appLockEnabled'
+
+═══════════════════════════════════════════════════════════════
+2G. DURING APP USAGE (Token Lifecycle)
+═══════════════════════════════════════════════════════════════
+
+  • Every API call auto-attaches Bearer token via interceptors
+  • Before each request: JWT 'exp' claim is checked (30s buffer)
+  • If token expired → auto-refresh via POST /auth/refresh
+  • Every 4 minutes: GET /health keep-alive (prevents server-side expiry)
+  • If 401 received:
+      → First retry with same token
+      → If still 401 → refresh token
+      → If refresh fails → session expired → logout()
+  • 24-hour absolute session timeout (resets on activity)
+  • Returns from background: LockContext checks PIN status
+
+═══════════════════════════════════════════════════════════════
+2H. LOGOUT
+═══════════════════════════════════════════════════════════════
+
+  User taps Sign Out (in Settings):
+    → Confirmation dialog
+    → logout():
+        1. POST /auth/logout (fire-and-forget)
+        2. Clear session timeout
+        3. Delete from SecureStore:
+           accessToken, refreshToken, sessionId, userData,
+           appPin, appLockEnabled, biometricEnabled
+        4. Clear AsyncStorage:
+           preferences, contacts, offline queue, couple mode, cache
+        5. setAccessToken(null) → stops keep-alive
+        6. clearCache() → wipes all API cache
+        7. Reset state: isAuthenticated = false
+    → RootNavigator sees isAuthenticated = false → phase = 'auth'
+    → User sees Login screen again
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. APP STRUCTURE — NAVIGATORS & SCREENS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The main app has 5 bottom tabs. Two tabs are hidden (used for routing only).
+
+═══════════════════════════════════════════════════════════════
+3A. TAB 1: HOME (Dashboard Tab)
+═══════════════════════════════════════════════════════════════
+
+  Entry: DashboardMain → HomeScreen
+
+  This is the MAIN DASHBOARD — the first screen users see.
+
+  HomeScreen displays:
+    • Greeting + user avatar + notification bell
+    • "Add Expense/Income" quick-add cards with category picker
+    • "This Month" summary card (income, expenses, balance)
+    • Recent transactions list (last 7 days)
+    • Upcoming bills card
+    • "Your Spaces" section (shared finance groups with balances)
+    • AI Insights card (spending tips, anomalies)
+    • Quick Action buttons (4-grid: Goals, Net Worth, Reports, Budgets)
+    • "See All" links for spaces, transactions, goals
+    • Pull-to-refresh
+
+  API calls:
+    GET /transactions/stats
+    GET /accounts/stats
+    GET /shared-finance/groups
+    Various AI/insights endpoints
+
+  Screens accessible from Home tab (DashboardNavigator):
+    ┌─ DashboardMain (HomeScreen)
+    ├─ Notifications / NotificationCenter
+    ├─ GoalsList → GoalDetail
+    ├─ RemindersNavigator
+    │    ├─ RemindersList
+    │    ├─ CreateReminder
+    │    └─ ReminderDetail
+    ├─ SmsNavigator
+    │    ├─ SmsDashboard
+    │    └─ SmsPermission
+    ├─ DocumentVault → DocumentDetail
+    ├─ BadgeWall (achievements)
+    ├─ AiInsights, AiHomeDashboard, AIDashboard
+    ├─ AiFinancialDna, AiFinancialCopilot
+    ├─ AiMonthlyReview, AiGoalCoach
+    ├─ AiCouple, AiFamily, AiGroupSpace
+    ├─ AiSavings, AiAnomalies, AiNotifications
+    ├─ AiPremiumPaywall
+    ├─ TodayFeed
+    ├─ NetWorth, LoanTracker
+    └─ GlobalSearch
+
+═══════════════════════════════════════════════════════════════
+3B. TAB 2: EXPENSE (Hidden Tab — Accounts/Transactions)
+═══════════════════════════════════════════════════════════════
+
+  Entry: ExpenseHome → MyWalletScreen
+  
+  This tab is HIDDEN from the tab bar. It's navigated to from
+  the Quick Action Sheet (center FAB button) and from deep links.
+
+  MyWalletScreen (the "Wallet"):
+    • Top bar: segment control → "My Wallet" | "Shared Circles"
+    • "My Wallet" view:
+        - Account cards with balances (bank, cash, credit cards, etc.)
+        - "This Month" income/expense/net summary
+        - "Report" button → opens report modal (monthly PDF/Excel export)
+        - Recent transactions list
+        - Quick stats cards
+    • "Shared Circles" view:
+        - List of shared expense groups with balances
+        - Create new group FAB
+    • Pull-to-refresh
+
+  Screens in AccountsNavigator:
+    ┌─ ExpenseHome (MyWalletScreen)
+    ├─ SharedCircles (shared expense groups list)
+    ├─ AddExpense (add income/expense form)
+    ├─ CreateCategory [modal]
+    ├─ BillScanner (receipt scanner)
+    ├─ BillsList → BillDetail
+    ├─ MonthlyComparison
+    ├─ TransactionDetail (single transaction view)
+    ├─ CreateExpenseGroup
+    ├─ GroupExpenses (group expense detail with tabs)
+    ├─ Subscriptions
+    ├─ Analytics
+    ├─ SharedExpenseForm [modal]
+    ├─ Settlement [modal]
+    └─ AddMember
+
+═══════════════════════════════════════════════════════════════
+3C. TAB 3: CIRCLES (Hidden Tab — Social Splitting)
+═══════════════════════════════════════════════════════════════
+
+  Entry: CirclesList → CirclesListScreen
+
+  This tab is HIDDEN from the tab bar. Used for social expense
+  splitting (couples, family, trips, friends).
+
+  CirclesListScreen:
+    • "Your Shared Groups" list with balances
+    • Create FAB → CreateCircleScreen
+    • Pull-to-refresh
+
+  Screens in CirclesNavigator:
+    ┌─ CirclesList (main list)
+    ├─ CreateCircle [modal] (create shared group)
+    ├─ SplitExpense [modal] (quick split form)
+    ├─ Settlement (full settlement screen with pending/history)
+    ├─ SharedGroupDetail (group detail with tabs)
+    ├─ SharedExpenseForm (add/edit shared expense)
+    ├─ CoupleFinance, CoupleIncome, CoupleReports
+    ├─ TransactionDetail
+    ├─ FamilyDashboard, TripDashboard
+    ├─ AccessExpired [modal], TripCompleted [modal]
+    ├─ GroupWallet, WalletTransfer, SplitTemplates
+    ├─ AddMember [modal]
+    └─ ExternalSplitLink [modal]
+
+═══════════════════════════════════════════════════════════════
+3D. TAB 4: SPACES (Visible Tab — Shared Finance)
+═══════════════════════════════════════════════════════════════
+
+  Entry: SpacesDashboardHome → SpacesDashboardScreen
+
+  This is the VISIBLE "Spaces" tab. All shared finance lives here.
+
+  SpacesDashboardScreen:
+    • "Create Space" button → CreateSharedGroupScreen
+    • List of all spaces/groups with:
+        - Cover icon (family/heart/trip/etc.)
+        - Name, type, member count
+        - Your balance (Owed / You Owe / Settled)
+
+  SharedScreen (SharedFinanceHome):
+    • Premium gated: shows up to FREE_MAX (3) groups
+    • Groups list with swipe actions (delete)
+    • Create Space FAB
+    • Upgrade banner for premium
+
+  Screens in SharedFinanceNavigator:
+    ┌─ SpacesDashboardHome (main entry)
+    ├─ SharedFinanceHome (SharedScreen - old entry)
+    ├─ SharedGroupDetail (4-tab: Summary/Expenses/Analytics/People)
+    │    - Summary: balance, settlements, simplify toggle, recent activity
+    │    - Expenses: list with Pay Now, category breakdown
+    │    - Analytics: "What I paid / Others paid / All paid" + 3 pie charts
+    │    - People: member list with balances, Settle Up/Remind per person
+    ├─ CreateSharedGroup [modal] (name, type, description, optional UPI)
+    ├─ SharedExpenseForm [modal] (add/edit expense with split)
+    ├─ CoupleFinance (couple-specific finance dashboard)
+    ├─ FamilyDashboard, TripDashboard
+    ├─ Settlement (pending settlements + history, UPI/Cash settle)
+    ├─ AccessExpired [modal], TripCompleted [modal]
+    ├─ GroupWallet, WalletTransfer, SplitTemplates
+    ├─ CoupleIncome, CoupleReports
+    ├─ TransactionDetail
+    └─ AddMember [modal]
+
+═══════════════════════════════════════════════════════════════
+3E. TAB 5: GOALS (Visible Tab)
+═══════════════════════════════════════════════════════════════
+
+  Entry: GoalsList → GoalsListScreen
+
+  GoalsListScreen:
+    • "Create Goal" button → navigates to CreateBudget (modal)
+    • List of all goals with progress bars
+    • Categories: Emergency, Vacation, Education, Home, Car, etc.
+    • Premium upgrade banner
+
+  GoalDetailScreen:
+    • Goal progress ring/bar
+    • Target amount, deadline
+    • Monthly contribution suggestion
+    • Contribution history timeline
+    • Add contribution button
+    • Edit/Delete options
+
+  Screens in GoalsNavigator:
+    ┌─ GoalsList (main list)
+    └─ GoalDetail (single goal view)
+
+═══════════════════════════════════════════════════════════════
+3F. TAB 6: SETTINGS (Visible Tab — "Profile")
+═══════════════════════════════════════════════════════════════
+
+  Entry: SettingsMain → SettingsScreen
+
+  SettingsScreen layout:
+    • Profile Header: avatar, name, email, Premium/Free badge
+        → Taps into Profile screen
+        → CoupleModeToggle (for partnered users)
+    • Upgrade Banner (if free tier)
+    • Couple Requests section (if pending)
+    • Account section: Profile, Partner Management, Favorites, Referral
+    • Preferences: Theme, Notifications, Customise Bottom Menu, Quick Actions
+    • Security: Security settings, Lock App
+    • Premium: Premium Plan, Couple Space
+    • Wealth Tools: Reports, Export Data, Budgets
+    • Support: Help, Contact, Privacy Policy
+    • Sign Out button
+
+  Screens in SettingsNavigator:
+    ┌─ SettingsMain (SettingsScreen)
+    ├─ Profile (edit profile: avatar, name, email, phone, UPI)
+    ├─ Security (PIN/biometric lock settings)
+    ├─ Premium (upgrade plans)
+    ├─ BillingHistory
+    ├─ Theme (light/dark/system toggle)
+    ├─ Help, Contact, Privacy
+    ├─ Referral (invite friends with code)
+    ├─ Analytics, Reports
+    ├─ BudgetsList → CreateBudget [modal] → BudgetDetail
+    ├─ CoupleSpace → CoupleSpaceNavigator
+    │    ├─ CoupleSplash (either "Connect" or "Dashboard")
+    │    ├─ CoupleSpaceHome (CoupleSpaceScreen dashboard)
+    │    ├─ CoupleSettings (manage partner, update profile)
+    │    ├─ CoupleTransactionForm [modal] (add expense/income)
+    │    ├─ Goals (CoupleGoalsScreen)
+    │    └─ Bills (CoupleBillsScreen)
+    ├─ CustomiseDashboard, CustomiseBottomMenu
+    ├─ NotificationSettings
+    ├─ FavoriteContacts
+    ├─ AddPartner (send/approve/reject couple requests)
+    ├─ AvatarPicker
+    ├─ AdminLogin [modal], AdminDashboard
+    └─ CoupleModeToggle (below profile card)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. KEY FEATURES & HOW THEY WORK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+═══════════════════════════════════════════════════════════════
+4A. PERSONAL FINANCE (Wallet)
+═══════════════════════════════════════════════════════════════
+
+  MyWalletScreen (ExpenseHome):
+    • Displays account balances (checking, savings, cash, credit cards, etc.)
+      - GET /accounts
+    • Monthly income/expense/net summary
+      - GET /transactions/stats
+    • Recent transactions list (scrollable)
+      - GET /transactions?limit=20&offset=0
+    • Report button → opens modal with:
+        - Month/year navigation arrows
+        - Income/Expense/Net cards
+        - Category breakdown list
+        - PDF Export → GET /transactions/export/pdf
+        - Excel Export → GET /transactions/export/excel
+
+  AddExpenseScreen (Add Expense/Income):
+    • Type toggle: Expense / Income / Transfer
+    • Amount input with quick-amount chips
+    • Category picker with icons & colors
+    • Account selector (which account)
+    • Date picker, notes field
+    • Tags support
+    • POST /transactions (for expense/income)
+    • Also creates recurring transactions if toggled
+
+  TransactionDetailScreen:
+    • Full transaction view with category icon, amount, date
+    • Edit button → opens form in edit mode
+    • Delete with confirmation
+    • Receipt image if attached
+
+═══════════════════════════════════════════════════════════════
+4B. SHARED EXPENSES & GROUPS
+═══════════════════════════════════════════════════════════════
+
+  CreateSharedGroupScreen:
+    • Space name, type (friends/family/couple/trip/etc.), description
+    • Optional UPI ID with debounced validation
+    • POST /shared-finance/groups
+
+  SharedGroupDetailScreen (4 tabs):
+    Tab 1 — Summary:
+      • Hero card: your balance (You owe / You are owed)
+      • Simplified settlements toggle
+      • Settlement rows with Pay (UPI) / Remind (WhatsApp) buttons
+      • "View all settlements" → Settlement screen
+      • Recent activity feed
+      • Trip summary card (for trip-type groups)
+
+    Tab 2 — Expenses:
+      • Filterable expense list
+      • Each expense shows: description, amount, paid by, your share
+      • "Pay Now" green button (when you have a share & payer has UPI)
+      • Category breakdown summary
+      • FAB to add expense
+
+    Tab 3 — Analytics:
+      • 3 summary cards: What I paid / Others paid / All paid
+      • Pie Chart: Category-wise distribution
+      • Pie Chart: Date-wise (monthly)
+      • Pie Chart: Member-wise (by payer)
+      • Uses react-native-chart-kit PieChart
+
+    Tab 4 — People:
+      • Member list with avatars, names
+      • Each member shows balance (owes/is owed)
+      • "Settle Up" button (if you owe them) → UPI deep link
+      • "Remind" button (if they owe you) → WhatsApp message
+      • Swipe to remove member (admin only, with data delete option)
+
+  SettlementScreen:
+    • Segmented control: Pending | History
+    • Pending: settlement plan with amounts, Pay via UPI / Cash buttons
+    • History: past settlements with status badges
+    • "Settle All" batch button
+    • API: GET /shared-finance/groups/:id/settlements/plan?simplified=true
+    • API: POST /shared-finance/settlements/:id/complete
+
+  GroupExpensesScreen:
+    • Similar to SharedGroupDetail but for old-style expense groups
+    • Leave/Remove member with data-delete option
+
+═══════════════════════════════════════════════════════════════
+4C. COUPLE SPACE
+═══════════════════════════════════════════════════════════════
+
+  Couple Mode activation:
+    • Send request via phone → POST /couple/send-request
+    • Partner approves → POST /couple/approve-request/:id
+    • OR: Generate invite code → POST /couple/create-invite (30 min expiry)
+    • Partner joins with code → POST /couple/join
+    • On approval: both users get isCouple=true, isCoupleMode=true
+    • A shared-finance group of type 'couple' is auto-created
+
+  Couple Mode Toggle:
+    • Settings → CoupleModeToggle (below profile card)
+    • Toggle on/off → POST /couple/toggle-mode
+    • When ON: pink theme activates, couple-specific screens show
+    • When ON: Expense + Spaces tabs hide from bottom bar
+
+  CoupleSpaceScreen (dashboard):
+    • Partner card: you + partner avatars, "Together since" date
+    • "This Month" stats: You Spent / Partner Spent / Total
+    • Shared Finance cards: shared expenses, shared income, net
+    • Recent shared transactions list
+    • Combined goals bar
+    • Upcoming bills
+    • Quick Actions: Add Expense, Add Income, Goals, Settings
+    • GET /couple/dashboard
+
+  CoupleTransactionFormScreen (modal):
+    • Type: Expense or Income
+    • Amount, description, category, date, split type (personal/shared)
+    • Creates: POST /shared-finance/groups/:id/expenses
+    • OR creates: POST /shared-finance/groups/:id/couple/incomes
+    • Auto-discovers groupId if not provided
+
+  CoupleSettingsScreen:
+    • Partner profile card
+    • Monthly contributions summary
+    • Split ratio settings (50:50, salary ratio, etc.)
+    • Leave couple space (with data deletion option)
+    • Generate invite link
+
+  Other couple screens:
+    • CoupleIncomeScreen: list of shared incomes
+    • CoupleExpensesScreen: list of shared expenses with category breakdown
+    • CoupleBudgetsScreen: budget tracking per category
+    • CoupleSavingsScreen: savings goal with progress
+    • CoupleSettlementsScreen: settlement balance & settle up
+    • CoupleReportsScreen: monthly reports with savings rate
+    • CoupleGoalsScreen: shared goal tracking
+    • CoupleBillsScreen: household bills (rent, electricity, etc.)
+    • CouplePlannerScreen: life planners (baby, house, car, retirement)
+    • CoupleTimelineScreen: activity feed
+    • CoupleCoachScreen: AI financial insights
+    • CoupleGamificationScreen: badges, streaks, levels
+    • All use GET /shared-finance/groups/:id/couple/* endpoints
+
+═══════════════════════════════════════════════════════════════
+4D. BUDGETS
+═══════════════════════════════════════════════════════════════
+
+  BudgetsListScreen:
+    • List of budgets with progress bars
+    • "Create Budget" FAB
+    • Premium upgrade banner (if applicable)
+
+  CreateBudgetScreen:
+    • Budget name, amount, category (fetched from API)
+    • Category select → sends categoryId (not name string)
+    • Month/year selector
+    • POST /budgets
+
+  BudgetDetailScreen:
+    • Budget progress ring
+    • Category breakdown
+    • Spending by date
+    • Edit/Delete options
+
+═══════════════════════════════════════════════════════════════
+4E. GOALS
+═══════════════════════════════════════════════════════════════
+
+  GoalsListScreen:
+    • All goals with progress bars
+    • Types: Emergency, Vacation, Education, Home, Car, Wedding, etc.
+    • Create goal button
+
+  GoalDetailScreen:
+    • Animated progress ring
+    • Target amount, current amount, deadline
+    • Monthly contribution suggestion
+    • Add contribution button → PATCH /goals/:id/contribute
+    • Contribution history timeline
+    • Edit/Delete
+
+═══════════════════════════════════════════════════════════════
+4F. AI FEATURES
+═══════════════════════════════════════════════════════════════
+
+  The app has multiple AI-powered screens:
+    • AiHomeDashboardScreen — AI dashboard with insights cards
+    • FinancialDnaScreen — "Financial DNA" personality assessment
+      (frugal, balanced, spender, lavish, etc.)
+    • FinancialCopilotScreen — AI financial assistant chat
+    • MonthlyAiReviewScreen — AI-generated monthly review
+    • SmartGoalCoachScreen — AI goal coaching & recommendations
+    • CoupleAiScreen — AI insights for couples
+    • FamilyAiScreen — AI insights for families
+    • GroupSpaceAiScreen — AI insights for shared groups
+    • AiSavingsScreen — AI savings suggestions
+    • AnomalyDetectionScreen — unusual transaction detection
+    • SmartNotificationScreen — AI notification management
+
+  These call various /ai/* endpoints on the backend.
+
+═══════════════════════════════════════════════════════════════
+4G. UPI & PAYMENTS
+═══════════════════════════════════════════════════════════════
+
+  UPI ID Validation:
+    • ProfileScreen: UPI ID input with debounced validation (600ms)
+    • Validates via GET /users/validate-upi?upiId=xxx
+    • Uses Airtel's free public API (no API key needed)
+    • Shows: green checkmark / red X / spinner while typing
+
+  Pay Now (on expense items in shared groups):
+    • Shows green "Pay Now" button when:
+        - Current user didn't pay the expense
+        - Current user has a split share
+        - Payer has a UPI ID
+    • Opens: upi://pay?pa=...&am=...&pn=...&cu=INR
+    • Links to GPay / PhonePe / Paytm
+
+  Settle Up:
+    • In People tab: "Settle Up" → UPI deep link to pay member
+    • In Settlement screen: "Pay via UPI" button per settlement
+    • In Settlement screen: "Cash" button → marks as completed
+
+═══════════════════════════════════════════════════════════════
+4H. REFERRAL SYSTEM
+═══════════════════════════════════════════════════════════════
+
+  ReferralScreen:
+    • Displays user's referral code
+    • Stats: total referrals, earnings, rewards
+    • Share button → shares via system share sheet
+    • Share message includes invite link
+
+═══════════════════════════════════════════════════════════════
+4I. PREMIUM / SUBSCRIPTION
+═══════════════════════════════════════════════════════════════
+
+  PremiumScreen:
+    • Feature comparison table (Free vs Premium)
+    • Subscription plans with pricing
+    • Razorpay payment integration
+    • Unlocks: unlimited groups, reports, analytics, export
+
+  Premium-gated features:
+    • Reports (financial)
+    • Analytics (detailed)
+    • Budgets (unlimited)
+    • Groups (more than FREE_MAX)
+    • Various AI features
+
+═══════════════════════════════════════════════════════════════
+4J. NOTIFICATIONS
+═══════════════════════════════════════════════════════════════
+
+  The app uses expo-notifications for push notifications.
+  Events that trigger notifications:
+    • New expense added in shared group
+    • Settlement requested
+    • Settlement confirmed
+    • New member joined
+    • Payment reminder
+    • Bill due
+    • Couple request received
+    • Goal milestone reached
+
+  NotificationSettingsScreen:
+    • Per-category toggle for notification types
+    • Push notification enable/disable
+
+═══════════════════════════════════════════════════════════════
+4K. OFFLINE SUPPORT
+═══════════════════════════════════════════════════════════════
+
+  The app queues mutations when offline:
+    • When device goes offline → mutations saved to offlineQueue
+    • When connectivity returns → queued mutations replayed in order
+    • GET requests use stale cache when offline
+    • OfflineBanner component shows "You're offline" at the top
+    • Uses NetInfo from @react-native-community/netinfo
+
+═══════════════════════════════════════════════════════════════
+4L. REMINDERS & SMS
+═══════════════════════════════════════════════════════════════
+
+  Reminders:
+    • CreateReminderScreen: title, amount, category, due date, repeat
+    • RemindersList: all reminders with status
+    • ReminderDetail: full view, mark complete, edit, delete
+    • Local notifications for due reminders
+
+  SMS (transaction detection):
+    • SmsDashboard: shows SMS transaction detection status
+    • SmsPermission: requests SMS read permission
+    • Detects bank/UPI transactions from SMS
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. THEME SYSTEM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Modes: light | dark | system (follows device setting)
+  Stored in AsyncStorage: @dabbu_theme_mode
+
+  4 Color Palettes:
+    • palette.light       → Violet accent (#7C3AED), white/light backgrounds
+    • palette.dark        → Violet accent (#A78BFA), dark backgrounds
+    • palette.coupleLight → Rose accent (#F43F5E), pink-tinted backgrounds
+    • palette.coupleDark  → Rose accent (#FB7185), dark pink backgrounds
+
+  Couple Mode determines which palette is active:
+    • When user.isCouple && user.isCoupleMode → uses couple palette
+    • Otherwise → uses standard palette
+
+  Theme object (useTheme() hook):
+    • dark: boolean
+    • colors: ColorPalette (bg, text, accent, border, status, etc.)
+    • typography: font sizes & weights (Inter, Apple SF naming)
+    • spacing: 8pt grid (xs=4, sm=8, md=12, lg=16, xl=20, ...)
+    • borderRadius: sm=6, md=8, lg=10, xl=12, 2xl=16, 3xl=20, ...
+    • isDark: boolean
+    • mode: 'light' | 'dark' | 'system'
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6. API & DATA LAYER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Base URL: Configurable via app.json extra.apiUrl or EXPO_PUBLIC_API_URL
+  Default: https://dabbu-1ff9.onrender.com/api/v1
+
+  API Client (api.ts):
+    • Wraps fetch with: auth headers, caching, offline queue, retry, timeout
+    • Methods: api.get(), api.post(), api.put(), api.patch(), api.delete()
+    • Caching: in-memory + AsyncStorage, per-endpoint TTL, stale-while-revalidate
+    • Offline: queues mutations, replays when online
+    • Deduplication: concurrent identical GETs share one request
+    • Auto-refresh: 401 → refresh token → retry
+    • Loading tracking: global counter for ApiProgressBar
+
+  Key Backend Modules:
+    • Auth: login, register, google, demo, guest, refresh, logout
+    • Users: profile, UPI validation, preferences
+    • Accounts: CRUD, stats
+    • Transactions: CRUD, stats, monthly report, PDF/Excel export
+    • Categories: list
+    • Budgets: CRUD
+    • Goals: CRUD, contribute
+    • Shared Finance: groups, expenses, settlements, members, invites
+    • Couple: dashboard, requests, planners, timeline, coach, gamification
+    • Household: bills, contributions
+    • AI: insights, DNA, coaching, anomaly detection
+    • Notifications: push, preferences
+    • Referrals: codes, earnings
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+7. DEEP LINKS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Supported URL schemes:
+    • dabbu://
+    • https://dabbu.app
+
+  Routes:
+    dabbu://goals                     → Dashboard > GoalsList
+    dabbu://goals/:goalId             → Dashboard > GoalDetail
+    dabbu://shared/:groupId           → Shared > SharedGroupDetail
+    dabbu://shared/:groupId/settle    → Shared > Settlement
+    dabbu://shared/:groupId/expenses  → Accounts > GroupExpenses
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+8. COMPLETE SCREEN INVENTORY (~150 screens)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  AUTH (15):
+    SplashScreen, OnboardingScreen, PremiumLoginScreen,
+    PremiumSignupScreen, PremiumAuthScreen, PremiumOtpScreen,
+    ForgotPasswordScreen, ResetPasswordScreen, LoginScreen,
+    SignupScreen, OtpVerificationScreen, PhoneScreen,
+    ProfileSetupScreen, AppLockScreen, BiometricSetupScreen
+
+  HOME (27):
+    HomeScreen, NotificationsScreen, NotificationCenterScreen,
+    GoalsListScreen, GoalDetailScreen, RemindersNavigator (3 screens),
+    SmsNavigator (2 screens), DocumentVaultScreen, DocumentDetailScreen,
+    BadgeWallScreen, AiInsightsScreen, AiHomeDashboardScreen,
+    AIDashboard, FinancialDnaScreen, FinancialCopilotScreen,
+    MonthlyAiReviewScreen, SmartGoalCoachScreen, CoupleAiScreen,
+    FamilyAiScreen, GroupSpaceAiScreen, AiSavingsScreen,
+    AnomalyDetectionScreen, SmartNotificationScreen,
+    PremiumAiPaywallScreen, TodayFeedScreen, NetWorthScreen,
+    LoanTrackerScreen, GlobalSearchScreen
+
+  TRANSACTIONS (14):
+    MyWalletScreen, AddExpenseScreen, CreateCategoryScreen,
+    BillScannerScreen, BillsListScreen, BillDetailScreen,
+    MonthlyComparisonScreen, TransactionDetailScreen,
+    SubscriptionsScreen, AnalyticsScreen, SharedExpenseFormScreen,
+    SettlementScreen, AddMemberScreen, GroupExpensesScreen
+
+  BUDGETS (3):
+    BudgetsListScreen, CreateBudgetScreen, BudgetDetailScreen
+
+  SHARED FINANCE (17):
+    SpacesDashboardScreen, SharedScreen, SharedGroupDetailScreen,
+    CreateSharedGroupScreen, SharedExpenseFormScreen,
+    CoupleFinanceScreen, FamilyDashboardScreen, TripDashboardScreen,
+    SettlementScreen, AccessExpiredScreen, TripCompletedScreen,
+    GroupWalletScreen, WalletTransferScreen, SplitTemplatesScreen,
+    CoupleIncomeScreen, CoupleReportsScreen, TransactionDetailScreen
+
+  CIRCLES (19):
+    CirclesListScreen, CreateCircleScreen, SplitExpenseScreen,
+    SettlementScreen, SharedGroupDetailScreen, SharedExpenseFormScreen,
+    CoupleFinanceScreen, CoupleIncomeScreen, CoupleReportsScreen,
+    TransactionDetailScreen, FamilyDashboardScreen, TripDashboardScreen,
+    AccessExpiredScreen, TripCompletedScreen, GroupWalletScreen,
+    WalletTransferScreen, SplitTemplatesScreen, AddMemberScreen,
+    ExternalSplitLinkScreen
+
+  SETTINGS (23):
+    SettingsScreen, ProfileScreen, SecurityScreen, PremiumScreen,
+    BillingHistoryScreen, ThemeScreen, HelpCenterScreen,
+    ContactUsScreen, PrivacyPolicyScreen, ReferralScreen,
+    AnalyticsScreen, ReportsScreen, BudgetsListScreen,
+    CreateBudgetScreen, BudgetDetailScreen, CoupleSpaceNavigator (6),
+    CustomiseDashboardScreen, CustomiseBottomMenuScreen,
+    NotificationSettingsScreen, FavoriteContactsScreen,
+    AddPartnerScreen, AvatarPickerScreen, AdminLoginScreen,
+    AdminDashboardScreen
+
+  COUPLE (22):
+    CoupleSpaceScreen, CoupleHomeScreen, CoupleSplashScreen,
+    CoupleSettingsScreen, CoupleTransactionFormScreen,
+    CoupleGoalsScreen, CoupleBillsScreen, CoupleIncomeScreen,
+    CoupleExpensesScreen, CoupleBudgetsScreen, CoupleSavingsScreen,
+    CoupleSettlementsScreen, CoupleReportsScreen, CouplePlannerScreen,
+    CouplePlannerDetailScreen, CouplePlannerFormScreen,
+    CouplePlannerHubScreen, CoupleTimelineScreen,
+    CoupleCoachScreen, CoupleGamificationScreen,
+    CoupleBudgetAdjustScreen, CoupleFinanceScreen
+
+  OTHER (15):
+    InvestmentsListScreen, InvestmentDetailScreen,
+    TasksListScreen, RemindersListScreen, ReminderDetailScreen,
+    CreateReminderScreen, ReportsScreen, ReferralScreen,
+    PremiumScreen, OnboardingScreen, SplitSettlementScreen,
+    ExternalSplitLinkScreen, FamilyChatScreen, InviteMemberScreen,
+    CoupleDashboard (component)
+
+
+═══════════════════════════════════════════════════════════════════
+                     END OF DOCUMENT
+═══════════════════════════════════════════════════════════════════

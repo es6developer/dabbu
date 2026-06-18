@@ -10,6 +10,7 @@ import { Queue } from 'bullmq';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { FcmService } from './fcm.service';
 import { NotificationGateway } from './notification.gateway';
+import { EmailService } from '../email/email.service';
 import {
   CreateNotificationDto,
   ListNotificationsQueryDto,
@@ -24,6 +25,7 @@ export class NotificationService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly fcmService: FcmService,
+    @Optional() private readonly emailService?: EmailService,
     @Optional() @InjectQueue('notification-queue') private readonly notificationQueue: Queue | null,
     @Optional() private readonly notificationGateway?: NotificationGateway,
   ) {}
@@ -60,14 +62,53 @@ export class NotificationService {
       }
     }
 
-    await this._sendPushToDevices(dto.userId, dto.title, dto.message || dto.body || '', {
-      notificationId: notification.id,
-      type: dto.type,
-    });
+    const prefs = await this._getCategoryPrefs(dto.userId, dto.category || dto.type);
+    if (prefs?.pushEnabled !== false) {
+      await this._sendPushToDevices(dto.userId, dto.title, dto.message || dto.body || '', {
+        notificationId: notification.id,
+        type: dto.type,
+      });
+    }
 
-    this.notificationGateway?.emitNotification(dto.userId, notification);
+    if (prefs?.emailEnabled !== false && this.emailService) {
+      try {
+        const user = await this.prisma.user.findUnique({ where: { id: dto.userId }, select: { email: true, firstName: true } });
+        if (user) {
+          await this.emailService.sendNotificationEmail(
+            user.email,
+            user.firstName || 'there',
+            dto.title,
+            dto.message || dto.body || '',
+            dto.actionUrl,
+          );
+        }
+      } catch (err: any) {
+        this.logger.warn(`Email notification failed for user ${dto.userId}: ${err.message}`);
+      }
+    }
+
+    if (prefs?.inAppEnabled !== false) {
+      this.notificationGateway?.emitNotification(dto.userId, notification);
+    }
 
     return notification;
+  }
+
+  private async _getCategoryPrefs(userId: string, categoryOrType: string) {
+    const categoryMap: Record<string, string> = {
+      bill_reminder: 'bills', budget_alert: 'bills',
+      goal_milestone: 'goals', goal_complete: 'goals', goal_behind: 'goals',
+      expense: 'transactions', expense_alert: 'transactions', spending_spike: 'transactions',
+      family_invite: 'family', family_remove: 'family', family_leave: 'family',
+      couple: 'couple',
+      ai_insight: 'ai',
+      subscription_reminder: 'subscription', subscription_renewal: 'subscription',
+      system: 'system',
+    };
+    const category = categoryMap[categoryOrType] || 'system';
+    return this.prisma.notificationPreference.findUnique({
+      where: { userId_category: { userId, category } },
+    });
   }
 
   async findAll(userId: string, query: ListNotificationsQueryDto) {
@@ -149,6 +190,54 @@ export class NotificationService {
     await this.prisma.notification.delete({ where: { id } });
 
     return { message: 'Notification deleted' };
+  }
+
+  async archive(userId: string, id: string) {
+    const notification = await this.prisma.notification.findFirst({
+      where: { id, userId },
+    });
+    if (!notification) throw new NotFoundException('Notification not found');
+    return this.prisma.notification.update({
+      where: { id },
+      data: { isArchived: true, archivedAt: new Date() },
+    });
+  }
+
+  async unarchive(userId: string, id: string) {
+    const notification = await this.prisma.notification.findFirst({
+      where: { id, userId },
+    });
+    if (!notification) throw new NotFoundException('Notification not found');
+    return this.prisma.notification.update({
+      where: { id },
+      data: { isArchived: false, archivedAt: null },
+    });
+  }
+
+  async archiveAll(userId: string) {
+    await this.prisma.notification.updateMany({
+      where: { userId, isArchived: false },
+      data: { isArchived: true, archivedAt: new Date() },
+    });
+    return { message: 'All notifications archived' };
+  }
+
+  async deleteAll(userId: string) {
+    await this.prisma.notification.deleteMany({ where: { userId } });
+    return { message: 'All notifications deleted' };
+  }
+
+  async getArchived(userId: string, limit = 50, offset = 0) {
+    const [data, total] = await Promise.all([
+      this.prisma.notification.findMany({
+        where: { userId, isArchived: true },
+        orderBy: { archivedAt: 'desc' },
+        take: limit,
+        skip: offset,
+      }),
+      this.prisma.notification.count({ where: { userId, isArchived: true } }),
+    ]);
+    return { data, total, limit, offset };
   }
 
   async sendPush(
@@ -443,26 +532,35 @@ export class NotificationService {
   }
 
   async getPreferences(userId: string) {
-    const settings = await this.prisma.settings.findUnique({
-      where: { userId },
-    });
+    const [settings, categoryPrefs] = await Promise.all([
+      this.prisma.settings.findUnique({ where: { userId } }),
+      this.prisma.notificationPreference.findMany({ where: { userId } }),
+    ]);
 
-    if (!settings) {
-      return {
+    return {
+      global: settings ? {
+        pushNotifications: settings.pushNotifications,
+        emailNotifications: settings.emailNotifications,
+        smsNotifications: settings.smsNotifications,
+        weeklyReport: settings.weeklyReport,
+        monthlyReport: settings.monthlyReport,
+      } : {
         pushNotifications: true,
         emailNotifications: true,
         smsNotifications: false,
         weeklyReport: true,
         monthlyReport: true,
-      };
-    }
-
-    return {
-      pushNotifications: settings.pushNotifications,
-      emailNotifications: settings.emailNotifications,
-      smsNotifications: settings.smsNotifications,
-      weeklyReport: settings.weeklyReport,
-      monthlyReport: settings.monthlyReport,
+      },
+      categories: categoryPrefs.length > 0 ? categoryPrefs : [
+        { category: 'bills', pushEnabled: true, emailEnabled: true, smsEnabled: false, inAppEnabled: true, quietHoursStart: null, quietHoursEnd: null },
+        { category: 'goals', pushEnabled: true, emailEnabled: true, smsEnabled: false, inAppEnabled: true, quietHoursStart: null, quietHoursEnd: null },
+        { category: 'transactions', pushEnabled: true, emailEnabled: false, smsEnabled: false, inAppEnabled: true, quietHoursStart: null, quietHoursEnd: null },
+        { category: 'family', pushEnabled: true, emailEnabled: true, smsEnabled: false, inAppEnabled: true, quietHoursStart: null, quietHoursEnd: null },
+        { category: 'couple', pushEnabled: true, emailEnabled: true, smsEnabled: false, inAppEnabled: true, quietHoursStart: null, quietHoursEnd: null },
+        { category: 'ai', pushEnabled: true, emailEnabled: false, smsEnabled: false, inAppEnabled: true, quietHoursStart: null, quietHoursEnd: null },
+        { category: 'subscription', pushEnabled: true, emailEnabled: true, smsEnabled: false, inAppEnabled: true, quietHoursStart: null, quietHoursEnd: null },
+        { category: 'system', pushEnabled: true, emailEnabled: false, smsEnabled: false, inAppEnabled: true, quietHoursStart: null, quietHoursEnd: null },
+      ],
     };
   }
 
@@ -487,20 +585,35 @@ export class NotificationService {
 
     const settings = await this.prisma.settings.upsert({
       where: { userId },
-      create: {
-        userId,
-        ...updateData,
-      },
+      create: { userId, ...updateData },
       update: updateData,
     });
 
     return {
-      pushNotifications: settings.pushNotifications,
-      emailNotifications: settings.emailNotifications,
-      smsNotifications: settings.smsNotifications,
-      weeklyReport: settings.weeklyReport,
-      monthlyReport: settings.monthlyReport,
+      global: {
+        pushNotifications: settings.pushNotifications,
+        emailNotifications: settings.emailNotifications,
+        smsNotifications: settings.smsNotifications,
+        weeklyReport: settings.weeklyReport,
+        monthlyReport: settings.monthlyReport,
+      },
     };
+  }
+
+  async updateCategoryPreference(userId: string, category: string, data: {
+    pushEnabled?: boolean; emailEnabled?: boolean;
+    smsEnabled?: boolean; inAppEnabled?: boolean;
+    quietHoursStart?: number | null; quietHoursEnd?: number | null;
+  }) {
+    return this.prisma.notificationPreference.upsert({
+      where: { userId_category: { userId, category } },
+      create: { userId, category, ...data },
+      update: data,
+    });
+  }
+
+  async getCategoryPreferences(userId: string) {
+    return this.prisma.notificationPreference.findMany({ where: { userId } });
   }
 
   async handlePushOpened(notificationId: string, userId: string): Promise<void> {

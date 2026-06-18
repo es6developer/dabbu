@@ -11,7 +11,7 @@ import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { UpgradePrompt } from '../../components/ui/UpgradePrompt';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
-import { useAuth } from '../../store/AuthContext';
+import { usePremium } from '../../store/PremiumContext';
 
 const PLANNER_META: Record<string, { icon: string; color: string; title: string; badge: string }> = {
   BABY: { icon: 'smileo', color: '#FF8A65', title: 'Baby Planner', badge: 'PREMIUM' },
@@ -71,7 +71,7 @@ export function CouplePlannerDetailScreen() {
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const { isPremium } = useAuth();
+  const { checkEntitlement } = usePremium();
   const { plannerType } = route.params || {};
   const meta = PLANNER_META[plannerType] || { icon: 'flag', color: colors.text.tertiary, title: 'Planner', badge: '' };
 
@@ -124,7 +124,7 @@ export function CouplePlannerDetailScreen() {
         </View>
       </View>
 
-      {!isPremium && meta.badge === 'PREMIUM' ? (
+      {!checkEntitlement('advanced_ai').allowed && meta.badge === 'PREMIUM' ? (
         <UpgradePrompt feature={meta.title} />
       ) : error ? (
         <View style={{ padding: 40, alignItems: 'center', gap: 12 }}>

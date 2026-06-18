@@ -263,6 +263,8 @@ model User {
   @@index([email])
   @@index([isActive])
   @@index([deletedAt])
+  @@index([firstName(100), lastName(100)])
+  @@fulltext([firstName, lastName, email])
   @@map("users")
 }
 
@@ -720,6 +722,8 @@ model Transaction {
   @@index([userId, isReviewed])
   @@index([expenseGroupId, date])
   @@index([date, status])
+  @@index([description(255)])
+  @@fulltext([description, notes])
   @@map("transactions")
 }
 
@@ -784,6 +788,8 @@ model Bill {
   @@index([userId, dueDate])
   @@index([userId, isPaid])
   @@index([dueDate, isPaid])
+  @@index([name(255)])
+  @@fulltext([name, notes, payee])
   @@map("bills")
 }
 
@@ -815,6 +821,8 @@ model Goal {
   @@index([userId, isCompleted])
   @@index([userId, deadline])
   @@index([userId, type])
+  @@index([name(255)])
+  @@fulltext([name, notes])
   @@map("goals")
 }
 
@@ -909,6 +917,8 @@ model Notification {
   message   String    @db.Text
   isRead    Boolean   @default(false)
   readAt    DateTime?
+  isArchived Boolean  @default(false)
+  archivedAt DateTime?
   actionUrl String?   @db.VarChar(500)
   data      Json?     @db.Json
   createdAt DateTime  @default(now())
@@ -927,6 +937,7 @@ model Notification {
   reminder Reminder?         @relation(fields: [reminderId], references: [id], onDelete: SetNull)
 
   @@index([userId, isRead])
+  @@index([userId, isArchived])
   @@index([userId, createdAt])
   @@index([userId, type])
   @@index([userId, priority])
@@ -2551,7 +2562,7 @@ model UserBadge {
 model UserStreak {
   id             String    @id @default(uuid()) @db.VarChar(36)
   userId         String    @db.VarChar(36)
-  streakType     String    @db.VarChar(20) // daily, weekly, monthly
+  streakType     String    @db.VarChar(20) // daily, weekly, monthly, financial, savings, goal_progress, bill_payment
   currentStreak  Int       @default(0)
   longestStreak  Int       @default(0)
   lastActivityAt DateTime?
@@ -2562,6 +2573,95 @@ model UserStreak {
 
   @@unique([userId, streakType])
   @@map("user_streaks")
+}
+
+// ─── Notification Preferences ─────────────────────────────
+model NotificationPreference {
+  id              String   @id @default(uuid()) @db.VarChar(36)
+  userId          String   @db.VarChar(36)
+  category        String   @db.VarChar(50) // bills, goals, transactions, family, couple, ai, subscription, system
+  pushEnabled     Boolean  @default(true)
+  emailEnabled    Boolean  @default(true)
+  smsEnabled      Boolean  @default(false)
+  inAppEnabled    Boolean  @default(true)
+  quietHoursStart Int?     @default(null)
+  quietHoursEnd   Int?     @default(null)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category])
+  @@index([userId])
+  @@map("notification_preferences")
+}
+
+// ─── User Engagement ──────────────────────────────────────
+model UserEngagement {
+  id                    String    @id @default(uuid()) @db.VarChar(36)
+  userId                String    @unique @db.VarChar(36)
+  lastAppOpenAt         DateTime?
+  lastActionAt          DateTime?
+  lastNotificationSentAt DateTime?
+  reEngagementStage     String    @default("active") @db.VarChar(20) // active, at_risk_7d, at_risk_14d, at_risk_30d, dormant_60d, lost_90d
+  reEngagementSentCount Int       @default(0)
+  reEngagementOptOut    Boolean   @default(false)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([reEngagementStage])
+  @@index([lastActionAt])
+  @@map("user_engagement")
+}
+
+// ─── Yearly Summary ───────────────────────────────────────
+model YearlySummary {
+  id                String   @id @default(uuid()) @db.VarChar(36)
+  userId            String   @db.VarChar(36)
+  year              Int      @db.SmallInt
+  totalIncome       Decimal  @default(0) @db.Decimal(15, 2)
+  totalExpense      Decimal  @default(0) @db.Decimal(15, 2)
+  netSavings        Decimal  @default(0) @db.Decimal(15, 2)
+  topCategory       String?  @db.VarChar(50)
+  topCategoryAmount Decimal  @default(0) @db.Decimal(15, 2)
+  goalsCompleted    Int      @default(0)
+  goalsCreated      Int      @default(0)
+  billsPaid         Int      @default(0)
+  transactionsCount Int      @default(0)
+  longestStreak     Int      @default(0)
+  healthScoreAvg    Decimal  @default(0) @db.Decimal(5, 2)
+  monthByMonth      Json?    @db.Json
+  insights          Json?    @db.Json
+  generatedAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, year])
+  @@index([userId, year])
+  @@map("yearly_summaries")
+}
+
+// ─── Data Export ───────────────────────────────────────────
+model DataExport {
+  id          String    @id @default(uuid()) @db.VarChar(36)
+  userId      String    @db.VarChar(36)
+  format      String    @db.VarChar(10) // json, pdf
+  status      String    @default("pending") @db.VarChar(20) // pending, processing, completed, failed
+  fileUrl     String?   @db.Text
+  fileSize    Int?      @default(0)
+  includes    Json?     @db.Json
+  expiresAt   DateTime?
+  error       String?   @db.Text
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([userId, createdAt])
+  @@map("data_exports")
 }
 
 // ─── Referral Program ─────────────────────────────────────
@@ -2734,15 +2834,37 @@ model AppConfiguration {
 
 // ─── FEATURE FLAGS ────────────────────────────────────────
 model FeatureFlag {
-  id          String   @id @default(uuid()) @db.VarChar(36)
-  name        String   @unique @db.VarChar(100)
-  description String?  @db.Text
-  isEnabled   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                String   @id @default(uuid()) @db.VarChar(36)
+  name              String   @unique @db.VarChar(100)
+  description       String?  @db.Text
+  isEnabled         Boolean  @default(false)
+  rolloutPercentage Int      @default(100) // 0-100, for gradual rollout
+  userIdWhitelist   Json?    @db.Json // Array of user IDs for targeted rollout
+  groupIdWhitelist  Json?    @db.Json // Array of group IDs for A/B testing
+  environment       String   @default("all") @db.VarChar(20) // all, dev, staging, production
+  experimentId      String?  @db.VarChar(50) // A/B test experiment ID
+  variant           String?  @db.VarChar(20) // control, variant_a, variant_b
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  @@index([name])
+  @@index([name, isEnabled])
+  @@index([name, environment])
   @@map("feature_flags")
+}
+
+// ─── REMOTE CONFIG ────────────────────────────────────────
+model RemoteConfig {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  key       String   @unique @db.VarChar(100)
+  value     Json     @db.Json
+  type      String   @default("string") @db.VarChar(20) // string, number, boolean, json
+  description String? @db.Text
+  environment String  @default("all") @db.VarChar(20)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([key, environment])
+  @@map("remote_config")
 }
 
 // ─── SUBSCRIPTIONS ─────────────────────────────────────────

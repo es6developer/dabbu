@@ -16,6 +16,7 @@ import { useTheme } from '../../theme';
 import { spacing } from '../../theme/design';
 import { api, setAccessToken, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
+import { usePremium } from '../../store/PremiumContext';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { Avatar } from '../../components/ui/Avatar';
 import { PremiumLoaderScreen } from '../../components/ui/PremiumLoaderScreen';
@@ -539,7 +540,8 @@ export function SharedScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
-  const { accessToken, user, isPremium } = useAuth();
+  const { accessToken, user } = useAuth();
+  const { checkEntitlement } = usePremium();
   const [groups, setGroups] = useState<any[]>([]);
   const [groupBalances, setGroupBalances] = useState<Record<string, number>>({});
   const [groupBalanceArrays, setGroupBalanceArrays] = useState<Record<string, any[]>>({});
@@ -630,11 +632,11 @@ export function SharedScreen() {
   );
 
   const planInfo = useMemo(() => {
-    if (isPremium) {
+    if (checkEntitlement('export_pdf').allowed) {
       return { tier: 'premium' as const, maxGroups: 100, maxMembersPerGroup: 100 };
     }
     return groups[0]?._plan || DEFAULT_PLAN;
-  }, [groups, isPremium]);
+  }, [groups]);
   const maxSpaces = planInfo.maxGroups;
   const userName = user?.firstName || user?.email?.[0]?.toUpperCase() || 'User';
   const isAtLimit = groups.length >= maxSpaces;

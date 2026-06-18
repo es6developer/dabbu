@@ -20,6 +20,7 @@ import { ThemeProvider, useTheme } from './src/theme/ThemeProvider';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { ApiProgressBar } from './src/components/ui/ApiProgressBar';
 import { AuthProvider } from './src/store/AuthContext';
+import { PremiumProvider } from './src/store/PremiumContext';
 import { PreferencesProvider } from './src/store/PreferencesContext';
 import { LockProvider } from './src/store/LockContext';
 import { FavoritesProvider } from './src/store/FavoritesContext';
@@ -158,8 +159,9 @@ export default function App(): React.ReactElement | null {
   return (
     <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <SafeAreaProvider>
-        <AuthProvider>
-          <ThemeProvider>
+          <AuthProvider>
+            <PremiumProvider>
+            <ThemeProvider>
             <PreferencesProvider>
               <LockProvider>
                 <FavoritesProvider>
@@ -182,6 +184,7 @@ export default function App(): React.ReactElement | null {
               </LockProvider>
             </PreferencesProvider>
           </ThemeProvider>
+            </PremiumProvider>
         </AuthProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

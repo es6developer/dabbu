@@ -225,15 +225,8 @@ export class EntitlementEngine {
     return 'FREE';
   }
 
-  canAccess(planCode: string, featureKey: string): boolean {
-    const feature = this.FEATURES[featureKey];
-    if (!feature) {
-      return true;
-    }
-    return feature.plans.some(
-      (p) =>
-        p === planCode || planCode.startsWith(p.replace('_MONTHLY', '').replace('_YEARLY', '')),
-    );
+  canAccess(planCode: string, featureKey: string): EntitlementResult {
+    return this.check(featureKey, planCode);
   }
 
   check(featureKey: string, planCode: string = 'FREE'): EntitlementResult {
@@ -254,12 +247,12 @@ export class EntitlementEngine {
     return { allowed: false, reason: 'UPGRADE_REQUIRED', upgradePlan: 'PREMIUM' };
   }
 
-  canCreateGoal(): EntitlementResult {
-    return { allowed: true, reason: null, upgradePlan: null };
+  canCreateGoal(planCode: string = 'FREE'): EntitlementResult {
+    return this.check('basic_goals', planCode);
   }
 
-  canCreateBudget(): EntitlementResult {
-    return { allowed: true, reason: null, upgradePlan: null };
+  canCreateBudget(planCode: string = 'FREE'): EntitlementResult {
+    return this.check('basic_budget', planCode);
   }
 
   canCreateFamily(planCode: string = 'FREE'): EntitlementResult {
