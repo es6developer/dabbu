@@ -26,7 +26,7 @@ import {
   api,
 } from '../services/api';
 import { resetPushRegistration } from '../services/notifications';
-import { trackEventImmediate } from '../hooks/useAnalytics';
+import { trackEventImmediate } from '../services/trackEvent';
 
 const SESSION_TIMEOUT_MS = 24 * 60 * 60 * 1000;
 const MIN_REFRESH_INTERVAL = 30_000;
@@ -520,9 +520,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     trackEventImmediate(isNewUser ? 'sign_up' : 'login', 'auth', 'google').catch(() => {});
   }
 
-  async function guestLogin()
-
- {
+  async function guestLogin() {
     const { deviceName, platform } = getDeviceInfo();
     const res = await authFetch('/auth/guest', {
       method: 'POST',

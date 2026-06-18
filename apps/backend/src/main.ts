@@ -24,10 +24,18 @@ async function bootstrap(): Promise<void> {
     bodyParser: false,
   });
 
-  app.use(compression({ level: 6, threshold: 512, filter: (req, res) => {
-    if (req.headers['x-no-compression']) return false;
-    return compression.filter(req, res);
-  }}));
+  app.use(
+    compression({
+      level: 6,
+      threshold: 512,
+      filter: (req, res) => {
+        if (req.headers['x-no-compression']) {
+          return false;
+        }
+        return compression.filter(req, res);
+      },
+    }),
+  );
   app.use(json({ limit: '10mb' }));
   app.use(urlencoded({ extended: true, limit: '10mb' }));
 
@@ -37,15 +45,6 @@ async function bootstrap(): Promise<void> {
     res.on('finish', () => {
       const duration = Date.now() - start;
       logger.log(`${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms`);
-    });
-    next();
-  });
-
-  // ─── Response Time Header ────────────────────────────
-  app.use((req, res, next) => {
-    const start = Date.now();
-    res.on('finish', () => {
-      res.setHeader('X-Response-Time', `${Date.now() - start}ms`);
     });
     next();
   });

@@ -1,6 +1,7 @@
-import { useCallback, useRef } from 'react';
+import { useCallback } from 'react';
 import { api, setAccessToken } from '../services/api';
 import { useAuth } from '../store/AuthContext';
+export { trackEventImmediate } from '../services/trackEvent';
 
 const SESSION_ID = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 const BATCH_SIZE = 10;
@@ -12,14 +13,20 @@ let currentToken: string | null = null;
 
 function setToken(token: string | null) {
   currentToken = token;
-  if (token) {setAccessToken(token);}
+  if (token) {
+    setAccessToken(token);
+  }
 }
 
 async function flush() {
-  if (eventQueue.length === 0) {return;}
+  if (eventQueue.length === 0) {
+    return;
+  }
   const batch = eventQueue.splice(0, BATCH_SIZE);
   try {
-    if (currentToken) {setAccessToken(currentToken);}
+    if (currentToken) {
+      setAccessToken(currentToken);
+    }
     await api.post('/analytics/track/batch', { events: batch });
   } catch {
     eventQueue.unshift(...batch);
@@ -27,7 +34,9 @@ async function flush() {
 }
 
 function scheduleFlush() {
-  if (flushTimer) {clearTimeout(flushTimer);}
+  if (flushTimer) {
+    clearTimeout(flushTimer);
+  }
   flushTimer = setTimeout(() => {
     flush();
     scheduleFlush();
@@ -45,7 +54,9 @@ function enqueue(event: string, category?: string, label?: string, properties?: 
 
 export function useAnalytics() {
   const { accessToken } = useAuth();
-  if (accessToken) {setToken(accessToken);}
+  if (accessToken) {
+    setToken(accessToken);
+  }
 
   const track = useCallback(
     (event: string, category?: string, label?: string, properties?: any) => {
@@ -54,38 +65,13 @@ export function useAnalytics() {
     [],
   );
 
-  const trackScreen = useCallback(
-    (screenName: string, properties?: any) => {
-      enqueue('screen_view', 'navigation', screenName, properties);
-    },
-    [],
-  );
+  const trackScreen = useCallback((screenName: string, properties?: any) => {
+    enqueue('screen_view', 'navigation', screenName, properties);
+  }, []);
 
-  const trackFeature = useCallback(
-    (feature: string, action?: string) => {
-      enqueue('feature_used', feature, action);
-    },
-    [],
-  );
+  const trackFeature = useCallback((feature: string, action?: string) => {
+    enqueue('feature_used', feature, action);
+  }, []);
 
   return { track, trackScreen, trackFeature };
-}
-
-export async function trackEventImmediate(
-  event: string,
-  category?: string,
-  label?: string,
-  properties?: any,
-) {
-  try {
-    await api.post('/analytics/track', {
-      event,
-      category,
-      label,
-      properties,
-      sessionId: SESSION_ID,
-    });
-  } catch {
-    /* silent */
-  }
 }
