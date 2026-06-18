@@ -9,6 +9,8 @@ import { MonthlyComparisonScreen } from '../screens/bills/MonthlyComparisonScree
 import { TransactionDetailScreen } from '../screens/transactions/TransactionDetailScreen';
 import { CreateExpenseGroupScreen } from '../screens/transactions/CreateExpenseGroupScreen';
 import { GroupExpensesScreen } from '../screens/transactions/GroupExpensesScreen';
+import { MyWalletScreen } from '../screens/transactions/MyWalletScreen';
+import { SharedCirclesScreen } from '../screens/transactions/SharedCirclesScreen';
 import { SubscriptionScreen } from '../screens/subscriptions/SubscriptionScreen';
 import { AnalyticsScreen } from '../screens/analytics/AnalyticsScreen';
 import { MyWalletScreen } from '../screens/transactions/MyWalletScreen';
@@ -32,9 +34,25 @@ export function AccountsNavigator() {
         options={{ headerShown: false }}
       />
       <Stack.Screen
+<<<<<<< Updated upstream
         name="SharedCircles"
         component={SharedCirclesScreen}
         options={{ headerShown: false }}
+=======
+        name="MyWallet"
+        component={MyWalletScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="SharedCircles"
+        component={SharedCirclesScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CategorySelection"
+        component={CategorySelectionScreen}
+        options={{ headerShown: false, presentation: 'modal' }}
+>>>>>>> Stashed changes
       />
       <Stack.Screen
         name="AddExpense"

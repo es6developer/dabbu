@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 const GRADIENT: [string, string] = ['#1A0B2E', '#3D1B6D'];
 
 interface BalanceCardProps {
@@ -40,7 +40,11 @@ export function BalanceCard({
         <View style={styles.labelRow}>
           <Text style={styles.label}>Joint Wallet</Text>
           <View style={styles.premiumDot}>
+<<<<<<< Updated upstream
             <AntDesign name="star" size={10} color="#FFFFFF" />
+=======
+            <Ionicons name="diamond" size={10} color="#FFFFFF" />
+>>>>>>> Stashed changes
             <Text style={styles.premiumDotText}>PREMIUM</Text>
           </View>
         </View>

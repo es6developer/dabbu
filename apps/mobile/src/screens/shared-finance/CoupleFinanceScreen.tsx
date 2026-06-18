@@ -15,7 +15,7 @@ import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/nativ
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { Avatar } from '../../components/ui/Avatar';
 import { useTheme, palette } from '../../theme';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
@@ -316,7 +316,11 @@ export function CoupleFinanceScreen() {
               style={s.headerBtn}
               onPress={() => navigation.navigate('CoupleReports', { groupId })}
             >
+<<<<<<< Updated upstream
               <AntDesign name="barchart" size={20} color="#FFF" />
+=======
+              <Ionicons name="bar-chart-outline" size={20} color="#FFF" />
+>>>>>>> Stashed changes
             </TouchableOpacity>
           </View>
           <View style={s.partnerHero}>
@@ -391,7 +395,11 @@ export function CoupleFinanceScreen() {
                 ]}
               >
                 <AntDesign
+<<<<<<< Updated upstream
                   name={(totalIncome >= totalExpenses ? 'arrowup' : 'arrowdown') as any}
+=======
+                  name={(totalIncome >= totalExpenses ? 'trending-up' : 'trending-down') as any}
+>>>>>>> Stashed changes
                   size={14}
                   color={totalIncome >= totalExpenses ? '#34C759' : '#FF4D4F'}
                 />

@@ -116,10 +116,239 @@ export function CreateExpenseGroupScreen() {
   return (
     <View style={[s.root, { backgroundColor: colors.bg.primary }]}>
       {/* Header */}
+<<<<<<< Updated upstream
       <View style={{ paddingHorizontal: 20, paddingTop: insets.top + 12 }}>
         <View style={s.headerRow}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={s.closeBtn}>
             <AntDesign name="close" size={22} color={colors.text.primary} />
+=======
+      <LinearGradient colors={[PURPLE, PURPLE_DARK]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+        <View style={{ paddingHorizontal: 20, paddingTop: 52, paddingBottom: 28 }}>
+          <View style={s.headerRow}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
+              <AntDesign  name="close" size={22} color="#FFF" />
+            </TouchableOpacity>
+            <Text style={s.headerTitle}>New Split Group</Text>
+            <View style={{ width: 34 }} />
+          </View>
+          <Text style={s.headerSub}>Create a circle to split expenses with your people</Text>
+        </View>
+      </LinearGradient>
+
+      <View style={{ flex: 1 }}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ padding: 20 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          {error ? (
+            <View style={[s.errorBox, { backgroundColor: `${colors.status.error}12` }]}>
+              <AntDesign  name="exclamationcircle" size={16} color={colors.status.error} />
+              <Text style={[s.errorText, { color: colors.status.error }]}>{error}</Text>
+            </View>
+          ) : null}
+
+          {/* Group Name */}
+          <View style={s.fieldBlock}>
+            <Text style={[s.label, { color: colors.text.secondary }]}>Group Name</Text>
+            <TextInput
+              style={[
+                s.input,
+                {
+                  backgroundColor: colors.bg.card,
+                  color: colors.text.primary,
+                  borderColor: colors.border.subtle,
+                },
+              ]}
+              value={name}
+              onChangeText={setName}
+              placeholder="e.g. Goa Trip, Roommates"
+              placeholderTextColor={colors.text.tertiary}
+            />
+          </View>
+
+          {/* Description */}
+          <View style={s.fieldBlock}>
+            <Text style={[s.label, { color: colors.text.secondary }]}>Description (optional)</Text>
+            <TextInput
+              style={[
+                s.input,
+                {
+                  backgroundColor: colors.bg.card,
+                  color: colors.text.primary,
+                  borderColor: colors.border.subtle,
+                  minHeight: 60,
+                  textAlignVertical: 'top',
+                },
+              ]}
+              value={description}
+              onChangeText={setDescription}
+              placeholder="What's this group for?"
+              placeholderTextColor={colors.text.tertiary}
+              multiline
+            />
+          </View>
+
+          {/* Icon Picker */}
+          <View style={s.fieldBlock}>
+            <Text style={[s.label, { color: colors.text.secondary }]}>Icon</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={s.iconRow}
+            >
+              {ICONS.map((ic) => {
+                const active = icon === ic.key;
+                return (
+                  <TouchableOpacity
+                    key={ic.key}
+                    style={[
+                      s.iconBtn,
+                      {
+                        borderColor: active ? ic.color : colors.border.subtle,
+                        backgroundColor: active ? `${ic.color}18` : colors.bg.card,
+                      },
+                    ]}
+                    onPress={() => setIcon(ic.key)}
+                    activeOpacity={0.7}
+                  >
+                    <AntDesign
+                      name={ic.key as any}
+                      size={22}
+                      color={active ? ic.color : colors.text.tertiary}
+                    />
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+
+          {/* Members */}
+          <View style={s.fieldBlock}>
+            <Text style={[s.label, { color: colors.text.secondary }]}>
+              Members{' '}
+              <Text
+                style={{
+                  fontWeight: '400',
+                  textTransform: 'none',
+                  color: colors.text.tertiary,
+                  fontSize: 10,
+                }}
+              >
+                (max 2 on Free)
+              </Text>
+            </Text>
+            {members.map((phone, index) => (
+              <View key={index} style={{ marginBottom: 8 }}>
+                <View
+                  style={[
+                    s.memberRow,
+                    { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+                  ]}
+                >
+                  <View style={[s.memberAvatar, { backgroundColor: `${PURPLE}15` }]}>
+                    <Text style={{ color: PURPLE, fontSize: 12, fontWeight: '700' }}>
+                      {(phone || '?')[0]}
+                    </Text>
+                  </View>
+                  <TextInput
+                    ref={(ref) => {
+                      inputsRef.current[index] = ref;
+                    }}
+                    style={[s.memberInput, { color: colors.text.primary }]}
+                    value={phone}
+                    onChangeText={(v) => updateMember(index, v)}
+                    placeholder="9876543210"
+                    placeholderTextColor={colors.text.tertiary}
+                    keyboardType="phone-pad"
+                    maxLength={10}
+                    returnKeyType="done"
+                    onSubmitEditing={() => {
+                      index === members.length - 1 ? addRow() : inputsRef.current[index + 1]?.focus();
+                    }}
+                  />
+                  {phone.trim() ? (
+                    <TouchableOpacity onPress={() => removeRow(index)} style={{ padding: 4 }}>
+                      <AntDesign  name="closecircleo" size={18} color="#EF4444" />
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+                {searchResults[index]?.length > 0 && (
+                  <View
+                    style={[
+                      s.suggestions,
+                      { backgroundColor: colors.bg.card, borderColor: colors.border.subtle },
+                    ]}
+                  >
+                    {searchResults[index].map((user: any) => (
+                      <TouchableOpacity
+                        key={user.id}
+                        style={[s.suggestionRow, { borderBottomColor: colors.border.subtle }]}
+                        onPress={() => selectUser(index, user)}
+                      >
+                        <View style={[s.suggestionAvatar, { backgroundColor: `${PURPLE}15` }]}>
+                          <Text style={{ color: PURPLE, fontSize: 12, fontWeight: '800' }}>
+                            {user.firstName?.[0] || user.phone?.[0] || '?'}
+                          </Text>
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={[s.suggestionName, { color: colors.text.primary }]}>
+                            {user.firstName || ''} {user.lastName || ''}
+                          </Text>
+                          <Text style={[s.suggestionDetail, { color: colors.text.tertiary }]}>
+                            {user.phone || ''}
+                            {user.email ? ` · ${user.email}` : ''}
+                          </Text>
+                        </View>
+                        <AntDesign  name="pluscircleo" size={20} color={PURPLE} />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+            ))}
+            <TouchableOpacity style={s.addMemberBtn} onPress={addRow} activeOpacity={0.7}>
+              <AntDesign  name="pluscircleo" size={18} color={PURPLE} />
+              <Text style={[s.addMemberText, { color: PURPLE }]}>Add another member</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Plan Info */}
+          <View
+            style={[
+              s.planInfo,
+              { backgroundColor: colors.bg.tertiary, borderColor: colors.border.subtle },
+            ]}
+          >
+            <AntDesign  name="Safety" size={14} color="#EF4444" />
+            <Text style={[s.planInfoText, { color: colors.text.tertiary }]}>
+              Free plan: 5 circles max · 2 members per circle
+            </Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}
+            >
+              <Text style={{ color: PURPLE, fontSize: 13, fontWeight: '800' }}>Upgrade</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+
+        <View style={{ paddingBottom: insets.bottom + 16, paddingHorizontal: 20, paddingTop: 12 }}>
+          <TouchableOpacity
+            onPress={handleCreate}
+            disabled={saving}
+            activeOpacity={0.85}
+            style={{ opacity: saving ? 0.6 : 1 }}
+          >
+            <LinearGradient
+              colors={[PURPLE, PURPLE_DARK]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={s.saveGrad}
+            >
+              <AntDesign name={(saving ? 'hourglass' : 'add') as any} size={18} color="#FFF" />
+              <Text style={s.saveText}>{saving ? 'Creating...' : 'Create Split Group'}</Text>
+            </LinearGradient>
+>>>>>>> Stashed changes
           </TouchableOpacity>
           <Text style={[s.headerTitle, { color: colors.text.primary }]}>Create Group</Text>
           <View style={{ width: 34 }} />

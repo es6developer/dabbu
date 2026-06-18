@@ -14,7 +14,7 @@ import {
   ActivityIndicator,
   Linking,
 } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -296,11 +296,240 @@ export function GroupExpensesScreen() {
               </TouchableOpacity>
             </View>
 
+<<<<<<< Updated upstream
             {/* Balance Card */}
             <View style={[s.balanceCard, { backgroundColor: colors.card.balance }]}>
               <Text style={[s.balanceLabel, { color: colors.text.tertiary }]}>Your Balance</Text>
               <Text style={[s.balanceAmount, { color: currentBalance >= 0 ? colors.status.success : colors.status.error }]}>
                 {currentBalance >= 0 ? '+' : ''}{fmt(Math.abs(currentBalance))}
+=======
+            <View style={s.actionBar}>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate('CreateTransaction', {
+                    prefill: { groupId, groupName: name, returnTo: 'GroupExpenses' },
+                  })
+                }
+                style={[s.actionBtn, { backgroundColor: colors.accent.primary }]}
+              >
+                <AntDesign  name="plus" size={22} color="#FFF" />
+                <Text style={s.actionLabel}>Add</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Analytics')}
+                style={[
+                  s.actionBtn,
+                  {
+                    backgroundColor: colors.bg.tertiary,
+                    borderColor: colors.border.default,
+                    borderWidth: 1,
+                  },
+                ]}
+              >
+                <Ionicons name="bar-chart-outline" size={22} color={colors.text.primary} />
+                <Text style={[s.actionLabel, { color: colors.text.primary }]}>Analytics</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate('AddMember', {
+                    groupId,
+                    type: 'expense-group',
+                    existingMemberIds: members.map((m: any) => m.userId).filter(Boolean),
+                  })
+                }
+                style={[
+                  s.actionBtn,
+                  {
+                    backgroundColor: colors.bg.tertiary,
+                    borderColor: colors.border.default,
+                    borderWidth: 1,
+                  },
+                ]}
+              >
+                <AntDesign  name="team" size={22} color={colors.text.primary} />
+                <Text style={[s.actionLabel, { color: colors.text.primary }]}>Members</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={s.grid}>
+              <View
+                style={[
+                  s.statCard,
+                  {
+                    backgroundColor: colors.bg.card,
+                    borderColor: colors.border.default,
+                    borderWidth: 1,
+                  },
+                ]}
+              >
+                <Text style={[s.statLabel, { color: colors.text.tertiary }]}>Income</Text>
+                <Text style={[s.statVal, { color: colors.text.primary }]}>
+                  {fmt(stats.totalIncome)}
+                </Text>
+              </View>
+              <View
+                style={[
+                  s.statCard,
+                  {
+                    backgroundColor: colors.bg.card,
+                    borderColor: colors.border.default,
+                    borderWidth: 1,
+                  },
+                ]}
+              >
+                <Text style={[s.statLabel, { color: colors.text.tertiary }]}>Expenses</Text>
+                <Text style={[s.statVal, { color: colors.text.primary }]}>
+                  {fmt(stats.totalExpense)}
+                </Text>
+              </View>
+              <View
+                style={[
+                  s.statCard,
+                  {
+                    backgroundColor: colors.bg.card,
+                    borderColor: colors.border.default,
+                    borderWidth: 1,
+                  },
+                ]}
+              >
+                <Text style={[s.statLabel, { color: colors.text.tertiary }]}>Left</Text>
+                <Text style={[s.statVal, { color: colors.text.primary }]}>
+                  {fmt(Math.abs(stats.remaining))}
+                </Text>
+              </View>
+            </View>
+            <UpgradeBanner message="Unlock premium analytics & AI insights for this group" />
+            {stats.totalIncome > 0 && (
+              <View style={[s.budgetBar, { backgroundColor: colors.bg.tertiary }]}>
+                <View
+                  style={[
+                    s.budgetFill,
+                    {
+                      width: `${Math.min((stats.totalExpense / stats.totalIncome) * 100, 100)}%`,
+                      backgroundColor: colors.accent.primary,
+                    },
+                  ]}
+                />
+              </View>
+            )}
+
+            {categoryBreakdown.length > 0 && (
+              <View style={{ marginTop: 18, paddingHorizontal: 20 }}>
+                <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Spending Summary</Text>
+                <View style={{ marginTop: 8, gap: 8 }}>
+                  {categoryBreakdown.slice(0, 5).map((cat: any, i: number) => {
+                    const pct =
+                      stats.totalExpense > 0 ? ((cat.amount || 0) / stats.totalExpense) * 100 : 0;
+                    return (
+                      <View
+                        key={cat.category || i}
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+                      >
+                        <View style={{ flex: 1 }}>
+                          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                            <Text
+                              style={{
+                                fontSize: 13,
+                                fontWeight: '500',
+                                color: colors.text.primary,
+                              }}
+                            >
+                              {cat.category || cat.name}
+                            </Text>
+                            <Text style={{ fontSize: 13, color: colors.text.secondary }}>
+                              {fmt(cat.amount || 0)}
+                            </Text>
+                          </View>
+                          <View
+                            style={[
+                              s.budgetBar,
+                              { marginTop: 4, backgroundColor: colors.bg.tertiary },
+                            ]}
+                          >
+                            <View
+                              style={[
+                                s.budgetFill,
+                                { width: `${pct}%`, backgroundColor: colors.accent.primary },
+                              ]}
+                            />
+                          </View>
+                        </View>
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            color: colors.text.tertiary,
+                            width: 36,
+                            textAlign: 'right',
+                          }}
+                        >
+                          {pct.toFixed(0)}%
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
+
+            {members.length > 0 && (
+              <View style={s.memberSection}>
+                <Text style={[s.secTitle, { color: colors.text.tertiary }]}>Members</Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ gap: 8 }}
+                >
+                  {members.map((m: any) => (
+                    <View
+                      key={m.id}
+                      style={[s.memberChip, { backgroundColor: colors.bg.tertiary }]}
+                    >
+                      <View style={[s.memberDot, { backgroundColor: colors.bg.tertiary }]}>
+                        <Avatar
+                          uri={m.user?.avatarUrl}
+                          name={`${m.user?.firstName || ''} ${m.user?.lastName || ''}`.trim()}
+                          size={26}
+                        />
+                      </View>
+                      <Text
+                        style={[s.memberName, { color: colors.text.primary }]}
+                        numberOfLines={1}
+                      >
+                        {m.user?.firstName || m.user?.email || m.firstName || 'Member'}
+                      </Text>
+                    </View>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {group?.isExpired && (
+              <View
+                style={[
+                  s.expiredBanner,
+                  { backgroundColor: colors.bg.secondary, borderColor: colors.status.warning },
+                ]}
+              >
+                <AntDesign  name="lock" size={16} color={colors.status.warning} />
+                <Text style={[s.expiredBannerText, { color: colors.text.secondary }]}>
+                  This circle expired on {new Date(group.expiresAt).toLocaleDateString('en-IN')}. It
+                  is now read-only.
+                </Text>
+              </View>
+            )}
+
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 20,
+                paddingTop: 20,
+                paddingBottom: 8,
+              }}
+            >
+              <Text style={[s.secTitle, { color: colors.text.tertiary, flex: 1 }]}>
+                Transactions {transactions.length > 0 ? `\u00B7 ${transactions.length}` : ''}
+>>>>>>> Stashed changes
               </Text>
               <View style={s.summaryRow}>
                 <View style={s.summaryItem}>
@@ -316,6 +545,105 @@ export function GroupExpensesScreen() {
                   <Text style={[s.summaryValue, { color: colors.text.primary }]}>
                     {fmt(userTotals.map[currentUser?.id || '']?.paid || 0)}
                   </Text>
+<<<<<<< Updated upstream
+=======
+                )}
+
+                <Text style={[s.sheetSubTitle, { color: colors.text.tertiary }]}>
+                  Manage members via the Members button above
+                </Text>
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+      </View>
+    );
+  }
+
+  return (
+    <View style={[s.screen, { backgroundColor: colors.bg.primary }]}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => loadData(true)}
+            tintColor={colors.accent.primary}
+          />
+        }
+        contentContainerStyle={
+          groups.length === 0 ? { flexGrow: 1 } : { paddingBottom: insets.bottom + 120 }
+        }
+      >
+        <Animated.View style={{ opacity: fadeAnim }}>
+          <View style={[s.hubHeader, { paddingTop: insets.top + 8 }]}>
+            <View>
+              <Text style={[s.hubSubtitle, { color: colors.text.tertiary }]}>Spaces</Text>
+              <Text style={[s.hubTitle, { color: colors.text.primary }]}>
+                Manage your shared spaces
+              </Text>
+            </View>
+          </View>
+
+          <UpgradeBanner message="Remove limits - unlimited spaces & members" />
+
+          <View style={[s.planBar, { backgroundColor: colors.bg.secondary }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <AntDesign
+                name={(planInfo.tier === 'free' ? 'Safety' : 'shield-checkmark') as any}
+                size={16}
+                color={planInfo.tier === 'free' ? '#FF6B6B' : '#00B894'}
+              />
+              <Text style={[s.planText, { color: colors.text.secondary }]}>
+                {groups.length}/{planInfo.maxGroups} spaces
+              </Text>
+            </View>
+            {planInfo.tier === 'free' && (
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}
+              >
+                <Text style={[s.planAction, { color: colors.accent.primary }]}>Upgrade</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {sectionedGroups.length === 0 ? (
+            <View style={s.emptyHub}>
+              <View style={[s.emptyHubIcon, { backgroundColor: `${colors.accent.primary}20` }]}>
+                <Ionicons  name="layers" size={44} color={colors.accent.primary} />
+              </View>
+              <Text style={[s.emptyHubTitle, { color: colors.text.primary }]}>No spaces yet</Text>
+              <Text style={[s.emptyHubDesc, { color: colors.text.tertiary }]}>
+                Create a shared space to split expenses with friends, family, and more
+              </Text>
+              <TouchableOpacity
+                style={[s.emptyHubCta, { backgroundColor: colors.accent.primary }]}
+                onPress={handleCreateGroup}
+              >
+                <AntDesign  name="plus" size={18} color="#FFF" />
+                <Text style={s.emptyHubCtaText}>Create Space</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            sectionedGroups.map((section) => (
+              <View key={section.key} style={s.section}>
+                <View style={s.sectionHeader}>
+                  <View style={s.sectionHeaderLeft}>
+                    <View style={[s.sectionIconWrap, { backgroundColor: colors.bg.tertiary }]}>
+                      <AntDesign
+                        name={section.icon as any}
+                        size={16}
+                        color={colors.text.secondary}
+                      />
+                    </View>
+                    <Text style={[s.sectionLabel, { color: colors.text.primary }]}>
+                      {section.label}
+                    </Text>
+                    <View style={[s.sectionCount, { backgroundColor: colors.accent.primary }]}>
+                      <Text style={s.sectionCountText}>{section.groups.length}</Text>
+                    </View>
+                  </View>
+>>>>>>> Stashed changes
                 </View>
               </View>
             </View>

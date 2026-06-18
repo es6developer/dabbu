@@ -35,14 +35,14 @@ interface DnaData {
 }
 
 const PERSONALITY_EMOJIS: Record<string, string> = {
-  frugal: '🐿️',
-  balanced: '⚖️',
-  spender: '💸',
-  lavish: '💎',
-  hoarder: '🏦',
-  moderate: '📊',
-  conservative: '🛡️',
-  aggressive: '🚀',
+  frugal: 'save',
+  balanced: 'balance',
+  spender: 'creditcard',
+  lavish: 'diamond',
+  hoarder: 'bank',
+  moderate: 'bars',
+  conservative: 'Safety',
+  aggressive: 'rocket1',
 };
 
 export function FinancialDnaScreen() {
@@ -192,20 +192,20 @@ export function FinancialDnaScreen() {
     {
       label: 'Spender',
       value: data.spendingScore ?? 50,
-      emoji: PERSONALITY_EMOJIS[data.spendingPersonality] ?? '💸',
+      emoji: PERSONALITY_EMOJIS[data.spendingPersonality] ?? 'creditcard',
       key: data.spendingPersonality,
     },
     {
       label: 'Saver',
       value: data.savingScore ?? 50,
-      emoji: PERSONALITY_EMOJIS[data.savingPersonality] ?? '🏦',
+      emoji: PERSONALITY_EMOJIS[data.savingPersonality] ?? 'bank',
       key: data.savingPersonality,
     },
-    { label: 'Discipline', value: data.disciplineScore ?? 50, emoji: '📊', key: 'discipline' },
+    { label: 'Discipline', value: data.disciplineScore ?? 50, emoji: 'bars', key: 'discipline' },
     {
       label: 'Risk',
       value: data.riskLevel === 'aggressive' ? 80 : data.riskLevel === 'moderate' ? 50 : 20,
-      emoji: data.riskLevel === 'aggressive' ? '🚀' : data.riskLevel === 'moderate' ? '⚖️' : '🛡️',
+      emoji: data.riskLevel === 'aggressive' ? 'rocket1' : data.riskLevel === 'moderate' ? 'balance' : 'Safety',
       key: data.riskLevel,
     },
   ];

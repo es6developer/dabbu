@@ -8,7 +8,7 @@ import {
   RefreshControl,
   Dimensions,
 } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme';
@@ -114,7 +114,11 @@ export function BadgeWallScreen() {
       >
         <View style={s.heroRow}>
           <View style={s.heroBadgeWrap}>
+<<<<<<< Updated upstream
             <AntDesign name="star" size={32} color="#FDCB6E" />
+=======
+            <Ionicons name="trophy" size={32} color="#FDCB6E" />
+>>>>>>> Stashed changes
           </View>
           <View style={{ flex: 1 }}>
             <Text style={s.heroTitle}>Achievements</Text>
@@ -277,7 +281,11 @@ export function BadgeWallScreen() {
 
       {totalBadges === 0 && (
         <View style={s.emptyState}>
+<<<<<<< Updated upstream
           <AntDesign name="star" size={48} color={colors.text.tertiary} />
+=======
+          <Ionicons name="trophy" size={48} color={colors.text.tertiary} />
+>>>>>>> Stashed changes
           <Text style={[s.emptyTitle, { color: colors.text.primary }]}>No Badges Yet</Text>
           <Text style={[s.emptyDesc, { color: colors.text.tertiary }]}>
             Complete goals, track expenses, and save money to earn achievements.

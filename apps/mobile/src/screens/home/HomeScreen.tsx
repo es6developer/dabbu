@@ -11,7 +11,7 @@ import {
   Keyboard,
   Dimensions,
 } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -1039,6 +1039,7 @@ export function HomeScreen() {
               </Text>
             </View>
             {streak > 0 && (
+<<<<<<< Updated upstream
               <View
                 style={{
                   backgroundColor: colors.status.error + '15',
@@ -1054,6 +1055,11 @@ export function HomeScreen() {
                 <Text style={{ fontSize: 12, fontWeight: '700', color: colors.status.error }}>
                   {streak} days
                 </Text>
+=======
+              <View style={{ backgroundColor: '#FF6B6B20', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <AntDesign name="heart" size={13} color="#FF6B6B" />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#FF6B6B' }}>{streak} days</Text>
+>>>>>>> Stashed changes
               </View>
             )}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -1182,12 +1188,93 @@ export function HomeScreen() {
                 {(netWorth ?? totalBalance ?? 0).toLocaleString('en-IN')}
               </Text>
             </View>
+<<<<<<< Updated upstream
             {savings > 0 && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
                   <AntDesign name="arrowup" size={12} color={colors.status.success} />
                   <Text style={{ fontSize: 12, fontWeight: '700', color: colors.status.success }}>
                     {savingsRate.toFixed(1)}%
+=======
+            {/* Monthly Growth */}
+            {monthlyIncome > 0 && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                <AntDesign
+                  name={(savings > 0 ? 'trending-up' : 'trending-down') as any}
+                  size={14}
+                  color={savings > 0 ? '#10B981' : '#EF4444'}
+                />
+                <Text style={{ fontSize: 13, fontWeight: '700', color: savings > 0 ? '#10B981' : '#EF4444' }}>
+                  {savings > 0 ? '+' : ''}{(monthlyIncome > 0 ? (savings / monthlyIncome) * 100 : 0).toFixed(1)}% this month
+                </Text>
+                <Text style={{ fontSize: 11, fontWeight: '500', color: colors.text.tertiary }}>
+                  · Saved {fmtShort(savings)}
+                </Text>
+              </View>
+            )}
+
+            {/* This Month breakdown */}
+            <View style={[page.heroMonth, { backgroundColor: colors.bg.primary }]}>
+              <HeroMonthRow
+                label="Income"
+                value={fmtShort(monthlyIncome)}
+                color="#10B981"
+                pct={monthlyIncome > 0 ? 100 : 0}
+              />
+              <HeroMonthRow
+                label="Spent"
+                value={fmtShort(monthlySpent)}
+                color="#EF4444"
+                pct={monthlyIncome > 0 ? (monthlySpent / monthlyIncome) * 100 : 0}
+              />
+              <HeroMonthRow
+                label="Saved"
+                value={fmtShort(savings)}
+                color="#10B981"
+                pct={monthlyIncome > 0 ? (savings / monthlyIncome) * 100 : 0}
+                badge={savingsRate > 0 ? `${savingsRate.toFixed(0)}%` : undefined}
+              />
+            </View>
+
+            {/* Divider */}
+            <View
+              style={{ height: 1, backgroundColor: colors.border.subtle, marginVertical: 14 }}
+            />
+
+            {/* Obligations */}
+            <View style={{ gap: 8 }}>
+              <ObligationRow
+                icon="filetext1"
+                label="Upcoming Bills"
+                value={fmt(upcomingBillsTotal)}
+                valueColor={colors.text.primary}
+              />
+              <ObligationRow
+                icon="creditcard"
+                label="Subscriptions"
+                value={fmt(subscriptionTotal)}
+                valueColor={colors.text.primary}
+              />
+            </View>
+
+            {/* Safe to Spend */}
+            {totalBalance !== null && (
+              <View style={[page.safePill, { backgroundColor: `${colors.brand.primary}12` }]}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
+                    Safe to Spend
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 18,
+                      fontWeight: '800',
+                      color: colors.brand.primary,
+                      letterSpacing: -0.5,
+                      marginTop: 1,
+                    }}
+                  >
+                    {fmt(safeToSpend)}
+>>>>>>> Stashed changes
                   </Text>
                 </View>
                 <Text style={{ fontSize: 12, fontWeight: '500', color: colors.text.tertiary }}>
@@ -1386,7 +1473,11 @@ export function HomeScreen() {
         <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.xl }}>
           <WidgetCard>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+<<<<<<< Updated upstream
               <AntDesign name="bulb1" size={16} color={colors.accent.primary} />
+=======
+              <Ionicons  name="flash" size={16} color={colors.accent.primary} />
+>>>>>>> Stashed changes
               <TextInput
                 ref={quickInputRef}
                 style={[page.quickAddInput, { color: colors.text.primary }]}
@@ -1673,8 +1764,13 @@ export function HomeScreen() {
                 style={[page.actionCard, { backgroundColor: colors.bg.card }]}
                 activeOpacity={0.7}
               >
+<<<<<<< Updated upstream
                 <View style={[page.actionIconWrap, { backgroundColor: colors.accent.primary }]}>
                   <AntDesign name={a.icon as any} size={20} color="#FFF" />
+=======
+                <View style={[page.actionIconWrap, { backgroundColor: `${colors.brand.primary}12` }]}>
+                  <AntDesign name={a.icon as any} size={22} color={colors.brand.primary} />
+>>>>>>> Stashed changes
                 </View>
                 <Text
                   style={{
@@ -1744,7 +1840,23 @@ export function HomeScreen() {
                           paddingVertical: 10,
                         }}
                       >
+<<<<<<< Updated upstream
                         <View
+=======
+                        <AntDesign
+                          name={(isExpense ? 'arrow-up' : 'arrow-down') as any}
+                          size={18}
+                          color={isExpense ? colors.status.error : colors.status.success}
+                        />
+                      </View>
+                      <View style={{ flex: 1, marginLeft: 12 }}>
+                        <Text
+                          style={{ fontSize: 14, fontWeight: '600', color: colors.text.primary }}
+                        >
+                          {tx.description || tx.title || tx.merchant || 'Transaction'}
+                        </Text>
+                        <Text
+>>>>>>> Stashed changes
                           style={{
                             width: 40,
                             height: 40,
@@ -1827,6 +1939,7 @@ export function HomeScreen() {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ gap: spacing.md }}
               >
+<<<<<<< Updated upstream
                 {insights.map((ins) => (
                   <View
                     key={ins.label}
@@ -1864,6 +1977,38 @@ export function HomeScreen() {
               </ScrollView>
             </WidgetCard>
           </View>
+=======
+                <View style={[page.insightIcon, { backgroundColor: `${ins.color}12` }]}>
+                  <AntDesign
+                    name={(INSIGHT_ICONS[ins.label] || 'ellipsis-horizontal') as any}
+                    size={18}
+                    color={ins.color}
+                  />
+                </View>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '600',
+                    color: colors.text.tertiary,
+                    marginTop: 6,
+                  }}
+                >
+                  {ins.label}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '800',
+                    color: colors.text.primary,
+                    marginTop: 2,
+                  }}
+                >
+                  {ins.value}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+>>>>>>> Stashed changes
         </View>
 
         {/* ─── SECTION 7: THIS MONTH ─── */}
@@ -2239,6 +2384,84 @@ export function HomeScreen() {
   );
 }
 
+<<<<<<< Updated upstream
+=======
+function HeroMonthRow({
+  label,
+  value,
+  color,
+  pct,
+  badge,
+}: {
+  label: string;
+  value: string;
+  color: string;
+  pct: number;
+  badge?: string;
+}) {
+  const { colors } = useTheme();
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+      <Text style={{ width: 50, fontSize: 12, fontWeight: '600', color: colors.text.tertiary }}>{label}</Text>
+      <View
+        style={{
+          flex: 1,
+          height: 6,
+          borderRadius: 3,
+          backgroundColor: `${color}18`,
+          overflow: 'hidden',
+        }}
+      >
+        <View
+          style={{
+            width: `${Math.min(pct, 100)}%`,
+            height: '100%',
+            borderRadius: 3,
+            backgroundColor: color,
+          }}
+        />
+      </View>
+      <Text style={{ fontSize: 13, fontWeight: '700', color, minWidth: 60, textAlign: 'right' }}>
+        {value}
+      </Text>
+      {badge && (
+        <View
+          style={{
+            paddingHorizontal: 6,
+            paddingVertical: 2,
+            borderRadius: 4,
+            backgroundColor: `${color}15`,
+          }}
+        >
+          <Text style={{ fontSize: 10, fontWeight: '700', color }}>{badge}</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+function ObligationRow({
+  icon,
+  label,
+  value,
+  valueColor,
+}: {
+  icon: string;
+  label: string;
+  value: string;
+  valueColor: string;
+}) {
+  const { colors } = useTheme();
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+      <AntDesign name={icon as any} size={14} color={colors.text.tertiary} />
+      <Text style={{ flex: 1, fontSize: 13, fontWeight: '500', color: colors.text.tertiary }}>{label}</Text>
+      <Text style={{ fontSize: 14, fontWeight: '700', color: valueColor }}>{value}</Text>
+    </View>
+  );
+}
+
+>>>>>>> Stashed changes
 function MonthBar({
   label,
   value,

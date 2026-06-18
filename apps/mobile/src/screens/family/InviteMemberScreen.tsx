@@ -9,6 +9,7 @@ import {
   TextInput,
   Share,
 } from 'react-native';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
 import { api, setAccessToken } from '../../services/api';
@@ -163,9 +164,10 @@ export function InviteMemberScreen() {
                   style={[styles.shareBtn, { backgroundColor: colors.accent.primary }]}
                   onPress={handleShareCode}
                 >
-                  <Text style={[styles.shareBtnText, { color: colors.text.primary }]}>
-                    📤 Share Invite
-                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <AntDesign name="upload" size={16} color={colors.text.primary} />
+                    <Text style={[styles.shareBtnText, { color: colors.text.primary }]}>Share Invite</Text>
+                  </View>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[
@@ -174,9 +176,10 @@ export function InviteMemberScreen() {
                   ]}
                   onPress={handleCopyCode}
                 >
-                  <Text style={[styles.copyBtnText, { color: colors.text.primary }]}>
-                    📋 Copy Code
-                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <AntDesign name="copy1" size={16} color={colors.text.primary} />
+                    <Text style={[styles.copyBtnText, { color: colors.text.primary }]}>Copy Code</Text>
+                  </View>
                 </TouchableOpacity>
               </View>
             </View>

@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { AnalyticsSkeleton } from '../../components/ui/AnimatedSkeleton';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { LineChart, BarChart, PieChart } from 'react-native-chart-kit';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -299,15 +299,23 @@ export function AnalyticsScreen() {
                   </Text>
                   <View style={styles.trendRow}>
                     <AntDesign
+<<<<<<< Updated upstream
                       name={(
                         i === 0
+=======
+                      name={(i === 0
+>>>>>>> Stashed changes
                           ? incomeTrend >= 0
                             ? 'arrow-up'
                             : 'arrow-down'
                           : expenseTrend <= 0
                             ? 'arrow-down'
+<<<<<<< Updated upstream
                             : 'arrow-up'
                       ) as any}
+=======
+                            : 'arrow-up') as any}
+>>>>>>> Stashed changes
                       size={12}
                       color={
                         i === 0
@@ -491,7 +499,11 @@ export function AnalyticsScreen() {
             {/* Empty state */}
             {!mi && !me && catData.length === 0 && (
               <View style={styles.emptyState}>
+<<<<<<< Updated upstream
                 <AntDesign name="barchart" size={48} color={colors.text.tertiary} />
+=======
+                <Ionicons name="bar-chart-outline" size={48} color={colors.text.tertiary} />
+>>>>>>> Stashed changes
                 <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
                   No analytics data yet
                 </Text>

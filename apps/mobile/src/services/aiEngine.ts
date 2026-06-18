@@ -288,19 +288,19 @@ function handleGreeting(): AIResponse {
 
 function handleHelp(): AIResponse {
   return messageResponse(
-    '🤖 **Dabbu AI Commands**\n\n' +
-      '**📊 Queries**\n' +
+    '**Dabbu AI Commands**\n\n' +
+      '**Queries**\n' +
       '• "How much did I spend last month?"\n' +
       '• "Show my food expenses"\n' +
       '• "Show my top 5 expenses"\n' +
       '• "Compare this month vs last month"\n\n' +
-      '**➕ Add**\n' +
+      '**Add**\n' +
       '• "Add ₹500 for dinner"\n' +
       '• "Add ₹200 for Uber"\n\n' +
-      '**🔄 Create**\n' +
+      '**Create**\n' +
       '• "Create a circle called Weekend Trip with Mike and Sarah"\n' +
       '• "Create a space called Emergency Fund"\n\n' +
-      '**💡 Insights**\n' +
+      '**Insights**\n' +
       '• "Where can I save money?"\n' +
       '• "Show my budgets"',
   );
@@ -370,7 +370,7 @@ async function handleAddExpense(userId: string, input: string): Promise<AIRespon
   });
   const t = tx || entities;
   return messageResponse(
-    `✅ **Added** ${fmtINR(entities.amount)} for **${entities.description || 'Expense'}**`,
+    `**Added** ${fmtINR(entities.amount)} for **${entities.description || 'Expense'}**`,
     { amount: t.amount || entities.amount, description: t.description || entities.description },
   );
 }
@@ -392,7 +392,7 @@ async function handleCreateCircle(userId: string, input: string): Promise<AIResp
       await apiPost(`/expense-groups/${group.id}/members`, { name: member }).catch(() => {});
     }
   }
-  const msg = `✅ **Circle "${name}" created!**${members.length > 0 ? `\n👥 Members: You, ${members.join(', ')}` : ''}`;
+  const msg = `**Circle "${name}" created!**${members.length > 0 ? `\nMembers: You, ${members.join(', ')}` : ''}`;
   return messageResponse(msg, { groupId: group?.id, groupName: name });
 }
 
@@ -404,7 +404,7 @@ async function handleCreateSpace(userId: string, input: string): Promise<AIRespo
     return askResponse('What should the space be called?', 'spaceName', []);
   }
   const group = await apiPost<any>('/shared-finance/groups', { name, type: 'friends' });
-  const msg = `✅ **Space "${name}" created!**`;
+  const msg = `**Space "${name}" created!**`;
   return messageResponse(msg, { groupId: group?.id, groupName: name });
 }
 
@@ -423,9 +423,9 @@ async function personalSummary(): Promise<AIResponse> {
           .sort((a: any, b: any) => Number(b.amount) - Number(a.amount))[0]
       : null;
 
-  const lines: string[] = ['📊 **Last 30 Days Summary**'];
-  lines.push(`\n💰 **Total spent:** ${fmtINR(total)}`);
-  lines.push(`📝 **Transactions:** ${list.length}`);
+  const lines: string[] = ['**Last 30 Days Summary**'];
+  lines.push(`\n**Total spent:** ${fmtINR(total)}`);
+  lines.push(`**Transactions:** ${list.length}`);
   if (topCats.length > 0) {
     lines.push('\n**By category:**');
     for (const c of topCats) {
@@ -436,7 +436,7 @@ async function personalSummary(): Promise<AIResponse> {
   }
   if (highest) {
     lines.push(
-      `\n🏆 **Highest:** ${fmtINR(Number(highest.amount))} — ${highest.description || 'Expense'} (${highest.date ? fmtDate(highest.date) : ''})`,
+      `\n**Highest:** ${fmtINR(Number(highest.amount))} — ${highest.description || 'Expense'} (${highest.date ? fmtDate(highest.date) : ''})`,
     );
   }
   return messageResponse(lines.join('\n'), { total, categories: topCats, count: list.length });
@@ -463,8 +463,8 @@ async function circleSummary(circleName?: string): Promise<AIResponse> {
 
   const txns = await fetchTransactionsForCircle(match.id);
   const total = txns.reduce((s: number, t: any) => s + Number(t.amount), 0);
-  const lines: string[] = [`📊 **${match.name}**`];
-  lines.push(`\n💰 **Total:** ${fmtINR(total)}`);
+  const lines: string[] = [`**${match.name}**`];
+  lines.push(`\n**Total:** ${fmtINR(total)}`);
   if (txns.length > 0) {
     lines.push('\n**Recent:**');
     for (const t of txns.slice(0, 5)) {
@@ -493,7 +493,7 @@ async function handleQuery(entities: ExtractedEntities): Promise<AIResponse> {
     );
     if (match) {
       return messageResponse(
-        `📊 **${entities.category} Expenses**\n\n` +
+        `**${entities.category} Expenses**\n\n` +
           `**Total:** ${fmtINR(Number(match.total || match.amount || 0))}\n` +
           `**Transactions:** ${match.count || match._count || 'N/A'}`,
         { category: entities.category, total: match.total, count: match.count },
@@ -518,7 +518,7 @@ async function handleTopExpenses(limit: number = 5): Promise<AIResponse> {
   if (list.length === 0) {
     return messageResponse('No expenses found.');
   }
-  const lines: string[] = [`🏆 **Top ${limit} Expenses**\n`];
+  const lines: string[] = [`**Top ${limit} Expenses**\n`];
   for (let i = 0; i < list.length; i++) {
     lines.push(
       `${i + 1}. ${fmtINR(Number(list[i].amount))} — ${list[i].description || 'Expense'}${list[i].date ? ` (${fmtDate(list[i].date)})` : ''}`,
@@ -539,11 +539,11 @@ async function handleComparison(): Promise<AIResponse> {
   const pExp = Number(prev.expense || 0);
   const diff = cExp - pExp;
   const pct = pExp > 0 ? ((diff / pExp) * 100).toFixed(0) : '0';
-  const dir = diff > 0 ? '⬆️ increased' : '⬇️ decreased';
+  const dir = diff > 0 ? 'increased' : 'decreased';
   return messageResponse(
-    `📊 **Month over Month Comparison**\n\n` +
+    `**Month over Month Comparison**\n\n` +
       `**Last month:** ${fmtINR(pExp)}\n**This month:** ${fmtINR(cExp)}\n\n` +
-      `Spending ${dir} by ${fmtINR(Math.abs(diff))} (${Math.abs(Number(pct))}%)${Number(pct) > 0 ? ' ⚠️' : ' ✅'}`,
+      `Spending ${dir} by ${fmtINR(Math.abs(diff))} (${Math.abs(Number(pct))}%)`,
     { current: cExp, previous: pExp, change: diff },
   );
 }
@@ -558,7 +558,7 @@ async function handleSavings(): Promise<AIResponse> {
     return messageResponse('Not enough data yet. Start tracking expenses!');
   }
 
-  const lines: string[] = ['💡 **Spending Insights**'];
+  const lines: string[] = ['**Spending Insights**'];
   lines.push('\n**Top spending categories:**');
   for (const c of top3) {
     const amt = Number(c.total || c.amount || 0);
@@ -569,7 +569,7 @@ async function handleSavings(): Promise<AIResponse> {
     const biggest = top3[0];
     const potential = Math.round(Number(biggest.total || biggest.amount || 0) * 0.2);
     lines.push(
-      `\n💡 **Tip:** Cutting 20% of ${biggest.category || biggest.name} could save **${fmtINR(potential)}/month**.`,
+      `\n**Tip:** Cutting 20% of ${biggest.category || biggest.name} could save **${fmtINR(potential)}/month**.`,
     );
   }
   return messageResponse(lines.join('\n'), { breakdown: top3, total });
@@ -596,7 +596,7 @@ export async function handleConversationStep(
           date: new Date().toISOString().split('T')[0],
         });
         return messageResponse(
-          `✅ **Added** ${fmtINR(state.context.amount)} for **${state.context.description || 'Expense'}** (Personal)`,
+          `**Added** ${fmtINR(state.context.amount)} for **${state.context.description || 'Expense'}** (Personal)`,
           { amount: state.context.amount, description: state.context.description },
         );
       }
@@ -638,7 +638,7 @@ export async function handleConversationStep(
         date: new Date().toISOString().split('T')[0],
       });
       return messageResponse(
-        `✅ **${fmtINR(state.context.amount)}** for **${state.context.description || 'Expense'}** added to **${match.name}** ✅`,
+        `**${fmtINR(state.context.amount)}** for **${state.context.description || 'Expense'}** added to **${match.name}**`,
         { amount: state.context.amount, description: state.context.description, groupId: match.id },
       );
     }
@@ -714,11 +714,11 @@ export async function handleConversationStep(
         );
       }
       clearConversation(userId);
-      const lines: string[] = [`📊 **${sm.name}**`];
+      const lines: string[] = [`**${sm.name}**`];
       lines.push(
-        `\n💰 **Budget:** ${sm.monthlyBudget ? fmtINR(Number(sm.monthlyBudget)) + '/month' : 'Not set'}`,
+        `\n**Budget:** ${sm.monthlyBudget ? fmtINR(Number(sm.monthlyBudget)) + '/month' : 'Not set'}`,
       );
-      lines.push(`👥 **Members:** ${sm._count?.members || sm.members?.length || 1}`);
+      lines.push(`**Members:** ${sm._count?.members || sm.members?.length || 1}`);
       return messageResponse(lines.join('\n'), { spaceName: sm.name });
     }
 

@@ -53,3 +53,18 @@ export { Toast } from './Toast';
 export { AiInsightCard } from './AiInsightCard';
 export { PremiumAuthLayout } from './PremiumAuthLayout';
 export { UpgradeBanner } from './UpgradeBanner';
+export {
+  FormScreen,
+  FormSection,
+  FormField as FormFieldNew,
+  FormAmountField,
+  FormChipGroup,
+  FormSelect,
+  FormCategoryPicker,
+  FormDatePicker as FormDatePickerNew,
+  FormToggle,
+  FormTextArea,
+  FormFooter,
+  FormAvatar,
+  FormBottomSheet,
+} from '../forms';

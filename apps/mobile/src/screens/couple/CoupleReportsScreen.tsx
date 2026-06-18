@@ -10,7 +10,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -176,7 +176,11 @@ export function CoupleReportsScreen() {
             padding: 20,
           }}
         >
+<<<<<<< Updated upstream
           <AntDesign name="barchart" size={48} color={colors.accent.primary} />
+=======
+          <Ionicons name="bar-chart-outline" size={48} color={colors.accent.primary} />
+>>>>>>> Stashed changes
           <Text style={[styles.emptyTitle, { color: colors.text.secondary, marginTop: 12 }]}>
             No Data
           </Text>

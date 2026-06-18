@@ -1,6 +1,11 @@
 import React, { useState, useCallback, useMemo } from 'react';
+<<<<<<< Updated upstream
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
+=======
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Share, Alert } from 'react-native';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
+>>>>>>> Stashed changes
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import ReAnimated, { FadeInUp } from 'react-native-reanimated';
@@ -241,7 +246,11 @@ export function MonthlyAiReviewScreen() {
                 <ReAnimated.View key={i} entering={FadeInUp.duration(300).delay(i * 60)}>
                   <AiCard padding={14}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+<<<<<<< Updated upstream
                       <AntDesign name="star" size={20} color={AI_COLORS.warning} />
+=======
+                      <Ionicons  name="trophy" size={20} color={AI_COLORS.warning} />
+>>>>>>> Stashed changes
                       <Text style={{ fontSize: 13, color: AI_COLORS.text, flex: 1 }}>{a}</Text>
                     </View>
                   </AiCard>
@@ -486,12 +495,28 @@ export function MonthlyAiReviewScreen() {
             onPress={async () => {
               setExporting(true);
               try {
+<<<<<<< Updated upstream
                 const { downloadAndShareFile } = await import('../../utils/exportFile');
                 await downloadAndShareFile('/ai/export', {}, 'dabbu-ai-review', 'pdf');
               } catch (e: any) {
                 Alert.alert('Export Failed', e.message || 'Could not export');
               } finally {
                 setExporting(false);
+=======
+                const text = [
+                  `Monthly Review — ${data.period}`,
+                  '',
+                  `Savings: ₹${(data.savings?.total ?? 0).toLocaleString('en-IN')} (${data.savings?.rate ?? 0}%)`,
+                  `Income: ₹${(data.income?.total ?? 0).toLocaleString('en-IN')}`,
+                  `Expenses: ₹${(data.expenses?.total ?? 0).toLocaleString('en-IN')}`,
+                  `Health Score: ${data.healthScore?.current ?? 0}/100`,
+                  '',
+                  data.nextMonthFocus ? `Next Focus: ${data.nextMonthFocus}` : '',
+                ].filter(Boolean).join('\n');
+                await Share.share({ message: text, title: `Monthly Review — ${data.period}` });
+              } catch {
+                Alert.alert('Error', 'Could not share');
+>>>>>>> Stashed changes
               }
             }}
           >

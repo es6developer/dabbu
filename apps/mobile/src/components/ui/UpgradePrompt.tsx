@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
 interface UpgradePromptProps {
@@ -26,7 +26,11 @@ export function UpgradePrompt({ feature, compact = false }: UpgradePromptProps) 
           width: 36, height: 36, borderRadius: 12, backgroundColor: '#7C3AED20',
           alignItems: 'center', justifyContent: 'center',
         }}>
+<<<<<<< Updated upstream
           <AntDesign name="star" size={18} color="#7C3AED" />
+=======
+          <Ionicons name="diamond" size={18} color="#8B5CF6" />
+>>>>>>> Stashed changes
         </View>
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFF' }}>
@@ -50,7 +54,11 @@ export function UpgradePrompt({ feature, compact = false }: UpgradePromptProps) 
         width: 56, height: 56, borderRadius: 18, backgroundColor: '#7C3AED20',
         alignItems: 'center', justifyContent: 'center',
       }}>
+<<<<<<< Updated upstream
         <AntDesign name="star" size={28} color="#7C3AED" />
+=======
+        <Ionicons name="diamond" size={28} color="#8B5CF6" />
+>>>>>>> Stashed changes
       </View>
       <Text style={{ fontSize: 18, fontWeight: '800', color: '#FFF', textAlign: 'center' }}>
         {feature ? `${feature}` : 'Dabbu Premium'}

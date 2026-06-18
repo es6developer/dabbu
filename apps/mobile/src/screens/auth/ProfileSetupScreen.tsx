@@ -1,26 +1,20 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-} from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { API_URL } from '../../config/api';
 import { getAccessToken } from '../../services/api';
+import {
+  FormField,
+  FormAvatar,
+  FormFooter,
+  FormError,
+} from '../../components/forms';
 
 export function ProfileSetupScreen() {
   const { user, completeProfileSetup } = useAuth();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
@@ -34,31 +28,18 @@ export function ProfileSetupScreen() {
     try {
       const token = getAccessToken();
       const body: Record<string, any> = {};
-      if (firstName.trim()) {
-        body.firstName = firstName.trim();
-      }
-      if (lastName.trim()) {
-        body.lastName = lastName.trim();
-      }
-      if (phone.trim()) {
-        body.phone = phone.replace(/[^0-9]/g, '');
-      }
+      if (firstName.trim()) body.firstName = firstName.trim();
+      if (lastName.trim()) body.lastName = lastName.trim();
+      if (phone.trim()) body.phone = phone.replace(/[^0-9]/g, '');
       const res = await fetch(`${API_URL}/users/profile`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(body),
       });
-
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(
-          Array.isArray(err?.message) ? err?.message[0] : err?.message || 'Failed to save profile',
-        );
+        throw new Error(Array.isArray(err?.message) ? err?.message[0] : err?.message || 'Failed to save profile');
       }
-
       const profileResult = await res.json().catch(() => ({}));
       const updatedUser = profileResult?.data || profileResult;
       completeProfileSetup(updatedUser);
@@ -71,150 +52,67 @@ export function ProfileSetupScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.bg.primary }]}>
-      <SafeAreaWrapper insets={insets}>
+      <View style={{ paddingTop: insets.top, flex: 1 }}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          <View style={{ flex: 1 }}>
-            <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24 }} keyboardShouldPersistTaps="handled">
-              <View style={styles.brand}>
-                <Image
-                  source={require('../../../assets/logo.png')}
-                  style={styles.logo}
-                  resizeMode="contain"
-                />
-                <Text style={[styles.title, { color: colors.text.primary }]}>
-                  Complete your profile
-                </Text>
-                <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>
-                  Add your phone number so friends can find you on Dabbu
-                </Text>
-              </View>
+          <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24 }} keyboardShouldPersistTaps="handled">
+            <View style={styles.brand}>
+              <FormAvatar name={`${firstName} ${lastName}`} size={80} editable />
+              <Text style={[styles.title, { color: colors.text.primary }]}>Complete your profile</Text>
+              <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>
+                Add your phone number so friends can find you on Dabbu
+              </Text>
+            </View>
 
-              {error ? (
-                <View style={[styles.errorBox, { backgroundColor: `${colors.status.error}12` }]}>
-                  <AntDesign  name="exclamationcircle" size={16} color={colors.status.error} />
-                  <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text>
-                </View>
-              ) : null}
+            <FormError message={error} />
 
-              <View
-                style={[
-                  styles.card,
-                  {
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.7)',
-                    borderColor: colors.border.subtle,
-                  },
-                ]}
-              >
-                <View style={styles.row}>
-                  <TextInput
-                    style={[
-                      styles.input,
-                      styles.half,
-                      {
-                        backgroundColor: colors.bg.tertiary,
-                        color: colors.text.primary,
-                        borderColor: colors.border.subtle,
-                      },
-                    ]}
-                    placeholder="First name"
-                    placeholderTextColor={colors.text.tertiary}
+            <View style={[styles.card, { backgroundColor: colors.bg.card, borderColor: colors.border.default }]}>
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <View style={{ flex: 1 }}>
+                  <FormField
+                    label="First Name"
+                    icon="user"
                     value={firstName}
                     onChangeText={setFirstName}
-                  />
-                  <TextInput
-                    style={[
-                      styles.input,
-                      styles.half,
-                      {
-                        backgroundColor: colors.bg.tertiary,
-                        color: colors.text.primary,
-                        borderColor: colors.border.subtle,
-                      },
-                    ]}
-                    placeholder="Last name"
-                    placeholderTextColor={colors.text.tertiary}
-                    value={lastName}
-                    onChangeText={setLastName}
+                    placeholder="First name"
                   />
                 </View>
-
-                <Text style={[styles.label, { color: colors.text.secondary }]}>
-                  Phone number (optional)
-                </Text>
-                <TextInput
-                  style={[
-                    styles.input,
-                    {
-                      backgroundColor: colors.bg.tertiary,
-                      color: colors.text.primary,
-                      borderColor: colors.border.subtle,
-                    },
-                  ]}
-                  placeholder="9876543210"
-                  placeholderTextColor={colors.text.tertiary}
-                  value={phone}
-                  onChangeText={setPhone}
-                  keyboardType="phone-pad"
-                />
+                <View style={{ flex: 1 }}>
+                  <FormField
+                    label="Last Name"
+                    icon="user"
+                    value={lastName}
+                    onChangeText={setLastName}
+                    placeholder="Last name"
+                  />
+                </View>
               </View>
-            </ScrollView>
-
-            <View style={{ paddingBottom: insets.bottom + 16, paddingHorizontal: 20, paddingTop: 12 }}>
-              <TouchableOpacity
-                style={[
-                  styles.saveBtn,
-                  { backgroundColor: colors.accent.primary },
-                  saving && { opacity: 0.6 },
-                ]}
-                onPress={handleSave}
-                disabled={saving}
-              >
-                {saving ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={[styles.saveBtnText, { color: colors.text.primary }]}>Continue</Text>
-                )}
-              </TouchableOpacity>
+              <FormField
+                label="Phone Number"
+                icon="phone"
+                value={phone}
+                onChangeText={setPhone}
+                placeholder="9876543210"
+                keyboardType="phone-pad"
+              />
             </View>
+          </ScrollView>
+
+          <View style={{ paddingBottom: insets.bottom + 16, paddingHorizontal: 20, paddingTop: 12 }}>
+            <FormFooter title="Continue" icon="arrow-forward" loading={saving} onPress={handleSave} />
           </View>
         </KeyboardAvoidingView>
-      </SafeAreaWrapper>
-    </View>
-  );
-}
-
-function SafeAreaWrapper({ insets, children }: { insets: any; children: React.ReactNode }) {
-  return (
-    <View style={{ flex: 1, paddingTop: insets.top, paddingBottom: insets.bottom }}>
-      {children}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  scroll: { flexGrow: 1, paddingHorizontal: 24, justifyContent: 'center' },
-  brand: { alignItems: 'center', marginBottom: 32 },
-  logo: { width: 72, height: 72, marginBottom: 16 },
-  title: { fontSize: 26, fontWeight: '700', textAlign: 'center', marginBottom: 8 },
+  brand: { alignItems: 'center', marginBottom: 32, gap: 12 },
+  title: { fontSize: 26, fontWeight: '700', textAlign: 'center' },
   subtitle: { fontSize: 14, textAlign: 'center', lineHeight: 20, paddingHorizontal: 20 },
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 16,
-    gap: 8,
-  },
-  errorText: { fontSize: 13, flex: 1 },
-  card: { borderRadius: 24, borderWidth: 1, padding: 20, marginBottom: 24 },
-  row: { flexDirection: 'row', justifyContent: 'space-between' },
-  label: { fontSize: 13, fontWeight: '600', marginBottom: 6, marginTop: 4 },
-  input: { fontSize: 15, padding: 15, borderRadius: 14, marginBottom: 14, borderWidth: 1 },
-  half: { width: '48%' },
-  saveBtn: { paddingVertical: 16, borderRadius: 14, alignItems: 'center', marginTop: 8 },
-  saveBtnText: { fontSize: 16, fontWeight: '600' },
+  card: { borderRadius: 20, borderWidth: 1, padding: 16, marginBottom: 24, gap: 4 },
 });

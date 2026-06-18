@@ -83,6 +83,7 @@ export function MyWalletScreen() {
     if (accessToken) setAccessToken(accessToken);
     if (refresh) setRefreshing(true); else setLoading(true);
     try {
+<<<<<<< Updated upstream
       const [txRes, statsRes] = await Promise.all([
         api.get<any>('/transactions', ctrl.signal),
         api.get<any>('/transactions/stats', ctrl.signal),
@@ -94,6 +95,26 @@ export function MyWalletScreen() {
     } catch {}
     finally { if (!ctrl.signal.aborted) { setLoading(false); setRefreshing(false); } }
   }, [accessToken]);
+=======
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      const res: any = await api.post('/devices/test-push', {
+        title: 'Test Push',
+        body: 'This is a test notification from Dabbu',
+      });
+      const detailLines = (res?.devices || [])
+        .filter((d: any) => !d.success)
+        .map((d: any) => `  ${d.deviceName || d.platform}: ${d.error}`);
+      const msg = res?.message || 'Request sent.';
+      Alert.alert('Test Push', detailLines.length > 0 ? `${msg}\n\nErrors:\n${detailLines.join('\n')}` : msg,);
+    } catch (e: any) {
+      Alert.alert('Error', e?.message || 'Failed to send test push');
+    } finally {
+      setSendingTest(false);
+    }
+  }
+>>>>>>> Stashed changes
 
   useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
 
@@ -254,9 +275,35 @@ export function MyWalletScreen() {
         renderItem={({ item }: any) => {
           const isExpense = item.type === 'expense';
           return (
+<<<<<<< Updated upstream
             <TouchableOpacity style={[st.txCard]} onPress={() => navigation.navigate('TransactionDetail', { transactionId: item.id })} activeOpacity={0.7}>
               <View style={[st.txIcon, { backgroundColor: isExpense ? `${colors.status.error}12` : `${colors.status.success}12` }]}>
                 <AntDesign name={(isExpense ? 'arrowup' : 'arrowdown') as any} size={14} color={isExpense ? colors.status.error : colors.status.success} />
+=======
+            <TouchableOpacity
+              style={[s.txCard, { backgroundColor: colors.bg.tertiary }]}
+              onPress={() => navigation.navigate('TransactionDetail', { transactionId: item.id })}
+              activeOpacity={0.7}
+            >
+              <View style={s.txLeft}>
+                <View
+                  style={[s.txIcon, { backgroundColor: isExpense ? `${RED}15` : `${GREEN}15` }]}
+                >
+                  <AntDesign
+                    name={(isExpense ? 'arrow-up' : 'arrow-down') as any}
+                    size={16}
+                    color={isExpense ? RED : GREEN}
+                  />
+                </View>
+                <View style={s.txInfo}>
+                  <Text style={[s.txDesc, { color: colors.text.primary }]} numberOfLines={1}>
+                    {item.description || 'No description'}
+                  </Text>
+                  <Text style={[s.txCat, { color: colors.text.tertiary }]}>
+                    {item.category?.name || item.category || 'Uncategorized'}
+                  </Text>
+                </View>
+>>>>>>> Stashed changes
               </View>
               <View style={st.txInfo}>
                 <Text style={[st.txDesc, { color: colors.text.primary }]} numberOfLines={1}>{item.description || 'No description'}</Text>

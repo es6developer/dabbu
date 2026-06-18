@@ -309,7 +309,11 @@ export function CoupleSettingsScreen() {
               return (
                 <View key={item.key} style={[styles.notifRow, !isLast && styles.notifRowBorder]}>
                   <View style={[styles.notifIcon, { backgroundColor: colors.accent.primary }]}>
+<<<<<<< Updated upstream
                     <AntDesign name={(item.icon) as any} size={14} color="#FFF" />
+=======
+                    <AntDesign name={item.icon as any} size={14} color="#FFF" />
+>>>>>>> Stashed changes
                   </View>
                   <Text style={[styles.notifLabel, { color: colors.text.primary }]}>
                     {item.label}

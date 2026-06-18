@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
+import { AntDesign } from '@expo/vector-icons';
 import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
@@ -82,7 +83,7 @@ export function InvestmentsListScreen() {
         }}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>📈</Text>
+            <AntDesign name="linechart" size={48} color={colors.text.tertiary} style={{ opacity: 0.5, marginBottom: 16 }} />
             <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>Build your future</Text>
             <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>Track your mutual funds, stocks, and investments in one place. Every great portfolio starts with a single step.</Text>
           </View>
@@ -111,7 +112,6 @@ const styles = StyleSheet.create({
   returnPct: { fontSize: 13, fontWeight: '600' },
   emptyContainer: { flexGrow: 1 },
   empty: { alignItems: 'center' },
-  emptyIcon: { fontSize: 48, opacity: 0.5, marginBottom: 16 },
   emptyTitle: { fontSize: 18, fontWeight: '600', marginBottom: 8 },
   emptyDesc: { fontSize: 14 },
 });

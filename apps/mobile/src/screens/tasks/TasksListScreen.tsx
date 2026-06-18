@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, RefreshControl, Alert } from 'react-native';
+import { AntDesign } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -102,10 +103,16 @@ export function TasksListScreen() {
                   <Text style={[styles.taskTitle, { color: colors.text.primary }, task.completed && { textDecorationLine: 'line-through', color: colors.text.tertiary }]}>{task.title}</Text>
                   <View style={styles.taskMeta}>
                     {task.assignedTo && (
-                      <Text style={[styles.assignedTo, { color: colors.text.tertiary }]}>👤 {task.assignedTo.firstName || task.assignedTo.name || 'Assigned'}</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        <AntDesign name="user" size={14} color={colors.text.tertiary} />
+                        <Text style={[styles.assignedTo, { color: colors.text.tertiary }]}>{task.assignedTo.firstName || task.assignedTo.name || 'Assigned'}</Text>
+                      </View>
                     )}
                     {task.dueDate && (
-                      <Text style={[styles.dueDate, { color: colors.text.tertiary }]}>📅 {new Date(task.dueDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        <AntDesign name="calendar" size={14} color={colors.text.tertiary} />
+                        <Text style={[styles.dueDate, { color: colors.text.tertiary }]}>{new Date(task.dueDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</Text>
+                      </View>
                     )}
                   </View>
                 </View>
@@ -119,7 +126,7 @@ export function TasksListScreen() {
         contentContainerStyle={grouped.length === 0 ? styles.emptyContainer : { paddingBottom: 100 }}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>📋</Text>
+            <AntDesign name="profile" size={48} color={colors.text.tertiary} style={{ opacity: 0.5, marginBottom: 16 }} />
             <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No tasks</Text>
             <Text style={[styles.emptyDesc, { color: colors.text.tertiary }]}>Create a task for your family</Text>
           </View>
@@ -149,7 +156,6 @@ const styles = StyleSheet.create({
   priorityText: { fontSize: 10, fontWeight: '600' },
   emptyContainer: { flexGrow: 1 },
   empty: { alignItems: 'center' },
-  emptyIcon: { fontSize: 48, opacity: 0.5, marginBottom: 16 },
   emptyTitle: { fontSize: 18, fontWeight: '600', marginBottom: 8 },
   emptyDesc: { fontSize: 14 },
 });

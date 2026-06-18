@@ -8,7 +8,7 @@ import {
   RefreshControl,
   Dimensions,
 } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -230,7 +230,11 @@ export function CoupleBudgetsScreen() {
 
           {categories.length === 0 && (
             <View style={[styles.emptyCard, { backgroundColor: colors.bg.card }]}>
+<<<<<<< Updated upstream
               <AntDesign name="appstore1" size={32} color={colors.text.tertiary} />
+=======
+              <Ionicons  name="layers" size={32} color={colors.text.tertiary} />
+>>>>>>> Stashed changes
               <Text style={[styles.emptyCardText, { color: colors.text.secondary }]}>
                 No categories set up yet
               </Text>

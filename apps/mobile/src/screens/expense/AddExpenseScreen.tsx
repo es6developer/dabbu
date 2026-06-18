@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import React, { useState, useRef, useCallback, useMemo } from 'react';
 import {
   View,
@@ -12,9 +13,13 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
+=======
+import React, { useState } from 'react';
+import { Alert } from 'react-native';
+>>>>>>> Stashed changes
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
+<<<<<<< Updated upstream
 import { LinearGradient } from 'expo-linear-gradient';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../../config/categoryIcons';
 import { api, setAccessToken, getAccessToken } from '../../services/api';
@@ -27,11 +32,37 @@ const GRID_GAP = 10;
 const ITEM_W = (SCREEN_W - CARD_PAD * 2 - GRID_GAP * 3) / 4;
 
 const FREQUENT_CATEGORIES = ['Food & Dining', 'Groceries', 'Transportation', 'Shopping', 'Bills', 'Utilities'];
+=======
+import {
+  FormScreen,
+  FormSection,
+  FormAmountField,
+  FormCategoryPicker,
+  FormField,
+  FormDatePicker,
+  FormFooter,
+  FormError,
+} from '../../components/forms';
+
+const CATEGORIES = [
+  { name: 'Food', icon: 'fast-food', color: '#F97316' },
+  { name: 'Travel', icon: 'airplane', color: '#3B82F6' },
+  { name: 'Bills', icon: 'receipt', color: '#14B8A6' },
+  { name: 'Shopping', icon: 'cart', color: '#EC4899' },
+  { name: 'Groceries', icon: 'basket', color: '#22C55E' },
+  { name: 'Entertainment', icon: 'film', color: '#8B5CF6' },
+  { name: 'Sports', icon: 'football', color: '#F59E0B' },
+  { name: 'Other', icon: 'ellipsis-horizontal', color: '#6B7280' },
+];
+>>>>>>> Stashed changes
+
+const QUICK_AMOUNTS = ['50', '100', '200', '500', '1000', '2000'];
 
 export function AddExpenseScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { colors } = useTheme();
+<<<<<<< Updated upstream
   const insets = useSafeAreaInsets();
   const { showToast } = useToast();
   const { accessToken } = useAuth();
@@ -88,12 +119,23 @@ export function AddExpenseScreen() {
       return !prev;
     });
   }, [expandAnim]);
+=======
 
-  async function handleSave() {
+  const initialCategory = route.params?.category || 'Food';
+  const [amount, setAmount] = useState('');
+  const [category, setCategory] = useState(initialCategory);
+  const [notes, setNotes] = useState('');
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [type, setType] = useState<'expense' | 'income'>('expense');
+  const [error, setError] = useState('');
+>>>>>>> Stashed changes
+
+  function handleSave() {
     if (!amount || parseFloat(amount) <= 0) {
-      Alert.alert('Error', 'Please enter an amount');
+      setError('Please enter an amount');
       return;
     }
+<<<<<<< Updated upstream
     if (!category) {
       Alert.alert('Error', 'Please select a category');
       return;
@@ -576,3 +618,56 @@ const s = StyleSheet.create({
   },
   saveBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 });
+=======
+    setError('');
+    Alert.alert('Success', 'Expense added successfully!');
+    navigation.goBack();
+  }
+
+  return (
+    <FormScreen
+      title="Add Expense"
+      subtitle="Track spending effortlessly"
+      icon="shoppingcart"
+      accent={[colors.accent.primary, colors.accent.secondary]}
+      footer={
+        <FormFooter
+          title={type === 'expense' ? 'Save Expense' : 'Save Income'}
+          icon="checkcircleo"
+          onPress={handleSave}
+        />
+      }
+    >
+      <FormError message={error} />
+
+      <FormAmountField
+        label="Amount"
+        value={amount}
+        onChangeText={setAmount}
+        type={type}
+        onTypeChange={setType}
+        quickAmounts={QUICK_AMOUNTS}
+        autoFocus
+      />
+
+      <FormSection title="Details">
+        <FormCategoryPicker
+          label="Category"
+          selected={category}
+          categories={CATEGORIES}
+          onChange={setCategory}
+        />
+        <FormField
+          label="Notes"
+          icon="edit"
+          value={notes}
+          onChangeText={setNotes}
+          placeholder="Add a note..."
+          multiline
+        />
+        <FormDatePicker label="Date" value={date} onChange={setDate} />
+      </FormSection>
+    </FormScreen>
+  );
+}
+>>>>>>> Stashed changes

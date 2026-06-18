@@ -39,7 +39,7 @@ export function useAI(userId: string = 'user') {
     } catch (e: any) {
       setMessages((prev) => [
         ...prev,
-        { id: generateId(), role: 'assistant', text: `⚠️ ${e.message || 'Something went wrong.'}`, timestamp: Date.now() },
+        { id: generateId(), role: 'assistant', text: `${e.message || 'Something went wrong.'}`, timestamp: Date.now() },
       ]);
     } finally {
       setLoading(false);

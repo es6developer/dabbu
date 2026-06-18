@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
+import { AntDesign } from '@expo/vector-icons';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -89,18 +90,18 @@ export function RemindersListScreen() {
     }
   }
 
-  function getTypeIcon(type: string) {
+  function getTypeIconName(type: string) {
     switch (type) {
       case 'payment':
-        return '💳';
+        return 'creditcard';
       case 'bill':
-        return '📋';
+        return 'profile';
       case 'subscription':
-        return '🔄';
+        return 'sync';
       case 'goal':
-        return '🎯';
+        return 'flag';
       default:
-        return '🔔';
+        return 'bells';
     }
   }
 
@@ -144,7 +145,7 @@ export function RemindersListScreen() {
             onPress={() => navigation.navigate('ReminderDetail', { reminderId: item.id })}
           >
             <View style={styles.cardLeft}>
-              <Text style={styles.typeIcon}>{getTypeIcon(item.type)}</Text>
+              <AntDesign name={getTypeIconName(item.type) as any} size={20} color={colors.accent.primary} />
               <View style={[styles.priorityDot, { backgroundColor: colors.accent.primary }]} />
             </View>
             <View style={styles.cardCenter}>
@@ -207,7 +208,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   cardLeft: { alignItems: 'center', marginRight: 12 },
-  typeIcon: { fontSize: 20, marginBottom: 4 },
+
   priorityDot: { width: 6, height: 6, borderRadius: 3 },
   cardCenter: { flex: 1 },
   cardTitle: { fontSize: 15, fontWeight: '600', marginBottom: 4 },

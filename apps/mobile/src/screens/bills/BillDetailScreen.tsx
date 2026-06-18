@@ -10,7 +10,7 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
@@ -476,8 +476,13 @@ export function BillDetailScreen() {
                 <Text style={[styles.ocrTitle, { color: colors.text.secondary }]}>
                   Raw OCR Text
                 </Text>
+<<<<<<< Updated upstream
                 <AntDesign
                   name={(showOcr ? 'chevron-up' : 'chevron-down') as any}
+=======
+                <Ionicons
+                  name={showOcr ? 'chevron-up-outline' : 'chevron-down-outline'}
+>>>>>>> Stashed changes
                   size={16}
                   color={colors.text.tertiary}
                 />

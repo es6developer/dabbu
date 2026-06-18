@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, Alert } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { spacing } from '../../theme/design';
 
@@ -60,8 +60,13 @@ export function HelpCenterScreen() {
         >
           <View style={styles.faqHeader}>
             <Text style={[styles.faqQ, { color: colors.text.primary }]}>{faq.q}</Text>
+<<<<<<< Updated upstream
             <AntDesign
               name={(expanded === i ? 'caretup' : 'caretdown') as any}
+=======
+            <Ionicons
+              name={expanded === i ? 'chevron-up-outline' : 'chevron-down-outline'}
+>>>>>>> Stashed changes
               size={18}
               color={colors.text.tertiary}
             />

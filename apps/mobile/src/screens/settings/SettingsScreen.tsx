@@ -11,7 +11,7 @@ import {
   Switch,
   Platform,
 } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -37,24 +37,47 @@ type SectionItem = {
 
 const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
   {
+<<<<<<< Updated upstream
     title: 'Account',
     items: [
       { label: 'Profile', icon: 'user', screen: 'Profile' },
       { label: 'Partner Management', icon: 'heart', screen: 'AddPartner' },
       { label: 'Favorite Contacts', icon: 'star', screen: 'FavoriteContacts' },
       { label: 'Refer & Earn', icon: 'gift', screen: 'Referral' },
+=======
+    title: 'Wealth Tools',
+    items: [
+      { label: 'Financial Reports', icon: 'stats-chart-outline', screen: 'Reports', premium: true },
+      { label: 'Export Data', icon: 'download-outline', screen: 'Analytics', premium: true },
+      { label: 'Budgets', icon: 'pie-chart-outline', screen: 'BudgetsList' },
+    ],
+  },
+  {
+    title: 'Account',
+    items: [
+      { label: 'Profile', icon: 'person-circle-outline', screen: 'Profile' },
+      { label: 'Partner Management', icon: 'heart-circle-outline', screen: 'AddPartner' },
+      { label: 'Favorite Contacts', icon: 'star-outline', screen: 'FavoriteContacts' },
+      { label: 'Refer & Earn', icon: 'gift-outline', screen: 'Referral' },
+>>>>>>> Stashed changes
     ],
   },
   {
     title: 'Your Progress',
     items: [
+<<<<<<< Updated upstream
       { label: 'Streaks & Achievements', icon: 'star', screen: 'Streaks' },
       { label: 'Year in Review', icon: 'calendar', screen: 'YearlySummary' },
+=======
+      { label: 'Premium Plan', icon: 'diamond-outline', screen: 'Premium' },
+      { label: 'Couple Space', icon: 'heart-outline', screen: 'CoupleSpace' },
+>>>>>>> Stashed changes
     ],
   },
   {
     title: 'Preferences',
     items: [
+<<<<<<< Updated upstream
       { label: 'Theme', icon: 'skin', screen: 'Theme' },
       { label: 'Notifications', icon: 'bells', screen: 'NotificationSettings' },
       { label: 'Customise Bottom Menu', icon: 'menufold', screen: 'CustomiseBottomMenu' },
@@ -80,18 +103,31 @@ const SECTIONS: Array<{ title: string; items: SectionItem[] }> = [
       { label: 'Financial Reports', icon: 'linechart', screen: 'Reports', premium: true },
       { label: 'Export Data', icon: 'download', screen: 'DataExport' },
       { label: 'Budgets', icon: 'piechart', screen: 'BudgetsList' },
+=======
+      { label: 'Theme', icon: 'color-palette-outline', screen: 'Theme' },
+      { label: 'Notifications', icon: 'notifications-outline', screen: 'NotificationSettings' },
+      { label: 'Security', icon: 'shield-checkmark-outline', screen: 'Security' },
+      { label: 'Lock App', icon: 'lock-closed-outline', screen: 'Security', action: 'lock' },
+>>>>>>> Stashed changes
     ],
   },
   {
     title: 'Support',
     items: [
+<<<<<<< Updated upstream
       { label: 'Help Center', icon: 'questioncircle', screen: 'Help' },
       { label: 'Contact Us', icon: 'message1', screen: 'Support' },
       { label: 'Privacy Policy', icon: 'filetext1', screen: 'Privacy' },
+=======
+      { label: 'Help Center', icon: 'help-circle-outline', screen: 'Help' },
+      { label: 'Contact Us', icon: 'chatbubble-ellipses-outline', screen: 'Contact' },
+      { label: 'Privacy Policy', icon: 'document-text-outline', screen: 'Privacy' },
+>>>>>>> Stashed changes
     ],
   },
 ];
 
+<<<<<<< Updated upstream
 const ROW_META: Record<string, string> = {
   Profile: 'user', 'Partner Management': 'heart', 'Premium Plan': 'star',
   'Favorite Contacts': 'star', 'Refer & Earn': 'gift', Security: 'Safety',
@@ -100,6 +136,25 @@ const ROW_META: Record<string, string> = {
   Notifications: 'bells', 'Help Center': 'questioncircle',
   'Contact Us': 'message1', 'Privacy Policy': 'filetext1',
   'Streaks & Achievements': 'star', 'Year in Review': 'calendar',
+=======
+const ROW_META: Record<string, { icon: IconName }> = {
+  Profile: { icon: 'person-outline' },
+  'Partner Management': { icon: 'heart-circle-outline' },
+  'Premium Plan': { icon: 'diamond-outline' },
+  'Favorite Contacts': { icon: 'star-outline' },
+  'Refer & Earn': { icon: 'gift-outline' },
+  Security: { icon: 'shield-checkmark-outline' },
+  'Lock App': { icon: 'lock-closed-outline' },
+  'Financial Reports': { icon: 'stats-chart-outline' },
+  'Export Data': { icon: 'download-outline' },
+  Budgets: { icon: 'pie-chart-outline' },
+  'Couple Space': { icon: 'heart-outline' },
+  Theme: { icon: 'color-palette-outline' },
+  Notifications: { icon: 'notifications-outline' },
+  'Help Center': { icon: 'help-circle-outline' },
+  'Contact Us': { icon: 'chatbubble-ellipses-outline' },
+  'Privacy Policy': { icon: 'document-text-outline' },
+>>>>>>> Stashed changes
 };
 
 const REGISTERED_SCREENS = [
@@ -192,18 +247,272 @@ export function SettingsScreen() {
                 </Text>
                 <Text style={[s.profileEmail, { color: colors.text.secondary }]}>{user?.email || ''}</Text>
               </View>
+<<<<<<< Updated upstream
               <View style={[s.badge, { backgroundColor: isPremium ? `${colors.accent.primary}12` : colors.bg.tertiary }]}>
                 <AntDesign name={isPremium ? 'star' : 'user'} size={12} color={isPremium ? colors.accent.primary : colors.text.tertiary} />
                 <Text style={{ fontSize: 11, fontWeight: '600', color: isPremium ? colors.accent.primary : colors.text.tertiary }}>
                   {isPremium ? 'Premium' : 'Free'}
                 </Text>
               </View>
+=======
+              <TouchableOpacity
+                onPress={() => handleNav('Profile')}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 12,
+                  backgroundColor: `${colors.accent.primary}10`,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Ionicons  name="chevron-forward-outline" size={18} color={colors.accent.primary} />
+              </TouchableOpacity>
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                marginTop: 16,
+                paddingTop: 16,
+                borderTopWidth: 1,
+                borderTopColor: colors.border.subtle,
+                gap: 12,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 6,
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  borderRadius: 20,
+                  backgroundColor: isPremium ? `${colors.accent.primary}12` : colors.bg.tertiary,
+                }}
+              >
+                <Ionicons
+                  name={isPremium ? 'diamond-outline' : 'person-outline'}
+                  size={14}
+                  color={isPremium ? colors.accent.primary : colors.text.tertiary}
+                />
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '700',
+                    color: isPremium ? colors.accent.primary : colors.text.tertiary,
+                  }}
+                >
+                  {isPremium ? 'Premium' : 'Free'}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Security')}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 6,
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  borderRadius: 20,
+                  backgroundColor: colors.bg.tertiary,
+                }}
+              >
+                <Ionicons  name="checkmark-circle-outline" size={14} color={colors.text.tertiary} />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: colors.text.tertiary }}>
+                  Security
+                </Text>
+              </TouchableOpacity>
+>>>>>>> Stashed changes
             </View>
           </TouchableOpacity>
           <CoupleModeToggle />
         </View>
 
         <Animated.View style={{ opacity: fadeAnim }}>
+<<<<<<< Updated upstream
+=======
+          {/* Pending Couple Requests */}
+          {pendingRequests.length > 0 && (
+            <View style={{ paddingHorizontal: PADDING, marginBottom: 16 }}>
+              <View
+                style={{
+                  backgroundColor: COUPLE_COLORS.bg,
+                  borderRadius: borderRadius.xl,
+                  borderWidth: 1,
+                  borderColor: COUPLE_COLORS.border,
+                  overflow: 'hidden',
+                }}
+              >
+                <View
+                  style={{
+                    paddingHorizontal: 16,
+                    paddingVertical: 12,
+                    borderBottomWidth: 1,
+                    borderBottomColor: COUPLE_COLORS.border,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 8,
+                  }}
+                >
+                  <Ionicons  name="heart-outline" size={18} color={COUPLE_COLORS.primary} />
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontWeight: '800',
+                      color: COUPLE_COLORS.text,
+                      flex: 1,
+                    }}
+                  >
+                    Couple Request{pendingRequests.length > 1 ? 's' : ''}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: '700',
+                      color: COUPLE_COLORS.primary,
+                    }}
+                  >
+                    {pendingRequests.length} pending
+                  </Text>
+                </View>
+                {pendingRequests.map((req: any) => (
+                  <View
+                    key={req.id}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 12,
+                      paddingHorizontal: 16,
+                      paddingVertical: 12,
+                      borderBottomWidth: 1,
+                      borderBottomColor: COUPLE_COLORS.border,
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 12,
+                        backgroundColor: `${COUPLE_COLORS.primary}15`,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Ionicons  name="person-outline" size={18} color={COUPLE_COLORS.primary} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={{
+                          fontSize: 13,
+                          fontWeight: '700',
+                          color: COUPLE_COLORS.text,
+                        }}
+                      >
+                        {req.sender?.firstName || 'Someone'} wants to connect!
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          fontWeight: '500',
+                          color: COUPLE_COLORS.textSecondary,
+                          marginTop: 1,
+                        }}
+                      >
+                        {req.sender?.phone || req.sender?.email || ''}
+                      </Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', gap: 6 }}>
+                      <TouchableOpacity
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: 10,
+                          backgroundColor: '#10B981',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                        disabled={processingReqId === req.id}
+                        onPress={async () => {
+                          setProcessingReqId(req.id);
+                          try {
+                            const result = await approveCoupleRequest(req.id);
+                            if (result?.user) {
+                              setPendingRequests((prev) => prev.filter((r) => r.id !== req.id));
+                              Alert.alert(
+                                'Connected!',
+                                "You're in a couple! Couple Mode is active.",
+                                [
+                                  {
+                                    text: 'Go to Home',
+                                    onPress: () => navigation.navigate('Dashboard'),
+                                  },
+                                ],
+                              );
+                            }
+                          } catch (e: any) {
+                            Alert.alert('Error', e?.message || 'Failed to approve');
+                          } finally {
+                            setProcessingReqId(null);
+                          }
+                        }}
+                      >
+                        {processingReqId === req.id ? (
+                          <ActivityIndicator size="small" color="#FFF" />
+                        ) : (
+                          <Ionicons  name="checkmark-outline" size={16} color="#FFF" />
+                        )}
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: 10,
+                          backgroundColor: '#FF475720',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderWidth: 1,
+                          borderColor: '#FF475740',
+                        }}
+                        onPress={async () => {
+                          try {
+                            await rejectCoupleRequest(req.id);
+                            setPendingRequests((prev) => prev.filter((r) => r.id !== req.id));
+                          } catch {
+                            // ignore
+                          }
+                        }}
+                      >
+                        <Ionicons  name="close-outline" size={16} color="#FF4757" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
+                <TouchableOpacity
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 4,
+                    paddingVertical: 10,
+                  }}
+                  onPress={() => navigation.navigate('AddPartner')}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: '700',
+                      color: COUPLE_COLORS.primary,
+                    }}
+                  >
+                    View All
+                  </Text>
+                  <Ionicons  name="chevron-forward-outline" size={14} color={COUPLE_COLORS.primary} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+>>>>>>> Stashed changes
 
           {/* Upgrade Banner */}
           {subscription !== undefined && !isPremium && (
@@ -212,8 +521,77 @@ export function SettingsScreen() {
               activeOpacity={0.85}
               style={[s.upgradeBanner, { backgroundColor: colors.bg.card, borderColor: colors.border.subtle }]}
             >
+<<<<<<< Updated upstream
               <View style={[s.upgradeIcon, { backgroundColor: '#FCD34D' }]}>
                 <AntDesign name="star" size={20} color="#0A0A0A" />
+=======
+              <View
+                style={{
+                  height: 4,
+                  backgroundColor: '#FFD700',
+                }}
+              />
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  padding: 20,
+                  gap: 14,
+                }}
+              >
+                <View
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 14,
+                    backgroundColor: '#FFD700',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Ionicons  name="diamond-outline" size={24} color="#0A0A0A" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: '800',
+                      color: colors.text.primary,
+                      letterSpacing: -0.3,
+                    }}
+                  >
+                    Upgrade to Premium
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: '500',
+                      color: colors.text.tertiary,
+                      marginTop: 2,
+                    }}
+                  >
+                    Unlock reports, analytics & exclusive features
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    paddingHorizontal: 16,
+                    paddingVertical: 9,
+                    borderRadius: 20,
+                    backgroundColor: '#FFD700',
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontWeight: '800',
+                      color: '#0A0A0A',
+                    }}
+                  >
+                    Upgrade
+                  </Text>
+                </View>
+>>>>>>> Stashed changes
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[s.upgradeTitle, { color: colors.text.primary }]}>Upgrade to Premium</Text>
@@ -223,6 +601,7 @@ export function SettingsScreen() {
             </TouchableOpacity>
           )}
 
+<<<<<<< Updated upstream
           {/* Couple Requests */}
           {pendingRequests.length > 0 && (
             <View style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.md }}>
@@ -240,6 +619,77 @@ export function SettingsScreen() {
                     <View style={{ flex: 1 }}>
                       <Text style={[s.coupleName, { color: COUPLE_COLORS.text }]}>
                         {req.sender?.firstName || 'Someone'} wants to connect
+=======
+          {/* Couple Mode Toggle */}
+          <CoupleModeToggle />
+
+          {/* Sections */}
+          {filteredSECTIONS.map((section, i) => (
+            <View key={i} style={{ marginBottom: 24, paddingHorizontal: PADDING }}>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '700',
+                  color: colors.text.tertiary,
+                  letterSpacing: 0.8,
+                  textTransform: 'uppercase',
+                  marginBottom: 10,
+                  paddingLeft: 2,
+                }}
+              >
+                {section.title}
+              </Text>
+              <View
+                style={{
+                  backgroundColor: colors.bg.card,
+                  borderRadius: borderRadius.xl,
+                  overflow: 'hidden',
+                  ...shadows.md,
+                }}
+              >
+                {section.items.map((item, j) => {
+                  const meta = ROW_META[item.label];
+                  return (
+                    <TouchableOpacity
+                      key={j}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingVertical: 15,
+                        paddingHorizontal: 18,
+                        gap: 14,
+                        borderBottomWidth: j < section.items.length - 1 ? 1 : 0,
+                        borderBottomColor: colors.border.subtle,
+                      }}
+                      onPress={() => handleNav(item.screen, item.premium, item.action)}
+                      activeOpacity={0.6}
+                    >
+                      <View
+                        style={{
+                          width: 38,
+                          height: 38,
+                          borderRadius: 12,
+                          backgroundColor: `${colors.accent.primary}10`,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Ionicons
+                          name={(meta?.icon as any) || item.icon}
+                          size={18}
+                          color={colors.accent.primary}
+                        />
+                      </View>
+                      <Text
+                        style={{
+                          flex: 1,
+                          fontSize: 15,
+                          fontWeight: '600',
+                          color: colors.text.primary,
+                        }}
+                      >
+                        {item.label}
+>>>>>>> Stashed changes
                       </Text>
                       <Text style={[s.coupleContact, { color: COUPLE_COLORS.textSecondary }]}>
                         {req.sender?.phone || req.sender?.email || ''}
@@ -297,11 +747,38 @@ export function SettingsScreen() {
                       <Text style={[s.rowLabel, { color: colors.text.primary }]}>{item.label}</Text>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
                         {item.premium && !isPremium && (
+<<<<<<< Updated upstream
                           <View style={[s.premiumBadge, { backgroundColor: `${colors.accent.primary}0A` }]}>
                             <Text style={[s.premiumText, { color: colors.accent.primary }]}>Premium</Text>
                           </View>
                         )}
                         <AntDesign name="right" size={14} color={colors.text.tertiary} />
+=======
+                          <View
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              gap: 3,
+                              paddingHorizontal: 8,
+                              paddingVertical: 3,
+                              borderRadius: 6,
+                              backgroundColor: `${colors.accent.primary}10`,
+                            }}
+                          >
+                            <Ionicons  name="lock-closed-outline" size={10} color={colors.accent.primary} />
+                            <Text
+                              style={{
+                                fontSize: 10,
+                                fontWeight: '700',
+                                color: colors.accent.primary,
+                              }}
+                            >
+                              Premium
+                            </Text>
+                          </View>
+                        )}
+                        <Ionicons  name="chevron-forward-outline" size={16} color={colors.text.tertiary} />
+>>>>>>> Stashed changes
                       </View>
                     </TouchableOpacity>
                   );
@@ -324,12 +801,45 @@ export function SettingsScreen() {
           ))}
 
           {/* Logout */}
+<<<<<<< Updated upstream
           <TouchableOpacity style={[s.extraRow, { backgroundColor: colors.bg.card }]} onPress={() => setShowLogoutDialog(true)} activeOpacity={0.6}>
             <View style={[s.rowIcon, { backgroundColor: `${colors.status.error}0A` }]}>
               <AntDesign name="logout" size={16} color={colors.status.error} />
             </View>
             <Text style={[s.rowLabel, { color: colors.status.error }]}>Sign Out</Text>
             <AntDesign name="right" size={14} color={colors.text.tertiary} />
+=======
+          <TouchableOpacity
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 12,
+              marginHorizontal: PADDING,
+              padding: 16,
+              backgroundColor: colors.bg.card,
+              borderRadius: borderRadius.lg,
+              ...shadows.sm,
+            }}
+            onPress={() => setShowLogoutDialog(true)}
+            activeOpacity={0.6}
+          >
+            <View
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 12,
+                backgroundColor: `${colors.status.error}10`,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Ionicons  name="log-out-outline" size={18} color={colors.status.error} />
+            </View>
+            <Text style={{ flex: 1, fontSize: 15, fontWeight: '700', color: colors.status.error }}>
+              Sign Out
+            </Text>
+            <Ionicons  name="chevron-forward-outline" size={16} color={colors.text.tertiary} />
+>>>>>>> Stashed changes
           </TouchableOpacity>
 
           <Text style={[s.version, { color: colors.text.tertiary }]}>Dabbu v1.0.0</Text>

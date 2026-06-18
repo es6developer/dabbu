@@ -9,8 +9,13 @@ import {
   Animated,
   StyleSheet,
 } from 'react-native';
+<<<<<<< Updated upstream
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+=======
+import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+>>>>>>> Stashed changes
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../../services/api';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
@@ -275,9 +280,18 @@ export function CoupleHomeScreen() {
                 <StatCard icon="piechart" label="Rate" value={`${data?.monthlySnapshot?.savingsRate || 0}%`} color={colors.accent.primary} />
               </View>
               {data?.monthlySnapshot?.change !== null && data.monthlySnapshot.change !== 0 && (
+<<<<<<< Updated upstream
                 <View style={st.changeRow}>
                   <AntDesign name={(data.monthlySnapshot.change > 0 ? 'linechart' : 'arrowdown') as any} size={12}
                     color={data.monthlySnapshot.change > 0 ? colors.status.error : colors.status.success} />
+=======
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
+                  <AntDesign
+                    name={(data.monthlySnapshot.change > 0 ? 'trending-up' : 'trending-down') as any}
+                    size={14}
+                    color={data.monthlySnapshot.change > 0 ? colors.status.error : colors.status.success}
+                  />
+>>>>>>> Stashed changes
                   <Text style={{ fontSize: 11, color: data.monthlySnapshot.change > 0 ? colors.status.error : colors.status.success }}>
                     {Math.abs(data.monthlySnapshot.change)}% {data.monthlySnapshot.change > 0 ? 'more' : 'less'} than last month
                   </Text>
@@ -318,9 +332,25 @@ export function CoupleHomeScreen() {
                   const current = Number(goal.currentAmount || goal.savedAmount || 0);
                   const pct = target > 0 ? Math.round((current / target) * 100) : 0;
                   return (
+<<<<<<< Updated upstream
                     <TouchableOpacity key={goal.id} style={[st.goalRow, { backgroundColor: colors.bg.secondary }]}>
                       <View style={[st.goalIcon, { backgroundColor: `${colors.accent.primary}12` }]}>
                         <AntDesign name="star" size={16} color={colors.accent.primary} />
+=======
+                    <TouchableOpacity
+                      key={goal.id}
+                      style={{
+                        backgroundColor: colors.bg.card, borderRadius: 14, padding: 14,
+                        marginBottom: 6, flexDirection: 'row', alignItems: 'center', gap: 12,
+                      }}
+                    >
+                      <View style={{
+                        width: 36, height: 36, borderRadius: 12,
+                        backgroundColor: `${colors.accent.secondary}18`,
+                        alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        <Ionicons name="trophy" size={16} color={colors.accent.secondary} />
+>>>>>>> Stashed changes
                       </View>
                       <View style={st.goalInfo}>
                         <Text style={[st.goalName, { color: colors.text.primary }]}>{goal.name || goal.title}</Text>
@@ -370,12 +400,31 @@ export function CoupleHomeScreen() {
 
             {/* Gamification */}
             {g && (
+<<<<<<< Updated upstream
               <View style={st.section}>
                 <TouchableOpacity activeOpacity={0.85} onPress={() => navigation.navigate('CoupleGamification')}
                   style={[st.gamiCard, { backgroundColor: colors.bg.secondary }]}>
                   <View style={st.gamiLeft}>
                     <View style={[st.gamiIcon, { backgroundColor: `${colors.status.warning}15` }]}>
                       <AntDesign name="star" size={18} color={colors.status.warning} />
+=======
+              <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={() => navigation.navigate('CoupleGamification')}
+                  style={{
+                    backgroundColor: colors.bg.card, borderRadius: 16, padding: 14,
+                    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <View style={{
+                      width: 40, height: 40, borderRadius: 12,
+                      backgroundColor: `${colors.status.warning}20`,
+                      alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <Ionicons name="diamond" size={18} color={colors.status.warning} />
+>>>>>>> Stashed changes
                     </View>
                     <View>
                       <Text style={[st.gamiLevel, { color: colors.text.primary }]}>{g.level}</Text>

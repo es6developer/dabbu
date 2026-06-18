@@ -45,8 +45,13 @@ export const QuickScrollCategoryGrid: React.FC<QuickScrollCategoryGridProps> = (
             backgroundColor: isSelected ? nodeColor : '#1A1A1E',
           }}
         >
+<<<<<<< Updated upstream
           <Ionicons
             name={item.icon}
+=======
+          <AntDesign
+            name={item.icon as any}
+>>>>>>> Stashed changes
             size={ICON_SIZE}
             color={isSelected ? '#0B0813' : '#94A3B8'}
           />

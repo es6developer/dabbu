@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme';
@@ -324,7 +324,11 @@ function LoanDetailScreen({ loan, colors, onBack, onRefresh }: {
           <TouchableOpacity onPress={() => setShowAmort(!showAmort)} style={{ backgroundColor: colors.bg.card, borderRadius: 20, borderWidth: 1, borderColor: colors.border.default, padding: 16, marginBottom: 16 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text.primary }}>Amortization Schedule</Text>
+<<<<<<< Updated upstream
               <AntDesign name={(showAmort ? 'caretup' : 'caretdown') as any} size={18} color={colors.text.tertiary} />
+=======
+              <Ionicons name={showAmort ? 'chevron-up-outline' : 'chevron-down-outline'} size={18} color={colors.text.tertiary} />
+>>>>>>> Stashed changes
             </View>
             {showAmort && (
               <View style={{ marginTop: 12 }}>

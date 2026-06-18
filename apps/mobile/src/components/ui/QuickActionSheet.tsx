@@ -85,10 +85,26 @@ export function QuickActionSheet({ actions, visible, onClose }: QuickActionSheet
                 action.onPress();
               }}
             >
+<<<<<<< Updated upstream
               <View style={[s.iconBox, { backgroundColor: (action.color || '#636366') + '15' }]}>
                 <Ionicons name={action.icon as any} size={22} color={action.color || '#1C1C1E'} />
               </View>
               <Text style={[s.label, { color: colors.text.secondary }]} numberOfLines={1}>
+=======
+              <Animated.View
+                style={[
+                  s.bubble,
+                  { backgroundColor: (action.color || '#636366') + '18' },
+                ]}
+              >
+                <AntDesign
+                  name={action.icon as any}
+                  size={24}
+                  color={action.color || '#1C1C1E'}
+                />
+              </Animated.View>
+              <Text style={[s.label, { color: isDark ? '#8E8E93' : '#636366' }]}>
+>>>>>>> Stashed changes
                 {action.label}
               </Text>
             </TouchableOpacity>

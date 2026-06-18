@@ -344,7 +344,11 @@ export function DocumentDetailScreen() {
             <ActivityIndicator size="small" color="#FFF" />
           ) : (
             <>
+<<<<<<< Updated upstream
               <AntDesign name={(isUpload ? 'upload' : 'check') as any} size={18} color="#FFF" />
+=======
+              <AntDesign name={(isUpload ? 'cloud-upload' : 'checkmark') as any} size={18} color="#FFF" />
+>>>>>>> Stashed changes
               <Text style={s.buttonText}>{isUpload ? 'Upload & Save' : 'Save Changes'}</Text>
             </>
           )}

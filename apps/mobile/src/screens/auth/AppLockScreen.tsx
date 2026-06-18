@@ -8,7 +8,12 @@ import {
   Alert,
   Dimensions,
 } from 'react-native';
+<<<<<<< Updated upstream
 import { AntDesign } from '@expo/vector-icons';
+=======
+import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+>>>>>>> Stashed changes
 import * as SecureStore from 'expo-secure-store';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -171,9 +176,15 @@ export function AppLockScreen({ onUnlock }: Props) {
       </View>
 
       <View style={styles.bottomSection}>
+<<<<<<< Updated upstream
         <TouchableOpacity style={[styles.biometricBtn, { backgroundColor: `${colors.accent.primary}10` }]} onPress={handleBiometric} activeOpacity={0.7}>
           <AntDesign name="checkcircle" size={22} color={colors.accent.primary} />
           <Text style={[styles.biometricText, { color: colors.accent.primary }]}>Use Biometric</Text>
+=======
+        <TouchableOpacity style={styles.biometricBtn} onPress={handleBiometric} activeOpacity={0.7}>
+          <Ionicons  name="finger-print" size={22} color="#14B8A6" />
+          <Text style={styles.biometricText}>Use Biometric</Text>
+>>>>>>> Stashed changes
         </TouchableOpacity>
         <TouchableOpacity onPress={handleForgotPin} activeOpacity={0.6}>
           <Text style={[styles.forgotText, { color: colors.text.tertiary }]}>Forgot PIN?</Text>

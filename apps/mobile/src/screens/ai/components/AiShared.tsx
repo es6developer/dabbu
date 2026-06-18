@@ -506,7 +506,7 @@ interface GoalCardProps {
 }
 
 export function GoalCard({
-  emoji = '🎯',
+  emoji = 'flag',
   title,
   current,
   target,
@@ -520,7 +520,7 @@ export function GoalCard({
     <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
       <View style={[localStyles.goalCard, { backgroundColor: c.card, borderColor: c.border }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <Text style={{ fontSize: 28 }}>{emoji}</Text>
+          <AntDesign name={emoji as any} size={28} color={c.primary} />
           <View style={{ flex: 1 }}>
             <Text style={[localStyles.goalTitle, { color: c.text }]}>{title}</Text>
             <Text style={[localStyles.goalAmount, { color: c.textSecondary }]}>

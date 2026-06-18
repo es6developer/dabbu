@@ -211,6 +211,7 @@ export function AiSavingsScreen() {
                     <View style={{ flexDirection: 'row', gap: 12 }}>
                       <View style={[s.oppIcon, { backgroundColor: `${typeColor}20` }]}>
                         <AntDesign
+<<<<<<< Updated upstream
                           name={(
                             opp.type.includes('subscription')
                               ? 'creditcard'
@@ -218,6 +219,15 @@ export function AiSavingsScreen() {
                                 ? 'restaurant'
                                 : 'wallet'
                           ) as any}
+=======
+                          name={
+                            (opp.type.includes('subscription')
+                              ? 'creditcard'
+                              : opp.type.includes('food')
+                                ? 'restaurant'
+                                : 'wallet') as any
+                          }
+>>>>>>> Stashed changes
                           size={22}
                           color={typeColor}
                         />

@@ -26,13 +26,13 @@ import { Skeleton } from '../../components/ui/AnimatedSkeleton';
 const { width: SCREEN_W } = Dimensions.get('window');
 const REFERRAL_REWARD = 100;
 const REFEREE_REWARD = 50;
-const SHARE_MESSAGE = `🎉 Join Dabbu and manage family expenses together!
+const SHARE_MESSAGE = `Join Dabbu and manage family expenses together!
 
 Use my referral code: {REFERRAL_CODE}
 
 Sign up and start tracking expenses with your family.
 
-💰 Get rewards when you join.
+Get rewards when you join.
 
 Download here:
 {REFERRAL_LINK}`;

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform, Animated } from 're
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, AntDesign } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { HomeScreen } from '../screens/home/HomeScreen';
 import { NotificationsScreen } from '../screens/home/NotificationsScreen';
@@ -69,6 +69,12 @@ import { DataExportScreen } from '../screens/settings/DataExportScreen';
 import { SupportScreen } from '../screens/settings/SupportScreen';
 import { CoupleSpaceNavigator } from './CoupleSpaceNavigator';
 import { CirclesNavigator } from './CirclesNavigator';
+import { FamilyHubNavigator } from './FamilyHubNavigator';
+
+import { DabbuAIScreen } from '../screens/ai/DabbuAIScreen';
+import { HealthScoreScreen } from '../screens/health/HealthScoreScreen';
+import { FinancialCenterScreen } from '../screens/finance/FinancialCenterScreen';
+import { EmergencyFundScreen } from '../screens/savings/EmergencyFundScreen';
 
 import { AdminLoginScreen } from '../screens/admin/AdminLoginScreen';
 import { AdminDashboardScreen } from '../screens/admin/AdminDashboardScreen';
@@ -384,6 +390,26 @@ function SettingsNavigator() {
         component={AdminDashboardScreen}
         options={{ headerShown: false }}
       />
+      <SettingsStack.Screen
+        name="DabbuAI"
+        component={DabbuAIScreen}
+        options={{ headerShown: false }}
+      />
+      <SettingsStack.Screen
+        name="HealthScore"
+        component={HealthScoreScreen}
+        options={{ headerShown: false }}
+      />
+      <SettingsStack.Screen
+        name="FinancialCenter"
+        component={FinancialCenterScreen}
+        options={{ headerShown: false }}
+      />
+      <SettingsStack.Screen
+        name="EmergencyFund"
+        component={EmergencyFundScreen}
+        options={{ headerShown: false }}
+      />
     </SettingsStack.Navigator>
   );
 }
@@ -459,7 +485,7 @@ export function MainTabNavigator() {
       label: 'Wallet',
       icon: 'wallet-outline',
       color: '#2563EB',
-      onPress: () => navigation.navigate('Expense', { screen: 'ExpenseHome' }),
+      onPress: () => navigation.navigate('Expense', { screen: 'MyWallet' }),
     },
     {
       label: 'Net Worth',
@@ -552,7 +578,7 @@ export function MainTabNavigator() {
           options={{
             tabBarLabel: 'Spaces',
             tabBarIcon: ({ focused, color }) => (
-              <Ionicons name={focused ? 'globe' : 'globe-outline'} size={22} color={color} />
+              <AntDesign name={(focused ? 'planet' : 'earth') as any} size={22} color={color} />
             ),
           }}
         />
@@ -562,8 +588,17 @@ export function MainTabNavigator() {
           options={{
             tabBarLabel: 'Goals',
             tabBarIcon: ({ focused, color }) => (
-              <Ionicons name={focused ? 'trophy' : 'trophy-outline'} size={22} color={color} />
+              <AntDesign name={(focused ? 'trophy' : 'trophy') as any} size={22} color={color} />
             ),
+          }}
+        />
+        <Tab.Screen
+          name="FamilyHub"
+          component={FamilyHubNavigator}
+          options={{
+            tabBarLabel: 'Family',
+            headerShown: false,
+            tabBarIcon: ({ color, size }) => <AntDesign name="team" size={size} color={color} />,
           }}
         />
         <Tab.Screen
@@ -572,7 +607,7 @@ export function MainTabNavigator() {
           options={{
             tabBarLabel: 'Profile',
             tabBarIcon: ({ focused, color }) => (
-              <Ionicons name={focused ? 'person' : 'person-outline'} size={22} color={color} />
+              <AntDesign name={(focused ? 'person' : 'user') as any} size={22} color={color} />
             ),
           }}
         />

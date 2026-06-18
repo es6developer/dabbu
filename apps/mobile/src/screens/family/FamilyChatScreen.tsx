@@ -113,7 +113,7 @@ export function FamilyChatScreen() {
         }}
         ListEmptyComponent={
           <Text style={[styles.empty, { color: colors.text.tertiary }]}>
-            No messages yet. Say hello! 👋
+            No messages yet. Say hello!
           </Text>
         }
         windowSize={10}

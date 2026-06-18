@@ -54,7 +54,11 @@ export function PremiumLoaderScreen({
         <View
           style={[s.iconWrap, { backgroundColor: `${colors.brand.primary}12` }]}
         >
+<<<<<<< Updated upstream
           <Ionicons name={icon as any} size={40} color={colors.brand.primary} />
+=======
+          <AntDesign name={icon as any} size={40} color={colors.brand.primary} />
+>>>>>>> Stashed changes
         </View>
 
         <Text style={[s.title, { color: colors.text.primary }]}>

@@ -8,13 +8,6 @@ import {
   RefreshControl,
   Animated,
   Dimensions,
-  Modal,
-  TextInput,
-  Alert,
-  ActivityIndicator,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -27,6 +20,7 @@ import { useToast } from '../../store/ToastContext';
 import { BaseScreen } from '../../components/ui/BaseScreen';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { EmptyState } from '../../components/ui/EmptyState';
+import { CreateGoalModal } from './CreateGoalModal';
 // TODO: Import CelebrationOverlay when navigator is ready
 // import { CelebrationOverlay } from '../../components/ui/CelebrationOverlay';
 
@@ -764,6 +758,7 @@ function GoalsEmptyState({
   );
 }
 
+<<<<<<< Updated upstream
 function CreateGoalModal({
   visible,
   onClose,
@@ -1076,6 +1071,8 @@ function CreateGoalModal({
   );
 }
 
+=======
+>>>>>>> Stashed changes
 export function GoalsListScreen() {
   const { colors } = useTheme();
   const { accessToken } = useAuth();
@@ -1402,6 +1399,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+<<<<<<< Updated upstream
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.6)',
@@ -1470,4 +1468,6 @@ const s = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 15,
   },
+=======
+>>>>>>> Stashed changes
 });

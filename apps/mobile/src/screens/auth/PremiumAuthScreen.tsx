@@ -12,7 +12,7 @@ import {
   Dimensions,
   ViewStyle,
 } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PremiumAuthLayout } from '../../components/ui/PremiumAuthLayout';
@@ -899,7 +899,11 @@ export function PremiumAuthScreen() {
               disabled={loading}
               activeOpacity={0.8}
             >
+<<<<<<< Updated upstream
               <AntDesign name="star" size={20} color={colors.accent.primary} />
+=======
+              <Ionicons  name="rocket" size={20} color={colors.brand.primary} />
+>>>>>>> Stashed changes
               <Text style={styles.demoButtonText}>Demo Login</Text>
             </TouchableOpacity>
 

@@ -6,10 +6,11 @@ import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius, shadows } from '../../theme/design';
 import {
-  PremiumActionButton,
-  PremiumFormScreen,
-  PremiumInput,
-} from '../../components/ui';
+  FormScreen,
+  FormSection,
+  FormField,
+  FormFooter,
+} from '../../components/forms';
 
 export function CreateChatScreen() {
   const navigation = useNavigation<any>();
@@ -19,14 +20,9 @@ export function CreateChatScreen() {
   const [saving, setSaving] = useState(false);
 
   async function handleCreate() {
-    if (!title.trim()) {
-      Alert.alert('Error', 'Chat title is required');
-      return;
-    }
+    if (!title.trim()) { Alert.alert('Error', 'Chat title is required'); return; }
     setSaving(true);
-    if (accessToken) {
-      setAccessToken(accessToken);
-    }
+    if (accessToken) setAccessToken(accessToken);
     try {
       await api.post('/chat', { title: title.trim(), type: 'direct', participantIds: [] });
       Alert.alert('Success', 'Chat created!');
@@ -39,6 +35,7 @@ export function CreateChatScreen() {
   }
 
   return (
+<<<<<<< Updated upstream
     <PremiumFormScreen
       title="New chat"
       subtitle="Create a focused conversation space for money decisions and quick coordination."
@@ -54,5 +51,27 @@ export function CreateChatScreen() {
       />
       <PremiumActionButton title="Create chat" onPress={handleCreate} loading={saving} icon="plus" />
     </PremiumFormScreen>
+=======
+    <FormScreen
+      title="New Chat"
+      subtitle="Create a focused conversation space for money decisions and quick coordination"
+      icon="message1"
+      accent={[colors.status.info, colors.accent.primary]}
+      footer={
+        <FormFooter title="Create Chat" icon="add" loading={saving} onPress={handleCreate} />
+      }
+    >
+      <FormSection title="Chat Details">
+        <FormField
+          label="Chat Name"
+          icon="message1"
+          value={title}
+          onChangeText={setTitle}
+          placeholder="Enter chat name"
+          required
+        />
+      </FormSection>
+    </FormScreen>
+>>>>>>> Stashed changes
   );
 }

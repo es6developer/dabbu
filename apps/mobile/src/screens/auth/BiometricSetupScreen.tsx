@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 
@@ -28,7 +28,11 @@ export function BiometricSetupScreen() {
   return (
     <View style={styles.container}>
       <View style={[styles.iconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
+<<<<<<< Updated upstream
         <AntDesign name="checkcircle" size={56} color={colors.accent.primary} />
+=======
+        <Ionicons  name="finger-print" size={56} color={colors.accent.primary} />
+>>>>>>> Stashed changes
       </View>
       <Text style={[styles.title, { color: colors.text.primary }]}>Secure your account</Text>
       <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>

@@ -15,8 +15,12 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
+<<<<<<< Updated upstream
 import { AntDesign } from '@expo/vector-icons';
 import { PieChart } from 'react-native-chart-kit';
+=======
+import { AntDesign, Ionicons } from '@expo/vector-icons';
+>>>>>>> Stashed changes
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken, addSyncListener } from '../../services/api';
 import { PremiumLoaderScreen } from '../../components/ui/PremiumLoaderScreen';
@@ -603,7 +607,11 @@ export function SharedGroupDetailScreen() {
           <View style={[s.tripSummaryCard, { backgroundColor: colors.bg.card }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <View style={[s.tripIconWrap, { backgroundColor: `${colors.accent.primary}15` }]}>
+<<<<<<< Updated upstream
                 <AntDesign name="enviroment" size={20} color={colors.accent.primary} />
+=======
+                <Ionicons  name="airplane" size={20} color={colors.accent.primary} />
+>>>>>>> Stashed changes
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[s.tripSummaryTitle, { color: colors.text.primary }]}>
@@ -686,8 +694,13 @@ export function SharedGroupDetailScreen() {
               AI Insights
             </Text>
           </View>
+<<<<<<< Updated upstream
           <AntDesign
             name={(insightsOpen ? 'caretup' : 'caretdown') as any}
+=======
+          <Ionicons
+            name={insightsOpen ? 'chevron-up-outline' : 'chevron-down-outline'}
+>>>>>>> Stashed changes
             size={18}
             color={colors.text.tertiary}
           />
@@ -1209,7 +1222,11 @@ export function SharedGroupDetailScreen() {
                     setInviteModalVisible(false);
                   }}
                 >
+<<<<<<< Updated upstream
                   <AntDesign name="message1" size={18} color="#34C759" />
+=======
+                  <Ionicons  name="logo-whatsapp" size={18} color="#34C759" />
+>>>>>>> Stashed changes
                   <Text style={[s.modalBtnText, { color: '#34C759' }]}>WhatsApp</Text>
                 </TouchableOpacity>
               </View>
@@ -1401,7 +1418,11 @@ export function SharedGroupDetailScreen() {
                       <>
                         <Text style={s.groupMeta}>·</Text>
                         <AntDesign
+<<<<<<< Updated upstream
                           name={(myBalanceRow.balance >= 0 ? 'arrowdown' : 'arrowup') as any}
+=======
+                          name={(myBalanceRow.balance >= 0 ? 'arrow-down' : 'arrow-up') as any}
+>>>>>>> Stashed changes
                           size={10}
                           color="rgba(255,255,255,0.6)"
                         />

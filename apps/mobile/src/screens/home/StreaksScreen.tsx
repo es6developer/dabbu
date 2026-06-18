@@ -38,7 +38,8 @@ function getStreakLevel(count: number): string {
 }
 
 export function StreaksScreen() {
-  const { theme } = useTheme();
+  const { colors: c } = useTheme();
+  const theme = { background: c.bg.primary, text: c.text.primary, card: c.bg.card, subtext: c.text.secondary, muted: c.text.tertiary, primary: c.accent.primary, border: c.border.subtle };
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const [streaks, setStreaks] = useState<any[]>([]);

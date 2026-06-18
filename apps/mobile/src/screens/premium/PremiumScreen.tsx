@@ -12,7 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -294,7 +294,11 @@ export function PremiumScreen() {
         <ScrollView style={[styles.container, { backgroundColor: '#0A0A1A' }]}>
           <View style={[styles.activeHeader, { paddingTop: insets.top }]}>
             <View style={styles.premiumBadgeLarge}>
+<<<<<<< Updated upstream
               <AntDesign name="star" size={24} color="#FFD700" />
+=======
+              <Ionicons  name="diamond" size={24} color="#FFD700" />
+>>>>>>> Stashed changes
               <Text style={styles.premiumBadgeText}>DABBU PREMIUM</Text>
             </View>
             <Text style={styles.activeTitle}>You're on Premium</Text>
@@ -352,7 +356,11 @@ export function PremiumScreen() {
         >
           <View style={[styles.heroGradient, { paddingTop: insets.top }]}>
             <View style={styles.premiumBadgeSmall}>
+<<<<<<< Updated upstream
               <AntDesign name="star" size={14} color="#FFD700" />
+=======
+              <Ionicons name="diamond" size={14} color="#FFD700" />
+>>>>>>> Stashed changes
               <Text style={styles.premiumBadgeSmallText}>PREMIUM</Text>
             </View>
             <Text style={styles.heroTitle}>Unlock the Full</Text>
@@ -562,7 +570,11 @@ export function PremiumScreen() {
             <ActivityIndicator size="small" color="#000" />
           ) : (
             <>
+<<<<<<< Updated upstream
               <AntDesign name="star" size={18} color="#000" style={{ marginRight: 8 }} />
+=======
+              <Ionicons name="diamond" size={18} color="#000" style={{ marginRight: 8 }} />
+>>>>>>> Stashed changes
               <Text style={styles.upgradeText}>Go Premium • {plans[selectedPlan].price}</Text>
             </>
           )}

@@ -115,8 +115,13 @@ export function CustomiseBottomMenuScreen() {
             },
           ]}
         >
+<<<<<<< Updated upstream
           <Ionicons
             name={isSettings ? 'lock-closed-outline' : isQa ? 'bulb-outline' : 'menu-outline'}
+=======
+          <AntDesign
+            name={(isSettings ? 'lock-closed' : isQa ? 'flash' : 'menu') as any}
+>>>>>>> Stashed changes
             size={20}
             color={colors.text.tertiary}
             style={{ marginRight: 12 }}

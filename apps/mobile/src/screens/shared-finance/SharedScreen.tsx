@@ -49,6 +49,7 @@ const COVER_GRADIENTS: Record<string, [string, string]> = {
   sports: ['#059669', '#34D399'],
 };
 
+<<<<<<< Updated upstream
 const COVER_ICONS: Record<string, string> = {
   couple: 'heart',
   family: 'team',
@@ -60,6 +61,19 @@ const COVER_ICONS: Record<string, string> = {
   event: 'star',
   apartment: 'appstore-o',
   sports: 'codesquareo',
+=======
+const COVER_EMOJIS: Record<string, string> = {
+  couple: 'heart',
+  family: 'team',
+  trip: 'enviroment',
+  friends: 'team',
+  wedding: 'heart',
+  house_purchase: 'home',
+  office: 'briefcase',
+  event: 'star',
+  apartment: 'building',
+  sports: 'Trophy',
+>>>>>>> Stashed changes
 };
 
 function fmtCompact(v: number) {
@@ -226,7 +240,11 @@ function GreetingHeader({ netBalance, userName, colors, onSettings, onBalancePre
             }}
           >
             <AntDesign
+<<<<<<< Updated upstream
               name={(isPositive ? 'downcircle' : 'upcircle') as any}
+=======
+              name={(isPositive ? 'arrow-down-circle' : 'arrow-up-circle') as any}
+>>>>>>> Stashed changes
               size={24}
               color={statusColor}
             />
@@ -320,7 +338,13 @@ function GroupCard({
     deriveGroupBalance(group, currentUserId, userBalance, balanceArray);
   const members = group.members || [];
   const lastActivity = timeSince(group.updatedAt || group.createdAt);
+<<<<<<< Updated upstream
   const coverIcon = COVER_ICONS[group.type] || 'folder1';
+=======
+  const icon = SPACE_ICONS[group.type] || 'people';
+  const coverGradient = COVER_GRADIENTS[group.type] || ['#6B7280', '#9CA3AF'];
+  const coverIcon = COVER_EMOJIS[group.type] || 'folder1';
+>>>>>>> Stashed changes
   const goalCount = group._count?.goals || group.goals?.length || 0;
   const aiTip = group.aiTip || null;
 
@@ -367,6 +391,7 @@ function GroupCard({
           borderColor: colors.border.subtle,
         }}
       >
+<<<<<<< Updated upstream
         {/* Top Row — collapsed view */}
         <View style={{ padding: 16 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -381,6 +406,21 @@ function GroupCard({
               }}
             >
               <AntDesign name={coverIcon as any} size={22} color={colors.text.primary} />
+=======
+        {/* Cover Image Strip */}
+        <View style={{ height: 64, backgroundColor: coverGradient[0], justifyContent: 'center', paddingHorizontal: 14 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+              <AntDesign name={coverIcon as any} size={24} color="#FFFFFF" />
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: '#FFFFFF', flex: 1 }} numberOfLines={1}>
+                  {group.name || group.title}
+                </Text>
+                <Text style={{ fontSize: 11, fontWeight: '500', color: 'rgba(255,255,255,0.7)', textTransform: 'capitalize', marginTop: 1 }}>
+                  {group.type || 'space'}
+                </Text>
+              </View>
+>>>>>>> Stashed changes
             </View>
             <View style={{ flex: 1, gap: 2 }}>
               <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text.primary }} numberOfLines={1}>
@@ -729,7 +769,11 @@ export function SharedScreen() {
             }}
           >
             <AntDesign
+<<<<<<< Updated upstream
               name={(isAtLimit ? 'lock' : 'plus') as any}
+=======
+              name={(isAtLimit ? 'lock-closed' : 'add') as any}
+>>>>>>> Stashed changes
               size={16}
               color={isAtLimit ? colors.status.error : colors.accent.primary}
             />
@@ -855,6 +899,164 @@ export function SharedScreen() {
           </TouchableOpacity>
         )}
       </ScrollView>
+<<<<<<< Updated upstream
+=======
+
+      {/* ─── Create Modal ─── */}
+      <Modal
+        visible={showCreateModal}
+        transparent
+        animationType="slide"
+        onRequestClose={resetModal}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={[mod.overlay, { backgroundColor: 'rgba(0,0,0,0.45)' }]}>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+              keyboardVerticalOffset={Platform.OS === 'ios' ? -20 : 0}
+              style={{ justifyContent: 'flex-end' }}
+            >
+              <TouchableWithoutFeedback onPress={() => {}}>
+                <View style={[mod.sheet, { backgroundColor: colors.bg.primary }]}>
+                  <View style={[mod.handle, { backgroundColor: colors.border.default }]} />
+                  <Text style={[mod.title, { color: colors.text.primary }]}>New Space</Text>
+
+                  <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                    contentContainerStyle={{ paddingBottom: 8 }}
+                  >
+                    <View style={mod.field}>
+                      <Text style={[mod.label, { color: colors.text.tertiary }]}>Name</Text>
+                      <TextInput
+                        style={[
+                          mod.input,
+                          {
+                            backgroundColor: colors.bg.card,
+                            borderColor: colors.border.default,
+                            color: colors.text.primary,
+                          },
+                        ]}
+                        value={newName}
+                        onChangeText={setNewName}
+                        placeholder="e.g. Goa Trip 2025"
+                        placeholderTextColor={colors.text.tertiary}
+                      />
+                    </View>
+
+                    <View style={mod.field}>
+                      <Text style={[mod.label, { color: colors.text.tertiary }]}>Type</Text>
+                      <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={mod.typeRow}
+                      >
+                        {Object.entries(COVER_EMOJIS)
+                          .map(([key, iconName]) => {
+                            const active = newType === key;
+                            const grad = COVER_GRADIENTS[key] || ['#6B7280', '#9CA3AF'];
+                            return (
+                              <TouchableOpacity
+                                key={key}
+                                style={[
+                                  mod.typeChip,
+                                  {
+                                    borderColor: active ? grad[0] : colors.border.default,
+                                    backgroundColor: active ? grad[0] + '18' : colors.bg.card,
+                                  },
+                                ]}
+                                onPress={() => setNewType(key)}
+                              >
+                                <AntDesign name={iconName as any} size={18} color={active ? grad[0] : colors.text.secondary} />
+                                <Text
+                                  style={[
+                                    mod.typeChipText,
+                                    {
+                                      color: active ? grad[0] : colors.text.secondary,
+                                    },
+                                  ]}
+                                >
+                                  {key.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                                </Text>
+                              </TouchableOpacity>
+                            );
+                          })}
+                      </ScrollView>
+                    </View>
+
+                    <View style={mod.field}>
+                      <Text style={[mod.label, { color: colors.text.tertiary }]}>
+                        Invite Member (optional)
+                      </Text>
+                      <View
+                        style={[
+                          mod.inviteRow,
+                          { backgroundColor: colors.bg.card, borderColor: colors.border.default },
+                        ]}
+                      >
+                        <AntDesign
+                           name="adduser"
+                          size={18}
+                          color={colors.text.tertiary}
+                        />
+                        <TextInput
+                          style={[mod.inviteInput, { color: colors.text.primary }]}
+                          value={inviteEmail}
+                          onChangeText={setInviteEmail}
+                          placeholder="Email address"
+                          placeholderTextColor={colors.text.tertiary}
+                          keyboardType="email-address"
+                          autoCapitalize="none"
+                        />
+                      </View>
+                    </View>
+
+                    <View style={mod.actionRow}>
+                      <TouchableOpacity
+                        style={[mod.cancelBtn, { borderColor: colors.border.default }]}
+                        onPress={() => {
+                          resetModal();
+                          Keyboard.dismiss();
+                        }}
+                      >
+                        <Text style={[mod.cancelBtnText, { color: colors.text.secondary }]}>
+                          Cancel
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[
+                          mod.submitBtn,
+                          {
+                            backgroundColor: colors.accent.primary,
+                            opacity: saving || !newName.trim() ? 0.5 : 1,
+                          },
+                        ]}
+                        onPress={() => {
+                          Keyboard.dismiss();
+                          handleCreateSpace();
+                        }}
+                        disabled={saving || !newName.trim()}
+                      >
+                        {saving ? (
+                          <ActivityIndicator color={colors.text.inverse} size="small" />
+                        ) : (
+                          <>
+                            <AntDesign  name="plus" size={18} color={colors.text.inverse} />
+                            <Text style={[mod.submitBtnText, { color: colors.text.inverse }]}>
+                              Create
+                            </Text>
+                          </>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  </ScrollView>
+                </View>
+              </TouchableWithoutFeedback>
+            </KeyboardAvoidingView>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+>>>>>>> Stashed changes
     </View>
   );
 }

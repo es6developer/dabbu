@@ -34,7 +34,7 @@ function LevelProgress({ xp }: { xp: number }) {
   const progress = (xp % XP_PER_LEVEL) / XP_PER_LEVEL;
   const currentLevel = Math.floor(xp / XP_PER_LEVEL) + 1;
 
-  const icons = ['🥉', '🥈', '🥇', '💎'];
+  const icons = ['medal', 'medal', 'medal', 'diamond'];
   const label =
     currentLevel >= 4
       ? 'Platinum'
@@ -46,7 +46,7 @@ function LevelProgress({ xp }: { xp: number }) {
 
   return (
     <View style={{ alignItems: 'center', padding: 20 }}>
-      <Text style={{ fontSize: 48, marginBottom: 8 }}>{icons[Math.min(currentLevel - 1, 3)]}</Text>
+      <AntDesign name={icons[Math.min(currentLevel - 1, 3)] as any} size={48} color={colors.accent.primary} />
       <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text.primary }}>Level {currentLevel}</Text>
       <Text style={{ fontSize: 14, color: colors.accent.primary, fontWeight: '600', marginTop: 2 }}>
         {label} Couple

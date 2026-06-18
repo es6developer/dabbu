@@ -142,7 +142,11 @@ export function GroupWalletScreen() {
                 <View style={styles.walletHeader}>
                   <View style={styles.walletIcon}>
                     <AntDesign
+<<<<<<< Updated upstream
                       name={(item.isLocked ? 'lock' : 'wallet') as any}
+=======
+                      name={(item.isLocked ? 'lock-closed' : 'wallet') as any}
+>>>>>>> Stashed changes
                       size={24}
                       color={colors.accent.primary}
                     />
@@ -157,7 +161,11 @@ export function GroupWalletScreen() {
                   </View>
                   <TouchableOpacity onPress={() => toggleLock(item.id)} style={styles.lockBtn}>
                     <AntDesign
+<<<<<<< Updated upstream
                       name={(item.isLocked ? 'lock' : 'lock') as any}
+=======
+                      name={(item.isLocked ? 'lock-closed' : 'lock-open') as any}
+>>>>>>> Stashed changes
                       size={18}
                       color={item.isLocked ? colors.status.error : colors.text.tertiary}
                     />

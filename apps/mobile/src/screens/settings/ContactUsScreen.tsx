@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
 
@@ -38,7 +38,11 @@ export function ContactUsScreen() {
             <Text style={[styles.label, { color: colors.text.primary }]}>{opt.label}</Text>
             <Text style={[styles.value, { color: colors.text.tertiary }]}>{opt.value}</Text>
           </View>
+<<<<<<< Updated upstream
           <AntDesign name="folder1" size={18} color={colors.text.tertiary} />
+=======
+          <Ionicons  name="open" size={18} color={colors.text.tertiary} />
+>>>>>>> Stashed changes
         </TouchableOpacity>
       ))}
 

@@ -9,7 +9,8 @@ import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
 export function DataExportScreen() {
-  const { theme } = useTheme();
+  const { colors: c } = useTheme();
+  const theme = { background: c.bg.primary, text: c.text.primary, card: c.bg.card, subtext: c.text.secondary, muted: c.text.tertiary, primary: c.accent.primary, border: c.border.subtle };
   const insets = useSafeAreaInsets();
   const [exporting, setExporting] = useState(false);
   const [history, setHistory] = useState<any[]>([]);

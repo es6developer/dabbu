@@ -11,7 +11,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -720,8 +720,13 @@ export function SharedExpenseFormScreen() {
                   {showNotes ? 'Hide notes' : notes ? `Notes (${notes.length})` : 'Add notes'}
                 </Text>
               </View>
+<<<<<<< Updated upstream
               <AntDesign
                 name={(showNotes ? 'caretup' : 'caretdown') as any}
+=======
+              <Ionicons
+                name={showNotes ? 'chevron-up-outline' : 'chevron-down-outline'}
+>>>>>>> Stashed changes
                 size={16}
                 color={colors.text.tertiary}
               />

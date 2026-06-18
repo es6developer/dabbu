@@ -1,0 +1,68 @@
+import React, { ReactNode } from 'react';
+import { View, Text, StyleSheet, Platform } from 'react-native';
+import { useTheme } from '../../theme';
+
+interface FormSectionProps {
+  title?: string;
+  children: ReactNode;
+  spacing?: 'sm' | 'md' | 'lg';
+}
+
+export function FormSection({ title, children, spacing = 'md' }: FormSectionProps) {
+  const { colors, typography } = useTheme();
+  const gap = spacing === 'sm' ? 6 : spacing === 'lg' ? 16 : 10;
+
+  return (
+    <View style={{ marginBottom: 10 }}>
+      {title && (
+        <View style={styles.sectionHeader}>
+          <Text
+            style={[
+              typography.subheadBold,
+              {
+                color: colors.text.tertiary,
+                textTransform: 'uppercase',
+                letterSpacing: 1,
+              },
+            ]}
+          >
+            {title}
+          </Text>
+        </View>
+      )}
+      <View
+        style={[
+          styles.sectionCard,
+          {
+            backgroundColor: colors.bg.card,
+            borderColor: colors.border.default,
+            gap,
+            ...Platform.select({
+              ios: {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.04,
+                shadowRadius: 8,
+              },
+              android: { elevation: 2 },
+            }),
+          },
+        ]}
+      >
+        {children}
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  sectionHeader: {
+    paddingHorizontal: 4,
+    paddingBottom: 4,
+  },
+  sectionCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 16,
+  },
+});

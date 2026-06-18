@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Modal } from 'react-native';
+import { AntDesign } from '@expo/vector-icons';
 import { DetailSkeleton } from '../../components/ui/AnimatedSkeleton';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
@@ -270,7 +271,8 @@ export function ReminderDetailScreen() {
           onPress={handleDelete}
           disabled={actionLoading}
         >
-          <Text style={[styles.deleteBtnText, { color: colors.status.error }]}>🗑 Delete</Text>
+          <AntDesign name="delete" size={16} color={colors.status.error} />
+          <Text style={[styles.deleteBtnText, { color: colors.status.error }]}> Delete</Text>
         </TouchableOpacity>
       </View>
 

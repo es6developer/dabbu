@@ -258,7 +258,11 @@ export function GlobalSearchScreen() {
               >
                 <View style={[styles.resultIcon, { backgroundColor: `${txColor}12` }]}>
                   <AntDesign
+<<<<<<< Updated upstream
                     name={(getCategoryIcon(tx.category?.name || tx.category)) as any}
+=======
+                    name={getCategoryIcon(tx.category?.name || tx.category) as any}
+>>>>>>> Stashed changes
                     size={16}
                     color={txColor}
                   />

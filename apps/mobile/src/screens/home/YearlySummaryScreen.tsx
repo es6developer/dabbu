@@ -17,7 +17,8 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 const CURRENT_YEAR = new Date().getFullYear();
 
 export function YearlySummaryScreen() {
-  const { theme } = useTheme();
+  const { colors: c } = useTheme();
+  const theme = { background: c.bg.primary, text: c.text.primary, card: c.bg.card, subtext: c.text.secondary, muted: c.text.tertiary, primary: c.accent.primary, border: c.border.subtle };
   const insets = useSafeAreaInsets();
   const [summary, setSummary] = useState<any>(null);
   const [selectedYear, setSelectedYear] = useState(CURRENT_YEAR);

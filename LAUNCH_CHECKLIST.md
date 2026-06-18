@@ -13,6 +13,12 @@
 - [ ] Run `npm audit` and fix all vulnerabilities
 - [ ] Enable Helmet CSP headers for production
 - [ ] Session timeout configured correctly
+- [ ] Admin MFA/2FA enabled for super_admin accounts
+- [ ] Admin auth switched to httpOnly cookies (not localStorage)
+- [ ] Client-side RBAC implemented (hide destructive UI per role)
+- [ ] Login alert emails sent on new device detection
+- [ ] Rate limiting configured on file upload endpoints
+- [ ] Presigned URLs for S3/R2 file access instead of public URLs
 
 ### Database Preparation
 - [ ] Run all Prisma migrations
@@ -37,7 +43,7 @@
 ### Monitoring & Alerting
 - [ ] Sentry DSN configured for backend
 - [ ] Sentry DSN configured for mobile app (@sentry/react-native)
-- [ ] Sentry DSN configured for admin panel
+- [ ] Sentry DSN configured for admin panel (@sentry/nextjs)
 - [ ] OpenTelemetry exporter configured
 - [ ] Uptime monitoring configured (Pingdom / UptimeRobot)
 - [ ] Alert rules configured for:
@@ -48,6 +54,9 @@
   - [ ] SSL certificate expiry < 30 days
 - [ ] PagerDuty/OpsGenie on-call rotation configured
 - [ ] Log aggregation (ELK / Datadog) configured
+- [ ] Load testing completed (k6/artillery at 2x expected load)
+- [ ] MySQL slow query log enabled
+- [ ] Prisma connection pool size tuned
 
 ## Launch Day (T-0)
 
@@ -179,6 +188,10 @@
 - [ ] Deep linking
 - [ ] All navigation flows
 - [ ] Premium subscription flow
+- [ ] @sentry/react-native crash reporting verified
+- [ ] Hermes engine enabled for production builds
+- [ ] Bundle size analyzed and optimized
+- [ ] Mobile API cache behavior verified
 
 ## App Store Checklist
 

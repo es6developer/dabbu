@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   Animated,
 } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -146,12 +146,94 @@ export function SharedCirclesScreen() {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} tintColor={colors.accent.primary} />
         }
+<<<<<<< Updated upstream
         ListHeaderComponent={
           <View style={{ marginBottom: 16, paddingTop: insets.top + 8 }}>
             <View style={s.headerRow}>
               <View>
                 <Text style={[s.greeting, { color: colors.text.tertiary }]}>Shared</Text>
                 <Text style={[s.title, { color: colors.text.primary }]}>Groups</Text>
+=======
+        contentContainerStyle={
+          filtered.length === 0 ? s.emptyContainer : { paddingBottom: insets.bottom + 100 }
+        }
+      >
+        {/* ─── Header ─── */}
+        <View style={{ paddingHorizontal: H_PADDING, paddingTop: insets.top + 12 }}>
+          <Text style={[s.greeting, { color: colors.text.tertiary }]}>{getGreeting()}</Text>
+          <View style={s.headerRow}>
+            <Text style={[s.title, { color: colors.text.primary }]}>My Circles</Text>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <TouchableOpacity
+                style={[s.iconBtn, { backgroundColor: colors.accent.primary + '12' }]}
+                onPress={() => navigation.navigate('Analytics')}
+              >
+                <Ionicons name="bar-chart-outline" size={20} color={colors.accent.primary} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[s.iconBtn, { backgroundColor: colors.accent.primary }]}
+                onPress={handleCreateGroup}
+              >
+                <AntDesign  name="plus" size={22} color="#FFF" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        {/* ─── Stats Row ─── */}
+        {groups.length > 0 && (
+          <View style={{ paddingHorizontal: H_PADDING, marginTop: 20 }}>
+            <View style={s.statsRow}>
+              <StatCard
+                icon="people"
+                value={String(totalMembers)}
+                label="Members"
+                color={colors.accent.primary}
+              />
+              <StatCard
+                icon="layers"
+                value={String(groups.length)}
+                label="Circles"
+                color={colors.status.success}
+              />
+              <StatCard
+                icon="trending-up"
+                value={String(activeCount)}
+                label="Active"
+                color={colors.status.warning}
+              />
+            </View>
+          </View>
+        )}
+
+        {/* ─── Plan Info ─── */}
+        {planInfo.tier === 'free' && groups.length > 0 && (
+          <View style={{ paddingHorizontal: H_PADDING, marginTop: 14 }}>
+            <View
+              style={[
+                s.planBar,
+                { backgroundColor: colors.bg.card, borderColor: colors.border.default },
+              ]}
+            >
+              <View style={s.planBarLeft}>
+                <View style={[s.planBarOuter, { backgroundColor: colors.bg.tertiary }]}>
+                  <View
+                    style={[
+                      s.planBarFill,
+                      {
+                        width: `${(groups.length / planInfo.maxGroups) * 100}%`,
+                        backgroundColor:
+                          groups.length >= planInfo.maxGroups
+                            ? colors.status.error
+                            : colors.accent.primary,
+                      },
+                    ]}
+                  />
+                </View>
+                <Text style={[s.planText, { color: colors.text.secondary }]}>
+                  {groups.length} of {planInfo.maxGroups} circles
+                </Text>
+>>>>>>> Stashed changes
               </View>
               <TouchableOpacity
                 style={[s.addBtn, { backgroundColor: colors.accent.primary }]}

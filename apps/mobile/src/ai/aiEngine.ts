@@ -140,19 +140,19 @@ function handleGreeting(): AIResponse {
 
 function handleHelp(): AIResponse {
   return messageResponse(
-    '🤖 **Dabbu AI Commands**\n\n' +
-    '**📝 Add Expenses**\n' +
+    '**Dabbu AI Commands**\n\n' +
+    '**Add Expenses**\n' +
     '• "Add expense ₹500 for dinner"\n' +
     '• "Add ₹200 for Uber to Office circle"\n\n' +
-    '**📊 View Reports**\n' +
+    '**View Reports**\n' +
     '• "Summarize my spending"\n' +
     '• "Show my food expenses"\n' +
     '• "Compare this month vs last month"\n\n' +
-    '**🔄 Create & Manage**\n' +
+    '**Create & Manage**\n' +
     '• "Create a circle for Vacation"\n' +
     '• "Create a space for Emergency Fund"\n' +
     '• "Set a budget for Dining ₹5000"\n\n' +
-    '**💡 Insights**\n' +
+    '**Insights**\n' +
     '• "Where can I save money?"',
   );
 }
@@ -184,7 +184,7 @@ async function handleAddExpenseFlow(input: string, userId: string): Promise<AIRe
     }
     return messageResponse(backend.message, backend.data);
   }
-  return messageResponse(`➕ ₹${entities.amount} for **${entities.description || 'Expense'}** saved!`);
+  return messageResponse(`₹${entities.amount} for **${entities.description || 'Expense'}** saved!`);
 }
 
 async function handleCreateCircleFlow(input: string, userId: string): Promise<AIResponse> {
@@ -194,7 +194,7 @@ async function handleCreateCircleFlow(input: string, userId: string): Promise<AI
     return askResponse('What should the circle be called?', 'circleName', []);
   }
   const backend = await callBackend(input);
-  return messageResponse(backend?.message || `✅ Circle created!`, backend?.data);
+  return messageResponse(backend?.message || `Circle created!`, backend?.data);
 }
 
 async function handleCreateSpaceFlow(input: string, userId: string): Promise<AIResponse> {
@@ -204,7 +204,7 @@ async function handleCreateSpaceFlow(input: string, userId: string): Promise<AIR
     return askResponse('What should the space be called?', 'spaceName', []);
   }
   const backend = await callBackend(input);
-  return messageResponse(backend?.message || `✅ Space created!`, backend?.data);
+  return messageResponse(backend?.message || `Space created!`, backend?.data);
 }
 
 async function handleSummarizeFlow(userId: string): Promise<AIResponse> {
@@ -214,7 +214,7 @@ async function handleSummarizeFlow(userId: string): Promise<AIResponse> {
 
 async function handleSavingsFlow(): Promise<AIResponse> {
   const backend = await callBackend('Show me where I can save money');
-  return messageResponse(backend?.message || '📈 Analyzing your spending...', backend?.data);
+  return messageResponse(backend?.message || 'Analyzing your spending...', backend?.data);
 }
 
 // ── Conversation Step Handler ───────────────────────────────────
@@ -286,14 +286,14 @@ export async function handleConversationStep(
       if (input.trim().length < 2) return askResponse('Enter a name (at least 2 chars).', 'circleName', []);
       clearConversation(userId);
       const backend = await callBackend(`Create circle called ${input.trim()}`);
-      return messageResponse(backend?.message || `✅ Circle "${input.trim()}" created!`, backend?.data);
+      return messageResponse(backend?.message || `Circle "${input.trim()}" created!`, backend?.data);
     }
 
     case 'ask_space_name': {
       if (input.trim().length < 2) return askResponse('Enter a name (at least 2 chars).', 'spaceName', []);
       clearConversation(userId);
       const backend = await callBackend(`Create space called ${input.trim()}`);
-      return messageResponse(backend?.message || `✅ Space "${input.trim()}" created!`, backend?.data);
+      return messageResponse(backend?.message || `Space "${input.trim()}" created!`, backend?.data);
     }
 
     default:

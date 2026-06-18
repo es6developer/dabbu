@@ -10,7 +10,12 @@ import {
   RefreshControl,
   Dimensions,
 } from 'react-native';
+<<<<<<< Updated upstream
 import { AntDesign } from '@expo/vector-icons';
+=======
+import { LinearGradient } from 'expo-linear-gradient';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
+>>>>>>> Stashed changes
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken, warmupBackend } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
@@ -536,7 +541,11 @@ export function SharedFinanceHomeScreen() {
                   style={[hdr.iconBtn, { backgroundColor: colors.status.warning + '15' }]}
                   onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}
                 >
+<<<<<<< Updated upstream
                   <AntDesign name="star" size={18} color={colors.status.warning} />
+=======
+                  <Ionicons  name="diamond" size={18} color={colors.status.warning} />
+>>>>>>> Stashed changes
                 </TouchableOpacity>
               </View>
             </View>

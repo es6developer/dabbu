@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CelebrationOverlay } from '../../components/ui/CelebrationOverlay';
@@ -137,7 +137,11 @@ export function TripCompletedScreen({ route, navigation }: TripCompletedScreenPr
             
             style={styles.ctaGradient}
           >
+<<<<<<< Updated upstream
             <AntDesign name="star" size={20} color="#FFF" />
+=======
+            <Ionicons  name="rocket" size={20} color="#FFF" />
+>>>>>>> Stashed changes
             <Text style={styles.ctaText}>Claim Your Free Premium Trial</Text>
           </View>
         </TouchableOpacity>

@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import ReAnimated, { FadeInUp } from 'react-native-reanimated';
@@ -101,7 +101,7 @@ export function SmartGoalCoachScreen() {
               name: g.name ?? g.title ?? '',
               current: Number(g.currentAmount ?? g.saved ?? 0),
               target: Number(g.targetAmount ?? g.target ?? 0),
-              emoji: g.emoji ?? '🎯',
+              emoji: g.emoji ?? 'flag',
               ...pred,
             } as GoalWithPrediction;
           }),
@@ -147,7 +147,11 @@ export function SmartGoalCoachScreen() {
     return (
       <View style={[s.screen, { backgroundColor: AI_COLORS.bg, paddingTop: insets.top + 60 }]}>
         <View style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
+<<<<<<< Updated upstream
           <AntDesign name="star" size={48} color={AI_COLORS.textTertiary} />
+=======
+          <Ionicons  name="trophy" size={48} color={AI_COLORS.textTertiary} />
+>>>>>>> Stashed changes
           <Text style={{ fontSize: 18, fontWeight: '700', color: AI_COLORS.text }}>
             No goals yet
           </Text>
@@ -187,7 +191,7 @@ export function SmartGoalCoachScreen() {
         <ReAnimated.View entering={FadeInUp.duration(500)} style={{ paddingHorizontal: 16 }}>
           <View style={[s.heroCard, { borderColor: AI_COLORS.border }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-              <Text style={{ fontSize: 40 }}>{hero.emoji}</Text>
+              <AntDesign name={hero.emoji as any} size={40} color={AI_COLORS.primary} />
               <View style={{ flex: 1 }}>
                 <Text style={s.heroTitle}>{hero.name}</Text>
                 <Text style={s.heroAmt}>
@@ -288,7 +292,7 @@ export function SmartGoalCoachScreen() {
                   <ReAnimated.View key={goal.id} entering={FadeInUp.duration(300)}>
                     <AiCard padding={16}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                        <Text style={{ fontSize: 28 }}>{goal.emoji}</Text>
+                        <AntDesign name={goal.emoji as any} size={28} color={AI_COLORS.primary} />
                         <View style={{ flex: 1 }}>
                           <Text style={{ fontSize: 15, fontWeight: '700', color: AI_COLORS.text }}>
                             {goal.name}

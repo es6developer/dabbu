@@ -7,7 +7,8 @@ import { api } from '../../services/api';
 import { spacing, borderRadius } from '../../theme/design';
 
 export function SupportScreen() {
-  const { theme } = useTheme();
+  const { colors: c } = useTheme();
+  const theme = { background: c.bg.primary, text: c.text.primary, card: c.bg.card, subtext: c.text.secondary, muted: c.text.tertiary, primary: c.accent.primary, border: c.border.subtle };
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<'faq' | 'tickets' | 'new'>('faq');
   const [faqs, setFaqs] = useState<any[]>([]);

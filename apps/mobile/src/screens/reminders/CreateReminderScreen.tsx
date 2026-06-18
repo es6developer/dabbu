@@ -1,31 +1,53 @@
 import React, { useState } from 'react';
-import { Switch, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../../store/ToastContext';
-import { DatePickerField } from '../../components/ui/DatePickerField';
 import {
-  PremiumActionButton,
-  PremiumChip,
-  PremiumError,
-  PremiumFormScreen,
-  PremiumInput,
-  premiumFormStyles,
-} from '../../components/ui';
+  FormScreen,
+  FormSection,
+  FormField,
+  FormTextArea,
+  FormChipGroup,
+  FormDatePicker,
+  FormToggle,
+  FormFooter,
+  FormError,
+} from '../../components/forms';
 
-const REMINDER_TYPES = ['general', 'payment', 'bill', 'subscription', 'goal'];
-const PRIORITIES = ['low', 'medium', 'high', 'urgent'];
-const FREQUENCIES = ['daily', 'weekly', 'biweekly', 'monthly', 'quarterly', 'yearly'];
+const REMINDER_TYPES = [
+  { label: 'General', value: 'general', icon: 'appstore-o' },
+  { label: 'Payment', value: 'payment', icon: 'wallet' },
+  { label: 'Bill', value: 'bill', icon: 'receipt' },
+  { label: 'Subscription', value: 'subscription', icon: 'sync' },
+  { label: 'Goal', value: 'goal', icon: 'star' },
+];
+
+const PRIORITIES = [
+  { label: 'Low', value: 'low', icon: 'flag' },
+  { label: 'Medium', value: 'medium', icon: 'flag' },
+  { label: 'High', value: 'high', icon: 'alert-circle' },
+  { label: 'Urgent', value: 'urgent', icon: 'flame' },
+];
+
+const FREQUENCIES = [
+  { label: 'Daily', value: 'daily', icon: 'calendar' },
+  { label: 'Weekly', value: 'weekly', icon: 'calendar' },
+  { label: 'Biweekly', value: 'biweekly', icon: 'calendar' },
+  { label: 'Monthly', value: 'monthly', icon: 'calendar' },
+  { label: 'Quarterly', value: 'quarterly', icon: 'calendar' },
+  { label: 'Yearly', value: 'yearly', icon: 'calendar' },
+];
+
 const DAYS_OF_WEEK = [
-  { label: 'Sun', value: 0 },
-  { label: 'Mon', value: 1 },
-  { label: 'Tue', value: 2 },
-  { label: 'Wed', value: 3 },
-  { label: 'Thu', value: 4 },
-  { label: 'Fri', value: 5 },
-  { label: 'Sat', value: 6 },
+  { label: 'Sun', value: '0' },
+  { label: 'Mon', value: '1' },
+  { label: 'Tue', value: '2' },
+  { label: 'Wed', value: '3' },
+  { label: 'Thu', value: '4' },
+  { label: 'Fri', value: '5' },
+  { label: 'Sat', value: '6' },
 ];
 
 export function CreateReminderScreen() {
@@ -42,38 +64,29 @@ export function CreateReminderScreen() {
   const [isRecurring, setIsRecurring] = useState(false);
   const [frequency, setFrequency] = useState('weekly');
   const [interval, setInterval] = useState('1');
-  const [dayOfWeek, setDayOfWeek] = useState(1);
+  const [dayOfWeek, setDayOfWeek] = useState('1');
   const [category, setCategory] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   async function handleSave() {
-    if (!title.trim()) {
-      setError('Title is required');
-      return;
-    }
+    if (!title.trim()) { setError('Title is required'); return; }
     setError('');
     setSaving(true);
-    if (accessToken) {
-      setAccessToken(accessToken);
-    }
+    if (accessToken) setAccessToken(accessToken);
     try {
       const data: any = {
         title: title.trim(),
         description: description.trim(),
-        type,
-        priority,
-        startDate,
+        type, priority, startDate,
       };
-      if (dueDate) {
-        data.dueDate = dueDate;
-      }
+      if (dueDate) data.dueDate = dueDate;
       if (isRecurring) {
         data.isRecurring = true;
         data.recurring = {
           frequency,
           interval: parseInt(interval, 10) || 1,
-          daysOfWeek: [dayOfWeek],
+          daysOfWeek: [parseInt(dayOfWeek, 10)],
         };
       }
       await api.post('/reminders', data);
@@ -87,69 +100,58 @@ export function CreateReminderScreen() {
   }
 
   return (
+<<<<<<< Updated upstream
     <PremiumFormScreen
       title="New reminder"
       subtitle="Design the reminder rhythm once, then let Dabbu keep it visible."
       icon="bells"
+=======
+    <FormScreen
+      title="New Reminder"
+      subtitle="Design the reminder rhythm once, then let Dabbu keep it visible"
+      icon="notifications"
+>>>>>>> Stashed changes
       accent={[colors.status.warning, colors.accent.primary]}
+      footer={
+        <FormFooter title="Create Reminder" icon="add" loading={saving} onPress={handleSave} />
+      }
     >
-      <PremiumError message={error} />
-      <PremiumInput
-        label="Title"
-        icon="bells"
-        value={title}
-        onChangeText={setTitle}
-        placeholder="Reminder title"
-      />
-      <PremiumInput
-        label="Description"
-        icon="filetext1"
-        value={description}
-        onChangeText={setDescription}
-        placeholder="Description"
-        multiline
-        numberOfLines={4}
-      />
-      <Text style={[local.label, { color: colors.text.tertiary }]}>Type</Text>
-      <View style={premiumFormStyles.rowWrap}>
-        {REMINDER_TYPES.map((t) => (
-          <PremiumChip
-            key={t}
-            label={t.charAt(0).toUpperCase() + t.slice(1)}
-            selected={type === t}
-            onPress={() => setType(t)}
-          />
-        ))}
-      </View>
-      <Text style={[local.label, { color: colors.text.tertiary }]}>Priority</Text>
-      <View style={premiumFormStyles.rowWrap}>
-        {PRIORITIES.map((p) => (
-          <PremiumChip
-            key={p}
-            label={p.charAt(0).toUpperCase() + p.slice(1)}
-            selected={priority === p}
-            icon={p === 'urgent' ? 'flame' : p === 'high' ? 'alert-circle' : 'flag'}
-            onPress={() => setPriority(p)}
-          />
-        ))}
-      </View>
-      <DatePickerField label="Start Date" value={startDate} onChange={setStartDate} />
-      <DatePickerField label="Due Date" value={dueDate} onChange={setDueDate} optional />
-      <PremiumInput
-        label="Category"
-        icon="tag"
-        value={category}
-        onChangeText={setCategory}
-        placeholder="e.g. Work, Personal"
-      />
-      <View style={premiumFormStyles.splitRow}>
-        <Text style={[local.label, { color: colors.text.tertiary, marginTop: 0 }]}>Recurring</Text>
-        <Switch
+      <FormError message={error} />
+
+      <FormSection title="Reminder Details">
+        <FormField
+          label="Title"
+          icon="bells"
+          value={title}
+          onChangeText={setTitle}
+          placeholder="Reminder title"
+          required
+        />
+        <FormTextArea
+          label="Description"
+          icon="filetext1"
+          value={description}
+          onChangeText={setDescription}
+          placeholder="Reminder description"
+        />
+      </FormSection>
+
+      <FormSection title="Classification">
+        <FormChipGroup label="Type" options={REMINDER_TYPES} selected={type} onSelect={setType} size="sm" />
+        <FormChipGroup label="Priority" options={PRIORITIES} selected={priority} onSelect={setPriority} size="sm" />
+        <FormField label="Category" icon="tag" value={category} onChangeText={setCategory} placeholder="e.g. Work, Personal" />
+      </FormSection>
+
+      <FormSection title="Schedule">
+        <FormDatePicker label="Start Date" value={startDate} onChange={setStartDate} />
+        <FormDatePicker label="Due Date" value={dueDate} onChange={setDueDate} optional />
+        <FormToggle
+          label="Recurring"
           value={isRecurring}
           onValueChange={setIsRecurring}
-          trackColor={{ false: colors.border.subtle, true: colors.accent.primary }}
-          thumbColor={isRecurring ? '#FFFFFF' : colors.text.tertiary}
+          description="Repeat this reminder automatically"
         />
+<<<<<<< Updated upstream
       </View>
       {isRecurring ? (
         <>
@@ -192,16 +194,16 @@ export function CreateReminderScreen() {
         icon="plus"
       />
     </PremiumFormScreen>
+=======
+        {isRecurring && (
+          <>
+            <FormChipGroup label="Frequency" options={FREQUENCIES} selected={frequency} onSelect={setFrequency} size="sm" />
+            <FormField label="Interval" icon="retweet" value={interval} onChangeText={setInterval} placeholder="1" keyboardType="number-pad" />
+            <FormChipGroup label="Day of Week" options={DAYS_OF_WEEK} selected={dayOfWeek} onSelect={setDayOfWeek} size="sm" />
+          </>
+        )}
+      </FormSection>
+    </FormScreen>
+>>>>>>> Stashed changes
   );
 }
-
-const local = {
-  label: {
-    fontSize: 12,
-    fontWeight: '800' as const,
-    marginBottom: 8,
-    marginTop: 16,
-    textTransform: 'uppercase' as const,
-    letterSpacing: 0.8,
-  },
-};

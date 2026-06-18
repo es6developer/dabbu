@@ -1,22 +1,34 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { api, setAccessToken } from '../../services/api';
 import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../../store/ToastContext';
-import { DatePickerField } from '../../components/ui/DatePickerField';
 import {
-  PremiumActionButton,
-  PremiumChip,
-  PremiumError,
-  PremiumFormScreen,
-  PremiumInput,
-  premiumFormStyles,
-} from '../../components/ui';
+  FormScreen,
+  FormSection,
+  FormField,
+  FormTextArea,
+  FormChipGroup,
+  FormDatePicker,
+  FormFooter,
+  FormError,
+} from '../../components/forms';
 
-const PRIORITIES = ['low', 'medium', 'high', 'urgent'];
-const TASK_CATEGORIES = ['General', 'Grocery', 'Shopping', 'Custom'];
+const PRIORITIES = [
+  { label: 'Low', value: 'low', icon: 'flag' },
+  { label: 'Medium', value: 'medium', icon: 'flag' },
+  { label: 'High', value: 'high', icon: 'alert-circle' },
+  { label: 'Urgent', value: 'urgent', icon: 'flame' },
+];
+
+const TASK_CATEGORIES = [
+  { label: 'General', value: 'General', icon: 'appstore-o' },
+  { label: 'Grocery', value: 'Grocery', icon: 'basket' },
+  { label: 'Shopping', value: 'Shopping', icon: 'cart' },
+  { label: 'Custom', value: 'Custom', icon: 'tag' },
+];
 
 export function CreateTaskScreen() {
   const { colors } = useTheme();
@@ -34,9 +46,7 @@ export function CreateTaskScreen() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (accessToken) {
-      setAccessToken(accessToken);
-    }
+    if (accessToken) setAccessToken(accessToken);
     loadFamilyMembers();
   }, [accessToken]);
 
@@ -46,21 +56,14 @@ export function CreateTaskScreen() {
       const families = Array.isArray(res) ? res : [];
       const members = families.flatMap((f: any) => f.members || []);
       setFamilyMembers(members);
-    } catch (_e) {
-      /* ignore */
-    }
+    } catch {}
   }
 
   async function handleSave() {
-    if (!title.trim()) {
-      setError('Title is required');
-      return;
-    }
+    if (!title.trim()) { setError('Title is required'); return; }
     setError('');
     setSaving(true);
-    if (accessToken) {
-      setAccessToken(accessToken);
-    }
+    if (accessToken) setAccessToken(accessToken);
     try {
       await api.post('/family/tasks', {
         title: title.trim(),
@@ -79,46 +82,76 @@ export function CreateTaskScreen() {
     }
   }
 
+  const memberOptions = familyMembers.map((m: any) => {
+    const memberId = m.userId || m.id;
+    return { label: m.firstName || m.name || m.user?.firstName || 'Member', value: memberId, icon: 'user' };
+  });
+
   return (
+<<<<<<< Updated upstream
     <PremiumFormScreen
       title="New task"
       subtitle="Assign ownership, set priority, and keep family work moving without clutter."
       icon="checkcircle"
       accent={[colors.accent.primary, colors.accent.primary]}
+=======
+    <FormScreen
+      title="New Task"
+      subtitle="Assign ownership, set priority, and keep family work moving"
+      icon="checkbox"
+      accent={[colors.accent.primary, colors.status.info]}
+      footer={
+        <FormFooter title="Create Task" icon="add" loading={saving} onPress={handleSave} />
+      }
+>>>>>>> Stashed changes
     >
-      <PremiumError message={error} />
-      <PremiumInput
-        label="Title"
-        icon="check"
-        value={title}
-        onChangeText={setTitle}
-        placeholder="Task title"
-      />
-      <PremiumInput
-        label="Description"
-        icon="filetext1"
-        value={description}
-        onChangeText={setDescription}
-        placeholder="Description"
-        multiline
-        numberOfLines={4}
-      />
-      <Text style={[local.label, { color: colors.text.tertiary }]}>Category</Text>
-      <View style={premiumFormStyles.rowWrap}>
-        {TASK_CATEGORIES.map((c) => (
-          <PremiumChip key={c} label={c} selected={category === c} onPress={() => setCategory(c)} />
-        ))}
-      </View>
-      <Text style={[local.label, { color: colors.text.tertiary }]}>Priority</Text>
-      <View style={premiumFormStyles.rowWrap}>
-        {PRIORITIES.map((p) => (
-          <PremiumChip
-            key={p}
-            label={p.charAt(0).toUpperCase() + p.slice(1)}
-            selected={priority === p}
-            icon={p === 'urgent' ? 'flame' : p === 'high' ? 'alert-circle' : 'flag'}
-            onPress={() => setPriority(p)}
+      <FormError message={error} />
+
+      <FormSection title="Task Details">
+        <FormField
+          label="Title"
+          icon="check"
+          value={title}
+          onChangeText={setTitle}
+          placeholder="Task title"
+          required
+        />
+        <FormTextArea
+          label="Description"
+          icon="filetext1"
+          value={description}
+          onChangeText={setDescription}
+          placeholder="Task description"
+        />
+      </FormSection>
+
+      <FormSection title="Classification">
+        <FormChipGroup
+          label="Category"
+          options={TASK_CATEGORIES}
+          selected={category}
+          onSelect={setCategory}
+          size="sm"
+        />
+        <FormChipGroup
+          label="Priority"
+          options={PRIORITIES}
+          selected={priority}
+          onSelect={setPriority}
+          size="sm"
+        />
+      </FormSection>
+
+      <FormSection title="Assignment">
+        {familyMembers.length > 0 ? (
+          <FormChipGroup
+            label="Assign To"
+            options={memberOptions}
+            selected={assignedTo}
+            onSelect={(v) => setAssignedTo(assignedTo === v ? '' : v)}
+            size="sm"
           />
+<<<<<<< Updated upstream
         ))}
       </View>
       <Text style={[local.label, { color: colors.text.tertiary }]}>Assign To</Text>
@@ -145,21 +178,15 @@ export function CreateTaskScreen() {
       <DatePickerField label="Due Date" value={dueDate} onChange={setDueDate} optional />
       <PremiumActionButton title="Create task" onPress={handleSave} loading={saving} icon="plus" />
     </PremiumFormScreen>
+=======
+        ) : (
+          <Text style={{ fontSize: 14, fontStyle: 'italic', color: colors.text.tertiary }}>
+            No family members found. Join a family first.
+          </Text>
+        )}
+        <FormDatePicker label="Due Date" value={dueDate} onChange={setDueDate} optional />
+      </FormSection>
+    </FormScreen>
+>>>>>>> Stashed changes
   );
 }
-
-const local = {
-  label: {
-    fontSize: 12,
-    fontWeight: '800' as const,
-    marginBottom: 8,
-    marginTop: 16,
-    textTransform: 'uppercase' as const,
-    letterSpacing: 0.8,
-  },
-  empty: {
-    fontSize: 14,
-    fontStyle: 'italic' as const,
-    marginBottom: 4,
-  },
-};

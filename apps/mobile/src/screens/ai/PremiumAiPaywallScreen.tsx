@@ -9,7 +9,7 @@ import {
   Platform,
   Animated,
 } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import ReAnimated, { FadeInUp, FadeIn } from 'react-native-reanimated';
@@ -219,7 +219,11 @@ export function PremiumAiPaywallScreen() {
           style={[s.heroSection, { paddingTop: insets.top + 60 }]}
         >
           <View style={s.heroIconWrap}>
+<<<<<<< Updated upstream
             <AntDesign name="star" size={40} color={AI_COLORS.primary} />
+=======
+            <Ionicons  name="diamond" size={40} color={AI_COLORS.primary} />
+>>>>>>> Stashed changes
           </View>
           <Text style={s.heroTitle}>Unlock Dabbu AI</Text>
           <Text style={s.heroDesc}>

@@ -13,8 +13,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+<<<<<<< Updated upstream
 import { spacing, borderRadius, shadows } from '../../theme/design';
 import { LinearGradient } from 'expo-linear-gradient';
+=======
+import { PADDING, borderRadius, shadows } from '../../theme/design';
+import { onboardingIllustrations } from '../../components/OnboardingIllustrations';
+>>>>>>> Stashed changes
 
 const { width, height } = Dimensions.get('window');
 const IMG_H = height * 0.52;
@@ -27,6 +32,7 @@ const localImages = {
 
 const slides = [
   {
+<<<<<<< Updated upstream
     id: 'track',
     image: localImages.track,
     title: 'Track Every Rupee',
@@ -36,16 +42,35 @@ const slides = [
   {
     id: 'couple',
     image: localImages.couple,
+=======
+    Illustration: onboardingIllustrations[0],
+>>>>>>> Stashed changes
     title: 'Build Wealth Together',
     tagline: 'I can manage finances with my partner',
     subtitle: 'Share goals, track expenses, and manage your finances as a couple.',
   },
   {
+<<<<<<< Updated upstream
     id: 'split',
     image: localImages.split,
     title: 'Split Payments Easily',
     tagline: 'I can split and settle expenses easily',
     subtitle: 'Share bills, rent, trips, and group expenses without confusion.',
+=======
+    Illustration: onboardingIllustrations[1],
+    title: 'Smart Goal Planning',
+    desc: 'Set savings goals, track progress, and let AI suggest the best way to reach each milestone faster.',
+  },
+  {
+    Illustration: onboardingIllustrations[2],
+    title: 'Shared Money. Shared Dreams.',
+    desc: 'Create private spaces with your partner, split expenses, track shared budgets, and align on financial priorities.',
+  },
+  {
+    Illustration: onboardingIllustrations[3],
+    title: 'Your Financial Health',
+    desc: 'Monitor your health score, get AI-powered insights, and earn achievements as you build better habits.',
+>>>>>>> Stashed changes
   },
 ];
 
@@ -59,8 +84,13 @@ function SlideContent({
   colors: any;
 }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
+<<<<<<< Updated upstream
   const slideAnim = useRef(new Animated.Value(24)).current;
   const imgScale = useRef(new Animated.Value(0.92)).current;
+=======
+  const slideAnim = useRef(new Animated.Value(30)).current;
+  const { Illustration } = item;
+>>>>>>> Stashed changes
 
   useEffect(() => {
     if (isActive) {
@@ -84,6 +114,7 @@ function SlideContent({
           transform: [{ translateY: slideAnim }],
         }}
       >
+<<<<<<< Updated upstream
         {/* Image */}
         <View style={s.imgSection}>
           <View style={s.imgGlow} />
@@ -105,6 +136,10 @@ function SlideContent({
           <Text style={[s.subtitle, { color: colors.text.secondary }]}>
             {item.subtitle}
           </Text>
+=======
+        <View style={{ marginBottom: 40 }}>
+          <Illustration size={200} />
+>>>>>>> Stashed changes
         </View>
       </Animated.View>
     </View>
@@ -202,6 +237,7 @@ export function OnboardingScreen({ route }: any) {
           ))}
         </View>
 
+<<<<<<< Updated upstream
         {isLast && (
           <Text
             onPress={async () => {
@@ -209,6 +245,34 @@ export function OnboardingScreen({ route }: any) {
               navigation.replace('Login');
             }}
             style={[s.getStarted, { color: '#FFFFFF', backgroundColor: colors.accent.primary }]}
+=======
+        {/* Get Started — only visible on last slide; swipe for rest */}
+        {isLast && (
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={handleNext}
+            style={{
+              backgroundColor: colors.accent.primary,
+              paddingVertical: 16,
+              borderRadius: borderRadius.xl,
+              alignItems: 'center',
+              justifyContent: 'center',
+              ...shadows.md,
+              shadowColor: colors.accent.primary,
+            }}
+          >
+            <Text style={{ color: '#FFF', fontSize: 17, fontWeight: '700' }}>
+              Get Started
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Back button - visible on all except first screen */}
+        {!isFirst && (
+          <TouchableOpacity
+            onPress={handlePrev}
+            style={{ alignItems: 'center', paddingVertical: 12, marginTop: 4 }}
+>>>>>>> Stashed changes
           >
             Get Started
           </Text>

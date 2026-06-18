@@ -9,7 +9,7 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { api } from '../../services/api';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../theme';
@@ -129,7 +129,11 @@ export function CoupleDashboard() {
           onPress={() => navigation.navigate('CoupleGoals')}
         >
           <View style={[styles.actionIcon, { backgroundColor: COUPLE_COLORS.heart }]}>
+<<<<<<< Updated upstream
             <AntDesign name="star" size={22} color="#FFF" />
+=======
+            <Ionicons name="trophy" size={22} color="#FFF" />
+>>>>>>> Stashed changes
           </View>
           <Text style={styles.actionLabel}>Goals</Text>
         </TouchableOpacity>

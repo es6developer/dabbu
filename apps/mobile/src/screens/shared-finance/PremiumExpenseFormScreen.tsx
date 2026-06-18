@@ -4,7 +4,7 @@ import {
   ActivityIndicator, ScrollView, Platform, Animated, Vibration,
   KeyboardAvoidingView, Keyboard, Dimensions,
 } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -14,16 +14,16 @@ import { useToast } from '../../store/ToastContext';
 import { useTheme } from '../../theme';
 import { spacing, borderRadius } from '../../theme/design';
 const CATEGORIES = [
-  { key: 'Housing', emoji: '\u{1F3E0}' },
-  { key: 'Groceries', emoji: '\u{1F6D2}' },
-  { key: 'Food', emoji: '\u{1F37D}\uFE0F' },
-  { key: 'Utilities', emoji: '\u26A1' },
-  { key: 'Transport', emoji: '\u{1F697}' },
-  { key: 'Healthcare', emoji: '\u{1F3E5}' },
-  { key: 'Entertainment', emoji: '\u{1F3AC}' },
-  { key: 'Shopping', emoji: '\u{1F6CD}\uFE0F' },
-  { key: 'Education', emoji: '\u{1F4DA}' },
-  { key: 'Other', emoji: '\u{1F4CC}' },
+  { key: 'Housing', icon: 'home-outline' },
+  { key: 'Groceries', icon: 'cart-outline' },
+  { key: 'Food', icon: 'restaurant-outline' },
+  { key: 'Utilities', icon: 'flash-outline' },
+  { key: 'Transport', icon: 'car-outline' },
+  { key: 'Healthcare', icon: 'medical-outline' },
+  { key: 'Entertainment', icon: 'film-outline' },
+  { key: 'Shopping', icon: 'bag-handle-outline' },
+  { key: 'Education', icon: 'book-outline' },
+  { key: 'Other', icon: 'ellipsis-horizontal-outline' },
 ];
 
 const SPLIT_TYPES = [
@@ -206,9 +206,15 @@ export function PremiumExpenseFormScreen() {
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
+<<<<<<< Updated upstream
         <View style={[s.header, { paddingTop: insets.top + spacing.sm }]}>
           <TouchableOpacity onPress={handleBack} style={[s.headerBtn, { backgroundColor: colors.bg.secondary }]}>
             <AntDesign  name="arrowleft" size={20} color={colors.text.primary} />
+=======
+        <View style={[s.header, { paddingTop: insets.top + 8 }]}>
+          <TouchableOpacity onPress={handleBack} style={s.headerBtn}>
+            <Ionicons name="arrow-back-outline" size={22} color="#0F172A" />
+>>>>>>> Stashed changes
           </TouchableOpacity>
           <Text style={[s.headerTitle, { color: colors.text.primary }]}>{step === 'details' ? 'New Expense' : 'Split'}</Text>
           <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -268,8 +274,13 @@ export function PremiumExpenseFormScreen() {
               <TouchableOpacity style={s.fieldGroup} onPress={() => setShowDatePicker(true)} activeOpacity={0.7}>
                 <Text style={[s.fieldLabel, { color: colors.text.tertiary }]}>Date</Text>
                 <View style={s.rowBetween}>
+<<<<<<< Updated upstream
                   <Text style={[s.valueText, { color: colors.text.primary }]}>{formatDate(expenseDate)}</Text>
                   <AntDesign  name="down" size={14} color={colors.text.tertiary} />
+=======
+                  <Text style={s.valueText}>{formatDate(expenseDate)}</Text>
+                  <Ionicons name="chevron-down-outline" size={16} color="#94A3B8" />
+>>>>>>> Stashed changes
                 </View>
               </TouchableOpacity>
 
@@ -309,8 +320,13 @@ export function PremiumExpenseFormScreen() {
                         onPress={() => setCategory(c.key)}
                         style={[s.catCard, { borderColor: colors.border.subtle }, sel && { backgroundColor: colors.accent.primary, borderColor: colors.accent.primary }]}
                       >
+<<<<<<< Updated upstream
                         <Text style={s.catEmoji}>{c.emoji}</Text>
                         <Text style={[s.catLabel, { color: sel ? '#FFF' : colors.text.tertiary }]}>{c.key}</Text>
+=======
+                        <Ionicons name={c.icon as any} size={20} color={sel ? '#FFF' : '#64748B'} />
+                        <Text style={[s.catLabel, { color: sel ? '#FFF' : '#64748B' }]}>{c.key}</Text>
+>>>>>>> Stashed changes
                       </TouchableOpacity>
                     );
                   })}

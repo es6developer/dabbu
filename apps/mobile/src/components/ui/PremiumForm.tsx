@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import React, { ReactNode } from 'react';
 import {
   ActivityIndicator,
@@ -482,3 +483,14 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
 });
+=======
+export {
+  FormScreen as PremiumFormScreen,
+  FormField as PremiumInput,
+  FormAmountField as PremiumAmountInput,
+  FormChip as PremiumChip,
+  FormError as PremiumError,
+  FormFooter as PremiumActionButton,
+  formStyles as premiumFormStyles,
+} from '../forms';
+>>>>>>> Stashed changes

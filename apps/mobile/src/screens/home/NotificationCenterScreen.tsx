@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { ListSkeleton } from '../../components/ui/AnimatedSkeleton';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api, setAccessToken } from '../../services/api';
@@ -243,7 +243,11 @@ export function NotificationCenterScreen() {
             ]}
           >
             <AntDesign
+<<<<<<< Updated upstream
               name={(getCategoryIcon(item.category)) as any}
+=======
+              name={getCategoryIcon(item.category) as any}
+>>>>>>> Stashed changes
               size={18}
               color={item.overdue ? '#FF3B30' : priorityColor}
             />
@@ -290,7 +294,11 @@ export function NotificationCenterScreen() {
             style={[styles.actionBtn, { backgroundColor: colors.bg.tertiary }]}
             onPress={() => handlePress(item)}
           >
+<<<<<<< Updated upstream
             <AntDesign name="folder1" size={14} color={colors.accent.primary} />
+=======
+            <Ionicons  name="open" size={14} color={colors.accent.primary} />
+>>>>>>> Stashed changes
             <Text style={[styles.actionText, { color: colors.accent.primary }]}>Open</Text>
           </TouchableOpacity>
           <TouchableOpacity

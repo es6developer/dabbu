@@ -202,15 +202,25 @@ export function AnomalyDetectionScreen() {
                     <View style={{ flexDirection: 'row', gap: 12 }}>
                       <View style={[s.aIcon, { backgroundColor: `${clr}20` }]}>
                         <AntDesign
+<<<<<<< Updated upstream
                           name={(
                             a.type === 'spending_spike'
+=======
+                          name={
+                            (a.type === 'spending_spike'
+>>>>>>> Stashed changes
                               ? 'trending-up'
                               : a.type === 'large_transaction'
                                 ? 'cart'
                                 : a.type === 'income_drop'
                                   ? 'trending-down'
+<<<<<<< Updated upstream
                                   : 'warning'
                           ) as any}
+=======
+                                  : 'warning') as any
+                          }
+>>>>>>> Stashed changes
                           size={20}
                           color={clr}
                         />
